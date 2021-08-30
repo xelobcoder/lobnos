@@ -1,9 +1,9 @@
 import React from 'react'
 
-export default function Validator() {
+export default function Labscientist() {
     return (
-        <div>
-            <label>Validator</label>
+        <div className="split-label-test">
+            <label>Laboratory scientist/technician</label>
             <input type="text" className="form-control" id="validator" required />
         </div>
     )
