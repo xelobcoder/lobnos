@@ -2,7 +2,7 @@ body {
   margin: 0;
   padding: 0;
   color: black;
-  background-color: whitesmoke;
+  background-color: rgba(32, 178, 171, 0.062);
   width: 100%;
   height: 100%;
   -webkit-box-sizing: border-box;
@@ -13,19 +13,14 @@ body {
 
 #login-wrapper {
   margin: 5% 30% 20% 30%;
+  background-color: white;
+  padding: 0px 20px 20px 20px;
 }
 
 #login-wrapper label {
   font-size: 15px;
   color: gray;
-  font-family: Arial, Helvetica, sans-serif;
-  margin-bottom: 20px;
-}
-
-#login-wrapper label:before {
-  content: "*";
-  margin-right: 5px;
-  color: red;
+  margin-bottom: 10px;
 }
 
 #header-list {
@@ -49,5 +44,63 @@ body {
   padding: 5px 10px;
   -webkit-transition: 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   transition: 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#password-change-wrapper {
+  margin: 10% 30%;
+  border: 1px solid whitesmoke;
+  padding: 20px 20px;
+  width: 200px;
+  height: 200px;
+  background-color: white;
+}
+
+#password-change-wrapper input {
+  border: 2px solid lightseagreen;
+}
+
+#password-change-wrapper div div button {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: end;
+      -ms-flex-pack: end;
+          justify-content: end;
+}
+
+#password-change-wrapper label {
+  color: gray;
+  text-transform: capitalize;
+}
+
+#credentials {
+  margin: 20px 20px;
+  padding: 20px 20px;
+}
+
+#credentials form {
+  margin: 0px 200px;
+}
+
+#credentials form label {
+  margin-bottom: 20px;
+}
+
+#credentials form input[type="text"] {
+  height: 60px;
+  border: 1px solid black;
+  color: gray;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  text-transform: capitalize;
+}
+
+#credentials form label {
+  text-transform: capitalize;
+  color: gray;
+}
+
+#button {
+  padding: 10px 30px;
+  border-radius: 20px;
 }
 /*# sourceMappingURL=login.css.map */

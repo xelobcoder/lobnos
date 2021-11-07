@@ -29,7 +29,7 @@ export default class Addtest extends Component {
             <div className="col-4">
                 <label>name </label>
                 <input type="text" className="form-control" id="name"  />
-                <div style={{"display":"grid","grid-template-columns":"80% 10%","width":"100%"}}>
+                <div>
                     <div>
                         <label>category</label>
                         <input type="text" className="form-control" list="category"/>

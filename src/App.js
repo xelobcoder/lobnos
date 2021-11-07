@@ -1,5 +1,6 @@
 import React from 'react';
-import Firstpage from './component/firstpage';
+import Addtest from './component/laboratory/settingsForms/addtest';
+
 
 
 
@@ -7,7 +8,7 @@ import Firstpage from './component/firstpage';
 export default function App() {
    return (
      <section>
-        <Firstpage/>
+       <Addtest/>
      </section>
    )
 }

@@ -11,7 +11,7 @@ export default function Login() {
                     <label>Username or email</label>
                     <input type="text" className="form-control" id="username" autocomplete="off"/>
                     <label>Password</label>
-                    <input type="text" className="form-control" id="password" autocomplete="off"/>
+                    <input type="password" className="form-control" id="password" autocomplete="off"/>
                     <div className="d-flex justify-content-between mt-3">
                     <button type="button" className="btn btn-outline-primary text-capitalize">login</button>
                     </div>

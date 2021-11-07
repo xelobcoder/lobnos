@@ -15,11 +15,11 @@ export default function Firstpage() {
                 <Route exact path="/password" component={Password}/>
                 <Route exact path="/credentials" component={Credentials}/>
               </Switch>
-              <div className="container">
+              {/* <div className="container">
                   <div className="introduction-wrapper">
                     <h1>welcome to lobnos laboratory information system</h1>   
                   </div> 
-              </div>
+              </div> */}
            </BrowserRouter>
         </div>
     )

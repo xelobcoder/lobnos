@@ -5,10 +5,14 @@ export default function Password() {
         <div className="container-fluid">
             <div className="container">
                 <div className="row">
-                    <div className="col">
-                        <label>enter phone number</label>
-                        <input type="number" className="form-control" id="forgot-password" autoComplete="false" />
-                        <button className="btn btn-primary text-small">send</button>
+                    <div className="col" id="password-change-wrapper">
+                        <div>
+                             <label>Enter mobile number</label>
+                             <div>
+                                <input type="tel" className="form-control mt-3 mr-3" placeholder="digits..." id="forgot-password" autoComplete="false" />
+                                <button className="btn btn-primary text-small mt-3">send</button>
+                             </div>
+                        </div>
                     </div>
                 </div>
             </div>
