@@ -1,26 +1,11 @@
 {
   "name": "lobnos",
-  "version": "1.0.0",
-  "description": "leonides complete laboratory information storage system for small to medium size laboratories",
-  "main": "App.js",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/xelobcoder/lobnos.git"
-  },
-  "keywords": [
-    "lims",
-    "lobnos",
-    "laboratory",
-    "health",
-    "diagnostics"
-  ],
-  "author": "Tiifu Hamza",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/xelobcoder/lobnos/issues"
-  },
-  "homepage": "https://github.com/xelobcoder/lobnos#readme"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  }
 }
