@@ -1,1 +1,0 @@
-// for viewing all images to the server 

@@ -1,1 +1,0 @@
-// for creating session and making all company logins persisntent for days
