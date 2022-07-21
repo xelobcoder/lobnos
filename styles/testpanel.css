@@ -1,0 +1,8 @@
+.wrapper-top-panel {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: 15% auto;
+      grid-template-columns: 15% auto;
+  margin: 0;
+}
+/*# sourceMappingURL=testpanel.css.map */

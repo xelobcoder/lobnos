@@ -1,0 +1,9 @@
+{
+    "version": 3,
+    "mappings": "AAAA,AAAA,kBAAkB,CAAA;EACd,OAAO,EAAE,IAAI;EACb,qBAAqB,EAAE,QAAQ;EAC/B,MAAM,EAAE,CAAC;CACZ",
+    "sources": [
+        "testpanel.scss"
+    ],
+    "names": [],
+    "file": "testpanel.css"
+}
