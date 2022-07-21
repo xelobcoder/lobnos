@@ -1,8 +1,17 @@
+import Head from 'next/head';
 function Home() {
     return (
-        <div>
-           Home
-        </div>
+        <>
+            <Head>
+               <title>lobnos Laboratory management information system</title>
+               <meta name='lobnos' description="laboratory information management system for small to medium clinical
+               health care laboratories"></meta>
+            </Head>
+            <div>
+                Home
+            </div>
+
+        </>
     )
 }
 

@@ -2,18 +2,31 @@ function Main() {
     return(
         <div className="container">
             <div className="row">
-                <div className="col-md-12">
+                <div className="wizard">
                     <div className="sidebar-wizard">
-                        <div>
-                            <ul>
-                                <li className="wizard-sidebar-list"> 
-                                    kidney function test
-                                </li>
-                                <li className="wizard-sidebar-list">
-                                    liver function test
-                                </li>
-                            </ul>
-                        </div>
+                        <ul>
+                            <li> 
+                                kidney function test
+                            </li>
+                            <li >
+                                liver function test
+                            </li>
+                            <li>
+                                lipid profile
+                            </li>
+                            <li>
+                                blood profile
+                            </li>
+                            <li>
+                                blood sugar
+                            </li>
+                            <li>
+                                blood pressure
+                            </li>
+                            <li>
+                                blood cholesterol
+                            </li>
+                        </ul>
                     </div>
                     <div className="mainbar-wizard">
                
