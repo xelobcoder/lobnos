@@ -4,7 +4,7 @@ import Header from "../../components/header";
 function Clients () {
     return (
         <>
-           <h1>Clients</h1>
+           
         </>
     )
 }

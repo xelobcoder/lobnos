@@ -3,8 +3,8 @@ body{
    padding: 0;
    overflow-x: hidden;
    overflow-y: auto;
-   background-color: rgba(128, 128, 128, 0.121);
-   font-family: 'Roboto', Helvetica;
+   background-color: rgba(147, 144, 144, 0.101);
+   font-family: 'Roboto', Helvetica, Arial, sans-serif;
 }
 .grid-2{
    display: grid;
@@ -56,4 +56,58 @@ table{
 .tbody{
    margin: 0;
    padding: 5px 10px;
+}
+.add-clinician-view{
+   padding: 30px 100px;
+   width: 70vw;
+
+}
+.add-clinician-view input {
+   width: 50%;
+   height: 30px !important;
+   border: 1px solid rgba(0, 0, 0, 0.147);
+}
+
+.add-clinician-view label{
+   font-size: 15px;
+   color: black;
+}
+
+tbody > tr > td:nth-child(4){
+   color: red;
+}
+
+tbody > tr > td:nth-child(2){
+   color: green;
+}
+
+#filterer-top input{
+   margin-left: 10px;
+   border: 1px solid lightgray;
+   width: 80%;
+   height: 30px;
+   border-radius: 0px;
+}
+
+#filterer-top{
+   background-color: white;
+   border-bottom: 1px solid lightgray;
+}
+
+#filterer-top button {
+   border-radius: 0px;
+   margin-left: 10px;
+}
+
+#filterer-top input:focus{
+   outline: none;
+}
+
+#filterer-top button:focus{
+   outline: none;
+   box-shadow: none;
+}
+
+.checked {
+   color: blue;
 }

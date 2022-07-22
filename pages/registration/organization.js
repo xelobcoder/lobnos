@@ -56,7 +56,7 @@ const OrganizationList = () => {
         <div>
             <div className="organization-list p-3 col-12">
               <div className="card bg-white mb-2">
-                 <div className="card-header" style={{display:'flex',justifyContent:'flex-end'}}>
+                 <div className="card-header" style={{display:'flex',justifyContent:'flex-end',color:'#039be5'}}>
                      <input placeholder="filter" className="form-control col-3" id="filter_plane"></input>
                  </div>
               </div>
@@ -73,6 +73,7 @@ const OrganizationList = () => {
                         <th scope="col">Person</th>
                         <th scope="col">Contact</th>
                         <th scope="col">Address</th>
+                        <th scope="col">Action</th>
                     </tr>
                 </thead>
                 <tbody className="tbody">
@@ -86,6 +87,7 @@ const OrganizationList = () => {
                         <td>Leonides</td>
                         <td>555-555-5555</td>
                         <td> jalpohin loecost</td>
+                        <td><button className="btn btn-primary btn-sm" style={{borderRadius:'0px'}}>edit</button></td>
                     </tr>
                     <tr>
                         <td><input type='checkbox' ></input></td>
@@ -97,6 +99,7 @@ const OrganizationList = () => {
                         <td>Leonides</td>
                         <td>555-555-5555</td>
                         <td> jalpohin loecost</td>
+                        <td><button className="btn btn-primary btn-sm" style={{borderRadius:'0px'}}>edit</button></td>
                     </tr>
                     <tr>
                         <td><input type='checkbox' ></input></td>
@@ -108,6 +111,7 @@ const OrganizationList = () => {
                         <td>Leonides</td>
                         <td>555-555-5555</td>
                         <td> jalpohin loecost</td>
+                        <td><button className="btn btn-primary btn-sm" style={{borderRadius:'0px'}}>edit</button></td>
                     </tr>
                     <tr>
                         <td><input type='checkbox' ></input></td>
@@ -119,6 +123,7 @@ const OrganizationList = () => {
                         <td>Leonides</td>
                         <td>555-555-5555</td>
                         <td> jalpohin loecost</td>
+                        <td><button className="btn btn-primary btn-sm" style={{borderRadius:'0px'}}>edit</button></td>
                     </tr>
                 </tbody>
                 <tbody className="tfoot">
