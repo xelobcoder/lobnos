@@ -55,16 +55,16 @@ const OrganizationList = () => {
     return (
         <div>
             <div className="organization-list p-3 col-12">
-               <div className="row card-header mb-2">
-                   <div>
-                      <input className="form-control col-3" type='search'/>
-                   </div>
-                </div> 
+              <div className="card bg-white mb-2">
+                 <div className="card-header" style={{display:'flex',justifyContent:'flex-end'}}>
+                     <input placeholder="filter" className="form-control col-3" id="filter_plane"></input>
+                 </div>
+              </div>
               <table className="table">
                 <caption>Organization List</caption>
                 <thead>
                     <tr>
-                        <th scope="col"><input type='checkbox'/></th>
+                        <th scope="col"><input type='checkbox'></input></th>
                         <th scope="col">Name</th>
                         <th scope="col">Phone</th>
                         <th scope="col">Email</th>
@@ -121,9 +121,9 @@ const OrganizationList = () => {
                         <td> jalpohin loecost</td>
                     </tr>
                 </tbody>
-                <tfoot className="tfoot">
-                    <input type='number' className='form-control  col-3' ></input>
-                </tfoot>
+                <tbody className="tfoot">
+                
+                </tbody>
               </table>
             </div>
         </div>
