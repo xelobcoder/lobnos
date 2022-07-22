@@ -1,5 +1,5 @@
 import Header from '../../components/header';
-import LiverPanel from '../../components/setup/liver';
+import LiverPanel from '../../components/setup/biochemistry/liver';
 import Sidebar from '../../components/sidebar';
 
 
