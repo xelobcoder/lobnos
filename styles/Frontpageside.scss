@@ -1,0 +1,26 @@
+.frontpagesidebar{
+    margin: 0px;
+    padding: 0px;
+    li{
+        list-style-type: none;
+        color: green;
+        margin: none;
+        padding: 10px 30px 10px;
+        text-transform: capitalize;
+        display: flex;
+        align-items: center;
+    }
+    li:hover{
+        background-color: lightgray;
+        cursor: pointer;
+    }
+}
+
+.wrapper{
+    display: grid;
+    grid-template-columns: 15% 80%;
+    .side{
+        border-right: 1px solid lightgray;
+        height: 100vh;
+    }
+}
