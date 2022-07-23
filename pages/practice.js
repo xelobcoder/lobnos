@@ -1,4 +1,4 @@
-import {createTableHead,createTableBody,TableTopFooter,createTableFooter} from '../components/table.js';
+import {createTable} from '../components/table.js';
 import {useEffect,useState,useRef} from 'react';
 
 
@@ -9,17 +9,8 @@ function Practice() {
   const hasMounted = useRef(false);
 
     useEffect(() => {
-        const createTable = function() {
-            let toxic = document.getElementById('toxic');
-            toxic.appendChild(createTableHead());
-            toxic.appendChild(createTableBody());
-            toxic.appendChild(createTableFooter())
-            console.log(toxic)
-        }
-
-
         if (hasMounted.current === false) {
-            createTable();
+            createTable('toxic');
             hasMounted.current = true;
         }
 
@@ -29,7 +20,7 @@ function Practice() {
     return(
         <div>
             <div className='p-5'>
-                <table className='table table-striped display' id='toxic'>
+                <table className='table display p-3 mt-5 no-footer dataTable' id='toxic'>
                     <thead>
                         
                     </thead>
