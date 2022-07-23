@@ -1,16 +1,28 @@
 import SidebarFrontPage from "../../components/frontpagesidebar";
 import Header from "../../components/header";
+import React, { useEffect, useRef,useState } from "react"
+import $ from 'jquery'
+import Table from "../../components/tab";
 
-function Clients () {
+export function Clients ({data}) {
+    const [clients, setClients] = useState([]);
+
     return (
         <>
-           
+          <Table  data={data}/>
         </>
+         
     )
 }
 
-
 export default Clients;
+
+
+export async function getServerSideProps() {
+    const res = await fetch('http://localhost:3000/api/hello');
+    const data = await res.json();
+    return { props: { data } }
+}
 
 
 Clients.getLayout = function(page) {

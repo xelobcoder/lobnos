@@ -11,10 +11,10 @@ export default function TestPanels() {
           </div>
           <div className="main" style={{overflowY: 'auto', height:'600px'}}>
              <div>
-               {/* <LiverPanel/> */}
+               <LiverPanel/>
              </div>
              <div>
-               <Renal/>
+               {/* <Renal/> */}
              </div>
              <div>
                {/* <LipidFunction/> */}

@@ -27,14 +27,6 @@ const new_parameter = () => {
   )
 }
 
-const data = [
-  {
-    testname: 'albumin',
-    unit: 'mg/dl',
-    lower_limit: 783.67,
-    upper_limit: 73390.93,
-  },
-]
 
 const parameter_list = (data) => {
   return (
@@ -185,7 +177,7 @@ function LiverPanel() {
       <main>
          <div  className='list-create p-2'>
             {
-              new_parameter()
+              setParameters()
             }
          </div>
       </main>

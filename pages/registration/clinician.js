@@ -1,8 +1,6 @@
 import SidebarFrontPage from '../../components/frontpagesidebar'
 import Header from '../../components/header'
 import { useState } from 'react'
-import { all } from '@tensorflow/tfjs'
-
 // export default Clinicians;
 function Clinicians() {
   const [listview, setListview] = useState(true)
