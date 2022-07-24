@@ -1,39 +1,76 @@
 import { data } from '../pages/api/hello'
+import 'datatables.net'
 let columns = ['id', 'title', 'url', 'thumbnailUrl']
 
-let sortAsc = function (a, b) {}
+let menu = function () {
+  // filtering input form
+  let filter = document.createElement('input');
+  filter.setAttribute('placeholder','filter')
+  filter.setAttribute('class','form-control col-1')
+  //  wrapper for the context menu
+  let div = document.createElement('div')
+  div.setAttribute('class', 'menu-dropdown-list')
+
+  let liasc = document.createElement('li') 
+  liasc.setAttribute('class', 'menu-dropdown-list-item')
+  liasc.innerHTML = 'Sort Ascending';
+
+  let lidesc = document.createElement('li') 
+  lidesc.setAttribute('class', 'menu-dropdown-list-item')
+  lidesc.innerHTML = 'Sort Descending';
+
+
+  let lifilter = document.createElement('li');
+  lifilter.setAttribute('class', 'menu-dropdown-list-item')
+  lifilter.appendChild(filter)
+    
+  let ul = document.createElement('ul');
+  // append element to the Div
+  ul.appendChild(liasc)
+  ul.appendChild(lidesc)
+  ul.appendChild(lifilter)
+
+  div.appendChild(ul)
+
+  return div;
+}
+
+let contxtMenu = function() {
+   document.querySelector('.meme').appendChild(menu())
+   console.log(menu())
+   let clickableElements = document.querySelectorAll('th');
+
+    for (let i = 0; i < clickableElements.length; i++) {
+       clickableElements[i].addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        let menu = document.querySelector('.menu-dropdown-list')
+        menu.style.display = 'block'
+        menu.style.left = e.pageX + 'px'
+        menu.style.top = e.pageY + 'px'
+        console.log('right clicked')
+       })
+    }
+}
+
+let sortAsc = function (a) {}
 
 let sortDesc = function (a, b) {}
 
 const constructCaret = function () {
   let div = document.createElement('div')
 
-  const caret = function (path, className) {
-    let e = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-    console.log(e)
-    e.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
-    e.setAttribute('width', '16')
-    e.setAttribute('height', '16')
-    e.setAttribute('viewBox', '0 0 16 16')
-    // e.setAttribute('fill','yellow');
-    e.setAttribute('stroke', 'currentColor')
+  const caret = function (className) {
+    let e = document.createElement('i')
     e.setAttribute('class', className)
-
-    let path1 = document.createElement('path')
-
-    path1.setAttribute('d', path)
-    e.appendChild(path1)
 
     return e
   }
 
   let caretup = caret(
-    'M3.204 11h9.592L8 5.519 3.204 11zm-.753-.659 4.796-5.48a1 1 0 0 1 1.506 0l4.796 5.48c.566.647.106 1.659-.753 1.659H3.204a1 1 0 0 1-.753-1.659z',
-    'bi bi-caret-up',
+    'bi bi-caret-up-fill'
   )
   let caretdown = caret(
-    'M3.204 5h9.592L8 10.481 3.204 5zm-.753.659 4.796 5.48a1 1 0 0 0 1.506 0l4.796-5.48c.566-.647.106-1.659-.753-1.659H3.204a1 1 0 0 0-.753 1.659z',
-    'bi bi-caret-down',
+    'bi bi-caret-down-fill'
   )
 
   div.appendChild(caretup)
@@ -133,7 +170,7 @@ export function createTableBody() {
     for (let j = 0; j < columns.length; j++) {
       let td = document.createElement('td')
       td.innerHTML = data[i][columns[j]]
-      td.setAttribute('sorting-id', j)
+      td.setAttribute('sorting-id', j);
       tr.appendChild(td)
     }
     tbody.appendChild(tr)
@@ -156,4 +193,5 @@ export function createTable(target) {
 
   constructSortableFace('sorting_1')
   constructCaret()
+  contxtMenu()
 }
