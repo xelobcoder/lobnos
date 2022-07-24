@@ -4,27 +4,28 @@ let columns = ['id', 'title', 'url', 'thumbnailUrl']
 
 let menu = function () {
   // filtering input form
-  let filter = document.createElement('input');
-  filter.setAttribute('placeholder','filter')
-  filter.setAttribute('class','form-control col-1')
+  let filter = document.createElement('input')
+  filter.setAttribute('placeholder', 'filter')
+  filter.setAttribute('class', 'form-control col-1')
   //  wrapper for the context menu
   let div = document.createElement('div')
   div.setAttribute('class', 'menu-dropdown-list')
-
-  let liasc = document.createElement('li') 
+  //  
+  // create and append li elements
+  let liasc = document.createElement('li')
   liasc.setAttribute('class', 'menu-dropdown-list-item')
-  liasc.innerHTML = 'Sort Ascending';
+  liasc.innerHTML = 'Sort Ascending'
 
-  let lidesc = document.createElement('li') 
+  let lidesc = document.createElement('li')
   lidesc.setAttribute('class', 'menu-dropdown-list-item')
-  lidesc.innerHTML = 'Sort Descending';
+  lidesc.innerHTML = 'Sort Descending'
 
-
-  let lifilter = document.createElement('li');
+  let lifilter = document.createElement('li')
   lifilter.setAttribute('class', 'menu-dropdown-list-item')
   lifilter.appendChild(filter)
-    
-  let ul = document.createElement('ul');
+
+  // append li elements to parent ul
+  let ul = document.createElement('ul')
   // append element to the Div
   ul.appendChild(liasc)
   ul.appendChild(lidesc)
@@ -32,24 +33,24 @@ let menu = function () {
 
   div.appendChild(ul)
 
-  return div;
+  return div
 }
 
-let contxtMenu = function() {
-   document.querySelector('.meme').appendChild(menu())
-   console.log(menu())
-   let clickableElements = document.querySelectorAll('th');
+let contxtMenu = function () {
+  document.querySelector('.meme').appendChild(menu())
+  console.log(menu())
+  let clickableElements = document.querySelectorAll('th')
 
-    for (let i = 0; i < clickableElements.length; i++) {
-       clickableElements[i].addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        let menu = document.querySelector('.menu-dropdown-list')
-        menu.style.display = 'block'
-        menu.style.left = e.pageX + 'px'
-        menu.style.top = e.pageY + 'px'
-        console.log('right clicked')
-       })
-    }
+  for (let i = 0; i < clickableElements.length; i++) {
+    clickableElements[i].addEventListener('contextmenu', function (e) {
+      e.preventDefault()
+      let menu = document.querySelector('.menu-dropdown-list')
+      menu.style.display = 'block'
+      menu.style.left = e.pageX + 'px'
+      menu.style.top = e.pageY + 'px'
+      console.log('right clicked')
+    })
+  }
 }
 
 let sortAsc = function (a) {}
@@ -66,12 +67,8 @@ const constructCaret = function () {
     return e
   }
 
-  let caretup = caret(
-    'bi bi-caret-up-fill'
-  )
-  let caretdown = caret(
-    'bi bi-caret-down-fill'
-  )
+  let caretup = caret('bi bi-caret-up-fill')
+  let caretdown = caret('bi bi-caret-down-fill')
 
   div.appendChild(caretup)
   div.appendChild(caretdown)
@@ -126,23 +123,58 @@ export function createTableHead() {
     tr.appendChild(th)
   }
 
-  let theader = thead.appendChild(tr)
-  theader.setAttribute('class', 'thead-dark')
+  thead.appendChild(tr)
+  thead.setAttribute('class', 'thead-dark')
 
-  return theader
+  return thead;
 }
 
 // create a table footer
-export function TableTopFooter() {
-  let input = document.createElement('input')
-  input.setAttribute('type', 'search')
-  input.setAttribute('placeholder', 'filter')
-  input.setAttribute('id', 'filter')
+export function TableTop() {
+  // create a section to wrapall the query section
+  
+  let section = document.createElement('section');
+  let filterField = document.createElement('input');
+  let entriesField = document.createElement('select');
 
-  let button = document.createElement('button')
-  button.setAttribute('type', 'button')
 
-  return input
+  filterField.setAttribute('class', 'col-4');
+
+  entriesField.setAttribute('class', 'form-control col-1');
+  entriesField.setAttribute('id', 'entries');
+
+  let option1 = document.createElement('option');
+  option1.setAttribute('value', '10');
+  option1.innerHTML = '10';
+  let option2 = document.createElement('option');
+  option2.setAttribute('value', '25');
+  option2.innerHTML = '25';
+  let option3 = document.createElement('option');
+  option3.setAttribute('value', '50');
+  option3.innerHTML = '50';
+  let option4 = document.createElement('option');
+  option4.setAttribute('value', '100');
+  option4.innerHTML = '100';
+
+  entriesField.appendChild(option1);
+  entriesField.appendChild(option2);
+  entriesField.appendChild(option3);
+  entriesField.appendChild(option4);
+
+  let div1 = document.createElement('div');
+  let div2 = document.createElement('div');
+
+  div1.innerHTML ='show ';
+  div1.appendChild(entriesField);
+  div1.innerHTML += ' entries';
+  div2.innerHTML = 'search: ';
+  div2.appendChild(filterField);
+
+  section.appendChild(div1);
+  section.appendChild(div2)
+
+  return section;
+
 }
 
 export function createTableBody() {
@@ -170,7 +202,7 @@ export function createTableBody() {
     for (let j = 0; j < columns.length; j++) {
       let td = document.createElement('td')
       td.innerHTML = data[i][columns[j]]
-      td.setAttribute('sorting-id', j);
+      td.setAttribute('sorting-id', j)
       tr.appendChild(td)
     }
     tbody.appendChild(tr)
@@ -185,8 +217,11 @@ export function createTableFooter() {
   return tfoot
 }
 
-export function createTable(target) {
-  let toxic = document.getElementById(target)
+
+
+export function createTable(target,query) {
+  let toxic = document.getElementById(target);
+  document.getElementById(query).appendChild(TableTop());
   toxic.appendChild(createTableHead())
   toxic.appendChild(createTableBody())
   toxic.appendChild(createTableFooter())

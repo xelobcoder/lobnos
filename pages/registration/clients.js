@@ -4,6 +4,7 @@ import React, { useEffect, useRef,useState } from "react"
 import $ from 'jquery'
 import Table from "../../components/tab";
 
+
 export function Clients ({data}) {
     const [clients, setClients] = useState([]);
 
