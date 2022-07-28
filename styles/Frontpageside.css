@@ -25,8 +25,8 @@
 .wrapper {
   display: -ms-grid;
   display: grid;
-  -ms-grid-columns: 15% 80%;
-      grid-template-columns: 15% 80%;
+  -ms-grid-columns: 15% 85%;
+      grid-template-columns: 15% 85%;
 }
 
 .wrapper .side {

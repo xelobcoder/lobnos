@@ -1,7 +1,9 @@
-import { data } from '../pages/api/hello'
-import 'datatables.net'
-let columns = ['id', 'title', 'url', 'thumbnailUrl']
 
+/**
+ * 
+ * @returns {HTMLElement} returns a custom context menu for sorting in 
+ * ascending and descending order of that column
+ */
 let menu = function () {
   // filtering input form
   let filter = document.createElement('input')
@@ -53,9 +55,25 @@ let contxtMenu = function () {
   }
 }
 
-let sortAsc = function (a) {}
+/**
+ * 
+ * @param {function} callback a callback function for sorting the column  
+ * @returns {callback} 
+ */
+let sortAsc = function (fxn) {
+  if (typeof fxn !='function') {
+     throw new Error('fxn must be a function')
+  }
+   return fxn()
+}
 
-let sortDesc = function (a, b) {}
+let sortDesc = function (fxn) {
+  if(typeof fxn != 'function'){
+    throw new Error('fxn must be a function')
+  }
+  return fxn()
+}
+
 
 const constructCaret = function () {
   let div = document.createElement('div')
@@ -96,7 +114,7 @@ const constructSortableFace = function (sclass) {
   }
 }
 
-export function createTableHead() {
+export function createTableHead(columns = []) {
   // create a checkbox,append it first and create
   // rhe remaining td tag and append to tr and finally thead tag
   let thead = document.createElement('thead')
@@ -177,7 +195,7 @@ export function TableTop() {
 
 }
 
-export function createTableBody() {
+export function createTableBody(columns=[], data=[]) {
   let tbody = document.createElement('tbody')
 
   for (let i = 0; i < data.length; i++) {
@@ -206,9 +224,11 @@ export function createTableBody() {
       tr.appendChild(td)
     }
     tbody.appendChild(tr)
+    
   }
 
   return tbody
+  console.log(tbody)
 }
 
 export function createTableFooter() {
@@ -219,14 +239,16 @@ export function createTableFooter() {
 
 
 
-export function createTable(target,query) {
+export function createTable(target,query,columns,data) {
   let toxic = document.getElementById(target);
   document.getElementById(query).appendChild(TableTop());
-  toxic.appendChild(createTableHead())
-  toxic.appendChild(createTableBody())
+  toxic.appendChild(createTableHead(columns))
+  toxic.appendChild(createTableBody(columns,data))
   toxic.appendChild(createTableFooter())
 
   constructSortableFace('sorting_1')
   constructCaret()
   contxtMenu()
 }
+
+

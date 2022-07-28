@@ -1,10 +1,16 @@
+*{
+   @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&display=swap');
+   font-family: 'Open Sans', sans-serif;
+}
 body{
    margin: 0;
    padding: 0;
    overflow-x: hidden;
    overflow-y: auto;
-   background-color: rgba(147, 144, 144, 0.101);
-   font-family: 'Roboto', Helvetica, Arial, sans-serif;
+   background-color: rgba(147, 144, 144, 0.05);
+   /* font-family: 'Roboto', Helvetica, Arial, sans-serif; */
+   /* font-family: 'Open Sans', sans-serif; */
+   
 }
 .grid-2{
    display: grid;
@@ -40,23 +46,6 @@ body{
 }
 
 
-table{
-   background-color: white;
-   overflow-x: scroll;
-   overflow-y: auto;
-   height: 50vh;
-}
-.tfoot{
-   padding: 10px;
-   padding: 5px 10px;
-   display: flex;
-   justify-content: flex-end;
-   align-items: center;
-}
-.tbody{
-   margin: 0;
-   padding: 5px 10px;
-}
 .add-clinician-view{
    padding: 30px 100px;
    width: 70vw;
@@ -73,13 +62,7 @@ table{
    color: black;
 }
 
-tbody > tr > td:nth-child(4){
-   color: red;
-}
 
-tbody > tr > td:nth-child(2){
-   color: green;
-}
 
 #filterer-top input{
    margin-left: 10px;
@@ -167,12 +150,7 @@ tbody > tr > td:nth-child(2){
    border-radius: 5px;
    border: 1px solid lightgray;
 }
-#toxic > table > thead > tr > th{
-   text-transform: uppercase !important;
-}
-.sorting{
-   text-transform: uppercase !important;
-}
+
 .login__container{
    display: flex;
    justify-content: center;

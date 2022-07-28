@@ -1,0 +1,118 @@
+thead,tbody {
+   border-bottom :1px solid lightgray;
+   font-family: 'Roboto',sans-serif;
+}
+body{
+    background-color: whitesmoke;
+}
+
+table{
+    border-collapse: collapse;
+    margin: 20px 100px 0px 100px;
+    background-color: white;
+    box-shadow: 0.4px 0.6px 0.4px lightgray;
+    border-radius: 5px;
+    table-layout: auto;
+    width: 50%;
+    empty-cells: hide;
+    /* border-spacing: 2em; */
+}
+
+table > thead > tr {
+    /* background-color: black; */
+    color: rgba(0, 0, 0, 0.715);
+    font-size: 18px;
+    text-transform: capitalize;
+    text-align: left;
+    font-weight: 200 !important;
+}
+
+td,th {
+    padding: 10px 20px;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 16px
+}
+
+table > tbody >tr >td {
+    font-size: 15px;
+    color: gray;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+tr{
+    border-bottom: 1px solid lightgray;
+}
+
+table > tbody >tr:nth-of-type(even) {
+    background-color: whitesmoke;
+}
+table > thead > tr > th {
+    border-right: 1px solid lightgray;
+    color: grey;
+}
+
+table > tbody >tr:hover{
+    border: 1px solid blue;
+    cursor: pointer;
+    border-collapse: separate;
+    border-style: dashed;
+    border-spacing: 2em;
+    background-color: whitesmoke;
+    border-spacing: 0.5rem;
+}
+tfoot{
+    border-top: 1px solid lightgray;
+    padding: 10px 20px;
+}
+p,
+label {
+    font: 1rem 'Fira Sans', sans-serif;
+}
+
+input {
+    margin: .4rem;
+}
+button{
+    padding: 0.5em;
+    cursor: pointer;
+    border: 1px solid blue;
+    border-radius: 1.5px;
+}
+
+button[type='button']{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 200px;
+    width: max-content;
+    font-size: 15px;
+    font-weight: 500;
+}
+button > span {
+    margin-right: 5px;
+}
+button:focus{
+    outline: none;
+}
+
+button[type='button']:hover{
+    background-color: blue;
+    color: white;
+    font-weight: 400;
+    transition: 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    outline: 2px solid blue;
+    animation-name: cure;
+    animation-duration: 500ms;
+    animation-direction: initial;
+}
+
+@keyframes cure {
+    0% {
+        background-color: whitesmoke;
+    }
+    100% {
+        background-color: blue;;
+    }
+}
