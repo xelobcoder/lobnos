@@ -6,6 +6,7 @@ import AddOrganization from '../../components/Addorganization'
 
 function Organization({ data }) {
   const [organization, setOrganization] = useState([])
+  const [entries, setEntries] = useState(10)
   const hasMounted = useRef(false)
   const columns = [
     'id',
@@ -15,37 +16,54 @@ function Organization({ data }) {
     'website',
     'location',
     'contact person',
+    'contact person contact contact person contact',
+    'address',
+    'id',
+    'name',
+    'phone',
+    'email',
+    'website',
+    'location',
+    'contact person',
     'contact person contact',
     'address',
+    
   ]
 
   useEffect(() => {
     if (hasMounted.current === false) {
       setOrganization(data)
-      createTable('--table', 'tablequery', columns,data)
+      createTable('--table',columns,data)
       hasMounted.current = true
     }
   }, [organization])
 
-
+  useEffect( () => {
+  
+  }, [entries])
 
 
   return (
-    <div >
-      <div className="--lobnos-card" style={{ display: 'none' }}>
-        <div className="--lobnos-header">Organization information</div>
-        <div className="--lobnos-body">
-          <AddOrganization />
-        </div>
+    <div>
+      <div className='panel-top-pane'>
+         <ul>
+            <li>edit</li>
+            <li>delete</li>
+            <li>export csv</li>
+            <li>export excel</li>
+            <li>view</li>
+            <li>refresh</li>
+            <li>add organization</li>
+            <li>
+               <input type='text' placeholder='filter'></input>
+            </li>
+            <li>show  <input type='number'></input>entries</li>
+         </ul>
       </div>
-      <div className='--table-wrapper'>
-        <div id="tablequery"></div>
-        <table id="--table" className="table display p-3 mt-5 no-footer dataTable" width='100%'>
-            
-        </table>
-        <div className="meme"></div>
-      </div>
-    </div>
+      <table id='--table'>
+
+      </table>
+     </div>
   )
 }
 

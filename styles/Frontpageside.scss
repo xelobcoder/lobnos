@@ -23,4 +23,13 @@
         border-right: 1px solid lightgray;
         height: 100vh;
     }
+    .main{
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100vh;
+        width: 85vw;
+        background-color: white;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
 }

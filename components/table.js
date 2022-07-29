@@ -239,16 +239,16 @@ export function createTableFooter() {
 
 
 
-export function createTable(target,query,columns,data) {
+export function createTable(target,columns,data) {
   let toxic = document.getElementById(target);
-  document.getElementById(query).appendChild(TableTop());
+  // document.getElementById(query).appendChild(TableTop());
   toxic.appendChild(createTableHead(columns))
   toxic.appendChild(createTableBody(columns,data))
   toxic.appendChild(createTableFooter())
 
-  constructSortableFace('sorting_1')
-  constructCaret()
-  contxtMenu()
+  // constructSortableFace('sorting_1')
+  // constructCaret()
+  // contxtMenu()
 }
 
 
