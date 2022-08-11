@@ -1,79 +1,100 @@
+import {
+  FormControl,
+  Button,
+  Input,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from '@mui/material'
+import { useState } from 'react'
 
-const Mobilemoney = function() {
-    return(
-       <>
-        <div className="form-row grid-slide">
-            <label>Mobile number</label>
-            <input type='tel' minLength='10' className="form-control" maxLength='10'></input>
-        </div>
-        <div className="form-row grid-slide">
-            <label>Receiver Name</label>
-            <input type='text' className="form-control"></input>
-        </div>
-       </>
-    )
+const Mobilemoney = function () {
+  return (
+    <>
+      <div className="grid-split">
+        <TextField
+          type="tel"
+          minLength="10"
+          variant="filled"
+          label="mobile money number"
+          maxLength="10"
+        />
+        <TextField
+          type="text"
+          label="receiver name as on momo"
+          id="receivername"
+          variant="filled"
+        ></TextField>
+      </div>
+    </>
+  )
 }
 
-const BankDetails = function() {
-    return(
-        <>
-            <div className="form-row grid-slide">
-                <label>Bank name</label>
-                <input type='text' className="form-control"></input>
-            </div>
-            <div className="form-row grid-slide">
-                <label>Account number</label>
-                <input type='number' className="form-control"></input>
-            </div>
-            <div className="form-row grid-slide">
-                <label>Account name</label>
-                <input type='text' className="form-control"></input>
-            </div>
-            <div className="form-row grid-slide">
-                <label>Branch name</label>
-                <input type='text' className="form-control"></input>
-            </div>
-        </>
-    )
+const BankDetails = function () {
+  return (
+    <>
+      <div className="grid-split">
+        <TextField type="text" label="Bank name" variant="filled"></TextField>
+        <TextField
+          type="number"
+          label="Account Number"
+          variant="filled"
+        ></TextField>
+      </div>
+      <div className="grid-split">
+        <TextField
+          type="text"
+          label="Account Name"
+          variant="filled"
+        ></TextField>
+        <TextField type="text" label="Bank Branch" variant="filled"></TextField>
+      </div>
+    </>
+  )
 }
 
-const Opanel = function(name,html) {
-    return (
-        <div className="--lobnos-card --w-xxl-p ">
-            <div className="--lobnos-header">
-               {name}
-            </div>
-            <div className="--lobnos-body">
-              {
-                html()
-              }
-            </div>
-        </div>
-    )
+const Opanel = function (name, html) {
+  return (
+    <div className="--lobnos-card --w-xxl-p ">
+      <div className="--lobnos-header">{name}</div>
+      <div className="--lobnos-body">{html()}</div>
+    </div>
+  )
 }
 
-const Opay = function() {
-    return(
-        <div className="opay">
-            <div className="form-row grid-slide">
-                <label>payment module</label>
-                <select className="form-control">
-                    <option value="mobile money">mobile money</option>
-                    <option value ="bank transfer">bank transfer</option>
-                    <option value="cash">cash</option>
-                </select>
-            </div>
-            <Mobilemoney/>
-            <div className="form-row grid-slide">
-                <label>frequency</label>
-                <select className="form-control">
-                     <option value='weekly'>weekly</option>
-                     <option value='monthly'>monthly</option>
-                     <option value='annually'>annually</option>
-                </select>
-            </div>
-            <BankDetails/>
-        </div>
-    )
+const PaymentGroup = ({ state }) => {
+  return <>{state === 'mobile money' ? <Mobilemoney /> : <BankDetails />}</>
 }
 
+export default function Opay(props) {
+  const [paymentmethod, setPaymentmethod] = useState('mobilemoney')
+
+  const handleChange = (e, payment) => {
+    setPaymentmethod(payment)
+  }
+
+  return (
+    <>
+      <div className="grid-split">
+        <FormControl variant="filled">
+          <InputLabel>payment module</InputLabel>
+          <Select
+            onChange={(e) => {
+              handleChange(e, e.target.value)
+            }}
+          >
+            <MenuItem value={'cash'}>cash</MenuItem>
+            <MenuItem value={'bank transfer'}>Bank transfer</MenuItem>
+            <MenuItem value={'mobile money'}>Mobile money</MenuItem>
+          </Select>
+        </FormControl>
+      </div>
+      <div>
+        {paymentmethod === 'cash' ? null : (
+          <PaymentGroup state={paymentmethod} />
+        )}
+      </div>
+    </>
+  )
+}

@@ -1,6 +1,6 @@
 function Header() {
   return (
-    <div className="container-fluid bg-dark p-2 text-white ">
+    <div className="container-fluid p-2 text-white " style={{backgroundColor:'#7b1fa2'}}>
       <div className="container">
         <h3>diagnostico</h3>
       </div>

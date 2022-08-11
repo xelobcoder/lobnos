@@ -1,15 +1,14 @@
 import SidebarFrontPage from '../../components/frontpagesidebar'
 import Header from '../../components/header'
 import React, { useEffect, useRef, useState } from 'react'
-import $ from 'jquery'
-import Table from '../../components/tab'
+// import Table from '../../components/tab'
 
 export function Clients({ data }) {
   const [clients, setClients] = useState([])
 
   return (
     <>
-      <Table data={data} />
+      <h1>Restructuring to meet end user UI demands</h1>
     </>
   )
 }

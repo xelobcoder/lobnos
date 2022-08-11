@@ -1,5 +1,5 @@
-export default function Phelobotomy (){
-    return(
+export default function Phelobotomy() {
+    return (
         <div>
             <h1>Phelobotomy</h1>
         </div>
@@ -8,12 +8,12 @@ export default function Phelobotomy (){
 
 
 
-Phelobotomy.getLayout = function(page) {
+Phelobotomy.getLayout = function (page) {
     return (
-       <>
-        {
-            page
-        }
-       </>
+        <>
+            {
+                page
+            }
+        </>
     )
-  }
+}

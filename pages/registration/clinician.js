@@ -1,5 +1,5 @@
 import SidebarFrontPage from '../../components/frontpagesidebar'
-import Header from '../../components/header'
+import Header from '../../components/header';
 import { useState } from 'react'
 // export default Clinicians;
 function Clinicians() {

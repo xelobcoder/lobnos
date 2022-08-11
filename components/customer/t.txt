@@ -7,3 +7,6 @@
    
    client Registrations
     ## data required 
+    - fullname
+    - age
+    - 
