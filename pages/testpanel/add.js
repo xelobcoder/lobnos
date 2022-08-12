@@ -5,7 +5,7 @@ import SidebarFrontPage from '../../components/frontpagesidebar';
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import { useFormik } from 'formik';
-import CategoryBread from '../../components/testpanelBread';
+import CategoryBread from '../../components/registration/testpanelBread';
 
 
 
