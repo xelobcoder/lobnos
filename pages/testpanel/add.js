@@ -18,7 +18,7 @@ export default function AddPanel() {
     })
     return (
         <>
-            <CategoryBread  section={'Panel'}/>
+            <CategoryBread section={'Panel'} />
             <Box sx={{ width: '80%', margin: '2% 2% 0% 2%' }}>
                 <form onSubmit={addpanel.handleSubmit}>
                     <Stack sx={{ display: 'grid', gridTemplateColumns: '28% 28% 28% auto', gridGap: "10px 10px" }}>
@@ -26,7 +26,7 @@ export default function AddPanel() {
                         <FormControl>
                             <InputLabel htmlFor="category">category</InputLabel>
                             <Select size='small' variant='filled'>
-                               
+
                             </Select>
                         </FormControl>
                         <TextField size='small' label='price' type='number' name='price' mt={10} variant='filled' />

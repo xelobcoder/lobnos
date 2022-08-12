@@ -11,11 +11,11 @@ import {
 import AddIcon from '@mui/icons-material/Add'
 import SidebarFrontPage from '../../components/frontpagesidebar'
 import Header from '../../components/header'
-import CategoryBread from '../../components/testpanelBread'
+import CategoryBread from '../../components/registration/testpanelBread';
 import { useFormik } from 'formik'
 import React from 'react'
 
-export default function AddTestPanelCategory() {
+export default function AddTestPanelCategory(props) {
   // category list
   const [list, setList] = React.useState(['Hematology', 'Microbiology', 'Immunology', 'Serology', 'Bacteriology', 'Virology', 'Parasitology', 'Chemistry', 'Pathology', 'Radiology', 'Sonography'])
   // formik form initial values

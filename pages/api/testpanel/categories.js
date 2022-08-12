@@ -8,9 +8,11 @@ import connection from '../db'
  */
 export function allfieldspresent(request) {
   //   grap all values of request body
-  return Object.values(request.body).filter((value, index) => {
+  let values = Object.values(request.body).filter((value, index) => {
     return value != ''
   })
+  //   return true if all values are present
+  return values.length > 0 ? false : true
 }
 
 // validate absence of such category
@@ -18,12 +20,16 @@ export function allfieldspresent(request) {
 function categoryExists(category, res) {
   return new Promise((resolve, reject) => {
     let mysqlQuery = `SELECT * FROM test_categories WHERE CATEGORY = '${category}'`
+    // execute query
     connection.query(mysqlQuery, (err, result) => {
       if (err) reject(err)
+      //   if category exists return true
       if (result) {
         if (result.length > 0) {
+          // category exists
           resolve(true)
         } else {
+          // category does not exist
           resolve(false)
         }
       }
@@ -49,6 +55,7 @@ const postCategory = (request, response) => {
             if (err) throw err
             if (result) {
               res.status(201).send({
+                // success message for category creation
                 message: 'Category created successfully',
               })
             }
@@ -77,7 +84,7 @@ const getCategory = (request, response) => {
     } else {
       // query database for category with id
       let mysqlQuery = `SELECT * FROM test_categories WHERE ID = ${id}`
-
+      //   query database for category with id
       connection.query(mysqlQuery, (err, result) => {
         if (err) {
           throw err
@@ -86,7 +93,7 @@ const getCategory = (request, response) => {
       })
     }
   } else {
-    let query = 'SELECT * FROM test_categories';
+    let query = 'SELECT * FROM test_categories'
     // execute query
     connection.query(query, (err, result) => {
       if (err) {
@@ -96,8 +103,56 @@ const getCategory = (request, response) => {
     })
   }
 }
-const putCategory = (request, response) => {}
-const deleteCategory = (request, response) => {}
+const putCategory = (request, response) => {
+  const { category, description } = request.body
+
+  if (!category || !description) {
+    response.send({
+      message: 'All fields are required',
+    })
+  }
+
+  if (category && description) {
+    if (allfieldspresent(request.body)) {
+      let mysqlQuery = `UPDATE test_categories
+            SET CATEGORY = '${category}', 
+            DESCRIPTION = '${description}' 
+            WHERE ID = ${request.params.id}`
+      connection.query(mysqlQuery, (err, result) => {
+        if (err) throw err
+        if (result) {
+          response.send({
+            message: 'Category updated successfully',
+          })
+        }
+      })
+    } else {
+      response.send({
+        message: 'All fields must have values',
+      })
+    }
+  }
+}
+const deleteCategory = (request, response) => {
+  if (Object.keys(request.query).length > 0) {
+    const { id } = request.query
+    if (isNaN(id)) {
+      response.status(400).send({
+        message: 'Id must be a number',
+      })
+    } else {
+      let mysqlQuery = `DELETE FROM test_categories WHERE ID = ${id}`
+      connection.query(mysqlQuery, (err, result) => {
+        if (err) throw err
+        if (result) {
+          response.send({
+            message: 'Category deleted successfully',
+          })
+        }
+      })
+    }
+  }
+}
 
 export default function handler(req, res) {
   switch (req.method) {
