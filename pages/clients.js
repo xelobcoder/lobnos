@@ -1,5 +1,5 @@
-import SidebarFrontPage from '../../components/frontpagesidebar'
-import Header from '../../components/header'
+import SidebarFrontPage from '../components/frontpagesidebar'
+import Header from '../components/header'
 import React, { useEffect, useRef, useState } from 'react'
 // import Table from '../../components/tab'
 

@@ -13,8 +13,8 @@ import {
 } from '@mui/material'
 import Paper from '@mui/material/Paper'
 import { useMemo, useState } from 'react'
-import SidebarFrontPage from '../../components/frontpagesidebar'
-import Header from '../../components/header'
+import SidebarFrontPage from '../components/frontpagesidebar'
+import Header from '../components/header'
 
 export default function WaitingList(props) {
   const [parentCheckbox, setParentCheckbox] = useState(false)

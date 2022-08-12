@@ -1,10 +1,17 @@
+import { AppBar, Toolbar, Box, Typography, Button } from '@mui/material';
+import Link from 'next/link';
+
 function Header() {
   return (
-    <div className="container-fluid p-2 text-white " style={{backgroundColor:'#7b1fa2'}}>
-      <div className="container">
-        <h3>diagnostico</h3>
-      </div>
-    </div>
+    <Box>
+      <AppBar position="sticky" color="secondary">
+        <Toolbar>
+          <Typography variant="h4" color="inherit" component={'div'}>
+            diagnostico
+          </Typography>
+        </Toolbar>
+      </AppBar>
+    </Box>
   )
 }
 

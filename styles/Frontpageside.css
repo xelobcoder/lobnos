@@ -1,12 +1,13 @@
 .frontpagesidebar {
   margin: 0px;
   padding: 0px;
+  background-color: white !important;
   font-family: Roboto, Helvetica, Arial, sans-serif;
 }
 
 .frontpagesidebar li {
   list-style-type: none;
-  color: green;
+  color: #1976d2;
   margin: none;
   padding: 10px 30px 10px;
   text-transform: capitalize;
@@ -18,9 +19,21 @@
           align-items: center;
 }
 
-.frontpagesidebar li:hover {
-  background-color: lightgray;
+.frontpagesidebar li a {
+  text-decoration: none;
+  margin-left: 10px;
+  color: #1976d2;
+}
+
+.frontpagesidebar li {
+  background-color: white;
   cursor: pointer;
+}
+
+.frontpagesidebar li:hover {
+  background-color: #f5f5f5;
+  -webkit-transition: 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
+  transition: 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 .wrapper {

@@ -1,10 +1,12 @@
-import SidebarFrontPage from '../../components/frontpagesidebar'
-import Header from '../../components/header'
+import SidebarFrontPage from '../components/frontpagesidebar'
+import Header from '../components/header'
 import { DataGrid } from '@mui/x-data-grid'
-import { Table, Button, Box } from '@mui/material'
-import { useState, useRef, useEffect } from 'react'
-import AddOrganization from '../../components/Addorganization'
-import Opay from '../../components/payment'
+import {  Button, Box } from '@mui/material'
+import { useState } from 'react'
+import AddOrganization from '../components/Addorganization'
+import Opay from '../components/payment';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SendIcon from '@mui/icons-material/Send';
 
 const Group = () => {
   const [show, setShow] = useState(true)
@@ -12,21 +14,12 @@ const Group = () => {
 
   return (
     <>
-      {show ? <AddOrganization /> : null}
-      {showOpay ? <Opay /> : null}
+      <AddOrganization />
+      <Opay />
       <div className="org-button-wrapper">
-        {
-          show ? (<Button variant="contained"
-            onClick={(e) => { setShowOpay(true); setShow(false) }}>
-            Next
-          </Button>) : null
-        }
-        {
-          showOpay ? (<Button variant="contained"
-            onClick={(e) => { setShowOpay(false); setShow(true) }}>
-            previous</Button>) : null
-        }
-        {showOpay ? <Button variant="contained">save</Button> : null}
+        <Button type="submit" variant="contained" endIcon={<SendIcon/>} >
+          save
+        </Button>
       </div>
     </>
   )
@@ -52,6 +45,29 @@ function Organization({ data }) {
 
   return (
     <>
+      <Box sx={{ height: 50, width: '100%' }}>
+        <div className="org-button-wrapper">
+          {!show ? (
+            <Button
+              type="button"
+              onClick={() => {
+                setShow(!show)
+              }}
+            >
+              + add an organization
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={() => {
+                setShow(!show)
+              }}
+            >
+              organizations
+            </Button>
+          )}
+        </div>
+      </Box>
       <Box sx={{ height: 500, width: '100%' }}>
         {show ? (
           <Group />

@@ -10,20 +10,28 @@ import {
 import { useState } from 'react'
 
 const Mobilemoney = function () {
+  const [mobile, setMobile] = useState(0);
+  const [receivername, setReceivername] = useState('');
   return (
     <>
       <div className="grid-split">
         <TextField
           type="tel"
           minLength="10"
+          value={mobile}
+          placeholder="0505050505"
           variant="filled"
           label="mobile money number"
+          onChange={(e) => setMobile(e.target.value)}
           maxLength="10"
         />
         <TextField
           type="text"
           label="receiver name as on momo"
           id="receivername"
+          placeholder='John Doe'
+          value={receivername}
+          onChange={(e) => setReceivername(e.target.value)}
           variant="filled"
         ></TextField>
       </div>
@@ -64,11 +72,11 @@ const Opanel = function (name, html) {
 }
 
 const PaymentGroup = ({ state }) => {
-  return <>{state === 'mobile money' ? <Mobilemoney /> : <BankDetails />}</>
+  return (<>{state === 'mobile money' ? <Mobilemoney /> : <BankDetails />}</>)
 }
 
 export default function Opay(props) {
-  const [paymentmethod, setPaymentmethod] = useState('mobilemoney')
+  const [paymentmethod, setPaymentmethod] = useState('mobile money')
 
   const handleChange = (e, payment) => {
     setPaymentmethod(payment)
@@ -80,13 +88,14 @@ export default function Opay(props) {
         <FormControl variant="filled">
           <InputLabel>payment module</InputLabel>
           <Select
+            value={paymentmethod}
             onChange={(e) => {
               handleChange(e, e.target.value)
             }}
           >
-            <MenuItem value={'cash'}>cash</MenuItem>
-            <MenuItem value={'bank transfer'}>Bank transfer</MenuItem>
-            <MenuItem value={'mobile money'}>Mobile money</MenuItem>
+            <MenuItem value='cash'>cash</MenuItem>
+            <MenuItem value='bank transfer'>Bank transfer</MenuItem>
+            <MenuItem value='mobile money'>Mobile money</MenuItem>
           </Select>
         </FormControl>
       </div>
