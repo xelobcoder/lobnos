@@ -48,6 +48,9 @@ export const handleAge = (y, m, d, age, error) => {
     const age = {}
     age.years = by - ty
     age.months = 12 - bm
+    console.log(age)
+  } 
+  else {
+    return ( 'false data entered. please check birth year ')
   }
-  return
 }
