@@ -1,6 +1,6 @@
 import SidebarFrontPage from '../../components/frontpagesidebar'
 import Header from '../../components/header'
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import {
   handleAge,
   handleMobile,
@@ -26,17 +26,16 @@ import {
   Autocomplete,
 } from '@mui/material'
 import yup from 'yup'
-import { useFormik } from 'formik'
-import e from 'cors'
+import { useFormik } from 'formik';
 
 function Registration({ organization, clinician }) {
   const [title, setTitle] = React.useState('Personal Information')
   const [personalSection, setPersonalSection] = React.useState(true)
   const [sampling, setSampling] = React.useState(true)
-  const [error, setError] = React.useState('')
+  const [error, setError] = React.useState('');
+  const patientIdRef = useRef(null);
+
   const [data, setData] = React.useState({
-    firstName: '',
-    lastName: '',
     email: '',
     mobile: '',
     age: '',
@@ -56,6 +55,8 @@ function Registration({ organization, clinician }) {
     clinician: '',
   })
 
+  const [disable, setDisable] = React.useState(false);
+
   const handlePatientid = (e) => {
     let inputvalue = data.patientid
     // check for null value or empty value or undedined
@@ -71,68 +72,84 @@ function Registration({ organization, clinician }) {
     }
   }
 
-
-
   // generate a transaction id for the patient
 
   const generateTransactionId = (e) => {
+    // generating unique id using the current timestamp, 
+    // could change it to UUID in the future
     let transactionId = Date.now()
+    //  empty field first , then --- next code line
     setData({ ...data, patientid: '' })
+    // fill patientid filled with generated value
     setData({ ...data, patientid: transactionId })
+
+    // disabled button after first generation
     e.target.disabled = true
+    // disable the patient field, hence prevent editing the unique id
+    patientIdRef.current = true;
+    // toggle it
+    patientIdRef.current == true ? setDisable(!disable) : null;
   }
 
   // calculate age based on the provided date of birth
 
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    console.log(data)
+  }
 
   useEffect(() => {
-
     const CalculateAge = (e) => {
-      let agecalulation = handleAge(data.years, data.months, data.days);
+      // grap data from age calculator
+      let agecalulation = handleAge(data.years, data.months, data.days)
+      // if age calculor contains values
       if (agecalulation) {
-        const { years, months, days } = agecalulation;
+        const { years, months, days } = agecalulation
         if (years == 0 && months == 0 && days == 0) {
           if (data.days > new Date().getDate()) {
-            setError('Please kindly recheck date values entered, Error at day value!!!');
+            setError(
+              'Please kindly recheck date values entered, Error at day value!!!',
+            )
             setData({ ...data, age: 0, ageType: 'days' })
           } else {
-            setError('Todays Delivering ?');
+            setError('Todays Delivering ?')
             setData({ ...data, age: days, ageType: 'days' })
           }
         }
         if (years != 0) {
-          setError('');
+          setError('')
           setData({ ...data, age: years, ageType: 'years' })
         }
 
         if (years == 0 && months != 0) {
-          setError('');
+          setError('')
           setData({ ...data, age: months, ageType: 'months' })
         }
 
         if (years == 0 && months == 0 && days > 0) {
-          setError('');
+          setError('')
           setData({ ...data, age: days, ageType: 'days' })
         }
       }
+      // if invalid date is returned after analyisis,
+      // update fields to suit
+
       if (agecalulation == 'invalid Date') {
-        setError('Invalid Date entered');
+        setError('Invalid Date entered')
         setData({
           ...data,
           age: 0,
           days: 0,
           months: 0,
           years: 0,
-          ageType: ''
+          ageType: '',
         })
       }
       console.log(agecalulation)
     }
 
-
     CalculateAge()
   }, [data.years, data.age, data.ageType])
-
 
   return (
     <>
@@ -140,7 +157,7 @@ function Registration({ organization, clinician }) {
         {error}
       </Typography>
       <hr></hr>
-      <form style={{ margin: '1% 3% 0% 3%' }} >
+      <form style={{ margin: '1% 3% 0% 3%' }}>
         {!personalSection ? null : (
           <>
             {/* <Box sx={{width:'100%',marginTop:'20px'}}>
@@ -159,8 +176,10 @@ function Registration({ organization, clinician }) {
                 variant="outlined"
                 type="number"
                 name="patientid"
+                inputRef={patientIdRef}
                 label="patient id"
                 value={data.patientid}
+                disabled={disable}
                 onChange={(e) =>
                   setData({ ...data, patientid: e.target.value })
                 }
@@ -195,6 +214,7 @@ function Registration({ organization, clinician }) {
                 <Select
                   id="patienttype"
                   value={data.patienttype}
+                  ref={patientIdRef}
                   onChange={(e) =>
                     setData({ ...data, patienttype: e.target.value })
                   }
@@ -202,7 +222,7 @@ function Registration({ organization, clinician }) {
                   labelId="patienttype"
                 >
                   <MenuItem value={'Direct'}>Direct</MenuItem>
-                  <MenuItem value={'Indirect'}>Indirect</MenuItem>
+                  <MenuItem value={'Refered'}>Refered</MenuItem>
                 </Select>
               </FormControl>
               <TextField
@@ -303,10 +323,7 @@ function Registration({ organization, clinician }) {
                 size="small"
                 label="age"
                 value={data.age}
-
-                onChange={
-                  (e) => setData({ ...data, age: e.target.value })
-                }
+                onChange={(e) => setData({ ...data, age: e.target.value })}
               ></TextField>
               <FormControl>
                 <InputLabel id="ageType">Age Type</InputLabel>
@@ -316,14 +333,13 @@ function Registration({ organization, clinician }) {
                   value={data.ageType}
                   size="small"
                   variant="outlined"
-                  onChange={
-                    (e) => setData({ ...data, ageType: e.target.value })
+                  onChange={(e) =>
+                    setData({ ...data, ageType: e.target.value })
                   }
                 >
                   <MenuItem value={'years'}>years</MenuItem>
                   <MenuItem value={'months'}>months</MenuItem>
                   <MenuItem value={'days'}>days</MenuItem>
-
                 </Select>
               </FormControl>
             </Box>
@@ -336,9 +352,7 @@ function Registration({ organization, clinician }) {
                   aria-labelledby="gender"
                   defaultValue="female"
                   name="gender"
-                  onChange={
-                    (e) => setData({ ...data, gender: e.target.value })
-                  }
+                  onChange={(e) => setData({ ...data, gender: e.target.value })}
                   values={data.gender}
                 >
                   <div>
@@ -367,12 +381,10 @@ function Registration({ organization, clinician }) {
                   aria-labelledby="marital-status"
                   defaultValue="single"
                   name="maritalstatus"
-                  onChange={
-                    (e) => setData({ ...data, maritalstatus: e.target.value })
+                  onChange={(e) =>
+                    setData({ ...data, maritalstatus: e.target.value })
                   }
-                  value={
-                    data.maritalstatus
-                  }
+                  value={data.maritalstatus}
                 >
                   <div>
                     <FormControlLabel
@@ -405,8 +417,7 @@ function Registration({ organization, clinician }) {
                     value={data.organization}
                     onChange={(e) => {
                       setData({ ...data, organization: e.target.value })
-                    }
-                    }
+                    }}
                     {...params}
                     label="organization name"
                     InputProps={{
@@ -419,6 +430,9 @@ function Registration({ organization, clinician }) {
               <Autocomplete
                 options={clinician.map((option) => option.NAME)}
                 size="small"
+                onChange={(e) => {
+                  setData({ ...data, clinician: e.target.value })
+                }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
@@ -427,11 +441,6 @@ function Registration({ organization, clinician }) {
                       ...params.InputProps,
                       type: 'search',
                     }}
-                    value={data.clinician}
-                    onChange={(e) => {
-                      setData({ ...data, clinician: e.target.value })
-                    }
-                    }
                   />
                 )}
               />
@@ -458,8 +467,8 @@ function Registration({ organization, clinician }) {
               <TextField
                 label="relationship"
                 value={data.relationship}
-                onChange={
-                  (e) => setData({ ...data, relationship: e.target.value })
+                onChange={(e) =>
+                  setData({ ...data, relationship: e.target.value })
                 }
                 variant="outlined"
                 name="relationship"
@@ -470,8 +479,8 @@ function Registration({ organization, clinician }) {
                 label="emmergency contact number"
                 variant="outlined"
                 name="emmergencyContactNumber"
-                onChange={
-                  (e) => setData({ ...data, emmergencyContactNumber: e.target.value })
+                onChange={(e) =>
+                  setData({ ...data, emmergencyContactNumber: e.target.value })
                 }
                 value={data.emmergencyContactNumber}
                 type="tel"
@@ -480,7 +489,11 @@ function Registration({ organization, clinician }) {
               />
             </Box>
             <Box sx={{ mt: 3 }}>
-              <Button type="submit" variant="contained">
+              <Button
+                type="submit"
+                variant="contained"
+                onClick={(e) => handleSubmit(e)}
+              >
                 submit
               </Button>
             </Box>
@@ -500,8 +513,8 @@ function Registration({ organization, clinician }) {
                 <Select
                   value={data.samplingCenter}
                   name="samplingCenter"
-                  onChange={
-                    (e) => setData({ ...data, samplingCenter: e.target.value })
+                  onChange={(e) =>
+                    setData({ ...data, samplingCenter: e.target.value })
                   }
                 >
                   <MenuItem value="Branch A">Branch A</MenuItem>
