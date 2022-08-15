@@ -8,9 +8,9 @@ body{
    overflow-x: hidden;
    overflow-y: auto;
    background-color: #f50057;
-   /* background-color: rgba(147, 144, 144, 0.05); */
-   /* font-family: 'Roboto', Helvetica, Arial, sans-serif; */
-   /* font-family: 'Open Sans', sans-serif; */
+   background-color: rgba(147, 144, 144, 0.05); 
+   font-family: 'Roboto', Helvetica, Arial, sans-serif; 
+    font-family: 'Open Sans', sans-serif; 
    
 }
 .grid-2{

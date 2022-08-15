@@ -1,6 +1,6 @@
 import SidebarFrontPage from '../../components/frontpagesidebar'
 import Header from '../../components/header'
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   handleAge,
   handleMobile,
@@ -27,6 +27,7 @@ import {
 } from '@mui/material'
 import yup from 'yup'
 import { useFormik } from 'formik'
+import e from 'cors'
 
 function Registration({ organization, clinician }) {
   const [title, setTitle] = React.useState('Personal Information')
@@ -50,6 +51,7 @@ function Registration({ organization, clinician }) {
     samplingCenter: '',
     gender: '',
     maritalstatus: '',
+    ageType: '',
     organization: '',
     clinician: '',
   })
@@ -68,24 +70,8 @@ function Registration({ organization, clinician }) {
       getpatient_info()
     }
   }
-  // calculate age based on the provided date of birth
 
-  const CalculateAge = (e) => {
-    let value = e.target.value
-    if (value.length > 4) {
-      setData({ ...data, years: e.target.value })
-      setError('4 digits only')
-    } else if (value.length < 4) {
-      setData({ ...data, years: e.target.value })
-      setError('4 digits only')
-    } else {
-      setError('')
-      setData({ ...data, years: e.target.value })
-    }
 
-    // let agecalulation = handleAge(data.years, data.months, data.days);
-    // console.log(agecalulation)
-  }
 
   // generate a transaction id for the patient
 
@@ -96,32 +82,57 @@ function Registration({ organization, clinician }) {
     e.target.disabled = true
   }
 
-  const formik = useFormik({
-    initialValues: {
-      emmergencyName: '',
-      patientid: '462520255225522',
-      email: '',
-      relationship: '',
-      mobilenumber: '',
-      emmergencyContactNumber: '050505',
-      patienttype: 'Direct',
-      age: '',
-      ageType: '',
-      fullname: 'years',
-      day: '',
-      months: '',
-      years: '1992',
-      maritalstatus: '',
-      gender: '',
-      organization: '',
-      clinician: '',
-      samplingCenter: 'Branch B',
-    },
-    validationSchema: registrationSchema,
-    onSubmit: (values) => {
-      console.log(values)
-    },
-  })
+  // calculate age based on the provided date of birth
+
+
+  useEffect(() => {
+
+    const CalculateAge = (e) => {
+      let agecalulation = handleAge(data.years, data.months, data.days);
+      if (agecalulation) {
+        const { years, months, days } = agecalulation;
+        if (years == 0 && months == 0 && days == 0) {
+          if (data.days > new Date().getDate()) {
+            setError('Please kindly recheck date values entered, Error at day value!!!');
+            setData({ ...data, age: 0, ageType: 'days' })
+          } else {
+            setError('Todays Delivering ?');
+            setData({ ...data, age: days, ageType: 'days' })
+          }
+        }
+        if (years != 0) {
+          setError('');
+          setData({ ...data, age: years, ageType: 'years' })
+        }
+
+        if (years == 0 && months != 0) {
+          setError('');
+          setData({ ...data, age: months, ageType: 'months' })
+        }
+
+        if (years == 0 && months == 0 && days > 0) {
+          setError('');
+          setData({ ...data, age: days, ageType: 'days' })
+        }
+      }
+      if (agecalulation == 'invalid Date') {
+        setError('Invalid Date entered');
+        setData({
+          ...data,
+          age: 0,
+          days: 0,
+          months: 0,
+          years: 0,
+          ageType: ''
+        })
+      }
+      console.log(agecalulation)
+    }
+
+
+    CalculateAge()
+  }, [data.years, data.age, data.ageType])
+
 
   return (
     <>
@@ -129,7 +140,7 @@ function Registration({ organization, clinician }) {
         {error}
       </Typography>
       <hr></hr>
-      <form style={{ margin: '1% 3% 0% 3%' }} onSubmit={formik.handleSubmit}>
+      <form style={{ margin: '1% 3% 0% 3%' }} >
         {!personalSection ? null : (
           <>
             {/* <Box sx={{width:'100%',marginTop:'20px'}}>
@@ -223,6 +234,7 @@ function Registration({ organization, clinician }) {
                 size="small"
                 type="email"
                 variant="outlined"
+                value={data.email}
                 name="email"
                 onChange={(e) => handleEmail(e, setData, data, setError)}
                 label="email"
@@ -232,7 +244,7 @@ function Registration({ organization, clinician }) {
               sx={{ m: 1 }}
               style={{
                 display: 'grid',
-                gridTemplateColumns: '10% 30% auto 30%',
+                gridTemplateColumns: '10% 40% auto 30%',
                 gridGap: '20px 20px',
               }}
             >
@@ -255,9 +267,9 @@ function Registration({ organization, clinician }) {
                 <TextField
                   size="small"
                   type="number"
-                  value={data.day}
+                  value={data.days}
                   onChange={(e) => {
-                    setData({ ...data, day: e.target.value })
+                    setData({ ...data, days: e.target.value })
                   }}
                   label="day"
                   name="day"
@@ -267,7 +279,7 @@ function Registration({ organization, clinician }) {
                   label="months"
                   type="number"
                   name="months"
-                  values={data.months}
+                  value={data.months}
                   onChange={(e) => {
                     setData({ ...data, months: e.target.value })
                   }}
@@ -277,9 +289,10 @@ function Registration({ organization, clinician }) {
                   type="number"
                   label="years"
                   name="years"
+                  maxLength={4}
                   value={data.years}
                   onChange={(e) => {
-                    CalculateAge(e)
+                    setData({ ...data, years: e.target.value })
                   }}
                 />
               </FormControl>
@@ -288,24 +301,29 @@ function Registration({ organization, clinician }) {
                 name="age"
                 type="number"
                 size="small"
-                label="age in years"
-                values={data.age}
-                onChange={(e) => {
-                  setData({ ...data, age: e.target.value })
-                }}
+                label="age"
+                value={data.age}
+
+                onChange={
+                  (e) => setData({ ...data, age: e.target.value })
+                }
               ></TextField>
               <FormControl>
                 <InputLabel id="ageType">Age Type</InputLabel>
                 <Select
                   name="ageType"
                   id="ageType"
-                  value={formik.values.ageType}
+                  value={data.ageType}
                   size="small"
-                  onChange={formik.handleChange}
+                  variant="outlined"
+                  onChange={
+                    (e) => setData({ ...data, ageType: e.target.value })
+                  }
                 >
                   <MenuItem value={'years'}>years</MenuItem>
                   <MenuItem value={'months'}>months</MenuItem>
                   <MenuItem value={'days'}>days</MenuItem>
+
                 </Select>
               </FormControl>
             </Box>
@@ -318,8 +336,10 @@ function Registration({ organization, clinician }) {
                   aria-labelledby="gender"
                   defaultValue="female"
                   name="gender"
-                  onChange={formik.handleChange}
-                  values={formik.values.gender}
+                  onChange={
+                    (e) => setData({ ...data, gender: e.target.value })
+                  }
+                  values={data.gender}
                 >
                   <div>
                     <FormControlLabel
@@ -347,8 +367,12 @@ function Registration({ organization, clinician }) {
                   aria-labelledby="marital-status"
                   defaultValue="single"
                   name="maritalstatus"
-                  onChange={formik.handleChange}
-                  value={formik.values.maritalstatus}
+                  onChange={
+                    (e) => setData({ ...data, maritalstatus: e.target.value })
+                  }
+                  value={
+                    data.maritalstatus
+                  }
                 >
                   <div>
                     <FormControlLabel
@@ -378,6 +402,11 @@ function Registration({ organization, clinician }) {
                 size="small"
                 renderInput={(params) => (
                   <TextField
+                    value={data.organization}
+                    onChange={(e) => {
+                      setData({ ...data, organization: e.target.value })
+                    }
+                    }
                     {...params}
                     label="organization name"
                     InputProps={{
@@ -398,6 +427,11 @@ function Registration({ organization, clinician }) {
                       ...params.InputProps,
                       type: 'search',
                     }}
+                    value={data.clinician}
+                    onChange={(e) => {
+                      setData({ ...data, clinician: e.target.value })
+                    }
+                    }
                   />
                 )}
               />
@@ -414,15 +448,19 @@ function Registration({ organization, clinician }) {
                 label="emmergency contact name"
                 variant="outlined"
                 name="emmergencyName"
-                onChange={formik.handleChange}
-                value={formik.values.emmergencyName}
+                onChange={(e) => {
+                  setData({ ...data, emmergencyName: e.target.value })
+                }}
+                value={data.emmergencyName}
                 type="text"
                 size="small"
               />
               <TextField
                 label="relationship"
-                value={formik.values.relationship}
-                onChange={formik.handleChange}
+                value={data.relationship}
+                onChange={
+                  (e) => setData({ ...data, relationship: e.target.value })
+                }
                 variant="outlined"
                 name="relationship"
                 type="text"
@@ -432,8 +470,10 @@ function Registration({ organization, clinician }) {
                 label="emmergency contact number"
                 variant="outlined"
                 name="emmergencyContactNumber"
-                onChange={formik.handleChange}
-                value={formik.values.emmergencyContactNumber}
+                onChange={
+                  (e) => setData({ ...data, emmergencyContactNumber: e.target.value })
+                }
+                value={data.emmergencyContactNumber}
                 type="tel"
                 id=" emmergencyContactNumber"
                 size="small"
@@ -458,9 +498,11 @@ function Registration({ organization, clinician }) {
               <FormControl size="small">
                 <InputLabel>Sampling center</InputLabel>
                 <Select
-                  value={formik.values.samplingCenter}
+                  value={data.samplingCenter}
                   name="samplingCenter"
-                  onChange={formik.handleChange}
+                  onChange={
+                    (e) => setData({ ...data, samplingCenter: e.target.value })
+                  }
                 >
                   <MenuItem value="Branch A">Branch A</MenuItem>
                   <MenuItem value="Branch B">Branch B</MenuItem>
