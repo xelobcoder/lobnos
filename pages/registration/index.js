@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from 'react'
 import {
   handleAge,
   handleMobile,
-  registrationSchema,
+  handleSubmitRegistration,
   BASEURL,
   handleEmail,
 } from '../../components/Auth/registerclient'
@@ -34,6 +34,7 @@ function Registration({ organization, clinician }) {
   const [sampling, setSampling] = React.useState(true)
   const [error, setError] = React.useState('');
   const patientIdRef = useRef(null);
+  const patientTypeOptions = ['', 'Direct', 'Refered'];
 
   const [data, setData] = React.useState({
     email: '',
@@ -47,12 +48,13 @@ function Registration({ organization, clinician }) {
     relationship: '',
     emmergencyName: '',
     emmergencyContactNumber: '',
-    samplingCenter: '',
     gender: '',
     maritalstatus: '',
     ageType: '',
     organization: '',
     clinician: '',
+    patientOrganization: '',
+    occupation: '',
   })
 
   const [disable, setDisable] = React.useState(false);
@@ -167,6 +169,7 @@ function Registration({ organization, clinician }) {
               sx={{
                 width: '100%',
                 display: 'grid',
+                m:1,
                 gridTemplateColumns: '65% auto',
                 gridGap: '20px 20px',
               }}
@@ -184,14 +187,14 @@ function Registration({ organization, clinician }) {
                   setData({ ...data, patientid: e.target.value })
                 }
               />
-              <div>
+              <div sx={{display:'grid',gridTemplateColumns:'50% auto',gridGap:'20px 20px'}}>
                 <Button onClick={(e) => handlePatientid(e)} variant="contained">
                   search
                 </Button>
                 <Button
+                 sx={{marginLeft:'10px'}}
                   onClick={(e) => generateTransactionId(e)}
-                  variant="outlined"
-                >
+                  variant="outlined">
                   generate transactionid
                 </Button>
               </div>
@@ -205,26 +208,21 @@ function Registration({ organization, clinician }) {
                 m: 1,
               }}
             >
-              <FormControl
-                variant="outlined"
-                sx={{ m: 1, minWidth: 120 }}
+              <Autocomplete
+                options={patientTypeOptions.map((option) => option)}
                 size="small"
-              >
-                <InputLabel id="patienttype">Patient Type</InputLabel>
-                <Select
-                  id="patienttype"
-                  value={data.patienttype}
-                  ref={patientIdRef}
-                  onChange={(e) =>
-                    setData({ ...data, patienttype: e.target.value })
-                  }
-                  name="patienttype"
-                  labelId="patienttype"
-                >
-                  <MenuItem value={'Direct'}>Direct</MenuItem>
-                  <MenuItem value={'Refered'}>Refered</MenuItem>
-                </Select>
-              </FormControl>
+                required
+                autoComplete={true}
+                value={data.patienttype}
+                onChange={(e, newvalue) => { setData({ ...data, patienttype: newvalue }) }
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="patient type"
+                  />
+                )}
+              />
               <TextField
                 onChange={(e) => {
                   setData({ ...data, fullname: e.target.value })
@@ -234,6 +232,7 @@ function Registration({ organization, clinician }) {
                 label="Patient fullname"
                 name="fullname"
                 values={data.fullname}
+                required
                 size="small"
               />
 
@@ -241,6 +240,9 @@ function Registration({ organization, clinician }) {
                 size="small"
                 type="number"
                 variant="outlined"
+                maxLength={10}
+                minLength={10}
+                required
                 value={data.mobile}
                 name="mobilenumber"
                 inputProps={{ 'aria-label': 'number should begin with 0' }}
@@ -410,14 +412,16 @@ function Registration({ organization, clinician }) {
               }}
             >
               <Autocomplete
+                disabled={data.patienttype == 'Refered' ? false : true}
                 options={organization.map((option) => option.NAME)}
                 size="small"
+                value={data.organization}
+                onChange={(e, newvalue) => {
+                  setData({ ...data, organization: newvalue })
+                }}
                 renderInput={(params) => (
                   <TextField
-                    value={data.organization}
-                    onChange={(e) => {
-                      setData({ ...data, organization: e.target.value })
-                    }}
+
                     {...params}
                     label="organization name"
                     InputProps={{
@@ -428,19 +432,17 @@ function Registration({ organization, clinician }) {
                 )}
               />
               <Autocomplete
+                disabled={data.patienttype == 'Refered' ? false : true}
                 options={clinician.map((option) => option.NAME)}
                 size="small"
-                onChange={(e) => {
-                  setData({ ...data, clinician: e.target.value })
-                }}
+                autoComplete={true}
+                value={data.clinician}
+                onChange={(e, newvalue) => { setData({ ...data, clinician: newvalue }) }
+                }
                 renderInput={(params) => (
                   <TextField
                     {...params}
                     label="clinician name"
-                    InputProps={{
-                      ...params.InputProps,
-                      type: 'search',
-                    }}
                   />
                 )}
               />
@@ -488,42 +490,44 @@ function Registration({ organization, clinician }) {
                 size="small"
               />
             </Box>
+            <Box
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '50% auto',
+                gridGap: '20px 20px',
+                marginTop: '30px',
+              }}
+            >
+              <TextField value={data.patientOrganization}
+                label="patient organization"
+                size='small'
+                onChange={(e) => {
+                  setData({ ...data, patientOrganization: e.target.value })
+                }
+                }
+              />
+              <TextField value={data.occupation}
+                label="occupation"
+                size='small'
+                onChange={(e) => {
+                  setData({ ...data, occupation: e.target.value })
+                }}
+              />
+            </Box>
             <Box sx={{ mt: 3 }}>
               <Button
                 type="submit"
                 variant="contained"
-                onClick={(e) => handleSubmit(e)}
+                onClick={
+                  (e) => { handleSubmitRegistration(e, data, 'http://localhost:3000/api/register') }
+                }
               >
                 submit
               </Button>
             </Box>
           </>
         )}
-        {sampling ? (
-          <>
-            <Box
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '50% 50%',
-                marginTop: '30px',
-              }}
-            >
-              <FormControl size="small">
-                <InputLabel>Sampling center</InputLabel>
-                <Select
-                  value={data.samplingCenter}
-                  name="samplingCenter"
-                  onChange={(e) =>
-                    setData({ ...data, samplingCenter: e.target.value })
-                  }
-                >
-                  <MenuItem value="Branch A">Branch A</MenuItem>
-                  <MenuItem value="Branch B">Branch B</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-          </>
-        ) : null}
+
       </form>
     </>
   )

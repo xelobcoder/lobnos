@@ -137,10 +137,10 @@ export const handleAge = (y, m, d) => {
 
 export const BASEURL = 'http://localhost:5000/api/v1/patientid/'
 
-export const handleSubmitRegistration = (e, data = {}, setError) => {
+export const handleSubmitRegistration = (e, data = {}, BASE) => {
   e.preventDefault()
   // error marker , at end run if true , data is not sent to endpoint.
-  let error = false
+  var error = false
   // fields that must have values
   const requiredFields = [
     'fullname',
@@ -150,10 +150,11 @@ export const handleSubmitRegistration = (e, data = {}, setError) => {
     'ageType',
     'maritalstatus',
     'emmergencyContactNumber',
-    'samplingCenter',
     'relationship',
     'mobile',
     'gender',
+    'patientOrganization',
+    'occupation',
   ]
 
   // however if refered, clinician and organization value must be filled
@@ -162,24 +163,86 @@ export const handleSubmitRegistration = (e, data = {}, setError) => {
 
   // destruture received data
   const { patienttype } = data
-  //  validate information to ensure validator information is captured
+  //  validate information to ensure data consistency
+  /**
+   * 
+   * @param {object} object data of patient  per inputs 
+   * @param {*} patienttype 
+   * @returns 
+   */
   function rd(data, patienttype) {
-    // error marker , at end run if true , data is not sent to endpoint.
-    let error = false
+    // error marker , at end run if true , data is not sent to API endpoint for storage
+    var error = { state: false, message: '' }
+    // fields that must have values
     if (patienttype == 'Refered') {
-      if (data[referedChecker[0]] == '' || data[referedChecker[1]] == '') {
-        error = true
-      } else {
-        return
-      }
-    } else {
-      for (let i = 0; i < requiredFields.length; i++) {
-        data[requiredFields[i]] == '' ? (error = false) : null
+      if (
+        data[referedChecker[0]] == '' ||
+        data[referedChecker[0]] == null ||
+        data[referedChecker[1]] == null ||
+        data[referedChecker[1]] == ''
+      ) {
+        error.state = true
       }
     }
 
+    if (patienttype == 'Direct') {
+      //  maintain error is false ,if all values are filled
+      if (!Object.values(data).includes('')) {
+        return
+      }
+      //  function runs for each of the required fields againts the data
+
+      function markEmptyFields(data = {}, array = []) {
+        return array.filter((option) => {
+          return (
+            data[option] == undefined ||
+            data[option] == '' ||
+            data[option] == null
+          )
+        })
+      }
+      // array length suggest if empty fields are preset or not.
+      if (markEmptyFields(data, requiredFields).length > 0) {
+        error.state = true
+        error.message =
+          markEmptyFields(data, requiredFields).join(', ') + ' are required'
+      }
+    }
     return error
   }
 
-  console.log(rd(data,patienttype));
+  console.log(rd(data, patienttype))
+
+  // truth, action = fire data saving
+  // false , action = decline sending data to database
+
+  if (rd(data, patienttype).state == true) {
+    // destructure message of empty fields
+    const { message } = rd(data, patienttype)
+    return error = message
+  }
+
+
+
+  if (rd(data, patienttype).state == false) {
+    //  send data to db async
+    let push_data_async = async function () {
+      let endpoint = await fetch(BASE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      let response = await endpoint.json()
+      return response
+    }
+    //  run async function
+    push_data_async().then((response) => {
+     console.log(response)
+    })
+  }
+  console.log(error)
+  return error
 }

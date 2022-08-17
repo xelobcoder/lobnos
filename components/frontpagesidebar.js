@@ -10,6 +10,11 @@ export default function SidebarFrontPage() {
           </Link>
         </li>
         <li>
+          <Link href="/activation">
+            <a>activation</a>
+          </Link>
+        </li>
+        <li>
           <Link href="/clients">
             <a>Clients</a>
           </Link>
