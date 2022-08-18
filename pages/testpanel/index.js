@@ -6,12 +6,13 @@ import AddPanel from './add';
 export default function TestPanel() {
     return (
         <>
-            <Box sx={{ width: '100%' }}>
-                <AddPanel></AddPanel>
+            <Box  sx={{ width: '100%' }}>
+                <AddPanel ></AddPanel>
             </Box>
         </>
     )
 }
+
 
 
 

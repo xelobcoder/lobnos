@@ -1,5 +1,5 @@
 import connection from '../db'
-import { allfieldspresent } from './categories'
+import { allFieldsHasValues } from './categories'
 
 const testpanel = {
   listquery: 'SELECT * FROM test_panels',
@@ -15,8 +15,25 @@ const testpanel = {
   postquery: function (name, price, category) {
     return `INSERT INTO test_panels (NAME,CATEGORY,PRICE) VALUES ('${name}','${category}','${price}')`
   },
+  panelExist: function (name) {
+    return new Promise((resolve, reject) => {
+      let query = `SELECT NAME FROM test_panels WHERE NAME = '${name}'`
+      connection.query(query, (err, result) => {
+        if (err) {
+          reject(err)
+        }
+        if (result) {
+          if (result.length > 0) {
+            resolve(true)
+          } else {
+            resolve(false)
+          }
+        }
+      })
+    })
+  },
   getPanels: function (request, response) {
-    connection.query(testpanel.listquery, (err, result) => {
+    connection.query(this.listquery, (err, result) => {
       if (err) throw err
       response.send(result)
     })
@@ -26,7 +43,7 @@ const testpanel = {
     // check if all fields are present
     if (id && price && category) {
       // check if all fields have values
-      if (allfieldspresent(request.body)) {
+      if (allFieldsHasValues(request.body)) {
         connection.query(
           testpanel.updatequery(id, price, category),
           (err, result) => {
@@ -63,18 +80,28 @@ const testpanel = {
     }
   },
   postPanel: function (request, response) {
-    if (allfieldspresent(request.body)) {
+    if (allFieldsHasValues(request)) {
       const { name, price, category } = request.body
-      if (id && price && category) {
-        connection.query(
-          this.postquery(name, price, category),
-          (err, result) => {
-            if (err) throw err
-            response.send({
-              message: 'test panel successfully added',
-            })
-          },
-        )
+      if (name && price && category) {
+        this.panelExist(name)
+          .then((res) => {
+            if (res) {
+              response.send({
+                message: 'panel Already Exist'
+              })
+            }
+            else {
+              connection.query(
+                this.postquery(name, price, category),
+                (err, result) => {
+                  if (err) throw err
+                  response.send({
+                    message: 'test panel successfully added',
+                  })
+                },
+              )
+            }
+          })
       } else {
         response.send({
           message: 'All fields are required',
@@ -85,6 +112,7 @@ const testpanel = {
 }
 
 export default function handler(req, res) {
+  console.log(req.body)
   switch (req.method) {
     case 'GET':
       testpanel.getPanels(req, res)
@@ -97,6 +125,7 @@ export default function handler(req, res) {
       break
     case 'POST':
       testpanel.postPanel(req, res)
+      break
     default:
       res.status(405).send({
         message: 'Method not allowed',

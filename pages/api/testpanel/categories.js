@@ -6,13 +6,14 @@ import connection from '../db'
  * @param {request} req
  * @returns {boolean||array} boolean value or an array of values
  */
-export function allfieldspresent(request) {
+export function allFieldsHasValues(request) {
   //   grap all values of request body
   let values = Object.values(request.body).filter((value, index) => {
-    return value != ''
+    return value == ''
   })
+  console.log(values)
   //   return true if all values are present
-  return values.length > 0 ? false : true
+  return values.length == 0 ? true : false;
 }
 
 // validate absence of such category
@@ -39,7 +40,7 @@ function categoryExists(category, res) {
 
 const postCategory = (request, response) => {
   // check if all fields are not empty
-  if (allfieldspresent(req)) {
+  if (allFieldsHasValues(req)) {
     // check if category exists
     categoryExists(req.body.category)
       .then((result) => {
@@ -113,7 +114,7 @@ const putCategory = (request, response) => {
   }
 
   if (category && description) {
-    if (allfieldspresent(request.body)) {
+    if (allFieldsHasValues(request.body)) {
       let mysqlQuery = `UPDATE test_categories
             SET CATEGORY = '${category}', 
             DESCRIPTION = '${description}' 
