@@ -131,17 +131,15 @@ var addpatient = function (request, response) {
 }
 
 const getpatient = function (request, response) {
-  if (Object.keys(request.query) > 0) {
-    if (Object.keys(query).includes('patientid')) {
+  if (Object.keys(request.query).length > 0) {
+    console.log('hi')
+    if (Object.keys(request.query).includes('patientid')) {
       connection.query(
         'SELECT * FROM NEW_PATIENTS WHERE PATIENTID = ?',
         [request.query.patientid],
         (err, result) => {
           if (err) throw err
-          response.send({
-            status: SUCCESSMESSAGE,
-            data: result,
-          })
+          response.send(result)
         },
       )
     }

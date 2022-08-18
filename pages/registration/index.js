@@ -1,6 +1,7 @@
 import SidebarFrontPage from '../../components/frontpagesidebar'
 import Header from '../../components/header'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef ,useMemo} from 'react';
+import { useRouter } from 'next/router';
 import {
   handleAge,
   handleMobile,
@@ -34,6 +35,7 @@ function Registration({ organization, clinician }) {
   const [sampling, setSampling] = React.useState(true)
   const [error, setError] = React.useState('');
   const patientIdRef = useRef(null);
+  const generateRef = useRef(null);
   const patientTypeOptions = ['', 'Direct', 'Refered'];
 
   const [data, setData] = React.useState({
@@ -55,9 +57,11 @@ function Registration({ organization, clinician }) {
     clinician: '',
     patientOrganization: '',
     occupation: '',
+    fullname: '',
   })
 
   const [disable, setDisable] = React.useState(false);
+  const [generatebtn, setGeneratebtn] = React.useState(false);
 
   const handlePatientid = (e) => {
     let inputvalue = data.patientid
@@ -95,10 +99,7 @@ function Registration({ organization, clinician }) {
 
   // calculate age based on the provided date of birth
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    console.log(data)
-  }
+  
 
   useEffect(() => {
     const CalculateAge = (e) => {
@@ -151,7 +152,65 @@ function Registration({ organization, clinician }) {
     }
 
     CalculateAge()
-  }, [data.years, data.age, data.ageType])
+  }, [data.years, data.age, data.ageType]);
+
+  //   for updating field forms using client id
+  const clientID = useRouter().query.patientid;
+
+
+  useMemo(() => {
+    if (clientID) {
+      // fetch data of client with such patientid
+      const getpatient_info = async function () {
+        let BASE = await fetch(`http://localhost:3000/api/register/?patientid=${clientID}`)
+        return await BASE.json()
+      }
+      
+      getpatient_info().then((item) => {
+        let data = item[0];
+        setData({
+          patientid: data.PATIENTID,
+          patienttype: data.PATIENTTYPE,
+          relationship: data.RELATIONSHIP,
+          emmergencyName: data.EMMERGENCY_CONTACT,
+          emmergencyContactNumber: data.EMMERGENCY_CONTACT_NAME,
+          age: data.AGE,
+          ageType: data.AGETYPE,
+          organization: data.ORGANIZATION || '',
+          clinician: data.CLINICIAN || '',
+          patientOrganization: data.PATIENTORGANIZATION || '',
+          occupation: data.OCCUPATION || '',
+          mobile: data.MOBILE_NUMBER,
+          email: data.EMAIL,
+          days: data.DOB.split('-')[2].slice(0, 2),
+          months: data.DOB.split('-')[1].slice(0, 2),
+          years: data.DOB.split('-')[0],
+          maritalstatus: data.MARITAL_STATUS,
+          gender: data.GENDER,
+          fullname: data.FULLNAME,
+        })
+
+        // disable the patient field, hence prevent editing the unique id
+        patientIdRef.current = true;
+        // toggle it
+        patientIdRef.current == true ? setDisable(!disable) : null;
+
+        // set the title of the form to reflect the client's name
+        setTitle(data.FULLNAME)
+
+        // disable generate button
+
+        generateRef.current = true;
+
+        // toggle it
+
+        generateRef.current == true ? setGeneratebtn(!disable) : null;
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+    }
+  } ,[clientID])
 
   return (
     <>
@@ -169,7 +228,7 @@ function Registration({ organization, clinician }) {
               sx={{
                 width: '100%',
                 display: 'grid',
-                m:1,
+                m: 1,
                 gridTemplateColumns: '65% auto',
                 gridGap: '20px 20px',
               }}
@@ -187,12 +246,13 @@ function Registration({ organization, clinician }) {
                   setData({ ...data, patientid: e.target.value })
                 }
               />
-              <div sx={{display:'grid',gridTemplateColumns:'50% auto',gridGap:'20px 20px'}}>
+              <div sx={{ display: 'grid', gridTemplateColumns: '50% auto', gridGap: '20px 20px' }}>
                 <Button onClick={(e) => handlePatientid(e)} variant="contained">
                   search
                 </Button>
-                <Button
-                 sx={{marginLeft:'10px'}}
+                <Button ref={generateRef}
+                  sx={{ marginLeft: '10px' }}
+                  disabled={generatebtn}
                   onClick={(e) => generateTransactionId(e)}
                   variant="outlined">
                   generate transactionid
@@ -231,7 +291,7 @@ function Registration({ organization, clinician }) {
                 type="text"
                 label="Patient fullname"
                 name="fullname"
-                values={data.fullname}
+                value={data.fullname}
                 required
                 size="small"
               />
@@ -355,7 +415,7 @@ function Registration({ organization, clinician }) {
                   defaultValue="female"
                   name="gender"
                   onChange={(e) => setData({ ...data, gender: e.target.value })}
-                  values={data.gender}
+                  value={data.gender}
                 >
                   <div>
                     <FormControlLabel

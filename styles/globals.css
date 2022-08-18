@@ -242,3 +242,65 @@ body{
    grid-gap: 20px 20px;
    padding: 10px;
 }
+.activation-table{
+   border: 1px solid lightgray;
+   height: AUTO;
+   width: 100%;
+   margin-top: 20px;
+   font-weight:300;
+   overflow-y: auto;
+}
+
+.activation-table > thead > tr > th{
+   border-bottom: 1px solid lightgray;
+   font-weight: bold;
+   text-align: left;
+   text-transform: uppercase;
+   color: white;
+   font-weight: 200;
+   padding: 20px;
+   margin-left: 20px;
+   background-color: black;
+}
+
+.activation-table > tbody > tr > td {
+   border-bottom: 1px solid lightgray;
+   text-align: left;
+   font-weight: 200;
+   margin-left: 20px;
+   padding: 20px;
+}
+
+.activation-table > tbody > tr {
+   background-color: white;
+   padding: 20px;
+   margin-top: 10px;
+}
+.activated{
+   color: #2fad66;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   border-radius: 3%;
+   text-transform: capitalize;
+   background-color: rgba(0, 128, 0, 0.103);
+}
+
+.deactivated{
+   color: red;
+   margin: 0px;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   border-radius: 3%;
+   background-color: rgba(255, 0, 0, 0.068);
+   text-transform: capitalize;
+}
+.activation-cell > button {
+  width: 100px;
+}
+
+a{
+   text-decoration: none !important;
+}
+
