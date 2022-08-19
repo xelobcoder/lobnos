@@ -247,7 +247,9 @@ function Registration({ organization, clinician }) {
                 }
               />
               <div sx={{ display: 'grid', gridTemplateColumns: '50% auto', gridGap: '20px 20px' }}>
-                <Button onClick={(e) => handlePatientid(e)} variant="contained">
+                <Button 
+                disabled ={generatebtn}
+                onClick={(e) => handlePatientid(e)} variant="contained">
                   search
                 </Button>
                 <Button ref={generateRef}
@@ -576,7 +578,7 @@ function Registration({ organization, clinician }) {
             </Box>
             <Box sx={{ mt: 3 }}>
               <Button
-                type="submit"
+                type="button"
                 variant="contained"
                 onClick={
                   (e) => { handleSubmitRegistration(e, data, 'http://localhost:3000/api/register') }

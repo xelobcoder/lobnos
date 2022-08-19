@@ -111,6 +111,7 @@ var addpatient = function (request, response) {
         response.send({
           status: ERRORMESSAGE,
           message: 'Patient already registered',
+          patientid
         })
       }
 
@@ -120,7 +121,7 @@ var addpatient = function (request, response) {
           response.send({
             status: SUCCESSMESSAGE,
             message: 'Patient successfully registered',
-            data: result,
+            patientid
           })
         })
       }

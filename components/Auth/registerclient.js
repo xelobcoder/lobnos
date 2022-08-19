@@ -1,4 +1,5 @@
 // handle mobile number validation
+import { useRouter } from 'next/router'
 export const handleMobile = (e, setValue, data, setError) => {
   let value = e.target.value
   let length = value.length
@@ -165,10 +166,10 @@ export const handleSubmitRegistration = (e, data = {}, BASE) => {
   const { patienttype } = data
   //  validate information to ensure data consistency
   /**
-   * 
-   * @param {object} object data of patient  per inputs 
-   * @param {*} patienttype 
-   * @returns 
+   *
+   * @param {object} object data of patient  per inputs
+   * @param {*} patienttype
+   * @returns
    */
   function rd(data, patienttype) {
     // error marker , at end run if true , data is not sent to API endpoint for storage
@@ -208,10 +209,13 @@ export const handleSubmitRegistration = (e, data = {}, BASE) => {
           markEmptyFields(data, requiredFields).join(', ') + ' are required'
       }
     }
+
+    if (patienttype == '' || patienttype == null || patienttype == undefined) {
+      error.state = true
+      error.message = 'patient type is required'
+    }
     return error
   }
-
-  console.log(rd(data, patienttype))
 
   // truth, action = fire data saving
   // false , action = decline sending data to database
@@ -219,10 +223,10 @@ export const handleSubmitRegistration = (e, data = {}, BASE) => {
   if (rd(data, patienttype).state == true) {
     // destructure message of empty fields
     const { message } = rd(data, patienttype)
-    return error = message
+    return (error = message)
   }
 
-
+  console.log(rd(data, patienttype).state)
 
   if (rd(data, patienttype).state == false) {
     //  send data to db async
@@ -240,9 +244,32 @@ export const handleSubmitRegistration = (e, data = {}, BASE) => {
     }
     //  run async function
     push_data_async().then((response) => {
-     console.log(response)
+      if (response.message == 'Patient successfully registered') {
+        window.location.href = '/activation' + response.patientid
+      } else {
+        window.location.href =
+          '/activation?message=' +
+          response.message +
+          '&patientid=' +
+          response.patientid
+      }
     })
+  } else {
+    return error
   }
-  console.log(error)
   return error
+}
+
+
+
+export async function handleActivation(e,id,status,patientid) {
+  let action = status == 'TRUE' ? 'FALSE' : 'TRUE'
+  let endpoint_get = await fetch(`http://localhost:3000/api/activation/?patientid=${patientid}&action=${action}`)
+  let response = await endpoint_get.json()
+  if(response.action == 'BILLING') {
+    window.location.href = '/registration/billing?patientid=' + patientid
+  }
+  else {
+    window.location.href = '/activation?patientid=' + patientid
+  }
 }
