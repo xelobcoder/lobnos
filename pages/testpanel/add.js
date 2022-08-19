@@ -18,8 +18,9 @@ import { useFormik } from 'formik'
 import CategoryBread from '../../components/registration/testpanelBread'
 
 export default function AddPanel({ categories }) {
+  const [category, setCategory] = useState(categories||[])
   const formReset = useRef()
-
+  console.log(categories)
   const addpanel = useFormik({
     initialValues: {
       name: '',
@@ -95,7 +96,7 @@ export default function AddPanel({ categories }) {
                 value={addpanel.values.category}
                 onChange={addpanel.handleChange}
               >
-                {categories.map((option) => {
+                {category.map((option) => {
                   return (
                     <MenuItem key={option.ID} value={option.CATEGORY}>
                       {option.CATEGORY}
@@ -129,17 +130,6 @@ export default function AddPanel({ categories }) {
   )
 }
 
-export async function getServerSideProps(ctx) {
-  let endpoint = 'http://localhost:3000/api/testpanel/categories'
-  let getData = await fetch(endpoint)
-  let response = await getData.json()
-  console.log(response)
-  return {
-    props: {
-      categories: response,
-    },
-  }
-}
 
 AddPanel.getLayout = function (page) {
   return (

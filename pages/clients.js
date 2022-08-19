@@ -1,6 +1,6 @@
 import SidebarFrontPage from '../components/frontpagesidebar'
 import Header from '../components/header'
-import React, { useEffect, useRef, useState, useMemo } from 'react'
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { AgGridReact } from 'ag-grid-react'
 import 'ag-grid-community/dist/styles/ag-grid.css'
 import 'ag-grid-community/dist/styles/ag-theme-alpine.css'
@@ -11,66 +11,107 @@ import 'ag-grid-community/dist/styles/ag-theme-material.css'
 import 'ag-grid-community/dist/styles/ag-theme-balham.css'
 import 'ag-grid-community/dist/styles/ag-theme-dark.css'
 import 'ag-grid-community/dist/styles/ag-theme-blue.css'
-// // import Table from '../../components/tab'
+import { Button, Input } from '@mui/material'
 
 export function Clients({ data }) {
   const [clients, setClients] = useState([])
 
 
-  // useEffect(() => {
-  //   // make call to server every 10s
-  //   const interval = setInterval(() => {
-  //     fetch('/api/register')
-  //       .then((res) => res.json())
-  //       .then((data) => {
-  //         setClients(data)
-  //       }).catch((err) => {
-  //         console.log(err)
-  //       }
-  //       )
-  //   })
-  // },[])
+  const formatActivationStatus = useCallback((status) => {
+    if (status === 'active') {
+      return 'Active'
+    } else {
+      return 'Inactive'
+    }
+  }, [])
+
+  const formatActionStatusRenderer = useCallback((params) => {
+    console.log(params.value)
+    if (params.value == 'TRUE') {
+      return (
+        <Button>
+          <span style={{ width: '100px' }} className="activated">
+            Active
+          </span>
+        </Button>
+      )
+    } else {
+      return (
+        <Button variant="text" color="error">
+          <span style={{ width: '100px' }} className="deactivated">
+            Inactive
+          </span>
+        </Button>
+      )
+    }
+  }, [])
+
+  const formatDate = useCallback((date) => {
+    return date.slice(0, 10)
+  }, [])
+
+  const formatDateRenderer = useCallback((params) => {
+    return (
+      <div>
+        <span>{formatDate(params.value)}</span>
+      </div>
+    )
+  }, [])
+
+  const filterTable = (e) => {
+    console.log(e.target.value);
+  }
 
   const coloumnDef = [
-    // field for check boz
+    // field for check box
     {
       headerName: '',
       field: '',
       checkboxSelection: true,
       headerCheckboxSelection: true,
       width: 30,
-      headerCheckboxSelectionFilteredOnly: true,
-      suppressMenu: true,
-      suppressSorting: true,
-      suppressMovable: true,
-      suppressFilter: true,
-      suppressSizeToFit: true,
-      suppressResize: true,
-      suppressCellFlash: true,
-      suppressMenu: true,
-      suppressMiddleClickScrolls: true,
-      suppressCellSelection: true,
       pinned: 'left',
     },
     { field: 'ID', headerName: 'ID' },
-    { field: 'PATIENTID', headerName: 'PATIENTID', pinned: 'right' },
+    {
+      field: 'PATIENTID',
+      cellStyle: function (params) {
+        return { backgroundColor: 'whitesmoke', color: 'grey' }
+      },
+      headerName: 'PATIENTID',
+      pinned: 'right',
+    },
     {
       field: 'FULLNAME',
       headerName: 'Full Name',
       pinned: true,
-      sortable: false,
+      sortable: true,
       tooltipValueGetter: function (g) {
         let value = g.data.ACTIVATION_STATUS
         return value == 'TRUE' ? 'Activated' : 'Not Activated'
       },
     },
     { field: 'EMAIL', headerName: 'Email' },
-    { field: 'DOB', headerName: 'DOB' },
+    { field: 'DOB', headerName: 'DOB', cellRenderer: formatDateRenderer },
     { field: 'ORGANIZATION', headerName: 'Organization' },
-    { field: 'ACTIVATION_STATUS', headerName: 'Activation Status',
-     
-  },
-    { field: 'DATE', headerName: 'Date' },
+    {
+      field: 'ACTIVATION_STATUS',
+      headerName: 'Activation Status',
+      cellStyle: function (params) {
+        if (params.value == 'TRUE') {
+          return { color: 'green' }
+        } else {
+          return { color: 'red' }
+        }
+      },
+      valueFormatter: formatActivationStatus,
+      cellRenderer: formatActionStatusRenderer,
+    },
+    {
+      field: 'DATE',
+      headerName: 'Date',
+      cellRenderer: formatDateRenderer,
+    },
     { field: 'GENDER', headerName: 'gender' },
     { field: 'MARITAL_STATUS', headerName: 'Marital Status' },
     { field: 'RELATIONSHIP', headerName: 'Relationship' },
@@ -79,7 +120,10 @@ export function Clients({ data }) {
     { field: 'MOBILE_NUMBER', headerName: 'Mobile Number' },
     { field: 'PATIENTORGANIZATION', headerName: 'Patient Organization' },
     { field: 'OCCUPATION', headerName: 'Patient Occupation' },
-    { field: 'PATIENTTYPE', headerName: 'Patient Type' },
+    {
+      field: 'PATIENTTYPE',
+      headerName: 'Patient Type',
+    },
   ]
 
   const [columns, setColumns] = useState(coloumnDef)
@@ -89,10 +133,13 @@ export function Clients({ data }) {
       resizable: true,
       filter: true,
       sortable: true,
+      filter: true,
       flexGrow: 1,
       minWidth: 100,
       maxWidth: 500,
       editable: true,
+      cellRenderer: 'agAnimateShowChangeCellRenderer',
+      filter: 'agTextColumnFilter',
       cellStyle: {
         textAlign: 'left',
         color: 'black',
@@ -102,15 +149,26 @@ export function Clients({ data }) {
     [],
   )
 
+  const callRowId = useCallback((options) => {
+    console.log(options.data.id)
+  }, [])
+
   return (
     <>
+      <div>
+        <Button>exclude</Button>
+        <Input variant='standard' placeholder='filter' onChange={(e) => { filterTable(e) }} />
+      </div>
       <div
-        className=" ag-theme-alpine" style={{backgroundColor: 'whitesmoke',height:'90vh'}}
+        className=" ag-theme-alpine"
+        style={{ backgroundColor: 'whitesmoke', height: '90vh' }}
       >
         <AgGridReact
+          getRowId={callRowId}
+          headerHeight={40}
+          pivotHeaderHeight={40}
           rowData={data}
           columnDefs={columns}
-          headerHeight={50}
           defaultColDef={defaultColumnDef}
           animateRows={true}
           rowSelection="multiple"
