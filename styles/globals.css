@@ -303,4 +303,50 @@ body{
 a{
    text-decoration: none !important;
 }
+/* -----------------------------------BILLING */
+.option{
 
+   border-radius: 5px;
+   padding: 0px;
+   margin: 0px;
+   box-shadow: 1px 1px 1px 1px whitesmoke;
+   position: absolute;
+   top: 3px;
+   z-index: 1;
+}
+.wrapper-auto > .option {
+   margin: 0;
+   padding: 0;
+   position: relative;
+}
+
+
+.option > li {
+   display: flex;
+   justify-content: flex-start;
+   align-items: center;
+   padding: 0px;
+   border-bottom: 1px solid lightgray;
+   margin: 0;
+
+}
+
+.option > li:hover ,.option > li:focus, .option > li:active{
+   color: cornflowerblue;
+   transition: 500ms cubic-bezier(0.075, 0.82, 0.165, 1) ease-in-out;
+   cursor: pointer;
+}
+.option > li > div{
+   display: grid;
+   grid-template-columns: 70% auto;
+   grid-gap: 10px;
+   width: 100%;
+   margin-top: 10px;
+}
+.option > li > div:nth-of-type(1){
+   margin-left: 10px;
+}
+
+.option > li > div:nth-of-type(1) > p::first-letter{
+   text-transform: uppercase;
+}

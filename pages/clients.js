@@ -14,7 +14,7 @@ import 'ag-grid-community/dist/styles/ag-theme-blue.css'
 import { Button, Input } from '@mui/material'
 
 export function Clients({ data }) {
-  const [clients, setClients] = useState([])
+  const [clients, setClients] = useState(data)
 
 
   const formatActivationStatus = useCallback((status) => {
@@ -167,7 +167,7 @@ export function Clients({ data }) {
           getRowId={callRowId}
           headerHeight={40}
           pivotHeaderHeight={40}
-          rowData={data}
+          rowData={clients}
           columnDefs={columns}
           defaultColDef={defaultColumnDef}
           animateRows={true}
