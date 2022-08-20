@@ -1,8 +1,10 @@
 import SidebarFrontPage from '../../components/frontpagesidebar'
 import Header from '../../components/header'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react'
 import { Autocomplete, Button, TextField, Box, Container } from '@mui/material'
+import TESTCART from '../../components/registration/testCart';
+import AddBoxIcon from '@mui/icons-material/AddBox';
 
 export default function Billing({ allpanels }) {
     const [testoptions, setTestoptions] = useState(allpanels);
@@ -12,7 +14,10 @@ export default function Billing({ allpanels }) {
     const handleSubmit = useCallback((e) => {
 
     }, [])
-
+ 
+    const emptytestcart = (e) => {
+        setTestArray([])
+    }
 
     const handleAutocomplete = (e) => {
         setTestArray([...testArray, selected]);
@@ -20,56 +25,24 @@ export default function Billing({ allpanels }) {
 
     console.log(testArray)
     return (
-        <Box sx={{ display: 'grid', gridTemplateColumns: '100%', marginTop: '30px' }}>
-            <Container style={{ display: 'grid', gridTemplateColumns: '80% auto', width: '50vw' }}>
-                <Autocomplete
-                    options={allpanels}
-                    getOptionLabel={(option) => option.NAME}
-                    value={selected}
-                    size='small'
-                    onChange={(e, newValue) => { setSelected(newValue) }}
-                    renderInput={(params) => <TextField {...params} label="Select a panel" variant="outlined" />}
-                />
-                <Button onClick={(e) => { handleAutocomplete(e) }} color='primary' variant='contained' sx={{ borderRadius: 0, marginLeft: '10px' }}>add</Button>
-            </Container>
-            <Container>
-                {
-                    testArray.length == 0 ? null :
-                        (
-                            <>
-                                <table className='table'>
-                                    <thead>
-                                        <tr>
-                                            <th>no</th>
-                                            <th>test</th>
-                                            <th>cost</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {
-                                            testArray.map((item, index) => {
-                                                return (<tr key={index}>
-                                                    <td>{index + 1}</td>
-                                                    <td>{item.NAME}</td>
-                                                    <td>{item.PRICE}</td>
-                                                </tr>)
-                                            })
-
-                                        }
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colSpan={2}>total</td>
-                                            <td>{testArray.reduce((acc, curr) => { return acc + curr.PRICE }, 0)}</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </>
-                        )
-                }
-            </Container>
-
-        </Box>
+        <>
+            <div style={{ display: 'grid', gridTemplateColumns: '50% auto', gridGap: '20px 20px' }}>
+                <div style={{ display: 'flex',justifyContent:'flex-start',width:'40vw',height:'40px',marginTop:'40px',marginLeft:'20px' }}>
+                    <Autocomplete sx={{width:'80%'}}
+                        options={allpanels}
+                        getOptionLabel={(option) => option.NAME}
+                        value={selected}
+                        size='small'
+                        onChange={(e, newValue) => { setSelected(newValue) }}
+                        renderInput={(params) => <TextField {...params} label="Select a panel" variant="outlined" />}
+                    />
+                    <Button startIcon={<AddBoxIcon/>} onClick={(e) => { handleAutocomplete(e) }} color='primary' variant='contained' sx={{ borderRadius: 0, marginLeft: '10px' }}>add</Button>
+                </div>
+                <div style={{width: '40vw'}}>
+                    <TESTCART testArray={testArray} emptytestcart={emptytestcart}/>
+                </div>
+            </div>
+        </>
     )
 }
 
