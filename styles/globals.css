@@ -394,4 +394,5 @@ a{
 
 .billing-cart-table > tfoot > tr > td> button{
    color: #f50057;
+   color: red;
 }
