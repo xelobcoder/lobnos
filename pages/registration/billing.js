@@ -2,25 +2,28 @@ import SidebarFrontPage from '../../components/frontpagesidebar'
 import Header from '../../components/header'
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react'
-import { Autocomplete, FormLabel, Radio, RadioGroup, FormControlLabel, Button, TextField, MenuItem, Box, Container, FormControl, Select, InputLabel } from '@mui/material'
+import { Autocomplete, FormLabel, Radio, RadioGroup, FormControlLabel, Button, TextField, MenuItem, Box, Container, FormControl, Select, InputLabel, Typography } from '@mui/material'
 import TESTCART from '../../components/registration/testCart';
 import CancelScheduleSendIcon from '@mui/icons-material/CancelScheduleSend';
 import SendIcon from '@mui/icons-material/Send';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 
-export default function Billing({ allpanels, organization, clinicians }) {
+export default function Billing({ allpanels, organization, clinicians,branch}) {
     const router = useRouter().query.patientid;
+    const navigate = useRouter();
     const [testoptions, setTestoptions] = useState(allpanels);
+    const [message, setMessage] = useState('');
     const [data, setData] = useState({
         organizations: null,
         clinicians: null,
         paymentmode: '',
         cost: 0,
-        test:[],
+        test: [],
         paid: 0,
         discount: 0,
         urgency: 'none',
         patientid: router,
+        samplingCenter: ''
     });
 
     const [outstanding, setOutstanding] = useState(data.cost - data.paid);
@@ -37,6 +40,10 @@ export default function Billing({ allpanels, organization, clinicians }) {
         return item.NAME;
     })
 
+    const getSamOptions = branch.map((item, index) => {
+        return item.NAME;
+    })
+
     const emptytestcart = (e) => {
         setTestArray([])
     }
@@ -48,9 +55,9 @@ export default function Billing({ allpanels, organization, clinicians }) {
         // adding data function
         const addData = () => {
             setTestArray([...testArray, selected]);
-            setData({...data, test: [...data.test, selected.NAME]});
+            setData({ ...data, test: [...data.test, selected.NAME] });
         }
-        cart.length === 0 ?  addData(): alert('test already in cart');
+        cart.length === 0 ? addData() : alert('test already in cart');
     }
 
     useEffect(() => {
@@ -73,30 +80,53 @@ export default function Billing({ allpanels, organization, clinicians }) {
 
         let test = data.test.filter((item) => item != single.NAME)
 
-        setData({...data, test: test})
+        setData({ ...data, test: test })
 
     }
 
     const handleSubmit = (e) => {
         //    send data to server using fecth
         e.preventDefault();
-        let pushData = async function() {
-            let endpoint = await fetch('/api/billing', {method: 'POST', body: JSON.stringify(data)})
+        let pushData = async function () {
+            let endpoint = await fetch('/api/billing', { method: 'POST', body: JSON.stringify(data) })
             let response = await endpoint.json();
             return response;
         }
         pushData().then(response => {
-            console.log(response);
+            if (response.message == 'success') {
+                setMessage(' test added to performing test table')
+                // empty cart
+                emptytestcart()
+                // empty data
+                setData({
+                    organizations: null,
+                    clinicians: null,
+                    paymentmode: '',
+                    cost: 0,
+                    test: [],
+                    paid: 0,
+                    discount: 0,
+                    urgency: 'none',
+                    patientid: router,
+                    samplingCenter: '',
+                })
+                // empty selected
+                setSelected(null)
+
+                setTimeout(() => {
+                  navigate.push('/activation')
+                }, 2000);
+            }
         })
-        .catch(error => {throw error})
-        
+            .catch(error => { throw error })
+
     }
 
     return (
         <>
-            <div>
-
-            </div>
+            <Container>
+               <Typography variant='p'  color='primary' sx={{textTransform:'capitalize'}}> {message}</Typography>
+            </Container>
             <hr></hr>
             <div style={{ display: 'grid', gridTemplateColumns: '50% auto', gridGap: '20px 20px' }}>
                 <div >
@@ -163,6 +193,14 @@ export default function Billing({ allpanels, organization, clinicians }) {
                                 </RadioGroup>
                             </FormControl>
                         </div>
+                        <div style={{ width: '80%', marginTop: '20px' }}>
+                            <Autocomplete value={data.samplingCenter} size='small'
+                                options={getSamOptions.map((option) => option)}
+                                getOptionLabel={(option) => option}
+                                onChange={(e, newValue) => { setData({ ...data, samplingCenter: newValue }) }}
+                                renderInput={(params) => <TextField {...params} label="Select a sampling center" variant="outlined" />}
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -207,12 +245,18 @@ export async function getServerSideProps(ctx) {
     let cliniciansApi = `http://localhost:3000/api/clinicians`
     let cliniciansResponse = await fetch(cliniciansApi)
     let cliniciansData = await cliniciansResponse.json()
+    // get all branch
+    let branchApi = `http://localhost:3000/api/center`
+    let branchResponse = await fetch(branchApi)
+    let branchData = await branchResponse.json()
+
 
     return {
         props: {
             allpanels: data,
             organization: organizationData,
-            clinicians: cliniciansData
+            clinicians: cliniciansData,
+            branch: branchData
         },
     }
 }
