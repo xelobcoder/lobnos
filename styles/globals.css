@@ -389,40 +389,57 @@ a {
   color: red;
 }
 
-.alert-primary,.alert-danger{
-   border-radius: 0px;
-   margin-left: 4%;
-   margin-right: 4%;
-   cursor: pointer;
-   list-style-type: none;
-   display: grid;
-   grid-template-columns: 10% 20% 20% 20% 20% auto;
-   text-align: left;
-   padding: 20px 20px;
+.alert-primary,
+.alert-danger {
+  border-radius: 0px;
+  margin-left: 4%;
+  margin-right: 4%;
+  cursor: pointer;
+  list-style-type: none;
+  display: grid;
+  grid-template-columns: 10% 20% 20% 20% 20% auto;
+  text-align: left;
+  padding: 10px 20px;
+  background-color: white;
 }
 .phelobotomy-table {
-   margin: 0;
-   padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
-.phelobotomy-table > ul,.phelobotomy-table > .phelobotomy-body {
-   margin: 0;
-   padding: 0;
+.phelobotomy-table > ul,
+.phelobotomy-table > .phelobotomy-body {
+  margin: 0;
+  padding: 0;
 }
 
 .phelobotomy-table > ul > li {
-   display: grid;
-   grid-template-columns: 10% 20% 20% 20% 20% auto;
-   margin-left: 4%;
-   margin-right: 4%;
-   text-transform: uppercase;
-   font-weight: 300;
-   font-size: 14px;
-   padding: 10px 20px;
+  display: grid;
+  grid-template-columns: 10% 20% 20% 20% 20% auto;
+  margin-left: 4%;
+  margin-right: 4%;
+  text-transform: uppercase;
+  font-weight: 300;
+  font-size: 14px;
+  padding: 5px 20px;
 }
 
-.test::first-letter{
- text-transform: capitalize;
- color: black;
- font-weight: 800;
+.test::first-letter {
+  text-transform: capitalize;
+  color: black;
+  font-weight: 800;
+ 
+}
+.test{
+  text-overflow: hidden;
+  white-space: nowrap;
+  overflow: hidden; 
+  text-align: left;
+  padding-right: 10px !important;
+  margin-right: 10px;
+}
+
+.date{
+   color: green;
+   font-weight: 300;
 }

@@ -2,7 +2,26 @@ import Header from '../../components/header'
 import { Box } from '@mui/material'
 import SidebarFrontPage from '../../components/frontpagesidebar'
 import Phelobotomy_USER_LIST from '../../components/phelobotomy/list'
-export default function Phelobotomy({ data }) {
+import React, { useEffect, useState } from 'react'
+import TEST_DETAILS from '../../components/phelobotomy/details'
+export default function Phelobotomy() {
+  const [data, setData] = useState([])
+  const [status, setStatus] = useState(false)
+  const [timer, setTimer] = useState(60000)
+
+  // get data from database
+  useEffect(() => {
+    let getdata = async () => {
+      let data = await fetch('http://localhost:3000/api/phelobotomy')
+      let datajson = await data.json()
+      setData(datajson)
+    }
+    getdata()
+
+    setInterval(() => {
+      getdata()
+    }, timer)
+  }, [timer])
   return (
     <div>
       <div className="phelobotomy-table">
@@ -26,17 +45,6 @@ export default function Phelobotomy({ data }) {
 
 // getserverside props
 
-export async function getServerSideProps(context) {
-  // get phelobotomy data from database table ---- performing test
-  const res = await fetch('http://localhost:3000/api/phelobotomy')
-  const data = await res.json()
-  return {
-    props: {
-      data,
-    },
-  }
-}
-
 Phelobotomy.getLayout = function (page) {
   return (
     <>
@@ -45,7 +53,7 @@ Phelobotomy.getLayout = function (page) {
         <div className="side">
           <SidebarFrontPage />
         </div>
-        <div className="main" style={{ backgroundColor: 'white' }}>
+        <div className="main" style={{ backgroundColor: 'whitesmoke' }}>
           {page}
         </div>
       </div>

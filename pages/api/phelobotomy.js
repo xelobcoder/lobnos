@@ -25,9 +25,11 @@ const getPhelobotomy = async (req, res) => {
  // get patientid,id,name,test,date,sample status, phelobotomy status from database table
  // where date == today's date ---- performing test
  // return data
- let myquery = `SELECT * FROM performing_test`;
+ // join new patient table with performing test table where phelobotomy status == queue
+ let query = `SELECT * FROM billing INNER JOIN performing_test ON billing.PATIENTID = performing_test.PATIENTID WHERE performing_test.PHELOBOTOMY_STATUS = 'QUEUE'`;
+ // let myquery = `SELECT * FROM performing_test`;
 
- connection.query(myquery, (err, result) => {
+ connection.query(query, (err, result) => {
   if (err) throw err;
   filteredTest_in_date(result, res);
  })
