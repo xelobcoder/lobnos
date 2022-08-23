@@ -245,7 +245,7 @@ export const handleSubmitRegistration = (e, data = {}, BASE) => {
     //  run async function
     push_data_async().then((response) => {
       if (response.message == 'Patient successfully registered') {
-        window.location.href = '/activation' + response.patientid
+        window.location.href = `/activation/?&patientid=` + + response.patientid
       } else {
         window.location.href =
           '/activation?message=' +

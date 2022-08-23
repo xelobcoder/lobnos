@@ -8,7 +8,7 @@ import CancelScheduleSendIcon from '@mui/icons-material/CancelScheduleSend';
 import SendIcon from '@mui/icons-material/Send';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 
-export default function Billing({ allpanels, organization, clinicians,branch}) {
+export default function Billing({ allpanels, organization, clinicians, branch }) {
     const router = useRouter().query.patientid;
     const navigate = useRouter();
     const [testoptions, setTestoptions] = useState(allpanels);
@@ -114,7 +114,7 @@ export default function Billing({ allpanels, organization, clinicians,branch}) {
                 setSelected(null)
 
                 setTimeout(() => {
-                  navigate.push('/activation')
+                    navigate.push('/activation')
                 }, 2000);
             }
         })
@@ -125,7 +125,7 @@ export default function Billing({ allpanels, organization, clinicians,branch}) {
     return (
         <>
             <Container>
-               <Typography variant='p'  color='primary' sx={{textTransform:'capitalize'}}> {message}</Typography>
+                <Typography variant='p' color='primary' sx={{ textTransform: 'capitalize' }}> {message}</Typography>
             </Container>
             <hr></hr>
             <div style={{ display: 'grid', gridTemplateColumns: '50% auto', gridGap: '20px 20px' }}>
