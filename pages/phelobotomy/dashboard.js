@@ -36,14 +36,17 @@ export default function Phelobotomy() {
           </li>
         </ul>
         <div className="phelobotomy-body">
-          <Phelobotomy_USER_LIST data={data} />
+          {
+            data.map((item, index) => {
+             return   <Phelobotomy_USER_LIST key={index} item={item} index={index} />
+            })
+          }
         </div>
       </div>
     </div>
   )
 }
 
-// getserverside props
 
 Phelobotomy.getLayout = function (page) {
   return (

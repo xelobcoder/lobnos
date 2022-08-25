@@ -1,12 +1,12 @@
-import { TextField,Container} from "@mui/material";
+import { TextField, Container } from "@mui/material";
 
 
-export default function Message({onMessage,defaultvalue,}) {
+export default function Message({content, onMessage }) {
  return (
   <>
-   <Container>
-    <TextField  value={defaultvalue} onChange={(e) => onMessage(e)}/>
-   </Container>
+   <textarea value={content}  onChange={(e) =>onMessage(e)} id='phelo-textarea' placeholder='type something here'>
+
+   </textarea>
   </>
  )
 }
