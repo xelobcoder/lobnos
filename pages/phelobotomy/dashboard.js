@@ -60,6 +60,7 @@ Phelobotomy.getLayout = function (page) {
           {page}
         </div>
       </div>
+
     </>
   )
 }

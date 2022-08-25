@@ -503,3 +503,14 @@ a {
   border: 1px solid cornflowerblue;
   outline: none !important;
 }
+.-tr{
+  background-color: #2fad6628;
+}
+.two::first-letter{
+  text-transform: uppercase;
+}
+
+#test-list,.go-top{
+  position: relative;
+  top: -16px;
+}

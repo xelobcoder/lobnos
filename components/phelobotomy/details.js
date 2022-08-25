@@ -16,8 +16,8 @@ function TEST_DETAILS({ data }) {
     return dessociate(data).map((item, index) => {
       return (
         <>
-          <ul key={index} className="list-group">
-            <li className="list-group-item" style={{ borderRadius: '0px' }}>
+          <ul key={index} className="list-group" id='test-list'>
+            <li className="list-group-item -tr" style={{ borderRadius: '0px' }}>
               <div className="text-frame">
                 <div
                   style={{
@@ -27,7 +27,7 @@ function TEST_DETAILS({ data }) {
                   }}
                 >
                   <div className="1">{index + 1}</div>
-                  <div>{item}</div>
+                  <div className='two'>{item}</div>
                 </div>
               </div>
             </li>
@@ -90,7 +90,7 @@ function TEST_DETAILS({ data }) {
             </div>
           </div>
           <Listing data={data.TEST} />
-          <li className="list-group-item">
+          <li className="list-group-item go-top">
             <div className="grid-move-last">
               <label className="text-lowercase">
                 <input
@@ -122,7 +122,7 @@ function TEST_DETAILS({ data }) {
             </div>
           </li>
           {!textmessage ? null : (
-            <Message content={content} onMessage={handleMessage} />
+            <Message  content={content} onMessage={handleMessage} />
           )}
         </div>
       </div>

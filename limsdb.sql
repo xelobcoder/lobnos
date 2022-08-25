@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 23, 2022 at 08:26 PM
+-- Generation Time: Aug 26, 2022 at 12:40 AM
 -- Server version: 10.4.24-MariaDB
 -- PHP Version: 8.1.6
 
@@ -41,7 +41,7 @@ CREATE TABLE `activation` (
 --
 
 CREATE TABLE `billing` (
-  `ID` int(255) NOT NULL,
+  `BILLINGID` int(255) NOT NULL,
   `PATIENTID` bigint(100) NOT NULL,
   `PAID_AMOUNT` int(100) NOT NULL,
   `PAYABLE` int(100) NOT NULL,
@@ -59,23 +59,13 @@ CREATE TABLE `billing` (
 -- Dumping data for table `billing`
 --
 
-INSERT INTO `billing` (`ID`, `PATIENTID`, `PAID_AMOUNT`, `PAYABLE`, `DISCOUNT`, `CREATED_ON`, `UPDATED`, `ORGANIZATION`, `CLINICIAN`, `PAYMENT_MODE`, `TYPE`, `OUTSTANDING`) VALUES
-(8, 1660891495875, 60, 230, 0, '2022-08-21 16:31:48.571814', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'PREPAID', 50),
-(9, 1660891495875, 60, 230, 0, '2022-08-21 16:35:00.529210', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'PREPAID', 50),
-(10, 1660891495875, 60, 230, 0, '2022-08-21 16:35:01.586931', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'PREPAID', 50),
-(11, 1660891495875, 60, 230, 0, '2022-08-21 16:35:29.624863', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'PREPAID', 50),
-(12, 1660891495875, 60, 230, 0, '2022-08-21 16:35:47.739555', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'PREPAID', 50),
-(13, 1660891495875, 60, 230, 0, '2022-08-21 16:36:01.426220', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'PREPAID', 50),
-(14, 1660891495875, 60, 230, 0, '2022-08-21 16:37:25.409065', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'PREPAID', 50),
-(15, 1660891495875, 0, 90, 0, '2022-08-21 16:38:25.388717', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'PREPAID', 90),
-(16, 1660891495875, 200, 230, 0, '2022-08-21 16:39:09.572109', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'PREPAID', 0),
-(17, 1661077739124, 60, 80, 0, '2022-08-21 16:40:27.602410', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'PREPAID', 0),
-(18, 1661077739124, 60, 290, 0, '2022-08-21 17:08:03.449550', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'PREPAID', 210),
-(19, 1661077739124, 600, 150, 0, '2022-08-21 17:12:44.327556', '0000-00-00', 'John', 'Dr Paul Sinister', 0, 'PREPAID', -650),
-(20, 1660891495875, 0, 80, 0, '2022-08-22 13:29:57.962247', '0000-00-00', 'John', 'Dr Paul Sinister', 0, 'POSTPAID', 80),
-(21, 1661077739124, 200, 290, 0, '2022-08-23 12:12:56.566051', '0000-00-00', 'John', 'Dr Paul Sinister', 0, 'PREPAID', 0),
-(22, 1661257920378, 0, 290, 0, '2022-08-23 13:34:52.989598', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'POSTPAID', 290),
-(23, 1661257805044, 230, 230, 0, '2022-08-23 13:35:42.234557', '0000-00-00', 'John', 'Dr Paul Sinister', 0, 'PREPAID', 0);
+INSERT INTO `billing` (`BILLINGID`, `PATIENTID`, `PAID_AMOUNT`, `PAYABLE`, `DISCOUNT`, `CREATED_ON`, `UPDATED`, `ORGANIZATION`, `CLINICIAN`, `PAYMENT_MODE`, `TYPE`, `OUTSTANDING`) VALUES
+(24, 1661283584733, 60, 230, 0, '2022-08-23 20:40:56.970578', '0000-00-00', 'James starggedon', 'Dr Paul Sinister', 0, 'PREPAID', 0),
+(25, 1661284152435, 60, 90, 0, '2022-08-23 20:50:05.488236', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'PREPAID', 0),
+(27, 1661366472111, 0, 230, 0, '2022-08-24 19:42:16.437522', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'POSTPAID', 230),
+(28, 1661367829337, 0, 230, 0, '2022-08-24 20:04:52.469853', '0000-00-00', 'James starggedon', 'Dr Paul Sinister', 0, 'POSTPAID', 230),
+(29, 1661405222266, 0, 290, 0, '2022-08-25 06:28:43.833730', '0000-00-00', 'leonides', 'Dr Paul Sinister', 0, 'POSTPAID', 290),
+(30, 1661429826854, 200, 210, 0, '2022-08-25 13:18:16.944937', '0000-00-00', 'James starggedon', 'Dr Paul Sinister', 0, 'PREPAID', 0);
 
 -- --------------------------------------------------------
 
@@ -137,6 +127,20 @@ INSERT INTO `clinician` (`ID`, `NAME`, `WEBSITE`, `EMAIL`, `CONTACT`, `LOCATION`
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `malaria_test`
+--
+
+CREATE TABLE `malaria_test` (
+  `TESTID` int(255) NOT NULL,
+  `PATIENTID` bigint(255) NOT NULL,
+  `BILLINGID` int(255) NOT NULL,
+  `RESULT` varchar(255) NOT NULL,
+  `COMMENT` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `new_patients`
 --
 
@@ -169,16 +173,13 @@ CREATE TABLE `new_patients` (
 --
 
 INSERT INTO `new_patients` (`ID`, `PATIENTID`, `FULLNAME`, `EMAIL`, `DOB`, `AGE`, `GENDER`, `ORGANIZATION`, `CLINICIAN`, `PATIENTTYPE`, `LOCATION`, `MARITAL_STATUS`, `EMMERGENCY_CONTACT`, `EMMERGENCY_CONTACT_NAME`, `RELATIONSHIP`, `MOBILE_NUMBER`, `AGETYPE`, `PATIENTORGANIZATION`, `OCCUPATION`, `DATE`, `ACTIVATION_STATUS`) VALUES
-(5, 1660734012866, 'tiifu hamza', 'hamzatiifu45@gmail.com', '1996-11-06', 25, 'male', 'James starggedon', 'Dr Paul Sinister', 'Refered', NULL, 'married', '0241758550', 'Tiifu Shefik', 'brother', 595964565, 'years', 'leonides', 'Nursing', '2022-08-17', 'FALSE'),
-(6, 1660768664518, 'Hamza Tiifu', 'xelobcoder@gmail.com', '1992-06-06', 30, 'male', '', '', 'Direct', NULL, 'married', '+233249434803', 'tiifu hamza', 'brother', 249434803, 'years', 'leonides', 'Lecturer', '2022-08-17', 'TRUE'),
-(7, 1660859254404, 'Tiifu Shefik', 'SHEFIKTIIFU@YAHOO.COM', '1992-09-08', 29, 'male', '', '', 'Direct', NULL, 'single', '+10249434803', 'Hamza Tiifu', 'brother', 241758550, 'years', 'leonides', 'Nursing', '2022-08-18', 'FALSE'),
-(9, 1660891495875, 'Tiifu Abu Shaheda', 'abuhajiasheheda@yahoo.com', '1993-11-06', 28, 'male', '', '', 'Direct', NULL, 'married', '+233249434803', 'Tiifu Hamza', 'brother', 545645848, 'years', 'leonides', 'Teaching', '2022-08-19', 'TRUE'),
-(10, 1660891786079, 'Tiifu Hamza Kojo', 'xelobcoder@gmail.com', '1998-11-06', 23, 'male', '', '', 'Direct', NULL, 'married', '+233595964565', 'Hamza Tiifu', 'sister', 508060456, 'years', 'lhd', 'Nursing', '2022-08-19', 'TRUE'),
-(11, 1660891881950, 'Tiifu Hamza', 'hamzatiifu45@gmail.com', '2021-11-11', 8, 'male', '', '', 'Direct', NULL, 'single', '+233249434803', 'Tiifu Hamza', 'self', 595885785, 'months', 'leonides', 'Nursing', '2022-08-19', 'TRUE'),
-(12, 1660899113520, 'Abdul Toffick Galut', 'hamzatiifu45@gmail.com', '1994-11-11', 27, 'male', '', '', 'Direct', NULL, 'married', '+233249434803', 'Tiifu Hamza', 'brother', 595964565, 'years', 'leonides', 'Nursing', '2022-08-19', 'TRUE'),
-(15, 1661077739124, 'james timers staggretin', 'hamzatiifu45@gmail.com', '1959-01-01', 63, 'male', 'James starggedon', 'Dr Paul Sinister', 'Refered', NULL, 'single', '+233249434803', 'tiifu hamza', 'brother', 549468585, 'years', 'leonides', 'Nurising', '2022-08-21', 'TRUE'),
-(16, 1661257805044, 'TIIFU HAMZA', 'hamzatiifu45@gmail.com', '1995-11-06', 26, 'male', '', '', 'Direct', NULL, 'single', '+233249434803', 'TIIFU HAMZA', ' brother', 595964565, 'years', 'leonides', 'Nursing', '2022-08-23', 'TRUE'),
-(17, 1661257920378, 'Hamza Tiifu', 'tiifuofficial@gmail.com', '1110-11-11', 911, 'male', '', '', 'Direct', NULL, 'married', '+10249434803', 'Hamza Tiifu', ' brother', 505656545, 'years', 'leonides', 'Nursing', '2022-08-23', 'TRUE');
+(18, 1661283584733, 'TIIFU HAMZA', 'hamzatiifu45@gmail.com', '2012-11-06', 9, 'male', '', '', 'Direct', NULL, 'married', '+233249434803', 'TIIFU HAMZA', 'brother', 595964565, 'years', 'leonides', 'Nursing', '2022-08-23', 'TRUE'),
+(19, 1661284152435, 'TIIFU HAMZA', 'hamzatiifu45@gmail.com', '1954-11-11', 67, 'male', '', '', 'Direct', NULL, 'married', '+10249434803', 'Hamza Tiifu', ' brother', 595585878, 'years', 'leonides', 'Nursing', '2022-08-23', 'FALSE'),
+(20, 1661366472111, 'TIIFU HAMZA', 'hamzatiifu45@gmail.com', '1991-11-11', 30, 'male', '', '', 'Direct', NULL, 'married', '+233249434803', 'TIIFU HAMZA', 'brother', 595964565, 'years', 'leonides', 'Nursing', '2022-08-24', 'FALSE'),
+(21, 1661367829337, 'Hamza Tiifu', 'tiifuofficial@gmail.com', '1954-06-06', 68, 'male', '', '', 'Direct', NULL, 'married', '+233249434803', 'TIIFU HAMZA', 'brother', 595999999, 'years', 'leonides', 'nursing', '2022-08-24', 'TRUE'),
+(22, 1661405222266, 'dr flover agbdifs', 'hamzatiifu45@gmail.com', '1111-11-11', 910, 'male', 'leonides', 'Dr Paul Sinister', 'Refered', NULL, 'married', '+233249434803', 'TIIFU HAMZA', 'self', 595964565, 'years', 'leonides', 'Nursing', '2022-08-25', 'TRUE'),
+(23, 1661429826854, 'TIIFU HAMZA', 'hamzatiifu45@gmail.com', '2022-06-11', 2, 'male', '', '', 'Direct', NULL, 'married', '+233249434803', 'TIIFU HAMZA', 'brother', 595964656, 'months', 'leonides', 'nursing', '2022-08-25', 'TRUE'),
+(24, 1661447639214, 'tiifu xelov vlidmir zonesjey', 'hamzatiifu45@gmail.com', '1995-11-06', 26, 'male', '', '', 'Direct', NULL, 'married', '+233249434803', 'TIIFU HAMZA', 'brother', 595964565, 'years', 'leonides', 'nursing', '2022-08-25', 'TRUE');
 
 -- --------------------------------------------------------
 
@@ -227,7 +228,7 @@ CREATE TABLE `performing_test` (
   `ID` int(255) NOT NULL,
   `PATIENTID` varchar(255) NOT NULL,
   `TEST` varchar(255) NOT NULL,
-  `DATE` timestamp(6) NOT NULL DEFAULT current_timestamp(6),
+  `DATE` date NOT NULL DEFAULT current_timestamp(),
   `URGENCY` varchar(255) NOT NULL,
   `BILLINGID` int(100) NOT NULL,
   `SAMPLING_CENTER` varchar(100) NOT NULL,
@@ -236,30 +237,22 @@ CREATE TABLE `performing_test` (
   `SAMPLE_TAKEN_BY` varchar(100) DEFAULT NULL,
   `TIME_PHELOBOTOMY_COMPLETED` date DEFAULT NULL,
   `ALL_SAMPLE_TAKEN` varchar(50) DEFAULT 'FALSE',
-  `MESSAGE` varchar(255) DEFAULT NULL
+  `MESSAGE` varchar(255) DEFAULT NULL,
+  `TIME` time(6) NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `performing_test`
 --
 
-INSERT INTO `performing_test` (`ID`, `PATIENTID`, `TEST`, `DATE`, `URGENCY`, `BILLINGID`, `SAMPLING_CENTER`, `SAMPLE_STATUS`, `PHELOBOTOMY_STATUS`, `SAMPLE_TAKEN_BY`, `TIME_PHELOBOTOMY_COMPLETED`, `ALL_SAMPLE_TAKEN`, `MESSAGE`) VALUES
-(2, '1660891495875', 'Renal Function Test,Liver Function Test,glycated heamoglobin', '2022-08-21 15:31:48.638913', 'moderate', 8, '', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(3, '1660891495875', 'Renal Function Test,Liver Function Test,glycated heamoglobin', '2022-08-21 15:35:00.584801', 'moderate', 9, '', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(4, '1660891495875', 'Renal Function Test,Liver Function Test,glycated heamoglobin', '2022-08-21 15:35:01.635425', 'moderate', 10, '', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(5, '1660891495875', 'Renal Function Test,Liver Function Test,glycated heamoglobin', '2022-08-21 15:35:29.686475', 'emmergency', 11, '', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(6, '1660891495875', 'Renal Function Test,Liver Function Test,glycated heamoglobin', '2022-08-21 15:35:47.836971', 'emmergency', 12, '', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(7, '1660891495875', 'Renal Function Test,Liver Function Test,glycated heamoglobin', '2022-08-21 15:36:01.528900', 'emmergency', 13, '', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(8, '1660891495875', 'Renal Function Test,Liver Function Test,glycated heamoglobin', '2022-08-21 15:37:25.464830', 'emmergency', 14, '', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(9, '1660891495875', 'glycated heamoglobin', '2022-08-21 15:38:25.450405', 'emmergency', 15, '', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(10, '1660891495875', 'glycated heamoglobin,Renal Function Test,Liver Function Test', '2022-08-21 15:39:09.618536', 'moderate', 16, '', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(11, '1661077739124', 'Renal Function Test', '2022-08-21 15:40:27.628877', 'emmergency', 17, '', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(12, '1661077739124', 'glycated heamoglobin,Liver Function Test,Lipid Profile,Renal Function Test', '2022-08-21 16:08:03.482669', 'moderate', 18, 'CENTRAL', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(13, '1661077739124', 'glycated heamoglobin,Lipid Profile', '2022-08-21 16:12:44.390546', 'moderate', 19, 'CENTRAL', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(14, '1660891495875', 'Renal Function Test', '2022-08-22 12:29:58.087737', 'emmergency', 20, 'CENTRAL', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(15, '1661077739124', 'glycated heamoglobin,Renal Function Test,Liver Function Test,Lipid Profile', '2022-08-23 11:12:56.626923', 'moderate', 21, 'CENTRAL', 'PENDING', 'QUEUE', 'TIIFU HAMZA', NULL, 'FALSE', NULL),
-(16, '1661257920378', 'glycated heamoglobin,Liver Function Test,Lipid Profile,Renal Function Test', '2022-08-23 12:34:53.093218', 'moderate', 22, 'CENTRAL', 'PENDING', 'QUEUE', NULL, NULL, 'FALSE', NULL),
-(17, '1661257805044', 'glycated heamoglobin,Renal Function Test,Lipid Profile', '2022-08-23 12:35:42.311175', 'emmergency', 23, 'CENTRAL', 'PENDING', 'QUEUE', NULL, NULL, 'FALSE', NULL);
+INSERT INTO `performing_test` (`ID`, `PATIENTID`, `TEST`, `DATE`, `URGENCY`, `BILLINGID`, `SAMPLING_CENTER`, `SAMPLE_STATUS`, `PHELOBOTOMY_STATUS`, `SAMPLE_TAKEN_BY`, `TIME_PHELOBOTOMY_COMPLETED`, `ALL_SAMPLE_TAKEN`, `MESSAGE`, `TIME`) VALUES
+(18, '1661283584733', 'glycated heamoglobin,Liver Function Test,Renal Function Test', '2022-08-23', 'moderate', 24, 'SDA', 'PENDING', 'QUEUE', NULL, NULL, 'FALSE', NULL, '19:40:58.000000'),
+(19, '1661284152435', 'glycated heamoglobin', '2022-08-23', 'moderate', 25, 'CENTRAL', 'PENDING', 'QUEUE', NULL, NULL, 'FALSE', NULL, '19:40:58.000000'),
+(20, '1661283584733', 'glycated heamoglobin,Liver Function Test', '2022-08-24', 'moderate', 26, 'CENTRAL', 'PENDING', 'QUEUE', NULL, NULL, 'FALSE', NULL, '19:40:58.000000'),
+(21, '1661366472111', 'glycated heamoglobin,Renal Function Test', '2022-08-24', 'moderate', 27, 'CENTRAL', 'PENDING', 'QUEUE', NULL, NULL, 'FALSE', NULL, '19:42:16.000000'),
+(22, '1661367829337', 'glycated heamoglobin,Renal Function Test,Lipid Profile', '2022-08-24', 'none', 28, 'CENTRAL', 'PENDING', 'QUEUE', NULL, NULL, 'FALSE', NULL, '20:04:52.000000'),
+(23, '1661405222266', 'glycated heamoglobin,Renal Function Test,Liver Function Test,Lipid Profile', '2022-08-25', 'moderate', 29, 'CENTRAL', 'PENDING', 'QUEUE', NULL, NULL, 'FALSE', NULL, '06:28:43.000000'),
+(24, '1661429826854', 'Liver Function Test,glycated heamoglobin,Lipid Profile', '2022-08-25', 'moderate', 30, 'CENTRAL', 'PENDING', 'QUEUE', NULL, NULL, 'FALSE', NULL, '13:18:17.000000');
 
 -- --------------------------------------------------------
 
@@ -273,6 +266,69 @@ CREATE TABLE `sampling` (
   `DATE` datetime(6) NOT NULL DEFAULT current_timestamp(6),
   `CENTERNAME` varchar(100) NOT NULL,
   `REGISTERED_BY` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `setup_full_blood_count_test`
+--
+
+CREATE TABLE `setup_full_blood_count_test` (
+  `ID` int(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `setup_glycated_heamoglobin_test`
+--
+
+CREATE TABLE `setup_glycated_heamoglobin_test` (
+  `TESTID` int(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `setup_lipid_profile_test`
+--
+
+CREATE TABLE `setup_lipid_profile_test` (
+  `ID` int(255) NOT NULL,
+  `PARAMETER` varchar(100) NOT NULL,
+  `UPPER_LIMIT` int(100) NOT NULL,
+  `LOWER_LIMIT` int(100) NOT NULL,
+  `COMMENT` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `setup_liver_function_test`
+--
+
+CREATE TABLE `setup_liver_function_test` (
+  `ID` int(255) NOT NULL,
+  `PARAMETER` varchar(100) NOT NULL,
+  `UPPER_LIMIT` int(100) NOT NULL,
+  `LOWER_LIMIT` int(100) NOT NULL,
+  `COMMENT` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `setup_renal_function_test`
+--
+
+CREATE TABLE `setup_renal_function_test` (
+  `ID` int(255) NOT NULL,
+  `PARAMETER` varchar(100) NOT NULL,
+  `UPPER_LIMIT` int(50) NOT NULL,
+  `LOWER_LIMIT` int(50) NOT NULL,
+  `COMMENT` varchar(255) DEFAULT NULL,
+  `UNIT` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -320,6 +376,20 @@ INSERT INTO `test_panels` (`ID`, `NAME`, `CATEGORY`, `PRICE`, `CREATED_ON`) VALU
 (6, 'Lipid Profile', 'chemistry', 60, '2022-08-18 18:35:40'),
 (7, '', '', 0, '2022-08-19 23:50:33');
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `typhoid_test`
+--
+
+CREATE TABLE `typhoid_test` (
+  `TESTID` int(255) NOT NULL,
+  `PATIENTID` bigint(255) NOT NULL,
+  `BILLINGID` int(255) NOT NULL,
+  `RESULT` varchar(255) NOT NULL,
+  `COMMENTS` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 --
 -- Indexes for dumped tables
 --
@@ -328,7 +398,7 @@ INSERT INTO `test_panels` (`ID`, `NAME`, `CATEGORY`, `PRICE`, `CREATED_ON`) VALU
 -- Indexes for table `billing`
 --
 ALTER TABLE `billing`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`BILLINGID`);
 
 --
 -- Indexes for table `branch`
@@ -341,6 +411,12 @@ ALTER TABLE `branch`
 --
 ALTER TABLE `clinician`
   ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `malaria_test`
+--
+ALTER TABLE `malaria_test`
+  ADD PRIMARY KEY (`TESTID`);
 
 --
 -- Indexes for table `new_patients`
@@ -367,6 +443,30 @@ ALTER TABLE `sampling`
   ADD PRIMARY KEY (`ID`);
 
 --
+-- Indexes for table `setup_full_blood_count_test`
+--
+ALTER TABLE `setup_full_blood_count_test`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `setup_glycated_heamoglobin_test`
+--
+ALTER TABLE `setup_glycated_heamoglobin_test`
+  ADD PRIMARY KEY (`TESTID`);
+
+--
+-- Indexes for table `setup_lipid_profile_test`
+--
+ALTER TABLE `setup_lipid_profile_test`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `setup_renal_function_test`
+--
+ALTER TABLE `setup_renal_function_test`
+  ADD PRIMARY KEY (`ID`);
+
+--
 -- Indexes for table `test_categories`
 --
 ALTER TABLE `test_categories`
@@ -379,6 +479,12 @@ ALTER TABLE `test_panels`
   ADD PRIMARY KEY (`ID`);
 
 --
+-- Indexes for table `typhoid_test`
+--
+ALTER TABLE `typhoid_test`
+  ADD PRIMARY KEY (`TESTID`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -386,7 +492,7 @@ ALTER TABLE `test_panels`
 -- AUTO_INCREMENT for table `billing`
 --
 ALTER TABLE `billing`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `BILLINGID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `branch`
@@ -401,10 +507,16 @@ ALTER TABLE `clinician`
   MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `malaria_test`
+--
+ALTER TABLE `malaria_test`
+  MODIFY `TESTID` int(255) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `new_patients`
 --
 ALTER TABLE `new_patients`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `organization`
@@ -416,13 +528,37 @@ ALTER TABLE `organization`
 -- AUTO_INCREMENT for table `performing_test`
 --
 ALTER TABLE `performing_test`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `sampling`
 --
 ALTER TABLE `sampling`
   MODIFY `ID` int(100) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `setup_full_blood_count_test`
+--
+ALTER TABLE `setup_full_blood_count_test`
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `setup_glycated_heamoglobin_test`
+--
+ALTER TABLE `setup_glycated_heamoglobin_test`
+  MODIFY `TESTID` int(255) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `setup_lipid_profile_test`
+--
+ALTER TABLE `setup_lipid_profile_test`
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `setup_renal_function_test`
+--
+ALTER TABLE `setup_renal_function_test`
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `test_categories`
@@ -435,6 +571,12 @@ ALTER TABLE `test_categories`
 --
 ALTER TABLE `test_panels`
   MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `typhoid_test`
+--
+ALTER TABLE `typhoid_test`
+  MODIFY `TESTID` int(255) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
