@@ -1,25 +1,36 @@
-import LipidFunction from '../../components/setup/biochemistry/lipid';
-import LiverPanel from '../../components/setup/biochemistry/liver';
-import Renal from '../../components/setup/biochemistry/renal';
+import Widal from '../../components/LabTestForms/widal';
+import Header from '../../components/header';
+import SidebarFrontPage from '../../components/frontpagesidebar';
 // import {Link, Outlet} from 'react-router-dom';
-import Sidebar from '../../components/sidebar';
+import RenalResults from '../../components/LabTestForms/renal';
+import LipidProfile from '../../components/LabTestForms/lipidprofile';
+import RandomBloodSugar from '../../components/LabTestForms/randomsugar';
 export default function TestPanels() {
-    return (
-      <div className="wrapper-top-panel">
-          <div className="side">
-              <Sidebar/>
-          </div>
-          <div className="main" style={{overflowY: 'auto', height:'600px'}}>
-             <div>
-               <LiverPanel/>
-             </div>
-             <div>
-               {/* <Renal/> */}
-             </div>
-             <div>
-               {/* <LipidFunction/> */}
-             </div>
-          </div>
+  return (
+    <>
+      {/* <LipidProfile/> */}
+      <RandomBloodSugar/>
+    </>
+  )
+}
+
+
+
+
+
+
+TestPanels.getLayout = function (page) {
+  return (
+    <>
+      <Header />
+      <div className="wrapper">
+        <div className="side">
+          <SidebarFrontPage />
+        </div>
+        <div className="main">
+          {page}
+        </div>
       </div>
-    )
+    </>
+  )
 }

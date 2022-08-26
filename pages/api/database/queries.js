@@ -130,7 +130,7 @@ const database_queries = {
 }
 
 
-database_queries.createLiverfunctionTest_Table();
+
 
 
 export default database_queries;
