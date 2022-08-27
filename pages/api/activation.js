@@ -23,7 +23,7 @@ const activation = {
             throw err
           }
           response.send({
-            message:'success',
+            message: 'success',
             action: action === 'TRUE' ? 'BILLING' : 'ACTIVATION PAGE'
           })
         },
@@ -44,7 +44,6 @@ function handler(request, response) {
         activation.getPartialData(request, response)
       }
       break
-
     default:
       response.send('Method case still in progress')
   }
