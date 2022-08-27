@@ -2,14 +2,11 @@ import Widal from '../../components/LabTestForms/widal';
 import Header from '../../components/header';
 import SidebarFrontPage from '../../components/frontpagesidebar';
 // import {Link, Outlet} from 'react-router-dom';
-import RenalResults from '../../components/LabTestForms/renal';
-import LipidProfile from '../../components/LabTestForms/lipidprofile';
-import RandomBloodSugar from '../../components/LabTestForms/randomsugar';
+import Urinalysis from '../../components/LabTestForms/urinalysis';
 export default function TestPanels() {
   return (
     <>
-      {/* <LipidProfile/> */}
-      <RandomBloodSugar/>
+      <Urinalysis/>
     </>
   )
 }
