@@ -6,11 +6,13 @@ import FullBloodCountSetup from '../../components/setup/biochemistry/Hematology/
 import FBCLISTPARAMETERS from '../../components/setup/biochemistry/Hematology/fullcountsetuplist';
 import Fbcsetupindex from '../../components/setup/biochemistry/Hematology/fbcsetupindex';
 import AIDS from '../../components/setup/biochemistry/Hematology/aids';
+import HEPATITISBPROFILE from '../../components/setup/biochemistry/hepatitisBprofile';
 export default function TestPanels() {
  return (
   <>
    {/* <Fbcsetupindex/> */}
-   <AIDS/>
+   {/* <AIDS/> */}
+   <HEPATITISBPROFILE/>
   </>
  )
 }

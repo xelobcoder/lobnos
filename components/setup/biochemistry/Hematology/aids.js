@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Autocomplete, TextField, Typography, Button } from "@mui/material";
 function AIDS() {
  const [results, setResults] = useState("");
- const options = ['reactive', 'non reactive'];
+ const options = ['reactive', 'non reactive',""];
 
  return (
   <>
