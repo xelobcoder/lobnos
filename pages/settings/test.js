@@ -5,10 +5,12 @@ import Urinalysis from '../../components/LabTestForms/urinalysis';
 import FullBloodCountSetup from '../../components/setup/biochemistry/Hematology/fullbloodcount';
 import FBCLISTPARAMETERS from '../../components/setup/biochemistry/Hematology/fullcountsetuplist';
 import Fbcsetupindex from '../../components/setup/biochemistry/Hematology/fbcsetupindex';
+import AIDS from '../../components/setup/biochemistry/Hematology/aids';
 export default function TestPanels() {
  return (
   <>
-   <Fbcsetupindex/>
+   {/* <Fbcsetupindex/> */}
+   <AIDS/>
   </>
  )
 }

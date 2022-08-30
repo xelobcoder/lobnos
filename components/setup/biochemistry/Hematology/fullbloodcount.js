@@ -2,7 +2,7 @@ import { Container, TextField, Button, Autocomplete } from '@mui/material'
 import { useState } from 'react';
 import parameter from './countparameter';
 function FullBloodCountSetup() {
- const fullcountparameters = ['wbc', 'neutrophils', 'eosinophils', 'basophils', 'lymphocytes']
+ // const fullcountparameters = ['wbc', 'neutrophils', 'eosinophils', 'basophils', 'lymphocytes']
  const categories = ['male','children','female','']
  const [fullcount, setFullcount] = useState(parameter)
  const [category,setCategory] = useState('')

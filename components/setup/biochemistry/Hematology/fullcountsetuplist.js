@@ -2,24 +2,12 @@ import { useState, useMemo } from "react";
 import { AgGridReact } from "ag-grid-react";
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+import parameter from "./countparameter";
 
 export default function FBCLISTPARAMETERS({ data }) {
- const rawData = [
-  {
-   name: 'wbc',
-   upper: 30,
-   lower: 20,
-   unit: 'mg/dl',
-  },
-  {
-   name: 'neutrophils',
-   upper: 800,
-   lower: 200,
-   unit: 'g/dl',
-  },
- ]
 
- const mappedData = rawData.map((parameter, index) => {
+
+ const mappedData = parameter.map((parameter, index) => {
   return {
    id: index + 1,
    name: parameter.name,
@@ -29,7 +17,7 @@ export default function FBCLISTPARAMETERS({ data }) {
   }
  })
 
- const [reference, setReference] = useState(data || rawData)
+ const [reference, setReference] = useState(data || mappedData)
  const columnDefs = [
   {headerName:'#', field:'id'},
   { headerName: "parameter", field: "name" },
@@ -58,7 +46,7 @@ export default function FBCLISTPARAMETERS({ data }) {
   <>
    <div className="ag-theme-alpine" style={{ height: '100%', width: '100%',overflowX:'hidden !important' }}>
     <AgGridReact columnDefs={columnDefs}  rowHeight={50} onGridReady={defineAllrows}
-    rowData={mappedData} defaultColDef={onAllColumns} >
+    rowData={reference} defaultColDef={onAllColumns} >
 
     </AgGridReact>
    </div>

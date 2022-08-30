@@ -541,16 +541,17 @@ a {
   overflow-x: hidden;
 }
 
-.fullcount-setup  label {
+.fullcount-setup label {
   text-transform: uppercase;
   color: blueviolet;
   font-size: 14px;
 }
 
-.fullcount-setup  input {
+.fullcount-setup input {
   border: 1px solid lightgray;
   border-radius: 0px;
   padding: 10px;
+  height: 20px;
   color: grey;
   font-weight: 300;
   width: 100%;
