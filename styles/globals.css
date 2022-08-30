@@ -428,89 +428,130 @@ a {
   text-transform: capitalize;
   color: black;
   font-weight: 800;
- 
 }
-.test{
+.test {
   text-overflow: hidden;
   white-space: nowrap;
-  overflow: hidden; 
+  overflow: hidden;
   text-align: left;
   padding-right: 10px !important;
   margin-right: 10px;
 }
 
-.date{
-   color: green;
-   font-weight: 300;
+.date {
+  color: green;
+  font-weight: 300;
 }
 
-.-fleet{
+.-fleet {
   /* background-color: #00bbd442; */
   color: grey;
   font-weight: 500;
 }
-.group{
+.group {
   padding: 10px 20px;
   display: flex;
   justify-content: flex-start;
 }
-.group > .header{
+.group > .header {
   font-weight: 500;
   color: black;
   text-transform: capitalize !important;
 }
 
-.group > .header::after{
-  content: ":";
+.group > .header::after {
+  content: ':';
   margin-right: 20px;
 }
 
-.group > .other::first-letter{
+.group > .other::first-letter {
   text-transform: uppercase;
-  
 }
 
 .group > .other {
   color: blue;
 }
 
-.test-detail-panel{
+.test-detail-panel {
   position: relative;
   top: -18px;
 }
-.test-panel{
+.test-panel {
   position: relative;
   top: -16px;
   border-top: 1px solid lightgray;
 }
-.selectalllabel{
+.selectalllabel {
   margin-right: 20px !important;
 }
-.grid-move-last{
+.grid-move-last {
   display: grid;
   grid-template-columns: 80% 10% auto;
 }
-#phelo-textarea{
+#phelo-textarea {
   height: 100px;
   border-radius: 0px;
   border: 1px solid lightgray;
   padding: 10px 10px;
   color: grey;
-
 }
 
-#phelo-textarea:active,#phelo-textarea:hover,#phelo-textarea:focus{
+#phelo-textarea:active,
+#phelo-textarea:hover,
+#phelo-textarea:focus {
   border: 1px solid cornflowerblue;
   outline: none !important;
 }
-.-tr{
+.-tr {
   background-color: #2fad6628;
 }
-.two::first-letter{
+.two::first-letter {
   text-transform: uppercase;
 }
 
-#test-list,.go-top{
+#test-list,
+.go-top {
   position: relative;
   top: -16px;
+}
+
+.ag-theme-alpine .ag-header-cell-label {
+  color: #000;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: grey;
+}
+
+/* .ag-theme-alpine {
+  --ag-foreground-color: rgb(126, 46, 132) !important;
+  --ag-background-color: rgb(249, 245, 227) !important;
+  --ag-header-foreground-color: rgb(204, 245, 172) !important; 
+   --ag-header-background-color: rgb(209, 64, 129) !important; 
+  --ag-odd-row-background-color: rgba(0, 0, 0, 0.03) !important; 
+  --ag-header-column-resize-handle-color: rgb(126, 46, 132) !important;
+ 
+  --ag-font-size: 17px !important;
+  --ag-font-family: Roboto !important;
+  --ag-font-style: normal !important; 
+ }  */
+
+.fullcount-setup {
+  height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.fullcount-setup  label {
+  text-transform: uppercase;
+  color: blueviolet;
+  font-size: 14px;
+}
+
+.fullcount-setup  input {
+  border: 1px solid lightgray;
+  border-radius: 0px;
+  padding: 10px;
+  color: grey;
+  font-weight: 300;
+  width: 100%;
 }

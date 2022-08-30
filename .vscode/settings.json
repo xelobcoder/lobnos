@@ -14,5 +14,8 @@
             "database": "limsdb",
             "username": "root"
         }
-    ]
+    ],
+    "editor.tabSize": 1,
+    "editor.fontFamily": "Fira Code",
+    "editor.tabCompletion": "on"
 }

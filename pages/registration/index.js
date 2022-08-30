@@ -139,16 +139,9 @@ function Registration({ organization, clinician }) {
 
       if (agecalulation == 'invalid Date') {
         setError('Invalid Date entered')
-        setData({
-          ...data,
-          age: 0,
-          days: 0,
-          months: 0,
-          years: 0,
-          ageType: '',
+        setData({...data,age: 0,days: 0, months: 0, years: 0, ageType: '',
         })
       }
-      console.log(agecalulation)
     }
 
     CalculateAge()
@@ -233,12 +226,7 @@ function Registration({ organization, clinician }) {
                 gridGap: '20px 20px',
               }}
             >
-              <TextField
-                size="small"
-                variant="outlined"
-                type="number"
-                name="patientid"
-                inputRef={patientIdRef}
+              <TextField  size="small"  variant="outlined"  type="number" name="patientid" inputRef={patientIdRef}
                 label="patient id"
                 value={data.patientid}
                 disabled={disable}
@@ -252,11 +240,7 @@ function Registration({ organization, clinician }) {
                 onClick={(e) => handlePatientid(e)} variant="contained">
                   search
                 </Button>
-                <Button ref={generateRef}
-                  sx={{ marginLeft: '10px' }}
-                  disabled={generatebtn}
-                  onClick={(e) => generateTransactionId(e)}
-                  variant="outlined">
+                <Button ref={generateRef} sx={{ marginLeft: '10px' }} disabled={generatebtn} onClick={(e) => generateTransactionId(e)}  variant="outlined">
                   generate transactionid
                 </Button>
               </div>
