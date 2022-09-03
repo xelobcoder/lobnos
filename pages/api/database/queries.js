@@ -167,7 +167,7 @@ const database_queries = {
    if (err) { throw err }
    response.send(result);
   })
- }
+ },
 }
 
 

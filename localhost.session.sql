@@ -1,5 +1,9 @@
-SELECT *
-FROM new_patients AS p
- INNER JOIN billing AS b ON p.PATIENTID = b.PATIENTID
- INNER JOIN performing_test as t ON b.BILLINGID = t.BILLINGID
- 
+(SELECT BILLINGID,
+ SAMPLE_STATUS,
+ PATIENTID,
+ ID
+FROM performing_test
+WHERE DATE = CURRENT_DATE()
+ AND SAMPLE_STATUS = 'PENDING'
+ORDER BY BILLINGID DESC)
+ INNER JOIN new_patients ON performing_test.PATIENTID = new_patients.ID

@@ -5,11 +5,11 @@ import { useState } from 'react';
 import { Button } from '@mui/material';
 
 
-const FILTERS = function ({ onchange, ondate, callback }) {
+const FILTERS = function ({ onchange, ondate }) {
  const [date, setDate] = useState('');
  return (
   <>
-   <div className="d-flex w-100  mb-2" style={{boxShadow:'(0 0 0 0.2px) black'}}>
+   <div className="d-flex w-100 mb-3">
     <div className='col-2'>
      <input type='date' className='form-control' onChange={(e) => ondate(e)} />
     </div>
