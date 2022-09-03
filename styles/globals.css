@@ -556,3 +556,29 @@ a {
   font-weight: 300;
   width: 100%;
 }
+
+option {
+  color: grey;
+}
+
+option:hover {
+  background-color: rgb(64, 166, 206);
+  color: black;
+}
+
+#sample-panel-span strong {
+  text-transform: uppercase;
+  font-size: 15px !important;
+  color: #00224f;
+  margin-right: 5px;
+}
+#sample-panel {
+  margin-bottom: 20px;
+  border-top: 1px solid lightgray;
+  border-radius: 0px;
+  background-color: white;
+}
+
+.bg-whitedark {
+  background-color: #00224f0b !important;
+}
