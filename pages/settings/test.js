@@ -5,14 +5,14 @@ import Urinalysis from '../../components/LabTestForms/urinalysis';
 import FullBloodCountSetup from '../../components/setup/biochemistry/Hematology/fullbloodcount';
 import FBCLISTPARAMETERS from '../../components/setup/biochemistry/Hematology/fullcountsetuplist';
 import Fbcsetupindex from '../../components/setup/biochemistry/Hematology/fbcsetupindex';
-import AIDS from '../../components/setup/biochemistry/Hematology/aids';
-import HEPATITISBPROFILE from '../../components/setup/biochemistry/hepatitisBprofile';
+import AIDS from '../../components/LabTestForms/aids';
+import HEPATITISBPROFILE from '../../components/LabTestForms/hepatitisBprofile';
+import BloodGroup from '../../components/LabTestForms/bloodgroup';
+import BloodGroupTableList from '../../components/TESTTABLES/bloodgroup';
 export default function TestPanels() {
  return (
   <>
-   {/* <Fbcsetupindex/> */}
-   {/* <AIDS/> */}
-   <HEPATITISBPROFILE/>
+  <BloodGroup/>
   </>
  )
 }

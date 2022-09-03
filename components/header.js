@@ -4,7 +4,7 @@ import Link from 'next/link';
 function Header() {
   return (
     <Box>
-      <AppBar position="sticky" color="secondary">
+      <AppBar position="sticky" sx={{backgroundColor:'#00224f'}}>
         <Toolbar>
           <Typography variant="h4" color="inherit" component={'div'}>
             diagnostico

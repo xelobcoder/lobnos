@@ -257,7 +257,7 @@ Clinicians.getLayout = function (page) {
         <div className="side">
           <SidebarFrontPage />
         </div>
-        <div className="main">{page}</div>
+        <div className="main" style={{backgroundColor:'aliceblue'}}>{page}</div>
       </div>
     </>
   )

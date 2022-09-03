@@ -9,6 +9,7 @@ function HEPATITISBPROFILE() {
   HBeAg: '',
   HBeAb: '',
   HBcAb: '',
+  comments: '',
  });
  return (
   <>
@@ -44,6 +45,13 @@ function HEPATITISBPROFILE() {
        <strong>HBcAb</strong>
       </Typography>
       <Autocomplete sx={{ mt: 2 }} options={options} size='small' getOptionLabel={(option) => option} renderInput={(params) => <TextField {...params} label='results' />} onChange={(e) => { setResults({ ...results, HBcAb: e.target.value }) }} />
+     </div>
+     {/* comment */}
+     <div className="mb-3">
+      <Typography variant='body1'>
+       <strong>comment</strong>
+      </Typography>
+      <TextField sx={{ mt: 2, width: '100%' }} label='comment' value={results.comments} onChange={(e) => { setResults({ ...results, comments: e.target.value }) }} variant='outlined' multiline={true} maxRows={10} />
      </div>
      <Button variant='contained' sx={{ mt: 4 }} color='primary' onClick={() => setResults({})}> save result </Button>
     </form>

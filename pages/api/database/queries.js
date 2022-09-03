@@ -1,4 +1,5 @@
 import connection from '../db';
+import testResults from '../testResult';
 
 // create an object
 
@@ -125,6 +126,46 @@ const database_queries = {
    } else {
     return result;
    }
+  })
+ },
+ checkduplicate: (type = 'billingid', table, id, columnName, date = testResults.getTodayDateAndTime().date) => {
+  // return a promise after operation
+  return new Promise((resolve, reject) => {
+   // check if the parameter exist in the database
+   const SQL_QUERY = `SELECT * FROM ${table} WHERE CREATED_ON = '${date}' AND ${columnName} = ${id}`
+
+   connection.query(SQL_QUERY, function (err, result) {
+    console.log(result)
+    const duplicates = result.length > 0 ? true : false;
+    err ? reject(err) : duplicates ? resolve(true) : resolve(false);
+   })
+
+  })
+ },
+ del: function (id, table) {
+  return new Promise((resolve, reject) => {
+   //  query
+   const SQL_QUERY = `DELETE FROM ${table} WHERE ID = ${id}`
+   connection.query(SQL_QUERY, function (err, result) {
+    err ? reject(err) : resolve(result);
+   })
+  })
+ },
+ deleteMany: function (deleteArray, table) {
+  // function for single delete
+  let deleted = 0;
+  let target = deleteArray.length;
+  // loop through the array
+  while (deleted < target) {
+   this.del(deleteArray[deleted], table);
+   deleted++;
+  }
+ },
+ getall: function (table, response) {
+  let SQL_QUERY = `SELECT * FROM ${table} ORDER BY ID DESC LIMIT 100`;
+  connection.query(SQL_QUERY, function (err, result) {
+   if (err) { throw err }
+   response.send(result);
   })
  }
 }
