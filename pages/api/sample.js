@@ -11,7 +11,17 @@ class SampleHandler {
  }
 
  getAllPending() {
-  let SQL_QUERY = `SELECT p.BILLINGID,p.TEST,p.DATE,p.PATIENTID, p.SAMPLE_STATUS FROM performing_test  AS p LEFT OUTER JOIN new_patients AS  n ON p.PATIENTID = n.PATIENTID WHERE p.SAMPLE_STATUS = 'PENDING' AND p.DATE = CURDATE() ORDER BY p.BILLINGID DESC  LIMIT 100`;
+  let SQL_QUERY = `SELECT DISTINCT p.SAMPLE_STATUS,
+    p.PATIENTID,
+    p.BILLINGID,
+    np.FULLNAME,
+    p.DATE,
+    p.TEST,
+    p.ID
+   FROM PERFORMING_TEST as p
+    join billing as b ON p.PATIENTID = b.PATIENTID
+    join new_patients as np ON p.PATIENTID = np.PATIENTID
+   WHERE p.SAMPLE_STATUS = 'Pending' AND  P.DATE=CURRENT_DATE() ORDER BY p.BILLINGID DESC LIMIT 100`;
   connection.query(SQL_QUERY, (err, result) => {
    if (err) {
     throw err;
@@ -22,7 +32,19 @@ class SampleHandler {
  }
  getStatus(status) {
   if (status != '') {
-   let SQL_QUERY = `SELECT p.BILLINGID,p.TEST,p.DATE,p.PATIENTID, p.SAMPLE_STATUS FROM performing_test  AS p LEFT OUTER JOIN new_patients AS  n ON p.PATIENTID = n.PATIENTID WHERE p.SAMPLE_STATUS = '${status}'  LIMIT 100`;
+   let SQL_QUERY = `
+      SELECT DISTINCT p.SAMPLE_STATUS,
+      p.PATIENTID,
+      p.BILLINGID,
+      np.FULLNAME,
+      p.DATE,
+      p.TEST,
+      p.ID
+     FROM PERFORMING_TEST as p
+      join billing as b ON p.PATIENTID = b.PATIENTID
+      join new_patients as np ON p.PATIENTID = np.PATIENTID
+     WHERE p.SAMPLE_STATUS = '${status}' ORDER BY p.DATE DESC LIMIT 100   
+      `;
    connection.query(SQL_QUERY, (err, result) => {
     if (err) {
      throw err;
@@ -33,7 +55,19 @@ class SampleHandler {
   }
  }
  getDates(date) {
-  let SQL_QUERY = `SELECT p.BILLINGID,p.TEST,p.DATE,p.PATIENTID, p.SAMPLE_STATUS FROM performing_test  AS p LEFT OUTER JOIN new_patients AS  n ON p.PATIENTID = n.PATIENTID WHERE p.DATE = '${date}'  ORDER BY p.BILLINGID DESC  LIMIT 100`;
+  let SQL_QUERY = `
+    SELECT DISTINCT p.SAMPLE_STATUS,
+      p.PATIENTID,
+      p.BILLINGID,
+      np.FULLNAME,
+      p.DATE,
+      p.TEST,
+      p.ID
+     FROM PERFORMING_TEST as p
+      join billing as b ON p.PATIENTID = b.PATIENTID
+      join new_patients as np ON p.PATIENTID = np.PATIENTID
+     WHERE p.DATE= ${date} ORDER BY p.BILLINGID DESC LIMIT 100    
+    `;
   connection.query(SQL_QUERY, (err, result) => {
    if (err) {
     throw err;
@@ -43,7 +77,43 @@ class SampleHandler {
   );
  }
  getSelectedStutusAndDate(date, status) {
-  let SQL_QUERY = `SELECT p.BILLINGID,p.TEST,p.DATE,p.PATIENTID, p.SAMPLE_STATUS FROM performing_test  AS p LEFT OUTER JOIN new_patients AS  n ON p.PATIENTID = n.PATIENTID WHERE p.DATE = '${date}' AND p.SAMPLE_STATUS = '${status}' ORDER BY p.BILLINGID DESC  LIMIT 100`;
+  if (data && status) {
+   let SQL_QUERY = `
+    SELECT DISTINCT p.SAMPLE_STATUS,
+      p.PATIENTID,
+      p.BILLINGID,
+      np.FULLNAME,
+      p.DATE,
+      p.TEST,
+      p.ID
+     FROM PERFORMING_TEST as p
+      join billing as b ON p.PATIENTID = b.PATIENTID
+      join new_patients as np ON p.PATIENTID = np.PATIENTID
+     WHERE p.DATE=${date} AND p.SAMPLE_STATUS =${status} ORDER BY p.BILLINGID DESC LIMIT 100   
+    `;
+   connection.query(SQL_QUERY, (err, result) => {
+    if (err) {
+     throw err;
+    }
+    this.response.send(result);
+   }
+   );
+  }
+ }
+ getRecords () {
+  let SQL_QUERY = `
+   SELECT DISTINCT p.SAMPLE_STATUS,
+      p.PATIENTID,
+      p.BILLINGID,
+      np.FULLNAME,
+      p.DATE,
+      p.TEST,
+      p.ID
+     FROM PERFORMING_TEST as p
+      join billing as b ON p.PATIENTID = b.PATIENTID
+      join new_patients as np ON p.PATIENTID = np.PATIENTID
+      ORDER BY p.BILLINGID DESC LIMIT 100
+  `
   connection.query(SQL_QUERY, (err, result) => {
    if (err) {
     throw err;
@@ -52,7 +122,21 @@ class SampleHandler {
   }
   );
  }
- updateRecords() {
+ updateRecords(status, billingid) {
+  // update performing test table first
+  // update sample table to reflect change in status
+  // return update records for changes to UI 
+  let SQL_QUERY = `
+   UPDATE PERFORMING_TEST 
+   SET SAMPLE_STATUS = '${status}',
+    INSPECTION_TIME = NOW(),
+    INSPECTOR = 'Dr Tiifu Hamza'
+    WHERE BILLINGID = '${billingid}'`;
+
+  connection.query(SQL_QUERY, (err, result) => {
+   if (err) throw err;
+     this.response.send(result);
+  });
 
  }
 }
@@ -65,7 +149,7 @@ function Sample(request, response) {
  switch (request.method) {
   case "GET":
    if (!status && !date) {
-    sampleHandle.getAllPending();
+    sampleHandle.getRecords();
    }
    else {
     if (status && !date) {
@@ -79,8 +163,11 @@ function Sample(request, response) {
     }
    }
    break;
-  case "POST":
-   
+  case "PUT":
+   const data = JSON.parse(request.body);
+   const { status, billingid } = data;
+   sampleHandle.updateRecords(status.toUpperCase(), billingid);
+
  }
 
 }

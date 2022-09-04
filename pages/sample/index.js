@@ -1,172 +1,230 @@
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import SidebarFrontPage from '../../components/frontpagesidebar';
-import Header from '../../components/header';
-import { useState } from 'react';
-import { Button } from '@mui/material';
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import SidebarFrontPage from "../../components/frontpagesidebar";
+import Header from "../../components/header";
+import { useEffect, useState } from "react";
+import { Button } from "@mui/material";
 
-
-const FILTERS = function ({ onchange, ondate }) {
- const [date, setDate] = useState('');
+const rejectedview = () => <Button variant="text" color='error'>rejected</Button>
+const acceptedview = () => <Button variant="text" color='success'>accepted</Button>
+const pendingview = () => <Button variant="text" className="activated-warning" color='warning'>pending</Button>
+const FILTERS = function ({ onchange, ondate, sorting }) {
+ const [date, setDate] = useState("");
  return (
   <>
    <div className="d-flex w-100 mb-3">
-    <div className='col-2'>
-     <input type='date' className='form-control' onChange={(e) => ondate(e)} />
+    <div className="col-2">
+     <input
+      type="date"
+      className="form-control"
+      onChange={(e) => ondate(e)}
+     />
     </div>
     <div>
-     <select className="form-select" aria-label="select sample status">
+     <select className="form-select" aria-label="select sample status" onChange={(e) => sorting(e)}>
       <option value="all">All</option>
-      <option value="accepted">Pending</option>
-      <option value='rejected'>Rejected</option>
+      <option value="PENDING">Pending</option>
+      <option value="REJECTED">Rejected</option>
+      <option value="ACCEPTED">Accepted</option>
      </select>
     </div>
-    <div className='col-4'>
-     <input type="text" className="form-control" onKeyUp={(e) => onchange(e)} placeholder='filter by name , BillingID,patientID' />
+    <div className="col-4">
+     <input
+      type="text"
+      className="form-control"
+      onKeyUp={(e) => onchange(e)}
+      placeholder="filter by name , BillingID,patientID"
+     />
     </div>
    </div>
   </>
- )
-}
+ );
+};
 
 const NODATA = function () {
  return (
   <>
    <div className="d-flex justify-content-center align-items-center">
     <div className="d-flex flex-column justify-content-center align-items-center">
-     <AccessTimeIcon style={{ fontSize: '100px' }} />
+     <AccessTimeIcon style={{ fontSize: "100px" }} />
      <h3>No data</h3>
     </div>
    </div>
   </>
- )
-}
+ );
+};
 
-const initial = [{
- id: 1,
- patientid: 1,
- patientname: "John Doe",
- status: "pending",
- test: "Blood Group , full blood count, widal, urinalysis",
- date: "2022-08-11"
-}, {
- id: 1,
- patientid: 1,
- patientname: "John Doe",
- status: "pending",
- test: "Blood Group , full blood count, widal, urinalysis",
-}, {
- id: 1,
- patientid: 1,
- patientname: "John Doe",
- status: "pending",
- test: "Blood Group , full blood count, widal, urinalysis",
-},
-{
- id: 2,
- patientid: 1,
- patientname: "John Doe",
- status: "pending",
- test: "Blood Group , full blood count, widal, urinalysis",
-},
-{
- id: 2,
- patientid: 1,
- patientname: "Fillaria",
- status: "pending",
- test: "Blood Group , full blood count, widal, urinalysis",
-},
-{
- id: 3,
- patientid: 1,
- patientname: "Doe",
- status: "pending",
- test: "Blood Group , full blood count, widal, urinalysis",
-},
-{
- id: 4,
- patientid: 1,
- patientname: "John Doe",
- status: "pending",
- test: "Blood Group , full blood count, widal, urinalysis",
-}]
-
-
-const SingleClient = function ({ item }) {
+const SingleClient = function ({ item, approvalStatus }) {
  const [showAction, setShowAction] = useState(false);
  return (
   <>
-   <div className="list-group-item list-group-item-action" id='sample-panel'>
-    <div className='d-flex w-100 justify-content-between border-none' id='sample-panel-span'>
+   <div className="list-group-item list-group-item-action" id="sample-panel">
+    <div
+     className="d-flex w-100 justify-content-between border-none"
+     id="sample-panel-span"
+    >
      <div>
-      <div><strong> Transaction id:</strong><span> {item.id}</span></div>
-      <div><strong> patient id:</strong><span> {item.patientid}</span></div>
-      <div><strong> patient name:</strong><span> {item.patientname}</span></div>
-      <div><strong> status:</strong><span> {item.status}</span></div>
-      <div><strong>test panel</strong> <span>{item.test}</span></div>
+      <div>
+       <strong> billing id:</strong>
+       <span> {item.BILLINGID}</span>
+      </div>
+      <div>
+       <strong> patient id:</strong>
+       <span> {item.PATIENTID}</span>
+      </div>
+      <div>
+       <strong> patient name:</strong>
+       <span> {item.FULLNAME}</span>
+      </div>
+      <div>
+       <strong> status:</strong>
+       <span> {
+        item.SAMPLE_STATUS == "PENDING" ? pendingview() : item.SAMPLE_STATUS == "ACCEPTED" ? acceptedview() : rejectedview()
+       }
+       </span>
+      </div>
+      <div>
+       <strong>test panel</strong> <span>{item.TEST}</span>
+      </div>
      </div>
      <div>
       <Button onClick={(e) => setShowAction(!showAction)}>
        pull action
       </Button>
-      {
-       !showAction ? null : (<div>
-        <Button color='success'>accept </Button>
-        <Button color='error'>reject</Button>
-       </div>)
-      }
+      {!showAction ? null : (
+       <div>
+        <Button color="success" onClick={(e) => { approvalStatus(item, 'accepted'); setShowAction(!showAction) }}>accept </Button>
+        <Button color="error" onClick={(e) => { approvalStatus(item, 'rejected'); setShowAction(!showAction) }}>reject</Button>
+       </div>
+      )}
      </div>
     </div>
    </div>
   </>
- )
-}
-export default function SAMPLE_ASSESSMENT() {
+ );
+};
+export default function SAMPLE_ASSESSMENT({ initial }) {
  const [showAction, setShowAction] = useState(false);
  const [data, setData] = useState(initial);
 
  const ondate = (e) => {
   let date = e.target.value;
   console.log(date);
- }
+ };
 
  const onchange = (e) => {
   let value = e.target.value;
   let filteredData = data.filter((item) => {
-   return (item.patientname.toLowerCase().startsWith(value.toLowerCase())
-    || item.patientid.toString().startsWith(value.toLowerCase())
-    || item.id.toString().startsWith(value.toLowerCase()));
-  })
+   return (
+    item.FULLNAME.toLowerCase().startsWith(value.toLowerCase()) ||
+    item.PATIENTID.toString().startsWith(value.toLowerCase()) ||
+    item.ID.toString().startsWith(value.toLowerCase())
+   );
+  });
   console.log(filteredData);
 
-  value.length === 0 ? setData(initial) :
-   filteredData.length === 0 ? setData([]) : setData(filteredData);
+  value.length === 0
+   ? setData(initial)
+   : filteredData.length === 0
+    ? setData([])
+    : setData(filteredData);
+ };
+
+ // refresh data every  after every action change
+ const refresh = () => {
+  fetch("/api/sample")
+   .then((res) => res.json())
+   .then((data) => setData(data));
+ };
+
+
+ const approvalStatus = function (item, status) {
+  const { SAMPLE_STATUS, FULLNAME, PATIENTID, BILLINGID, TEST } = item;
+  // create a post data object
+  const data = {
+   status,
+   fullname: FULLNAME,
+   patientid: PATIENTID,
+   billingid: BILLINGID,
+  };
+  // send a post request to the server
+
+  const deliverStatus = async () => {
+   let api = await fetch('http://localhost:3000/api/sample', {
+    method: 'PUT',
+    body: JSON.stringify(data)
+   })
+   let response = await api.json();
+   return response;
+  }
+
+  deliverStatus()
+   .then((response) => {
+    console.log(response);
+    refresh();
+   }).catch((err) => {
+    console.log(err)
+   })
+
  }
+
+
+ // sorting the data displayed and present it to the user
+
+ const sorting = (e) => {
+  let sortingvalue = e.target.value;
+
+  const REALTIMESTATUS = async () => {
+   let api = await fetch(`http://localhost:3000/api/sample?status=${sortingvalue}`)
+   let response = await api.json();
+   response.length === 0 ? setData([]) : setData(response);
+  }
+
+  sortingvalue === 'all' ? setData(initial) : REALTIMESTATUS();
+
+ }
+
+
+
  return (
   <>
    <div>
     <div className="p-4">
      <div className="d-flex w-100 justify-content-between">
       <h5 className="mb-1">Sample Assessment</h5>
-      <small><AccessTimeIcon /> 3 days ago</small>
+      <small>
+       <AccessTimeIcon /> 3 days ago
+      </small>
      </div>
-     <FILTERS ondate={ondate} onchange={onchange} />
-     <div className='list-group'>
-      {
-       data.map((item, index) => {
-        return (
-         <SingleClient key={index} item={item} />
-        )
-       })
-      }
+     <FILTERS ondate={ondate} onchange={onchange} sorting={sorting} />
+     <div className="list-group">
+      {data.map((item, index) => {
+       return <SingleClient key={index} item={item} approvalStatus={approvalStatus} />;
+      })}
      </div>
     </div>
    </div>
   </>
- )
+ );
 }
 
 
 
+export async function getServerSideProps(context) {
+ const fetchData = async () => {
+  const response = await fetch(
+   "http://localhost:3000/api/sample",
+  )
+  const data = await response.json();
+  return data;
+ };
+
+ const data = await fetchData();
+ return {
+  props: {
+   initial: data
+  }
+ }
+}
 
 SAMPLE_ASSESSMENT.getLayout = function (page) {
  return (
@@ -176,10 +234,8 @@ SAMPLE_ASSESSMENT.getLayout = function (page) {
     <div className="side">
      <SidebarFrontPage />
     </div>
-    <div className="main bg-whitedark">
-     {page}
-    </div>
+    <div className="main bg-whitedark">{page}</div>
    </div>
   </>
- )
-}
+ );
+};
