@@ -1,13 +1,16 @@
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import SidebarFrontPage from "../../components/frontpagesidebar";
 import Header from "../../components/header";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@mui/material";
 
+// buttons for the sample status
 const rejectedview = () => <Button variant="text" color='error'>rejected</Button>
 const acceptedview = () => <Button variant="text" color='success'>accepted</Button>
 const pendingview = () => <Button variant="text" className="activated-warning" color='warning'>pending</Button>
-const FILTERS = function ({ onchange, ondate, sorting }) {
+
+// filter component
+const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea }) {
  const [date, setDate] = useState("");
  return (
   <>
@@ -20,7 +23,10 @@ const FILTERS = function ({ onchange, ondate, sorting }) {
      />
     </div>
     <div>
-     <select className="form-select" aria-label="select sample status" onChange={(e) => sorting(e)}>
+     <select className="form-select" aria-label="select sample status" onChange={(e) => {
+      sorting(e);
+      searchArea(e.target.value)
+     }}>
       <option value="all">All</option>
       <option value="PENDING">Pending</option>
       <option value="REJECTED">Rejected</option>
@@ -105,6 +111,8 @@ const SingleClient = function ({ item, approvalStatus }) {
 export default function SAMPLE_ASSESSMENT({ initial }) {
  const [showAction, setShowAction] = useState(false);
  const [data, setData] = useState(initial);
+ const [onsearch, setOnsearch] = useState("all");
+ const searchRef = useRef();
 
  const ondate = (e) => {
   let date = e.target.value;
@@ -128,15 +136,27 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
     ? setData([])
     : setData(filteredData);
  };
+ // monitor the search input field
+ // filled it with the selected filter
+ const searchArea = function (value) {
+  setOnsearch(value);
+ }
 
- // refresh data every  after every action change
+ // refresh data  after every action change and updated UI data holder with the filter sample status
+ // e.g if sample type === pending , then the data holder will be updated with the pending sample after status change
  const refresh = () => {
-  fetch("/api/sample")
-   .then((res) => res.json())
-   .then((data) => setData(data));
+  if (onsearch == "all") {
+   fetch("/api/sample")
+    .then((res) => res.json())
+    .then((data) => setData(data));
+  } else {
+   fetch(`/api/sample?status=${onsearch}`)
+    .then((res) => res.json())
+    .then((data) => setData(data));
+  }
  };
 
-
+ // changes the status of the sample
  const approvalStatus = function (item, status) {
   const { SAMPLE_STATUS, FULLNAME, PATIENTID, BILLINGID, TEST } = item;
   // create a post data object
@@ -159,7 +179,6 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
 
   deliverStatus()
    .then((response) => {
-    console.log(response);
     refresh();
    }).catch((err) => {
     console.log(err)
@@ -172,15 +191,12 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
 
  const sorting = (e) => {
   let sortingvalue = e.target.value;
-
   const REALTIMESTATUS = async () => {
    let api = await fetch(`http://localhost:3000/api/sample?status=${sortingvalue}`)
    let response = await api.json();
    response.length === 0 ? setData([]) : setData(response);
   }
-
   sortingvalue === 'all' ? setData(initial) : REALTIMESTATUS();
-
  }
 
 
@@ -195,7 +211,7 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
        <AccessTimeIcon /> 3 days ago
       </small>
      </div>
-     <FILTERS ondate={ondate} onchange={onchange} sorting={sorting} />
+     <FILTERS ondate={ondate} onchange={onchange} sorting={sorting} searchArea={searchArea} />
      <div className="list-group">
       {data.map((item, index) => {
        return <SingleClient key={index} item={item} approvalStatus={approvalStatus} />;

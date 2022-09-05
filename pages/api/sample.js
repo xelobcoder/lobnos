@@ -1,6 +1,8 @@
 import connection from "./db";
 import database_queries from "./testResult";
-
+// YET TO BE CODED
+// AFTER CHANGE OF STATUS CLIENT WOULD BE NOTIFIED VIA EMAIL
+// OF SAMPLE STATUS CHANGE AND NECESSARY ACTION TO BE AND RECOMMEDATION TAKEN
 
 class SampleHandler {
  constructor(status, date, request, response) {
@@ -27,11 +29,10 @@ class SampleHandler {
     throw err;
    }
    this.response.send(result);
-  }
-  );
+  });
  }
  getStatus(status) {
-  if (status != '') {
+  if (status != "") {
    let SQL_QUERY = `
       SELECT DISTINCT p.SAMPLE_STATUS,
       p.PATIENTID,
@@ -50,8 +51,7 @@ class SampleHandler {
      throw err;
     }
     this.response.send(result);
-   }
-   );
+   });
   }
  }
  getDates(date) {
@@ -73,8 +73,7 @@ class SampleHandler {
     throw err;
    }
    this.response.send(result);
-  }
-  );
+  });
  }
  getSelectedStutusAndDate(date, status) {
   if (data && status) {
@@ -96,11 +95,10 @@ class SampleHandler {
      throw err;
     }
     this.response.send(result);
-   }
-   );
+   });
   }
  }
- getRecords () {
+ getRecords() {
   let SQL_QUERY = `
    SELECT DISTINCT p.SAMPLE_STATUS,
       p.PATIENTID,
@@ -113,19 +111,18 @@ class SampleHandler {
       join billing as b ON p.PATIENTID = b.PATIENTID
       join new_patients as np ON p.PATIENTID = np.PATIENTID
       ORDER BY p.BILLINGID DESC LIMIT 100
-  `
+  `;
   connection.query(SQL_QUERY, (err, result) => {
    if (err) {
     throw err;
    }
    this.response.send(result);
-  }
-  );
+  });
  }
  updateRecords(status, billingid) {
   // update performing test table first
   // update sample table to reflect change in status
-  // return update records for changes to UI 
+  // return update records for changes to UI
   let SQL_QUERY = `
    UPDATE PERFORMING_TEST 
    SET SAMPLE_STATUS = '${status}',
@@ -135,16 +132,18 @@ class SampleHandler {
 
   connection.query(SQL_QUERY, (err, result) => {
    if (err) throw err;
-     this.response.send(result);
+   this.response.send(result);
   });
-
  }
 }
 
-
-
 function Sample(request, response) {
- let sampleHandle = new SampleHandler(request.query.status, new Date(), request, response);
+ let sampleHandle = new SampleHandler(
+  request.query.status,
+  new Date(),
+  request,
+  response
+ );
  const { status, date } = request.query;
  switch (request.method) {
   case "GET":
@@ -154,11 +153,9 @@ function Sample(request, response) {
    else {
     if (status && !date) {
      sampleHandle.getStatus(status);
-    }
-    else if (!status && date) {
+    } else if (!status && date) {
      sampleHandle.getDate(date);
-    }
-    else {
+    } else {
      sampleHandle.getSelectedStutusAndDate(status, date);
     }
    }
@@ -167,11 +164,7 @@ function Sample(request, response) {
    const data = JSON.parse(request.body);
    const { status, billingid } = data;
    sampleHandle.updateRecords(status.toUpperCase(), billingid);
-
  }
-
 }
-
-
 
 export default Sample;
