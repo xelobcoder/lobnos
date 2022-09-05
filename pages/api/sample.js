@@ -76,7 +76,7 @@ class SampleHandler {
   });
  }
  getSelectedStutusAndDate(date, status) {
-  if (data && status) {
+  if (date && status) {
    let SQL_QUERY = `
     SELECT DISTINCT p.SAMPLE_STATUS,
       p.PATIENTID,
@@ -88,7 +88,7 @@ class SampleHandler {
      FROM PERFORMING_TEST as p
       join billing as b ON p.PATIENTID = b.PATIENTID
       join new_patients as np ON p.PATIENTID = np.PATIENTID
-     WHERE p.DATE=${date} AND p.SAMPLE_STATUS =${status} ORDER BY p.BILLINGID DESC LIMIT 100   
+     WHERE p.DATE='${date}' AND p.SAMPLE_STATUS ='${status}' ORDER BY p.BILLINGID DESC LIMIT 100   
     `;
    connection.query(SQL_QUERY, (err, result) => {
     if (err) {
@@ -144,7 +144,8 @@ function Sample(request, response) {
   request,
   response
  );
- const { status, date } = request.query;
+ const {status,date } = request.query;
+
  switch (request.method) {
   case "GET":
    if (!status && !date) {
@@ -156,7 +157,7 @@ function Sample(request, response) {
     } else if (!status && date) {
      sampleHandle.getDate(date);
     } else {
-     sampleHandle.getSelectedStutusAndDate(status, date);
+     sampleHandle.getSelectedStutusAndDate(date, status);
     }
    }
    break;

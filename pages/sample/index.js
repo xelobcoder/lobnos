@@ -2,7 +2,7 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import SidebarFrontPage from "../../components/frontpagesidebar";
 import Header from "../../components/header";
 import { useEffect, useState, useRef } from "react";
-import { Button } from "@mui/material";
+import { Button, Typography } from "@mui/material";
 
 // buttons for the sample status
 const rejectedview = () => <Button variant="text" color='error'>rejected</Button>
@@ -10,7 +10,7 @@ const acceptedview = () => <Button variant="text" color='success'>accepted</Butt
 const pendingview = () => <Button variant="text" className="activated-warning" color='warning'>pending</Button>
 
 // filter component
-const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea }) {
+const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea, currentdate, setData }) {
  const [date, setDate] = useState("");
  return (
   <>
@@ -20,10 +20,11 @@ const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea }) {
       type="date"
       className="form-control"
       onChange={(e) => ondate(e)}
+      value={currentdate}
      />
     </div>
     <div>
-     <select className="form-select" aria-label="select sample status" onChange={(e) => {
+     <select className="form-select" value={onsearch} aria-label="select sample status" onChange={(e) => {
       sorting(e);
       searchArea(e.target.value)
      }}>
@@ -41,7 +42,29 @@ const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea }) {
       placeholder="filter by name , BillingID,patientID"
      />
     </div>
+    <div className="col-2">
+     <Button variant="contained" color="primary" onClick={() => {
+      const data = {
+       date: currentdate,
+       status: onsearch
+      }
+      // send data to server 
+      let endpoint = `http://localhost:3000/api/sample/?date=${data.date}&status=${data.status}`;
+      let push = async () => {
+       await fetch(endpoint)
+        .then((res) => res.json())
+        .then((data) => {
+         // populate the data into the sample list
+         console.log(data)
+         setData(data);
+        })
+        .catch((err) => console.log(err));
+      }
+      push();
+     }}>Search</Button>
+    </div>
    </div>
+
   </>
  );
 };
@@ -49,10 +72,10 @@ const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea }) {
 const NODATA = function () {
  return (
   <>
-   <div className="d-flex justify-content-center align-items-center">
-    <div className="d-flex flex-column justify-content-center align-items-center">
-     <AccessTimeIcon style={{ fontSize: "100px" }} />
-     <h3>No data</h3>
+   <div className="d-flex justify-content-center align-items-center bg-white ">
+    <div className="d-flex flex-column justify-content-center align-items-center" style={{color:'#00224F'}}>
+      <AccessTimeIcon style={{ fontSize: "100px" }}/>
+     <Typography variant="h5"  sx={{mb:4}} className="text-center">No data found</Typography>
     </div>
    </div>
   </>
@@ -108,15 +131,24 @@ const SingleClient = function ({ item, approvalStatus }) {
   </>
  );
 };
+
+const currentdate_function = function () {
+ let date = new Date();
+ let year = date.getFullYear();
+ let month = date.getMonth() + 1;
+ let dt = date.getDate();
+ return year + "-" + 0 + month + "-" + 0 + dt;
+}
 export default function SAMPLE_ASSESSMENT({ initial }) {
  const [showAction, setShowAction] = useState(false);
  const [data, setData] = useState(initial);
  const [onsearch, setOnsearch] = useState("all");
  const searchRef = useRef();
+ const [currentdate, setCurrentdate] = useState(currentdate_function());
 
  const ondate = (e) => {
   let date = e.target.value;
-  console.log(date);
+  setCurrentdate(date);
  };
 
  const onchange = (e) => {
@@ -128,13 +160,20 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
     item.ID.toString().startsWith(value.toLowerCase())
    );
   });
-  console.log(filteredData);
+
+  const all = function () {
+   setData(initial);
+   setOnsearch("all");
+   setCurrentdate('0000-00-00');
+  }
 
   value.length === 0
-   ? setData(initial)
+   ? all()
    : filteredData.length === 0
     ? setData([])
     : setData(filteredData);
+  // reset data to all
+
  };
  // monitor the search input field
  // filled it with the selected filter
@@ -200,7 +239,16 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
  }
 
 
+ //  on page load , load data from the server with sample of the current data await approval or rejection
+ useEffect(() => {
+  console.log(currentdate)
+ })
 
+
+ // setData function to update the data holder after query button click
+ const updateData = (data) => {
+  setData(data)
+ }
  return (
   <>
    <div>
@@ -211,11 +259,13 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
        <AccessTimeIcon /> 3 days ago
       </small>
      </div>
-     <FILTERS ondate={ondate} onchange={onchange} sorting={sorting} searchArea={searchArea} />
+     <FILTERS ondate={ondate} onchange={onchange} setData={updateData} sorting={sorting} onsearch={onsearch} searchArea={searchArea} currentdate={currentdate} />
      <div className="list-group">
-      {data.map((item, index) => {
-       return <SingleClient key={index} item={item} approvalStatus={approvalStatus} />;
-      })}
+      {data.length === 0 ? <NODATA /> : (
+       data.map((item, index) => {
+        return <SingleClient key={index} item={item} approvalStatus={approvalStatus} />;
+       })
+      )}
      </div>
     </div>
    </div>
