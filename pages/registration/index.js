@@ -436,11 +436,7 @@ function Registration({ organization, clinician }) {
          value={data.maritalstatus}
         >
          <div>
-          <FormControlLabel
-           value="single"
-           control={<Radio />}
-           label="Single"
-          />
+          <FormControlLabel value="single" control={<Radio />} label="Single" />
           <FormControlLabel
            value="married"
            control={<Radio />}

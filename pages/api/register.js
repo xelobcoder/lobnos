@@ -184,7 +184,7 @@ const getpatient = function (request, response) {
     }
   } else {
     // send all first 500 patients
-    connection.query('SELECT * FROM NEW_PATIENTS LIMIT 500', (err, result) => {
+    connection.query('SELECT * FROM NEW_PATIENTS LIMIT 1000', (err, result) => {
       if (err) {
         throw err
       }

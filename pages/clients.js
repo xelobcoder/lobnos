@@ -161,7 +161,7 @@ export function Clients({ data }) {
    </div>
    <div
     className=" ag-theme-alpine"
-    style={{ backgroundColor: 'whitesmoke', height: '90vh' }}
+    style={{ backgroundColor: 'whitesmoke', height: '900%' }}
    >
     <AgGridReact
      getRowId={callRowId}
@@ -170,8 +170,8 @@ export function Clients({ data }) {
      rowData={clients}
      columnDefs={columns}
      defaultColDef={defaultColumnDef}
-     animateRows={true}
-     rowSelection="multiple"
+    //  animateRows={true}
+    //  rowSelection="multiple"
      getRowStyle={(params) => {
       return {
        backgroundColor:
