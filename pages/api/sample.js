@@ -119,18 +119,30 @@ class SampleHandler {
    this.response.send(result);
   });
  }
- updateRecords(status, billingid) {
+ updateRecords(status, billingid,message='') {
   // update performing test table first
   // update sample table to reflect change in status
   // return update records for changes to UI
-  let SQL_QUERY = `
-   UPDATE PERFORMING_TEST 
-   SET SAMPLE_STATUS = '${status}',
-    INSPECTION_TIME = NOW(),
-    INSPECTOR = 'Dr Tiifu Hamza'
-    WHERE BILLINGID = '${billingid}'`;
+  let query = function (status,billingid,message='') {
+    const query_accepted =`
+    UPDATE PERFORMING_TEST 
+    SET SAMPLE_STATUS = '${status}',
+     INSPECTION_TIME = NOW(),
+     INSPECTOR = 'Dr Tiifu Hamza'
+     WHERE BILLINGID = '${billingid}'`;
 
-  connection.query(SQL_QUERY, (err, result) => {
+    const query_rejected = `
+    UPDATE PERFORMING_TEST
+    SET SAMPLE_STATUS = '${status}',
+      INSPECTION_TIME = NOW(),
+      INSPECTOR = 'Dr Tiifu Hamza',
+      MESSAGE = '${message}'
+    WHERE BILLINGID = '${billingid}'`;
+  
+    return status == 'ACCEPTED' ? query_accepted : query_rejected;
+  }
+
+  connection.query(query(status,billingid,message), (err, result) => {
    if (err) throw err;
    this.response.send(result);
   });
@@ -144,7 +156,7 @@ function Sample(request, response) {
   request,
   response
  );
- const {status,date } = request.query;
+ const {status,date} = request.query;
 
  switch (request.method) {
   case "GET":
@@ -163,8 +175,9 @@ function Sample(request, response) {
    break;
   case "PUT":
    const data = JSON.parse(request.body);
-   const { status, billingid } = data;
-   sampleHandle.updateRecords(status.toUpperCase(), billingid);
+   console.log(data);
+   const { status, billingid,message=''} = data;
+   sampleHandle.updateRecords(status.toUpperCase(), billingid,message);
  }
 }
 
