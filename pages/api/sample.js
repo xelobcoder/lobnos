@@ -19,6 +19,7 @@ class SampleHandler {
     np.FULLNAME,
     p.DATE,
     p.TEST,
+    p.MESSAGE,
     p.ID
    FROM PERFORMING_TEST as p
     join billing as b ON p.PATIENTID = b.PATIENTID
@@ -38,6 +39,7 @@ class SampleHandler {
       p.PATIENTID,
       p.BILLINGID,
       np.FULLNAME,
+      p.MESSAGE,
       p.DATE,
       p.TEST,
       p.ID
@@ -61,6 +63,7 @@ class SampleHandler {
       p.BILLINGID,
       np.FULLNAME,
       p.DATE,
+      p.MESSAGE,
       p.TEST,
       p.ID
      FROM PERFORMING_TEST as p
@@ -81,6 +84,7 @@ class SampleHandler {
     SELECT DISTINCT p.SAMPLE_STATUS,
       p.PATIENTID,
       p.BILLINGID,
+      p.MESSAGE,
       np.FULLNAME,
       p.DATE,
       p.TEST,
@@ -106,6 +110,7 @@ class SampleHandler {
       np.FULLNAME,
       p.DATE,
       p.TEST,
+      p.MESSAGE,
       p.ID
      FROM PERFORMING_TEST as p
       join billing as b ON p.PATIENTID = b.PATIENTID

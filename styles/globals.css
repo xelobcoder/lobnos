@@ -605,3 +605,13 @@ option:hover {
     transform: translate3d(-50%, -50%, 0) rotate(360deg);
   }
 }
+
+.sample-grid-split-2-3{
+  grid: grid;
+  grid-template-columns: 70% ;
+}
+
+.sample-grid-split-2-3 > div:nth-of-type(1){
+  display: grid;
+  grid-template-columns: 10% 20% auto;
+}
