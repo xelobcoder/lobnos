@@ -168,6 +168,47 @@ const database_queries = {
    response.send(result);
   })
  },
+ addBranch: function (branch, request, response) {
+  let SQL_QUERY = `INSERT INTO BRANCH (NAME) VALUES ('${branch}')`;
+  connection.query(SQL_QUERY, (err, result) => {
+   if (err) throw err;
+   if (result) {
+    response.send({
+     status: 'success',
+     message: 'new branch added'
+    })
+   }
+  })
+ },
+ getBranch: function (request, response) {
+  let SQL_QUERY = `SELECT * FROM BRANCH  ORDER BY NAME ASC LIMIT 100`;
+  connection.query(SQL_QUERY, (error, result) => {
+   if (error) throw error;
+   if (result) {
+    response.send(
+     result
+    )
+   }
+  })
+ },
+ editBranch: function (branchid, branchname, request, response) {
+  let SQL_QUERY = `UPDATE BRANCH 
+   SET BRANCHNAME = '${branchname}'
+   WHERE BRANCHID = '${branchid}'
+   `
+  connection.query(SQL_QUERY, (err, result) => {
+   if (err) throw err;
+   if (result) {
+    response.send({
+     message: `${branchname} updated`,
+     status: 200
+    })
+   }
+  })
+ },
+ deleteBranch: function (branchid,request,response) {
+  
+ }
 }
 
 

@@ -73,7 +73,7 @@ export default function AddTestPanelCategory(props) {
               label="Test Panel Category"
               name="categoryname"
               type="text"
-              variant="standard"
+              variant="outlined"
             />
             <TextField
               size="small"
@@ -82,7 +82,7 @@ export default function AddTestPanelCategory(props) {
               label="Category description"
               multiline
               name="categorydescription"
-              variant="standard"
+              variant="outlined"
               rows={1}
             />
             <Button

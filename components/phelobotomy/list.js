@@ -21,7 +21,6 @@ function Phelobotomy_USER_LIST({ item, index }) {
   let timeDiffHours = Math.floor((timeDiff % 86400000) / 3600000);
   // get time difference in days
 
-
   return `${timeDiffHours} hours ${timeDiffMinutes} minutes`
 
 
@@ -40,7 +39,7 @@ function Phelobotomy_USER_LIST({ item, index }) {
      <div className="test" title={item.TEST}>
       {item.TEST}
      </div>
-     <div className="date">{item.DATE.slice(0, 10)}</div>
+     <div className="date">{item.DATE}</div>
      {/*  calculate time elapsed from date above*/}
      <div className="time">
       {calculatetimeElapsed(item.DATE, item.TIME, new Date())}

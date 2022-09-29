@@ -1,7 +1,7 @@
 import SidebarFrontPage from '../components/frontpagesidebar'
 import Header from '../components/header'
 import { DataGrid } from '@mui/x-data-grid'
-import {  Button, Box } from '@mui/material'
+import { Button, Box } from '@mui/material'
 import { useState } from 'react'
 import AddOrganization from '../components/Addorganization'
 import Opay from '../components/payment';
@@ -17,7 +17,7 @@ const Group = () => {
       <AddOrganization />
       <Opay />
       <div className="org-button-wrapper">
-        <Button type="submit" variant="contained" endIcon={<SendIcon/>} >
+        <Button type="submit" variant="contained" endIcon={<SendIcon />} >
           save
         </Button>
       </div>
@@ -44,7 +44,7 @@ function Organization({ data }) {
   const [show, setShow] = useState(true)
 
   return (
-    <>
+    <div className='container'>
       <Box sx={{ height: 50, width: '100%' }}>
         <div className="org-button-wrapper">
           {!show ? (
@@ -86,7 +86,7 @@ function Organization({ data }) {
           />
         )}
       </Box>
-    </>
+    </div>
   )
 }
 

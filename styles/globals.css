@@ -582,13 +582,13 @@ option:hover {
 .bg-whitedark {
   background-color: #00224f0b !important;
 }
-.spin-clock::before{
+.spin-clock::before {
   animation: 1.5s linear infinite spinner;
   animation-play-state: inherit;
   border: solid 5px #cfd0d1;
   border-bottom-color: #1c87c9;
   border-radius: 50%;
-  content: "";
+  content: '';
   height: 40px;
   position: absolute;
   top: 34%;
@@ -606,12 +606,43 @@ option:hover {
   }
 }
 
-.sample-grid-split-2-3{
+.sample-grid-split-2-3 {
   grid: grid;
-  grid-template-columns: 70% ;
+  grid-template-columns: 70%;
 }
 
-.sample-grid-split-2-3 > div:nth-of-type(1){
+.sample-grid-split-2-3 > div:nth-of-type(1) {
   display: grid;
   grid-template-columns: 10% 20% auto;
+}
+#rejected-view-list {
+  display: grid;
+  grid-template-columns: 40% 40% auto;
+  padding: 0px !important;
+}
+#rejected-view-list > p:nth-of-type(1)::first-letter {
+  text-transform: uppercase;
+}
+
+#rejected-view-list > p:nth-of-type(1) {
+  color: green;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#rejected-view-list > p:nth-of-type(2) {
+  color: blue;
+}
+
+#rejected-view-list > p:nth-of-type(3) {
+  color: grey;
+  margin-top: -5px;
+}
+
+.branches-split{
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 80% auto;
 }

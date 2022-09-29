@@ -11,7 +11,6 @@ let filteredTest_in_date = function (test, res) {
   if (isArray && !isEmpty) {
     let today = new Date();
 
-
     let filtereddate = test.filter(function (item) {
       // filter today from test array
       let date = new Date(item.DATE);
@@ -26,7 +25,15 @@ let filteredTest_in_date = function (test, res) {
 }
 
 const getPhelobotomy = async (req, res) => {
-  let myquery = `SELECT * FROM new_patients AS p INNER JOIN billing AS b ON p.PATIENTID = b.PATIENTID INNER JOIN performing_test as t ON b.BILLINGID = t.BILLINGID WHERE t.PHELOBOTOMY_STATUS='queue' AND p.ACTIVATION_STATUS ='true' AND t.DATE = CURRENT_DATE()`;
+  let myquery = `
+  SELECT DISTINCT *
+      FROM new_patients AS p
+      INNER JOIN billing AS b ON p.PATIENTID = b.PATIENTID
+      INNER JOIN performing_test as t ON b.BILLINGID = t.BILLINGID
+      WHERE t.PHELOBOTOMY_STATUS = 'QUEUE'
+      AND p.ACTIVATION_STATUS = 'TRUE'
+      AND t.DATE = CURDATE() GROUP BY t.ID ORDER BY t.ID DESC
+  `;
 
   connection.query(myquery, (err, result) => {
     if (err) throw err;

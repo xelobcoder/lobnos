@@ -7,6 +7,7 @@ import {
   Select,
   TextField,
 } from '@mui/material'
+import { Container } from '@mui/system';
 import { useState } from 'react'
 
 const Mobilemoney = function () {
@@ -20,7 +21,7 @@ const Mobilemoney = function () {
           minLength="10"
           value={mobile}
           placeholder="0505050505"
-          variant="filled"
+          variant="outlined"
           label="mobile money number"
           onChange={(e) => setMobile(e.target.value)}
           maxLength="10"
@@ -32,7 +33,7 @@ const Mobilemoney = function () {
           placeholder='John Doe'
           value={receivername}
           onChange={(e) => setReceivername(e.target.value)}
-          variant="filled"
+          variant="outlined"
         ></TextField>
       </div>
     </>
@@ -43,20 +44,20 @@ const BankDetails = function () {
   return (
     <>
       <div className="grid-split">
-        <TextField type="text" label="Bank name" variant="filled"></TextField>
+        <TextField type="text" label="Bank name" variant="outlined"></TextField>
         <TextField
           type="number"
           label="Account Number"
-          variant="filled"
+          variant="outlined"
         ></TextField>
       </div>
       <div className="grid-split">
         <TextField
           type="text"
           label="Account Name"
-          variant="filled"
+          variant="outlined"
         ></TextField>
-        <TextField type="text" label="Bank Branch" variant="filled"></TextField>
+        <TextField type="text" label="Bank Branch" variant="outlined"></TextField>
       </div>
     </>
   )
@@ -84,26 +85,26 @@ export default function Opay(props) {
 
   return (
     <>
-      <div className="grid-split">
-        <FormControl variant="filled">
-          <InputLabel>payment module</InputLabel>
-          <Select
-            value={paymentmethod}
-            onChange={(e) => {
-              handleChange(e, e.target.value)
-            }}
-          >
-            <MenuItem value='cash'>cash</MenuItem>
-            <MenuItem value='bank transfer'>Bank transfer</MenuItem>
-            <MenuItem value='mobile money'>Mobile money</MenuItem>
-          </Select>
-        </FormControl>
-      </div>
-      <div>
-        {paymentmethod === 'cash' ? null : (
-          <PaymentGroup state={paymentmethod} />
-        )}
-      </div>
+        <div className="grid-split">
+          <FormControl variant="filled">
+            <InputLabel>payment module</InputLabel>
+            <Select
+              value={paymentmethod}
+              onChange={(e) => {
+                handleChange(e, e.target.value)
+              }}
+            >
+              <MenuItem value='cash'>cash</MenuItem>
+              <MenuItem value='bank transfer'>Bank transfer</MenuItem>
+              <MenuItem value='mobile money'>Mobile money</MenuItem>
+            </Select>
+          </FormControl>
+        </div>
+        <div>
+          {paymentmethod === 'cash' ? null : (
+            <PaymentGroup state={paymentmethod} />
+          )}
+        </div>
     </>
   )
 }

@@ -79,7 +79,7 @@ export default function AddPanel({ categories }) {
                 label="Panel Name"
                 name="name"
                 type="text"
-                variant="filled"
+                variant="outlined"
               />
               {addpanel.errors.name && (
                 <Typography variant="p" color="error">
@@ -91,7 +91,7 @@ export default function AddPanel({ categories }) {
               <InputLabel htmlFor="category">category</InputLabel>
               <Select
                 size="small"
-                variant="filled"
+                variant="outlined"
                 name="category"
                 value={addpanel.values.category}
                 onChange={addpanel.handleChange}
@@ -113,7 +113,7 @@ export default function AddPanel({ categories }) {
               type="number"
               name="price"
               mt={10}
-              variant="filled"
+              variant="outlined"
             />
             <Button
               size="small"
