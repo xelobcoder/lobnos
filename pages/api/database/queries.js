@@ -181,7 +181,7 @@ const database_queries = {
   })
  },
  getBranch: function (request, response) {
-  let SQL_QUERY = `SELECT * FROM BRANCH  ORDER BY NAME ASC LIMIT 100`;
+  let SQL_QUERY = `SELECT * FROM BRANCH  ORDER BY BRANCHID ASC LIMIT 100`;
   connection.query(SQL_QUERY, (error, result) => {
    if (error) throw error;
    if (result) {
@@ -193,7 +193,7 @@ const database_queries = {
  },
  editBranch: function (branchid, branchname, request, response) {
   let SQL_QUERY = `UPDATE BRANCH 
-   SET BRANCHNAME = '${branchname}'
+   SET NAME = '${branchname}'
    WHERE BRANCHID = '${branchid}'
    `
   connection.query(SQL_QUERY, (err, result) => {
@@ -206,9 +206,19 @@ const database_queries = {
    }
   })
  },
- deleteBranch: function (branchid,request,response) {
-  
+ deleteBranch: function (branchid, request, response) {
+  let SQL_QUERY = `DELETE FROM BRANCH WHERE BRANCHID = '${branchid}'`;
+  connection.query(SQL_QUERY, (err, result) => {
+   if (err) throw err;
+   if (result) {
+    response.send({
+     message: `branch deleted`,
+     status: 200
+    })
+   }
+  })
  }
+ 
 }
 
 

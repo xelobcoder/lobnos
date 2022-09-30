@@ -6,7 +6,7 @@ export default function AddOrganization() {
         <>
           <form className="add-org-wrapper" >
                 <div >
-                    <TextField variant='outlined' type='text' label='organization name' id='orgname'></TextField>
+                    <TextField variant='outlined'  type='text' label='organization name' id='orgname'></TextField>
                     <TextField variant='outlined' type='text' label='organization address' id='orgaddress'></TextField>
                     <TextField variant='outlined' type='tel' label='organization phone' id='orgphone'></TextField>
                     <TextField variant='outlined' type='email' label='organization email' id='orgemail'></TextField>

@@ -9,14 +9,14 @@ export default function handler(request, response) {
    break
   case 'GET':
    database_queries.getBranch(request, response)
-   break;
+   break
   case 'PUT':
-   const { branchid, branchname, request, response } = request.body;
+   const { branchid, branchname} = JSON.parse(request.body);
    database_queries.editBranch(branchid, branchname, request, response)
    break
   case 'DELETE':
-   const { branch_id } = request.body;
-   database_queries.deleteBranch(branch_id, request, response);
+   const { branch_id } = JSON.parse(request.body);
+   database_queries.deleteBranch(branch_id, request, response)
    break
   default:
    response.send({
