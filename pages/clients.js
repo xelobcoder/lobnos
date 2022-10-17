@@ -132,7 +132,7 @@ export function Clients({ data }) {
   () => ({
    resizable: true,
    filter: true,
-   sortable: true,
+  //  sortable: true,
    filter: true,
    flexGrow: 1,
    minWidth: 100,

@@ -217,8 +217,35 @@ const database_queries = {
     })
    }
   })
+ },
+ getAllRoles: function (request, response) {
+  let SQL_QUERY = 'SELECT * FROM ROLES';
+  connection.query(SQL_QUERY, (err, result) => {
+   if (err) throw err;
+   if (result) {
+    response.send(
+     {
+      data: result,
+      status: 'success'
+     }
+    )
+   }
+  })
+ },
+ newRole: function (fullname, username, password, role, request, response) {
+  let values = [fullname, username, role, password];
+  console.log(arguments[3])
+  let SQL_QUERY = 'INSERT INTO ROLES (FULLNAME,USERNAME,ROLE,PASSWORD) VALUES(?,?,?,?)'
+  connection.query(SQL_QUERY, values, (err, result) => {
+   if (err) throw err;
+   if (result) {
+    response.send(
+     { message: `${fullname} added as a ${role}`, status: 'success' }
+    )
+   }
+  })
  }
- 
+
 }
 
 

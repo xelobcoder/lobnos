@@ -4,8 +4,7 @@ function BLOODGROUP_SPREAD() {
  return (
   <>
    <div className="p-4">
-   <BloodGroup />
-   <BloodGroupTableList />
+     <BloodGroupTableList />
   </div>
   </>
  )

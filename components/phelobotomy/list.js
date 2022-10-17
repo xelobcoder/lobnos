@@ -28,7 +28,7 @@ function Phelobotomy_USER_LIST({ item, index }) {
 
  return (
   <>
-   <ul key={index} className="list-group">
+   <ul  className="list-group">
     <li
      className={
       status == false ? 'alert alert-primary' : 'alert alert-danger'
@@ -58,7 +58,7 @@ function Phelobotomy_USER_LIST({ item, index }) {
     </li>
    </ul>
    <div>
-    {display == true ? (<TEST_DETAILS data={item} />) : null}
+    {display == true ? (<TEST_DETAILS data={item}  />) : null}
    </div>
   </>
  )

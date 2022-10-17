@@ -42,7 +42,20 @@ const getPhelobotomy = async (req, res) => {
 }
 
 
-const updatePhelobotomy = async (id, req, res) => { }
+const updatePhelobotomy = async (id, content, status,alltaken,completedTime, req, res) => {
+  let myquery = `UPDATE 
+  performing_test 
+  SET PHELOBOTOMY_STATUS = '${status}',
+  PHELOBOTOMY_MESSAGE = '${content}',
+  ALL_SAMPLE_TAKEN = '${alltaken}',
+  TIME_PHELOBOTOMY_COMPLETED = TIMESTAMP('${completedTime}')
+  WHERE ID = ${id}`;
+  connection.query(myquery, (err, result) => {
+    if (err) throw err;
+    res.send(result);
+  }
+  )
+}
 
 
 
@@ -55,9 +68,11 @@ export default function handler(req, res) {
       }
       break;
     case 'PUT':
-      updatePhelobotomy(req, res);
+      const { clientid, content, status ,alltaken,completedTime} = JSON.parse(req.body);
+      console.log(clientid, content, status);
+      updatePhelobotomy(clientid, content, status, alltaken, completedTime,req, res);
+      break;
     default:
       res.status(405).send(`Method ${method} Not Allowed`);
-
   }
 }

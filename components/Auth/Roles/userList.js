@@ -1,0 +1,130 @@
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import { Button } from '@mui/material';
+import SortList from './sort';
+import NODATA_FOUND from '../../Nodata';
+import ISLOADING from '../../isLoading';
+
+export default function UserList() {
+ const [users, setusers] = useState([])
+ const [isloading, setisLoading] = useState(true);
+ const [isFound, setFound] = useState(true);
+ const [clear, setClear] = useState(false);
+ const [sort, setSort] = useState('ID ASC');
+
+
+
+ let getData = async function () {
+  const backend_fetch = async function () {
+   let endpoint = 'http://localhost:3000/api/roles'
+   let response = await fetch(endpoint);
+   let res = response.json();
+   res.then((res) => { return res }).then((final) => setusers(final.data)).catch((err) => { throw (err) })
+  }
+
+  if (users.length == 0 || (users.length > 0 && clear == true)) {
+   return backend_fetch()
+  }
+  else {
+   return users
+  }
+ }
+
+ const sorthandle = useCallback(function (e) {
+  const option = e.target.value;
+
+  setSort(option)
+
+  if (option == 'ID ASC') {
+   setusers(users.sort((a, b) => a.ROLEID - b.ROLEID).slice(0, users.length))
+  }
+
+  if (option == 'ID DESC') {
+   let sorted = users.sort((a, b) => a.ROLEID - b.ROLEID).reverse().slice(0, users.length)
+   setusers(sorted)
+   console.log(sorted)
+  }
+ }
+ )
+
+
+ // HANDLE FILTER 
+
+ const filterhandle = function (e) {
+  let required = e.target.value;
+  let filtered = users.filter((item, index) => {
+   return item.ROLEID == parseInt(required)
+    || new String(item.FULLNAME.toLowerCase()).startsWith(required.toLowerCase())
+    || new String(item.USERNAME.toLowerCase()).startsWith(required.toLowerCase())
+    || new String(item.ROLE.toLowerCase()).startsWith(required.toLowerCase())
+  })
+
+  if (required.length == 0) {
+   setClear(true); getData(); setSort('ID ASC');
+  }
+  else {
+   setusers(filtered)
+  }
+ }
+
+ 
+ useMemo(() => {
+  getData()
+ }, [])
+
+
+ const SingleUser = function ({ data, handleDelete, handleEdit }) {
+  return (
+   <>
+    <tr>
+     <td>{data.ROLEID}</td>
+     <td>{data.FULLNAME}</td>
+     <td>{data.USERNAME}</td>
+     <td>{data.ROLE}</td>
+     <td>{data.DATE_CREATED.slice(0, 10)}</td>
+     <td>{data.TIME.slice(0, 8)}</td>
+     <td>
+      <Button variant='contained' sx={{ padding: 0, borderRadius: 0 }} color='primary'>edit</Button>
+      <Button variant='text' sx={{ padding: 0, borderRadius: 0 }} color='error'>delete</Button>
+     </td>
+    </tr>
+   </>
+  )
+ }
+
+
+
+ return (
+  <>
+   <SortList sorthandle={sorthandle} filterhandle={filterhandle} sortdefault={sort} />
+   <div>
+    <table className='try'>
+     <thead className=''>
+      <tr>
+       <th scope='col'>roleid</th>
+       <th scope='col'>fullname</th>
+       <th scope='col'>username</th>
+       <th scope='col'>role</th>
+       <th scope='col'>date created</th>
+       <th scope='col'>time</th>
+       <th scope='col'>actions</th>
+      </tr>
+     </thead>
+     <tbody>
+      {
+       users.length > 0 && users.map((item, index) => {
+        return (<SingleUser data={item} key={index} />)
+       })
+      }
+
+     </tbody>
+    </table>
+    {
+     (users.length == 0 && isloading == true) && <ISLOADING />
+    }
+    {
+     (isFound == false) && <NODATA_FOUND />
+    }
+   </div>
+  </>
+ )
+}

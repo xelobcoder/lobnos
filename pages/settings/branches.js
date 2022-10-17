@@ -107,7 +107,7 @@ export default function Branches() {
    console.log(err)
   })
 
-  console.log(e,branch)
+  console.log(e, branch)
  }
 
 
