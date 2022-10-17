@@ -232,6 +232,20 @@ const database_queries = {
    }
   })
  },
+ getSingleRole: function(request,response,id) {
+  let SQL_QUERY = `SELECT * FROM ROLES WHERE ROLEID = '${id}'`;
+  connection.query(SQL_QUERY, (err, result) => {
+   if (err) throw err;
+   if (result) {
+    response.send(
+     {
+      data: result,
+      status: 'success'
+     }
+    )
+   }
+  })
+ },
  newRole: function (fullname, username, password, role, request, response) {
   let values = [fullname, username, role, password];
   console.log(arguments[3])

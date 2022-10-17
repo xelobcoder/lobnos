@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback} from 'react';
+import { useRouter } from 'next/router';
 import { Button } from '@mui/material';
 import SortList from './sort';
 import NODATA_FOUND from '../../Nodata';
@@ -11,6 +12,9 @@ export default function UserList() {
  const [clear, setClear] = useState(false);
  const [sort, setSort] = useState('ID ASC');
 
+ // get all queries
+
+ const router = useRouter();
 
 
  let getData = async function () {
@@ -66,13 +70,21 @@ export default function UserList() {
   }
  }
 
- 
+
+ // delete a user 
+
+ const deleteUser = function (e) {
+
+ }
+
+
+
  useMemo(() => {
   getData()
  }, [])
 
 
- const SingleUser = function ({ data, handleDelete, handleEdit }) {
+ const SingleUser = function ({ data, handleDelete, handleEdit}) {
   return (
    <>
     <tr>
@@ -83,7 +95,7 @@ export default function UserList() {
      <td>{data.DATE_CREATED.slice(0, 10)}</td>
      <td>{data.TIME.slice(0, 8)}</td>
      <td>
-      <Button variant='contained' sx={{ padding: 0, borderRadius: 0 }} color='primary'>edit</Button>
+      <Button variant='contained' sx={{ padding: 0, borderRadius: 0 }} color='primary' onClick={(e) => router.push(`http://localhost:3000/Authentication?users=${data.ROLEID}`)}>edit</Button>
       <Button variant='text' sx={{ padding: 0, borderRadius: 0 }} color='error'>delete</Button>
      </td>
     </tr>

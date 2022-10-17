@@ -1,7 +1,7 @@
 import { Button } from '@mui/material'
 import React, { useState, useEffect } from 'react';
 
-export default function USERS() {
+export default function USERS({heading,button}) {
   const [userdata, setuserData] = useState({ fullname: '', username: '', password: '', role: '' })
 
   const autoGenerate_password = function () {
@@ -40,6 +40,8 @@ export default function USERS() {
     }
   }
 
+  
+
   return (
     <>
       <div className='container-fluid'>
@@ -47,7 +49,7 @@ export default function USERS() {
           <div className='row col-8'>
             <div className='card'>
               <div className='card-header'>
-                SNAP USERS
+                {heading.toUpperCase()}
               </div>
               <div className='card-body'>
                 <div>
@@ -97,7 +99,9 @@ export default function USERS() {
                 </div>
                 <div className='mt-3'>
                   <Button variant='contained' color='primary' onClick={(e) => HandleSave(e)}>
-                    save changes
+                   {
+                    button
+                   }
                   </Button>
                 </div>
               </div>
