@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback} from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { Button } from '@mui/material';
 import SortList from './sort';
@@ -63,20 +63,36 @@ export default function UserList() {
   })
 
   if (required.length == 0) {
-   setClear(true); getData(); setSort('ID ASC');
-  }
-  else {
-   setusers(filtered)
-  }
+   setClear(true); getData(); setSort('ID ASC');setFound(true)
+  } else
+   if (required.length > 0 && filtered.length == 0) {
+    setClear(false);setisLoading(false);setusers(filtered);
+    setFound(false)
+   }
+   else {
+    setusers(filtered)
+    setFound(true)
+    setisLoading(true)
+   }
  }
 
 
- // delete a user 
+ const handleDelete = function (e,id) {
+   const deleteuser = async function (id) {
+    let deletex = await fetch('http://localhost:3000/api/roles',{
+      method: 'DELETE',
+      body: JSON.stringify({id})
+    })
+    let response = deletex.json();
 
- const deleteUser = function (e) {
+    let usex = users.filter ( (item,index) => id != item.ROLEID)
 
+    setusers(usex)
+  
+   }
+
+   deleteuser(id)
  }
-
 
 
  useMemo(() => {
@@ -84,7 +100,8 @@ export default function UserList() {
  }, [])
 
 
- const SingleUser = function ({ data, handleDelete, handleEdit}) {
+ const SingleUser = function ({ data }) {
+  const id = data.ROLEID;
   return (
    <>
     <tr>
@@ -96,7 +113,9 @@ export default function UserList() {
      <td>{data.TIME.slice(0, 8)}</td>
      <td>
       <Button variant='contained' sx={{ padding: 0, borderRadius: 0 }} color='primary' onClick={(e) => router.push(`http://localhost:3000/Authentication?users=${data.ROLEID}`)}>edit</Button>
-      <Button variant='text' sx={{ padding: 0, borderRadius: 0 }} color='error'>delete</Button>
+      <Button variant='text' sx={{ padding: 0, borderRadius: 0 }} 
+      onClick={ (e) => handleDelete(e,id) }
+    color='error'>delete</Button>
      </td>
     </tr>
    </>
@@ -134,7 +153,7 @@ export default function UserList() {
      (users.length == 0 && isloading == true) && <ISLOADING />
     }
     {
-     (isFound == false) && <NODATA_FOUND />
+     (isFound == false && isloading == false) && <NODATA_FOUND />
     }
    </div>
   </>

@@ -18,8 +18,11 @@ export default function Role_Handler(request, response) {
       database_queries.newRole(fullname, username, password, role, request, response)
       break
     case 'PUT':
+      database_queries.updateRole(request, response)
       break
     case 'DELETE':
+      const { id } = JSON.parse(request.body);
+      database_queries.deletewithID(id, request, response)
       break
   }
 }

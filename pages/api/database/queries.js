@@ -232,7 +232,7 @@ const database_queries = {
    }
   })
  },
- getSingleRole: function(request,response,id) {
+ getSingleRole: function (request, response, id) {
   let SQL_QUERY = `SELECT * FROM ROLES WHERE ROLEID = '${id}'`;
   connection.query(SQL_QUERY, (err, result) => {
    if (err) throw err;
@@ -257,6 +257,36 @@ const database_queries = {
      { message: `${fullname} added as a ${role}`, status: 'success' }
     )
    }
+  })
+ },
+ updateRole: function (request, response) {
+  const { fullname, username, role, password, roleid } = JSON.parse(request.body);
+
+  let SQL_QUERY = `UPDATE ROLES SET FULLNAME = '${fullname}', 
+   USERNAME = '${username}',
+   PASSWORD = '${password}',
+   ROLE =' ${role}'
+   WHERE ROLEID = '${roleid}'
+  `
+
+  connection.query(SQL_QUERY, (err, result) => {
+   if (err) throw err;
+   if (result) {
+    response.send({
+     message: 'information updated successfully',
+     status: 200
+    })
+   }
+  })
+ },
+ deletewithID: function (id, request, response) {
+  let SQL_QUERY = `DELETE FROM ROLES WHERE ROLEID = '${id}'`;
+  connection.query(SQL_QUERY, (err, result) => {
+   if (err) throw err;
+   response.send({
+    message: 'information deleted succesfully',
+    status: 200
+   })
   })
  }
 
