@@ -2,7 +2,7 @@ import { Container, TextField, Button, Autocomplete } from '@mui/material'
 import { useState } from 'react';
 import parameter from './countparameter';
 function FullBloodCountSetup() {
- // const fullcountparameters = ['wbc', 'neutrophils', 'eosinophils', 'basophils', 'lymphocytes']
+
  const categories = ['male','children','female','']
  const [fullcount, setFullcount] = useState(parameter)
  const [category,setCategory] = useState('')
@@ -51,11 +51,11 @@ function FullBloodCountSetup() {
            </label>
           </div>
           <div>
-           <TextField label='unit' value={parameter.upper} size='small' onChange={(e) => onChangeUpper(e, index)} margin="normal" variant="outlined"
+           <TextField label='unit' value={parameter.unit} size='small' onChange={(e) => onChangeUpper(e, index)} margin="normal" variant="outlined"
            />
            <TextField label='lower limit' value={parameter.lower} size='small' onChange={(e) => onChangeLower(e, index)} margin="normal" variant="outlined"
            />
-           <TextField label='upper limit' value={parameter.unit} size='small' onChange={(e) => onChangeUnit(e, index)} margin="normal" variant="outlined"
+           <TextField label='upper limit' value={parameter.upper} size='small' onChange={(e) => onChangeUnit(e, index)} margin="normal" variant="outlined"
            />
           </div>
          </div>

@@ -89,7 +89,7 @@ export default function USERS({ heading, button }) {
       <div className='container-fluid'>
         <div className='container d-flex'>
           <div className='row col-8'>
-            <div className='card'>
+            <div >
               <div className='card-header'>
                 {heading.toUpperCase()}
               </div>

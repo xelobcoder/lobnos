@@ -5,7 +5,7 @@ import SortList from './sort';
 import NODATA_FOUND from '../../Nodata';
 import ISLOADING from '../../isLoading';
 
-export default function UserList() {
+export default function UserList({editcall}) {
  const [users, setusers] = useState([])
  const [isloading, setisLoading] = useState(true);
  const [isFound, setFound] = useState(true);
@@ -100,6 +100,12 @@ export default function UserList() {
  }, [])
 
 
+ const editbuttonCall = function (e,data) {
+  router.push(`http://localhost:3000/Authentication?users=${data.ROLEID}`)
+  editcall()
+ }
+
+
  const SingleUser = function ({ data }) {
   const id = data.ROLEID;
   return (
@@ -112,7 +118,7 @@ export default function UserList() {
      <td>{data.DATE_CREATED.slice(0, 10)}</td>
      <td>{data.TIME.slice(0, 8)}</td>
      <td>
-      <Button variant='contained' sx={{ padding: 0, borderRadius: 0 }} color='primary' onClick={(e) => router.push(`http://localhost:3000/Authentication?users=${data.ROLEID}`)}>edit</Button>
+      <Button variant='contained' sx={{ padding: 0, borderRadius: 0 }} color='primary' onClick={(e) => editbuttonCall(e,data)} >edit</Button>
       <Button variant='text' sx={{ padding: 0, borderRadius: 0 }} 
       onClick={ (e) => handleDelete(e,id) }
     color='error'>delete</Button>

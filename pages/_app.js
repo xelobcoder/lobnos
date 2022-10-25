@@ -7,6 +7,7 @@ import "../styles/lobnos.css";
 // import "../styles/table.css";
 import Header from '../components/header'
 import Footer from '../components/footer';
+import SidebarFrontPage from '../components/frontpagesidebar';
 
 
 
@@ -17,8 +18,14 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Header />
-      <Component {...pageProps} />
-      <Footer />
+      <div className="wrapper">
+        <div className="side">
+          <SidebarFrontPage />
+        </div>
+        <div className="main" style={{ backgroundColor: 'whitesmoke' }}>
+         <Component {...pageProps}/>
+        </div>
+      </div>
     </>
   )
 }

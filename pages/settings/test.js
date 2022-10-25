@@ -13,6 +13,7 @@ export default function TestPanels() {
  return (
   <>
   <BloodGroup/>
+  <FullBloodCountSetup/>
   </>
  )
 }

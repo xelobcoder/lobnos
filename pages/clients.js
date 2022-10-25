@@ -132,7 +132,7 @@ export function Clients({ data }) {
   () => ({
    resizable: true,
    filter: true,
-  //  sortable: true,
+   sortable: true,
    filter: true,
    flexGrow: 1,
    minWidth: 100,
@@ -170,8 +170,8 @@ export function Clients({ data }) {
      rowData={clients}
      columnDefs={columns}
      defaultColDef={defaultColumnDef}
-    //  animateRows={true}
-    //  rowSelection="multiple"
+     animateRows={true}
+     rowSelection="multiple"
      getRowStyle={(params) => {
       return {
        backgroundColor:
