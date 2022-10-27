@@ -22,7 +22,7 @@ function MyApp({ Component, pageProps }) {
         <div className="side">
           <SidebarFrontPage />
         </div>
-        <div className="main" style={{ backgroundColor: 'whitesmoke' }}>
+        <div className="main" >
          <Component {...pageProps}/>
         </div>
       </div>

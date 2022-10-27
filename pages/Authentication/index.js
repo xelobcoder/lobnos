@@ -5,7 +5,7 @@ import UserList from '../../components/Auth/Roles/userList';
 import { useRouter } from 'next/router';
 import Header from '../../components/header';
 import SidebarFrontPage from '../../components/frontpagesidebar';
-import { Button } from '@mui/material';
+import { Box, Button, Container } from '@mui/material';
 
 export default function Authentication_index_page() {
  const [componentview, setComponentView] = useState({
@@ -71,7 +71,7 @@ export default function Authentication_index_page() {
   <>
    <div ref={pageRef} >
     <div className='container' style={{ display: 'flex', justifyContent: 'end', marginTop: '20px' }}>
-     <Button ref={changeRef} variant='text' color='primary' onClick={(e) => buttonHandler(e)} sx={{ fontWeight: '700' }}>{buttontext}</Button>
+     <Button ref={changeRef} variant='text' color='primary' onClick={(e) => buttonHandler(e)} sx={{ fontWeight: '400',marginRight:'25px' }}>{buttontext}</Button>
     </div>
     <div className='container'>
      {(componentview.user && !userid) && <USERS button='save changes' heading='snap user' />}

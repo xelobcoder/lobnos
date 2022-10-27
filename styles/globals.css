@@ -2,6 +2,30 @@
   @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&display=swap');
   font-family: 'Open Sans', sans-serif;
 }
+.welcome-page{
+ background: url("../public/frontimage.jfif") no-repeat;
+ height: 91vh;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ overflow: hidden;
+}
+.welcome-page > div {
+  width: 40%;
+  margin-top: -200px;
+}
+.welcome-page > input {
+  border-radius: 0px !important;
+  border: 20px solid #00224f;
+}
+
+.login-textfield {
+  width: 100%;
+  margin-bottom: 20px;
+  border: 1px solid #00224f;
+  border-radius: 5px;
+  outline: 1px solid #00224f;
+}
 body {
   margin: 0;
   padding: 0;
