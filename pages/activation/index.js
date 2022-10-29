@@ -50,12 +50,12 @@ export default function Activator({ data }) {
  }, [])
  return (
   <>
-   <Container
-    sx={{
+   <div
+    style={{
      display: 'grid',
      gridTemplateColumns: '30% 20% 20% auto',
      gridGap: '20px 20px',
-     marginTop: '20px',
+     margin: '20px',
     }}
    >
     <TextField
@@ -69,8 +69,8 @@ export default function Activator({ data }) {
     <Button type="button" variant="contained" color="primary">
      search
     </Button>
-   </Container>
-   <Container sx={{ height: '70vh', overflowY: 'auto' }}>
+   </div>
+   <div style={{ height: '70vh', overflowY: 'auto',margin:'10px' }}>
     <table className="activation-table">
      <thead>
       <tr>
@@ -157,7 +157,7 @@ export default function Activator({ data }) {
       </tr>
      )}
     </table>
-   </Container>
+   </div>
   </>
  )
 }
