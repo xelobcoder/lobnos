@@ -3,9 +3,12 @@ import { useState } from 'react';
 import parameter from './countparameter';
 function FullBloodCountSetup() {
 
- const categories = ['male','children','female','']
+ const categories = ['male', 'children', 'female', '']
  const [fullcount, setFullcount] = useState(parameter)
- const [category,setCategory] = useState('')
+ const [category, setCategory] = useState('')
+ const [childrenAge, setChildrenAge] = useState('0-10')
+ const [disable, setDisabled] = useState(true)
+ const [mode,setmode] = useState('new')
 
  const onChangeUnit = (e, index) => {
   setFullcount(prevState => {
@@ -25,52 +28,76 @@ function FullBloodCountSetup() {
   )
  }
 
+
+ // select options for savin g data im terms of male,female,children
+
+ const Category = function (props) {
+  return (
+   <>
+    <div className='top_cart'>
+     <div className='form-group'>
+      <label>category</label>
+      <select className='form-control'>
+       <option>male</option>
+       <option>female</option>
+       <option>children</option>
+      </select>
+     </div>
+     <div className='form-group'>
+      <label>children age range</label>
+      <input className='form-control' value={childrenAge} disabled={disable}></input>
+     </div>
+    </div>
+   </>
+  )
+ }
+
+
+
+
  return (
   <>
-   <div className="p-2">
-    <div>
-     <div className='mb-3'>
-      <Autocomplete
-       options={categories}
-       onChange={ (e,newValue) => {setCategory(newValue)}}
-       value={category}
-       size='small'
-       getOptionLabel ={ (option) => option}
-       renderInput={ (params) => <TextField {...params} label='category'/>}
-      />
+   <div className='_fbc'>
+    <Category ctx='0-10' />
+    <div className='wrapperx'>
+     <div className='fbc_header'>
+      <ul>
+       <li>parameter name</li>
+       <li>unit</li>
+       <li>upper</li>
+       <li>lower</li>
+      </ul>
      </div>
-     <form className='fullcount-setup'>
-      {/* for wbc */}
-      {
-       fullcount.length == 0 ? null : fullcount.map((parameter, index) => {
-        return (
-         <div key={index} style={{ display: 'grid', gridTemplateColumns: '35% auto', gridGap: '10px 20px' }}>
-          <div>
-           <label>
-            {parameter.name}
-           </label>
-          </div>
-          <div>
-           <TextField label='unit' value={parameter.unit} size='small' onChange={(e) => onChangeUpper(e, index)} margin="normal" variant="outlined"
-           />
-           <TextField label='lower limit' value={parameter.lower} size='small' onChange={(e) => onChangeLower(e, index)} margin="normal" variant="outlined"
-           />
-           <TextField label='upper limit' value={parameter.upper} size='small' onChange={(e) => onChangeUnit(e, index)} margin="normal" variant="outlined"
-           />
-          </div>
-         </div>
-        )
-       })
-      }
-      <div className='grid-2 mt-3' style={{gridGap:'20px'}}>
-       <Button variant='contained' color='warning' onClick={(e) => console.log(fullcount)}>
-        save changes
-       </Button>
-       <Button variant='contained' color='error' >
-        clear all
-       </Button>
+     <div className='fbc_header'>
+      <div className='parameter-list'>
+       {
+        fullcount.length == 0 ? null : fullcount.map((item, index) => {
+         return (
+          <ul key={index}>
+           <li>{item.name}</li>
+           <li>
+            <input value={item.unit} type='text' onChange={(e) => onChangeUnit(e, index)} />
+           </li>
+           <li>
+            <input value={item.upper} type='number' onChange={(e) => onChangeUpper(e, index)} />
+           </li>
+           <li>
+            <input value={item.lower} type='number' onChange={(e) => onChangeLower(e, index)} />
+           </li>
+          </ul>
+         )
+        })
+       }
       </div>
-     </form>
+     </div>
+    </div>
+    <div className='fbc_header' style={{display:"flex",justifyContent:'right'}} >
+     <Button variant='contained' color='success'>
+      {/* if new entry button dispaly save changes, else update */}
+      {
+       mode === 'new' ? 'save changes' : 'update changes'
+      }
+     </Button>
     </div>
    </div>
   </>

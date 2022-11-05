@@ -7,8 +7,8 @@ const parameter = [
  },
  {
   name: 'neutrophils',
-  upper: 800,
-  lower: 200,
+  upper: 0,
+  lower: 0,
   unit: 'g/dl',
  },
  {
@@ -28,6 +28,42 @@ const parameter = [
   upper: "",
   lower: "",
   unit: '',
+ },
+ {
+  name: 'monocytes',
+  upper: "",
+  lower: "",
+  unit: 'g/hj',
+ },
+ {
+  name: 'mch',
+  upper: "",
+  lower: "",
+  unit: 'g/hj',
+ },
+ {
+  name: 'mcv',
+  upper: "",
+  lower: "",
+  unit: 'g/hj',
+ },
+ {
+  name: 'mchc',
+  upper: "",
+  lower: "",
+  unit: '%',
+ },
+ {
+  name: 'rdw-cv',
+  upper: "",
+  lower: "",
+  unit: '%',
+ },
+ {
+  name: 'rdw-sd',
+  upper: "",
+  lower: "",
+  unit: '%',
  },
 ]
 

@@ -5,6 +5,9 @@ import UpcomingIcon from '@mui/icons-material/Upcoming';
 import DraftsIcon from '@mui/icons-material/Drafts';
 import AddRoadIcon from '@mui/icons-material/AddRoad';
 import AddToQueueIcon from '@mui/icons-material/AddToQueue';
+import Header from '../../components/header';
+
+
 
 
 export default function PHELOBOTOMY_LANDING_PAGE() {
@@ -18,5 +21,15 @@ export default function PHELOBOTOMY_LANDING_PAGE() {
     <li><AddToQueueIcon /> notifications</li>
    </ul>
   </div>
+ )
+}
+
+
+PHELOBOTOMY_LANDING_PAGE.getLayout = function (page) {
+ return (
+  <>
+   <Header />
+   {page}
+  </>
  )
 }

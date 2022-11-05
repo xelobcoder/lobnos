@@ -9,6 +9,7 @@ import {
  BASEURL,
  handleEmail,
 } from '../../components/Auth/registerclient'
+import { BASE } from '../../endpoint';
 import {
  Button,
  Box,
@@ -71,10 +72,13 @@ function Registration({ organization, clinician }) {
    // query database for available patientid
    // if patientid is available then populate the form with the data
    const getpatient_info = async function () {
-    let BASE = await fetch(`${BASEURL}${inputvalue}`)
+    let BASE = await fetch(`http://localhost:3000/registration?${inputvalue}`)
     return BASE.json()
    }
-   getpatient_info()
+   getpatient_info().then( (t) => {
+    console.log(t)
+   }).catch( (err) => console.log(err))
+
   }
  }
 

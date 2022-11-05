@@ -15,8 +15,18 @@
 
 .sample_sidebar > ul > li {
   padding: 10px 10px;
+  display: flex;
+  justify-content: flex-start;
+}
+.sample_sidebar > ul > li > svg {
+  margin-right: 20px;
 }
 
+.sample_sidebar > ul > li:active{
+  background-color: red !important;
+  color: white !important;
+  border-radius: 20px;
+}
 .sample_sidebar > ul > li:hover{
   background-color: #00224f;
   cursor: pointer;

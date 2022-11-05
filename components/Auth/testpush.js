@@ -42,9 +42,9 @@ class FastApipush {
   }
 
   let allvalues = this.allHaveValues() ? pushdata() : false;
-  let allrequited = this.allrequited ? allvalues : false;
+  let allrequired = this.allrequited ? allvalues : false;
 
-  return allrequited;
+  return allrequired;
  }
 
 }

@@ -12,7 +12,6 @@ import BloodGroupTableList from '../../components/TESTTABLES/bloodgroup';
 export default function TestPanels() {
  return (
   <>
-  <BloodGroup/>
   <FullBloodCountSetup/>
   </>
  )
