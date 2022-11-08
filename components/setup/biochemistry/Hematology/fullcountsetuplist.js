@@ -44,7 +44,7 @@ export default function FBCLISTPARAMETERS({ data }) {
 
  return (
   <>
-   <div className="ag-theme-alpine" style={{ height: '100%', width: '100%',overflowX:'hidden !important' }}>
+   <div className="ag-theme-alpine" style={{ height: '100%', width: '30vw',overflowX:'hidden !important' }}>
     <AgGridReact columnDefs={columnDefs}  rowHeight={50} onGridReady={defineAllrows}
     rowData={reference} defaultColDef={onAllColumns} >
 

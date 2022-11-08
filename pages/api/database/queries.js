@@ -288,7 +288,20 @@ const database_queries = {
     status: 200
    })
   })
- }
+ },
+ // dropping a table 
+ deleteAllrows: function (tablename) {
+  let SQL_QUERY = `DELETE FROM  ${tablename}`;
+  // return a promise 
+  return new Promise(function (resolve, reject) {
+   connection.query(SQL_QUERY, (err, result) => {
+    if (err) {reject (err)}
+    if(result) {
+     result.fieldCount == 0 ? resolve(true) : resolve(false)
+    }
+   }) 
+  })
+ },
 
 }
 

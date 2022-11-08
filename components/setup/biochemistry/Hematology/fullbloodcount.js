@@ -1,5 +1,5 @@
 import { Container, TextField, Button, Autocomplete } from '@mui/material'
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react'
 import parameter from './countparameter';
 function FullBloodCountSetup() {
 
@@ -8,28 +8,75 @@ function FullBloodCountSetup() {
  const [category, setCategory] = useState('')
  const [childrenAge, setChildrenAge] = useState('0-10')
  const [disable, setDisabled] = useState(true)
- const [mode,setmode] = useState('new')
+ const [mode, setmode] = useState('new')
 
  const onChangeUnit = (e, index) => {
   setFullcount(prevState => {
-   return [...prevState.slice(0, index), { ...prevState[index], unit: e.target.value }, ...prevState.slice(index + 1)]
+   return [...prevState.slice(0, index), { ...prevState[index], UNIT: e.target.value }, ...prevState.slice(index + 1)]
   })
  }
  const onChangeLower = (e, index) => {
   setFullcount(prevState => {
-   return [...prevState.slice(0, index), { ...prevState[index], lower: e.target.value }, ...prevState.slice(index + 1)]
+   return [...prevState.slice(0, index), { ...prevState[index], LOWER: e.target.value }, ...prevState.slice(index + 1)]
   }
   )
  }
  const onChangeUpper = (e, index) => {
   setFullcount(prevState => {
-   return [...prevState.slice(0, index), { ...prevState[index], upper: e.target.value }, ...prevState.slice(index + 1)]
+   return [...prevState.slice(0, index), { ...prevState[index], UPPER: e.target.value }, ...prevState.slice(index + 1)]
   }
   )
  }
 
 
+ const saveData = function (e) {
+  const endpoint = 'http://localhost:3000/api/test/setup/fbc';
+  console.log(fullcount)
+  const getdata = async function () {
+   let api = await fetch(endpoint, {
+    method: 'POST',
+    body: JSON.stringify({ setupdata: fullcount, category })
+   })
+   let response = await api.json();
+   return response;
+  }
+
+  getdata()
+   .then((_res) => {
+    console.log(_res)
+   })
+   .catch((_err) => {
+    console.log(_err)
+   })
+ }
+
+
+ const category_data_fill = function (e) {
+  let v = e.target.value;
+
+  setCategory(v)
+  // get the data based on the category
+ }
  // select options for savin g data im terms of male,female,children
+
+
+ useEffect( () => {
+  if (category) {
+   const getdata = async function () {
+    let api = await fetch(`http://localhost:3000/api/test/setup/fbc?category=${category}`)
+    let response = await api.json();
+    console.log(response)
+    setFullcount(response)
+   }
+
+   console.log(category)
+
+   getdata();
+  }
+ },[category])
+
+
+
 
  const Category = function (props) {
   return (
@@ -37,10 +84,10 @@ function FullBloodCountSetup() {
     <div className='top_cart'>
      <div className='form-group'>
       <label>category</label>
-      <select className='form-control'>
-       <option>male</option>
-       <option>female</option>
-       <option>children</option>
+      <select value={category} onChange={(e) => { category_data_fill(e) }} className='form-control'>
+       <option value='male'>male</option>
+       <option value='female'>female</option>
+       <option value='children'>children</option>
       </select>
      </div>
      <div className='form-group'>
@@ -51,6 +98,8 @@ function FullBloodCountSetup() {
    </>
   )
  }
+
+
 
 
 
@@ -74,15 +123,15 @@ function FullBloodCountSetup() {
         fullcount.length == 0 ? null : fullcount.map((item, index) => {
          return (
           <ul key={index}>
-           <li>{item.name}</li>
+           <li>{item.PARAMETER}</li>
            <li>
-            <input value={item.unit} type='text' onChange={(e) => onChangeUnit(e, index)} />
+            <input value={item.UNIT} type='text' onChange={(e) => onChangeUnit(e, index)} />
            </li>
            <li>
-            <input value={item.upper} type='number' onChange={(e) => onChangeUpper(e, index)} />
+            <input value={item.UPPER} type='number' onChange={(e) => onChangeUpper(e, index)} />
            </li>
            <li>
-            <input value={item.lower} type='number' onChange={(e) => onChangeLower(e, index)} />
+            <input value={item.LOWER} type='number' onChange={(e) => onChangeLower(e, index)} />
            </li>
           </ul>
          )
@@ -91,8 +140,10 @@ function FullBloodCountSetup() {
       </div>
      </div>
     </div>
-    <div className='fbc_header' style={{display:"flex",justifyContent:'right'}} >
-     <Button variant='contained' color='success'>
+    <div className='fbc_header' style={{ display: "flex", justifyContent: 'right' }} >
+     <Button variant='contained' color='success'
+      onClick={(e) => saveData(e)}
+     >
       {/* if new entry button dispaly save changes, else update */}
       {
        mode === 'new' ? 'save changes' : 'update changes'
