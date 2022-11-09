@@ -35,7 +35,7 @@ function FullBloodCountSetup() {
   const getdata = async function () {
    let api = await fetch(endpoint, {
     method: 'POST',
-    body: JSON.stringify({ setupdata: fullcount, category })
+    body: JSON.stringify({ setupdata: fullcount, setup:'FBC', category })
    })
    let response = await api.json();
    return response;

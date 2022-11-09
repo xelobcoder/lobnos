@@ -4,7 +4,7 @@ import {Button} from '@mui/material';
 
 function LiverPanel() {
  const [liverpanel, setLiverpanel] = useState(parameters);
- const [mode,setmode] = useState('edit')
+ const [mode,setmode] = useState('new')
 
  // listener for changing unit
  const onChangeUnit = (e, index) => {
