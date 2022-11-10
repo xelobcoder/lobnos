@@ -36,7 +36,7 @@ export default function CREATE_PARAMS_SETUP(props) {
        <li>lower</li>
        <li></li>
       </ul>
-      <ul className='_list_add_params'>
+     <ul className='_list_add_params'>
        <li>
         <input className='form-control' type='text' />
        </li>

@@ -103,7 +103,7 @@
 .params_list_header{
   display: grid;
   grid-template-columns:
-  4% 50% 5% 5% 5% 5% 5%;
+  4% 50% 5% 5% 6% 6% 5%;
   padding: 0px;
   border-bottom: 1px solid lightgray;
 
@@ -145,14 +145,14 @@
  ._params_top {
   margin: 0;
   padding: 0;
-  background-color: #00224f52;
+  background-color: #00224f43;
   height:100px;
   margin-bottom: 20px;
  }
 
  ._params_top > ._list_add_params > li {
   font-size: 18px !important;
-  color: white;
+  color: #00224F;
   font-weight: 400;
   text-transform: uppercase;
  }
@@ -171,7 +171,7 @@
  }
 
  .params_list:nth-of-type(odd) {
-  background-color: #00224f1d;
+  background-color: whitesmoke;
   padding-top: 5px;
  }
 
@@ -183,8 +183,15 @@
 
  .params_list > li:nth-of-type(6){
   color: red;
+  font-size: 14px;
  }
 
  .params_list > li:nth-of-type(7){
-  color: green;
+  color: #00224F;
+  font-size: 14px;
+ }
+
+ .params_list > li > button{
+  margin-top: 0px !important;
+  padding-top: 0px;
  }

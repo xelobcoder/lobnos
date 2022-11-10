@@ -22,7 +22,7 @@ export default function Fbcsetupindex() {
 
  useEffect(() => {
   loadparams_data();
-  
+
  }, [])
  return (
   <React.Fragment>

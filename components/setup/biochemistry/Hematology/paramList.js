@@ -1,3 +1,4 @@
+import { Button } from '@mui/material'
 import React, { useState } from "react"
 
 export default function LIST_PARAMETERS(props) {
@@ -13,8 +14,12 @@ export default function LIST_PARAMETERS(props) {
      <li>{item.UNIT}</li>
      <li>{item.LOWER}</li>
      <li>{item.UPPER}</li>
-     <li><p> delete</p></li>
-     <li><p>edit</p></li>
+     <li>
+      <Button variant='text' color='error'>delete</Button>
+     </li>
+     <li>
+     <Button variant='text' color='primary'>edit</Button>
+     </li>
     </ul>
    </>
   )
