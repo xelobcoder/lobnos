@@ -3,7 +3,7 @@ import connection from "../../db";
 const chemistry_db_tables = {
  liver: 'setup_liver_function_test',
  renal: 'setup_renal',
- fbc: 'setup_full_blood_count_test_general'
+ fbc: 'setup_full_count_count_female'
 }
 
 const createParameter = async function (parameterDetails, tablename) {

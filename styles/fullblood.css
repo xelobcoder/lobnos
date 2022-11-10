@@ -98,3 +98,93 @@
   grid-template-columns: repeat(5,1fr);
   grip-gap: 20px 20px;
 }
+
+.params_list,
+.params_list_header{
+  display: grid;
+  grid-template-columns:
+  4% 50% 5% 5% 5% 5% 5%;
+  padding: 0px;
+  border-bottom: 1px solid lightgray;
+
+}
+
+
+.params_list  > li,
+.params_list_header > li {
+  list-style-type: none;
+  text-align: left;
+  margin-left: 20px;
+ }
+
+ .params_list > li:nth-of-type(2) {
+  color: #00224F;
+  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: 600;
+ }
+
+ .params_list_header:nth-of-type(1){
+  text-transform: uppercase;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #00224F;
+  font-weight: 700;
+ }
+
+ ._list_add_params{
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+
+ }
+
+ ._list_add_params > li {
+  list-style-type: none;
+ }
+
+ ._params_top {
+  margin: 0;
+  padding: 0;
+  background-color: #00224f52;
+  height:100px;
+  margin-bottom: 20px;
+ }
+
+ ._params_top > ._list_add_params > li {
+  font-size: 18px !important;
+  color: white;
+  font-weight: 400;
+  text-transform: uppercase;
+ }
+
+ ._params_top > ._list_add_params > li > input{
+  width: 200px;
+  border: 5px solid #00224F;
+  font-weight: 300;
+  font-size: 20px;
+ }
+
+ .params_list > li:nth-of-type(1){
+  background-color: lightgray;
+  color: black;
+  text-align: center;
+ }
+
+ .params_list:nth-of-type(odd) {
+  background-color: #00224f1d;
+  padding-top: 5px;
+ }
+
+ 
+ .params_list > li:nth-of-type(6),
+  .params_list > li:nth-of-type(7){
+  text-transform: uppercase;
+ }
+
+ .params_list > li:nth-of-type(6){
+  color: red;
+ }
+
+ .params_list > li:nth-of-type(7){
+  color: green;
+ }

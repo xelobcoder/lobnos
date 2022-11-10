@@ -27,36 +27,33 @@ export default function CREATE_PARAMS_SETUP(props) {
  const Form = function () {
   return (
    <>
-    <div className='_fbc'>
-     <div className='wrapperx'>
-      <div className='fbc_header'>
-       <ul className='_list'>
-        <li>parameter name</li>
-        <li>unit</li>
-        <li>upper</li>
-        <li>lower</li>
-       </ul>
-      </div>
-      <div className='fbc_header'>
-       <div className='parameter-list'>
-        <ul className='_list'>
-         <li>
-          <input className='form-control' style={{ width: '250px' }} type='text' />
-         </li>
-         <li>
-          <input className='form-control' type='text' />
-         </li>
-         <li>
-          <input className='form-control' type='number' />
-         </li>
-         <li>
-          <input className='form-control' type='number' />
-         </li>
-        </ul>
-       </div>
-      </div>
+    <div>
+     <div className='_params_top'>
+      <ul className='_list_add_params'>
+       <li>parameter name</li>
+       <li>unit</li>
+       <li>upper</li>
+       <li>lower</li>
+       <li></li>
+      </ul>
+      <ul className='_list_add_params'>
+       <li>
+        <input className='form-control' type='text' />
+       </li>
+       <li>
+        <input className='form-control' type='text' />
+       </li>
+       <li>
+        <input className='form-control' type='number' />
+       </li>
+       <li>
+        <input className='form-control' type='number' />
+       </li>
+       <li>
+        <Button variant='contained' size='large'> add</Button>
+       </li>
+      </ul>
      </div>
-     <Button variant='contained' sx={{ mt: 5 }} size='large'> add parameter</Button>
     </div>
    </>
   )
