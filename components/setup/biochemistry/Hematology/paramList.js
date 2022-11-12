@@ -11,7 +11,7 @@ export default function LIST_PARAMETERS(props) {
    <>
     <div >
      <ul className="params_list" >
-      <li>{index}</li>
+      <li>{index + 1}</li>
       <li>{item.PARAMETER}</li>
       <li>{item.UNIT}</li>
       <li>{item.LOWER}</li>

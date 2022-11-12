@@ -1,11 +1,10 @@
 import { Container, TextField, Button, Autocomplete } from '@mui/material'
 import { useState, useCallback, useEffect } from 'react'
 import parameter from './countparameter';
-function FullBloodCountSetup() {
 
- const categories = ['male', 'children', 'female', '']
+function FullBloodCountSetup() {
  const [fullcount, setFullcount] = useState(parameter)
- const [category, setCategory] = useState('')
+ const [category, setCategory] = useState('male')
  const [childrenAge, setChildrenAge] = useState('0-10')
  const [disable, setDisabled] = useState(true)
  const [mode, setmode] = useState('new')

@@ -7,7 +7,7 @@ export default function Message({ type, message, width, displaytime, controller 
  const typefxn = function (type) {
   switch (type) {
    case 'error':
-    return 'alert alert-danger border-0'
+    return 'alert alert-danger b-0 border-radius-0'
     break;
    case 'success':
     return 'alert alert-success b-0 border-radius-0 '
@@ -34,7 +34,9 @@ export default function Message({ type, message, width, displaytime, controller 
     }
     if (counter == time) {
      // function to control what happen next after the display time reaches
-     controller()
+     if(controller) {
+      controller()
+     }
     }
    }
   }

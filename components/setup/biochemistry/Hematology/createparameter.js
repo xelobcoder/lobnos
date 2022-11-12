@@ -3,13 +3,14 @@ import { Button } from '@mui/material';
 
 
 export default function CREATE_PARAMS_SETUP(props) {
-  const { testname, setupdata, nd } = props;
-  const [paramsOpts, setparamsOpts] = useState({
+  const defaultx = {
     unit: '',
     parameter: '',
     upper: 0,
     lower:0
-  });
+  }
+  const { testname, setupdata, nd } = props;
+  const [paramsOpts, setparamsOpts] = useState(defaultx);
 
   const [error, setErorr] = useState(false);
 
@@ -58,7 +59,10 @@ export default function CREATE_PARAMS_SETUP(props) {
               <input className='form-control' value={paramsOpts.lower} type='number' onChange={(e) => { setparamsOpts({ ...paramsOpts, lower: e.target.value }) }}/>
             </li>
             <li>
-              <Button variant='contained' size='large' onClick={(e) => nd(paramsOpts)}> add</Button>
+              <Button variant='contained' size='large' onClick={(e) => {
+                nd(paramsOpts)
+                setparamsOpts(defaultx)
+              }}> add</Button>
             </li>
           </ul>
         </div>

@@ -163,7 +163,7 @@
 
 .params_list:nth-of-type(odd) {
   background-color: whitesmoke;
-  padding-top: 5px;
+  padding-top: 10px 10px;
 }
 
 .params_list > li:nth-of-type(6),

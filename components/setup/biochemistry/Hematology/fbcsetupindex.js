@@ -31,7 +31,7 @@ export default function Fbcsetupindex() {
 
  // fires up anytime a click to add paramter happens
  // set display messaage to false
- const fire = useCallback(() => { setMessage({ ...message, display: false }) }, [message.display])
+ const fire = useCallback(() => { setMessage({ ...message, display: false }) }, [])
 
  const addparameter = useCallback((data) => {
   const { parameter, unit, lower, upper } = data;
@@ -50,23 +50,40 @@ export default function Fbcsetupindex() {
      type: 'success',
      width: 'large'
     })
+    loadparams_data()
    })
     .catch((_err) => { console.log(_err) })
   }
+  else {
+   setMessage({
+    display: true,
+    message: 'fill all input fields',
+    type: 'error',
+    width: 'large'
+   })
+  }
  })
 
-
+console.log(message)
 
  return (
   <React.Fragment>
    <div >
-    {/* <LiverPanel/> */}
-    {/* <FullBloodCountSetup/> */}
-    {
+    <LiverPanel/>
+    <FullBloodCountSetup/>
+
+     {
      message.display ? <Message type={message.type} width={message.width} controller={fire} message={message.message} displaytime={500000} /> : null
     }
+    {
+     message.type == 'error' && message.display ? <Message type={'error'} width={message.width} message={message.message} displaytime={500000} controller={fire} /> : null
+    }
     <CREATE_PARAMS_SETUP nd={addparameter} />
+    {
+     message.display == true ? <div className='lead text-success container-fluid'>Refreshing .........</div> : null
+    } 
     <LIST_PARAMETERS setupdata={setupdata} />
+
    </div>
   </React.Fragment>
  )
