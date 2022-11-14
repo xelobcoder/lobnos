@@ -28,6 +28,12 @@ function LiverPanel() {
  }
 
 
+ // save info to the database 
+
+ const saveinformation = function (e) {
+  
+ }
+
  return (
   <>
    <div className='_fbc'>

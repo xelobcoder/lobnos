@@ -1,5 +1,4 @@
 import connection from '../db'
-
 // ensure all fields are not empty
 /**
  *

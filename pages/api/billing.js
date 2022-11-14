@@ -36,16 +36,15 @@ const addperformingTest = (patientid, billingid, test, urgency, res, samplingCen
 // add new billing
 const addBilling = (req, res) => {
   const { patientid, clinicians, organizations, test, cost, paid, urgency, discount, paymentmode, samplingCenter } = JSON.parse(req.body);
-  console.log(req.body);
   // get outstanding balance
   let outstanding = parseInt(cost) - parseInt(discount) - parseInt(paid);
   // get type
   let type = paymentmode == 'invoice' ? 'POSTPAID' : 'PREPAID';
   // billing data
-  let values = [parseInt(patientid), clinicians, organizations, paid, cost, paymentmode, type, outstanding];
+  let values = [parseInt(patientid), clinicians, organizations, paid, cost, paymentmode, type, outstanding,parseInt(discount)];
 
   // insert billing data into billing table
-  let sql = `INSERT INTO billing (PATIENTID,CLINICIAN,ORGANIZATION,PAID_AMOUNT,PAYABLE,PAYMENT_MODE,TYPE,OUTSTANDING) VALUES (?,?,?,?,?,?,?,?)`;
+  let sql = `INSERT INTO billing (PATIENTID,CLINICIAN,ORGANIZATION,PAID_AMOUNT,PAYABLE,PAYMENT_MODE,TYPE,OUTSTANDING,DISCOUNT) VALUES (?,?,?,?,?,?,?,?,?)`;
 
   connection.query(sql, values, (err, result) => {
     if (err) throw err;

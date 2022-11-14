@@ -83,7 +83,7 @@ export default function Billing({ allpanels, organization, clinicians, branch })
   setData({ ...data, test: test })
 
  }
-
+console.log(data)
  const handleSubmit = (e) => {
   //    send data to server using fecth
   e.preventDefault();
@@ -164,7 +164,7 @@ export default function Billing({ allpanels, organization, clinicians, branch })
       <div style={{ width: '80%', marginTop: '20px' }}>
        <FormControl size='small' sx={{ width: '100%' }}>
         <InputLabel>payment mode</InputLabel>
-        <Select value={data.paymentmode} onChange={(e) => setData({ ...data, paymentmode: e.target.value })}>
+        <Select value={data.paymentmode} onChange={(e) => {console.log(data); setData({ ...data, paymentmode: e.target.value })}}>
          <MenuItem value=''>select payment mode</MenuItem>
          <MenuItem value='Mobile Money'>Mobile Money</MenuItem>
          <MenuItem value='Cash'>Cash</MenuItem>

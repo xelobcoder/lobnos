@@ -1,9 +1,9 @@
-import Document from './_document';
+// import Document from './_document';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import '../styles/testpanel.css';
 import '../styles/Frontpageside.css'
 import '../styles/globals.css';
-import "../styles/lobnos.css";
+// import "../styles/lobnos.css";
 import "../styles/fullblood.css"
 // import "../styles/table.css";
 import Header from '../components/header'

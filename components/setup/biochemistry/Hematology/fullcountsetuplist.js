@@ -10,10 +10,10 @@ export default function FBCLISTPARAMETERS({ data }) {
  const mappedData = parameter.map((parameter, index) => {
   return {
    id: index + 1,
-   name: parameter.name,
-   upper: parameter.upper,
-   lower: parameter.lower,
-   unit: parameter.unit,
+   name: parameter.PARAMETER,
+   upper: parameter.UPPER,
+   lower: parameter.LOWER,
+   unit: parameter.UNIT,
   }
  })
 
