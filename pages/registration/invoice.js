@@ -9,8 +9,12 @@ function INVOICE({ test }) {
 
  useEffect(() => {
   if (typeof clientid == 'number') {
-   new Invoice('invoice', clientid).getInvoiceData()
-    .then((t) => { setInvoice(t) })
+   console.log(clientid)
+   new Invoice('invoice', clientid, false).getInvoiceData()
+    .then((t) => {
+     setInvoice(t);
+     console.log(t)
+    })
     .catch((err) => { console.log(err) })
   }
  }, [clientid])
@@ -22,6 +26,7 @@ function INVOICE({ test }) {
   let price = data.filter((single, index) => {
    return item.toLowerCase() == single.NAME.toLowerCase()
   })
+  console.log(invoice)
   return (
    <td>
     {price[0]['PRICE']}
@@ -39,7 +44,6 @@ function INVOICE({ test }) {
      <tr key={index} style={{ padding: '20px !important' }}>
       <td>{index + 1}</td>
       <td>{item}</td>
-      <td>1</td>
       <HandlePrice item={item} data={test} />
      </tr>
     )
@@ -47,85 +51,92 @@ function INVOICE({ test }) {
   )
  }
 
+
+
  return (
   <>
-   <div id='invoice'>
-
-    <div className='mt-3'  >
-     <div className='row' id='invoice-strip'>
-      <h1 style={{ fontSize: 60, marginTop: '-10px' }}>INVOICE</h1>
-     </div>
-    </div>
-
-    {
-     invoice.length == 0 ? null : (
+   <div className='invoice-header'>
+    {invoice.length == 0 ? null : (
+     <>
       <div>
-       <div className='invoice_to'>
-        <h4>invoice to</h4>
-        <h4>{invoice[0]["FULLNAME"]}</h4>
-        <h4>patientID: {invoice[0]['PATIENTID']}</h4>
-       </div>
+       <h2 className='text-capitalize'>{invoice[0]['companyname']}</h2>
+       <p className='text-primary'>{invoice[0]['companyemail']}</p>
+       <p className='text-primary'>{invoice[0]['companyAddress']}</p>
+       <p className='text-primary'>0{invoice[0]['companyphone_number']}</p>
       </div>
+     </>
+    )}
+    <h1>INVOICE</h1>
+   </div>
+   <div className='invoice'>
+    {
+     invoice.length == 0 ? <h1>no information found</h1> : (
+      <>
+       <section>
+        <h4>invoice to</h4>
+        <div>
+         <h4>Name : {invoice[0]["FULLNAME"]}</h4>
+         <h4>patientID: {invoice[0]['PATIENTID']}</h4>
+         <h4>organization: {invoice[0]['PATIENTORGANIZATION']} </h4>
+         <h4>Email: {invoice[0]['EMAIL']} </h4>
+        </div>
+       </section>
+       <section>
+        <table id='invoice-table' className='table table-striped text-uppercase'>
+         <thead className='thead table-dark text-white '>
+          <tr className='p-5'>
+           <th>#</th>
+           <th>test</th>
+           <th>price</th>
+          </tr>
+         </thead>
+         <tbody>
+          <HandleTest param={invoice[0]['TEST']} test={test} />
+         </tbody>
+         <tfoot>
+          <tr>
+           <td colSpan='2' className='text-secondary'>Total cost</td>
+           <td>GHC {invoice[0]['PAYABLE']}</td>
+          </tr>
+         </tfoot>
+        </table>
+       </section>
+       <section>
+        <div className='invoice-terms'>
+         <h2>Thank you for your business</h2>
+         <h4>Terms & Condition</h4>
+         <p>
+          All payments made are not refundable
+         </p>
+
+        </div>
+
+        <div className='invoice-payment'>
+         <h1>Payment information: </h1>
+         <h4> Mobile Money : 0595964565</h4>
+         <h4>Momo Name: Leonides</h4>
+        </div>
+       </section>
+       <section className='mt-5'>
+        <div className='d-flex justify-content-center' id='print-button'>
+         <div >
+          <button className='btn btn-block btn-primary'>
+           send via email
+          </button>
+         </div>
+         <div style={{ marginLeft: 20 }}>
+          <button className='btn btn-danger ml-5' onClick={(e) => { window.print() }}>
+           print out
+          </button>
+         </div>
+        </div>
+       </section>
+      </>
      )
     }
-
-    <table id='invoice-table' className='table table-striped text-uppercase'>
-     <thead className='thead table-dark text-white '>
-      <tr className='p-5'>
-       <th>#</th>
-       <th>item description</th>
-       <th>Qty</th>
-       <th>price</th>
-      </tr>
-     </thead>
-     <tbody>
-      {
-       invoice.length != 0 ? (
-        <HandleTest param={invoice[0]['TEST']} test={test} />
-       ) : null
-      }
-     </tbody>
-     <tfoot>
-      <tr>
-       <td colSpan='3' className='text-secondary'>Total cost</td>
-       {
-        invoice.length == 0 ? null : (
-         <td>GHC {invoice[0]['PAYABLE']}</td>
-        )
-       }
-      </tr>
-     </tfoot>
-    </table>
-
-    <div className='invoice-terms'>
-     <h2>Thank you for your business</h2>
-     <h4>Terms & Condition</h4>
-     <p>
-      All payments made are not refundable
-     </p>
-
-    </div>
-
-    <div className='invoice-payment'>
-     <h1>Payment Information</h1>
-     <h4>Mobile Money : 0595964565</h4>
-     <h4>Momo Name: Leonides</h4>
-    </div>
-
    </div>
-   {/* send via email or print out buttons */}
-
-   <div className='d-flex justify-content-center'>
-    <div >
-     <button className='btn btn-block btn-primary'>
-      send via email
-     </button>
-    </div>
-    <div style={{marginLeft: 20}}>
-     <button className='btn btn-danger ml-5'>
-      print out
-     </button>
-    </div>
+   <div className='container ml-5'>
+    <p>Software by leonides. copyright reserved @2022, call us on 0249434803/0595964565</p>
    </div>
   </>
  )

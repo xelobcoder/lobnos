@@ -1,4 +1,6 @@
-import connection from '../db.js'
+import connection from '../db.js';
+import fs from 'fs';
+import path from 'path'
 
 let SQL_QUERY_ALL = 'SELECT * FROM companyprofile';
 
@@ -23,7 +25,7 @@ export default function handler(req, res) {
     if (err) { throw err; }
 
     if (result) {
-     let id = result[0]['ID']
+     let id = result.length > 0 ? result[0]['ID'] : null;
      connection.query(result.length == 0 ? SQL_QUERY_INSERT : SQL_QUERY_UPDATE(id), [name, email, motto, phonenumber, address], (err, result) => {
       if (err) {
        throw err;
@@ -38,13 +40,31 @@ export default function handler(req, res) {
   }
  }
 
+
+
+ const imagesretainer = function (res) {
+  let turn = path.join('C:/Users/leonides/Documents/GitHub/image-r-v/lobnos', './public/asserts/companylogo.jpg');
+  fs.createReadStream(turn).pipe(res)
+ }
+
  if (req.method == 'GET') {
   connection.query(SQL_QUERY_ALL, function (err, result) {
    if (err) {
     throw err;
    }
-   res.send(result)
+   if (result.length > 0) {
+    let info = result[0]
+    let data = {
+     name: info['NAME'],
+     email: info['EMAIL'],
+     motto: info['MOTTO'],
+     address: info['ADDRESS'],
+     phonenumber: info['PHONENUMBER']
+    }
+    res.send(data)
+   }
   })
+
  }
 }
 

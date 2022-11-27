@@ -1,8 +1,9 @@
 class Invoice {
-  constructor(paymentmode, idx, discount) {
+  constructor(paymentmode, idx, discount, institution) {
     this.paymentmode = paymentmode;
     this.idx = idx;
     this.discount = discount || 0;
+    this.institution = institution || false;
 
 
     this.isVoiceRight = function () {
@@ -19,12 +20,14 @@ class Invoice {
     };
     this.getInvoiceData = function () {
       const id = this.idx;
+      const institution = this.institution;
       // return a promise with the billing data and the test involved;
       return new Promise(function (resolve, reject) {
         let getdata = async function () {
-          let api_endpoint = `http://localhost:3000/api/invoices?action=INVOICE_DATA&id=${id}`;
+          let api_endpoint = `http://localhost:3000/api/invoices?action=INVOICE_DATA&institution=${institution}&id=${id}`;
           let pick = await fetch(api_endpoint);
           let response = await pick.json();
+          console.log(response)
           return await response;
         };
         getdata()
@@ -40,7 +43,7 @@ class Invoice {
     };
     this.generateInvoice = function () {
       if (this.isVoiceRight() && this.isIdx()) {
-         this.getInvoiceData(this.idx).then((t) => {
+        this.getInvoiceData(this.idx).then((t) => {
           console.log(t);
         }).catch((err) => { throw err; })
       }

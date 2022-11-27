@@ -731,158 +731,106 @@ option:hover {
   background-color: white !important;
 }
 
-#invoice {
-  margin: 2% 10% 10% 10%;
-  border: 2px solid lightgray;
-  height: min-content;
-  padding: 3%;
-}
-
-#invoice-strip > h1 {
-  display: flex;
-  color: #00224f;
-  justify-content: flex-end;
-}
-
-#invoice-strip {
-  border-bottom: 5px solid #00224f;
-}
-
-.invoice_to {
-  display: block;
-  line-height: 20px;
-}
-
-.invoice_to > h4 {
-  text-transform: capitalize;
-  line-height: 15px;
-  margin: 0;
-  padding-top: 10px;
-  padding-bottom: 20px;
-  font-size: 16px;
-}
-
-.invoice_to > h4:nth-of-type(1) {
-  font-size: 20px;
-}
-
-.invoice_to > h4:nth-of-type(2) {
-  border: 1px solid #00224f;
-  width: 150px;
-  text-align: center;
-  border-radius: 5px;
-  background-color: #00224f;
-  color: white;
-  font-weight: 200;
-}
-.invoice_to > h4:nth-of-type(2):is(:hover, :active) {
-  background-color: white;
-  color: #00224f;
-  cursor: pointer;
-}
-#invoice-table > tbody > tr > td {
-  padding: 20px !important;
-}
-#invoice-table > thead > tr > th {
-  background-color: darkslategrey;
-  padding: 20px;
-  font-weight: 300;
-}
-
-#invoice-table > tbody > tr > td:nth-of-type(1) {
-  color: #1c87c9;
-}
-
-#invoice-table > tbody > tr > td:nth-of-type(2) {
-  color: darkslateblue;
-}
-
-#invoice-table > tbody > tr > td:nth-of-type(3),
-#invoice-table > tbody > tr > td:nth-of-type(4) {
-  font-weight: 200;
-  color: #00224f;
-}
-
-#invoice-table > tbody > tr > td:nth-of-type(4)::before {
-  content: 'GHC ';
-}
-
-.invoice-terms {
-  margin-top: 20px;
-  padding: 0;
-}
-
-.invoice-terms > h4:nth-of-type(1) {
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.invoice-terms > h2 {
-  font-size: 25px;
-  margin-bottom: 30px;
-}
-
-.invoice-payment {
-  width: 100%;
-}
-
-.invoice-payment > h1 {
-  font-size: 25px;
-  color: #00224f;
-}
-.invoice-payment > h4 {
-  font-size: 17px;
-}
-
-@media printing {
-}
-
-input[type='tel']:invalid,
-input[type='email']:invalid {
-  border: 2px solid red;
-}
-
-.profile-side {
-  background-color: #00224f1c;
-  height: 100vh;
-  color: black;
-  padding: 10px 10% 0px 10%;
-}
-
-.group-label {
-  width: 100%;
-  background-color: white;
-  padding: 10px;
-  border-radius: 10px;
+.invoice {
   display: grid;
+  height: 100vh;
   grid-template-columns: 100%;
-  grid-template-rows: 20% auto;
-  grid-gap: 20px;
-  line-height: 20px;
+  grid-template-rows: 20% 50% 15% 15%;
+}
+.invoice-header > h1 {
+  font-size: 5em;
   color: #00224f;
-  font-weight: 500;
-  font-size: 16px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 40px;
+  text-align: right;
 }
-.group-label::first-letter{
-  text-transform: uppercase !important;
+
+.invoice-header,
+.invoice {
+  margin: 0% 10%;
+}
+.invoice-header {
+  height: 20vh;
+  border-bottom: 2px solid #00224f;
+  display: flex;
+  justify-content: space-between;
+}
+.invoice > section:nth-of-type(1) > h4:nth-of-type(1) {
+  text-transform: uppercase;
   color: #00224f;
-}
-
-.-tag > label {
   font-size: 20px;
-  font-weight: 200 !important;
-  color: grey;
+  padding-top: 10px;
+}
+.invoice > section:nth-of-type(1) > div {
+  border: 1px solid black;
+  width: 30%;
 }
 
-.company-profile-form > .form-group > input {
-  height: 60px !important;
+.invoice > section:nth-of-type(1) > div > h4 {
+  text-transform: capitalize;
+  font-size: 17px;
+  padding-left: 10px;
+}
+.invoice > section:nth-of-type(2) {
+  overflow-y: auto;
+}
+.invoice table > thead > tr > th {
+  padding-left: 20px;
+  background-color: seagreen;
+}
+
+.invoice table > tbody > tr > td,
+.invoice table > tfoot > tr > td {
+  padding: 20px;
+}
+
+.invoice > section:nth-of-type(3) {
+  padding: 0px;
+}
+
+.invoice > section:nth-of-type(3) > .invoice-terms > h2,
+.invoice > section:nth-of-type(3) > .invoice-terms > p,
+.invoice > section:nth-of-type(3) > .invoice-terms > h4 {
   font-size: 20px;
+  padding-top: 20px;
 }
 
-/* .company-profile-form {
-  background-color: #00224f ;
-} */
+.invoice > section:nth-of-type(3) > .invoice-payment {
+  display: block;
+}
+
+.invoice > section:nth-of-type(3) > .invoice-payment > h1,
+.invoice > section:nth-of-type(3) > .invoice-payment > h4 {
+  font-size: 20px;
+  padding-top: 20px;
+}
+
+.invoice > section:nth-of-type(3) {
+  display: flex;
+  justify-content: space-between;
+}
+.invoice > section:nth-of-type(3) > .invoice-payment > h1{
+  text-decoration: underline;
+}
+
+@media print {
+  .software_header,
+  .invoice > section:nth-of-type(4) {
+    display: none;
+  }
+  .invoice-header {
+    height: 10vh;
+  }
+  .invoice {
+    height: 88vh;
+  }
+  .invoice > section:nth-of-type(2){
+    overflow-y: hidden;
+  }
+}
+.invoice-header > div > p {
+  line-height: 1em;
+  padding-top: 0px;
+  font-size: 14px;
+}
+.invoice-header > div > p::first-letter {
+  text-transform: capitalize;
+}
