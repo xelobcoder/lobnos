@@ -8,8 +8,7 @@ export default function CategoryBread({section}) {
                     <Link
                         underline="hover"
                         color="inherit"
-                        href="/testpanel/add"
-                    >
+                        href="/testpanel/add">
                         Add panel
                     </Link>
                     <Link

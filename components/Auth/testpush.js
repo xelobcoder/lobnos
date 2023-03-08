@@ -36,7 +36,14 @@ class FastApipush {
   let data = JSON.stringify(this.data);
   // push data to the endpoint and return a promise
   let pushdata = async function () {
-   let push = await fetch(route, { method, body: data })
+   let push = await fetch(route, {
+    method,
+    headers: {
+     'content-Type': 'application/json',
+     'Accept': 'application/json'
+    },
+    body: data
+   })
    let response = await push.json();
    return response;
   }

@@ -93,7 +93,7 @@ function Organization({ data }) {
 export default Organization
 
 export async function getServerSideProps() {
-  const res = await fetch('http://localhost:3000/api/org')
+  const res = await fetch('http://localhost:5000/api/v1/organization')
   const data = await res.json()
   return { props: { data } }
 }

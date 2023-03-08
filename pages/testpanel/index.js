@@ -17,7 +17,7 @@ export default function TestPanel({categories}) {
 
 
 export async function getServerSideProps() {
-    let endpoint = 'http://localhost:3000/api/testpanel/categories'
+    let endpoint = 'http://localhost:5000/api/v1/testpanel/categories'
     let getData = await fetch(endpoint)
     let response = await getData.json()
     console.log(response)

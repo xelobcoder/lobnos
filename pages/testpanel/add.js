@@ -35,7 +35,7 @@ export default function AddPanel({ categories }) {
     },
     onSubmit: (values, reset) => {
       let sendData = async function () {
-        let pushdata = await fetch('http://localhost:3000/api/testpanel/list', {
+        let pushdata = await fetch('http://localhost:5000/api/v1/testpanel/list', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

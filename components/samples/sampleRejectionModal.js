@@ -12,12 +12,16 @@ function SAMPLE_REJECTION_MODAL_MESSAGE({ show, setShow, billingid, patientname,
 
  const handleSubmit = (e) => {
    // SEND TO BACKEND
-   fetch(`http://localhost:3000/api/sample`,{
+   fetch(`http://localhost:5000/api/v1/sample`,{
     method: 'PUT',
+    headers: {
+      'content-type':'application/json'
+    },
     body: JSON.stringify(modalDetails),
    })
    .then((response) => response.json())
    .then((data) => {
+    console.log(data)
     completed(true);
    })
    .catch((err) => {

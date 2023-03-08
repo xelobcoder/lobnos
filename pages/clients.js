@@ -187,7 +187,7 @@ export function Clients({ data }) {
 export default Clients
 
 export async function getServerSideProps() {
- const res = await fetch('http://localhost:3000/api/register')
+ const res = await fetch('http://localhost:5000/api/v1/register')
  const data = await res.json()
  return { props: { data } }
 }

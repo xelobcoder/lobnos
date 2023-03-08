@@ -165,71 +165,7 @@ function Clinicians() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>
-                  <Input type="checkbox" className="checked"></Input>
-                </td>
-                <td>John nyakpi thompson</td>
-                <td>1234567890</td>
-                <td> xelobcoder@gmail</td>
-                <td>www.xelobcoder.com</td>
-                <td>xelobcoder</td>
-                <td>kigali</td>
-                <td>kigali</td>
-                <td>doctor</td>
-              </tr>
-              <tr>
-                <td>
-                  <Input type="checkbox" className="checked"></Input>
-                </td>
-                <td>John</td>
-                <td>1234567890</td>
-                <td> xelobcoder@gmail</td>
-                <td>www.xelobcoder.com</td>
-                <td>xelobcoder</td>
-                <td>kigali</td>
-                <td>kigali</td>
-                <td>doctor</td>
-              </tr>
-              <tr>
-                <td>
-                  <Input type="checkbox" className="checked"></Input>
-                </td>
-                <td>John</td>
-                <td>1234567890</td>
-                <td> xelobcoder@gmail</td>
-                <td>www.xelobcoder.com</td>
-                <td>xelobcoder</td>
-                <td>kigali</td>
-                <td>kigali</td>
-                <td>doctor</td>
-              </tr>
-              <tr>
-                <td>
-                  <Input type="checkbox" className="checked"></Input>
-                </td>
-                <td>John</td>
-                <td>1234567890</td>
-                <td> xelobcoder@gmail</td>
-                <td>www.xelobcoder.com</td>
-                <td>xelobcoder</td>
-                <td>kigali</td>
-                <td>kigali</td>
-                <td>doctor</td>
-              </tr>
-              <tr>
-                <td>
-                  <Input type="checkbox" className="checked"></Input>
-                </td>
-                <td>John</td>
-                <td>1234567890</td>
-                <td> xelobcoder@gmail</td>
-                <td>www.xelobcoder.com</td>
-                <td>xelobcoder</td>
-                <td>kigali</td>
-                <td>kigali</td>
-                <td>doctor</td>
-              </tr>
+            
             </tbody>
           </table>
         </div>

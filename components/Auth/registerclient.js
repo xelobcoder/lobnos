@@ -159,7 +159,7 @@ export const handleSubmitRegistration = (e, data = {}, BASE) => {
 
  // however if refered, clinician and organization value must be filled
  // less, clinician  and organization must be empty
- const referedChecker = ['organization', 'clinician']
+ const referedChecker = ['organization', 'clinician'];
 
  // destruture received data
  const { patienttype } = data
@@ -263,7 +263,7 @@ export const handleSubmitRegistration = (e, data = {}, BASE) => {
 
 export async function handleActivation(e, id, status, patientid) {
  let action = status == 'TRUE' ? 'FALSE' : 'TRUE'
- let endpoint_get = await fetch(`http://localhost:3000/api/activation/?patientid=${patientid}&action=${action}`)
+ let endpoint_get = await fetch(`http://localhost:5000/api/v1/activation/?patientid=${patientid}&action=${action}`)
  let response = await endpoint_get.json()
  if (response.action == 'BILLING') {
   window.location.href = '/registration/billing?patientid=' + patientid

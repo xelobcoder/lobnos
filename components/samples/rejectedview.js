@@ -62,7 +62,7 @@ function REJECTEDVIEW({ reverse, filteredData }) {
     let value = e.target.value.toLowerCase();
     setValue(value);
     let filtered = list.filter((item) => {
-      return( new String(item.FULLNAME).toLowerCase().startsWith(value) ||
+      return (new String(item.FULLNAME).toLowerCase().startsWith(value) ||
         new String(item.PATIENTID).toLowerCase().includes(value) ||
         new String(item.FULLNAME).toLowerCase().includes(value) ||
         new String(item.PATIENTID).toLowerCase().startsWith(value));
@@ -85,24 +85,14 @@ function REJECTEDVIEW({ reverse, filteredData }) {
 
   return (
     <>
-    <Container>
-      <Button variant='text' color='info' onClick={(e) => reverse()}>Back</Button>
-    </Container>
-      <Container>
-        <div className='row mt-2'>
-          <div className='col-4'>
-            <input value={value} className='form-control mb-3' onChange={(e) => handleSearch(e)} />
-            <div className='list-group' style={{ height: '40vh', oveflowY: 'auto' }}>
-              {filteredData.length > 0 ? <ListGroup data={filteredData} /> : notFound()}
-            </div>
-          </div>
-          <div className='col-7'>
-            {
-              messageview.view ? <MessageCard data={messageview.data} /> : null
-            }
-          </div>
+      <div className='rejected-view'>
+        <div className='rejected-view-side'>
+
         </div>
-      </Container>
+        <div className='rejected-main-side'>
+
+        </div>
+      </div>
     </>
   )
 }

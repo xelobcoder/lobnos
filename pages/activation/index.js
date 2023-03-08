@@ -186,7 +186,7 @@ Activator.getLayout = function (page) {
 
 // get server side props
 export async function getServerSideProps(context) {
- let endpoint = 'http://localhost:3000/api/activation'
+ let endpoint = 'http://localhost:5000/api/v1/activation'
  let res = await axios.get(endpoint)
  let data = res.data
  return {

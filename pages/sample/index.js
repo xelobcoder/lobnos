@@ -2,7 +2,7 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import SidebarFrontPage from "../../components/frontpagesidebar";
 import Header from "../../components/header";
 import { useEffect, useState, useRef } from "react";
-import { Button, Typography } from "@mui/material";
+import { Button, Link, Typography } from "@mui/material";
 import SAMPLE_REJECTION_MODAL_MESSAGE from "../../components/samples/sampleRejectionModal";
 import REJECTEDVIEW from "../../components/samples/rejectedview";
 
@@ -51,13 +51,12 @@ const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea, cur
        status: onsearch
       }
       // send data to server 
-      let endpoint = `http://localhost:3000/api/sample/?date=${data.date}&status=${data.status}`;
+      let endpoint = `http://localhost:5000/api/v1/sample/?date=${data.date}&status=${data.status}`;
       let push = async () => {
        await fetch(endpoint)
         .then((res) => res.json())
         .then((data) => {
          // populate the data into the sample list
-         console.log(data)
          setData(data);
         })
         .catch((err) => console.log(err));
@@ -66,9 +65,10 @@ const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea, cur
      }}>Search</Button>
     </div>
     <div>
-     <Button variant="text" color="warning" onClick={(e) => rejectedList(true)} >
-      view rejected samples
+     <Button variant="text" color="warning" >
+      <Link href="/sample/rejected">View Rejected</Link>
      </Button>
+
     </div>
    </div>
 
@@ -184,11 +184,11 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
  // e.g if sample type === pending , then the data holder will be updated with the pending sample after status change
  const refresh = () => {
   if (onsearch == "all") {
-   fetch("/api/sample")
+   fetch("http://localhost:5000/api/v1/sample")
     .then((res) => res.json())
     .then((data) => setData(data));
   } else {
-   fetch(`/api/sample?status=${onsearch}`)
+   fetch(`http://localhost:5000/api/v1/sample?status=${onsearch}`)
     .then((res) => res.json())
     .then((data) => setData(data));
   }
@@ -226,8 +226,11 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
   const forwardData = function () {
    const SAVE = function () {
     const deliverStatus = async () => {
-     let api = await fetch('http://localhost:3000/api/sample', {
+     let api = await fetch('http://localhost:5000/api/v1/sample', {
       method: 'PUT',
+      headers: {
+       'content-type': 'application/json'
+      },
       body: JSON.stringify(data),
      })
      let response = await api.json();
@@ -257,7 +260,7 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
  const sorting = (e) => {
   let sortingvalue = e.target.value;
   const REALTIMESTATUS = async () => {
-   let api = await fetch(`http://localhost:3000/api/sample?status=${sortingvalue}`)
+   let api = await fetch(`http://localhost:5000/api/sample?status=${sortingvalue}`)
    let response = await api.json();
    response.length === 0 ? setData([]) : setData(response);
   }
@@ -324,7 +327,7 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
 export async function getServerSideProps(context) {
  const fetchData = async () => {
   const response = await fetch(
-   "http://localhost:3000/api/sample",
+   "http://localhost:5000/api/v1/sample",
   )
   const data = await response.json();
   return data;

@@ -72,7 +72,7 @@ function Registration({ organization, clinician }) {
    // query database for available patientid
    // if patientid is available then populate the form with the data
    const getpatient_info = async function () {
-    let BASE = await fetch(`http://localhost:3000/registration?${inputvalue}`)
+    let BASE = await fetch(`http://localhost:5000/api/v1/registration?${inputvalue}`)
     return BASE.json()
    }
    getpatient_info().then( (t) => {
@@ -160,7 +160,7 @@ function Registration({ organization, clinician }) {
   if (clientID) {
    // fetch data of client with such patientid
    const getpatient_info = async function () {
-    let BASE = await fetch(`http://localhost:3000/api/register/?patientid=${clientID}`)
+    let BASE = await fetch(`http://localhost:5000/api/v1/register/?patientid=${clientID}`)
     return await BASE.json()
    }
 
@@ -566,7 +566,7 @@ function Registration({ organization, clinician }) {
         type="button"
         variant="contained"
         onClick={
-         (e) => { handleSubmitRegistration(e, data, 'http://localhost:3000/api/register') }
+         (e) => { handleSubmitRegistration(e, data, 'http://localhost:5000/api/v1/register') }
         }
        >
         submit
@@ -583,9 +583,9 @@ function Registration({ organization, clinician }) {
 export default Registration
 
 export async function getServerSideProps(context) {
- const getorganization = await fetch('http://localhost:3000/api/organization')
+ const getorganization = await fetch('http://localhost:5000/api/v1/organization')
  const organization = await getorganization.json()
- const getclinician = await fetch('http://localhost:3000/api/clinicians')
+ const getclinician = await fetch('http://localhost:5000/api/v1/clinicians')
  const clinician = await getclinician.json()
  return {
   props: {

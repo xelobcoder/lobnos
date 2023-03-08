@@ -1,14 +1,14 @@
-import Header from '../../components/header';
-import LiverPanel from '../../components/setup/biochemistry/liver';
+import MainSettings from '../../components/settingsComponents/settings';
+import SettingsSidebar from '../../components/settingsComponents/sidebars';
 import Sidebar from '../../components/sidebar';
 
 
 function Settings() {
-    return(
-       <>
-         <h1>Settings</h1>
-       </>
-    )
+	return (
+		<>
+			
+		</>
+	)
 }
 
 export default Settings;
@@ -16,11 +16,16 @@ export default Settings;
 
 
 Settings.getLayout = function PageLayout(page) {
-     return(
-        <>
-           <Header/>
-           <Sidebar/>
-           {page}
-        </>
-     )
+	return (
+		<>
+			<div className='s-s-pliter'>
+				<div className='sid'>
+					<SettingsSidebar />
+				</div>
+				<div className='main'>
+					{page}
+				</div>
+			</div>
+		</>
+	)
 }

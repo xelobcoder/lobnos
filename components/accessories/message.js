@@ -1,62 +1,55 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 
 
-export default function Message({ type, message, width, displaytime, controller }) {
- const [state, setState] = useState({ type, message, width, displaytime })
- const alertRef = useRef();
- const typefxn = function (type) {
-  switch (type) {
-   case 'error':
-    return 'alert alert-danger b-0 border-radius-0'
-    break;
-   case 'success':
-    return 'alert alert-success b-0 border-radius-0 '
-    break;
-   case 'warning':
-    return 'alert alert-warning'
-    break
-   default:
-    return 'alert alert-secondary'
-  }
- }
- useEffect(() => {
-  // making alertref visible incase of multiple usage
-  alertRef.current.style.display = 'block !important';
-  // determine if value is a number
-  const isNumber = typeof displaytime == 'number' ? true : false;
-  // make message alert display none
-  const show = function (time) {
-   let counter = 0;
-   let half = time / 2;
-   for (counter; counter <= time; counter++) {
-    if (counter > half) {
-     setState({ ...state, type: `alert alert ${state.type} border-3` })
+export default function Message({ props,handleView}) {
+  const { message, type, displaytime, show, width } = props;
+
+  const [showx, setShowx] = useState(show);
+
+
+  const typeDx = function () {
+    if (!type) return;
+    if (type) {
+      switch (type) {
+        case 'error':
+          return 'alert alert-danger';
+          break;
+        case 'success':
+          return 'alert alert-success';
+          break;
+        case 'info':
+          return 'alert alert-info';
+          break;
+        case 'warning':
+          return 'alert alert-warning';
+          break;
+        default:
+          return 'alert alert-secondary'
+      }
     }
-    if (counter == time) {
-     // function to control what happen next after the display time reaches
-     if(controller) {
-      controller()
-     }
-    }
-   }
   }
 
-  return isNumber ? show(state.displaytime) : show(10000)
- }, [alertRef])
 
- return (
-  <>
-   <div className='container-fluid' ref={alertRef}>
-    <div className={state.width == 'small' ? 'col-6' : 'col-12'}>
-     <div className={typefxn(state.type)}>
-      <h6>
-       {
-        state.message
-       }
-      </h6>
-     </div>
-    </div>
-   </div>
-  </>
- )
+  useEffect(() => {
+    setTimeout(() => {
+      setShowx(false);
+      handleView();
+    }, displaytime);
+  }, [displaytime])
+
+
+
+  return (
+    <>
+      {
+        showx ?
+          <div className='container'>
+            <div className={typeDx()}>
+              {message}
+            </div>
+          </div>
+          : null
+      }
+    </>
+  )
 }

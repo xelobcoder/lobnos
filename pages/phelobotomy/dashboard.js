@@ -1,9 +1,6 @@
 import Header from '../../components/header'
-import { Box } from '@mui/material'
-import SidebarFrontPage from '../../components/frontpagesidebar'
 import Phelobotomy_USER_LIST from '../../components/phelobotomy/list'
 import React, { useEffect, useState } from 'react'
-import TEST_DETAILS from '../../components/phelobotomy/details'
 export default function Phelobotomy() {
  const [data, setData] = useState([])
  const [status, setStatus] = useState(false)
@@ -12,7 +9,7 @@ export default function Phelobotomy() {
  // get data from database
  useEffect(() => {
   let getdata = async () => {
-   let data = await fetch('http://localhost:3000/api/phelobotomy')
+   let data = await fetch('http://localhost:5000/api/v1/phelobotomy')
    let datajson = await data.json()
    setData(datajson)
   }
@@ -52,15 +49,7 @@ Phelobotomy.getLayout = function (page) {
  return (
   <>
    <Header />
-   <div className="wrapper">
-    <div className="side">
-     <SidebarFrontPage />
-    </div>
-    <div className="main" style={{ backgroundColor: 'whitesmoke' }}>
-     {page}
-    </div>
-   </div>
-
+   {page}
   </>
  )
 }

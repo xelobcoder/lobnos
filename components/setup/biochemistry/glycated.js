@@ -1,4 +1,4 @@
-function LiverTableGrid() {
+function GLYCATED_HEMOGLOBIN() {
     return(
         <div className="card" style={{borderRadius:"0px"}}>
          
@@ -8,4 +8,4 @@ function LiverTableGrid() {
 
 
 
-export default LiverTableGrid;
+export default GLYCATED_HEMOGLOBIN;

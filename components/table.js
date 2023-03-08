@@ -212,7 +212,7 @@ export function createTableBody(columns=[], data=[]) {
     tr.appendChild(tdElement)
 
     if (i % 2 == 0) {
-      tr.setAttribute('class', 'even')
+      tr.classList.add('even')
     } else {
       tr.setAttribute('class', 'odd')
     }

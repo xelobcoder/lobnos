@@ -70,8 +70,9 @@ function TEST_DETAILS({ data }) {
   dbData()
 
   if (dbData() != undefined) {
+   console.log(dbData())
    // send data to database
-   let sendData = new FastApipush('PUT', dbData(), 'http://localhost:3000/api/phelobotomy', true)
+   let sendData = new FastApipush('PUT', dbData(), 'http://localhost:5000/api/v1/phelobotomy', true)
 
    let response = sendData.postdata();
 
