@@ -297,7 +297,14 @@ const database_queries = {
    })
   })
  },
-
+ getsingleid : function (id,table,idresulver) {
+  return new Promise((resolve, reject) => {
+   let SQL_QUERY = `SELECT * FROM ${table} WHERE ${idresulver} = ${id}`
+   connection.query(SQL_QUERY, (err, result) => {
+    err ? reject(err) : resolve(result)
+   })
+  })
+ },
 }
 
 

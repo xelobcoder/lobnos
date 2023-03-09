@@ -54,6 +54,7 @@ const rejectedSample = async function (request, response) {
               message: 'error occured'
             })
           }
+          // send the response 
           else {
             response.status(200).send({
               statusCode: 200,

@@ -1,8 +1,8 @@
 import { Button, Container } from '@mui/material';
 import React from 'react';
-import ADD_NEW_SUPPLIER from '../components/suppliers/addNewSupplier';
-import SUPPLIERS_SEARCH_BAR from '../components/suppliers/searchBar'
-import SUPPLIERS_LIST from '../components/suppliers/supllyList'
+import ADD_NEW_SUPPLIER from '../../components/suppliers/addNewSupplier';
+import SUPPLIERS_SEARCH_BAR from '../../components/suppliers/searchBar'
+import SUPPLIERS_LIST from '../../components/suppliers/supllyList'
 
 export default function SUPPLY() {
   const [viewadd, setviewadd] = React.useState(false);
@@ -11,19 +11,24 @@ export default function SUPPLY() {
 
   // fetch data from server
   React.useEffect(() => {
-    const fetchdata = async () => {
-      const response = await fetch('http://localhost:5000/api/v1/suppliers');
-      const data = await response.json();
-      console.log(data);
-      setRawdata(data);
+    try {
+      const fetchdata = async () => {
+        const response = await fetch('http://localhost:5000/api/v1/suppliers');
+        const data = await response.json();
+        console.log(data);
+        setRawdata(data);
+      }
+      fetchdata();
     }
-    fetchdata();
+    catch (error) {
+      console.log(error);
+    }
   }, [])
   // set new suppier useState
   const [newsupplier, setNewSupplier] = React.useState({
-    name: 'Tiifu Hamza'.toLowerCase(),
-    commodity: 'edta tubes'.toLowerCase(),
-    address: ''.toLowerCase()
+    name: '',
+    commodity: '',
+    address: ''
   })
 
 
@@ -52,22 +57,39 @@ export default function SUPPLY() {
   const handleSubmit = async function (ev) {
     // send data to server
     ev.preventDefault();
-    const senddata = async () => {
-      const response = await fetch('http://localhost:5000/api/v1/suppliers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(newsupplier)
-      })
-      const data = await response.json();
-      if (data.status === 'success') {
-        setRawdata(prev => {
-          return [ newsupplier,...prev]
-        })
+    try {
+      const values = Object.values(newsupplier).filter(item => item === '');
+      //  check if the data is not empty
+      if (values.length > 0) {
+        alert('please fill all fields');
+        return;
       }
+      else {
+        const senddata = async () => {
+          const response = await fetch('http://localhost:5000/api/v1/suppliers', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newsupplier)
+          })
+          const data = await response.json();
+          if (data.status === 'success') {
+            setRawdata(prev => {
+              return [newsupplier, ...prev]
+            })
+            setNewSupplier({
+              name: '',
+              commodity: '',
+              address: ''
+            })
+          }
+        }
+        senddata();
+      }
+    } catch (error) {
+      console.log(error);
     }
-    senddata();
   }
 
   const viewhandler = () => setviewadd(false);
@@ -85,6 +107,7 @@ export default function SUPPLY() {
           </div>
         }
       </div>
+      {/* once viewadd which toggles the display of ADD NEW SUPLLIER component is true, then this add section appears */}
       {
         viewadd === true ? (
           <div>
@@ -94,6 +117,7 @@ export default function SUPPLY() {
               controllerCommodity={controllerCommodity}
               handleSubmit={handleSubmit}
               viewhandler={viewhandler}
+              rawdata={rawdata}
             />
           </div>
         ) : null

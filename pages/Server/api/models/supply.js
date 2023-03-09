@@ -1,5 +1,6 @@
 const connection = require('../db');
 const database_queries = require('../database/queries');
+const { response } = require('express');
 
 const new_supplier = async function (request, response) {
 
@@ -67,4 +68,35 @@ const get_suppliers = async function (request, response) {
 }
 
 
-module.exports = { new_supplier, update_supplier, delete_supplier , get_suppliers}
+
+const specificSupllier = async function (request,response) {
+  const { supplierid } = request.query;
+  // if supplier id is provided
+  if (supplierid) {
+    try {
+      database_queries.getsingleid([supplierid], 'supplier', 'SUPPLIERID')
+        .then(result => {
+          response.send({
+            message: 'success',
+            status: 200,
+             result
+          })
+        })
+        .catch(error => {
+          response.send(error);
+        })
+    } catch (error) {
+      return error;
+    }
+  }
+  // if supplier id is not provided
+  else {
+    response.send({
+      status: 'error',
+      message: 'no supplier id provided'
+    })
+  }
+}
+
+
+module.exports = { new_supplier, update_supplier, delete_supplier, get_suppliers, specificSupllier }

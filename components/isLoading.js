@@ -1,12 +1,12 @@
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { Typography } from "@mui/material";
 
-export default  function ISLOADING() {
+export default function ISLOADING() {
  return (
   <>
-   <div className="d-flex justify-content-center align-items-center bg-secondary ">
-    <div className="d-flex flex-column justify-content-center align-items-center" style={{ color: '#00224F' }}>
-     <Typography variant="h5" sx={{ mb: 4 }} className="text-center">LOADING..........</Typography>
+   <div className="d-flex justify-content-center mt-5">
+    <div className="spinner-border" role="status">
+     <span className="visually-hidden">Loading...</span>
     </div>
    </div>
   </>
