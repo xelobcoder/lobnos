@@ -3,8 +3,9 @@ import { useRouter } from 'next/router';
 import CommoditiesList from '../../components/suppliers/CommoditiesList';
 import SupllierProfile from '../../components/suppliers/SupllierProfile';
 import ISLOADING from '../../components/isLoading';
-import MARKDOWN_EDITOR from '../../components/accessories/markdownEditor';
-import JoditEditor from '../../components/accessories/markdownEditor';
+import dynamic from 'next/dynamic';
+
+const EditorJS = dynamic(() => import('../../components/accessories/markdownEditor'), { ssr: false })
 
 export default function SINGLE_SUPPLIER() {
   const id = useRouter().query.supplierid;
@@ -125,7 +126,7 @@ export default function SINGLE_SUPPLIER() {
 
             <h1>Transactions</h1>
             <div className='m-10'>
-              <MARKDOWN_EDITOR />
+             {/* <EditorJS/> */}
             </div>
           </div>
         </>)

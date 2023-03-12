@@ -1,13 +1,13 @@
 import Head from 'next/head';
-import {Component} from 'react';
+import { Component } from 'react';
 
 
-function DataTable({data}) {
+function DataTable({ data }) {
 
-    return(
+    return (
         <h1>data</h1>
     )
-  }
+}
 
 
 

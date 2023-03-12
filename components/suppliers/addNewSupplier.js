@@ -1,68 +1,247 @@
 import React from 'react';
 import CloseIcon from '@mui/icons-material/Close';
 import { Container } from '@mui/material';
+import controller from '../../pages/supplier/inventory';
+import TopMessage from '../accessories/TopMessage';
 import { Button } from 'react-bootstrap';
+import AddBoxIcon from '@mui/icons-material/AddBox';
+import ADD_COMMODITY_MODAL from './addcommodity';
+import UpgradeIcon from '@mui/icons-material/Upgrade';
+import AddCommentIcon from '@mui/icons-material/AddComment';
+import { useRouter } from 'next/router';
 
-export default function ADD_NEW_SUPPLIER({ newsupplier, controllerName, controllerCommodity, controllerAddress, handleSubmit, viewhandler, rawdata }) {
- const { name, commodity, address } = newsupplier;
+export default function ADD_NEW_SUPPLIER() {
+  const default_source = {
+    name: '',
+    commodity: '',
+    address: '',
+    region: '',
+    contactperson: '',
+    email: '',
+    phonenumber: ''
+  }
 
- // send data to server
+  const tab = useRouter().query.tab;
+  const supplierid = useRouter().query.supplierid;
+
+  // list of all commodities
+  const [commoditiesList, setCommoditiesList] = React.useState([]);
+
+  // show modal for adding commodity to db when it is not in the datalist show 
+  const [showcmmodal, setshowcmmodal] = React.useState(false);
+
+  const [show, setMessageshow] = React.useState(false);
+  const [message, setMessage] = React.useState({ type: 'success', message: '' })
+
+  const [newsupplier, setNewSupplier] = React.useState(default_source);
+  // destructure 
+  const { name, commodity, address, email, phonenumber, region, contactperson } = newsupplier;
+  // handle the inputs
+  const inputhandler = (ev, field) => {
+    let value = ev.target.value;
+    setNewSupplier((prev) => {
+      return { ...prev, [field]: value }
+    })
+  }
 
 
- return (
-  <div style={{ marginTop: '20px' }}>
-   <div id='newsupllier' className='mt-2='>
-    <div id='close-btn'>
-     <CloseIcon color='white'
-      onClick={(ev) => viewhandler()}
-      fontSize='medium'></CloseIcon>
-    </div>
-    <form>
-     <div className='form-group'>
-      <input className='custom-input' value={name} list='customers' name='name' placeholder='supplier name'
-       onChange={(ev) => controllerName(ev, 'name')}
-      />
-      {/* using the datalsit to display list of all suplliers saved by the facility for easier entering  */}
-      <datalist id='customers'>
-       {
-        rawdata.length === 0 ? null : (
-         rawdata.map((item, index) => {
-          return (
-           <option key={index} value={item.name} />
-          )
-         })
-        )
-       }
-      </datalist>
-     </div>
-     <div className='form-group'>
-      <input className='custom-input' value={commodity} id='commodity' list='mycommodity' placeholder='commodity name'
-       onChange={(ev) => controllerCommodity(ev, 'commodity')}
-      />
-      <datalist id='mycommodity'>
-       {
-        rawdata.length === 0 ? null : (
-         rawdata.map((item, index) => {
-          return (
-           <option key={index} value={item.commodity} />
-          )
-         }
-         )
-        )
-       }
-      </datalist>
+  const handleCommidity = (ev) => {
+    // get the list of commodities from the db
+    fetch('http://localhost:5000/api/v1/commodities')
+      .then(res => res.json())
+      .then(data => {
+        setCommoditiesList(data.result);
+      })
+      .catch(err => {
+        console.log(err);
+      })
+  }
 
-     </div>
-     <div className='form-group'>
-      <input className='custom-input' id='addx' value={address} placeholder='address' onChange={(ev) => controllerAddress(ev, 'address')}
-      />
-     </div>
-     <div className='form-group'>
-      <Button onClick={(ev) => handleSubmit(ev)}>submit</Button>
-     </div>
-    </form>
-   </div>
+  const handleSubmit = async (ev, tab, newsupplier) => {
+    ev.preventDefault();
+    const method = tab === 'edit' ? 'PUT' : 'POST';
+    try {
+      const senddata = async () => {
+        const response = await fetch(tab == 'edit' ? `http://localhost:5000/api/v1/suppliers?supplierid=${supplierid}` :
+        'http://localhost:5000/api/v1/suppliers', {
+          method,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newsupplier)
+        })
+        const data = await response.json();
+        console.log(data);
+        if (data.status === 'success') {
+          setNewSupplier({
+            name: '',
+            commodity: '',
+            address: '',
+            region: '',
+            contactperson: '',
+            email: '',
+            phonenumber: ''
+          })
+          setMessageshow(true);
+          setMessage({
+            type: 'success',
+            message: tab === 'edit' ? 'supplier updated successfully' : 'supplier added successfully'
+          })
+        }
+        else {
+          setMessageshow(true);
+          setMessage({
+            type: 'danger',
+            message: data.err.sqlMessage
+          })
+        }
+      }
 
-  </div>
- )
+      const checkEmptyFields = (dataset) => {
+        let empty = false;
+        for (let key in dataset) {
+          if (dataset[key] === '') {
+            empty = true;
+            break;
+          }
+        }
+        return empty;
+      }
+
+      if (checkEmptyFields(newsupplier)) {
+        alert('please fill all fields');
+        return;
+      }
+      else {
+        senddata()
+      }
+    }
+    catch (error) {
+      setMessage({ type: 'error', message: error.message })
+      setMessageshow(true)
+    }
+  }
+
+
+  const messageTimer = () => {
+    setTimeout(() => {
+      setMessageshow(false);
+    }, 3000)
+  }
+
+
+  React.useMemo(() => {
+    handleCommidity();
+
+  }, [])
+
+
+  React.useMemo(() => {
+    if (tab === 'edit' && supplierid) {
+      fetch(`http://localhost:5000/api/v1/suppliers?supplierid=${supplierid}`)
+        .then(res => res.json())
+        .then(data => {
+          let result = data.result;
+          if (result.length === 0) {
+            return;
+          }
+          else {
+            // transform
+            const xmap = result[0];
+            let transformed = function () {
+              let obj = {};
+              for (let key in xmap) {
+                obj[key.toLowerCase()] = xmap[key];
+              }
+              // reomove supplier id and date created
+              delete obj.supplierid;
+              delete obj.date
+              return obj;
+            }
+            console.log(transformed());
+            setNewSupplier(transformed());
+          }
+        })
+    }
+  }, [tab, supplierid])
+
+  return (
+    <>
+      {
+        show && <TopMessage type={message.type} display={show} message={message.message} messageTimer={messageTimer} />
+      }
+      <div style={{ marginTop: '20px' }}>
+        <div id='addsupplier' className='mt-2='>
+          <h1>Add new supplier</h1>
+          <form>
+            <div className='form-group'>
+              <label htmlFor='name'>supplier name</label>
+              <input className='custom-input' value={name} list='customers' name='name' placeholder='supplier name'
+                onChange={(ev) => inputhandler(ev, 'name')} />
+
+            </div>
+            <div className='form-group'>
+              <label htmlFor='commodity'>commodity</label>
+              <div className='d-flex'>
+                <input className='custom-input' value={commodity} id='commodity' multiple required list='mycommodity' placeholder='commodity name'
+                  onChange={(ev) => {
+                    inputhandler(ev, 'commodity');
+                  }}
+                />
+                <datalist id='mycommodity'>
+                  {
+                    commoditiesList.length > 0 && commoditiesList.map((item, index) => {
+                      return <option key={index} value={item.COMMODITY} />
+                    })
+                  }
+                </datalist>
+                {/* display modal */}
+                <AddBoxIcon fontSize='large' onClick={() => setshowcmmodal(true)} />
+              </div>
+            </div>
+            <div className='form-group'>
+              <label htmlFor='address'>address</label>
+              <input className='custom-input' id='addx' value={address}
+                onChange={(ev) => inputhandler(ev, 'address')}
+                placeholder='address' />
+            </div>
+            {/* email */}
+            <div className='form-group'>
+              <label htmlFor='email'>email</label>
+              <input className='custom-input' type='email' id='email' value={email} placeholder='email' required
+                onChange={(ev) => inputhandler(ev, 'email')} />
+            </div>
+            {/* phone number */}
+            <div className='form-group'>
+              <label htmlFor='phonenumber'>phone number</label>
+              <input className='custom-input' type='number' id='phonenumber' required value={phonenumber} placeholder='phone number'
+                onChange={(ev) => inputhandler(ev, 'phonenumber')} />
+            </div>
+            {/* region */}
+            <div className='form-group'>
+              <label htmlFor='region'>region</label>
+              <input className='custom-input' id='region' value={region} placeholder='region'
+                onChange={(ev) => inputhandler(ev, 'region')} />
+            </div>
+            {/* contact person */}
+            <div className='form-group'>
+              <label htmlFor='contactperson'>contact person</label>
+              <input className='custom-input' id='contactperson' value={contactperson} placeholder='contact person'
+                onChange={(ev) => inputhandler(ev, 'contactperson')} />
+            </div>
+            <div className='form-group'>
+              <Button className='btn btn-primary' type='submit'
+                onClick={(ev) => handleSubmit(ev, tab, newsupplier)}
+              >
+                {tab === 'edit' ? <UpgradeIcon /> : <AddCommentIcon />}
+                {tab === 'edit' ? 'Update' : 'Add New'}
+              </Button>
+            </div>
+
+          </form>
+          <ADD_COMMODITY_MODAL show={showcmmodal} onHide={() => setshowcmmodal(false)} />
+        </div>
+
+      </div></>
+  )
 }

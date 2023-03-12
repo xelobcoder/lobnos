@@ -1499,12 +1499,13 @@ textarea::placeholder {
 .supply-list-overhead tbody > tr,
 .supply-list-overhead thead > tr {
   display: grid;
-  grid-template-columns: 10% 20% 20% 35% 15%;
+  grid-template-columns: repeat(8, 1fr);
 }
 
 .supply-list-overhead tbody > tr > td {
   white-space: normal;
   color: #00224f;
+  font-size: 14px;
 }
 
 .supply-list-overhead tbody > tr > td::first-letter {
@@ -1635,9 +1636,288 @@ textarea::placeholder {
   color: #00224f;
 }
 
-
 .custom-input:focus {
   outline: none;
   border: 2px solid #00224f;
   box-shadow: none !important;
+}
+
+.message-box-alert-success,
+.message-box-alert-danger,
+.message-box-alert-warning {
+  position: absolute;
+  top: 2px;
+  left: 60%;
+  height: 7vh;
+  right: 0px;
+  z-index: 99999;
+  padding: 10px;
+  width: 600px;
+  /* text-align: left; */
+  font: 600 1em 'Open Sans', sans-serif;
+  border-radius: 0px;
+  text-transform: uppercase;
+  opacity: 0.9;
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+}
+
+.message-box-alert-success {
+  background-color: #4caf50;
+  color: white;
+}
+.message-box-alert-danger {
+  background-color: #f44336;
+  color: white;
+}
+
+.message-box-alert-warning {
+  background-color: #ff9800;
+  color: white;
+}
+
+#addsupplier {
+  padding: 0 40px;
+}
+
+#addsupplier .form-group {
+  margin-bottom: 10px;
+}
+#addsupplier ::placeholder {
+  color: #00224f;
+  font-size: 14px;
+}
+
+#addsupplier .form-group label {
+  font-size: 18px;
+  font-weight: 600;
+  color: #00224f;
+  display: none;
+}
+#addsupplier .form-group input {
+  height: 50px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
+  width: 100%;
+  color: #00224f;
+}
+
+#addsupplier .form-group input:focus {
+  outline: none;
+  border: 2px solid #00224f;
+  box-shadow: none !important;
+}
+
+#addsupplier .form-group select {
+  height: 50px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
+  width: 100%;
+  color: #00224f;
+}
+
+#addsupplier .form-group select:focus {
+  outline: none;
+  border: 2px solid #00224f;
+  box-shadow: none !important;
+}
+
+#addsupplier > h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #00224f;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+#addsupplier .form-group .btn {
+  background-color: #00224f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
+  width: 20%;
+  cursor: pointer;
+}
+
+#addsupplier .form-group .btn:hover {
+  background-color: #00224f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
+  width: 20%;
+  cursor: pointer;
+}
+
+#addsupplier .form-group input:placeholder {
+  color: #00224f !important;
+  font-size: 20px;
+}
+
+#page-main-view {
+  background-color: #00224f27 !important;
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.modal-commodity {
+  padding: 0 10px;
+  display: grid;
+  grid-template-columns: 40% 50% auto;
+  grid-gap: 10px;
+}
+
+#modal-msg {
+  font-size: small;
+}
+
+#placeorder {
+  padding: 0 10px;
+  margin-top: 20px;
+}
+
+#place-order-search {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1% 10%;
+  padding: 5px;
+}
+
+#place-order-search > input {
+  height: 40px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
+  width: 50%;
+  color: #00224f;
+}
+
+#placeorder > table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+}
+
+#placeorder > table > tbody > tr {
+  border-bottom: 1px solid lightgray;
+  margin-top: 10px !important;
+}
+
+#placeorder > table > thead > tr > th {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 5px;
+  color: #00224f;
+  text-transform: uppercase;
+}
+
+#placeorder > table > thead {
+  color: white;
+}
+#placeorder > table > tbody > tr > td {
+  padding: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #00224f;
+  text-transform: capitalize;
+}
+
+#placeorder > table > tbody > tr > td > input {
+  height: 40px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
+  width: 100%;
+  color: #00224f;
+}
+
+#placeorder > table > tbody > tr > td > input:focus {
+  outline: none;
+  border: 2px solid #00224f;
+  box-shadow: none !important;
+}
+
+#placeorder > table > tbody > tr > td > select {
+  height: 40px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
+  width: 100%;
+  color: #00224f;
+}
+
+#placeorder > table > tbody > tr > td > select:focus {
+  outline: none;
+  border: 2px solid #00224f;
+  box-shadow: none !important;
+}
+
+#placeorder > table > tbody > tr > td > input:placeholder {
+  color: #00224f !important;
+  font-size: 20px;
+}
+
+#placeorder > table > tbody > tr > td > select:placeholder {
+  color: #00224f !important;
+  font-size: 20px;
+}
+
+#placeorder > table > tbody > tr > td > input:placeholder {
+  color: #00224f !important;
+  font-size: 20px;
+}
+
+#placeorder > table > tbody > tr:hover {
+  background-color: #00224f27;
+}
+
+#placeorder > table > tbody > tr,
+#placeorder > table > thead > tr {
+  display: grid;
+  grid-template-columns: 5% 10% 10% 10% 10% 5% 15% 15% 5% 10%;
+  grid-gap: 10px;
+}
+
+#cart-place-order {
+  margin: 0 2%;
+  background-color: white;
+}
+
+#cart-place-order > #wrapper{
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid lightgray;
+}
+#cart-place-order > #wrapper > .row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+}
+
+#cart-place-order > #wrapper > .row > .col {
+  padding: 10px;
+  margin: 0;
+  font-size: 14px;
+}
+
+#cart-place-order > #wrapper > .row > .col >h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #00224f;
+  text-transform: uppercase;
+  padding-left: 10px;
 }

@@ -6,7 +6,7 @@ import Sidebar from '../../components/sidebar';
 function Settings() {
 	return (
 		<>
-			
+			<MainSettings/>
 		</>
 	)
 }

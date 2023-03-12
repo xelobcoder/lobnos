@@ -6,8 +6,10 @@ import Message from '../accessories/message';
 import PreviewIcon from '@mui/icons-material/Preview';
 import Link from 'next/link';
 import TableIsLoading from '../accessories/TableIsLoading';
-export default function SUPPLIERS_LIST({ rawdata }) {
+import useRouter from 'next/router';
+export default function SUPPLIERS_LIST({ rawdata, deleteController, editController }) {
 
+const router = useRouter;
  return (
   <>
    <div className='supply-list-overhead'>
@@ -16,23 +18,35 @@ export default function SUPPLIERS_LIST({ rawdata }) {
       <tr>
        <th>id</th>
        <th>name</th>
-       <th>commodity</th>
        <th>address</th>
+       <th>phone number</th>
+       <th>email</th>
+       <th>contact person</th>
+       <th>region</th>
        <th>action</th>
       </tr>
      </thead>
      <tbody>
-      {rawdata.length === 0 ? <TableIsLoading/> : (
+      {rawdata.length === 0 ? <TableIsLoading /> : (
        rawdata.map((item, index) => {
         return (
-         <tr key={index} dataid={item.supplierid}>
+         <tr key={index} >
           <td>SUPP{item.supplierid}</td>
-          <td>{item.name}</td>
-          <td>{item.commodity}</td>
-          <td>{item.address}</td>
+          <td>{item.name.toLowerCase()}</td>
+          <td>{item.address.toLowerCase()}</td>
+          <td>{item.phonenumber}</td>
+          <td>{item.email.toLowerCase()}</td>
+          <td>{item.contactperson.toLowerCase()}</td>
+          <td>{item.region.toLowerCase()}</td>
+
           <td className='d-flex'>
-           <button className='btn btn-info' style={{ marginRight: '10px' }}><EditOffIcon /></button>
-           <button className='btn btn-danger'><DeleteForeverIcon /></button>
+           <button className='btn btn-info'
+            onClick={ (e) => {
+             // navigate to edit page
+              router.push(`/supplier/addsupplier?tab=edit&supplierid=${item.supplierid}`)
+            }}
+            style={{ marginRight: '10px' }}><EditOffIcon /></button>
+           <button className='btn btn-danger' onClick={(e) => deleteController(e, item.supplierid)}><DeleteForeverIcon /></button>
            <button className='btn btn-warning'>
             <Link href={`/supplier/${item.supplierid}`}>
              <a ><PreviewIcon /></a>

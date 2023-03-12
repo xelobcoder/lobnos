@@ -3,8 +3,6 @@ import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import '../styles/globals.css';
 import '../styles/testpanel.css';
 import '../styles/Frontpageside.css'
-import "gridjs/dist/theme/mermaid.css";
-// import "../styles/lobnos.css";
 import "../styles/fullblood.css";
 // import "../styles/table.css";
 

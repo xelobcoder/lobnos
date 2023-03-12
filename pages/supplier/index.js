@@ -1,13 +1,23 @@
 import { Button, Container } from '@mui/material';
 import React from 'react';
+import TopMessage from '../../components/accessories/TopMessage';
 import ADD_NEW_SUPPLIER from '../../components/suppliers/addNewSupplier';
 import SUPPLIERS_SEARCH_BAR from '../../components/suppliers/searchBar'
-import SUPPLIERS_LIST from '../../components/suppliers/supllyList'
-
+import dynamic from 'next/dynamic';
+import InventroyHeader from '../../components/inventroyHeader';
+import Header from '../../components/header';
+import SUPPLIERS_LIST from '../../components/suppliers/supllyList';
 export default function SUPPLY() {
   const [viewadd, setviewadd] = React.useState(false);
   const [rawdata, setRawdata] = React.useState([]);
+  const [buttonstatus, setButtonstatus] = React.useState('submit');
 
+  const [messageshow, setMessageshow] = React.useState(false);
+  const [message, setMessage] = React.useState({
+    type: '',
+    message: '',
+    display: false
+  });
 
   // fetch data from server
   React.useEffect(() => {
@@ -15,8 +25,7 @@ export default function SUPPLY() {
       const fetchdata = async () => {
         const response = await fetch('http://localhost:5000/api/v1/suppliers');
         const data = await response.json();
-        console.log(data);
-        setRawdata(data);
+        setRawdata(data.result);
       }
       fetchdata();
     }
@@ -24,95 +33,94 @@ export default function SUPPLY() {
       console.log(error);
     }
   }, [])
-  // set new suppier useState
-  const [newsupplier, setNewSupplier] = React.useState({
-    name: '',
-    commodity: '',
-    address: ''
-  })
 
 
-  const controllerName = async function (ev, target) {
-    const ans = ev.target.value;
-    setNewSupplier(prev => {
-      return { ...prev, name: ans }
-    })
-  }
-
-  const controllerCommodity = async function (ev, target) {
-    const ans = ev.target.value;
-    setNewSupplier(prev => {
-      return { ...prev, commodity: ans }
-    })
-  }
-
-  const controllerAddress = async function (ev, target) {
-    const ans = ev.target.value;
-    setNewSupplier(prev => {
-      return { ...prev, address: ans }
-    })
-  }
 
 
-  const handleSubmit = async function (ev) {
-    // send data to server
-    ev.preventDefault();
+  // constroller for deleting a supplier
+  const deletehandler = async (id, supplierid) => {
     try {
-      const values = Object.values(newsupplier).filter(item => item === '');
-      //  check if the data is not empty
-      if (values.length > 0) {
-        alert('please fill all fields');
-        return;
-      }
-      else {
-        const senddata = async () => {
-          const response = await fetch('http://localhost:5000/api/v1/suppliers', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(newsupplier)
-          })
-          const data = await response.json();
-          if (data.status === 'success') {
-            setRawdata(prev => {
-              return [newsupplier, ...prev]
-            })
-            setNewSupplier({
-              name: '',
-              commodity: '',
-              address: ''
-            })
-          }
-        }
-        senddata();
+      const response = await fetch(`http://localhost:5000/api/v1/suppliers?supplierid=${supplierid}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      })
+      const data = await response.json();
+      if (data.status === 'success') {
+        // remove the deleted item from the list using the supplierid
+        const nwdata = rawdata.filter(item => item.supplierid !== supplierid)
+        setRawdata(nwdata);
+        setMessageshow(true);
+        setMessage({
+          type: 'success',
+          message: 'supplier deleted successfully',
+          display: true
+        })
       }
     } catch (error) {
       console.log(error);
+      setMessageshow(true);
+      setMessage({
+        type: 'danger',
+        message: 'error deleting supplier',
+        display: true
+      })
     }
   }
 
-  const viewhandler = () => setviewadd(false);
+  // controller for updating a supplier
+  const updatehandler = async (id, supplierid) => {
+    // get data from raw data using the supplierid
+    const data = rawdata.filter(item => item.supplierid === supplierid);
+    // set the data to the update state
+    // make the viewadd true
+    setviewadd(true);
+    setNewSupplier(data[0]);
+    setButtonstatus('update');
+  }
+
+  // search controller
+
+  const searchhandler = async (ev) => {
+    const ans = ev.target.value;
+    // filter the rawdata using the ans
+    if (ans.length == 0) {
+      const fetchdata = async () => {
+        const response = await fetch('http://localhost:5000/api/v1/suppliers');
+        const data = await response.json();
+        setRawdata(data.result);
+      }
+      fetchdata();
+    }
+    else {
+      const nwdata = rawdata.filter(item => item.name.toLowerCase().includes(ans.toLowerCase()) || item.commodity.toLowerCase().includes(ans.toLowerCase()) || item.address.toLowerCase().includes(ans.toLowerCase()));
+      console.log(nwdata);
+      setRawdata(nwdata);
+    }
+  }
+
+  const messageTimer = () => {
+    setTimeout(() => {
+      setMessageshow(false);
+      setMessage({
+        type: '',
+        message: '',
+        display: false
+      })
+    }, 3000);
+  }
 
   return (
     <div id='supply-overhead'>
-      <div className='container'>
-        {
-          !viewadd &&
-          <div className='d-flex justify-content-end mt-2'>
-            <Button
-              sx={{ marginBottom: '20px' }}
-              onClick={(e) => setviewadd(true)}
-              color='primary' variant='contained'>Add supplier</Button>
-          </div>
-        }
-      </div>
+      {messageshow ? <TopMessage message={message.message} messageTimer={messageTimer} display={message.display} type={message.type} /> : null}
       {/* once viewadd which toggles the display of ADD NEW SUPLLIER component is true, then this add section appears */}
       {
         viewadd === true ? (
           <div>
             <ADD_NEW_SUPPLIER newsupplier={newsupplier}
               controllerName={controllerName}
+              buttonstatus={buttonstatus}
               controllerAddress={controllerAddress}
               controllerCommodity={controllerCommodity}
               handleSubmit={handleSubmit}
@@ -122,9 +130,26 @@ export default function SUPPLY() {
           </div>
         ) : null
       }
-      <SUPPLIERS_SEARCH_BAR />
-      <SUPPLIERS_LIST rawdata={rawdata || []} />
+      <SUPPLIERS_SEARCH_BAR searchhandler={searchhandler} />
+      <SUPPLIERS_LIST rawdata={rawdata || []}
+        editController={updatehandler}
+        deleteController={deletehandler} />
     </div>
   )
 }
 
+SUPPLY.getLayout = (page) => {
+  return (
+    <>
+      <Header />
+      <div className="wrapper">
+        <div className="side">
+          <InventroyHeader />
+        </div>
+        <div className="main">
+          {page}
+        </div>
+      </div>
+    </>
+  )
+}
