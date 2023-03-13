@@ -392,6 +392,9 @@ const getAstock = async function (request, response) {
     })
   }
 }
+
+
+
 module.exports = {
   new_supplier,
   update_supplier,

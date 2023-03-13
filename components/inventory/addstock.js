@@ -25,7 +25,7 @@ export default function ADD_STOCK_INVENTORY() {
 
 
  const [Categorylist, setCategorylist] = useState(['consumables', 'real estate', 'equipment', 'furniture', 'vehicles', 'others'])
- const [Consumptionunitlist, setConsumptionunitlist] = useState(['kg', 'g', 'l', 'ml', 'pcs', 'others','bottle','kit'],'box')
+ const [Consumptionunitlist, setConsumptionunitlist] = useState(['kg', 'g', 'l', 'ml', 'pcs', 'others','bottle','kit','box'])
  const [Purchaseunitlist, setPurchaseunitlist] = useState(['kg', 'g', 'l', 'ml', 'pcs', 'others','bottle','kit','box'])
 
 

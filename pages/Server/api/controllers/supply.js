@@ -8,8 +8,11 @@ const {
   postCommodity,
   getCommodity,
   new_stock,
-  getStock
+  getAstock,
+  getStock,
 } = require('../models/supply.js')
+
+const {placeOrder,getOrders} = require('../models/placeorders.js');
 
 router.get('/api/v1/suppliers', function (request, response) {
   const hasQuery = Object.keys(request.query).length > 0
@@ -51,6 +54,16 @@ router.get('/api/v1/stock', function (request, response) {
   else {
     getAstock(request, response)
   }
+})
+
+
+router.post('/api/v1/orders', function(request,response) {
+  placeOrder(request,response)
+})
+
+
+router.get('/api/v1/orders', function(request,response) {
+  getOrders(request,response)
 })
 
 module.exports = router

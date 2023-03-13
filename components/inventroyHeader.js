@@ -30,6 +30,14 @@ export default function InventroyHeader() {
             </a>
           </Link>
         </li>
+        <li>
+        <Link href="/supplier/purchases">
+            <a>
+              <AddBoxIcon  fontSize='large'/>
+              purchases
+            </a>
+          </Link>
+        </li>
       </ul>
     </div>
   )

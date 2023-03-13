@@ -4,8 +4,6 @@ import '../styles/globals.css';
 import '../styles/testpanel.css';
 import '../styles/Frontpageside.css'
 import "../styles/fullblood.css";
-// import "../styles/table.css";
-
 import Header from '../components/header'
 import Footer from '../components/footer';
 import SidebarFrontPage from '../components/frontpagesidebar';

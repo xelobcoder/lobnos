@@ -2,10 +2,6 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  output: {
-    globalObject: 'this',
-
-  }
 }
 
-module.exports = nextConfig
+module.exports = nextConfig;

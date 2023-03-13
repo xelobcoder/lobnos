@@ -3,75 +3,160 @@ import PLACE_ORDER from '../../components/inventory/placeorder';
 import InventroyHeader from '../../components/inventroyHeader';
 import Header from '../../components/header';
 import CART_DISPLAY_COMPONENT from '../../components/inventory/cartDisplay';
+import TopMessage from '../../components/accessories/TopMessage';
+import { Suspense } from 'react';
+import TableIsLoading from '../../components/accessories/TableIsLoading';
 
-export default function PLACE_ORDER_PAGE({ datasource }) {
- const [source, setDatasource] = React.useState(datasource );
- const [cart, setCart] = React.useState({
-  data: [],
-  display: false
- });
- const [search, setSearch] = React.useState('');
-
-console.log(datasource)
- const cartHandler = (e, clicked) => {
-  e.preventDefault();
-  // ensure that the clicked item is not already in the cart
-  const isAlreadyInCart = cart.data.some(item => item.stockid === clicked.stockid);
-  const isNotEmpty = clicked.quantity !== '' && clicked.supplier !== '';
-
-  if (isAlreadyInCart) {
-   alert('item already in cart');
-   return;
-  }
-
-  if (!isNotEmpty) {
-   alert('please fill all fields');
-   return;
-  }
-
-  if (clicked.quantity == 0 || clicked.quantity < 1) {
-   alert('quantity must be greater than 0');
-   return;
-  }
-
-  if (isNotEmpty && !isAlreadyInCart) {
-   setCart({
-    data: [...cart.data, clicked],
+export default function PLACE_ORDER_PAGE({ datasource, suppliers }) {
+  const [source, setDatasource] = React.useState(datasource);
+  const [cart, setCart] = React.useState({
+    data: [],
     display: false
-   })
+  });
+  const [search, setSearch] = React.useState('');
+
+  // handle messages view begin ---states
+  const [messageshow, setMessageshow] = React.useState(false);
+  const [message, setMessage] = React.useState({
+    type: '',
+    message: '',
+    display: false
+  });
+
+  const viewMessageTimer = () => {
+    setTimeout(() => {
+      setMessageshow(false);
+      setMessage({
+        type: '',
+        message: '',
+        display: false
+      })
+    }, 3000)
   }
- }
+  // handle messages view end ---states
 
 
- 
-// handler for removing an item from the cart
-const removeCartHandler = (e, stockid) => {
- e.preventDefault();
- const newCart = cart.data.filter(item => item.stockid !== stockid);
- setCart({
-  data: newCart,
-  display: true
- })
-}
+  const cartHandler = (e, clicked) => {
+    e.preventDefault();
+    // ensure that the clicked item is not already in the cart
+    const isAlreadyInCart = cart.data.some(item => item.stockid === clicked.stockid);
+    const isNotEmpty = clicked.quantity !== '' && clicked.supplier !== '';
 
-// handler for placing an order
+    if (isAlreadyInCart) {
+      alert('item already in cart');
+      return;
+    }
 
- return (
-  <div>
-   <div id='place-order-search' >
-    <input className='custom-input' type="text" placeholder='search for a product here' />
-    <button 
-     onClick={(ev) => {!cart.display ? setCart({ ...cart, display: true }) : setCart({ ...cart, display: false })}}
-    className='btn btn-sm btn-primary'>cart {cart.data.length}</button>
-   </div>
-   {
-    cart.display ? <CART_DISPLAY_COMPONENT 
-    removeCartHandler={removeCartHandler}
-     data={cart.data} /> :
-    <PLACE_ORDER source={source} cartHandler={cartHandler} />
-   }
-  </div>
- )
+    if (!isNotEmpty) {
+      alert('please fill all fields');
+      return;
+    }
+
+    if (clicked.quantity == 0 || clicked.quantity < 1) {
+      alert('quantity must be greater than 0');
+      return;
+    }
+
+    if (isNotEmpty && !isAlreadyInCart) {
+      setCart({
+        data: [...cart.data, clicked],
+        display: false
+      })
+    }
+  }
+
+
+
+  // handler for removing an item from the cart
+  const removeCartHandler = (e, stockid) => {
+    e.preventDefault();
+    const newCart = cart.data.filter(item => item.stockid !== stockid);
+    setCart({
+      data: newCart,
+      display: true
+    })
+  }
+
+  // handler for placing an order
+
+
+  const placeOrderHandler = (e, stockid) => {
+    e.preventDefault();
+    // get the cart data
+    // filter cartdata using the stockid
+    const filtered = cart.data.filter(item => parseInt(item.stockid) === parseInt(stockid));
+    // get the first data 
+    const order = filtered[0];
+    // send the data 
+    const sendData = async function () {
+      let endpoint = `http://localhost:5000/api/v1/orders`;
+      let response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(order)
+      })
+
+      let data = await response.json();
+
+      console.log(data);
+
+      // when successfully placed removwe the item from the cart
+      if (data.status === 'success' && data.message === 'order placed successfully') {
+        removeCartHandler(e, stockid);
+        setMessageshow(true);
+        setMessage({
+          type: 'success',
+          message: data.message,
+          display: true
+        })
+      } else if
+        (data.status == 'success' && data.message === 'order already exist') {
+        setMessageshow(true);
+        setMessage({
+          type: 'warning',
+          message: data.info,
+          display: true
+        })
+      } else {
+        setMessageshow(true);
+        setMessage({
+          type: 'danger',
+          message: data.message,
+          display: true
+        })
+      }
+    }
+
+    sendData()
+
+  }
+
+  return (
+    <>
+      <Suspense fallback={<TableIsLoading col={10}/>} >
+        <div>
+          {
+            messageshow ? <TopMessage message={message.message} type={message.type} display={message.display} messageTimer={viewMessageTimer} /> : null
+          }
+          <div id='place-order-search' >
+            <input className='custom-input' type="text" placeholder='search for a product here' />
+            <button
+              onClick={(ev) => { !cart.display ? setCart({ ...cart, display: true }) : setCart({ ...cart, display: false }) }}
+              className='btn btn-sm btn-primary'>cart {cart.data.length}</button>
+          </div>
+          {
+            cart.display ? <CART_DISPLAY_COMPONENT
+              removeCartHandler={removeCartHandler}
+              placeOrderHandler={placeOrderHandler}
+              data={cart.data} /> :
+              <PLACE_ORDER source={source} cartHandler={cartHandler} suppliers={suppliers} />
+          }
+        </div>
+      </Suspense>
+    </>
+  )
 }
 
 
@@ -79,39 +164,48 @@ const removeCartHandler = (e, stockid) => {
 
 
 PLACE_ORDER_PAGE.getLayout = function getLayout(page) {
- return (
-  <>
-   <Header />
-   <div className="wrapper">
-    <div className="side">
-     <InventroyHeader />
-    </div>
-    <div className="main" id='page-main-view'>
-     {page}
-    </div>
-   </div>
-  </>
- )
+  return (
+    <>
+      <Header />
+      <div className="wrapper">
+        <div className="side">
+          <InventroyHeader />
+        </div>
+        <div className="main" id='page-main-view'>
+          {page}
+        </div>
+      </div>
+    </>
+  )
 }
 
 
 
 export async function getServerSideProps(context) {
- const response = await fetch('http://localhost:5000/api/v1/stock');
- const data = await response.json();
- const { status, result } = data;
- if (status === 'success') {
-  return {
-   props: {
-    datasource: result
-   }
+  // Fetch data from external API
+  const res = await fetch(`http://localhost:5000/api/v1/stock`)
+  const data = await res.json()
+
+  // fetch abput the suppliers 
+  const suppliers = await fetch(`http://localhost:5000/api/v1/suppliers`)
+  const suppliersData = await suppliers.json()
+
+  // Pass data to the page via props
+
+  const { result, status } = data;
+
+  if (status === 'success') {
+    return {
+      props: {
+        datasource: result,
+        suppliers: suppliersData.result
+      }, // will be passed to the page component as props
+    }
   }
- }
- else {
-  return {
-   props: {
-    datasource: []
-   }
+
+  if (!result && status != 'success') {
+    return {
+      notFound: true
+    }
   }
- }
 }
