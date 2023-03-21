@@ -49,20 +49,19 @@ export default function Add_department() {
           const { status, message } = result;
 
           if (status === "success") {
-            setShowMessage({
-              display: true,
-              type: "success",
-              message: message,
-            });
+            console.log(message);
+            alert(message);
             setDepartment({
               department: "",
               departmentManager: "",
               employeeid: 3,
             });
-            console.log(tab);
             if (router.query.tab === 'edit') {
               setTab('submit');
-              router.push('/settings/department')
+              router.push('/settings/department');
+              setTimeout(() => {
+                router.reload();
+              }, 500)
             } else{
               router.reload()
             }

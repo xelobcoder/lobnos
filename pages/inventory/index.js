@@ -43,22 +43,23 @@ export default function INVENTORY_PAGE({ stocks }) {
     {
       Header: 'Quantity',
       accessor: 'quantity',
+      Cell: ({ row }) => (
+        <div title={`Alert Level: ${row.original.alertlevel >= row.original.quantity ? 'High' : 'Low'}`}
+          className={
+            row.original.alertlevel == row.original.quantity
+              ? 'alertlevel-medium'
+              : (row.original.alertlevel > row.original.quantity
+                ? 'alertlevel-high' : 'alertlevel-low')
+          }
+        >
+          {row.original.quantity}
+        </div>
+      )
     },
     {
       Header: 'Alert Level',
       accessor: 'alertlevel',
-      Cell: ({ row }) => (
-        <div
-          className={
-            row.original.alertlevel == row.original.quantity
-              ? 'alertlevel-medium'
-              : row.original.alertlevel > row.original.quantity
-                ? 'alertlevel-high' : 'alertlevel-low'
-          }
-        >
-          {row.original.alertlevel}
-        </div>
-      )
+
     },
     {
       Header: 'Material Code',
@@ -71,6 +72,11 @@ export default function INVENTORY_PAGE({ stocks }) {
     {
       Header: 'Date',
       accessor: 'date',
+      Cell : ({row}) => (
+        <div>
+          {row.original.date.split('T')[0]}
+        </div>
+      )
     },
     {
       Header: 'Action',
@@ -155,9 +161,9 @@ INVENTORY_PAGE.getLayout = function getLayout(page) {
       <Header />
       <div className="wrapper">
         <div className="side">
-          <InventoryHeaders/>
+          <InventoryHeaders />
         </div>
-        <div className="main">{page}</div>
+        <div className="main" id='page-main-view'>{page}</div>
       </div>
     </>
   )

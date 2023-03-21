@@ -21,7 +21,7 @@ INVENTORY_ADD_PAGE.getLayout = function getLayout(page) {
         <div className="side">
           <InventoryHeaders />
         </div>
-        <div className="main">{page}</div>
+        <div className="main" id='page-main-view'>{page}</div>
       </div>
     </>
   )

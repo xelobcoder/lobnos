@@ -19,7 +19,7 @@ function MyApp({ Component, pageProps }) {
         <div className="side">
           <SidebarFrontPage />
         </div>
-        <div className="main" >
+        <div className="main "  id='page-main-view' >
          <Component {...pageProps}/>
         </div>
       </div>

@@ -79,8 +79,6 @@ export async function getServerSideProps(context) {
 
   const { data, status, message } = departmentsData;
 
-  console.log(departmentsData)
-
   if (status === 'success') {
     return {
       props: {

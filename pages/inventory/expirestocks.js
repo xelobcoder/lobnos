@@ -26,6 +26,11 @@ export default function EXPIRE_STOCKS({ expirestock }) {
     {
       Header: 'Received Date',
       accessor: 'receiveddate',
+      Cell : ({row}) => (
+        <div>
+          {row.original.receiveddate.split('T')[0]}
+        </div>
+      )
     },
     {
       Header: 'Batch Number',
@@ -94,7 +99,7 @@ EXPIRE_STOCKS.getLayout = function getLayout(page) {
         <div className="side">
           <InventoryHeaders />
         </div>
-        <div className="main">{page}</div>
+        <div className="main" id='page-main-view'>{page}</div>
       </div>
     </>
   )

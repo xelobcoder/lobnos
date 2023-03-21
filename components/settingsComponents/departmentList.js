@@ -34,7 +34,7 @@ export default function DepartmentList({ data, handleDelete, handleEdit }) {
       Cell: ({ row }) => (
         <div className="d-flex">
           <EditLocationAltSharpIcon
-            fontSize="large"
+            fontSize="medium"
             variant="contained"
             onClick={() => {
               handleEdit(row.original.id);
@@ -42,7 +42,7 @@ export default function DepartmentList({ data, handleDelete, handleEdit }) {
             color="primary"
           />
           <AutoDeleteSharpIcon
-            fontSize="large"
+            fontSize="medium"
             onClick={() => {
               handleDelete(row.original.id);
             }}

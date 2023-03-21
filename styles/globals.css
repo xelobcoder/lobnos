@@ -7,7 +7,7 @@
   box-sizing: border-box;
   overflow-x: hidden;
   overflow-y: hidden;
-  font-weight: 500 !important;
+  font-weight: 400 !important;
 }
 
 .welcome-page {
@@ -1767,7 +1767,7 @@ textarea::placeholder {
 }
 
 #page-main-view {
-  background-color: #00224f27 !important;
+  background-color: #00224f17 !important;
   height: 100vh;
   width: 100%;
   margin: 0;
@@ -1998,13 +1998,18 @@ textarea::placeholder {
   padding: 10px;
   border-radius: 5px;
 }
+.custom-table-wrapper{
+ height: 80vh;
+ overflow-y: auto;
+}
 
 #custom-table {
   width: 100%;
   padding: 10px;
-  overflow-y: auto;
+  background-color: white;
+  overflow-y: auto !important;
   max-height: auto;
-  margin:10px  auto;
+  margin: 10px auto;
   border-collapse: collapse;
 }
 #custom-table > thead > tr {
@@ -2014,17 +2019,18 @@ textarea::placeholder {
 }
 #custom-table > thead > tr > th {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: #00224f;
   text-transform: uppercase;
   padding: 10px;
 }
 
 #custom-table > tbody > tr > td {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   text-transform: capitalize;
-  padding: 10px;
+  color: #00224f;
+  padding: 5px;
 }
 #custom-table > tbody > tr:hover,
 #custom-table > thead > tr:focus {
@@ -2116,6 +2122,6 @@ textarea::placeholder {
   margin: 10px 10px;
   background-color: rgba(0, 0, 0, 0.493);
 }
-.lims-text-color{
+.lims-text-color {
   color: #00224f;
 }
