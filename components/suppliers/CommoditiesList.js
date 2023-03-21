@@ -1,3 +1,4 @@
+import { AddCardOutlined } from '@mui/icons-material';
 import React from 'react'
 
 export default function CommoditiesList({ datasource }) {
@@ -22,6 +23,7 @@ export default function CommoditiesList({ datasource }) {
       <div className='transaction-header'>
         <h4>commodities</h4>
         <input className='custom-input'   onChange={(e) => handleSearch(e)} placeholder='search here' list='commodities' />
+        <AddCardOutlined/>
         <datalist id='commodities'>
           <option> edta tubes</option>
           <option> edta tubes</option>

@@ -27,8 +27,7 @@ import {
  Radio,
  Autocomplete,
 } from '@mui/material'
-import yup from 'yup'
-import { useFormik } from 'formik';
+// import { useFormik } from 'formik';
 
 function Registration({ organization, clinician }) {
  const [title, setTitle] = React.useState('Personal Information')

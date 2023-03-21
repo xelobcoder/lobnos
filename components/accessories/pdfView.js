@@ -1,8 +1,16 @@
 import React from 'react'
-export default function PDF_VIEWER() {
- return (
-  <div>
+function PDF_VIEWER() {
+return (
+  <>
   
-  </div>
- )
+  </>
+)
 }
+
+
+export default PDF_VIEWER;
+
+
+
+
+

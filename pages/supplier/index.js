@@ -1,22 +1,22 @@
-import { Button, Container } from '@mui/material';
 import React from 'react';
 import TopMessage from '../../components/accessories/TopMessage';
 import ADD_NEW_SUPPLIER from '../../components/suppliers/addNewSupplier';
 import SUPPLIERS_SEARCH_BAR from '../../components/suppliers/searchBar'
-import dynamic from 'next/dynamic';
 import InventroyHeader from '../../components/inventroyHeader';
 import Header from '../../components/header';
 import SUPPLIERS_LIST from '../../components/suppliers/supllyList';
+
+
 export default function SUPPLY() {
   const [viewadd, setviewadd] = React.useState(false);
   const [rawdata, setRawdata] = React.useState([]);
-  const [buttonstatus, setButtonstatus] = React.useState('submit');
+  const [buttonstatus, setButtonstatus] = React.useState("submit");
 
   const [messageshow, setMessageshow] = React.useState(false);
   const [message, setMessage] = React.useState({
-    type: '',
-    message: '',
-    display: false
+    type: "",
+    message: "",
+    display: false,
   });
 
   // fetch data from server
@@ -40,32 +40,34 @@ export default function SUPPLY() {
   // constroller for deleting a supplier
   const deletehandler = async (id, supplierid) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/v1/suppliers?supplierid=${supplierid}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-      })
+      const response = await fetch(
+        `http://localhost:5000/api/v1/suppliers?supplierid=${supplierid}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
       const data = await response.json();
-      if (data.status === 'success') {
+      if (data.status === "success") {
         // remove the deleted item from the list using the supplierid
-        const nwdata = rawdata.filter(item => item.supplierid !== supplierid)
+        const nwdata = rawdata.filter((item) => item.supplierid !== supplierid);
         setRawdata(nwdata);
         setMessageshow(true);
         setMessage({
-          type: 'success',
-          message: 'supplier deleted successfully',
-          display: true
-        })
+          type: "success",
+          message: "supplier deleted successfully",
+          display: true,
+        });
       }
     } catch (error) {
-      console.log(error);
       setMessageshow(true);
       setMessage({
-        type: 'danger',
-        message: 'error deleting supplier',
-        display: true
-      })
+        type: "danger",
+        message: "error deleting supplier",
+        display: true,
+      });
     }
   }
 
@@ -94,8 +96,12 @@ export default function SUPPLY() {
       fetchdata();
     }
     else {
-      const nwdata = rawdata.filter(item => item.name.toLowerCase().includes(ans.toLowerCase()) || item.commodity.toLowerCase().includes(ans.toLowerCase()) || item.address.toLowerCase().includes(ans.toLowerCase()));
-      console.log(nwdata);
+      const nwdata = rawdata.filter(
+        (item) =>
+          item.name.toLowerCase().includes(ans.toLowerCase()) ||
+          item.commodity.toLowerCase().includes(ans.toLowerCase()) ||
+          item.address.toLowerCase().includes(ans.toLowerCase())
+      );
       setRawdata(nwdata);
     }
   }
@@ -146,10 +152,8 @@ SUPPLY.getLayout = (page) => {
         <div className="side">
           <InventroyHeader />
         </div>
-        <div className="main">
-          {page}
-        </div>
+        <div className="main">{page}</div>
       </div>
     </>
-  )
+  );
 }

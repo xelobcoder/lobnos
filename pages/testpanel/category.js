@@ -12,46 +12,45 @@ import AddIcon from '@mui/icons-material/Add'
 import SidebarFrontPage from '../../components/frontpagesidebar'
 import Header from '../../components/header'
 import CategoryBread from '../../components/registration/testpanelBread';
-import { useFormik } from 'formik'
 import React from 'react'
 
 export default function AddTestPanelCategory(props) {
   // category list
   const [list, setList] = React.useState(['Hematology', 'Microbiology', 'Immunology', 'Serology', 'Bacteriology', 'Virology', 'Parasitology', 'Chemistry', 'Pathology', 'Radiology', 'Sonography'])
   // formik form initial values
-  const addcategory = useFormik({
-    initialValues: {
-      categoryname: '',
-      categorydescription: '',
-    },
-    validate: (values) => {
-        const errors = {}
-        if (!values.categoryname) {
-            errors.categoryname = 'Please kindly fill in category name'
-        }
-        if (!values.categorydescription) {
-            errors.categorydescription = 'Please kindly fill in category description'
-        }
-        if(!values.categoryname && !values.categorydescription) {
-            errors.categoryname = 'Please kindly fill in category name'
-            errors.categorydescription = 'Please kindly fill in category description'
-        }
-        if(list.includes(values.categoryname)) {
-            errors.categoryname = 'category name already exist'
-        }
-        return errors
-    },
-    onSubmit: (values) => {
-      console.log(values)
-    },
-  })
+  // const addcategory = useFormik({
+  //   initialValues: {
+  //     categoryname: '',
+  //     categorydescription: '',
+  //   },
+  //   validate: (values) => {
+  //       const errors = {}
+  //       if (!values.categoryname) {
+  //           errors.categoryname = 'Please kindly fill in category name'
+  //       }
+  //       if (!values.categorydescription) {
+  //           errors.categorydescription = 'Please kindly fill in category description'
+  //       }
+  //       if(!values.categoryname && !values.categorydescription) {
+  //           errors.categoryname = 'Please kindly fill in category name'
+  //           errors.categorydescription = 'Please kindly fill in category description'
+  //       }
+  //       if(list.includes(values.categoryname)) {
+  //           errors.categoryname = 'category name already exist'
+  //       }
+  //       return errors
+  //   },
+  //   onSubmit: (values) => {
+  //     console.log(values)
+  //   },
+  // })
 
 
   return (
     <>
       <CategoryBread section={'add category'} />
       <Container size={'sm'}>
-      {addcategory.errors.categoryname && ( <Typography variant={'p'} color="error">{addcategory.errors.categoryname}</Typography>)}
+      {/* {addcategory.errors.categoryname && ( <Typography variant={'p'} color="error">{addcategory.errors.categoryname}</Typography>)}
         {addcategory.errors.categorydescription && ( <Typography color="error">{addcategory.errors.categorydescription}</Typography>)}
         <form onSubmit={addcategory.handleSubmit}>
           <Box
@@ -94,7 +93,7 @@ export default function AddTestPanelCategory(props) {
               add
             </Button>
           </Box>
-        </form>
+        </form> */}
       </Container>
     </>
   )

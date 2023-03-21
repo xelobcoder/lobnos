@@ -19,7 +19,7 @@ export default function SupllierProfile({ datasource }) {
      <p>Email: 
 
       <Link href={`/mail/supplier/${supplier.EMAIL}`}>
-      <a>{supplier.EMAIL || '  hamzatiifu45@gmail.com'}</a>
+      {supplier.EMAIL || '  hamzatiifu45@gmail.com'}
      </Link> </p>
     </div>
    </div>

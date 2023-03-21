@@ -82,7 +82,7 @@ function TEST_DETAILS({ data }) {
 
  const handleMessage = useCallback((e) => {
   setContent(e.target.value)
- })
+ },[])
 
 
  return (

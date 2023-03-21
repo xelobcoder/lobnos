@@ -1,6 +1,5 @@
 import SidebarFrontPage from '../components/frontpagesidebar'
 import Header from '../components/header';
-import { Input } from '@chakra-ui/Input';
 import { Button, Box } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
@@ -48,11 +47,11 @@ function Clinicians() {
               <hr></hr>
               <div className="form-row">
                 <label>Name</label>
-                <Input type="text" required className="form-control" id="name" />
+                <input type="text" required className="form-control" id="name" />
               </div>
               <div className="form-row">
                 <label>Phone</label>
-                <Input
+                <input
                   type="tel"
                   required
                   maxLength="10"
@@ -63,7 +62,7 @@ function Clinicians() {
               </div>
               <div className="form-row">
                 <label>Email</label>
-                <Input
+                <input
                   type="email"
                   required
                   className="form-control"
@@ -72,15 +71,15 @@ function Clinicians() {
               </div>
               <div className="form-row">
                 <label> website</label>
-                <Input type="text" className="form-control" id="website" />
+                <input type="text" className="form-control" id="website" />
               </div>
               <div className="form-row">
                 <label>organization</label>
-                <Input type="text" required className="form-control"></Input>
+                <input type="text" required className="form-control"></input>
               </div>
               <div className="form-row">
                 <label>location</label>
-                <Input type="text" id="location" className="form-control"></Input>
+                <input type="text" id="location" className="form-control"></input>
               </div>
               <div className="form-row">
                 <label>address</label>
@@ -132,11 +131,11 @@ function Clinicians() {
         {button ? <AddClinicianButton /> : null}
         <div className="p-3">
           <div className="grid-2 pb-2 pt-2" id="filterer-top">
-            <Input
+            <input
               type="search"
               placeholder="filter"
               className="col-5 ml-3 pl-3 "
-            ></Input>
+            ></input>
             <div className="d-flex justify-content-end mr-5 pr-5">
               <Button color='error' variant='contained' startIcon={<DeleteSweepIcon />}>
                 delete
@@ -148,11 +147,11 @@ function Clinicians() {
             <thead className="thead">
               <tr>
                 <th>
-                  <Input
+                  <input
                     onClick={(ev) => markCheckbox(ev)}
                     type="checkbox"
                     className="checked"
-                  ></Input>
+                  ></input>
                 </th>
                 <th>Name</th>
                 <th>Phone</th>
@@ -184,17 +183,3 @@ function Clinicians() {
 }
 
 export default Clinicians
-
-Clinicians.getLayout = function (page) {
-  return (
-    <>
-      <Header />
-      <div className="wrapper">
-        <div className="side">
-          <SidebarFrontPage />
-        </div>
-        <div className="main" style={{backgroundColor:'aliceblue'}}>{page}</div>
-      </div>
-    </>
-  )
-}

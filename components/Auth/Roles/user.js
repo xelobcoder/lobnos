@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 
 export default function USERS({ heading, button }) {
-  const [userdata, setuserData] = useState({ fullname: '', username: '', password: '', role: '' ,roleid: ''})
+  const [userdata, setuserData] = useState({ fullname: '', username: '', password: '', role: '', roleid: '' })
 
   // determine the mode 
 
@@ -65,8 +65,13 @@ export default function USERS({ heading, button }) {
     const methodDeterminer = mode == 'new' ? 'POST' : 'PUT';
     const backend_push = function () {
       const postdata =
-        fetch('http://localhost:3000/api/roles', { method:methodDeterminer, body: JSON.stringify(userdata) })
-      postdata.then((e) => { return e.json() })
+        fetch('http://localhost:5000/api/v1/roles', {
+          method: methodDeterminer,
+          body: JSON.stringify(userdata)
+        })
+      postdata.then((e) => {
+        return e.json()
+      })
         .then((response) => {
           console.log(response)
         })

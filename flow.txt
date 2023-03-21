@@ -1,0 +1,12 @@
+registration -> 
+   -> Activate client
+                 ->  billing -> 
+                            payment -> 
+                                        phelobotomy -> 
+                                                      sampleAssesment -> Manager Approval
+                                                                                    -> sample processing
+                                                                      -> result ready
+                                                   -> Branch Manager Approval 
+                                    -> client Notification 
+                      -> result printed out 
+            -> Client deactivated for service

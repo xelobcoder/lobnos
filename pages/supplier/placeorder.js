@@ -31,7 +31,7 @@ export default function PLACE_ORDER_PAGE({ datasource, suppliers }) {
         message: '',
         display: false
       })
-    }, 3000)
+    }, 2000)
   }
   // handle messages view end ---states
 
@@ -133,28 +133,47 @@ export default function PLACE_ORDER_PAGE({ datasource, suppliers }) {
 
   }
 
+  const searchHandler = async function (ev) {
+    const { value } = ev.target;
+    setSearch(value)
+    if (value.length > 0) {
+      let filtered = source.filter((item, index) => {
+       return new String(item.name).includes(value)
+      })
+
+      if (filtered.length > 0) {
+        setDatasource(filtered)
+      }
+      else return ;
+    } else {
+      setDatasource(datasource)
+    }
+
+    console.log(source,datasource)
+  }
+
   return (
     <>
-      <Suspense fallback={<TableIsLoading col={10}/>} >
-        <div>
-          {
-            messageshow ? <TopMessage message={message.message} type={message.type} display={message.display} messageTimer={viewMessageTimer} /> : null
-          }
-          <div id='place-order-search' >
-            <input className='custom-input' type="text" placeholder='search for a product here' />
-            <button
-              onClick={(ev) => { !cart.display ? setCart({ ...cart, display: true }) : setCart({ ...cart, display: false }) }}
-              className='btn btn-sm btn-primary'>cart {cart.data.length}</button>
-          </div>
-          {
-            cart.display ? <CART_DISPLAY_COMPONENT
-              removeCartHandler={removeCartHandler}
-              placeOrderHandler={placeOrderHandler}
-              data={cart.data} /> :
-              <PLACE_ORDER source={source} cartHandler={cartHandler} suppliers={suppliers} />
-          }
+      <div>
+        {
+          messageshow ? <TopMessage message={message.message} type={message.type} display={message.display} messageTimer={viewMessageTimer} /> : null
+        }
+        <div id='place-order-search' >
+          <input className='custom-input' type="text"
+            onChange={(ev) => searchHandler(ev)}
+            placeholder='search for a product here' value={search} />
+          <button
+            onClick={(ev) => { !cart.display ? setCart({ ...cart, display: true }) : setCart({ ...cart, display: false }) }}
+            className='btn btn-sm btn-primary'>cart {cart.data.length}</button>
         </div>
-      </Suspense>
+        {
+          cart.display ? <CART_DISPLAY_COMPONENT
+            removeCartHandler={removeCartHandler}
+            placeOrderHandler={placeOrderHandler}
+            data={cart.data} /> :
+            <PLACE_ORDER source={source} cartHandler={cartHandler} suppliers={suppliers} />
+        }
+      </div>
     </>
   )
 }

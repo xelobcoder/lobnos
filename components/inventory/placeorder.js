@@ -9,6 +9,7 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
     supplier: '',
   });
 
+
   return (
     <>
       <div id='placeorder'>
@@ -29,7 +30,7 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
               </tr>
             </thead>
             <tbody>
-              {datasource.map((item, index) => {
+              {source.map((item, index) => {
                 return (
                   <tr key={index}>
                     <td>{item.stockid}</td>
@@ -47,6 +48,7 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
                           })
                         }
                       }>
+                        <option>select a supplier</option>
                         {
                           suppliers.length === 0 ? <option>no supplier</option> :
                             suppliers.map((item, index) => {

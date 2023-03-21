@@ -17,98 +17,74 @@ export default function SidebarFrontPage() {
       <ul className="frontpagesidebar">
         <li>
           <Link href="/registration">
-            <a>
-              <HowToRegIcon />
-              registration
-            </a>
+            <HowToRegIcon />
+            registration
           </Link>
         </li>
         <li>
           <Link href="/activation">
-            <a>
-              <AirplanemodeInactiveIcon />
-              activation
-            </a>
+            <AirplanemodeInactiveIcon />
+            activation
           </Link>
         </li>
         <li>
           <Link href="/clients">
-            <a>
-              <PersonOutlineIcon />
-              Clients
-            </a>
+            <PersonOutlineIcon />
+            Clients
           </Link>
         </li>
         <li>
           <Link href="/waitinglist">
-            <a>
-              <HourglassEmptyIcon />
-              Waiting list
-            </a>
+            <HourglassEmptyIcon />
+            Waiting list
           </Link>
         </li>
         <li>
           <Link href="/results">
-            <a>
-              <ResetTvIcon />
-              Results
-            </a>
+            <ResetTvIcon />
+            Results
           </Link>
         </li>
         <li>
           <Link href="/appointments">
-            <a>
-              <BookOnlineIcon />
-              Appointments
-            </a>
+            <BookOnlineIcon />
+            Appointments
           </Link>
         </li>
         <li>
           <Link href="/organization">
-            <a>
-              <CorporateFareIcon />
-              organization
-            </a>
+            <CorporateFareIcon />
+            organization
           </Link>
         </li>
         <li>
           <Link href="/clinician">
-            <a>
-              <HealthAndSafetyIcon />
-              Clinicians
-            </a>
+            <HealthAndSafetyIcon />
+            Clinicians
           </Link>
         </li>
         <li>
           <Link href="/testpanel">
-            <a>
-              <BiotechIcon />
-              test panel
-            </a>
+            <BiotechIcon />
+            test panel
           </Link>
         </li>
         <li>
           <Link href="/sample">
-            <a>
-              <ScienceIcon />
-              sample
-            </a>
+            <ScienceIcon />
+            sample
           </Link>
         </li>
         <li>
           <Link href="/settings">
-            <a>
-              <SettingsApplicationsIcon />
-              settings
-            </a>
+            <SettingsApplicationsIcon />
+            settings
           </Link>
         </li>
         <li>
           <Link href="/supplier">
-            <a>
-              <InventoryIcon />
-              suppliers
-            </a>
+            <InventoryIcon />
+            suppliers
           </Link>
         </li>
       </ul>

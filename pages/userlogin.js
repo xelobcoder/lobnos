@@ -17,8 +17,12 @@ export default function USERLOGIN() {
    <div className="welcome-page">
     <Container >
      <div >
-      <TextField  className="login-textfield" label='username' size='small' value={user.username} />
-      <TextField  className="login-textfield" label='password' size='small' value={user.password} />
+      <TextField className="login-textfield"
+       onChange={(e) => setuser({ ...user, username: e.target.value })}
+       label='username' size='small' value={user.username} />
+      <TextField className="login-textfield" type='password'
+       onChange={(e) => setuser({ ...user, password: e.target.value })}
+       label='password' size='small' value={user.password} />
      </div>
      <Button variant='contained' color='primary'>login</Button>
     </Container>

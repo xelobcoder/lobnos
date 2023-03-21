@@ -15,7 +15,7 @@
             "username": "root"
         }
     ],
-    "editor.tabSize": 1,
+    "editor.tabSize": 2,
     "editor.fontFamily": "Fira Code",
     "editor.tabCompletion": "on"
 }

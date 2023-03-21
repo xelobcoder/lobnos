@@ -1,7 +1,4 @@
-import BloodGroup from "../../components/LabTestForms/bloodgroup";
-import Fbcsetupindex from "../../components/setup/biochemistry/hematology/fbcsetupindex";
-import LiverPanel from "../../components/setup/biochemistry/liver";
-import BloodGroupTableList from "../../components/TESTTABLES/bloodgroup";
+import React from 'react';
 function BLOODGROUP_SPREAD() {
   return (
     <>

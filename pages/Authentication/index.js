@@ -63,7 +63,6 @@ export default function Authentication_index_page() {
     router.push('http://localhost:3000/Authentication')
    })
   },
-  [],
  )
 
 

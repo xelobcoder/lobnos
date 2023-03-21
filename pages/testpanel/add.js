@@ -10,58 +10,58 @@ import {
   MenuItem,
   Typography,
 } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
+// import AddIcon from '@mui/icons-material/Add'
 import SidebarFrontPage from '../../components/frontpagesidebar'
-import { useRouter } from 'next/router'
-import { useState, useEffect, useRef } from 'react'
-import { useFormik } from 'formik'
-import CategoryBread from '../../components/registration/testpanelBread'
+// import { useRouter } from 'next/router'
+// import { useState, useEffect, useRef } from 'react'
+// import { useFormik } from 'formik'
+// import CategoryBread from '../../components/registration/testpanelBread'
 
 export default function AddPanel({ categories }) {
-  const [category, setCategory] = useState(categories||[])
-  const formReset = useRef()
-  console.log(categories)
-  const addpanel = useFormik({
-    initialValues: {
-      name: '',
-      category: '',
-      price: '',
-    },
-    validate: (values) => {
-      let errors = {}
-      if (!values.name) {
-        errors.name = 'test name required'
-      }
-    },
-    onSubmit: (values, reset) => {
-      let sendData = async function () {
-        let pushdata = await fetch('http://localhost:5000/api/v1/testpanel/list', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(values),
-        })
-        return pushdata
-      }
+  // const [category, setCategory] = useState(categories||[])
+  // const formReset = useRef()
+  // console.log(categories)
+  // const addpanel = useFormik({
+  //   initialValues: {
+  //     name: '',
+  //     category: '',
+  //     price: '',
+  //   },
+  //   validate: (values) => {
+  //     let errors = {}
+  //     if (!values.name) {
+  //       errors.name = 'test name required'
+  //     }
+  //   },
+  //   onSubmit: (values, reset) => {
+  //     let sendData = async function () {
+  //       let pushdata = await fetch('http://localhost:5000/api/v1/testpanel/list', {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         body: JSON.stringify(values),
+  //       })
+  //       return pushdata
+  //     }
 
-      sendData()
-        .then((response) => {
-          return response.json()
-        })
-        .then((response) => {
-          if (response == 'test panel successfully added') {
-            reset.resetForm()
-          }
-        })
-        .catch((err) => {
-          throw err
-        })
-    },
-  })
+  //     sendData()
+  //       .then((response) => {
+  //         return response.json()
+  //       })
+  //       .then((response) => {
+  //         if (response == 'test panel successfully added') {
+  //           reset.resetForm()
+  //         }
+  //       })
+  //       .catch((err) => {
+  //         throw err
+  //       })
+  //   },
+  // })
   return (
     <>
-      <CategoryBread section={'Panel'} />
+      {/* <CategoryBread section={'Panel'} />
       <Box sx={{ width: '80%', margin: '2% 2% 0% 2%' }}>
         <form onSubmit={addpanel.handleSubmit} ref={formReset}>
           <Stack
@@ -125,7 +125,7 @@ export default function AddPanel({ categories }) {
             </Button>
           </Stack>
         </form>
-      </Box>
+      </Box> */}
     </>
   )
 }

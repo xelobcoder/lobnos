@@ -47,7 +47,8 @@ export default function UserList({ editcall }) {
       setusers(sorted)
       console.log(sorted)
     }
-  }
+  },
+    []
   )
 
 

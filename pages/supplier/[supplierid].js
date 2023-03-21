@@ -38,58 +38,7 @@ export default function SINGLE_SUPPLIER() {
 
 
   const commodities = [
-    {
-      name: 'edta tubes',
-    },
-    {
-      name: 'syringes',
-    },
-    {
-      name: 'edta tubes',
-    },
-    {
-      name: 'edta tubes',
-    },
-    ,
-    {
-      name: 'syringes',
-    },
-    {
-      name: 'edta tubes',
-    },
-    {
-      name: 'edta tubes',
-    },
-    ,
-    {
-      name: 'syringes',
-    },
-    {
-      name: 'edta tubes',
-    },
-    {
-      name: 'edta tubes',
-    },
-    ,
-    {
-      name: 'syringes',
-    },
-    {
-      name: 'edta tubes',
-    },
-    {
-      name: 'edta tubes',
-    },
-    ,
-    {
-      name: 'syringes',
-    },
-    {
-      name: 'edta tubes',
-    },
-    {
-      name: 'edta tubes',
-    },
+    
   ]
 
 
@@ -126,7 +75,6 @@ export default function SINGLE_SUPPLIER() {
 
             <h1>Transactions</h1>
             <div className='m-10'>
-             {/* <EditorJS/> */}
             </div>
           </div>
         </>)

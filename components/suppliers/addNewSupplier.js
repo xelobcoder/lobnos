@@ -1,7 +1,6 @@
 import React from 'react';
 import CloseIcon from '@mui/icons-material/Close';
 import { Container } from '@mui/material';
-import controller from '../../pages/supplier/inventory';
 import TopMessage from '../accessories/TopMessage';
 import { Button } from 'react-bootstrap';
 import AddBoxIcon from '@mui/icons-material/AddBox';
@@ -146,19 +145,18 @@ export default function ADD_NEW_SUPPLIER() {
             return;
           }
           else {
-            // transform
+            // transform keys to lowercase to match 
             const xmap = result[0];
             let transformed = function () {
               let obj = {};
               for (let key in xmap) {
                 obj[key.toLowerCase()] = xmap[key];
               }
-              // reomove supplier id and date created
+              // remove supplier id and date created
               delete obj.supplierid;
               delete obj.date
               return obj;
             }
-            console.log(transformed());
             setNewSupplier(transformed());
           }
         })
@@ -183,7 +181,7 @@ export default function ADD_NEW_SUPPLIER() {
             <div className='form-group'>
               <label htmlFor='commodity'>commodity</label>
               <div className='d-flex'>
-                <input className='custom-input' value={commodity} id='commodity' multiple required list='mycommodity' placeholder='commodity name'
+                <input className='custom-input' value={commodity} id='commodity' multiple={true} required list='mycommodity' placeholder='commodity name'
                   onChange={(ev) => {
                     inputhandler(ev, 'commodity');
                   }}

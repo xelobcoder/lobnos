@@ -1,5 +1,5 @@
 export default function Footer() {
    return (
-    <h3>Footer</h3>
+    <h3>leonides company limited</h3>
    )
 }

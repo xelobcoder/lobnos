@@ -49,7 +49,7 @@ const router = useRouter;
            <button className='btn btn-danger' onClick={(e) => deleteController(e, item.supplierid)}><DeleteForeverIcon /></button>
            <button className='btn btn-warning'>
             <Link href={`/supplier/${item.supplierid}`}>
-             <a ><PreviewIcon /></a>
+             <PreviewIcon />
             </Link>
            </button>
           </td>
