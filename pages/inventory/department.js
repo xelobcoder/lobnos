@@ -2,67 +2,207 @@ import React from 'react'
 import TableDisplay from '../../components/accessories/TableDisplay'
 import Header from '../../components/header'
 import InventoryHeaders from '../../components/Headers/inventoryHeaders'
-import PLACE_ORDER from '../../components/inventory/placeorder'
+import PLACE_ORDER from '../../components/inventory/placeorder';
+import { useTable } from 'react-table'
+import SECOND_NO_DATA from '../../components/accessories/secondNodata';
+import DepartmentStockLevel from '../../components/inventory/departmentStockLevel';
 
 export default function DepartmentRequisition({ departments, stocks }) {
-  const [department, setDepartments] = React.useState(departments || [])
+  const [department, setDepartments] = React.useState(departments || []);
+  const [stock, setStocks] = React.useState(stocks || []);
+  const [selectedDept, setSelectedDept] = React.useState('');
+  // with a click, makes depart select box, stock table toggle
+  const [eventKey, setEventKey] = React.useState('2');
 
-  // create a column 
+  const handleSearch = (e) => {
+    const { value } = e.target;
+    const filtered = stocks.filter((stock) => {
+      return stock.name.toLowerCase().includes(value.toLowerCase());
+    })
+    if (value.length > 0) {
+      setStocks(filtered);
+    }
+    else {
+      setStocks(stocks);
+    }
+  }
 
-  const columns = [
-    {
-      Header: 'Stock ID',
-      accessor: 'stockid'
-    },
-    {
-      Header: 'Name',
-      accessor: 'name'
-    },
-    {
-      Header: 'Category',
-      accessor: 'category'
-    },
-    {
-      Header: 'purchaseunit',
-      accessor: 'purchaseunit'
-    },
-    {
-      Header: 'consumptionunit',
-      accessor: 'consumptionunit'
-    },
-    {
-      Header: 'quantity required',
-      accessor: 'quantityrequired',
-      Cell: ({ row }) => (
-        <input type='number' className='custom-input' />
-      )
-    },
-    {
-      Header: 'order',
-      accessor: 'order',
-      Cell: ({ row }) => (
-        <button className='btn btn-warning btn-sm'>Order</button>
+
+  const handleRequiredQty = (e, stockid) => {
+    const qty = e.target.value;
+    // filter the stock using the stockid
+    const filtered = stock.filter((stock) => {
+      return stock.stockid === stockid;
+    })
+
+    const index = stock.indexOf(filtered[0]);
+
+    // update the quantity required
+    stock[index].quantityrequired = qty;
+
+    // update the state
+    setStocks([...stock]);
+  }
+
+
+
+  const handleOrders = (e, id) => {
+    // filter the stock using the stockid
+    const filtered = stock.filter((stock) => {
+      return stock.stockid === id;
+    })
+
+    // transform the data
+    const transformedData = {
+      stockid: filtered[0].stockid,
+      departmentid: parseInt(selectedDept),
+      quantity: parseInt(filtered[0].quantityrequired),
+      comsumptionunit: filtered[0].consumptionunit,
+      requisitionid: Date.now()
+    }
+
+    // do trasnformedData have empty values
+    let emtypValues = Object.values(transformedData).filter((value) => {
+      return value === '';
+    })
+
+    if (emtypValues.length > 0 || transformedData.quantity === 0) {
+      alert('Please fill in required quantity');
+      return;
+    }
+    else {
+      // send the data to the server
+      const sendDataAsync = fetch('http://localhost:5000/api/v1/departments/requisitions', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify(transformedData)
+      })
+
+
+      sendDataAsync.then((response) => {
+        return response.json();
+      }
+      ).then((data) => {
+        if (data.status === 'success' && data.message === 'Department requisition added successfully') {
+          alert(data.message);
+          // remove the item from the stock
+          const index = stock.indexOf(filtered[0]);
+          stock.splice(index, 1);
+          setStocks([...stock])
+        }
+
+        if (data.status === 'success' && data.message === 'Stock has already been requisitioned') {
+          alert(data.message);
+        }
+
+        if (data.status === 'error') {
+          alert(data.message);
+        }
+      }
+      ).catch((err) => {
+        alert(err)
+        console.log(err);
+      }
       )
     }
-  ]
+  }
+
   return (
     <>
-      <div className='p-1 lims-text-color d-flex justify-content-center'>
+      <div className='p-1 lims-text-color' style={{ display: 'grid', gridTemplateColumns: '40% 35% auto', gridGap: '10px' }}>
         {/* <header className='mt-1'> */}
-        <h4 className='text-2xl font-bold col-6'>Department Requisition</h4>
-        <select className='custom-input'>
-          <option>select a department</option>
+        {
+          eventKey == 1 && (
+            <>
+              <h4 className='font-bold'>Department Requisition</h4>
+              <select className='custom-input'
+                onChange={(e) => setSelectedDept(e.target.value)}
+                value={selectedDept}
+              >
+                <option>select a department</option>
+                {
+                  department.map((dept) => (
+                    <option key={dept.id} value={dept.id}>{dept.department}</option>
+                  ))
+                }
+              </select></>
+          )
+        }
+        <div>
+          <button className='custom-button'
+            onClick={(e) => setEventKey(2)}
+          >stocks level</button>
+          <button className='custom-button'>requested</button>
           {
-            department.map((dept) => (
-              <option key={dept.id} value={dept.id}>{dept.department}</option>
-            ))
+            eventKey != 1 && (
+              <button className='custom-button'
+                onClick={(e) => setEventKey(1)}
+              >place order</button>
+            )
           }
-        </select>
+        </div>
 
       </div>
-      <div id='placeorder'>
-        <TableDisplay column={columns} data={stocks} />
-      </div>
+      {
+        eventKey == 1 && (
+          <div >
+            {
+              selectedDept.length > 0 ? (
+                <><div className='d-flex justify-content-left mt-4'>
+                  <div className='col-6'>
+                    <input type='text'
+                      onChange={(e) => handleSearch(e)}
+                      className='custom-input' placeholder='search' />
+                  </div>
+                </div><div>
+                    <table id='custom-table'>
+                      <thead>
+                        <tr>
+                          <th>Stock ID</th>
+                          <th>Name</th>
+                          <th>Category</th>
+                          <th>Purchase Unit</th>
+                          <th>Consumption Unit</th>
+                          <th>Quantity Required</th>
+                          <th>Order</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stock.map((stock) => (
+                          <tr key={stock.stockid}>
+                            <td>{stock.stockid}</td>
+                            <td>{stock.name}</td>
+                            <td>{stock.category}</td>
+                            <td>{stock.purchaseunit}</td>
+                            <td>{stock.consumptionunit}</td>
+                            <td><input type='number'
+                              value={stock.quantityrequired}
+                              onChange={(e) => handleRequiredQty(e, stock.stockid)}
+                              className='custom-input' /></td>
+                            <td><button
+                              onClick={(e) => handleOrders(e, stock.stockid)}
+                              className='btn btn-warning'>Order</button></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div></>
+              ) : <SECOND_NO_DATA message={'No department selected'} />
+            }
+          </div>
+        )
+      }
+
+      {
+        eventKey == 2 && (
+          <>
+            <DepartmentStockLevel departmentid={68} />
+          </>
+        )
+      }
+
     </>
   )
 }
@@ -95,7 +235,12 @@ export async function getServerSideProps(context) {
   return {
     props: {
       departments: data[0].data,
-      stocks: data[1].result
+      stocks: data[1].result.map((stock) => {
+        return {
+          ...stock,
+          quantityrequired: 0
+        }
+      })
     },
   }
 }

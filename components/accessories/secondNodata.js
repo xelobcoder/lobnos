@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function SECOND_NO_DATA() {
+export default function SECOND_NO_DATA({ message }) {
   return (
     <div className='d-flex justify-content-center flex-column-reverse'>
       <div className='d-flex justify-content-center lims-text-color'>
@@ -10,7 +10,12 @@ export default function SECOND_NO_DATA() {
         </svg>
       </div>
       <div className='d-flex justify-content-center'>
-      <h3 className='lims-text-color'>  No data found</h3>
+        {
+          message && <h5 className='lims-text-color'>  {message}</h5>
+        }
+        {
+          !message && <h3>No data found</h3>
+        }
       </div>
     </div>
   )

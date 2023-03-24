@@ -19,16 +19,22 @@ export default function EXPIRE_STOCKS({ expirestock }) {
       Header: 'Quantity',
       accessor: 'quantity',
     },
-    {
-      Header: 'Expiry Date',
-      accessor: 'expirydate',
-    },
+
     {
       Header: 'Received Date',
       accessor: 'receiveddate',
-      Cell : ({row}) => (
-        <div>
+      Cell: ({ row }) => (
+        <div className='text-success'>
           {row.original.receiveddate.split('T')[0]}
+        </div>
+      )
+    },
+    {
+      Header: 'Expiry Date',
+      accessor: 'expirydate',
+      Cell: ({ row }) => (
+        <div className='text-danger'>
+          {row.original.expirydate.split('T')[0]}
         </div>
       )
     },
@@ -48,7 +54,7 @@ export default function EXPIRE_STOCKS({ expirestock }) {
       Header: 'Action',
       Cell: function (row) {
         return (
-         <DeleteForever color='error' onClick={() => handleDelete(row.original.productsorderid)} />
+          <DeleteForever color='error' onClick={() => handleDelete(row.original.stockid)} />
         )
       }
 

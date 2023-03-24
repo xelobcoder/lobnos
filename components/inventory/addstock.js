@@ -13,7 +13,7 @@ export default function ADD_STOCK_INVENTORY() {
     unitquantity: '',
     alertlevel: '',
     materialcode: '',
-    tax: ''
+    tax: 0
   })
 
   const [show, setMessageshow] = useState(false);
@@ -51,7 +51,7 @@ export default function ADD_STOCK_INVENTORY() {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(productdetails)
+          body: JSON.stringify({...productdetails,tax: parseInt(productdetails.tax)})
         })
         const data = await response.json();
         console.log(data);
