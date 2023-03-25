@@ -9,7 +9,7 @@ import DepartmentStockLevel from "../../components/inventory/departmentStockLeve
 import { useRouter } from "next/router";
 import TopMessage from './../../components/accessories/topMessage';
 
-export default function DepartmentRequisition({ departments, stocks }) {
+export default function DepartmentRequisition({ departments = [], stocks = [] }) {
   const [department, setDepartments] = React.useState(departments || []);
   const [stock, setStocks] = React.useState(stocks || []);
   const [selectedDept, setSelectedDept] = React.useState("");
@@ -22,11 +22,16 @@ export default function DepartmentRequisition({ departments, stocks }) {
   const router = useRouter();
 
 
+  const STOCKS_URL = 'http://localhost:5000/api/v1/departments/stocks';
+  const REQUISITIONS_URL = 'http://localhost:5000/api/v1/departments/requisitions';
+
+
+
 
   // fill the departmentStocksLevl once the selectedDept changes
   React.useMemo(() => {
     const getdata = async () => {
-      const response = await fetch(`http://localhost:5000/api/v1/departments/stocks?id=${selectedDept}`);
+      const response = await fetch(`${STOCKS_URL}?id=${selectedDept}`);
       const data = await response.json();
       if (data.status == 'success') {
         setDepartmentStocksLevel(data.result);
@@ -87,9 +92,10 @@ export default function DepartmentRequisition({ departments, stocks }) {
       alert("Please fill in required quantity");
       return;
     } else {
-      // send the data to the server
+      // send the data to the server'
+      console.log(transformedData);
       const sendDataAsync = fetch(
-        "http://localhost:5000/api/v1/departments/requisitions",
+        `${REQUISITIONS_URL}`,
         {
           method: "POST",
           headers: {
@@ -112,7 +118,7 @@ export default function DepartmentRequisition({ departments, stocks }) {
             // remove the item from the stock
             const index = stock.indexOf(filtered[0]);
             stock.splice(index, 1);
-            setStocks([...stock]);
+            setStocks(prevStocks => [...prevStocks])
           }
 
           if (
@@ -127,8 +133,7 @@ export default function DepartmentRequisition({ departments, stocks }) {
           }
         })
         .catch((err) => {
-          alert(err);
-          console.log(err);
+          alert(err?.message);
         });
     }
   };
@@ -149,12 +154,12 @@ export default function DepartmentRequisition({ departments, stocks }) {
       if (data.status === "success") {
         // delete the stock from the state
         const filtered = stock.filter((stock) => {
-          return stock.stockid !== id;
+          return stock?.stockid !== id;
         });
 
         setMessage({ message: data.message, type: 'success', display: true })
 
-        setDepartmentStocksLevel([...filtered]);
+       setDepartmentStocksLevel([...filtered])
       }
     }
     return
@@ -201,15 +206,15 @@ export default function DepartmentRequisition({ departments, stocks }) {
             stocks level
           </button>
           <button className="custom-button"
-            onClick={(e) =>{
-               if (selectedDept === '') {
-                 alert('Please select a department')
-                 return
-               }
-               else {
+            onClick={(e) => {
+              if (selectedDept === '') {
+                alert('Please select a department')
+                return
+              }
+              else {
                 router.push(`/inventory/requisition?dept=${selectedDept}`)
-               }
-            } }
+              }
+            }}
           >requested</button>
           {eventKey != 1 && (
             <button className="custom-button" onClick={(e) => setEventKey(1)}>

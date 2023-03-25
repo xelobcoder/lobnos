@@ -4,7 +4,10 @@ const nextConfig = {
   swcMinify: true,
   experimental: {
     appDir: true,
-  }
+  },
+  env: {
+    BASEURL: 'http://localhost:5000/api/v1',
+  },
 }
 
 module.exports = nextConfig;

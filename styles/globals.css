@@ -1998,9 +1998,9 @@ textarea::placeholder {
   padding: 10px;
   border-radius: 5px;
 }
-.custom-table-wrapper{
- height: 80vh;
- overflow-y: auto;
+.custom-table-wrapper {
+  height: 80vh;
+  overflow-y: auto;
 }
 
 #custom-table {
@@ -2125,7 +2125,6 @@ textarea::placeholder {
   color: #00224f;
 }
 
-
 .custom-button {
   background-color: #00224f;
   color: white;
@@ -2139,8 +2138,7 @@ textarea::placeholder {
   margin: 0px 5px;
 }
 
-
-.custom-button-danger{
+.custom-button-danger {
   background-color: red;
 }
 
@@ -2158,3 +2156,26 @@ textarea::placeholder {
   margin: 0px 5px;
 }
 
+#instruction-view {
+  background-color:rgba(0, 0, 0, 0.227);
+  width: 100%;
+  height: 100vh;
+  position: absolute;
+  top: 7%;
+  left:0;
+  width: 100%;
+  /* display: none; */
+}
+
+
+#instruction-view > .content {
+  width: 50%;
+  height:auto;
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 10px;
+  border-radius: 5px;
+  overflow-y: auto;
+}

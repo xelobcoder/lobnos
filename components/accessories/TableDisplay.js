@@ -1,8 +1,8 @@
-/* eslint-disable react/jsx-key */
 import React, { useMemo } from 'react'
 import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination } from 'react-table'
 import GlobalFilter from './GlobalFilter'
 import SECOND_NO_DATA from './secondNodata'
+
 export default function TableDisplay({ column, data }) {
   const tableInstance = useTable({
     columns: useMemo(() => column, [column]),
@@ -22,14 +22,9 @@ export default function TableDisplay({ column, data }) {
     pageCount,
     setPageSize,
     prepareRow,
-    state,
+    state: { globalFilter, pageIndex, pageSize },
     setGlobalFilter,
   } = tableInstance
-
-
-  const { globalFilter } = state;
-
-  const { pageIndex, pageSize } = state;
 
   return (
     <>
@@ -45,23 +40,23 @@ export default function TableDisplay({ column, data }) {
                     <table {...getTableProps()} id='custom-table'>
                       <thead>
                         {headerGroups.map((headerGroup) => (
-                          <tr {...headerGroup.getHeaderGroupProps()}>
-                            {headerGroup.headers.map((column, index) => (
-                              <th {...column.getHeaderProps(column.getSortByToggleProps())}>{column.render('Header')}
+                          <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
+                            {headerGroup.headers.map((column) => (
+                              <th {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
+                                {column.render('Header')}
                                 <span>{column.isSorted ? (column.isSortedDesc ? ' 🔽' : ' 🔼') : ''}</span>
                               </th>
                             ))}
-
                           </tr>
                         ))}
                       </thead>
                       <tbody {...getTableBodyProps()}>
-                        {page.map((row, index) => {
+                        {page.map((row) => {
                           prepareRow(row)
                           return (
-                            <tr {...row.getRowProps()}>
+                            <tr {...row.getRowProps()} key={row.id}>
                               {row.cells.map((cell) => {
-                                return <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
+                                return <td {...cell.getCellProps()} key={cell.column.id}>{cell.render('Cell')}</td>
                               })}
                             </tr>
                           )
@@ -73,7 +68,7 @@ export default function TableDisplay({ column, data }) {
                       <span className='p-2'>
                         Page{' '}
                         <strong>
-                          {state.pageIndex + 1} of {pageOptions.length}
+                          {pageIndex + 1} of {pageOptions.length}
                         </strong>{' '}
                       </span>
                       <span style={{ marginRight: '20px' }}>
@@ -96,3 +91,9 @@ export default function TableDisplay({ column, data }) {
     </>
   )
 }
+
+// The changes made include:
+
+// Removing the eslint-disable comment for the warning.
+// Adding a key prop to the <tr> and <th> elements to fix the warning.
+// Destructuring the required properties directly from the tableInstance state object

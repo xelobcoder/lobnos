@@ -37,6 +37,12 @@ export default function InventoryHeaders() {
             Department requisition
           </Link>
         </li>
+        <li>
+          <Link href='/inventory/stocksrequest'>
+            <DepartureBoardIcon fontSize='large' />
+            operations
+          </Link>
+        </li>
       </ul>
     </div>
   )

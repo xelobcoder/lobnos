@@ -1,7 +1,5 @@
-/* eslint-disable react/jsx-key */
-import { DeleteForever, EditAttributesOutlined, EditAttributesTwoTone } from '@mui/icons-material';
-import EditIcon from '@mui/icons-material/Edit';
-import React, { Suspense } from 'react';
+import { DeleteForever, Edit, EditAttributesOutlined } from '@mui/icons-material';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import TableDisplay from '../../components/accessories/TableDisplay';
 import Inventory_Loading from './loading';
@@ -9,16 +7,19 @@ import Header from '../../components/header';
 import InventoryHeaders from '../../components/Headers/inventoryHeaders';
 
 export default function INVENTORY_PAGE({ stocks }) {
-  const [stocksource, setStocks] = React.useState(stocks);
-
-  const [search, setSearch] = React.useState('');
+  const [stocksource, setStocks] = useState(stocks);
+  const [search, setSearch] = useState('');
+  const STOCKS_URL = 'http://localhost:5000/api/v1/stock';
+  const EditUrl = '/inventory/addstock?tab=edit&stockid=';
 
   const columns = [
     {
       Header: '#',
-      Cell: ({ row }) => <div>
-        <input type='checkbox' />
-      </div>,
+      Cell: ({ row }) => (
+        <div>
+          <input type='checkbox' />
+        </div>
+      ),
     },
     {
       Header: 'Stock ID',
@@ -43,23 +44,21 @@ export default function INVENTORY_PAGE({ stocks }) {
     {
       Header: 'Quantity',
       accessor: 'quantity',
-      Cell: ({ row }) => (
-        <div title={`Alert Level: ${row.original.alertlevel >= row.original.quantity ? 'High' : 'Low'}`}
-          className={
-            row.original.alertlevel == row.original.quantity
-              ? 'alertlevel-medium'
-              : (row.original.alertlevel > row.original.quantity
-                ? 'alertlevel-high' : 'alertlevel-low')
-          }
-        >
-          {row.original.quantity}
-        </div>
-      )
+      Cell: ({ row }) => {
+        const alertLevel = row.original.alertlevel >= row.original.quantity ? 'High' : 'Low';
+        const alertLevelClass =
+          row.original.alertlevel === row.original.quantity ? 'alertlevel-medium' :
+            row.original.alertlevel > row.original.quantity ? 'alertlevel-high' : 'alertlevel-low';
+        return (
+          <div title={`Alert Level: ${alertLevel}`} className={alertLevelClass}>
+            {row.original.quantity}
+          </div>
+        );
+      },
     },
     {
       Header: 'Alert Level',
       accessor: 'alertlevel',
-
     },
     {
       Header: 'Material Code',
@@ -72,11 +71,11 @@ export default function INVENTORY_PAGE({ stocks }) {
     {
       Header: 'Date',
       accessor: 'date',
-      Cell : ({row}) => (
+      Cell: ({ row }) => (
         <div>
           {row.original.date.split('T')[0]}
         </div>
-      )
+      ),
     },
     {
       Header: 'Action',
@@ -84,56 +83,44 @@ export default function INVENTORY_PAGE({ stocks }) {
         <div>
           <DeleteForever
             onClick={() => { handleDelete(row.original.stockid) }}
-            fontSize='medium' color='error' />
-          <EditIcon fontSize='medium' color='primary'
-            onClick={() => handleEdit(row.original.stockid)}
+            fontSize='medium' color='error'
           />
+          <Edit fontSize='medium' color='primary' onClick={() => handleEdit(row.original.stockid)} />
         </div>
-      )
-    }
-  ]
+      ),
+    },
+  ];
 
-
-  const handleDelete = (id) => {
-    // send delete request to the server
+  const handleDelete = async (id) => {
     try {
-      fetch(`http://localhost:5000/api/v1/stock`, {
+      const res = await fetch(`${STOCKS_URL}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stockid: id }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.status === 'success') {
-            // remove the deleted item from the state
-            const newStocks = stocksource.filter((item) => item.stockid !== id);
-            setStocks(newStocks);
-            console.log(stocksource)
-          }
-        });
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        const newStocks = stocksource.filter((item) => item.stockid !== id);
+        setStocks(newStocks);
+      }
     } catch (error) {
       console.log(error);
     }
-  }
+  };
 
   const router = useRouter();
 
   const handleEdit = (id) => {
-    router.push(`/inventory/addstock?tab=edit&stockid=${id}`);
-  }
-
-
+    router.push(`${EditUrl}=${id}`);
+  };
 
   return (
     <>
-      <Suspense fallback={<Inventory_Loading />}>
-        <TableDisplay data={stocksource} column={columns} />
-      </Suspense>
+      <TableDisplay data={stocksource} column={columns} fallback={<Inventory_Loading />} />
     </>
-  )
+  );
 }
+
 
 // get server side props
 export async function getServerSideProps(context) {
@@ -148,7 +135,6 @@ export async function getServerSideProps(context) {
     };
   }
 }
-
 
 
 
@@ -168,3 +154,6 @@ INVENTORY_PAGE.getLayout = function getLayout(page) {
     </>
   )
 }
+
+
+// refactor the code above
