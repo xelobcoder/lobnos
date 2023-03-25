@@ -2,20 +2,11 @@ import React from 'react'
 import SECOND_NO_DATA from '../accessories/secondNodata';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Button } from '@mui/material';
-export default function DepartmentStockLevel({departmentid}) {
-  const [stock, setStock] = React.useState([]);
+import {useRouter} from 'next/router';
+export default function DepartmentStockLevel({datasource,deleteStock}) {
+  const [stock, setStock] = React.useState(datasource || []);
+  const router = useRouter();
 
-
-  React.useMemo(() => {
-    const getdata = async () => {
-      const response = await fetch(`http://localhost:5000/api/v1/departments/stocks?id=${departmentid}`);
-      const data = await response.json();
-      if (data.status == 'success') {
-        setStock(data.result)
-      }
-    }
-    getdata();
-  }, [])
 
   return (
     <div className='p-3'>
@@ -45,7 +36,11 @@ export default function DepartmentStockLevel({departmentid}) {
                         <td>{item.quantityAvailable
                         }</td>
                         <td>
-                          <Button variant='contained' color='error' startIcon={<DeleteIcon />}>Delete</Button>
+                          <Button variant='contained' 
+                           onClick={(e) => { 
+                            deleteStock(e,item.stockid);
+                          }}
+                          color='error' startIcon={<DeleteIcon />}>Delete</Button>
                         </td>
                       </tr>
                     )
