@@ -79,7 +79,7 @@ export default function ADD_STOCK_INVENTORY() {
 
       if (checkEmptyFields()) {
         setMessageshow(true);
-        setMessage({ type: 'warning', message: 'Please fill all fields' })
+        setMessage({ type: "warning", message: "Please fill all fields" });
       }
       else {
         senddata();
@@ -120,80 +120,155 @@ export default function ADD_STOCK_INVENTORY() {
 
   return (
     <>
-      {
-        show &&
-        <TopMessage display={show} message={message.message} type={message.type} messageTimer={
-          () => {
+      {show && (
+        <TopMessage
+          display={show}
+          message={message.message}
+          type={message.type}
+          messageTimer={() => {
             setTimeout(() => {
               setMessageshow(false);
-            }, 3000)
-          }
-        } />
-      }
-      <div id='addsupplier' className='mt-3'>
-        <form style={{ display: 'grid', gridTemplateColumns: '48% 48%', gridGap: '0px 1%' }}>
+            }, 3000);
+          }}
+        />
+      )}
+      <div id="addsupplier" className="mt-3">
+        <form
+          style={{
+            display: "grid",
+            gridTemplateColumns: "48% 48%",
+            gridGap: "0px 1%",
+          }}
+        >
           <div className="form-group">
             <label htmlFor="name">Name</label>
-            <input type="text" className="custom-input" id="name" placeholder="Enter name" value={name} onChange={(ev) => inputhandler(ev, 'name')} />
+            <input
+              type="text"
+              className="custom-input"
+              id="name"
+              placeholder="Enter name"
+              value={name}
+              onChange={(ev) => inputhandler(ev, "name")}
+            />
           </div>
 
           <div className="form-group">
             <label htmlFor="category">Category</label>
-            <select className="custom-input" id="category" value={category} onChange={(ev) => inputhandler(ev, 'category')}>
+            <select
+              className="custom-input"
+              id="category"
+              value={category}
+              onChange={(ev) => inputhandler(ev, "category")}
+            >
               <option value="">Select category</option>
               {Categorylist.map((item, index) => {
-                return <option key={index} value={item}>{item}</option>;
+                return (
+                  <option key={index} value={item}>
+                    {item}
+                  </option>
+                );
               })}
             </select>
           </div>
 
           <div className="form-group">
             <label htmlFor="consumptionunit">Consumption Unit</label>
-            <select className="custom-input" id="consumptionunit" value={consumptionunit} onChange={(ev) => inputhandler(ev, 'consumptionunit')}>
+            <select
+              className="custom-input"
+              id="consumptionunit"
+              value={consumptionunit}
+              onChange={(ev) => inputhandler(ev, "consumptionunit")}
+            >
               <option value="">Select consumption unit</option>
               {Consumptionunitlist.map((item, index) => {
-                return <option key={index} value={item}>{item}</option>;
+                return (
+                  <option key={index} value={item}>
+                    {item}
+                  </option>
+                );
               })}
             </select>
           </div>
 
           <div className="form-group">
             <label htmlFor="purchaseunit">Purchase Unit</label>
-            <select className="custom-input" id="purchaseunit" value={purchaseunit} onChange={(ev) => inputhandler(ev, 'purchaseunit')}>
+            <select
+              className="custom-input"
+              id="purchaseunit"
+              value={purchaseunit}
+              onChange={(ev) => inputhandler(ev, "purchaseunit")}
+            >
               <option value="">Select purchase unit</option>
               {Purchaseunitlist.map((item, index) => {
-                return <option key={index} value={item}>{item}</option>;
+                return (
+                  <option key={index} value={item}>
+                    {item}
+                  </option>
+                );
               })}
             </select>
           </div>
 
           <div className="form-group">
             <label htmlFor="unitquantity">Unit Quantity</label>
-            <input type="text" className="custom-input" id="unitquantity" placeholder="Enter unit quantity" value={unitquantity} onChange={(ev) => inputhandler(ev, 'unitquantity')} />
+            <input
+              type="text"
+              className="custom-input"
+              id="unitquantity"
+              placeholder="Enter unit quantity"
+              value={unitquantity}
+              onChange={(ev) => inputhandler(ev, "unitquantity")}
+            />
           </div>
 
           <div className="form-group">
             <label htmlFor="alertlevel">Alert Level</label>
-            <input type="text" className="custom-input" id="alertlevel" placeholder="Enter alert level" value={alertlevel} onChange={(ev) => inputhandler(ev, 'alertlevel')} />
+            <input
+              type="text"
+              className="custom-input"
+              id="alertlevel"
+              placeholder="Enter alert level"
+              value={alertlevel}
+              onChange={(ev) => inputhandler(ev, "alertlevel")}
+            />
           </div>
 
           <div className="form-group">
             <label htmlFor="materialcode">Material Code</label>
-            <input type="text" className="custom-input" id="materialcode" placeholder="Enter material code" value={materialcode} onChange={(ev) => inputhandler(ev, 'materialcode')} />
+            <input
+              type="text"
+              className="custom-input"
+              id="materialcode"
+              placeholder="Enter material code"
+              value={materialcode}
+              onChange={(ev) => inputhandler(ev, "materialcode")}
+            />
           </div>
 
           <div className="form-group">
             <label htmlFor="tax">Tax</label>
-            <input type="text" className="custom-input" id="tax" placeholder="Enter tax" value={tax} onChange={(ev) => inputhandler(ev, 'tax')} />
+            <input
+              type="text"
+              className="custom-input"
+              id="tax"
+              placeholder="Enter tax"
+              value={tax}
+              onChange={(ev) => inputhandler(ev, "tax")}
+            />
           </div>
 
           <div className="form-group">
-            <button type="submit" className="btn btn-primary" onClick={handleSubmit}>
-              {tab === 'edit' ? <SystemUpdate /> : <AddCircleOutline />}
-              {tab === 'edit' ? 'Update' : 'Add'}
+            <button
+              type="submit"
+              className="btn btn-primary"
+              onClick={handleSubmit}
+            >
+              {tab === "edit" ? <SystemUpdate /> : <AddCircleOutline />}
+              {tab === "edit" ? "Update" : "Add"}
             </button>
           </div>
         </form>
-      </div></>
-  )
+      </div>
+    </>
+  );
 }

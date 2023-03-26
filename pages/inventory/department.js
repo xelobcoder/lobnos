@@ -43,7 +43,10 @@ export default function DepartmentRequisition({ departments = [], stocks = [] })
   const handleSearch = (e) => {
     const { value } = e.target;
     const filtered = stocks.filter((stock) => {
-      return stock.name.toLowerCase().includes(value.toLowerCase());
+      return (
+        stock.name.toLowerCase().includes(value.toLowerCase()) ||
+        stock.category.toLowerCase().includes(value.toLowerCase())
+      )
     });
     if (value.length > 0) {
       setStocks(filtered);
@@ -159,7 +162,7 @@ export default function DepartmentRequisition({ departments = [], stocks = [] })
 
         setMessage({ message: data.message, type: 'success', display: true })
 
-       setDepartmentStocksLevel([...filtered])
+        setDepartmentStocksLevel([...filtered])
       }
     }
     return

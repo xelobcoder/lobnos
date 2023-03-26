@@ -2164,6 +2164,7 @@ textarea::placeholder {
   top: 7%;
   left:0;
   width: 100%;
+  z-index: 999;
   /* display: none; */
 }
 
@@ -2176,6 +2177,7 @@ textarea::placeholder {
   left: 50%;
   transform: translate(-50%, -50%);
   padding: 10px;
+  z-index: 9999;
   border-radius: 5px;
   overflow-y: auto;
 }

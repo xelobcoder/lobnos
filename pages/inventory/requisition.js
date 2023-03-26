@@ -53,7 +53,7 @@ export default function Requisition() {
 
 
 
-  const handleReceivedButton = (e, id) => {
+  const handleReceivedButton = (e, id, departmentid) => {
     // filter the hxData using the id
     const filtered = hxData.filter((item) => item.id === id);
     // quantity parsed to integer
@@ -72,6 +72,7 @@ export default function Requisition() {
         id,
         quantityReceived: supplied,
         departmentReceived: 1,
+        departmentid: parseInt(departmentid),
       }
 
       // send data to the server
@@ -85,11 +86,16 @@ export default function Requisition() {
             body: JSON.stringify(transformData),
           });
           const data = await response.json();
+          console.log(data);
           if (data.status === 'success' && data.statusCode === 200) {
-            alert('Data sent successfully');
+            alert(data.message);
             //  udate the state
             const updatedstocks = hxData.filter((item) => item.id !== id);
             setHxData(updatedstocks);
+          }
+
+          if (data.status === 'error') {
+            alert(data.message);
           }
         } catch (error) {
           console.error(error);
@@ -165,7 +171,7 @@ export default function Requisition() {
             ) : (
               <div>
                 <Button variant='contained' color='success'
-                  onClick={(e) => handleReceivedButton(e, row.original.id)}
+                  onClick={(e) => handleReceivedButton(e, row.original.id, row.original.departmentid)}
                   size='small' startIcon={<CallReceivedIcon />}>
                   Received
                 </Button>

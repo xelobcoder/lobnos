@@ -144,8 +144,7 @@ export default function Stocksrequest({ departments }) {
     <>
       <div className="container pt-3">
         <div className="row">
-          <div style={{ display: 'grid', gridTemplateColumns: '50% auto' }}>
-            <h4>Department Requisition</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: 'auto auto 40%' }}>
             <select className="custom-input" onChange={(e) => setDepartmentId(e.target.value)}>
               <option value="">Select Department</option>
               {
@@ -154,6 +153,12 @@ export default function Stocksrequest({ departments }) {
                 ))
               }
             </select>
+            <button className='custom-button'>
+              transfered
+            </button>
+            <button className='custom-button'>
+              issues raised
+            </button>
           </div>
         </div>
         <div className="row">
