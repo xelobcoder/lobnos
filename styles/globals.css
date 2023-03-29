@@ -604,35 +604,6 @@ a {
   font-weight: 500;
 }
 
-.group {
-  padding: 10px 20px;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-}
-
-.group > .header {
-  font-weight: 500;
-  color: black;
-  text-transform: capitalize !important;
-}
-
-.group > .header::after {
-  content: ':';
-  margin-right: 20px;
-}
-
-.group > .other::first-letter {
-  text-transform: uppercase;
-}
-
-.group > .other {
-  color: blue;
-}
-
 .test-detail-panel {
   position: relative;
   top: -18px;
@@ -2012,12 +1983,22 @@ textarea::placeholder {
   margin: 10px auto;
   border-collapse: collapse;
 }
-#custom-table > thead > tr {
+#custom-table > thead > tr,
+.ag-theme-alpine .ag-header {
   width: 100%;
-  background-color: #00224f21;
+  background-color: #00224f21 !important;
   border-bottom: 1px solid lightgray;
 }
-#custom-table > thead > tr > th {
+
+.ag-theme-material {
+  --ag-header-height: 30px;
+  --ag-header-foreground-color: #00224f;
+  --ag-header-background-color: #00224f;
+  --ag-header-cell-hover-background-color: #00224f;
+  --ag-header-cell-moving-background-color: #00224f;
+}
+#custom-table > thead > tr > th,
+.headerClass {
   font-size: 14px;
   font-weight: 700;
   color: #00224f;
@@ -2025,10 +2006,12 @@ textarea::placeholder {
   padding: 10px;
 }
 
-#custom-table > tbody > tr > td {
+#custom-table > tbody > tr > td,
+.cellClass {
   font-size: 14px;
   text-transform: capitalize;
   /* color: #00224f; */
+  min-width: 100px;
   padding: 5px;
 }
 #custom-table > tbody > tr:hover,
@@ -2036,7 +2019,12 @@ textarea::placeholder {
   background-color: #00224f21;
   cursor: pointer;
 }
-
+.cellClass {
+  font-weight: 500 !important;
+  color: #00224f;
+  padding-left: 20px;
+  font-size: 15px;
+}
 #custom-table > tbody > tr {
   border-bottom: 1px solid lightgray;
 }
@@ -2068,7 +2056,7 @@ textarea::placeholder {
 
 #custom-sidebar {
   width: 100%;
-  padding: 10px;
+  padding: 0px;
   margin: 0;
   border-collapse: collapse;
 }
@@ -2087,6 +2075,10 @@ textarea::placeholder {
   text-transform: uppercase;
   border-bottom: 1px solid lightgray;
   cursor: pointer;
+}
+
+#custom-sidebar > ul > li > a > svg {
+  margin-right: 20px;
 }
 
 #custom-sidebar > ul > li:hover {
@@ -2157,21 +2149,20 @@ textarea::placeholder {
 }
 
 #instruction-view {
-  background-color:rgba(0, 0, 0, 0.227);
+  background-color: rgba(0, 0, 0, 0.227);
   width: 100%;
   height: 100vh;
   position: absolute;
   top: 7%;
-  left:0;
+  left: 0;
   width: 100%;
   z-index: 999;
   /* display: none; */
 }
 
-
 #instruction-view > .content {
   width: 50%;
-  height:auto;
+  height: auto;
   position: absolute;
   top: 30%;
   left: 50%;
@@ -2180,4 +2171,131 @@ textarea::placeholder {
   z-index: 9999;
   border-radius: 5px;
   overflow-y: auto;
+}
+
+#redplaceholder::placeholder {
+  color: red;
+}
+
+.search-patient {
+  background-color: whitesmoke;
+  position: absolute;
+  left: 80%;
+  right: 0;
+  color: #00224f;
+  padding: 20px;
+  height: 100vh;
+  z-index: 9999;
+  overflow-y: auto;
+}
+
+.search-patient > .list-group {
+  padding: 0px;
+}
+
+.search-patient > .list-group > #item {
+  padding: 5px;
+  font-size: 14px;
+  background-color: #00224f;
+  color: white;
+  cursor: pointer;
+  line-height: 0.5 em;
+}
+
+.ag-pivot-off .ag-header-group-cell {
+  font-size: 50px;
+  color: #00224f !important;
+}
+.ag-pivot-on .ag-header-group-cell {
+  font-size: 25px;
+  color: green;
+}
+.billing-personal-info {
+  background-color: white;
+  margin: 10px 20px;
+  height: max-content;
+  padding: 10px;
+  max-height: auto;
+  border-radius: 1px;
+}
+.billing-personal-info > .billing-personal-info-header {
+  padding-left: 20px;
+}
+.billing-personal-info > .billing-personal-info-header > .split {
+  display: flex;
+  justify-content: space-between;
+}
+.billing-personal-info > .billing-personal-info-header > .split> h4 {
+  font-size: 16px;
+  text-transform: capitalize;
+  width: max-content;
+  border-radius: 10px;
+  padding: 5px;
+}
+
+.billing-personal-info > .billing-personal-info-header > main {
+  display: grid;
+  grid-template-columns: 50% auto;
+}
+
+.billing-personal-info > .billing-personal-info-header > main >.billing-side:first-child {
+  border-right: 1px solid lightgray !important;
+}
+.billing-personal-info
+  > .billing-personal-info-header
+  > main
+  > .billing-side
+  > div
+  > svg {
+  height: 100px;
+  width: 100px;
+}
+
+.billing-personal-info
+  > .billing-personal-info-header
+  > main
+  > .billing-side
+  > div
+  > h6 {
+  display: block;
+  font-size: 14px;
+  padding-left: 10px;
+  color: #00224f;
+  font-weight: 900 !important;
+}
+
+.billing-personal-info .reference-information {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-template-rows: repeat(2, 1fr);
+  grid-gap: 10px;
+}
+
+.billing-personal-info .reference-information > div > p:nth-of-type(1) {
+  font-size: 14px;
+  color: #00224f;
+  text-transform: capitalize;
+  font-weight: 900 !important;
+}
+
+.billing-personal-info .reference-information > div > p:nth-of-type(2) {
+  font-size: 15px;
+  color: black;
+  font-weight: 700;
+  text-transform: capitalize;
+  margin-top: -10px;
+}
+
+.billing-personal-info .reference-information > div > p:nth-of-type(2):last-child{
+  text-transform: lowercase !important;
+}
+
+.add-new-test {
+  background-color: white;
+  margin: 10px 20px;
+  padding: 10px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 80% 10%;
+  grid-gap: 10px;
 }

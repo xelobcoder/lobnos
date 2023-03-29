@@ -16,7 +16,6 @@ function INVOICE({ test }) {
         })
         .catch((err) => { console.log(err) })
     }
-    console.log(new Invoice('invoice', clientid, false).resultTest('calcium,liver function test,lipid profile'))
   }, [clientid])
 
 
@@ -157,7 +156,7 @@ INVOICE.getLayout = function (page) {
 
 export async function getServerSideProps(ctx) {
   // get all test panels
-  let endpoint = `http://localhost:3000/api/testpanel/list`
+  let endpoint = `${process.env.BASEURL}/testpanel/list`
   let response = await fetch(endpoint)
   let data = await response.json()
   return {

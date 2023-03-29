@@ -37,7 +37,7 @@ export default function Activator({ data }) {
   //   handle Billing
 
   const handleBilling = (e, patientid) => {
-    billing.push(`/registration/billing?patientid=${patientid}`)
+    billing.push(`/billing?patientid=${patientid}`)
   }
 
   // prefill the search field with the patient id after registration

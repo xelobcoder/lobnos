@@ -10,7 +10,7 @@ export default function INVENTORY_PAGE({ stocks }) {
   const [stocksource, setStocks] = useState(stocks);
   const [search, setSearch] = useState('');
   const STOCKS_URL = 'http://localhost:5000/api/v1/stock';
-  const EditUrl = '/inventory/addstock?tab=edit&stockid=';
+  const EditUrl = '/inventory/addstock?tab=edit&stockid';
 
   const columns = [
     {

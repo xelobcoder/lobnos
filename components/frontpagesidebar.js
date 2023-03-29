@@ -11,6 +11,7 @@ import ResetTvIcon from '@mui/icons-material/ResetTv';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import BiotechIcon from '@mui/icons-material/Biotech';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
+import { BloodtypeOutlined, PaymentTwoTone } from '@mui/icons-material';
 export default function SidebarFrontPage() {
   return (
     <>
@@ -25,6 +26,19 @@ export default function SidebarFrontPage() {
           <Link href="/activation">
             <AirplanemodeInactiveIcon />
             activation
+          </Link>
+        </li>
+        {/* billing */}
+        <li>
+          <Link href="/billing">
+            <PaymentTwoTone />
+            billing
+          </Link>
+        </li>
+        <li>
+          <Link href="/billing/billedclients">
+            <PaymentTwoTone />
+            billed clients
           </Link>
         </li>
         <li>
@@ -73,6 +87,13 @@ export default function SidebarFrontPage() {
           <Link href="/sample">
             <ScienceIcon />
             sample
+          </Link>
+        </li>
+        {/* phelobotomy */}
+        <li>
+          <Link href="/phelobotomy/dashboard">
+            <BloodtypeOutlined />
+            phelobotomy
           </Link>
         </li>
         <li>

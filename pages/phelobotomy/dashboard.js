@@ -9,7 +9,7 @@ export default function Phelobotomy() {
  // get data from database
  useEffect(() => {
   let getdata = async () => {
-   let data = await fetch('http://localhost:5000/api/v1/phelobotomy')
+   let data = await fetch(`${process.env.BASEURL}/phelobotomy`)
    let datajson = await data.json()
    setData(datajson)
   }

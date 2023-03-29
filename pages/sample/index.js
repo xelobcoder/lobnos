@@ -20,13 +20,13 @@ const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea, cur
     <div className="col-2">
      <input
       type="date"
-      className="form-control"
+      className="custom-input"
       onChange={(e) => ondate(e)}
       value={currentdate}
      />
     </div>
     <div>
-     <select className="form-select" value={onsearch} aria-label="select sample status" onChange={(e) => {
+     <select className="custom-input" value={onsearch} aria-label="select sample status" onChange={(e) => {
       sorting(e);
       searchArea(e.target.value)
      }}>
@@ -39,13 +39,13 @@ const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea, cur
     <div className="col-4">
      <input
       type="text"
-      className="form-control"
+      className="custom-input"
       onKeyUp={(e) => onchange(e)}
       placeholder="filter by name , BillingID,patientID"
      />
     </div>
     <div className="col-2">
-     <Button variant="contained" color="primary" onClick={() => {
+     <Button variant="contained" color="primary" className="custom-button" onClick={() => {
       const data = {
        date: currentdate,
        status: onsearch
@@ -298,9 +298,6 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
        <div className="p-4">
         <div className="d-flex w-100 justify-content-between">
          <h5 className="mb-1">Sample Assessment</h5>
-         <small>
-          <AccessTimeIcon /> 3 days ago
-         </small>
         </div>
         <FILTERS ondate={ondate} onchange={onchange} setData={updateData} sorting={sorting} rejectedList={setRejectedList}
          onsearch={onsearch} searchArea={searchArea} currentdate={currentdate} />

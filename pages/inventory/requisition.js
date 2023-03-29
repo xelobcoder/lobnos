@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Alert, Button } from '@mui/material';
-import { Backspace, CloseOutlined, DeleteForever } from '@mui/icons-material';
+import { Backspace, CloseOutlined, DeleteForever, PendingActions } from '@mui/icons-material';
 import Header from '../../components/header';
 import InventoryHeaders from '../../components/Headers/inventoryHeaders';
 import TableDisplay from '../../components/accessories/TableDisplay';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import ViewCompactAltIcon from '@mui/icons-material/ViewCompactAlt';
 import CallReceivedIcon from '@mui/icons-material/CallReceived';
+import { CheckCircle } from '@mui/icons-material';
+import DepartureBoard from '@mui/icons-material/DepartureBoard';
 
 export default function Requisition() {
   const router = useRouter();
@@ -15,12 +17,13 @@ export default function Requisition() {
   const [hxData, setHxData] = useState([]);
   // state for viewing instructions
   const [instructionView, setInstructionView] = useState(false);
+  const [dataCategory, setDataCategory] = useState('approved');
 
   useEffect(() => {
     async function fetchRequisitions() {
       if (departmentId) {
         try {
-          const response = await fetch(`${process.env.BASEURL}/departments/requisitions?id=${departmentId}`);
+          const response = await fetch(`${process.env.BASEURL}/departments/requisitions?id=${departmentId}&&type=${dataCategory}`);
           const data = await response.json();
           if (data.status === 'success' && data.statusCode === 200) {
             setHxData(data?.data);
@@ -31,7 +34,7 @@ export default function Requisition() {
       }
     }
     fetchRequisitions();
-  }, [departmentId]);
+  }, [departmentId, dataCategory]);
 
   const handleBack = () => {
     router.back();
@@ -72,6 +75,7 @@ export default function Requisition() {
         id,
         quantityReceived: supplied,
         departmentReceived: 1,
+        status: 'received',
         departmentid: parseInt(departmentid),
       }
 
@@ -119,11 +123,11 @@ export default function Requisition() {
       accessor: 'comsumptionunit',
     },
     {
-      Header: 'Quantity Requested',
+      Header: 'Qty Requested',
       accessor: 'quantity_requested',
     },
     {
-      Header: 'Quantity Approved',
+      Header: 'Qty Approved',
       accessor: 'quantity_approved',
       Cell: ({ row }) => (
         <>
@@ -143,13 +147,24 @@ export default function Requisition() {
       ),
     },
     {
-      Header: 'Supplied Quantity',
+      Header: 'Supplied Qty',
       accessor: 'quantityReceived',
       Cell: ({ row }) => (
         <>
-          <input type='number' className='custom-input'
-            onChange={(e) => handleReceiveField(e, row.original.id)}
-            placeholder='Enter quantity supplied' />
+          {row.original.status === 'received' && <div className='text-success'><CheckCircle /></div>
+          }
+          {
+            row.original.status === 'pending' &&
+            <input type='number' className='custom-input'
+              onChange={(e) => handleReceiveField(e, row.original.id)}
+              placeholder='Enter quantity supplied' disabled />
+          }
+          {
+            row.original.status === 'approved' &&
+            <input type='number' className='custom-input'
+              onChange={(e) => handleReceiveField(e, row.original.id)}
+              placeholder='Enter quantity supplied' />
+          }
         </>
       ),
     },
@@ -164,21 +179,25 @@ export default function Requisition() {
       Cell: ({ row }) => (
         <>
           {
-            row.original.quantity_approved == null ? (
-              <Button variant='contained' color='error' size='small' startIcon={<DeleteForever />}>
-                Delete
-              </Button>
-            ) : (
-              <div>
-                <Button variant='contained' color='success'
-                  onClick={(e) => handleReceivedButton(e, row.original.id, row.original.departmentid)}
-                  size='small' startIcon={<CallReceivedIcon />}>
-                  Received
+            row.original.status === 'received' ? null : (
+
+              row.original.quantity_approved == null ? (
+                <Button variant='contained' color='error' size='small' startIcon={<DeleteForever />}>
+                  Delete
                 </Button>
-                <Button title='click on report if you are unhappy with the stock  supplied or the stock supplied is less or more than the approved quantity' variant='contained' color='error' size='small' startIcon={<BugReportIcon />}>
-                  Report
-                </Button>
-              </div>
+              ) : (
+                <div>
+                  <Button variant='contained' color='success'
+                    onClick={(e) => handleReceivedButton(e, row.original.id, row.original.departmentid)}
+                    size='small' startIcon={<CallReceivedIcon />}>
+                    Received
+                  </Button>
+                  <Button title='click on report if you are unhappy with the stock  supplied or the stock supplied is less or more than the approved quantity' variant='contained' color='error' size='small' startIcon={<BugReportIcon />}>
+                    Report
+                  </Button>
+                </div>
+              )
+
             )
           }
         </>
@@ -224,7 +243,7 @@ export default function Requisition() {
       }
       <div className='d-flex'>
         <div>
-          <button className='custom-button mt-2' onClick={handleBack}>
+          <button className='custom-button mt-2 text-danger' onClick={handleBack}>
             <Backspace sx={{ marginRight: '10px' }} />
             Back
           </button>
@@ -233,6 +252,40 @@ export default function Requisition() {
           <button className='custom-button mt-2' onClick={(e) => setInstructionView(!instructionView)}>
             <ViewCompactAltIcon sx={{ marginRight: '10px' }} />
             view instructions</button>
+        </div>
+        {/* BUTTON FOR RECIEVED */}
+        <div>
+          <button className='custom-button mt-2 text-success'
+            onClick={(e) => setDataCategory('received')}
+          >
+            <CallReceivedIcon sx={{ marginRight: '10px' }} />
+            Received stocks
+          </button>
+        </div>
+        {/* button for pending approval */}
+        <div>
+          <button className='custom-button mt-2 text-warning'
+            onClick={(e) => setDataCategory('pending')}
+          >
+            <PendingActions />
+            Pending approval
+          </button>
+        </div>
+        {/* button for approved */}
+        <div>
+          <button className='custom-button mt-2 text-success'
+            onClick={(e) => setDataCategory('approved')}
+          >
+            <CheckCircle OutlineIcon sx={{ marginRight: '10px' }} />
+            Approved
+          </button>
+        </div>
+        {/* button for department stocks */}
+        <div>
+          <button className='custom-button mt-2 text-info'>
+            <DepartureBoard OutlineIcon sx={{ marginRight: '10px' }} />
+            Department Stocks
+          </button>
         </div>
       </div>
       <TableDisplay data={hxData} column={columns} />
