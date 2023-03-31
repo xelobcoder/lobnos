@@ -2213,10 +2213,10 @@ textarea::placeholder {
 .billing-personal-info {
   background-color: white;
   margin: 10px 20px;
-  height: max-content;
+  max-height: 100vh;
   padding: 10px;
-  max-height: auto;
   border-radius: 1px;
+  margin-bottom: 20px;
 }
 .billing-personal-info > .billing-personal-info-header {
   padding-left: 20px;
@@ -2275,7 +2275,7 @@ textarea::placeholder {
   font-size: 14px;
   color: #00224f;
   text-transform: capitalize;
-  font-weight: 900 !important;
+  font-weight: 600 !important;
 }
 
 .billing-personal-info .reference-information > div > p:nth-of-type(2) {
@@ -2298,4 +2298,60 @@ textarea::placeholder {
   display: grid;
   grid-template-columns: 80% 10%;
   grid-gap: 10px;
+}
+#move-left-sm > td {
+  padding-left: 10px !important;
+}
+
+.sampling-billing-info {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  padding-left: 20px;
+  width: 500px;
+}
+.sampling-billing-info > .text-header {
+  margin-right: 20px;
+  text-transform: capitalize;
+  font-size: 14px;
+  font-weight: 600;
+  color: grey;
+
+}
+.sampling-billing-info> .text-body > button {
+  text-transform: capitalize !important;
+  padding:  3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sampling-billing-info> .text-body {
+  /* width: 100%; */
+  font-size:  14px;
+}
+.grid-50 {
+  display: grid;
+  grid-template-columns: 50% 50%;
+  grid-gap: 10px;
+}
+#billing-update-payment{
+  background-color: whitesmoke;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+#billing-update-payment > h6 >p {
+  font-size: 14px;
+}
+
+#billing-update-payment > h5 {
+  text-transform: uppercase;
+  color: #00224f;
+}
+
+#billing-update-payment > h6 >p:last-child{
+  padding: 5px;
+  background-color: #00224f;
+  color: white;
+  font-size: 15px;
 }

@@ -28,13 +28,6 @@ export default function SidebarFrontPage() {
             activation
           </Link>
         </li>
-        {/* billing */}
-        <li>
-          <Link href="/billing">
-            <PaymentTwoTone />
-            billing
-          </Link>
-        </li>
         <li>
           <Link href="/billing/billedclients">
             <PaymentTwoTone />

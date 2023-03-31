@@ -263,10 +263,10 @@ export const handleSubmitRegistration = (e, data = {}, BASE) => {
 
 export async function handleActivation(e, id, status, patientid) {
  let action = status == 'TRUE' ? 'FALSE' : 'TRUE'
- let endpoint_get = await fetch(`http://localhost:5000/api/v1/activation/?patientid=${patientid}&action=${action}`)
+ let endpoint_get = await fetch(`${process.env.BASEURL}/activation/?patientid=${patientid}&action=${action}`)
  let response = await endpoint_get.json()
  if (response.action == 'BILLING') {
-  window.location.href = '/registration/billing?patientid=' + patientid
+  window.location.href = '/billing?patientid=' + patientid
  }
  else {
   window.location.href = '/activation?patientid=' + patientid

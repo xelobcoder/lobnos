@@ -48,10 +48,10 @@ export default function Activator({ data }) {
       setActivationData(data.filter((item) => item.PATIENTID == patientid))
       setId(patientid)
     }
-  }, [patientid,data])
+  }, [patientid, data])
   return (
     <>
-      <Suspense  fallback={<TableIsLoading/>}>
+      <Suspense fallback={<TableIsLoading />}>
         <div
           style={{
             display: 'grid',
@@ -143,7 +143,7 @@ export default function Activator({ data }) {
                           <Link
                             href={`/registration/?patientid=${item.PATIENTID}`}
                           >
-                           edit info
+                            edit info
                           </Link>
                         </Button>
                       )}
