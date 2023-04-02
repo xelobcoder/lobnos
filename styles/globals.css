@@ -350,39 +350,7 @@ body {
   padding: 10px;
 }
 
-.activation-table {
-  height: auto;
-  width: 100%;
-  margin-top: 20px;
-  font-weight: 300;
-  overflow-y: auto;
-}
 
-.activation-table > thead > tr > th {
-  border-bottom: 1px solid lightgray;
-  font-weight: bold;
-  text-align: left;
-  text-transform: uppercase;
-  color: white;
-  font-weight: 200;
-  padding: 10px;
-  margin-left: 20px;
-  background-color: black;
-}
-
-.activation-table > tbody > tr > td {
-  border-bottom: 1px solid lightgray;
-  text-align: left;
-  font-weight: 200;
-  margin-left: 20px;
-  padding: 5px;
-}
-
-.activation-table > tbody > tr {
-  background-color: white;
-  padding: 0px;
-  margin-top: 10px;
-}
 
 .activated {
   color: #2fad66;
@@ -1984,35 +1952,35 @@ textarea::placeholder {
   border-collapse: collapse;
 }
 #custom-table > thead > tr,
-.ag-theme-alpine .ag-header {
+.ag-theme-material, .ag-header {
   width: 100%;
   background-color: #00224f21 !important;
   border-bottom: 1px solid lightgray;
 }
 
-.ag-theme-material {
+/* .ag-theme-material {
   --ag-header-height: 30px;
   --ag-header-foreground-color: #00224f;
   --ag-header-background-color: #00224f;
   --ag-header-cell-hover-background-color: #00224f;
   --ag-header-cell-moving-background-color: #00224f;
-}
+} */
 #custom-table > thead > tr > th,
 .headerClass {
   font-size: 14px;
   font-weight: 700;
   color: #00224f;
-  text-transform: uppercase;
   padding: 10px;
+  text-transform: uppercase;
 }
 
 #custom-table > tbody > tr > td,
 .cellClass {
-  font-size: 14px;
+  font-size: 14px !important;
   text-transform: capitalize;
   /* color: #00224f; */
   min-width: 100px;
-  padding: 5px;
+  padding: 10px;
 }
 #custom-table > tbody > tr:hover,
 #custom-table > thead > tr:focus {
@@ -2213,7 +2181,7 @@ textarea::placeholder {
 .billing-personal-info {
   background-color: white;
   margin: 10px 20px;
-  max-height: 100vh;
+  max-height:auto;
   padding: 10px;
   border-radius: 1px;
   margin-bottom: 20px;
@@ -2294,7 +2262,7 @@ textarea::placeholder {
   background-color: white;
   margin: 10px 20px;
   padding: 10px;
-  width: 100%;
+  /* width: 100%; */
   display: grid;
   grid-template-columns: 80% 10%;
   grid-gap: 10px;
@@ -2335,7 +2303,7 @@ textarea::placeholder {
   grid-gap: 10px;
 }
 #billing-update-payment{
-  background-color: whitesmoke;
+  /* background-color: whitesmoke; */
   padding: 10px;
   border-radius: 10px;
   margin-bottom: 10px;
@@ -2354,4 +2322,57 @@ textarea::placeholder {
   background-color: #00224f;
   color: white;
   font-size: 15px;
+}
+
+#sample-display-dsh {
+ /* display in grid , first row have 6 columns and second row one column 100% width */
+  display: grid;
+  grid-template-columns: 5% 10% 10% 5% 10% 40% 10% 10%;
+  background-color: white;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+
+.phelobotomy-wrapper{
+  height: 90vh;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+
+.splitScreen{
+  display: grid;
+  grid-template-columns: 0% auto;
+  animation: splitkey 300ms ;
+}
+
+
+@keyframes splitkey {
+  0% {
+    transform: skew(40deg);
+    transition: 50ms cubic-bezier(0.075, 0.82, 0.165, 1);
+  }
+  50% {
+    transform: skew(20deg);
+  }
+  100% {
+    transform: skew(0deg);
+  }
+}
+
+.side-pane {
+  height: 90vh;
+  color:#00224f;
+  background-color: white;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.custom-textarea{
+  width: 90%;
+  border-radius: 10px;
+  border: 1px solid #00224f;
+  margin: 4px 5px 0px 5px;
 }

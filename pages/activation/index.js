@@ -60,20 +60,20 @@ export default function Activator({ data }) {
             margin: '20px',
           }}
         >
-          <TextField
-            label="Enter patient id or fullname"
+          <input
+            placeholder="Enter patient id or fullname"
             value={id}
-            size="small"
+            className='custom-input'
             onChange={(e) => handleNameFilter(e)}
           />
-          <TextField type="date" size="small" />
-          <TextField type="date" size="small" />
-          <Button type="button" variant="contained" color="primary">
+          <input className='custom-input' type="date" size="small" />
+          <input className='custom-input'  type="date" size="small" />
+          <Button type="button" className='custom-button' variant="contained" color="primary">
             search
           </Button>
         </div>
         <div style={{ height: '70vh', overflowY: 'auto', margin: '10px' }}>
-          <table className="activation-table">
+          <table   id='custom-table'>
             <thead>
               <tr>
                 <th>ID</th>

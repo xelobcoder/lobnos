@@ -28,10 +28,10 @@ export default function Billedclients() {
       <>
         {
           parseInt(params.value) > 0 || parseInt(params.value) < 0 ?
-            <span className='text-white bg-danger p-3'>
+            <span className='text-danger'>
               {params.value}
             </span> :
-            <span className='text-white bg-success p-3'>
+            <span className='text-success'>
               {params.value}
             </span>
         }
@@ -43,7 +43,7 @@ export default function Billedclients() {
 
   const router = useRouter();
   const updateFunction = (params) => {
-   router.push(`/billing/updatebilling?billingid=${params.data.BILLINGID}`)
+    router.push(`/billing/updatebilling?billingid=${params.data.BILLINGID}`)
   }
 
   // create action cell renderer
@@ -51,12 +51,10 @@ export default function Billedclients() {
   const actionCellRenderer = (params) => {
     return (
       <>
-        <div style={{ display: 'grid', gridTemplateColumns: '30% 30% 30%', marginTop: '6px',gridGap:'10px' }}>
-          <Button color='error' variant='contained' startIcon={<DeleteForever />}></Button>
-          <Button color='info' variant='contained' startIcon={<EditOffOutlined />}></Button>
-          <Button color='success' 
-           onClick={() => { updateFunction(params) }}
-          variant='contained' startIcon={<Update />}></Button>
+        <div style={{ display: 'grid', gridTemplateColumns: '30% 30% 30%', marginTop: '6px', gridGap: '10px' }}>
+          <DeleteForever color='error' fontSize='medium' />
+          <EditOffOutlined  color='info'/>
+          <Update variant='success'  onClick={() => { updateFunction(params) }}/>
         </div>
       </>
     )
@@ -133,7 +131,7 @@ export default function Billedclients() {
 
   return (
     <div>
-      <div className='ag-theme-material' style={{maxHeight:'auto',height:'93vh' }}>
+      <div className='ag-theme-material' style={{ maxHeight: 'auto', height:'92vh'}}>
         <AgGridReact id='custom-table'
           onCellClicked={cellClicked}
           defaultColDef={defaultColumn}

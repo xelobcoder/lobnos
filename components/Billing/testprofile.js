@@ -58,7 +58,6 @@ export default function TestProfileBilling({ test }) {
       if (check === undefined) {
         setWorkingTest([...workingTest, test]);
         // make the input field empty and focus on it
-        AutocompleteRef.current.focus();
       }
       else {
         alert('Test already added')
@@ -114,6 +113,53 @@ export default function TestProfileBilling({ test }) {
   }
 
 
+  // this sends data to server for updates after validations 
+  const updateBilling = function (ev, details,paid) {
+    const wlen = workingTest.length === 0;
+    if (wlen) return alert('Cannot update billing status with empty test cart.kindly add test to the cart or remove the transaction if test are not no longer required');
+
+    if (!wlen) {
+      let billSummary = {
+        test: workingTest.map((item, index) => {
+          return item.NAME
+        }).join(','),
+        totalcost: handleTotalPrice(),
+        patientid: details[0]?.['PATIENTID'],
+        billingid: details[0]?.['BILLINGID'],
+        outstanding: handleTotalPrice()-paid
+      }
+
+      try {
+        // forward data to the server
+        const pushdb = async () => {
+          let response = await (fetch(`${process.env.BASEURL}/billing`, {
+            method: 'PUT',
+            headers: {
+              'content-type': 'application/json'
+            },
+            body: JSON.stringify(billSummary)
+          }))
+
+          let data = await response.json();
+
+          const {result, status, message, statusCode} = data;
+
+          alert(message.toUpperCase())
+
+          if (status == 'success' && statusCode == 200) {
+
+          }
+        }
+
+        
+        pushdb();
+      } catch (err) {
+        console.log(err)
+      }
+    }
+  }
+
+
 
 
   return (
@@ -150,6 +196,7 @@ export default function TestProfileBilling({ test }) {
                       <tr>
                         <th>Test Name</th>
                         <th>Test Price</th>
+                        <th>sample</th>
                         <th>collection status</th>
                         <th>action</th>
                         <th>payment made </th>
@@ -163,7 +210,12 @@ export default function TestProfileBilling({ test }) {
                             <tr key={index} id='move-left-sm'>
                               <td>{item.NAME}</td>
                               <td>{item.PRICE}</td>
-                              <td></td>
+                              <td>{item.SAMPLE || 'BLOOD'}</td>
+                              <td>
+                                {
+                                  clientDetails[0]?.['PHELOBOTOMY_STATUS'] == 'QUEUE' && 'NIL'
+                                }
+                              </td>
                               <td>
                                 <Button color='error' size='small'
                                   onClick={() => handleRemoveTest(item)}>
@@ -197,22 +249,26 @@ export default function TestProfileBilling({ test }) {
                     </tfoot>
                   </table>
                   {/* amount to pay */}
-                  <div className='d-flex justify-content-between' id='billing-update-payment'>
+                  <div className='d-flex justify-content-between alert alert-warning' id='billing-update-payment'>
                     <h5>Payment details</h5>
                     <h6 className='lims-text-color'>
                       <p>Amt paid:{amountpaid} </p>
                       <p>Discount: {clientDetails[0]?.['DISCOUNT']}</p>
-                      <p>Outstanding: {clientDetails[0]?.['OUTSTANDING'] }</p>
+                      <p>Outstanding: {clientDetails[0]?.['OUTSTANDING']}</p>
                       <p>Amount to pay: {handleCurrency()}{handleTotalPrice() - amountpaid}</p>
                     </h6>
                   </div>
                   <div id='update-billing-button' className='mb-5'>
                     <Button variant='contained'
                       onClick={(e) => console.log(workingTest)}
-                      color='primary' className='custom-button'>
+                      color='primary' className='custom-button' onClickCapture={(e) => updateBilling(e, clientDetails,amountpaid)}>
                       update billing info
                     </Button>
                   </div>
+                </div>
+                <div>
+                  <h5>payment</h5>
+                  <input className='custom-input' />
                 </div>
               </>
             )

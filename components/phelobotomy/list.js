@@ -1,11 +1,9 @@
 import { List, Button, endIcon } from '@mui/material'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import React from 'react';
-import TEST_DETAILS from './details';
+import TEST_DETAILS from './sampleCollectionModal.js';
 
 function Phelobotomy_USER_LIST({ item, index }) {
-  const [status, setStatus] = React.useState(false);
-  const [display, setDisplay] = React.useState(false);
 
   const calculatetimeElapsed = (date, time, currentdate) => {
     let date1 = new Date(date)
@@ -28,34 +26,6 @@ function Phelobotomy_USER_LIST({ item, index }) {
 
   return (
     <>
-      <ul>
-        <li>
-          <div className="1">{index + 1}</div>
-          <div>{item.PATIENTID}</div>
-          <div className="test" title={item.TEST}>
-            {item.TEST}
-          </div>
-          <div className="date">{item.DATE}</div>
-          {/*  calculate time elapsed from date above*/}
-          <div className="time">
-            {calculatetimeElapsed(item.DATE, item.TIME, new Date())}
-          </div>
-          <div>
-            <Button
-              endIcon={<ArrowDropDownIcon />}
-              variant="contained"
-              color="primary"
-              sx={{ borderRadius: '0px' }}
-              onClick={(e) => { setDisplay(!display) }}
-            >
-              view
-            </Button>
-          </div>
-        </li>
-      </ul>
-      <div>
-        {display == true ? (<TEST_DETAILS data={item} />) : null}
-      </div>
     </>
   )
 }
