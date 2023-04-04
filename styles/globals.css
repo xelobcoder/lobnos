@@ -2345,17 +2345,17 @@ textarea::placeholder {
 .splitScreen{
   display: grid;
   grid-template-columns: 0% auto;
-  animation: splitkey 300ms ;
+  animation: splitkey 30ms ;
 }
 
 
 @keyframes splitkey {
   0% {
-    transform: skew(40deg);
+    transform: skew(20deg);
     transition: 50ms cubic-bezier(0.075, 0.82, 0.165, 1);
   }
   50% {
-    transform: skew(20deg);
+    transform: skew(10deg);
   }
   100% {
     transform: skew(0deg);

@@ -53,8 +53,8 @@ export default function Billedclients() {
       <>
         <div style={{ display: 'grid', gridTemplateColumns: '30% 30% 30%', marginTop: '6px', gridGap: '10px' }}>
           <DeleteForever color='error' fontSize='medium' />
-          <EditOffOutlined  color='info'/>
-          <Update variant='success'  onClick={() => { updateFunction(params) }}/>
+          <EditOffOutlined color='info' />
+          <Update variant='success' onClick={() => { updateFunction(params) }} />
         </div>
       </>
     )
@@ -70,16 +70,17 @@ export default function Billedclients() {
       field: 'PATIENTID'
     },
     {
+      field: 'BILLED_ON',
+    },
+    {
       field: 'PAID_AMOUNT'
     },
     {
       field: 'PAYABLE'
     },
+
     {
       field: 'DISCOUNT'
-    },
-    {
-      field: 'CREATED_ON'
     },
     {
       field: 'UPDATED'
@@ -131,7 +132,7 @@ export default function Billedclients() {
 
   return (
     <div>
-      <div className='ag-theme-material' style={{ maxHeight: 'auto', height:'92vh'}}>
+      <div className='ag-theme-material' style={{ maxHeight: 'auto', height: '92vh' }}>
         <AgGridReact id='custom-table'
           onCellClicked={cellClicked}
           defaultColDef={defaultColumn}
