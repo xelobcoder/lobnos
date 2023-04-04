@@ -174,7 +174,7 @@ export default function REJECTED_VIEW_PAGE(data) {
                   selectedclientdata[0]['MESSAGE']}
             </div>
             {messageView === false ? null :
-              <div className="message-boxs alert alert-warning m-3" ref={messageBox}>
+              <div className="message-boxs  m-3" ref={messageBox}>
                 <textarea className="form-control" rows={5} value={declinemessage} placeholder='type your message for declining here '
                   onChange={(e) => { setDeclineMessage(e.target.value) }}
                 >

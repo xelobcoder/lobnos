@@ -2,12 +2,12 @@ import React from 'react'
 
 export default function TestTable({ testsource }) {
  return (
-  <div className='alert rejected-table'>
+  <div className='p-2'>
    {/* create table of test */}
-   <table className='table p-0'>
+   <table id='custom-table'>
     <thead>
      <tr className='text-uppercase'>
-      <th>#</th>
+      <th style={{width:'20px'}}>#</th>
       <th>test</th>
      </tr>
     </thead>

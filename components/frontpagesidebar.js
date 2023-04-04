@@ -101,6 +101,12 @@ export default function SidebarFrontPage() {
             suppliers
           </Link>
         </li>
+        <li>
+          <Link href="/operations">
+            <InventoryIcon />
+            operations
+          </Link>
+        </li>
       </ul>
     </>
   )

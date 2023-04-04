@@ -32,7 +32,9 @@ function Header() {
         >
           <Toolbar>
             <Typography variant="h4" color="inherit" component={"div"}>
-              LIMS
+              <Link href={'/'}>
+                LIMS
+              </Link>
             </Typography>
           </Toolbar>
           <Toolbar>

@@ -233,6 +233,7 @@ export default function TestProfileBilling({ test }) {
                         <td>Total</td>
                         <td className='lims-text-color'>{handleCurrency()}{handleTotalPrice()}</td>
                         <td></td>
+                        <td></td>
                         <td>
                           {
                             workingTest.length > 0 && (
