@@ -2324,10 +2324,14 @@ textarea::placeholder {
   font-size: 15px;
 }
 
+#checkbo {
+  margin-left: 20px;
+}
+
 #sample-display-dsh {
  /* display in grid , first row have 6 columns and second row one column 100% width */
   display: grid;
-  grid-template-columns: 5% 10% 10% 5% 10% 40% 10% 10%;
+  grid-template-columns: 5% 10% 10% 5% 10% 30% 10% 10% 10%;
   background-color: white;
   border-radius: 10px;
   padding: 10px;
@@ -2375,4 +2379,64 @@ textarea::placeholder {
   border-radius: 10px;
   border: 1px solid #00224f;
   margin: 4px 5px 0px 5px;
+}
+
+
+#wrapper-login {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  background: url('https://www.labnetinternational.com/sites/www.labnetinternational.com/files/blogsies/header-images/iStock-949946968.jpg');
+
+}
+
+
+#wrapper-login > form {
+  width: 600px;
+  margin-top: 6%;
+  height: 350px;
+  background-color: white;
+}
+
+/* add a background image */
+#login-form  >div {
+  display: grid;
+  grid-template-columns: 100%;
+  grid-gap: 10px;
+  padding: 20px 20px;
+}
+
+#login-form > div > input {
+  border: 2px solid #00224f;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 5px;
+  height: 50px;
+}
+
+#login-form > div > button {
+  background-color: #00224f;
+  color: white;
+  border: none;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 5px;
+  height: 50px;
+}
+
+#login-form > label {
+  font-size: 14px;
+  color: #00224f;
+  font-weight: 600;
+}
+
+#login-form > label::before {
+  content: '* ';
+  color:red;
+}
+
+
+#login-form > div > #login-message {
+  color: red !important;
 }

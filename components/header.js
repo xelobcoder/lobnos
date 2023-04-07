@@ -10,6 +10,9 @@ import React from "react";
 import WidgetsIcon from "@mui/icons-material/Widgets";
 import Widget from "./Headers/Widget";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import { useContext } from "react";
+
 
 function Header() {
   const [showWidget, setShowWidget] = React.useState(false);
@@ -19,6 +22,10 @@ function Header() {
     setShowWidget(false);
   }
   const handleClose = () => { setShowWidget(!showWidget); };
+
+
+
+  const pageUrl = useRouter().pathname;
   return (
     <>
       <Box className="software_header">
@@ -38,10 +45,12 @@ function Header() {
             </Typography>
           </Toolbar>
           <Toolbar>
-            <WidgetsIcon
-              sx={{ cursor: "pointer" }}
-              onClick={(ev) => handleClose()}
-            />
+            {pageUrl === '/authentication/login' || pageUrl == '/' ? null : (
+              <WidgetsIcon
+                sx={{ cursor: "pointer" }}
+                onClick={(ev) => handleClose()}
+              />
+            )}
           </Toolbar>
         </AppBar>
       </Box>

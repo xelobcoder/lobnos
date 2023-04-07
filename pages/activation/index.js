@@ -67,13 +67,13 @@ export default function Activator({ data }) {
             onChange={(e) => handleNameFilter(e)}
           />
           <input className='custom-input' type="date" size="small" />
-          <input className='custom-input'  type="date" size="small" />
+          <input className='custom-input' type="date" size="small" />
           <Button type="button" className='custom-button' variant="contained" color="primary">
             search
           </Button>
         </div>
         <div style={{ height: '70vh', overflowY: 'auto', margin: '10px' }}>
-          <table   id='custom-table'>
+          <table id='custom-table'>
             <thead>
               <tr>
                 <th>ID</th>
@@ -175,12 +175,32 @@ export default function Activator({ data }) {
 
 // get server side props
 export async function getServerSideProps(context) {
-  let endpoint = 'http://localhost:5000/api/v1/activation'
-  let res = await axios.get(endpoint)
-  let data = res.data
-  return {
-    props: {
-      data,
+  //  usinf fetch 
+  const response = await fetch(`${process.env.BASEURL}/activation`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+      'Content-Type': 'application/json',
     },
+  })
+
+  const data = await response.json();
+
+
+  if(data?.err){
+    return {
+      redirect: {
+        destination: '/authentication/login',
+        permanent: false,
+      },
+    }
   }
+  else {
+    return {
+      props: {
+        data: data
+      },
+    }
+  }
+
 }

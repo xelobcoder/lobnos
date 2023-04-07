@@ -6,19 +6,20 @@ import { Button } from '@mui/material';
 import Header from '../../components/header';
 import SidebarFrontPage from '../../components/frontpagesidebar';
 import { DeleteForever, EditAttributes, EditOffOutlined, Update } from '@mui/icons-material';
+import { customFetch } from '../../components/Auth/customFetch';
 
 
 export default function Billedclients() {
   const [billedclients, setBilledclients] = React.useState([])
 
-  React.useMemo(() => {
-    let getdata = async () => {
-      let data = await fetch(`${process.env.BASEURL}/billedclients`)
-      let datajson = await data.json()
-      const { result } = datajson;
+  React.useMemo(async () => {
+    try {
+      const { result } = await customFetch('billedclients');
       setBilledclients(result)
     }
-    getdata()
+    catch (error) {
+      console.log(error)
+    }
   }, [])
 
 
@@ -73,7 +74,7 @@ export default function Billedclients() {
       field: 'BILLED_ON',
     },
     {
-      field: 'PAID_AMOUNT'
+      field: 'PAID_AMOUNT',
     },
     {
       field: 'PAYABLE'
@@ -147,17 +148,17 @@ export default function Billedclients() {
 }
 
 
-Billedclients.getLayout = function (page) {
-  return (
-    <>
-      <Header />
-      <div className="wrapper">
-        <div className="side">
-          <SidebarFrontPage />
-        </div>
-        <div className="main" id='page-main-view'>{page}</div>
-      </div>
-    </>
-  );
-};
+// Billedclients.getLayout = function (page) {
+//   return (
+//     <>
+//       <Header />
+//       <div className="wrapper">
+//         <div className="side">
+//           <SidebarFrontPage />
+//         </div>
+//         <div className="main" id='page-main-view'>{page}</div>
+//       </div>
+//     </>
+//   );
+// };
 

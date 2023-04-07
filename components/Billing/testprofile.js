@@ -4,6 +4,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import { Autocomplete, TextField } from '@mui/material';
 import { ClientContextConsumer } from './cxtProvider';
+import { customFetch } from '../Auth/customFetch';
 
 
 export default function TestProfileBilling({ test }) {
@@ -17,27 +18,17 @@ export default function TestProfileBilling({ test }) {
   // amount paid 
 
   // using useMemo get the test data
-  useMemo(() => {
+  useMemo(async () => {
     // get the test data
-    const getTest = async () => {
-      const res = await fetch(`${process.env.BASEURL}/testpanel/list`)
-      const data = await res.json()
-      if (data.length > 0) {
-        setTestPortal(data)
-
-        if (previousTest.length > 0) {
-          // get the test data from the database
-          const test = previousTest.map((item) => {
-            return data.find((i) => i.NAME === item)
-          })
-
-          setWorkingTest(test)
-        }
-      }
-
+    try {
+      const result = await customFetch('testpanel/list')
+      result.length > 0 && setTestPortal(result);
+      previousTest.length > 0 && setWorkingTest(previousTest.map((item) => {
+        return result.find((i) => i.NAME === item)
+      }))
+    } catch (error) {
+      throw error;
     }
-    getTest();
-
   }, [])
 
 
@@ -114,7 +105,7 @@ export default function TestProfileBilling({ test }) {
 
 
   // this sends data to server for updates after validations 
-  const updateBilling = function (ev, details,paid) {
+  const updateBilling = function (ev, details, paid) {
     const wlen = workingTest.length === 0;
     if (wlen) return alert('Cannot update billing status with empty test cart.kindly add test to the cart or remove the transaction if test are not no longer required');
 
@@ -126,7 +117,7 @@ export default function TestProfileBilling({ test }) {
         totalcost: handleTotalPrice(),
         patientid: details[0]?.['PATIENTID'],
         billingid: details[0]?.['BILLINGID'],
-        outstanding: handleTotalPrice()-paid
+        outstanding: handleTotalPrice() - paid
       }
 
       try {
@@ -135,26 +126,29 @@ export default function TestProfileBilling({ test }) {
           let response = await (fetch(`${process.env.BASEURL}/billing`, {
             method: 'PUT',
             headers: {
-              'content-type': 'application/json'
+              'content-type': 'application/json',
+              'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
             },
             body: JSON.stringify(billSummary)
           }))
 
           let data = await response.json();
+          const { status,statusCode,err,message } = data;
 
-          const {result, status, message, statusCode} = data;
-
-          alert(message.toUpperCase())
-
-          if (status == 'success' && statusCode == 200) {
-
+          if (status === 'success' && statusCode === 200) {
+            alert(message);
           }
+          
+          if (err) {
+            alert(err?.message);
+          }
+
         }
 
-        
+
         pushdb();
       } catch (err) {
-        console.log(err)
+        AbortController()
       }
     }
   }
@@ -262,7 +256,7 @@ export default function TestProfileBilling({ test }) {
                   <div id='update-billing-button' className='mb-5'>
                     <Button variant='contained'
                       onClick={(e) => console.log(workingTest)}
-                      color='primary' className='custom-button' onClickCapture={(e) => updateBilling(e, clientDetails,amountpaid)}>
+                      color='primary' className='custom-button' onClickCapture={(e) => updateBilling(e, clientDetails, amountpaid)}>
                       update billing info
                     </Button>
                   </div>

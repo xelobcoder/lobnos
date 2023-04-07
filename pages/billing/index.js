@@ -1,7 +1,7 @@
 import SidebarFrontPage from "../../components/frontpagesidebar";
 import Header from "../../components/header";
-import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import {useRouter } from "next/router";
+import {useCallback, useEffect, useState } from "react";
 import {
   Autocomplete,
   FormLabel,
@@ -22,6 +22,7 @@ import TESTCART from "../../components/registration/testCart";
 import CancelScheduleSendIcon from "@mui/icons-material/CancelScheduleSend";
 import SendIcon from "@mui/icons-material/Send";
 import AddBoxIcon from "@mui/icons-material/AddBox";
+import { customFetch } from "../../components/Auth/customFetch";
 
 export default function Billing({
   allpanels,
@@ -110,6 +111,7 @@ export default function Billing({
         method: "POST",
         headers: {
           "content-type": "application/json",
+          'Authorization' : `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
         },
         body: JSON.stringify(data),
       });
@@ -380,29 +382,17 @@ export default function Billing({
 }
 
 export async function getServerSideProps(ctx) {
-  // get all test panels
-  let endpoint = `${process.env.BASEURL}/testpanel/list`;
-  let response = await fetch(endpoint);
-  let data = await response.json();
-  // get all organizations
-  let organizationApi = `${process.env.BASEURL}/organization`;
-  let organizationResponse = await fetch(organizationApi);
-  let organizationData = await organizationResponse.json();
-  // get all clinicians
-  let cliniciansApi = `${process.env.BASEURL}/clinicians`;
-  let cliniciansResponse = await fetch(cliniciansApi);
-  let cliniciansData = await cliniciansResponse.json();
-  // get all branch
-  let branchApi = `${process.env.BASEURL}/center`;
-  let branchResponse = await fetch(branchApi);
-  let branchData = await branchResponse.json();
+  let data = await customFetch('testpanel/list')
+  const organization = await customFetch('organization');
+  const clinician = await customFetch('clinicians')
+  const branch = await customFetch('center');
 
   return {
     props: {
       allpanels: data,
-      organization: organizationData,
-      clinicians: cliniciansData,
-      branch: branchData,
+      organization: organization,
+      clinicians: clinician,
+      branch: branch,
     },
   };
 }

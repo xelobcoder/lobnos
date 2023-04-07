@@ -7,6 +7,9 @@ import Header from '../components/header'
 import SidebarFrontPage from '../components/frontpagesidebar';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-material.css';
+import { AuthentificationProvider } from '../components/Auth/useAuthentification';
+import MAIN_LAYOUT from '../components/Headers/Layout';
+
 
 
 
@@ -17,15 +20,14 @@ function MyApp({ Component, pageProps }) {
   }
   return (
     <>
-      <Header />
-      <div className="wrapper">
-        <div className="side">
-          <SidebarFrontPage />
-        </div>
-        <div className="main ">
-         <Component {...pageProps}/>
-        </div>
-      </div>
+      <AuthentificationProvider>
+        <Header />
+        <MAIN_LAYOUT>
+          <div>
+            <Component {...pageProps} />
+          </div>
+        </MAIN_LAYOUT>
+      </AuthentificationProvider>
     </>
   )
 }

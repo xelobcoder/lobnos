@@ -47,7 +47,7 @@ export default function Department({ departments }) {
 
   const handleEdit = (id) => {
     setKey('add_department');
-    router.push(`http://localhost:3000/settings/department?tab=edit&&id=${id}`)
+    router.push(`/settings/department?tab=edit&&id=${id}`)
   }
   return (
     <Tabs

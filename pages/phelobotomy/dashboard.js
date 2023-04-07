@@ -1,11 +1,12 @@
 import { Button } from "@mui/material";
 import Header from "../../components/header";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ListGroup, ListGroupItem } from "react-bootstrap";
 import router from "next/router";
-import CheckIcon from '@mui/icons-material/Check';
+import CheckIcon from "@mui/icons-material/Check";
 import { Route } from "@mui/icons-material";
 import SECOND_NO_DATA from "../../components/accessories/secondNodata";
+import { customFetch } from "../../components/Auth/customFetch";
 export default function Phelobotomy() {
   const [data, setData] = useState([]);
   const [status, setStatus] = useState(false);
@@ -16,6 +17,10 @@ export default function Phelobotomy() {
     patientid: null,
     fullname: "TIIFU hamza",
   });
+
+  // define ref for barcode and receipt
+  const barcodeRef = useRef();
+  const receiptRef = useRef();
 
   // state for all samples collected
   const [allCollected, setAllCollected] = useState(false);
@@ -28,42 +33,31 @@ export default function Phelobotomy() {
   // sample message if all samples are not collected
   const [isnotMessage, setIsNotMessage] = useState("");
 
-
   // get data from database
   useEffect(() => {
     try {
       let getdata = async () => {
-        let data = await fetch(`${process.env.BASEURL}/phelobotomy`);
-        let datajson = await data.json();
+        let datajson = await customFetch('phelobotomy')
+        console.log(datajson)
         // we need to sort the data by urgency
         let sorteddata = datajson.sort((a, b) => {
-          if (a.URGENCY == "emmergency") {
-            return -1;
-          } else if (a.URGENCY == "moderate") {
-            return 0;
-          } else {
-            return 1;
-          }
+          if (a.URGENCY == "emmergency") { return -1; }
+          else if (a.URGENCY == "moderate") { return 0; }
+          else { return 1; }
         });
         setData(sorteddata);
 
         // when done , fetch testpanel
-        const getTest = async () => {
-          let getting = await fetch(`${process.env.BASEURL}/testpanel/list`);
-          let response = await getting.json();
-          setTestpanel(response);
-        };
-
-        getTest();
+        const response = await customFetch("testpanel/list");
+        setTestpanel(response);
       };
       getdata();
 
       setInterval(() => {
         getdata();
       }, timer);
-    }
-    catch (error) {
-      console.log(error)
+    } catch (error) {
+      console.log(error);
     }
   }, [timer]);
 
@@ -85,9 +79,9 @@ export default function Phelobotomy() {
 
     setAllCollected(false);
 
-    // empty is Not message 
+    // empty is Not message
 
-    setIsNotMessage('')
+    setIsNotMessage("");
 
     // get test from filteredBill and populate testcollection state
     const test = filteredBill[0]["TEST"].split(",");
@@ -150,13 +144,12 @@ export default function Phelobotomy() {
     return matched[0]?.[field];
   };
 
-
-  // this function handles submit form 
+  // this function handles submit form
 
   const handleSubmit = async () => {
     // redefine the test collection array only to include the billingid and collected status
     const definedCollection = testcollection.map((item, index) => {
-      // this filter the testid from the testpanel 
+      // this filter the testid from the testpanel
       const getid = testpanel.filter((itemx, indexx) => {
         return itemx.NAME === item.test;
       });
@@ -164,8 +157,9 @@ export default function Phelobotomy() {
         billingid: item.billid,
         collection: `${item.collected}`,
         testid: getid[0].ID,
-      }
-    })
+      };
+    });
+
     const doneTime = new Date();
     const data = {
       test: definedCollection,
@@ -175,65 +169,69 @@ export default function Phelobotomy() {
       fullname: collection.fullname,
       datetime: doneTime,
       time: doneTime.getHours() + doneTime.getMinutes() + doneTime.getSeconds(),
-      status: 'done'.toUpperCase(),
-      takenby: 5
-    }
-
+      status: "done".toUpperCase(),
+      takenby: 5,
+    };
 
     //  this would check to ensure at least one of the samples have been collected
 
-    const atleastOneCollected = testcollection.some((item, index) => { return item.collected === true });
+    const atleastOneCollected = testcollection.some((item, index) => {
+      return item.collected === true;
+    });
 
     if (!atleastOneCollected) {
-      alert('atleast one sample has to be collected to finish')
+      alert("atleast one sample has to be collected to finish");
     }
 
     if (atleastOneCollected) {
       //  check if all samples is collected here and if it isnt , then the message side shoudlnt be empty
-      const emptyMessage = data.message == '' ? true : false;
-      const partial = testcollection.filter((i, e) => i.collected === false).length;
+      const emptyMessage = data.message == "" ? true : false;
+      const partial = testcollection.filter(
+        (i, e) => i.collected === false
+      ).length;
 
       if (partial > 0 && emptyMessage) {
-        alert('please fill textbox with reason why all samples not taken')
-      }
-      else {
+        alert("please fill textbox with reason why all samples not taken");
+      } else {
         //  send to swerver
         data.alltaken = partial == 0 ? true : false;
-        data.message = partial === 0 ? '' : data.message
+        data.message = partial === 0 ? "" : data.message;
         const pushData = await fetch(`${process.env.BASEURL}/phelobotomy`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'content-type': 'application/json'
+            "content-type": "application/json",
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN} `
           },
-          body: JSON.stringify(data)
-        })
+          body: JSON.stringify(data),
+        });
 
         const response = await pushData.json();
-        // destructure billing 
+        // destructure billing
         const { status, statusCode, message } = response;
 
-
-        if (status == 'success') {
+        if (status == "success") {
           alert(message);
           setSplitScreen(false);
+          console.log(barcodeRef.current);
           router.reload();
-        }
-        else {
-          if (error && message == 'duplicate testid and billing id found in database') {
-            alert('visit incomplete sample collectionto update records');
-          }
-          else {
-            alert(message)
+        } else {
+          if (
+            error &&
+            message == "duplicate testid and billing id found in database"
+          ) {
+            alert("visit incomplete sample collectionto update records");
+          } else {
+            alert(message);
           }
           setSplitScreen(false);
+
+        
         }
       }
-
     }
 
-
     //  send data to server side;
-  }
+  };
   return (
     <>
       <div className={splitScreen === true ? "splitScreen" : null}>
@@ -252,68 +250,81 @@ export default function Phelobotomy() {
               placeholder="search using bill ID or patient id"
             />
           </div>
-          {
-            data.length === 0 ? <SECOND_NO_DATA /> :
-              <ListGroup className="m-2">
-                {data.map((item, index) => {
-                  return (
-                    <ListGroupItem
-                      key={index}
-                      className="border"
-                      id="sample-display-dsh"
-                    >
+          {data.length === 0 ? (
+            <SECOND_NO_DATA />
+          ) : (
+            <ListGroup className="m-2">
+              {data.map((item, index) => {
+                return (
+                  <ListGroupItem
+                    key={index}
+                    className="border"
+                    id="sample-display-dsh"
+                  >
+                    <div>
+                      <div className="1">{item.BILLINGID}</div>
+                    </div>
+                    <div>
+                      <div>{item.PATIENTID}</div>
+                    </div>
+                    <div>
+                      <div>{item.FULLNAME}</div>
+                    </div>
+                    {/* age and age type */}
+                    <div>
                       <div>
-                        <div className="1">{item.BILLINGID}</div>
+                        {item.AGE} {item.AGETYPE}
                       </div>
-                      <div>
-                        <div>{item.PATIENTID}</div>
+                    </div>
+                    <div>
+                      <div>{item.GENDER}</div>
+                    </div>
+                    <div>
+                      <div> Test: {item.TEST}</div>
+                    </div>
+                    <div>
+                      <div
+                        className={
+                          item.URGENCY == "emmergency"
+                            ? "text-danger"
+                            : item.URGENCY == "moderate"
+                              ? "text-warning"
+                              : "text-success"
+                        }
+                      >
+                        {item.URGENCY.toUpperCase()}
                       </div>
+                    </div>
+                    <div>
                       <div>
-                        <div>{item.FULLNAME}</div>
-                      </div>
-                      {/* age and age type */}
-                      <div>
-                        <div>
-                          {item.AGE} {item.AGETYPE}
-                        </div>
-                      </div>
-                      <div>
-                        <div>{item.GENDER}</div>
-                      </div>
-                      <div>
-                        <div> Test: {item.TEST}</div>
-                      </div>
-                      <div>
-                        <div
-                          className={
-                            item.URGENCY == "emmergency"
-                              ? "text-danger"
-                              : item.URGENCY == "moderate"
-                                ? "text-warning"
-                                : "text-success"
-                          }
+                        <Button
+                          variant="contained"
+                          sx={{ marginRight: "5px" }}
+                          onClick={(e) => router.push("/phelobotomy/receive")}
+                          color="primary"
                         >
-                          {item.URGENCY.toUpperCase()}
-                        </div>
+                          receive
+                        </Button>
                       </div>
+                    </div>
+                    <div>
                       <div>
-                        <div>
-                          <Button
-                            variant="contained"
-                            color="success"
-                            onClick={(e) => {
-                              handleCollectSample(item.BILLINGID, item.PATIENTID);
-                            }}
-                          >
-                            collect sample
-                          </Button>
-                        </div>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          onClick={(e) => {
+                            handleCollectSample(item.BILLINGID, item.PATIENTID);
+                          }}
+                        >
+                          pull sample
+                        </Button>
                       </div>
-                    </ListGroupItem>
-                  );
-                })}
-              </ListGroup>
-          }
+                    </div>
+                  </ListGroupItem>
+                );
+              })}
+            </ListGroup>
+          )}
         </div>
         <div className="side-pane">
           <header className="collection-header bg-warning p-2 text-capitalize text-lead">
@@ -361,7 +372,11 @@ export default function Phelobotomy() {
                           <td>{item.sampleContainer}</td>
                           {item.collected == true ? (
                             <>
-                              <CheckIcon sx={{ marginTop: "10px" }} color='success' fontSize="medium" />
+                              <CheckIcon
+                                sx={{ marginTop: "10px" }}
+                                color="success"
+                                fontSize="medium"
+                              />
                             </>
                           ) : (
                             <td>
@@ -386,6 +401,10 @@ export default function Phelobotomy() {
                   onChange={(e) => setAllCollected(!allCollected)}
                 />{" "}
                 All collected
+                <input id="checkbo" type="checkbox" ref={barcodeRef} /> print
+                barcode
+                <input id="checkbo" type="checkbox" ref={receiptRef} /> print
+                receipt
               </>
             )}
             {!allCollected && (
@@ -426,11 +445,11 @@ export default function Phelobotomy() {
   );
 }
 
-Phelobotomy.getLayout = function (page) {
-  return (
-    <>
-      <Header />
-      {page}
-    </>
-  );
-};
+// Phelobotomy.getLayout = function (page) {
+//   return (
+//     <>
+//       <Header />
+//       {page}
+//     </>
+//   );
+// };

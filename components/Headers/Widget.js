@@ -25,33 +25,33 @@ export default function Widget({ show ,handleClickedLink}) {
     }
     ,
     {
-      title: 'Registration',
-      Link: '/registration'
+      title: 'phelobotomy',
+      Link: '/phelobotomy/dashboard'
     }
    
     ,
     {
-      title: 'Registration',
-      Link: '/registration'
+      title: 'samples',
+      Link: '/sample'
     },
     {
-      title: 'Activation',
-      Link: '/activation'
+      title: 'billed clients',
+      Link: '/billing/billedclients'
     }
     ,
     {
-      title: 'Registration',
-      Link: '/registration'
+      title: 'Operations',
+      Link: '/operations'
     }
     ,
     {
-      title: 'Registration',
-      Link: '/registration'
+      title: 'settings',
+      Link: '/settings'
     }
     ,
     {
-      title: 'Registration',
-      Link: '/registration'
+      title: 'Appointment',
+      Link: '/Appointment'
     }
    
     ,

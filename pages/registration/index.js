@@ -1,6 +1,7 @@
 import SidebarFrontPage from '../../components/frontpagesidebar'
 import Header from '../../components/header'
 import React, { useEffect, useRef, useMemo } from 'react';
+import {customFetch} from '../../components/Auth/customFetch';
 import { useRouter } from 'next/router';
 import {
   handleAge,
@@ -27,6 +28,7 @@ import {
   Radio,
   Autocomplete,
 } from '@mui/material'
+import { redirect } from 'next/dist/server/api-utils';
 // import { useFormik } from 'formik';
 
 function Registration({ organization, clinician }) {
@@ -63,17 +65,15 @@ function Registration({ organization, clinician }) {
   const [disable, setDisable] = React.useState(false);
   const [generatebtn, setGeneratebtn] = React.useState(false);
 
-  const handlePatientid = (e) => {
+  const handlePatientid = async (e) => {
     let inputvalue = data.patientid
     // check for null value or empty value or undedined
     if (inputvalue != null || inputvalue != '' || inputvalue != undefined) {
       setData({ ...data, patientid: inputvalue })
       // query database for available patientid
       // if patientid is available then populate the form with the data
-      const getpatient_info = async function () {
-        let BASE = await fetch(`http://localhost:5000/api/v1/registration?${inputvalue}`)
-        return BASE.json()
-      }
+      const getpatient_info = await customFetch(`registration?${inputvalue}`)
+      console.log(getpatient_info)
       getpatient_info().then((t) => {
         console.log(t)
       }).catch((err) => console.log(err))
@@ -158,9 +158,8 @@ function Registration({ organization, clinician }) {
   useMemo(() => {
     if (clientID) {
       // fetch data of client with such patientid
-      const getpatient_info = async function () {
-        let BASE = await fetch(`${process.env.BASEURL}/register?patientid=${clientID}`)
-        return await BASE.json()
+      const getpatient_info = async function() {
+        return await customFetch(`register?patientid=${clientID}`)
       }
 
       getpatient_info().then((item) => {
@@ -565,7 +564,7 @@ function Registration({ organization, clinician }) {
                 type="button"
                 variant="contained"
                 onClick={
-                  (e) => { handleSubmitRegistration(e, data, 'http://localhost:5000/api/v1/register') }
+                  (e) => { handleSubmitRegistration(e, data, 'register') }
                 }
               >
                 submit
@@ -582,28 +581,57 @@ function Registration({ organization, clinician }) {
 export default Registration
 
 export async function getServerSideProps(context) {
-  const getorganization = await fetch('http://localhost:5000/api/v1/organization')
-  const organization = await getorganization.json()
-  const getclinician = await fetch('http://localhost:5000/api/v1/clinicians')
-  const clinician = await getclinician.json()
-  return {
-    props: {
-      organization,
-      clinician,
-    },
+  const getdata = async function (endpoint) {
+    let response = await fetch(`${process.env.BASEURL}/${endpoint}`, {
+      headers: {
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    return await response.json()
+  }
+
+
+  const organization = await getdata('organization')
+  const clinician = await getdata('clinicians')
+
+  if (organization && clinician) {
+    return {
+      props: {
+        organization,
+        clinician,
+      },
+    }
+  }
+  else if (organization?.err) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      }
+    }
+  }
+  else {
+    return {
+      props: {
+        organization: [],
+        clinician: [],
+      },
+    }
   }
 }
 
-Registration.getLayout = function (page) {
-  return (
-    <>
-      <Header />
-      <div className="wrapper">
-        <div className="side">
-          <SidebarFrontPage />
-        </div>
-        <div className="main">{page}</div>
-      </div>
-    </>
-  )
-}
+// Registration.getLayout = function (page) {
+//   return (
+//     <>
+//       <Header />
+//       <div className="wrapper">
+//         <div className="side">
+//           <SidebarFrontPage />
+//         </div>
+//         <div className="main">{page}</div>
+//       </div>
+//     </>
+//   )
+// }

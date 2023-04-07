@@ -338,16 +338,16 @@ export async function getServerSideProps(context) {
  }
 }
 
-SAMPLE_ASSESSMENT.getLayout = function (page) {
- return (
-  <>
-   <Header />
-   <div className="wrapper">
-    <div className="side">
-     <SidebarFrontPage />
-    </div>
-    <div className="main bg-whitedark">{page}</div>
-   </div>
-  </>
- );
-};
+// SAMPLE_ASSESSMENT.getLayout = function (page) {
+//  return (
+//   <>
+//    <Header />
+//    <div className="wrapper">
+//     <div className="side">
+//      <SidebarFrontPage />
+//     </div>
+//     <div className="main bg-whitedark">{page}</div>
+//    </div>
+//   </>
+//  );
+// };

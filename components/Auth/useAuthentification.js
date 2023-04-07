@@ -1,9 +1,26 @@
-import React,{useContext,useEffect,useState} from 'react';
+import React, { createContext, useEffect, useState } from 'react';
 
-export default function useAuthentification() {
+let user = null;
+  if (typeof window !== 'undefined') {
+     user = {user: localStorage.getItem('user')}
+  }
+
+  console.log(user)
+
+const AuthContext = createContext(user);
+
+const AuthProvider = AuthContext.Provider;
+
+export const AuthentificationProvider = ({ children }) => {
+  const [auth, setAuthentication] = useState({});
   return (
-    <div>
-      
-    </div>
+    <>
+      <AuthProvider value={{ auth, setAuthentication }}>
+        {children}
+      </AuthProvider>
+    </>
   )
 }
+
+
+export default AuthContext;
