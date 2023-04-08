@@ -5,7 +5,6 @@ let user = null;
      user = {user: localStorage.getItem('user')}
   }
 
-  console.log(user)
 
 const AuthContext = createContext(user);
 

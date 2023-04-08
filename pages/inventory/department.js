@@ -32,7 +32,8 @@ export default function DepartmentRequisition({ departments = [], stocks = [] })
   // fill the departmentStocksLevl once the selectedDept changes
   React.useMemo(() => {
     const getdata = async () => {
-      const data = await customFetch(`?id=${selectedDept}`)
+      const data = await customFetch(`departments/stocks?id=${selectedDept}`)
+      console.log(data.data);
       data?.status == 'success' && setDepartmentStocksLevel(data.result);
     }
     getdata();
