@@ -6,6 +6,7 @@ import CART_DISPLAY_COMPONENT from '../../components/inventory/cartDisplay';
 import TopMessage from '../../components/accessories/TopMessage';
 import { Suspense } from 'react';
 import TableIsLoading from '../../components/accessories/TableIsLoading';
+import { customFetch } from '../../components/Auth/customFetch';
 
 export default function PLACE_ORDER_PAGE({ datasource, suppliers }) {
   const [source, setDatasource] = React.useState(datasource);
@@ -94,6 +95,7 @@ export default function PLACE_ORDER_PAGE({ datasource, suppliers }) {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
         },
         body: JSON.stringify(order)
       })
@@ -202,22 +204,18 @@ PLACE_ORDER_PAGE.getLayout = function getLayout(page) {
 
 export async function getServerSideProps(context) {
   // Fetch data from external API
-  const res = await fetch(`http://localhost:5000/api/v1/stock`)
-  const data = await res.json()
+  const orders = await customFetch('orders')
 
   // fetch abput the suppliers 
-  const suppliers = await fetch(`http://localhost:5000/api/v1/suppliers`)
-  const suppliersData = await suppliers.json()
+  const suppliers = await customFetch('suppliers')
 
   // Pass data to the page via props
 
-  const { result, status } = data;
-
-  if (status === 'success') {
+  if (orders.status === 'success' && suppliers.status === 'success') {
     return {
       props: {
-        datasource: result,
-        suppliers: suppliersData.result
+        datasource: orders.result,
+        suppliers:  suppliers.result
       }, // will be passed to the page component as props
     }
   }

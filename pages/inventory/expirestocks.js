@@ -4,6 +4,7 @@ import Header from '../../components/header';
 import InventoryHeaders from '../../components/Headers/inventoryHeaders';
 import { DeleteForever, EditIcon } from '@mui/icons-material';
 import ADD_DEPARTMENT from '../../components/inventory/addDepartment';
+import { customFetch } from '../../components/Auth/customFetch';
 
 export default function EXPIRE_STOCKS({ expirestock }) {
   const columns = [
@@ -85,8 +86,7 @@ export default function EXPIRE_STOCKS({ expirestock }) {
 
 // get server side props
 export async function getServerSideProps(context) {
-  const getdb_data = await fetch(`http://localhost:5000/api/v1/stock?expireproduct=true`);
-  const result = await getdb_data.json();
+  const result = await customFetch(`stock?expireproduct=true`)
   const { data, status } = result;
   if (status === 'success') {
     return {

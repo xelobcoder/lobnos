@@ -4,6 +4,7 @@ import CommoditiesList from '../../components/suppliers/CommoditiesList';
 import SupllierProfile from '../../components/suppliers/SupllierProfile';
 import ISLOADING from '../../components/isLoading';
 import dynamic from 'next/dynamic';
+import { customFetch } from '../../components/Auth/customFetch';
 
 const EditorJS = dynamic(() => import('../../components/accessories/markdownEditor'), { ssr: false })
 
@@ -16,8 +17,7 @@ export default function SINGLE_SUPPLIER() {
     if (id !== undefined) {
       const supplier_information = async function () {
         try {
-          const response = await fetch(`http://localhost:5000/api/v1/suppliers?supplierid=${id}`);
-          const data = await response.json();
+          const data = await customFetch(`suppliers?supplierid=${id}`)
           const { status, result, message } = data;
           if (status === 200 && message === "success" && result !== null && result !== undefined && result.length > 0 && result[0] !== null) {
             setSupplier(result[0]);

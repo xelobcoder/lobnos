@@ -7,7 +7,8 @@ import { useTable } from "react-table";
 import SECOND_NO_DATA from "../../components/accessories/secondNodata";
 import DepartmentStockLevel from "../../components/inventory/departmentStockLevel";
 import { useRouter } from "next/router";
-import TopMessage from './../../components/accessories/topMessage';
+import TopMessage from '../../components/accessories/TopMessage';
+import { customFetch } from "../../components/Auth/customFetch";
 
 export default function DepartmentRequisition({ departments = [], stocks = [] }) {
   const [department, setDepartments] = React.useState(departments || []);
@@ -31,11 +32,8 @@ export default function DepartmentRequisition({ departments = [], stocks = [] })
   // fill the departmentStocksLevl once the selectedDept changes
   React.useMemo(() => {
     const getdata = async () => {
-      const response = await fetch(`${STOCKS_URL}?id=${selectedDept}`);
-      const data = await response.json();
-      if (data.status == 'success') {
-        setDepartmentStocksLevel(data.result);
-      }
+      const data = await customFetch(`?id=${selectedDept}`)
+      data?.status == 'success' && setDepartmentStocksLevel(data.result);
     }
     getdata();
   }, [selectedDept])
@@ -96,13 +94,13 @@ export default function DepartmentRequisition({ departments = [], stocks = [] })
       return;
     } else {
       // send the data to the server'
-      console.log(transformedData);
       const sendDataAsync = fetch(
         `${REQUISITIONS_URL}`,
         {
           method: "POST",
           headers: {
             "content-type": "application/json",
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
           },
           body: JSON.stringify(transformedData),
         }
@@ -146,10 +144,13 @@ export default function DepartmentRequisition({ departments = [], stocks = [] })
     const confirm = window.confirm("Are you sure you want to delete this stock");
 
     if (confirm) {
-      const deleteStockAsync = await fetch(
-        `http://localhost:5000/api/v1/departments/stocks?id=${id}`,
+      const deleteStockAsync = await fetch(`${process.env.BASEURL}/departments/stocks?id=${id}`,
         {
           method: "DELETE",
+          headers: {
+            'content-type': 'application/json',
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
+          }
         }
       );
 
@@ -320,20 +321,29 @@ DepartmentRequisition.getLayout = function getLayout(page) {
 
 export async function getServerSideProps(context) {
   // using promise all to fetch all the data at once
-  const departments = await fetch("http://localhost:5000/api/v1/departments");
-  const stocks = await fetch("http://localhost:5000/api/v1/stock");
-  const response = await Promise.all([departments, stocks]);
-  const data = await Promise.all(response.map((res) => res.json()));
+  const departments = await customFetch('departments')
+  const stocks = await customFetch('stock');
+  const data = await Promise.all([departments, stocks]);
 
-  return {
-    props: {
-      departments: data[0].data,
-      stocks: data[1].result.map((stock) => {
-        return {
-          ...stock,
-          quantityrequired: 0,
-        };
-      }),
-    },
-  };
+  try {
+    return {
+      props: {
+        departments: data[0].data,
+        stocks: data[1].result.map((stock) => {
+          return {
+            ...stock,
+            quantityrequired: 0,
+          };
+        }),
+      },
+    };
+  }
+  catch (err) {
+    return {
+      props: {
+        departments: [],
+        stocks: []
+      }
+    }
+  }
 }

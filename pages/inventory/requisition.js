@@ -10,6 +10,7 @@ import ViewCompactAltIcon from '@mui/icons-material/ViewCompactAlt';
 import CallReceivedIcon from '@mui/icons-material/CallReceived';
 import { CheckCircle } from '@mui/icons-material';
 import DepartureBoard from '@mui/icons-material/DepartureBoard';
+import { customFetch } from '../../components/Auth/customFetch';
 
 export default function Requisition() {
   const router = useRouter();
@@ -23,9 +24,8 @@ export default function Requisition() {
     async function fetchRequisitions() {
       if (departmentId) {
         try {
-          const response = await fetch(`${process.env.BASEURL}/departments/requisitions?id=${departmentId}&&type=${dataCategory}`);
-          const data = await response.json();
-          if (data.status === 'success' && data.statusCode === 200) {
+          const data = await customFetch(`departments/requisitions?id=${departmentId}&&type=${dataCategory}`)
+          if (data?.status === 'success' && data?.statusCode === 200) {
             setHxData(data?.data);
           }
         } catch (error) {
@@ -86,11 +86,12 @@ export default function Requisition() {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
             },
             body: JSON.stringify(transformData),
           });
           const data = await response.json();
-          console.log(data);
+          
           if (data.status === 'success' && data.statusCode === 200) {
             alert(data.message);
             //  udate the state

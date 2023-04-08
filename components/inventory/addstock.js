@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import TopMessage from '../accessories/TopMessage';
 import { SystemUpdate, AddCircleOutline } from '@mui/icons-material';
+import { customFetch } from '../Auth/customFetch';
 
 export default function ADD_STOCK_INVENTORY() {
   // iinput fields = name, category, consumption unit,purchase unit, material code,unit quantity,alert level,tax
@@ -39,22 +40,26 @@ export default function ADD_STOCK_INVENTORY() {
   }
 
 
+
+
   const handleSubmit = (ev) => {
     ev.preventDefault();
     // send data to the db
     const method = tab === 'edit' ? 'PUT' : 'POST';
     try {
       const senddata = async () => {
-        const response = await fetch(tab == 'edit' ? `http://localhost:5000/api/v1/stock?stockid=${stockid}` :
-          'http://localhost:5000/api/v1/stock', {
+        const  BASEURL = `${process.env.BASEURL}`
+        const response = await fetch(tab == 'edit' ? `${BASEURL}/stock?stockid=${stockid}` :
+          `${BASEURL}/stock`, {
           method,
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
           },
-          body: JSON.stringify({...productdetails,tax: parseInt(productdetails.tax)})
+          body: JSON.stringify({ ...productdetails, tax: parseInt(productdetails.tax) })
         })
         const data = await response.json();
-        console.log(data);
+        
         const { status, message } = data;
         if (status === 'success') {
           setMessageshow(true);
@@ -94,13 +99,12 @@ export default function ADD_STOCK_INVENTORY() {
 
   // use Memo to get the data of item to edit
   useEffect(() => {
-    console.log(tab,stockid)
+    console.log(tab, stockid)
     if (tab === 'edit' && stockid) {
       // get data from db and set to the input fields
       const getdata = async () => {
-        const response = await fetch(`http://localhost:5000/api/v1/stock?stockid=${stockid}`)
-        const data = await response.json();
-        const { status, message,result } = data;
+        const data = await customFetch(`stock?stockid=${stockid}`)
+        const { status, message, result } = data;
         if (status === 'success') {
           setProductdetails(result[0]);
         }

@@ -5,11 +5,12 @@ import TableDisplay from '../../components/accessories/TableDisplay';
 import Inventory_Loading from './loading';
 import Header from '../../components/header';
 import InventoryHeaders from '../../components/Headers/inventoryHeaders';
+import { customFetch } from '../../components/Auth/customFetch';
 
 export default function INVENTORY_PAGE({ stocks }) {
   const [stocksource, setStocks] = useState(stocks);
   const [search, setSearch] = useState('');
-  const STOCKS_URL = 'http://localhost:5000/api/v1/stock';
+  const STOCKS_URL = `${process.env.BASEURL}/stock`;
   const EditUrl = '/inventory/addstock?tab=edit&stockid';
 
   const columns = [
@@ -95,7 +96,10 @@ export default function INVENTORY_PAGE({ stocks }) {
     try {
       const res = await fetch(`${STOCKS_URL}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
+        },
         body: JSON.stringify({ stockid: id }),
       });
       const data = await res.json();
@@ -124,8 +128,7 @@ export default function INVENTORY_PAGE({ stocks }) {
 
 // get server side props
 export async function getServerSideProps(context) {
-  const response = await fetch('http://localhost:5000/api/v1/stock');
-  const data = await response.json();
+  const data = await customFetch('stock')
   const { result, status } = data;
   if (status === 'success') {
     return {

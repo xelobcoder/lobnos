@@ -8,6 +8,7 @@ import ADD_COMMODITY_MODAL from './addcommodity';
 import UpgradeIcon from '@mui/icons-material/Upgrade';
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import { useRouter } from 'next/router';
+import { customFetch } from '../Auth/customFetch';
 
 export default function ADD_NEW_SUPPLIER() {
   const default_source = {
@@ -44,16 +45,10 @@ export default function ADD_NEW_SUPPLIER() {
   }
 
 
-  const handleCommidity = (ev) => {
+  const handleCommidity = async (ev) => {
     // get the list of commodities from the db
-    fetch('http://localhost:5000/api/v1/commodities')
-      .then(res => res.json())
-      .then(data => {
-        setCommoditiesList(data.result);
-      })
-      .catch(err => {
-        console.log(err);
-      })
+    const data = await customFetch('commodities')
+    setCommoditiesList(data.result);
   }
 
   const handleSubmit = async (ev, tab, newsupplier) => {
@@ -61,11 +56,12 @@ export default function ADD_NEW_SUPPLIER() {
     const method = tab === 'edit' ? 'PUT' : 'POST';
     try {
       const senddata = async () => {
-        const response = await fetch(tab == 'edit' ? `http://localhost:5000/api/v1/suppliers?supplierid=${supplierid}` :
-        'http://localhost:5000/api/v1/suppliers', {
+        const response = await fetch(tab == 'edit' ? `${process.env.BASEURL}/?supplierid=${supplierid}` :
+          `${process.env.BASEURL}/suppliers`, {
           method,
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
           },
           body: JSON.stringify(newsupplier)
         })
@@ -137,29 +133,29 @@ export default function ADD_NEW_SUPPLIER() {
 
   React.useMemo(() => {
     if (tab === 'edit' && supplierid) {
-      fetch(`http://localhost:5000/api/v1/suppliers?supplierid=${supplierid}`)
-        .then(res => res.json())
-        .then(data => {
-          let result = data.result;
-          if (result.length === 0) {
-            return;
-          }
-          else {
-            // transform keys to lowercase to match 
-            const xmap = result[0];
-            let transformed = function () {
-              let obj = {};
-              for (let key in xmap) {
-                obj[key.toLowerCase()] = xmap[key];
-              }
-              // remove supplier id and date created
-              delete obj.supplierid;
-              delete obj.date
-              return obj;
+      const getResponse = async () => {
+        const data = await customFetch(`suppliers?supplierid=${supplierid}`)
+        if (data?.result.length === 0) {
+          return;
+        }
+        else {
+          // transform keys to lowercase to match 
+          const xmap = result[0];
+          let transformed = function () {
+            let obj = {};
+            for (let key in xmap) {
+              obj[key.toLowerCase()] = xmap[key];
             }
-            setNewSupplier(transformed());
+            // remove supplier id and date created
+            delete obj.supplierid;
+            delete obj.date
+            return obj;
           }
-        })
+          setNewSupplier(transformed());
+        }
+      }
+
+      getResponse()
     }
   }, [tab, supplierid])
 

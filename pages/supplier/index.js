@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import TopMessage from '../../components/accessories/TopMessage';
 import ADD_NEW_SUPPLIER from '../../components/suppliers/addNewSupplier';
 import SUPPLIERS_SEARCH_BAR from '../../components/suppliers/searchBar'
 import InventroyHeader from '../../components/inventroyHeader';
 import Header from '../../components/header';
 import SUPPLIERS_LIST from '../../components/suppliers/supllyList';
+import { customFetch } from '../../components/Auth/customFetch';
 
 
 export default function SUPPLY() {
@@ -20,14 +21,13 @@ export default function SUPPLY() {
   });
 
   // fetch data from server
-  React.useEffect(() => {
+  useEffect(() => {
     try {
-      const fetchdata = async () => {
-        const response = await fetch('http://localhost:5000/api/v1/suppliers');
-        const data = await response.json();
-        setRawdata(data.result);
+      const getResponse = async () => {
+        const response = await customFetch('suppliers')
+        setRawdata(response?.result);
       }
-      fetchdata();
+      getResponse()
     }
     catch (error) {
       console.log(error);
@@ -41,11 +41,12 @@ export default function SUPPLY() {
   const deletehandler = async (id, supplierid) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/v1/suppliers?supplierid=${supplierid}`,
+        `${process.env.BASEURL}/suppliers?supplierid=${supplierid}`,
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
+            'Authorization': `Baerer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
           },
         }
       );
@@ -89,8 +90,7 @@ export default function SUPPLY() {
     // filter the rawdata using the ans
     if (ans.length == 0) {
       const fetchdata = async () => {
-        const response = await fetch('http://localhost:5000/api/v1/suppliers');
-        const data = await response.json();
+        const { data } = await customFetch('suppliers')
         setRawdata(data.result);
       }
       fetchdata();

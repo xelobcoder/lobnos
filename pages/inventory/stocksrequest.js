@@ -4,6 +4,7 @@ import React from "react";
 import { useState, useEffect, useMemo } from "react";
 import TableDisplay from "../../components/accessories/TableDisplay";
 import InventoryIcon from "@mui/icons-material/Inventory";
+import { customFetch } from "../../components/Auth/customFetch";
 export default function Stocksrequest({ departments }) {
   const [request, setRequest] = useState([]);
   const [hxData, setHxData] = useState([]);
@@ -13,11 +14,8 @@ export default function Stocksrequest({ departments }) {
     async function fetchRequisitions() {
       if (departmentId) {
         try {
-          const response = await fetch(
-            `${process.env.BASEURL}/departments/requisitions?id=${departmentId}&&type=pending`
-          );
-          const data = await response.json();
-          if (data.status === "success" && data.statusCode === 200) {
+          const data = await customFetch(`departments/requisitions?id=${departmentId}&&type=pending`);
+          if (data?.status === "success" && data?.statusCode === 200) {
             setHxData(data?.data);
           }
         } catch (error) {
@@ -63,6 +61,7 @@ export default function Stocksrequest({ departments }) {
               method: "PATCH",
               headers: {
                 "Content-Type": "application/json",
+                'Authorization': `Baerer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
               },
               body: JSON.stringify({
                 quantity_approved: approved,
@@ -71,8 +70,7 @@ export default function Stocksrequest({ departments }) {
             }
           );
           const data = await response.json();
-          console.log(data);
-          if (data.status === "success" && data.statusCode === 200) {
+          if (data?.status === "success" && data?.statusCode === 200) {
             alert("Request approved successfully");
             // update the table
             const filtered = hxData.filter((item) => item.id !== id);
@@ -189,8 +187,7 @@ export default function Stocksrequest({ departments }) {
 // get depaertments using server side props
 export async function getServerSideProps(context) {
   try {
-    const response = await fetch("http://localhost:5000/api/v1/departments");
-    const data = await response.json();
+    const data = await customFetch("departments");
     const { result, status } = data;
     if (status === "success") {
       return {
