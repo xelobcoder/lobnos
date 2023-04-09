@@ -13,7 +13,6 @@ export default function FilterRejectedList(props) {
   <div className='p-1'>
    {/* input field */}
    <div className='input-group mb-3 mt-2'>
-    <span className='input-group-text' id='button-addon2'>Search</span>
     <input type='text' className='form-control' value={searchValue} placeholder='Search' aria-label='Search' aria-describedby='button-addon2' onChange={(e) => handleSearch(e)} />
    </div>
   </div>

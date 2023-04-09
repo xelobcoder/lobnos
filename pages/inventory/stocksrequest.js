@@ -137,7 +137,7 @@ export default function Stocksrequest({ departments }) {
       Header: "action",
       accessor: "supply ",
       Cell: ({ row }) => (
-        <> 
+        <>
           <Button
             onClick={(e) => handleSupply(e, row.original.id)}
             startIcon={<InventoryIcon />}
@@ -195,6 +195,14 @@ export async function getServerSideProps(context) {
           departments: data?.data,
         },
       };
+    }
+
+    if (data?.err) {
+      return {
+        props: {
+          departments: []
+        }
+      }
     }
   } catch (error) {
     return {

@@ -1,13 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@500&display=swap');
 * {
   font-family: 'Open Sans', sans-serif;
-  margin: 0;
-  padding: 0;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  font-weight: 400 !important;
+  font-weight: 200 !important;
+  /* overflow-x: hidden; */
 }
 
 .welcome-page {
@@ -48,17 +43,6 @@
   border: 1px solid #00224f;
   border-radius: 5px;
   outline: 1px solid #00224f;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  background-color: #f50057;
-  background-color: rgba(147, 144, 144, 0.05);
-  font-family: 'Roboto', Helvetica, Arial, sans-serif;
-  font-family: 'Open Sans', sans-serif;
 }
 
 .grid-2 {
@@ -349,8 +333,6 @@ body {
   grid-gap: 20px 20px;
   padding: 10px;
 }
-
-
 
 .activated {
   color: #2fad66;
@@ -1952,7 +1934,8 @@ textarea::placeholder {
   border-collapse: collapse;
 }
 #custom-table > thead > tr,
-.ag-theme-material, .ag-header {
+.ag-theme-material,
+.ag-header {
   width: 100%;
   background-color: #00224f21 !important;
   border-bottom: 1px solid lightgray;
@@ -1980,7 +1963,7 @@ textarea::placeholder {
   text-transform: capitalize;
   /* color: #00224f; */
   min-width: 100px;
-  padding: 10px;
+  padding: 5px;
 }
 #custom-table > tbody > tr:hover,
 #custom-table > thead > tr:focus {
@@ -2181,7 +2164,7 @@ textarea::placeholder {
 .billing-personal-info {
   background-color: white;
   margin: 10px 20px;
-  max-height:auto;
+  max-height: auto;
   padding: 10px;
   border-radius: 1px;
   margin-bottom: 20px;
@@ -2193,7 +2176,7 @@ textarea::placeholder {
   display: flex;
   justify-content: space-between;
 }
-.billing-personal-info > .billing-personal-info-header > .split> h4 {
+.billing-personal-info > .billing-personal-info-header > .split > h4 {
   font-size: 16px;
   text-transform: capitalize;
   width: max-content;
@@ -2206,7 +2189,10 @@ textarea::placeholder {
   grid-template-columns: 50% auto;
 }
 
-.billing-personal-info > .billing-personal-info-header > main >.billing-side:first-child {
+.billing-personal-info
+  > .billing-personal-info-header
+  > main
+  > .billing-side:first-child {
   border-right: 1px solid lightgray !important;
 }
 .billing-personal-info
@@ -2254,7 +2240,10 @@ textarea::placeholder {
   margin-top: -10px;
 }
 
-.billing-personal-info .reference-information > div > p:nth-of-type(2):last-child{
+.billing-personal-info
+  .reference-information
+  > div
+  > p:nth-of-type(2):last-child {
   text-transform: lowercase !important;
 }
 
@@ -2284,31 +2273,30 @@ textarea::placeholder {
   font-size: 14px;
   font-weight: 600;
   color: grey;
-
 }
-.sampling-billing-info> .text-body > button {
+.sampling-billing-info > .text-body > button {
   text-transform: capitalize !important;
-  padding:  3px;
+  padding: 3px;
   font-size: 12px;
   font-weight: 600;
 }
 
-.sampling-billing-info> .text-body {
+.sampling-billing-info > .text-body {
   /* width: 100%; */
-  font-size:  14px;
+  font-size: 14px;
 }
 .grid-50 {
   display: grid;
   grid-template-columns: 50% 50%;
   grid-gap: 10px;
 }
-#billing-update-payment{
+#billing-update-payment {
   /* background-color: whitesmoke; */
   padding: 10px;
   border-radius: 10px;
   margin-bottom: 10px;
 }
-#billing-update-payment > h6 >p {
+#billing-update-payment > h6 > p {
   font-size: 14px;
 }
 
@@ -2317,7 +2305,7 @@ textarea::placeholder {
   color: #00224f;
 }
 
-#billing-update-payment > h6 >p:last-child{
+#billing-update-payment > h6 > p:last-child {
   padding: 5px;
   background-color: #00224f;
   color: white;
@@ -2329,7 +2317,7 @@ textarea::placeholder {
 }
 
 #sample-display-dsh {
- /* display in grid , first row have 6 columns and second row one column 100% width */
+  /* display in grid , first row have 6 columns and second row one column 100% width */
   display: grid;
   grid-template-columns: 5% 10% 10% 5% 10% 30% 10% 10% 10%;
   background-color: white;
@@ -2339,19 +2327,17 @@ textarea::placeholder {
   font-size: 14px;
 }
 
-
-.phelobotomy-wrapper{
+.phelobotomy-wrapper {
   height: 90vh;
   overflow-y: auto;
   margin-bottom: 20px;
 }
 
-.splitScreen{
+.splitScreen {
   display: grid;
   grid-template-columns: 0% auto;
-  animation: splitkey 30ms ;
+  animation: splitkey 30ms;
 }
-
 
 @keyframes splitkey {
   0% {
@@ -2368,29 +2354,27 @@ textarea::placeholder {
 
 .side-pane {
   height: 90vh;
-  color:#00224f;
+  color: #00224f;
   background-color: white;
   padding: 10px;
   overflow-y: auto;
 }
 
-.custom-textarea{
+.custom-textarea {
   width: 90%;
   border-radius: 10px;
   border: 1px solid #00224f;
   margin: 4px 5px 0px 5px;
 }
 
-
 #wrapper-login {
-  width: 100vw;
+  /* width: 100vw; */
   height: 100vh;
   display: flex;
   justify-content: center;
   background: url('https://www.labnetinternational.com/sites/www.labnetinternational.com/files/blogsies/header-images/iStock-949946968.jpg');
-
+  overflow-x: hidden !important;
 }
-
 
 #wrapper-login > form {
   width: 600px;
@@ -2400,7 +2384,7 @@ textarea::placeholder {
 }
 
 /* add a background image */
-#login-form  >div {
+#login-form > div {
   display: grid;
   grid-template-columns: 100%;
   grid-gap: 10px;
@@ -2433,10 +2417,128 @@ textarea::placeholder {
 
 #login-form > label::before {
   content: '* ';
-  color:red;
+  color: red;
 }
-
 
 #login-form > div > #login-message {
   color: red !important;
+}
+
+.operations-wrapper {
+  display: grid;
+  grid-template-columns: 20% 18% auto;
+}
+
+.operations-wrapper > aside {
+  padding: 0px;
+  margin: 0;
+  background-color: whitesmoke;
+  color: white;
+  border-right: 1px solid lightgray;
+  height: 100vh;
+  overflow-y: auto;
+  opacity: 0.9;
+}
+
+.operations-wrapper > aside > div > ul {
+  /* list-style: none; */
+  padding: 0px;
+  margin: 0;
+}
+
+.operations-wrapper > aside > div > ul > li {
+  padding: 20px;
+  cursor: pointer;
+  text-transform: capitalize;
+  padding-left: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 500 !important;
+  color: #00224f;
+  box-sizing: border-box;
+}
+.operations-wrapper > aside > div > ul > li:is(:focus, :hover) {
+  background-color: white;
+  color: black;
+  border-radius: 5px;
+  margin-right: 5px;
+  margin-left: 5px;
+  font-weight: 400 !important;
+  border: 1px solid #00224f;
+}
+
+#operations-test-collection {
+  display: grid;
+  grid-template-columns: 100%;
+  grid-gap: 10px;
+  padding: 10px;
+  height: inherit;
+}
+
+#operations-test-collection > .firstchild {
+  display: grid;
+  grid-template-columns: 10% auto;
+}
+
+#operations-test-collection > .firstchild > div:nth-child(1) {
+  cursor: pointer;
+  color: grey;
+  font-size: larger;
+}
+
+#operations-test-collection > .buttons {
+  display: flex;
+  justify-content: flex-start;
+}
+
+#operations-test-collection:is(:focus, :hover) {
+  background-color: white;
+  color: black;
+  font-weight: 600 !important;
+}
+
+#operation-test-collection-wrapper {
+  height: 100vh;
+  border-right: 1px solid lightgray;
+}
+
+
+#operations-test-collection > div > button {
+  color: white;
+  border: none;
+  max-height: 25px;
+  font-size: 14px;
+  border-radius: 5px;
+  display: flex;
+  place-self: center;
+  margin-right: 5px;
+}
+
+#expand {
+  margin-left: 17px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #00224f !important;
+  font-weight: 300;
+}
+
+#expand > input {
+  cursor: cell;
+}
+
+.hidden{
+  display: none;
+}
+
+.bg-custom-red{
+  background-color: #ff0000;
+}
+
+.bg-custom-green{
+  background-color: #00ff00;
+}
+.bg-custom-default {
+  background-color: #00224f;
 }

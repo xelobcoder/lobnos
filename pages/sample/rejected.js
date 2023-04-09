@@ -4,6 +4,7 @@ import FilterRejectedList from "../../components/samples/FilterRejectedList";
 import PersonalData from "../../components/samples/PersonalData";
 import RejectedListView from "../../components/samples/rejectedListView";
 import TestTable from "../../components/samples/TestTable";
+import { customFetch } from "../../components/Auth/customFetch";
 
 
 export default function REJECTED_VIEW_PAGE(data) {
@@ -55,8 +56,7 @@ export default function REJECTED_VIEW_PAGE(data) {
     // filter the data from the list
     // fetch the data from the database
     async function fetchdata() {
-      let pulldata = await fetch(`http://localhost:5000/api/v1/rejected?type=getsampleinfo&billingid=${index}`);
-      let data = await pulldata.json();
+      let data = await customFetch(`rejected?type=getsampleinfo&billingid=${index}`);
       setSelectedClientData(data);
       const { result, statusCode } = data;
       //  if statusCode == 200
@@ -75,8 +75,7 @@ export default function REJECTED_VIEW_PAGE(data) {
 
   // change the rejected circle to green or red based on the validations status
   const changeValidationStatus = async function (billingid) {
-    let returner = await fetch(`http://localhost:5000/api/v1/rejected?type=getvalidationstatus&billingid=${billingid}`)
-    let response = await returner.json();
+    let response = await customFetch(`rejected?type=getvalidationstatus&billingid=${billingid}`)
     const { status, result } = response;
 
     if (status === 'success' && result.length > 0) {
@@ -108,10 +107,11 @@ export default function REJECTED_VIEW_PAGE(data) {
         if (messageBox.current !== undefined || messageBox.current === null) {
           //  send data to server
           const forward_deploy = async function () {
-            let push = await fetch('http://localhost:5000/api/v1/rejected', {
+            let push = await fetch(`${process.env.BASEURL}/rejected`, {
               method: 'POST',
               headers: {
                 'Content-type': 'application/json',
+                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
               },
               body: JSON.stringify({
                 billingid: selectedclient,
@@ -224,10 +224,20 @@ REJECTED_VIEW_PAGE.getLayout = function PageLayout(page) {
 
 
 // using page static props
-export async function getStaticProps() {
+export async function getServerSideProps() {
   // get the data from the database
-  let pulldata = await fetch('http://localhost:5000/api/v1/sample?status=REJECTED');
-  let data = await pulldata.json();
+  let data = await customFetch(`sample?status=REJECTED`);
+
+  const { status } = data;
+
+  if (status == 401) {
+    return {
+      redirect: {
+        destination: '/authentication/login',
+        permanent: false,
+      },
+    }
+  }
   return {
     props: {
       data,

@@ -1,3 +1,5 @@
+import { customFetch } from "./customFetch";
+
 // handle mobile number validation
 export const handleMobile = (e, setValue, data, setError) => {
   let value = e.target.value;
@@ -263,10 +265,7 @@ export const handleSubmitRegistration = (e, data = {}, BASE) => {
 
 export async function handleActivation(e, id, status, patientid) {
   let action = status == "TRUE" ? "FALSE" : "TRUE";
-  let endpoint_get = await fetch(
-    `${process.env.BASEURL}/activation/?patientid=${patientid}&action=${action}`
-  );
-  let response = await endpoint_get.json();
+  let response = await customFetch(`activation?patientid=${patientid}&action=${action}`)
   if (response.action == "BILLING") {
     window.location.href = "/billing?patientid=" + patientid;
   } else {

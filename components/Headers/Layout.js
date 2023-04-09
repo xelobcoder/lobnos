@@ -13,7 +13,7 @@ export default function MAIN_LAYOUT({ children }) {
     <>
       {
         auth != undefined ? (
-          <div auth={auth}>
+          <div auth={auth} >
             {children}
           </div>
         )
