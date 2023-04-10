@@ -4,7 +4,7 @@
   padding: 0;
   box-sizing: border-box;
   font-family: 'Inter', sans-serif;
-  /* font-family: 'Roboto', sans-serif; */
+  font-family: 'Roboto', sans-serif;
 }
 
 .welcome-page {
@@ -2550,7 +2550,6 @@ textarea::placeholder {
 .testpanel {
   margin: 0;
   padding: 10px;
-  font-family: 'Inter', sans-serif !important;
   display: grid;
   grid-template-columns: 15% auto;
 }
@@ -2570,6 +2569,7 @@ textarea::placeholder {
   justify-content: flex-start;
   font-size: 13px;
   font-weight: 500 !important;
+  border-bottom: 1px solid lightgray;
   color: #00224f;
 }
 
@@ -2584,4 +2584,31 @@ textarea::placeholder {
   padding: 5px;
   transition: all 100ms ease;
   border-radius: 6px;
+}
+
+.group-grid{
+  display: grid;
+  grid-template-columns: 10% 20% 50% auto;
+}
+
+#categories-list-wrapper {
+  margin: 0px 20px;
+  padding: 0px 20px;
+}
+
+.blood {
+  color:white;
+  background-color: red;
+  padding: 5px;
+}
+
+.group-grid-testlist{
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.group-grid-testlist > h6 {
+  font-size: 15px;
+  text-transform: capitalize;
 }
