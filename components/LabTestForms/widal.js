@@ -1,28 +1,16 @@
 import { Card, CardContent, CardHeader, Typography, Button } from '@mui/material';
 import { useState } from 'react';
-const Header = ({ patientid, fullname }) => {
- return (
-  <>
-   <div>
-
-   </div>
-  </>
- )
-}
 
 
 
 
-function Widal({ patientid, fullname }) {
+function Widal() {
  const [widal, setWidal] = useState({
-  patientid: patientid,
-  fullname: fullname,
-  widal: {
    typhiO: '1/20',
    typhiH: '1/20',
    paratyphiBH: '',
    paratyphiAH: '',
-  },
+   comment: '' 
  });
 
 
@@ -35,17 +23,12 @@ function Widal({ patientid, fullname }) {
 
  return (
   <>
-   <div>
-    <Header patientid={patientid} fullname={fullname} />
-   </div>
-   <hr></hr>
-   <div className='p-4'>
-    <label>test for salmonella typhi infection</label>
+   <div className='p-3'>
     <div className='form-row'>
-     <div className='form-group col-md-6'>
+     <div className='form-group'>
       <label>typhi o</label>
-      <select value={widal.widal.typhiO} className='form-control'
-       onChange={(e) => setWidal({ ...widal, widal: { ...widal, typhiO: e.target.value } })}>
+      <select value={widal.typhiO} className='custom-input'
+       onChange={(e) => setWidal({ ...widal,typhiO: e.target.value })}>
        <option>select</option>
        <option value='1/20'>1/20</option>
        <option value='1/80'>1/80</option>
@@ -53,10 +36,10 @@ function Widal({ patientid, fullname }) {
       </select>
      </div>
      {/* typhi H */}
-     <div className='form-group col-md-6'>
+     <div className='form-group '>
       <label>typhi H</label>
-      <select className='form-control' value={widal.widal.typhiH}
-       onChange={(w) => { setWidal({ ...Widal, widal: { ...widal, typhiH: w.target.value } }) }}>
+      <select className='custom-input' value={widal.typhiH}
+       onChange={(w) => { setWidal({ ...Widal, typhiH: w.target.value  }) }}>
        <option>select</option>
        <option value='1/20'>1/20</option>
        <option value='1/80'>1/80</option>
@@ -64,10 +47,10 @@ function Widal({ patientid, fullname }) {
       </select>
      </div>
      {/* paratyphi BH */}
-     <div className='form-group col-md-6'>
+     <div className='form-group '>
       <label>paratyphi BH</label>
-      <select className='form-control' value={widal.widal.paratyphiBH}
-       onChange={(e) => setWidal({ ...widal, widal: { ...widal, paratyphiBH: e.target.value } })}>
+      <select className='custom-input' value={widal.paratyphiBH}
+       onChange={(e) => setWidal({ ...widal,paratyphiBH: e.target.value  })}>
        <option>select</option>
        <option value='1/20'>1/20</option>
        <option value='1/80'>1/80</option>
@@ -75,10 +58,10 @@ function Widal({ patientid, fullname }) {
       </select>
      </div>
      {/* paratyphi AH */}
-     <div className='form-group col-md-6'>
+     <div className='form-group '>
       <label>paratyphi AH</label>
-      <select className='form-control' value={widal.widal.paratyphiAH}
-       onChange={(e) => setWidal({ ...widal, widal: { ...widal, paratyphiAH: e.target.value } })}>
+      <select className='custom-input' value={widal.paratyphiAH}
+       onChange={(e) => setWidal({ ...widal, paratyphiAH: e.target.value })}>
        <option>select</option>
        <option value='1/20'>1/20</option>
        <option value='1/80'>1/80</option>
@@ -86,9 +69,11 @@ function Widal({ patientid, fullname }) {
       </select>
      </div>
      <div>
-      <div className='form-group col-md-6'>
+      <div className='form-group '>
        <label>comments</label>
-       <textarea className='form-control'>
+       <textarea className='custom-textarea' value={widal.comment}
+        onChange={(e) => setWidal({...widal,comment:e.target.value})}
+       >
 
        </textarea>
       </div>

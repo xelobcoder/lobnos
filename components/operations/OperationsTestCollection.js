@@ -40,11 +40,11 @@ export default function OperationsTestCollection() {
       <Suspense fallback={<div>loading.....</div>}>
         <div>
           <div className='p-2'>
-            <input className='custom-input' onChange={(e) => handleSearch(e)} placeholder='search using name or id' />
+            <input className='custom-input' tabIndex={1} onChange={(e) => handleSearch(e)} placeholder='search using name or id'  autoFocus/>
           </div>
           <ul>
             {collection.map((item, index) => (
-              <li onClick={(e) => handleUpdate(e,item)} key={index}><BloodtypeIcon/>{item.PATIENTID} : {item.FULLNAME}</li>
+              <li tabIndex={1+index} onClick={(e) => handleUpdate(e,item)} key={index}><BloodtypeIcon/>{item.PATIENTID} : {item.FULLNAME}</li>
             ))}
           </ul>
         </div>

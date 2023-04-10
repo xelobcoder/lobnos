@@ -1,8 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter&family=Roboto&display=swap');
 * {
-  font-family: 'Open Sans', sans-serif;
-  font-weight: 200 !important;
-  /* overflow-x: hidden; */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+  /* font-family: 'Roboto', sans-serif; */
 }
 
 .welcome-page {
@@ -1339,8 +1341,6 @@ textarea::placeholder {
   font-size: 14px;
   padding: 10px;
 }
-.message-boxs > textarea {
-}
 
 .button-group > button {
   margin-left: 10px;
@@ -2432,7 +2432,7 @@ textarea::placeholder {
 .operations-wrapper > aside {
   padding: 0px;
   margin: 0;
-  background-color: whitesmoke;
+  background-color: white;
   color: white;
   border-right: 1px solid lightgray;
   height: 100vh;
@@ -2447,7 +2447,7 @@ textarea::placeholder {
 }
 
 .operations-wrapper > aside > div > ul > li {
-  padding: 20px;
+  /* padding: 20px; */
   cursor: pointer;
   text-transform: capitalize;
   padding-left: 10px;
@@ -2505,7 +2505,6 @@ textarea::placeholder {
   border-right: 1px solid lightgray;
 }
 
-
 #operations-test-collection > div > button {
   color: white;
   border: none;
@@ -2528,17 +2527,61 @@ textarea::placeholder {
   cursor: cell;
 }
 
-.hidden{
+.hidden {
   display: none;
 }
 
-.bg-custom-red{
+.bg-custom-red {
   background-color: #ff0000;
 }
 
-.bg-custom-green{
+.bg-custom-green {
   background-color: #00ff00;
 }
 .bg-custom-default {
   background-color: #00224f;
+}
+
+.custom-textarea {
+  width: 100%;
+  border-radius: 2px;
+}
+
+.testpanel {
+  margin: 0;
+  padding: 10px;
+  font-family: 'Inter', sans-serif !important;
+  display: grid;
+  grid-template-columns: 15% auto;
+}
+
+.testpanel div > ul {
+  list-style: none;
+  padding: 0px;
+  margin: 0;
+  background-color: whitesmoke;
+}
+
+.testpanel > div > ul > li {
+  padding: 20px;
+  cursor: pointer;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: flex-start;
+  font-size: 13px;
+  font-weight: 500 !important;
+  color: #00224f;
+}
+
+.testpanel > div > ul > li:is(:focus, :hover) {
+  background-color: white;
+  border-radius: 5px;
+}
+
+.testpanel > ul > li:is(:focus, :hover) {
+  background-color: rgba(211, 211, 211, 0.31);
+  color: black;
+  padding: 5px;
+  transition: all 100ms ease;
+  border-radius: 6px;
 }
