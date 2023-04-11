@@ -1,0 +1,31 @@
+#registration_generate {
+  display: grid;
+  grid-template-columns: 20% auto;
+  grid-gap: 20px;
+}
+
+.age {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 20%;
+}
+.age_desc {
+  display: grid;
+  grid-template-columns: 30% 30%;
+  grid-gap: 2%;
+}
+
+.personal {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 20px;
+  background-color: whitesmoke;
+  padding: 20px;
+  margin-top: 10px;
+}
+
+.maker {
+  background-color: whitesmoke;
+  padding: 20px;
+  margin-top: 10px;
+}

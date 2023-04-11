@@ -5,6 +5,7 @@
   box-sizing: border-box;
   font-family: 'Inter', sans-serif;
   font-family: 'Roboto', sans-serif;
+  overflow-x: hidden;
 }
 
 .welcome-page {
@@ -92,21 +93,6 @@
   border-radius: 0px !important;
 }
 
-.add-clinician-view {
-  padding: 30px 100px;
-  width: 70vw;
-}
-
-.add-clinician-view input {
-  width: 50%;
-  height: 30px !important;
-  border: 1px solid rgba(0, 0, 0, 0.147);
-}
-
-.add-clinician-view label {
-  font-size: 15px;
-  color: black;
-}
 
 #filterer-top input {
   margin-left: 10px;

@@ -3,6 +3,7 @@ import Header from "../../components/header";
 import React, { useEffect, useRef, useMemo } from "react";
 import { customFetch } from "../../components/Auth/customFetch";
 import { useRouter } from "next/router";
+import style from "../../styles/registration.module.css";
 import {
   handleAge,
   handleMobile,
@@ -212,19 +213,21 @@ function Registration({ organization, clinician }) {
 
   return (
     <>
-      <form style={{ margin: "1% 3% 0% 3%" ,backgroundColor:'white',padding:'20px'}}>
+      <form className="p-4">
         {!personalSection ? null : (
           <>
             {/* <Box sx={{width:'100%',marginTop:'20px'}}>
           <TextField variant='filled' type='text'/>
         </Box> */}
-            <Box>
+            <Box id={style.registration_generate}>
               <Button
                 ref={generateRef}
                 sx={{ marginLeft: "10px" }}
                 disabled={generatebtn}
                 onClick={(e) => generateTransactionId(e)}
-                variant="outlined"
+                variant="contained"
+                tabIndex={1}
+                autoFocus
               >
                 generate patientid
               </Button>
@@ -240,7 +243,7 @@ function Registration({ organization, clinician }) {
                 />
               </div>
             </Box>
-            <Box>
+            <Box className={style.personal}>
               <div>
                 <label>first name </label>
                 <input
@@ -251,19 +254,33 @@ function Registration({ organization, clinician }) {
                   className="custom-input"
                   value={data.fullname}
                   required
+                  tabIndex={2}
                 />
               </div>
               <div>
                 <label>last name </label>
-                <input className="custom-input" size="small" label='lastname' placeholder="lastname" required />
+                <input
+                  className="custom-input"
+                  size="small"
+                  label="lastname"
+                  placeholder="lastname"
+                  required
+                  tabIndex={3}
+                />
               </div>
               <div>
                 <label>middle name</label>
-                <input className="custom-input" placeholder="middlename" type="text" />
+                <input
+                  className="custom-input"
+                  tabIndex={4}
+                  placeholder="middlename"
+                  type="text"
+                />
               </div>
               <div>
                 <label>mobile number </label>
-                <input type="number"
+                <input
+                  type="number"
                   maxLength={10}
                   minLength={10}
                   required
@@ -271,6 +288,7 @@ function Registration({ organization, clinician }) {
                   name="mobilenumber"
                   className="custom-input"
                   label="mobile number"
+                  tabIndex={5}
                   onChange={(e) => {
                     handleMobile(e, setData, data, setError);
                   }}
@@ -283,20 +301,23 @@ function Registration({ organization, clinician }) {
                   type="email"
                   value={data.email}
                   className="custom-input"
+                  tabIndex={6}
                   name="email"
                   onChange={(e) => handleEmail(e, setData, data, setError)}
-                  label="email" />
+                  label="email"
+                />
               </div>
             </Box>
-            <Box>
+            <Box className={style.maker}>
               <div>
                 <label>Date of Birth</label>
               </div>
-              <FormControl>
+              <FormControl className={style.age}>
                 <input
                   className="custom-input"
                   type="number"
                   value={data.days}
+                  tabIndex={7}
                   placeholder="days"
                   onChange={(e) => {
                     setData({ ...data, days: e.target.value });
@@ -309,37 +330,57 @@ function Registration({ organization, clinician }) {
                   label="months"
                   type="number"
                   placeholder="months"
+                  tabIndex={8}
                   name="months"
                   value={data.months}
                   onChange={(e) => {
                     setData({ ...data, months: e.target.value });
                   }}
                 />
-                <input className="custom-input" value={data?.years} onChange={(e) => { setData({ ...data, years: e.target.value }) }} placeholder="years" />
+                <input
+                  className="custom-input"
+                  value={data?.years}
+                  onChange={(e) => {
+                    setData({ ...data, years: e.target.value });
+                  }}
+                  placeholder="years"
+                  tabIndex={9}
+                />
               </FormControl>
-              <div>
-                <label>age</label>
-                <input value={data?.age} onChange={(e) => setData({ ...data, age: e.target.value })} type="number" className="custom-input" placeholder="age" />
+              <div className={style.age_desc}>
+                <div>
+                  <label>age</label>
+                  <input
+                    value={data?.age}
+                    onChange={(e) => setData({ ...data, age: e.target.value })}
+                    type="number"
+                    tabIndex={10}
+                    className="custom-input"
+                    placeholder="age"
+                  />
+                </div>
+
+                <FormControl sx={{ marginTop: '39px' }}>
+                  <InputLabel id="ageType">Age Type</InputLabel>
+                  <Select
+                    name="ageType"
+                    id="ageType"
+                    value={data.ageType}
+                    size="small"
+                    variant="outlined"
+                    tabIndex={11}
+                    onChange={(e) =>
+                      setData({ ...data, ageType: e.target.value })
+                    }
+                  >
+                    <MenuItem value={"years"}>years</MenuItem>
+                    <MenuItem value={"months"}>months</MenuItem>
+                    <MenuItem value={"days"}>days</MenuItem>
+                  </Select>
+                </FormControl>
               </div>
-              <FormControl>
-                <InputLabel id="ageType">Age Type</InputLabel>
-                <Select
-                  name="ageType"
-                  id="ageType"
-                  value={data.ageType}
-                  size="small"
-                  variant="outlined"
-                  onChange={(e) =>
-                    setData({ ...data, ageType: e.target.value })
-                  }
-                >
-                  <MenuItem value={"years"}>years</MenuItem>
-                  <MenuItem value={"months"}>months</MenuItem>
-                  <MenuItem value={"days"}>days</MenuItem>
-                </Select>
-              </FormControl>
             </Box>
-            <Box>
+            <Box className={style.maker}>
               <FormControl
                 style={{ display: "flex", justifyContent: "flex-start" }}
               >
@@ -348,6 +389,7 @@ function Registration({ organization, clinician }) {
                   aria-labelledby="gender"
                   defaultValue="female"
                   name="gender"
+                  tabIndex={12}
                   onChange={(e) => setData({ ...data, gender: e.target.value })}
                   value={data.gender}
                 >
@@ -355,16 +397,19 @@ function Registration({ organization, clinician }) {
                     <FormControlLabel
                       value="female"
                       control={<Radio />}
+                      tabIndex={13}
                       label="Female"
                     />
                     <FormControlLabel
                       value="male"
                       control={<Radio />}
+                      tabIndex={14}
                       label="Male"
                     />
                     <FormControlLabel
                       value="other"
                       control={<Radio />}
+                      tabIndex={15}
                       label="Other"
                     />
                   </div>
@@ -376,6 +421,7 @@ function Registration({ organization, clinician }) {
                 <RadioGroup
                   aria-labelledby="marital-status"
                   defaultValue="single"
+                  tabIndex={16}
                   name="maritalstatus"
                   onChange={(e) =>
                     setData({ ...data, maritalstatus: e.target.value })
@@ -386,24 +432,38 @@ function Registration({ organization, clinician }) {
                     <FormControlLabel
                       value="single"
                       control={<Radio />}
+                      tabIndex={17}
                       label="Single"
                     />
                     <FormControlLabel
                       value="married"
                       control={<Radio />}
+                      tabIndex={18}
                       label="Married"
                     />
                   </div>
                 </RadioGroup>
               </FormControl>
             </Box>
-            <h5 className="lims-text-color text-capitalize">geographical location information</h5>
-            <h5 className="lims-text-color text-capitalize">emmergency contact information</h5>
-            <Box>
+            <h5 className="lims-text-color text-capitalize">
+              geographical location information
+            </h5>
+            <Box className={style.personal}>
+              <div>
+                {/* area */}
+                <label>Area</label>
+                <input className="custom-input" placeholder="area" type='text' />
+              </div>
+            </Box>
+            <h5 className="lims-text-color text-capitalize">
+              emmergency contact information
+            </h5>
+            <Box className={style.personal}>
               <TextField
                 label="emmergency contact name"
                 variant="outlined"
                 name="emmergencyName"
+                tabIndex={19}
                 onChange={(e) => {
                   setData({ ...data, emmergencyName: e.target.value });
                 }}
@@ -414,6 +474,7 @@ function Registration({ organization, clinician }) {
               <TextField
                 label="relationship"
                 value={data.relationship}
+                tabIndex={20}
                 onChange={(e) =>
                   setData({ ...data, relationship: e.target.value })
                 }
@@ -425,6 +486,7 @@ function Registration({ organization, clinician }) {
               <TextField
                 label="emmergency contact number"
                 variant="outlined"
+                tabIndex={21}
                 name="emmergencyContactNumber"
                 onChange={(e) =>
                   setData({ ...data, emmergencyContactNumber: e.target.value })
@@ -439,6 +501,7 @@ function Registration({ organization, clinician }) {
               <TextField
                 value={data.patientOrganization}
                 label="patient organization"
+                tabIndex={22}
                 size="small"
                 onChange={(e) => {
                   setData({ ...data, patientOrganization: e.target.value });
@@ -447,6 +510,7 @@ function Registration({ organization, clinician }) {
               <TextField
                 value={data.occupation}
                 label="occupation"
+                tabIndex={23}
                 size="small"
                 onChange={(e) => {
                   setData({ ...data, occupation: e.target.value });
@@ -457,6 +521,7 @@ function Registration({ organization, clinician }) {
               <Button
                 type="button"
                 variant="contained"
+                tabIndex={24}
                 onClick={(e) => {
                   handleSubmitRegistration(e, data, "register");
                 }}

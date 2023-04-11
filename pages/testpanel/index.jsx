@@ -1,11 +1,12 @@
 import React, { Suspense } from 'react';
 import { TestPanelProvider } from '../../components/testpanel/contextTest';
 import TestPanelLayout from '../../components/testpanel/TestPanelLayout';
-import { customFetch } from '../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../components/Auth/customFetch';
 import { Button } from '@mui/material';
 import TableDisplay from '../../components/accessories/TableDisplay';
 
 export default function TESTPANEL({ data }) {
+  const [testData, setTestData] = React.useState(data);
   // using react table to display data
   const columns = [{
     Header: 'ID',
@@ -49,14 +50,13 @@ export default function TESTPANEL({ data }) {
   },
   {
     Header: 'ACTION',
-    accessor: 'ACTION',
-    Cell: () => {
+    Cell: function({row}){
       return (
         <div>
           <Button>
             edit
           </Button>
-          <Button color='error'>
+          <Button  color='error' onClick={() => deleteHandler(row.original.ID)}>
             Delete
           </Button>
         </div>
@@ -64,12 +64,30 @@ export default function TESTPANEL({ data }) {
     }
   }
 ]
+
+const deleteHandler = async (e) => {
+  const response = await customPost(`testpanel/list?id=${e}`, 'DELETE',{ id: e });
+  
+  const { statusCode, status} = response;
+
+  if (statusCode === 200 && status === 'success') {
+    alert('deleted successfully');
+    // remove deleted item from the table
+    const filteredData = testData.filter(item => item.ID !== e);
+    setTestData(filteredData);
+  }
+
+  if (response?.err || statusCode === 401 || statusCode === 500 || status === 'error' || status == 'warning') {
+    alert(response?.message)
+  }
+
+}
   return (
     <>
       <TestPanelProvider>
         <TestPanelLayout>
           <Suspense>
-            <TableDisplay data={data} column={columns} />
+            <TableDisplay data={testData} column={columns} />
           </Suspense>
         </TestPanelLayout>
       </TestPanelProvider>

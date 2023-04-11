@@ -2,6 +2,7 @@ import React, { useState, useMemo, Suspense, useContext } from 'react';
 import { customFetch } from '../Auth/customFetch';
 import OperationsContext from './OperationsContext';
 import BloodtypeIcon from '@mui/icons-material/Bloodtype';
+import SECOND_NO_DATA from '../accessories/secondNodata';
 
 export default function OperationsTestCollection() {
   const { operationsKey ,updateOperations} = useContext(OperationsContext)
@@ -43,9 +44,9 @@ export default function OperationsTestCollection() {
             <input className='custom-input' tabIndex={1} onChange={(e) => handleSearch(e)} placeholder='search using name or id'  autoFocus/>
           </div>
           <ul>
-            {collection.map((item, index) => (
+            {collection.length > 0 ? collection.map((item, index) => (
               <li tabIndex={1+index} onClick={(e) => handleUpdate(e,item)} key={index}><BloodtypeIcon/>{item.PATIENTID} : {item.FULLNAME}</li>
-            ))}
+            )): <SECOND_NO_DATA message={'No data'}/>}
           </ul>
         </div>
       </Suspense >
