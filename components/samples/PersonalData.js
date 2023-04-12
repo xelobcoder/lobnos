@@ -44,7 +44,9 @@ export default function PersonalData({ data }) {
 
   const {
     PATIENTID,
-    FULLNAME,
+    FIRSTNAME,
+    LASTNAME,
+    MIDDLENAME,
     ID,
     EMAIL,
     GENDER,
@@ -84,7 +86,7 @@ export default function PersonalData({ data }) {
                 fullname
               </div>
               <div className='follower text-success'>
-                {FULLNAME}
+                {FIRSTNAME} {MIDDLENAME} {LASTNAME}
               </div>
             </div>
             <div className='list-group-item'>

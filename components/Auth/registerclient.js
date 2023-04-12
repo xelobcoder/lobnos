@@ -1,4 +1,5 @@
-import { customFetch } from "./customFetch";
+import { customFetch, customPost } from "./customFetch";
+import { defaultdata } from "../../pages/registration"; 
 
 // handle mobile number validation
 export const handleMobile = (e, setValue, data, setError) => {
@@ -138,17 +139,17 @@ export const handleAge = (y, m, d) => {
   }
 };
 
-export const BASEURL = `${process.env.BASEURL}/patientid/`;
 
-export const handleSubmitRegistration = (e, data = {}, BASE) => {
+
+export const handleSubmitRegistration = async (e, data = {}, typer,callback) => {
   e.preventDefault();
   // error marker , at end run if true , data is not sent to endpoint.
   var error = false;
   // fields that must have values
   const requiredFields = [
-    "fullname",
+    "firstname",
+    "lastname",
     "patientid",
-    "patienttype",
     "age",
     "ageType",
     "maritalstatus",
@@ -160,107 +161,32 @@ export const handleSubmitRegistration = (e, data = {}, BASE) => {
     "occupation",
   ];
 
-  // however if refered, clinician and organization value must be filled
-  // less, clinician  and organization must be empty
-  const referedChecker = ["organization", "clinician"];
-
-  // destruture received data
-  const { patienttype } = data;
-  //  validate information to ensure data consistency
-  /**
-   *
-   * @param {object} object data of patient  per inputs
-   * @param {*} patienttype
-   * @returns
-   */
-  function rd(data, patienttype) {
-    // error marker , at end run if true , data is not sent to API endpoint for storage
-    var error = { state: false, message: "" };
-    // fields that must have values
-    if (patienttype == "Refered") {
-      if (
-        data[referedChecker[0]] == "" ||
-        data[referedChecker[0]] == null ||
-        data[referedChecker[1]] == null ||
-        data[referedChecker[1]] == ""
-      ) {
-        error.state = true;
-      }
-    }
-
-    if (patienttype == "Direct") {
-      //  maintain error is false ,if all values are filled
-      if (!Object.values(data).includes("")) {
+  // function theat checks to esnsure required fields are filled
+  const checkRequiredFields = (data) => {
+    requiredFields.forEach((field) => {
+      if (data[field] == "") {
+        error = true;
         return;
       }
-      //  function runs for each of the required fields againts the data
-
-      function markEmptyFields(data = {}, array = []) {
-        return array.filter((option) => {
-          return (
-            data[option] == undefined ||
-            data[option] == "" ||
-            data[option] == null
-          );
-        });
-      }
-      // array length suggest if empty fields are preset or not.
-      if (markEmptyFields(data, requiredFields).length > 0) {
-        error.state = true;
-        error.message =
-          markEmptyFields(data, requiredFields).join(", ") + " are required";
-      }
-    }
-
-    if (patienttype == "" || patienttype == null || patienttype == undefined) {
-      error.state = true;
-      error.message = "patient type is required";
-    }
-    return error;
-  }
-
-  // truth, action = fire data saving
-  // false , action = decline sending data to database
-
-  if (rd(data, patienttype).state == true) {
-    // destructure message of empty fields
-    const { message } = rd(data, patienttype);
-    return (error = message);
-  }
-
-
-
-  if (rd(data, patienttype).state == false) {
-    //  send data to db async
-    let push_data_async = async function () {
-      let endpoint = await fetch(`${process.env.BASEURL}/${BASE}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      let response = await endpoint.json();
-      return response;
-    };
-    //  run async function
-    push_data_async().then((response) => {
-      if (response.message == "Patient successfully registered") {
-        window.location.href = `/activation/?&patientid=` + +response.patientid;
-      } else {
-        window.location.href =
-          "/activation?message=" +
-          response.message +
-          "&patientid=" +
-          response.patientid;
-      }
     });
-  } else {
-    return error;
   }
-  return error;
+
+  checkRequiredFields(data);
+
+  if (!error) {
+    const response = await customPost('register',typer, data);
+    const {status,statusCode, message,patientid} = response;
+
+    if (statusCode ==  200 && status == 'SUCCESS') {
+      alert(message);
+      window.location.href=`/activation?patientid=${patientid}`;
+      callback(defaultdata)
+    }
+    else {
+      alert(message);
+      return
+    }
+  }
 };
 
 export async function handleActivation(e, id, status, patientid) {

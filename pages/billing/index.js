@@ -249,15 +249,9 @@ export default function Billing({
                   }}
                 >
                   <MenuItem value="">select payment mode</MenuItem>
-                  <MenuItem value="Mobile Money">Mobile Money</MenuItem>
                   <MenuItem value="Cash">Cash</MenuItem>
                   <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
                   <MenuItem value="Cheque">Cheque</MenuItem>
-                  <MenuItem value="invoice">invoice</MenuItem>
-                  <MenuItem value="Credit Card">Credit Card</MenuItem>
-                  <MenuItem value="Debit Card">Debit Card</MenuItem>
-                  <MenuItem value="Visa">Visa</MenuItem>
-                  <MenuItem value="MasterCard">MasterCard</MenuItem>
                 </Select>
               </FormControl>
             </div>
@@ -389,7 +383,7 @@ export async function getServerSideProps(ctx) {
 
   return {
     props: {
-      allpanels: data,
+      allpanels: data?.data,
       organization: organization,
       clinicians: clinician,
       branch: branch,

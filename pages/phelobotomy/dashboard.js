@@ -38,7 +38,6 @@ export default function Phelobotomy() {
     try {
       let getdata = async () => {
         let datajson = await customFetch('phelobotomy')
-        console.log(datajson)
         // we need to sort the data by urgency
         let sorteddata = datajson.sort((a, b) => {
           if (a.URGENCY == "emmergency") { return -1; }
@@ -49,7 +48,7 @@ export default function Phelobotomy() {
 
         // when done , fetch testpanel
         const response = await customFetch("testpanel/list");
-        setTestpanel(response);
+        setTestpanel(response?.data);
       };
       getdata();
 

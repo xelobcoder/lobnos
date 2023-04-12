@@ -21,11 +21,16 @@ export default function TestProfileBilling({ test }) {
   useMemo(async () => {
     // get the test data
     try {
-      const result = await customFetch('testpanel/list')
-      result.length > 0 && setTestPortal(result);
-      previousTest.length > 0 && setWorkingTest(previousTest.map((item) => {
-        return result.find((i) => i.NAME === item)
-      }))
+      const { data } = await customFetch('testpanel/list')
+      if (data) {
+        data.length > 0 && setTestPortal(data);
+        previousTest.length > 0 && setWorkingTest(previousTest.map((item) => {
+          return data.find((i) => i.NAME === item)
+        }))
+      } else {
+        return;
+      }
+
     } catch (error) {
       throw error;
     }
@@ -133,12 +138,12 @@ export default function TestProfileBilling({ test }) {
           }))
 
           let data = await response.json();
-          const { status,statusCode,err,message } = data;
+          const { status, statusCode, err, message } = data;
 
           if (status === 'success' && statusCode === 200) {
             alert(message);
           }
-          
+
           if (err) {
             alert(err?.message);
           }

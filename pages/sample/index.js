@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { Button, Link, Typography } from "@mui/material";
 import SAMPLE_REJECTION_MODAL_MESSAGE from "../../components/samples/sampleRejectionModal";
 import REJECTEDVIEW from "../../components/samples/rejectedview";
-import {customFetch} from '../../components/Auth/customFetch';
+import {customFetch, customPost} from '../../components/Auth/customFetch';
 
 // buttons for the sample status
 const rejectedview = () => <Button variant="text" color='error'>rejected</Button>
@@ -114,6 +114,8 @@ const SingleClient = function ({ item, approvalStatus, billingid = 0 }) {
   );
 };
 
+
+
 const currentdate_function = function () {
   let date = new Date();
   let year = date.getFullYear();
@@ -134,6 +136,7 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
     billingid: 0,
     item: {},
   });
+  console.log(data);
   const [rejectedList, setRejectedList] = useState(false);
 
   //  function to filter the rejected samples
@@ -179,7 +182,8 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
   const refresh = () => {
     if (onsearch == "all") {
       async function fetchdata() {
-        let data = await customFetch(`sample`)
+        let data = await customFetch(`sample`);
+        console.log(data)
         setData(data)
       }
       fetchdata();
@@ -221,32 +225,9 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
 
     // send a post request to the server
 
-    const forwardData = function () {
-      const SAVE = function () {
-        const deliverStatus = async () => {
-          let api = await fetch(`${process.env.BASEURL}/sample`, {
-            method: 'PUT',
-            headers: {
-              'content-type': 'application/json',
-              'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-            },
-            body: JSON.stringify(data),
-          })
-          let response = await api.json();
-          return response;
-        }
-
-        deliverStatus()
-          .then((response) => {
-            refresh();
-          }).catch((err) => {
-            console.log(err)
-          })
-      }
-
-
-
-      status === 'accepted' ? SAVE() : null;
+    const forwardData = async function () {
+      let response = await customPost(`sample`, 'PUT', data);
+      status === 'accepted' ? response : null;
     }
 
     forwardData();

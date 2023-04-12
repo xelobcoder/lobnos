@@ -13,6 +13,7 @@
   display: grid;
   grid-template-columns: 30% 30%;
   grid-gap: 2%;
+
 }
 
 .personal {
@@ -29,3 +30,18 @@
   padding: 20px;
   margin-top: 10px;
 }
+@media screen and (max-width: 600px) {
+  .personal ,
+  .maker,
+  .age_desc,
+  .age {
+    grid-template-columns: 1fr;
+  }
+
+  .age,
+  .age_desc {
+    margin-top: 20px;
+  }
+ 
+}
+  

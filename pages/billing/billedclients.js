@@ -18,7 +18,7 @@ export default function Billedclients() {
       setBilledclients(result)
     }
     catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }, [])
 

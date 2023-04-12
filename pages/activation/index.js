@@ -87,7 +87,7 @@ export default function Activator({ data }) {
             </thead>
             <tbody>
               {activationData.length == 0 && <TableIsLoading col={8} />}
-              {activationData.map((item, index) => {
+              {activationData.length > 0  &&  (activationData.map((item, index) => {
                 return (
                   <tr key={item.ID}>
                     <td>{item.ID}</td>
@@ -153,7 +153,7 @@ export default function Activator({ data }) {
                     </td>
                   </tr>
                 )
-              })}
+              }))}
 
             </tbody>
             {activationData.length == 0 && (
@@ -175,32 +175,41 @@ export default function Activator({ data }) {
 
 // get server side props
 export async function getServerSideProps(context) {
-  //  usinf fetch 
-  const response = await fetch(`${process.env.BASEURL}/activation`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-  })
-
-  const data = await response.json();
-
-
-  if(data?.err){
-    return {
-      redirect: {
-        destination: '/authentication/login',
-        permanent: false,
+  try {
+    //  usinf fetch 
+    const response = await fetch(`${process.env.BASEURL}/activation`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json',
       },
+    })
+
+    const data = await response.json();
+
+
+    if (data?.err) {
+      return {
+        redirect: {
+          destination: '/authentication/login',
+          permanent: false,
+        },
+      }
     }
+    else {
+      return {
+        props: {
+          data: data
+        },
+      }
+    }
+
   }
-  else {
+  catch(err) {
     return {
       props: {
-        data: data
-      },
+        data: []
+      }
     }
   }
-
 }

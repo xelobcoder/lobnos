@@ -29,6 +29,32 @@ import {
   Radio,
   Autocomplete,
 } from "@mui/material";
+export const defaultdata = {
+  email: "",
+  mobile: "",
+  age: "",
+  days: "",
+  months: "",
+  years: "",
+  patientid: "",
+  patienttype: "",
+  relationship: "",
+  emmergencyName: "",
+  emmergencyContactNumber: "",
+  gender: "",
+  maritalstatus: "",
+  ageType: "",
+  organization: "",
+  clinician: "",
+  patientOrganization: "",
+  occupation: "",
+  firstname: "",
+  lastname: "",
+  area: "",
+  region: "",
+  address: "",
+}
+
 // import { useFormik } from 'formik';
 function Registration({ organization, clinician }) {
   const [title, setTitle] = React.useState("Personal Information");
@@ -39,47 +65,13 @@ function Registration({ organization, clinician }) {
   const generateRef = useRef(null);
   const patientTypeOptions = ["", "Direct", "Refered"];
 
-  const [data, setData] = React.useState({
-    email: "",
-    mobile: "",
-    age: "",
-    days: "",
-    months: "",
-    years: "",
-    patientid: "",
-    patienttype: "",
-    relationship: "",
-    emmergencyName: "",
-    emmergencyContactNumber: "",
-    gender: "",
-    maritalstatus: "",
-    ageType: "",
-    organization: "",
-    clinician: "",
-    patientOrganization: "",
-    occupation: "",
-    fullname: "",
-  });
+
+
+  const [data, setData] = React.useState(defaultdata);
 
   const [disable, setDisable] = React.useState(false);
   const [generatebtn, setGeneratebtn] = React.useState(false);
 
-  const handlePatientid = async (e) => {
-    let inputvalue = data.patientid;
-    // check for null value or empty value or undedined
-    if (inputvalue != null || inputvalue != "" || inputvalue != undefined) {
-      setData({ ...data, patientid: inputvalue });
-      // query database for available patientid
-      // if patientid is available then populate the form with the data
-      const getpatient_info = await customFetch(`registration?${inputvalue}`);
-      console.log(getpatient_info);
-      getpatient_info()
-        .then((t) => {
-          console.log(t);
-        })
-        .catch((err) => console.log(err));
-    }
-  };
 
   // generate a transaction id for the patient
 
@@ -167,6 +159,7 @@ function Registration({ organization, clinician }) {
       getpatient_info()
         .then((item) => {
           let data = item[0];
+          // split full name into first and last name
           setData({
             patientid: data.PATIENTID,
             patienttype: data.PATIENTTYPE,
@@ -175,8 +168,6 @@ function Registration({ organization, clinician }) {
             emmergencyContactNumber: data.EMMERGENCY_CONTACT_NAME,
             age: data.AGE,
             ageType: data.AGETYPE,
-            organization: data.ORGANIZATION || "",
-            clinician: data.CLINICIAN || "",
             patientOrganization: data.PATIENTORGANIZATION || "",
             occupation: data.OCCUPATION || "",
             mobile: data.MOBILE_NUMBER,
@@ -186,7 +177,12 @@ function Registration({ organization, clinician }) {
             years: data.DOB.split("-")[0],
             maritalstatus: data.MARITAL_STATUS,
             gender: data.GENDER,
-            fullname: data.FULLNAME,
+            firstname: data.FIRSTNAME,
+            lastname: data.LASTNAME,
+            middlename: data.MIDDLENAME,
+            area: data.AREA,
+            region: data.REGION,
+            address: data.ADDRESS
           });
 
           // disable the patient field, hence prevent editing the unique id
@@ -243,16 +239,19 @@ function Registration({ organization, clinician }) {
                 />
               </div>
             </Box>
+            <h5>
+              Personal Information
+            </h5>
             <Box className={style.personal}>
               <div>
                 <label>first name </label>
                 <input
                   onChange={(e) => {
-                    setData({ ...data, fullname: e.target.value });
+                    setData({ ...data, firstname: e.target.value });
                   }}
                   placeholder="firstname"
                   className="custom-input"
-                  value={data.fullname}
+                  value={data.firstname}
                   required
                   tabIndex={2}
                 />
@@ -265,6 +264,10 @@ function Registration({ organization, clinician }) {
                   label="lastname"
                   placeholder="lastname"
                   required
+                  value={data.lastname}
+                  onChange={(e) => {
+                    setData({ ...data, lastname: e.target.value });
+                  }}
                   tabIndex={3}
                 />
               </div>
@@ -275,6 +278,10 @@ function Registration({ organization, clinician }) {
                   tabIndex={4}
                   placeholder="middlename"
                   type="text"
+                  value={data.middlename}
+                  onChange={(e) => {
+                    setData({ ...data, middlename: e.target.value });
+                  }}
                 />
               </div>
               <div>
@@ -360,24 +367,21 @@ function Registration({ organization, clinician }) {
                   />
                 </div>
 
-                <FormControl sx={{ marginTop: '39px' }}>
-                  <InputLabel id="ageType">Age Type</InputLabel>
-                  <Select
-                    name="ageType"
-                    id="ageType"
-                    value={data.ageType}
-                    size="small"
-                    variant="outlined"
+                <div>
+                  <label>age type</label>
+                  <select
+                    className="custom-input"
                     tabIndex={11}
                     onChange={(e) =>
-                      setData({ ...data, ageType: e.target.value })
+                      setData({ ...data, agetype: e.target.value })
                     }
+                    value={data.agetype}
                   >
-                    <MenuItem value={"years"}>years</MenuItem>
-                    <MenuItem value={"months"}>months</MenuItem>
-                    <MenuItem value={"days"}>days</MenuItem>
-                  </Select>
-                </FormControl>
+                    <option value="years">years</option>
+                    <option value="months">months</option>
+                    <option value="days">days</option>
+                  </select>
+                </div>
               </div>
             </Box>
             <Box className={style.maker}>
@@ -452,7 +456,31 @@ function Registration({ organization, clinician }) {
               <div>
                 {/* area */}
                 <label>Area</label>
-                <input className="custom-input" placeholder="area" type='text' />
+                <input className="custom-input"
+                  value={data.area}
+                  onChange={(e) => setData({ ...data, area: e.target.value })}
+                  placeholder="area"
+                  tabIndex={19}
+                  type='text' />
+              </div>
+              {/* region */}
+              <div>
+                <label>Region</label>
+                <input className="custom-input"
+                  value={data.region}
+                  onChange={(e) => setData({ ...data, region: e.target.value })}
+                  placeholder="region"
+                  tabIndex={20}
+                  type='text' />
+              </div>
+              {/* gps location if available or landmark if any  */}
+              <div>
+                <label>GPS Location  or landmark</label>
+                <input className="custom-input"
+                  value={data.address}
+                  onChange={(e) => setData({ ...data, address: e.target.value })}
+                  tabIndex={21}
+                  placeholder="gps location" type='text' />
               </div>
             </Box>
             <h5 className="lims-text-color text-capitalize">
@@ -463,7 +491,7 @@ function Registration({ organization, clinician }) {
                 label="emmergency contact name"
                 variant="outlined"
                 name="emmergencyName"
-                tabIndex={19}
+                tabIndex={22}
                 onChange={(e) => {
                   setData({ ...data, emmergencyName: e.target.value });
                 }}
@@ -474,7 +502,7 @@ function Registration({ organization, clinician }) {
               <TextField
                 label="relationship"
                 value={data.relationship}
-                tabIndex={20}
+                tabIndex={23}
                 onChange={(e) =>
                   setData({ ...data, relationship: e.target.value })
                 }
@@ -486,7 +514,7 @@ function Registration({ organization, clinician }) {
               <TextField
                 label="emmergency contact number"
                 variant="outlined"
-                tabIndex={21}
+                tabIndex={24}
                 name="emmergencyContactNumber"
                 onChange={(e) =>
                   setData({ ...data, emmergencyContactNumber: e.target.value })
@@ -497,11 +525,14 @@ function Registration({ organization, clinician }) {
                 size="small"
               />
             </Box>
-            <Box>
+            <h5 className="lims-text-color text-capitalize">
+              patient organization and occupation
+            </h5>
+            <Box className={style.personal}>
               <TextField
                 value={data.patientOrganization}
                 label="patient organization"
-                tabIndex={22}
+                tabIndex={25}
                 size="small"
                 onChange={(e) => {
                   setData({ ...data, patientOrganization: e.target.value });
@@ -510,7 +541,7 @@ function Registration({ organization, clinician }) {
               <TextField
                 value={data.occupation}
                 label="occupation"
-                tabIndex={23}
+                tabIndex={26}
                 size="small"
                 onChange={(e) => {
                   setData({ ...data, occupation: e.target.value });
@@ -521,9 +552,10 @@ function Registration({ organization, clinician }) {
               <Button
                 type="button"
                 variant="contained"
-                tabIndex={24}
+                tabIndex={27}
                 onClick={(e) => {
-                  handleSubmitRegistration(e, data, "register");
+                  const typer = clientID === undefined || clientID === null ? 'POST': 'PUT';
+                  handleSubmitRegistration(e, data, typer,setData);
                 }}
               >
                 submit
@@ -541,16 +573,16 @@ export default Registration;
 
 
 
-// Registration.getLayout = function (page) {
-//   return (
-//     <>
-//       <Header />
-//       <div className="wrapper">
-//         <div className="side">
-//           <SidebarFrontPage />
-//         </div>
-//         <div className="main">{page}</div>
-//       </div>
-//     </>
-//   )
-// }
+Registration.getLayout = function (page) {
+  return (
+    <>
+      <Header />
+      <div className="wrapper">
+        <div className="side">
+          <SidebarFrontPage />
+        </div>
+        <div className="main">{page}</div>
+      </div>
+    </>
+  )
+}
