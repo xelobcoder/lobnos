@@ -8,6 +8,10 @@ import Widal from '../LabTestForms/widal';
 import G6PD from '../LabTestForms/g6pd';
 import CardiacEnzymes from '../LabTestForms/cardiacenzyme';
 import Urinalysis from '../LabTestForms/urinalysis';
+import ThyroidTest from '../LabTestForms/thyroid';
+import HepatitisC from '../LabTestForms/hepC';
+import HEPATITISBPROFILE from '../LabTestForms/hepatitisBprofile';
+import BloodGroup from '../LabTestForms/bloodgroup';
 
 export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
@@ -19,8 +23,13 @@ export default function DisplayTest() {
     hepatitis_b: <HepatitisB />,
     widal: <Widal />,
     gpd: <G6PD />,
-    cardiac_enzymens: <CardiacEnzymes />,
-    urinanalysis: <Urinalysis/>
+    cardiac_enzymes: <CardiacEnzymes />,
+    urinanalysis: <Urinalysis />,
+    thyroid_test: <ThyroidTest />,
+    hepatitis_b_profile: <HEPATITISBPROFILE/>,
+    hepatitis_b: <HepatitisB/>,
+    hepatitis_c: <HepatitisC/>,
+    blood_grouping: <BloodGroup/>
   }
   return (
     <div>

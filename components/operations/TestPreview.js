@@ -72,7 +72,6 @@ export default function TestPreview() {
             datapool.map((item, index) => (
               <div key={index} id='operations-test-collection'>
                 <div className='firstchild'>
-                  <div>{<ArrowDropDownIcon onClick={handleClickToggle} />}</div>
                   <div>{item.NAME}</div>
                 </div>
                 {
