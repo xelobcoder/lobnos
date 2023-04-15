@@ -2587,3 +2587,15 @@ border-radius:  10px;
   display: grid;
   grid-template-columns: 20% auto;
 }
+
+.create-param-form {
+  margin: 1% 5%;
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  grid-gap: 10px;
+}
+.create-param-header {
+  margin: 1% 5%;
+  color: #00224f;
+  text-transform: uppercase;
+}

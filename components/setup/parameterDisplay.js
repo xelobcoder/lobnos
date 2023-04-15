@@ -5,9 +5,10 @@ import Message from '../accessories/message';
 import { DeleteForever } from '@mui/icons-material';
 import AddIcon from '@mui/icons-material/Add';
 import MARKDOWN_EDITOR from '../accessories/markdownEditor.js';
+import Link from 'next/link.js';
 
 
-function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category }) {
+function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category, createTarget }) {
   const [mode, setMode] = useState('new');
   const [dataModification, setDataModification] = useState('')
   const [MsgDx, setMsgDx] = useState({
@@ -69,10 +70,12 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category }) {
       }
       <div className='_fbc'>
         <div className='d-flex justify-content-end p-2'>
-          <button className='custom-button'>
-            <AddIcon />
-            create paramater
-          </button>
+          <Link href={`/settings/setup/createparam?target=${createTarget}`}>
+            <button className='custom-button'>
+              <AddIcon />
+              create paramater
+            </button>
+          </Link>
         </div>
         <div className='wrapperx'>
           <div className='fbc_header'>

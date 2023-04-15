@@ -82,13 +82,17 @@ function FullBloodCountSetup() {
     }
   }
 
+  const handleCreatedParamsView = async function (e) {
+     const response = await customFetch(`test/setup/fbc/createparams`);
+     response?.data && setFullcount(response.data)
+  }
 
 
 
   return (
     <>
       <div className='_fbc'>
-        <Link href='/instructions/fullbloodcount/setup'>
+        <Link href='/instructions/setup/fullbloodcount'>
           Read Instructions
         </Link>
 
@@ -106,11 +110,19 @@ function FullBloodCountSetup() {
             <input className='custom-input' value={childrenAge} disabled={disable}></input>
           </div>
           <div className='form-group d-flex'>
-            <Button variant='contained' >create parameter</Button>
-            <Button variant='contained'
-              onClick={() => setUsingDefault(!usingdefault)}
-            >
-              {usingdefault === true ? 'use created params' : 'use default'}
+
+            <Link href={'/settings/setup/createparam?target=fbc'}>
+              <Button variant='contained' >
+                create parameter
+              </Button>
+            </Link>
+
+            <Button variant='contained' sx={{padding:'0px 20px',margin:'0px 10px'}}
+              onClick={() => setUsingDefault(!usingdefault)}>
+              {usingdefault === true ? 'table params' : 'use default'}
+            </Button>
+            <Button variant='contained' onClick={handleCreatedParamsView}>
+              view created params
             </Button>
           </div>
         </div>
@@ -122,6 +134,7 @@ function FullBloodCountSetup() {
               <li>unit</li>
               <li>upper</li>
               <li>lower</li>
+              <li>action </li>
             </ul>
           </div>
           <div className='fbc_header'>
@@ -153,7 +166,7 @@ function FullBloodCountSetup() {
           </div>
         </div>
         <div >
-          <Button variant='contained' color='success' onClick={saveData}>
+          <Button variant='contained' color='success' className='mt-2' onClick={saveData}>
             save changes
           </Button>
         </div>
