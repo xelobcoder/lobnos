@@ -1,4 +1,3 @@
-import MainSettings from '../../components/settingsComponents/settings';
 import SettingsSidebar from '../../components/settingsComponents/sidebars';
 import Sidebar from '../../components/sidebar';
 
@@ -6,7 +5,7 @@ import Sidebar from '../../components/sidebar';
 function Settings() {
 	return (
 		<>
-			<MainSettings/>
+
 		</>
 	)
 }

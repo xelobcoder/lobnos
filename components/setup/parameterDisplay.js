@@ -1,14 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@mui/material';
-import { serverCall , getRecords } from './connector.js';
+import { serverCall, getRecords } from './connector.js';
 import Message from '../accessories/message';
-function PARAMETER_DISPLAY_COMPONENT(
-  { parameterdata,
-    category
-  }
-) {
-  // props
+import { DeleteForever } from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
+import MARKDOWN_EDITOR from '../accessories/markdownEditor.js';
 
+
+function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category }) {
   const [mode, setMode] = useState('new');
   const [dataModification, setDataModification] = useState('')
   const [MsgDx, setMsgDx] = useState({
@@ -58,6 +57,7 @@ function PARAMETER_DISPLAY_COMPONENT(
 
   return (
     <>
+
       {
         MsgDx.show ?
           <div className='mt-2'>
@@ -67,7 +67,13 @@ function PARAMETER_DISPLAY_COMPONENT(
           </div>
           : null
       }
-      <div className='_fbc' style={{ height: '900px' }}>
+      <div className='_fbc'>
+        <div className='d-flex justify-content-end p-2'>
+          <button className='custom-button'>
+            <AddIcon />
+            create paramater
+          </button>
+        </div>
         <div className='wrapperx'>
           <div className='fbc_header'>
             <ul>
@@ -75,6 +81,7 @@ function PARAMETER_DISPLAY_COMPONENT(
               <li>unit</li>
               <li>upper</li>
               <li>lower</li>
+              <li>action</li>
             </ul>
           </div>
           <div className='fbc_header'>
@@ -93,6 +100,9 @@ function PARAMETER_DISPLAY_COMPONENT(
                       <li>
                         <input value={item.lower || 0} type='number' onChange={(e) => onChangeLower(e, index)} />
                       </li>
+                      <li>
+                        <DeleteForever color='error' sx={{ cursor: 'pointer' }} fontSize='medium' />
+                      </li>
                     </ul>
                   )
                 })
@@ -100,6 +110,8 @@ function PARAMETER_DISPLAY_COMPONENT(
             </div>
           </div>
         </div>
+        <h4 className='lims-text-color text-capitalize mt-2'>comments</h4>
+        <MARKDOWN_EDITOR />
         <div className='fbc_header' style={{ display: "flex", justifyContent: 'right' }} >
           <Button variant='contained' color='success'
             onClick={(ev) => {

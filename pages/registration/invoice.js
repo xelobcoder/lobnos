@@ -4,7 +4,7 @@ import Invoice from '../../components/invoices/bilinvoice';
 import Header from '../../components/header';
 
 function INVOICE({ test }) {
-  const clientid = parseInt(useRouter().query.patientid);
+  const clientid = parseInt(useRouter().query.billingid);
   const [invoice, setInvoice] = useState([]);
 
   useEffect(() => {
@@ -14,7 +14,9 @@ function INVOICE({ test }) {
         .then((t) => {
           setInvoice(t);
         })
-        .catch((err) => { console.log(err) })
+        .catch((err) => { 
+          console.log(err)
+         })
     }
   }, [clientid])
 

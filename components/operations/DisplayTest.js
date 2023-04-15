@@ -12,6 +12,7 @@ import ThyroidTest from '../LabTestForms/thyroid';
 import HepatitisC from '../LabTestForms/hepC';
 import HEPATITISBPROFILE from '../LabTestForms/hepatitisBprofile';
 import BloodGroup from '../LabTestForms/bloodgroup';
+import ESR from '../LabTestForms/esr';
 
 export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
@@ -29,11 +30,12 @@ export default function DisplayTest() {
     hepatitis_b_profile: <HEPATITISBPROFILE/>,
     hepatitis_b: <HepatitisB/>,
     hepatitis_c: <HepatitisC/>,
-    blood_grouping: <BloodGroup/>
+    blood_grouping: <BloodGroup/>,
+    erythrocyte_sedimentation_rate: <ESR/>,
   }
   return (
     <div>
-      {operationsKey?.display && componentsList[operationsKey.test]}
+      {operationsKey?.display && componentsList[(operationsKey.test).toLowerCase()]}
     </div>
   )
 }

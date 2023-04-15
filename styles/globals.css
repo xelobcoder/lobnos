@@ -1038,35 +1038,10 @@ option:hover {
   margin: 0;
   height: 100vh;
   width: 100%;
-  display: -ms-grid;
-  display: grid;
-  -ms-grid-columns: 100%;
-  grid-template-columns: 100%;
-  -ms-grid-rows: 7% auto;
-  grid-template-rows: 7% auto;
+  padding: 5px;
+  background-color: white;
 }
 
-.box > .box-header,
-.box > .box-tail {
-  border: 1px solid lightgray;
-  border-collapse: collapse;
-}
-
-.box-header {
-  text-transform: capitalize;
-  font-weight: 300;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  font-size: 18px;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  color: black;
-}
 
 .box-tail ul {
   margin: 0;
@@ -1074,39 +1049,24 @@ option:hover {
 }
 
 .box-tail ul li {
-  font-size: 14px;
-  color: #2c363a;
-  padding: 10px;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.box-tail ul li svg {
-  margin-right: 10px;
-  color: gray;
-  height: 20px;
-  width: 20px;
+  font-size: 15px;
   color: #00224f;
+  text-transform: capitalize;
+  padding: 10px;
 }
 
+
+.box-tail ul li:hover,
 .box-tail ul li:active,
-.box-tail ul li:focus,
-.box-tail ul li:hover {
-  color: black;
+.box-tail ul li:focus {
+  background-color: whitesmoke;
+  color: #00224f;
   cursor: pointer;
+  border-radius: 5px;
+  transition:  all 0.5s ease;
 }
 
-.page-frame-active {
-  background-color: aliceblue;
-  color: gray;
-}
 
-.page-frame {
-  display: -ms-grid;
-  display: grid;
-  -ms-grid-columns: 15% auto;
-  grid-template-columns: 15% auto;
-}
 #phelobotomy-data-list {
   margin: 0;
   padding: 0;
@@ -2582,4 +2542,48 @@ border-radius:  10px;
 .group-grid-testlist > h6 {
   font-size: 15px;
   text-transform: capitalize;
+}
+#entry-table-chemistry{
+  margin: 0;
+  width: 100%;
+  height: auto;
+}
+#entry-table-chemistry > thead,
+#entry-table-chemistry > tbody {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  border-bottom: 1px solid lightgray;
+}
+#entry-table-chemistry > thead > tr > th {
+  padding: 10px;
+  text-align: left;
+  font-weight: 600;
+  font-weight: 200;
+  color:gray;
+  text-transform: uppercase;
+}
+
+#entry-table-chemistry > tbody > tr > td {
+  padding: 10px;
+  text-align: left;
+  font-weight: 600;
+  font-weight: 200;
+  color:#00224f;
+  text-transform: lowercase;
+}
+
+
+#entry-table-chemistry > tbody > tr > td >input{
+  width:100px;
+  border: 1px solid lightgray;
+}
+#entry-table-chemistry > tbody > tr{
+  margin: 0;
+  padding: 0;
+}
+
+.test-setup-layout {
+  display: grid;
+  grid-template-columns: 20% auto;
 }

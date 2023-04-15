@@ -444,11 +444,3 @@ export default function Phelobotomy() {
   );
 }
 
-// Phelobotomy.getLayout = function (page) {
-//   return (
-//     <>
-//       <Header />
-//       {page}
-//     </>
-//   );
-// };

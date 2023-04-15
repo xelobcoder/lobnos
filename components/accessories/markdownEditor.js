@@ -1,30 +1,32 @@
-import React, { useState, useMemo, useRef } from 'react'
-import JoditEditor from 'jodit-react'
-export default function MARKDOWN_EDITOR({ placeholder }) {
-  const editor = useRef(null);
-  const [content, setContent] = useState('');
+import React, { useRef } from 'react';
+import { Editor } from '@tinymce/tinymce-react';
+import { Button } from '@mui/material';
 
-  const config = useMemo(() => {
-    readonly: false,
-      placeholder
-  }, [placeholder])
+export default function MARKDOWN_EDITOR() {
+  const editorRef = useRef(null);
+
   return (
     <>
-      <div className='editor-subject col-7'>
-        <label htmlFor='subject' className='form-label'>Subject</label>
-        <input type='text' placeholder='subject' className='form-control mb-3' />
-      </div>
-      <div className='editor-message'>
-        <JoditEditor
-          ref={editor}
-          value={content}
-          config={config}
-          tabIndex={1} // tabIndex of textarea
-          onBlur={newContent => setContent(newContent)} // preferred to use only this option to update the content for performance reasons
-          onChange={newContent => {
-            console.log('onChange', newContent)
-          }} />
-      </div>
+      <Editor
+        apiKey='your-api-key'
+        onInit={(evt, editor) => editorRef.current = editor}
+        className ='custom-textarea'
+        initialValue="<p>This is the initial content of the editor.</p>"
+        init={{
+          height: 200,
+          menubar: false,
+          plugins: [
+            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+            'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+          ],
+          toolbar: 'undo redo | blocks | ' +
+            'bold italic forecolor | alignleft aligncenter ' +
+            'alignright alignjustify | bullist numlist outdent indent | ' +
+            'removeformat | help',
+          content_style: ''
+        }}
+      />
     </>
-  )
+  );
 }

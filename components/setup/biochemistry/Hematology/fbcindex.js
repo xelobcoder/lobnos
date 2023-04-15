@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import LiverPanel from '../liver';
 import FullBloodCountSetup from './fbcsetup'
 import FBCLISTPARAMETERS from './FBCLIST';
 import CREATE_PARAMS_SETUP from './createParameter';

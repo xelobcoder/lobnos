@@ -40,6 +40,13 @@ const renalparameters = [
   "upper": 1000,
   "lower": 50,
   "unit" : "mg/dl"
+},
+{
+  "setupid": 7,
+  "parameter": "albumin",
+  "upper": 1000,
+  "lower": 50,
+  "unit" : "mg/dl"
 }
 ]
 

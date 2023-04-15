@@ -1,6 +1,6 @@
 ._fbc {
   overflow: hidden;
-  background-color: #00224f34;
+  background-color: whitesmoke;
   height: 100%;
   width: 100%;
   padding: 10px 20px;
@@ -8,22 +8,26 @@
 
 .top_cart {
   width: 100%;
-  font-size: 14px;
+  font-size: 13px;
   display: grid;
-  grid-template-columns: 40% 40% 20%;
-  grid-gap: 20px;
-  background-color: white;
-  padding: 10px;
+  grid-template-columns: 30% 35% 35%;
+  grid-gap: 10px;
 }
 
-.top_cart > .form-group {
-  display: grid;
-  grid-template-columns: 30% auto;
+.top_cart > .form-group:nth-of-type(1),
+.top_cart > .form-group:nth-of-type(2) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
+.top_cart > .form-group:nth-of-type(3) > button {
+  margin-left: 5px;
+}
 .top_cart > .form-group > select,
 .top_cart > .form-group > input {
   height: 40px;
+  width: 70%;
 }
 .top_cart > .form-group > input[type='radio'] {
   color: red !important;
@@ -44,11 +48,11 @@
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: 25% 25% 25% 25%;
+  grid-template-columns: 25% 20% 20% 20% 15%;
 }
 
 .fbc_header > .parameter-list {
-  height: 80vh;
+  height: auto;
   overflow-y: auto;
 }
 
@@ -59,7 +63,7 @@
   font-size: 14px;
   text-transform: capitalize;
   margin-top: 10px;
-  padding: 5px;
+  padding: 0px;
 }
 
 .fbc_header > .parameter-list > ul {
@@ -71,9 +75,10 @@
   border-radius: 5px;
   border: 1px solid lightgray;
   width: 100px;
-  height: 40px;
-  padding: 5px;
+  height: 35px;
+  margin-bottom: 5px;
   text-align: left;
+  padding: 5px;
 }
 
 .fbc_header > .parameter-list > ul > li > input :active,
@@ -86,7 +91,6 @@
   padding-left: 20px;
   font-weight: 500;
   color: #00224f;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
 ._fbc > .wrapperx > #fbc_header_five {
