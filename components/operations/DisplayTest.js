@@ -13,6 +13,7 @@ import HepatitisC from '../LabTestForms/hepC';
 import HEPATITISBPROFILE from '../LabTestForms/hepatitisBprofile';
 import BloodGroup from '../LabTestForms/bloodgroup';
 import ESR from '../LabTestForms/esr';
+import LipidProfile from '../LabTestForms/lipidprofile';
 
 export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
@@ -32,6 +33,7 @@ export default function DisplayTest() {
     hepatitis_c: <HepatitisC/>,
     blood_grouping: <BloodGroup/>,
     erythrocyte_sedimentation_rate: <ESR/>,
+    lipid_profile: <LipidProfile/>
   }
   return (
     <div>

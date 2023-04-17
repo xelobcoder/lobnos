@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react';
+import {customFetch} from '../../components/Auth/customFetch';
 
 export default function CompanyProfile() {
   const defaultdata = {
@@ -12,7 +13,7 @@ export default function CompanyProfile() {
   const imageRef = useRef()
 
   const handleData = function (ev) {
-    let endpoint = `http://localhost:3000/api/settings/companydata`;
+    let endpoint = `api/settings/companydata`;
     // push data to db
     const is_field_filled = Object.values(companydata).filter((item, index) => item == '')
 
@@ -79,12 +80,11 @@ export default function CompanyProfile() {
   }
   // loads exiting data on page visit if the data exist 
   useEffect(() => {
-    let pushdata = async function () {
-      let endpoint = fetch(`http://localhost:3000/api/settings/companydata`)
-      let turn = (await endpoint).json();
-      turn.then((res) => setcompanyData(res)).catch((err) => console.log(err))
+    const data = async function() {
+      let response = await customFetch('settings/companydata');
+      console.log(response)
     }
-    pushdata()
+    data()
   }, [])
 
 

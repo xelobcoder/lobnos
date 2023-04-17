@@ -2361,7 +2361,11 @@ textarea::placeholder {
 .operations-wrapper {
   display: grid;
   grid-template-columns: 25% 20% auto;
+  height: 100vh;
+  overflow-y: hidden;
 }
+
+
 
 .operations-wrapper > aside {
   padding: 0px;
@@ -2369,8 +2373,6 @@ textarea::placeholder {
   background-color: white;
   color: white;
   border-right: 1px solid lightgray;
-  height: 100vh;
-  overflow-y: auto;
   opacity: 0.9;
 }
 
@@ -2401,6 +2403,8 @@ border-radius:  10px;
 
 }
 
+
+
 #operations-test-collection {
   display: grid;
   grid-template-columns: 100%;
@@ -2426,6 +2430,11 @@ border-radius:  10px;
   padding-bottom: 20px;
 }
 
+
+#operations-wrapper > main:nth-child(2){
+  height: 1200px !important;
+}
+
 #operations-test-collection:is(:focus, :hover) {
   background-color: white;
   color: black;
@@ -2435,6 +2444,8 @@ border-radius:  10px;
 #operation-test-collection-wrapper {
   height: 100vh;
   border-right: 1px solid lightgray;
+  overflow-y: auto;
+  height: 100vh;
 }
 
 #operations-test-collection > div > button {
@@ -2565,17 +2576,19 @@ border-radius:  10px;
 }
 
 #entry-table-chemistry > tbody > tr > td {
-  padding: 10px;
+  padding: 5px 10px;
   text-align: left;
   font-weight: 600;
   font-weight: 200;
   color:#00224f;
   text-transform: lowercase;
 }
-
+#entry-table-chemistry > tbody > tr >td:first-child {
+  text-transform: uppercase !important;
+}
 
 #entry-table-chemistry > tbody > tr > td >input{
-  width:100px;
+  width:200px;
   border: 1px solid lightgray;
 }
 #entry-table-chemistry > tbody > tr{
@@ -2598,4 +2611,9 @@ border-radius:  10px;
   margin: 1% 5%;
   color: #00224f;
   text-transform: uppercase;
+}
+
+.continue-scroll {
+  height: 100vh !important;
+  overflow-y: auto !important;
 }

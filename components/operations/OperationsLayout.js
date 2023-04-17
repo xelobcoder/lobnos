@@ -15,7 +15,7 @@ export default function OperationsLayout({ children }) {
           <main id='operation-test-collection-wrapper'>
            <TestPreview/>
           </main>
-          <main>
+          <main className='children'>
             {children}
           </main>
         </div>

@@ -1,16 +1,21 @@
 import { TextField, Button } from "@mui/material";
 import { useMemo, useState } from "react";
 import { customFetch } from "../Auth/customFetch";
+import MARKDOWN_EDITOR from "../accessories/markdownEditor";
+import CommentSection from "./commentSection";
 export default function RenalResults() {
   const [setup, setSetup] = useState([]);
   const [data, setData] = useState([
-     
-    ])
+
+  ])
 
   useMemo(async () => {
     const response = await customFetch('test/setup/chemistry?panelname=RENAL_SETUP');
     setSetup(response?.records)
   }, [data])
+
+
+  console.log(setup)
 
 
 
@@ -20,7 +25,7 @@ export default function RenalResults() {
   }
   return (
     <>
-      <div className="p-4" style={{ backgroundColor: 'whitesmoke', height: '100vh', borderRadius: '15px' }} >
+      <div className="continue-scroll p-4" style={{backgroundColor:'whitesmoke'}} >
         <div>
           <h5>Renal Function Test </h5>
           <form className="bg-white">
@@ -30,25 +35,26 @@ export default function RenalResults() {
                   <th>paramater</th>
                   <th>value</th>
                   <th> unit</th>
-                  <th>upper</th>
-                  <th>lower</th>
-                  <th>flag</th>
+                  <th>reference range </th>
                 </tr>
               </thead>
               <tbody >
-               
+                {
+                  setup.map((item, index) => {
+                    return (
+                      <tr key={index} className="border-bottom">
+                        <td>{item.parameter}</td>
+                        <td><input type='number' style={{height:'30px'}} step={'0.5'} /></td>
+                        <td>{item.unit}</td>
+                        <td>{item.upper} - {item.lower}</td>
+                      </tr>
+                    )
+                  })
+                }
               </tbody>
-              <tfoot>
-                <tr>
-                  <Button className="btn btn-primary mt-4" variant='contained'
-                    color='primary'
-                    onClick={(e) => handleResult(e)}>
-                    save result
-                  </Button>
-                </tr>
-              </tfoot>
             </table>
           </form>
+          <CommentSection/>
         </div>
       </div>
     </>
