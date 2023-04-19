@@ -3,21 +3,21 @@ import MARKDOWN_EDITOR from '../accessories/markdownEditor';
 import { Button } from '@mui/material';
 import { useEffect, useState } from 'react';
 
-export default function CommentSection() {
+export default function CommentSection({getcomment,value}) {
 
   return (
     <>
       <div style={{ height: 'auto', overflowY: 'auto' }}>
         <h5>comments</h5>
-        <MARKDOWN_EDITOR />
+        <textarea className='form-control' value={value} rows={4} placeholder='comments here' onChange={(e)=>getcomment(e)}></textarea>
         <div className="d-flex justify-content-between mt-3 mb-2">
           <div className="form-group">
             <label>scientist name</label>
-            <input className="custom-input" placeholder="scientist name" />
+            <input className="custom-input "   disabled placeholder="scientist name" />
           </div>
           <div className="form-group">
             <label>passkey</label>
-            <input className="custom-input" placeholder="passkey" />
+            <input className="custom-input" type='password' placeholder="passkey" />
           </div>
         </div>
         <div>
@@ -26,10 +26,6 @@ export default function CommentSection() {
             Hence, a deleyance noticed ,kindly notify the manager.
           </span>
           <br />
-          <Button className="btn btn-primary mt-4 mb-5" variant='contained'
-            color='primary'>
-            save result
-          </Button>
         </div>
       </div>
     </>

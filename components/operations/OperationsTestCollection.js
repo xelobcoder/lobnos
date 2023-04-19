@@ -31,8 +31,7 @@ export default function OperationsTestCollection() {
   }
 
 
-  const handleUpdate = (e,item) => { updateOperations({ billingid:item.BILLINGID })}
-
+  const handleUpdate = (e,item) => { updateOperations({ billingid:item.BILLINGID,patientid:item.PATIENTID })}
 
 
 

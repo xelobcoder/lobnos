@@ -19,7 +19,7 @@ export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
 
   const componentsList = {
-    aids: <AIDS />,
+    aids: <AIDS  />,
     liver_function_test: <LiverTest />,
     renal_function_test: <RenalResults />,
     hepatitis_b: <HepatitisB />,
@@ -29,7 +29,7 @@ export default function DisplayTest() {
     urinanalysis: <Urinalysis />,
     thyroid_test: <ThyroidTest />,
     hepatitis_b_profile: <HEPATITISBPROFILE/>,
-    hepatitis_b: <HepatitisB/>,
+    hepatitis_b: <HepatitisB clientdata={operationsKey}/>,
     hepatitis_c: <HepatitisC/>,
     blood_grouping: <BloodGroup/>,
     erythrocyte_sedimentation_rate: <ESR/>,

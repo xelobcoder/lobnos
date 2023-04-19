@@ -57,7 +57,7 @@ export default function TestPreview() {
     // we want to update the context to display test component so that the user can enter the result
     // replace space in the name with underscore
     const testname = (name.replace(/\s/g, '_').toLowerCase())
-    updateOperations({ testid, billingid, display: true,test:testname})
+    updateOperations({ ...operationsKey,testid, billingid, display: true,test:testname})
   }
 
   return (

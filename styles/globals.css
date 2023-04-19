@@ -2617,3 +2617,12 @@ border-radius:  10px;
   height: 100vh !important;
   overflow-y: auto !important;
 }
+
+.state-indicator {
+  width: 40px;
+  border: 1px solid lightgray;
+  height: 10px;
+  margin-top: -20px;
+  /* aanimate it 00 */
+}
+
