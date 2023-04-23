@@ -1,5 +1,5 @@
 import { Autocomplete, TextField, Button } from "@mui/material";
-import { useState, useMemo } from "react";
+import { useState, useMemo ,useEffect} from "react";
 import CommentSection from "./commentSection";
 import { CheckResultEntered, customPost } from '../Auth/customFetch';
 import Indicator from "../accessories/Reports/indicator";
@@ -21,19 +21,18 @@ export default function BloodGroup({ clientdata }) {
   // THIS CHECKS IF A RESULT WAS PREVIOUSLY ENTERED AND UPDATES THE STATE
   // IF RESULT WAS PREVIOUSLY ENTERED, THE RESULT IS DISPLAYED IN THE AUTOCOMPLETE
 
-  useMemo(() => {
+  useEffect(() => {
     const check = async () => {
       let customSend = await CheckResultEntered('bloodgrouping', client.billingid);
       const { result, statusCode, records } = customSend;
-      if (statusCode == 200) {
-        setResultEntered(result);
-        const data = records[0];
-        setGroup(data?.BGROUP);
-        setRemarks(data?.REMARKS);
-        setRhesus(data?.RHESUS)
-      }
-      else {
-        alert('something went wrong');
+      if (statusCode == 200 && result == true) {
+        if (records.length > 0) {
+          setResultEntered(result);
+          const data = records[0];
+          setGroup(data?.BGROUP);
+          setRemarks(data?.REMARKS);
+          setRhesus(data?.RHESUS)
+        }
       }
     }
 

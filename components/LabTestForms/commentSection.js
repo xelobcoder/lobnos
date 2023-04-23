@@ -9,7 +9,7 @@ export default function CommentSection({ getcomment, value }) {
     <>
       <div style={{ height: 'auto', overflowY: 'auto' }}>
         <h5>comments</h5>
-        <textarea className='custom-textarea' value={value} rows={4}
+        <textarea className='custom-textarea' value={value} rows={4} name='comment'
           style={{
             width: '99%', padding
               : '10px'
