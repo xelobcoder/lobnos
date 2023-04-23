@@ -1,18 +1,67 @@
 import { Autocomplete, TextField, Button } from "@mui/material";
-import { useState,useMemo} from "react";
+import { useState, useMemo } from "react";
+import CommentSection from "./commentSection";
+import { CheckResultEntered, customPost } from '../Auth/customFetch';
+import Indicator from "../accessories/Reports/indicator";
 
-export default function BloodGroup() {
+export default function BloodGroup({ clientdata }) {
+  const [client, setClientData] = useState(clientdata);
   const option = ['', 'A', 'B', 'AB', 'O'];
   const optionRhesus = ['', 'positive', 'negative'];
   const [group, setGroup] = useState('');
   const [rhesus, setRhesus] = useState('');
- 
+  const [remarks, setRemarks] = useState('');
+  const [resultEntered, setResultEntered] = useState(false);
 
+
+  const getComment = async function (e) {
+    setRemarks(e.target.value)
+  }
+
+  // THIS CHECKS IF A RESULT WAS PREVIOUSLY ENTERED AND UPDATES THE STATE
+  // IF RESULT WAS PREVIOUSLY ENTERED, THE RESULT IS DISPLAYED IN THE AUTOCOMPLETE
+
+  useMemo(() => {
+    const check = async () => {
+      let customSend = await CheckResultEntered('bloodgrouping', client.billingid);
+      const { result, statusCode, records } = customSend;
+      if (statusCode == 200) {
+        setResultEntered(result);
+        const data = records[0];
+        setGroup(data?.BGROUP);
+        setRemarks(data?.REMARKS);
+        setRhesus(data?.RHESUS)
+      }
+      else {
+        alert('something went wrong');
+      }
+    }
+
+    check();
+  }, [resultEntered])
+
+
+  const handleResult = async function (e) {
+    e.preventDefault();
+    let response = await customPost('test/result/enter', 'POST', {
+      rhesus,
+      remarks,
+      bloodgroup: group,
+      testname: 'bloodgrouping',
+      patientid: client.patientid,
+      billingid: client.billingid
+    })
+
+    const { status, message } = response;
+
+    alert(message)
+  }
 
 
   return (
     <>
       <div className="p-3">
+        <Indicator resultEntered={resultEntered} />
         <div>
           <Autocomplete
             size="small"
@@ -21,12 +70,10 @@ export default function BloodGroup() {
             renderInput={(params) => (
               <TextField {...params} label="blood group" variant="outlined" />
             )}
-            sx={{marginBottom:'20px'}}
+            sx={{ marginBottom: "20px" }}
             value={group}
             onChange={(e, newValue) => setGroup(newValue)}
-          >
-
-          </Autocomplete>
+          ></Autocomplete>
         </div>
         <div>
           <Autocomplete
@@ -42,15 +89,19 @@ export default function BloodGroup() {
             }}
           ></Autocomplete>
         </div>
+        <CommentSection value={remarks} getcomment={getComment} />
         <div>
           <Button
             className="mt-3"
             variant="contained"
             color="primary"
             type="button"
-           
+            onClick={handleResult}
           >
             save result
+          </Button>
+          <Button variant='contained' sx={{ mt: 2, ml: 2 }} >
+            preview Result
           </Button>
         </div>
       </div>

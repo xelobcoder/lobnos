@@ -2,6 +2,7 @@ import { Autocomplete, Button, TextField } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { CheckResultEntered, customPost } from "../Auth/customFetch";
 import CommentSection from "./commentSection";
+import Indicator from "../accessories/Reports/indicator";
 export default function HepatitisB({ clientdata }) {
   const [client, setClientData] = useState(clientdata);
   // state for handling if result was previously entered
@@ -48,13 +49,15 @@ export default function HepatitisB({ clientdata }) {
   useMemo(() => {
     const check = async () => {
       let customSend = await CheckResultEntered('hepatitisb', client.billingid);
-      const { result, statusCode,records} = customSend;
+      const { result, statusCode, records } = customSend;
       if (statusCode == 200) {
         result == false ? setResultEntered(false) : setResultEntered(true);
         if (result == true) {
           setResults(
-            {remarks:  records[0].REMARKS,
-            result: records[0].RESULTS}
+            {
+              remarks: records[0].REMARKS,
+              result: records[0].RESULTS
+            }
           )
         }
       }
@@ -76,10 +79,7 @@ export default function HepatitisB({ clientdata }) {
   return (
     <>
       <div className="p-4">
-        <div className="d-flex justify-content-end mb-2" >
-          <div className={resultEntered ? 'bg-success state-indicator' : 'bg-danger state-indicator'}
-          ></div>
-        </div>
+        <Indicator resultEntered={resultEntered}/>
         <div>
           <form className="mb-3">
             <Autocomplete
@@ -101,7 +101,7 @@ export default function HepatitisB({ clientdata }) {
           <Button variant='contained' onClick={(e) => handleTestResult(e)} color='primary' sx={{ mt: 2 }}>
             {resultEntered ? 'update result' : 'enter result'}
           </Button>
-          <Button variant='contained' sx={{mt:2,ml:2}} >
+          <Button variant='contained' sx={{ mt: 2, ml: 2 }} >
             preview Result
           </Button>
         </div>

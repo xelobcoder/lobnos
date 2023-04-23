@@ -1,0 +1,12 @@
+.container {
+  margin: 0px 10% 0 10%;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+  }
+  .container {
+    display: none;
+  }
+}

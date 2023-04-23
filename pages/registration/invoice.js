@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Invoice from '../../components/invoices/bilinvoice';
 import Header from '../../components/header';
+import PDF_VIEWER from '../../components/accessories/pdfView';
 
 function INVOICE({ test }) {
   const clientid = parseInt(useRouter().query.billingid);
@@ -14,9 +15,9 @@ function INVOICE({ test }) {
         .then((t) => {
           setInvoice(t);
         })
-        .catch((err) => { 
+        .catch((err) => {
           console.log(err)
-         })
+        })
     }
   }, [clientid])
 
@@ -55,6 +56,7 @@ function INVOICE({ test }) {
 
   return (
     <>
+      <PDF_VIEWER />
       <div className='invoice-header'>
         {invoice.length == 0 ? null : (
           <>
@@ -138,6 +140,7 @@ function INVOICE({ test }) {
       <div className='container ml-5'>
         <p>Software by leonides. copyright reserved @2022, call us on 0249434803/0595964565</p>
       </div>
+
     </>
   )
 }

@@ -30,8 +30,8 @@ export default function DisplayTest() {
     thyroid_test: <ThyroidTest />,
     hepatitis_b_profile: <HEPATITISBPROFILE/>,
     hepatitis_b: <HepatitisB clientdata={operationsKey}/>,
-    hepatitis_c: <HepatitisC/>,
-    blood_grouping: <BloodGroup/>,
+    hepatitis_c: <HepatitisC clientdata={operationsKey}/>,
+    blood_grouping: <BloodGroup clientdata={operationsKey}/>,
     erythrocyte_sedimentation_rate: <ESR/>,
     lipid_profile: <LipidProfile/>
   }
