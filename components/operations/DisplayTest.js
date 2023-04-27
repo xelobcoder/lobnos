@@ -27,7 +27,7 @@ export default function DisplayTest() {
     widal: <Widal />,
     gpd: <G6PD />,
     cardiac_enzymes: <CardiacEnzymes />,
-    urinanalysis: <Urinalysis />,
+    urinalysis: <Urinalysis clientdata={operationsKey} />,
     thyroid_test: <ThyroidTest />,
     hepatitis_b_profile: <HEPATITISBPROFILE />,
     hepatitis_b: <HepatitisB clientdata={operationsKey} />,

@@ -1,5 +1,6 @@
 import { Autocomplete, TextField, Button } from "@mui/material";
 import { useState } from "react";
+import CommentSection from "./commentSection";
 
 export default function HepatitisC() {
   const option = ['', 'reactive', 'non reactive'];
@@ -22,6 +23,7 @@ export default function HepatitisC() {
               renderInput={(params) => <TextField {...params} label="Hepatitis C test" variant="outlined" />}
             >
             </Autocomplete>
+            <CommentSection/>
           </form>
           <Button variant='contained' onClick={(e) => handleResult(e)} color='primary' sx={{ mt: 2 }}>save results</Button>
         </div>

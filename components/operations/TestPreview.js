@@ -12,7 +12,7 @@ export default function TestPreview() {
   // use thr billing id of operationsKey to fetch the data from the server
   // and display it in the preview section
 
-  console.log(operationsKey, 'hekk')
+  console.log(datapool, 'hekk',operationsKey)
 
   const getPreview = async function () {
     const billingid = operationsKey?.billingid;
@@ -84,7 +84,10 @@ export default function TestPreview() {
                       >
                         start processing
                       </button>
-                      <button className='bg-custom-red'
+                      <button 
+                      className={
+                        item.ready == 'true' ? 'bg-custom-default' : 'bg-custom-red'
+                      }
                         onClick={() => handleResult(item.testid, item.billingid,item.NAME)}>
                         result
                       </button>
