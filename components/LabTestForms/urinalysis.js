@@ -36,7 +36,6 @@ export default function Urinalysis({ clientdata }) {
       async function checkedEntered() {
         const response = await customFetch(`test/result/check?testname=urinalysis&&billingid=${clientdata.billingid}`)
         const { status, statusCode, result,records } = response;
-        console.log(response)
         if (result == true && statusCode == 200 && records.length > 0) {
           setResultEntered(true)
           setData(records[0])
@@ -80,7 +79,6 @@ export default function Urinalysis({ clientdata }) {
     catch (error) {
       console.log(error)
     }
-    console.log(data)
   }
 
   return (

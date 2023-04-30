@@ -38,7 +38,8 @@ export async function CheckResultEntered(testname, billingid) {
 
 
 
-export async function validateFormData(data, allrequired, requiredFields = [], endpoint,callback) {
+export async function validateFormData(data, allrequired, requiredFields = [], endpoint, callback) {
+  console.log(data)
   const isObject = typeof requiredFields === 'object';
   const requiredLen = requiredFields.length;
 
@@ -49,12 +50,6 @@ export async function validateFormData(data, allrequired, requiredFields = [], e
   }
   // if all the fields are not required , we pass data to server 
   if (!allrequired) {
-    await forwardToServer();
-  }
-
-
-
-  if (allrequired && arguments[3] !== undefined) {
     if (isObject && requiredLen > 0) {
       // we check to ensure the required fields are not empty
       const passChecked = [];
@@ -78,20 +73,28 @@ export async function validateFormData(data, allrequired, requiredFields = [], e
         forwardToServer()
       }
 
-    } else {
-      //  we check all fields 
-      const allFilled = Object.values(data)
-        .filter((val) => val == null || val == '' || val == " " || val === undefined)
-        .length > 0;
+    }
+    else {
+      alert('some required fields are empty')
+    }
+  }
 
-      if (allFilled) {
-        forwardToServer()
-      }
+
+
+  if (allrequired) {
+    const emptyFileds = Object.values(data).filter((item, index) => {
+      return new String(item).length == 0
+    }).length;
+    // we need all fields filled 
+    if (emptyFileds === 0) {
+      forwardToServer()
+    } else {
+      alert('All Fields Required')
     }
   }
 }
 
 
-export async function handleComments(e, stateVariable) {
-  stateVariable({ ...stateVariable, remarks: e.target.value })
+export async function handleComments(e, stateVariable, target, datafunction) {
+  datafunction({ ...stateVariable, [target]: e.target.value })
 }

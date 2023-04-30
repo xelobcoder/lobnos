@@ -15,6 +15,7 @@ import BloodGroup from '../LabTestForms/bloodgroup';
 import ESR from '../LabTestForms/esr';
 import LipidProfile from '../LabTestForms/lipidprofile';
 import HbA1c from '../LabTestForms/HbA1c';
+import Pregnancy from '../LabTestForms/pregnancy';
 
 export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
@@ -26,7 +27,7 @@ export default function DisplayTest() {
     hepatitis_b: <HepatitisB />,
     widal: <Widal />,
     gpd: <G6PD />,
-    cardiac_enzymes: <CardiacEnzymes />,
+    cardiac_enzymes: <CardiacEnzymes clientdata={operationsKey} />,
     urinalysis: <Urinalysis clientdata={operationsKey} />,
     thyroid_test: <ThyroidTest />,
     hepatitis_b_profile: <HEPATITISBPROFILE />,
@@ -35,7 +36,8 @@ export default function DisplayTest() {
     blood_grouping: <BloodGroup clientdata={operationsKey} />,
     erythrocyte_sedimentation_rate: <ESR />,
     lipid_profile: <LipidProfile />,
-    glycated_heamoglobin: <HbA1c clientdata={operationsKey} />
+    glycated_heamoglobin: <HbA1c clientdata={operationsKey} />,
+    pregnancy_test: <Pregnancy clientdata={operationsKey}/>
   }
   return (
     <div>

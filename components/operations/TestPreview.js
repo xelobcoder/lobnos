@@ -56,7 +56,8 @@ export default function TestPreview() {
   const handleResult = async function (testid, billingid,name) {
     // we want to update the context to display test component so that the user can enter the result
     // replace space in the name with underscore
-    const testname = (name.replace(/\s/g, '_').toLowerCase())
+    let testname = (name.replace(/\s/g, '_').toLowerCase()).slice(0,name.indexOf('('))
+
     updateOperations({ ...operationsKey,testid, billingid, display: true,test:testname})
   }
 

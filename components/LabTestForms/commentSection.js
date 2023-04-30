@@ -3,7 +3,7 @@ import MARKDOWN_EDITOR from '../accessories/markdownEditor';
 import { Button } from '@mui/material';
 import { useEffect, useState } from 'react';
 
-export default function CommentSection({ getcomment, value }) {
+export default function CommentSection({ getcomment,  datafunction, target,value,datasource }) {
 
   return (
     <>
@@ -13,7 +13,7 @@ export default function CommentSection({ getcomment, value }) {
           style={{
             width: '99%', padding
               : '10px'
-          }} placeholder='comments here' onChange={(e) => getcomment(e)}></textarea>
+          }} placeholder='comments here' onChange={(e) => getcomment(e,datasource,target,datafunction)}></textarea>
         <div className="d-flex justify-content-between mt-3 mb-2">
           <div className="form-group">
             <label>scientist name</label>
