@@ -93,7 +93,6 @@ export default function ReceivedOrderModal({
           body: JSON.stringify(tt),
         });
         const data = await response.json();
-        console.log(data);
         if (data["status"] === "success") {
           alert("order received successfully");
           handleClose();

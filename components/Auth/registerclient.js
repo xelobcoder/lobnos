@@ -1,5 +1,5 @@
 import { customFetch, customPost } from "./customFetch";
-import { defaultdata } from "../../pages/registration"; 
+import { defaultdata } from "../../pages/registration";
 
 // handle mobile number validation
 export const handleMobile = (e, setValue, data, setError) => {
@@ -43,10 +43,8 @@ export const handleAge = (y, m, d) => {
     let years = today.getFullYear() - y;
     let months = today.getMonth() + 1 - m;
     let daysdiff = today.getDate() - d;
-    console.log(daysdiff);
 
     if (years == 0 && months == 0 && daysdiff <= 0) {
-      console.log("run logic one");
       return {
         years: 0,
         months: 0,
@@ -55,7 +53,6 @@ export const handleAge = (y, m, d) => {
     }
 
     if (years == 0 && months == 0 && daysdiff > 0) {
-      console.log("run logic two");
       return {
         years: 0,
         months: 0,
@@ -64,19 +61,16 @@ export const handleAge = (y, m, d) => {
     }
 
     if (years == 0 && months != 0) {
-      console.log("run logic three");
       if (Math.sign(months) == -1) {
         return "invalid Date";
       } else {
         if (daysdiff < 0) {
-          console.log("run logic 4");
           return {
             months: months - 1,
             days: daysdiff + 30,
             years: 0,
           };
         } else {
-          console.log("run logic 5");
           return {
             years: 0,
             months: months,
@@ -92,7 +86,6 @@ export const handleAge = (y, m, d) => {
       } else {
         if (months == 0) {
           if (daysdiff == 0) {
-            console.log("run logic 6");
             return {
               years: years,
               months: 0,
@@ -100,14 +93,12 @@ export const handleAge = (y, m, d) => {
             };
           } else {
             if (daysdiff > 0) {
-              console.log("run logic 7");
               return {
                 years,
                 months: 0,
                 days: daysdiff,
               };
             } else {
-              console.log("run logic 8");
               return {
                 years: years - 1,
                 months,
@@ -117,14 +108,12 @@ export const handleAge = (y, m, d) => {
           }
         } else {
           if (Math.sign(months) == -1) {
-            console.log("run logic 9");
             return {
               years: years - 1,
               months: today.getMonth() + 1,
               days: null,
             };
           } else {
-            console.log("run logic 10");
             return {
               years: years,
               months: months,
@@ -139,9 +128,12 @@ export const handleAge = (y, m, d) => {
   }
 };
 
-
-
-export const handleSubmitRegistration = async (e, data = {}, typer,callback) => {
+export const handleSubmitRegistration = async (
+  e,
+  data = {},
+  typer,
+  callback
+) => {
   e.preventDefault();
   // error marker , at end run if true , data is not sent to endpoint.
   var error = false;
@@ -169,29 +161,30 @@ export const handleSubmitRegistration = async (e, data = {}, typer,callback) => 
         return;
       }
     });
-  }
+  };
 
   checkRequiredFields(data);
 
   if (!error) {
-    const response = await customPost('register',typer, data);
-    const {status,statusCode, message,patientid} = response;
+    const response = await customPost("register", typer, data);
+    const { status, statusCode, message, patientid } = response;
 
-    if (statusCode ==  200 && status == 'SUCCESS') {
+    if (statusCode == 200 && status == "SUCCESS") {
       alert(message);
-      window.location.href=`/activation?patientid=${patientid}`;
-      callback(defaultdata)
-    }
-    else {
+      window.location.href = `/activation?patientid=${patientid}`;
+      callback(defaultdata);
+    } else {
       alert(message);
-      return
+      return;
     }
   }
 };
 
 export async function handleActivation(e, id, status, patientid) {
   let action = status == "TRUE" ? "FALSE" : "TRUE";
-  let response = await customFetch(`activation?patientid=${patientid}&action=${action}`)
+  let response = await customFetch(
+    `activation?patientid=${patientid}&action=${action}`
+  );
   if (response.action == "BILLING") {
     window.location.href = "/billing?patientid=" + patientid;
   } else {

@@ -12,7 +12,6 @@ export default function TestPreview() {
   // use thr billing id of operationsKey to fetch the data from the server
   // and display it in the preview section
 
-  console.log(datapool, 'hekk',operationsKey)
 
   const getPreview = async function () {
     const billingid = operationsKey?.billingid;
@@ -56,8 +55,11 @@ export default function TestPreview() {
   const handleResult = async function (testid, billingid,name) {
     // we want to update the context to display test component so that the user can enter the result
     // replace space in the name with underscore
-    let testname = (name.replace(/\s/g, '_').toLowerCase()).slice(0,name.indexOf('('))
+    let testname = (name.replace(/\s/g, '_').toLowerCase());
 
+    if (testname.includes('(') && testname.includes(")")) {
+      testname = testname.slice(0,name.indexOf('('))
+    }
     updateOperations({ ...operationsKey,testid, billingid, display: true,test:testname})
   }
 

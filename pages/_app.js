@@ -4,7 +4,7 @@ import '../styles/testpanel.css';
 import '../styles/Frontpageside.css'
 import "../styles/fullblood.css";
 import Header from '../components/header'
-import SidebarFrontPage from '../components/frontpagesidebar';
+// import SidebarFrontPage from '../components/frontpagesidebar';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-material.css';
 import { AuthentificationProvider } from '../components/Auth/useAuthentification';

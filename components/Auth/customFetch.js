@@ -39,7 +39,6 @@ export async function CheckResultEntered(testname, billingid) {
 
 
 export async function validateFormData(data, allrequired, requiredFields = [], endpoint, callback) {
-  console.log(data)
   const isObject = typeof requiredFields === 'object';
   const requiredLen = requiredFields.length;
 

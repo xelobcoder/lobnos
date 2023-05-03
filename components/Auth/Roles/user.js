@@ -73,7 +73,7 @@ export default function USERS({ heading, button }) {
         return e.json()
       })
         .then((response) => {
-          console.log(response)
+          
         })
     }
 
