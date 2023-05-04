@@ -3,11 +3,12 @@ import MARKDOWN_EDITOR from '../accessories/markdownEditor';
 import { Button } from '@mui/material';
 import { useEffect, useState } from 'react';
 
+
 export default function CommentSection({ getcomment, datafunction, target, value, datasource }) {
 
   return (
     <>
-      <div style={{ height: 'auto', overflowY: 'auto' }}>
+      <div style={{ height: 'auto', overflowY: 'auto',overflowX:'hidden' }}>
         <h5>comments</h5>
         <textarea className='custom-textarea' value={value} rows={4} name='comment'
           style={{

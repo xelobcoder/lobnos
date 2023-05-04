@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TextField, Button } from "@mui/material";
 import Indicator from "../accessories/Reports/indicator";
 import { customFetch, CheckResultEntered, handleComments, validateFormData } from "../Auth/customFetch";
@@ -10,28 +10,43 @@ export default function ThyroidTest({ clientdata }) {
   const [comments, setComments] = useState({ comments: '' });
   const [resultEntered, setResultEntered] = useState(false);
 
+
+
   useEffect(() => {
     // get all the test parameter of this pacticular test
     const getSetupData = async function () {
       const response = await customFetch('test/setup/chemistry?panelname=THYROID_SETUP');
       const { status, statusCode, records } = response;
       if (status == 'success' && statusCode === 200) {
-        // update the state
+        // transform the data to include a value placeholder
         let transformedData = records.map((item, index) => { return { ...item, value: 0 } })
-        setData(transformedData)
+        // get the prevoius enter data and match parameter and the value 
+        const response = await CheckResultEntered('thyroidfunctionaltest', clientdata.billingid);
+        if (response?.result == true) {
+          // transformed data represent the setup data 
+          // records in this boundary represent the inputed data
+          const { records } = response;
+          setResultEntered(true);
+          // adding the pevious entered data
+          for (let i = 0; i < records.length; i++) {
+            for(let j = 0; j < transformedData.length; j++) {
+              if (records[i]['PARAMETER'] == transformedData[j]['parameter']) {
+                transformedData[j]['value'] =records[i]['VALUE']
+              }
+            }
+          }
+          // update state 
+          setData(transformedData)
+          // update comment section
+          setComments({ comments: records[0]['COMMENTS'] })
+        }
       }
     }
     getSetupData();
-    // is result entered
-    async function isResultEntered() {
-      const response = await CheckResultEntered('thyroidfunctionaltest', clientdata.billingid);
-      if (response?.result == true) {
-        setResultEntered(true)
-        console.log(response?.records)
-      }
-    }
-    isResultEntered()
   }, [])
+
+
+
 
 
 
@@ -57,14 +72,14 @@ export default function ThyroidTest({ clientdata }) {
       patientid: clientdata.patientid,
       comments: comments['comments']
     }
-    console.log(clientdata)
     await validateFormData(
       formData,
       true,
       [],
       "test/result/enter",
       function (response) {
-        console.log(response);
+        const { status, statusCode, message } = response;
+        alert(message)
       }
     );
   }
@@ -72,7 +87,7 @@ export default function ThyroidTest({ clientdata }) {
     <>
       <div className="p-4">
         <div>
-          <Indicator resultEntered={false} />
+          <Indicator resultEntered={resultEntered} />
           <div className="p-2" style={{ backgroundColor: 'whitesmoke' }}>
             <div>
               <h5>Thyroid functional test</h5>
