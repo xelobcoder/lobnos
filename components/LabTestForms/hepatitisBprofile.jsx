@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { Autocomplete, TextField, Typography, Button } from "@mui/material";
 import CommentSection from "./commentSection";
-import { handleComments, validateFormData } from "../Auth/customFetch";
+import { handleComments, validateFormData,CheckResultEntered } from "../Auth/customFetch";
 import Indicator from "../accessories/Reports/indicator";
 
 function HEPATITISBPROFILE({ clientdata }) {
-  const options = ['', 'reactive', 'non reactive'];
-  const [resultEntered,setResultEntered] = useState(false)
+  const options = ['reactive', 'non reactive'];
+  const [resultEntered, setResultEntered] = useState(false)
   const [results, setResults] = useState({
-    HBsAg: '',
+    HBsAg: 'reactive',
     HBsAb: '',
     HBeAg: '',
     HBeAb: '',
@@ -19,7 +19,17 @@ function HEPATITISBPROFILE({ clientdata }) {
 
   //  check if result have een previously entered or not and flagged the indicator
   useEffect(() => {
-
+    async function check() {
+      const response = await CheckResultEntered(clientdata.test, clientdata.billingid);
+      const {result, statusCode, records} = response;
+      // result true means result entered
+      if (result ) {
+        setResultEntered(true);
+        const {HBsAg,HBsAb,HBeAg,HBeAb, HBcAb,COMMENTS} = records[0];
+        setResults({HBsAg,HBsAb,HBeAg,HBeAb, HBcAb,comments: COMMENTS})
+      }
+    }
+    check()
   }, [])
 
 
@@ -48,7 +58,7 @@ function HEPATITISBPROFILE({ clientdata }) {
       <div className="p-4">
         <form>
           <h5>HEPATITIS B PROFILE</h5>
-           <Indicator resultEntered={resultEntered}/>
+          <Indicator resultEntered={resultEntered} />
           <div>
             <label>
               HBsAg
@@ -57,6 +67,7 @@ function HEPATITISBPROFILE({ clientdata }) {
               sx={{ mt: 2 }}
               options={options}
               size="small"
+              value={results.HBsAg}
               getOptionLabel={(option) => option}
               renderInput={(params) => <TextField {...params} label="results" />}
               onChange={(e, newValue) => {
@@ -72,6 +83,7 @@ function HEPATITISBPROFILE({ clientdata }) {
               sx={{ mt: 2 }}
               options={options}
               size="small"
+              value={results.HBsAb}
               getOptionLabel={(option) => option}
               renderInput={(params) => <TextField {...params} label="results" />}
               onChange={(e, newValue) => {
@@ -86,6 +98,7 @@ function HEPATITISBPROFILE({ clientdata }) {
             <Autocomplete
               sx={{ mt: 2 }}
               options={options}
+              value ={results.HBeAg}
               size="small"
               getOptionLabel={(option) => option}
               renderInput={(params) => <TextField {...params} label="results" />}
@@ -102,6 +115,7 @@ function HEPATITISBPROFILE({ clientdata }) {
               sx={{ mt: 2 }}
               options={options}
               size="small"
+              value = {results.HBeAb}
               getOptionLabel={(option) => option}
               renderInput={(params) => <TextField {...params} label="results" />}
               onChange={(e, newValue) => {
@@ -117,6 +131,7 @@ function HEPATITISBPROFILE({ clientdata }) {
               sx={{ mt: 2 }}
               options={options}
               size="small"
+              value = {results.HBcAb}
               getOptionLabel={(option) => option}
               renderInput={(params) => <TextField {...params} label="results" />}
               onChange={(e, newValue) => {
