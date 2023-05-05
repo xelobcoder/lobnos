@@ -10,7 +10,7 @@ import CardiacEnzymes from '../LabTestForms/cardiacenzyme';
 import Urinalysis from '../LabTestForms/urinalysis';
 import ThyroidTest from '../LabTestForms/thyroid';
 import HepatitisC from '../LabTestForms/hepC';
-import HEPATITISBPROFILE from '../LabTestForms/hepatitisBprofile';
+import HEPATITISBPROFILE from '../LabTestForms/hepatitisBprofile.jsx';
 import BloodGroup from '../LabTestForms/bloodgroup';
 import ESR from '../LabTestForms/esr';
 import LipidProfile from '../LabTestForms/lipidprofile';
@@ -30,7 +30,7 @@ export default function DisplayTest() {
     gpd: <G6PD />,
     cardiac_enzymes: <CardiacEnzymes clientdata={operationsKey} />,
     urinalysis: <Urinalysis clientdata={operationsKey} />,
-    hepatitis_b_profile: <HEPATITISBPROFILE />,
+    hepatitis_b_profile: <HEPATITISBPROFILE  clientdata={operationsKey}/>,
     hepatitis_b: <HepatitisB clientdata={operationsKey} />,
     hepatitis_c: <HepatitisC clientdata={operationsKey} />,
     blood_grouping: <BloodGroup clientdata={operationsKey} />,
