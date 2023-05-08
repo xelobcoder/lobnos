@@ -50,6 +50,11 @@ export default function TestSidebar() {
                 full blood count
               </Link>
             </li>
+            <li>
+              <Link href='/settings/setup/betahcg'>
+                beta hcg
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

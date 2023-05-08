@@ -17,6 +17,7 @@ import LipidProfile from '../LabTestForms/lipidprofile';
 import HbA1c from '../LabTestForms/HbA1c';
 import Pregnancy from '../LabTestForms/pregnancy';
 import Malaria from '../LabTestForms/malaria';
+import BetaHcg from '../LabTestForms/BetaHcg';
 
 export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
@@ -39,7 +40,8 @@ export default function DisplayTest() {
     glycated_heamoglobin: <HbA1c clientdata={operationsKey} />,
     pregnancy_test: <Pregnancy clientdata={operationsKey}/>,
     malaria: <Malaria clientdata={operationsKey}/>,
-    thyroid_functional_test: <ThyroidTest clientdata={operationsKey}/>
+    thyroid_functional_test: <ThyroidTest clientdata={operationsKey}/>,
+    betahcg: <BetaHcg clientdata={operationsKey}/>
   }
   return (
     <div>
