@@ -9,7 +9,7 @@ import {
   validateFormData,
 } from "../Auth/customFetch";
 export default function BetaHcg({ clientdata }) {
-  const [data, setData] = useState({ value: "", unit: "" ,comments: ''});
+  const [data, setData] = useState({ value: "", unit: "", comments: '' });
   const [resultEntered, setResultEntered] = useState(true);
   const [reference, setReference] = useState([]);
 
@@ -27,6 +27,13 @@ export default function BetaHcg({ clientdata }) {
         // if result have been entered then we get collect the previously entered data
         if (checkresult?.result == true) {
           const { records } = checkresult;
+          const nv = {
+            value: records[0]['VALUE'],
+            unit: records[0]['UNIT'],
+            comments: records[0]['COMMENTS']
+          }
+
+          setData(nv)
         }
       } catch (err) {
         console.log(err);
@@ -35,13 +42,14 @@ export default function BetaHcg({ clientdata }) {
     getData();
   }, []);
 
+
   // enter result
 
   const handleResult = async function () {
     await validateFormData(
       {
         ...data,
-        testname: clientdata.testname,
+        testname: clientdata.test,
         billingid: clientdata.billingid,
         testid: clientdata.testid,
         patientid: clientdata.patientid,
@@ -50,7 +58,8 @@ export default function BetaHcg({ clientdata }) {
       [],
       "test/result/enter",
       function (response) {
-        console.log(response);
+        const { status, message } = response;
+        alert(message)
       }
     );
   };
@@ -105,7 +114,7 @@ export default function BetaHcg({ clientdata }) {
               </tbody>
             </table>
           </form>
-          <CommentSection getcomment={handleComments} datasource={data} datafunction={setData} value={data.comments} target={'comments'}/>
+          <CommentSection getcomment={handleComments} datasource={data} datafunction={setData} value={data.comments} target={'comments'} />
           <Button variant='contained' className="mt-3" color='primary' onClick={handleResult}>
             save changes
           </Button>
