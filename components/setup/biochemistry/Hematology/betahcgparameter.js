@@ -2,7 +2,7 @@ const data = [
   {
     weeks: 2,
     lower: 88,
-    upper: 20,
+    upper: 200,
     unit: 'UL/ml',
   },
   {
