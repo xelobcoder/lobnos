@@ -97,3 +97,12 @@ export async function validateFormData(data, allrequired, requiredFields = [], e
 export async function handleComments(e, stateVariable, target, datafunction) {
   datafunction({ ...stateVariable, [target]: e.target.value })
 }
+
+
+export async function handleResponse (response) {
+  const {status, message, statusCode} = response;
+
+  if (status == 'success') {
+    alert(message);
+  }
+}

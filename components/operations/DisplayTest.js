@@ -23,7 +23,7 @@ export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
 
   const componentsList = {
-    aids: <AIDS />,
+    aids: <AIDS clientdata={operationsKey} />,
     liver_function_test: <LiverTest clientdata={operationsKey}/>,
     renal_function_test: <RenalResults clientdata={operationsKey} />,
     hepatitis_b: <HepatitisB  clientdata={operationsKey}/>,

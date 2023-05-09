@@ -21,17 +21,17 @@ export default function ThyroidTest({ clientdata }) {
         // transform the data to include a value placeholder
         let transformedData = records.map((item, index) => { return { ...item, value: 0 } })
         // get the prevoius enter data and match parameter and the value 
-        const response = await CheckResultEntered('thyroidfunctionaltest', clientdata.billingid);
-        if (response?.result == true) {
+        const checkresponse = await CheckResultEntered('thyroidfunctionaltest', clientdata.billingid);
+        if (checkresponse?.result == true) {
           // transformed data represent the setup data 
           // records in this boundary represent the inputed data
-          const { records } = response;
+          const { records } = checkresponse;
           setResultEntered(true);
           // adding the pevious entered data
           for (let i = 0; i < records.length; i++) {
             for(let j = 0; j < transformedData.length; j++) {
               if (records[i]['PARAMETER'] == transformedData[j]['parameter']) {
-                transformedData[j]['value'] =records[i]['VALUE']
+                transformedData[j]['value'] = records[i]['VALUE']
               }
             }
           }
@@ -39,12 +39,17 @@ export default function ThyroidTest({ clientdata }) {
           setData(transformedData)
           // update comment section
           setComments({ comments: records[0]['COMMENTS'] })
+        }else {
+            setResultEntered(false);
+            setData(transformedData)
         }
       }
     }
     getSetupData();
   }, [])
 
+
+  console.log(data)
 
 
 
