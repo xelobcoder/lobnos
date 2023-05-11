@@ -33,7 +33,7 @@ export const serverCall = function (ev, source, category, setMsgDx) {
   else {
     let response = customPost('test/setup/chemistry','POST', finalproductdata)
 
-    console.log(response)
+   
 
     response.then(
       (res) => {

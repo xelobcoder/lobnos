@@ -74,7 +74,7 @@ export default function Department({ departments }) {
 // get server side props
 
 export async function getServerSideProps(context) {
-  const departments = await fetch('http://localhost:5000/api/v1/departments')
+  const departments = await fetch(`${process.env.BASEURL}/departments`)
   const departmentsData = await departments.json();
 
   const { data, status, message } = departmentsData;

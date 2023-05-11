@@ -6,9 +6,9 @@ export default function TestSidebar() {
     <>
       <div className="box">
         <div className="box-head">
-          <input className='custom-input' style={{paddingLeft:'40px'}} placeholder='search test here '>
+          <input className='custom-input' style={{ paddingLeft: '40px' }} placeholder='search test here '>
           </input>
-          <ManageSearchIcon color='primary' sx={{position:'relative',top:'-35px',left:'10px'}}/>
+          <ManageSearchIcon color='primary' sx={{ position: 'relative', top: '-35px', left: '10px' }} />
         </div>
         <div className="box-tail mt-2">
           <ul>
@@ -53,6 +53,11 @@ export default function TestSidebar() {
             <li>
               <Link href='/settings/setup/betahcg'>
                 beta hcg
+              </Link>
+            </li>
+            <li>
+              <Link href={'/settings/setup/esr'}> 
+                estimated sedimentation rate (ESR)
               </Link>
             </li>
           </ul>

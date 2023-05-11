@@ -12,7 +12,7 @@ export default function Fbcsetupindex() {
 
   // loads data from db of the params and their units and limits
   const loadparams_data = async function () {
-    let endpoint = `http://localhost:3000/api/test/setup/createparams?testname=fbc`;
+    let endpoint = `${process.env.BASEURL}/test/setup/createparams?testname=fbc`;
     let getdata = async function () {
       const api = await fetch(endpoint);
       const response = await api.json();
@@ -40,7 +40,7 @@ export default function Fbcsetupindex() {
     if (parameter && unit && lower && upper) {
       // push data to db
       const pushdata = async function () {
-        let getter = await fetch('http://localhost:3000/api/test/setup/createparams', { method: 'POST', body: JSON.stringify({ parameterDetails: data, testname: 'fbc' }) })
+        let getter = await fetch(`${process.env.BASEURL}/test/setup/createparams`, { method: 'POST', body: JSON.stringify({ parameterDetails: data, testname: 'fbc' }) })
         let response = getter.json();
         return response;
       }

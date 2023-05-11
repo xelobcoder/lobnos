@@ -194,3 +194,32 @@
   background-color: #00224f45;
 }
 
+
+.range-table {
+  background-color: #f3f5f5;
+  height: 100vh;
+  width: 100%;
+  padding: 10px 20px;
+}
+
+.range-table > table {
+  background-color: white;
+  width: 100%;
+}
+
+.range-table > table > thead{
+  border-bottom: 1px solid lightgray;
+}
+
+.range-table > table > thead > tr > th {
+    padding: 5px;
+    color: #00224f;
+    text-transform: uppercase;
+}
+
+
+.range-table > table > tbody > tr > td {
+  padding: 10px 5px 10px 10px;
+  color: #00224f;
+  text-transform: capitalize;
+}
