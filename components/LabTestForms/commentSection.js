@@ -8,21 +8,43 @@ export default function CommentSection({ getcomment, datafunction, target, value
 
   return (
     <>
-      <div style={{ height: 'auto', overflowY: 'auto',overflowX:'hidden' }}>
+      <div
+        style={{
+          height: "auto",
+          overflowY: "auto",
+          overflowX: "hidden",
+          padding: "3px",
+        }}
+      >
         <h5>comments</h5>
-        <textarea className='custom-textarea' value={value} rows={4} name='comment'
+        <textarea
+          className="form-control"
+          value={value}
+          rows={4}
+          name="comment"
           style={{
-            width: '99%', padding
-              : '10px'
-          }} placeholder='comments here' onChange={(e) => getcomment(e, datasource, target, datafunction)}></textarea>
+            width: "99%",
+            padding: "10px",
+          }}
+          placeholder="comments here"
+          onChange={(e) => getcomment(e, datasource, target, datafunction)}
+        ></textarea>
         <div className="d-flex justify-content-between mt-3 mb-2">
           <div className="form-group">
             <label>scientist name</label>
-            <input className="custom-input " disabled placeholder="scientist name" />
+            <input
+              className="custom-input "
+              disabled
+              placeholder="scientist name"
+            />
           </div>
           <div className="form-group">
             <label>passkey</label>
-            <input className="custom-input" type='password' placeholder="passkey" />
+            <input
+              className="custom-input"
+              type="password"
+              placeholder="passkey"
+            />
           </div>
         </div>
         <div>
@@ -36,5 +58,5 @@ export default function CommentSection({ getcomment, datafunction, target, value
         </div>
       </div>
     </>
-  )
+  );
 }

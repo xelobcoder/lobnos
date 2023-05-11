@@ -4,17 +4,18 @@ import { Button } from '@mui/material'
 import { customFetch, customPost, validateFormData } from '../../../components/Auth/customFetch'
 import esrparams from '../../../components/setup/biochemistry/esrparams';
 import { useEffect } from 'react'
+import { Suspense } from 'react';
+import NODATA_FOUND from '../../../components/Nodata';
 
 export default function ESR() {
-  const defaultValues = {
-    target: "general",
-    upper: "",
-    lower: "",
-  }
-  const [range, setRange] = useState(defaultValues);
+  const [range, setRange] = useState(esrparams);
 
-  const onChangeValue = async function (e) {
-    setRange({ ...range, [e.target.name]: e.target.value });
+  const onChangeValue = async function (e, index, target) {
+    setRange((prevState) => {
+      const newRange = [...prevState]
+      newRange[index] = { ...newRange[index], [target]: e.target.value };
+      return newRange;
+    });
   };
 
   const pushResult = async function () {
@@ -22,7 +23,7 @@ export default function ESR() {
     //  data is type array and category string
     const tresult = await customPost("test/setup/chemistry", "POST", {
       category: "ESR",
-      data: [range],
+      data: range,
     });
     // get the status and statuscode and respond appropriately
     const { message, statusCode } = tresult;
@@ -40,13 +41,8 @@ export default function ESR() {
         );
         const { records, status } = response;
 
-        if (status == "success" && records.length > 0) {
-          const data = records[0];
-          setRange(data);
-        }
-
-        if (status == 'success' && records.length == 0) {
-          setRange(esrparams[0])
+        if (status == "success") {
+          records.length == 0 ? setRange(esrparams) : setRange(records)
         }
       }
       getParams();
@@ -64,39 +60,51 @@ export default function ESR() {
             <table>
               <thead>
                 <tr>
-                  <th>range</th>
+                  <th>gender</th>
+                  <th>agelimit</th>
                   <th>lower</th>
                   <th>upper</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>general</td>
-                  <td>
-                    <input
-                      className="form-control"
-                      placeholder="lower"
-                      step={1}
-                      minLength={0}
-                      inputMode="numeric"
-                      type="number"
-                      value={range.lower}
-                      name='lower'
-                      onChange={(e) => onChangeValue(e)}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      className="form-control"
-                      placeholder="higher"
-                      step={1}
-                      value={range.upper}
-                      name='upper'
-                      onChange={(e) => onChangeValue(e)}
-                      minLength={0}
-                    />
-                  </td>
-                </tr>
+                <Suspense fallback={<NODATA_FOUND />}>
+                  {
+                    range.length == 0 ? null : (
+                      range.map((item, index) => {
+                        return (
+                          <tr key={index}>
+                            <td>{item.gender}</td>
+                            <td>{item.agelimit}</td>
+                            <td>
+                              <input
+                                className='custom-input'
+                                placeholder="lower"
+                                step={1}
+                                minLength={0}
+                                inputMode="numeric"
+                                type="number"
+                                value={item.lower}
+                                name='lower'
+                                onChange={(e) => onChangeValue(e, index, 'lower')}
+                              />
+                            </td>
+                            <td>
+                              <input
+                                placeholder="higher"
+                                step={1}
+                                className='custom-input'
+                                value={item.upper}
+                                name='upper'
+                                onChange={(e) => onChangeValue(e, index, 'upper')}
+                                minLength={0}
+                              />
+                            </td>
+                          </tr>
+                        )
+                      })
+                    )
+                  }
+                </Suspense>
               </tbody>
             </table>
             <div style={{ display: "flex", justifyContent: "flex-end" }}>

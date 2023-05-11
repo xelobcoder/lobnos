@@ -21,7 +21,7 @@ import BetaHcg from '../LabTestForms/BetaHcg';
 
 export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
-
+console.log(operationsKey)
   const componentsList = {
     aids: <AIDS clientdata={operationsKey} />,
     liver_function_test: <LiverTest clientdata={operationsKey}/>,
@@ -35,13 +35,13 @@ export default function DisplayTest() {
     hepatitis_b: <HepatitisB clientdata={operationsKey} />,
     hepatitis_c: <HepatitisC clientdata={operationsKey} />,
     blood_grouping: <BloodGroup clientdata={operationsKey} />,
-    erythrocyte_sedimentation_rate: <ESR  clientdata={operationsKey}/>,
+    estimated_sedimentation_rate_: <ESR  clientdata={operationsKey}/>,
     lipid_profile: <LipidProfile  clientdata={operationsKey}/>,
     glycated_heamoglobin: <HbA1c clientdata={operationsKey} />,
     pregnancy_test: <Pregnancy clientdata={operationsKey}/>,
     malaria: <Malaria clientdata={operationsKey}/>,
     thyroid_functional_test: <ThyroidTest clientdata={operationsKey}/>,
-    betahcg: <BetaHcg clientdata={operationsKey}/>
+    betahcg: <BetaHcg clientdata={operationsKey}/>,
   }
   return (
     <div>
