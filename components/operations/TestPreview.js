@@ -8,6 +8,7 @@ export default function TestPreview() {
   const { operationsKey, updateOperations } = useContext(OperationsContext);
   const [datapool, setDatapool] = useState([]);
   const [expandAll, setExpandAll] = useState(false);
+  const [active, setActive] = useState(null)
 
   // use thr billing id of operationsKey to fetch the data from the server
   // and display it in the preview section
@@ -52,15 +53,15 @@ export default function TestPreview() {
 
 
 
-  const handleResult = async function (testid, billingid,name) {
+  const handleResult = async function (testid, billingid, name) {
     // we want to update the context to display test component so that the user can enter the result
     // replace space in the name with underscore
     let testname = (name.replace(/\s/g, '_').toLowerCase());
 
     if (testname.includes('(') && testname.includes(")")) {
-      testname = testname.slice(0,name.indexOf('('))
+      testname = testname.slice(0, name.indexOf('('))
     }
-    updateOperations({ ...operationsKey,testid, billingid, display: true,test:testname})
+    updateOperations({ ...operationsKey, testid, billingid, display: true, test: testname })
   }
 
   return (
@@ -75,10 +76,10 @@ export default function TestPreview() {
             datapool.map((item, index) => (
               <div key={index} id='operations-test-collection'>
                 <div className='firstchild'>
-                  <div>{item.NAME}</div>
+                  <div onClick={(e) => setActive(index)}>{item.NAME}</div>
                 </div>
                 {
-                  expandAll && (
+                  (active == index || expandAll == true) && (
                     <div className='buttons'>
                       <button className={
                         item.processing == 'true' ? 'bg-custom-default' : 'bg-custom-red'
@@ -87,11 +88,11 @@ export default function TestPreview() {
                       >
                         start processing
                       </button>
-                      <button 
-                      className={
-                        item.ready == 'true' ? 'bg-custom-default' : 'bg-custom-red'
-                      }
-                        onClick={() => handleResult(item.testid, item.billingid,item.NAME)}>
+                      <button
+                        className={
+                          item.ready == 'true' ? 'bg-custom-default' : 'bg-custom-red'
+                        }
+                        onClick={() => handleResult(item.testid, item.billingid, item.NAME)}>
                         result
                       </button>
                     </div>
