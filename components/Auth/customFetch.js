@@ -10,6 +10,8 @@ export async function customFetch(endpoint) {
 }
 
 
+export const Glucoseoptions = ['', 'mg/dl', 'mmol/L']
+
 
 export async function customPost(endpoint, method, data) {
   let response = await fetch(`${process.env.BASEURL}/${endpoint}`, {

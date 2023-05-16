@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { TextField, Button, Autocomplete } from "@mui/material";
 import CommentSection from "./commentSection";
 import Indicator from "../accessories/Reports/indicator";
-import { CheckResultEntered, handleComments, validateFormData } from "../Auth/customFetch";
+import { CheckResultEntered, Glucoseoptions, handleComments, validateFormData } from "../Auth/customFetch";
 export default function RandomBloodSugar({ clientdata, type }) {
   const { billingid, test, testid, patientid } = clientdata;
-  const options = ['', 'mg/dl', 'mmol/L']
   const [data, setData] = useState({
     result: 0,
     unit: '',
@@ -67,7 +66,7 @@ export default function RandomBloodSugar({ clientdata, type }) {
           </div>
           <div>
             <Autocomplete
-              options={options}
+              options={Glucoseoptions}
               getOptionLabel={(option) => option}
               size="small"
               value={data.unit}
