@@ -29,7 +29,7 @@ export default function ThyroidTest({ clientdata }) {
           setResultEntered(true);
           // adding the pevious entered data
           for (let i = 0; i < records.length; i++) {
-            for(let j = 0; j < transformedData.length; j++) {
+            for (let j = 0; j < transformedData.length; j++) {
               if (records[i]['PARAMETER'] == transformedData[j]['parameter']) {
                 transformedData[j]['value'] = records[i]['VALUE']
               }
@@ -39,9 +39,9 @@ export default function ThyroidTest({ clientdata }) {
           setData(transformedData)
           // update comment section
           setComments({ comments: records[0]['COMMENTS'] })
-        }else {
-            setResultEntered(false);
-            setData(transformedData)
+        } else {
+          setResultEntered(false);
+          setData(transformedData)
         }
       }
     }
@@ -90,13 +90,13 @@ export default function ThyroidTest({ clientdata }) {
   }
   return (
     <>
-      <div className="p-4">
+      <div className="p-4" >
         <div>
-          <Indicator resultEntered={resultEntered} />
-          <div className="p-2" style={{ backgroundColor: 'whitesmoke' }}>
+          <div >
             <div>
               <h5>Thyroid functional test</h5>
               <form className="bg-white">
+                <Indicator resultEntered={resultEntered} />
                 <table id="entry-table-chemistry">
                   <thead>
                     <tr>

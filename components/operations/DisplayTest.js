@@ -18,34 +18,57 @@ import HbA1c from '../LabTestForms/HbA1c';
 import Pregnancy from '../LabTestForms/pregnancy';
 import Malaria from '../LabTestForms/malaria';
 import BetaHcg from '../LabTestForms/BetaHcg';
+import Image from 'next/image';
+import { Button } from '@mui/material';
+import RandomBloodSugar from '../LabTestForms/randomsugar';
+import FastingSugar from '../LabTestForms/fastingSugar';
 
 export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
-console.log(operationsKey)
+  console.log(operationsKey)
   const componentsList = {
     aids: <AIDS clientdata={operationsKey} />,
-    liver_function_test: <LiverTest clientdata={operationsKey}/>,
+    liver_function_test: <LiverTest clientdata={operationsKey} />,
     renal_function_test: <RenalResults clientdata={operationsKey} />,
-    hepatitis_b: <HepatitisB  clientdata={operationsKey}/>,
+    hepatitis_b: <HepatitisB clientdata={operationsKey} />,
     widal: <Widal clientdata={operationsKey} />,
-    gpd: <G6PD  clientdata={operationsKey}/>,
+    gpd: <G6PD clientdata={operationsKey} />,
     cardiac_enzymes: <CardiacEnzymes clientdata={operationsKey} />,
     urinalysis: <Urinalysis clientdata={operationsKey} />,
-    hepatitis_b_profile: <HEPATITISBPROFILE  clientdata={operationsKey}/>,
+    hepatitis_b_profile: <HEPATITISBPROFILE clientdata={operationsKey} />,
     hepatitis_b: <HepatitisB clientdata={operationsKey} />,
     hepatitis_c: <HepatitisC clientdata={operationsKey} />,
     blood_grouping: <BloodGroup clientdata={operationsKey} />,
-    estimated_sedimentation_rate_: <ESR  clientdata={operationsKey}/>,
-    lipid_profile: <LipidProfile  clientdata={operationsKey}/>,
+    estimated_sedimentation_rate_: <ESR clientdata={operationsKey} />,
+    lipid_profile: <LipidProfile clientdata={operationsKey} />,
     glycated_heamoglobin: <HbA1c clientdata={operationsKey} />,
-    pregnancy_test: <Pregnancy clientdata={operationsKey}/>,
-    malaria: <Malaria clientdata={operationsKey}/>,
-    thyroid_functional_test: <ThyroidTest clientdata={operationsKey}/>,
-    betahcg: <BetaHcg clientdata={operationsKey}/>,
+    pregnancy_test: <Pregnancy clientdata={operationsKey} />,
+    malaria: <Malaria clientdata={operationsKey} />,
+    thyroid_functional_test: <ThyroidTest clientdata={operationsKey} />,
+    betahcg: <BetaHcg clientdata={operationsKey} />,
+    random_blood_sugar: <RandomBloodSugar clientdata={operationsKey} type={'random blood sugar'}/>,
+    fasting_blood_sugar: <FastingSugar clientdata={operationsKey} type={'fasting blood sugar'}/>
   }
   return (
     <div>
-      {operationsKey?.display && componentsList[(operationsKey.test).toLowerCase()]}
+      {operationsKey?.display ? componentsList[(operationsKey.test).toLowerCase()] : <>
+        <div className='d-flex justify-content-center m-4 '>
+          <div>
+            <div className='d-flex justify-content-center'>
+              <Image src='/../public/download.png'
+                width={200}
+                height={200}
+                alt={'No patient selected'}
+              />
+            </div>
+            <h4 className='lims-text text-uppercase mt-3 alert alert-warning'>select a test to continue </h4>
+            <div className='d-flex justify-content-center'>
+              <Button>read instructions </Button>
+            </div>
+          </div>
+        </div>
+
+      </>}
     </div>
   )
 }

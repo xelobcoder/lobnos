@@ -25,7 +25,7 @@ export default function RenalResults() {
   }
   return (
     <>
-      <div className="continue-scroll p-4" style={{backgroundColor:'whitesmoke'}} >
+      <div className="continue-scroll p-4" >
         <div>
           <h5>Renal Function Test </h5>
           <form className="bg-white">

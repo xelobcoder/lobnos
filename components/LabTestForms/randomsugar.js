@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { TextField, Button } from "@mui/material";
-export default function RandomBloodSugar() {
+import CommentSection from "./commentSection";
+import Indicator from "../accessories/Reports/indicator";
+export default function RandomBloodSugar({clientdata, type}) {
   const [data, setData] = useState({
     result: "",
     comment: "",
@@ -12,11 +14,13 @@ export default function RandomBloodSugar() {
     <>
       <div className="p-4">
         <form>
+        <Indicator resultEntered={false} />
+          <h4>Random Blood Sugar Test</h4>
           <div className="form-group">
             <TextField
               sx={{ width: "100%", marginTop: "30px" }}
               size="small"
-              label="Random Blood Sugar"
+              label= {type}
               variant="outlined"
               type="number"
               value={data.result}
@@ -25,22 +29,12 @@ export default function RandomBloodSugar() {
               }
             />
           </div>
-          <div className="form-group">
-            <TextField
-              sx={{ width: "100%", marginTop: "30px" }}
-              size="small"
-              label="Comment"
-              variant="outlined"
-              type="text"
-              value={data.comment}
-              onChange={(e) => setData({ ...data, comment: e.target.value })}
-            />
-          </div>
+          <CommentSection/>
           <div className="form-group mt-3">
             <Button
               variant="contained"
               color="primary"
-              size="small"
+              size="medium"
               onClick={(e) => handleResult(e)}
             >
               save result

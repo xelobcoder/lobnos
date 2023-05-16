@@ -2365,6 +2365,7 @@ textarea::placeholder {
   grid-template-columns: 25% 20% auto;
   height: 100vh;
   overflow-y: hidden;
+  background-color: #00224f27;
 }
 
 
@@ -2372,7 +2373,7 @@ textarea::placeholder {
 .operations-wrapper > aside {
   padding: 0px;
   margin: 0;
-  background-color: white;
+  /* background-color: white; */
   color: white;
   border-right: 1px solid lightgray;
   opacity: 0.9;
@@ -2411,7 +2412,7 @@ border-radius:  10px;
   display: grid;
   grid-template-columns: 100%;
   grid-gap: 10px;
-  background-color: whitesmoke;
+  /* background-color: whitesmoke; */
   height: inherit;
 }
 
@@ -2442,6 +2443,7 @@ border-radius:  10px;
   color: black;
   font-weight: 600 !important;
 }
+
 
 #operation-test-collection-wrapper {
   height: 100vh;

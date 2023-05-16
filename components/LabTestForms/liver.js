@@ -57,7 +57,7 @@ export default function LiverTest({ clientdata }) {
 
   return (
     <>
-      <div className="p-4" style={{ backgroundColor: "whitesmoke" }}>
+      <div className="p-4">
         <div>
           <h5>Liver Function Test</h5>
           <form className="bg-white">
