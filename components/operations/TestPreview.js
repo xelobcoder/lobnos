@@ -34,21 +34,29 @@ export default function TestPreview() {
 
 
   const handleProocessing = async function (testid, billingid) {
-    // update the test have started process and bring back data to be replaced in the datapool
-    const started = await (await fetch(`${process.env.BASEURL}/operations/test?testid=${testid}&billingid=${billingid}`, {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
+    try {
+      // update the test have started process and bring back data to be replaced in the datapool
+      const started = await (
+        await fetch(
+          `${process.env.BASEURL}/operations/test?testid=${testid}&billingid=${billingid}`,
+          {
+            method: "PUT",
+            headers: {
+              "content-type": "application/json",
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+            },
+          }
+        )
+      ).json();
+
+      const { result, status } = started;
+
+      if (status == 400) {
+        alert("failed to start processing update");
       }
-    })
-    ).json();
-
-
-    const { result, status } = started;
-
-    if (status == 400) { alert('failed to start processing update') }
-
+    } catch (err) {
+      alert("failed to start processing update");
+    }
   }
 
 
@@ -84,7 +92,9 @@ export default function TestPreview() {
                       <button className={
                         item.processing == 'true' ? 'bg-custom-default' : 'bg-custom-red'
                       }
+                        disabled={item.processing == 'true' ? true : false}
                         onClick={() => handleProocessing(item.testid, item.billingid)}
+                        title={item.processing == 'true' ? 'item already procesing hence button disabled' : 'click to start processing sample'}
                       >
                         start processing
                       </button>
@@ -94,7 +104,14 @@ export default function TestPreview() {
                         }
                         onClick={() => handleResult(item.testid, item.billingid, item.NAME)}>
                         result
-                      </button>
+                      </button >
+                      {
+                        item.ready == 'true' ? (
+                          <button className='custom-button'>
+                            preview
+                          </button>
+                        ) : null
+                      }
                     </div>
                   )
                 }
