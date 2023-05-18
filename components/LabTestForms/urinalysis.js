@@ -22,11 +22,29 @@ export default function Urinalysis({ clientdata }) {
   });
 
 
-  const Appearanceoptions = ['', 'straw', 'Hazy', 'Cloudy', 'Turbid'];
-  const Coloroptions = ['', 'straw', 'Amber', 'Light Amber', 'Deep', 'Amber Coffee',
-    , 'reddish brown', 'Coffee Grand', 'pot wine', 'Not sure'];
-  const variantoptions = ['', 'negative', 'positive(+)', 'trace', 'positive(++)', 'positive(+++)'];
-  const specificoptions = ['', 1.020, 1.050, 1.030];
+  const Appearanceoptions = ["", "straw", "Hazy", "Cloudy", "Turbid"];
+  const Coloroptions = [
+    "",
+    "straw",
+    "Amber",
+    "Light Amber",
+    "Deep",
+    "Amber Coffee",
+    ,
+    "reddish brown",
+    "Coffee Grand",
+    "pot wine",
+    "Not sure",
+  ];
+  const variantoptions = [
+    "",
+    "negative",
+    "positive(+)",
+    "trace",
+    "positive(++)",
+    "positive(+++)",
+  ];
+  const specificoptions = ["", 1.02, 1.05, 1.03];
 
 
   // this will constatnt check for a check in the status of whether the test result have veen entered or not
@@ -47,7 +65,7 @@ export default function Urinalysis({ clientdata }) {
     catch (error) {
       console.log(error)
     }
-  }, []);
+  }, [clientdata.billingid]);
 
 
 

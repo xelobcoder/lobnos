@@ -37,7 +37,7 @@ export default function BloodGroup({ clientdata }) {
     }
 
     check();
-  }, [resultEntered])
+  }, [resultEntered,client.billingid])
 
 
   const handleResult = async function (e) {

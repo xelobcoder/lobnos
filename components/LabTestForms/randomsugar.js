@@ -31,7 +31,7 @@ export default function RandomBloodSugar({ clientdata, type }) {
     catch (err) {
       alert('error in connection');
     }
-  }, [])
+  }, [billingid])
 
 
   const handleResult = async function () {

@@ -74,7 +74,7 @@ export default function CardiacEnzymes({ clientdata }) {
     }
 
     getData();
-  }, []);
+  }, [clientdata.billingid]);
   return (
     <>
       <div className="p-4">

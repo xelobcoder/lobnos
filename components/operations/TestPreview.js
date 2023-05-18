@@ -90,7 +90,7 @@ export default function TestPreview() {
                   (active == index || expandAll == true) && (
                     <div className='buttons'>
                       <button className={
-                        item.processing == 'true' ? 'bg-custom-default' : 'bg-custom-red'
+                        item.processing == 'true' ? 'custom-button' : 'bg-custom-red'
                       }
                         disabled={item.processing == 'true' ? true : false}
                         onClick={() => handleProocessing(item.testid, item.billingid)}
@@ -100,18 +100,11 @@ export default function TestPreview() {
                       </button>
                       <button
                         className={
-                          item.ready == 'true' ? 'bg-custom-default' : 'bg-custom-red'
+                          item.ready == 'true' ? 'custom-button' : 'bg-custom-red'
                         }
                         onClick={() => handleResult(item.testid, item.billingid, item.NAME)}>
                         result
                       </button >
-                      {
-                        item.ready == 'true' ? (
-                          <button className='custom-button'>
-                            preview
-                          </button>
-                        ) : null
-                      }
                     </div>
                   )
                 }

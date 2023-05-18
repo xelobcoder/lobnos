@@ -25,7 +25,7 @@ export default function FastingSugar({clientdata}) {
     catch (err) {
       alert('error in connection');
     }
-  }, [])
+  }, [billingid])
 
 
   const handleResult = async function () {

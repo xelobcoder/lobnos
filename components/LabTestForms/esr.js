@@ -27,7 +27,7 @@ export default function ESR({ clientdata }) {
     }
 
     checkResult()
-  }, [])
+  }, [billingid])
   return (
     <>
       <div className="p-2" style={{ width: "100%", marginTop: "0px" }}>
