@@ -23,11 +23,15 @@ export default function TestProfileBilling({ test }) {
     try {
       const { data } = await customFetch(`testpanel/list/update?billingid=31`)
       if (data) {
-        console.log(data)
-        data.length > 0 && setTestPortal(data);
-        previousTest.length > 0 && setWorkingTest(previousTest.map((item) => {
-          return data.find((i) => i.NAME === item)
-        }))
+        if (data.length > 0) {
+          setTestPortal(data);
+          previousTest.length > 0 && setWorkingTest(previousTest.map((item) => {
+            return data.find((i) => i.NAME === item)
+          }))
+        }
+        else {
+          setWorkingTest([])
+        }
       } else {
         return;
       }
@@ -68,8 +72,14 @@ export default function TestProfileBilling({ test }) {
 
   const handleRemoveTest = (id) => {
     const dataid = id.ID;
-    const test = workingTest.filter((item) => item.ID !== dataid)
-    setWorkingTest(test)
+    // if test is processing or ready , we would not remove the test
+    const test = workingTest.filter((item) => item.ID == dataid)
+    const { READY, PROCESSING } = test[0];
+    if (READY == 'true' || PROCESSING == 'true') {
+      alert('Test processing or with result ready cannot be removed');
+    } else {
+      setWorkingTest(workingTest.filter((item) => item.ID != dataid))
+    }
   }
 
 
@@ -99,13 +109,14 @@ export default function TestProfileBilling({ test }) {
   // this function remove all test from the working state
 
   const removeAllTest = async () => {
-    let confirmRemoval = confirm('do you want to remove all the test from the cart including the previous test?');
+    let confirmRemoval = confirm('Do you want to remove all the test from the cart including the previous test?. Only test that is yet to be processed will be removed');
     // if yes ,check if the samples have already been processed 
     // if processed, remove all and populate with previous test,
     // if not processed remove all.
-
     if (confirmRemoval) {
-      setWorkingTest([]);
+      // setWorkingTest([]);
+      let nw = workingTest.filter((item, index) => { return item.PROCESSING == 'true' || item.READY == 'true' });
+      setWorkingTest(nw)
     }
     return;
   }
@@ -220,7 +231,7 @@ export default function TestProfileBilling({ test }) {
                                 }
                               </td>
                               <td className={item.PROCESSING == 'true' ? 'text-success' : 'text-danger'}>
-                                {item.PROCESSING == 'true' ?  'processing' : 'Not yet'}
+                                {item.PROCESSING == 'true' ? 'processing' : 'Not yet'}
                               </td>
                               <td className={item.READY == 'true' ? 'text-success' : 'text-danger'}>
                                 {item.READY == 'true' ? 'result ready' : 'Not yet'}
@@ -241,6 +252,8 @@ export default function TestProfileBilling({ test }) {
                       <tr>
                         <td>Total</td>
                         <td className='lims-text-color'>{handleCurrency()}{handleTotalPrice()}</td>
+                        <td></td>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td>

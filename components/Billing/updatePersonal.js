@@ -40,7 +40,7 @@ export default function UpdatePersonal({ handleview }) {
                             <div>
                               <PersonIcon />
                               <h6 className="text-capitalize lims-text-color">
-                                {clientDetails[0]["FULLNAME"]}
+                                {clientDetails[0]["FIRSTNAME"]} {clientDetails[0]["MIDDLENAME"]} {clientDetails[0]["LASTNAME"]}
                               </h6>
                               <h6>{clientDetails[0]["PATIENTID"]}</h6>
                             </div>
