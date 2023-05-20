@@ -48,7 +48,8 @@ export default function BloodGroup({ clientdata }) {
       bloodgroup: group,
       testname: 'bloodgrouping',
       patientid: client.patientid,
-      billingid: client.billingid
+      billingid: client.billingid,
+      testid: client.testid
     })
 
     const { status, message } = response;

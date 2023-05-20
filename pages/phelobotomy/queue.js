@@ -251,7 +251,7 @@ export default function Phelobotomy() {
           <div className="m-2 col-10 d-flex">
             <div className="col-5">
               {/* sleect box for the sorting the data */}
-              <Button variant="outlined" onClick={(e) => setData(fallback)}>Remove filter</Button>
+              <Button variant="outlined" onClick={(e) => {setData(fallback); setSorting('')}}>Remove filter</Button>
               <input
                 type="checkbox"
                 style={{ marginLeft: "20px" }}

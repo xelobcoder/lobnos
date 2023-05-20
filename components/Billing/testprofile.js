@@ -21,8 +21,9 @@ export default function TestProfileBilling({ test }) {
   useMemo(async () => {
     // get the test data
     try {
-      const { data } = await customFetch('testpanel/list')
+      const { data } = await customFetch(`testpanel/list/update?billingid=31`)
       if (data) {
+        console.log(data)
         data.length > 0 && setTestPortal(data);
         previousTest.length > 0 && setWorkingTest(previousTest.map((item) => {
           return data.find((i) => i.NAME === item)
@@ -106,6 +107,7 @@ export default function TestProfileBilling({ test }) {
     if (confirmRemoval) {
       setWorkingTest([]);
     }
+    return;
   }
 
 
@@ -117,8 +119,8 @@ export default function TestProfileBilling({ test }) {
     if (!wlen) {
       let billSummary = {
         test: workingTest.map((item, index) => {
-          return item.NAME
-        }).join(','),
+          return { name: item.NAME, testid: item.ID }
+        }),
         totalcost: handleTotalPrice(),
         patientid: details[0]?.['PATIENTID'],
         billingid: details[0]?.['BILLINGID'],
@@ -197,6 +199,8 @@ export default function TestProfileBilling({ test }) {
                         <th>Test Price</th>
                         <th>sample</th>
                         <th>collection status</th>
+                        <th>processing </th>
+                        <th>result ready</th>
                         <th>action</th>
                         <th>payment made </th>
                       </tr>
@@ -210,10 +214,16 @@ export default function TestProfileBilling({ test }) {
                               <td>{item.NAME}</td>
                               <td>{item.PRICE}</td>
                               <td>{item.SAMPLE || 'BLOOD'}</td>
-                              <td>
+                              <td className={item.COLLECTION == 'true' ? 'text-success' : 'text-danger'}>
                                 {
-                                  clientDetails[0]?.['PHELOBOTOMY_STATUS'] == 'QUEUE' && 'NIL'
+                                  item.COLLECTION == 'true' ? 'collected' : 'Not yet'
                                 }
+                              </td>
+                              <td className={item.PROCESSING == 'true' ? 'text-success' : 'text-danger'}>
+                                {item.PROCESSING == 'true' ?  'processing' : 'Not yet'}
+                              </td>
+                              <td className={item.READY == 'true' ? 'text-success' : 'text-danger'}>
+                                {item.READY == 'true' ? 'result ready' : 'Not yet'}
                               </td>
                               <td>
                                 <Button color='error' size='small'
