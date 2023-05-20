@@ -21,12 +21,13 @@ export default function TestProfileBilling({ test }) {
   useMemo(async () => {
     // get the test data
     try {
-      const { data } = await customFetch(`testpanel/list/update?billingid=31`)
-      if (data) {
-        if (data.length > 0) {
-          setTestPortal(data);
+      const { result } = await customFetch(`testpanel/list/update?billingid=31`);
+      const {data} = await customFetch('testpanel/list');
+      setTestPortal(data);
+      if (result) {
+        if (result.length > 0) {
           previousTest.length > 0 && setWorkingTest(previousTest.map((item) => {
-            return data.find((i) => i.NAME === item)
+            return result.find((i) => i.NAME === item)
           }))
         }
         else {
@@ -170,7 +171,6 @@ export default function TestProfileBilling({ test }) {
       }
     }
   }
-
 
 
 
