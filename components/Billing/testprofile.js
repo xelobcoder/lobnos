@@ -56,7 +56,7 @@ export default function TestProfileBilling({ test }) {
     if (testvalueid != null) {
       const test = testportal.find((item) => item.ID === testvalueid)
       // check if the test is already in the working test
-      const check = workingTest.find((item) => item.ID === testvalueid)
+      const check = workingTest.find((item) => item.TESTID === testvalueid)
       if (check === undefined) {
         setWorkingTest([...workingTest, test]);
         // make the input field empty and focus on it

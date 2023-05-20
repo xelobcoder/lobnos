@@ -3,6 +3,9 @@ import OperationsContext from './OperationsContext';
 import { customFetch } from '../Auth/customFetch';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { Suspense } from 'react';
+import { Button } from '@mui/material'
+import { ArrowForward } from '@mui/icons-material';
+import Link from 'next/link';
 
 export default function TestPreview() {
   const { operationsKey, updateOperations } = useContext(OperationsContext);
@@ -72,6 +75,7 @@ export default function TestPreview() {
     updateOperations({ ...operationsKey, testid, billingid, display: true, test: testname })
   }
 
+  console.log('-----', operationsKey)
   return (
     <>
       <Suspense fallback={<div>loading...................</div>}>
@@ -81,7 +85,7 @@ export default function TestPreview() {
         </div>
         <div >
           {
-            datapool.map((item, index) => (
+            datapool.length > 0 ? datapool.map((item, index) => (
               <div key={index} id='operations-test-collection'>
                 <div className='firstchild'>
                   <div onClick={(e) => setActive(index)}>{item.NAME}</div>
@@ -109,7 +113,29 @@ export default function TestPreview() {
                   )
                 }
               </div>
-            ))
+            )) : <div className='p-2'>
+              {
+                operationsKey?.billingid != undefined ? (
+                  <p className='alert alert-info'><strong>
+                    Test probable deleted or updated. kindly visit phelobotomy queue to address that
+                    <br></br>
+                    <Link href={`/phelobotomy/queue?billingid=${operationsKey?.billingid}`}>
+                      <Button variant='contained' color='success' endIcon={<ArrowForward />}>
+                        phelobotomy queue
+                      </Button>
+                    </Link>
+
+                  </strong></p>
+                ) :
+                  (<div>
+                    <p className='p-2 alert alert-info'>
+                      <strong >
+                        <h6>select a client on the left side panel to continue</h6>
+                      </strong>
+                    </p>
+                  </div>)
+              }
+            </div>
           }
         </div>
       </Suspense>
