@@ -9,7 +9,8 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-material.css';
 import { AuthentificationProvider } from '../components/Auth/useAuthentification';
 import MAIN_LAYOUT from '../components/Headers/Layout';
-import {Roboto} from '@next/font/google'
+import {Roboto} from '@next/font/google';
+
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],

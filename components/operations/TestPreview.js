@@ -128,11 +128,11 @@ export default function TestPreview() {
                   </strong></p>
                 ) :
                   (<div>
-                    <p className='p-2 alert alert-info'>
+                    <div className='p-2 alert alert-info'>
                       <strong >
                         <h6>select a client on the left side panel to continue</h6>
                       </strong>
-                    </p>
+                    </div>
                   </div>)
               }
             </div>

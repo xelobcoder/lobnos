@@ -2,7 +2,7 @@ import { Button } from "@mui/material";
 import Header from "../../components/header";
 import React, { useEffect, useRef, useState } from "react";
 import { ListGroup, ListGroupItem } from "react-bootstrap";
-import router from "next/router";
+import router, { useRouter } from "next/router";
 import CheckIcon from "@mui/icons-material/Check";
 import { Route } from "@mui/icons-material";
 import SECOND_NO_DATA from "../../components/accessories/secondNodata";
@@ -13,6 +13,7 @@ export default function Phelobotomy() {
   const [status, setStatus] = useState(false);
   const [timer, setTimer] = useState(60000);
   const [splitScreen, setSplitScreen] = useState(false);
+  const [clientFiltering, setClientFilter] = useState({ type: 'billingid', input: '' })
   const [sortingby, setSorting] = useState('')
   const [collection, setCollection] = useState({
     billingid: null,
@@ -20,6 +21,49 @@ export default function Phelobotomy() {
     fullname: "TIIFU hamza",
   });
 
+  // get the billing id from the router and filter the clients with id for quicking updating from  the operations room
+  const operations_update = useRouter().query?.billingid;
+
+
+  useEffect(() => {
+    console.log(operations_update)
+    if (operations_update != undefined) {
+      setClientFilter({ type: 'billingid', input: operations_update })
+
+      const matchedData = (type, value) => {
+        return data.length === 0 ? [] : data.filter((e, i) => { return e[type] == value })
+      }
+      // filter the data and only display such 
+      const matched = matchedData('BILLINGID', clientFiltering.input)
+      if (clientFiltering.type == 'billingid') {
+        if (matched.length > 0) {
+          setData(matched)
+        } else {
+          // send data to the server and look out, if none display all old data
+          try {
+            customFetch(`phelobotomy?billingid=${operations_update}`)
+              .then((data) => {
+                const { message, statusCode, result } = data;
+                console.log(result)
+                result.length > 0 ? setData(result) : alert('Client with such billingid not Found.')
+              })
+              .catch((err) => console.log(err))
+          }
+          catch (err) {
+            console.log(err)
+          }
+        }
+      }
+    }
+    if (clientFiltering.type == 'fullname') {
+      const matched = data.filter((item, i) => {
+        const fullname = [item.FIRSTNAME,item?.MIDDLENAME,item.LASTNAME].join(' ').trim().toLowerCase()
+        return fullname.includes(clientFiltering.input)
+      })
+      console.log('matched-----------', matched)
+      matched.length > 0 ? setData(matched) : setData([])
+    }
+  }, [clientFiltering.type, operations_update,clientFiltering.input])
   // define ref for barcode and receipt
   const barcodeRef = useRef();
   const receiptRef = useRef();
@@ -64,6 +108,10 @@ export default function Phelobotomy() {
       alert('error in connection to server')
     }
   }, [timer]);
+
+
+
+  // incase 
 
   // handle collectin of sample button
 
@@ -251,7 +299,7 @@ export default function Phelobotomy() {
           <div className="m-2 col-10 d-flex">
             <div className="col-5">
               {/* sleect box for the sorting the data */}
-              <Button variant="outlined" onClick={(e) => {setData(fallback); setSorting('')}}>Remove filter</Button>
+              <Button variant="outlined" onClick={(e) => { setData(fallback); setSorting('') }}>Remove filter</Button>
               <input
                 type="checkbox"
                 style={{ marginLeft: "20px" }}
@@ -285,6 +333,8 @@ export default function Phelobotomy() {
                 type="text"
                 className="custom-input"
                 placeholder="search using bill ID or patient id"
+                value={clientFiltering.input}
+                onChange={(e) => setClientFilter({ type: 'fullname', input: e.target.value })}
               />
             </div>
             <div style={{ marginLeft: '20px' }}>

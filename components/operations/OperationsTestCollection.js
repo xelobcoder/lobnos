@@ -5,14 +5,19 @@ import BloodtypeIcon from '@mui/icons-material/Bloodtype';
 import SECOND_NO_DATA from '../accessories/secondNodata';
 
 export default function OperationsTestCollection() {
-  const { operationsKey ,updateOperations} = useContext(OperationsContext)
+  const { operationsKey, updateOperations } = useContext(OperationsContext)
   const [collection, setCollections] = useState([]);
 
 
   // intial data fetching from the server
   const getCollection = async function () {
-    const response = await customFetch('operations/collection')
-    setCollections(response?.result)
+    try {
+      const response = await customFetch('operations/collection')
+      setCollections(response?.result)
+    }
+    catch (err) {
+      alert('error connecting to server')
+    }
   }
 
   useMemo(() => getCollection(), [])
@@ -21,8 +26,8 @@ export default function OperationsTestCollection() {
     const value = e.target.value;
     if (value.length > 0) {
       const filtered = collection.filter(item => {
-        return new String(item.FULLNAME).toLowerCase().includes(value.toLowerCase()) || 
-        new String(item.PATIENTID).toLowerCase().includes(value.toLowerCase())
+        return new String(item.FULLNAME).toLowerCase().includes(value.toLowerCase()) ||
+          new String(item.PATIENTID).toLowerCase().includes(value.toLowerCase())
       })
       setCollections(filtered)
     } else {
@@ -31,7 +36,7 @@ export default function OperationsTestCollection() {
   }
 
 
-  const handleUpdate = (e,item) => { updateOperations({ billingid:item.BILLINGID,patientid:item.PATIENTID })}
+  const handleUpdate = (e, item) => { updateOperations({ billingid: item.BILLINGID, patientid: item.PATIENTID }) }
 
 
 
@@ -40,12 +45,12 @@ export default function OperationsTestCollection() {
       <Suspense fallback={<div>loading.....</div>}>
         <div>
           <div className='p-2'>
-            <input className='custom-input' tabIndex={1} onChange={(e) => handleSearch(e)} placeholder='search using name or id'  autoFocus/>
+            <input className='custom-input' tabIndex={1} onChange={(e) => handleSearch(e)} placeholder='search using name or id' autoFocus />
           </div>
           <ul>
             {collection.length > 0 ? collection.map((item, index) => (
-              <li tabIndex={1+index} onClick={(e) => handleUpdate(e,item)} key={index}><BloodtypeIcon/>{item.PATIENTID} : {item.FULLNAME}</li>
-            )): <SECOND_NO_DATA message={'No data'}/>}
+              <li tabIndex={1 + index} onClick={(e) => handleUpdate(e, item)} key={index}><BloodtypeIcon />{item.PATIENTID} : {item.FULLNAME}</li>
+            )) : <SECOND_NO_DATA message={'No data'} />}
           </ul>
         </div>
       </Suspense >
