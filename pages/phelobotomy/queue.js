@@ -56,14 +56,19 @@ export default function Phelobotomy() {
       }
     }
     if (clientFiltering.type == 'fullname') {
+      const { input } = clientFiltering;
+
+      if (input.length === 0) {
+        setData(fallback);
+      }
       const matched = data.filter((item, i) => {
-        const fullname = [item.FIRSTNAME,item?.MIDDLENAME,item.LASTNAME].join(' ').trim().toLowerCase()
+        const fullname = [item.FIRSTNAME, item?.MIDDLENAME, item.LASTNAME].join(' ').trim().toLowerCase()
         return fullname.includes(clientFiltering.input)
       })
       console.log('matched-----------', matched)
       matched.length > 0 ? setData(matched) : setData([])
     }
-  }, [clientFiltering.type, operations_update,clientFiltering.input])
+  }, [clientFiltering.type, operations_update, clientFiltering.input])
   // define ref for barcode and receipt
   const barcodeRef = useRef();
   const receiptRef = useRef();
@@ -332,7 +337,7 @@ export default function Phelobotomy() {
               <input
                 type="text"
                 className="custom-input"
-                placeholder="search using bill ID or patient id"
+                placeholder="search using bill ID or client fullname"
                 value={clientFiltering.input}
                 onChange={(e) => setClientFilter({ type: 'fullname', input: e.target.value })}
               />

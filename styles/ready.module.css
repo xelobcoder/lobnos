@@ -1,0 +1,62 @@
+.card {
+  border: '2px dashed #ff7043';
+  background-color: #f4511e !important;
+  color: white !important;
+  font-family: 'Roboto';
+  
+}
+
+.card:is(:hover, :focus) {
+  outline: 2px solid white;
+  scale: 1.04;
+  cursor: pointer;
+}
+
+.list {
+  display: block;
+  margin: 0;
+  padding: 0;
+  box-shadow:  0 6px 8px rgba(85, 102, 119, 0.03), 0 1px 1px rgba(85, 102, 119, 0.4);
+}
+
+.list > ul {
+  list-style-type: none;
+  display: grid;
+  border-bottom: 1px solid lightgray;
+  margin: 0;
+  background-color: white;
+  padding: 0;
+  /* border-radius: 5px; */
+  cursor: pointer;
+  grid-template-columns: 10% 40% 15% 10% 10% 10% 5%;
+}
+
+.list > ul > li {
+  padding: 10px;
+  display: flex;
+  font-family: 'Roboto',sans-serif;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  font-weight: 100;
+  font-size: 15px;
+  color: #3949ab;
+  color: #26648e;
+  text-transform: capitalize;
+  text-overflow: ellipsis;
+  white-space: break-spaces;
+}
+.mlr {
+  margin: 0 4%;
+}
+
+
+@media screen and (max-width: 468px) {
+  .card {
+    width: 100vw !important;
+  }
+  .list {
+    position: absolute;
+    top: 100vh;
+  }
+}

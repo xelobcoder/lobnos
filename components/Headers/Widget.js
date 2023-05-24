@@ -56,8 +56,8 @@ export default function Widget({ show ,handleClickedLink}) {
    
     ,
     {
-      title: 'Registration',
-      Link: '/registration'
+      title: 'Results',
+      Link: '/registration/ready'
     }
 
     ,

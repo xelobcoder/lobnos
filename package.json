@@ -24,7 +24,7 @@
     "bootstrap": "^5.2.0",
     "dotenv": "^16.0.3",
     "next": "^13.2.4",
-    "pdfjs-dist": "^3.4.120",
+    "pdfjs-dist": "^3.6.172",
     "react": "^18.2.0",
     "react-barcode": "^1.4.6",
     "react-bootstrap": "^2.5.0",
