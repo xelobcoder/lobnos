@@ -8,6 +8,8 @@ import style from '../../styles/ready.module.css'
 export default function ReadyResult() {
   const [layout, setLayout] = useState('two')
   const [query, setQuery] = useState({ querydate: '', content: '' });
+
+  const changeLayout = (target) => setLayout(target)
   return (
     <div style={{ backgroundColor: "#f1f3f5", height: "100vh" }}>
       <div className={style.mlr}>
@@ -46,7 +48,7 @@ export default function ReadyResult() {
           <Sampling data={{ title: "Processing", value: 26 }} />
           <Sampling data={{ title: "Ready", value: 90 }} />
         </div>
-        <ReadyList
+        <ReadyList changeLayout={changeLayout}
           readydata={[
             1, 2, 3, 3, 4, 8, 9, 10, 8, 9, 10, 1, 2, 3, 3, 4, 8, 9, 10, 8, 9,
             10, 1, 2, 3, 3, 4, 8, 9, 10, 8, 9, 10, 1, 2, 3, 3, 4, 8, 9, 10, 8,
