@@ -1,13 +1,25 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Sampling from '../../components/readyComponents/Sampling'
 import { Container, InputGroup } from 'react-bootstrap'
+import { customFetch } from '../../components/Auth/customFetch';
 import ReadyList from '../../components/readyComponents/ReadyList';
 import ReadyTest from '../../components/readyComponents/ReadyTest';
 import style from '../../styles/ready.module.css'
 
 export default function ReadyResult() {
-  const [layout, setLayout] = useState('two')
+  const [layout, setLayout] = useState('two');
   const [query, setQuery] = useState({ querydate: '', content: '' });
+  const [ready, setReady] = useState([]);
+
+
+
+  useEffect(() => {
+    const getReadyData = async function () {
+      let response = await customFetch(`result/ready?querydate=${query.querydate}&&content=${query.content}`)
+      setReady(response)
+    }
+   getReadyData()
+  }, [query.querydate, query.content])
 
   const changeLayout = (target) => setLayout(target)
   return (
@@ -19,7 +31,7 @@ export default function ReadyResult() {
           />
           <input
             className="form-control"
-            placeholder="search client here"
+            placeholder="search client here with the client billingid"
             value={query.content}
             onChange={(e) => setQuery({ ...query, content: e.target.value })}
             type="text"
@@ -49,11 +61,7 @@ export default function ReadyResult() {
           <Sampling data={{ title: "Ready", value: 90 }} />
         </div>
         <ReadyList changeLayout={changeLayout}
-          readydata={[
-            1, 2, 3, 3, 4, 8, 9, 10, 8, 9, 10, 1, 2, 3, 3, 4, 8, 9, 10, 8, 9,
-            10, 1, 2, 3, 3, 4, 8, 9, 10, 8, 9, 10, 1, 2, 3, 3, 4, 8, 9, 10, 8,
-            9, 10,
-          ]}
+          readydata={ready}
         />
         {layout == 'three' && <ReadyTest />}
       </div>
