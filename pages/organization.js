@@ -2,11 +2,11 @@ import SidebarFrontPage from '../components/frontpagesidebar'
 import Header from '../components/header'
 import { DataGrid } from '@mui/x-data-grid'
 import { Button, Box } from '@mui/material'
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 import AddOrganization from '../components/Addorganization'
 import Opay from '../components/payment';
-import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
+import { customFetch } from '../components/Auth/customFetch'
 
 const Group = () => {
   const [show, setShow] = useState(true)
@@ -25,7 +25,8 @@ const Group = () => {
   )
 }
 
-function Organization({ data }) {
+function Organization() {
+  const [data, setData] = useState([])
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
     { field: 'name', headerName: 'Name', width: 200 },
@@ -41,7 +42,16 @@ function Organization({ data }) {
     },
   ]
 
-  const [show, setShow] = useState(true)
+  const [show, setShow] = useState(true);
+
+
+  useEffect(() => {
+    const getInitData = async () => {
+      let data = await customFetch('organization')
+      setData(data)
+    }
+    getInitData()
+  }, [])
 
   return (
     <div className='container'>
@@ -92,22 +102,17 @@ function Organization({ data }) {
 
 export default Organization
 
-export async function getServerSideProps() {
-  const res = await fetch('http://localhost:5000/api/v1/organization')
-  const data = await res.json()
-  return { props: { data } }
-}
 
-Organization.getLayout = function (page) {
-  return (
-    <>
-      <Header />
-      <div className="wrapper">
-        <div className="side">
-          <SidebarFrontPage />
-        </div>
-        <div className="main">{page}</div>
-      </div>
-    </>
-  )
-}
+// Organization.getLayout = function (page) {
+//   return (
+//     <>
+//       <Header />
+//       <div className="wrapper">
+//         <div className="side">
+//           <SidebarFrontPage />
+//         </div>
+//         <div className="main">{page}</div>
+//       </div>
+//     </>
+//   )
+// }
