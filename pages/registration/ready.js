@@ -10,18 +10,24 @@ export default function ReadyResult() {
   const [layout, setLayout] = useState('two');
   const [query, setQuery] = useState({ querydate: '', content: '' });
   const [ready, setReady] = useState([]);
+  const [summaryArea, setSummaryArea] = useState([])
+  const [dropdown, setDropdown] = useState(null)
 
 
 
   useEffect(() => {
     const getReadyData = async function () {
-      let response = await customFetch(`result/ready?querydate=${query.querydate}&&content=${query.content}`)
+      let response = await customFetch(`result/ready?querydate=${query.querydate}&&content=${query.content}`);
+      const summary = await customFetch(`result/ready/crm/summary?querydate=${query.querydate}`);
+      console.log(response)
+      setLayout('two')
       setReady(response)
+      setSummaryArea(summary)
     }
-   getReadyData()
+    getReadyData()
   }, [query.querydate, query.content])
 
-  const changeLayout = (target) => setLayout(target)
+  const changeLayout = (target, item) => { setLayout(target); setDropdown(item) }
   return (
     <div style={{ backgroundColor: "#f1f3f5", height: "100vh" }}>
       <div className={style.mlr}>
@@ -42,7 +48,7 @@ export default function ReadyResult() {
         className={style.mlr}
         style={{
           display: "grid",
-          gridTemplateColumns: `${layout == 'two' ? '20% auto' : "15% auto 15%"}`,
+          gridTemplateColumns: `${layout == 'two' ? '20% auto' : "15% auto 35%"}`,
           paddingTop: "10px",
           gridGap: "20px",
         }}
@@ -55,15 +61,18 @@ export default function ReadyResult() {
             height: "80vh",
           }}
         >
-          <Sampling data={{ title: "Registered", value: 30 }} />
-          <Sampling data={{ title: "Sampling", value: 10 }} />
-          <Sampling data={{ title: "Processing", value: 26 }} />
-          <Sampling data={{ title: "Ready", value: 90 }} />
+          {
+            summaryArea.length > 0 && (
+                summaryArea.map((item, index) => {
+                  return <Sampling data={item}  key={index}/>
+                })
+            )
+          }
         </div>
         <ReadyList changeLayout={changeLayout}
           readydata={ready}
         />
-        {layout == 'three' && <ReadyTest />}
+        {layout == 'three' && <ReadyTest id={dropdown} />}
       </div>
     </div>
   );

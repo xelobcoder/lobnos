@@ -3,7 +3,6 @@
   background-color: #f4511e !important;
   color: white !important;
   font-family: 'Roboto';
-  
 }
 
 .card:is(:hover, :focus) {
@@ -16,7 +15,8 @@
   display: block;
   margin: 0;
   padding: 0;
-  box-shadow:  0 6px 8px rgba(85, 102, 119, 0.03), 0 1px 1px rgba(85, 102, 119, 0.4);
+  box-shadow: 0 6px 8px rgba(85, 102, 119, 0.03),
+    0 1px 1px rgba(85, 102, 119, 0.4);
 }
 
 .list > ul {
@@ -28,42 +28,53 @@
   padding: 0;
   /* border-radius: 5px; */
   cursor: pointer;
-  grid-template-columns: 10% 40% 15% 10% 10% 10% 5%;
+  grid-template-columns: 10% 50% 10% 10% 10% 5%;
 }
 
 .list > ul > li {
-  padding: 10px;
+  /* padding: 10px; */
   display: flex;
-  font-family: 'Roboto',sans-serif;
-  flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+  font-family: 'Roboto', sans-serif;
   font-weight: 100;
   font-size: 15px;
   color: #3949ab;
-  color: #26648e;
+  color: grey;
+  padding: 5px 10px;
   text-transform: capitalize;
   text-overflow: ellipsis;
   white-space: break-spaces;
 }
+
+.list > ul:nth-child(odd) {
+  background-color: #f0ebde !important;
+}
+
+.list > ul:hover{
+  background-color: white !important;
+}
+
 .mlr {
   margin: 0 4%;
 }
 
 .activated_ready {
-  background-color: rgb(127, 212, 165) !important;
   color: white !important;
-  padding: 0px 7px;
+  text-align: center;
   border-radius: 5%;
 }
 
-.activated_ready::before {
-  content: '.';
-  height: 20px;
-  width: 20px;
-  color: green;
+.dropdownlist {
+  display: grid;
+  grid-template-columns: 50% 20% 10% 10% auto;
+  background-color: white;
+  margin: 1px;
+  font-size: 13px;
+  text-transform: capitalize;
+  cursor: pointer;
+  padding: 5px;
 }
-
 
 /* @media screen and (max-width: 468px) {
   .card {
