@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import ReactDOM from 'react-dom';
 import { PDFViewer } from '@react-pdf/renderer';
@@ -11,11 +11,24 @@ const PDF_VIEWER = dynamic(() => import('../../components/accessories/pdfView'),
 const url = './transcript_2.pdf'
 export default function RADIOLOGY_PAGE() {
   const [client, setClient] = useState(false);
-  useEffect(() => { setClient(true) }, [])
+  useEffect(() => {
+    setClient(true);
+
+
+  }, [])
+
+
 
   return (
     <>
-      <PDF_VIEWER />
+      <div style={{ display: 'grid', gridTemplateColumns: '50% auto' }}>
+        <div>
+
+        </div>
+        <div>
+          <PDF_VIEWER />
+        </div>
+      </div>
     </>
   )
 }

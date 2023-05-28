@@ -1,11 +1,41 @@
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet, PDFViewer } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, PDFViewer, Table, TableHeader, TableCell, TableBody } from '@react-pdf/renderer';
 import { useState } from 'react';
 import { useEffect } from 'react';
-import { Height } from '@mui/icons-material';
 
 // Create styles
-
+const styles = StyleSheet.create({
+    page: {
+      backgroundColor: '#E4E4E4',
+    },
+    section: {
+      margin: 10,
+      padding: 10,
+      flexGrow: 1
+    },
+    table: {
+      marginBottom: 10,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      borderColor: '#000000',
+    },
+    tableRow: {
+      flexDirection:'row',
+      margin:'0 20px'
+    },
+    tableHeader: {
+      backgroundColor: '#859584',
+      color: '#FFFFFF',
+      padding: 0,
+      fontSize:'10px',
+      flex: 1,
+    },
+    tableCell: {
+      padding: 8,
+      fontSize:'10px',
+      flex: 1,
+    },
+});
 
 // Create Document Component
 export default function PDF_VIEWER() {
@@ -13,43 +43,24 @@ export default function PDF_VIEWER() {
   useEffect(() => setClient(true), [])
 
   return (
-    <>
-      <PDFViewer >
-        <Document pageMode='fullScreen' pageLayout=''>
-          <Page style={{padding:'20px'}} scale={1.75}>
-            <View >
-              <Text>
-                Republican Tim Scott attacks
-                Sen. Tim Scott jumped into the 2024 Republican race on Monday morning
-                He has a war chest of more than $20 million and is running on message of hope
-                But he must overcome frontrunners Donald Trump and Ron DeSantis
-              </Text>
-              <Text>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>main</th>
-                      <th>main</th>
-                      <th>main</th>
-                      <th>main</th>
-                      <th>main</th>
-                    </tr>
-                  </thead>
-                </table>
-              </Text>
+    <PDFViewer style={{ width: '100%', height: '98vh' }}>
+      <Document>
+        <Page size='A4' style={styles.page}>
+        <View style={styles.table}>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableHeader}>Test</Text>
+              <Text style={styles.tableHeader}>Result</Text>
+              <Text style={styles.tableHeader}>Range</Text>
             </View>
-            <View >
-              <Text>
-                Republican Tim Scott attacks Biden and says our nation is in
-                Sen. Tim Scott jumped into the 2024 Republican race on Monday morning
-                He has a war chest of more than $20 million and is running on message of hope
-                But he must overcome frontrunners Donald Trump and Ron DeSantis
-              </Text>
+            <View style={styles.tableRow}>
+              <Text style={styles.tableCell}>Test 1</Text>
+              <Text style={styles.tableCell}>Pass</Text>
+              <Text style={styles.tableCell}>0-10</Text>
             </View>
-          </Page>
-        </Document>
-      </PDFViewer>
-    </>
-  )
+          </View>
+        </Page>
+      </Document>
+    </PDFViewer>
+  );
 }
 

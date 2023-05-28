@@ -1,15 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter&family=Roboto&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&family=Roboto&display=swap');
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-family: 'Roboto', sans-serif;
   /* overflow-x: hidden; */
   font-weight: 300;
 }
-
-
 
 .welcome-page {
   background: url('../public/frontimage.jfif') no-repeat;
@@ -95,7 +93,6 @@
 .button {
   border-radius: 0px !important;
 }
-
 
 #filterer-top input {
   margin-left: 10px;
@@ -1045,7 +1042,6 @@ option:hover {
   background-color: white;
 }
 
-
 .box-tail ul {
   margin: 0;
   padding: 0;
@@ -1058,7 +1054,6 @@ option:hover {
   padding: 10px;
 }
 
-
 .box-tail ul li:hover,
 .box-tail ul li:active,
 .box-tail ul li:focus {
@@ -1066,9 +1061,8 @@ option:hover {
   color: #00224f;
   cursor: pointer;
   border-radius: 5px;
-  transition:  all 0.5s ease;
+  transition: all 0.5s ease;
 }
-
 
 #phelobotomy-data-list {
   margin: 0;
@@ -1870,50 +1864,54 @@ textarea::placeholder {
   margin: 10px auto;
   border-collapse: collapse;
 }
-#custom-table > thead > tr,
-.ag-theme-material,
-.ag-header {
+
+#custom-table thead tr,
+#custom-table.ag-theme-material,
+#custom-table.ag-header {
   width: 100%;
-  background-color: #00224f21 !important;
+  background-color: #00224f !important;
   border-bottom: 1px solid lightgray;
 }
 
-/* .ag-theme-material {
-  --ag-header-height: 30px;
-  --ag-header-foreground-color: #00224f;
-  --ag-header-background-color: #00224f;
-  --ag-header-cell-hover-background-color: #00224f;
-  --ag-header-cell-moving-background-color: #00224f;
-} */
-#custom-table > thead > tr > th,
+#custom-table thead tr th,
 .headerClass {
   font-size: 14px;
-  font-weight: 700;
-  color: #00224f;
+  font-weight: bold;
+  color: #fff;
   padding: 10px;
   text-transform: uppercase;
 }
 
-#custom-table > tbody > tr > td,
+#custom-table tbody tr td,
 .cellClass {
   font-size: 14px !important;
   text-transform: capitalize;
-  /* color: #00224f; */
   min-width: 100px;
   padding: 5px;
 }
-#custom-table > tbody > tr:hover,
-#custom-table > thead > tr:focus {
+
+#custom-table tbody tr:hover,
+#custom-table thead tr:focus {
   background-color: #00224f21;
   cursor: pointer;
 }
+
 .cellClass {
   font-weight: 500 !important;
   color: #00224f;
   padding-left: 20px;
   font-size: 15px;
 }
-#custom-table > tbody > tr {
+
+#custom-table tbody tr:nth-child(odd) {
+  background-color: #f8f8f8;
+}
+
+#custom-table tbody tr:nth-child(even) {
+  background-color: #fff;
+}
+
+#custom-table tbody tr {
   border-bottom: 1px solid lightgray;
 }
 
@@ -2368,8 +2366,6 @@ textarea::placeholder {
   background-color: #00224f27;
 }
 
-
-
 .operations-wrapper > aside {
   padding: 0px;
   margin: 0;
@@ -2396,17 +2392,14 @@ textarea::placeholder {
   cursor: pointer;
   text-transform: capitalize;
 }
-.operations-wrapper > aside > div > ul > li > svg{
+.operations-wrapper > aside > div > ul > li > svg {
   margin-right: 10px;
   color: red;
 }
 .operations-wrapper > aside > div > ul > li:is(:focus, :hover) {
-background-color: whitesmoke;
-border-radius:  10px;
-
+  background-color: whitesmoke;
+  border-radius: 10px;
 }
-
-
 
 #operations-test-collection {
   display: grid;
@@ -2422,9 +2415,8 @@ border-radius:  10px;
   background-color: whitesmoke;
   cursor: pointer;
   padding: 10px;
-  border-bottom:  1px solid lightgray;
+  border-bottom: 1px solid lightgray;
 }
-
 
 #operations-test-collection > .buttons {
   display: flex;
@@ -2433,8 +2425,7 @@ border-radius:  10px;
   padding-bottom: 20px;
 }
 
-
-#operations-wrapper > main:nth-child(2){
+#operations-wrapper > main:nth-child(2) {
   height: 1200px !important;
 }
 
@@ -2443,7 +2434,6 @@ border-radius:  10px;
   color: black;
   font-weight: 600 !important;
 }
-
 
 #operation-test-collection-wrapper {
   height: 100vh;
@@ -2532,7 +2522,7 @@ border-radius:  10px;
   border-radius: 6px;
 }
 
-.group-grid{
+.group-grid {
   display: grid;
   grid-template-columns: 10% 20% 50% auto;
 }
@@ -2543,12 +2533,12 @@ border-radius:  10px;
 }
 
 .blood {
-  color:white;
+  color: white;
   background-color: red;
   padding: 5px;
 }
 
-.group-grid-testlist{
+.group-grid-testlist {
   display: flex;
   justify-content: space-between;
   padding: 10px;
@@ -2558,7 +2548,7 @@ border-radius:  10px;
   font-size: 15px;
   text-transform: capitalize;
 }
-#entry-table-chemistry{
+#entry-table-chemistry {
   margin: 0;
   width: 100%;
   height: auto;
@@ -2575,7 +2565,7 @@ border-radius:  10px;
   text-align: left;
   font-weight: 600;
   font-weight: 200;
-  color:gray;
+  color: gray;
   text-transform: uppercase;
 }
 
@@ -2584,18 +2574,18 @@ border-radius:  10px;
   text-align: left;
   font-weight: 600;
   font-weight: 200;
-  color:#00224f;
+  color: #00224f;
   text-transform: lowercase;
 }
-#entry-table-chemistry > tbody > tr >td:first-child {
+#entry-table-chemistry > tbody > tr > td:first-child {
   text-transform: uppercase !important;
 }
 
-#entry-table-chemistry > tbody > tr > td >input{
-  width:200px;
+#entry-table-chemistry > tbody > tr > td > input {
+  width: 200px;
   border: 1px solid lightgray;
 }
-#entry-table-chemistry > tbody > tr{
+#entry-table-chemistry > tbody > tr {
   margin: 0;
   padding: 0;
 }
@@ -2608,7 +2598,7 @@ border-radius:  10px;
 .create-param-form {
   margin: 1% 5%;
   display: grid;
-  grid-template-columns: repeat(5,1fr);
+  grid-template-columns: repeat(5, 1fr);
   grid-gap: 10px;
 }
 .create-param-header {
@@ -2629,4 +2619,3 @@ border-radius:  10px;
   margin-top: -20px;
   /* aanimate it 00 */
 }
-

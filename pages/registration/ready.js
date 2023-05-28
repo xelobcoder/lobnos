@@ -48,7 +48,7 @@ export default function ReadyResult() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `${layout == 'two' ? '20% auto' : "15% auto 35%"}`,
+          gridTemplateColumns: `${layout == 'two' ? '20% auto' : "15% auto 25%"}`,
           paddingTop: "10px",
           gridGap: "20px",
           margin:'0% 3%'

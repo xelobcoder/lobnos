@@ -14,7 +14,7 @@ export default function ReadyList({ readydata, changeLayout }) {
               <th>Billingid</th>
               <th>fullname</th>
               <th>status</th>
-              <th>Number</th>
+              <th>Completed test</th>
               <th>debt</th>
               <th>view</th>
             </tr>
