@@ -1,87 +1,67 @@
-.card {
-  border: '2px dashed #ff7043';
-  background-color: #f4511e !important;
-  color: white !important;
-  font-family: 'Roboto';
+/* ready.module.css */
+
+.table_container {
+  height: 80vh;
+  overflow-y: auto;
 }
 
-.card:is(:hover, :focus) {
-  outline: 2px solid white;
-  scale: 1.04;
-  cursor: pointer;
+.custom_table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.list {
-  display: block;
-  margin: 0;
-  padding: 0;
-  box-shadow: 0 6px 8px rgba(85, 102, 119, 0.03),
-    0 1px 1px rgba(85, 102, 119, 0.4);
+.custom_table thead {
+  background-color: #3949ab;
+  color: #fff;
 }
 
-.list > ul {
-  list-style-type: none;
-  display: grid;
-  border-bottom: 1px solid lightgray;
-  margin: 0;
-  background-color: white;
-  padding: 0;
-  /* border-radius: 5px; */
-  cursor: pointer;
-  grid-template-columns: 10% 50% 10% 10% 10% 5%;
+.custom_table th,
+.custom_table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
 }
 
-.list > ul > li {
-  /* padding: 10px; */
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  font-family: 'Roboto', sans-serif;
-  font-weight: 100;
-  font-size: 15px;
+.custom_table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.custom_table tbody tr:hover {
+  background-color: #e6e6e6;
+}
+
+.billing_id {
   color: #3949ab;
-  color: grey;
-  padding: 5px 10px;
-  text-transform: capitalize;
-  text-overflow: ellipsis;
-  white-space: break-spaces;
 }
 
-.list > ul:nth-child(odd) {
-  background-color: #f0ebde !important;
+.status {
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 14px;
+  display: inline-block;
+  line-height: 1;
 }
 
-.list > ul:hover{
-  background-color: white !important;
+.ready_status {
+  background-color: #4caf50;
+  color: #fff;
 }
 
-.mlr {
-  margin: 0 4%;
+.pending_status {
+  background-color: #ffc107;
+  color: #000;
 }
 
-.activated_ready {
-  color: white !important;
-  text-align: center;
-  border-radius: 5%;
+.negative_debt {
+  color: #f44336;
 }
 
-.dropdownlist {
-  display: grid;
-  grid-template-columns: 50% 20% 10% 10% auto;
-  background-color: white;
-  margin: 1px;
-  font-size: 13px;
-  text-transform: capitalize;
+.view_icon {
   cursor: pointer;
-  padding: 5px;
+  color: #3949ab;
+  font-size: 24px;
 }
 
-/* @media screen and (max-width: 468px) {
-  .card {
-    width: 100vw !important;
-  }
-  .list {
-    position: absolute;
-    top: 100vh;
-  }
-} */
+

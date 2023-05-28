@@ -4,11 +4,10 @@ import { Container, InputGroup } from 'react-bootstrap'
 import { customFetch } from '../../components/Auth/customFetch';
 import ReadyList from '../../components/readyComponents/ReadyList';
 import ReadyTest from '../../components/readyComponents/ReadyTest';
-import style from '../../styles/ready.module.css'
 
 export default function ReadyResult() {
   const [layout, setLayout] = useState('two');
-  const [query, setQuery] = useState({ querydate: '', content: '' });
+  const [query, setQuery] = useState({ querydate: '2023-05-18', content: '' });
   const [ready, setReady] = useState([]);
   const [summaryArea, setSummaryArea] = useState([])
   const [dropdown, setDropdown] = useState(null)
@@ -19,7 +18,6 @@ export default function ReadyResult() {
     const getReadyData = async function () {
       let response = await customFetch(`result/ready?querydate=${query.querydate}&&content=${query.content}`);
       const summary = await customFetch(`result/ready/crm/summary?querydate=${query.querydate}`);
-      console.log(response)
       setLayout('two')
       setReady(response)
       setSummaryArea(summary)
@@ -28,9 +26,12 @@ export default function ReadyResult() {
   }, [query.querydate, query.content])
 
   const changeLayout = (target, item) => { setLayout(target); setDropdown(item) }
+
+
+
   return (
     <div style={{ backgroundColor: "#f1f3f5", height: "100vh" }}>
-      <div className={style.mlr}>
+      <div style={{margin:'0% 3%'}}>
         <InputGroup className="d-flex mt-2">
           <input className="form-control" type="date" value={query.querydate}
             onChange={(e) => setQuery({ ...query, querydate: e.target.value })}
@@ -45,12 +46,12 @@ export default function ReadyResult() {
         </InputGroup>
       </div>
       <div
-        className={style.mlr}
         style={{
           display: "grid",
           gridTemplateColumns: `${layout == 'two' ? '20% auto' : "15% auto 35%"}`,
           paddingTop: "10px",
           gridGap: "20px",
+          margin:'0% 3%'
         }}
       >
         <div

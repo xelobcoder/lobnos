@@ -1,0 +1,45 @@
+.card {
+  height: max-content;
+  background-color: whitesmoke;
+}
+
+.dropdownlist {
+  list-style: none;
+  margin: 0;
+  border-bottom: 1px solid #ccc;
+  display: grid;
+  background-color: white;
+  padding: 10px;
+  grid-template-columns: 50% 20% 10% 10% 10%;
+}
+
+.dropdownlist li {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  width: 100%;
+}
+
+.dropdownlist li.share-via {
+  justify-content: space-between;
+}
+
+.dropdownlist li.share-via > * {
+  margin-right: 8px;
+}
+
+.textPrimary {
+  color: #3949ab;
+}
+
+.printIcon {
+  color: #3949ab;
+}
+
+.whatsappIcon {
+  color: #4caf50;
+}
+
+.emailIcon {
+  color: #2196f3;
+}
