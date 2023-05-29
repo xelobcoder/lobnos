@@ -8,6 +8,9 @@
   /* overflow-x: hidden; */
   font-weight: 300;
 }
+.red-border-row{
+  border: 1px solid red;
+}
 
 .welcome-page {
   background: url('../public/frontimage.jfif') no-repeat;

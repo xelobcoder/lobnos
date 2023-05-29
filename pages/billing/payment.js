@@ -1,50 +1,62 @@
 import React, { useState, useEffect } from 'react'
 import Navbar from '../../components/payment/Navbar'
 import AccountSummary from '../../components/payment/AccountSummary'
-import Transactions from '../../components/payment/Transactions';
 import TableDisplay from '../../components/accessories/TableDisplay';
-import { useRouter } from 'next/router';
 import { customFetch } from '../../components/Auth/customFetch';
+import UpdateBilling from '../../components/payment/updateBilling';
 
 
 export default function Payment_Extra() {
   const [querystate, setQueryState] = useState({ date: '', month: '', patientid: '' })
+  const [selectedBilling, setBilling] = useState(null);
+  const [temporary, setTemporary] = useState([])
 
   const [transactionData, setTransactionsData] = useState([])
-
 
   const columns = [
     {
       Header: 'Date',
       accessor: 'date',
+      Cell: ({ value }) => <span>{value.slice(0, 10)}</span>
+    },
+    {
+      Header: 'Patient ID',
+      accessor: 'patientid',
+      Cell: ({ value }) => <div onClick={(e) => setQueryState({ ...querystate, patientid: value })}>
+        {value}
+      </div>
     },
     {
       Header: 'Billing ID',
       accessor: 'billingid',
     },
     {
-      Header: 'Discount',
-      accessor: 'discount',
-    },
-    {
-      Header: 'Outstanding',
-      accessor: 'outstanding',
+      Header: 'Amount Due',
+      accessor: 'payable',
+      Cell: ({ value }) => <span> {value}</span>
     },
     {
       Header: 'Paid Amount',
       accessor: 'paid_amount',
     },
     {
-      Header: 'Patient ID',
-      accessor: 'patientid',
-    },
-    {
-      Header: 'Payable',
-      accessor: 'payable',
+      Header: 'Outstanding',
+      accessor: 'outstanding',
+      Cell: ({ value, row }) => (
+        <div
+          style={{
+            backgroundColor: value > 0 ? 'red' : 'none',
+            color: value > 0 ? 'white' : 'black'
+          }}
+          {...row.getRowProps()}
+          className={value > 0 ? 'red-border-row' : ''}
+        >
+          {value}
+        </div>
+      )
     },
   ]
 
-  const router = useRouter();
 
   const handleChange = (event, direct) => {
     setQueryState({ ...querystate, [direct]: event.target.value })
@@ -56,6 +68,31 @@ export default function Payment_Extra() {
   };
 
 
+  const updateBill = (event) => {
+
+  }
+
+  const setBill = (event) => {
+    const{ value } = event.target;
+    setBilling(value)
+
+    if (selectedBilling == null) {
+      return;
+    }
+
+    const filteredBill = transactionData.filter((item, index) => {
+      return item.billingid == value;
+    })
+
+    console.log(filteredBill)
+
+    if (filteredBill.length > 0 && selectedBilling != null) {
+      setTransactionsData(filteredBill)
+    } else {
+      setTransactionsData(temporary)
+    }
+  }
+
   const runQuery = async () => {
     let response = await customFetch(`billing/payment/info/client?date=${querystate.date}&&month=${querystate.month}&&patientid=${querystate.patientid}`)
 
@@ -63,7 +100,7 @@ export default function Payment_Extra() {
 
     if (status == 'success' && statusCode == 200) {
       setTransactionsData(result)
-      console.log(response)
+      setTemporary(result)
     }
   }
 
@@ -72,15 +109,41 @@ export default function Payment_Extra() {
 
   return (
     <>
-      <div style={{ backgroundColor: 'whitesmoke', height: '90vh', overflowY: 'hidden' }}>
-        <Navbar handleChange={handleChange} query={querystate} runquery={runQuery}
-          select={handleDropdownSelect} />
-        <div style={{ display: 'grid', gridTemplateColumns: '20% auto', gridGap: '20px', margin: '10px 10px' }}>
-          <AccountSummary />
-          <TableDisplay styling={'transactionTable'} filtering={false} column={columns} data={transactionData} />
+      <div
+        style={{
+          backgroundColor: "whitesmoke",
+          height: "90vh",
+          overflowY: "hidden",
+        }}
+      >
+        <Navbar
+          handleChange={handleChange}
+          query={querystate}
+          runquery={runQuery}
+          select={handleDropdownSelect}
+          updateBill={updateBill}
+          setBill={setBill}
+          selectedBilling={selectedBilling}
+        />
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "20% auto",
+            gridGap: "20px",
+            margin: "10px 10px",
+          }}
+        >
+          {/* <AccountSummary /> */}
+          <UpdateBilling data={transactionData[0] || {}}/>
+          <TableDisplay
+            styling={"transactionTable"}
+            filtering={false}
+            column={columns}
+            data={transactionData}
+          />
           {/* <Transactions transactions={dummyTransactions} /> */}
         </div>
       </div>
     </>
-  )
+  );
 }

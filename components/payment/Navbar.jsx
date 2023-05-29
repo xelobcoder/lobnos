@@ -5,7 +5,7 @@ import { Dropdown } from 'react-bootstrap';
 import styles from '../../styles/payment.module.css';
 import { Email, Print, WhatsApp } from '@mui/icons-material';
 
-export default function Navbar({ query, handleChange,select,runquery }) {
+export default function Navbar({ query,updateBill, handleChange,select,runquery,setBill,selectedBilling }) {
 
 
   return (
@@ -57,19 +57,25 @@ export default function Navbar({ query, handleChange,select,runquery }) {
       onClick={runquery} >
         search
       </Button>
-      <div className="d-flex" style={{ marginLeft: "50px" }}>
+      <div className="d-flex" style={{ marginLeft: "20px" }}>
         <input
           className="form-control"
           type="number"
+          value={selectedBilling}
+          onChange={(event) => setBill(event)}
+          style={{width:'200px',marginRight:'20px'}}
           placeholder="Enter Billing ID here"
         />
+        <Button variant='contained' color='primary' onClick={updateBill}>
+          update 
+        </Button>
         <Button
           startIcon={<Print />}
           variant="contained"
           sx={{
             marginLeft: "10px",
             color: 'white',
-            width: "150px", backgroundColor: "black"
+            width: "100px", backgroundColor: "black"
           }}
         >
           print
