@@ -3,7 +3,7 @@ import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination } from 
 import GlobalFilter from './GlobalFilter'
 import SECOND_NO_DATA from './secondNodata'
 
-export default function TableDisplay({ column, data }) {
+export default function TableDisplay({ column, data, styling, filtering }) {
   const tableInstance = useTable({
     columns: useMemo(() => column, [column]),
     data: useMemo(() => data, [data])
@@ -35,9 +35,9 @@ export default function TableDisplay({ column, data }) {
             {
               data.length == 0 ? null :
                 <>
-                  <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
+                  {filtering == true && (<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />)}
                   <div className='custom-table-wrapper'>
-                    <table {...getTableProps()} id='custom-table'>
+                    <table {...getTableProps()} id={styling || 'custom-table'}>
                       <thead>
                         {headerGroups.map((headerGroup) => (
                           <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>

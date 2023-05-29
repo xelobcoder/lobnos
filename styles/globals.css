@@ -2619,3 +2619,45 @@ textarea::placeholder {
   margin-top: -20px;
   /* aanimate it 00 */
 }
+
+#transactionTable {
+  width: 100%;
+  border-collapse: collapse;
+  cursor: pointer;
+  height: max-content;
+  /* margin-top: 10px; */
+}
+
+#transactionTable > thead {
+  background-color: #3949ab;
+}
+#transactionTable > thead > tr > th {
+  font-weight: 300;
+  padding: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  color: white;
+  text-transform: uppercase;
+}
+#transactionTable > tbody > tr > td {
+  padding: 5px;
+  text-align: left;
+  font-weight: 300;
+  font-family: 'Roboto', sans-serif, 'Montserrat', sans-serif;
+}
+
+#transactionTable > tbody > tr:nth-child(even) {
+  background-color: whitesmoke;
+}
+
+#transactionTable > tbody > tr:nth-child(odd) {
+  background-color: white;
+}
+
+#transactionTable > tbody > tr:hover {
+  background-color: #dcdcdc;
+}
+#transactionTable > tbody > tr:focus {
+  background-color: #dcdcdc;
+  outline: none;
+}

@@ -72,9 +72,7 @@ export default function EXPIRE_STOCKS({ expirestock }) {
 
   return (
     <div>
-      <Suspense fallback={<div>loading ...........</div>}>
         <TableDisplay data={expirestock} column={columns} />
-      </Suspense>
     </div>
   )
 }

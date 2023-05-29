@@ -1,80 +1,86 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Navbar from '../../components/payment/Navbar'
 import AccountSummary from '../../components/payment/AccountSummary'
-import Transactions from '../../components/payment/Transactions'
+import Transactions from '../../components/payment/Transactions';
+import TableDisplay from '../../components/accessories/TableDisplay';
+import { useRouter } from 'next/router';
+import { customFetch } from '../../components/Auth/customFetch';
+
 
 export default function Payment_Extra() {
-  const dummyTransactions = [
+  const [querystate, setQueryState] = useState({ date: '', month: '', patientid: '' })
+
+  const [transactionData, setTransactionsData] = useState([])
+
+
+  const columns = [
     {
-      id: 1,
-      date: '2023-05-28',
-      billingId: 'B001',
-      type: 'Purchase',
-      payable: '$100',
-      paid: '$50',
-      balance: '$50',
-      outstanding: '$0',
+      Header: 'Date',
+      accessor: 'date',
     },
     {
-      id: 2,
-      date: '2023-05-27',
-      billingId: 'B002',
-      type: 'Payment',
-      payable: '$0',
-      paid: '$50',
-      balance: '$0',
-      outstanding: '$0',
+      Header: 'Billing ID',
+      accessor: 'billingid',
     },
     {
-      id: 2,
-      date: '2023-05-27',
-      billingId: 'B002',
-      type: 'Payment',
-      payable: '$0',
-      paid: '$50',
-      balance: '$0',
-      outstanding: '$0',
+      Header: 'Discount',
+      accessor: 'discount',
     },
     {
-      id: 2,
-      date: '2023-05-27',
-      billingId: 'B002',
-      type: 'Payment',
-      payable: '$0',
-      paid: '$50',
-      balance: '$0',
-      outstanding: '$0',
+      Header: 'Outstanding',
+      accessor: 'outstanding',
     },
     {
-      id: 2,
-      date: '2023-05-27',
-      billingId: 'B002',
-      type: 'Payment',
-      payable: '$0',
-      paid: '$50',
-      balance: '$0',
-      outstanding: '$0',
+      Header: 'Paid Amount',
+      accessor: 'paid_amount',
     },
     {
-      id: 2,
-      date: '2023-05-27',
-      billingId: 'B002',
-      type: 'Payment',
-      payable: '$0',
-      paid: '$50',
-      balance: '$0',
-      outstanding: '$0',
+      Header: 'Patient ID',
+      accessor: 'patientid',
     },
-  ];
+    {
+      Header: 'Payable',
+      accessor: 'payable',
+    },
+  ]
+
+  const router = useRouter();
+
+  const handleChange = (event, direct) => {
+    setQueryState({ ...querystate, [direct]: event.target.value })
+  }
+
+  const handleDropdownSelect = (eventKey) => {
+    setQueryState({ ...querystate, month: eventKey })
+    console.log(querystate)
+  };
+
+
+  const runQuery = async () => {
+    let response = await customFetch(`billing/payment/info/client?date=${querystate.date}&&month=${querystate.month}&&patientid=${querystate.patientid}`)
+
+    const { status, statusCode, result } = response;
+
+    if (status == 'success' && statusCode == 200) {
+      setTransactionsData(result)
+      console.log(response)
+    }
+  }
+
+
 
 
   return (
-    <div style={{ backgroundColor: 'whitesmoke', height: '100vh' }}>
-      <Navbar />
-      <div style={{ display: 'grid', gridTemplateColumns: '20% auto', gridGap: '20px', margin: '10px 4%' }}>
-        <AccountSummary />
-        <Transactions transactions={dummyTransactions} />
+    <>
+      <div style={{ backgroundColor: 'whitesmoke', height: '90vh', overflowY: 'hidden' }}>
+        <Navbar handleChange={handleChange} query={querystate} runquery={runQuery}
+          select={handleDropdownSelect} />
+        <div style={{ display: 'grid', gridTemplateColumns: '20% auto', gridGap: '20px', margin: '10px 10px' }}>
+          <AccountSummary />
+          <TableDisplay styling={'transactionTable'} filtering={false} column={columns} data={transactionData} />
+          {/* <Transactions transactions={dummyTransactions} /> */}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
