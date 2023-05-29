@@ -1,4 +1,4 @@
-import { TextField, Autocomplete, Button } from '@mui/material'
+import { TextField, Autocomplete, Button ,CircularProgress} from '@mui/material'
 import React, { useState } from 'react'
 
 
@@ -8,10 +8,24 @@ const options = ['cash', 'mobile money', 'cheque', 'bank transfer'];
 
 export default function UpdateBilling({ data }) {
   const [selectedValue, setSelectedValue] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSelect = (event, value) => {
     setSelectedValue(value);
   };
+
+  const handleSaveChanges = () => {
+    // Perform save changes logic here
+    setIsLoading(true);
+
+    // Simulating an asynchronous operation
+    setTimeout(() => {
+      // Reset the loading state after the operation is completed
+      setIsLoading(false);
+    }, 2000);
+  };
+
+
   return (
     <div>
       <form>
@@ -66,13 +80,14 @@ export default function UpdateBilling({ data }) {
         />
 
         <Button
-          variant="outlined"
-          className="mt-3"
+          variant="contained"
           color="primary"
-          sx={{ width: '100%' }}
+          sx={{ width: '100%',marginTop:'20px' }}
           size="large"
+          disabled={isLoading}
+          onClick={handleSaveChanges}
         >
-          save changes
+          {isLoading ? <CircularProgress size={24} color="primary" /> : 'Save Changes'}
         </Button>
       </form>
     </div>
