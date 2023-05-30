@@ -1,12 +1,12 @@
 import React from 'react';
 import styles from '../../styles/payment.module.css';
 
-export default function AccountSummary() {
+export default function AccountSummary({data}) {
   return (
     <div>
       <div className={`${styles.alert} ${styles.alertPrimary}`}>
         <span className={styles.balanceLabel}>Debt:</span>
-        <span className={styles.balanceAmount}>GHC  200</span>
+        <span className={styles.balanceAmount}>GHC  {data?.outstanding}</span>
       </div>
 
       <div>
@@ -17,23 +17,23 @@ export default function AccountSummary() {
           <div className={styles.cardBody}>
             <div>
               <li>account name</li>
-              <li>Tiifu Hamza Kojo Boronson</li>
+              <li>{data?.fullname}</li>
             </div>
             <div>
               <li>last billing date</li>
-              <li>12/05/2023</li>
+              <li>{data?.date.slice(0,19).split('T').join(' ')}</li>
             </div>
             <div>
               <li>cost incurred </li>
-              <li>GHC 340</li>
+              <li> GHC {data?.payable}</li>
             </div>
             <div>
               <li>payment made </li>
-              <li>GHC 0</li>
+              <li>GHC {data?.paid_amount}</li>
             </div>
             <div>
               <li>discount  </li>
-              <li>GHC 10</li>
+              <li>GHC {data?.discount}</li>
             </div>
             
           </div>

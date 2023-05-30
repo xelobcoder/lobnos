@@ -1,4 +1,4 @@
-import { TextField, Autocomplete, Button ,CircularProgress} from '@mui/material'
+import { TextField, Autocomplete, Button, CircularProgress } from '@mui/material'
 import React, { useState } from 'react'
 
 
@@ -22,67 +22,76 @@ export default function UpdateBilling({ data }) {
     setTimeout(() => {
       // Reset the loading state after the operation is completed
       setIsLoading(false);
-    }, 2000);
+    }, 30000);
   };
+
+
+
 
 
   return (
     <div>
+      <h3>Update Payment</h3>
       <form>
         <TextField
           size="large"
-          type="number"
+          type="number" variant="standard"
           label="client billing id"
-          value={data?.billing}
+          value={data?.billingid}
           className="mt-3" sx={{ width: '100%' }}
+          disabled
         />
-
         <TextField
           size="large"
-          type="number"
+          type="number" variant="standard"
           label="Amount due"
-          value={data?.billing}
+          value={data?.payable}
           className="mt-3" sx={{ width: '100%' }}
+          disabled
         />
-
         <TextField
           size="large"
-          type="number"
+          type="number" variant="standard"
           label="Amount paid"
-          value={data?.billing}
+          value={data?.paid_amount}
           className="mt-3" sx={{ width: '100%' }}
+          disabled
         />
 
         <TextField
           size="large"
           type="number"
           label="Discount"
-          value={data?.billing}
+          value={data?.discount}
+          variant="standard"
           className="mt-3" sx={{ width: '100%' }}
+          disabled
         />
 
         <TextField
           size="large"
           type="number"
           label="pay"
-          value={data?.billing}
+          variant="standard"
+          value={data?.pay}
           className="mt-3" sx={{ width: '100%' }}
         />
 
         <Autocomplete
           options={options}
           value={selectedValue}
-          className="mt-3" sx={{ width: '100%' }}
           onChange={handleSelect}
+          variant="standard"
+          className="mt-3" sx={{ width: '100%' }}
           renderInput={(params) => (
-            <TextField {...params} label="Payment Method" variant="outlined" />
+            <TextField {...params} label="Payment Method"  variant="standard" />
           )}
         />
 
         <Button
           variant="contained"
           color="primary"
-          sx={{ width: '100%',marginTop:'20px' }}
+          sx={{ width: '20%', marginTop: '20px' }}
           size="large"
           disabled={isLoading}
           onClick={handleSaveChanges}

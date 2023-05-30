@@ -10,8 +10,8 @@ export default function Payment_Extra() {
   const [querystate, setQueryState] = useState({ date: '', month: '', patientid: '' })
   const [selectedBilling, setBilling] = useState(null);
   const [temporary, setTemporary] = useState([])
-
   const [transactionData, setTransactionsData] = useState([])
+  const [updatingBill, setUpdatingBill] = useState({ update: false, billid: null, filteringData: {} })
 
   const columns = [
     {
@@ -64,27 +64,41 @@ export default function Payment_Extra() {
 
   const handleDropdownSelect = (eventKey) => {
     setQueryState({ ...querystate, month: eventKey })
-    console.log(querystate)
   };
 
-
-  const updateBill = (event) => {
-
-  }
-
-  const setBill = (event) => {
-    const{ value } = event.target;
-    setBilling(value)
-
-    if (selectedBilling == null) {
-      return;
-    }
-
+  const filterData = function (value) {
     const filteredBill = transactionData.filter((item, index) => {
       return item.billingid == value;
     })
+    return filteredBill;
+  }
 
-    console.log(filteredBill)
+  const updateBill = (event) => {
+    if (selectedBilling != null) {
+      // we filter data from the transaction data
+      const data_to_update = filterData(selectedBilling)
+
+      if (data_to_update.length > 0) {
+        setUpdatingBill({
+          update: true, billid: selectedBilling, filteringData: {
+            ...data_to_update[0],
+            pay: 0,
+            paymentMode: ''
+          }
+        })
+      } else {
+        alert('BillingID not found')
+      }
+    }
+  }
+
+  const setBill = (event) => {
+    const { value } = event.target;
+    setBilling(value)
+
+    if (selectedBilling == null) { return; }
+
+    const filteredBill = filterData(value)
 
     if (filteredBill.length > 0 && selectedBilling != null) {
       setTransactionsData(filteredBill)
@@ -92,6 +106,8 @@ export default function Payment_Extra() {
       setTransactionsData(temporary)
     }
   }
+
+
 
   const runQuery = async () => {
     let response = await customFetch(`billing/payment/info/client?date=${querystate.date}&&month=${querystate.month}&&patientid=${querystate.patientid}`)
@@ -128,22 +144,25 @@ export default function Payment_Extra() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "20% auto",
+            gridTemplateColumns: `${updatingBill.update ? '20% auto' : '100%'}`,
             gridGap: "20px",
             margin: "10px 10px",
           }}
         >
-          {/* <AccountSummary /> */}
-          <UpdateBilling data={transactionData[0] || {}}/>
-          <TableDisplay
-            styling={"transactionTable"}
-            filtering={false}
-            column={columns}
-            data={transactionData}
-          />
-          {/* <Transactions transactions={dummyTransactions} /> */}
+          {updatingBill.update && <AccountSummary data={updatingBill.filteringData} />}
+          {updatingBill.update ?
+            <UpdateBilling data={updatingBill.filteringData} /> :
+            <TableDisplay
+              styling={"transactionTable"}
+              filtering={false}
+              column={columns}
+              data={transactionData}
+            />}
         </div>
       </div>
     </>
   );
 }
+
+
+
