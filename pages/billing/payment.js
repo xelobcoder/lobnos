@@ -7,11 +7,12 @@ import UpdateBilling from '../../components/payment/updateBilling';
 
 
 export default function Payment_Extra() {
+  const layoutdefault = { update: false, billid: null, filteringData: {}}
   const [querystate, setQueryState] = useState({ date: '', month: '', patientid: '' })
   const [selectedBilling, setBilling] = useState(null);
   const [temporary, setTemporary] = useState([])
   const [transactionData, setTransactionsData] = useState([])
-  const [updatingBill, setUpdatingBill] = useState({ update: false, billid: null, filteringData: {} })
+  const [updatingBill, setUpdatingBill] = useState(layoutdefault)
 
   const columns = [
     {
@@ -110,6 +111,7 @@ export default function Payment_Extra() {
 
 
   const runQuery = async () => {
+    setUpdatingBill(layoutdefault)
     let response = await customFetch(`billing/payment/info/client?date=${querystate.date}&&month=${querystate.month}&&patientid=${querystate.patientid}`)
 
     const { status, statusCode, result } = response;

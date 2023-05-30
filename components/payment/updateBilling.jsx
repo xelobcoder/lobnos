@@ -46,7 +46,7 @@ export default function UpdateBilling({ data }) {
           type="number" variant="standard"
           label="Amount due"
           value={data?.payable}
-          className="mt-3" sx={{ width: '100%' }}
+          className="mt-3" sx={{ width: '100%',color:'red' }}
           disabled
         />
         <TextField
