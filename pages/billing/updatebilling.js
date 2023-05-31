@@ -22,14 +22,12 @@ export default function Updatebilling() {
       const {result,statusCode} = await customFetch(`billing?billingid=${billid}`)
      statusCode === 200 && setClientDetails(result)
      statusCode === 200 && setTestSource(result[0]?.TEST.split(','));
+     console.log('result',result)
 
     } catch (error) {
       throw error;
     }
   }, [billid]);
-
-
-
 
 
   // this would change the state of the updateViewer to true if the button [update test] in the persomal details is clicked

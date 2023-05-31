@@ -73,7 +73,7 @@ export default function TableDisplay({ column, data, styling, filtering }) {
                       </span>
                       <span style={{ marginRight: '20px' }}>
                         <select className='custom-input' value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
-                          {[10, 15, 20, 25, 30, 35, 40, 45, 50].map(pageSize => (
+                          {[5,10, 15, 20, 25, 30, 35, 40, 45, 50].map(pageSize => (
                             <option key={pageSize} value={pageSize}>
                               Show {pageSize}
                             </option>

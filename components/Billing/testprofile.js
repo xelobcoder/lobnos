@@ -5,13 +5,16 @@ import AddIcon from '@mui/icons-material/Add';
 import { Autocomplete, TextField } from '@mui/material';
 import { ClientContextConsumer } from './cxtProvider';
 import { customFetch } from '../Auth/customFetch';
+import { useRouter } from 'next/router';
 
 
 export default function TestProfileBilling({ test }) {
   const [testportal, setTestPortal] = useState([]);
   const [previousTest, setPreviousTest] = useState(test || []);
   const [workingTest, setWorkingTest] = useState([]);
+  const [initiated, setIniated] = useState([])
   const [testvalueid, setTestValueId] = useState(null);
+  const router = useRouter().query
   // define ref on the auto complete input field
   const AutocompleteRef = useRef(null);
 
@@ -21,22 +24,24 @@ export default function TestProfileBilling({ test }) {
   useMemo(async () => {
     // get the test data
     try {
-      const { result } = await customFetch(`testpanel/list/update?billingid=31`);
-      const {data} = await customFetch('testpanel/list');
+      const { result } = await customFetch(`testpanel/list/update?billingid=${router.billingid}`);
+      const { data } = await customFetch('testpanel/list');
       setTestPortal(data);
-      if (result) {
-        if (result.length > 0) {
-          previousTest.length > 0 && setWorkingTest(previousTest.map((item) => {
-            return result.find((i) => i.NAME === item)
-          }))
-        }
-        else {
-          setWorkingTest([])
-        }
-      } else {
-        return;
-      }
 
+      let created = [];
+
+      for (let i = 0; i < previousTest.length; i++) {
+        for (let j = 0; j < data.length; j++) {
+          if (previousTest[i] == data[j]['NAME']) {
+            const taken = result.filter((item, index) => {
+              return item.TESTID == data[j]['ID']
+            })
+
+            taken.length > 0 ? created.push(taken[0]) : created.push(data[j])
+          }
+        }
+      }
+      setWorkingTest(created)
     } catch (error) {
       throw error;
     }
@@ -88,7 +93,7 @@ export default function TestProfileBilling({ test }) {
 
   const handleTotalPrice = () => {
     const total = workingTest.reduce((acc, item) => {
-      return parseInt(acc) + parseInt(item.PRICE)
+      return parseInt(acc) + parseInt(item?.PRICE)
     }, 0)
     return total
   }
@@ -173,6 +178,11 @@ export default function TestProfileBilling({ test }) {
   }
 
 
+  const validateProgres = function (target, id) {
+    const getSpecific = initiated.filter((t, i) => { return t.TESTID == id })
+    return getSpecific[0]?.[`${target}`]
+  }
+
 
   return (
     <>
@@ -222,19 +232,19 @@ export default function TestProfileBilling({ test }) {
                         workingTest.length > 0 && workingTest.map((item, index) => {
                           return (
                             <tr key={index} id='move-left-sm'>
-                              <td>{item.NAME}</td>
-                              <td>{item.PRICE}</td>
-                              <td>{item.SAMPLE || 'BLOOD'}</td>
-                              <td className={item.COLLECTION == 'true' ? 'text-success' : 'text-danger'}>
+                              <td>{item?.NAME}</td>
+                              <td>{item?.PRICE}</td>
+                              <td>{item?.SAMPLE || 'BLOOD'}</td>
+                              <td className={item?.COLLECTION == 'true' ? 'text-success' : 'text-danger'}>
                                 {
-                                  item.COLLECTION == 'true' ? 'collected' : 'Not yet'
+                                  item?.COLLECTION == 'true' ? 'collected' : 'Not yet'
                                 }
                               </td>
-                              <td className={item.PROCESSING == 'true' ? 'text-success' : 'text-danger'}>
-                                {item.PROCESSING == 'true' ? 'processing' : 'Not yet'}
+                              <td className={item?.PROCESSING == 'true' ? 'text-success' : 'text-danger'}>
+                                {item?.PROCESSING == 'true' ? 'processing' : 'Not yet'}
                               </td>
-                              <td className={item.READY == 'true' ? 'text-success' : 'text-danger'}>
-                                {item.READY == 'true' ? 'result ready' : 'Not yet'}
+                              <td className={item?.READY == 'true' ? 'text-success' : 'text-danger'}>
+                                {item?.READY == 'true' ? 'result ready' : 'Not yet'}
                               </td>
                               <td>
                                 <Button color='error' size='small'
@@ -283,8 +293,7 @@ export default function TestProfileBilling({ test }) {
                   </div>
                   <div id='update-billing-button' className='mb-5'>
                     <Button variant='contained'
-                      onClick={(e) => console.log(workingTest)}
-                      color='primary' className='custom-button' onClickCapture={(e) => updateBilling(e, clientDetails, amountpaid)}>
+                      color='primary' className='custom-button' onClick={(e) => updateBilling(e, clientDetails, amountpaid)}>
                       update billing info
                     </Button>
                   </div>

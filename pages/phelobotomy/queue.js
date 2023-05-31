@@ -263,7 +263,7 @@ export default function Phelobotomy() {
 
         const response = await pushData.json();
         // destructure billing
-        const { status, statusCode, message } = response;
+        const { status, statusCode, message,error } = response;
 
         if (status == "success") {
           alert(message);
@@ -279,8 +279,6 @@ export default function Phelobotomy() {
             alert(message);
           }
           setSplitScreen(false);
-
-
         }
       }
     }

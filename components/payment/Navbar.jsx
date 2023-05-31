@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { Button, TextField, Typography } from '@mui/material';
 import { Dropdown } from 'react-bootstrap';
 import styles from '../../styles/payment.module.css';
-import { Email, Print, WhatsApp } from '@mui/icons-material';
+import { Email, MonetizationOn, Print, WhatsApp } from '@mui/icons-material';
 
 export default function Navbar({ query,updateBill, handleChange,select,runquery,setBill,selectedBilling }) {
 
@@ -94,7 +94,7 @@ export default function Navbar({ query,updateBill, handleChange,select,runquery,
           Email
         </Button>
         <Button
-          startIcon={<WhatsApp />}
+          startIcon={<MonetizationOn/>}
           variant="contained"
           sx={{
             color: "white",
@@ -103,7 +103,7 @@ export default function Navbar({ query,updateBill, handleChange,select,runquery,
             backgroundColor: "#4caf50",
           }}
         >
-          whatapp
+          sales summary
         </Button>
       </div>
     </div>

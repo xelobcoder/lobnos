@@ -1,28 +1,44 @@
 import { TextField, Autocomplete, Button, CircularProgress } from '@mui/material'
 import React, { useState } from 'react'
+import { customPost } from '../Auth/customFetch';
 
 
 
 const options = ['cash', 'mobile money', 'cheque', 'bank transfer'];
 
 
-export default function UpdateBilling({ data }) {
-  const [selectedValue, setSelectedValue] = useState(null);
+export default function UpdateBilling({ data, close,refresh }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [paymentInfo, setpaymentInfo] = useState(data || {})
 
-  const handleSelect = (event, value) => {
-    setSelectedValue(value);
-  };
 
   const handleSaveChanges = () => {
     // Perform save changes logic here
     setIsLoading(true);
+    try {
+      const sendPayment = async function () {
+        const pushResponse = await customPost('billing/payment/update', 'POST', paymentInfo)
 
-    // Simulating an asynchronous operation
-    setTimeout(() => {
-      // Reset the loading state after the operation is completed
-      setIsLoading(false);
-    }, 30000);
+        const { status, statusCode, message } = pushResponse;
+
+        if (status == 'success' && statusCode == 200) {
+          setIsLoading(false)
+          alert(message)
+          close({ update: false, billid: null, filteringData: {} })
+          refresh(true)
+          setTimeout(() => {
+            refresh(false)
+          }, 1000);
+        }
+      }
+
+      sendPayment()
+
+
+    }
+    catch (err) {
+      console.log(err)
+    }
   };
 
 
@@ -37,7 +53,7 @@ export default function UpdateBilling({ data }) {
           size="large"
           type="number" variant="standard"
           label="client billing id"
-          value={data?.billingid}
+          value={paymentInfo?.billingid}
           className="mt-3" sx={{ width: '100%' }}
           disabled
         />
@@ -45,15 +61,15 @@ export default function UpdateBilling({ data }) {
           size="large"
           type="number" variant="standard"
           label="Amount due"
-          value={data?.payable}
-          className="mt-3" sx={{ width: '100%',color:'red' }}
+          value={paymentInfo?.payable}
+          className="mt-3" sx={{ width: '100%', color: 'red' }}
           disabled
         />
         <TextField
           size="large"
           type="number" variant="standard"
           label="Amount paid"
-          value={data?.paid_amount}
+          value={paymentInfo?.paid_amount}
           className="mt-3" sx={{ width: '100%' }}
           disabled
         />
@@ -62,7 +78,7 @@ export default function UpdateBilling({ data }) {
           size="large"
           type="number"
           label="Discount"
-          value={data?.discount}
+          value={paymentInfo?.discount}
           variant="standard"
           className="mt-3" sx={{ width: '100%' }}
           disabled
@@ -73,18 +89,27 @@ export default function UpdateBilling({ data }) {
           type="number"
           label="pay"
           variant="standard"
-          value={data?.pay}
+          value={paymentInfo?.pay}
+          onChange={(event) => {
+            const { value } = event.target;
+
+            if (value > paymentInfo.outstanding || value < 0) {
+              setpaymentInfo({ ...paymentInfo, pay: paymentInfo.outstanding })
+            } else {
+              setpaymentInfo({ ...paymentInfo, pay: value })
+            }
+          }}
           className="mt-3" sx={{ width: '100%' }}
         />
 
         <Autocomplete
           options={options}
-          value={selectedValue}
-          onChange={handleSelect}
+          value={paymentInfo.paymentMode}
+          onChange={(event, value) => setpaymentInfo({ ...paymentInfo, paymentMode: value })}
           variant="standard"
           className="mt-3" sx={{ width: '100%' }}
           renderInput={(params) => (
-            <TextField {...params} label="Payment Method"  variant="standard" />
+            <TextField {...params} label="Payment Method" variant="standard" />
           )}
         />
 

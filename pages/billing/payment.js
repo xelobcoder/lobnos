@@ -9,7 +9,7 @@ import { CheckBox } from "@mui/icons-material";
 export default function Payment_Extra() {
   const layoutdefault = { update: false, billid: null, filteringData: {} };
   // using this state , we bind to the checkbox and can print, whatsapp or email client receipt 
-  const [rowSelected, setRowSelected] = useState(null)
+  const [refresh, setRefresh] = useState(false)
   const [querystate, setQueryState] = useState({
     date: "",
     month: "",
@@ -51,6 +51,9 @@ export default function Payment_Extra() {
     {
       Header: "Billing ID",
       accessor: "billingid",
+      Cell: ({ value }) => (
+        <span onClick={() => setBilling(value)}>{value}</span>
+      )
     },
     {
       Header: "Amount Due",
@@ -104,7 +107,7 @@ export default function Payment_Extra() {
       const data_to_update = filterData(selectedBilling);
 
       if (data_to_update.length > 0) {
-        if (data_to_update[0].outstanding > 0 || data_to_update[0] < 0) {
+        if (data_to_update[0].outstanding > 0 || data_to_update[0].outstanding < 0) {
           setUpdatingBill({
             update: true,
             billid: selectedBilling,
@@ -156,6 +159,14 @@ export default function Payment_Extra() {
     }
   };
 
+  useEffect(() => {
+    runQuery()
+  }, [])
+
+  useEffect(() => {
+    runQuery()
+  }, [refresh])
+
   return (
     <>
       <div
@@ -186,7 +197,9 @@ export default function Payment_Extra() {
             <AccountSummary data={updatingBill.filteringData} />
           )}
           {updatingBill.update ? (
-            <UpdateBilling data={updatingBill.filteringData} />
+            <UpdateBilling data={updatingBill.filteringData} 
+            refresh={setRefresh}
+            close={setUpdatingBill} />
           ) : (
             <TableDisplay
               styling={"transactionTable"}
