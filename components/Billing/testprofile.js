@@ -36,7 +36,6 @@ export default function TestProfileBilling({ test }) {
             const taken = result.filter((item, index) => {
               return item.TESTID == data[j]['ID']
             })
-
             taken.length > 0 ? created.push(taken[0]) : created.push(data[j])
           }
         }

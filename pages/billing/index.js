@@ -1,35 +1,15 @@
 import SidebarFrontPage from "../../components/frontpagesidebar";
 import Header from "../../components/header";
-import {useRouter } from "next/router";
-import {useCallback, useEffect, useState } from "react";
-import {
-  Autocomplete,
-  FormLabel,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  Button,
-  TextField,
-  MenuItem,
-  Box,
-  Container,
-  FormControl,
-  Select,
-  InputLabel,
-  Typography,
-} from "@mui/material";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { Autocomplete, FormLabel, Radio, RadioGroup, FormControlLabel, Button, TextField, MenuItem, FormControl, Select, InputLabel } from "@mui/material";
 import TESTCART from "../../components/registration/testCart";
 import CancelScheduleSendIcon from "@mui/icons-material/CancelScheduleSend";
 import SendIcon from "@mui/icons-material/Send";
 import AddBoxIcon from "@mui/icons-material/AddBox";
-import { customFetch } from "../../components/Auth/customFetch";
+import { customFetch, customPost } from "../../components/Auth/customFetch";
 
-export default function Billing({
-  allpanels,
-  organization,
-  clinicians,
-  branch,
-}) {
+export default function Billing({ allpanels, organization, clinicians, branch }) {
   const router = useRouter().query.patientid;
   const navigate = useRouter();
   const [testoptions, setTestoptions] = useState(allpanels);
@@ -75,7 +55,8 @@ export default function Billing({
     // adding data function
     const addData = () => {
       setTestArray([...testArray, selected]);
-      setData({ ...data, test: [...data.test, selected.NAME] });
+      setData({ ...data, test: [...data.test, selected.ID] });
+      console.log(data, selected)
     };
     cart.length === 0 ? addData() : alert("test already in cart");
   };
@@ -103,52 +84,41 @@ export default function Billing({
     setData({ ...data, test: test });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
+    const filteroutID = function (value, datasource) {
+      const data = datasource.filter((item, index) => { return item.NAME == value });
+      return data.length > 0 ? data[0]['ID'] : 0
+    }
+
+    const organizationID = filteroutID(data.organizations, organization)
+    const clinicianID = filteroutID(data.clinicians, clinicians)
+
+    const defaultData = {
+      organizations: null,
+      clinicians: null,
+      paymentmode: "",
+      cost: 0,
+      test: [],
+      paid: 0,
+      discount: 0,
+      urgency: "none",
+      patientid: router,
+      samplingCenter: ""
+    }
     //    send data to server using fecth
     e.preventDefault();
-    let pushData = async function () {
-      let endpoint = await fetch(`${process.env.BASEURL}/billing`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          'Authorization' : `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-        },
-        body: JSON.stringify(data),
-      });
-      let response = await endpoint.json();
-      return response;
-    };
-    pushData()
-      .then((response) => {
-        if (response.message == "success") {
-          setMessage(" test added to performing test table");
-          // empty cart
-          emptytestcart();
-          // empty data
-          setData({
-            organizations: null,
-            clinicians: null,
-            paymentmode: "",
-            cost: 0,
-            test: [],
-            paid: 0,
-            discount: 0,
-            urgency: "none",
-            patientid: router,
-            samplingCenter: "",
-          });
-          // empty selected
-          setSelected(null);
 
-          setTimeout(() => {
-            navigate.push("/activation");
-          }, 2000);
-        }
-      })
-      .catch((error) => {
-        throw error;
-      });
-  };
+    let refinedData = { ...data, organizations: organizationID, clinicians: clinicianID, paid: parseInt(data.paid) }
+
+    try {
+      const pushResponse = await customPost('billing', 'POST', refinedData)
+      console.log(pushResponse)
+    } catch (err) {
+      console.log(err)
+    }
+
+  }
+
 
   return (
     <>
@@ -383,10 +353,10 @@ export async function getServerSideProps(ctx) {
 
   return {
     props: {
-      allpanels: data?.data,
-      organization: organization,
-      clinicians: clinician,
-      branch: branch,
+      allpanels: data?.data || [],
+      organization: organization || [],
+      clinicians: clinician || [],
+      branch: branch || [],
     },
   };
 }

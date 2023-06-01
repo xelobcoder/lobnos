@@ -6,7 +6,8 @@ import router, { useRouter } from "next/router";
 import CheckIcon from "@mui/icons-material/Check";
 import { Route } from "@mui/icons-material";
 import SECOND_NO_DATA from "../../components/accessories/secondNodata";
-import { customFetch } from "../../components/Auth/customFetch";
+import { customFetch, customPost } from "../../components/Auth/customFetch";
+import ListTable from "../../components/phelobotomy/ListTable";
 export default function Phelobotomy() {
   const [fallback, setFallback] = useState([]);
   const [data, setData] = useState([]);
@@ -15,18 +16,13 @@ export default function Phelobotomy() {
   const [splitScreen, setSplitScreen] = useState(false);
   const [clientFiltering, setClientFilter] = useState({ type: 'billingid', input: '' })
   const [sortingby, setSorting] = useState('')
-  const [collection, setCollection] = useState({
-    billingid: null,
-    patientid: null,
-    fullname: "TIIFU hamza",
-  });
+  const [collection, setCollection] = useState({ billingid: null, patientid: null, fullname: null });
 
   // get the billing id from the router and filter the clients with id for quicking updating from  the operations room
   const operations_update = useRouter().query?.billingid;
 
 
   useEffect(() => {
-    console.log(operations_update)
     if (operations_update != undefined) {
       setClientFilter({ type: 'billingid', input: operations_update })
 
@@ -44,7 +40,6 @@ export default function Phelobotomy() {
             customFetch(`phelobotomy?billingid=${operations_update}`)
               .then((data) => {
                 const { message, statusCode, result } = data;
-                console.log(result)
                 result.length > 0 ? setData(result) : alert('Client with such billingid not Found.')
               })
               .catch((err) => console.log(err))
@@ -62,22 +57,20 @@ export default function Phelobotomy() {
         setData(fallback);
       }
       const matched = data.filter((item, i) => {
-        const fullname = [item.FIRSTNAME, item?.MIDDLENAME, item.LASTNAME].join(' ').trim().toLowerCase()
-        return fullname.includes(clientFiltering.input)
+        return new String(item.FULLNAME).toLowerCase().startsWith(clientFiltering.input.toLowerCase())
       })
-      console.log('matched-----------', matched)
       matched.length > 0 ? setData(matched) : setData([])
     }
   }, [clientFiltering.type, operations_update, clientFiltering.input])
   // define ref for barcode and receipt
+
+
   const barcodeRef = useRef();
   const receiptRef = useRef();
 
   // state for all samples collected
   const [allCollected, setAllCollected] = useState(false);
 
-  const [testpanel, setTestpanel] = useState([]);
-  // this state create an object for each test and button to indicate received;
 
   const [testcollection, setTestCollection] = useState([]);
 
@@ -100,9 +93,6 @@ export default function Phelobotomy() {
         // we need to sort the data by urgency
         setData(await sorteddata(datajson));
         setFallback(datajson)
-        // when done , fetch testpanel
-        const response = await customFetch("testpanel/list");
-        setTestpanel(response?.data);
       };
       getdata();
 
@@ -140,23 +130,23 @@ export default function Phelobotomy() {
 
     setIsNotMessage("");
 
-    // get test from filteredBill and populate testcollection state
-    const test = filteredBill[0]["TEST"].split(",");
-    // return a map
-    const created_panels = test.map((item, indexx) => {
-      return {
-        test: item,
-        billid: id,
-        collected: false,
-        sample: getSampleType(item, "SAMPLE"),
-        qtyrequired: getSampleType(item, "QTY_REQUIRED"),
-        sampleContainer: getSampleType(item, "SAMPLE_CONTAINER"),
-        unit: getSampleType(item, "UNIT"),
-      };
-    });
+    const { status, statusCode, result } = await customFetch(`phelobotomy/ascension?billingid=${id}`)
+    // ensure all the keys are in lowercase 
+    let newResult = result.map((item, index) => {
+      let Keys = Object.keys(item);
+      let obj = {};
 
-    // poupulate test collection
-    setTestCollection(created_panels);
+      for (let i = 0; i < Keys.length; i++) {
+        let key = Keys[i]
+        let value = item[key]
+        let nw = Keys[i].toLowerCase();
+        obj[nw] = value;
+
+      }
+      obj['collected'] = false;
+      return obj
+    })
+    setTestCollection(newResult || []);
   };
 
 
@@ -174,15 +164,9 @@ export default function Phelobotomy() {
   useEffect(() => {
     const handleAllCollected = async (e) => {
       let collextion = testcollection.map((item, index) => {
-        return {
-          test: item.test,
-          collected: allCollected,
-          billid: item.billid,
-          sample: getSampleType(item.test, "SAMPLE"),
-          qtyrequired: getSampleType(item.test, "QTY_REQUIRED"),
-          sampleContainer: getSampleType(item.test, "SAMPLE_CONTAINER"),
-          unit: getSampleType(item.test, "UNIT"),
-        };
+        let nwItem = { ...item };
+        nwItem.collected = true;
+        return nwItem;
       });
 
       setTestCollection(collextion);
@@ -191,43 +175,13 @@ export default function Phelobotomy() {
     handleAllCollected();
   }, [allCollected]);
 
-  // get te sample type of test
-
-  const getSampleType = (test, field) => {
-    const matched = testpanel.filter((item, index) => {
-      return test === item.NAME;
-    });
-    return matched[0]?.[field];
-  };
 
   // this function handles submit form
 
   const handleSubmit = async () => {
     // redefine the test collection array only to include the billingid and collected status
-    const definedCollection = testcollection.map((item, index) => {
-      // this filter the testid from the testpanel
-      const getid = testpanel.filter((itemx, indexx) => {
-        return itemx.NAME === item.test;
-      });
-      return {
-        billingid: item.billid,
-        collection: `${item.collected}`,
-        testid: getid[0].ID,
-      };
-    });
+    console.log(testcollection)
 
-    const doneTime = new Date();
-    const data = {
-      test: definedCollection,
-      message: isnotMessage,
-      billingid: collection.billingid,
-      patientid: parseInt(collection.patientid),
-      fullname: collection.fullname,
-      datetime: doneTime,
-      time: doneTime.getHours() + doneTime.getMinutes() + doneTime.getSeconds(),
-      status: "done".toUpperCase(),
-      takenby: 5,
-    };
 
     //  this would check to ensure at least one of the samples have been collected
 
@@ -241,29 +195,22 @@ export default function Phelobotomy() {
 
     if (atleastOneCollected) {
       //  check if all samples is collected here and if it isnt , then the message side shoudlnt be empty
-      const emptyMessage = data.message == "" ? true : false;
-      const partial = testcollection.filter(
-        (i, e) => i.collected === false
-      ).length;
+      const emptyMessage = isnotMessage == "" ? true : false;
+      const partial = testcollection.filter((i, e) => i.collected === false).length;
+
 
       if (partial > 0 && emptyMessage) {
         alert("please fill textbox with reason why all samples not taken");
       } else {
         //  send to swerver
-        data.alltaken = partial == 0 ? true : false;
-        data.message = partial === 0 ? "" : data.message;
-        const pushData = await fetch(`${process.env.BASEURL}/phelobotomy`, {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN} `
-          },
-          body: JSON.stringify(data),
-        });
+        const requiredTestCollectionData = testcollection.map((item, index) => { 
+          return { collected: item.collected, billingid: item.billingid ,testid: item.testid} 
+        })
+        const serverData = { billingid: collection.billingid, testInfo: requiredTestCollectionData, alltaken: partial.length == 0 ? 'true' : 'false', message: isnotMessage }
+        const pushData = await customPost('phelobotomy', 'POST', serverData);
 
-        const response = await pushData.json();
         // destructure billing
-        const { status, statusCode, message,error } = response;
+        const { status, statusCode, message, error } = pushData;
 
         if (status == "success") {
           alert(message);
@@ -294,7 +241,7 @@ export default function Phelobotomy() {
     setData(newData)
   }
 
-  console.log(data)
+
   return (
     <>
       <div className={splitScreen === true ? "splitScreen" : null}>
@@ -351,86 +298,7 @@ export default function Phelobotomy() {
           {data.length === 0 ? (
             <SECOND_NO_DATA />
           ) : (
-            <ListGroup className="m-2">
-              {data.length == 0
-                ? null
-                : data.map((item, index) => {
-                  return (
-                    <ListGroupItem
-                      key={index}
-                      className="border"
-                      id="sample-display-dsh"
-                    >
-                      <div>
-                        <div className="1">{item.BILLINGID}</div>
-                      </div>
-                      <div>
-                        <div>{item.PATIENTID}</div>
-                      </div>
-                      <div>
-                        <div>
-                          {item.FIRSTNAME} {item.MIDDLENAME} {item.LASTNAME}
-                        </div>
-                      </div>
-                      {/* age and age type */}
-                      <div>
-                        <div>
-                          {item.AGE} {item.AGETYPE}
-                        </div>
-                      </div>
-                      <div>
-                        <div>{item.GENDER}</div>
-                      </div>
-                      <div>
-                        <div> Test: {item.TEST}</div>
-                      </div>
-                      <div>
-                        <div
-                          className={
-                            item.URGENCY == "emmergency"
-                              ? "text-danger"
-                              : item.URGENCY == "moderate"
-                                ? "text-warning"
-                                : "text-success"
-                          }
-                        >
-                          {item.URGENCY.toUpperCase()}
-                        </div>
-                      </div>
-                      <div>
-                        <div>
-                          <Button
-                            variant="contained"
-                            sx={{ marginRight: "5px" }}
-                            onClick={(e) =>
-                              router.push("/phelobotomy/receive")
-                            }
-                            color="primary"
-                          >
-                            receive
-                          </Button>
-                        </div>
-                      </div>
-                      <div>
-                        <div>
-                          <Button
-                            variant="contained"
-                            color="success"
-                            onClick={(e) => {
-                              handleCollectSample(
-                                item.BILLINGID,
-                                item.PATIENTID
-                              );
-                            }}
-                          >
-                            pull sample
-                          </Button>
-                        </div>
-                      </div>
-                    </ListGroupItem>
-                  );
-                })}
-            </ListGroup>
+            <ListTable data={data} handleCollectSample={handleCollectSample} />
           )}
         </div>
         {
@@ -463,7 +331,7 @@ export default function Phelobotomy() {
                         {testcollection.map((item, index) => {
                           return (
                             <tr key={index}>
-                              <td>{item.test}</td>
+                              <td>{item.name}</td>
                               <td>
                                 {item.collected === false ? "N/A" : "collected"}
                               </td>
@@ -476,9 +344,9 @@ export default function Phelobotomy() {
                               {item.sample != "BLOOD" && item.sample != "SERUM" && (
                                 <td className="text-dark">{item.sample}</td>
                               )}
-                              <td>{item.qtyrequired}</td>
+                              <td>{item.qty_required}</td>
                               <td>{item.unit}</td>
-                              <td>{item.sampleContainer}</td>
+                              <td>{item.sample_container}</td>
                               {item.collected == true ? (
                                 <>
                                   <CheckIcon
