@@ -203,8 +203,8 @@ export default function Phelobotomy() {
         alert("please fill textbox with reason why all samples not taken");
       } else {
         //  send to swerver
-        const requiredTestCollectionData = testcollection.map((item, index) => { 
-          return { collected: item.collected, billingid: item.billingid ,testid: item.testid} 
+        const requiredTestCollectionData = testcollection.map((item, index) => {
+          return { collected: item.collected, billingid: item.billingid, testid: item.testid }
         })
         const serverData = { billingid: collection.billingid, testInfo: requiredTestCollectionData, alltaken: partial.length == 0 ? 'true' : 'false', message: isnotMessage }
         const pushData = await customPost('phelobotomy', 'POST', serverData);

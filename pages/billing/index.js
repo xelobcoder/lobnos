@@ -9,7 +9,7 @@ import SendIcon from "@mui/icons-material/Send";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import { customFetch, customPost } from "../../components/Auth/customFetch";
 
-export default function Billing({ allpanels, organization, clinicians, branch }) {
+export default function Billing({ allpanels, organization, clinicians, branch, paymentmode }) {
   const router = useRouter().query.patientid;
   const navigate = useRouter();
   const [testoptions, setTestoptions] = useState(allpanels);
@@ -214,14 +214,14 @@ export default function Billing({ allpanels, organization, clinicians, branch })
                 <Select
                   value={data.paymentmode}
                   onChange={(e) => {
-                    console.log(data);
                     setData({ ...data, paymentmode: e.target.value });
                   }}
                 >
-                  <MenuItem value="">select payment mode</MenuItem>
-                  <MenuItem value="Cash">Cash</MenuItem>
-                  <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
-                  <MenuItem value="Cheque">Cheque</MenuItem>
+                  {
+                    paymentmode.map((item, index) => {
+                      return (<MenuItem key={index} value={item.KeyID}>{item.PaymentMode}</MenuItem>)
+                    })
+                  }
                 </Select>
               </FormControl>
             </div>
@@ -350,6 +350,7 @@ export async function getServerSideProps(ctx) {
   const organization = await customFetch('organization');
   const clinician = await customFetch('clinicians')
   const branch = await customFetch('center');
+  const paymentModes = await customFetch('paymentmodes');
 
   return {
     props: {
@@ -357,6 +358,7 @@ export async function getServerSideProps(ctx) {
       organization: organization || [],
       clinicians: clinician || [],
       branch: branch || [],
+      paymentmode: paymentModes?.data || []
     },
   };
 }

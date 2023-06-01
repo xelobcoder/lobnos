@@ -4,29 +4,10 @@ import React, { useEffect, useRef, useMemo } from "react";
 import { customFetch } from "../../components/Auth/customFetch";
 import { useRouter } from "next/router";
 import style from "../../styles/registration.module.css";
-import {
-  handleAge,
-  handleMobile,
-  handleSubmitRegistration,
-  BASEURL,
-  handleEmail,
-} from "../../components/Auth/registerclient";
+import { handleAge, handleMobile, handleSubmitRegistration, BASEURL, handleEmail } from "../../components/Auth/registerclient";
 import { BASE } from "../../endpoint";
 import {
-  Button,
-  Box,
-  Container,
-  Grid,
-  Typography,
-  FormLabel,
-  RadioGroup,
-  FormControlLabel,
-  FormControl,
-  Select,
-  InputLabel,
-  MenuItem,
-  TextField,
-  Radio,
+  Button, Box, Container, Grid, Typography, FormLabel, RadioGroup, FormControlLabel, FormControl, Select, InputLabel, MenuItem, TextField, Radio,
   Autocomplete,
 } from "@mui/material";
 export const defaultdata = {
@@ -554,8 +535,8 @@ function Registration({ organization, clinician }) {
                 variant="contained"
                 tabIndex={27}
                 onClick={(e) => {
-                  const typer = clientID === undefined || clientID === null ? 'POST': 'PUT';
-                  handleSubmitRegistration(e, data, typer,setData);
+                  const typer = clientID === undefined || clientID === null ? 'POST' : 'PUT';
+                  handleSubmitRegistration(e, data, typer, setData);
                 }}
               >
                 submit
@@ -573,16 +554,16 @@ export default Registration;
 
 
 
-// Registration.getLayout = function (page) {
-//   return (
-//     <>
-//       <Header />
-//       <div className="wrapper">
-//         <div className="side">
-//           <SidebarFrontPage />
-//         </div>
-//         <div className="main">{page}</div>
-//       </div>
-//     </>
-//   )
-// }
+Registration.getLayout = function (page) {
+  return (
+    <>
+      <Header />
+      <div className="wrapper">
+        <div className="side">
+          <SidebarFrontPage />
+        </div>
+        <div className="main">{page}</div>
+      </div>
+    </>
+  )
+}
