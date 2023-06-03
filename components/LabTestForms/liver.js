@@ -1,14 +1,14 @@
 import { useState, useMemo, useEffect } from "react";
 import { TextField, Button } from "@mui/material";
 import { CheckResultEntered, customFetch, handleComments, handleResponse, validateFormData } from "../Auth/customFetch";
-import CommentSection from "./commentSection";
+import CommentSection from './commentSection'
 import Indicator from "../accessories/Reports/indicator";
 
 export default function LiverTest({ clientdata }) {
-  const { test, testid, billingid, patientid } = clientdata;
+  const { testid, billingid, patientid } = clientdata;
   const [data, setData] = useState([]);
   const [resultEntered, setResultEntered] = useState(false);
-  const [comments, setComments] = useState({ comments: '' })
+  const [comments, setComments] = useState({ comments: 'Hero is a rant' })
   // Fetch data from the server using useMemo
   useMemo(async () => {
     try {
@@ -55,6 +55,7 @@ export default function LiverTest({ clientdata }) {
   }
 
 
+console.log(comments)
   return (
     <>
       <div className="p-4">
@@ -94,8 +95,14 @@ export default function LiverTest({ clientdata }) {
               </tbody>
             </table>
           </form>
-          <CommentSection getcomment={handleComments} target={'comments'} value={comments.comments} datasource={comments} datafunction={setComments} />
-          <Button variant="contained" color='success' onClick={handleResult}>
+          <CommentSection
+            getcomment={handleComments}
+            target={"comments"}
+            value={comments.comments}
+            datasource={comments}
+            datafunction={setComments}
+          />
+          <Button variant="contained" color="success" onClick={handleResult}>
             save changes
           </Button>
         </div>

@@ -5,8 +5,6 @@ import '../styles/Frontpageside.css'
 import "../styles/fullblood.css";
 import Header from '../components/header'
 // import SidebarFrontPage from '../components/frontpagesidebar';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-material.css';
 import { AuthentificationProvider } from '../components/Auth/useAuthentification';
 import MAIN_LAYOUT from '../components/Headers/Layout';
 import {Roboto} from '@next/font/google';

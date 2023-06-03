@@ -29,19 +29,6 @@ export default function TestProfileBilling() {
       // this returns all the testpanel 
       const { data } = await customFetch('testpanel/list');
       setTestPortal(data);
-      // merging is done here to ensure the data in the panel is added to the result data and then used as our working data
-      // let created = [];
-
-      // for (let i = 0; i < previousTest.length; i++) {
-      //   for (let j = 0; j < data.length; j++) {
-      //     if (previousTest[i] == data[j]['NAME']) {
-      //       const taken = result.filter((item, index) => {
-      //         return item.TESTID == data[j]['ID']
-      //       })
-      //       taken.length > 0 ? created.push(taken[0]) : created.push(data[j])
-      //     }
-      //   }
-      // }
       setWorkingTest(result)
     } catch (error) {
       throw error;
@@ -137,7 +124,7 @@ export default function TestProfileBilling() {
     if (!wlen) {
       let billSummary = {
         test: workingTest.map((item, index) => {
-          return { name: item.NAME, testid: item.ID }
+          return { name: item.NAME, testid: item?.TESTID || item?.ID }
         }),
         totalcost: handleTotalPrice(),
         patientid: details[0]?.['PATIENTID'],

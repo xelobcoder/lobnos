@@ -2,9 +2,10 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Header from '../../components/header';
 import SidebarFrontPage from '../../components/frontpagesidebar';
-import { DeleteForever, EditAttributes, EditOffOutlined, Update } from '@mui/icons-material';
+import { DeleteForever, Edit, EditAttributes, EditOffOutlined, Update } from '@mui/icons-material';
 import { customFetch } from '../../components/Auth/customFetch';
 import TableDisplay from '../../components/accessories/TableDisplay';
+import { Button } from '@mui/material';
 
 export default function Billedclients() {
   const [billedclients, setBilledclients] = React.useState([]);
@@ -42,24 +43,33 @@ export default function Billedclients() {
   const actionCellRenderer = (params) => {
     return (
       <>
-        <div style={{ display: 'grid', gridTemplateColumns: '30% 30% 30%', marginTop: '6px', gridGap: '10px' }}>
-          <DeleteForever color='error' fontSize='medium' />
-          <EditOffOutlined color='info' />
-          <Update variant='success' onClick={() => updateFunction(params)} />
+        <div style={{ display: 'grid', gridTemplateColumns: '50% auto', marginTop: '6px', gridGap: '10px' }}>
+          <Button variant='contained' color='error' size='small' startIcon={<DeleteForever fontSize='medium' />}>
+            del
+          </Button>
+          <Button variant='contained' size='small'
+           startIcon={<Edit/>}
+          onClick={() => updateFunction(params)}>
+            edit
+          </Button>
         </div>
       </>
     );
   };
 
 
+  const dateCellRenderer = (params) => (params.row.values.DATE.slice(0, 10))
+
+
   const columns = [
     { Header: 'BILLINGID', accessor: 'BILLINGID', checkboxSelection: true },
     { Header: 'PATIENTID', accessor: 'PATIENTID' },
-    { Header: 'DATE', accessor: 'DATE' },
-    { Header: 'PAID_AMOUNT', accessor: 'PAID_AMOUNT' },
+    {
+      Header: 'DATE', accessor: 'DATE', Cell: dateCellRenderer
+    },
+    { Header: 'PAID', accessor: 'PAID' },
     { Header: 'PAYABLE', accessor: 'PAYABLE' },
     { Header: 'DISCOUNT', accessor: 'DISCOUNT' },
-    { Header: 'UPDATED', accessor: 'UPDATED' },
     { Header: 'ORGANIZATION', accessor: 'ORGANIZATION' },
     { Header: 'CLINICIAN', accessor: 'CLINICIAN' },
     { Header: 'PAYMENT_MODE', accessor: 'PAYMENT_MODE' },

@@ -27,7 +27,7 @@ export default function OperationsTestCollection() {
     if (value.length > 0) {
       const filtered = collection.filter(item => {
         return new String(item.FULLNAME).toLowerCase().includes(value.toLowerCase()) ||
-          new String(item.PATIENTID).toLowerCase().includes(value.toLowerCase())
+          new String(item.BILLINGID).toLowerCase().includes(value.toLowerCase())
       })
       setCollections(filtered)
     } else {
@@ -44,16 +44,33 @@ export default function OperationsTestCollection() {
     <>
       <Suspense fallback={<div>loading.....</div>}>
         <div>
-          <div className='p-2'>
-            <input className='custom-input' tabIndex={1} onChange={(e) => handleSearch(e)} placeholder='search using name or id' autoFocus />
+          <div className="p-2">
+            <input
+              className="custom-input"
+              tabIndex={1}
+              onChange={(e) => handleSearch(e)}
+              placeholder="search using name or id"
+              autoFocus
+            />
           </div>
           <ul>
-            {collection.length > 0 ? collection.map((item, index) => (
-              <li tabIndex={1 + index} onClick={(e) => handleUpdate(e, item)} key={index}><BloodtypeIcon />{item.PATIENTID} : {item.FULLNAME}</li>
-            )) : <SECOND_NO_DATA message={'No data'} />}
+            {collection.length > 0 ? (
+              collection.map((item, index) => (
+                <li
+                  tabIndex={1 + index}
+                  onClick={(e) => handleUpdate(e, item)}
+                  key={index}
+                >
+                  {/* <BloodtypeIcon /> */}
+                  {item.BILLINGID} : {item.FULLNAME}
+                </li>
+              ))
+            ) : (
+              <SECOND_NO_DATA message={"No data"} />
+            )}
           </ul>
         </div>
-      </Suspense >
+      </Suspense>
     </>
-  )
+  );
 }

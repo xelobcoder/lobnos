@@ -60,7 +60,7 @@ const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea, cur
         </div>
         <div>
           <Button variant="contained" color="error" >
-            <Link href="/sample/rejected" style={{color:'white',width:'200px'}}>
+            <Link href="/sample/rejected" style={{ color: 'white', width: '200px' }}>
               View Rejected
             </Link>
           </Button>
@@ -151,7 +151,7 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
     billingid: 0,
     item: {},
   });
-  console.log(data);
+
   const [rejectedList, setRejectedList] = useState(false);
 
   //  function to filter the rejected samples
@@ -240,12 +240,21 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
     // send a post request to the server
 
     const forwardData = async function () {
-      let response = await customPost(`sample`, 'PUT', data);
-      status === 'accepted' ? response : null;
+      try {
+        let response = await customPost(`sample`, 'PUT', data);
+
+        const { statusCode, status, message } = response;
+
+        if (statusCode == 200 && status == 'success' ) {
+          setCompleted(true)
+        }
+      }
+      catch (err) {
+        console.log(err)
+      }
     }
 
     forwardData();
-
   }
 
 
@@ -305,7 +314,7 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
               </div>
               <div className="list-group">
                 {data.length === 0 ? (
-                 <SECOND_NO_DATA/>
+                  <SECOND_NO_DATA />
                 ) : (
                   <PendingTableSample
                     data={data}

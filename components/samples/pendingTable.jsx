@@ -30,34 +30,27 @@ export default function PendingTableSample({ data, approvalStatus }) {
     {
       Header: "ACTION",
       accessor: "ACTION",
-      Cell: ({ row }) => (
-        <div>
-          <Button onClick={(e) => setShowAction(!showAction)}>
-            pull action
+      Cell: ({ row },params) => (
+        <div style={{display:'flex',justifyContent:'center'}}>
+          <Button
+            variant='outlined'
+            color="success"
+            onClick={() => {
+              approvalStatus(row.original, "accepted");
+            }}
+          >
+            accept
           </Button>
-          {!showAction ? null : (
-            <div>
-              <Button
-                color="success"
-                onClick={(e) => {
-                  approvalStatus(row, "accepted");
-                  setShowAction(!showAction);
-                }}
-              >
-                accept
-              </Button>
-              <Button
-                color="error"
-                onClick={(e) => {
-                  approvalStatus(row, "rejected");
-                  setShowAction(!showAction);
-                }}
-              >
-                reject
-              </Button>
-            </div>
-          )
-          }
+          <Button
+            variant='outlined'
+            color="error"
+            sx={{marginLeft:'20px'}}
+            onClick={(e) => {
+              approvalStatus(row.original, "rejected");
+            }}
+          >
+            reject
+          </Button>
         </div>
       )
     },

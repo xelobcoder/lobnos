@@ -15,8 +15,6 @@ export default function RenalResults() {
   }, [data])
 
 
-  console.log(setup)
-
 
 
   const handleSetupData = (name, item) => {

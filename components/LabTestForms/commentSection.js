@@ -1,8 +1,4 @@
 import React from 'react';
-import MARKDOWN_EDITOR from '../accessories/markdownEditor';
-import { Button } from '@mui/material';
-import { useEffect, useState } from 'react';
-
 
 export default function CommentSection({ getcomment, datafunction, target, value, datasource }) {
 
@@ -33,7 +29,7 @@ export default function CommentSection({ getcomment, datafunction, target, value
           <div className="form-group">
             <label>scientist name</label>
             <input
-              className="custom-input "
+              className="custom-input"
               disabled
               placeholder="scientist name"
             />

@@ -2375,7 +2375,7 @@ textarea::placeholder {
 .operations-wrapper > aside {
   padding: 0px;
   margin: 0;
-  /* background-color: white; */
+  background-color: white;
   color: white;
   border-right: 1px solid lightgray;
   opacity: 0.9;
@@ -2402,10 +2402,15 @@ textarea::placeholder {
   margin-right: 10px;
   color: red;
 }
-.operations-wrapper > aside > div > ul > li:is(:focus, :hover) {
-  background-color: whitesmoke;
-  border-radius: 10px;
+.operations-wrapper > aside > div > ul > li:is(:focus) {
+  background-color: red;
+  color: white;
 }
+
+.operations-wrapper > aside > div > ul > li:is(:hover) {
+  background-color: #00224f;
+  color: white;
+} 
 
 #operations-test-collection {
   display: grid;
