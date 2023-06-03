@@ -2,12 +2,12 @@ import React from 'react';
 import { Button } from '@mui/material';
 import router from 'next/router';
 
-export default function ListTable({ data ,handleCollectSample}) {
+export default function ListTable({ data, handleCollectSample }) {
   return (
     <>
       {data.length > 0 && (
         <div className='m-2'>
-          <table  id='custom-table'>
+          <table id='custom-table'>
             <thead>
               <tr>
                 <th>DATE</th>
@@ -23,24 +23,26 @@ export default function ListTable({ data ,handleCollectSample}) {
               {
                 data.map((item, index) => {
                   return (
-                    <tr key={index}>
+                    <tr key={index} >
                       <td>{item.DATE.slice(0, 10)}</td>
                       <td>{item.BILLINGID}</td>
                       <td>{item.FULLNAME}</td>
                       <td>{item.AGE}</td>
                       <td>{item.GENDER}</td>
-                      <td className={
-                        item.URGENCY == "emmergency"
-                          ? "text-danger"
-                          : item.URGENCY == "moderate"
-                            ? "text-warning"
-                            : "text-success"
-                      }>
+                      <td
+                        className={
+                          item.URGENCY == "emmergency"
+                            ? "text-danger"
+                            : item.URGENCY == "moderate"
+                              ? "text-warning"
+                              : "text-success"
+                        }>
                         {item.URGENCY}
                       </td>
                       <td>
                         <Button
                           variant="contained"
+                          size='small'
                           sx={{ marginRight: "5px" }}
                           onClick={(e) =>
                             router.push("/phelobotomy/receive")
@@ -52,6 +54,7 @@ export default function ListTable({ data ,handleCollectSample}) {
                         <Button
                           variant="contained"
                           color="success"
+                          size='small'
                           onClick={(e) => {
                             handleCollectSample(
                               item.BILLINGID,
@@ -60,6 +63,14 @@ export default function ListTable({ data ,handleCollectSample}) {
                           }}
                         >
                           pull sample
+                        </Button>
+                        <Button
+                          variant='contained'
+                          size='small'
+                          sx={{ marginLeft: "5px" }}
+                          color='error'
+                        >
+                          Report
                         </Button>
                       </td>
                     </tr>

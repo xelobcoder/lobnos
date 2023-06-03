@@ -8,6 +8,7 @@ import { Route } from "@mui/icons-material";
 import SECOND_NO_DATA from "../../components/accessories/secondNodata";
 import { customFetch, customPost } from "../../components/Auth/customFetch";
 import ListTable from "../../components/phelobotomy/ListTable";
+import SidebarFrontPage from "../../components/frontpagesidebar";
 export default function Phelobotomy() {
   const [fallback, setFallback] = useState([]);
   const [data, setData] = useState([]);
@@ -423,4 +424,5 @@ export default function Phelobotomy() {
     </>
   );
 }
+
 

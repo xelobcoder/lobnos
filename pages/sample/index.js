@@ -3,14 +3,14 @@ import SidebarFrontPage from "../../components/frontpagesidebar";
 import Header from "../../components/header";
 import { useEffect, useState, useRef } from "react";
 import { Button, Link, Typography } from "@mui/material";
+import TableDisplay from '../../components/accessories/TableDisplay';
 import SAMPLE_REJECTION_MODAL_MESSAGE from "../../components/samples/sampleRejectionModal";
 import REJECTEDVIEW from "../../components/samples/rejectedview";
-import {customFetch, customPost} from '../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../components/Auth/customFetch';
+import PendingTableSample from "../../components/samples/pendingTable";
+import SECOND_NO_DATA from "../../components/accessories/secondNodata";
 
 // buttons for the sample status
-const rejectedview = () => <Button variant="text" color='error'>rejected</Button>
-const acceptedview = () => <Button variant="text" color='success'>accepted</Button>
-const pendingview = () => <Button variant="text" className="activated-warning" color='warning'>pending</Button>
 
 // filter component
 const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea, currentdate, setData, rejectedList }) {
@@ -18,7 +18,7 @@ const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea, cur
   return (
     <>
       <div className="d-flex w-100 mb-3">
-        <div className="col-2">
+        <div className="col-3">
           <input
             type="date"
             className="custom-input"
@@ -46,7 +46,7 @@ const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea, cur
           />
         </div>
         <div className="col-2">
-          <Button variant="contained" color="primary" className="custom-button" onClick={() => {
+          <Button variant="contained" color="primary" sx={{ marginLeft: '20px' }} onClick={() => {
             const data = {
               date: currentdate,
               status: onsearch
@@ -59,8 +59,10 @@ const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea, cur
           }}>Search</Button>
         </div>
         <div>
-          <Button variant="text" color="warning" >
-            <Link href="/sample/rejected">View Rejected</Link>
+          <Button variant="contained" color="error" >
+            <Link href="/sample/rejected" style={{color:'white',width:'200px'}}>
+              View Rejected
+            </Link>
           </Button>
 
         </div>
@@ -70,49 +72,62 @@ const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea, cur
   );
 };
 
-const NODATA = function () {
-  return (
-    <>
-      <div className="d-flex justify-content-center align-items-center bg-white ">
-        <div className="d-flex flex-column justify-content-center align-items-center" style={{ color: '#00224F' }}>
-          <AccessTimeIcon style={{ fontSize: "100px" }} />
-          <Typography variant="h5" sx={{ mb: 4 }} className="text-center">No data found</Typography>
-        </div>
-      </div>
-    </>
-  );
-};
-
-const SingleClient = function ({ item, approvalStatus, billingid = 0 }) {
-  const [showAction, setShowAction] = useState(false);
-  return (
-    <>
-      <div className="list-group-item list-group-item-action" id="sample-panel">
-        <div className="d-flex w-100 justify-content-between border-none" id="sample-panel-span">
-          <div><div><strong> billing id:</strong><span> {item.BILLINGID}</span></div>
-            <div> <strong> patient id:</strong> <span> {item.PATIENTID}</span></div>
-            <div><strong> patient name:</strong><span> {item.FULLNAME}</span></div>
-            <div><strong> status:</strong><span> {
-              item.SAMPLE_STATUS == "PENDING" ? pendingview() : item.SAMPLE_STATUS == "ACCEPTED" ? acceptedview() : rejectedview()}</span>
-            </div><div><strong>test panel</strong> <span>{item.TEST}</span></div></div>
+const columns = [
+  {
+    Header: "DATE",
+    accessor: "DATE",
+    Cell: ({ value }) => {
+      return (<span>{value.DATE}</span>)
+    }
+  },
+  {
+    Header: "BILLINGID",
+    accessor: "BILLINGID",
+  },
+  {
+    Header: "FULLNAME",
+    accessor: "FULLNAME",
+  },
+  {
+    Header: "STATUS",
+    accessor: "SAMPLE_STATUS",
+    Cell: ({ value }) => (<div>{value.SAMPLE_STATUS}</div>),
+  },
+  {
+    Header: "ACTION",
+    accessor: "ACTION",
+    Cell: ({ value }) => (
+      <div>
+        <Button onClick={(e) => setShowAction(!showAction)}>
+          pull action
+        </Button>
+        {!showAction ? null : (
           <div>
-            <Button onClick={(e) => setShowAction(!showAction)}>
-              pull action
+            <Button
+              color="success"
+              onClick={(e) => {
+                approvalStatus(item, "accepted");
+                setShowAction(!showAction);
+              }}
+            >
+              accept
             </Button>
-            {!showAction ? null : (
-              <div>
-                <Button color="success" onClick={(e) => { approvalStatus(item, 'accepted'); setShowAction(!showAction) }}>
-                  accept
-                </Button>
-                <Button color="error" onClick={(e) => { approvalStatus(item, 'rejected'); setShowAction(!showAction) }}>reject</Button>
-              </div>
-            )}
+            <Button
+              color="error"
+              onClick={(e) => {
+                approvalStatus(item, "rejected");
+                setShowAction(!showAction);
+              }}
+            >
+              reject
+            </Button>
           </div>
-        </div>
+        )
+        }
       </div>
-    </>
-  );
-};
+    )
+  },
+];
 
 
 
@@ -183,7 +198,6 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
     if (onsearch == "all") {
       async function fetchdata() {
         let data = await customFetch(`sample`);
-        console.log(data)
         setData(data)
       }
       fetchdata();
@@ -240,7 +254,7 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
   const sorting = (e) => {
     let sortingvalue = e.target.value;
     const REALTIMESTATUS = async () => {
-     let response = await customFetch(`sample/?status=${sortingvalue}`)
+      let response = await customFetch(`sample/?status=${sortingvalue}`)
       response.length === 0 ? setData([]) : setData(response);
     }
     sortingvalue === 'all' ? setData(initial) : REALTIMESTATUS();
@@ -270,30 +284,48 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
   }
   return (
     <>
-      {
-        rejectedList ? <REJECTEDVIEW filteredData={filteredData} reverse={reverse} /> :
-          (
-            <><div>
-              <div className="p-4">
-                <div className="d-flex w-100 justify-content-between">
-                  <h5 className="mb-1">Sample Assessment</h5>
-                </div>
-                <FILTERS ondate={ondate} onchange={onchange} setData={updateData} sorting={sorting} rejectedList={setRejectedList}
-                  onsearch={onsearch} searchArea={searchArea} currentdate={currentdate} />
-                <div className="list-group">
-                  {data.length === 0 ? <NODATA /> : (
-                    data.map((item, index) => {
-                      return <SingleClient key={index} item={item} approvalStatus={approvalStatus} />;
-                    })
-                  )}
-                </div>
+      {rejectedList ? (
+        <REJECTEDVIEW filteredData={filteredData} reverse={reverse} />
+      ) : (
+        <>
+          <div>
+            <div className="p-2">
+              <div className="d-flex  justify-content-between">
+                {/* <h5 className="mb-1">Sample Assessment</h5> */}
+                <FILTERS
+                  ondate={ondate}
+                  onchange={onchange}
+                  setData={updateData}
+                  sorting={sorting}
+                  rejectedList={setRejectedList}
+                  onsearch={onsearch}
+                  searchArea={searchArea}
+                  currentdate={currentdate}
+                />
               </div>
-            </div><SAMPLE_REJECTION_MODAL_MESSAGE show={show} setShow={setShow}
-              modalMessage={handleModal} item={modalDetails.item} completed={setCompleted}
-              billingid={modalDetails.billingid} patientname={modalDetails.patientname} />
-            </>
-          )
-      }
+              <div className="list-group">
+                {data.length === 0 ? (
+                 <SECOND_NO_DATA/>
+                ) : (
+                  <PendingTableSample
+                    data={data}
+                    approvalStatus={approvalStatus}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+          <SAMPLE_REJECTION_MODAL_MESSAGE
+            show={show}
+            setShow={setShow}
+            modalMessage={handleModal}
+            item={modalDetails.item}
+            completed={setCompleted}
+            billingid={modalDetails.billingid}
+            patientname={modalDetails.patientname}
+          />
+        </>
+      )}
     </>
   );
 }
@@ -302,8 +334,6 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
 
 export async function getServerSideProps(context) {
   const data = await customFetch('sample')
-
-  console.log(data)
 
   const { status, message } = data;
 

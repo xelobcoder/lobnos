@@ -89,35 +89,33 @@ export default function Activator() {
           search
         </Button>
       </div>
-      <div style={{ height: '70vh', overflowY: 'auto', margin: '10px' }}>
+      <div style={{ height: '100vh', overflowY: 'auto', margin: '10px' }}>
         {activationData.length > 0 && (
           <table id='custom-table'>
             <thead>
               <tr>
-                <th>ID</th>
+                <th>reg date</th>
                 <th>patient id</th>
                 <th>fullname</th>
-                <th>date</th>
-                <th>status</th>
+                <th style={{ display: 'flex', justifyContent: 'center' }}>status</th>
                 <th>action</th>
-                <th>options</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {activationData.length === 0 && <TableIsLoading col={8} />}
               {activationData.length > 0 && activationData.map((item) => (
                 <tr key={item.ID}>
-                  <td>{item.ID}</td>
+                  <td>{item.DATE.slice(0, 10)}</td>
                   <td>{item.PATIENTID}</td>
                   <td>{item.FULLNAME}</td>
-                  <td>{item.DATE.slice(0, 10)}</td>
                   <td>
                     <div className={item.ACTIVATION_STATUS === 'TRUE' ? 'activated' : 'deactivated'}>
                       {item.ACTIVATION_STATUS === 'TRUE' ? 'activated' : 'deactivated'}
                     </div>
                   </td>
                   <td className="activation-cell">
-                    <Button
+                    <Button size='small'
                       variant="outlined"
                       color={item.ACTIVATION_STATUS === 'TRUE' ? 'error' : 'success'}
                       onClick={(e) => {
@@ -132,6 +130,7 @@ export default function Activator() {
                       <Button
                         sx={{ width: '100px' }}
                         color="success"
+                        size='small'
                         onClick={(e) => {
                           handleBilling(e, item.PATIENTID);
                         }}
@@ -139,7 +138,7 @@ export default function Activator() {
                         billing
                       </Button>
                     ) : (
-                      <Button variant="teal" sx={{ width: '120px' }}>
+                      <Button variant="teal" sx={{ width: '120px' }} size='small'>
                         <Link href={`/registration/?patientid=${item.PATIENTID}`}>edit info</Link>
                       </Button>
                     )}

@@ -202,7 +202,7 @@ export default function Payment_Extra() {
             close={setUpdatingBill} />
           ) : (
             <TableDisplay
-              styling={"transactionTable"}
+              // styling={"transactionTable"}
               filtering={false}
               column={columns}
               data={transactionData}

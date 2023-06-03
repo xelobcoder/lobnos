@@ -6,7 +6,8 @@ import SECOND_NO_DATA from './secondNodata'
 export default function TableDisplay({ column, data, styling, filtering }) {
   const tableInstance = useTable({
     columns: useMemo(() => column, [column]),
-    data: useMemo(() => data, [data])
+    data: useMemo(() => data, [data]),
+    initialState: {pageSize: 50},
   }, useFilters, useGlobalFilter, useSortBy, usePagination)
 
   const {
@@ -37,14 +38,14 @@ export default function TableDisplay({ column, data, styling, filtering }) {
                 <>
                   {filtering == true && (<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />)}
                   <div className='custom-table-wrapper'>
-                    <table {...getTableProps()} id={styling || 'custom-table'}>
+                    <table style={{marginTop:'10px'}} {...getTableProps()} id={styling || 'custom-table'}>
                       <thead>
                         {headerGroups.map((headerGroup) => (
                           <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
                             {headerGroup.headers.map((column) => (
                               <th {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
                                 {column.render('Header')}
-                                <span>{column.isSorted ? (column.isSortedDesc ? ' 🔽' : ' 🔼') : ''}</span>
+                                <span>{column.isSorted ? (column.isSortedDesc ? '🔽' : '🔼') : ''}</span>
                               </th>
                             ))}
                           </tr>

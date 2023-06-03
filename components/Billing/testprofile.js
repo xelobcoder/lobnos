@@ -4,13 +4,13 @@ import React, { useState, useMemo, useRef } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import { Autocomplete, TextField } from '@mui/material';
 import { ClientContextConsumer } from './cxtProvider';
-import { customFetch } from '../Auth/customFetch';
+import { customFetch, customPost } from '../Auth/customFetch';
 import { useRouter } from 'next/router';
 
 
-export default function TestProfileBilling({ test }) {
+export default function TestProfileBilling() {
   const [testportal, setTestPortal] = useState([]);
-  const [previousTest, setPreviousTest] = useState(test || []);
+  const [previousTest, setPreviousTest] = useState([]);
   const [workingTest, setWorkingTest] = useState([]);
   const [initiated, setIniated] = useState([])
   const [testvalueid, setTestValueId] = useState(null);
@@ -24,23 +24,25 @@ export default function TestProfileBilling({ test }) {
   useMemo(async () => {
     // get the test data
     try {
+      // fetch data of a specfic clirnt and test added during billin and current stage in the clinical testing 
       const { result } = await customFetch(`testpanel/list/update?billingid=${router.billingid}`);
+      // this returns all the testpanel 
       const { data } = await customFetch('testpanel/list');
       setTestPortal(data);
+      // merging is done here to ensure the data in the panel is added to the result data and then used as our working data
+      // let created = [];
 
-      let created = [];
-
-      for (let i = 0; i < previousTest.length; i++) {
-        for (let j = 0; j < data.length; j++) {
-          if (previousTest[i] == data[j]['NAME']) {
-            const taken = result.filter((item, index) => {
-              return item.TESTID == data[j]['ID']
-            })
-            taken.length > 0 ? created.push(taken[0]) : created.push(data[j])
-          }
-        }
-      }
-      setWorkingTest(created)
+      // for (let i = 0; i < previousTest.length; i++) {
+      //   for (let j = 0; j < data.length; j++) {
+      //     if (previousTest[i] == data[j]['NAME']) {
+      //       const taken = result.filter((item, index) => {
+      //         return item.TESTID == data[j]['ID']
+      //       })
+      //       taken.length > 0 ? created.push(taken[0]) : created.push(data[j])
+      //     }
+      //   }
+      // }
+      setWorkingTest(result)
     } catch (error) {
       throw error;
     }
@@ -146,16 +148,7 @@ export default function TestProfileBilling({ test }) {
       try {
         // forward data to the server
         const pushdb = async () => {
-          let response = await (fetch(`${process.env.BASEURL}/billing`, {
-            method: 'PUT',
-            headers: {
-              'content-type': 'application/json',
-              'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-            },
-            body: JSON.stringify(billSummary)
-          }))
-
-          let data = await response.json();
+          let data = await customPost('billing', 'PUT', billSummary)
           const { status, statusCode, err, message } = data;
 
           if (status === 'success' && statusCode === 200) {
@@ -168,8 +161,9 @@ export default function TestProfileBilling({ test }) {
 
         }
 
+        pushdb()
 
-        pushdb();
+
       } catch (err) {
         AbortController()
       }

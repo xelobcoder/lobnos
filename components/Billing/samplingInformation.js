@@ -1,7 +1,6 @@
 import React from 'react'
 
 export default function SamplingInformation({ source }) {
-  console.log(source)
   return (
     <div>
       <div className="billing-personal-info">
@@ -19,7 +18,7 @@ export default function SamplingInformation({ source }) {
                 billing date :
               </div>
               <div className='text-body'>
-                {source[0]?.["BILLED_ON"].slice(0, 10)}
+                {source[0]?.["DATE"].slice(0, 10)}
               </div>
             </div>
             <div className='sampling-billing-info'>
@@ -27,7 +26,7 @@ export default function SamplingInformation({ source }) {
                 billing Time:
               </div>
               <div className='text-body'>
-                {source[0]?.["BILLED_ON"].slice(12, 19)}
+                {source[0]?.["DATE"].slice(12, 19)}
               </div>
             </div>
             <div className='sampling-billing-info'>

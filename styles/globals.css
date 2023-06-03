@@ -329,7 +329,7 @@
   color: #2fad66;
   display: -webkit-box;
   display: -ms-flexbox;
-  padding: 10px;
+  padding: 5px;
   text-align: left;
   display: flex;
   -webkit-box-pack: center;
@@ -347,7 +347,7 @@
   color: red;
   margin: 0px;
   text-align: left;
-  padding: 10px;
+  padding: 5px;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -640,6 +640,10 @@ option:hover {
   color: #00224f;
   margin-right: 5px;
 }
+/* #sample-panel-span > #then-child {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+} */
 
 #sample-panel {
   margin-bottom: 20px;
@@ -1860,19 +1864,18 @@ textarea::placeholder {
 
 #custom-table {
   width: 100%;
-  padding: 10px;
+  padding: 0px;
   background-color: white;
   overflow-y: auto !important;
   max-height: auto;
-  margin: 10px auto;
+  margin: 0px auto;
   border-collapse: collapse;
 }
 
-#custom-table thead tr,
-#custom-table.ag-theme-material,
-#custom-table.ag-header {
+#custom-table thead tr{
   width: 100%;
   background-color: #00224f !important;
+  color: white;
   border-bottom: 1px solid lightgray;
 }
 

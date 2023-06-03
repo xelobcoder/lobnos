@@ -1,6 +1,5 @@
-import React, { use } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../../components/header";
-import PersonIcon from "@mui/icons-material/Person";
 import { useRouter } from "next/router";
 import SidebarFrontPage from "../../components/frontpagesidebar";
 import UpdatePersonal from "../../components/Billing/updatePersonal";
@@ -10,19 +9,22 @@ import { ClientContextProvider } from "../../components/Billing/cxtProvider";
 import { customFetch } from "../../components/Auth/customFetch";
 export default function Updatebilling() {
   const [clientDetails, setClientDetails] = React.useState([]);
-  const [testsource, setTestSource] = React.useState([]);
   const [updateViewer, setUpdateViewer] = React.useState(false);
 
 
   // pick infromation from the database
   const billid = useRouter().query.billingid;
 
-  React.useMemo(async () => {
+  useEffect(() => {
     try {
-      const {result,statusCode} = await customFetch(`billing?billingid=${billid}`)
-     statusCode === 200 && setClientDetails(result)
-     statusCode === 200 && setTestSource(result[0]?.TEST.split(','));
-     console.log('result',result)
+     async  function getData() {
+        const { result, statusCode } = await customFetch(`billing?billingid=${billid}`)
+
+        statusCode === 200 && setClientDetails(result)
+        console.log('result', result)
+      }
+
+      getData()
 
     } catch (error) {
       throw error;
@@ -42,7 +44,7 @@ export default function Updatebilling() {
               <UpdatePersonal handleview={updateTestButton} />
               <SamplingInformation source={clientDetails} />
               {updateViewer && (
-                <TestProfileBilling test={testsource} />
+                <TestProfileBilling />
               )}
             </ClientContextProvider>
           </>
@@ -51,18 +53,18 @@ export default function Updatebilling() {
     </div>
   );
 }
-// Updatebilling.getLayout = function (page) {
-//   return (
-//     <>
-//       <Header />
-//       <div className="wrapper">
-//         <div className="side">
-//           <SidebarFrontPage />
-//         </div>
-//         <div className="main" id="page-main-view">
-//           {page}
-//         </div>
-//       </div>
-//     </>
-//   );
-// };
+Updatebilling.getLayout = function (page) {
+  return (
+    <>
+      <Header />
+      <div className="wrapper">
+        <div className="side">
+          <SidebarFrontPage />
+        </div>
+        <div className="main" id="page-main-view">
+          {page}
+        </div>
+      </div>
+    </>
+  );
+};
