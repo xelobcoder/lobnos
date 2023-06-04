@@ -8,7 +8,8 @@ import Header from '../../components/header';
 const PDF_VIEWER = dynamic(() => import('../../components/accessories/pdfView'), {
   ssr: false
 })
-const url = './transcript_2.pdf'
+
+
 export default function RADIOLOGY_PAGE() {
   const [client, setClient] = useState(false);
   useEffect(() => {

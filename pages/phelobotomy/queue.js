@@ -90,7 +90,7 @@ export default function Phelobotomy() {
   useEffect(() => {
     try {
       let getdata = async () => {
-        let datajson = await customFetch('phelobotomy')
+        let datajson = await customFetch('phelobotomy');
         // we need to sort the data by urgency
         setData(await sorteddata(datajson));
         setFallback(datajson)
