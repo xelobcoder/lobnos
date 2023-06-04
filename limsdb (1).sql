@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 01, 2023 at 11:47 AM
+-- Generation Time: Jun 04, 2023 at 04:49 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -57,24 +57,15 @@ CREATE TABLE `billing` (
 --
 
 INSERT INTO `billing` (`BILLINGID`, `PATIENTID`, `PAID_AMOUNT`, `PAYABLE`, `DISCOUNT`, `ORGANIZATION`, `CLINICIAN`, `TYPE`, `OUTSTANDING`) VALUES
-(25, 1683273020072, 600, 110, 0, 1, 1, 'PREPAID', -490),
-(26, 1682823132672, 110, 110, 0, 1, 1, 'PREPAID', 0),
-(27, 1681279794621, 1400, 1380, 0, 1, 1, 'PREPAID', -20),
-(28, 1682823132672, 170, 170, 0, 1, 1, 'PREPAID', 0),
-(29, 1682823132672, 270, 270, 0, 1, 1, 'PREPAID', 0),
-(30, 1682823132672, 1890, 1890, 0, 1, 1, 'PREPAID', 0),
-(31, 1682823132672, 190, 210, 0, 1, 1, 'PREPAID', 20),
-(32, 1681645338663, 200, 50, 0, 1, 1, 'PREPAID', -150),
-(33, 1681645338663, 290, 50, 0, 1, 1, 'PREPAID', -240),
-(34, 1681279794621, 150, 150, 0, 1, 1, 'PREPAID', 0),
-(35, 1682868995486, 1090, 1090, 0, 1, 1, 'PREPAID', 0),
-(36, 1682868995486, 20, 180, 0, 1, 1, 'PREPAID', 160),
-(37, 1681279794621, 350, 330, 0, 1, 1, 'PREPAID', -20),
-(38, 1683273020072, 180, 180, 0, 1, 1, 'PREPAID', 0),
-(39, 1685211245245, 700, 890, 0, 1, 1, 'PREPAID', 190),
-(40, 1685211245245, 70, 100, 0, 1, 1, 'PREPAID', 30),
-(41, 1683273020072, 200, 200, 0, 1, 1, 'PREPAID', 0),
-(42, 1683273020072, 170, 170, 0, 1, 1, 'PREPAID', 0);
+(134, 1685646002583, 0, 170, 0, 2, 1, 'PREPAID', 170),
+(135, 1685646002583, 170, 170, 0, 2, 1, 'PREPAID', 0),
+(136, 1685646002583, 0, 170, 0, 2, 1, 'PREPAID', 170),
+(137, 1685646002583, 0, 170, 0, 2, 1, 'PREPAID', 170),
+(138, 1685646002583, 0, 170, 0, 2, 1, 'PREPAID', 170),
+(139, 1685646002583, 170, 230, 0, 2, 1, 'PREPAID', 60),
+(140, 1685646002583, 20, 20, 0, 1, 1, 'PREPAID', 0),
+(141, 1683273020072, 0, 170, 0, 1, 1, 'PREPAID', 170),
+(142, 1685646002583, 0, 210, 0, 3, 1, 'PREPAID', 210);
 
 -- --------------------------------------------------------
 
@@ -89,6 +80,23 @@ CREATE TABLE `billinghx` (
   `PaymentMode` int(25) NOT NULL,
   `Amount` int(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `billinghx`
+--
+
+INSERT INTO `billinghx` (`KeyID`, `Billingid`, `Date`, `PaymentMode`, `Amount`) VALUES
+(35, 134, '2023-06-03 19:51:11.448243', 3, 0),
+(36, 135, '2023-06-03 19:51:18.598539', 3, 0),
+(37, 136, '2023-06-03 19:51:19.039825', 3, 0),
+(38, 137, '2023-06-03 19:51:19.553200', 3, 0),
+(39, 138, '2023-06-03 19:51:19.923359', 3, 0),
+(40, 139, '2023-06-03 19:51:20.481906', 3, 0),
+(41, 139, '2023-06-03 19:52:38.667225', 0, 170),
+(42, 135, '2023-06-03 22:16:45.965336', 0, 170),
+(43, 140, '2023-06-04 14:22:13.051833', 3, 20),
+(44, 141, '2023-06-04 15:00:28.140023', 2, 0),
+(45, 142, '2023-06-04 15:11:58.798358', 3, 0);
 
 -- --------------------------------------------------------
 
@@ -114,7 +122,11 @@ CREATE TABLE `bloodgroup` (
 
 INSERT INTO `bloodgroup` (`ID`, `BILLINGID`, `BGROUP`, `RHESUS`, `CREATED_ON`, `UPDATED_ON`, `TIME`, `PATIENTID`, `REMARKS`) VALUES
 (4, 33, 'A', 'negative', '2023-05-18', '2023-05-18', '13:11:18.000000', 2147483647, 'Blood A+'),
-(5, 31, 'B', 'negative', '2023-05-20', '2023-05-20', '15:28:45.000000', 2147483647, 'etugwuguiegui');
+(5, 31, 'B', 'negative', '2023-05-20', '2023-05-20', '15:28:45.000000', 2147483647, 'etugwuguiegui'),
+(6, 35, 'B', 'negative', '2023-06-03', '2023-06-03', '13:05:59.000000', 2147483647, 'WEFJEUIFQWUIE'),
+(7, 138, 'B', 'positive', '2023-06-04', '2023-06-04', '13:53:00.000000', 2147483647, 'NEGATIVE '),
+(8, 137, 'B', 'positive', '2023-06-04', '2023-06-04', '15:36:14.000000', 2147483647, 'EJYUWEU'),
+(9, 134, 'B', 'positive', '2023-06-04', '2023-06-04', '15:36:27.000000', 2147483647, 'KVJWEUWEU');
 
 -- --------------------------------------------------------
 
@@ -304,8 +316,10 @@ INSERT INTO `departmentrequisitionhx` (`id`, `departmentid`, `stockid`, `quantit
 (71, 1034, 30, 78, 78, 'others', 'received', '2023-05-10', '79301ce0-5c8b-489e-8a82-d428892ca543', NULL, 1, 1, 78),
 (72, 1035, 37, 477, 50, 'box', 'received', '2023-05-28', '54aac05d-fa1f-427b-aa1f-e2ba4a8aae41', NULL, 1, 1, 50),
 (73, 1035, 38, 4995, 1, 'pcs', 'received', '2023-05-28', '1146b599-c553-43c9-b0fe-ab53678772de', NULL, 1, 1, 1),
-(74, 1031, 29, 57, NULL, 'g', 'pending', '2023-05-28', '96e16ee1-2b3f-47c2-8f32-14637999cf29', NULL, 0, 0, 0),
-(75, 1031, 39, 549, NULL, 'l', 'pending', '2023-05-28', '96933c47-d0e3-4fa8-908a-be02b2a327b1', NULL, 0, 0, 0);
+(74, 1031, 29, 57, 100, 'g', 'received', '2023-05-28', '96e16ee1-2b3f-47c2-8f32-14637999cf29', NULL, 1, 1, 100),
+(75, 1031, 39, 549, 100, 'l', 'received', '2023-05-28', '96933c47-d0e3-4fa8-908a-be02b2a327b1', NULL, 1, 1, 100),
+(76, 1031, 35, 200, 1000, 'box', 'received', '2023-06-02', '15192f28-05cd-4f00-9bf2-83cb26b3535e', NULL, 1, 1, 1000),
+(77, 1031, 37, 200, 10, 'box', 'received', '2023-06-02', '18177c97-c236-4c6a-a4df-c6718605220f', NULL, 1, 1, 10);
 
 -- --------------------------------------------------------
 
@@ -353,7 +367,7 @@ CREATE TABLE `departmentstocks` (
 
 INSERT INTO `departmentstocks` (`id`, `deptid`, `stockid`, `quantityAvailable`, `date_added`, `dateupdated`, `comsumptionunit`) VALUES
 (13, 1032, 32, 330, '2023-03-26', '2023-03-26', 'kg'),
-(14, 1031, 37, 62, '2023-03-26', '2023-04-02', 'box'),
+(14, 1031, 37, 72, '2023-03-26', '2023-06-02', 'box'),
 (16, 1032, 30, 5, '2023-03-27', NULL, 'others'),
 (17, 1031, 38, 2, '2023-03-27', NULL, 'pcs'),
 (20, 1031, 33, 10, '2023-03-28', NULL, 'box'),
@@ -363,7 +377,10 @@ INSERT INTO `departmentstocks` (`id`, `deptid`, `stockid`, `quantityAvailable`, 
 (27, 1034, 29, 60, '2023-05-10', NULL, 'g'),
 (28, 1034, 30, 78, '2023-05-10', NULL, 'others'),
 (29, 1035, 37, 50, '2023-05-28', NULL, 'box'),
-(30, 1035, 38, 1, '2023-05-28', NULL, 'pcs');
+(30, 1035, 38, 1, '2023-05-28', NULL, 'pcs'),
+(31, 1031, 29, 100, '2023-06-02', NULL, 'g'),
+(32, 1031, 39, 100, '2023-06-02', NULL, 'l'),
+(33, 1031, 35, 1000, '2023-06-02', NULL, 'box');
 
 -- --------------------------------------------------------
 
@@ -451,7 +468,12 @@ CREATE TABLE `hepatitisb_profile` (
 INSERT INTO `hepatitisb_profile` (`ID`, `HBsAg`, `HBsAb`, `HBeAg`, `HBeAb`, `HBcAb`, `COMMENTS`, `BILLINGID`, `CREATED_ON`, `UPDATED_ON`, `SCIENTIST`, `PATIENTID`) VALUES
 (1, 'reactive', 'reactive', 'reactive', 'reactive', 'reactive', 'ejiufwdgjwefhweljkwd,vuwdifjkwefuweifopwe0g[epu9yof8uhvwdjlklfwfu9ishufjwdkui', 19, '2023-05-05', '2023-05-05', NULL, 1682823132672),
 (2, 'non reactive', 'non reactive', 'non reactive', 'non reactive', 'non reactive', 'Good titres values', 23, '2023-05-05', NULL, NULL, 1683273020072),
-(3, 'reactive', 'reactive', 'non reactive', 'non reactive', 'non reactive', 'Antiodies....', 33, '2023-05-18', NULL, NULL, 1681645338663);
+(3, 'reactive', 'reactive', 'non reactive', 'non reactive', 'non reactive', 'Antiodies....', 33, '2023-05-18', NULL, NULL, 1681645338663),
+(4, 'non reactive', 'reactive', 'reactive', 'non reactive', 'non reactive', 'jkfyuyuweyu', 38, '2023-06-03', NULL, NULL, 1683273020072),
+(5, 'reactive', 'reactive', 'non reactive', 'non reactive', 'reactive', 'FIEUGYUEGYU', 138, '2023-06-04', NULL, NULL, 1685646002583),
+(6, 'reactive', 'reactive', 'non reactive', 'non reactive', 'reactive', 'fioeguiuiruierui', 142, '2023-06-04', NULL, NULL, 1685646002583),
+(7, 'non reactive', 'reactive', 'reactive', 'non reactive', 'non reactive', 'ejkfueu', 137, '2023-06-04', NULL, NULL, 1685646002583),
+(8, 'reactive', 'reactive', 'non reactive', 'non reactive', 'non reactive', 'TDHTRJTR', 136, '2023-06-04', NULL, NULL, 1685646002583);
 
 -- --------------------------------------------------------
 
@@ -556,16 +578,17 @@ CREATE TABLE `newstock` (
 --
 
 INSERT INTO `newstock` (`stockid`, `name`, `category`, `consumptionunit`, `purchaseunit`, `quantity`, `alertlevel`, `materialcode`, `tax`, `date`) VALUES
-(29, 'props is coming', 'real estate', 'g', 'g', 7131, 44, '4444', 44, '2023-03-17 21:23:35.204000'),
+(29, 'props is coming', 'real estate', 'g', 'g', 7031, 44, '4444', 44, '2023-03-17 21:23:35.204000'),
 (30, 'Telescope', 'equipment', 'others', 'others', 6060138, 200, 'kjefjdj', 1, '2023-03-18 07:40:24.577000'),
 (32, 'jenifer diary', 'vehicles', 'kg', 'l', 2182, 20, 'klfgk', 5, '2023-03-19 10:30:54.173384'),
 (33, 'drinking cups', 'consumables', 'box', 'box', 546455, 55, 'kjfj', 1, '2023-03-19 10:32:13.941000'),
-(35, 'pippete tubes', 'consumables', 'box', 'box', 1086379, 55, 'kjfj', 1, '2023-03-19 10:32:13.941000'),
+(35, 'pippete tubes', 'consumables', 'box', 'box', 1085379, 55, 'kjfj', 1, '2023-03-19 10:32:13.941000'),
 (36, 'telesco', 'equipment', 'others', 'others', 6054444, 200, 'kjefjdj', 1, '2023-03-18 07:40:24.577628'),
-(37, 'Gloves', 'consumables', 'box', 'box', 5888, 100, 'glov003', 1, '2023-03-26 11:07:38.428935'),
+(37, 'Gloves', 'consumables', 'box', 'box', 5878, 100, 'glov003', 1, '2023-03-26 11:07:38.428935'),
 (38, 'Ultrasound glossy paper', 'consumables', 'pcs', 'pcs', 2, 2, 'glossy56', 2, '2023-03-27 01:30:08.247751'),
-(39, 'Mildred Bag', 'real estate', 'l', 'g', 600, 200, 'Mil495', 1, '2023-04-27 18:32:58.719135'),
-(40, 'Tiifu Hamza Kojo', 'real estate', 'kg', 'pcs', 500, 100, 'DJVJD', 0, '2023-05-10 21:09:21.283636');
+(39, 'Mildred Bag', 'real estate', 'l', 'g', 500, 200, 'Mil495', 1, '2023-04-27 18:32:58.719135'),
+(40, 'Tiifu Hamza Kojo', 'real estate', 'kg', 'pcs', 500, 100, 'DJVJD', 0, '2023-05-10 21:09:21.283636'),
+(41, 'Mildred ultrasound', 'vehicles', 'pcs', 'pcs', 488, 100, 'mud', 1, '2023-06-02 19:14:47.749932');
 
 -- --------------------------------------------------------
 
@@ -611,9 +634,10 @@ INSERT INTO `new_patients` (`ID`, `PATIENTID`, `FIRSTNAME`, `EMAIL`, `DOB`, `AGE
 (11, 1681455467922, 'tiifu ', 'shefiktiifu@gmakl.com', '1995-11-06', 27, 'other', NULL, 'married', 'tiifu shefik', '0595964566', 'brother ', 241758550, 'years', 'leonides', 'nurisnf', '2023-04-14', 'TRUE', 'Kalpohin ', 'Northern ', 'NS039440', 'boronson', 'kojo'),
 (12, 1681645338663, 'tiifu ', 'hamzatiifgu45@gmail.com', '1995-06-06', 27, 'male', NULL, 'married', 'tiifu shefik', '0241758550', 'brother', 595964565, 'years', 'leonides', 'Nursing', '2023-04-16', 'TRUE', 'Tamale ', 'Northern reggion', 'NS-43838-348', 'hamza', 'kojo'),
 (13, 1682823132672, 'Tiifu ', 'mildred45@gmail.com', '1993-03-03', 29, 'female', NULL, 'single', '0595964565', 'Tiifu Hamza', 'Wife', 543085842, 'years', 'Leonides', 'Nursing', '2023-04-30', 'FALSE', 'Tamale', 'Northern ', 'NS-484849', 'Mildred', 'Awineyila'),
-(14, 1682868995486, 'Tiifu ', 'hamzatiifu45@gmail.com', '1995-11-06', 27, 'female', NULL, 'single', '0241758550', 'Tiifu shefik', 'Brother ', 595964565, 'years', 'Leonides', 'Nursing', '2023-04-30', 'TRUE', 'Tamale ', 'Northern region', 'NS-384599', 'Hamza', 'x'),
+(14, 1682868995486, 'Tiifu ', 'hamzatiifu45@gmail.com', '1995-11-06', 27, 'female', NULL, 'single', '0241758550', 'Tiifu shefik', 'Brother ', 595964565, 'years', 'Leonides', 'Nursing', '2023-04-30', 'FALSE', 'Tamale ', 'Northern region', 'NS-384599', 'Hamza', 'x'),
 (15, 1683273020072, 'Wakpenjo', 'huzaifa@gmail.com', '1986-11-06', 36, 'male', NULL, 'single', '+233595964565', 'Tiifu Hamza Kojo', 'self', 200000000, 'years', 'leonides', 'Nursing', '2023-05-05', 'TRUE', 'Tamsle ', 'Northern', 'NS-47483388', 'Huzaifa', 'Hamza'),
-(16, 1685211245245, 'John ', 'duakuah@gmail.com', '1992-11-06', 30, 'male', NULL, 'married', '0595959533', 'Mr johnson Duah', 'Husband', 241758550, 'years', 'Leonides', 'Nursing', '2023-05-27', 'TRUE', 'Kalpohin', 'Northern region ', 'NS-3495-294', 'Akua ', 'Duah');
+(16, 1685211245245, 'John ', 'duakuah@gmail.com', '1992-11-06', 30, 'male', NULL, 'married', '0595959533', 'Mr johnson Duah', 'Husband', 241758550, 'years', 'Leonides', 'Nursing', '2023-05-27', 'TRUE', 'Kalpohin', 'Northern region ', 'NS-3495-294', 'Akua ', 'Duah'),
+(17, 1685646002583, 'Tiifu', 'hamzatiifu45@gmail.com', '1995-11-06', 27, 'male', NULL, 'married', '0241758550', 'Tiifu Shefik', 'Brother ', 595964565, 'years', 'Leonides', 'Nursing', '2023-06-01', 'TRUE', 'Sagnarigu', 'Northern ', 'NS-4339-3848', 'Hamza', 'Kojo');
 
 -- --------------------------------------------------------
 
@@ -762,6 +786,16 @@ CREATE TABLE `paymentmodes` (
   `PaymentMode` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `paymentmodes`
+--
+
+INSERT INTO `paymentmodes` (`KeyID`, `PaymentMode`) VALUES
+(1, 'mobile money'),
+(2, 'cash'),
+(3, 'cheque'),
+(4, 'Bank transfer');
+
 -- --------------------------------------------------------
 
 --
@@ -776,12 +810,9 @@ CREATE TABLE `performing_test` (
   `BILLINGID` int(100) NOT NULL,
   `SAMPLING_CENTER` int(25) NOT NULL,
   `SAMPLE_STATUS` varchar(100) DEFAULT 'PENDING',
-  `INSPECTOR` varchar(255) DEFAULT NULL,
+  `INSPECTOR` int(25) DEFAULT NULL,
   `INSPECTION_TIME` datetime(6) DEFAULT NULL,
-  `PHELOBOTOMY_STATUS` varchar(100) DEFAULT 'QUEUE',
-  `SAMPLE_TAKEN_BY` int(100) DEFAULT NULL,
-  `TIME_PHELOBOTOMY_COMPLETED` date DEFAULT NULL,
-  `ALL_SAMPLE_TAKEN` varchar(50) DEFAULT 'FALSE',
+  `Phelobotomist` int(100) DEFAULT NULL,
   `MESSAGE` text DEFAULT NULL,
   `TIME` time(6) NOT NULL DEFAULT current_timestamp(),
   `PHELOBOTOMY_MESSAGE` varchar(255) NOT NULL
@@ -791,25 +822,16 @@ CREATE TABLE `performing_test` (
 -- Dumping data for table `performing_test`
 --
 
-INSERT INTO `performing_test` (`ID`, `PATIENTID`, `DATE`, `URGENCY`, `BILLINGID`, `SAMPLING_CENTER`, `SAMPLE_STATUS`, `INSPECTOR`, `INSPECTION_TIME`, `PHELOBOTOMY_STATUS`, `SAMPLE_TAKEN_BY`, `TIME_PHELOBOTOMY_COMPLETED`, `ALL_SAMPLE_TAKEN`, `MESSAGE`, `TIME`, `PHELOBOTOMY_MESSAGE`) VALUES
-(25, '1683273020072', '2023-05-07', 'moderate', 25, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-07 12:29:11.000000', 'DONE', 5, '2023-05-07', 'true', NULL, '12:28:31.000000', ''),
-(26, '1682823132672', '2023-05-07', 'emmergency', 26, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-07 12:53:04.000000', 'DONE', 5, '2023-05-07', 'true', NULL, '12:52:13.000000', ''),
-(27, '1681279794621', '2023-05-09', 'moderate', 27, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-09 07:37:31.000000', 'DONE', 5, '2023-05-09', 'true', NULL, '07:36:09.000000', ''),
-(28, '1682823132672', '2023-05-11', 'emmergency', 28, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-11 05:18:27.000000', 'DONE', 5, '2023-05-11', 'true', NULL, '05:17:56.000000', ''),
-(29, '1682823132672', '2023-05-16', 'moderate', 29, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-16 10:35:09.000000', 'QUEUE', NULL, NULL, 'FALSE', NULL, '10:32:50.000000', ''),
-(30, '1682823132672', '2023-05-16', 'moderate', 30, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-16 10:47:28.000000', 'DONE', 5, '2023-05-16', 'true', NULL, '10:46:58.000000', ''),
-(31, '1682823132672', '2023-05-18', 'none', 31, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-18 12:58:40.000000', 'DONE', 5, '2023-05-18', 'false', NULL, '08:25:50.000000', 'Sample tubes to collect other test not available'),
-(32, '1681645338663', '2023-05-18', 'moderate', 32, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-18 12:58:42.000000', 'DONE', 5, '2023-05-18', 'true', NULL, '08:27:59.000000', ''),
-(33, '1681645338663', '2023-05-18', 'none', 33, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-18 13:04:36.000000', 'DONE', 5, '2023-05-18', 'true', 'Inadequate sample taken. Sample coagulated hence a  new sample recommended and sample should arrive in the operations room in less than 30 minutes.', '12:21:11.000000', ''),
-(34, '1681279794621', '2023-05-18', 'moderate', 34, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-18 12:58:46.000000', 'DONE', 5, '2023-05-18', 'true', NULL, '12:22:53.000000', ''),
-(35, '1682868995486', '2023-05-19', 'emmergency', 35, 0, 'PENDING', NULL, NULL, 'QUEUE', NULL, NULL, 'FALSE', NULL, '22:09:19.000000', ''),
-(36, '1682868995486', '2023-05-23', 'moderate', 36, 0, 'PENDING', NULL, NULL, 'DONE', 5, '2023-05-23', 'true', NULL, '11:41:17.000000', ''),
-(37, '1681279794621', '2023-05-27', 'moderate', 37, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-27 14:04:09.000000', 'DONE', 5, '2023-05-27', 'false', NULL, '14:02:33.000000', 'Inadequate sample box'),
-(38, '1683273020072', '2023-05-27', 'moderate', 38, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-27 14:28:32.000000', 'DONE', 5, '2023-05-27', 'true', NULL, '14:27:38.000000', ''),
-(39, '1685211245245', '2023-05-31', 'moderate', 39, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-31 15:28:03.000000', 'DONE', 5, '2023-05-31', 'true', NULL, '15:26:50.000000', ''),
-(40, '1685211245245', '2023-05-31', 'none', 40, 0, 'ACCEPTED', 'Dr Tiifu Hamza', '2023-05-31 19:00:18.000000', 'DONE', 5, '2023-05-31', 'true', NULL, '18:59:20.000000', ''),
-(41, '1683273020072', '2023-06-01', 'emmergency', 41, 0, 'PENDING', NULL, NULL, 'QUEUE', NULL, NULL, 'FALSE', NULL, '09:57:36.000000', ''),
-(42, '1683273020072', '2023-06-01', 'emmergency', 42, 0, 'PENDING', NULL, NULL, 'QUEUE', NULL, NULL, 'FALSE', NULL, '10:04:44.000000', '');
+INSERT INTO `performing_test` (`ID`, `PATIENTID`, `DATE`, `URGENCY`, `BILLINGID`, `SAMPLING_CENTER`, `SAMPLE_STATUS`, `INSPECTOR`, `INSPECTION_TIME`, `Phelobotomist`, `MESSAGE`, `TIME`, `PHELOBOTOMY_MESSAGE`) VALUES
+(116, '1685646002583', '2023-06-03', 'moderate', 134, 0, 'ACCEPTED', 0, '2023-06-03 20:45:44.000000', NULL, NULL, '19:51:11.000000', ''),
+(117, '1685646002583', '2023-06-03', 'moderate', 135, 0, 'PENDING', NULL, NULL, NULL, NULL, '19:51:18.000000', ''),
+(118, '1685646002583', '2023-06-03', 'moderate', 136, 0, 'ACCEPTED', 0, '2023-06-04 15:32:44.000000', NULL, NULL, '19:51:19.000000', ''),
+(119, '1685646002583', '2023-06-03', 'moderate', 137, 0, 'ACCEPTED', 0, '2023-06-04 10:23:24.000000', NULL, NULL, '19:51:19.000000', ''),
+(120, '1685646002583', '2023-06-03', 'moderate', 138, 0, 'ACCEPTED', 0, '2023-06-04 10:25:31.000000', NULL, NULL, '19:51:19.000000', ''),
+(121, '1685646002583', '2023-06-03', 'moderate', 139, 0, 'REJECTED', 0, '2023-06-03 22:29:29.000000', NULL, 'yuuytfkyhfuyhjf', '19:51:20.000000', ''),
+(122, '1685646002583', '2023-06-04', 'moderate', 140, 0, 'REJECTED', 0, '2023-06-04 14:23:24.000000', NULL, 'ioefuieuif2euiiu', '14:22:13.000000', ''),
+(123, '1683273020072', '2023-06-04', 'moderate', 141, 0, 'PENDING', NULL, NULL, NULL, NULL, '15:00:28.000000', ''),
+(124, '1685646002583', '2023-06-04', 'none', 142, 0, 'ACCEPTED', 0, '2023-06-04 15:32:42.000000', NULL, NULL, '15:11:58.000000', '');
 
 -- --------------------------------------------------------
 
@@ -909,7 +931,17 @@ INSERT INTO `result_cardiac_enzymes` (`LIVERID`, `PARAMETERNAME`, `BILLINGID`, `
 (97, 'MYOGLOBIN', 31, 88, '2023-05-20 00:08:31.625741', '2023-05-20 00:08:31.625741', 1682823132672, '8JFQKJFQEKJFQHFJQWHFUJ', NULL, NULL, NULL),
 (98, 'CK_MB', 31, 8, '2023-05-20 00:08:31.625741', '2023-05-20 00:08:31.625741', 1682823132672, '8JFQKJFQEKJFQHFJQWHFUJ', NULL, NULL, NULL),
 (99, 'AST', 31, 888, '2023-05-20 00:08:31.625741', '2023-05-20 00:08:31.625741', 1682823132672, '8JFQKJFQEKJFQHFJQWHFUJ', NULL, NULL, NULL),
-(100, 'TROPONIN', 31, 8, '2023-05-20 00:08:31.625741', '2023-05-20 00:08:31.625741', 1682823132672, '8JFQKJFQEKJFQHFJQWHFUJ', NULL, NULL, NULL);
+(100, 'TROPONIN', 31, 8, '2023-05-20 00:08:31.625741', '2023-05-20 00:08:31.625741', 1682823132672, '8JFQKJFQEKJFQHFJQWHFUJ', NULL, NULL, NULL),
+(101, 'LDH', 25, 2147483647, '2023-06-03 14:54:40.090105', '2023-06-03 14:54:40.090105', 1683273020072, 'wefuiwuiwgweuguweguieu', NULL, NULL, NULL),
+(102, 'MYOGLOBIN', 25, 5, '2023-06-03 14:54:40.090105', '2023-06-03 14:54:40.090105', 1683273020072, 'wefuiwuiwgweuguweguieu', NULL, NULL, NULL),
+(103, 'CK_MB', 25, 2, '2023-06-03 14:54:40.090105', '2023-06-03 14:54:40.090105', 1683273020072, 'wefuiwuiwgweuguweguieu', NULL, NULL, NULL),
+(104, 'AST', 25, 1, '2023-06-03 14:54:40.090105', '2023-06-03 14:54:40.090105', 1683273020072, 'wefuiwuiwgweuguweguieu', NULL, NULL, NULL),
+(105, 'TROPONIN', 25, 2, '2023-06-03 14:54:40.090105', '2023-06-03 14:54:40.090105', 1683273020072, 'wefuiwuiwgweuguweguieu', NULL, NULL, NULL),
+(106, 'LDH', 142, 4884, '2023-06-04 15:33:35.305470', '2023-06-04 15:33:35.305470', 1685646002583, 'fjkjkdgjkjk', NULL, NULL, NULL),
+(107, 'MYOGLOBIN', 142, 999, '2023-06-04 15:33:35.305470', '2023-06-04 15:33:35.305470', 1685646002583, 'fjkjkdgjkjk', NULL, NULL, NULL),
+(108, 'CK_MB', 142, 999, '2023-06-04 15:33:35.305470', '2023-06-04 15:33:35.305470', 1685646002583, 'fjkjkdgjkjk', NULL, NULL, NULL),
+(109, 'AST', 142, 99, '2023-06-04 15:33:35.305470', '2023-06-04 15:33:35.305470', 1685646002583, 'fjkjkdgjkjk', NULL, NULL, NULL),
+(110, 'TROPONIN', 142, 999, '2023-06-04 15:33:35.305470', '2023-06-04 15:33:35.305470', 1685646002583, 'fjkjkdgjkjk', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -932,7 +964,11 @@ INSERT INTO `result_comments` (`keyid`, `testid`, `billingid`, `comments`) VALUE
 (1, 10, 27, 'jegwgoweogwgiwgw'),
 (2, 4, 33, 'Blood A+'),
 (3, 4, 31, 'etugwuguiegui'),
-(4, 10, 37, 'ejfj2fjkw2kj');
+(4, 10, 37, 'ejfj2fjkw2kj'),
+(5, 4, 35, 'WEFJEUIFQWUIE'),
+(6, 4, 138, 'nEGATIVE '),
+(7, 4, 137, 'EJYUWEU'),
+(8, 4, 134, 'KVJWEUWEU');
 
 -- --------------------------------------------------------
 
@@ -1148,7 +1184,8 @@ CREATE TABLE `result_widal` (
 
 INSERT INTO `result_widal` (`KEYID`, `TYPHIO`, `TYPHIH`, `PARATYPHIAH`, `PARATYPHIBH`, `COMMENTS`, `CREATED_ON`, `UPDATED_ON`, `BILLINGID`, `PATIENTID`) VALUES
 (1, '1/160', '1/160', '1/20', '1/160', 'Reaction is not suggestive of typhoid fever', '2023-05-06 09:48:17.865247', '2023-05-06 10:09:21.000000', 21, 1681309899938),
-(2, '1/20', '1/80', '1/80', '1/80', 'fjdjjdjdj', '2023-05-27 14:07:42.725734', NULL, 37, 1681279794621);
+(2, '1/20', '1/80', '1/80', '1/80', 'fjdjjdjdj', '2023-05-27 14:07:42.725734', NULL, 37, 1681279794621),
+(3, '1/20', '1/80', '1/20', '1/20', 'erjigieruierui', '2023-06-03 13:23:24.216850', NULL, 38, 1683273020072);
 
 -- --------------------------------------------------------
 
@@ -1571,64 +1608,175 @@ CREATE TABLE `test_ascension` (
   `ready` varchar(50) DEFAULT 'false',
   `processing_date` datetime(6) DEFAULT NULL,
   `collection_date` datetime(6) DEFAULT NULL,
-  `ready_date` datetime(6) DEFAULT NULL
+  `ready_date` datetime(6) DEFAULT NULL,
+  `printedNumber` int(25) DEFAULT NULL,
+  `printedDate` datetime(6) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `test_ascension`
 --
 
-INSERT INTO `test_ascension` (`id`, `testid`, `billingid`, `collection`, `processing`, `ready`, `processing_date`, `collection_date`, `ready_date`) VALUES
-(40, 2, 16, 'true', 'true', 'false', '2023-04-30 15:02:39.000000', NULL, NULL),
-(41, 5, 16, 'true', 'true', 'false', '2023-04-30 03:58:42.000000', NULL, NULL),
-(42, 13, 16, 'true', 'true', 'true', '2023-04-30 03:56:43.000000', NULL, '2023-04-30 14:49:35.000000'),
-(43, 2, 17, 'true', 'true', 'false', '2023-04-30 04:31:51.000000', NULL, NULL),
-(44, 13, 17, 'true', 'true', 'true', '2023-04-30 04:31:52.000000', NULL, '2023-04-30 09:08:57.000000'),
-(45, 5, 17, 'true', 'true', 'true', '2023-04-30 04:31:23.000000', NULL, '2023-04-30 08:26:27.000000'),
-(47, 1, 19, 'true', 'true', 'true', '2023-04-30 17:33:30.000000', NULL, '2023-05-04 18:05:33.000000'),
-(49, 7, 19, 'true', 'true', 'true', '2023-04-30 17:33:22.000000', NULL, '2023-05-05 07:56:29.000000'),
-(50, 11, 19, 'true', 'true', 'false', '2023-04-30 17:33:24.000000', NULL, NULL),
-(51, 15, 20, 'true', 'true', 'true', '2023-05-04 16:08:50.000000', NULL, '2023-05-03 08:37:40.000000'),
-(52, 2, 22, 'true', 'true', 'false', '2023-05-05 08:54:46.000000', NULL, NULL),
-(53, 3, 22, 'true', 'true', 'false', '2023-05-05 08:54:47.000000', NULL, NULL),
-(54, 3, 21, 'true', 'true', 'true', '2023-05-06 11:06:14.000000', NULL, '2023-05-06 09:48:17.000000'),
-(55, 2, 23, 'true', 'true', 'false', '2023-05-05 08:54:56.000000', NULL, NULL),
-(56, 1, 23, 'true', 'true', 'true', '2023-05-05 08:54:59.000000', NULL, '2023-05-05 08:55:22.000000'),
-(57, 3, 23, 'true', 'true', 'false', '2023-05-05 08:55:02.000000', NULL, NULL),
-(58, 7, 23, 'true', 'true', 'true', '2023-05-05 08:55:48.000000', NULL, '2023-05-05 08:56:10.000000'),
-(59, 16, 24, 'true', 'false', 'false', NULL, NULL, NULL),
-(60, 16, 25, 'true', 'true', 'true', '2023-05-17 09:12:20.000000', NULL, '2023-05-08 12:22:02.000000'),
-(61, 17, 26, 'true', 'true', 'true', '2023-05-16 07:24:55.000000', NULL, '2023-05-08 22:56:44.000000'),
-(68, 2, 28, 'true', 'true', 'false', '2023-05-16 13:41:32.000000', NULL, NULL),
-(69, 19, 28, 'true', 'true', 'true', '2023-05-11 06:34:33.000000', NULL, '2023-05-11 07:12:07.000000'),
-(72, 2, 32, 'true', 'false', 'false', NULL, NULL, NULL),
-(80, 2, 34, 'true', 'true', 'false', '2023-05-18 13:06:20.000000', NULL, NULL),
-(105, 3, 38, 'false', 'false', 'false', NULL, NULL, NULL),
-(106, 7, 38, 'false', 'false', 'false', NULL, NULL, NULL),
-(115, 112, 35, 'false', 'false', 'false', NULL, NULL, NULL),
-(116, 113, 35, 'false', 'false', 'false', NULL, NULL, NULL),
-(117, 114, 35, 'false', 'false', 'false', NULL, NULL, NULL),
-(118, 4, 35, 'false', 'false', 'false', NULL, NULL, NULL),
-(119, 12, 35, 'false', 'false', 'false', NULL, NULL, NULL),
-(157, 3, 39, 'false', 'false', 'false', NULL, NULL, NULL),
-(170, 2, 37, 'false', 'false', 'false', NULL, NULL, NULL),
-(172, 6, 37, 'false', 'false', 'false', NULL, NULL, NULL),
-(174, 13, 37, 'false', 'false', 'false', NULL, NULL, NULL),
-(175, 17, 37, 'false', 'false', 'false', NULL, NULL, NULL),
-(176, 21, 37, 'false', 'false', 'false', NULL, NULL, NULL),
-(185, 183, 36, 'false', 'false', 'false', NULL, NULL, NULL),
-(186, 3, 36, 'false', 'false', 'false', NULL, NULL, NULL),
-(187, 7, 36, 'true', 'true', 'false', NULL, NULL, NULL),
-(214, 192, 31, 'true', 'true', 'false', NULL, NULL, NULL),
-(215, 193, 31, 'true', 'true', 'false', NULL, NULL, NULL),
-(218, 216, 31, 'true', 'false', 'false', NULL, NULL, NULL),
-(225, 220, 30, 'false', 'false', 'false', NULL, NULL, NULL),
-(226, 222, 30, 'true', 'true', 'false', NULL, NULL, NULL),
-(242, 93, 33, 'false', 'false', 'false', NULL, NULL, NULL),
-(243, 88, 33, 'false', 'false', 'false', NULL, NULL, NULL),
-(244, 89, 33, 'false', 'false', 'false', NULL, NULL, NULL),
-(245, 10, 33, 'false', 'false', 'false', NULL, NULL, NULL),
-(246, 14, 33, 'false', 'false', 'false', NULL, NULL, NULL);
+INSERT INTO `test_ascension` (`id`, `testid`, `billingid`, `collection`, `processing`, `ready`, `processing_date`, `collection_date`, `ready_date`, `printedNumber`, `printedDate`) VALUES
+(40, 2, 16, 'true', 'true', 'false', '2023-04-30 15:02:39.000000', NULL, NULL, 0, NULL),
+(41, 5, 16, 'true', 'true', 'false', '2023-04-30 03:58:42.000000', NULL, NULL, 0, NULL),
+(42, 13, 16, 'true', 'true', 'true', '2023-04-30 03:56:43.000000', NULL, '2023-04-30 14:49:35.000000', 0, NULL),
+(43, 2, 17, 'true', 'true', 'false', '2023-04-30 04:31:51.000000', NULL, NULL, 0, NULL),
+(44, 13, 17, 'true', 'true', 'true', '2023-04-30 04:31:52.000000', NULL, '2023-04-30 09:08:57.000000', 0, NULL),
+(45, 5, 17, 'true', 'true', 'true', '2023-04-30 04:31:23.000000', NULL, '2023-04-30 08:26:27.000000', 0, NULL),
+(47, 1, 19, 'true', 'true', 'true', '2023-04-30 17:33:30.000000', NULL, '2023-05-04 18:05:33.000000', 0, NULL),
+(49, 7, 19, 'true', 'true', 'true', '2023-04-30 17:33:22.000000', NULL, '2023-05-05 07:56:29.000000', 0, NULL),
+(50, 11, 19, 'true', 'true', 'false', '2023-04-30 17:33:24.000000', NULL, NULL, 0, NULL),
+(51, 15, 20, 'true', 'true', 'true', '2023-05-04 16:08:50.000000', NULL, '2023-05-03 08:37:40.000000', 0, NULL),
+(52, 2, 22, 'true', 'true', 'false', '2023-05-05 08:54:46.000000', NULL, NULL, 0, NULL),
+(53, 3, 22, 'true', 'true', 'false', '2023-05-05 08:54:47.000000', NULL, NULL, 0, NULL),
+(54, 3, 21, 'true', 'true', 'true', '2023-05-06 11:06:14.000000', NULL, '2023-05-06 09:48:17.000000', 0, NULL),
+(55, 2, 23, 'true', 'true', 'false', '2023-05-05 08:54:56.000000', NULL, NULL, 0, NULL),
+(56, 1, 23, 'true', 'true', 'true', '2023-05-05 08:54:59.000000', NULL, '2023-05-05 08:55:22.000000', 0, NULL),
+(57, 3, 23, 'true', 'true', 'false', '2023-05-05 08:55:02.000000', NULL, NULL, 0, NULL),
+(58, 7, 23, 'true', 'true', 'true', '2023-05-05 08:55:48.000000', NULL, '2023-05-05 08:56:10.000000', 0, NULL),
+(59, 16, 24, 'true', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(60, 16, 25, 'true', 'true', 'true', '2023-05-17 09:12:20.000000', '2023-06-03 00:00:00.000000', '2023-05-08 12:22:02.000000', 0, NULL),
+(61, 17, 26, 'true', 'true', 'true', '2023-05-16 07:24:55.000000', NULL, '2023-05-08 22:56:44.000000', 0, NULL),
+(68, 2, 28, 'true', 'true', 'false', '2023-05-16 13:41:32.000000', NULL, NULL, 0, NULL),
+(69, 19, 28, 'true', 'true', 'true', '2023-05-11 06:34:33.000000', NULL, '2023-05-11 07:12:07.000000', 0, NULL),
+(72, 2, 32, 'true', 'true', 'false', '2023-06-03 13:02:06.000000', NULL, NULL, 0, NULL),
+(80, 2, 34, 'true', 'true', 'false', '2023-05-18 13:06:20.000000', NULL, NULL, 0, NULL),
+(105, 3, 38, 'true', 'true', 'true', '2023-06-03 13:22:57.000000', '2023-06-03 00:00:00.000000', '2023-06-03 13:23:24.000000', 0, NULL),
+(106, 7, 38, 'true', 'true', 'true', '2023-06-03 13:23:02.000000', '2023-06-03 00:00:00.000000', '2023-06-03 13:23:40.000000', 0, NULL),
+(115, 112, 35, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(116, 113, 35, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(117, 114, 35, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(118, 4, 35, 'true', 'true', 'true', '2023-06-03 13:05:37.000000', '2023-06-03 00:00:00.000000', '2023-06-03 13:05:59.000000', 0, NULL),
+(119, 12, 35, 'true', 'true', 'false', '2023-06-03 13:05:41.000000', '2023-06-03 00:00:00.000000', NULL, 0, NULL),
+(157, 3, 39, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(170, 2, 37, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(172, 6, 37, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(174, 13, 37, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(175, 17, 37, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(176, 21, 37, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(185, 183, 36, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(186, 3, 36, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(187, 7, 36, 'true', 'true', 'false', NULL, NULL, NULL, 0, NULL),
+(214, 192, 31, 'true', 'true', 'false', NULL, NULL, NULL, 0, NULL),
+(215, 193, 31, 'true', 'true', 'false', NULL, NULL, NULL, 0, NULL),
+(218, 216, 31, 'true', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(225, 220, 30, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(226, 222, 30, 'true', 'true', 'false', NULL, NULL, NULL, 0, NULL),
+(242, 93, 33, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(243, 88, 33, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(244, 89, 33, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(245, 10, 33, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(246, 14, 33, 'false', 'false', 'false', NULL, NULL, NULL, 0, NULL),
+(247, 2, 113, 'true', 'false', 'false', NULL, '2023-06-01 00:00:00.000000', NULL, NULL, NULL),
+(248, 4, 113, 'true', 'false', 'false', NULL, '2023-06-01 00:00:00.000000', NULL, NULL, NULL),
+(249, 2, 114, 'true', 'false', 'false', NULL, '2023-06-01 00:00:00.000000', NULL, NULL, NULL),
+(250, 6, 114, 'true', 'false', 'false', NULL, '2023-06-01 00:00:00.000000', NULL, NULL, NULL),
+(251, 10, 114, 'true', 'false', 'false', NULL, '2023-06-01 00:00:00.000000', NULL, NULL, NULL),
+(252, 4, 115, 'true', 'false', 'false', NULL, '2023-06-01 00:00:00.000000', NULL, NULL, NULL),
+(253, 12, 115, 'true', 'false', 'false', NULL, '2023-06-01 00:00:00.000000', NULL, NULL, NULL),
+(254, 15, 115, 'true', 'false', 'false', NULL, '2023-06-01 00:00:00.000000', NULL, NULL, NULL),
+(255, 19, 115, 'true', 'false', 'false', NULL, '2023-06-01 00:00:00.000000', NULL, NULL, NULL),
+(256, 3, 116, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(257, 6, 116, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(258, 10, 116, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(259, 14, 116, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(260, 3, 117, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(261, 6, 117, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(262, 10, 117, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(263, 14, 117, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(264, 3, 118, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(265, 6, 118, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(266, 10, 118, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(267, 14, 118, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(268, 3, 119, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(269, 6, 119, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(270, 10, 119, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(271, 14, 119, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(272, 3, 120, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(273, 6, 120, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(274, 10, 120, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(275, 14, 120, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(276, 3, 121, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(277, 6, 121, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(278, 10, 121, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(279, 14, 121, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(280, 3, 122, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(281, 6, 122, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(282, 10, 122, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(283, 14, 122, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(284, 3, 123, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(285, 6, 123, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(286, 10, 123, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(287, 14, 123, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(288, 3, 124, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(289, 6, 124, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(290, 10, 124, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(291, 14, 124, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(292, 3, 125, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(293, 6, 125, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(294, 10, 125, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(295, 14, 125, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(296, 3, 126, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(297, 6, 126, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(298, 10, 126, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(299, 14, 126, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(300, 3, 127, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(301, 6, 127, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(302, 10, 127, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(303, 14, 127, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(304, 3, 128, 'true', 'false', 'false', NULL, '2023-06-02 00:00:00.000000', NULL, NULL, NULL),
+(305, 6, 128, 'true', 'false', 'false', NULL, '2023-06-02 00:00:00.000000', NULL, NULL, NULL),
+(306, 10, 128, 'true', 'false', 'false', NULL, '2023-06-02 00:00:00.000000', NULL, NULL, NULL),
+(307, 14, 128, 'true', 'false', 'false', NULL, '2023-06-02 00:00:00.000000', NULL, NULL, NULL),
+(308, 3, 129, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(309, 6, 129, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(310, 10, 129, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(311, 14, 129, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(312, 3, 130, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(313, 6, 130, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(314, 10, 130, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(315, 14, 130, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(316, 3, 131, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(317, 6, 131, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(318, 10, 131, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(319, 14, 131, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(320, 3, 132, 'true', 'false', 'false', NULL, '2023-06-02 00:00:00.000000', NULL, NULL, NULL),
+(321, 6, 132, 'true', 'false', 'false', NULL, '2023-06-02 00:00:00.000000', NULL, NULL, NULL),
+(322, 10, 132, 'true', 'false', 'false', NULL, '2023-06-02 00:00:00.000000', NULL, NULL, NULL),
+(323, 14, 132, 'true', 'false', 'false', NULL, '2023-06-02 00:00:00.000000', NULL, NULL, NULL),
+(325, 6, 133, 'true', 'false', 'false', NULL, '2023-06-02 00:00:00.000000', NULL, NULL, NULL),
+(330, 2, 133, 'true', 'false', 'false', NULL, '2023-06-02 00:00:00.000000', NULL, NULL, NULL),
+(332, 5, 133, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(333, 7, 133, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(334, 12, 133, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(336, 5, 25, 'true', 'true', 'true', '2023-06-03 14:54:21.000000', '2023-06-03 00:00:00.000000', '2023-06-03 14:54:40.000000', NULL, NULL),
+(337, 2, 134, 'true', 'true', 'false', '2023-06-04 10:05:21.000000', '2023-06-04 00:00:00.000000', NULL, NULL, NULL),
+(338, 4, 134, 'true', 'true', 'true', '2023-06-04 10:05:19.000000', '2023-06-04 00:00:00.000000', '2023-06-04 15:36:27.000000', NULL, NULL),
+(339, 7, 134, 'true', 'true', 'false', '2023-06-04 10:05:15.000000', '2023-06-04 00:00:00.000000', NULL, NULL, NULL),
+(340, 2, 135, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(341, 4, 135, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(342, 7, 135, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(343, 2, 136, 'true', 'false', 'false', NULL, '2023-06-04 00:00:00.000000', NULL, NULL, NULL),
+(344, 4, 136, 'true', 'true', 'false', '2023-06-04 15:35:11.000000', '2023-06-04 00:00:00.000000', NULL, NULL, NULL),
+(345, 7, 136, 'true', 'false', 'true', NULL, '2023-06-04 00:00:00.000000', '2023-06-04 15:35:46.000000', NULL, NULL),
+(346, 2, 137, 'true', 'false', 'false', NULL, '2023-06-04 00:00:00.000000', NULL, NULL, NULL),
+(347, 4, 137, 'true', 'true', 'true', '2023-06-04 15:34:13.000000', '2023-06-04 00:00:00.000000', '2023-06-04 15:36:14.000000', NULL, NULL),
+(348, 7, 137, 'true', 'true', 'true', '2023-06-04 15:34:14.000000', '2023-06-04 00:00:00.000000', '2023-06-04 15:34:26.000000', NULL, NULL),
+(349, 2, 138, 'true', 'true', 'false', '2023-06-04 13:52:12.000000', '2023-06-04 00:00:00.000000', NULL, NULL, NULL),
+(350, 4, 138, 'true', 'true', 'true', '2023-06-04 13:52:47.000000', '2023-06-04 00:00:00.000000', '2023-06-04 13:53:00.000000', NULL, NULL),
+(351, 7, 138, 'true', 'true', 'true', '2023-06-04 13:53:13.000000', '2023-06-04 00:00:00.000000', '2023-06-04 13:53:24.000000', NULL, NULL),
+(352, 2, 139, 'true', 'false', 'false', NULL, '2023-06-04 00:00:00.000000', NULL, NULL, NULL),
+(353, 4, 139, 'true', 'false', 'false', NULL, '2023-06-04 00:00:00.000000', NULL, NULL, NULL),
+(354, 7, 139, 'true', 'false', 'false', NULL, '2023-06-04 00:00:00.000000', NULL, NULL, NULL),
+(355, 6, 139, 'true', 'false', 'false', NULL, '2023-06-04 00:00:00.000000', NULL, NULL, NULL),
+(356, 1, 140, 'true', 'false', 'false', NULL, '2023-06-04 00:00:00.000000', NULL, NULL, NULL),
+(357, 2, 141, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(358, 5, 141, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(359, 8, 141, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL),
+(360, 2, 142, 'true', 'false', 'false', NULL, '2023-06-04 00:00:00.000000', NULL, NULL, NULL),
+(361, 5, 142, 'true', 'true', 'true', '2023-06-04 15:33:18.000000', '2023-06-04 00:00:00.000000', '2023-06-04 15:33:35.000000', NULL, NULL),
+(362, 7, 142, 'true', 'true', 'true', '2023-06-04 15:33:39.000000', '2023-06-04 00:00:00.000000', '2023-06-04 15:33:58.000000', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -2112,19 +2260,19 @@ ALTER TABLE `activation`
 -- AUTO_INCREMENT for table `billing`
 --
 ALTER TABLE `billing`
-  MODIFY `BILLINGID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `BILLINGID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=143;
 
 --
 -- AUTO_INCREMENT for table `billinghx`
 --
 ALTER TABLE `billinghx`
-  MODIFY `KeyID` int(255) NOT NULL AUTO_INCREMENT;
+  MODIFY `KeyID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT for table `bloodgroup`
 --
 ALTER TABLE `bloodgroup`
-  MODIFY `ID` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `ID` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `branch`
@@ -2160,7 +2308,7 @@ ALTER TABLE `companyprofile`
 -- AUTO_INCREMENT for table `departmentrequisitionhx`
 --
 ALTER TABLE `departmentrequisitionhx`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
 
 --
 -- AUTO_INCREMENT for table `departments`
@@ -2172,7 +2320,7 @@ ALTER TABLE `departments`
 -- AUTO_INCREMENT for table `departmentstocks`
 --
 ALTER TABLE `departmentstocks`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `glycated_haemoglobin`
@@ -2190,7 +2338,7 @@ ALTER TABLE `hepatitisbresult`
 -- AUTO_INCREMENT for table `hepatitisb_profile`
 --
 ALTER TABLE `hepatitisb_profile`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `malaria`
@@ -2208,13 +2356,13 @@ ALTER TABLE `manager_sample_descision`
 -- AUTO_INCREMENT for table `newstock`
 --
 ALTER TABLE `newstock`
-  MODIFY `stockid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `stockid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `new_patients`
 --
 ALTER TABLE `new_patients`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `orders`
@@ -2232,13 +2380,13 @@ ALTER TABLE `organization`
 -- AUTO_INCREMENT for table `paymentmodes`
 --
 ALTER TABLE `paymentmodes`
-  MODIFY `KeyID` int(255) NOT NULL AUTO_INCREMENT;
+  MODIFY `KeyID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `performing_test`
 --
 ALTER TABLE `performing_test`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=125;
 
 --
 -- AUTO_INCREMENT for table `result_aids`
@@ -2256,13 +2404,13 @@ ALTER TABLE `result_beta_hcg`
 -- AUTO_INCREMENT for table `result_cardiac_enzymes`
 --
 ALTER TABLE `result_cardiac_enzymes`
-  MODIFY `LIVERID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
+  MODIFY `LIVERID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=111;
 
 --
 -- AUTO_INCREMENT for table `result_comments`
 --
 ALTER TABLE `result_comments`
-  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `result_esr`
@@ -2310,7 +2458,7 @@ ALTER TABLE `result_thyroid_functional_test`
 -- AUTO_INCREMENT for table `result_widal`
 --
 ALTER TABLE `result_widal`
-  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -2418,7 +2566,7 @@ ALTER TABLE `supplier`
 -- AUTO_INCREMENT for table `test_ascension`
 --
 ALTER TABLE `test_ascension`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=247;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=363;
 
 --
 -- AUTO_INCREMENT for table `test_categories`
