@@ -21,17 +21,6 @@ export default function Payment_Extra() {
   const [updatingBill, setUpdatingBill] = useState(layoutdefault);
 
   const columns = [
-    // {
-    //   Header: '#',
-    //   Cell: ({ value, row }) => (
-    //     <div>
-    //       <CheckBox onClick={() => {
-    //         const { original } = row;
-    //         console.log(original.mobileNumber)
-    //       }} />
-    //     </div>
-    //   )
-    // },
     {
       Header: "Date",
       accessor: "date",

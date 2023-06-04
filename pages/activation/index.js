@@ -26,11 +26,8 @@ export default function Activator() {
         const filteredData = activationData.filter((item) => {
           const fullName = new String(item.FULLNAME.toLowerCase())
           const patientId = new String(item.PATIENTID);
-
           return fullName.match(filtered.toLowerCase()) || patientId.includes(filtered.toLowerCase());
         });
-
-        console.log(filteredData.length)
         if (filteredData.length > 0) {
           setActivationData(filteredData);
         }
@@ -130,6 +127,7 @@ export default function Activator() {
                       <Button
                         sx={{ width: '100px' }}
                         color="success"
+                        variant='contained'
                         size='small'
                         onClick={(e) => {
                           handleBilling(e, item.PATIENTID);
@@ -138,8 +136,8 @@ export default function Activator() {
                         billing
                       </Button>
                     ) : (
-                      <Button variant="teal" sx={{ width: '120px' }} size='small'>
-                        <Link href={`/registration/?patientid=${item.PATIENTID}`}>edit info</Link>
+                      <Button variant='contained' sx={{ width: '100px' }} size='small'>
+                        <Link style={{color:'white'}} href={`/registration/?patientid=${item.PATIENTID}`}>edit info</Link>
                       </Button>
                     )}
                   </td>

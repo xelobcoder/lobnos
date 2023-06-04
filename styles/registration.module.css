@@ -9,11 +9,11 @@
   grid-template-columns: 1fr 1fr 1fr;
   grid-gap: 20%;
 }
+
 .age_desc {
   display: grid;
   grid-template-columns: 30% 30%;
   grid-gap: 2%;
-
 }
 
 .personal {
@@ -30,8 +30,10 @@
   padding: 20px;
   margin-top: 10px;
 }
-@media screen and (max-width: 600px) {
-  .personal ,
+
+@media screen and (max-width: 768px) {
+  #registration_generate,
+  .personal,
   .maker,
   .age_desc,
   .age {
@@ -42,6 +44,44 @@
   .age_desc {
     margin-top: 20px;
   }
- 
+
+  /* Additional styles for responsiveness on tablets */
+  .age_desc {
+    grid-template-columns: 1fr;
+    grid-gap: 10px;
+  }
+
+  .personal {
+    grid-template-columns: 1fr;
+    grid-gap: 10px;
+    padding: 10px;
+  }
+
+  .maker {
+    grid-template-columns: 1fr;
+    padding: 10px;
+  }
 }
-  
+
+@media screen and (max-width: 480px) {
+  /* Additional styles for responsiveness on mobile */
+  #registration_generate {
+    grid-template-columns: 1fr;
+    grid-gap: 10px;
+  }
+
+  .age,
+  .age_desc,
+  .personal,
+  .maker {
+    margin-top: 10px;
+  }
+
+  .personal {
+    padding: 10px;
+  }
+
+  .maker {
+    padding: 10px;
+  }
+}
