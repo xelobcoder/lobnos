@@ -17,27 +17,26 @@ export default function UpdateBilling({ data, close,refresh }) {
     setIsLoading(true);
     try {
       const sendPayment = async function () {
-        const pushResponse = await customPost('billing/payment/update', 'POST', paymentInfo)
-
+        const pushResponse = await customPost(
+          "billing/payment/update",
+          "POST",
+          paymentInfo
+        );
         const { status, statusCode, message } = pushResponse;
-
-        if (status == 'success' && statusCode == 200) {
-          setIsLoading(false)
-          alert(message)
-          close({ update: false, billid: null, filteringData: {} })
-          refresh(true)
+        if (status == "success" && statusCode == 200) {
+          setIsLoading(false);
+          alert(message);
+          close({ update: false, billid: null, filteringData: {} });
+          refresh(true);
           setTimeout(() => {
-            refresh(false)
+            refresh(false);
           }, 1000);
         }
-      }
+      };
 
-      sendPayment()
-
-
-    }
-    catch (err) {
-      console.log(err)
+      sendPayment();
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -100,6 +99,7 @@ export default function UpdateBilling({ data, close,refresh }) {
             }
           }}
           className="mt-3" sx={{ width: '100%' }}
+          disabled = {data.outstanding == 0 ?  true : false}
         />
 
         <Autocomplete
@@ -107,6 +107,7 @@ export default function UpdateBilling({ data, close,refresh }) {
           value={paymentInfo.paymentMode}
           onChange={(event, value) => setpaymentInfo({ ...paymentInfo, paymentMode: value })}
           variant="standard"
+          disabled = {data.outstanding == 0 ?  true : false}
           className="mt-3" sx={{ width: '100%' }}
           renderInput={(params) => (
             <TextField {...params} label="Payment Method" variant="standard" />
@@ -118,8 +119,8 @@ export default function UpdateBilling({ data, close,refresh }) {
           color="primary"
           sx={{ width: '20%', marginTop: '20px' }}
           size="large"
-          disabled={isLoading}
           onClick={handleSaveChanges}
+          disabled = {data.outstanding == 0 ?  true : false}
         >
           {isLoading ? <CircularProgress size={24} color="primary" /> : 'Save Changes'}
         </Button>

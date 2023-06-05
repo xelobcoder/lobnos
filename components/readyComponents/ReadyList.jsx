@@ -1,6 +1,5 @@
 import { Box, Button, Typography } from '@mui/material';
 import React, { useState } from 'react';
-import style from '../../styles/ready.module.css';
 import { EnergySavingsLeaf } from '@mui/icons-material';
 
 export default function ReadyList({ readydata, changeLayout }) {
@@ -8,7 +7,7 @@ export default function ReadyList({ readydata, changeLayout }) {
   return (
     <>
       <Box sx={{ height: '80vh', overflowY: 'auto' }}>
-        <table className={style.custom_table}>
+        <table className="custom_table">
           <thead>
             <tr>
               <th>Billingid</th>
@@ -24,14 +23,14 @@ export default function ReadyList({ readydata, changeLayout }) {
               readydata.map((item, index) => {
                 return (
                   <tr key={index}   style={{border: `${active == index ? '4px solid #3949ab' : 'none'}`}}>
-                    <td className={style.billing_id}>{item.billingid}</td>
+                    <td className="billing_id">{item.billingid}</td>
                     <td>{item.fullname}</td>
                     <td>
                       <div
-                        className={`${style.status} ${
+                        className={`status ${
                           item.status === 'Ready'
-                            ? style.ready_status
-                            : style.pending_status
+                            ? "ready_status"
+                            : "pending_status"
                         }`}
                       >
                         {item.status}
@@ -39,7 +38,7 @@ export default function ReadyList({ readydata, changeLayout }) {
                     </td>
                     <td>{item.readycount}/{item.testcount}</td>
                     <td
-                      className={`${style.negative_debt} ${
+                      className={`negative_debt ${
                         (parseInt(item.outstanding) >= 1 ||
                           parseInt(item.outstanding) <= -1) && style.negative_debt
                       }`}
@@ -48,7 +47,7 @@ export default function ReadyList({ readydata, changeLayout }) {
                     </td>
                     <td>
                       <EnergySavingsLeaf
-                        className={style.view_icon}
+                        className='view_icon'
                         onClick={(e) => {
                           changeLayout('three', item.billingid);
                           setActive(index);

@@ -1615,15 +1615,8 @@ option:hover {
   cursor: pointer;
   line-height: 0.5 em;
 }
+/* custom css for update billing page  */
 
-.ag-pivot-off .ag-header-group-cell {
-  font-size: 50px;
-  color: #00224f !important;
-}
-.ag-pivot-on .ag-header-group-cell {
-  font-size: 25px;
-  color: green;
-}
 .billing-personal-info {
   background-color: white;
   margin: 10px 20px;
@@ -1790,6 +1783,8 @@ option:hover {
   font-size: 14px;
 }
 
+/* end here  */
+
 .phelobotomy-wrapper {
   height: 90vh;
   overflow-y: auto;
@@ -1898,7 +1893,7 @@ option:hover {
 .operations-wrapper > aside {
   padding: 0px;
   margin: 0;
-  background-color: white;
+  /* background-color: white; */
   color: white;
   border-right: 1px solid lightgray;
   opacity: 0.9;
@@ -2194,4 +2189,99 @@ option:hover {
 #transactionTable > tbody > tr:focus {
   background-color: #dcdcdc;
   outline: none;
+}
+
+/* ready page  custom css */
+/* ready.module.css */
+
+.table_container {
+  height: 80vh;
+  overflow-y: auto;
+}
+
+.custom_table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.custom_table thead {
+  background-color: #3949ab;
+  color: #fff;
+}
+
+.custom_table th,
+.custom_table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.custom_table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.custom_table tbody tr:hover {
+  background-color: #e6e6e6;
+}
+
+.billing_id {
+  color: #3949ab;
+}
+
+.status {
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 14px;
+  display: inline-block;
+  line-height: 1;
+}
+
+.ready_status {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.pending_status {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.negative_debt {
+  color: #f44336;
+}
+
+.view_icon {
+  cursor: pointer;
+  color: #3949ab;
+  font-size: 24px;
+}
+
+
+/* end of ready page custom css */
+.profile-side {
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.-tag {
+  margin-bottom: 15px;
+}
+
+
+/* Additional styles for specific elements */
+.-tag label {
+  display: block;
+  font-size: 16px;
+  background-color: #00224f;
+  color: white;
+  padding: 10px;
+}
+
+.group-label {
+  background-color: white;
+  padding: 10px;
+  font-size: 15px;
+  color: #00224f;
 }

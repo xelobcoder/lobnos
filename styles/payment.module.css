@@ -18,6 +18,15 @@
   height: max-content;
 }
 
+
+.alertSuccess {
+  /* background-color: #3949ab; */
+  background-color: green; 
+  color: #fff; /* White text color */
+  padding: 20px;
+  height: max-content;
+}
+
 .balanceLabel {
   margin-right: 8px; /* Add margin for spacing */
 }

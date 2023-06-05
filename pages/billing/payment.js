@@ -107,7 +107,13 @@ export default function Payment_Extra() {
             },
           });
         } else {
-          alert('Client in good standing')
+          setUpdatingBill({
+            update: true,
+            billid: selectedBilling,
+            filteringData: {
+              ...data_to_update[0]
+            },
+          });
         }
       } else {
         alert("BillingID not found");
@@ -178,7 +184,7 @@ export default function Payment_Extra() {
           style={{
             display: "grid",
             gridTemplateColumns: `${updatingBill.update ? "20% auto" : "100%"}`,
-            gridGap: "20px",
+            gridGap: "2%",
             margin: "10px 10px",
           }}
         >

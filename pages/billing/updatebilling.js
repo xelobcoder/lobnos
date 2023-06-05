@@ -33,7 +33,6 @@ export default function Updatebilling() {
 
   // this would change the state of the updateViewer to true if the button [update test] in the persomal details is clicked
   const updateTestButton = () => setUpdateViewer(true);
-  console.log(clientDetails)
   return (
     <div className="update-billing-wrapper">
       <div >
@@ -52,18 +51,18 @@ export default function Updatebilling() {
     </div>
   );
 }
-Updatebilling.getLayout = function (page) {
-  return (
-    <>
-      <Header />
-      <div className="wrapper">
-        <div className="side">
-          <SidebarFrontPage />
-        </div>
-        <div className="main" id="page-main-view">
-          {page}
-        </div>
-      </div>
-    </>
-  );
-};
+// Updatebilling.getLayout = function (page) {
+//   return (
+//     <>
+//       <Header />
+//       <div className="wrapper">
+//         <div className="side">
+//           <SidebarFrontPage />
+//         </div>
+//         <div className="main" id="page-main-view">
+//           {page}
+//         </div>
+//       </div>
+//     </>
+//   );
+// };

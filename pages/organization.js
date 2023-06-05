@@ -1,6 +1,5 @@
 import SidebarFrontPage from '../components/frontpagesidebar'
 import Header from '../components/header'
-import { DataGrid } from '@mui/x-data-grid'
 import { Button, Box } from '@mui/material'
 import { useState,useEffect } from 'react'
 import AddOrganization from '../components/Addorganization'
@@ -77,24 +76,6 @@ function Organization() {
             </Button>
           )}
         </div>
-      </Box>
-      <Box sx={{ height: 500, width: '100%' }}>
-        {show ? (
-          <Group />
-        ) : (
-          <DataGrid
-            rows={data}
-            columns={columns}
-            rowHeight={50}
-            pageSize={3}
-            filterMode="client"
-            rowsPerPageOptions={[4]}
-            checkboxSelection
-            onSelectionChange={(e) => {
-              console.log(e.target)
-            }}
-          />
-        )}
       </Box>
     </div>
   )
