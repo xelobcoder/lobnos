@@ -7,7 +7,7 @@ export default function ReadyList({ readydata, changeLayout }) {
   return (
     <>
       <Box sx={{ height: '80vh', overflowY: 'auto' }}>
-        <table className="custom_table">
+        <table id='custom-table' >
           <thead>
             <tr>
               <th>Billingid</th>
@@ -40,7 +40,7 @@ export default function ReadyList({ readydata, changeLayout }) {
                     <td
                       className={`negative_debt ${
                         (parseInt(item.outstanding) >= 1 ||
-                          parseInt(item.outstanding) <= -1) && style.negative_debt
+                          parseInt(item.outstanding) <= -1) && 'negative_debt'
                       }`}
                     >
                       {parseInt(item.outstanding)}

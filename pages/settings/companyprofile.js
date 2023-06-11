@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
+import Image from 'next/image';
 
 export default function CompanyProfile() {
   const defaultdata = {
@@ -13,10 +14,26 @@ export default function CompanyProfile() {
   const [selectedImage, setSelectedImages] = useState(null);
 
   const handleData = async function (ev) {
-    let turn = await customPost('settings/companyprofile', 'POST', companydata);
-    if (turn?.status == 'success') {
-      setcompanyData(defaultdata)
-      alert('updated successfully');
+    try {
+      const Okay = Object.keys(companydata).filter((e, i) => { return companydata[e] == '' });
+
+      const rightMobile = companydata['phonenumber'].length == 10 && companydata['phonenumber'].at(0) == 0;
+      if (Okay.length == 0 && rightMobile) {
+        let turn = await customPost('settings/companyprofile', 'POST', companydata);
+        if (turn?.status == 'success') {
+          setcompanyData(defaultdata)
+          alert('updated successfully');
+        }
+      } else {
+        if (!rightMobile) {
+          alert('Incorrect Phone Number');
+        } else {
+          alert(`${Okay.join(',')} field inputs are required`)
+        }
+      }
+    }
+    catch (err) {
+      console.log(err)
     }
   }
 
@@ -25,7 +42,7 @@ export default function CompanyProfile() {
   // display image on upload
   const handlePreview = async function (events) {
     let file = events.target.files[0];
-    setSelectedImages(file);
+    setSelectedImages(URL.createObjectURL(file))
 
     const formData = new FormData();
     formData.append('file', file);
@@ -49,18 +66,26 @@ export default function CompanyProfile() {
 
   // loads exiting data on page visit if the data exist 
   useEffect(() => {
-    const data = async function () {
-      let response = await customFetch('settings/companyprofile');
-      setcompanyData(response)
-    }
-    data()
+    const fetchData = async function () {
+      try {
+        const response = await customFetch('settings/companyprofile');
+        setcompanyData(response);
+
+        const getData = await customFetch('settings/companyprofile/images');
+        const imageData = await getData.blob(); // Convert the response to a Blob
+        setSelectedImages(URL.createObjectURL(imageData)); // Set the selectedImage using createObjectURL
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
   }, [])
 
 
 
   return (
     <>
-      <div  style={{ backgroundColor: 'whitesmoke', height: '100vh' }}>
+      <div style={{ backgroundColor: 'whitesmoke', height: '100vh' }}>
         <div className="container">
           <div
             className="row"
@@ -85,7 +110,7 @@ export default function CompanyProfile() {
                   />
                 </div>
 
-                <div className="form-group mt-2">
+                <div className="form-group  mt-2">
                   <label>email: </label>
                   <input
                     className="custom-input"
@@ -138,14 +163,6 @@ export default function CompanyProfile() {
                     }}
                   />
                 </div>
-                <div className="form-group mt-2">
-                  <label>company logo: </label>
-                  <input
-                    type="file"
-                    className="custom-input mt-3"
-                    onChange={handlePreview}
-                  />
-                </div>
                 <div className="form-group mt-3">
                   <button
                     type="button"
@@ -155,10 +172,28 @@ export default function CompanyProfile() {
                     save information
                   </button>
                 </div>
+                <div className="form-group mt-2">
+                  <label>Upload Images </label>
+                  <input
+                    type="file"
+                    className="custom-input mt-3"
+                    onChange={handlePreview}
+                  />
+                </div>
               </form>
             </div>
             {companydata.name == "" ? null : (
               <div className="profile-side">
+
+                {selectedImage && (
+                  <div className="-tag">
+                    <label>Logo Preview</label>
+                    <div className="group-label">
+                      <Image src={selectedImage} alt='company logo' width={'500'} height={'300'}
+                      />
+                    </div>
+                  </div>
+                )}
                 <div className="-tag">
                   <label>company name</label>
                   <div className="group-label"> {companydata.name}</div>
