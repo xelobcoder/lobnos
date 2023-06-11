@@ -2325,3 +2325,66 @@ option:hover {
   font-size: 15px;
   color: #00224f;
 }
+
+.company-profile-form{
+  background-color: white;
+  margin: 0% 20%;
+  padding: 20px;
+}
+
+.company-profile-form input {
+  height: 50px !important;
+  border: 2px solid var(--icon-warning-color);
+}
+
+.company-profile-form label  {
+  color: var(--gray-700);
+  font-weight: bold;
+  font-size: 18px;
+  font-family: var(--monospace);
+}
+
+.instru {
+  margin: 4% 20% 0 20%;
+  color: white;
+  background-color: #00224f;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  font-size: 27px;
+}
+
+
+.company-view-result > .wrapper {
+  display: block;
+}
+
+.company-view-result > .wrapper > .line {
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.result_page {
+  height: 100vh;
+  padding: 1% 20% 0% 20%;
+  background-color: #0000007a;
+}
+.result_page > .result {
+  display: grid;
+  grid-template-columns: 100%;
+  grid-template-rows: 15% auto 15%;
+  height: 100%;
+  width: 100%;
+  background-color: white;
+}
+
+
+@media print {
+  .result_page{
+    padding: 0px;
+  }
+
+  .chemistry_print{
+    font-family: var(--sans-serif);
+  }
+}

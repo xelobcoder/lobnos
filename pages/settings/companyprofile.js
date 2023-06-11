@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import Image from 'next/image';
+import { Container } from '@mui/material';
+import { Padding } from '@mui/icons-material';
 
 export default function CompanyProfile() {
   const defaultdata = {
@@ -9,9 +11,13 @@ export default function CompanyProfile() {
     phonenumber: [0],
     motto: '',
     address: '',
+    website: '',
+    street: '',
+    alternativeNumber: ''
   }
   const [companydata, setcompanyData] = useState(defaultdata);
   const [selectedImage, setSelectedImages] = useState(null);
+  const [preview, setPreview] = useState(false)
 
   const handleData = async function (ev) {
     try {
@@ -85,143 +91,122 @@ export default function CompanyProfile() {
 
   return (
     <>
-      <div style={{ backgroundColor: 'whitesmoke', height: '100vh' }}>
+      <div style={{ backgroundColor: 'whitesmoke', height: 'max-content' }}>
         <div className="container">
           <div
             className="row"
             style={{
               display: "grid",
               gridTemplateColumns:
-                companydata.name == "" ? "100% auto" : "60% auto",
+                preview == false ? "100%" : "60% auto",
             }}
           >
             <div>
               {/* form  */}
-              <form className="company-profile-form bg-white p-5 mt-4">
-                <div className="form-group mt-2">
-                  <label>name: </label>
-                  <input
-                    className="custom-input"
-                    value={companydata.name}
-                    type="text"
-                    onChange={(e) => {
-                      setcompanyData({ ...companydata, name: e.target.value });
-                    }}
-                  />
-                </div>
+              <Container > 
+                <h1 className='instru'>Upload Company information</h1>
+                <form className="company-profile-form" style={{Padding:'0% 30%'}}>
+                  
+                  <div className="form-group mt-2">
+                    <label>name: </label>
+                    <input
+                      className="custom-input"
+                      value={companydata.name}
+                      type="text"
+                      onChange={(e) => {
+                        setcompanyData({ ...companydata, name: e.target.value });
+                      }}
+                    />
+                  </div>
 
-                <div className="form-group  mt-2">
-                  <label>email: </label>
-                  <input
-                    className="custom-input"
-                    value={companydata.email}
-                    type="email"
-                    onChange={(e) => {
-                      setcompanyData({ ...companydata, email: e.target.value });
-                    }}
-                  />
-                </div>
+                  <div className="form-group  mt-2">
+                    <label>email: </label>
+                    <input
+                      className="custom-input"
+                      value={companydata.email}
+                      type="email"
+                      onChange={(e) => {
+                        setcompanyData({ ...companydata, email: e.target.value });
+                      }}
+                    />
+                  </div>
 
-                <div className="form-group mt-2">
-                  <label>address: </label>
-                  <input
-                    className="custom-input"
-                    value={companydata.address}
-                    type="text"
-                    onChange={(e) => {
-                      setcompanyData({ ...companydata, address: e.target.value });
-                    }}
-                  />
-                </div>
+                  <div className="form-group mt-2">
+                    <label>address: </label>
+                    <input
+                      className="custom-input"
+                      value={companydata.address}
+                      type="text"
+                      onChange={(e) => {
+                        setcompanyData({ ...companydata, address: e.target.value });
+                      }}
+                    />
+                  </div>
 
-                <div className="form-group mt-2">
-                  <label>motto: </label>
-                  <input
-                    className="custom-input"
-                    value={companydata.motto}
-                    type="text"
-                    onChange={(e) => {
-                      setcompanyData({ ...companydata, motto: e.target.value });
-                    }}
-                  />
-                </div>
+                  <div className="form-group mt-2">
+                    <label>motto: </label>
+                    <input
+                      className="custom-input"
+                      value={companydata.motto}
+                      type="text"
+                      onChange={(e) => {
+                        setcompanyData({ ...companydata, motto: e.target.value });
+                      }}
+                    />
+                  </div>
 
-                <div className="form-group mt-2">
-                  <label>phone number: </label>
-                  <input
-                    className="custom-input"
-                    multiple
-                    value={companydata.phonenumber}
-                    type="tel"
-                    minLength={10}
-                    maxLength={28}
-                    onChange={(e) => {
-                      setcompanyData({
-                        ...companydata,
-                        phonenumber: e.target.value,
-                      });
-                    }}
-                  />
-                </div>
-                <div className="form-group mt-3">
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={(e) => handleData(e)}
-                  >
-                    save information
-                  </button>
-                </div>
-                <div className="form-group mt-2">
-                  <label>Upload Images </label>
-                  <input
-                    type="file"
-                    className="custom-input mt-3"
-                    onChange={handlePreview}
-                  />
-                </div>
-              </form>
+                  <div className="form-group mt-2">
+                    <label>phone number: </label>
+                    <input
+                      className="custom-input"
+                      multiple
+                      value={companydata.phonenumber}
+                      type="tel"
+                      minLength={10}
+                      maxLength={28}
+                      onChange={(e) => {
+                        setcompanyData({
+                          ...companydata,
+                          phonenumber: e.target.value,
+                        });
+                      }}
+                    />
+                  </div>
+                  <div className='form-group mt-3'>
+                    <label>street</label>
+                    <input className='custom-input' value={companydata.street}
+                      onChange={(e) => setcompanyData({ ...companydata, street: e.target.value })} />
+                  </div>
+                  <div className='form-group mt-3'>
+                    <label>alternativeNumber</label>
+                    <input className='custom-input' value={companydata.alternativeNumber}
+                      onChange={(e) => setcompanyData({ ...companydata, alternativeNumber: e.target.value })} />
+                  </div>
+                  <div className='form-group mt-3'>
+                    <label>website</label>
+                    <input className='custom-input' value={companydata.website}
+                      onChange={(e) => setcompanyData({ ...companydata, website: e.target.value })} />
+                  </div>
+                  <div className="form-group mt-3">
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={(e) => handleData(e)}
+                    >
+                      save information
+                    </button>
+                  </div>
+                  <div className="form-group mt-2">
+                    <label>Upload Images </label>
+                    <input
+                      type="file"
+                      className="custom-input mt-3"
+                      onChange={handlePreview}
+                    />
+                  </div>
+                </form>
+              </Container>
             </div>
-            {companydata.name == "" ? null : (
-              <div className="profile-side">
-
-                {selectedImage && (
-                  <div className="-tag">
-                    <label>Logo Preview</label>
-                    <div className="group-label">
-                      <Image src={selectedImage} alt='company logo' width={'500'} height={'300'}
-                      />
-                    </div>
-                  </div>
-                )}
-                <div className="-tag">
-                  <label>company name</label>
-                  <div className="group-label"> {companydata.name}</div>
-                </div>
-
-                {/* email */}
-                <div className="-tag">
-                  <label>email</label>
-                  <div className="group-label"> {companydata.email}</div>
-                </div>
-
-                {/* address */}
-                <div className="-tag">
-                  <label>address</label>
-                  <div className="group-label"> {companydata.address}</div>
-                </div>
-
-                {/* motto && phone number */}
-                <div className="-tag">
-                  <label>motto && phone number</label>
-                  <div className="group-label">
-                    {companydata.motto}
-                    <br />
-                    {companydata.phonenumber}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
           {/* end of form */}
         </div>
