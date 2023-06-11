@@ -70,7 +70,6 @@ export default function ChemistryTable() {
 
   return (
     <div>
-      <hr></hr>
       <table id='custom-table' className='chemistry_print'>
         <thead>
           <tr>

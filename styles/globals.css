@@ -1,81 +1,82 @@
-:root{
-  --sans-serif: "ColfaxAI",helvetica,sans-serif;
-  --monospace: "Roboto Mono",sfmono-regular,consolas,liberation mono,menlo,courier,monospace;
+:root {
+  --sans-serif: 'ColfaxAI', helvetica, sans-serif;
+  --monospace: 'Roboto Mono', sfmono-regular, consolas, liberation mono, menlo,
+    courier, monospace;
   -primary: #10a37f;
-    --primary-50: #ebfaeb;
-    --primary-100: #d2f4d3;
-    --primary-200: #b9eebc;
-    --primary-300: #93e69c;
-    --primary-400: #68de7a;
-    --primary-500: #19c37d;
-    --primary-600: #10a37f;
-    --primary-700: #1a7f64;
-    --primary-800: #1b5d4a;
-    --primary-900: #183d31;
-    --primary-50a: rgba(16,163,127,.2);
-    --primary-100a: rgba(16,163,127,.3);
-    --secondary: #5436da;
-    --secondary-50: #ecebf9;
-    --secondary-100: #d2cff2;
-    --secondary-200: #b9b4ec;
-    --secondary-300: #a198e6;
-    --secondary-400: #897ce2;
-    --secondary-500: #715fde;
-    --secondary-600: #5436da;
-    --secondary-700: #482da8;
-    --secondary-800: #3b2479;
-    --secondary-900: #281852;
-    --secondary-100a: rgba(84,54,218,.3);
-    --green-50: #ebfaeb;
-    --green-100: #d2f4d3;
-    --green-200: #b9eebc;
-    --green-300: #93e69c;
-    --green-400: #68de7a;
-    --green-500: #19c37d;
-    --green-600: #10a37f;
-    --green-700: #1a7f64;
-    --green-800: #1b5d4a;
-    --green-900: #183d31;
-    --green-100a: rgba(16,163,127,.3);
-    --red-50: #fdebeb;
-    --red-100: #f9cfcf;
-    --red-200: #f6b2b3;
-    --red-300: #f49394;
-    --red-400: #f17173;
-    --red-500: #ef4146;
-    --red-600: #c23539;
-    --red-700: #9d2b2e;
-    --red-800: #7b2124;
-    --red-900: #59181a;
-    --red-100a: rgba(239,65,70,.3);
-    --gray-50: #f7f7f8;
-    --gray-100: #ececf1;
-    --gray-200: #d9d9e3;
-    --gray-300: #c5c5d2;
-    --gray-400: #acacbe;
-    --gray-500: #8e8ea0;
-    --gray-600: #6e6e80;
-    --gray-700: #565869;
-    --gray-800: #353740;
-    --gray-900: #202123;
-    --medium-wash: #eff7f8;
-    --bg-color: #fff;
-    --text-primary: #202123;
-    --text-default: #353740;
-    --text-secondary: #6e6e80;
-    --text-disabled: #acacbe;
-    --text-error: #ef4146;
-    --font-size-small: 16px;
-    --input-border: var(--gray-300);
-    --input-border-focus: var(--primary-600);
-    --input-focus-ring: 0px 0px 0px 1px #10a37f;
-    --icon-warning-color: #f4ac36;
-    --heading-margin-top: 30px;
-    --heading-margin-bottom: 16px;
-    --content-width: 760px;
-    --content-v-padding: 40px;
-    --content-h-padding: 56px;
-    --border-radius: 4px;
+  --primary-50: #ebfaeb;
+  --primary-100: #d2f4d3;
+  --primary-200: #b9eebc;
+  --primary-300: #93e69c;
+  --primary-400: #68de7a;
+  --primary-500: #19c37d;
+  --primary-600: #10a37f;
+  --primary-700: #1a7f64;
+  --primary-800: #1b5d4a;
+  --primary-900: #183d31;
+  --primary-50a: rgba(16, 163, 127, 0.2);
+  --primary-100a: rgba(16, 163, 127, 0.3);
+  --secondary: #5436da;
+  --secondary-50: #ecebf9;
+  --secondary-100: #d2cff2;
+  --secondary-200: #b9b4ec;
+  --secondary-300: #a198e6;
+  --secondary-400: #897ce2;
+  --secondary-500: #715fde;
+  --secondary-600: #5436da;
+  --secondary-700: #482da8;
+  --secondary-800: #3b2479;
+  --secondary-900: #281852;
+  --secondary-100a: rgba(84, 54, 218, 0.3);
+  --green-50: #ebfaeb;
+  --green-100: #d2f4d3;
+  --green-200: #b9eebc;
+  --green-300: #93e69c;
+  --green-400: #68de7a;
+  --green-500: #19c37d;
+  --green-600: #10a37f;
+  --green-700: #1a7f64;
+  --green-800: #1b5d4a;
+  --green-900: #183d31;
+  --green-100a: rgba(16, 163, 127, 0.3);
+  --red-50: #fdebeb;
+  --red-100: #f9cfcf;
+  --red-200: #f6b2b3;
+  --red-300: #f49394;
+  --red-400: #f17173;
+  --red-500: #ef4146;
+  --red-600: #c23539;
+  --red-700: #9d2b2e;
+  --red-800: #7b2124;
+  --red-900: #59181a;
+  --red-100a: rgba(239, 65, 70, 0.3);
+  --gray-50: #f7f7f8;
+  --gray-100: #ececf1;
+  --gray-200: #d9d9e3;
+  --gray-300: #c5c5d2;
+  --gray-400: #acacbe;
+  --gray-500: #8e8ea0;
+  --gray-600: #6e6e80;
+  --gray-700: #565869;
+  --gray-800: #353740;
+  --gray-900: #202123;
+  --medium-wash: #eff7f8;
+  --bg-color: #fff;
+  --text-primary: #202123;
+  --text-default: #353740;
+  --text-secondary: #6e6e80;
+  --text-disabled: #acacbe;
+  --text-error: #ef4146;
+  --font-size-small: 16px;
+  --input-border: var(--gray-300);
+  --input-border-focus: var(--primary-600);
+  --input-focus-ring: 0px 0px 0px 1px #10a37f;
+  --icon-warning-color: #f4ac36;
+  --heading-margin-top: 30px;
+  --heading-margin-bottom: 16px;
+  --content-width: 760px;
+  --content-v-padding: 40px;
+  --content-h-padding: 56px;
+  --border-radius: 4px;
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&family=Roboto&display=swap');
@@ -88,7 +89,7 @@
   /* overflow-x: hidden; */
   font-weight: 300;
 }
-.red-border-row{
+.red-border-row {
   border: 1px solid red;
 }
 
@@ -288,7 +289,6 @@
   border-radius: 5px;
   border: 1px solid lightgray;
 }
-
 
 .grid-split {
   display: -ms-grid;
@@ -671,7 +671,6 @@ option:hover {
   }
 }
 
-
 .branches-split {
   margin: 0;
   padding: 0;
@@ -743,7 +742,6 @@ option:hover {
 .try > tbody > tr > td:nth-of-type(7):hover {
   background-color: white !important;
 }
-
 
 /* settings side bar css begins @............................................................................................... */
 .settings-sidebar {
@@ -895,7 +893,6 @@ option:hover {
   padding-left: 10% !important;
 } */
 /*# sourceMappingURL=globals.css.map */
-
 
 @keyframes rejectionclip {
   0% {
@@ -1475,7 +1472,7 @@ option:hover {
   border-collapse: collapse;
 }
 
-#custom-table thead tr{
+#custom-table thead tr {
   width: 100%;
   background-color: #00224f !important;
   color: white;
@@ -2008,7 +2005,7 @@ option:hover {
 .operations-wrapper > aside > div > ul > li:is(:hover) {
   background-color: #00224f;
   color: white;
-} 
+}
 
 #operations-test-collection {
   display: grid;
@@ -2229,8 +2226,6 @@ option:hover {
   /* aanimate it 00 */
 }
 
-
-
 /* ready page  custom css */
 /* ready.module.css */
 
@@ -2298,7 +2293,6 @@ option:hover {
   font-size: 24px;
 }
 
-
 /* end of ready page custom css */
 .profile-side {
   padding: 20px;
@@ -2308,7 +2302,6 @@ option:hover {
 .-tag {
   margin-bottom: 15px;
 }
-
 
 /* Additional styles for specific elements */
 .-tag label {
@@ -2326,7 +2319,7 @@ option:hover {
   color: #00224f;
 }
 
-.company-profile-form{
+.company-profile-form {
   background-color: white;
   margin: 0% 20%;
   padding: 20px;
@@ -2337,7 +2330,7 @@ option:hover {
   border: 2px solid var(--icon-warning-color);
 }
 
-.company-profile-form label  {
+.company-profile-form label {
   color: var(--gray-700);
   font-weight: bold;
   font-size: 18px;
@@ -2354,7 +2347,6 @@ option:hover {
   font-size: 27px;
 }
 
-
 .company-view-result > .wrapper {
   display: block;
 }
@@ -2364,6 +2356,16 @@ option:hover {
   white-space: nowrap;
 }
 
+.company-logo {
+  display: grid;
+  grid-template-columns: 20% auto;
+}
+
+.company-logo > div > .company-name {
+  font-size: 30px;
+  text-transform: uppercase;
+  text-decoration: underline;
+}
 .result_page {
   height: 100vh;
   padding: 1% 20% 0% 20%;
@@ -2372,19 +2374,58 @@ option:hover {
 .result_page > .result {
   display: grid;
   grid-template-columns: 100%;
-  grid-template-rows: 15% auto 15%;
+  grid-template-rows: 10% 11% 11% auto 15%;
+  grid-gap: 5px 0px;
   height: 100%;
+  padding: 20px;
   width: 100%;
   background-color: white;
+  font-family: var(--monospace);
+}
+.result-sampling-details {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.result-sampling-details > .left {
+  margin-right: 10px;
+}
+
+.sampling-result {
+  display: grid;
+  grid-template-columns: 50% auto;
+}
+
+.result-sampling-details > .left,
+.result-sampling-details > .right {
+  text-transform: capitalize;
+  font-size: 15px;
+}
+
+.result-sampling-details > .left {
+  font-weight: 600;
+}
+
+.result-section-header {
+  display: flex;
+  justify-content: center;
+  text-transform: uppercase;
+  font-weight: 500;
+  font-size: 17px;
+  border-bottom: 1px solid black;
 }
 
 
 @media print {
-  .result_page{
+  .result_page {
     padding: 0px;
   }
 
-  .chemistry_print{
-    font-family: var(--sans-serif);
+  .result_page > .result {
+    padding: 0px !important;
+  }
+
+  .company-logo > div > .company-name {
+    font-size: 20px !important;
   }
 }

@@ -4,6 +4,8 @@ import CompanyHeaders from '../../components/ResultView/CompanyHeaders';
 import CompanyFooter from '../../components/ResultView/CompanyFooter';
 import { customFetch } from '../../components/Auth/customFetch';
 import ChemistryTable from '../../components/ResultView/ChemistryTable';
+import SamplingInformationResult from '../../components/ResultView/SamplingInformationResult';
+import PersonalInformation from '../../components/ResultView/PersonalInformation';
 
 export default function RESULT_FOR_PRINTING() {
   const [headers, setHeaders] = useState([])
@@ -27,6 +29,8 @@ export default function RESULT_FOR_PRINTING() {
     <div className='result_page'>
       <div className='result'>
         <CompanyHeaders details={headers} />
+        <PersonalInformation/>
+        <SamplingInformationResult/>
         <ChemistryTable />
         <CompanyFooter details={headers} />
       </div>
