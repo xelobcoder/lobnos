@@ -100,7 +100,7 @@ export default function TestPreview() {
                         onClick={() => handleProocessing(item.testid, item.billingid)}
                         title={item.processing == 'true' ? 'item already procesing hence button disabled' : 'click to start processing sample'}
                       >
-                        start processing
+                        processing
                       </button>
                       <button
                         className={
@@ -109,6 +109,11 @@ export default function TestPreview() {
                         onClick={() => handleResult(item.testid, item.billingid, item.NAME)}>
                         result
                       </button >
+                      {
+                        item.ready == 'true' && (<button className='custom-button' style={{ textTransform: 'lowercase' }}>
+                          preview
+                        </button>)
+                      }
                     </div>
                   )
                 }
