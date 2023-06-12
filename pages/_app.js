@@ -3,6 +3,7 @@ import '../styles/globals.css';
 import '../styles/testpanel.css';
 import '../styles/Frontpageside.css'
 import "../styles/fullblood.css";
+import '../styles/admin.css'
 import Header from '../components/header'
 // import SidebarFrontPage from '../components/frontpagesidebar';
 import { AuthentificationProvider } from '../components/Auth/useAuthentification';

@@ -2374,7 +2374,7 @@ option:hover {
 .result_page > .result {
   display: grid;
   grid-template-columns: 100%;
-  grid-template-rows: 10% 11% 11% auto 15%;
+  grid-template-rows: 10% 11% 11% auto 6%;
   grid-gap: 5px 0px;
   height: 100%;
   padding: 20px;
@@ -2412,6 +2412,10 @@ option:hover {
   text-transform: uppercase;
   font-weight: 500;
   font-size: 17px;
+  border-bottom: 1px solid black;
+}
+
+.result-table-section {
   border-bottom: 1px solid black;
 }
 

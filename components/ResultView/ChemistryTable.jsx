@@ -1,9 +1,9 @@
 import React from 'react'
 
-export default function ChemistryTable({ data }) {
+export default function ChemistryTable({ data = [] }) {
 
   return (
-    <div>
+    <div className='result-table-section'>
       {data.length > 0 && (
         <>
           <table id='custom-table' className='chemistry_print'>
@@ -24,12 +24,13 @@ export default function ChemistryTable({ data }) {
                     <td>{item?.value}</td>
                     <td className='text-lowercase'>{item.unit}</td>
                     <td>{item?.upper} - {item?.lower}</td>
-                    <td>{item.value > item.upper ? 'high' : item.value < item.lower ? 'lower' : 'normal'}</td>
+                    <td>{item.value > item.upper ? 'high' : item.value < item.lower ? 'low' : 'normal'}</td>
                   </tr>
                 )
               })}
             </tbody>
-          </table><div>
+          </table>
+          <div>
             <h4>Comments</h4>
             {data[0]['comments']}
           </div>
