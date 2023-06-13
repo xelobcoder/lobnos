@@ -12,19 +12,12 @@ import {
 export default function CardiacEnzymes({ clientdata }) {
   const [resultEntered, setResultEntered] = useState(false);
   const [formElement, setFormElement] = useState([])
-  const [data, setData] = useState({
-    LDH: "",
-    MYOGLOBIN: "",
-    TROPONIN: "",
-    CK_MB: "",
-    AST: 0,
-    COMMENT: "",
-  });
+  const [data, setData] = useState({});
 
   const handleSubmit = async function () {
     await validateFormData(
       {
-        ...formElement,
+        resultdata : formElement,
         testname: clientdata.test,
         billingid: clientdata.billingid,
         patientid: clientdata.patientid,
@@ -71,7 +64,7 @@ export default function CardiacEnzymes({ clientdata }) {
 
 
 
-  console.log(formElement)
+
 
   useMemo(() => {
     async function getData() {
@@ -85,27 +78,29 @@ export default function CardiacEnzymes({ clientdata }) {
         setResultEntered(true);
         // get the data and set to the data object useState
         const mapped = records.map((item, index) => {
-          return {
-            NAME: item.PARAMETERNAME,
-            VALUE: item.VALUE,
-            COMMENT: item.COMMENTS,
-          };
+          let obj = {};
+          obj.setupid = item.LIVERID;
+          obj.parameter = item.PARAMETER;
+          obj.value = item.VALUE;
+          return obj;
         });
-        // filter values using the parameter
-        function getValue(name) {
-          return mapped.filter((item, index) => {
-            return item.NAME == name;
-          })[0];
-        }
-        // set data
-        setData({
-          LDH: getValue("LDH")?.["VALUE"],
-          MYOGLOBIN: getValue("MYOGLOBIN")?.["VALUE"],
-          TROPONIN: getValue("TROPONIN")?.["VALUE"],
-          CK_MB: getValue("CK_MB")?.["VALUE"],
-          AST: getValue("AST")?.["VALUE"],
-          COMMENT: mapped[0]["COMMENT"],
-        });
+
+        const matchAndSetData = () => {
+          const updatedData = formElement.map((item) => {
+            const matchingItem = mapped.find((bItem) => bItem.parameter=== item.parameter);
+            if (matchingItem) {
+              return {
+                ...item,
+                value: matchingItem.value,
+              };
+            }
+            return item;
+          });
+          setFormElement(updatedData);
+        };
+
+        matchAndSetData()
+
       }
     }
 
