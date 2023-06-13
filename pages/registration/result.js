@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useMemo} from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import CompanyHeaders from '../../components/ResultView/CompanyHeaders';
 import CompanyFooter from '../../components/ResultView/CompanyFooter';
@@ -6,12 +6,14 @@ import { customFetch } from '../../components/Auth/customFetch';
 import ChemistryTable from '../../components/ResultView/ChemistryTable';
 import SamplingInformationResult from '../../components/ResultView/SamplingInformationResult';
 import PersonalInformation from '../../components/ResultView/PersonalInformation';
+import HemaSingle from '../../components/ResultView/HemaSingle';
 
 export default function RESULT_FOR_PRINTING() {
   const [headers, setHeaders] = useState([]);
   const [result, setResult] = useState([]);
   const [sampling, setSampling] = useState([])
-  const { template, testid, test, billingid, category, preview = false } = useRouter().query;
+  const [category,setCategory] = useState(null);
+  const { template, testid, test, billingid, preview = false } = useRouter().query;
   const [errorInDetails, setErrorInDetails] = useState(false);
 
   useEffect(() => {
@@ -29,21 +31,24 @@ export default function RESULT_FOR_PRINTING() {
 
   useMemo(() => {
     async function getData() {
-      const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}`);
-      const { result, sampling } = response;
+      const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}&&category=${category}`);
+      const { result, sampling,testcategory} = response;
       setResult(result);
       setSampling(sampling);
+      setCategory(testcategory)
+      console.log(response)
     }
     getData();
-  }, [billingid, testid, test])
+  }, [billingid, testid, test, category])
 
   return (
     <div className='result_page'>
       <div className='result'>
         <CompanyHeaders details={headers} />
-        <PersonalInformation data={sampling}/>
-        <SamplingInformationResult  data={sampling}/>
-        <ChemistryTable data={result} />
+        <PersonalInformation data={sampling} />
+        <SamplingInformationResult data={sampling} />
+        {category == 'chemistry' && <ChemistryTable data={result} testname={test} />}
+        {category == 'hema' && <HemaSingle  result={result || [] } testname={test}/>}
         <CompanyFooter details={headers} />
       </div>
     </div>

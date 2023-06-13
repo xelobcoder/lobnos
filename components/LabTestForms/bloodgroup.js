@@ -23,7 +23,7 @@ export default function BloodGroup({ clientdata }) {
 
   useEffect(() => {
     const check = async () => {
-      let customSend = await CheckResultEntered('bloodgrouping', client.billingid);
+      let customSend = await CheckResultEntered('blood_grouping', client.billingid);
       const { result, statusCode, records } = customSend;
       if (statusCode == 200 && result == true) {
         if (records.length > 0) {
@@ -46,7 +46,7 @@ export default function BloodGroup({ clientdata }) {
       rhesus,
       remarks,
       bloodgroup: group,
-      testname: 'bloodgrouping',
+      testname: client.test,
       patientid: client.patientid,
       billingid: client.billingid,
       testid: client.testid

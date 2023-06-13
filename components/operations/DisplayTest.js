@@ -26,6 +26,7 @@ import FastingSugar from '../LabTestForms/fastingSugar';
 export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
   console.log(operationsKey)
+  
   const componentsList = {
     aids: <AIDS clientdata={operationsKey} />,
     liver_function_test: <LiverTest clientdata={operationsKey} />,

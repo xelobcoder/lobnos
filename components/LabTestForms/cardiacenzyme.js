@@ -4,12 +4,14 @@ import Indicator from "../accessories/Reports/indicator";
 import CommentSection from "./commentSection";
 import {
   CheckResultEntered,
+  customFetch,
   handleComments,
   validateFormData,
 } from "../Auth/customFetch";
 
 export default function CardiacEnzymes({ clientdata }) {
   const [resultEntered, setResultEntered] = useState(false);
+  const [formElement, setFormElement] = useState([])
   const [data, setData] = useState({
     LDH: "",
     MYOGLOBIN: "",
@@ -22,7 +24,7 @@ export default function CardiacEnzymes({ clientdata }) {
   const handleSubmit = async function () {
     await validateFormData(
       {
-        ...data,
+        ...formElement,
         testname: clientdata.test,
         billingid: clientdata.billingid,
         patientid: clientdata.patientid,
@@ -36,6 +38,40 @@ export default function CardiacEnzymes({ clientdata }) {
       }
     );
   };
+
+
+  useMemo(() => {
+    const getFormElement = async function () {
+      const response = await customFetch('test/setup/chemistry?panelname=CARDIAC_ENZYMES');
+      const { records, status, statusCode } = response;
+      if (status == 'success' && statusCode == 200) {
+        records.length == 0 ?
+          setFormElement([]) :
+          setFormElement(records.map((u, i) => {
+            return { ...u, value: '' }
+          }))
+      }
+    }
+    getFormElement();
+  }, [])
+
+
+  const handleDataChange = (setupid, value) => {
+    const updatedData = formElement.map((item) => {
+      if (item.setupid === setupid) {
+        return {
+          ...item,
+          value: parseInt(value),
+        };
+      }
+      return item;
+    });
+    setFormElement(updatedData);
+  };
+
+
+
+  console.log(formElement)
 
   useMemo(() => {
     async function getData() {
@@ -80,74 +116,32 @@ export default function CardiacEnzymes({ clientdata }) {
       <div className="p-4">
         <div>
           <form>
-            {/* LDH */}
-            <h4>Cardiac Enzymes</h4>
-            <Indicator resultEntered={resultEntered} />
-            <div className="form-group">
-              <TextField
-                sx={{ width: "100%", marginTop: "30px" }}
-                size="small"
-                label="LDH"
-                variant="filled"
-                type="number"
-                value={data.LDH}
-                onChange={(e) => setData({ ...data, LDH: e.target.value })}
-              />
-            </div>
-            {/* MYOGLOBIN */}
-            <div className="form-group">
-              <TextField
-                sx={{ width: "100%", marginTop: "30px" }}
-                size="small"
-                label="MYOGLOBIN"
-                variant="filled"
-                type="number"
-                value={data.MYOGLOBIN}
-                onChange={(e) =>
-                  setData({ ...data, MYOGLOBIN: e.target.value })
-                }
-              />
-            </div>
-            {/* TROPONIN */}
-            <div className="form-group">
-              <TextField
-                sx={{ width: "100%", marginTop: "30px" }}
-                size="small"
-                label="TROPONIN"
-                variant="filled"
-                type="number"
-                value={data.TROPONIN}
-                onChange={(e) => setData({ ...data, TROPONIN: e.target.value })}
-              />
-            </div>
-            {/* CK_MB */}
-            <div className="form-group">
-              <TextField
-                sx={{ width: "100%", marginTop: "30px" }}
-                size="small"
-                label="CK_MB"
-                variant="filled"
-                type="number"
-                value={data.CK_MB}
-                onChange={(e) => setData({ ...data, CK_MB: e.target.value })}
-              />
-            </div>
-            {/* AST */}
-            <div className="form-group">
-              <TextField
-                sx={{ width: "100%", marginTop: "30px" }}
-                size="small"
-                label="AST"
-                variant="filled"
-                type="number"
-                value={data.AST}
-                onChange={(e) => setData({ ...data, AST: e.target.value })}
-              />
-            </div>
-            {/* comment */}
-            {/* <div className="form-group mt-3">
-        <textarea className="form-control" value={data.comment} onChange={(e) => setData({ ...data, comment: e.target.value })} placeholder="comment"></textarea>
-        </div> */}
+            <form>
+              {/* LDH */}
+              <h4>Cardiac Enzymes</h4>
+              <Indicator resultEntered={resultEntered} />
+
+              {formElement.map((item, index) => (
+                <div className="form-group" key={item.setupid}>
+                  <TextField
+                    sx={{ width: "100%", marginTop: "30px" }}
+                    size="small"
+                    label={item.parameter}
+                    variant="filled"
+                    type="number"
+                    value={item.value}
+                    onChange={(e) => handleDataChange(item.setupid, e.target.value)}
+                  />
+                  <span style={{ color: 'blue' }}>  Reference Range {item.upper} - {item.lower}</span>
+                  {item.value < item.lower && (
+                    <p style={{ color: "red" }}>{`${item.parameter} is below the lower limit.`}</p>
+                  )} <br></br>
+                  {item.value > item.upper && (
+                    <p style={{ color: "red" }}>{`${item.parameter} is above the upper limit.`}</p>
+                  )}
+                </div>
+              ))}
+            </form>
             <CommentSection
               getcomment={handleComments}
               target={"COMMENT"}
