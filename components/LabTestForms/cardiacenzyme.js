@@ -80,6 +80,7 @@ export default function CardiacEnzymes({ clientdata }) {
         const matchAndSetData = async () => {
           const response = await customFetch('test/setup/chemistry?panelname=CARDIAC_ENZYMES');
           const { records, status, statusCode } = response;
+          console.log(mapped, records)
           if (status == 'success' && statusCode == 200) {
             if (records.length != 0 && mapped.length != 0) {
               const updatedData = records.map((item) => {
@@ -99,6 +100,14 @@ export default function CardiacEnzymes({ clientdata }) {
 
         matchAndSetData()
       }
+      else {
+        async function getData() {
+          const response = await customFetch('test/setup/chemistry?panelname=CARDIAC_ENZYMES');
+          const { records, status, statusCode } = response;
+          setFormElement(records);
+        }
+        getData();
+      }
     }
 
     getData();
@@ -115,39 +124,36 @@ export default function CardiacEnzymes({ clientdata }) {
     getComment();
   }, [])
 
-  console.log(formElement)
+
 
   return (
     <>
-      <div className="p-4">
+      <div className="p-2">
         <div>
           <form>
-            <form>
-              {/* LDH */}
-              <h4>Cardiac Enzymes</h4>
-              <Indicator resultEntered={resultEntered} />
+            {/* LDH */}
+            <h5>Cardiac Enzymes</h5>
+            <Indicator resultEntered={resultEntered} />
 
-              {formElement.map((item, index) => (
-                <div className="form-group" key={item.setupid}>
-                  <TextField
-                    sx={{ width: "100%", marginTop: "30px" }}
-                    size="small"
-                    label={item.parameter}
-                    variant="filled"
-                    type="number"
-                    value={item.value}
-                    onChange={(e) => handleDataChange(item.setupid, e.target.value)}
-                  />
-                  <span style={{ color: 'blue' }}>  Reference Range {item.upper} - {item.lower}</span>
-                  {item.value < item.lower && (
-                    <p style={{ color: "red" }}>{`${item.parameter} is below the lower limit.`}</p>
-                  )} <br></br>
-                  {item.value > item.upper && (
-                    <p style={{ color: "red" }}>{`${item.parameter} is above the upper limit.`}</p>
-                  )}
-                </div>
-              ))}
-            </form>
+            {formElement.map((item, index) => (
+              <div className="form-group" key={item.setupid}>
+                <input
+                  style={{ width: "100%", marginTop: "30px" }}
+                  size="small"
+                  label={item.parameter}
+                  // variant="standard"
+                  type="number"
+                  className="custom-input"
+                  value={item.value}
+                  onChange={(e) =>
+                    handleDataChange(item.setupid, e.target.value)
+                  }
+                />
+                <span style={{ color: "blue" }}>
+                  Reference Range {item.upper} - {item.lower}
+                </span>
+              </div>
+            ))}
             <CommentSection
               getcomment={handleComments}
               target={"COMMENT"}

@@ -75,7 +75,6 @@ export default function TestPreview() {
     updateOperations({ ...operationsKey, testid, billingid, display: true, test: testname })
   }
 
-  console.log('-----', operationsKey)
   return (
     <>
       <Suspense fallback={<div>loading...................</div>}>
