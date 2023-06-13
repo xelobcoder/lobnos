@@ -27,7 +27,9 @@ export default function CardiacEnzymes({ clientdata }) {
       [],
       "test/result/enter",
       function (response) {
-        console.log(response);
+        if(response?.statusCode ==  200 && response?.status == 'success') {
+          alert(response?.message)
+        }
       }
     );
   };
@@ -66,7 +68,7 @@ export default function CardiacEnzymes({ clientdata }) {
 
 
 
-  useMemo(() => {
+  useEffect(() => {
     async function getData() {
       let response = await CheckResultEntered(
         "cardiac_enzymes",
@@ -86,17 +88,19 @@ export default function CardiacEnzymes({ clientdata }) {
         });
 
         const matchAndSetData = () => {
-          const updatedData = formElement.map((item) => {
-            const matchingItem = mapped.find((bItem) => bItem.parameter=== item.parameter);
-            if (matchingItem) {
-              return {
-                ...item,
-                value: matchingItem.value,
-              };
-            }
-            return item;
-          });
-          setFormElement(updatedData);
+          if(formElement.length != 0 && mapped.length !=0) {
+            const updatedData = formElement.map((item) => {
+              const matchingItem = mapped.find((bItem) => bItem.parameter=== item.parameter);
+              if (matchingItem) {
+                return {
+                  ...item,
+                  value: matchingItem.value,
+                };
+              }
+              return item;
+            });
+            setFormElement(updatedData);
+          }
         };
 
         matchAndSetData()
@@ -105,7 +109,7 @@ export default function CardiacEnzymes({ clientdata }) {
     }
 
     getData();
-  }, [clientdata.billingid]);
+  }, [clientdata.billingid,formElement]);
   return (
     <>
       <div className="p-4">
