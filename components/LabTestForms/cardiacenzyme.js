@@ -11,23 +11,24 @@ import {
 
 export default function CardiacEnzymes({ clientdata }) {
   const [resultEntered, setResultEntered] = useState(false);
-  const [formElement, setFormElement] = useState([])
-  const [data, setData] = useState({});
+  const [formElement, setFormElement] = useState([]);
+  const [comment, setComment] = useState({ COMMENT: '' })
 
   const handleSubmit = async function () {
     await validateFormData(
       {
-        resultdata : formElement,
+        resultdata: formElement,
         testname: clientdata.test,
         billingid: clientdata.billingid,
         patientid: clientdata.patientid,
         testid: clientdata.testid,
+        comment: comment.COMMENT
       },
       true,
       [],
       "test/result/enter",
       function (response) {
-        if(response?.statusCode ==  200 && response?.status == 'success') {
+        if (response?.statusCode == 200 && response?.status == 'success') {
           alert(response?.message)
         }
       }
@@ -35,20 +36,7 @@ export default function CardiacEnzymes({ clientdata }) {
   };
 
 
-  useMemo(() => {
-    const getFormElement = async function () {
-      const response = await customFetch('test/setup/chemistry?panelname=CARDIAC_ENZYMES');
-      const { records, status, statusCode } = response;
-      if (status == 'success' && statusCode == 200) {
-        records.length == 0 ?
-          setFormElement([]) :
-          setFormElement(records.map((u, i) => {
-            return { ...u, value: '' }
-          }))
-      }
-    }
-    getFormElement();
-  }, [])
+
 
 
   const handleDataChange = (setupid, value) => {
@@ -68,12 +56,13 @@ export default function CardiacEnzymes({ clientdata }) {
 
 
 
-  useEffect(() => {
+  useMemo(() => {
     async function getData() {
       let response = await CheckResultEntered(
         "cardiac_enzymes",
         clientdata.billingid
       );
+
       const { message, statusCode, result, records } = response;
 
       if (result == true) {
@@ -87,29 +76,47 @@ export default function CardiacEnzymes({ clientdata }) {
           return obj;
         });
 
-        const matchAndSetData = () => {
-          if(formElement.length != 0 && mapped.length !=0) {
-            const updatedData = formElement.map((item) => {
-              const matchingItem = mapped.find((bItem) => bItem.parameter=== item.parameter);
-              if (matchingItem) {
-                return {
-                  ...item,
-                  value: matchingItem.value,
-                };
-              }
-              return item;
-            });
-            setFormElement(updatedData);
+
+        const matchAndSetData = async () => {
+          const response = await customFetch('test/setup/chemistry?panelname=CARDIAC_ENZYMES');
+          const { records, status, statusCode } = response;
+          if (status == 'success' && statusCode == 200) {
+            if (records.length != 0 && mapped.length != 0) {
+              const updatedData = records.map((item) => {
+                const matchingItem = mapped.find((bItem) => bItem.parameter === item.parameter);
+                if (matchingItem) {
+                  return {
+                    ...item,
+                    value: matchingItem.value,
+                  };
+                }
+                return item;
+              });
+              setFormElement(updatedData);
+            }
           }
         };
 
         matchAndSetData()
-
       }
     }
 
     getData();
-  }, [clientdata.billingid,formElement]);
+  }, [clientdata.billingid]);
+
+  useEffect(() => {
+    async function getComment() {
+      const getComment = await customFetch(`result/preview/comments?billingid=${clientdata.billingid}&&testid=${clientdata.testid}`);
+      if (getComment.length > 0) {
+        const { comments } = getComment[0];
+        setComment({ COMMENT: comments })
+      }
+    }
+    getComment();
+  }, [])
+
+  console.log(formElement)
+
   return (
     <>
       <div className="p-4">
@@ -144,9 +151,9 @@ export default function CardiacEnzymes({ clientdata }) {
             <CommentSection
               getcomment={handleComments}
               target={"COMMENT"}
-              datasource={data}
-              datafunction={setData}
-              value={data.COMMENT}
+              datasource={comment}
+              datafunction={setComment}
+              value={comment.COMMENT}
             />
             {/* save result */}
             <div className="form-group">
