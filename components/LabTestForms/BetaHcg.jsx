@@ -9,7 +9,7 @@ import {
   validateFormData,
 } from "../Auth/customFetch";
 export default function BetaHcg({ clientdata }) {
-  const [data, setData] = useState({ value: "", unit: "", comments: '' });
+  const [data, setData] = useState({ value: "", unit: "", comments: "" });
   const [resultEntered, setResultEntered] = useState(true);
   const [reference, setReference] = useState([]);
 
@@ -28,12 +28,12 @@ export default function BetaHcg({ clientdata }) {
         if (checkresult?.result == true) {
           const { records } = checkresult;
           const nv = {
-            value: records[0]['VALUE'],
-            unit: records[0]['UNIT'],
-            comments: records[0]['COMMENTS']
-          }
+            value: records[0]["VALUE"],
+            unit: records[0]["UNIT"],
+            comments: records[0]["COMMENTS"],
+          };
 
-          setData(nv)
+          setData(nv);
         }
       } catch (err) {
         console.log(err);
@@ -41,7 +41,6 @@ export default function BetaHcg({ clientdata }) {
     }
     getData();
   }, []);
-
 
   // enter result
 
@@ -59,7 +58,7 @@ export default function BetaHcg({ clientdata }) {
       "test/result/enter",
       function (response) {
         const { status, message } = response;
-        alert(message)
+        alert(message);
       }
     );
   };
@@ -114,8 +113,19 @@ export default function BetaHcg({ clientdata }) {
               </tbody>
             </table>
           </form>
-          <CommentSection getcomment={handleComments} datasource={data} datafunction={setData} value={data.comments} target={'comments'} />
-          <Button variant='contained' className="mt-3" color='primary' onClick={handleResult}>
+          <CommentSection
+            getcomment={handleComments}
+            datasource={data}
+            datafunction={setData}
+            value={data.comments}
+            target={"comments"}
+          />
+          <Button
+            variant="contained"
+            className="mt-3"
+            color="primary"
+            onClick={handleResult}
+          >
             save changes
           </Button>
         </div>

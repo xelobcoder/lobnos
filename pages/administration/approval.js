@@ -32,8 +32,12 @@ export default function Approval() {
 
 
   const navigation = function (testid, billingid, test,category) {
+    // replace all space with _
     let testname = (test.replace(/\s/g, '_').toLowerCase());
-    window.open(`/registration/result?billingid=${billingid}&&testid=${testid}&&test=${testname}`);
+    // format test to match pregnacy_test for pregnancy test
+    const formattedTestName = testname === "pregnancy_test(urine)"  ? "pregnancy_test" : testname;
+
+    window.open(`/registration/result?billingid=${billingid}&&testid=${testid}&&test=${formattedTestName}`);
   }
 
   return (

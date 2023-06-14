@@ -134,14 +134,13 @@ export default function CardiacEnzymes({ clientdata }) {
             {/* LDH */}
             <h5>Cardiac Enzymes</h5>
             <Indicator resultEntered={resultEntered} />
-
             {formElement.map((item, index) => (
               <div className="form-group" key={item.setupid}>
                 <input
                   style={{ width: "100%", marginTop: "30px" }}
                   size="small"
                   label={item.parameter}
-                  // variant="standard"
+                  variant="standard"
                   type="number"
                   className="custom-input"
                   value={item.value}

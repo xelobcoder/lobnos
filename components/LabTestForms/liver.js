@@ -50,7 +50,7 @@ export default function LiverTest({ clientdata }) {
   };
 
   const handleResult = async (e) => {
-    const formdata = { testname: 'liverfunctiontest', patientid, testid, billingid, comments: comments.comments, records: [...data] }
+    const formdata = { testname: test, patientid, testid, billingid, comments: comments.comments, records: [...data] }
     await validateFormData(formdata, true, [], 'test/result/enter', handleResponse)
   }
 

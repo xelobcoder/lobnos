@@ -1,28 +1,24 @@
-import React from 'react'
+import React from 'react';
+import Malaria from '../ResutlUI/Malaria';
+import BloodGrouping from '../ResutlUI/BloodGrouping';
+import PregnancyTestUI from '../ResutlUI/PregnancyTestUI';
+import UrinalysisUI from '../ResutlUI/UrinalysisUI';
+import HepatitisBProfileUI from '../ResutlUI/HepatitisBProfile';
 
 export default function HemaSingle({ result, testname }) {
+
+
+  const testTemplates = {
+    malaria: <Malaria result={result} testname={testname} />,
+    blood_grouping: <BloodGrouping result={result} testname={testname} />,
+    pregnancy_test: <PregnancyTestUI result={result} testname={testname} />,
+    urinalysis: <UrinalysisUI result={result} testname={testname} />,
+    hepatitis_b_profile: <HepatitisBProfileUI result={result} testname={testname} />
+  };
+
   return (
-    <div>
-      {result.length > 0 && (
-        <table className='table mt-5'>
-          <thead className='table-dark text-uppercase p-0'>
-            <tr>
-              <th>test name</th>
-              <th>result</th>
-              <th>flag</th>
-              <th>species</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{testname}</td>
-              <td>{result[0]?.['PARASITENUMBER']} parasites</td>
-              <td></td>
-              <td>{result[0]?.['SPECIES']}</td>
-            </tr>
-          </tbody>
-        </table>
-      )}
-    </div>
-  )
+    <>
+      {testTemplates[testname]}
+    </>
+  );
 }
