@@ -13,7 +13,7 @@ export default function LiverTest({ clientdata }) {
   useMemo(async () => {
     try {
       const response = await customFetch('test/setup/chemistry?panelname=LIVER_SETUP');
-      const check = await CheckResultEntered('liverfunctiontest', billingid);
+      const check = await CheckResultEntered('liver_function_test', billingid);
       const { records } = response;
       // Transform data and add value key to each object 
       const transformedData = records.map(item => ({ ...item, value: 0 }));

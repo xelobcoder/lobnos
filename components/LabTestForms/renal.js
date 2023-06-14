@@ -1,11 +1,14 @@
 import { Button } from "@mui/material";
 import { useMemo, useState } from "react";
-import { customFetch, handleComments, handleResponse, validateFormData } from "../Auth/customFetch";
+import { CheckResultEntered, customFetch, handleComments, handleResponse, validateFormData } from "../Auth/customFetch";
 import CommentSection from "./commentSection";
+import Indicator from "../accessories/Reports/indicator";
 
 export default function RenalResults({ clientdata }) {
+  const { billingid, test, testid, patientid } = clientdata;
   const [setup, setSetup] = useState([]);
   const [data, setData] = useState([]);
+  const [resultEntered, setResultEntered] = useState(false);
   const [comments, setComments] = useState({ comments: '' });
 
   useMemo(async () => {
@@ -14,11 +17,40 @@ export default function RenalResults({ clientdata }) {
       const { records } = response;
       setSetup(records);
       setData(records.map((item, index) => { return { ...item, value: '' } }))
+
+      const hasBeenEntered = await CheckResultEntered(test, billingid);
+
+      if (hasBeenEntered?.result == true) {
+        setResultEntered(true)
+        const { result, statusCode, message, records } = hasBeenEntered;
+        setData(records.map((item, index) => {
+          // modify the data to lowercase to fit to the useState nature 
+          let obj = {};
+          Object.entries(item).forEach((s, i) => {
+            const [key, value] = s;
+            obj[key.toLowerCase()] = value;
+          })
+          // filter from setup data and get lower and upper values as reference range
+          const filteredPanels = setup.find((item, index) => {
+            return item.parameter == obj.parameter;
+          })
+          obj.upper = filteredPanels.upper;
+          obj.lower = filteredPanels.lower;
+          // return the object
+          return obj;
+        }))
+
+      }
+      // get comments from this api
+      const getcomments = await customFetch(`result/preview/comments?billingid=${billingid}&&testid=${testid}`);
+      getcomments.length != 0 && setComments({ comments: getcomments[0]?.comments })
     }
     catch (err) {
       console.log(err)
     }
   }, []);
+
+  console.log(setup)
 
   const handleChange = (name, value) => {
     // Update the value in the setup state
@@ -34,15 +66,14 @@ export default function RenalResults({ clientdata }) {
 
 
   const saveResult = async function () {
-    const { billingid, testid, test, patientid } = clientdata;
     const forwardingData = {
-      testname:test,
+      testname: test,
       testid,
       patientid,
       billingid, records: data,
       comments: comments.comments
     }
-   await  validateFormData(forwardingData,true,[],'test/result/enter',handleResponse)
+    await validateFormData(forwardingData, true, [], 'test/result/enter', handleResponse)
   }
 
   return (
@@ -50,6 +81,7 @@ export default function RenalResults({ clientdata }) {
       <div className="continue-scroll p-4">
         <div>
           <h5>Renal Function Test </h5>
+          <Indicator resultEntered={resultEntered} />
           <form className="bg-white">
             <table id="entry-table-chemistry">
               <thead>
@@ -88,7 +120,7 @@ export default function RenalResults({ clientdata }) {
             getcomment={handleComments}
             datasource={comments}
             datafunction={setComments}
-            target= {'comments'}
+            target={'comments'}
             value={comments.comments}
           />
           <Button variant="contained" color="primary" onClick={saveResult}>
