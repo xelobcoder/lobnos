@@ -1,5 +1,5 @@
 import { Button } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CheckResultEntered, customFetch, handleComments, handleResponse, validateFormData } from "../Auth/customFetch";
 import CommentSection from "./commentSection";
 import Indicator from "../accessories/Reports/indicator";
@@ -11,46 +11,53 @@ export default function RenalResults({ clientdata }) {
   const [resultEntered, setResultEntered] = useState(false);
   const [comments, setComments] = useState({ comments: '' });
 
-  useMemo(async () => {
-    try {
-      const response = await customFetch("test/setup/chemistry?panelname=RENAL_SETUP");
-      const { records } = response;
-      setSetup(records);
-      setData(records.map((item, index) => { return { ...item, value: '' } }))
+  useEffect(() => {
+    const getData = async function () {
+      try {
+        const hasBeenEntered = await CheckResultEntered(test, billingid);
 
-      const hasBeenEntered = await CheckResultEntered(test, billingid);
 
-      if (hasBeenEntered?.result == true) {
-        setResultEntered(true)
-        const { result, statusCode, message, records } = hasBeenEntered;
-        setData(records.map((item, index) => {
-          // modify the data to lowercase to fit to the useState nature 
-          let obj = {};
-          Object.entries(item).forEach((s, i) => {
-            const [key, value] = s;
-            obj[key.toLowerCase()] = value;
+        const response = await customFetch("test/setup/chemistry?panelname=RENAL_SETUP");
+        const { records } = response;
+        setSetup(records.map((item, index) => { return { ...item, value: '' } }))
+
+        if (hasBeenEntered?.result == true && setSetup.length > 0) {
+          setResultEntered(true)
+          const { result, statusCode, message, records } = hasBeenEntered;
+          const finalizedData = records.map((item, index) => {
+            // modify the data to lowercase to fit to the useState nature 
+            let obj = {};
+            Object.entries(item).forEach((s, i) => {
+              const [key, value] = s;
+              obj[key.toLowerCase()] = value;
+            })
+            // filter from setup data and get lower and upper values as reference range
+            const filteredPanels = setup.find((item, index) => {
+              return item.parameter == obj.parameter;
+            })
+
+            obj['upper'] = filteredPanels?.upper;
+            obj['lower'] = filteredPanels?.lower;
+            // return the object
+            return obj;
           })
-          // filter from setup data and get lower and upper values as reference range
-          const filteredPanels = setup.find((item, index) => {
-            return item.parameter == obj.parameter;
-          })
-          obj.upper = filteredPanels.upper;
-          obj.lower = filteredPanels.lower;
-          // return the object
-          return obj;
-        }))
-
+          setData(finalizedData)
+        }
+        else {
+          setData([...setup])
+        }
+        // get comments from this api
+        const getcomments = await customFetch(`result/preview/comments?billingid=${billingid}&&testid=${testid}`);
+        getcomments.length != 0 && setComments({ comments: getcomments[0]?.comments })
       }
-      // get comments from this api
-      const getcomments = await customFetch(`result/preview/comments?billingid=${billingid}&&testid=${testid}`);
-      getcomments.length != 0 && setComments({ comments: getcomments[0]?.comments })
+      catch (err) {
+        console.log(err)
+      }
     }
-    catch (err) {
-      console.log(err)
-    }
+    getData()
   }, []);
 
-  console.log(setup)
+  console.log(data)
 
   const handleChange = (name, value) => {
     // Update the value in the setup state

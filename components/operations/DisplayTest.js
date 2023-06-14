@@ -22,6 +22,7 @@ import Image from 'next/image';
 import { Button } from '@mui/material';
 import RandomBloodSugar from '../LabTestForms/randomsugar';
 import FastingSugar from '../LabTestForms/fastingSugar';
+import FullBloodCountEntry from '../LabTestForms/FullBloodCountEntry';
 
 export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
@@ -47,7 +48,8 @@ export default function DisplayTest() {
     thyroid_functional_test: <ThyroidTest clientdata={operationsKey} />,
     betahcg: <BetaHcg clientdata={operationsKey} />,
     random_blood_sugar: <RandomBloodSugar clientdata={operationsKey} type={'random blood sugar'}/>,
-    fasting_blood_sugar: <FastingSugar clientdata={operationsKey} type={'fasting blood sugar'}/>
+    fasting_blood_sugar: <FastingSugar clientdata={operationsKey} type={'fasting blood sugar'}/>,
+    full_blood_count: <FullBloodCountEntry clientdata={operationsKey}/>
   }
   return (
     <div>
