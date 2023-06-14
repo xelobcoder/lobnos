@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@mui/material';
-import { customFetch, handleComments, handleResponse, validateFormData,CheckResultEntered } from '../Auth/customFetch';
+import { customFetch, handleComments, handleResponse, validateFormData, CheckResultEntered } from '../Auth/customFetch';
 import CommentSection from './commentSection';
 import Indicator from '../accessories/Reports/indicator';
 
@@ -11,12 +11,14 @@ export default function FullBloodCountEntry({ clientdata }) {
   const [resultEntered, setResultEntered] = useState(false);
   const [comments, setComments] = useState({ comments: '' });
 
+
   useState(async () => {
     try {
-      const response = await customFetch('test/setup/fbc');
-      const { records } = response;
-      setSetup(records);
-      setData(records.map((item, index) => ({ ...item, value: '' })));
+      const setupdataResponse = await customFetch(`test/setup/fbc?patientid=${patientid}&&category=filling`);
+      const converted = setupdataResponse.map((item, index) => {
+        return convertKeysToLowerCase(item)
+      })
+      setSetup(converted);
 
       const hasBeenEntered = await CheckResultEntered(test, billingid);
 
@@ -29,11 +31,14 @@ export default function FullBloodCountEntry({ clientdata }) {
             const [key, value] = s;
             obj[key.toLowerCase()] = value;
           });
-          const filteredPanels = setup.find((item, index) => item.parameter === obj.parameter);
-          obj.upper = filteredPanels.upper;
-          obj.lower = filteredPanels.lower;
+          const filteredPanels = converted.find((item, index) => item.parameter === obj.parameter);
+          
+          obj.upper = filteredPanels?.upper;
+          obj.lower = filteredPanels?.lower;
           return obj;
         }));
+      } else {
+        setData(converted);
       }
 
       const getcomments = await customFetch(`result/preview/comments?billingid=${billingid}&&testid=${testid}`);
@@ -44,6 +49,17 @@ export default function FullBloodCountEntry({ clientdata }) {
       console.log(err);
     }
   }, []);
+
+
+
+  function convertKeysToLowerCase(obj) {
+    const convertedObj = {};
+    for (const key in obj) {
+      convertedObj[key.toLowerCase()] = obj[key];
+    }
+    convertedObj.value = '';
+    return convertedObj;
+  }
 
   const handleChange = (name, value) => {
     const updatedSetup = data.map((item) => {
@@ -68,6 +84,7 @@ export default function FullBloodCountEntry({ clientdata }) {
 
     await validateFormData(forwardingData, true, [], 'test/result/enter', handleResponse);
   };
+
 
   return (
     <div className="continue-scroll p-4">
