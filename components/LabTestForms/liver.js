@@ -5,7 +5,7 @@ import CommentSection from './commentSection'
 import Indicator from "../accessories/Reports/indicator";
 
 export default function LiverTest({ clientdata }) {
-  const { testid, billingid, patientid } = clientdata;
+  const { testid, billingid, patientid ,test} = clientdata;
   const [data, setData] = useState([]);
   const [resultEntered, setResultEntered] = useState(false);
   const [comments, setComments] = useState({ comments: 'Hero is a rant' })

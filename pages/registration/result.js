@@ -29,7 +29,7 @@ export default function RESULT_FOR_PRINTING() {
   }, [])
 
 
-  useMemo(() => {
+  useEffect(() => {
     async function getData() {
       const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}&&category=${category}`);
       const { result, sampling,testcategory} = response;

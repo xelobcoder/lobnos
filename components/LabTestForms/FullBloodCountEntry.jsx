@@ -22,9 +22,9 @@ export default function FullBloodCountEntry({ clientdata }) {
 
       const hasBeenEntered = await CheckResultEntered(test, billingid);
 
-      if (hasBeenEntered?.result === true) {
+      if (hasBeenEntered?.result === true && hasBeenEntered.statusCode == 200) {
         setResultEntered(true);
-        const { result, statusCode, message, records } = hasBeenEntered;
+        const { records } = hasBeenEntered;
         setData(records.map((item, index) => {
           let obj = {};
           Object.entries(item).forEach((s, i) => {
@@ -32,7 +32,6 @@ export default function FullBloodCountEntry({ clientdata }) {
             obj[key.toLowerCase()] = value;
           });
           const filteredPanels = converted.find((item, index) => item.parameter === obj.parameter);
-          
           obj.upper = filteredPanels?.upper;
           obj.lower = filteredPanels?.lower;
           return obj;
