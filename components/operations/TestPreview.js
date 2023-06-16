@@ -1,6 +1,6 @@
 import React, { useContext, useMemo, useState } from 'react';
 import OperationsContext from './OperationsContext';
-import { customFetch } from '../Auth/customFetch';
+import { customFetch, customPost } from '../Auth/customFetch';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { Suspense } from 'react';
 import { Button } from '@mui/material'
@@ -15,7 +15,6 @@ export default function TestPreview() {
 
   // use thr billing id of operationsKey to fetch the data from the server
   // and display it in the preview section
-
 
   const getPreview = async function () {
     const billingid = operationsKey?.billingid;
@@ -39,22 +38,11 @@ export default function TestPreview() {
   const handleProocessing = async function (testid, billingid) {
     try {
       // update the test have started process and bring back data to be replaced in the datapool
-      const started = await (
-        await fetch(
-          `${process.env.BASEURL}/operations/test?testid=${testid}&billingid=${billingid}`,
-          {
-            method: "PUT",
-            headers: {
-              "content-type": "application/json",
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
-            },
-          }
-        )
-      ).json();
+      const started = await customPost(`operations/test?testid=${testid}&billingid=${billingid}`, 'PUT', {})
 
-      const { result, status } = started;
+      const { message, statusCode } = started;
 
-      if (status == 400) {
+      if (statusCode !== 200 && message == 'success') {
         alert("failed to start processing update");
       }
     } catch (err) {
