@@ -44,7 +44,7 @@ export default function RenalResults({ clientdata }) {
           setData(finalizedData)
         }
         else {
-          setData([...setup])
+          setData(records)
         }
         // get comments from this api
         const getcomments = await customFetch(`result/preview/comments?billingid=${billingid}&&testid=${testid}`);
@@ -57,7 +57,6 @@ export default function RenalResults({ clientdata }) {
     getData()
   }, []);
 
-  console.log(data)
 
   const handleChange = (name, value) => {
     // Update the value in the setup state
