@@ -101,10 +101,24 @@ export async function handleComments(e, stateVariable, target, datafunction) {
 }
 
 
-export async function handleResponse (response) {
-  const {status, message, statusCode} = response;
+export async function handleResponse(response) {
+  const { status, message, statusCode } = response;
 
   if (status == 'success') {
     alert(message);
+  }
+}
+
+
+
+export const readyToPrint = async function (billingid, testid) {
+  const isApproved = await customPost('test/result/preview/approved/check', 'POST', { billingid, testid })
+  const { approved } = isApproved;
+  if (approved) {
+    window.print();
+  } else {
+    alert('Test not approved. Printing cannot be done.')
+    window.document.body.style.display = 'none';
+    window.close()
   }
 }

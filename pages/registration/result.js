@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import CompanyHeaders from '../../components/ResultView/CompanyHeaders';
 import CompanyFooter from '../../components/ResultView/CompanyFooter';
-import { customFetch, customPost } from '../../components/Auth/customFetch';
+import { customFetch, readyToPrint } from '../../components/Auth/customFetch';
 import ChemistryTable from '../../components/ResultView/ChemistryTable';
 import SamplingInformationResult from '../../components/ResultView/SamplingInformationResult';
 import PersonalInformation from '../../components/ResultView/PersonalInformation';
@@ -48,11 +48,22 @@ export default function RESULT_FOR_PRINTING() {
     }
   }, [billingid, category, test, testid])
 
+  useEffect(() => {
+    const handleKeyPress = async function (event) {
+      if (event.ctrlKey && event.key === 'p') {
+        await readyToPrint(billingid, testid);
+      }
+    };
 
-  const readyToPrint = async function() {
-     const isApproved = customPost('test/result/preview/approved/check', 'POST',{billingid,testid})
-     console.log(isApproved)
-  }
+    document.addEventListener('keydown', handleKeyPress);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  })
+
+
+
 
   return (
     <div className='result_page'>
@@ -65,9 +76,9 @@ export default function RESULT_FOR_PRINTING() {
         <CompanyFooter details={headers} />
       </div>
       <div className='print-section'>
-        <Button 
-         sx={{position:'absolute', top:'10%',left:'10%'}}
-        variant='outlined' color='success' onClick={readyToPrint}>
+        <Button
+          sx={{ position: 'absolute', top: '10%', left: '10%' }}
+          variant='contained' size='large' color='success' onClick={() => readyToPrint(billingid, testid)}>
           print
         </Button>
       </div>
