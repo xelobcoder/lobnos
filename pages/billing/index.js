@@ -9,7 +9,37 @@ import SendIcon from "@mui/icons-material/Send";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import { customFetch, customPost } from "../../components/Auth/customFetch";
 
-export default function Billing({ allpanels, organization, clinicians, branch, paymentmode }) {
+export default function Billing({ }) {
+  const [allpanels, setAllpanels] = useState([]);
+  const [organization, setOrganization] = useState([]);
+  const [clinicians, setClinicians] = useState([]);
+  const [branch, setBranch] = useState([]);
+  const [paymentmode, setPaymentMode] = useState([])
+
+  useEffect(() => {
+    const check = async function () {
+      let data = await customFetch('testpanel/list')
+      const organization = await customFetch('organization');
+      const clinician = await customFetch('clinicians')
+      const branch = await customFetch('center');
+      const paymentModes = await customFetch('paymentmodes');
+
+      setAllpanels(data?.data || []);
+      setOrganization(organization || []);
+      setClinicians(clinician || []);
+      setBranch(branch || []);
+      setPaymentMode(paymentModes?.data || [])
+    }
+    try {
+      check();
+    } catch (err) {
+      // Display a message to the user.
+      alert(err.message);
+    }
+  }, [])
+
+
+
   const router = useRouter().query.patientid;
   const navigate = useRouter();
   const [testoptions, setTestoptions] = useState(allpanels);
@@ -111,8 +141,21 @@ export default function Billing({ allpanels, organization, clinicians, branch, p
     let refinedData = { ...data, organizations: organizationID, clinicians: clinicianID, paid: parseInt(data.paid) }
 
     try {
-      const pushResponse = await customPost('billing', 'POST', refinedData)
-      console.log(pushResponse)
+      const pushResponse = await customPost('billing', 'POST', refinedData);
+
+      const { statusCode, status } = pushResponse;
+
+      if (statusCode == 200 && status == "success") {
+        // displayt message to user
+        alert('client billed successfully')
+        // empty test array or cart and set default data 
+        setData(defaultData);
+        setTestArray([]);
+        // navigate to activatio page
+        navigate.push('/activation')
+      } else {
+        alert('something failed!!!!. Ensure all data filled in correctly')
+      }
     } catch (err) {
       console.log(err)
     }
@@ -218,7 +261,7 @@ export default function Billing({ allpanels, organization, clinicians, branch, p
                   }}
                 >
                   {
-                    paymentmode.map((item, index) => {
+                    paymentmode.length > 0 && paymentmode.map((item, index) => {
                       return (<MenuItem key={index} value={item.KeyID}>{item.PaymentMode}</MenuItem>)
                     })
                   }
@@ -345,23 +388,6 @@ export default function Billing({ allpanels, organization, clinicians, branch, p
   );
 }
 
-export async function getServerSideProps(ctx) {
-  let data = await customFetch('testpanel/list')
-  const organization = await customFetch('organization');
-  const clinician = await customFetch('clinicians')
-  const branch = await customFetch('center');
-  const paymentModes = await customFetch('paymentmodes');
-
-  return {
-    props: {
-      allpanels: data?.data || [],
-      organization: organization || [],
-      clinicians: clinician || [],
-      branch: branch || [],
-      paymentmode: paymentModes?.data || []
-    },
-  };
-}
 
 Billing.getLayout = function (page) {
   return (

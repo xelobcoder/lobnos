@@ -15,6 +15,7 @@ export default function Activator() {
 
   const patientid = useRouter().query.patientid;
 
+
   const handleNameFilter = (e) => {
     const filtered = e.target.value;
     setId(filtered);
