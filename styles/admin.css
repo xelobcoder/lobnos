@@ -1,16 +1,46 @@
 .client-results {
-  font-family: Arial, sans-serif;
+  font-family: Arial, sans-serif, Roboto;
+}
+
+.splinter {
+  display: grid;
+  grid-template-columns: 75% auto;
+  grid-gap: 10px;
+}
+
+.splinter-section {
+  margin: 0;
+  padding: 0;
+}
+
+.splinter-section > main {
+  background-color: whitesmoke;
+  height: 90vh;
+  display: grid;
+  grid-template-rows: 50px auto;
+}
+.splinter-section > main > header {
+  background-color: red;
+  color: white;
+  font-size: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.splinter-section > main > textarea {
+  width: 90%;
+  height: 40%;
   padding: 20px;
+  margin: 20px;
+  background-color: white;
 }
-
-.client-results h2 {
-  margin-bottom: 10px;
-}
-
 .client-grid {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   grid-gap: 20px;
+  height: max-content;
+  padding: 20px;
 }
 
 @media (min-width: 600px) {
@@ -27,7 +57,13 @@
 
 @media (min-width: 1200px) {
   .client-grid {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media print {
+  .print-section {
+    display: none;
   }
 }
 
@@ -61,7 +97,6 @@
   font-size: 12px;
 }
 
-
 .billing-id.emmergency {
   background-color: red;
 }
@@ -70,7 +105,6 @@
   background-color: yellow;
   color: black;
 }
-
 
 .client-info {
   margin-bottom: 10px;

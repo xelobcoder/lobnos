@@ -2,17 +2,18 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import CompanyHeaders from '../../components/ResultView/CompanyHeaders';
 import CompanyFooter from '../../components/ResultView/CompanyFooter';
-import { customFetch } from '../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../components/Auth/customFetch';
 import ChemistryTable from '../../components/ResultView/ChemistryTable';
 import SamplingInformationResult from '../../components/ResultView/SamplingInformationResult';
 import PersonalInformation from '../../components/ResultView/PersonalInformation';
 import HemaSingle from '../../components/ResultView/HemaSingle';
+import { Button } from '@mui/material';
 
 export default function RESULT_FOR_PRINTING() {
   const [headers, setHeaders] = useState([]);
   const [result, setResult] = useState([]);
   const [sampling, setSampling] = useState([])
-  const [category,setCategory] = useState(null);
+  const [category, setCategory] = useState(null);
   const { template, testid, test, billingid, preview = false } = useRouter().query;
   const [errorInDetails, setErrorInDetails] = useState(false);
 
@@ -29,17 +30,29 @@ export default function RESULT_FOR_PRINTING() {
   }, [])
 
 
-  useEffect(() => {
-    async function getData() {
-      const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}&&category=${category}`);
-      const { result, sampling,testcategory} = response;
-      setResult(result);
-      setSampling(sampling);
-      setCategory(testcategory)
-      console.log(response)
+  useMemo(() => {
+    try {
+      async function getData() {
+        if (billingid && test && testid) {
+          const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}&&category=${category}`);
+          const { result, sampling, testcategory } = response;
+          setResult(result);
+          setSampling(sampling);
+          setCategory(testcategory)
+        }
+      }
+      getData();
     }
-    getData();
-  }, [billingid, testid, test, category])
+    catch (err) {
+      console.log(err)
+    }
+  }, [billingid, category, test, testid])
+
+
+  const readyToPrint = async function() {
+     const isApproved = customPost('test/result/preview/approved/check', 'POST',{billingid,testid})
+     console.log(isApproved)
+  }
 
   return (
     <div className='result_page'>
@@ -48,8 +61,15 @@ export default function RESULT_FOR_PRINTING() {
         <PersonalInformation data={sampling} />
         <SamplingInformationResult data={sampling} />
         {category == 'chemistry' && <ChemistryTable data={result} testname={test} />}
-        {category == 'hema' && <HemaSingle  result={result || [] } testname={test}/>}
+        {category == 'hema' && <HemaSingle result={result || []} testname={test} />}
         <CompanyFooter details={headers} />
+      </div>
+      <div className='print-section'>
+        <Button 
+         sx={{position:'absolute', top:'10%',left:'10%'}}
+        variant='outlined' color='success' onClick={readyToPrint}>
+          print
+        </Button>
       </div>
     </div>
   )

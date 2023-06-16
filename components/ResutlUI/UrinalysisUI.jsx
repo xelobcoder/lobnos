@@ -12,6 +12,8 @@ export default function UrinalysisUI({ result, testname }) {
       delete obj.urinalysisKey;
       delete obj.patientid;
       delete obj.remarks;
+      delete obj.billingid;
+      
       setParameters(obj)
     }
   }, [])

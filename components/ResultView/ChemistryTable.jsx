@@ -1,20 +1,19 @@
 import { Typography } from '@mui/material'
 import React from 'react'
 
-export default function ChemistryTable({ data = [],testname }) {
-
+export default function ChemistryTable({ data = [], testname }) {
   return (
     <div className="result-table-section">
       {data.length > 0 && (
         <>
-          <div style={{display:'flex',justifyContent:'center'}}>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
             <Typography
               vaiant="h4"
               sx={{
                 textAlign: "center",
                 backgroundColor: "whitesmoke",
-                padding:'5px',
-                marginBottom:'10px',
+                padding: '5px',
+                marginBottom: '10px',
                 color: "black",
                 textTransform: "uppercase",
               }}

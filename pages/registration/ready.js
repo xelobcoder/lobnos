@@ -7,7 +7,7 @@ import ReadyTest from '../../components/readyComponents/ReadyTest';
 
 export default function ReadyResult() {
   const [layout, setLayout] = useState('two');
-  const [query, setQuery] = useState({ querydate: '2023-05-18', content: '' });
+  const [query, setQuery] = useState({ querydate: '', content: '' });
   const [ready, setReady] = useState([]);
   const [summaryArea, setSummaryArea] = useState([])
   const [dropdown, setDropdown] = useState(null)

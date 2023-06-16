@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { customFetch } from '../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../components/Auth/customFetch';
 import { IconButton } from '@mui/material';
 import { Launch } from '@mui/icons-material';
 import DisplayTest from '../../components/operations/DisplayTest';
@@ -9,6 +9,7 @@ import DisplayTest from '../../components/operations/DisplayTest';
 
 export default function Approval() {
   const [clients, setClients] = useState([]);
+  const [splinter, setSplinter] = useState(false);
 
 
   useEffect(() => {
@@ -31,22 +32,44 @@ export default function Approval() {
   }, [])
 
 
-  const navigation = function (testid, billingid, test,category) {
+  const navigation = function (testid, billingid, test, category) {
     // replace all space with _
     let testname = (test.replace(/\s/g, '_').toLowerCase());
     // format test to match pregnacy_test for pregnancy test
-    const formattedTestName = testname === "pregnancy_test(urine)"  ? "pregnancy_test" : testname;
+    const formattedTestName = function () {
+      switch (testname) {
+        case "pregnancy_test(urine)":
+          return "pregnancy_test"
+        case "estimated_sedimentation_rate_(esr)":
+          return "esr"
+        default:
+          return testname
+      }
+    }
+    window.open(`/registration/result?billingid=${billingid}&&testid=${testid}&&test=${formattedTestName()}`);
+  }
 
-    window.open(`/registration/result?billingid=${billingid}&&testid=${testid}&&test=${formattedTestName}`);
+
+  const handleDecision = async function (client, decision, message) {
+    setSplinter(false);
+    const pushData = await customPost('result/approve', 'POST', { ...client, decision, message });
+    if (pushData?.status == 'success' && decision == 'approve') {
+      //  remove item ffrom clients 
+      const getClient = clients.filter((item, index) => { return !(item.billingid == client?.billingid && client?.testid == item?.testid) })
+      setClients(getClient)
+    }
+
+    if (decision == 'decline') {
+      setSplinter(true)
+    }
   }
 
   return (
     <>
-      <div className="client-results">
-        <h2>Client Results</h2>
+      <div className={splinter ? 'client-results splinter' : 'client-results'}>
         <div className="client-grid">
-          {clients.map((client) => (
-            <div key={client.billingid} className="client-card">
+          {clients.map((client, index) => (
+            <div key={index} className="client-card">
               <span
                 className={`billing-id ${client.URGENCY.toLowerCase()}`}
               >
@@ -58,8 +81,8 @@ export default function Approval() {
                 <p>Test ID: {client.testid}</p>
               </div>
               <div className="action-buttons">
-                <button style={{ marginRight: '10px' }}>Approve</button>
-                <button>Decline</button>
+                <button style={{ marginRight: '10px' }} onClick={() => handleDecision(client, 'approve', null)}>Approve</button>
+                <button onClick={() => handleDecision(client, 'decline', 'hello')}>Decline</button>
                 <IconButton
                   component="a"
                   rel="noopener noreferrer"
@@ -71,6 +94,15 @@ export default function Approval() {
             </div>
           ))}
         </div>
+        {
+          splinter && (
+            <div className='splinter-section' >
+              <main>
+                <header>Message To Scientist</header>
+                <textarea className='custom-textarea' rows={5}></textarea>
+              </main>
+            </div>)
+        }
       </div>
     </>
   )
