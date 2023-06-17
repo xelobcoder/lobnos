@@ -1,33 +1,23 @@
 import React from 'react'
 import {
   TextField,
-  Typography,
   Box,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Button,
-  InputAdornment,
-  Container,
+  InputAdornment
 } from  '@mui/material';
 
 import {
   AccountCircle,
   LocationOn,
   Phone,
-  Person,
   Language,
-  Email,
-  MonetizationOn,
-  AttachMoney,
-  Image,
+  Email
 }
   from '@mui/icons-material'
 
 
 
-export default function Organization() {
+export default function OrganizatioBasic() {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle form submission logic here
@@ -38,7 +28,6 @@ export default function Organization() {
       <Box sx={{mt:3,ml:10,mr:10}}>
         <form
           style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-          onSubmit={handleSubmit}
         >
           <TextField
             label="Organization Name"
@@ -84,17 +73,7 @@ export default function Organization() {
               ),
             }}
           />
-          <TextField
-            label="Contact Person"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Person />
-                </InputAdornment>
-              ),
-            }}
-          />
+        
           <TextField
             label="Address"
             variant="outlined"
@@ -130,69 +109,14 @@ export default function Organization() {
               ),
             }}
           />
-          <TextField
-            label="Contact Person Email"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Email />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <FormControl variant="outlined">
-            <InputLabel htmlFor="payment-module">Payment Module</InputLabel>
-            <Select
-              label="Payment Module"
-              inputProps={{
-                name: 'payment-module',
-                id: 'payment-module',
-              }}
-            >
-              <MenuItem value="credit-card">Credit Card</MenuItem>
-              <MenuItem value="mobile-money">Mobile Money</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            label="Commission (%)"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <AttachMoney />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <TextField
-            label="Momo Number"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Phone />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <TextField
-            label="Organization Image"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  {/* <Image /> */}
-                </InputAdornment>
-              ),
-            }}
-          />
-
+        
+        
           <Button
             type="submit"
             variant="contained"
+            className='custom-button'
             color="primary"
-            style={{ marginTop: '16px' }}
+            style={{ marginTop: '16px',marginBottom:'20px' }}
           >
             Submit
           </Button>
