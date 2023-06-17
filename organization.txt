@@ -1,0 +1,25 @@
+organization details
+ - name 
+ - location
+ - region 
+ - streetnumber
+ - address 
+ - website 
+ - email 
+ - mobile 
+ - district
+
+
+ paymentModule
+   - paymentmode e.g bank account, momo, cash
+   - commission 
+   - mobile number
+
+
+  contact person
+   - name 
+   - email 
+   - location 
+   - phone number 
+   - address 
+
