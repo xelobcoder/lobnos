@@ -79,6 +79,18 @@
   --border-radius: 4px;
 }
 
+.red {
+  background-color: var(--red-700) !important;
+}
+
+.green {
+  background-color: var(--green-700) !important;
+}
+
+.primary {
+  background-color: var(--secondary) !important;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&family=Roboto&display=swap');
 * {
   margin: 0;

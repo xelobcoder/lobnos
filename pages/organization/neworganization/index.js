@@ -6,10 +6,11 @@ import PaymentModule from '../../../components/organization/PaymentModule';
 import { useRouter } from 'next/router';
 import ImageView from '../../../components/organization/ImageView';
 import SecondOrgNav from '../../../components/organization/SecondOrgNav';
-import { validateFormData } from '../../../components/Auth/customFetch';
+import { customPost, validateFormData, validateMobileNumber } from '../../../components/Auth/customFetch';
 
 export default function Index() {
   const navigation = useRouter();
+  const [file, setFile] = useState(null);
 
   const defaultData = {
     module: '',
@@ -43,14 +44,55 @@ export default function Index() {
     setData({ ...data, [target]: value })
   }
 
+
+
   const handleSubmit = async (event) => {
-    const callResponse = function (response) {
-      console.log(response)
+    const formdata = new FormData()
+
+    formdata.append('file', file);
+
+    const callResponse = async function (response) {
+      // alert message to client
+      const { statusCode, message, organizationId, status } = response;
+      if (statusCode == 201 && status == 'success') {
+        try {
+          const response = await fetch(`${process.env.BASEURL}/new/organization/images?imageid=${organizationId}`, {
+            method: 'POST',
+            body: formdata,
+          });
+
+          if (response.ok) {
+            alert(message);
+          } else {
+            console.error('Error uploading file:', response.statusText);
+            alert('Error uploading file:', response.statusText)
+          }
+        } catch (error) {
+          console.error('Error uploading file:', error);
+        }
+      }
+
+      if (statusCode == 201 && status == 'exist') {
+        alert(message)
+      }
     }
 
-    console.log(data)
 
-    await validateFormData(data, false, ['name', 'location', 'street', 'mobile', 'address', 'eamil', 'contactPerson'], 'new/organizations', callResponse)
+
+
+    // validate phone numbers of the organization and the contact person
+
+    const validateContact = await validateMobileNumber(data.contactPerson, 10);
+    const validateOrg = await validateMobileNumber(data.momo, 10);
+    const validateMobile = await validateMobileNumber(data.mobile, 10);
+
+
+
+    if (validateContact && validateMobile && validateOrg) {
+      await validateFormData(data, false, ['name', 'location', 'street', 'mobile', 'address', 'eamil', 'contactPerson'], 'new/organizations', callResponse)
+    } else {
+      alert('Check phone numbers to ensure length is 10 and start  with 0')
+    }
   }
 
   const changeRoute = function () {
@@ -84,7 +126,7 @@ export default function Index() {
           </div>
         </div>
         <div className="imageview">
-          <ImageView />
+          <ImageView handleFile={setFile} />
         </div>
       </div>
     </>

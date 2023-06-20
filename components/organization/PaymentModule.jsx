@@ -1,7 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   TextField,
-  Box,
   FormControl,
   InputLabel,
   Select,
@@ -14,74 +13,130 @@ import {
   Phone,
   AttachMoney,
   AccountBalance,
+  BrandingWatermark,
+  AccountBox,
+  SaveAs,
 }
   from '@mui/icons-material'
+import { Spinner } from 'react-bootstrap';
 
-export default function PaymentModule() {
+
+export default function PaymentModule({data,handleChange,handleSubmit}) {
+
   return (
     <>
-      <Box sx={{ mt: 3, ml: 10, mr: 10 }}>
-        <form
-          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-        >
-          <FormControl variant="outlined">
-            <InputLabel htmlFor="payment-module">Payment Module</InputLabel>
-            <Select
-              label="Payment Module"
-              inputProps={{
-                name: 'payment-module',
-                id: 'payment-module',
-              }}
-            >
-              <MenuItem value="credit-card">Credit Card</MenuItem>
-              <MenuItem value="mobile-money">Mobile Money</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            label="Commission (%)"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <AttachMoney />
-                </InputAdornment>
-              ),
+      <form
+        style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+      >
+        <FormControl variant="outlined">
+          <InputLabel htmlFor="payment-module">Payment Module</InputLabel>
+          <Select
+            value={data.module}
+            onChange={(event) => handleChange(event, 'module')}
+            label="Payment Module"
+            inputProps={{
+              name: 'payment-module',
+              id: 'payment-module',
             }}
-          />
-          <TextField
-            label="Momo Number"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Phone />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <TextField
-            label='bank Account'
-            variant='outlined'
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <AccountBalance/>
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <Button
-            type="submit"
-            variant="contained"
-            className='custom-button'
-            color="primary"
-            style={{ marginTop: '16px', marginBottom: '20px' }}
           >
-            Submit
-          </Button>
-        </form>
-      </Box>
+            <MenuItem value="credit-card">Credit Card</MenuItem>
+            <MenuItem value="mobile-money">Mobile Money</MenuItem>
+            <MenuItem value='cash'>Cash</MenuItem>
+          </Select>
+        </FormControl>
+        <TextField
+          label="Commission (%)"
+          variant="outlined"
+          value={data.commission}
+          onChange={(event) => handleChange(event, 'commission')}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <AttachMoney />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <TextField
+          label="Momo Number"
+          variant="outlined"
+          value={data.momo}
+          onChange={(event) => handleChange(event, 'momo')}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Phone />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <TextField
+          label='bank Account'
+          variant='outlined'
+          type='number'
+          value={data.account}
+          onChange={(event) => handleChange(event, 'account')}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <AccountBalance />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <TextField
+          label='bank Name'
+          variant='outlined'
+          value={data.bankName}
+          onChange={(event) => handleChange(event, 'bankName')}
+          type='text'
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <AccountBalance />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <TextField
+          label='Branch'
+          variant='outlined'
+          value={data.branch}
+          onChange={(event) => handleChange(event, 'branch')}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position='start'>
+                <BrandingWatermark />
+              </InputAdornment>
+            )
+          }}
+        />
+        <TextField
+          label='Account Name'
+          value={data.accountName}
+          onChange={(event) => handleChange(event, 'accountName')}
+          variant='outlined'
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position='start'>
+                <AccountBox />
+              </InputAdornment>
+            )
+          }}
+        />
+
+        <Button
+          type="button"
+          variant="contained"
+          className='custom-button'
+          color="primary"
+          onClick={handleSubmit}
+          startIcon={<SaveAs/>}
+          style={{ marginTop: '16px', marginBottom: '20px' }}
+        >
+          Submit
+        </Button>
+      </form>
     </>
   )
 }

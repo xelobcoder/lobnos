@@ -9,13 +9,7 @@ import Header from '../components/header'
 // import SidebarFrontPage from '../components/frontpagesidebar';
 import { AuthentificationProvider } from '../components/Auth/useAuthentification';
 import MAIN_LAYOUT from '../components/Headers/Layout';
-import {Roboto} from '@next/font/google';
 
-
-const roboto = Roboto({
-  weight: ['300', '400', '500', '700'],
-  subsets: ['latin'],
-})
 
 function MyApp({ Component, pageProps }) {
   if (Component.getLayout) {
@@ -25,7 +19,7 @@ function MyApp({ Component, pageProps }) {
     <>
       <AuthentificationProvider>
         <Header />
-        <MAIN_LAYOUT className={roboto.className}>
+        <MAIN_LAYOUT>
           {/* <div>
             <SidebarFrontPage />
           </div> */}

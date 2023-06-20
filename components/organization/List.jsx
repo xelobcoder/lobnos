@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TableDisplay from '../../components/accessories/TableDisplay';
 import { customFetch } from '../Auth/customFetch';
 import { Button, IconButton } from '@mui/material';
-import { Tab, Visibility, VisibilityIcon } from '@mui/icons-material';
+import { DeleteOutlineOutlined, Tab, Visibility, VisibilityIcon } from '@mui/icons-material';
 
 export default function OrganizationList() {
   const [organization, setOrganization] = useState([]);
@@ -18,7 +18,7 @@ export default function OrganizationList() {
     },
     {
       Header: 'Contact',
-      accessor: 'MOBILE_NUMBER'
+      accessor: 'MOBILENUMBER'
     }, {
       Header: 'Email',
       accessor: 'EMAIL'
@@ -35,8 +35,11 @@ export default function OrganizationList() {
       Header: 'details',
       accessor: 'viewmore', Cell: ({ row }) => {
         return <span>
-          <IconButton edge='start' size='small' sx={{backgroundColor:'#d2f4d3'}}>
-            <Visibility/>
+          <IconButton edge='start' size='small' sx={{ color: 'green' }}>
+            <Visibility />
+          </IconButton>
+          <IconButton edge='start' size='small' sx={{ color: 'red' }}>
+            <DeleteOutlineOutlined />
           </IconButton>
         </span>
       }
@@ -47,9 +50,9 @@ export default function OrganizationList() {
     customFetch('organizations/details')
       .then((response) => {
         const { statusCode, status, records } = response;
-        if (statusCode == 200 && status == 'success') {
-          setOrganization(records || [])
-        }
+        statusCode == 200 && status == 'success' ?
+          setOrganization(records) :
+          setOrganization([])
       })
       .catch((err) => setOrganization([]))
   }, [])

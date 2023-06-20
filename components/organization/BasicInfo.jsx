@@ -1,127 +1,149 @@
-import React from 'react'
-import {
-  TextField,
-  Box,
-  Button,
-  InputAdornment
-} from  '@mui/material';
+import React, { useState } from 'react'
+import {TextField,InputAdornment} from '@mui/material';
 
-import {
-  AccountCircle,
-  LocationOn,
-  Phone,
-  Language,
-  Email
-}
-  from '@mui/icons-material'
+import { AccountCircle,LocationOn,Phone,Language,Email, DirectionsTransit} from '@mui/icons-material'
 
-
-
-export default function OrganizatioBasic() {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle form submission logic here
-  };
+export default function OrganizatioBasic({data,handleChange}) {
 
   return (
-    <div>
-      <Box sx={{mt:3,ml:10,mr:10}}>
-        <form
-          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-        >
-          <TextField
-            label="Organization Name"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <AccountCircle />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <TextField
-            label="Location"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LocationOn />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <TextField
-            label="Street Name"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LocationOn />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <TextField
-            label="Mobile Number"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Phone />
-                </InputAdornment>
-              ),
-            }}
-          />
-        
-          <TextField
-            label="Address"
-            variant="outlined"
-            multiline
-            rows={4}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LocationOn />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <TextField
-            label="Website"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Language />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <TextField
-            label="Email"
-            variant="outlined"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Email />
-                </InputAdornment>
-              ),
-            }}
-          />
-        
-        
-          <Button
-            type="submit"
-            variant="contained"
-            className='custom-button'
-            color="primary"
-            style={{ marginTop: '16px',marginBottom:'20px' }}
-          >
-            Submit
-          </Button>
-        </form>
-      </Box>
-    </div>
+    <>
+      <form
+        style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+      >
+        <TextField
+          label="Organization Name"
+          variant="outlined"
+          value={data.name}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <AccountCircle />
+              </InputAdornment>
+            ),
+          }}
+          onChange={(event) => handleChange(event, 'name')}
+        />
+        <TextField
+          label="Location"
+          variant="outlined"
+          value={data.location}
+          onChange={(event) => handleChange(event, 'location')}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <LocationOn />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <TextField
+          label="Street Name"
+          onChange={(event) => handleChange(event, 'street')}
+          value={data.street}
+          variant="outlined"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <LocationOn />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <TextField
+          label="Mobile Number"
+          onChange={(event) => handleChange(event, 'mobile')}
+          value={data.mobile}
+          variant="outlined"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Phone />
+              </InputAdornment>
+            ),
+          }}
+        />
+
+        <TextField
+          label="Address"
+          variant="outlined"
+          value={data.address}
+          onChange={(event) => handleChange(event, 'address')}
+          multiline
+          rows={4}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <LocationOn />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <TextField
+          label="Website"
+          value={data.website}
+          onChange={(event) => handleChange(event, 'website')}
+          variant="outlined"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Language />
+              </InputAdornment>
+            ),
+          }}
+        />
+        <TextField
+          label="Email"
+          value={data.email}
+          onChange={(event) => handleChange(event, 'email')}
+          variant="outlined"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Email />
+              </InputAdornment>
+            ),
+          }}
+        />
+         <TextField
+          label="Gps Mapping"
+          value={data.gpsMapping}
+          onChange={(event) => handleChange(event, 'gpsMapping')}
+          variant="outlined"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Email />
+              </InputAdornment>
+            ),
+          }}
+        />
+         <TextField
+          label="region"
+          value={data.region}
+          onChange={(event) => handleChange(event, 'region')}
+          variant="outlined"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <LocationOn/>
+              </InputAdornment>
+            ),
+          }}
+        />
+         <TextField
+          label="district"
+          value={data.district}
+          onChange={(event) => handleChange(event, 'district')}
+          variant="outlined"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <DirectionsTransit/>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </form>
+    </>
   )
 }
