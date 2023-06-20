@@ -1,12 +1,12 @@
 import { Box, Button, Container, Typography } from '@mui/material';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import OrganizatioBasic from '../../../components/organization/BasicInfo';
 import ContactPerson from '../../../components/organization/ContactPerson';
 import PaymentModule from '../../../components/organization/PaymentModule';
 import { useRouter } from 'next/router';
 import ImageView from '../../../components/organization/ImageView';
 import SecondOrgNav from '../../../components/organization/SecondOrgNav';
-import { customPost, validateFormData, validateMobileNumber } from '../../../components/Auth/customFetch';
+import { customFetch, customPost, validateFormData, validateMobileNumber } from '../../../components/Auth/customFetch';
 
 export default function Index() {
   const navigation = useRouter();
@@ -43,6 +43,70 @@ export default function Index() {
     const { value } = event.target;
     setData({ ...data, [target]: value })
   }
+
+  // get the orgainzation id from the router should incase we want to edit
+  const organizationId = navigation.query.id;
+  useEffect(() => {
+    if (organizationId) {
+      async function getOrganizationData() {
+        const response = await customFetch(`organization/id?id=${organizationId}`)
+        const { statusCode, data } = response;
+        if (statusCode == 201) {
+          //  sanitize the data to match the default data structure
+          const {
+            accountname,
+            accountnumber,
+            address,
+            bankname,
+            branch,
+            commission,
+            contactemail,
+            contactnumber,
+            contactperson,
+            district,
+            email,
+            gpsmapping,
+            id,
+            location,
+            mobilenumber,
+            momo,
+            name,
+            paymentmodule,
+            region,
+            streetname,
+            website
+          } = data;
+
+          const nw = {};
+          nw.name = name;
+          nw.location = location;
+          nw.street = streetname;
+          nw.mobile = mobilenumber;
+          nw.address = address;
+          nw.website = website;
+          nw.email = email;
+          nw.gpsMapping = gpsmapping;
+          nw.region = region;
+          nw.district = district;
+          nw.module = paymentmodule;
+          nw.commission = commission;
+          nw.momo = momo;
+          nw.bankName = bankname;
+          nw.accountName = accountname;
+          nw.branch = branch;
+          nw.account = accountnumber;
+          nw.person = contactperson;
+          nw.contactEmail = contactemail;
+          nw.contactPerson = contactperson;
+          nw.contactNumber = contactnumber;
+          setData(nw)
+
+        }
+      }
+      getOrganizationData()
+    }
+
+  }, [organizationId])
 
 
 
