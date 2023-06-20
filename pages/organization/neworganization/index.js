@@ -97,8 +97,7 @@ export default function Index() {
           nw.account = accountnumber;
           nw.person = contactperson;
           nw.contactEmail = contactemail;
-          nw.contactPerson = contactperson;
-          nw.contactNumber = contactnumber;
+          nw.contactPerson = contactnumber;
           setData(nw)
 
         }
