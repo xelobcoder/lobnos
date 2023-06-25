@@ -142,3 +142,8 @@ export const validateMobileNumber = async function (number, len) {
       return true;
    }
 };
+
+export const handleChange = (event, target) => {
+   const { value } = event.target;
+   setData({ ...data, [target]: value })
+ }
