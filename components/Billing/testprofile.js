@@ -278,10 +278,6 @@ export default function TestProfileBilling() {
                     </Button>
                   </div>
                 </div>
-                <div>
-                  <h5>payment</h5>
-                  <input className='custom-input' />
-                </div>
               </>
             )
           }

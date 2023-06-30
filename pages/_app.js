@@ -20,9 +20,6 @@ function MyApp({ Component, pageProps }) {
       <AuthentificationProvider>
         <Header />
         <MAIN_LAYOUT>
-          {/* <div>
-            <SidebarFrontPage />
-          </div> */}
           <Component {...pageProps} />
         </MAIN_LAYOUT>
       </AuthentificationProvider>

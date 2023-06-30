@@ -168,13 +168,6 @@
   grid-template-columns: auto auto;
   grid-gap: 10px;
 }
-.add-clinician-text {
-  width: max-content;
-  background-color: black;
-  color: white;
-  padding: 5px;
-  border-radius: 5px;
-  font-size: 14px;
-}
+
 
 /* clinician part ends ......................ends */

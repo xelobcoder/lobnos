@@ -1705,13 +1705,18 @@ option:hover {
   line-height: 0.5 em;
 }
 /* custom css for update billing page  */
-
+.update-billing-wrapper{
+  max-height: auto;
+  padding: 20px;
+  background-color: whitesmoke;
+}
 .billing-personal-info {
   background-color: white;
   margin: 10px 20px;
   max-height: auto;
   padding: 10px;
-  border-radius: 1px;
+  border-radius: 5px;
+  box-shadow:  1px 2px 5px 1px rgba(0, 0, 0, 0.2);
   margin-bottom: 20px;
 }
 .billing-personal-info > .billing-personal-info-header {
@@ -2431,7 +2436,6 @@ option:hover {
   border-bottom: 1px solid black;
 }
 
-
 @media print {
   .result_page {
     padding: 0px;
@@ -2443,5 +2447,51 @@ option:hover {
 
   .company-logo > div > .company-name {
     font-size: 20px !important;
+  }
+
+}
+.card .list-group-item {
+  border-bottom: 1px solid lightgray;
+}
+
+.clinician-view .card .card-body {
+  margin: 0;
+  padding: 0;
+}
+
+.clinician-view .card .card-body .list-group-item {
+  display: grid;
+  grid-template-columns: 10% auto;
+  grid-gap: 20px;
+}
+
+.clinician-view .card .card-body .list-group-item > div:nth-child(1) {
+  font-weight: lighter;
+  background-color: whitesmoke;
+  padding: 10px;
+  color: #00224f;
+}
+
+.clinician-view .card .card-body .list-group-item > div:nth-child(2) {
+  padding: 10px;
+  text-transform: capitalize;
+  font-size: 14px;
+}
+.clinician-view .card {
+  margin: 20px;
+  border-radius: 5px;
+}
+@media screen and (max-width:600px) {
+  .clinician-view .card .card-body .list-group-item > div {
+    font-size: 14px;
+  }
+  .clinician-view .card .card-body .list-group-item {
+    display: grid;
+    grid-template-columns: 40% auto;
+  }
+
+  .clinician-view {
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }

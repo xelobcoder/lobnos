@@ -11,7 +11,6 @@ import WidgetsIcon from "@mui/icons-material/Widgets";
 import Widget from "./Headers/Widget";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useContext } from "react";
 
 
 function Header() {

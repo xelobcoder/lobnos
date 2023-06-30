@@ -5,11 +5,10 @@ import { customFetch } from "../../components/Auth/customFetch";
 import { useRouter } from "next/router";
 import style from "../../styles/registration.module.css";
 import { handleAge, handleMobile, handleSubmitRegistration, BASEURL, handleEmail } from "../../components/Auth/registerclient";
-import { BASE } from "../../endpoint";
 import {
-  Button, Box, Container, Grid, Typography, FormLabel, RadioGroup, FormControlLabel, FormControl, Select, InputLabel, MenuItem, TextField, Radio,
-  Autocomplete,
+  Button, Box, Container, Grid, Typography, FormLabel, RadioGroup, FormControlLabel, FormControl, Select, InputLabel, MenuItem, TextField, Radio, IconButton
 } from "@mui/material";
+import { Home, PersonPinCircle } from "@mui/icons-material";
 export const defaultdata = {
   email: "",
   mobile: "",
@@ -196,35 +195,37 @@ function Registration({ organization, clinician }) {
             {/* <Box sx={{width:'100%',marginTop:'20px'}}>
           <TextField variant='filled' type='text'/>
         </Box> */}
-            <Box id={style.registration_generate}>
-              <Button
+            <div id={style.registration_generate} className="alert alert-warning">
+              <button
                 ref={generateRef}
                 sx={{ marginLeft: "10px" }}
                 disabled={generatebtn}
+                className="btn btn-danger text-capitalize text-white"
                 onClick={(e) => generateTransactionId(e)}
-                variant="contained"
                 tabIndex={1}
                 autoFocus
               >
-                generate patientid
-              </Button>
-              <div>
-                <input
-                  value={data.patientid}
-                  disabled={disable}
-                  className="custom-input"
-                  placeholder="generated patient id here "
-                  onChange={(e) =>
-                    setData({ ...data, patientid: e.target.value })
-                  }
-                />
+                add new client
+              </button>
+              <input
+                value={data.patientid}
+                disabled={disable}
+                sx={{ marginLeft: "30%" }}
+                className="custom-input"
+                placeholder="generated patient id here "
+                onChange={(e) =>
+                  setData({ ...data, patientid: e.target.value })
+                }
+              />
+            </div>
+            <div className='card' id="card-border">
+              <div className="card-header">
+                <IconButton sx={{ color: 'red' }} size="large">
+                  <PersonPinCircle />
+                </IconButton>
+                <h5>Personal Information</h5>
               </div>
-            </Box>
-            <h5>
-              Personal Information
-            </h5>
-            <Box className={style.personal}>
-              <div>
+              <div className="card-body">
                 <label>first name </label>
                 <input
                   onChange={(e) => {
@@ -233,15 +234,15 @@ function Registration({ organization, clinician }) {
                   placeholder="firstname"
                   className="custom-input"
                   value={data.firstname}
+                  type="text"
+                  size='small'
                   required
                   tabIndex={2}
                 />
-              </div>
-              <div>
                 <label>last name </label>
                 <input
                   className="custom-input"
-                  size="small"
+                  type="text"
                   label="lastname"
                   placeholder="lastname"
                   required
@@ -251,8 +252,7 @@ function Registration({ organization, clinician }) {
                   }}
                   tabIndex={3}
                 />
-              </div>
-              <div>
+
                 <label>middle name</label>
                 <input
                   className="custom-input"
@@ -264,8 +264,6 @@ function Registration({ organization, clinician }) {
                     setData({ ...data, middlename: e.target.value });
                   }}
                 />
-              </div>
-              <div>
                 <label>mobile number </label>
                 <input
                   type="number"
@@ -281,8 +279,6 @@ function Registration({ organization, clinician }) {
                     handleMobile(e, setData, data, setError);
                   }}
                 />
-              </div>
-              <div>
                 <label>email</label>
                 <input
                   size="small"
@@ -294,148 +290,139 @@ function Registration({ organization, clinician }) {
                   onChange={(e) => handleEmail(e, setData, data, setError)}
                   label="email"
                 />
-              </div>
-            </Box>
-            <Box className={style.maker}>
-              <div>
                 <label>Date of Birth</label>
-              </div>
-              <FormControl className={style.age}>
-                <input
-                  className="custom-input"
-                  type="number"
-                  value={data.days}
-                  tabIndex={7}
-                  placeholder="days"
-                  onChange={(e) => {
-                    setData({ ...data, days: e.target.value });
-                  }}
-                  label="day"
-                  name="day"
-                />
-                <input
-                  className="custom-input"
-                  label="months"
-                  type="number"
-                  placeholder="months"
-                  tabIndex={8}
-                  name="months"
-                  value={data.months}
-                  onChange={(e) => {
-                    setData({ ...data, months: e.target.value });
-                  }}
-                />
-                <input
-                  className="custom-input"
-                  value={data?.years}
-                  onChange={(e) => {
-                    setData({ ...data, years: e.target.value });
-                  }}
-                  placeholder="years"
-                  tabIndex={9}
-                />
-              </FormControl>
-              <div className={style.age_desc}>
-                <div>
-                  <label>age</label>
+                <FormControl className={style.age}>
                   <input
-                    value={data?.age}
-                    onChange={(e) => setData({ ...data, age: e.target.value })}
+                    className="custom-input"
                     type="number"
-                    tabIndex={10}
-                    className="custom-input"
-                    placeholder="age"
+                    value={data.days}
+                    tabIndex={7}
+                    placeholder="days"
+                    onChange={(e) => {
+                      setData({ ...data, days: e.target.value });
+                    }}
+                    label="day"
+                    name="day"
                   />
-                </div>
-
-                <div>
-                  <label>age type</label>
-                  <select
+                  <input
                     className="custom-input"
-                    tabIndex={11}
-                    onChange={(e) =>
-                      setData({ ...data, agetype: e.target.value })
-                    }
-                    value={data.agetype}
-                  >
-                    <option value="years">years</option>
-                    <option value="months">months</option>
-                    <option value="days">days</option>
-                  </select>
-                </div>
-              </div>
-            </Box>
-            <Box className={style.maker}>
-              <FormControl
-                style={{ display: "flex", justifyContent: "flex-start" }}
-              >
-                <FormLabel name="gender">Gender</FormLabel>
-                <RadioGroup
-                  aria-labelledby="gender"
-                  defaultValue="female"
-                  name="gender"
-                  tabIndex={12}
-                  onChange={(e) => setData({ ...data, gender: e.target.value })}
-                  value={data.gender}
-                >
-                  <div>
-                    <FormControlLabel
-                      value="female"
-                      control={<Radio />}
-                      tabIndex={13}
-                      label="Female"
-                    />
-                    <FormControlLabel
-                      value="male"
-                      control={<Radio />}
-                      tabIndex={14}
-                      label="Male"
-                    />
-                    <FormControlLabel
-                      value="other"
-                      control={<Radio />}
-                      tabIndex={15}
-                      label="Other"
-                    />
-                  </div>
-                </RadioGroup>
-              </FormControl>
-              <FormControl>
-                {/* marital status */}
-                <FormLabel id="marital-status">Marital Status</FormLabel>
-                <RadioGroup
-                  aria-labelledby="marital-status"
-                  defaultValue="single"
-                  tabIndex={16}
-                  name="maritalstatus"
+                    label="months"
+                    type="number"
+                    placeholder="months"
+                    tabIndex={8}
+                    name="months"
+                    value={data.months}
+                    onChange={(e) => {
+                      setData({ ...data, months: e.target.value });
+                    }}
+                  />
+                  <input
+                    className="custom-input"
+                    value={data?.years}
+                    onChange={(e) => {
+                      setData({ ...data, years: e.target.value });
+                    }}
+                    placeholder="years"
+                    tabIndex={9}
+                  />
+                </FormControl>
+                <label>age</label>
+                <input
+                  value={data?.age}
+                  onChange={(e) => setData({ ...data, age: e.target.value })}
+                  type="number"
+                  tabIndex={10}
+                  className="custom-input"
+                  placeholder="age"
+                />
+                <label>age type</label>
+                <select
+                  className="custom-input"
+                  tabIndex={11}
                   onChange={(e) =>
-                    setData({ ...data, maritalstatus: e.target.value })
+                    setData({ ...data, agetype: e.target.value })
                   }
-                  value={data.maritalstatus}
+                  value={data.agetype}
                 >
-                  <div>
-                    <FormControlLabel
-                      value="single"
-                      control={<Radio />}
-                      tabIndex={17}
-                      label="Single"
-                    />
-                    <FormControlLabel
-                      value="married"
-                      control={<Radio />}
-                      tabIndex={18}
-                      label="Married"
-                    />
-                  </div>
-                </RadioGroup>
-              </FormControl>
-            </Box>
-            <h5 className="lims-text-color text-capitalize">
-              geographical location information
-            </h5>
-            <Box className={style.personal}>
-              <div>
-                {/* area */}
+                  <option value="years">years</option>
+                  <option value="months">months</option>
+                  <option value="days">days</option>
+                </select>
+                <FormControl
+                  style={{ display: "flex", justifyContent: "flex-start" }}
+                >
+                  <FormLabel name="gender">Gender</FormLabel>
+                  <RadioGroup
+                    aria-labelledby="gender"
+                    defaultValue="female"
+                    name="gender"
+                    tabIndex={12}
+                    onChange={(e) => setData({ ...data, gender: e.target.value })}
+                    value={data.gender}
+                  >
+                    <div>
+                      <FormControlLabel
+                        value="female"
+                        control={<Radio />}
+                        tabIndex={13}
+                        label="Female"
+                      />
+                      <FormControlLabel
+                        value="male"
+                        control={<Radio />}
+                        tabIndex={14}
+                        label="Male"
+                      />
+                      <FormControlLabel
+                        value="other"
+                        control={<Radio />}
+                        tabIndex={15}
+                        label="Other"
+                      />
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                <FormControl>
+                  {/* marital status */}
+                  <FormLabel id="marital-status">Marital Status</FormLabel>
+                  <RadioGroup
+                    aria-labelledby="marital-status"
+                    defaultValue="single"
+                    tabIndex={16}
+                    name="maritalstatus"
+                    onChange={(e) =>
+                      setData({ ...data, maritalstatus: e.target.value })
+                    }
+                    value={data.maritalstatus}
+                  >
+                    <div>
+                      <FormControlLabel
+                        value="single"
+                        control={<Radio />}
+                        tabIndex={17}
+                        label="Single"
+                      />
+                      <FormControlLabel
+                        value="married"
+                        control={<Radio />}
+                        tabIndex={18}
+                        label="Married"
+                      />
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+              </div>
+            </div>
+
+
+            <div className='card mt-4' id="card-border">
+              <div className="card-header">
+                <IconButton sx={{ color: 'red' }} size="large">
+                  <Home />
+                </IconButton>
+                <h5>Address Information && contact info</h5>
+              </div>
+              <div className="card-body">
                 <label>Area</label>
                 <input className="custom-input"
                   value={data.area}
@@ -443,9 +430,6 @@ function Registration({ organization, clinician }) {
                   placeholder="area"
                   tabIndex={19}
                   type='text' />
-              </div>
-              {/* region */}
-              <div>
                 <label>Region</label>
                 <input className="custom-input"
                   value={data.region}
@@ -453,82 +437,95 @@ function Registration({ organization, clinician }) {
                   placeholder="region"
                   tabIndex={20}
                   type='text' />
-              </div>
-              {/* gps location if available or landmark if any  */}
-              <div>
                 <label>GPS Location  or landmark</label>
                 <input className="custom-input"
                   value={data.address}
                   onChange={(e) => setData({ ...data, address: e.target.value })}
                   tabIndex={21}
                   placeholder="gps location" type='text' />
+                <div className="mb-3">
+                  <label htmlFor="emergencyName" className="form-label">
+                    Emergency contact name
+                  </label>
+                  <input
+                    type="text"
+                    className="custom-input"
+                    id="emergencyName"
+                    name="emergencyName"
+                    tabIndex={22}
+                    value={data.emergencyName}
+                    onChange={(e) => {
+                      setData({ ...data, emergencyName: e.target.value });
+                    }}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="relationship" className="form-label">
+                    Relationship
+                  </label>
+                  <input
+                    type="text"
+                    className="custom-input"
+                    id="relationship"
+                    name="relationship"
+                    tabIndex={23}
+                    value={data.relationship}
+                    onChange={(e) => setData({ ...data, relationship: e.target.value })}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="emergencyContactNumber" className="form-label">
+                    Emergency contact number
+                  </label>
+                  <input
+                    type="tel"
+                    className="custom-input"
+                    id="emergencyContactNumber"
+                    name="emergencyContactNumber"
+                    tabIndex={24}
+                    value={data.emergencyContactNumber}
+                    onChange={(e) =>
+                      setData({ ...data, emergencyContactNumber: e.target.value })
+                    }
+                  />
+
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="patientOrganization" className="form-label">
+                    Patient organization
+                  </label>
+                  <input
+                    type="text"
+                    className="custom-input"
+                    id="patientOrganization"
+                    name="patientOrganization"
+                    tabIndex={25}
+                    value={data.patientOrganization}
+                    onChange={(e) => {
+                      setData({ ...data, patientOrganization: e.target.value });
+                    }}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="occupation" className="form-label">
+                    Occupation
+                  </label>
+                  <input
+                    type="text"
+                    className="custom-input"
+                    id="occupation"
+                    name="occupation"
+                    tabIndex={26}
+                    value={data.occupation}
+                    onChange={(e) => {
+                      setData({ ...data, occupation: e.target.value });
+                    }}
+                  />
+                </div>
               </div>
-            </Box>
-            <h5 className="lims-text-color text-capitalize">
-              emmergency contact information
-            </h5>
-            <Box className={style.personal}>
-              <TextField
-                label="emmergency contact name"
-                variant="outlined"
-                name="emmergencyName"
-                tabIndex={22}
-                onChange={(e) => {
-                  setData({ ...data, emmergencyName: e.target.value });
-                }}
-                value={data.emmergencyName}
-                type="text"
-                size="small"
-              />
-              <TextField
-                label="relationship"
-                value={data.relationship}
-                tabIndex={23}
-                onChange={(e) =>
-                  setData({ ...data, relationship: e.target.value })
-                }
-                variant="outlined"
-                name="relationship"
-                type="text"
-                size="small"
-              />
-              <TextField
-                label="emmergency contact number"
-                variant="outlined"
-                tabIndex={24}
-                name="emmergencyContactNumber"
-                onChange={(e) =>
-                  setData({ ...data, emmergencyContactNumber: e.target.value })
-                }
-                value={data.emmergencyContactNumber}
-                type="tel"
-                id=" emmergencyContactNumber"
-                size="small"
-              />
-            </Box>
-            <h5 className="lims-text-color text-capitalize">
-              patient organization and occupation
-            </h5>
-            <Box className={style.personal}>
-              <TextField
-                value={data.patientOrganization}
-                label="patient organization"
-                tabIndex={25}
-                size="small"
-                onChange={(e) => {
-                  setData({ ...data, patientOrganization: e.target.value });
-                }}
-              />
-              <TextField
-                value={data.occupation}
-                label="occupation"
-                tabIndex={26}
-                size="small"
-                onChange={(e) => {
-                  setData({ ...data, occupation: e.target.value });
-                }}
-              />
-            </Box>
+            </div>
+
+
             <Box sx={{ mt: 3 }}>
               <Button
                 type="button"

@@ -1,12 +1,15 @@
 import React from 'react'
-import { BarChart, DeleteForeverOutlined, MedicalInformation, Money, Visibility } from "@mui/icons-material";
 
-import { TextField, MenuItem, Select, FormControl, Button, InputLabel, TextareaAutosize } from '@mui/material';
+import { TextField, MenuItem, Select, FormControl, Button, InputLabel, TextareaAutosize, Autocomplete } from '@mui/material';
+import { useState } from 'react';
 
-export default function BasicInformationClinician({data,handleChange}) {
+export default function BasicInformationClinician({ data, handleChange, stateUpdate, organization }) {
+
   return (
     <>
       <form
+        autoCapitalize="true"
+        autoComplete="true"
         style={{
           height: "max-content",
           overflowX: "hidden",
@@ -20,17 +23,19 @@ export default function BasicInformationClinician({data,handleChange}) {
               required
               id="name"
               variant="outlined"
+              value={data.name}
               size="medium"
               label="Name"
-              onChange={(event) => handleChange(event,'name')}
+              onChange={(event) => handleChange(event, "name")}
               sx={{ width: "100%" }}
             />
           </div>
           <div className="mb-3 mt-3">
             <TextField
               type="tel"
+              inputMode='numeric'   
               value={data.phone}
-              onChange={(event) => handleChange(event,'phone')}
+              onChange={(event) => handleChange(event, "phone")}
               sx={{ width: "100%" }}
               required
               inputProps={{
@@ -48,7 +53,8 @@ export default function BasicInformationClinician({data,handleChange}) {
               type="email"
               required
               id="email"
-              onChange={(event) => handleChange(event,'email')}
+              value={data.email}
+              onChange={(event) => handleChange(event, "email")}
               variant="outlined"
               size="medium"
               label="Email"
@@ -56,34 +62,33 @@ export default function BasicInformationClinician({data,handleChange}) {
             />
           </div>
           <div className="mb-3 mt-3">
-            <TextField
-              type="text"
-              id="website"
-              onChange={(event) => handleChange(event,'website')}
-              variant="outlined"
-              size="medium"
-              label="Website"
+            <Autocomplete
+              id="organization"
+              options={organization}
+              getOptionLabel={(option) => option.NAME}
               sx={{ width: "100%" }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Organization"
+                  variant="outlined"
+                  size="medium"
+                />
+              )}
+              onChange={(event, value) => {
+                console.log(value)
+                stateUpdate({ ...data, organization: value.ID })
+              }}
             />
           </div>
           <div className="mb-3 mt-3">
             <TextField
               type="text"
-              required
-              onChange={(event) => handleChange(event,'organization')}
-              variant="outlined"
-              size="medium"
-              label="Organization"
-              sx={{ width: "100%" }}
-            />
-          </div>
-          <div className="mb-3 mt-3">
-            <TextField
-              type="text"
-              onChange={(event) => handleChange(event,'location')}
+              onChange={(event) => handleChange(event, "location")}
               id="location"
               variant="outlined"
               size="medium"
+              value={data.location}
               label="Location"
               sx={{ width: "100%" }}
             />
@@ -93,7 +98,8 @@ export default function BasicInformationClinician({data,handleChange}) {
               id="address"
               variant="outlined"
               size="medium"
-              onChange={(event) => handleChange(event,'address')}
+              value={data.address}
+              onChange={(event) => handleChange(event, "address")}
               label="Address"
               sx={{ width: "100%" }}
             />
@@ -105,7 +111,8 @@ export default function BasicInformationClinician({data,handleChange}) {
               <Select
                 labelId="occupation-label"
                 id="occupation"
-                onChange={(event) => handleChange(event,'occupation')}
+                value={data.occupation}
+                onChange={(event) => handleChange(event, "occupation")}
                 variant="outlined"
                 size="medium"
               >

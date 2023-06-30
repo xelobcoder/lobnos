@@ -1,113 +1,103 @@
+import React from 'react';
 import Link from 'next/link';
-import HowToRegIcon from '@mui/icons-material/HowToReg';
-import AirplanemodeInactiveIcon from '@mui/icons-material/AirplanemodeInactive';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
-import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
-import BookOnlineIcon from '@mui/icons-material/BookOnline';
-import CorporateFareIcon from '@mui/icons-material/CorporateFare';
-import ScienceIcon from '@mui/icons-material/Science';
-import SettingsApplicationsIcon from '@mui/icons-material/SettingsApplications';
-import ResetTvIcon from '@mui/icons-material/ResetTv';
-import InventoryIcon from '@mui/icons-material/Inventory';
-import BiotechIcon from '@mui/icons-material/Biotech';
-import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
-import { BloodtypeOutlined, PaymentTwoTone } from '@mui/icons-material';
+import {
+  AssignmentInd,
+  VerifiedUser,
+  MonetizationOn,
+  Person,
+  Schedule,
+  Poll,
+  Event,
+  Business,
+  SupervisorAccount,
+  Assessment,
+  Science,
+  LocalHospital,
+  Settings,
+  BusinessCenter,
+  Work,
+} from '@mui/icons-material';
+
 export default function SidebarFrontPage() {
   return (
     <>
       <ul className="frontpagesidebar">
         <li>
           <Link href="/registration">
-            <HowToRegIcon />
-            registration
+            <AssignmentInd /> Registration
           </Link>
         </li>
         <li>
           <Link href="/activation">
-            <AirplanemodeInactiveIcon />
-            activation
+            <VerifiedUser /> Activation
           </Link>
         </li>
         <li>
-          <Link href="/billing/billedclients">
-            <PaymentTwoTone />
-            billed clients
+          <Link href="/billed-clients">
+            <MonetizationOn /> Billed Clients
           </Link>
         </li>
         <li>
           <Link href="/clients">
-            <PersonOutlineIcon />
-            Clients
+            <Person /> Clients
           </Link>
         </li>
         <li>
-          <Link href="/waitinglist">
-            <HourglassEmptyIcon />
-            Waiting list
+          <Link href="/waiting-list">
+            <Schedule /> Waiting List
           </Link>
         </li>
         <li>
           <Link href="/results">
-            <ResetTvIcon />
-            Results
+            <Poll /> Results
           </Link>
         </li>
         <li>
           <Link href="/appointments">
-            <BookOnlineIcon />
-            Appointments
+            <Event /> Appointments
           </Link>
         </li>
         <li>
           <Link href="/organization">
-            <CorporateFareIcon />
-            organization
+            <Business /> Organization
           </Link>
         </li>
         <li>
-          <Link href="/clinician">
-            <HealthAndSafetyIcon />
-            Clinicians
+          <Link href="/clinicians">
+            <SupervisorAccount /> Clinicians
           </Link>
         </li>
         <li>
-          <Link href="/testpanel">
-            <BiotechIcon />
-            test panel
+          <Link href="/test-panel">
+            <Assessment /> Test Panel
           </Link>
         </li>
         <li>
           <Link href="/sample">
-            <ScienceIcon />
-            sample
+            <Science /> Sample
           </Link>
         </li>
-        {/* phelobotomy */}
         <li>
-          <Link href="/phelobotomy/dashboard">
-            <BloodtypeOutlined />
-            phelobotomy
+          <Link href="/phlebotomy">
+            <LocalHospital /> Phlebotomy
           </Link>
         </li>
         <li>
           <Link href="/settings">
-            <SettingsApplicationsIcon />
-            settings
+            <Settings /> Settings
           </Link>
         </li>
         <li>
-          <Link href="/supplier">
-            <InventoryIcon />
-            suppliers
+          <Link href="/suppliers">
+            <BusinessCenter /> Suppliers
           </Link>
         </li>
         <li>
           <Link href="/operations">
-            <InventoryIcon />
-            operations
+            <Work /> Operations
           </Link>
         </li>
       </ul>
     </>
-  )
+  );
 }

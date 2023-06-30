@@ -1,76 +1,92 @@
 .frontpagesidebar {
-  display: none; /* Hide the sidebar by default */
-  margin: 0;
+  list-style: none;
   padding: 0;
-  background-color: white !important;
-  font-family: Roboto, Helvetica, Arial, sans-serif;
-}
-
-.frontpagesidebar li {
-  list-style-type: none;
-  color: #1976d2;
+  background-color: black;
   margin: 0;
-  padding: 10px 30px;
-  text-transform: capitalize;
-  display: flex;
-  align-items: center;
+  height: 100%;
 }
 
 .frontpagesidebar li a {
+  display: block;
+  padding: 10px;
+  font-size: 17px;
   text-decoration: none;
-  margin-left: 10px;
-  color: #1976d2;
+  color: white;
+  transition: background-color 0.3s ease;
 }
 
-.frontpagesidebar li {
-  background-color: white;
-  cursor: pointer;
-}
-
-.frontpagesidebar li:hover {
-  background-color: #f5f5f5;
-  transition: 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
+.frontpagesidebar li a:hover {
+  background-color: #555;
+  color: white;
 }
 
 .wrapper {
   display: grid;
-  grid-template-columns: 100%;
-  overflow-x: hidden; /* Hide horizontal overflow on all devices */
+  grid-template-columns: 15% auto;
 }
 
-@media (min-width: 768px) {
-  .frontpagesidebar {
-    display: block; /* Show the sidebar */
+.wrapper > .side {
+  padding: 0px;
+  width: 200px;
+}
+
+/* Responsive Styles */
+
+/* For screens smaller than 768px */
+@media (max-width: 767px) {
+  .frontpagesidebar li a {
+    padding: 8px;
+    display: none;
   }
 
   .wrapper {
-    grid-template-columns: 15% 85%;
+    grid-template-columns: 100%;
+    overflow-x: none;
+    
   }
-  
-  .wrapper .side {
-    border-right: 1px solid lightgray;
-    height: 100vh;
+  .wrapper > .side {
+    display: none;
   }
-  
-  .wrapper .main {
-    margin: 0 !important;
-    padding: 0 !important;
-    height: 100vh;
-    width: 85vw;
-    background-color: white;
-    overflow-y: auto;
+
+  input[type='text'],
+  input[type='email'],
+  input[type='password'] {
+    width: calc(100% - 20px);
   }
-  input[type="text"],
-  input[type="email"],
-  input[type="password"] {
+
+
+}
+
+/* For screens larger than or equal to 768px */
+@media (min-width: 768px) {
+  input[type='text'],
+  input[type='email'],
+  input[type='password'] {
     width: 100%;
   }
 }
 
-@media (max-width: 767px) {
-  input[type="text"],
-  input[type="email"],
-  input[type="password"] {
-    width: calc(100% - 20px);
-  }
+#card-border {
+  border-radius: 5px;
+}
+
+#card-border > .card-body {
+  padding: 20px;
+}
+
+#card-border > .card-body > label {
+  color: #00224f;
+  margin: 5px 0px;
+}
+
+#card-border > .card-header > h5 {
+  font-weight: 400;
+  color: #00224f;
+  margin-top: 10px;
+  margin-left: 4px;
+}
+
+#card-border > .card-header {
+  display: flex;
+  justify-content: flex-start;
 }
