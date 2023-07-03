@@ -4,6 +4,7 @@ import CART_DISPLAY_COMPONENT from '../../components/inventory/cartDisplay';
 import TopMessage from '../../components/accessories/TopMessage';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import SupplierLayout from '../../components/inventory/SupplierLayout';
+import { Shop, ShoppingBagOutlined } from '@mui/icons-material';
 
 export default function PLACE_ORDER_PAGE() {
   const [source, setDatasource] = useState([]);
@@ -178,29 +179,53 @@ export default function PLACE_ORDER_PAGE() {
     <>
       <SupplierLayout>
         <div>
-          {
-            messageshow ? <TopMessage message={message.message} type={message.type} display={message.display} messageTimer={viewMessageTimer} /> : null
-          }
-          <div id='place-order-search' >
-            <input className='custom-input' type="text"
+          {messageshow ? (
+            <TopMessage
+              message={message.message}
+              type={message.type}
+              display={message.display}
+              messageTimer={viewMessageTimer}
+            />
+          ) : null}
+          <div id="place-order-search">
+            <input
+              className="custom-input"
+              type="text"
               onChange={(ev) => searchHandler(ev)}
-              placeholder='search for a product here' value={search} />
-            {source.length > 0 && 
-            (<button
-              onClick={(ev) => { !cart.display ? setCart({ ...cart, display: true }) : setCart({ ...cart, display: false }) }}
-              className='btn btn-sm btn-primary'>cart {cart.data.length}</button>)}
+              placeholder="search for a product here"
+              value={search}
+            />
+            {source.length > 0 && (
+              <button
+                onClick={(ev) => {
+                  !cart.display
+                    ? setCart({ ...cart, display: true })
+                    : setCart({ ...cart, display: false });
+                }}
+                className="btn btn-sm btn-primary alert alert-primary"
+              >
+                <ShoppingBagOutlined/>
+                cart {cart.data.length}
+              </button>
+            )}
           </div>
-          {
-            cart.display ? <CART_DISPLAY_COMPONENT
+          {cart.display ? (
+            <CART_DISPLAY_COMPONENT
               removeCartHandler={removeCartHandler}
               placeOrderHandler={placeOrderHandler}
-              data={cart.data} /> :
-              <PLACE_ORDER source={source} cartHandler={cartHandler} suppliers={suppliers} />
-          }
+              data={cart.data}
+            />
+          ) : (
+            <PLACE_ORDER
+              source={source}
+              cartHandler={cartHandler}
+              suppliers={suppliers}
+            />
+          )}
         </div>
       </SupplierLayout>
     </>
-  )
+  );
 }
 
 

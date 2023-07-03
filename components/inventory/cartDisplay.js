@@ -1,7 +1,6 @@
 import React from 'react'
 
 export default function CART_DISPLAY_COMPONENT({ data ,removeCartHandler,placeOrderHandler}) {
-  console.log(data)
  return (
   <div className='list-group' id='cart-place-order'>
    <div id='wrapper'>
