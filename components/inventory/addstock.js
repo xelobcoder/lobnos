@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import TopMessage from '../accessories/TopMessage';
 import { SystemUpdate, AddCircleOutline } from '@mui/icons-material';
-import { customFetch } from '../Auth/customFetch';
+import { customFetch, customPost } from '../Auth/customFetch';
 import { Button } from '@mui/material';
 
 export default function ADD_STOCK_INVENTORY() {
@@ -26,7 +26,7 @@ export default function ADD_STOCK_INVENTORY() {
   const stockid = useRouter().query.stockid;
 
 
-  const [Categorylist, setCategorylist] = useState(['consumables', 'real estate', 'equipment', 'furniture', 'vehicles', 'others'])
+  const [Categorylist, setCategorylist] = useState([])
   const [Consumptionunitlist, setConsumptionunitlist] = useState(['kg', 'g', 'l', 'ml', 'pcs', 'others', 'bottle', 'kit', 'box'])
   const [Purchaseunitlist, setPurchaseunitlist] = useState(['kg', 'g', 'l', 'ml', 'pcs', 'others', 'bottle', 'kit', 'box'])
 
@@ -49,17 +49,8 @@ export default function ADD_STOCK_INVENTORY() {
     const method = tab === 'edit' ? 'PUT' : 'POST';
     try {
       const senddata = async () => {
-        const BASEURL = `${process.env.BASEURL}`
-        const response = await fetch(tab == 'edit' ? `${BASEURL}/stock?stockid=${stockid}` :
-          `${BASEURL}/stock`, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-          },
-          body: JSON.stringify({ ...productdetails, tax: parseInt(productdetails.tax) })
-        })
-        const data = await response.json();
+        console.log(tab)
+        const data = await customPost(`stock?stockid=${stockid}`, method, { ...productdetails, tax: parseInt(productdetails.tax) });
 
         const { status, message } = data;
         if (status === 'success') {
@@ -97,27 +88,42 @@ export default function ADD_STOCK_INVENTORY() {
     }
   }
 
-
+  // this get the data of item to edit
+  const getdata = async () => {
+    const data = await customFetch(`stock?stockid=${stockid}`)
+    const { status, message, result } = data;
+    if (status === 'success') {
+      setProductdetails(result[0]);
+    }
+    else {
+      setMessageshow(true);
+      setMessage({ type: 'warning', message: message })
+    }
+  }
   // use Memo to get the data of item to edit
   useEffect(() => {
-    console.log(tab, stockid)
     if (tab === 'edit' && stockid) {
       // get data from db and set to the input fields
-      const getdata = async () => {
-        const data = await customFetch(`stock?stockid=${stockid}`)
-        const { status, message, result } = data;
-        if (status === 'success') {
-          setProductdetails(result[0]);
-        }
-        else {
-          setMessageshow(true);
-          setMessage({ type: 'warning', message: message })
-        }
-      }
-
       getdata();
     }
   }, [tab, stockid])
+
+
+  // get the category list
+  const getcategorylist = async () => {
+    const data = await customFetch('stock/category');
+    setCategorylist(data);
+  }
+
+  useEffect(() => {
+   try {
+    getcategorylist();
+   }
+    catch(error) {
+      setCategorylist([]);
+      alert('error getting category list')
+    }
+  }, [])
 
 
 
@@ -168,8 +174,8 @@ export default function ADD_STOCK_INVENTORY() {
               <option value="">Select category</option>
               {Categorylist.map((item, index) => {
                 return (
-                  <option key={index} value={item}>
-                    {item}
+                  <option key={index} value={item.id}>
+                    {item.category}
                   </option>
                 );
               })}

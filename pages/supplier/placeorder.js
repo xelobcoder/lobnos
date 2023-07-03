@@ -204,7 +204,7 @@ export default function PLACE_ORDER_PAGE() {
                 }}
                 className="btn btn-sm btn-primary alert alert-primary"
               >
-                <ShoppingBagOutlined/>
+                <ShoppingBagOutlined fontSize='large'/>
                 cart {cart.data.length}
               </button>
             )}

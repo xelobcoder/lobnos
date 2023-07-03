@@ -19,7 +19,27 @@ export default function ADD_NEW_SUPPLIER() {
     contactperson: '',
     email: '',
     phonenumber: ''
-  }
+  };
+
+  // regions in ghana 
+  const regions = [
+    'Greater Accra',
+    'Ashanti',
+    'Western',
+    'Eastern',
+    'Central',
+    'Volta',
+    'Northern',
+    'Upper East',
+    'Upper West',
+    'Bono',
+    'Bono East',
+    'Ahafo',
+    'Savannah',
+    'North East',
+    'Oti',
+    'Western North'
+  ];
 
   const tab = useRouter().query.tab;
   const supplierid = useRouter().query.supplierid;
@@ -214,8 +234,14 @@ export default function ADD_NEW_SUPPLIER() {
             {/* region */}
             <div className='form-group'>
               <label htmlFor='region'>region</label>
-              <input className='custom-input' id='region' value={region} placeholder='region'
-                onChange={(ev) => inputhandler(ev, 'region')} />
+              <select className='custom-input' id='region' value={newsupplier.region} onChange={(ev) => inputhandler(ev, 'region')}>
+                <option value=''>select region</option>
+                {
+                  regions.length > 0 && regions.map((item, index) => {
+                    return <option key={index} value={item}>{item}</option>
+                  })
+                }
+              </select>
             </div>
             {/* contact person */}
             <div className='form-group'>

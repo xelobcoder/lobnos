@@ -2,16 +2,13 @@ import { DeleteForever, Edit, EditAttributesOutlined } from '@mui/icons-material
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import TableDisplay from '../../components/accessories/TableDisplay';
-import Inventory_Loading from './loading';
-import Header from '../../components/header';
-import InventoryHeaders from '../../components/Headers/inventoryHeaders';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import InventoryLayout from '../../components/inventory/InventoryLayout';
+import { useEffect } from 'react';
+import { Tooltip } from '@mui/material';
 
-export default function INVENTORY_PAGE({ stocks }) {
-  const [stocksource, setStocks] = useState(stocks);
-  const [search, setSearch] = useState('');
-  const STOCKS_URL = `${process.env.BASEURL}/stock`;
+export default function INVENTORY_PAGE() {
+  const [stocksource, setStocks] = useState([]);
   const EditUrl = '/inventory/addstock?tab=edit&stockid';
 
   const columns = [
@@ -32,10 +29,10 @@ export default function INVENTORY_PAGE({ stocks }) {
         </div>
       ),
     },
-    {
-      Header: 'Stock ID',
-      accessor: 'stockid',
-    },
+    // {
+    //   Header: 'Stock ID',
+    //   accessor: 'stockid',
+    // },
     {
       Header: 'Name',
       accessor: 'name',
@@ -61,9 +58,11 @@ export default function INVENTORY_PAGE({ stocks }) {
           row.original.alertlevel === row.original.quantity ? 'alertlevel-medium' :
             row.original.alertlevel > row.original.quantity ? 'alertlevel-high' : 'alertlevel-low';
         return (
-          <div title={`Alert Level: ${alertLevel}`} className={alertLevelClass}>
-            {row.original.quantity}
-          </div>
+          <Tooltip title={`stock level is ${alertLevel}`} placement='top'>
+            <div className={alertLevelClass}>
+              {row.original.quantity}
+            </div>
+          </Tooltip>
         );
       },
     },
@@ -84,19 +83,40 @@ export default function INVENTORY_PAGE({ stocks }) {
       Header: 'Action',
       Cell: ({ row }) => (
         <div>
-          <DeleteForever
-            onClick={() => { handleDelete(row.original.stockid) }}
-            fontSize='medium' color='error'
-          />
-          <Edit fontSize='medium' color='primary' onClick={() => handleEdit(row.original.stockid)} />
+          <Tooltip title='Delete' placement='top'>
+            <DeleteForever fontSize='medium' color='error' onClick={() => handleDelete(row.original.stockid)} />
+          </Tooltip>
+          <Tooltip title='Edit' placement='top'>
+            <Edit fontSize='medium' color='primary' onClick={() => handleEdit(row.original.stockid)} />
+          </Tooltip>
         </div>
       ),
     },
   ];
 
+
+  // get the stock data from the database
+  const getStocks = async () => {
+    const data = await customFetch('stock')
+    const { result, status } = data;
+    if (status === 'success') {
+      setStocks(result);
+    }
+  };
+
+  useEffect(() => {
+    try {
+      getStocks();
+    } catch (error) {
+      console.log(error);
+      setStocks([]);
+    }
+  }, [])
+
+
   const handleDelete = async (id) => {
     try {
-      const data = await customPost('stock','DELETE',{stockid:id})
+      const data = await customPost('stock', 'DELETE', { stockid: id })
       if (data.status === 'success') {
         const newStocks = stocksource.filter((item) => item.stockid !== id);
         setStocks(newStocks);
@@ -120,20 +140,4 @@ export default function INVENTORY_PAGE({ stocks }) {
     </>
   );
 }
-
-
-// get server side props
-export async function getServerSideProps(context) {
-  const data = await customFetch('stock')
-  const { result, status } = data;
-  if (status === 'success') {
-    return {
-      props: {
-        stocks: result,
-      },
-    };
-  }
-}
-
-
 

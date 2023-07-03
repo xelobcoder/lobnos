@@ -1105,6 +1105,7 @@ option:hover {
   border-radius: 5px;
   padding: 10px;
   font-size: 14px;
+  text-transform: capitalize;
   width: 100%;
   color: #00224f;
 }
@@ -1537,21 +1538,22 @@ option:hover {
   font-size: 14px;
   font-weight: 600;
   border-radius: 5px;
-  padding: 5px;
+  padding: 2px;
   display: flex;
-  color: #00224f;
+  color: white;
   opacity: 0.7;
   justify-content: center;
 }
 
 .alertlevel-high {
-  background-color: #ff0000;
+  background-color: var(--red-500);
 }
 .alertlevel-low {
-  background-color: #00ff00;
+  background-color: green;
 }
 .alertlevel-medium {
-  background-color: #ffff00;
+  background-color: yellow;
+  color: #00224f;
   color: bg-gradient-to-r from-zinc-700 to-indigo-600 bg-clip-text
     text-transparent;
 }
@@ -2618,4 +2620,8 @@ option:hover {
   text-align: left;
   padding: 10px;
   border-bottom: 1px solid lightgray;
+}
+
+input[type='text']{
+  text-transform: capitalize;
 }
