@@ -293,19 +293,3 @@ export default function Requisition() {
     </>
   );
 }
-
-Requisition.getLayout = function getLayout(page) {
-  return (
-    <>
-      <Header />
-      <div className='wrapper'>
-        <div className='side'>
-          <InventoryHeaders />
-        </div>
-        <div className='main' id='page-main-view'>
-          {page}
-        </div>
-      </div>
-    </>
-  );
-};

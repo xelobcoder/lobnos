@@ -1,350 +1,217 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { Button } from "@mui/material";
 import TableDisplay from "../../components/accessories/TableDisplay";
-import Header from "../../components/header";
-import InventoryHeaders from "../../components/Headers/inventoryHeaders";
-import PLACE_ORDER from "../../components/inventory/placeorder";
-import { useTable } from "react-table";
 import SECOND_NO_DATA from "../../components/accessories/secondNodata";
 import DepartmentStockLevel from "../../components/inventory/departmentStockLevel";
-import { useRouter } from "next/router";
-import TopMessage from '../../components/accessories/TopMessage';
-import { customFetch } from "../../components/Auth/customFetch";
+import TopMessage from "../../components/accessories/TopMessage";
+import { customFetch, customPost } from "../../components/Auth/customFetch";
 
-export default function DepartmentRequisition({ departments = [], stocks = [] }) {
-  const [department, setDepartments] = React.useState(departments || []);
-  const [stock, setStocks] = React.useState(stocks || []);
-  const [selectedDept, setSelectedDept] = React.useState("");
-  // with a click, makes depart select box, stock table toggle
-  const [eventKey, setEventKey] = React.useState("1");
-  const [departmentStocksLevel, setDepartmentStocksLevel] = React.useState([]);
-  // message display state
-  const [message, setMessage] = React.useState({ message: '', type: '', display: false });
-  // router
+const REQUISITIONS_URL = "departments/requisitions";
+
+const DepartmentRequisition = () => {
   const router = useRouter();
+  const [departments, setDepartments] = useState([]);
+  const [stocks, setStocks] = useState([]);
+  const [selectedDept, setSelectedDept] = useState("");
+  const [eventKey, setEventKey] = useState("1");
+  const [departmentStocksLevel, setDepartmentStocksLevel] = useState([]);
+  const [message, setMessage] = useState({ message: "", type: "", display: false });
 
+  useEffect(() => {
+    fetchDepartmentStocksLevel();
+  }, [selectedDept]);
 
-  const STOCKS_URL = 'http://localhost:5000/api/v1/departments/stocks';
-  const REQUISITIONS_URL = 'http://localhost:5000/api/v1/departments/requisitions';
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
 
-
-
-
-  // fill the departmentStocksLevl once the selectedDept changes
-  React.useMemo(() => {
-    const getdata = async () => {
-      const data = await customFetch(`departments/stocks?id=${selectedDept}`)
-      console.log(data.data);
-      data?.status == 'success' && setDepartmentStocksLevel(data.result);
+  const fetchDepartmentStocksLevel = async () => {
+    const data = await customFetch(`departments/stocks?id=${selectedDept}`);
+    if (data?.status === "success") {
+      setDepartmentStocksLevel(data.result);
     }
-    getdata();
-  }, [selectedDept])
+  };
 
-  const handleSearch = (e) => {
-    const { value } = e.target;
-    const filtered = stocks.filter((stock) => {
-      return (
-        stock.name.toLowerCase().includes(value.toLowerCase()) ||
-        stock.category.toLowerCase().includes(value.toLowerCase())
-      )
-    });
-    if (value.length > 0) {
-      setStocks(filtered);
-    } else {
+  const fetchInitialData = async () => {
+    try {
+      const departmentsData = await customFetch("departments");
+      const stocksData = await customFetch("stock");
+      const departments = departmentsData?.data || [];
+      const stocks = stocksData?.result?.map((item) => ({ ...item, quantityrequired: 0 })) || [];
+      setDepartments(departments);
       setStocks(stocks);
+    } catch (err) {
+      console.log(err);
     }
   };
 
   const handleRequiredQty = (e, stockid) => {
     const qty = e.target.value;
-    // filter the stock using the stockid
-    const filtered = stock.filter((stock) => {
-      return stock.stockid === stockid;
-    });
-
-    const index = stock.indexOf(filtered[0]);
-
-    // update the quantity required
-    stock[index].quantityrequired = qty;
-
-    // update the state
-    setStocks([...stock]);
+    const updatedStocks = stocks.map((stock) =>
+      stock.stockid === stockid ? { ...stock, quantityrequired: parseInt(qty) } : stock
+    );
+    setStocks(updatedStocks);
   };
 
-  const handleOrders = (e, id) => {
-    // filter the stock using the stockid
-    const filtered = stock.filter((stock) => {
-      return stock.stockid === id;
-    });
-
-    // transform the data
+  const handleOrders = async (e, id) => {
+    const filteredStock = stocks.find((stock) => stock.stockid === id);
     const transformedData = {
-      stockid: filtered[0].stockid,
+      stockid: filteredStock.stockid,
       departmentid: parseInt(selectedDept),
-      quantity: parseInt(filtered[0].quantityrequired),
-      comsumptionunit: filtered[0].consumptionunit,
+      quantity: parseInt(filteredStock.quantityrequired),
+      comsumptionunit: filteredStock.consumptionunit,
       requisitionid: Date.now(),
     };
 
-    // do trasnformedData have empty values
-    let emtypValues = Object.values(transformedData).filter((value) => {
-      return value === "";
-    });
-
-    if (emtypValues.length > 0 || transformedData.quantity === 0) {
-      alert("Please fill in required quantity");
+    const emptyValues = Object.values(transformedData).filter((value) => value === "");
+    if (emptyValues.length > 0 || transformedData.quantity === 0) {
+      setMessage({ message: "Please fill in the required quantity.", type: "error", display: true });
       return;
-    } else {
-      // send the data to the server'
-      const sendDataAsync = fetch(
-        `${REQUISITIONS_URL}`,
-        {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-          },
-          body: JSON.stringify(transformedData),
-        }
-      );
+    }
 
-      sendDataAsync
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          if (
-            data.status === "success" &&
-            data.message === "Department requisition added successfully"
-          ) {
-            alert(data.message);
-            // remove the item from the stock
-            const index = stock.indexOf(filtered[0]);
-            stock.splice(index, 1);
-            setStocks(prevStocks => [...prevStocks])
-          }
-
-          if (
-            data.status === "success" &&
-            data.message === "Stock has already been requisitioned"
-          ) {
-            alert(data.message);
-          }
-
-          if (data.status === "error") {
-            alert(data.message);
-          }
-        })
-        .catch((err) => {
-          alert(err?.message);
-        });
+    try {
+      const sendDataAsync = await customPost(`${REQUISITIONS_URL}`, "POST", transformedData);
+      const { status, statusCode, message } = sendDataAsync;
+      if (status === "success" && statusCode === 200 && message === "Department requisition added successfully") {
+        setMessage({ message, type: "success", display: true });
+        const updatedStocks = stocks.filter((stock) => stock.stockid !== id);
+        setStocks(updatedStocks);
+      } else {
+        setMessage({ message, type: "error", display: true });
+      }
+    } catch (err) {
+      console.log(err);
     }
   };
 
-  const deleteStock = async function (e, id) {
-    // delete the stock from the database
-    const confirm = window.confirm("Are you sure you want to delete this stock");
-
-    if (confirm) {
-      const deleteStockAsync = await fetch(`${process.env.BASEURL}/departments/stocks?id=${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            'content-type': 'application/json',
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-          }
+  const deleteStock = async (e, id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this stock?");
+    if (confirmDelete) {
+      try {
+        const deleteStockAsync = await customPost(`departments/stocks?id=${id}`, "DELETE", {});
+        const { status, message } = deleteStockAsync;
+        if (status === "success") {
+          const updatedStocks = stocks.filter((stock) => stock.stockid !== id);
+          setMessage({ message, type: "success", display: true });
+          setDepartmentStocksLevel(updatedStocks);
         }
-      );
-
-      let data = await deleteStockAsync.json();
-      if (data.status === "success") {
-        // delete the stock from the state
-        const filtered = stock.filter((stock) => {
-          return stock?.stockid !== id;
-        });
-
-        setMessage({ message: data.message, type: 'success', display: true })
-
-        setDepartmentStocksLevel([...filtered])
+      } catch (err) {
+        console.log(err);
       }
     }
-    return
-
   };
 
   const messageTimer = () => {
     setTimeout(() => {
-      setMessage({ message: '', type: '', display: false })
-    }, 3000)
-  }
+      setMessage({ message: "", type: "", display: false });
+    }, 3000);
+  };
 
-  return (
+  const handleEventKeyChange = (key) => {
+    setEventKey(key);
+  };
+
+  const DepartmentRequisitionForm = () => (
     <>
-      {message.display && <TopMessage message={message.message} type={message.type} messageTimer={messageTimer} />}
-      <div
-        className="p-2 lims-text-color"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "40% 35% auto",
-          gridGap: "10px",
-        }}
-      >
-        {/* <header className='mt-1'> */}
-        {eventKey == 1 && (
-          <>
-            <h4 className="font-bold">Department Requisition</h4>
-            <select
-              className="custom-input"
-              onChange={(e) => setSelectedDept(e.target.value)}
-              value={selectedDept}
-            >
-              <option>select a department</option>
-              {department.map((dept) => (
-                <option key={dept.id} value={dept.id}>
-                  {dept.department}
-                </option>
-              ))}
-            </select>
-          </>
-        )}
-        <div>
-          <button className="custom-button" onClick={(e) => setEventKey(2)}>
-            stocks level
-          </button>
-          <button className="custom-button"
-            onClick={(e) => {
-              if (selectedDept === '') {
-                alert('Please select a department')
-                return
-              }
-              else {
-                router.push(`/inventory/requisition?dept=${selectedDept}`)
-              }
-            }}
-          >requested</button>
-          {eventKey != 1 && (
-            <button className="custom-button" onClick={(e) => setEventKey(1)}>
-              place order
-            </button>
-          )}
-        </div>
-      </div>
-      {eventKey == 1 && (
-        <div>
-          {selectedDept.length > 0 ? (
-            <>
-              <div className="d-flex justify-content-left mt-4">
-                <div className="col-6">
-                  <input
-                    type="text"
-                    onChange={(e) => handleSearch(e)}
-                    className="custom-input"
-                    placeholder="search"
-                  />
-                </div>
-              </div>
-              <div>
-                <table id="custom-table" className="p-2">
-                  <thead>
-                    <tr>
-                      <th>Stock ID</th>
-                      <th>Name</th>
-                      <th>Category</th>
-                      <th>Purchase Unit</th>
-                      <th>Consumption Unit</th>
-                      <th>Quantity Required</th>
-                      <th>Order</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stock.map((stock) => (
-                      <tr key={stock.stockid}>
-                        <td>{stock.stockid}</td>
-                        <td>{stock.name}</td>
-                        <td>{stock.category}</td>
-                        <td>{stock.purchaseunit}</td>
-                        <td>{stock.consumptionunit}</td>
-                        <td>
-                          <input
-                            type="number"
-                            value={stock.quantityrequired}
-                            onChange={(e) =>
-                              handleRequiredQty(e, stock.stockid)
-                            }
-                            className="custom-input"
-                          />
-                        </td>
-                        <td>
-                          <button
-                            onClick={(e) => handleOrders(e, stock.stockid)}
-                            className="btn btn-warning"
-                          >
-                            Order
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          ) : (
-            <SECOND_NO_DATA message={"No department selected"} />
-          )}
-        </div>
-      )}
-
-      {eventKey == 2 && (
-        <>
-          <DepartmentStockLevel datasource={departmentStocksLevel} deleteStock={deleteStock} />
-        </>
-      )}
+      <h4 className="font-bold">Department Requisition</h4>
+      <select className="custom-input" onChange={(e) => setSelectedDept(e.target.value)} value={selectedDept}>
+        <option>select a department</option>
+        {departments.map((dept) => (
+          <option key={dept.id} value={dept.id}>
+            {dept.department}
+          </option>
+        ))}
+      </select>
     </>
   );
-}
 
-DepartmentRequisition.getLayout = function getLayout(page) {
+  const PlaceOrderButton = () => (
+    <button className="custom-button" onClick={() => handleEventKeyChange("1")}>
+      place order
+    </button>
+  );
+
+  const columns = [
+    { Header: "stockid", accessor: "stockid" },
+    { Header: "name", accessor: "name" },
+    { Header: "category", accessor: "category" },
+    { Header: "consumption unit", accessor: "consumptionunit" },
+    { Header: "store qty", accessor: "quantity" },
+    {
+      Header: "qty required",
+      accessor: "quantityrequired",
+      Cell: ({ row }) => {
+        const { original } = row;
+        return (
+          <input
+            type="number"
+            value={original?.quantityrequired}
+            onChange={(e) => handleRequiredQty(e, original.stockid)}
+            className="custom-input"
+          />
+        );
+      },
+    },
+    {
+      Header: "action",
+      accessor: "",
+      Cell: ({ row }) => {
+        const { original } = row;
+        return (
+          <Button onClick={(e) => handleOrders(e, original.stockid)} size="small" variant="contained">
+            Order
+          </Button>
+        );
+      },
+    },
+  ];
+
   return (
     <>
-      <Header />
-      <div className="wrapper">
-        <div className="side">
-          <InventoryHeaders />
+      <div style={{ backgroundColor: "#00224f17", height: "100vh" }}>
+        {message.display && <TopMessage message={message.message} type={message.type} messageTimer={messageTimer} />}
+        <div
+          className="p-2 lims-text-color"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "40% 35% auto",
+            gridGap: "10px",
+          }}
+        >
+          {eventKey === "1" && <DepartmentRequisitionForm />}
+          <div>
+            <button className="custom-button" onClick={() => handleEventKeyChange("2")}>
+              stocks level
+            </button>
+            <button
+              className="custom-button"
+              onClick={() => {
+                if (selectedDept === "") {
+                  setMessage({ message: "Please select a department", type: "error", display: true });
+                } else {
+                  router.push(`/inventory/requisition?dept=${selectedDept}`);
+                }
+              }}
+            >
+              requested
+            </button>
+            {eventKey !== "1" && <PlaceOrderButton />}
+          </div>
         </div>
-        <div className="main" id="page-main-view">
-          {page}
-        </div>
+        {eventKey === "1" && (
+          <div>
+            {selectedDept.length > 0 ? (
+              <TableDisplay column={columns} data={stocks} filtering={true} />
+            ) : (
+              <SECOND_NO_DATA message={"No department selected"} />
+            )}
+          </div>
+        )}
+        {eventKey === "2" && <DepartmentStockLevel datasource={departmentStocksLevel} deleteStock={deleteStock} />}
       </div>
     </>
   );
 };
 
-// usring server side rendering
-
-export async function getServerSideProps(context) {
-  // using promise all to fetch all the data at once
-  const departments = await customFetch('departments')
-  const stocks = await customFetch('stock');
-  const data = await Promise.all([departments, stocks]);
-
-  try {
-    return {
-      props: {
-        departments: data[0].data,
-        stocks: data[1].result.map((stock) => {
-          return {
-            ...stock,
-            quantityrequired: 0,
-          };
-        }),
-      },
-    };
-  }
-  catch (err) {
-    return {
-      props: {
-        departments: [],
-        stocks: []
-      }
-    }
-  }
-}
+export default DepartmentRequisition;

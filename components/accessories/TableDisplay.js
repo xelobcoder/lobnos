@@ -7,7 +7,7 @@ export default function TableDisplay({ column, data, styling, filtering }) {
   const tableInstance = useTable({
     columns: useMemo(() => column, [column]),
     data: useMemo(() => data, [data]),
-    initialState: {pageSize: 50},
+    initialState: {pageSize: 100},
   }, useFilters, useGlobalFilter, useSortBy, usePagination)
 
   const {
@@ -74,7 +74,7 @@ export default function TableDisplay({ column, data, styling, filtering }) {
                       </span>
                       <span style={{ marginRight: '20px' }}>
                         <select className='custom-input' value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
-                          {[5,10, 15, 20, 25, 30, 35, 40, 45, 50].map(pageSize => (
+                          {[50,100, 150, 200, 250, 300, 350, 400, 450, 500].map(pageSize => (
                             <option key={pageSize} value={pageSize}>
                               Show {pageSize}
                             </option>

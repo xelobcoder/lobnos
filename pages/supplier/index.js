@@ -2,10 +2,10 @@ import React, { useEffect } from 'react';
 import TopMessage from '../../components/accessories/TopMessage';
 import ADD_NEW_SUPPLIER from '../../components/suppliers/addNewSupplier';
 import SUPPLIERS_SEARCH_BAR from '../../components/suppliers/searchBar'
-import InventroyHeader from '../../components/inventroyHeader';
 import Header from '../../components/header';
 import SUPPLIERS_LIST from '../../components/suppliers/supllyList';
-import { customFetch } from '../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../components/Auth/customFetch';
+import SupplierLayout from '../../components/inventory/SupplierLayout';
 
 
 export default function SUPPLY() {
@@ -40,18 +40,9 @@ export default function SUPPLY() {
   // constroller for deleting a supplier
   const deletehandler = async (id, supplierid) => {
     try {
-      const response = await fetch(
-        `${process.env.BASEURL}/suppliers?supplierid=${supplierid}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            'Authorization': `Baerer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-          },
-        }
-      );
-      const data = await response.json();
-      if (data.status === "success") {
+      const response = await customPost(`suppliers?supplierid=${supplierid}`, 'DELETE', {})
+      const { status } = response;
+      if (status === "success") {
         // remove the deleted item from the list using the supplierid
         const nwdata = rawdata.filter((item) => item.supplierid !== supplierid);
         setRawdata(nwdata);
@@ -118,42 +109,33 @@ export default function SUPPLY() {
   }
 
   return (
-    <div id='supply-overhead'>
-      {messageshow ? <TopMessage message={message.message} messageTimer={messageTimer} display={message.display} type={message.type} /> : null}
-      {/* once viewadd which toggles the display of ADD NEW SUPLLIER component is true, then this add section appears */}
-      {
-        viewadd === true ? (
-          <div>
-            <ADD_NEW_SUPPLIER newsupplier={newsupplier}
-              controllerName={controllerName}
-              buttonstatus={buttonstatus}
-              controllerAddress={controllerAddress}
-              controllerCommodity={controllerCommodity}
-              handleSubmit={handleSubmit}
-              viewhandler={viewhandler}
-              rawdata={rawdata}
-            />
-          </div>
-        ) : null
-      }
-      <SUPPLIERS_SEARCH_BAR searchhandler={searchhandler} />
-      <SUPPLIERS_LIST rawdata={rawdata || []}
-        editController={updatehandler}
-        deleteController={deletehandler} />
-    </div>
+    <>
+      <SupplierLayout>
+        <div >
+          {messageshow ? <TopMessage message={message.message} messageTimer={messageTimer} display={message.display} type={message.type} /> : null}
+          {/* once viewadd which toggles the display of ADD NEW SUPLLIER component is true, then this add section appears */}
+          {
+            viewadd === true ? (
+              <div>
+                <ADD_NEW_SUPPLIER newsupplier={newsupplier}
+                  controllerName={controllerName}
+                  buttonstatus={buttonstatus}
+                  controllerAddress={controllerAddress}
+                  controllerCommodity={controllerCommodity}
+                  handleSubmit={handleSubmit}
+                  viewhandler={viewhandler}
+                  rawdata={rawdata}
+                />
+              </div>
+            ) : null
+          }
+          {/* <SUPPLIERS_SEARCH_BAR searchhandler={searchhandler} /> */}
+          <SUPPLIERS_LIST rawdata={rawdata || []}
+            editController={updatehandler}
+            deleteController={deletehandler} />
+        </div>
+      </SupplierLayout>
+    </>
   )
 }
 
-SUPPLY.getLayout = (page) => {
-  return (
-    <>
-      <Header />
-      <div className="wrapper">
-        <div className="side">
-          <InventroyHeader />
-        </div>
-        <div className="main">{page}</div>
-      </div>
-    </>
-  );
-}

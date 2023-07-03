@@ -3,6 +3,7 @@ import EMPTY_TABLE_TEMPLATE from '../../components/accessories/emptyTable';
 import TableIsLoading from '../../components/accessories/TableIsLoading';
 import ReceivedOrderModal from '../../components/inventory/ReceivedOrderModal';
 import { customFetch } from '../../components/Auth/customFetch';
+import SupplierLayout from '../../components/inventory/SupplierLayout';
 
 
 
@@ -99,66 +100,68 @@ export default function PURCHASES() {
 
   return (
     <>
-      <div id='placeorder'>
-        <table>
-          <thead>
-            <tr>
-              <th>orderid</th>
-              <th>prod name</th>
-              <th>suppliername</th>
-              <th>purchaseunit</th>
-              <th>order date</th>
-              <th>quantity ordered</th>
-              <th>received</th>
-              <th>received order</th>
-              <th>cancel order</th>
-              <th>details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {
-              ordersplacedList.length === 0 ?
-                <EMPTY_TABLE_TEMPLATE col={10} /> :
-                (
-                  <>
-                    {ordersplacedList.map((item, index) => {
-                      return (
-                        <tr key={index}>
-                          <td>{item.productordersid}</td>
-                          <td>{item.name}</td>
-                          <td>{item.suppliername}</td>
-                          <td>{item.purchaseunit}</td>
-                          <td>{item.date.slice(0, 10)}</td>
-                          <td>{item.quantity}</td>
-                          <td>{item.received}</td>
-                          <td>
-                            <button className='btn btn-primary btn-sm'
-                              onClick={(e) => {
-                                viewReceivedOrders(item.supplierid)
-                              }}
-                            >receive order</button>
-                          </td>
-                          <td>
-                            <button className='btn btn-danger btn-sm'
-                              onClick={(e) => { cancelOrder(item.productordersid) }}
-                            >cancel</button>
-                          </td>
-                          <td>
-                            <button className='btn btn-info btn-sm'>details</button>
-                          </td>
-                        </tr>
-                      )
-                    }
-                    )}
-                  </>
-                )
-            }
-          </tbody>
-        </table>
-      </div>
-      <div>
-        {receivemodal && <ReceivedOrderModal receivedmodal={receivemodal} datasource={supplierOrders} closeSignal={closeSignal} />}
-      </div>
+      <SupplierLayout>
+        <div className='mt-2'>
+          <table id='custom-table'>
+            <thead>
+              <tr>
+                <th>orderid</th>
+                <th>prod name</th>
+                <th>suppliername</th>
+                <th>purchaseunit</th>
+                <th>order date</th>
+                <th>quantity ordered</th>
+                <th>received</th>
+                <th>received order</th>
+                <th>cancel order</th>
+                <th>details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                ordersplacedList.length === 0 ?
+                  <EMPTY_TABLE_TEMPLATE col={10} /> :
+                  (
+                    <>
+                      {ordersplacedList.map((item, index) => {
+                        return (
+                          <tr key={index}>
+                            <td>{item.productordersid}</td>
+                            <td>{item.name}</td>
+                            <td>{item.suppliername}</td>
+                            <td>{item.purchaseunit}</td>
+                            <td>{item.date.slice(0, 10)}</td>
+                            <td>{item.quantity}</td>
+                            <td>{item.received}</td>
+                            <td>
+                              <button className='btn btn-primary btn-sm'
+                                onClick={(e) => {
+                                  viewReceivedOrders(item.supplierid)
+                                }}
+                              >receive order</button>
+                            </td>
+                            <td>
+                              <button className='btn btn-danger btn-sm'
+                                onClick={(e) => { cancelOrder(item.productordersid) }}
+                              >cancel</button>
+                            </td>
+                            <td>
+                              <button className='btn btn-info btn-sm'>details</button>
+                            </td>
+                          </tr>
+                        )
+                      }
+                      )}
+                    </>
+                  )
+              }
+            </tbody>
+          </table>
+        </div>
+        <div>
+          {receivemodal && <ReceivedOrderModal receivedmodal={receivemodal} datasource={supplierOrders} closeSignal={closeSignal} />}
+        </div>
+      </SupplierLayout>
     </>
   )
 }

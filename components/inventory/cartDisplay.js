@@ -1,6 +1,7 @@
 import React from 'react'
 
 export default function CART_DISPLAY_COMPONENT({ data ,removeCartHandler,placeOrderHandler}) {
+  console.log(data)
  return (
   <div className='list-group' id='cart-place-order'>
    <div id='wrapper'>
@@ -14,6 +15,9 @@ export default function CART_DISPLAY_COMPONENT({ data ,removeCartHandler,placeOr
      <div className='col'>
       <h5>supplier</h5>
      </div>
+     <div className='col'>
+      <h5>purchase unit</h5>
+      </div>
      <div className='col'>
       <h5>tax</h5>
      </div>
@@ -40,6 +44,9 @@ export default function CART_DISPLAY_COMPONENT({ data ,removeCartHandler,placeOr
          <div className='col'>
           <h5>{item.suppliername}</h5>
          </div>
+         <div className='col'>
+          <h5>{item.purchaseunit}</h5>
+          </div>
          <div className='col'>
           <h5>{item.tax}</h5>
          </div>

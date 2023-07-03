@@ -5,6 +5,7 @@ import InventoryHeaders from '../../components/Headers/inventoryHeaders';
 import { DeleteForever, EditIcon } from '@mui/icons-material';
 import ADD_DEPARTMENT from '../../components/inventory/addDepartment';
 import { customFetch } from '../../components/Auth/customFetch';
+import InventoryLayout from '../../components/inventory/InventoryLayout';
 
 export default function EXPIRE_STOCKS({ expirestock }) {
   const columns = [
@@ -71,9 +72,11 @@ export default function EXPIRE_STOCKS({ expirestock }) {
   }
 
   return (
-    <div>
+    <InventoryLayout>
+      <div>
         <TableDisplay data={expirestock} column={columns} />
-    </div>
+      </div>
+    </InventoryLayout>
   )
 }
 
@@ -95,16 +98,3 @@ export async function getServerSideProps(context) {
   }
 }
 
-EXPIRE_STOCKS.getLayout = function getLayout(page) {
-  return (
-    <>
-      <Header />
-      <div className="wrapper">
-        <div className="side">
-          <InventoryHeaders />
-        </div>
-        <div className="main" id='page-main-view'>{page}</div>
-      </div>
-    </>
-  )
-}

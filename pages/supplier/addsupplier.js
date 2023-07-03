@@ -1,33 +1,19 @@
 import React from 'react';
-import InventroyHeader from '../../components/inventroyHeader';
-import Header from '../../components/header';
 import ADD_NEW_SUPPLIER from '../../components/suppliers/addNewSupplier';
+import SupplierLayout from '../../components/inventory/SupplierLayout';
 
 
 export default function ADD_SUPPLIER_PAGE() {
 
 
- return (
-  <div>
-   <ADD_NEW_SUPPLIER />
-  </div>
- )
+  return (
+    <>
+      <SupplierLayout>
+        <ADD_NEW_SUPPLIER />
+      </SupplierLayout>
+    </>
+  )
 }
 
 
 
-ADD_SUPPLIER_PAGE.getLayout = function (page) {
- return (
-  <>
-   <Header />
-   <div className="wrapper">
-    <div className="side">
-     <InventroyHeader />
-    </div>
-    <div className="main" id='page-main-view'>
-     {page}
-    </div>
-   </div>
-  </>
- )
-}

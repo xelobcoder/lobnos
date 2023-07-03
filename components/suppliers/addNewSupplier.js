@@ -1,4 +1,4 @@
-import React from 'react';
+import React ,{useState} from 'react';
 import CloseIcon from '@mui/icons-material/Close';
 import { Container } from '@mui/material';
 import TopMessage from '../accessories/TopMessage';
@@ -25,15 +25,15 @@ export default function ADD_NEW_SUPPLIER() {
   const supplierid = useRouter().query.supplierid;
 
   // list of all commodities
-  const [commoditiesList, setCommoditiesList] = React.useState([]);
+  const [commoditiesList, setCommoditiesList] =useState([]);
 
   // show modal for adding commodity to db when it is not in the datalist show 
-  const [showcmmodal, setshowcmmodal] = React.useState(false);
+  const [showcmmodal, setshowcmmodal] =useState(false);
 
-  const [show, setMessageshow] = React.useState(false);
-  const [message, setMessage] = React.useState({ type: 'success', message: '' })
+  const [show, setMessageshow] =useState(false);
+  const [message, setMessage] =useState({ type: 'success', message: '' })
 
-  const [newsupplier, setNewSupplier] = React.useState(default_source);
+  const [newsupplier, setNewSupplier] =useState(default_source);
   // destructure 
   const { name, commodity, address, email, phonenumber, region, contactperson } = newsupplier;
   // handle the inputs

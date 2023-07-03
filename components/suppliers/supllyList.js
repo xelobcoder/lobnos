@@ -7,59 +7,49 @@ import PreviewIcon from '@mui/icons-material/Preview';
 import Link from 'next/link';
 import TableIsLoading from '../accessories/TableIsLoading';
 import useRouter from 'next/router';
+import TableDisplay from '../accessories/TableDisplay';
 export default function SUPPLIERS_LIST({ rawdata, deleteController, editController }) {
 
-const router = useRouter;
- return (
-  <>
-   <div className='supply-list-overhead'>
-    <table className='table'>
-     <thead>
-      <tr>
-       <th>id</th>
-       <th>name</th>
-       <th>address</th>
-       <th>phone number</th>
-       <th>email</th>
-       <th>contact person</th>
-       <th>region</th>
-       <th>action</th>
-      </tr>
-     </thead>
-     <tbody>
-      {rawdata.length === 0 ? <TableIsLoading /> : (
-       rawdata.map((item, index) => {
-        return (
-         <tr key={index} >
-          <td>SUPP{item.supplierid}</td>
-          <td>{item.name.toLowerCase()}</td>
-          <td>{item.address.toLowerCase()}</td>
-          <td>{item.phonenumber}</td>
-          <td>{item.email.toLowerCase()}</td>
-          <td>{item.contactperson.toLowerCase()}</td>
-          <td>{item.region.toLowerCase()}</td>
-
-          <td className='d-flex'>
-           <button className='btn btn-info'
-            onClick={ (e) => {
-             // navigate to edit page
-              router.push(`/supplier/addsupplier?tab=edit&supplierid=${item.supplierid}`)
-            }}
-            style={{ marginRight: '10px' }}><EditOffIcon /></button>
-           <button className='btn btn-danger' onClick={(e) => deleteController(e, item.supplierid)}><DeleteForeverIcon /></button>
-           <button className='btn btn-warning'>
-            <Link href={`/supplier/${item.supplierid}`}>
-             <PreviewIcon />
-            </Link>
-           </button>
-          </td>
-         </tr>
-        )
-       })
-      )}
-     </tbody>
-    </table>
-   </div>
-  </>
- )
+  const columns = 
+    [
+      { Header: "id", accessor: "supplierid" },
+      { Header: "name", accessor: "name" },
+      { Header: "address", accessor: "address" },
+      { Header: "phone number", accessor: "phonenumber" },
+      { Header: "email", accessor: "email" },
+      { Header: "contact person", accessor: "contactperson" },
+      { Header: "region", accessor: "region" },
+      {
+        Header: "action",
+        accessor: "",
+        Cell: ({ value }) => (
+          <div className="d-flex">
+            <button
+              className="btn btn-info"
+              onClick={() => {
+                router.push(`/supplier/addsupplier?tab=edit&supplierid=${value}`);
+              }}
+              style={{ marginRight: "10px" }}
+            >
+              <EditOffIcon />
+            </button>
+            <button className="btn btn-danger" onClick={(e) => deleteController(e, value)}>
+              <DeleteForeverIcon />
+            </button>
+            <button className="btn btn-warning">
+              <Link href={`/supplier/${value}`}>
+                <PreviewIcon />
+              </Link>
+            </button>
+          </div>
+        ),
+      },
+    ]
+  
+  const router = useRouter;
+  return (
+    <>
+      <TableDisplay data={rawdata} column={columns} filtering={true}/>
+    </>
+  )
 }

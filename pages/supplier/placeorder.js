@@ -1,24 +1,23 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import PLACE_ORDER from '../../components/inventory/placeorder';
-import InventroyHeader from '../../components/inventroyHeader';
-import Header from '../../components/header';
 import CART_DISPLAY_COMPONENT from '../../components/inventory/cartDisplay';
 import TopMessage from '../../components/accessories/TopMessage';
-import { Suspense } from 'react';
-import TableIsLoading from '../../components/accessories/TableIsLoading';
-import { customFetch } from '../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../components/Auth/customFetch';
+import SupplierLayout from '../../components/inventory/SupplierLayout';
 
-export default function PLACE_ORDER_PAGE({ datasource, suppliers }) {
-  const [source, setDatasource] = React.useState(datasource);
-  const [cart, setCart] = React.useState({
+export default function PLACE_ORDER_PAGE() {
+  const [source, setDatasource] = useState([]);
+  const [tempStorage, setTempStorage] = useState([]);
+  const [suppliers, setSuppliers] = useState([])
+  const [cart, setCart] = useState({
     data: [],
     display: false
   });
-  const [search, setSearch] = React.useState('');
+  const [search, setSearch] = useState('');
 
   // handle messages view begin ---states
-  const [messageshow, setMessageshow] = React.useState(false);
-  const [message, setMessage] = React.useState({
+  const [messageshow, setMessageshow] = useState(false);
+  const [message, setMessage] = useState({
     type: '',
     message: '',
     display: false
@@ -35,6 +34,37 @@ export default function PLACE_ORDER_PAGE({ datasource, suppliers }) {
     }, 2000)
   }
   // handle messages view end ---states
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch data from external API
+        const orders = await customFetch('stock');
+
+        // Fetch data about the suppliers
+        const suppliersData = await customFetch('suppliers');
+
+     
+
+        // Handle the fetched data based on the response status
+        if (orders.status === 'success' && suppliersData.status === 'success') {
+          // Update the state or perform any other logic with the fetched data
+          setDatasource(orders?.result);
+          setTempStorage(orders?.result);
+          setSuppliers(suppliersData?.result);
+             // Log the fetched data
+        console.log(orders, suppliersData);
+        } else {
+          // Handle the case when the data fetching was not successful
+        }
+      } catch (error) {
+        // Handle any errors that occurred during data fetching
+      }
+    };
+
+    fetchData();
+  }, []);
 
 
   const cartHandler = (e, clicked) => {
@@ -81,7 +111,7 @@ export default function PLACE_ORDER_PAGE({ datasource, suppliers }) {
   // handler for placing an order
 
 
-  const placeOrderHandler = (e, stockid) => {
+  const placeOrderHandler =  (e, stockid) => {
     e.preventDefault();
     // get the cart data
     // filter cartdata using the stockid
@@ -89,21 +119,12 @@ export default function PLACE_ORDER_PAGE({ datasource, suppliers }) {
     // get the first data 
     const order = filtered[0];
     // send the data 
+
+  
     const sendData = async function () {
-      let endpoint = `http://localhost:5000/api/v1/orders`;
-      let response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-        },
-        body: JSON.stringify(order)
-      })
 
-      let data = await response.json();
-
+      let data = await customPost('orders','POST',order)
       console.log(data);
-
       // when successfully placed removwe the item from the cart
       if (data.status === 'success' && data.message === 'order placed successfully') {
         removeCartHandler(e, stockid);
@@ -140,42 +161,44 @@ export default function PLACE_ORDER_PAGE({ datasource, suppliers }) {
     setSearch(value)
     if (value.length > 0) {
       let filtered = source.filter((item, index) => {
-       return new String(item.name).includes(value)
+        return new String(item.name).includes(value)
       })
 
       if (filtered.length > 0) {
         setDatasource(filtered)
       }
-      else return ;
+      else return;
     } else {
-      setDatasource(datasource)
+      setDatasource(tempStorage)
     }
 
-    console.log(source,datasource)
   }
 
   return (
     <>
-      <div>
-        {
-          messageshow ? <TopMessage message={message.message} type={message.type} display={message.display} messageTimer={viewMessageTimer} /> : null
-        }
-        <div id='place-order-search' >
-          <input className='custom-input' type="text"
-            onChange={(ev) => searchHandler(ev)}
-            placeholder='search for a product here' value={search} />
-          <button
-            onClick={(ev) => { !cart.display ? setCart({ ...cart, display: true }) : setCart({ ...cart, display: false }) }}
-            className='btn btn-sm btn-primary'>cart {cart.data.length}</button>
+      <SupplierLayout>
+        <div>
+          {
+            messageshow ? <TopMessage message={message.message} type={message.type} display={message.display} messageTimer={viewMessageTimer} /> : null
+          }
+          <div id='place-order-search' >
+            <input className='custom-input' type="text"
+              onChange={(ev) => searchHandler(ev)}
+              placeholder='search for a product here' value={search} />
+            {source.length > 0 && 
+            (<button
+              onClick={(ev) => { !cart.display ? setCart({ ...cart, display: true }) : setCart({ ...cart, display: false }) }}
+              className='btn btn-sm btn-primary'>cart {cart.data.length}</button>)}
+          </div>
+          {
+            cart.display ? <CART_DISPLAY_COMPONENT
+              removeCartHandler={removeCartHandler}
+              placeOrderHandler={placeOrderHandler}
+              data={cart.data} /> :
+              <PLACE_ORDER source={source} cartHandler={cartHandler} suppliers={suppliers} />
+          }
         </div>
-        {
-          cart.display ? <CART_DISPLAY_COMPONENT
-            removeCartHandler={removeCartHandler}
-            placeOrderHandler={placeOrderHandler}
-            data={cart.data} /> :
-            <PLACE_ORDER source={source} cartHandler={cartHandler} suppliers={suppliers} />
-        }
-      </div>
+      </SupplierLayout>
     </>
   )
 }
@@ -184,45 +207,5 @@ export default function PLACE_ORDER_PAGE({ datasource, suppliers }) {
 
 
 
-PLACE_ORDER_PAGE.getLayout = function getLayout(page) {
-  return (
-    <>
-      <Header />
-      <div className="wrapper">
-        <div className="side">
-          <InventroyHeader />
-        </div>
-        <div className="main" id='page-main-view'>
-          {page}
-        </div>
-      </div>
-    </>
-  )
-}
 
 
-
-export async function getServerSideProps(context) {
-  // Fetch data from external API
-  const orders = await customFetch('orders')
-
-  // fetch abput the suppliers 
-  const suppliers = await customFetch('suppliers')
-
-  // Pass data to the page via props
-
-  if (orders.status === 'success' && suppliers.status === 'success') {
-    return {
-      props: {
-        datasource: orders.result,
-        suppliers:  suppliers.result
-      }, // will be passed to the page component as props
-    }
-  }
-
-  if (!result && status != 'success') {
-    return {
-      notFound: true
-    }
-  }
-}

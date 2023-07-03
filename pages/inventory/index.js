@@ -5,7 +5,8 @@ import TableDisplay from '../../components/accessories/TableDisplay';
 import Inventory_Loading from './loading';
 import Header from '../../components/header';
 import InventoryHeaders from '../../components/Headers/inventoryHeaders';
-import { customFetch } from '../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../components/Auth/customFetch';
+import InventoryLayout from '../../components/inventory/InventoryLayout';
 
 export default function INVENTORY_PAGE({ stocks }) {
   const [stocksource, setStocks] = useState(stocks);
@@ -19,6 +20,15 @@ export default function INVENTORY_PAGE({ stocks }) {
       Cell: ({ row }) => (
         <div>
           <input type='checkbox' />
+        </div>
+      ),
+    },
+    {
+      Header: 'Date',
+      accessor: 'date',
+      Cell: ({ row }) => (
+        <div>
+          {row.original.date.split('T')[0]}
         </div>
       ),
     },
@@ -69,15 +79,7 @@ export default function INVENTORY_PAGE({ stocks }) {
       Header: 'Tax',
       accessor: 'tax',
     },
-    {
-      Header: 'Date',
-      accessor: 'date',
-      Cell: ({ row }) => (
-        <div>
-          {row.original.date.split('T')[0]}
-        </div>
-      ),
-    },
+
     {
       Header: 'Action',
       Cell: ({ row }) => (
@@ -94,15 +96,7 @@ export default function INVENTORY_PAGE({ stocks }) {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`${STOCKS_URL}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-        },
-        body: JSON.stringify({ stockid: id }),
-      });
-      const data = await res.json();
+      const data = await customPost('stock','DELETE',{stockid:id})
       if (data.status === 'success') {
         const newStocks = stocksource.filter((item) => item.stockid !== id);
         setStocks(newStocks);
@@ -120,7 +114,9 @@ export default function INVENTORY_PAGE({ stocks }) {
 
   return (
     <>
-      <TableDisplay data={stocksource} column={columns} fallback={<Inventory_Loading />} />
+      <InventoryLayout>
+        <TableDisplay data={stocksource} column={columns} filtering={true} styling={'custom-table'} />
+      </InventoryLayout>
     </>
   );
 }
@@ -141,22 +137,3 @@ export async function getServerSideProps(context) {
 
 
 
-// define a custom page layout 
-// Path: components\accessories\Layout.js
-
-INVENTORY_PAGE.getLayout = function getLayout(page) {
-  return (
-    <>
-      <Header />
-      <div className="wrapper">
-        <div className="side">
-          <InventoryHeaders />
-        </div>
-        <div className="main" id='page-main-view'>{page}</div>
-      </div>
-    </>
-  )
-}
-
-
-// refactor the code above

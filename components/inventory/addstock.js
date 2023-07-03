@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import TopMessage from '../accessories/TopMessage';
 import { SystemUpdate, AddCircleOutline } from '@mui/icons-material';
 import { customFetch } from '../Auth/customFetch';
+import { Button } from '@mui/material';
 
 export default function ADD_STOCK_INVENTORY() {
   // iinput fields = name, category, consumption unit,purchase unit, material code,unit quantity,alert level,tax
@@ -48,7 +49,7 @@ export default function ADD_STOCK_INVENTORY() {
     const method = tab === 'edit' ? 'PUT' : 'POST';
     try {
       const senddata = async () => {
-        const  BASEURL = `${process.env.BASEURL}`
+        const BASEURL = `${process.env.BASEURL}`
         const response = await fetch(tab == 'edit' ? `${BASEURL}/stock?stockid=${stockid}` :
           `${BASEURL}/stock`, {
           method,
@@ -59,7 +60,7 @@ export default function ADD_STOCK_INVENTORY() {
           body: JSON.stringify({ ...productdetails, tax: parseInt(productdetails.tax) })
         })
         const data = await response.json();
-        
+
         const { status, message } = data;
         if (status === 'success') {
           setMessageshow(true);
