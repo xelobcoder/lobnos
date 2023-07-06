@@ -18,6 +18,7 @@ const DepartmentRequisition = () => {
   const [departmentStocksLevel, setDepartmentStocksLevel] = useState([]);
   const [message, setMessage] = useState({ message: "", type: "", display: false });
 
+
   useEffect(() => {
     fetchDepartmentStocksLevel();
   }, [selectedDept]);
@@ -29,6 +30,7 @@ const DepartmentRequisition = () => {
   const fetchDepartmentStocksLevel = async () => {
     const data = await customFetch(`departments/stocks?id=${selectedDept}`);
     if (data?.status === "success") {
+      console.log(data.result);
       setDepartmentStocksLevel(data.result);
     }
   };
@@ -64,21 +66,35 @@ const DepartmentRequisition = () => {
       requisitionid: Date.now(),
     };
 
-    const emptyValues = Object.values(transformedData).filter((value) => value === "");
+    const emptyValues = Object.values(transformedData).filter(
+      (value) => value === ""
+    );
     if (emptyValues.length > 0 || transformedData.quantity === 0) {
-      setMessage({ message: "Please fill in the required quantity.", type: "error", display: true });
+      setMessage({
+        message: "Please fill in the required quantity.",
+        type: "error",
+        display: true,
+      });
       return;
     }
 
     try {
-      const sendDataAsync = await customPost(`${REQUISITIONS_URL}`, "POST", transformedData);
+      const sendDataAsync = await customPost(
+        `${REQUISITIONS_URL}`,
+        "POST",
+        transformedData
+      );
       const { status, statusCode, message } = sendDataAsync;
-      if (status === "success" && statusCode === 200 && message === "Department requisition added successfully") {
-        setMessage({ message, type: "success", display: true });
+      if (
+        status === "success" &&
+        statusCode === 200 &&
+        message === "Department requisition added successfully"
+      ) {
+        alert(message);
         const updatedStocks = stocks.filter((stock) => stock.stockid !== id);
         setStocks(updatedStocks);
       } else {
-        setMessage({ message, type: "error", display: true });
+        alert(message);
       }
     } catch (err) {
       console.log(err);

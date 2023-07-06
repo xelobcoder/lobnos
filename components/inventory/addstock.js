@@ -60,6 +60,7 @@ export default function ADD_STOCK_INVENTORY() {
         else {
           setMessageshow(true);
           setMessage({ type: 'warning', message: message })
+          console.log(message)
         }
       }
 

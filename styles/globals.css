@@ -1,7 +1,7 @@
 :root {
-  --sans-serif: 'ColfaxAI', helvetica, sans-serif;
-  --monospace: 'Roboto Mono', sfmono-regular, consolas, liberation mono, menlo,
-    courier, monospace;
+  /* --sans-serif: 'ColfaxAI', helvetica, sans-serif; */
+  /* --monospace: 'Roboto Mono', sfmono-regular, consolas, liberation mono, menlo, */
+    /* courier, monospace; */
   -primary: #10a37f;
   --primary-50: #ebfaeb;
   --primary-100: #d2f4d3;
@@ -91,14 +91,14 @@
   background-color: var(--secondary) !important;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&family=Roboto&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital@1&display=swap');
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Ubuntu', sans-serif;
   /* overflow-x: hidden; */
-  font-weight: 300;
+  font-weight: 400;
 }
 .red-border-row {
   border: 1px solid red;
@@ -143,7 +143,9 @@
   border-radius: 5px;
   outline: 1px solid #00224f;
 }
-
+body {
+  background-color :#fef7e064;
+}
 .grid-2 {
   display: -ms-grid;
   display: grid;
@@ -2514,7 +2516,7 @@ option:hover {
 .inventory_sidebar > li > a:focus,
 .inventory_sidebar > li > a:hover {
   background-color: whitesmoke;
-  color: #00224f;
+  color: var(--green-500);
   transition: ease-in-out;
 }
 

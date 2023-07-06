@@ -1,13 +1,12 @@
-import React, { Suspense } from 'react'
+import React, { useState, useEffect } from 'react'
 import TableDisplay from '../../components/accessories/TableDisplay';
-import Header from '../../components/header';
-import InventoryHeaders from '../../components/Headers/inventoryHeaders';
 import { DeleteForever, EditIcon } from '@mui/icons-material';
-import ADD_DEPARTMENT from '../../components/inventory/addDepartment';
 import { customFetch } from '../../components/Auth/customFetch';
 import InventoryLayout from '../../components/inventory/InventoryLayout';
 
-export default function EXPIRE_STOCKS({ expirestock }) {
+export default function EXPIRE_STOCKS() {
+  const [expireStock, setExpireStock] = useState([]);
+
   const columns = [
     {
       Header: 'Stockid',
@@ -18,7 +17,7 @@ export default function EXPIRE_STOCKS({ expirestock }) {
       accessor: 'name',
     },
     {
-      Header: 'Quantity',
+      Header: 'Qty in stock',
       accessor: 'quantity',
     },
 
@@ -71,10 +70,27 @@ export default function EXPIRE_STOCKS({ expirestock }) {
     console.log(id);
   }
 
+
+  const getData = async () => {
+    const response = await customFetch(`stock?expireproduct=true`)
+    const { result, status } = response;
+    if (status == 'success') {
+      setExpireStock(result);
+    }
+  }
+
+  useEffect(() => {
+    try {
+      getData();
+    } catch (error) {
+      console.log(error);
+    }
+  }, [])
+
   return (
     <InventoryLayout>
       <div>
-        <TableDisplay data={expirestock} column={columns} />
+        <TableDisplay data={expireStock} column={columns} />
       </div>
     </InventoryLayout>
   )
@@ -84,17 +100,4 @@ export default function EXPIRE_STOCKS({ expirestock }) {
 
 
 
-
-// get server side props
-export async function getServerSideProps(context) {
-  const result = await customFetch(`stock?expireproduct=true`)
-  const { data, status } = result;
-  if (status === 'success') {
-    return {
-      props: {
-        expirestock: data,
-      },
-    };
-  }
-}
 

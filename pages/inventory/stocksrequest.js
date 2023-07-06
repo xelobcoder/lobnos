@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 import TableDisplay from "../../components/accessories/TableDisplay";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import { customFetch } from "../../components/Auth/customFetch";
+import InventoryLayout from "../../components/inventory/InventoryLayout";
 export default function Stocksrequest({ departments }) {
   const [request, setRequest] = useState([]);
   const [hxData, setHxData] = useState([]);
@@ -153,33 +154,35 @@ export default function Stocksrequest({ departments }) {
 
   return (
     <>
-      <div className="container pt-3">
-        <div className="row">
-          <div
-            style={{ display: "grid", gridTemplateColumns: "auto auto 40%" }}
-          >
-            <select
-              className="custom-input"
-              onChange={(e) => setDepartmentId(e.target.value)}
+      <InventoryLayout>
+        <div className="container mt-1">
+          <div className="row">
+            <div
+              style={{ display: "grid", gridTemplateColumns: "auto auto 40%" }}
             >
-              <option value="">Select Department</option>
-              {department.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.department}
-                </option>
-              ))}
-            </select>
-            <button className="custom-button">transfered</button>
-            <button className="custom-button">issues raised</button>
+              <select
+                className="custom-input"
+                onChange={(e) => setDepartmentId(e.target.value)}
+              >
+                <option value="">Select Department</option>
+                {department.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.department}
+                  </option>
+                ))}
+              </select>
+              <button className="custom-button">transfered</button>
+              <button className="custom-button">issues raised</button>
+            </div>
+          </div>
+          <div className="row">
+            <TableDisplay
+              column={columns}
+              data={hxData.length === 0 ? [] : hxData}
+            />
           </div>
         </div>
-        <div className="row">
-          <TableDisplay
-            column={columns}
-            data={hxData.length === 0 ? [] : hxData}
-          />
-        </div>
-      </div>
+      </InventoryLayout>
     </>
   );
 }

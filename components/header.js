@@ -5,6 +5,7 @@ import {
   Typography,
   Button,
   IconButton,
+  Avatar,
 } from "@mui/material";
 import React from "react";
 import WidgetsIcon from "@mui/icons-material/Widgets";
@@ -33,15 +34,23 @@ function Header() {
           sx={{
             backgroundColor: "#00224f",
             display: "grid",
-            gridTemplateColumns: "92% auto",
+            gridTemplateColumns: "70% 20% auto",
           }}
         >
           <Toolbar>
-            <Typography variant="h4" color="inherit" component={"div"}>
+            <Typography variant="h4" color="error" component={"div"}>
               <Link href={'/'}>
                 LIMS
               </Link>
             </Typography>
+          </Toolbar>
+          <Toolbar>
+            <div className="d-flex justify-content-between">
+              <Avatar />
+              <Typography variant="h6" color='warning'>
+                Tiifu Hamza
+              </Typography>
+            </div>
           </Toolbar>
           <Toolbar>
             {pageUrl === '/authentication/login' || pageUrl == '/' ? null : (

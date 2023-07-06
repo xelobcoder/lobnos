@@ -2,15 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Alert, Button } from '@mui/material';
 import { Backspace, CloseOutlined, DeleteForever, PendingActions } from '@mui/icons-material';
-import Header from '../../components/header';
-import InventoryHeaders from '../../components/Headers/inventoryHeaders';
 import TableDisplay from '../../components/accessories/TableDisplay';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import ViewCompactAltIcon from '@mui/icons-material/ViewCompactAlt';
 import CallReceivedIcon from '@mui/icons-material/CallReceived';
 import { CheckCircle } from '@mui/icons-material';
 import DepartureBoard from '@mui/icons-material/DepartureBoard';
-import { customFetch } from '../../components/Auth/customFetch';
+import { customFetch ,customPost} from '../../components/Auth/customFetch';
 
 export default function Requisition() {
   const router = useRouter();
@@ -63,7 +61,7 @@ export default function Requisition() {
     const requested = parseInt(filtered[0].quantity_requested);
     const approved = parseInt(filtered[0].quantity_approved);
     const supplied = parseInt(filtered[0].quantityReceived);
-    console.log(supplied, approved, requested);
+
 
     if (supplied < approved || supplied > approved) {
       alert('Kindly click on the Report Bug button to report this issue. Read the instructions by clicking on the View Instructions button for more information,Thank you');
@@ -76,22 +74,16 @@ export default function Requisition() {
         quantityReceived: supplied,
         departmentReceived: 1,
         status: 'received',
+        stockid: filtered[0].stockid,
         departmentid: parseInt(departmentid),
+        consumptionunit: filtered[0].comsumptionunit,
       }
 
       // send data to the server
       async function sendReceivedData() {
         try {
-          const response = await fetch(`${process.env.BASEURL}/departments/requisitions`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-            },
-            body: JSON.stringify(transformData),
-          });
-          const data = await response.json();
-          
+          const data = await customPost('departments/requisitions', 'PUT',transformData)
+          console.log(data)
           if (data.status === 'success' && data.statusCode === 200) {
             alert(data.message);
             //  udate the state

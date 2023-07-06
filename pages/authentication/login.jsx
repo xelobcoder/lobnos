@@ -1,6 +1,7 @@
 import React from 'react';
 import { useState, useContext } from 'react';
 import AuthContext from '../../components/Auth/useAuthentification';
+import { customPost } from '../../components/Auth/customFetch';
 
 
 
@@ -15,20 +16,8 @@ export default function LoginCredentials() {
     e.preventDefault();
     // send the username and password to the server
     // if the server responds with a 200 status code
-    const token = process.env.NEXT_PUBLIC_ACCESS_TOKEN;
     try {
-      const response = await (await fetch(`${process.env.BASEURL}/authenticate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'withCredentials': 'true'
-        },
-        body: JSON.stringify({
-          username,
-          password
-        })
-      })).json();
+      const response = await customPost('authenticate','POST',{username,password})
 
       const { status, statusCode, message } = response;
 

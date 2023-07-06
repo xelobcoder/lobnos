@@ -43,6 +43,12 @@ export default function InventoryHeaders() {
             Department requisition
           </Link>
         </li>
+        <li>
+          <Link href='/inventory/stocksrequest'>
+            <DepartureBoardIcon fontSize='small' sx={{marginRight:'10px'}} />
+            Store
+          </Link>
+        </li>
       </ul>
     </div>
   )
