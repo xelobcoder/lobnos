@@ -1471,7 +1471,7 @@ option:hover {
   border-radius: 5px;
 }
 .custom-table-wrapper {
-  height: 80vh;
+  height: max-content;
   overflow-y: auto;
 }
 

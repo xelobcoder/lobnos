@@ -100,6 +100,10 @@ export async function handleResponse(response) {
 
    if (status == "success") {
       alert(message);
+   } 
+
+   if (status == "error") {
+      alert(message || "An error occured");
    }
 }
 

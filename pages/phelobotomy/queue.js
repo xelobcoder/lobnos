@@ -303,13 +303,12 @@ export default function Phelobotomy() {
           )}
         </div>
         {
+          // screen display as a modal when the split screen is true
           splitScreen === false ? null : (
             <div className="side-pane">
-              <header className="collection-header bg-warning p-2 text-capitalize text-lead">
+              <header className="collection-header bg-warning p-2 text-capitalize text-lead d-flex justify-content-between">
                 <span>Billid: {collection.billingid}</span>
-                <br />
                 <span>clientid:{collection.patientid}</span>
-                <br />
                 <span>fullname:{collection.fullname}</span>
               </header>
               <main>
@@ -379,17 +378,13 @@ export default function Phelobotomy() {
                       onChange={(e) => setAllCollected(!allCollected)}
                     />{" "}
                     All collected
-                    <input id="checkbo" type="checkbox" ref={barcodeRef} /> print
-                    barcode
-                    <input id="checkbo" type="checkbox" ref={receiptRef} /> print
-                    receipt
                   </>
                 )}
                 {!allCollected && (
                   <>
-                    <div className="alert alert-warning">
-                      <pre>all samples not taken ?</pre>
-                      entered reason in the text box below
+                    <div className="alert alert-info mt-1" style={{fontSize:'14px'}}>
+                      <strong>all samples not taken ?</strong>
+                     <p> Entered reason in the text box below</p>
                     </div>
 
                     <textarea

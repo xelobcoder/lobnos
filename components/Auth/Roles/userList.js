@@ -1,21 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { customFetch } from '../../../components/Auth/customFetch';
 import TableDisplay from '../../../components/accessories/TableDisplay';
-import { Tooltip, Button } from '@mui/material';
-import { DeleteForever, Edit, EditAttributes, EditNotifications } from '@mui/icons-material';
-export default function UserList({ editcall }) {
-  const [users, setUser] = useState([]);
+import {  Button } from '@mui/material';
+import Link from 'next/link';
+export default function UserList({users,handleDelete,editUser}) {
 
-  const getUsers = async () => {
-    const response = await customFetch('logins');
-    const { statusCode, message, result } = response;
-    if (statusCode === 200) {
-      setUser(result);
-    }
-  }
-  useEffect(() => {
-    getUsers();
-  }, []);
+
 
 
   // We create columns for the table
@@ -26,7 +15,7 @@ export default function UserList({ editcall }) {
     },
     {
       Header: 'Email',
-      accessor: 'email',
+      accessor: 'EMAIL',
     },
     {
       Header: 'Role',
@@ -36,13 +25,9 @@ export default function UserList({ editcall }) {
       Header: 'permissions',
       Cell: function ({ row }) {
         const { original } = row;
-        const { DELETEV, EDITV, READV, CREATEV } = original;
         return (
           <div>
-            <input style={{ marginLeft: '10px' }} type='checkbox' value='read' checked={READV == 'TRUE' ? true : false} /> read
-            <input style={{ marginLeft: '10px' }} type='checkbox' value='edit' checked={EDITV == 'TRUE' ? true : false} /> edit
-            <input style={{ marginLeft: '10px' }} type='checkbox' value='create' checked={CREATEV == 'TRUE' ? true : false} /> create
-            <input style={{ marginLeft: '10px' }} type='checkbox' value='delete' checked={DELETEV == 'TRUE' ? true : false} /> delete
+            <Button size='small' color='success' variant='text'>update or view permissions</Button>
           </div>
         )
       }
@@ -51,11 +36,21 @@ export default function UserList({ editcall }) {
       Header: 'Action',
       Cell: function ({ row }) {
         const { original } = row;
-        const { id } = original;
+        const { EMPLOYEEID} = original;
         return (
           <div>
-            <Button size='small' color='primary'  variant='text'>edit</Button>
-            <Button size='small' color='error'>delete</Button>
+            <Button size='small' color='primary'  sx={{textTransform:'capitalize'}}  
+            onClick={()=>editUser(EMPLOYEEID)}
+            variant='text'>edit</Button>
+            <Button sx={{textTransform:'capitalize'}} size='small' color='error'
+            onClick={()=>handleDelete(EMPLOYEEID)}
+            >delete</Button>
+            <Button sx={{textTransform:'capitalize'}} size='small' color='success'>activate</Button>
+            <Button sx={{textTransform:'capitalize'}} size='small' color='warning'>
+              <Link href={`/authentication/updateinformation/${EMPLOYEEID}`}>
+              advanced information entry
+              </Link>
+            </Button>
           </div>
         )
       }
@@ -64,7 +59,7 @@ export default function UserList({ editcall }) {
   return (
     <>
       <div>
-        <TableDisplay column={columns} data={users} />
+        <TableDisplay column={columns} data={users} filtering={true} />
       </div>
     </>
   )
