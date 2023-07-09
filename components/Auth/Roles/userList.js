@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import TableDisplay from '../../../components/accessories/TableDisplay';
-import {  Button } from '@mui/material';
+import { Button } from '@mui/material';
 import Link from 'next/link';
-export default function UserList({users,handleDelete,editUser}) {
+export default function UserList({ users, handleDelete, editUser }) {
 
 
 
@@ -25,34 +25,63 @@ export default function UserList({users,handleDelete,editUser}) {
       Header: 'permissions',
       Cell: function ({ row }) {
         const { original } = row;
+        const { EMPLOYEEID } = original;
         return (
           <div>
-            <Button size='small' color='success' variant='text'>update or view permissions</Button>
+            <Button size="small" color="success" variant="text">
+              <Link
+                style={{ textTransform: "capitalize", color: "green" }}
+                href={`/authentication/permissions/${EMPLOYEEID}`}
+              >
+                view or update permissions
+              </Link>
+            </Button>
           </div>
-        )
+        );
       }
     },
     {
       Header: 'Action',
       Cell: function ({ row }) {
         const { original } = row;
-        const { EMPLOYEEID} = original;
+        const { EMPLOYEEID } = original;
         return (
           <div>
-            <Button size='small' color='primary'  sx={{textTransform:'capitalize'}}  
-            onClick={()=>editUser(EMPLOYEEID)}
-            variant='text'>edit</Button>
-            <Button sx={{textTransform:'capitalize'}} size='small' color='error'
-            onClick={()=>handleDelete(EMPLOYEEID)}
-            >delete</Button>
-            <Button sx={{textTransform:'capitalize'}} size='small' color='success'>activate</Button>
-            <Button sx={{textTransform:'capitalize'}} size='small' color='warning'>
+            <Button
+              size="small"
+              color="primary"
+              sx={{ textTransform: "capitalize" }}
+              onClick={() => editUser(EMPLOYEEID)}
+              variant="text"
+            >
+              edit
+            </Button>
+            <Button
+              sx={{ textTransform: "capitalize" }}
+              size="small"
+              color="error"
+              onClick={() => handleDelete(EMPLOYEEID)}
+            >
+              delete
+            </Button>
+            <Button
+              sx={{ textTransform: "capitalize" }}
+              size="small"
+              color="success"
+            >
+              activate
+            </Button>
+            <Button
+              sx={{ textTransform: "capitalize" }}
+              size="small"
+              color="warning"
+            >
               <Link href={`/authentication/updateinformation/${EMPLOYEEID}`}>
-              advanced information entry
+                advanced information entry
               </Link>
             </Button>
           </div>
-        )
+        );
       }
     }
   ];

@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react'
 import UserList from '../../../components/Auth/Roles/userList';
 import { Add } from '@mui/icons-material';
-import { handleResponse, validateFormData,customFetch, customPost} from '../../../components/Auth/customFetch';
+import { handleResponse, validateFormData, customFetch, customPost } from '../../../components/Auth/customFetch';
 
 export default function Authentication_index_page() {
-  const [register, setRegister] = useState({
+  const defaultData = {
     name: '',
     email: '',
     password: '',
     cpassword: '',
     role: '',
-  });
+  }
+  const [register, setRegister] = useState(defaultData);
 
   const [refresh, setRefresh] = useState(false);
   const [user, setUser] = useState([]);
+  const [editing, setEditing] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,16 +30,16 @@ export default function Authentication_index_page() {
       return;
     }
     else {
-      await validateFormData({ name, email, password, role }, true, [], 'logins', handleResponse);
+      await validateFormData(register, true, [], editing == true ? 'logins/update' : 'logins', handleResponse);
       setRefresh(true);
     }
   }
 
   const handleDelete = async (id) => {
-  //  show a confimation message before deleting
+    //  show a confimation message before deleting
     const confirm = window.confirm('Are you sure you want to delete this user?');
     if (confirm) {
-      const response = await customPost(`logins`, 'DELETE',{id});
+      const response = await customPost(`logins`, 'DELETE', { id });
       const { statusCode, message, result } = response;
       if (statusCode === 200) {
         alert(message);
@@ -48,10 +50,29 @@ export default function Authentication_index_page() {
 
 
   const editUser = async (id) => {
-    const response = await customFetch(`logins/${id}`);
+    const response = await customFetch(`logins/?id=${id}`);
     const { statusCode, message, result } = response;
     if (statusCode === 200) {
-      setRegister(result);
+      // converting keys to lowercase
+      const editData = result[0];
+      const keys = Object.keys(editData);
+      const lowerCaseKeys = keys.map(key => key.toLowerCase());
+      const newObject = {};
+      lowerCaseKeys.forEach((key, index) => {
+        newObject[key] = editData[keys[index]];
+        // if key = username, we want to change it to name
+        if (key === 'username') {
+          newObject['name'] = editData[keys[index]];
+          delete newObject['username'];
+          // add cpassword
+        }
+        newObject['cpassword'] = ''
+      }
+      );
+      setEditing(true)
+      setRegister(newObject);
+      // we want scroll to the top of the page
+      window.scrollTo(0,0)
     }
   }
 
@@ -75,7 +96,7 @@ export default function Authentication_index_page() {
     getUsers();
     setTimeout(() => {
       setRefresh(false);
-    },1000);
+    }, 1000);
   }, [refresh]);
 
   return (
@@ -86,7 +107,8 @@ export default function Authentication_index_page() {
             <div className="card-header bg-secondary text-white d-flex justify-content-between">
               <h6 className="text-capitalize mt-2">add new user</h6>
               <Add sx={{ cursor: 'pointer' }} />
-
+              {editing == true ? <button className='btn btn-sm btn-danger' onClick={() => {setEditing(false);setRegister(defaultData)}}>cancel edit</button> : null
+              }
             </div>
             <div className="card-body p-2">
               <form autoCapitalize='on' autoComplete='off' accessKey='E'>
@@ -181,7 +203,7 @@ export default function Authentication_index_page() {
           </div>
         </div>
       </div>
-      <UserList users={user} handleDelete={handleDelete} editUser = {editUser} />
+      <UserList users={user} handleDelete={handleDelete} editUser={editUser} />
     </>
   );
 }

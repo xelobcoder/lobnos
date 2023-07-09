@@ -1,29 +1,30 @@
+export const pageAccess = {
+  registration: true,
+  inventory: true,
+  activation: true,
+  suppliers: true,
+  operations: true,
+  approvals: true,
+  settings: true,
+  payments: true,
+  billing: true,
+  phelobotomy: true,
+  samples: true,
+  organization: true,
+  clinician: true,
+  appointment: true,
+}
+
+
 export const customerRepresentative = {
-  registerClient: true,
-  deleteClient: false,
-  editClient: true,
-  printResult: true,
-  activateClient: true,
-  viewClient: true,
-  enterResult: false,
-  viewResult: false,
-  printResult: false,
-  deleteResult: false,
-  pageAccess: {
-    registration: true,
-    inventory: false,
-    activation: true,
-    suppliers: false,
-    approvals: true,
-    settings: false,
-    payments: true,
-    billing: true,
-    phelobotomy: false,
-    samples: false,
-    organization: true,
-    clinician: true,
-    appointment: true,
-  }
+  activatev: true,
+  deletev: true,
+  editv: true,
+  role: 'customer service representative',
+  registerv: true,
+  printv: true,
+  viewv: true,
+  pageAccess
 }
 
 
@@ -37,22 +38,7 @@ export const scientistPermission = {
   viewResult: true,
   printResult: true,
   deleteResult: false,
-  pageAccess: {
-    registration: true,
-    inventory: false,
-    activation: true,
-    suppliers: false,
-    operations: true,
-    approvals: true,
-    settings: false,
-    payments: true,
-    billing: true,
-    phelobotomy: false,
-    samples: false,
-    organization: true,
-    clinician: true,
-    appointment: true,
-  }
+  pageAccess
 }
 
 
@@ -68,19 +54,7 @@ export const Manager = {
   viewResult: true,
   printResult: true,
   deleteResult: true,
-  pageAccess: {
-    registration: true,
-    inventory: true,
-    activation: true,
-    suppliers: true,
-    approvals: true,
-    settings: true,
-    payments: true,
-    billing: true,
-    phelobotomy: true,
-    samples: true,
-    operations: true
-  }
+  pageAccess
 }
 
 
@@ -96,17 +70,5 @@ export const administrator = {
   viewResult: false,
   printResult: false,
   deleteResult: false,
-  pageAccess: {
-    registration: true,
-    inventory: true,
-    activation: true,
-    suppliers: true,
-    approvals: true,
-    settings: true,
-    payments: true,
-    operations: false,
-    billing: true,
-    phelobotomy: true,
-    samples: true
-  }
+  pageAccess
 }
