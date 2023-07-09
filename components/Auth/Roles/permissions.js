@@ -30,13 +30,14 @@ export const customerRepresentative = {
 
 
 export const scientistPermission = {
-  viewClient: false,
-  editClient: false,
-  deleteClient: false,
-  registerClient: false,
-  enterResult: true,
-  viewResult: true,
-  printResult: true,
+  viewv: false,
+  editv: false,
+  deletev: false,
+  registerv: false,
+  enterResult:false,
+  viewResult:false,
+  role: 'scientist',
+  printResult:false,
   deleteResult: false,
   pageAccess
 }

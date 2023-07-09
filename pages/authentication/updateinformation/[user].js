@@ -32,6 +32,9 @@ export default function EditUserInformation() {
             </Tab>
           </Tabs>
         </div>
+        <div className='card-footer'>
+
+        </div>
       </div>
     </div>
   )
