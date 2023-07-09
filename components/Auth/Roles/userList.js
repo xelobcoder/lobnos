@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TableDisplay from '../../../components/accessories/TableDisplay';
 import { Button } from '@mui/material';
 import Link from 'next/link';
-export default function UserList({ users, handleDelete, editUser }) {
+export default function UserList({ users, handleDelete, editUser,activateUser }) {
 
 
 
@@ -10,19 +10,38 @@ export default function UserList({ users, handleDelete, editUser }) {
   // We create columns for the table
   const columns = [
     {
-      Header: 'username',
-      accessor: 'USERNAME',
+      Header: "username",
+      accessor: "USERNAME",
     },
     {
-      Header: 'Email',
-      accessor: 'EMAIL',
+      Header: "Email",
+      accessor: "EMAIL",
     },
     {
-      Header: 'Role',
-      accessor: 'ROLE',
+      Header: "Role",
+      accessor: "ROLE",
     },
+    { Header: "activation status", accessor: "ACTIVATION",
+  Cell: function ({ row }) {
+    const { original } = row;
+    const { ACTIVATION } = original;
+    return (
+      <div>
+        {ACTIVATION === 1 ? (
+          <div size="small" className="text-success" variant="text">
+            active
+          </div>
+        ) : (
+          <div size="small" className="text-danger" variant="text">
+            inactive
+          </div>
+        )}
+      </div>
+    );
+  }
+  },
     {
-      Header: 'permissions',
+      Header: "permissions",
       Cell: function ({ row }) {
         const { original } = row;
         const { EMPLOYEEID } = original;
@@ -38,10 +57,10 @@ export default function UserList({ users, handleDelete, editUser }) {
             </Button>
           </div>
         );
-      }
+      },
     },
     {
-      Header: 'Action',
+      Header: "Action",
       Cell: function ({ row }) {
         const { original } = row;
         const { EMPLOYEEID } = original;
@@ -67,9 +86,10 @@ export default function UserList({ users, handleDelete, editUser }) {
             <Button
               sx={{ textTransform: "capitalize" }}
               size="small"
-              color="success"
+              color={original.ACTIVATION === 1 ? "error" : "success"  }
+              onClick={() => activateUser(EMPLOYEEID,original.ACTIVATION)}
             >
-              activate
+              {original.ACTIVATION === 1 ? "deactivate" : "activate"}
             </Button>
             <Button
               sx={{ textTransform: "capitalize" }}
@@ -82,8 +102,8 @@ export default function UserList({ users, handleDelete, editUser }) {
             </Button>
           </div>
         );
-      }
-    }
+      },
+    },
   ];
   return (
     <>

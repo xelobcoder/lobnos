@@ -49,6 +49,28 @@ export default function Authentication_index_page() {
   }
 
 
+  const activateUser = async (id,previousStatus) => {
+    let currentv;
+    if (previousStatus == 0) {
+      currentv = 1;
+    }
+
+    if (previousStatus == 1) {
+     currentv = 0;
+    }
+    //  show a confimation message before deleting
+    const confirm = window.confirm('Are you sure you want to activate this user?');
+    if (confirm) {
+      const response = await customPost(`user/authentication/activate`, 'PUT', { id,currentv});
+      const { statusCode, message, result } = response;
+      console.log(response)
+      if (statusCode === 200) {
+        alert(message);
+        setRefresh(true);
+      }
+    }
+  }
+
   const editUser = async (id) => {
     const response = await customFetch(`logins/?id=${id}`);
     const { statusCode, message, result } = response;
@@ -203,7 +225,7 @@ export default function Authentication_index_page() {
           </div>
         </div>
       </div>
-      <UserList users={user} handleDelete={handleDelete} editUser={editUser} />
+      <UserList users={user} activateUser={activateUser} handleDelete={handleDelete} editUser={editUser} />
     </>
   );
 }
