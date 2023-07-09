@@ -11,23 +11,32 @@ export default function PermissionsOfUsers() {
   const [scientist, setScientist] = useState(scientistPermission);
   // user permision
   const [user, setUser] = useState({ name: '', role: '' });
+  // set eventTarget for tha accordion so we scroll to depending on the role of the user
+  const [scrollTo, setScroll] = useState('')
   // get user permission data
   const getUserPermissions = async function () {
     const response = await customFetch(`user/permissions?permissions=${permissions}`);
+    // we will set the permission to the state using the response or the default permission
+    const backendPageAccess = JSON.parse(response?.pageaccess) || pageAccess;
+
+    // delete pageaccess from the response
+    delete response?.pageaccess;
+
     if (response['role'] = 'customer service representative') {
-      setCustomer({ ...response, pageAccess });
+      setCustomer({ ...response, pageAccess: backendPageAccess });
       // set name of person who permission is being set to permission
-      console.log(response)
-      console.log(permissions)
-      setUser(response?.name)
+      setScroll('0')
     }
 
     if (response['role'] = 'scientist') {
-      setScientist({ ...response, pageAccess });
+      setScientist({ ...response, pageAccess: backendPageAccess });
       // set name of person who permission is being set to permission
-      setUser({ name: response?.name, role: response?.role })
+      setScroll('1')
     }
+    setUser({ name: response?.name, role: response?.role })
+
   }
+
 
 
   useEffect(() => {
@@ -60,11 +69,14 @@ export default function PermissionsOfUsers() {
 
 
   const handleSubmitPermission = async (ev, target) => {
-     ev.preventDefault();
+    ev.preventDefault();
     //  we will submit the permission to the server
     const response = await customPost(`user/permissions`, 'PUT', target);
-    console.log(response);
+    if (response.statusCode === 200) {
+      alert(response.message)
+    }
   }
+
 
   return (
     <>
@@ -87,8 +99,8 @@ export default function PermissionsOfUsers() {
           </div>
           <div className="row p-3">
             <div className="col-12">
-              <Accordion defaultActiveKey="1">
-                <Accordion.Item eventKey="0">
+              <Accordion defaultActiveKey={scrollTo}>
+                <Accordion.Item eventKey='0'>
                   <Accordion.Header>
                     Permissions [sales service representative]
                   </Accordion.Header>
@@ -102,8 +114,8 @@ export default function PermissionsOfUsers() {
                           onChange={(ev) =>
                             handleChange(ev, customer, setCustomer)
                           }
-                          value={customer.registerv}
-                          checked={customer.registerv}
+                          value={customer['registerv']}
+                          checked={customer['registerv']}
                         />{" "}
                         Register client
                       </div>
@@ -182,7 +194,7 @@ export default function PermissionsOfUsers() {
                             <div className="col-12" key={index}>
                               <input
                                 type="checkbox"
-                                value={customer.pageAccess.keys}
+                                value={customer.pageAccess[keys]}
                                 onChange={(ev) =>
                                   handlePageAccess(ev, customer, setCustomer)
                                 }
@@ -200,7 +212,7 @@ export default function PermissionsOfUsers() {
                     <div className="row">
                       <div className="col-md-12">
                         <button onClick={(ev) => handleSubmitPermission(ev, customer)}
-                         className="btn btn-outline-success mt-2">
+                          className="btn btn-outline-success mt-2">
                           update permissions
                         </button>
                       </div>
@@ -218,7 +230,8 @@ export default function PermissionsOfUsers() {
                           onChange={(ev) =>
                             handleChange(ev, scientist, setScientist)
                           }
-                          checked={scientist.viewv}
+                          value={scientist['viewv']}
+                          checked={scientist['viewv']}
                           className="form-check-input"
                         />
                         View client
@@ -226,11 +239,40 @@ export default function PermissionsOfUsers() {
                       <div className="col-12">
                         <input
                           type="checkbox"
+                          name="printv"
+                          onChange={(ev) =>
+                            handleChange(ev, scientist, setScientist)
+                          }
+                          value={scientist['printv']}
+                          checked={scientist['printv']}
+                          className="form-check-input"
+                        />
+                        Print result
+                      </div>
+
+                      <div className="col-12">
+                        <input
+                          type="checkbox"
+                          name="activatev"
+                          onChange={(ev) =>
+                            handleChange(ev, scientist, setScientist)
+                          }
+                          value={scientist['activatev']}
+                          checked={scientist['activatev']}
+                          className="form-check-input"
+                        />
+                        Activate client
+                      </div>
+                      <div className="col-12">
+                        <input
+
+                          type="checkbox"
                           name="editv"
                           onChange={(ev) =>
                             handleChange(ev, scientist, setScientist)
                           }
-                          checked={scientist.editv}
+                          checked={scientist['editv']}
+                          value={scientist['editv']}
                           className="form-check-input"
                         />
                         Edit client
@@ -242,7 +284,8 @@ export default function PermissionsOfUsers() {
                           onChange={(ev) =>
                             handleChange(ev, scientist, setScientist)
                           }
-                          checked={scientist.deletev}
+                          value={scientist['deletev']}
+                          checked={scientist['deletev']}
                           className="form-check-input"
                         />
                         Delete client
@@ -250,11 +293,12 @@ export default function PermissionsOfUsers() {
                       <div className="col-12">
                         <input
                           type="checkbox"
-                          name="printv"
+                          name="registerv"
                           onChange={(ev) =>
                             handleChange(ev, scientist, setScientist)
                           }
-                          checked={scientist.printv}
+                          value={scientist['registerv']}
+                          checked={scientist['registerv']}
                           className="form-check-input"
                         />
                         register client
@@ -264,11 +308,12 @@ export default function PermissionsOfUsers() {
                       <div className="col-12">
                         <input
                           type="checkbox"
-                          name="enterResult"
+                          name="enterresult"
                           onChange={(ev) =>
                             handleChange(ev, scientist, setScientist)
                           }
-                          checked={scientist.enterResult}
+                          value={scientist['enterresult']}
+                          checked={scientist['enterresult']}
                           className="form-check-input"
                         />
                         enter results
@@ -276,11 +321,12 @@ export default function PermissionsOfUsers() {
                       <div className="col-12">
                         <input
                           type="checkbox"
-                          name="viewResult"
+                          name="viewresult"
                           onChange={(ev) =>
                             handleChange(ev, scientist, setScientist)
                           }
-                          checked={scientist.viewResult}
+                          value={scientist['viewresult']}
+                          checked={scientist['viewresult']}
                           className="form-check-input"
                         />
                         view results
@@ -288,11 +334,12 @@ export default function PermissionsOfUsers() {
                       <div className="col-12">
                         <input
                           type="checkbox"
-                          name={"editResult"}
+                          name={"editresult"}
                           onChange={(ev) =>
                             handleChange(ev, scientist, setScientist)
                           }
-                          checked={scientist.editResult}
+                          value={scientist['editresult']}
+                          checked={scientist['editresult']}
                           className="form-check-input"
                         />
                         edit results
@@ -300,11 +347,12 @@ export default function PermissionsOfUsers() {
                       <div className="col-12">
                         <input
                           type="checkbox"
-                          name="deleteResult"
+                          name="deleteresult"
                           onChange={(ev) =>
                             handleChange(ev, scientist, setScientist)
                           }
-                          checked={scientist.deleteResult}
+                          value={scientist['deleteresult']}
+                          checked={scientist['deleteresult']}
                           className="form-check-input"
                         />
                         delete results
@@ -312,11 +360,12 @@ export default function PermissionsOfUsers() {
                       <div className="col-12">
                         <input
                           type="checkbox"
-                          name="printResult"
+                          name="printresult"
                           onChange={(ev) =>
                             handleChange(ev, scientist, setScientist)
                           }
-                          checked={scientist.printResult}
+                          value={scientist['printresult']}
+                          checked={scientist['printresult']}
                           className="form-check-input"
                         />
                         print results
@@ -349,7 +398,7 @@ export default function PermissionsOfUsers() {
                     <div className="row">
                       <div className="col-12 mt-3">
                         <button onClick={(ev) => handleSubmitPermission(ev, scientist)}
-                        className="btn btn-outline-success">
+                          className="btn btn-outline-success">
                           update permissions
                         </button>
                       </div>

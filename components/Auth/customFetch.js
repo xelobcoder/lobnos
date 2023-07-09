@@ -20,8 +20,14 @@ export async function customPost(endpoint, method, data) {
       },
       body: JSON.stringify(data),
    });
+   let datasource = await response.json();
+   const { status, message } = datasource;
 
-   return await response.json();
+   if (status == 401 && message == 'Unauthorized') {
+      window.location.href = '/authentication/login'
+   } else {
+      return datasource
+   }
 }
 
 export async function CheckResultEntered(testname, billingid) {
@@ -100,7 +106,7 @@ export async function handleResponse(response) {
 
    if (status == "success") {
       alert(message);
-   } 
+   }
 
    if (status == "error") {
       alert(message || "An error occured");
@@ -150,4 +156,4 @@ export const validateMobileNumber = async function (number, len) {
 export const handleChange = (event, target) => {
    const { value } = event.target;
    setData({ ...data, [target]: value })
- }
+}

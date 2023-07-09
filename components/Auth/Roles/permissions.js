@@ -39,7 +39,9 @@ export const scientistPermission = {
   role: 'scientist',
   printResult:false,
   deleteResult: false,
-  pageAccess
+  pageAccess,
+  activatev: false,
+  printv: false,
 }
 
 
@@ -73,3 +75,4 @@ export const administrator = {
   deleteResult: false,
   pageAccess
 }
+
