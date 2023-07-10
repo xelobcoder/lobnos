@@ -62,7 +62,7 @@ export default function OperationsTestCollection() {
                   key={index}
                 >
                   {/* <BloodtypeIcon /> */}
-                  {item.BILLINGID} : {item.FULLNAME}
+                   {item.FULLNAME} - {item.BILLINGID}
                 </li>
               ))
             ) : (

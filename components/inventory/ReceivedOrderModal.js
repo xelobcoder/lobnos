@@ -2,6 +2,7 @@ import { Delete } from "@mui/icons-material";
 import React, { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
+import { customPost } from "../Auth/customFetch";
 export default function ReceivedOrderModal({
   receivedmodal,
   closeSignal,
@@ -85,14 +86,8 @@ export default function ReceivedOrderModal({
 
       try {
         //  send a request to the server to add the order to the stock
-        const response = await fetch("http://localhost:5000/api/v1/purchases", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(tt),
-        });
-        const data = await response.json();
+        const data = await customPost('purchases','POST',tt)
+  
         if (data["status"] === "success") {
           alert("order received successfully");
           handleClose();

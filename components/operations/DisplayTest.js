@@ -23,6 +23,7 @@ import { Button } from '@mui/material';
 import RandomBloodSugar from '../LabTestForms/randomsugar';
 import FastingSugar from '../LabTestForms/fastingSugar';
 import FullBloodCountEntry from '../LabTestForms/FullBloodCountEntry';
+import HemoglobinElectrophoresisForm from '../LabTestForms/HeamoglobinElectophoresis';
 
 export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
@@ -49,7 +50,8 @@ export default function DisplayTest() {
     betahcg: <BetaHcg clientdata={operationsKey} />,
     random_blood_sugar: <RandomBloodSugar clientdata={operationsKey} type={'random blood sugar'}/>,
     fasting_blood_sugar: <FastingSugar clientdata={operationsKey} type={'fasting blood sugar'}/>,
-    full_blood_count: <FullBloodCountEntry clientdata={operationsKey}/>
+    full_blood_count: <FullBloodCountEntry clientdata={operationsKey}/>,
+    haemoglobin_electrophoresis: <HemoglobinElectrophoresisForm clientdata={operationsKey}/>,
   }
   return (
     <div>

@@ -99,6 +99,7 @@
   font-family: 'Ubuntu', sans-serif;
   /* overflow-x: hidden; */
   font-weight: 400;
+  font-size: 14px;
 }
 .red-border-row {
   border: 1px solid red;
@@ -1980,17 +1981,15 @@ option:hover {
 
 .operations-wrapper {
   display: grid;
-  grid-template-columns: 25% 20% auto;
-  height: 100vh;
+  grid-template-columns: 20% 25% auto;
+  height: max-content;
   overflow-y: hidden;
-  background-color: #00224f27;
+  /* background-color: whitesmoke; */
 }
 
 .operations-wrapper > aside {
   padding: 0px;
   margin: 0;
-  /* background-color: white; */
-  color: white;
   border-right: 1px solid lightgray;
   opacity: 0.9;
 }
@@ -1998,19 +1997,20 @@ option:hover {
 .operations-wrapper > aside > div > ul {
   /* list-style: none; */
   padding: 0px;
-  margin: 10px;
+  margin: 0px;
 }
 
 .operations-wrapper > aside > div > ul > li {
-  padding: 10px !important;
+  padding: 10px;
   font-weight: 400;
-  font-size: 16px;
+  font-size: 13px !important;
   color: #00224f;
-  padding: 0px;
   text-overflow: ellipsis;
   white-space: nowrap;
+  border-bottom: 1px solid lightgray;
+  background-color: white;
   cursor: pointer;
-  text-transform: capitalize;
+  text-transform: capitalize !important;
 }
 .operations-wrapper > aside > div > ul > li > svg {
   margin-right: 10px;
@@ -2030,14 +2030,12 @@ option:hover {
   display: grid;
   grid-template-columns: 100%;
   grid-gap: 10px;
-  /* background-color: whitesmoke; */
   height: inherit;
 }
 
 #operations-test-collection > .firstchild {
-  font-size: 15px;
+  font-size: 13px;
   text-transform: uppercase;
-  background-color: whitesmoke;
   cursor: pointer;
   padding: 10px;
   border-bottom: 1px solid lightgray;
@@ -2051,7 +2049,7 @@ option:hover {
 }
 
 #operations-wrapper > main:nth-child(2) {
-  height: 1200px !important;
+  height: max-content;
 }
 
 #operations-test-collection:is(:focus, :hover) {
@@ -2086,6 +2084,7 @@ option:hover {
 
 #expand > input {
   cursor: cell;
+  margin-right: 10px;
 }
 
 .hidden {

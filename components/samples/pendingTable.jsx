@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Button } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import TableDisplay from '../accessories/TableDisplay';
 
 export default function PendingTableSample({ data, approvalStatus }) {
@@ -9,8 +9,8 @@ export default function PendingTableSample({ data, approvalStatus }) {
       Header: "DATE",
       accessor: "DATE",
       Cell: ({ row }) => {
-        return (<span>{row.original.DATE.slice(0, 10)}</span>)
-      }
+        return <span>{row.original.DATE.slice(0, 10)}</span>;
+      },
     },
     {
       Header: "BILLINGID",
@@ -23,17 +23,29 @@ export default function PendingTableSample({ data, approvalStatus }) {
     {
       Header: "STATUS",
       accessor: "SAMPLE_STATUS",
-      Cell: ({ row }) => (<Button
-        className={row.original.SAMPLE_STATUS == 'PENDING' ? 'text-warning' : row.original.SAMPLE_STATUS == 'ACCEPTED' ? 'text-success' : 'text-danger'}
-      >{row.original.SAMPLE_STATUS}</Button>),
+      Cell: ({ row }) => (
+        <Button
+          size="small"
+          className={
+            row.original.SAMPLE_STATUS == "PENDING"
+              ? "text-warning"
+              : row.original.SAMPLE_STATUS == "ACCEPTED"
+                ? "text-success"
+                : "text-danger"
+          }
+        >
+          {row.original.SAMPLE_STATUS}
+        </Button>
+      ),
     },
     {
       Header: "ACTION",
       accessor: "ACTION",
-      Cell: ({ row },params) => (
-        <div style={{display:'flex',justifyContent:'center'}}>
+      Cell: ({ row }, params) => (
+        <div style={{ display: "flex", justifyContent: "left" }}>
           <Button
-            variant='outlined'
+            variant="outlined"
+            size='small'
             color="success"
             onClick={() => {
               approvalStatus(row.original, "accepted");
@@ -42,9 +54,10 @@ export default function PendingTableSample({ data, approvalStatus }) {
             accept
           </Button>
           <Button
-            variant='outlined'
+            variant="outlined"
+            size='small'
             color="error"
-            sx={{marginLeft:'20px'}}
+            sx={{ marginLeft: "20px" }}
             onClick={(e) => {
               approvalStatus(row.original, "rejected");
             }}
@@ -52,9 +65,10 @@ export default function PendingTableSample({ data, approvalStatus }) {
             reject
           </Button>
         </div>
-      )
+      ),
     },
   ];
+
   return (
     <div>
       <TableDisplay data={data} column={columns} filtering={true} />

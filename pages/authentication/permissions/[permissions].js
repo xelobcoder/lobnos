@@ -18,12 +18,13 @@ export default function PermissionsOfUsers() {
     const response = await customFetch(`user/permissions?permissions=${permissions}`);
     // we will set the permission to the state using the response or the default permission
     //  Using thr function to determine to use the default permission or the response permission
+    console.log(response)
     const backendPageAccess = function () {
-      if (response?.pageaccess) {
-        const keysPresent = Object.keys(response?.pageaccess);
+      if (response?.pageAccess) {
+        const keysPresent = Object.keys(response?.pageAccess);
         // check if the keys are present in the default page access
         if (keysPresent.length > 0) {
-          return JSON.parse(response?.pageaccess);
+          return response?.pageAccess;
         } else {
           return pageAccess;
         }
@@ -32,13 +33,13 @@ export default function PermissionsOfUsers() {
       }
     }
     // set persission based on the role
-    if (response['role'] = 'customer service representative') {
+    if (response['role'] == 'customer service representative') {
       setCustomer({ ...response, pageAccess: backendPageAccess() });
       // set name of person who permission is being set to permission
       setScroll('0')
     }
 
-    if (response['role'] = 'scientist') {
+    if (response['role'] == 'scientist') {
       setScientist({ ...response, pageAccess: backendPageAccess() });
       // set name of person who permission is being set to permission
       setScroll('1')

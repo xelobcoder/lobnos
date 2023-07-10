@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, Suspense } from 'react'
 import EMPTY_TABLE_TEMPLATE from '../../components/accessories/emptyTable';
 import TableIsLoading from '../../components/accessories/TableIsLoading';
 import ReceivedOrderModal from '../../components/inventory/ReceivedOrderModal';
-import { customFetch } from '../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../components/Auth/customFetch';
 import SupplierLayout from '../../components/inventory/SupplierLayout';
 
 
@@ -20,19 +20,8 @@ export default function PURCHASES() {
   const cancelOrder = async function (stockid) {
     // send a request to the server to cancel the order
     try {
-      let response = await fetch(`${process.env.BASEURL}/orders`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-        },
-        body: JSON.stringify({
-          productordersid: stockid
-        })
-      })
-      let data = await response.json();
-
-      const { status, err } = data;
+      let response = await customPost('orders','DELETE',{productordersid: stockid})
+      const { status, err } = response;
 
       if (status === 'success') {
         // remove the order from the list

@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import { TextField, Button } from '@mui/material';
-
+import CommentSection from './commentSection';
+import Indicator from '../accessories/Reports/indicator';
+import { Send, SendTimeExtension } from '@mui/icons-material';
+import electrophoresisParams from '../setup/biochemistry/electrophoresisParams';
 const HemoglobinElectrophoresisForm = () => {
-  const [hemoglobinResult, setHemoglobinResult] = useState({
-    sampleId: '',
-    dateOfAnalysis: '',
-    hbA: '',
-    hbA2: '',
-    hbF: '',
-    hbS: '',
-  });
-
+  const [hemoglobinResult, setHemoglobinResult] = useState(electrophoresisParams);
+  
   const handleChange = (event) => {
     const { name, value } = event.target;
     setHemoglobinResult((prevResult) => ({
@@ -26,59 +22,43 @@ const HemoglobinElectrophoresisForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <TextField
-        label="Sample ID"
-        name="sampleId"
-        value={hemoglobinResult.sampleId}
-        onChange={handleChange}
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        label="Date of Analysis"
-        name="dateOfAnalysis"
-        value={hemoglobinResult.dateOfAnalysis}
-        onChange={handleChange}
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        label="Hb A"
-        name="hbA"
-        value={hemoglobinResult.hbA}
-        onChange={handleChange}
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        label="Hb A2"
-        name="hbA2"
-        value={hemoglobinResult.hbA2}
-        onChange={handleChange}
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        label="Hb F"
-        name="hbF"
-        value={hemoglobinResult.hbF}
-        onChange={handleChange}
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        label="Hb S"
-        name="hbS"
-        value={hemoglobinResult.hbS}
-        onChange={handleChange}
-        fullWidth
-        margin="normal"
-      />
-      <Button variant="contained" type="submit">
-        Submit
-      </Button>
-    </form>
+    <div className='p-2' >
+      <div>
+        <h5>Hemoglobin Electrophoresis</h5>
+        <Indicator />
+        <form onSubmit={handleSubmit} className='bg-white'>
+          <table id="entry-table-chemistry">
+            <thead>
+              <tr>
+                <th>paramater</th>
+                <th>value</th>
+                <th> unit</th>
+                <th>reference</th>
+              </tr>
+            </thead>
+            <tbody >
+              {hemoglobinResult.length > 0 && hemoglobinResult.map((item, index) => (
+                <tr key={index} className='border-bottom'>
+                  <td>{item.parameters}</td>
+                  <td>
+                    <input type='number' name={item.parameters} style={{ height: '30px' }} step={'0.5'} />
+                  </td>
+                  <td>{item.unit}</td>
+                  <td>{item.reference.upper} - {item.reference.lower}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <CommentSection />
+        </form>
+        <div className='d-flex justify-content-start'>
+          <Button variant='contained' type='submit' className='mt-2'>
+          <SendTimeExtension/>
+            Submit
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
 

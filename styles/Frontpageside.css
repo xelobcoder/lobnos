@@ -9,7 +9,8 @@
 .frontpagesidebar li a {
   display: block;
   padding: 10px;
-  font-size: 17px;
+  font-size: 12px !important;
+  text-transform: uppercase;
   text-decoration: none;
   color: white;
   transition: background-color 0.3s ease;

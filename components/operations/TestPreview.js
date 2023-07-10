@@ -80,9 +80,11 @@ export default function TestPreview() {
                 {
                   (active == index || expandAll == true) && (
                     <div className='buttons'>
-                      <button className={
-                        item.processing == 'true' ? 'custom-button' : 'bg-custom-red'
-                      }
+                      <button
+                        style={{ textTransform: 'lowercase', height: '40px' }}
+                        className={
+                          item.processing == 'true' ? 'custom-button' : 'bg-custom-red'
+                        }
                         disabled={item.processing == 'true' ? true : false}
                         onClick={() => handleProocessing(item.testid, item.billingid)}
                         title={item.processing == 'true' ? 'item already procesing hence button disabled' : 'click to start processing sample'}
@@ -90,6 +92,7 @@ export default function TestPreview() {
                         processing
                       </button>
                       <button
+                        style={{ textTransform: 'lowercase', height: '40px' }}
                         className={
                           item.ready == 'true' ? 'custom-button' : 'bg-custom-red'
                         }
@@ -97,7 +100,9 @@ export default function TestPreview() {
                         result
                       </button >
                       {
-                        item.ready == 'true' && (<button className='custom-button' style={{ textTransform: 'lowercase' }}>
+                        item.ready == 'true' && (<button
+                          style={{ textTransform: 'lowercase', height: '40px' }}
+                          className='custom-button'>
                           preview
                         </button>)
                       }
