@@ -6,9 +6,9 @@ import CommentSection from './commentSection';
 import { Save } from '@mui/icons-material';
 import { customFetch, handleComments, handleResponse, validateFormData } from '../Auth/customFetch';
 
-export default function SemenAnalysis({clientdata}) {
+export default function SemenAnalysis({ clientdata }) {
   // destucturing client data
-  const {billingid,patientid,test,testid} = clientdata;
+  const { billingid, patientid, test, testid } = clientdata;
   // result state
   const [result, setResult] = useState(defaultData);
   const [resultEntered, setResultEntered] = useState(false);
@@ -16,7 +16,7 @@ export default function SemenAnalysis({clientdata}) {
 
 
   const handleResult = async () => {
-     await validateFormData({...result,billingid,testid,testname:test,patientid},true,[],'test/result/enter',handleResponse)
+    await validateFormData({ ...result, billingid, testid, testname: test, patientid }, true, [], 'test/result/enter', handleResponse);
   }
 
 
@@ -24,15 +24,21 @@ export default function SemenAnalysis({clientdata}) {
   useEffect(() => {
     const checkResult = async () => {
       const response = await customFetch(`test/result/check?billingid=${billingid}&testname=${test}`);
-     const {statusCode,result,records} = response;
-      if(statusCode == 200 && result){
+      const { statusCode, result, records } = response;
+      if (statusCode == 200 && result) {
         setResultEntered(true)
-        setResult(records[0])
+        // parse the collection date and time
+        const { collectionDate, ...rest } = records[0];
+        // new date object
+        const date = collectionDate.split('T')[0];
+        // set result state
+        setResult({ ...rest, collectionDate:date})
       }
 
     }
     checkResult()
   }, [])
+
 
   return (
     <>
@@ -43,6 +49,18 @@ export default function SemenAnalysis({clientdata}) {
         <h5>Semen Analysis</h5>
         <Indicator resultEntered={resultEntered} />
         <form className='bg-white p-3'>
+          {/* collectionDate */}
+          <div className='form-row'>
+            <label className='col-sm-2 col-form-label'>Date of Collection</label>
+            <div className='col-sm-12'>
+              <input type='date' className='form-control'
+                onChange={(e) => setResult({ ...result, collectionDate: e.target.value })}
+                value={result.collectionDate}
+              />
+            </div>
+          </div>
+
+          {/* time of collection */}
           <div className='form-row'>
             <label className='col-sm-12 col-form-label'>Time of Collection</label>
             <div className='col-sm-12'>
@@ -167,7 +185,7 @@ export default function SemenAnalysis({clientdata}) {
             <label className='col-sm-2 col-form-label'>Motility Grade</label>
             <div className='col-sm-12'>
               <Autocomplete
-             
+
                 options={['Grade I(immotile)', 'Grade II(non-progressive motility)', 'Grade III(slow progressive motility)', 'Grade IV(fast progressive motility)']}
                 onChange={(e, value) => setResult({ ...result, motilityGrade: value })}
                 getOptionLabel={(option) => option}
@@ -192,14 +210,14 @@ export default function SemenAnalysis({clientdata}) {
             <div className='col-sm-12'>
               <Autocomplete
                 options={['absent', 'present']}
+                onChange={(e) => setResult({ ...result, rbcs: e.target.value })}
+                value={result.rbcs}
                 renderInput={(params) => (
                   <TextField
                     {...params}
                     variant='outlined'
                     size='small'
                     label='RBC'
-                    onChange={(e) => setResult({ ...result, rbc: e.target.value })}
-                    value={result.rbc}
                     placeholder='RBC'
                   />
                 )}
@@ -211,12 +229,11 @@ export default function SemenAnalysis({clientdata}) {
             <label className='col-sm-2 col-form-label'>Pus Cells</label>
             <div className='col-sm-12'>
               <Autocomplete
-
+                onChange={(e) => setResult({ ...result, pusCells: e.target.value })}
+                value={result.pusCells}
                 options={['absent', 'present']}
                 renderInput={(params) => (
                   <TextField
-                    onChange={(e) => setResult({ ...result, pusCells: e.target.value })}
-                    value={result.pusCells}
                     {...params}
                     variant='outlined'
                     size='small'
@@ -233,10 +250,10 @@ export default function SemenAnalysis({clientdata}) {
             <div className='col-sm-12'>
               <Autocomplete
                 options={['absent', 'present']}
+                onChange={(e) => setResult({ ...result, epithelialCells: e.target.value })}
+                value={result.epithelialCells}
                 renderInput={(params) => (
                   <TextField
-                    onChange={(e) => setResult({ ...result, epithelialCells: e.target.value })}
-                    value={result.epithelialCells}
                     {...params}
                     variant='outlined'
                     size='small'
@@ -252,12 +269,11 @@ export default function SemenAnalysis({clientdata}) {
             <label className='col-sm-2 col-form-label'>Morphology</label>
             <div className='col-sm-12'>
               <Autocomplete
-             
+                onChange={(e) => setResult({ ...result, morphology: e.target.value })}
+                value={result.morphology}
                 options={['Normal', 'Abnormal']}
                 renderInput={(params) => (
                   <TextField
-                    onChange={(e) => setResult({ ...result, morphology: e.target.value })}
-                    value={result.morphology}
                     {...params}
                     variant='outlined'
                     size='small'
@@ -269,14 +285,14 @@ export default function SemenAnalysis({clientdata}) {
             </div>
           </div>
         </form>
-        <CommentSection  target={'impression'}
+        <CommentSection target={'impression'}
           comment={result.impression}
           getcomment={handleComments}
           value={result.impression}
           datafunction={setResult}
           datasource={result}
         />
-        <Button type='button' variant='contained'  onClick={handleResult}>
+        <Button type='button' variant='contained' onClick={handleResult}>
           <Save />
           Save
         </Button>

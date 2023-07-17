@@ -1,6 +1,7 @@
 const defaultData = 
   {
-    collectionTime: '8:00 AM',
+    collectionTime: '16:53',
+    collectionDate: '2021-01-01',
     liquefactionTime: '30 mins',
     abstinence: '3 days',
     quantity: '3.5 ml',
@@ -12,9 +13,9 @@ const defaultData =
     motility: '60%',
     motilityGrade: 'Grade 3',
     morphology: 'Normal',
-    pusCells: '2-4',
-    epithelialCells: '2-4',
-    rbcs: '2-4',
+    pusCells: 'absent',
+    epithelialCells: 'present',
+    rbcs: 'absent',
     impression: 'Normal semen analysis'
   }
 
