@@ -1,39 +1,45 @@
 const electrophoresisData = [
   {
-    parameters: 'hbA',
-    value: '',
+    setupid: 1,
+    parameter: 'hbA',
+    upper: 16.0,
+    lower: 12.0,
     unit: 'g/dL',
-    reference: { lower: 12.0, upper: 16.0 },
   },
   {
-    parameters: 'hbA2',
-    value: '',
-    unit: 'g/dL',
-    reference: { lower: 1.5, upper: 3.5 },
+    setupid: 2,
+    parameter: 'hbA2',
+    upper: 16.0,
+    lower: 1.5,
+    unit: 'g/dL'
   },
   {
-    parameters: 'hbF',
-    value: '',
+    setupid: 3,
+    parameter: 'hbF',
     unit: 'g/dL',
-    reference: { lower: 0.0, upper: 2.0 },
+    lower: 0.0,
+    upper: 2.0,
   },
   {
-    parameters: 'hbS',
-    value: '',
-    unit: 'g/dL',
-    reference: { lower: 0.0, upper: 2.0 },
+    setupid: 4,
+    parameter: 'hbS',
+    unit: 'g/dL', upper: 2.0,
+    lower: 0.0,
+
   },
   {
-    parameters: 'hbC',
-    value: '',
-    unit: 'g/dL',
-    reference: { lower: 0.0, upper: 2.0 },
+    setupid: 5,
+    parameter: 'hbC',
+    unit: 'g/dL', upper: 2.0,
+    lower: 0.0,
+
   },
   {
-    parameters: 'zii',
-    value: '',
-    unit: 'g/dL',
-    reference: { lower: 0.0, upper: 2.0 },
+    setupid: 6,
+    parameter: 'zii',
+    unit: 'g/dL', upper: 2.0,
+    lower: 0.0,
+
   }
 ]
 

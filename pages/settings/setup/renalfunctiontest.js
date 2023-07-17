@@ -7,7 +7,7 @@ export default function Renalfunctiontest() {
   return (
     <div>
       <CHEMISTRY_LAYOUT_SETUP>
-        <PARAMETER_DISPLAY_COMPONENT parameterdata={renalparameters}  category='RENAL_SETUP'  createTarget={'renal'}/>
+        <PARAMETER_DISPLAY_COMPONENT parameterdata={renalparameters}  category='RENAL_SETUP'  createTarget={'renal'} testname={'RENAL FUNCTION TEST'}/>
       </CHEMISTRY_LAYOUT_SETUP>
     </div>
   )

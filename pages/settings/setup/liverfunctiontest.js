@@ -8,7 +8,7 @@ export default function Liverfunctiontest() {
   return (
     <div>
       <CHEMISTRY_LAYOUT_SETUP>
-        <PARAMETER_DISPLAY_COMPONENT parameterdata={liverpanel} category='LIVER_SETUP' createTarget={'liver'} />
+        <PARAMETER_DISPLAY_COMPONENT parameterdata={liverpanel} category='LIVER_SETUP' createTarget={'liver'} testname={'LIVER FUNCTION TEST'}/>
       </CHEMISTRY_LAYOUT_SETUP>
     </div>
   )

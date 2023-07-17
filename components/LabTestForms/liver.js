@@ -61,7 +61,7 @@ console.log(comments)
       <div className="p-4">
         <div>
           <h5>Liver Function Test</h5>
-          <form className="bg-white">
+          <form className="bg-white p-3">
             <Indicator resultEntered={resultEntered} />
             <table id="entry-table-chemistry">
               <thead>

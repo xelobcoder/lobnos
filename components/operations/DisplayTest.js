@@ -24,10 +24,15 @@ import RandomBloodSugar from '../LabTestForms/randomsugar';
 import FastingSugar from '../LabTestForms/fastingSugar';
 import FullBloodCountEntry from '../LabTestForms/FullBloodCountEntry';
 import HemoglobinElectrophoresisForm from '../LabTestForms/HeamoglobinElectophoresis';
+import StoolAnalysis from '../LabTestForms/stoolAnalysis';
+import BleedingNClotting from '../LabTestForms/bleedingnclotting';
+import SemenAnalysis from '../LabTestForms/SemenAnalysis';
+import LHHormone from '../LabTestForms/LHHormone';
+import FSHHormone from '../LabTestForms/FSHHormone';
 
 export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
-  
+
   const componentsList = {
     aids: <AIDS clientdata={operationsKey} />,
     liver_function_test: <LiverTest clientdata={operationsKey} />,
@@ -52,6 +57,11 @@ export default function DisplayTest() {
     fasting_blood_sugar: <FastingSugar clientdata={operationsKey} type={'fasting blood sugar'}/>,
     full_blood_count: <FullBloodCountEntry clientdata={operationsKey}/>,
     haemoglobin_electrophoresis: <HemoglobinElectrophoresisForm clientdata={operationsKey}/>,
+    stool_analysis: <StoolAnalysis  clientdata={operationsKey}/>,
+    clotting_and_bleeding_time: <BleedingNClotting clientdata={operationsKey}/>,
+    semen_analysis: <SemenAnalysis clientdata={operationsKey}/>,
+    follicle_stimulating_hormone: <FSHHormone clientdata={operationsKey}/>,
+    luteinizing_hormone: <LHHormone clientdata={operationsKey}/>,
   }
   return (
     <div>

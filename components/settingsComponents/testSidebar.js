@@ -60,6 +60,11 @@ export default function TestSidebar() {
                 estimated sedimentation rate (ESR)
               </Link>
             </li>
+            <li>
+              <Link href={'/settings/setup/electrophoresis'}> 
+                Haemoglobin electrophoresis
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

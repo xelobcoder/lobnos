@@ -4,6 +4,7 @@ import '../styles/testpanel.css';
 import '../styles/Frontpageside.css'
 import "../styles/fullblood.css";
 import '../styles/admin.css'
+import '../styles/setup.css'
 import '../styles/exceltable.css'
 import Header from '../components/header'
 // import SidebarFrontPage from '../components/frontpagesidebar';

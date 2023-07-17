@@ -31,9 +31,9 @@ export const serverCall = function (ev, source, category, setMsgDx) {
     return;
   }
   else {
-    let response = customPost('test/setup/chemistry','POST', finalproductdata)
+    let response = customPost('test/setup/chemistry', 'POST', finalproductdata)
 
-   
+
 
     response.then(
       (res) => {
@@ -63,18 +63,23 @@ export const serverCall = function (ev, source, category, setMsgDx) {
 // get the records and populate the tabale with it data
 
 export const getRecords = async function (panelname, datasource, defaultsource) {
-  let response = await customFetch(`test/setup/chemistry?panelname=${panelname}`)
-
-  const { status, statusCode } = response;
-
-  if (status == 'success' && statusCode == 200) {
-    const {records } = response;
-    if (records.length > 0) {
-      datasource(records)
-    }
-    else {
-      datasource(defaultsource)
+  let endpoint = `test/setup/chemistry?panelname=${panelname}`
+  
+  try {
+    let response = await customFetch(endpoint)
+    const { status, statusCode } = response;
+    if (status == 'success' && statusCode == 200) {
+      const { records } = response;
+      if (records.length > 0) {
+        datasource(records)
+      }
+      else {
+        datasource(defaultsource)
+      }
     }
   }
-}
+  catch (err) {
+   alert('error occured connecting to server')
+  }
 
+}
