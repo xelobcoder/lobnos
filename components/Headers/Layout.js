@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import AuthContext from '../Auth/useAuthentification';
-import LoginCredentials from '../../pages/Authentication/login';
+import LoginCredentials from '../../pages/authentication/login';
 import { Button } from '@mui/material';
 import { useRouter } from 'next/router';
 export default function MAIN_LAYOUT({ children }) {
