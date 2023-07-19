@@ -70,12 +70,15 @@ export const getRecords = async function (panelname, datasource, defaultsource) 
     const { status, statusCode } = response;
     if (status == 'success' && statusCode == 200) {
       const { records } = response;
+      console.log(records)
       if (records.length > 0) {
         datasource(records)
       }
       else {
         datasource(defaultsource)
       }
+    } else {
+      datasource(defaultsource)
     }
   }
   catch (err) {

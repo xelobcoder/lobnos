@@ -91,6 +91,7 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category, createTarget,tes
                   <li>unit</li>
                   <li>upper</li>
                   <li>lower</li>
+                  {dataModification.length > 0 && dataModification[0]['gender'] ? <li>gender</li>: null}
                   <li>action</li>
                 </ul>
               </div>
@@ -110,6 +111,9 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category, createTarget,tes
                         <li>
                           <input value={item.lower || 0} type='number' className='form-control' onChange={(e) => onChangeLower(e, index)} />
                         </li>
+                        {
+                          item?.gender && <li>{item.gender}</li>
+                        }
                         <li>
                           <DeleteForever color='error' sx={{ cursor: 'pointer' }} fontSize='medium' />
                         </li>

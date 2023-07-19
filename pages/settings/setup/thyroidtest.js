@@ -6,9 +6,11 @@ import thyroidparameters from '../../../components/setup/biochemistry/thyroidpar
 export default function THYROID_TEST_SETUP() {
   return (
     <>
-    <CHEMISTRY_LAYOUT_SETUP>
-      <PARAMETER_DISPLAY_COMPONENT parameterdata={thyroidparameters} category='THYROID_SETUP' createTarget={'thyroid'}/>
-    </CHEMISTRY_LAYOUT_SETUP>
+      <CHEMISTRY_LAYOUT_SETUP>
+        <PARAMETER_DISPLAY_COMPONENT
+          testname={'THYROID HORMONE'}
+          parameterdata={thyroidparameters} category='THYROID_SETUP' createTarget={'thyroid'} />
+      </CHEMISTRY_LAYOUT_SETUP>
     </>
   )
 }

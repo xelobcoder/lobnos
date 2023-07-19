@@ -65,6 +65,17 @@ export default function TestSidebar() {
                 Haemoglobin electrophoresis
               </Link>
             </li>
+            {/* leutienizing hormone */}
+            <li>
+              <Link href={'/settings/setup/lhhormone'}>
+                leutienizing hormone
+              </Link>
+            </li>
+            <li>
+              <Link href={'/settings/setup/fshHormone'}>
+                Follicle stimulating hormone
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
