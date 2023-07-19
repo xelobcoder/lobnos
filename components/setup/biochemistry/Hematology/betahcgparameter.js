@@ -1,4 +1,4 @@
-const betahcgparameter = [
+const data = [
   {
     weeks: 2,
     lower: 88,
@@ -97,4 +97,4 @@ const betahcgparameter = [
 ]
 
 
-export default betahcgparameter;
+export default data;
