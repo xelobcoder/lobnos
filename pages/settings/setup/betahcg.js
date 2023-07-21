@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import CHEMISTRY_LAYOUT_SETUP from "../../../components/setup/biochemistry/Layout";
-import betahcgparameter from "../../../components/setup/biochemistry/hematology/betahcgparameter";
+import betahcgparameter from "../../../components/setup/biochemistry/betahcgparameter";
 import { Button } from "@mui/material";
 import { customFetch, customPost } from "../../../components/Auth/customFetch";
 
-export default function Setup_Beta_Hcg() {
+export default function BetaHcg() {
   const [dataModification, setDataModification] = useState(betahcgparameter);
   const [unit, setUnit] = useState(betahcgparameter[0]["unit"] || "");
 

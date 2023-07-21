@@ -40,8 +40,6 @@ export default function FSHHormone({ clientdata }) {
 
 
   // push  result to database
-
-
   const handleResult = async (e) => {
     await validateFormData(
       { ...result, billingid, patientid, testname: test, testid },

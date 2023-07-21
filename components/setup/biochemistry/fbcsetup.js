@@ -1,7 +1,7 @@
 import {Button} from '@mui/material'
 import { useState, useCallback, useEffect, Suspense } from 'react'
-import parameter from './countparameter';
-import { customFetch, customPost } from '../../../Auth/customFetch';
+import parameter from './hematology/countparameter';
+import { customFetch, customPost } from '../../Auth/customFetch';
 import { DeleteForever } from '@mui/icons-material';
 import Link from 'next/link';
 
