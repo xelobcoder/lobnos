@@ -1,7 +1,7 @@
 :root {
   /* --sans-serif: 'ColfaxAI', helvetica, sans-serif; */
   /* --monospace: 'Roboto Mono', sfmono-regular, consolas, liberation mono, menlo, */
-    /* courier, monospace; */
+  /* courier, monospace; */
   -primary: #10a37f;
   --primary-50: #ebfaeb;
   --primary-100: #d2f4d3;
@@ -80,11 +80,21 @@
 }
 
 .red {
-  background-color: var(--red-700) !important;
+  background-color: var(--red-500) !important;
+  padding: 4px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 600;
+  width: 100%;
 }
 
 .green {
   background-color: var(--green-700) !important;
+  padding: 4px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 500;
+  width: 100%;
 }
 
 .primary {
@@ -96,8 +106,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Ubuntu', sans-serif;
-  /* overflow-x: hidden; */
+  font-family: 'Ubuntu', sans-serif, 'Roboto';
   font-weight: 400;
   font-size: 14px;
 }
@@ -145,7 +154,7 @@
   outline: 1px solid #00224f;
 }
 body {
-  background-color :#fef7e064;
+  background-color: whitesmoke !important;
 }
 .grid-2 {
   display: -ms-grid;
@@ -1471,33 +1480,38 @@ option:hover {
   padding: 10px;
   border-radius: 5px;
 }
+/* Base styles for the table */
 .custom-table-wrapper {
   height: max-content;
-  overflow-y: auto;
+  overflow: auto;
 }
 
 #custom-table {
   width: 100%;
-  padding: 0px;
-  background-color: white;
-  overflow-y: auto !important;
-  max-height: auto;
-  margin: 0px auto;
-  border-collapse: collapse;
+  padding: 0;
+  overflow: auto;
+  max-height: max-content;
+  margin: 0 auto;
+}
+
+#custom-table thead,
+#custom-table > tbody > tr > td,
+#custom-table > thead > tr > th,
+#custom-table tbody {
+  border: 1px solid lightgray;
 }
 
 #custom-table thead tr {
   width: 100%;
-  background-color: #00224f !important;
-  color: white;
+  background-color: #00224f;
   border-bottom: 1px solid lightgray;
 }
 
 #custom-table thead tr th,
 .headerClass {
   font-size: 14px;
-  font-weight: bold;
-  color: #fff;
+  font-weight: 300;
+  color: white;
   padding: 10px;
   text-transform: uppercase;
 }
@@ -1505,9 +1519,10 @@ option:hover {
 #custom-table tbody tr td,
 .cellClass {
   font-size: 14px !important;
-  text-transform: capitalize;
+  text-transform: capitalize !important;
   min-width: 100px;
-  padding: 5px;
+  max-width: 200px;
+  padding: 3px 5px 3px;
 }
 
 #custom-table tbody tr:hover,
@@ -1533,6 +1548,18 @@ option:hover {
 
 #custom-table tbody tr {
   border-bottom: 1px solid lightgray;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  #custom-table {
+    font-size: 12px;
+  }
+
+  #custom-table thead tr th,
+  #custom-table tbody tr td {
+    padding: 5px;
+  }
 }
 
 .alertlevel-low,
@@ -2595,7 +2622,7 @@ option:hover {
   grid-gap: 10px 10px;
   color: #00224f;
   text-transform: uppercase;
-  font-size: 14px ;
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -2623,6 +2650,6 @@ option:hover {
   border-bottom: 1px solid lightgray;
 }
 
-input[type='text']{
+input[type='text'] {
   text-transform: capitalize;
 }

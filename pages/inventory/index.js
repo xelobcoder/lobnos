@@ -58,7 +58,7 @@ export default function INVENTORY_PAGE() {
           row.original.alertlevel === row.original.quantity ? 'alertlevel-medium' :
             row.original.alertlevel > row.original.quantity ? 'alertlevel-high' : 'alertlevel-low';
         return (
-          <Tooltip title={`stock level is ${alertLevel}`} placement='top'>
+          <Tooltip title={`stock alert level is ${alertLevel}`} placement='top'>
             <div className={alertLevelClass}>
               {row.original.quantity}
             </div>

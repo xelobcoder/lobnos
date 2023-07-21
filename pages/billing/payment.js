@@ -58,13 +58,8 @@ export default function Payment_Extra() {
       accessor: "outstanding",
       Cell: ({ value, row }) => (
         <div
-          style={{
-            backgroundColor: value > 0 ? "red" : "none",
-            color: value > 0 ? "white" : "black",
-          }}
-          {...row.getRowProps()}
-          className={value > 0 ? "red-border-row" : ""}
-        >
+          className={`${value > 0 ? 'red' : ''}`}
+          {...row.getRowProps()}>
           {value}
         </div>
       ),
@@ -165,11 +160,7 @@ export default function Payment_Extra() {
   return (
     <>
       <div
-        style={{
-          backgroundColor: "whitesmoke",
-          height: "90vh",
-          overflowY: "hidden",
-        }}
+       
       >
         <Navbar
           handleChange={handleChange}
@@ -192,9 +183,9 @@ export default function Payment_Extra() {
             <AccountSummary data={updatingBill.filteringData} />
           )}
           {updatingBill.update ? (
-            <UpdateBilling data={updatingBill.filteringData} 
-            refresh={setRefresh}
-            close={setUpdatingBill} />
+            <UpdateBilling data={updatingBill.filteringData}
+              refresh={setRefresh}
+              close={setUpdatingBill} />
           ) : (
             <TableDisplay
               // styling={"transactionTable"}
