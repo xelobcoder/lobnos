@@ -211,41 +211,17 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
   };
 
   // changes the status of the sample
-  const approvalStatus = function (item, status) {
+  const approvalStatus = function (item, action) {
     // set completed to default
+    const { billingid, testid } = item;
     setCompleted(false);
-    // destructuring the item
-    const { SAMPLE_STATUS, FULLNAME, PATIENTID, BILLINGID, TEST } = item;
-    // create a post data object
-    const data = {
-      status,
-      fullname: FULLNAME,
-      patientid: PATIENTID,
-      billingid: BILLINGID,
-    };
-
-    // props for modal
-    const prepareModal = function () {
-      setModalDetails({
-        patientname: FULLNAME,
-        billingid: BILLINGID,
-      });
-      setShow(true);
-    }
-
-    //  if sample status is rejected then show modal
-
-    status === 'rejected' ? prepareModal() : null;
-
-    // send a post request to the server
-
     const forwardData = async function () {
       try {
-        let response = await customPost(`sample`, 'PUT', data);
+        let response = await customPost(`sample`, 'PUT', { billingid, testid, action });
 
         const { statusCode, status, message } = response;
 
-        if (statusCode == 200 && status == 'success' ) {
+        if (statusCode == 200 && status == 'success') {
           setCompleted(true)
         }
       }

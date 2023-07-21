@@ -2660,3 +2660,18 @@ input[type='text'] {
   grid-template-columns: 5% 30% 25% 25% 15%;
   place-items: center;
 }
+
+.accord-list-child {
+  display: grid;
+  grid-template-columns: 40% 30% 30%;
+}
+
+.sample-list {
+  border-bottom: 1px solid lightgray;
+  margin: 0;
+  padding:10px;
+}
+
+.sample-list:last-of-type{
+  border-bottom: none;
+}
