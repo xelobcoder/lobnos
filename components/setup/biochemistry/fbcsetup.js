@@ -1,11 +1,11 @@
 import {Button} from '@mui/material'
-import { useState, useCallback, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import parameter from './hematology/countparameter';
 import { customFetch, customPost } from '../../Auth/customFetch';
 import { DeleteForever } from '@mui/icons-material';
 import Link from 'next/link';
 
-function FullBloodCountSetup() {
+export default function FullBloodCountSetup() {
   const [fullcount, setFullcount] = useState(parameter)
   const [category, setCategory] = useState('male')
   const [childrenAge, setChildrenAge] = useState('0-10');
@@ -175,4 +175,3 @@ function FullBloodCountSetup() {
   )
 }
 
-export default FullBloodCountSetup

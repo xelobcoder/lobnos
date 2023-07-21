@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import FullBloodCountSetup from './fbcsetup'
-import FBCLISTPARAMETERS from './FBCLIST';
+import FullBloodCountSetup from './fbcsetup';
 import CREATE_PARAMS_SETUP from './createParameter';
 import LIST_PARAMETERS from './paramList';
 import Message from '../../../accessories/message';

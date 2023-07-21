@@ -1,6 +1,6 @@
 import React from 'react';
 import CHEMISTRY_LAYOUT_SETUP from '../../../components/setup/biochemistry/Layout';
-import FullBloodCountSetup from '../../../components/setup/biochemistry/hematology/fbcsetup';
+import FullBloodCountSetup from  '../../../components/setup/biochemistry/fbcsetup'
 
 export default function FULLBLOODCOUNT() {
   return (
