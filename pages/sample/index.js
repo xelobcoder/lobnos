@@ -300,7 +300,7 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
           <div>
             <div className="p-2">
               <div className="d-flex  justify-content-between">
-                {/* <h5 className="mb-1">Sample Assessment</h5> */}
+                <h5 className="mb-1">Sample Assessment</h5>
                 <FILTERS
                   ondate={ondate}
                   onchange={onchange}

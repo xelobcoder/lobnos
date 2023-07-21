@@ -2653,3 +2653,10 @@ option:hover {
 input[type='text'] {
   text-transform: capitalize;
 }
+
+/* ------accord */
+.accord-grid {
+  display: grid;
+  grid-template-columns: 5% 30% 25% 25% 15%;
+  place-items: center;
+}

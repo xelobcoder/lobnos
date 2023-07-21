@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Button, Typography } from '@mui/material';
 import TableDisplay from '../accessories/TableDisplay';
+import Accord from '../accessories/Accord';
 
 export default function PendingTableSample({ data, approvalStatus }) {
   const [showAction, setShowAction] = useState(false);
@@ -71,7 +72,19 @@ export default function PendingTableSample({ data, approvalStatus }) {
 
   return (
     <div>
-      <TableDisplay data={data} column={columns} filtering={true} />
+      <div className='alert alert-info'>
+        <span className='text-danger'>Note:</span> Please check the sample list before accepting or rejecting the sample
+      </div>
+
+      {/* <TableDisplay data={data} column={columns} filtering={true} /> */}
+      {/* using mui accoridon */}
+      <diov className='list-group'>
+        {data.map((item, index) => {
+          return (
+            <Accord key={index} data={item} />
+          )
+        })}
+      </diov>
     </div>
   )
 }
