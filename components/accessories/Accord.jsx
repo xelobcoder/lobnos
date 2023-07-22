@@ -3,7 +3,7 @@ import { IconButton } from "@mui/material"
 import { customFetch } from "../Auth/customFetch";
 import React, { useState, useEffect } from 'react';
 
-export default function Accord({ data ,statusHandler}) {
+export default function Accord({ data, statusHandler }) {
   const [show, setShow] = useState(false);
 
   const [sampleList, setSampleList] = useState([])
@@ -13,13 +13,11 @@ export default function Accord({ data ,statusHandler}) {
       `phelobotomy/sample/assesment/list?billingid=${billingid}`
     );
     const { statusCode, status, result } = response;
-    console.log(result);
     if (status == "success" && statusCode == 200) {
       setSampleList(result);
     }
   };
 
-  
 
   return (
     <>
@@ -56,10 +54,11 @@ export default function Accord({ data ,statusHandler}) {
                     <strong className="btn btn-danger">Sample list</strong>
                   </h6>
                 </div>
-                {/* <div >
-                <button className="btn btn-sm btn-primary">accept all</button>
-                <button className="btn btn-sm btn-danger" style={{ marginLeft: '10px' }}>reject all</button>
-              </div> */}
+                <div className="d-flex justify-content-end">
+                  <div className="btn btn-warning">
+                    pending count : {data.PENDINGCOUNT}
+                  </div>
+                </div>
               </div>
               <div className="card-body">
                 {sampleList.map((item, index) => {
@@ -68,7 +67,7 @@ export default function Accord({ data ,statusHandler}) {
                       <div
                         className='accord-list-child'
                       >
-                        <h6 style={{fontWeight:'600'}}>{item.NAME}</h6>
+                        <h6 style={{ fontWeight: '600' }}>{item.NAME}</h6>
                         <h6>{item.SAMPLE}</h6>
                         <h6>
                           <span className="bg-success text-white p-1 rounded">
@@ -77,13 +76,13 @@ export default function Accord({ data ,statusHandler}) {
                         </h6>
                       </div>
                       <div className="d-flex justify-content-end">
-                        <button className="btn btn-sm btn-primary"
-                        onClick={(e)=>statusHandler(item,'accept')}
+                        <button className="btn  btn-sm btn-primary"
+                          onClick={(e) => statusHandler(item, 'accept')}
                         >
                           accept
                         </button>
                         <button
-                         onClick={(e)=>statusHandler(item,'reject')}
+                          onClick={(e) => statusHandler(item, 'reject')}
                           className="btn btn-sm btn-danger"
                           style={{ marginLeft: "10px" }}
                         >
@@ -94,6 +93,7 @@ export default function Accord({ data ,statusHandler}) {
                   );
                 })}
               </div>
+              { }
             </div>
           </div>
         )}

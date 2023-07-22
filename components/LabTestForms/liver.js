@@ -55,13 +55,12 @@ export default function LiverTest({ clientdata }) {
   }
 
 
-console.log(comments)
   return (
     <>
       <div className="p-4">
         <div>
           <h5>Liver Function Test</h5>
-          <form className="bg-white p-3">
+          <form className="bg-white">
             <Indicator resultEntered={resultEntered} />
             <table id="entry-table-chemistry">
               <thead>

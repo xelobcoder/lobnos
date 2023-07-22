@@ -64,6 +64,7 @@ export default function Billedclients() {
   const columns = [
     { Header: 'BILLINGID', accessor: 'BILLINGID', checkboxSelection: true },
     { Header: 'PATIENTID', accessor: 'PATIENTID' },
+    {Header:'FULLNAME',accessor:'FULLNAME'},
     {
       Header: 'DATE', accessor: 'DATE', Cell: dateCellRenderer
     },
