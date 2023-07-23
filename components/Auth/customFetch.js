@@ -46,7 +46,8 @@ export async function validateFormData(
    allrequired,
    requiredFields = [],
    endpoint,
-   callback
+   callback,
+   updateState
 ) {
    const isObject = typeof requiredFields === "object";
    const requiredLen = requiredFields.length;
@@ -54,6 +55,9 @@ export async function validateFormData(
    async function forwardToServer() {
       let response = await customPost(endpoint, "POST", data);
       callback(response);
+      if(updateState) {
+         updateState
+      }
    }
    // if all the fields are not required , we pass data to server
    if (!allrequired) {
