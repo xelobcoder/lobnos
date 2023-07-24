@@ -1519,6 +1519,7 @@ option:hover {
 #custom-table tbody tr td,
 .cellClass {
   font-size: 14px !important;
+  font-weight: 400;
   text-transform: capitalize !important;
   min-width: 100px;
   max-width: 200px;
@@ -2674,4 +2675,21 @@ input[type='text'] {
 
 .sample-list:last-of-type{
   border-bottom: none;
+}
+
+
+.br-5{
+  border-radius: 5px !important;
+}
+
+.br-7 {
+  border-radius: 7px !important;
+}
+
+.show-previous-decline {
+  background-color: red;
+  padding: 5px;
+  color: white !important;
+  border-radius: 50%;
+  cursor: pointer;
 }

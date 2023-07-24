@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { TextField, Button } from "@mui/material";
 import Indicator from "../accessories/Reports/indicator";
-import { customFetch, CheckResultEntered, handleComments, validateFormData } from "../Auth/customFetch";
+import { customFetch, CheckResultEntered, handleComments, validateFormData, handleResponse, resultCommentHander } from "../Auth/customFetch";
 import CommentSection from "./commentSection";
 
 
@@ -19,29 +19,29 @@ export default function ThyroidTest({ clientdata }) {
       const { status, statusCode, records } = response;
       if (status == 'success' && statusCode === 200) {
         // transform the data to include a value placeholder
-        let transformedData = records.map((item, index) => { return { ...item, value: 0 } })
         // get the prevoius enter data and match parameter and the value 
-        const checkresponse = await CheckResultEntered('thyroidfunctionaltest', clientdata.billingid);
+        const checkresponse = await CheckResultEntered(clientdata.test, clientdata.billingid);
         if (checkresponse?.result == true) {
-          // transformed data represent the setup data 
-          // records in this boundary represent the inputed data
-          const { records } = checkresponse;
+          // records data represent the setup data 
+          // previousResult in this boundary represent the inputed data
+          const previousResult = checkresponse?.records;
           setResultEntered(true);
           // adding the pevious entered data
-          for (let i = 0; i < records.length; i++) {
-            for (let j = 0; j < transformedData.length; j++) {
-              if (records[i]['PARAMETER'] == transformedData[j]['parameter']) {
-                transformedData[j]['value'] = records[i]['VALUE']
-              }
+          const transformedData = records.map((dataset, index) => {
+            const nw = previousResult.filter((item, index) => { return item.parameter == dataset.parameter });
+            if (nw.length > 0) {
+              const { value } = nw[0];
+              dataset.value = value;
             }
-          }
+            return dataset;
+          })
           // update state 
           setData(transformedData)
           // update comment section
-          setComments({ comments: records[0]['COMMENTS'] })
+          resultCommentHander(setComments,'comments',comments,clientdata.testid,clientdata.billingid)
         } else {
           setResultEntered(false);
-          setData(transformedData)
+          setData(records.map((item, index) => { return { ...item, value: 0 } }))
         }
       }
     }
@@ -70,8 +70,8 @@ export default function ThyroidTest({ clientdata }) {
 
   const handleResult = async function () {
     const formData = {
-      testdata: data,
-      testname: 'thyroidfunctionaltest',
+      records: data,
+      testname: clientdata.test,
       billingid: clientdata.billingid,
       testid: clientdata.testid,
       patientid: clientdata.patientid,
@@ -82,10 +82,8 @@ export default function ThyroidTest({ clientdata }) {
       true,
       [],
       "test/result/enter",
-      function (response) {
-        const { status, statusCode, message } = response;
-        alert(message)
-      }
+      handleResponse,
+      setResultEntered(true)
     );
   }
   return (

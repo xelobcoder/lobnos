@@ -105,6 +105,16 @@ export async function handleComments(e, stateVariable, target, datafunction) {
    datafunction({ ...stateVariable, [target]: e.target.value });
 }
 
+
+export const resultCommentHander = async function (statecallback,target,datasource,testid,billingid) {
+   const commentResponse = await customFetch(`result/preview/comments?billingid=${billingid}&testid=${testid}`);
+   if (Array.isArray(commentResponse) && commentResponse.length > 0) {
+     const { comments } = commentResponse[0];
+     statecallback({ ...datasource, [target]: comments });
+   }
+ }
+
+
 export async function handleResponse(response) {
    const { status, message, statusCode } = response;
 

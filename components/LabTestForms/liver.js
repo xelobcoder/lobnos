@@ -8,7 +8,7 @@ export default function LiverTest({ clientdata }) {
   const { testid, billingid, patientid ,test} = clientdata;
   const [data, setData] = useState([]);
   const [resultEntered, setResultEntered] = useState(false);
-  const [comments, setComments] = useState({ comments: 'Hero is a rant' })
+  const [comments, setComments] = useState({ comments: '' })
   // Fetch data from the server using useMemo
   useMemo(async () => {
     try {

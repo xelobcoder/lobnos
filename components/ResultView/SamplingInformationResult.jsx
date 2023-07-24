@@ -65,7 +65,7 @@ export default function SamplingInformationResult({data = []}) {
                 inspection Time:
               </div>
               <div className='right'>
-                {data[0]?.inspectionTime.slice(0, 19)}
+                {data[0]?.inspectionTime}
               </div>
             </div>
           </div>

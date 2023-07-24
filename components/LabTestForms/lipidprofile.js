@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { TextField, Button } from "@mui/material";
-import { customFetch, handleChange, handleComments, handleResponse, validateFormData } from "../../components/Auth/customFetch";
+import { customFetch, handleChange, handleComments, handleResponse, validateFormData, resultCommentHander } from "../../components/Auth/customFetch";
 import CommentSection from "./commentSection";
 import Indicator from "../accessories/Reports/indicator";
 
@@ -14,9 +14,6 @@ export default function LipidProfile({ clientdata }) {
   const [comment, setComment] = useState({ comment: '' })
 
 
-  const [forwardData, setForwardData] = useState([]);
-
-
   //  using usememo to fetch data from the server
 
 
@@ -25,7 +22,13 @@ export default function LipidProfile({ clientdata }) {
       let response = await customFetch("test/setup/chemistry?panelname=LIPID_PROFILE_SETUP");
       const { records, statusCode, status } = response;
       if (statusCode == 200 && status == "success") {
-        setData(records.map((item) => { return { ...item, value: 0 } }));
+        if (records.length == 0) {
+          alert('lipid profile setup parameters not defined. set it up in the set up panel of settings or contact lab manager')
+        }
+        else {
+          CheckResultEntered(records);
+        }
+
       }
     } catch (err) {
       setData([]);
@@ -33,27 +36,37 @@ export default function LipidProfile({ clientdata }) {
   };
 
 
-  const CheckResultEntered = async function () {
+  const CheckResultEntered = async function (data) {
     const checker = await customFetch(`test/result/check?billingid=${billingid}&&testname=${test}`)
     const { result, statusCode, records } = checker;
-
     if (result === true && statusCode == 200) {
-      setData(records)
+      // we want to merge the reference data with the result data
+      const transformedData = data.map((dataset, index) => {
+        const nw = records.filter((item, index) => { return item.parameter == dataset.parameter });
+        if (nw.length > 0) {
+          const { value } = nw[0];
+          dataset.value = value;
+        }
+        return dataset;
+      })
+      setData(transformedData)
+      resultCommentHander(setComment, 'comment', comment, testid, billingid)
+      setResultEntered(true);
+    } else {
+      setData(data.map((item) => { return { ...item, value: 0 } }));
     }
   }
 
 
   useMemo(() => {
     getSetupData();
-    CheckResultEntered()
-    console.log(data)
   }, []);
 
 
   const handleResult = async function () {
     const backend_data = { testname: test, testid, billingid, patientid, records: data, comments: comment.comment }
     // send data to backend via this helper function
-    await validateFormData(backend_data, true, [], 'test/result/enter', handleResponse,setResultEntered(true));
+    await validateFormData(backend_data, true, [], 'test/result/enter', handleResponse, setResultEntered(true));
   }
 
 
@@ -71,13 +84,15 @@ export default function LipidProfile({ clientdata }) {
   }
 
 
-  const resetValues = async function() {
-     if (Array.isArray(data) && data.length > 0) {
-      let current = data.map( (e,i) => {e.value = 0 
-      return  {...e}})
+  const resetValues = async function () {
+    if (Array.isArray(data) && data.length > 0) {
+      let current = data.map((e, i) => {
+        e.value = 0
+        return { ...e }
+      })
       setData(current);
-      setComment({...comment, comment:''})
-     }
+      setComment({ ...comment, comment: '' })
+    }
   }
 
 
@@ -122,10 +137,10 @@ export default function LipidProfile({ clientdata }) {
             value={comment.comment}
           />
         </div>
-        <Button variant='contained' className="mt-2 btn btn-primary" type="button" onClick={handleResult}>
-          save result 
+        <Button variant='contained' className="mt-2" type="button" onClick={handleResult}>
+          submit
         </Button>
-        <Button sx={{ml:3}} type='reset' className="btn btn-danger mt-2" variant="contained" onClick={resetValues}> 
+        <Button sx={{ ml: 3 }} type='reset' className="btn btn-danger mt-2" variant="contained" onClick={resetValues}>
           reset values
         </Button>
       </div>

@@ -60,9 +60,9 @@ export default function BloodGroup({ clientdata }) {
 
   return (
     <>
-      <div className="p-3">
-        <Indicator resultEntered={resultEntered} />
+      <div className="p-3 mt-3">
         <div>
+        <Indicator resultEntered={resultEntered} />
           <Autocomplete
             size="small"
             options={option}
