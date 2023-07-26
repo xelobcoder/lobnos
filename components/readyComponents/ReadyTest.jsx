@@ -32,14 +32,14 @@ export default function ReadyTest({ id }) {
                 {item.ready === 'true' && (
                   <>
                     <li className={styles.textPrimary}>share via</li>
-                    <li>
-                      <Print className={`${styles.icon} ${styles.printIcon}`} />
+                    <li className='btn btn-secondary'>
+                      <Print className={`${styles.icon} text-white ${styles.printIcon}`} />
                     </li>
-                    <li>
-                      <WhatsApp className={`${styles.icon} ${styles.whatsappIcon}`} />
+                    <li className='btn btn-success'>
+                      <WhatsApp className={`${styles.icon} text-white ${styles.whatsappIcon}`} />
                     </li>
-                    <li>
-                      <Email className={`${styles.icon} ${styles.emailIcon}`} />
+                    <li className='btn btn-primary'>
+                      <Email className={`${styles.icon} text-white ${styles.emailIcon}`} />
                     </li>
                   </>
                 )}

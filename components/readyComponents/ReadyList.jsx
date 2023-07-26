@@ -6,59 +6,51 @@ export default function ReadyList({ readydata, changeLayout }) {
   const [active, setActive] = useState(null);
   return (
     <>
-      <Box sx={{ height: '80vh', overflowY: 'auto' }}>
-        <table id='custom-table' >
-          <thead>
-            <tr>
-              <th>Billingid</th>
-              <th>fullname</th>
-              <th>status</th>
-              <th>Completed test</th>
-              <th>debt</th>
-              <th>view</th>
-            </tr>
-          </thead>
-          <tbody>
+      <Box >
+        <div className='card br-5'>
+          <div className='card-header'>
+            <input className='form-control' placeholder='search here using the billingID or fullname '/>
+          </div>
+          <div className='card-header  read-result-list '>
+            <div>Billid</div>
+            <div>fullname</div>
+            <div>status</div>
+            <div>completed</div>
+            <div>view</div>
+
+          </div>
+          <div className='card-body p-0' id='read-body-card'>
             {readydata.length > 0 &&
               readydata.map((item, index) => {
                 return (
-                  <tr key={index}   style={{border: `${active == index ? '4px solid #3949ab' : 'none'}`}}>
-                    <td className="billing_id">{item.billingid}</td>
-                    <td>{item.fullname}</td>
-                    <td>
+                  <div key={index} className='read-result-list p-3' style={{ backgroundColor: `${active == index ? 'whitesmoke' : 'white'}` }}>
+                    <div className="billing_id">{item.billingid}</div>
+                    <div>{item.fullname}</div>
+                    <div>
                       <div
-                        className={`status ${
-                          item.status === 'Ready'
+                        className={`status ${item.status === 'Ready'
                             ? "ready_status"
                             : "pending_status"
-                        }`}
+                          }`}
                       >
                         {item.status}
                       </div>
-                    </td>
-                    <td>{item.readycount}/{item.testcount}</td>
-                    <td
-                      className={`negative_debt ${
-                        (parseInt(item.outstanding) >= 1 ||
-                          parseInt(item.outstanding) <= -1) && 'negative_debt'
-                      }`}
-                    >
-                      {parseInt(item.outstanding)}
-                    </td>
-                    <td>
+                    </div>
+                    <div>{item.readycount}/{item.testcount}</div>
+                    <div className='btn btn-success' 
+                    onClick={(e) => {
+                      changeLayout('three', item.billingid);
+                      setActive(index);
+                    }}>
                       <EnergySavingsLeaf
-                        className='view_icon'
-                        onClick={(e) => {
-                          changeLayout('three', item.billingid);
-                          setActive(index);
-                        }}
+                        className='view_icon text-white'
                       />
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 );
               })}
-          </tbody>
-        </table>
+          </div>
+        </div>
       </Box>
     </>
   );

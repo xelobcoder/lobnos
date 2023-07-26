@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../../components/payment/Navbar";
-import AccountSummary from "../../components/payment/AccountSummary";
-import TableDisplay from "../../components/accessories/TableDisplay";
-import { customFetch } from "../../components/Auth/customFetch";
-import UpdateBilling from "../../components/payment/updateBilling";
+import Navbar from "../../../components/payment/Navbar";
+import AccountSummary from "../../../components/payment/AccountSummary";
+import TableDisplay from "../../../components/accessories/TableDisplay";
+import { customFetch } from "../../../components/Auth/customFetch";
+import UpdateBilling from "../../../components/payment/updateBilling";
 import { CheckBox } from "@mui/icons-material";
 
 export default function Payment_Extra() {

@@ -100,8 +100,11 @@ export default function Approval() {
       }
     }
     // validate form data before sending the result
-    await validateFormData({ ...client, decision: 'decline', message: rejectionMessage }, true, [], 'result/approve', clearFields)
-
+    if (rejectionMessage.declineMessage && rejectionMessage.actionplan) {
+      await validateFormData({ ...client, decision: 'decline', message: rejectionMessage }, true, [], 'result/approve', clearFields)
+    } else {
+      alert('All fields required')
+    }
   }
 
 
@@ -126,20 +129,20 @@ export default function Approval() {
               >
                 <div className="client-info">
                   <p>
-                   {client.declineMessage &&  
-                   <Tooltip arrow 
-                    sx={{
-                      bgcolor:'white',
-                      color:'black',
-                      width:'500px',
-                      padding:0
-                    }}
-                    title={<Tip body={client.declineMessage} header={'previously declined'}/>}>
-                      <span
-                        className={client.declineMessage != null && 'show-previous-decline '}
-                      >{client.billingid}
-                      </span>
-                    </Tooltip>}
+                    {client.declineMessage &&
+                      <Tooltip arrow
+                        sx={{
+                          bgcolor: 'white',
+                          color: 'black',
+                          width: '500px',
+                          padding: 0
+                        }}
+                        title={<Tip body={client.declineMessage} header={'previously declined'} />}>
+                        <span
+                          className={client.declineMessage != null && 'show-previous-decline '}
+                        >{client.billingid}
+                        </span>
+                      </Tooltip>}
                     {
                       !client.declineMessage && client.billingid
                     }

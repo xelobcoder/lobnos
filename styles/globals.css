@@ -154,7 +154,7 @@
   outline: 1px solid #00224f;
 }
 body {
-  background-color: whitesmoke !important;
+  background-color:wheat !important;
 }
 .grid-2 {
   display: -ms-grid;
@@ -1519,16 +1519,16 @@ option:hover {
 
 #custom-table tbody tr td,
 .cellClass {
-  font-size: 13px !important;
+  font-size: 12px !important;
   font-weight: 400;
   color: black;
   text-transform: lowercase !important;
   text-overflow: ellipsis;
- min-width: 150px;
+  /* min-width: 150px; */
   padding: 3px 5px 3px;
 }
 
-#custom-table tbody tr td::first-letter{
+#custom-table tbody tr td::first-letter {
   text-transform: uppercase;
 }
 
@@ -1561,6 +1561,12 @@ option:hover {
 @media (max-width: 768px) {
   #custom-table {
     font-size: 12px;
+  }
+
+  .sales_summary {
+    display: grid;
+    grid-template-columns: 100%;
+    grid-gap: 20px 20px;
   }
 
   #custom-table thead tr th,
@@ -2676,15 +2682,14 @@ input[type='text'] {
 .sample-list {
   border-bottom: 1px solid lightgray;
   margin: 0;
-  padding:10px;
+  padding: 10px;
 }
 
-.sample-list:last-of-type{
+.sample-list:last-of-type {
   border-bottom: none;
 }
 
-
-.br-5{
+.br-5 {
   border-radius: 5px !important;
 }
 
@@ -2699,3 +2704,58 @@ input[type='text'] {
   border-radius: 50%;
   cursor: pointer;
 }
+
+.sales_summary {
+  display: grid;
+  grid-template-columns: 50% 50%;
+  grid-gap: 10px;
+  height: 40vh !important;
+  margin: 0;
+  padding: 0;
+}
+
+.sales_summary > .card {
+  height: 100% !important;
+}
+
+@media screen and (max-width: 468px) {
+  .sales_summary {
+    display: grid;
+    grid-template-columns: 100% !important;
+    margin-bottom: 20px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .sales_summary {
+    display: grid;
+    grid-template-columns: 100% !important;
+    margin-bottom: 20px;
+  }
+}
+
+.ready-panel-half {
+  display: grid;
+  grid-template-columns: 20% auto;
+  grid-gap: 20px;
+  margin: 20px;
+}
+
+.ready-panel-three {
+  display: grid;
+  grid-template-columns: 20% 50% auto;
+  grid-gap: 10px;
+  margin: 10px;
+}
+
+.read-result-list {
+  display: grid;
+  grid-template-columns: 10% 40% 20% 20% 10%;
+}
+
+.read-result-list > div {
+  /* font-weight: 500; */
+  font-size: 14px;
+  text-transform: uppercase;
+}
+

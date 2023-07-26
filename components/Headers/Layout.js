@@ -1,20 +1,28 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import AuthContext from '../Auth/useAuthentification';
 import LoginCredentials from '../../pages/authentication/login';
-import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 export default function MAIN_LAYOUT({ children }) {
-  // get user from local storage
+  const { auth, updateAuthentication } = useContext(AuthContext);
 
-  const { auth } = useContext(AuthContext);
-  const router = useRouter();
-  // if access token is null or undefined, redirect to login page
+  useEffect(() => {
+    let user = null;
+    if (typeof window !== 'undefined') {
+      user = localStorage.getItem('user');
+      user = JSON.parse(user)
+    }
+    updateAuthentication(user)
+  }, [])
+  console.log(auth)
   return (
     <>
       {
-        auth != undefined ? (
-          <div auth={auth} >
-            {children}
-          </div>
+        auth?.EMPLOYEEID != undefined && auth?.ROLE != undefined ? (
+          <>
+            <div>
+              {children}
+            </div>
+          </>
         )
           : (
             <LoginCredentials />

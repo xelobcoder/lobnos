@@ -1,20 +1,14 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useState } from 'react';
 
-let user = null;
-  if (typeof window !== 'undefined') {
-     user = {user: localStorage.getItem('user')}
-  }
-
-
-const AuthContext = createContext(user);
-
+const AuthContext = createContext(null);
 const AuthProvider = AuthContext.Provider;
 
 export const AuthentificationProvider = ({ children }) => {
   const [auth, setAuthentication] = useState({});
+  const updateAuthentication = (nw) => setAuthentication(nw) 
   return (
     <>
-      <AuthProvider value={{ auth, setAuthentication }}>
+      <AuthProvider value={{ auth, updateAuthentication}}>
         {children}
       </AuthProvider>
     </>
