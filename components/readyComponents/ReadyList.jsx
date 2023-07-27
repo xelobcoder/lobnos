@@ -49,6 +49,9 @@ export default function ReadyList({ readydata, changeLayout }) {
                   </div>
                 );
               })}
+              {
+                readydata.length == 0 && <div className='text-center'>no result found</div>
+              }
           </div>
         </div>
       </Box>

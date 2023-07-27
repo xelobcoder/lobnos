@@ -154,7 +154,7 @@
   outline: 1px solid #00224f;
 }
 body {
-  background-color:wheat !important;
+  background-color: wheat !important;
 }
 .grid-2 {
   display: -ms-grid;
@@ -2759,3 +2759,9 @@ input[type='text'] {
   text-transform: uppercase;
 }
 
+@media (prefers-color-scheme: dark) {
+  *{
+    background-color: #000 !important;
+    color: white;
+  }
+}

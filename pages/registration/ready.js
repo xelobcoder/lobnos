@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Sampling from '../../components/readyComponents/Sampling'
-import { customFetch } from '../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../components/Auth/customFetch';
 import ReadyList from '../../components/readyComponents/ReadyList';
 import ReadyTest from '../../components/readyComponents/ReadyTest';
 import { Typography } from '@mui/material';
@@ -46,7 +46,20 @@ export default function ReadyResult() {
 
   // submit handler for advanced search
   const handleAdvancedSubmit = async (e) => {
-    console.log(advancedQuery)
+    let queryparams = `ready/crm/summary/advanced?`;
+    for (const key in advancedQuery) {
+      if (advancedQuery[key] !== '') {
+        queryparams += `${key}=${advancedQuery[key]}&&`
+      }
+    }
+
+    const pushRequest = await customFetch(queryparams);
+
+    const { status, statusCode, result } = pushRequest;
+    if (status == 'success' && statusCode == 200) {
+      setReady(result)
+      setLayout('two');
+    }
   }
 
 
@@ -99,7 +112,8 @@ export default function ReadyResult() {
               <input
                 className="form-control mb-2"
                 value={advancedQuery.patientid}
-                name = "patientid"
+                name="patientid"
+                type='number'
                 onChange={(e) => handleAdvancedChange(e)}
                 placeholder="Type client patientid here eg. 48493927390"
               />
@@ -107,7 +121,7 @@ export default function ReadyResult() {
               <input
                 className="form-control mb-2"
                 value={advancedQuery.fullname}
-                name = "fullname"
+                name="fullname"
                 onChange={(e) => handleAdvancedChange(e)}
                 placeholder="Type client fullname like Tiifu Hamza "
               />
@@ -115,20 +129,21 @@ export default function ReadyResult() {
               <input
                 className="form-control mb-2"
                 value={advancedQuery.mobile}
-                name = "mobile"
+                name="mobile"
+                type='tell'
                 onChange={(e) => handleAdvancedChange(e)}
                 placeholder="Type patient mobile number here"
               />
               <label>from</label>
               <input type="date" className="form-control"
                 value={advancedQuery.from}
-                name = "from"
+                name="from"
                 onChange={(e) => handleAdvancedChange(e)}
               />
               <label>To</label>
               <input type="date" className="form-control"
                 value={advancedQuery.to}
-                name = "to"
+                name="to"
                 onChange={(e) => handleAdvancedChange(e)}
               />
               <button className="btn btn-primary mt-2"
