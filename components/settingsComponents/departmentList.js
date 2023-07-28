@@ -1,13 +1,11 @@
 import EditLocationAltSharpIcon from '@mui/icons-material/EditLocationAltSharp';
 import AutoDeleteSharpIcon from '@mui/icons-material/AutoDeleteSharp';
-import React from 'react';
+import React, { useState } from 'react';
 import TableDisplay from '../accessories/TableDisplay';
-import TableIsLoading from '../accessories/TableIsLoading';
 
 export default function DepartmentList({ data, handleDelete, handleEdit }) {
   // get all departments
-  console.log(data);
-  const [departments, setDepartments] = React.useState(data || []);
+  const [departments, setDepartments] = useState(data || []);
 
 
 
@@ -37,7 +35,7 @@ export default function DepartmentList({ data, handleDelete, handleEdit }) {
             fontSize="medium"
             variant="contained"
             onClick={() => {
-              handleEdit(row.original.id);
+              handleEdit(row.original);
             }}
             color="primary"
           />

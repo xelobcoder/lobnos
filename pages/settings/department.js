@@ -6,10 +6,12 @@ import SettingsLayout from '../../components/settingsComponents/settingsLayout';
 import Add_department from '../../components/settingsComponents/department';
 import DepartmentList from '../../components/settingsComponents/departmentList';
 import { Suspense } from 'react';
+import { useEffect } from 'react';
+import { customFetch, customPost } from '../../components/Auth/customFetch';
 
-export default function Department({ departments }) {
+export default function Department() {
   const [key, setKey] = useState('department_list');
-  const [department, setDepartments] = useState(departments || []);
+  const [department, setDepartments] = useState([]);
 
 
   // delete department
@@ -17,38 +19,38 @@ export default function Department({ departments }) {
   // edit department
   const router = useRouter();
 
+
+  const getDepartment = async () => {
+    const response = await customFetch('departments');
+    const { status, data } = response;
+    if (status === 'success') {
+      setDepartments(data)
+    }
+  }
+
+  useEffect(() => {
+    getDepartment()
+  }, [])
+
   const handleDelete = (id) => {
     const deleteDepartment = async () => {
-      let response = await fetch(`http://localhost:5000/api/v1/departments`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id })
-      })
-      let result = await response.json();
-      return result
+      let response = await customPost('departments', 'DELETE', { id })
+      const { status, message } = response;
+      if (status === 'success') {
+        alert(message)
+        setDepartments(department.filter((item) => item.id !== id))
+      }
+      else {
+        alert(message)
+      }
     }
-    deleteDepartment()
-      .then((result) => {
-        const { status, message } = result
-        if (status === 'success') {
-          alert(message)
-          setDepartments(department.filter((item) => item.id !== id))
-        }
-        else {
-          alert(message)
-        }
-      })
-      .catch((err) => {
-        console.log(err)
-      })
   }
 
 
-  const handleEdit = (id) => {
+  const handleEdit = (details) => {
+    const { department, departmentManager, employeeid, id } = details;
     setKey('add_department');
-    router.push(`/settings/department?tab=edit&&id=${id}`)
+    router.push(`/settings/department?tab=edit&&id=${id}&&employeeid=${employeeid}&&department=${department}&&departmentManager=${departmentManager}`)
   }
   return (
     <SettingsLayout>
@@ -73,27 +75,3 @@ export default function Department({ departments }) {
 }
 
 
-
-// get server side props
-
-export async function getServerSideProps(context) {
-  const departments = await fetch(`${process.env.BASEURL}/departments`)
-  const departmentsData = await departments.json();
-
-  const { data, status, message } = departmentsData;
-
-  if (status === 'success') {
-    return {
-      props: {
-        departments: data
-      }
-    }
-  }
-  else {
-    return {
-      props: {
-        departments: []
-      }
-    }
-  }
-}

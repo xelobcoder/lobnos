@@ -1,6 +1,5 @@
 import React from 'react'
-import Header from '../header'
-import SettingsSidebar from './sidebars'
+import SettingsSidebarLayout from './sidebars'
 
 export default function SettingsLayout({ children }) {
   return (
@@ -8,7 +7,7 @@ export default function SettingsLayout({ children }) {
       <div>
         <div className='wrapper'>
           <div className='side'>
-            <SettingsSidebar />
+            <SettingsSidebarLayout />
           </div>
           <div className='main'>
             {children}

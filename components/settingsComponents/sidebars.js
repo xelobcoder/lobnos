@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useState } from "react";
-function SettingsSidebar() {
+export default function SettingsSidebarLayout() {
  const { hideText, setHideText } = useState(false);
  return (
   <>
@@ -57,4 +57,3 @@ function SettingsSidebar() {
 }
 
 
-export default SettingsSidebar;

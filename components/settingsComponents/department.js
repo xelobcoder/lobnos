@@ -14,7 +14,7 @@ export default function Add_department() {
   const [department, setDepartment] = React.useState({
     department: '',
     departmentManager: '',
-    employeeid: 3
+    employeeid: 3,
   })
 
   const [employeeList, setEmployeeList] = useState([])
@@ -27,9 +27,8 @@ export default function Add_department() {
     const { value } = event.target
     // find from employee list
     const employee = employeeList.find((employee) => employee.EMPLOYEEID == value);
-
     if (employee) {
-      const {USERNAME} = employee;
+      const { USERNAME } = employee;
       setDepartment({ ...department, departmentManager: USERNAME, employeeid: value })
     }
   }
@@ -100,22 +99,17 @@ export default function Add_department() {
 
   // monitor for edit tab in the url
   useEffect(() => {
-    const { tab, id } = router.query;
+    const { tab, id, employeeid,department,departmentManager} = router.query;
     if (tab === 'edit') {
       setTab('update');
       // fetch department from server
-      const fetchDepartment = async () => {
-        let response = await customFetch(`departments/${id}`)
-        const { status, message, department } = response;
-        if (status === "success") {
-          setDepartment(department[0]);
-        } else {
-          alert(message);
-        }
-      }
-      fetchDepartment();
+      setDepartment({
+        department: department,
+        departmentManager: departmentManager,
+        employeeid: employeeid,
+      })
     }
-  }, [router.query.tab])
+  }, [router.query])
 
   return (
     <>
@@ -159,7 +153,7 @@ export default function Add_department() {
                   value={department.departmentManager}
                   onChange={(e) => handleEmployeeChange(e)}
                 >
-                  <option value="">Select Department Manager</option>
+                  <option value={department.departmentManager}>{department.departmentManager || 'Select Department Manager'}</option>
                   {employeeList.map((employee, index) => (
                     <option key={index} value={employee.EMPLOYEEID}>
                       {employee?.USERNAME}

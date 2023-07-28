@@ -3,6 +3,7 @@ import { customFetch, customPost } from '../../components/Auth/customFetch';
 import Image from 'next/image';
 import { Container } from '@mui/material';
 import { Padding } from '@mui/icons-material';
+import SettingsLayout from '../../components/settingsComponents/settingsLayout';
 
 export default function CompanyProfile() {
   const defaultdata = {
@@ -76,7 +77,6 @@ export default function CompanyProfile() {
       try {
         const response = await customFetch('settings/companyprofile');
         setcompanyData(response);
-
         const getData = await customFetch('settings/companyprofile/images');
         const imageData = await getData.blob(); // Convert the response to a Blob
         setSelectedImages(URL.createObjectURL(imageData)); // Set the selectedImage using createObjectURL
@@ -90,127 +90,117 @@ export default function CompanyProfile() {
 
 
   return (
-    <>
-      <div style={{ backgroundColor: 'whitesmoke', height: 'max-content' }}>
-        <div className="container">
-          <div
-            className="row"
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                preview == false ? "100%" : "60% auto",
-            }}
-          >
-            <div>
-              {/* form  */}
-              <Container > 
-                <h1 className='instru'>Upload Company information</h1>
-                <form className="company-profile-form" style={{Padding:'0% 30%'}}>
-                  
-                  <div className="form-group mt-2">
-                    <label>name: </label>
-                    <input
-                      className="custom-input"
-                      value={companydata.name}
-                      type="text"
-                      onChange={(e) => {
-                        setcompanyData({ ...companydata, name: e.target.value });
-                      }}
-                    />
-                  </div>
-
-                  <div className="form-group  mt-2">
-                    <label>email: </label>
-                    <input
-                      className="custom-input"
-                      value={companydata.email}
-                      type="email"
-                      onChange={(e) => {
-                        setcompanyData({ ...companydata, email: e.target.value });
-                      }}
-                    />
-                  </div>
-
-                  <div className="form-group mt-2">
-                    <label>address: </label>
-                    <input
-                      className="custom-input"
-                      value={companydata.address}
-                      type="text"
-                      onChange={(e) => {
-                        setcompanyData({ ...companydata, address: e.target.value });
-                      }}
-                    />
-                  </div>
-
-                  <div className="form-group mt-2">
-                    <label>motto: </label>
-                    <input
-                      className="custom-input"
-                      value={companydata.motto}
-                      type="text"
-                      onChange={(e) => {
-                        setcompanyData({ ...companydata, motto: e.target.value });
-                      }}
-                    />
-                  </div>
-
-                  <div className="form-group mt-2">
-                    <label>phone number: </label>
-                    <input
-                      className="custom-input"
-                      multiple
-                      value={companydata.phonenumber}
-                      type="tel"
-                      minLength={10}
-                      maxLength={28}
-                      onChange={(e) => {
-                        setcompanyData({
-                          ...companydata,
-                          phonenumber: e.target.value,
-                        });
-                      }}
-                    />
-                  </div>
-                  <div className='form-group mt-3'>
-                    <label>street</label>
-                    <input className='custom-input' value={companydata.street}
-                      onChange={(e) => setcompanyData({ ...companydata, street: e.target.value })} />
-                  </div>
-                  <div className='form-group mt-3'>
-                    <label>alternativeNumber</label>
-                    <input className='custom-input' value={companydata.alternativeNumber}
-                      onChange={(e) => setcompanyData({ ...companydata, alternativeNumber: e.target.value })} />
-                  </div>
-                  <div className='form-group mt-3'>
-                    <label>website</label>
-                    <input className='custom-input' value={companydata.website}
-                      onChange={(e) => setcompanyData({ ...companydata, website: e.target.value })} />
-                  </div>
-                  <div className="form-group mt-3">
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={(e) => handleData(e)}
-                    >
-                      save information
-                    </button>
-                  </div>
-                  <div className="form-group mt-2">
-                    <label>Upload Images </label>
-                    <input
-                      type="file"
-                      className="custom-input mt-3"
-                      onChange={handlePreview}
-                    />
-                  </div>
-                </form>
-              </Container>
+    <SettingsLayout>
+      <div className='card br-5 m-3'>
+        <div className='card-header' style={{ backgroundColor: 'whitesmoke' }}>
+          <h3 className='btn btn-danger'>Upload Company information</h3>
+        </div>
+        <div className='card-body'>
+          <form>
+            <div className="form-group mt-2">
+              <label>name: </label>
+              <input
+                className="custom-input"
+                value={companydata.name}
+                required
+                type="text"
+                onChange={(e) => {
+                  setcompanyData({ ...companydata, name: e.target.value });
+                }}
+              />
             </div>
-          </div>
-          {/* end of form */}
+
+            <div className="form-group  mt-2">
+              <label>email: </label>
+              <input
+                className="custom-input"
+                value={companydata.email}
+                type="email"
+                required
+                onChange={(e) => {
+                  setcompanyData({ ...companydata, email: e.target.value });
+                }}
+              />
+            </div>
+
+            <div className="form-group mt-2">
+              <label>address: </label>
+              <input
+                className="custom-input"
+                value={companydata.address}
+                type="text"
+                required
+                onChange={(e) => {
+                  setcompanyData({ ...companydata, address: e.target.value });
+                }}
+              />
+            </div>
+
+            <div className="form-group mt-2">
+              <label>motto: </label>
+              <input
+                className="custom-input"
+                value={companydata.motto}
+                required
+                type="text"
+                onChange={(e) => {
+                  setcompanyData({ ...companydata, motto: e.target.value });
+                }}
+              />
+            </div>
+
+            <div className="form-group mt-2">
+              <label>phone number: </label>
+              <input
+                className="custom-input"
+                multiple
+                value={companydata.phonenumber}
+                type="tel"
+                minLength={10}
+                maxLength={10}
+                onChange={(e) => {
+                  setcompanyData({
+                    ...companydata,
+                    phonenumber: e.target.value,
+                  });
+                }}
+              />
+            </div>
+            <div className='form-group mt-3'>
+              <label>street</label>
+              <input className='custom-input' value={companydata.street}
+                onChange={(e) => setcompanyData({ ...companydata, street: e.target.value })} />
+            </div>
+            <div className='form-group mt-3'>
+              <label>alternativeNumber</label>
+              <input className='custom-input' value={companydata.alternativeNumber}
+                onChange={(e) => setcompanyData({ ...companydata, alternativeNumber: e.target.value })} />
+            </div>
+            <div className='form-group mt-3'>
+              <label>website</label>
+              <input className='custom-input' value={companydata.website}
+                onChange={(e) => setcompanyData({ ...companydata, website: e.target.value })} />
+            </div>
+            <div className="form-group mt-2">
+              <label>Upload Images </label>
+              <input
+                type="file"
+                className="custom-input mt-3"
+                onChange={handlePreview}
+              />
+            </div>
+          </form>
+        </div>
+        <div className='card-footer'>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={(e) => handleData(e)}
+          >
+            save information
+          </button>
         </div>
       </div>
-    </>
+    </SettingsLayout>
   );
 }

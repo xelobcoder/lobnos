@@ -2377,33 +2377,16 @@ option:hover {
   color: #00224f;
 }
 
-.company-profile-form {
-  background-color: white;
-  margin: 0% 20%;
-  padding: 20px;
+input[type='email'] {
+  text-transform: lowercase !important;
+}
+input:invalid{
+  border: 1px solid var(--red-500);
 }
 
-.company-profile-form input {
-  height: 50px !important;
-  border: 2px solid var(--icon-warning-color);
-}
 
-.company-profile-form label {
-  color: var(--gray-700);
-  font-weight: bold;
-  font-size: 18px;
-  font-family: var(--monospace);
-}
 
-.instru {
-  margin: 4% 20% 0 20%;
-  color: white;
-  background-color: #00224f;
-  padding: 10px;
-  display: flex;
-  justify-content: center;
-  font-size: 27px;
-}
+
 
 .company-view-result > .wrapper {
   display: block;
