@@ -21,7 +21,6 @@ export default function MAIN_LAYOUT({ children }) {
     }
   }, [])
 
-  console.log(auth)
   return (
     <>
       <div>

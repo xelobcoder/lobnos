@@ -6,6 +6,7 @@ import { BranchesApi } from '../../endpoint';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import EditIcon from '@mui/icons-material/Edit';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
+import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 
 
 export default function Branches() {
@@ -142,56 +143,55 @@ export default function Branches() {
 
 
   return (
-    <div>
-      {/* reset to add  */}
-      <div style={{ margin: "20px 20px 20px 20px", width: "90%" }}>
-        <h3 className='btn btn-danger btn-lg'>Branches</h3>
-        <div className="card br-5">
-          <div className="card-header">
-            <div className="row branches-split p-1">
-              <div>
-                <TextField
-                  size="small"
-                  value={data}
-                  onChange={(e) => setData(e.target.value)}
-                  label="branch name"
-                  sx={{ width: "100%" }}
-                />
-              </div>
-              <div className="col">
-                <Button variant="contained" onClick={(e) => onClick(e)}>
-                  {edit ? "edit branch" : "add branch"}
-                </Button>
-                <button
-                  className="btn btn-danger"
-                  style={{ marginLeft: "10px" }}
-                  onClick={(e) => {
-                    setEdit(false);
-                    setData("");
-                  }}
-                >
-                  reset
-                </button>
+    <SettingsLayout>
+      <div style={{ width: "99%" }}>
+          <h3 className='text-lead'>Branches</h3>
+          <div className="card br-5">
+            <div className="card-header">
+              <div className="row branches-split p-1">
+                <div>
+                  <TextField
+                    size="small"
+                    value={data}
+                    onChange={(e) => setData(e.target.value)}
+                    label="branch name"
+                    sx={{ width: "100%" }}
+                  />
+                </div>
+                <div className="col">
+                  <Button variant="contained" onClick={(e) => onClick(e)}>
+                    {edit ? "edit branch" : "add branch"}
+                  </Button>
+                  <button
+                    className="btn btn-danger"
+                    style={{ marginLeft: "10px" }}
+                    onClick={(e) => {
+                      setEdit(false);
+                      setData("");
+                    }}
+                  >
+                    reset
+                  </button>
+                </div>
               </div>
             </div>
+            <div
+              className="card-header p-2 bg-secondary text-white"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "20% 40% 20% 20%",
+                textTransform: "uppercase",
+              }}
+            >
+              <div>branchid</div>
+              <div>branch name</div>
+              <div>Added on</div>
+              <div>action</div>
+            </div>
+            {branches.length == 0 ? null : BRANCHESDATA(branches)}
           </div>
-          <div
-            className="card-header p-2 bg-secondary text-white"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "20% 40% 20% 20%",
-              textTransform: "uppercase",
-            }}
-          >
-            <div>branchid</div>
-            <div>branch name</div>
-            <div>Added on</div>
-            <div>action</div>
-          </div>
-          {branches.length == 0 ? null : BRANCHESDATA(branches)}
         </div>
-      </div>
-    </div>
+    </SettingsLayout>
   );
 }
 

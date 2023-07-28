@@ -769,7 +769,7 @@ option:hover {
 /* settings side bar css begins @............................................................................................... */
 .settings-sidebar {
   width: 100%;
-  background-color: #2f3a3f;
+  background-color: white;
   height: 100vh;
 }
 
@@ -811,12 +811,12 @@ option:hover {
   width: 30px !important;
 }
 
-.settings-sidebar > .contents > ul > li > .text {
+.settings-sidebar > .contents > ul > li > .text > a {
   margin-top: 10px;
   font-size: 14px;
   font-weight: 300;
   text-transform: capitalize;
-  color: white;
+  color: #00224f !important;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;

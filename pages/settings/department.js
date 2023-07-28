@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import { useRouter } from 'next/router';
+import SettingsLayout from '../../components/settingsComponents/settingsLayout';
 import Add_department from '../../components/settingsComponents/department';
 import DepartmentList from '../../components/settingsComponents/departmentList';
 import { Suspense } from 'react';
@@ -50,22 +51,24 @@ export default function Department({ departments }) {
     router.push(`/settings/department?tab=edit&&id=${id}`)
   }
   return (
-    <Tabs
-      id="controlled-tab-example"
-      activeKey={key}
-      onSelect={(k) => setKey(k)}
-      className="mb-3"
-    >
-      <Tab eventKey="add_department" title="Add Department">
-        <Add_department />
-      </Tab>
-      <Tab eventKey="department_list" title="Department list">
-        <Suspense fallback={<div>Loading...</div>}>
-          <DepartmentList data={department} handleDelete={handleDelete} handleEdit={handleEdit} />
-        </Suspense>
-      </Tab>
-      <Tab eventKey="" title="" disabled></Tab>
-    </Tabs>
+    <SettingsLayout>
+      <Tabs
+        id="controlled-tab-example"
+        activeKey={key}
+        onSelect={(k) => setKey(k)}
+        className="mb-3"
+      >
+        <Tab eventKey="add_department" title="Add Department">
+          <Add_department />
+        </Tab>
+        <Tab eventKey="department_list" title="Department list">
+          <Suspense fallback={<div>Loading...</div>}>
+            <DepartmentList data={department} handleDelete={handleDelete} handleEdit={handleEdit} />
+          </Suspense>
+        </Tab>
+        <Tab eventKey="" title="" disabled></Tab>
+      </Tabs>
+    </SettingsLayout>
   );
 }
 

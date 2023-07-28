@@ -1,7 +1,8 @@
 import { Button } from '@mui/material';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Container, FormLabel } from 'react-bootstrap'
+import { FormLabel } from 'react-bootstrap';
+import { customFetch, customPost } from '../../components/Auth/customFetch';
 import TopMessage from '../accessories/TopMessage';
 
 export default function Add_department() {
@@ -16,12 +17,25 @@ export default function Add_department() {
     employeeid: 3
   })
 
+  const [employeeList, setEmployeeList] = useState([])
+
   const handleDepartmentChange = (event) => {
     setDepartment({ ...department, [event.target.name]: event.target.value })
   }
 
+  const handleEmployeeChange = (event) => {
+    const { value } = event.target
+    // find from employee list
+    const employee = employeeList.find((employee) => employee.EMPLOYEEID == value);
 
-  const [tab,setTab] = React.useState('submit');
+    if (employee) {
+      const {USERNAME} = employee;
+      setDepartment({ ...department, departmentManager: USERNAME, employeeid: value })
+    }
+  }
+
+
+  const [tab, setTab] = React.useState('submit');
 
 
   // use router to relaod and also to look rdit in url for editing a pacticcular department
@@ -30,137 +44,144 @@ export default function Add_department() {
   const handleSubmit = (event) => {
     event.preventDefault();
     const sendtoServer = async () => {
-      let response = await fetch("http://localhost:5000/api/v1/departments", {
-        method: tab === 'submit' ? "POST" : "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: tab === 'submit' ? JSON.stringify(department) : JSON.stringify({ ...department, id: router.query.id }),
-      });
-      let result = await response.json();
-      return result;
-    };
+      const response = await customPost('departments', tab === 'submit' ? "POST" : "PUT", tab === 'submit' ? department : { ...department, id: router.query.id });
+
+      const { status, message } = response;
+
+      if (status === "success") {
+        alert(message);
+        setDepartment({
+          department: "",
+          departmentManager: "",
+          employeeid: 3,
+        });
+        if (router.query.tab === 'edit') {
+          setTab('submit');
+          router.push('/settings/department');
+          setTimeout(() => {
+            router.reload();
+          }, 500)
+        } else {
+          router.reload()
+        }
+      } else {
+        setShowMessage({
+          display: true,
+          type: "error",
+          message: message,
+        });
+      }
+    }
 
     if (Object.values(department).includes("")) {
       alert("fill all fields correctly");
     } else {
-      sendtoServer()
-        .then((result) => {
-          const { status, message } = result;
-
-          if (status === "success") {
-            console.log(message);
-            alert(message);
-            setDepartment({
-              department: "",
-              departmentManager: "",
-              employeeid: 3,
-            });
-            if (router.query.tab === 'edit') {
-              setTab('submit');
-              router.push('/settings/department');
-              setTimeout(() => {
-                router.reload();
-              }, 500)
-            } else{
-              router.reload()
-            }
-          } else {
-            setShowMessage({
-              display: true,
-              type: "error",
-              message: message,
-            });
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      sendtoServer();
     }
   };
 
 
-  const employees = ['John Doe', 'Jane Doe', 'John Smith', 'Jane Smith'];
+  const getEmployees = async () => {
+    const response = await customFetch('logins');
+    const { message, statusCode, result } = response;
+    if (message == "success" && statusCode == 200) {
+      setEmployeeList(result);
+    } else {
+      setEmployeeList([]);
+    }
+  }
 
+
+  useEffect(() => {
+    getEmployees();
+  }, [])
 
 
 
   // monitor for edit tab in the url
-  React.useEffect(() => {
-   const {tab,id} = router.query;
-    if(tab === 'edit'){
+  useEffect(() => {
+    const { tab, id } = router.query;
+    if (tab === 'edit') {
       setTab('update');
       // fetch department from server
       const fetchDepartment = async () => {
-        let response = await fetch(`http://localhost:5000/api/v1/departments/${id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        let result = await response.json();
-        return result;
-      };
-      fetchDepartment()
-      .then((result) => {
-        const { status, message, department } = result;
+        let response = await customFetch(`departments/${id}`)
+        const { status, message, department } = response;
         if (status === "success") {
           setDepartment(department[0]);
         } else {
           alert(message);
         }
       }
-      )
+      fetchDepartment();
     }
   }, [router.query.tab])
 
   return (
     <>
-      {
-        showMessage.display ? (<TopMessage message='Department Added Successfully'
+      {showMessage.display ? (
+        <TopMessage
+          message="Department Added Successfully"
           type={showMessage.type}
           display={showMessage.display}
-          messageTimer={
-            () => setTimeout(() => {
-              setShowMessage({ display: false, type: '', message: '' })
-            }, 3000)}
+          messageTimer={() =>
+            setTimeout(() => {
+              setShowMessage({ display: false, type: "", message: "" });
+            }, 3000)
+          }
         />
-        ) : null
-      }
-      <Container>
-        <div id='addsupplier'>
-          <form>
-            <div className='form-group'>
-              <FormLabel htmlFor='department'>Department</FormLabel>
-              <input type='text' className='custom-input' id='department'
-                name='department'
-                value={department.department}
-                onChange={handleDepartmentChange}
-                placeholder='Enter Department' />
-            </div>
-            <div className='form-group'>
-              <FormLabel htmlFor='department'>Department Manager</FormLabel>
-              <select className='custom-input' id='departmentManager'
-                name='departmentManager'
-                value={department.departmentManager}
-                onChange={handleDepartmentChange}
-              >
-                <option value=''>Select Department Manager</option>
-                {employees.map((employee, index) => (
-                  <option key={index} value={employee}>
-                    {employee}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <Button variant='contained'
+      ) : null}
+      <div className="p-2">
+        <div className="card br-7">
+          <div className="card-header">
+            <h4 className="btn btn-danger">Add Department</h4>
+          </div>
+          <div className="card-body p-4">
+            <form>
+              <div className="form-group">
+                <FormLabel htmlFor="department">Department</FormLabel>
+                <input
+                  type="text"
+                  className="custom-input"
+                  id="department"
+                  name="department"
+                  value={department.department}
+                  onChange={handleDepartmentChange}
+                  placeholder="Enter Department"
+                />
+              </div>
+              <div className="form-group">
+                <FormLabel htmlFor="department">Department Manager</FormLabel>
+                <select
+                  className="custom-input"
+                  id="departmentManager"
+                  name="departmentManager"
+                  value={department.departmentManager}
+                  onChange={(e) => handleEmployeeChange(e)}
+                >
+                  <option value="">Select Department Manager</option>
+                  {employeeList.map((employee, index) => (
+                    <option key={index} value={employee.EMPLOYEEID}>
+                      {employee?.USERNAME}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </form>
+          </div>
+          <div className="card-footer">
+            <Button
+              variant="contained"
               onClick={handleSubmit}
-              color='primary' type='button' className='mt-4'>
+              color="primary"
+              type="button"
+              className="mt-4"
+            >
               {tab}
             </Button>
-          </form>
+          </div>
         </div>
-      </Container>
+      </div>
     </>
-  )
+  );
 }

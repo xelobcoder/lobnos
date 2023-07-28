@@ -1,30 +1,10 @@
-import SettingsSidebar from '../../components/settingsComponents/sidebars';
-import Sidebar from '../../components/sidebar';
+import React from 'react'
+import SettingsLayout from '../../components/settingsComponents/SettingsLayout'
 
-
-function Settings() {
+export default function Settings() {
 	return (
-		<>
-
-		</>
-	)
-}
-
-export default Settings;
-
-
-
-Settings.getLayout = function PageLayout(page) {
-	return (
-		<>
-			<div className='s-s-pliter'>
-				<div className='sid'>
-					<SettingsSidebar />
-				</div>
-				<div className='main'>
-					{page}
-				</div>
-			</div>
-		</>
+		<SettingsLayout>
+hellow eorld,d 
+		</SettingsLayout>
 	)
 }
