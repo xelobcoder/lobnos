@@ -3,7 +3,7 @@ import { customFetch, customPost } from '../../components/Auth/customFetch';
 import Image from 'next/image';
 import { Container } from '@mui/material';
 import { Padding } from '@mui/icons-material';
-import SettingsLayout from '../../components/settingsComponents/settingsLayout';
+import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 
 export default function CompanyProfile() {
   const defaultdata = {
@@ -92,7 +92,7 @@ export default function CompanyProfile() {
   return (
     <SettingsLayout>
       <div className='card br-5 m-3'>
-        <div className='card-header' style={{ backgroundColor: 'whitesmoke' }}>
+        <div className='card-header p-2' style={{ backgroundColor: 'whitesmoke' }}>
           <h3 className='btn btn-danger'>Upload Company information</h3>
         </div>
         <div className='card-body'>
