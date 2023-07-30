@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { TextField, Button, Typography } from '@mui/material';
 import TableIsLoading from '../../components/accessories/TableIsLoading';
@@ -9,12 +8,9 @@ import { customFetch } from '../../components/Auth/customFetch';
 export default function Activator() {
   const [activationData, setActivationData] = useState([]);
   const [tempStore, setStore] = useState([]);
+  const [advancedSearch, setAdvancedSearch] = useState(false);
 
   const [id, setId] = useState('');
-  const billing = useRouter();
-
-  const patientid = useRouter().query.patientid;
-
 
   const handleNameFilter = (e) => {
     const filtered = e.target.value;
@@ -33,6 +29,8 @@ export default function Activator() {
           setActivationData(filteredData);
         }
       }
+    } else {
+      return
     }
   };
 
@@ -56,37 +54,44 @@ export default function Activator() {
     getInitData()
   }, [])
 
-  useEffect(() => {
-    if (patientid) {
-      const filteredData = activationData.filter((item) => item.PATIENTID === patientid);
-      setActivationData(filteredData);
-      setId(patientid);
-    }
-  }, [patientid, activationData]);
 
   return (
     <>
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '30% 20% 20% auto',
-          gridGap: '20px 20px',
-          margin: '20px',
-        }}
-      >
-        <input
-          placeholder="Enter patient id or fullname"
-          value={id}
-          className='custom-input'
-          onChange={handleNameFilter}
-        />
-        <input className='custom-input' type="date" size="small" />
-        <input className='custom-input' type="date" size="small" />
-        <Button type="button" className='custom-button' variant="contained" color="primary">
-          search
-        </Button>
-      </div>
+      {!advancedSearch &&
+        <div>
+          <button className='btn btn-primary m-2' onClick={() => setAdvancedSearch(!advancedSearch)}>
+            advanced search
+          </button>
+        </div>}
+      {advancedSearch &&
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '30% 20% 20% auto',
+            gridGap: '5px 5px',
+            margin: '20px',
+          }}
+        >
+          <input
+            placeholder="Enter patientid"
+            value={id}
+            name='patientid'
+            id='patientid'
+            className='custom-input'
+            onChange={handleNameFilter}
+          />
+          <input className='custom-input' type='number' placeholder='fullname' />
+          <input className='custom-input' type='tell' inputMode='numeric' placeholder='mobile number' />
+          <input className='custom-input' type="date" size="small" placeholder='from' />
+          <input className='custom-input' type="date" size="small" />
+          <Button type="button" className='custom-button' variant="contained" color="primary">
+            search
+          </Button>
+          <Button type='button' className='btn btn-danger' color='error'
+            onClick={(e) => setAdvancedSearch(false)}>
+            close
+          </Button>
+        </div>}
       <div style={{ height: '100vh', overflowY: 'auto', margin: '10px' }}>
         {activationData.length > 0 && (
           <table id='custom-table'>
@@ -138,7 +143,7 @@ export default function Activator() {
                       </Button>
                     ) : (
                       <Button variant='contained' sx={{ width: '100px' }} size='small'>
-                        <Link style={{color:'white'}} href={`/registration/?patientid=${item.PATIENTID}`}>edit info</Link>
+                        <Link style={{ color: 'white' }} href={`/registration/?patientid=${item.PATIENTID}`}>edit info</Link>
                       </Button>
                     )}
                   </td>

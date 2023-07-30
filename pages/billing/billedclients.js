@@ -1,7 +1,5 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Header from '../../components/header';
-import SidebarFrontPage from '../../components/frontpagesidebar';
 import { DeleteForever, Edit, EditAttributes, EditOffOutlined, Update } from '@mui/icons-material';
 import { customFetch } from '../../components/Auth/customFetch';
 import TableDisplay from '../../components/accessories/TableDisplay';

@@ -5,7 +5,7 @@ import { defaultdata } from "../../pages/registration";
 export const handleMobile = (e, setValue, data, setError) => {
   let value = e.target.value;
   let length = value.length;
-  setValue({ ...data, mobile: value });
+  setValue({ ...data, personalInformation: { ...data.personalInformation, mobile: value } });
   if (length > 10) {
     setError("Maximum of 10 numbers required");
   } else if (length < 10) {
@@ -20,7 +20,7 @@ export const handleMobile = (e, setValue, data, setError) => {
 
 export const handleEmail = (e, setValue, data, setError) => {
   let value = e.target.value;
-  setValue({ ...data, email: value });
+  setValue({ ...data, personalInformation: { ...data.personalInformation, email: value } });
   const pattern =
     /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   if (value != "") {
@@ -145,8 +145,6 @@ export const handleSubmitRegistration = async (
     "age",
     "ageType",
     "maritalstatus",
-    "emmergencyContactNumber",
-    "relationship",
     "mobile",
     "gender",
     "patientOrganization",
@@ -156,7 +154,7 @@ export const handleSubmitRegistration = async (
   // function theat checks to esnsure required fields are filled
   const checkRequiredFields = (data) => {
     requiredFields.forEach((field) => {
-      if (data[field] == "") {
+      if (data.personalInformation[field] == "") {
         error = true;
         return;
       }
@@ -188,6 +186,41 @@ export async function handleActivation(e, id, status, patientid) {
   if (response.action == "BILLING") {
     window.location.href = "/billing?patientid=" + patientid;
   } else {
-    window.location.href = "/activation?patientid=" + patientid;
+    window.location.href = "/activation"
+  }
+}
+
+
+export const patientRegistrationDefaultData = {
+  personalInformation: {
+    email: "",
+    mobile: "",
+    age: "",
+    days: "",
+    months: "",
+    years: "",
+    gender: "",
+    maritalstatus: "",
+    ageType: "",
+    firstname: "",
+    lastname: "",
+    middlename: "",
+    patienttype: "",
+    patientOrganization: "",
+    occupation: "",
+  },
+  addressingInformation: {
+    area: "",
+    region: "",
+    address: "",
+    gpsLocation: '',
+  },
+  emmergencyInformation: {
+    emmergencyName: "",
+    emmergencyContactNumber: "",
+    location: '',
+    address: '',
+    occupation: '',
+    relationship: "",
   }
 }

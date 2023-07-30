@@ -59,7 +59,7 @@ export default function OrganizationList() {
 
   return (
     <>
-      <TableDisplay column={columns} styling={'excel-table'} data={organization} filtering={true} />
+      <TableDisplay column={columns}  data={organization} filtering={true} />
     </>
   )
 }

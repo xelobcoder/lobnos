@@ -252,7 +252,7 @@ export default function Clinicians() {
         </div>
         <div>
           <TableDisplay
-            styling={"excel-table"}
+            // styling={"excel-table"}
             column={columns}
             data={ClinicianList}
             filtering={true}

@@ -47,7 +47,7 @@ export default function SettingsSidebarLayout() {
                 <TripOrigin />
               </div>
               <div className="text">
-                <Link href={'/settings/department'}>add department</Link>
+                <Link href={'/settings/department'}>departments</Link>
               </div>
             </li>
           </ul>
