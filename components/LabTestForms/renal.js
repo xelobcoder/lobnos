@@ -11,49 +11,51 @@ export default function RenalResults({ clientdata }) {
   const [resultEntered, setResultEntered] = useState(false);
   const [comments, setComments] = useState({ comments: '' });
 
-  useEffect(() => {
-    const getData = async function () {
-      try {
-        const hasBeenEntered = await CheckResultEntered(test, billingid);
+  const getData = async function () {
+    try {
+      const hasBeenEntered = await CheckResultEntered(test, billingid);
+      const response = await customFetch("test/setup/chemistry?panelname=RENAL_SETUP");
+      const { records } = response;
+      if (hasBeenEntered?.result == true) {
+        setResultEntered(true)
+        const previousEntered = hasBeenEntered.records;
 
-
-        const response = await customFetch("test/setup/chemistry?panelname=RENAL_SETUP");
-        const { records } = response;
-        setSetup(records.map((item, index) => { return { ...item, value: '' } }))
-
-        if (hasBeenEntered?.result == true && setSetup.length > 0) {
-          setResultEntered(true)
-          const { result, statusCode, message, records } = hasBeenEntered;
-          const finalizedData = records.map((item, index) => {
-            // modify the data to lowercase to fit to the useState nature 
-            let obj = {};
-            Object.entries(item).forEach((s, i) => {
-              const [key, value] = s;
-              obj[key.toLowerCase()] = value;
-            })
-            // filter from setup data and get lower and upper values as reference range
-            const filteredPanels = setup.find((item, index) => {
-              return item.parameter == obj.parameter;
-            })
-
-            obj['upper'] = filteredPanels?.upper;
-            obj['lower'] = filteredPanels?.lower;
-            // return the object
-            return obj;
+        const finalizedData = previousEntered.map((item, index) => {
+          // modify the data to lowercase to fit to the useState nature 
+          let obj = {};
+          Object.entries(item).forEach((s, i) => {
+            const [key, value] = s;
+            obj[key.toLowerCase()] = value;
           })
-          setData(finalizedData)
-        }
-        else {
-          setData(records)
-        }
-        // get comments from this api
-        const getcomments = await customFetch(`result/preview/comments?billingid=${billingid}&&testid=${testid}`);
-        getcomments.length != 0 && setComments({ comments: getcomments[0]?.comments })
+          return obj
+        })
+        
+        for(let i = 0; i < records.length; i++) {
+          for(let j = 0; j < finalizedData.length; j++) {
+            // compare the setup to the previously entered data;
+            if (records[i]['parameter'] == finalizedData[i]['parameter']) {
+              // set the value of the finalized dataset to the records data
+              records[i]['value'] = finalizedData[j]['value'];
+            }
+          }
+        } 
+
+        setData(records)
+
       }
-      catch (err) {
-        console.log(err)
+      else {
+        setData(records)
       }
+      // get comments from this api
+      const getcomments = await customFetch(`result/preview/comments?billingid=${billingid}&&testid=${testid}`);
+      getcomments.length != 0 && setComments({ comments: getcomments[0]?.comments })
     }
+    catch (err) {
+      console.log(err)
+    }
+  }
+  useEffect(() => {
+   
     getData()
   }, []);
 

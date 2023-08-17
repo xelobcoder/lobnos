@@ -4,7 +4,7 @@ import { PersonPinCircle } from '@mui/icons-material';
 import { handleMobile, handleEmail } from '../Auth/registerclient';
 import style from "../../styles/registration.module.css";
 
-export default function PersonalInfomationRegistration({ setData, data, setError }) {
+export default function PersonalInfomationRegistration({ setData, data,  setError}) {
   return (
     <>
       <div className='card m-0 p-0' id="card-border">

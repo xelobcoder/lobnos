@@ -2,9 +2,11 @@ import React, { useState } from 'react'
 import { Button, Typography } from '@mui/material';
 import TableDisplay from '../accessories/TableDisplay';
 import Accord from '../accessories/Accord';
+import { useEffect } from 'react';
 
-export default function PendingTableSample({ data, approvalStatus }) {
- 
+export default function PendingTableSample({ data, setShow,removeClient }) {
+  // this is trigger after the pending sample list of a client becomes zero
+  // this will remove the client from the sample list 
 
   return (
     <div>
@@ -15,14 +17,14 @@ export default function PendingTableSample({ data, approvalStatus }) {
        <em>At all time ,verify the pending count is equal to the sample list count</em>
       </div>
 
-      {/* using mui accoridon */}
-      <diov className='list-group'>
+      {/* using mui accordion */}
+      <div className='list-group'>
         {data.map((item, index) => {
           return (
-            <Accord key={index} data={item}  statusHandler={approvalStatus}/>
+            <Accord key={index} data={item}   removeClient={removeClient}/>
           )
         })}
-      </diov>
+      </div>
     </div>
   )
 }

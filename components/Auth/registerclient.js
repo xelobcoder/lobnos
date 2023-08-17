@@ -163,14 +163,15 @@ export const handleSubmitRegistration = async (
 
   checkRequiredFields(data);
 
+
   if (!error) {
     const response = await customPost("register", typer, data);
     const { status, statusCode, message, patientid } = response;
 
     if (statusCode == 200 && status == "SUCCESS") {
-      alert(message);
+      // alert(message);
+      callback(patientRegistrationDefaultData);
       window.location.href = `/activation?patientid=${patientid}`;
-      callback(defaultdata);
     } else {
       alert(message);
       return;
@@ -178,15 +179,16 @@ export const handleSubmitRegistration = async (
   }
 };
 
-export async function handleActivation(e, id, status, patientid) {
+export async function handleActivation(e, id, status, patientid,callbackfunction) {
   let action = status == "TRUE" ? "FALSE" : "TRUE";
   let response = await customFetch(
     `activation?patientid=${patientid}&action=${action}`
   );
-  if (response.action == "BILLING") {
-    window.location.href = "/billing?patientid=" + patientid;
+  if (response.message == 'success') {
+    alert(`patient ${action == 'TRUE' ? 'Activated' :'Deactivated'} successfully`);
+    callbackfunction();
   } else {
-    window.location.href = "/activation"
+    alert(message)
   }
 }
 

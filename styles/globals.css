@@ -2706,3 +2706,18 @@ input[type='text'] {
     color: white;
   }
 }
+.rejected-view {
+  display: grid;
+  grid-template-columns: 20% auto;
+  grid-gap: 20px;
+}
+
+.rejected-view-main {
+  display: grid;
+  grid-template-columns: 40% auto;
+}
+
+.avatar{
+  display: flex;
+  justify-content: center;
+}

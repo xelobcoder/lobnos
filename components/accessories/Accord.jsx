@@ -1,12 +1,14 @@
 import { ArrowDropDown } from "@mui/icons-material"
 import { IconButton } from "@mui/material"
-import { customFetch } from "../Auth/customFetch";
+import { customFetch, customPost } from "../Auth/customFetch";
 import React, { useState, useEffect } from 'react';
+import SAMPLE_REJECTION_MODAL_MESSAGE from "../samples/sampleRejectionModal";
 
-export default function Accord({ data, statusHandler }) {
+export default function Accord({ data, removeClient }) {
   const [show, setShow] = useState(false);
-
-  const [sampleList, setSampleList] = useState([])
+  const [showModal, setShowModal] = useState(false);
+  const [sampleList, setSampleList] = useState([]);
+  const [rejectionTarget, setRejectionTarget] = useState({ billingid: '', test: '', testid: "" })
 
   const getSampleList = async (billingid) => {
     let response = await customFetch(
@@ -19,6 +21,49 @@ export default function Accord({ data, statusHandler }) {
   };
 
 
+  useEffect(() => {
+    if (sampleList.length == 0) {
+      setShow(false);
+      removeClient(data?.BILLINGID)
+    }
+  }, [sampleList])
+
+
+  const showModalHandler = (e) => setShowModal(!showModal)
+
+  const removeSampleInList = async function (item) {
+    const _index = sampleList.filter((v, index) => { return item.testid != v.testid });
+    setSampleList(_index)
+  }
+
+  // changes the status of the sample
+  const approvalStatus = function (item, action) {
+    // set completed to default
+    const { billingid, testid, NAME } = item;
+    // setCompleted(false);
+    const forwardData = async function () {
+      try {
+        if (action == 'reject') {
+          setShowModal(true);
+          setRejectionTarget({ billingid, test: NAME, testid })
+        } else {
+          let response = await customPost(`sample`, 'PUT', { billingid, testid, action });
+          const { statusCode, status, message } = response;
+          if (statusCode == 200 && status == 'success') {
+            // setCompleted(true)
+            removeSampleInList(item)
+          }
+        }
+      }
+      catch (err) {
+        console.log(err)
+      }
+    }
+    forwardData();
+  }
+
+
+
   return (
     <>
       <div className="list-group-item ">
@@ -26,6 +71,7 @@ export default function Accord({ data, statusHandler }) {
           <div className="accord-grid">
             <IconButton
               color="primary"
+              style={{ backgroundColor: 'wheat' }}
               size="small"
               onClick={() => {
                 setShow(!show)
@@ -56,7 +102,7 @@ export default function Accord({ data, statusHandler }) {
                 </div>
                 <div className="d-flex justify-content-end">
                   <div className="btn btn-warning">
-                    pending count : {data.PENDINGCOUNT}
+                    pending count : {sampleList.length}
                   </div>
                 </div>
               </div>
@@ -77,12 +123,12 @@ export default function Accord({ data, statusHandler }) {
                       </div>
                       <div className="d-flex justify-content-end">
                         <button className="btn  btn-sm btn-primary"
-                          onClick={(e) => statusHandler(item, 'accept')}
+                          onClick={(e) => approvalStatus(item, 'accept')}
                         >
                           accept
                         </button>
                         <button
-                          onClick={(e) => statusHandler(item, 'reject')}
+                          onClick={(e) => approvalStatus(item, 'reject')}
                           className="btn btn-sm btn-danger"
                           style={{ marginLeft: "10px" }}
                         >
@@ -98,6 +144,13 @@ export default function Accord({ data, statusHandler }) {
           </div>
         )}
       </div>
+      <SAMPLE_REJECTION_MODAL_MESSAGE
+        show={showModal}
+        setShow={setShowModal}
+        testid={rejectionTarget.testid}
+        test={rejectionTarget.test}
+        billingid={rejectionTarget.billingid}
+      />
     </>
   );
 }

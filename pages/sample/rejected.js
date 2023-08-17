@@ -4,7 +4,8 @@ import FilterRejectedList from "../../components/samples/FilterRejectedList";
 import PersonalData from "../../components/samples/PersonalData";
 import RejectedListView from "../../components/samples/rejectedListView";
 import TestTable from "../../components/samples/TestTable";
-import { customFetch } from "../../components/Auth/customFetch";
+import { customFetch, customPost } from "../../components/Auth/customFetch";
+import { Typography } from "@mui/material";
 
 
 export default function REJECTED_VIEW_PAGE(data) {
@@ -52,26 +53,30 @@ export default function REJECTED_VIEW_PAGE(data) {
   // this get data from the server of rejected client selected.
   // This would populate seleccted client data state
   const clickedContoller = (index) => {
-    setSelectedClient(index);
-    // filter the data from the list
-    // fetch the data from the database
+    // setSelectedClient(index);
+    // // filter the data from the list
+    // // fetch the data from the database
     async function fetchdata() {
       let data = await customFetch(`rejected?type=getsampleinfo&billingid=${index}`);
-      setSelectedClientData(data);
       const { result, statusCode } = data;
       //  if statusCode == 200
       if (result && result.length > 0 && statusCode == 200) {
-        setSelectedClientData(result)
-        setTestSource(result[0].TEST.split(','))
-        changeValidationStatus(index);
+       setSelectedClientData(result)
+       getRejectedSampleList()
       }
-
-      console.log(selectedclientdata)
     }
-
     fetchdata();
-
+    // get the rejected samples for that particular test
+    const getRejectedSampleList = async function() {
+      let data = await customFetch(`rejected?type=getRejectedClientSample&billingid=${index}`);
+      const {result,statusCode} = data;
+      console.log(data)
+      if (result && result.length > 0 && statusCode == 200) {
+        setTestSource(result)
+      }
+    }
   }
+
 
   // change the rejected circle to green or red based on the validations status
   const changeValidationStatus = async function (billingid) {
@@ -107,29 +112,10 @@ export default function REJECTED_VIEW_PAGE(data) {
         if (messageBox.current !== undefined || messageBox.current === null) {
           //  send data to server
           const forward_deploy = async function () {
-            let push = await fetch(`${process.env.BASEURL}/rejected`, {
-              method: 'POST',
-              headers: {
-                'Content-type': 'application/json',
-                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-              },
-              body: JSON.stringify({
-                billingid: selectedclient,
-                message: action === 'futher' ? 'futher examination' : declinemessage,
-                manager: 'Dr Ohene Ketoku',
-                action
-              })
-            })
-
-            let response = push.json();
-            return await response;
+            let t = await customPost('rejected');
+            console.log(t)
           }
           forward_deploy()
-            .then((t) => { return t })
-            .then((t) => {
-              console.log(t)
-            })
-            .catch((err) => console.log(err))
         }
       } else {
 
@@ -161,17 +147,12 @@ export default function REJECTED_VIEW_PAGE(data) {
             <PersonalData data={selectedclientdata} />
           </div>
           <div className="right">
-            <h6 className="m-3">PERFORMING TEST</h6>
             <div ref={test_table_ref}>
               <TestTable testsource={testsource} />
             </div>
             <h6 className="m-3 text-uppercase">Reason for rejection</h6>
             <div className="alert alert-danger m-3 " >
-              {
-                selectedclientdata.length == 0 ?
-                  'sample messaage here'
-                  :
-                  selectedclientdata[0]['MESSAGE']}
+             
             </div>
             {messageView === false ? null :
               <div className="message-boxs  m-3" ref={messageBox}>
@@ -196,31 +177,19 @@ export default function REJECTED_VIEW_PAGE(data) {
                 className="btn btn-info text-white">Request futher Examination</button>
             </div>
           </div>
-          <div id='sample-status-rejection' className="d-flex">
+          {/* <div id='sample-status-rejection' className="d-flex">
             <div className="rejection-clip
-            "
-              style={{ border: validated == false ? '10px solid red' : '10px solid green' }}
+            "style={{ border: validated == false ? '10px solid red' : '10px solid green' }}
             ></div>
             <button className={validated != false ? "btn btn-success" : 'btn btn-danger'}>{validated != false ? validated : 'rejection'}</button>
-          </div>
+          </div> */
+          }
         </div>
       </div>
     </>
   )
 }
 
-
-
-REJECTED_VIEW_PAGE.getLayout = function PageLayout(page) {
-  return (
-    <>
-      <Header />
-      <div >
-        {page}
-      </div>
-    </>
-  )
-}
 
 
 // using page static props

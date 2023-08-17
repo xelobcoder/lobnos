@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { TextField, Button, Typography } from '@mui/material';
+import {Button, Typography } from '@mui/material';
 import TableIsLoading from '../../components/accessories/TableIsLoading';
 import { handleActivation } from '../../components/Auth/registerclient';
 import { customFetch } from '../../components/Auth/customFetch';
@@ -9,6 +10,7 @@ export default function Activator() {
   const [activationData, setActivationData] = useState([]);
   const [tempStore, setStore] = useState([]);
   const [advancedSearch, setAdvancedSearch] = useState(false);
+  const router = useRouter();
 
   const [id, setId] = useState('');
 
@@ -35,22 +37,25 @@ export default function Activator() {
   };
 
 
-  const handleBilling = (e, patientid) => {
-    billing.push(`/billing?patientid=${patientid}`);
+  const handleBilling = (item) => {
+    const {PATIENTID} = item;
+     if (PATIENTID) {
+     router.push(`/billing?patientid=${PATIENTID}`);
+     } else {
+      alert('Patientid not included')
+     }
   };
 
-
-  useEffect(() => {
-    const getInitData = async () => {
-      try {
-        const data = await customFetch('activation');
-        setActivationData(data);
-        setStore(data)
-      } catch (err) {
-        alert('error occured in connecting to server')
-      }
+  const getInitData = async () => {
+    try {
+      const data = await customFetch('activation');
+      setActivationData(data);
+      setStore(data)
+    } catch (err) {
+      alert('error occured in connecting to server')
     }
-
+  }
+  useEffect(() => {
     getInitData()
   }, [])
 
@@ -122,7 +127,7 @@ export default function Activator() {
                       variant="outlined"
                       color={item.ACTIVATION_STATUS === 'TRUE' ? 'error' : 'success'}
                       onClick={(e) => {
-                        handleActivation(e, item.ID, item.ACTIVATION_STATUS, item.PATIENTID);
+                        handleActivation(e, item.ID, item.ACTIVATION_STATUS, item.PATIENTID,getInitData);
                       }}
                     >
                       {item.ACTIVATION_STATUS === 'FALSE' ? 'activate' : 'deactivate'}
@@ -136,7 +141,7 @@ export default function Activator() {
                         variant='contained'
                         size='small'
                         onClick={(e) => {
-                          handleBilling(e, item.PATIENTID);
+                          handleBilling(item);
                         }}
                       >
                         billing

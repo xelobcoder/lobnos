@@ -18,9 +18,9 @@ export default function Billing({ }) {
 
   useEffect(() => {
     const check = async function () {
-      let data = await customFetch('testpanel/list')
+      let data = await customFetch('testpanel/list');
       const organization = await customFetch('organization');
-      const clinician = await customFetch('clinicians')
+      const clinician = await customFetch('clinicians');
       const branch = await customFetch('center');
       const paymentModes = await customFetch('paymentmodes');
 
@@ -57,7 +57,7 @@ export default function Billing({ }) {
     samplingCenter: "",
   });
 
-  const [outstanding, setOutstanding] = useState(data.cost - data.paid);
+
 
   const [selected, setSelected] = useState(null);
   const [testArray, setTestArray] = useState([]);
@@ -86,7 +86,6 @@ export default function Billing({ }) {
     const addData = () => {
       setTestArray([...testArray, selected]);
       setData({ ...data, test: [...data.test, selected.ID] });
-      console.log(data, selected)
     };
     cart.length === 0 ? addData() : alert("test already in cart");
   };
@@ -139,8 +138,8 @@ export default function Billing({ }) {
     e.preventDefault();
 
     let refinedData = { ...data, organizations: organizationID, clinicians: clinicianID, paid: parseInt(data.paid) }
-
     try {
+      console.log(refinedData,router)
       const pushResponse = await customPost('billing', 'POST', refinedData);
 
       const { statusCode, status } = pushResponse;

@@ -26,7 +26,7 @@ export default function Widget({ show ,handleClickedLink}) {
     ,
     {
       title: 'phelobotomy',
-      Link: '/phelobotomy/queue'
+      Link: '/phelobotomy'
     }
    
     ,
@@ -51,7 +51,7 @@ export default function Widget({ show ,handleClickedLink}) {
     ,
     {
       title: 'Approvals',
-      Link: '/administration/approvals'
+      Link: '/administration/approval'
     }
    
     ,

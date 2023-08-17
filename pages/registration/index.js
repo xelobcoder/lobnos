@@ -1,11 +1,11 @@
 import SidebarFrontPage from "../../components/frontpagesidebar";
 import Header from "../../components/header";
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { customFetch } from "../../components/Auth/customFetch";
 import { useRouter } from "next/router";
-import { handleAge, patientRegistrationDefaultData, handleSubmitRegistration, BASEURL } from "../../components/Auth/registerclient";
+import { handleAge, patientRegistrationDefaultData, handleSubmitRegistration } from "../../components/Auth/registerclient";
 import {
-  Button, Box, FormLabel, RadioGroup, FormControlLabel, FormControl, Radio, IconButton
+  Button, Box
 } from "@mui/material";
 import Addressing from "../../components/registration/Addressing";
 import PersonalInfomationRegistration from "../../components/registration/PersonalInfomationRegistration";
@@ -14,19 +14,15 @@ import EmmergencyContactInformation from "../../components/registration/Emmergen
 
 
 export default function Registration({ organization, clinician }) {
-  const [title, setTitle] = React.useState("Personal Information");
-  const [personalSection, setPersonalSection] = React.useState(true);
-  const [sampling, setSampling] = React.useState(true);
-  const [error, setError] = React.useState("");
   // statr for handlinf whether the other informationsuch as  addressing ,emmergency contact and others are shown
-  const [detailRegistration, setDetailRegistration] = React.useState(false);
+  const [detailRegistration, setDetailRegistration] = useState(false);
+  const [error,setError]= useState(false)
+ 
 
 
+  const [data, setData] = useState(patientRegistrationDefaultData);
 
-  const [data, setData] = React.useState(patientRegistrationDefaultData);
-
-  const [disable, setDisable] = React.useState(false);
-  const [generatebtn, setGeneratebtn] = React.useState(false);
+  const [disable, setDisable] = useState(false);
 
 
   useEffect(() => {
@@ -146,22 +142,12 @@ export default function Registration({ organization, clinician }) {
             region: data.REGION,
             address: data.ADDRESS
           });
-
           // disable the patient field, hence prevent editing the unique id
           patientIdRef.current = true;
           // toggle it
           patientIdRef.current == true ? setDisable(!disable) : null;
-
           // set the title of the form to reflect the client's name
           setTitle(data.FULLNAME);
-
-          // disable generate button
-
-          generateRef.current = true;
-
-          // toggle it
-
-          generateRef.current == true ? setGeneratebtn(!disable) : null;
         })
         .catch((err) => {
           console.log(err);

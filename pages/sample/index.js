@@ -1,10 +1,5 @@
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import SidebarFrontPage from "../../components/frontpagesidebar";
-import Header from "../../components/header";
 import { useEffect, useState, useRef } from "react";
 import { Button, Link, Typography } from "@mui/material";
-import TableDisplay from '../../components/accessories/TableDisplay';
-import SAMPLE_REJECTION_MODAL_MESSAGE from "../../components/samples/sampleRejectionModal";
 import REJECTEDVIEW from "../../components/samples/rejectedview";
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import PendingTableSample from "../../components/samples/pendingTable";
@@ -72,62 +67,6 @@ const FILTERS = function ({ onchange, ondate, sorting, onsearch, searchArea, cur
   );
 };
 
-const columns = [
-  {
-    Header: "DATE",
-    accessor: "DATE",
-    Cell: ({ value }) => {
-      return (<span>{value.DATE}</span>)
-    }
-  },
-  {
-    Header: "BILLINGID",
-    accessor: "BILLINGID",
-  },
-  {
-    Header: "FULLNAME",
-    accessor: "FULLNAME",
-  },
-  {
-    Header: "STATUS",
-    accessor: "SAMPLE_STATUS",
-    Cell: ({ value }) => (<div>{value.SAMPLE_STATUS}</div>),
-  },
-  {
-    Header: "ACTION",
-    accessor: "ACTION",
-    Cell: ({ value }) => (
-      <div>
-        <Button onClick={(e) => setShowAction(!showAction)}>
-          pull action
-        </Button>
-        {!showAction ? null : (
-          <div>
-            <Button
-              color="success"
-              onClick={(e) => {
-                approvalStatus(item, "accepted");
-                setShowAction(!showAction);
-              }}
-            >
-              accept
-            </Button>
-            <Button
-              color="error"
-              onClick={(e) => {
-                approvalStatus(item, "rejected");
-                setShowAction(!showAction);
-              }}
-            >
-              reject
-            </Button>
-          </div>
-        )
-        }
-      </div>
-    )
-  },
-];
 
 
 
@@ -146,11 +85,6 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
   const [currentdate, setCurrentdate] = useState(currentdate_function());
   const [show, setShow] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [modalDetails, setModalDetails] = useState({
-    patientname: '',
-    billingid: 0,
-    item: {},
-  });
 
   const [rejectedList, setRejectedList] = useState(false);
 
@@ -210,28 +144,7 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
     }
   };
 
-  // changes the status of the sample
-  const approvalStatus = function (item, action) {
-    // set completed to default
-    const { billingid, testid } = item;
-    setCompleted(false);
-    const forwardData = async function () {
-      try {
-        let response = await customPost(`sample`, 'PUT', { billingid, testid, action });
 
-        const { statusCode, status, message } = response;
-
-        if (statusCode == 200 && status == 'success') {
-          setCompleted(true)
-        }
-      }
-      catch (err) {
-        console.log(err)
-      }
-    }
-
-    forwardData();
-  }
 
 
   // sorting the data displayed and present it to the user
@@ -258,59 +171,58 @@ export default function SAMPLE_ASSESSMENT({ initial }) {
 
   // handleModal message 
 
-  const handleModal = (message) => {
-    setModalMessage(message);
-  }
 
 
 
   const reverse = function () {
     setRejectedList(!rejectedList);
   }
+
+
+  const removeClient = async function (target) {
+    const filteredData = data.filter((item, index) => { return item.BILLINGID != target });
+    console.log(filteredData)
+    setData(filteredData);
+  }
+
   return (
     <>
-      {rejectedList ? (
-        <REJECTEDVIEW filteredData={filteredData} reverse={reverse} />
-      ) : (
-        <>
-          <div>
-            <div className="p-2">
-              <div className="d-flex  justify-content-between">
-                <h5 className="mb-1">Sample Assessment</h5>
-                <FILTERS
-                  ondate={ondate}
-                  onchange={onchange}
-                  setData={updateData}
-                  sorting={sorting}
-                  rejectedList={setRejectedList}
-                  onsearch={onsearch}
-                  searchArea={searchArea}
-                  currentdate={currentdate}
-                />
-              </div>
-              <div className="list-group">
-                {data.length === 0 ? (
-                  <SECOND_NO_DATA />
-                ) : (
-                  <PendingTableSample
-                    data={data}
-                    approvalStatus={approvalStatus}
+      <div className="m-3">
+        {rejectedList ? (
+          <REJECTEDVIEW filteredData={filteredData} reverse={reverse} />
+        ) : (
+          <>
+            <div>
+              <div className="p-2">
+                <div className="d-flex  justify-content-between">
+                  <h5 className="mb-1">Sample Assessment</h5>
+                  <FILTERS
+                    ondate={ondate}
+                    onchange={onchange}
+                    setData={updateData}
+                    sorting={sorting}
+                    rejectedList={setRejectedList}
+                    onsearch={onsearch}
+                    searchArea={searchArea}
+                    currentdate={currentdate}
                   />
-                )}
+                </div>
+                <div className="list-group">
+                  {data.length === 0 ? (
+                    <SECOND_NO_DATA />
+                  ) : (
+                    <PendingTableSample
+                      data={data}
+                      setShow={setShow}
+                      removeClient={removeClient}
+                    />
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-          <SAMPLE_REJECTION_MODAL_MESSAGE
-            show={show}
-            setShow={setShow}
-            modalMessage={handleModal}
-            item={modalDetails.item}
-            completed={setCompleted}
-            billingid={modalDetails.billingid}
-            patientname={modalDetails.patientname}
-          />
-        </>
-      )}
+          </>
+        )}
+      </div>
     </>
   );
 }

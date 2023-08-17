@@ -5,22 +5,18 @@ export default function RejectedListView({ listsource, selectedDefault, controll
 
  return (
   <>
-   <div className='rejected-sample-list-wrapper'>
+   <div className='rejected-sample-list-wrapper m-1'>
     {/* for each show transactionid */}
     {/* for each show patientid */}
     {
      listsource.length > 0 ? listsource.map((item, index) => {
       return (
        <>
-        <div className='rejected-sample-list' key={index}>
-         <div style={{ display: 'grid', padding: '10px', backgroundColor: 'whitesmoke', margin: '4px 4px', cursor: 'pointer', gridTemplateColumns: '20% auto' }}
+        <div className='rejected-sample-list bg-white' key={index}>
+         <div 
           onClick={() => controller(item.BILLINGID)} className={selectedDefault === item.BILLINGID ? 'active-rejected-list' : ''}
          >
-          {/* error icon here */}
-          <GppBadIcon color='error' fontSize='large' />
-          <p className='mb-1' >{item.PATIENTID}
-           <br></br>
-           <span>{item.FULLNAME}</span>
+          <p style={{borderBottom:'1px solid lightgray',padding:'5px',cursor:'pointer'}} className='mb-0' >{item.PATIENTID}: {item.FULLNAME}
           </p>
          </div>
         </div>

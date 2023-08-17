@@ -68,7 +68,7 @@ export default function SidebarFrontPage() {
           </Link>
         </li>
         <li>
-          <Link href="/test-panel">
+          <Link href="/testpanel">
             <Assessment /> Test Panel
           </Link>
         </li>
