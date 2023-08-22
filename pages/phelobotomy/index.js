@@ -64,10 +64,6 @@ export default function Phelobotomy() {
   }, [clientFiltering.type, operations_update, clientFiltering.input, clientFiltering, data, fallback])
   // define ref for barcode and receipt
 
-
-  const barcodeRef = useRef();
-  const receiptRef = useRef();
-
   // state for all samples collected
   const [allCollected, setAllCollected] = useState(false);
 
@@ -86,14 +82,15 @@ export default function Phelobotomy() {
     });
   }
   // get data from database
+  let getdata = async () => {
+    let datajson = await customFetch('phelobotomy');
+    // we need to sort the data by urgency
+    setData(await sorteddata(datajson));
+    setFallback(datajson)
+  };
+
   useEffect(() => {
     try {
-      let getdata = async () => {
-        let datajson = await customFetch('phelobotomy');
-        // we need to sort the data by urgency
-        setData(await sorteddata(datajson));
-        setFallback(datajson)
-      };
       getdata();
 
       setInterval(() => {
@@ -114,22 +111,16 @@ export default function Phelobotomy() {
     // where id is the billing id, weload a modal to collect the sample information
     // split screen for sample details panel to be revealed
     setSplitScreen(true);
-    // update collection state
-    setCollection({ billingid: id, patientid, fullname: "tiifu hamza" });
     // filter data using the billing id
     const filteredBill = data.filter((item, index) => item.BILLINGID == id);
-
+    // update collection state
+    setCollection({ billingid: id, patientid, fullname: filteredBill[0]?.FULLNAME });
     // empty test collection
     setTestCollection([]);
-
     // set all samples collected state false
-
     setAllCollected(false);
-
     // empty is Not message
-
     setIsNotMessage("");
-
     const { status, statusCode, result } = await customFetch(`phelobotomy/ascension?billingid=${id}`)
     // ensure all the keys are in lowercase 
     let newResult = result.map((item, index) => {
@@ -158,9 +149,12 @@ export default function Phelobotomy() {
     filtertest[0]["collected"] = true;
     // change the state
     setTestCollection([filtertest[0], ...unfilteredtest]);
+    // check to see if all test have been collected to update allcolected State
+    const isAllCollected = testcollection.filter((e, i) => { return e.collected == false });
+    if (isAllCollected.length == 0) { setAllCollected(true); }
   };
 
-  // this functions changes the collectin state of ehe client to true
+  // this functions changes the collection state of the client to true
   useEffect(() => {
     const handleAllCollected = async (e) => {
       let collextion = testcollection.map((item, index) => {
@@ -180,11 +174,7 @@ export default function Phelobotomy() {
 
   const handleSubmit = async () => {
     // redefine the test collection array only to include the billingid and collected status
-    console.log(testcollection)
-
-
     //  this would check to ensure at least one of the samples have been collected
-
     const atleastOneCollected = testcollection.some((item, index) => {
       return item.collected === true;
     });
@@ -208,19 +198,14 @@ export default function Phelobotomy() {
         })
         const serverData = { billingid: collection.billingid, testInfo: requiredTestCollectionData, alltaken: partial.length == 0 ? 'true' : 'false', message: isnotMessage }
         const pushData = await customPost('phelobotomy', 'POST', serverData);
-
         // destructure billing
         const { status, statusCode, message, error } = pushData;
-
-        if (status == "success") {
+        if (statusCode == 200) {
           alert(message);
           setSplitScreen(false);
-          router.reload();
+          getdata()
         } else {
-          if (
-            error &&
-            message == "duplicate testid and billing id found in database"
-          ) {
+          if (error && message == "duplicate testid and billing id found in database") {
             alert("visit incomplete sample collectionto update records");
           } else {
             alert(message);
@@ -242,12 +227,31 @@ export default function Phelobotomy() {
   }
 
 
+
+
+  useEffect(() => {
+    if (allCollected == false) {
+      setTestCollection(testcollection.map((e, i) => { return { ...e, collected: allCollected } }))
+    }
+  }, [allCollected])
+
+
   return (
     <>
       <div className={splitScreen === true ? "splitScreen" : null}>
         <div className="phelobotomy-wrapper">
           <div className="m-2 col-10 d-flex">
-            <div className="col-5">
+            <div className="col-6">
+              {/* search here using client billing id or fullname */}
+              <input
+                type="text"
+                className="custom-input"
+                placeholder="search using bill ID or client fullname"
+                value={clientFiltering.input}
+                onChange={(e) => setClientFilter({ type: 'fullname', input: e.target.value })}
+              />
+            </div>
+            <div className="col-5" style={{ marginLeft: '30px' }}>
               {/* sleect box for the sorting the data */}
               <Button variant="outlined" onClick={(e) => { setData(fallback); setSorting('') }}>Remove filter</Button>
               <input
@@ -276,22 +280,6 @@ export default function Phelobotomy() {
                 style={{ marginLeft: "3px" }}
               />{" "}
               <span className="text-success">None </span>
-            </div>
-            <div className="col-6">
-              {/* search here using client billing id or fullname */}
-              <input
-                type="text"
-                className="custom-input"
-                placeholder="search using bill ID or client fullname"
-                value={clientFiltering.input}
-                onChange={(e) => setClientFilter({ type: 'fullname', input: e.target.value })}
-              />
-            </div>
-            <div style={{ marginLeft: '20px' }}>
-              <Button variant='contained' color='error'>
-                incomplete
-                <div className="badge">200</div>
-              </Button>
             </div>
           </div>
           <hr></hr>
@@ -381,9 +369,9 @@ export default function Phelobotomy() {
                 )}
                 {!allCollected && (
                   <>
-                    <div className="alert alert-info mt-1" style={{fontSize:'14px'}}>
+                    <div className="alert alert-info mt-1" style={{ fontSize: '14px' }}>
                       <strong>all samples not taken ?</strong>
-                     <p> Entered reason in the text box below</p>
+                      <p> Entered reason in the text box below</p>
                     </div>
 
                     <textarea
@@ -391,7 +379,9 @@ export default function Phelobotomy() {
                       rows={4}
                       onChange={(e) => setIsNotMessage(e.target.value)}
                       value={isnotMessage}
-                    ></textarea>
+                    >
+
+                    </textarea>
                   </>
                 )}
               </main>

@@ -28,7 +28,8 @@ export default function PaymentModule({data,handleChange,handleSubmit}) {
       <form
         style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
       >
-        <FormControl variant="outlined">
+        <FormControl variant="outlined"
+        size='small'>
           <InputLabel htmlFor="payment-module">Payment Module</InputLabel>
           <Select
             value={data.module}
@@ -47,6 +48,7 @@ export default function PaymentModule({data,handleChange,handleSubmit}) {
         <TextField
           label="Commission (%)"
           variant="outlined"
+          size='small'
           value={data.commission}
           onChange={(event) => handleChange(event, 'commission')}
           InputProps={{
@@ -60,6 +62,7 @@ export default function PaymentModule({data,handleChange,handleSubmit}) {
         <TextField
           label="Momo Number"
           variant="outlined"
+          size='small'
           value={data.momo}
           onChange={(event) => handleChange(event, 'momo')}
           InputProps={{
@@ -73,6 +76,7 @@ export default function PaymentModule({data,handleChange,handleSubmit}) {
         <TextField
           label='bank Account'
           variant='outlined'
+          size='small'
           type='number'
           value={data.account}
           onChange={(event) => handleChange(event, 'account')}
@@ -87,6 +91,7 @@ export default function PaymentModule({data,handleChange,handleSubmit}) {
         <TextField
           label='bank Name'
           variant='outlined'
+          size='small'
           value={data.bankName}
           onChange={(event) => handleChange(event, 'bankName')}
           type='text'
@@ -101,6 +106,7 @@ export default function PaymentModule({data,handleChange,handleSubmit}) {
         <TextField
           label='Branch'
           variant='outlined'
+          size='small'
           value={data.branch}
           onChange={(event) => handleChange(event, 'branch')}
           InputProps={{
@@ -116,6 +122,7 @@ export default function PaymentModule({data,handleChange,handleSubmit}) {
           value={data.accountName}
           onChange={(event) => handleChange(event, 'accountName')}
           variant='outlined'
+          size='small'
           InputProps={{
             startAdornment: (
               <InputAdornment position='start'>

@@ -179,16 +179,42 @@ export const handleSubmitRegistration = async (
   }
 };
 
-export async function handleActivation(e, id, status, patientid,callbackfunction) {
-  let action = status == "TRUE" ? "FALSE" : "TRUE";
-  let response = await customFetch(
-    `activation?patientid=${patientid}&action=${action}`
-  );
-  if (response.message == 'success') {
-    alert(`patient ${action == 'TRUE' ? 'Activated' :'Deactivated'} successfully`);
-    callbackfunction();
+export async function handleActivation(e, id, status, patientid, callbackfunction) {
+  let confirmation = confirm(`Do you want to ${status == 'FALSE' ? 'Activate' : 'deactivate'} client ?`);
+  if (confirmation) {
+    let action = status == "TRUE" ? "FALSE" : "TRUE";
+    let response = await customFetch(
+      `activation?patientid=${patientid}&action=${action}`
+    );
+    if (response.message == 'success') {
+      alert(`patient ${action == 'TRUE' ? 'Activated' : 'Deactivated'} successfully`);
+      callbackfunction();
+    } else {
+      alert(message)
+    }
   } else {
-    alert(message)
+    return;
+  }
+}
+
+
+
+
+
+export async function ActivationBulk(e, action, callbackfunction) {
+  const status = action == 'TRUE' ? 'activate' :' deactivate';
+  const confirmation = confirm(`Do you want to ${status} all clients?`);
+  if (confirmation) {
+    let response = await customFetch(
+      `activation/bulk?action=${action}`
+    );
+
+    if (response.message == 'success') {
+      alert(`All patient ${action == 'TRUE' ? 'activated' : 'deactivated'} successfully`);
+      callbackfunction();
+    } else {
+      alert(response.message)
+    }
   }
 }
 

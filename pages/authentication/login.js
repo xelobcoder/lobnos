@@ -25,12 +25,15 @@ export default function LoginCredentials() {
         const transformed = JSON.stringify(user);
         localStorage.setItem('user', transformed);
         updateAuthentication(transformed);
+        navigate.back()
       } else {
-        setMessage(message, status)
+        setMessage({ message, status })
       }
     }
     await validateFormData({ email, password }, true, [], 'authenticate', responseHandler)
   }
+
+
 
   return (
     <>

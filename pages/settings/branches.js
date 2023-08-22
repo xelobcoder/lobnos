@@ -82,21 +82,35 @@ export default function Branches() {
 
   const deleteData = function (e, index) {
     // get branchid 
-    const branch = branches.filter((item, i) => i == index);
-    const branchid = branch[0].BRANCHID;
-    // send delete request
-    const sendData = async function () {
-      const response = await customPost('branches', 'DELETE', { branchid: branchid });
-      const { status, message } = response;
-      if (status == 'success') {
-        alert(message);
-        getData();
+    let confirmation = confirm('Do you want to delete branch ?. Note this will have consequence on query your data by branch.')
+
+    if (confirmation) {
+      const branch = branches.filter((item, i) => i == index);
+      const branchid = branch[0].BRANCHID;
+      // send delete request
+      const sendData = async function () {
+        const response = await customPost('branches', 'DELETE', { branchid: branchid });
+        const { status, message } = response;
+        if (status == 'success') {
+          alert(message);
+          getData();
+        }
       }
+      sendData();
     }
-    sendData();
   }
 
 
+
+  const activateDeactivateBranch = async function (e, action, id) {
+    const body = { status: action == 0 ? 'activate' : 'deactivate', id };
+    const response = await customPost(`branches/activation`, 'PUT', body);
+    const { status, statusCode, message } = response;
+    alert(message)
+    if (statusCode == 200 && status == 'success') {
+      getData();
+    }
+  }
 
 
 
@@ -108,8 +122,9 @@ export default function Branches() {
           className="m-0 p-1"
           style={{
             display: "grid",
-            gridTemplateColumns: "20% 40% 20% 20%",
+            gridTemplateColumns: "20% 30% 20% 10% 20%",
             borderBottom: "1px solid lightgray",
+            backgroundColor: `${(index % 2) != 0 ? 'whitesmoke' : 'white'}`
           }}
         >
           <div>
@@ -121,17 +136,20 @@ export default function Branches() {
           </div>
           <div>{item.NAME.toUpperCase()}</div>
           <div>{item.DATE.slice(0, 10)}</div>
-          <div>
-            <button className='btn btn-primary text-white'>
+          <div className={`${item.ACTIVATION == 0 ? 'text-danger' : 'text-success'}`}>{item.ACTIVATION == 0 ? 'Inactive' : 'Active'}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '40% auto auto' }}>
+            <button style={{ marginRight: '10px' }} className={`${item.ACTIVATION == 0 ? 'btn btn-success' : 'btn btn-danger'}`}
+              onClick={(e) => activateDeactivateBranch(e, item.ACTIVATION, item.BRANCHID)}>
+              {item.ACTIVATION == 0 ? 'activate' : 'deactivate'}
+            </button>
+            <button className='btn btn-primary text-white' onClick={(e) => editData(e, index)}>
               <EditIcon
-                onClick={(e) => editData(e, index)}
                 editset={index}
 
               />
             </button>
-            <button className='btn btn-danger text-white' style={{ marginLeft: "5px" }} >
+            <button className='btn btn-danger text-white' style={{ marginLeft: "5px" }} onClick={(e) => deleteData(e, index)} >
               <DeleteForeverIcon
-                onClick={(e) => deleteData(e, index)}
               />
             </button>
           </div>
@@ -144,53 +162,54 @@ export default function Branches() {
 
   return (
     <SettingsLayout>
-      <div style={{ width: "99%" }}>
-          <h3 className='text-lead'>Branches</h3>
-          <div className="card br-5">
-            <div className="card-header">
-              <div className="row branches-split p-1">
-                <div>
-                  <TextField
-                    size="small"
-                    value={data}
-                    onChange={(e) => setData(e.target.value)}
-                    label="branch name"
-                    sx={{ width: "100%" }}
-                  />
-                </div>
-                <div className="col">
-                  <Button variant="contained" onClick={(e) => onClick(e)}>
-                    {edit ? "edit branch" : "add branch"}
-                  </Button>
-                  <button
-                    className="btn btn-danger"
-                    style={{ marginLeft: "10px" }}
-                    onClick={(e) => {
-                      setEdit(false);
-                      setData("");
-                    }}
-                  >
-                    reset
-                  </button>
-                </div>
+      <div style={{ width: "95%", margin: '20px' }}>
+        <h3 className='text-lead'>Branches</h3>
+        <div className="card br-5">
+          <div className="card-header">
+            <div className="row branches-split p-1">
+              <div>
+                <TextField
+                  size="small"
+                  value={data}
+                  onChange={(e) => setData(e.target.value)}
+                  label="branch name"
+                  sx={{ width: "100%" }}
+                />
+              </div>
+              <div className="col">
+                <Button variant="contained" onClick={(e) => onClick(e)}>
+                  {edit ? "edit branch" : "add branch"}
+                </Button>
+                <button
+                  className="btn btn-danger"
+                  style={{ marginLeft: "10px" }}
+                  onClick={(e) => {
+                    setEdit(false);
+                    setData("");
+                  }}
+                >
+                  reset
+                </button>
               </div>
             </div>
-            <div
-              className="card-header p-2 bg-secondary text-white"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "20% 40% 20% 20%",
-                textTransform: "uppercase",
-              }}
-            >
-              <div>branchid</div>
-              <div>branch name</div>
-              <div>Added on</div>
-              <div>action</div>
-            </div>
-            {branches.length == 0 ? null : BRANCHESDATA(branches)}
           </div>
+          <div
+            className="card-header p-2 bg-lims-default text-white"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "20% 30% 20% 10% 20%",
+              textTransform: "uppercase",
+            }}
+          >
+            <div>branchid</div>
+            <div>branch name</div>
+            <div>Added on</div>
+            <div>status</div>
+            <div>action</div>
+          </div>
+          {branches.length == 0 ? null : BRANCHESDATA(branches)}
         </div>
+      </div>
     </SettingsLayout>
   );
 }

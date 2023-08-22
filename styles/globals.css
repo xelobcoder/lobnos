@@ -154,7 +154,7 @@
   outline: 1px solid #00224f;
 }
 body {
-  background-color: wheat !important;
+  background-color:wheat !important;
 }
 .grid-2 {
   display: -ms-grid;
@@ -429,7 +429,7 @@ a {
 
 .billing-cart-table {
   border: 1px solid lightgray;
-  height: AUTO;
+  height: auto;
   width: 100%;
   margin-top: 40px;
   margin-right: 40px !important;
@@ -806,8 +806,6 @@ option:hover {
   border-radius: 5px;
   transition: all 0.5s ease;
 }
-
-
 
 /* settings sidebar ends @................................................................................................................ */
 .s-s-pliter {
@@ -1455,6 +1453,7 @@ option:hover {
 #custom-table thead,
 #custom-table > tbody > tr > td,
 #custom-table > thead > tr > th,
+#custom-table > tfoot tr td,
 #custom-table tbody {
   font-size: smaller;
   /* border: 1px solid lightgray; */
@@ -2338,13 +2337,9 @@ option:hover {
 input[type='email'] {
   text-transform: lowercase !important;
 }
-input:invalid{
+input:invalid {
   border: 1px solid var(--red-500);
 }
-
-
-
-
 
 .company-view-result > .wrapper {
   display: block;
@@ -2611,7 +2606,7 @@ input[type='text'] {
 /* ------accord */
 .accord-grid {
   display: grid;
-  grid-template-columns: 5% 30% 25% 25% 15%;
+  grid-template-columns: 5% 5% 20% auto;
   place-items: center;
 }
 
@@ -2648,9 +2643,9 @@ input[type='text'] {
 
 .sales_summary {
   display: grid;
-  grid-template-columns: 50% 50%;
+  grid-template-columns: repeat(2, 1fr);
   grid-gap: 10px;
-  height: 40vh !important;
+  height: auto !important;
   margin: 0;
   padding: 0;
 }
@@ -2701,7 +2696,7 @@ input[type='text'] {
 }
 
 @media (prefers-color-scheme: dark) {
-  *{
+  * {
     background-color: #000 !important;
     color: white;
   }
@@ -2717,7 +2712,10 @@ input[type='text'] {
   grid-template-columns: 40% auto;
 }
 
-.avatar{
+.avatar {
   display: flex;
   justify-content: center;
+}
+.bg-lims-default {
+  background-color: #00224f;
 }

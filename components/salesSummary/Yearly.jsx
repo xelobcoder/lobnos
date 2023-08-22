@@ -54,7 +54,7 @@ export default function Yearly({ target, headers }) {
     },
     colors: ['#F44336', '#00E396'],
     title: {
-      text: 'Financial Summary'
+      text: 'Financial information chart'
     },
     yaxis: [{
       title: {
@@ -98,14 +98,16 @@ export default function Yearly({ target, headers }) {
   }, [])
   return (
     <>
-      <div className='card br-5'>
-        <div className='card-header' style={{ backgroundColor: 'whitesmoke' }}>
-          <h6 className='card-title btn btn-secondary'>{headers}</h6>
+      <div className="card br-5">
+        <div className="card-header" style={{ backgroundColor: "white" }}>
+          <h6 className="card-title btn btn-success">
+            {headers}
+          </h6>
         </div>
-        <div className='card-body p-0'>
-          <Chart options={options} series={series} type='bar' height={350} />
+        <div className="card-body p-0">
+          <Chart options={options} series={series} type="line" height={350} />
         </div>
       </div>
     </>
-  )
+  );
 }

@@ -165,31 +165,40 @@ export default function Index() {
   return (
     <>
       <SecondOrgNav router={changeRoute} />
-      <div className="organization">
+      <div className="organization m-4">
         <div className="sectionWrapper">
-          <div className="organization-section">
-            <Typography variant="h5" className="mb-2">
-              Basic Infomation
-            </Typography>
-            <OrganizatioBasic data={data} handleChange={handleChange} />
+          <div className='card br-5'>
+            <div className='card-header'>
+              <Typography variant="h5" className="mb-2 btn btn-danger">
+                Basic Infomation
+              </Typography>
+            </div>
+            <div className='card-body'>
+              <OrganizatioBasic data={data} handleChange={handleChange} />
+            </div>
           </div>
         </div>
         <div>
-          <div className="organization-section">
-            <Typography variant="h5" className="mb-2">
-              Contact Person
-            </Typography>
-            <ContactPerson data={data} handleChange={handleChange} />
+          <div className="card br-5 mt-5">
+            <div className='card-header'>
+              <Typography variant="h5" className="mb-2 btn btn-danger">
+                Contact Person
+              </Typography>
+            </div>
+            <div className='card-body'>
+              <ContactPerson data={data} handleChange={handleChange} />
+            </div>
           </div>
-          <div className="organization-section">
-            <Typography variant="h5" className="mb-2">
-              Payment Module
-            </Typography>
-            <PaymentModule handleSubmit={handleSubmit} data={data} handleChange={handleChange} />
+          <div className="card br-5 mt-4">
+            <div className='card-header'>
+              <Typography variant="h5" className="mb-2 btn btn-danger">
+                Payment Module
+              </Typography>
+            </div>
+            <div className='card-body'>
+              <PaymentModule handleSubmit={handleSubmit} data={data} handleChange={handleChange} />
+            </div>
           </div>
-        </div>
-        <div className="imageview">
-          <ImageView handleFile={setFile} />
         </div>
       </div>
     </>

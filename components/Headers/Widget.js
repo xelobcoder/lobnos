@@ -68,25 +68,29 @@ export default function Widget({ show ,handleClickedLink}) {
 
     ,
     {
-      title: 'Registration',
-      Link: '/registration'
+      title: 'Dashboard',
+      Link: '/billing/payment/sales'
     }
 
     ,
     {
-      title: 'Registration',
-      Link: '/registration'
+      title: 'Organization',
+      Link: '/organization'
     }
     ,
     {
-      title: 'Registration',
-      Link: '/registration'
+      title: 'Clinician',
+      Link: '/clinician'
     }
 
     ,
     {
-      title: 'Registration',
-      Link: '/registration'
+      title: 'Appointment',
+      Link: '/appointment'
+    },
+    {
+      title: 'Authentication',
+      Link: '/authentication/register'
     }
 
 

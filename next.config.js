@@ -4,7 +4,7 @@ const nextConfig = {
   swcMinify: true,
   env: {
     BASEURL: 'http://localhost:5000/api/v1',
-    NEXT_PUBLIC_ACCESS_TOKEN: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXN1bHQiOmZhbHNlLCJpYXQiOjE2OTAzMjk5MzUsImV4cCI6MTY5MjE0NDMzNX0.O65RdVbdojJzGUaGASm_5MJop6Vi9QgyQwEZr5AYKbo`
+    NEXT_PUBLIC_ACCESS_TOKEN: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTI1MTc0OTcsImV4cCI6MTY5Mjg2MzA5N30.o0H1DuP6svGEO4odstF73L6nh06xMkjzrB6Q91z7hMM`
   },
   images: {
     domains: ['localhost']

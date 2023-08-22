@@ -10,6 +10,7 @@ export default function ContactPerson({ data, handleChange }) {
         <TextField
           label="Contact Person"
           variant="outlined"
+          size='small'
           value={data.person}
           onChange={(event) => handleChange(event, 'person')}
           InputProps={{
@@ -25,6 +26,7 @@ export default function ContactPerson({ data, handleChange }) {
           value={data.contactEmail}
           onChange={(event) => handleChange(event, 'contactEmail')}
           variant="outlined"
+          size='small'
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -38,6 +40,7 @@ export default function ContactPerson({ data, handleChange }) {
           value={data.contactPerson}
           onChange={(event) => handleChange(event, 'contactPerson')}
           variant="outlined"
+          size='small'
           type='number'
           InputProps={{
             startAdornment: (

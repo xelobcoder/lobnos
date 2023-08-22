@@ -55,7 +55,7 @@ export async function validateFormData(
    async function forwardToServer() {
       let response = await customPost(endpoint, "POST", data);
       callback(response);
-      if(updateState) {
+      if (updateState) {
          updateState
       }
    }
@@ -106,13 +106,13 @@ export async function handleComments(e, stateVariable, target, datafunction) {
 }
 
 
-export const resultCommentHander = async function (statecallback,target,datasource,testid,billingid) {
+export const resultCommentHander = async function (statecallback, target, datasource, testid, billingid) {
    const commentResponse = await customFetch(`result/preview/comments?billingid=${billingid}&testid=${testid}`);
    if (Array.isArray(commentResponse) && commentResponse.length > 0) {
-     const { comments } = commentResponse[0];
-     statecallback({ ...datasource, [target]: comments });
+      const { comments } = commentResponse[0];
+      statecallback({ ...datasource, [target]: comments });
    }
- }
+}
 
 
 export async function handleResponse(response) {
@@ -171,3 +171,15 @@ export const handleChange = (event, target) => {
    const { value } = event.target;
    setData({ ...data, [target]: value })
 }
+
+
+export const defaultApplicationSettings = {
+   bulkregistration: 1,
+   fontsize: 14,
+   textcolor: 'black',
+   BackgroundColor: 'wheat',
+   DeactivateBilling24hrs: 0,
+   PaidBillsBeforeTransaction: 1,
+   completeFlow: 1,
+   approvalbeforeprinting: 1,
+} 

@@ -13,6 +13,7 @@ export default function OrganizatioBasic({data,handleChange}) {
         <TextField
           label="Organization Name"
           variant="outlined"
+          size='small'
           value={data.name}
           InputProps={{
             startAdornment: (
@@ -26,6 +27,7 @@ export default function OrganizatioBasic({data,handleChange}) {
         <TextField
           label="Location"
           variant="outlined"
+          size='small'
           value={data.location}
           onChange={(event) => handleChange(event, 'location')}
           InputProps={{
@@ -41,6 +43,7 @@ export default function OrganizatioBasic({data,handleChange}) {
           onChange={(event) => handleChange(event, 'street')}
           value={data.street}
           variant="outlined"
+          size='small'
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -54,6 +57,7 @@ export default function OrganizatioBasic({data,handleChange}) {
           onChange={(event) => handleChange(event, 'mobile')}
           value={data.mobile}
           variant="outlined"
+          size='small'
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -66,10 +70,11 @@ export default function OrganizatioBasic({data,handleChange}) {
         <TextField
           label="Address"
           variant="outlined"
+          size='small'
           value={data.address}
           onChange={(event) => handleChange(event, 'address')}
           multiline
-          rows={4}
+          rows={2}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -83,6 +88,7 @@ export default function OrganizatioBasic({data,handleChange}) {
           value={data.website}
           onChange={(event) => handleChange(event, 'website')}
           variant="outlined"
+          size='small'
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -96,6 +102,7 @@ export default function OrganizatioBasic({data,handleChange}) {
           value={data.email}
           onChange={(event) => handleChange(event, 'email')}
           variant="outlined"
+          size='small'
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -109,6 +116,7 @@ export default function OrganizatioBasic({data,handleChange}) {
           value={data.gpsMapping}
           onChange={(event) => handleChange(event, 'gpsMapping')}
           variant="outlined"
+          size='small'
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -122,6 +130,7 @@ export default function OrganizatioBasic({data,handleChange}) {
           value={data.region}
           onChange={(event) => handleChange(event, 'region')}
           variant="outlined"
+          size='small'
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -135,6 +144,7 @@ export default function OrganizatioBasic({data,handleChange}) {
           value={data.district}
           onChange={(event) => handleChange(event, 'district')}
           variant="outlined"
+          size='small'
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">

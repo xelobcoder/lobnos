@@ -65,18 +65,21 @@ export default function ReadyResult() {
 
   return (
     <div>
+      <Typography variant='h5' className='text-lead text-dark' sx={{margin:'0px 10px 0px 10px'}}>
+        Summary for {query.querydate}
+      </Typography>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(5,1fr)",
-          gridGap: "10px",
+          gridTemplateColumns: "repeat(6,1fr)",
+          gridGap: "5px",
         }}
       >
         {summaryArea.length > 0 &&
           summaryArea.map((item, index) => {
             return (
               <div key={index}>
-                <Sampling data={item} />
+                <Sampling data={item} colorIndex={index} />
               </div>
             );
           })}

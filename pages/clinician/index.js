@@ -214,29 +214,13 @@ export default function Clinicians() {
           padding: "10px",
         }}
       >
-        <div className="card p-2" style={{ borderRadius: "10px" }}>
-          <div className="card-header">
-            <div className="top-clinician-view">
-              <div className="icon-children">
-                <div className="icon">
-                  <MedicalInformation />
-                </div>
-                <div className="text">basic information</div>
-              </div>
-              <div className="icon-children">
-                <div className="icon">
-                  <BarChart />
-                </div>
-                <div className="text">chart</div>
-              </div>
-            </div>
+        <div className="card br-5">
+          <div className="card-header bg-secondary">
+           <button className="btn btn-danger" onClick={setDefault}>
+            add new clinician
+           </button>
           </div>
-          <div className="card-body">
-            <Typography variant="h5"  onClick={setDefault}>
-              <button className="btn btn-dark">
-                Add clinician
-              </button>
-            </Typography>
+          <div className="card-body p-3">
             <BasicInformationClinician
               data={data}
               organization={OrganizationList}

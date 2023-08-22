@@ -130,34 +130,6 @@
   background-color: #3e8740;
 }
 
-/* clinician part ........................ begins */
-.icon-children {
-  display: grid;
-  grid-template-columns: 100%;
-  grid-template-rows: 50% auto;
-  background-color: whitesmoke;
-  border-radius: 5px;
-  padding: 10px;
-  cursor: pointer;
-}
-.icon-children:hover,
-.icon-children:focus {
-  background-color: black;
-  color: white !important;
-}
-
-.icon-children > .icon,
-.icon-children > .text {
-  display: flex;
-  justify-content: center;
-  color: #3e8740;
-  font-weight: bold;
-  text-transform: capitalize;
-}
-
-.icon-children > .text {
-  font-size: smaller;
-}
 
 .top-clinician-view {
   display: grid;

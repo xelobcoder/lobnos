@@ -3,7 +3,7 @@ import Header from "../../components/header";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Autocomplete, FormLabel, Radio, RadioGroup, FormControlLabel, Button, TextField, MenuItem, FormControl, Select, InputLabel } from "@mui/material";
-import TESTCART from "../../components/registration/testCart";
+import TESTCART from "../../components/registration/testCart.js";
 import CancelScheduleSendIcon from "@mui/icons-material/CancelScheduleSend";
 import SendIcon from "@mui/icons-material/Send";
 import AddBoxIcon from "@mui/icons-material/AddBox";
@@ -39,13 +39,20 @@ export default function Billing({ }) {
   }, [])
 
 
+  const getStringValue = function (id, array, objectKey, returner) {
+    const filteredValue = array.filter((item, index) => { return item[objectKey] == id });
+    return filteredValue[0]
+  }
+
+
 
   const router = useRouter().query.patientid;
   const navigate = useRouter();
-  const [testoptions, setTestoptions] = useState(allpanels);
-  const [message, setMessage] = useState("");
   const [data, setData] = useState({
     organizations: null,
+    organizationLabel: { NAME: '', ID: '' },
+    clinicianLabel: { NAME: '', ID: '' },
+    samplingCenterLabel: { NAME: '', BRANCHID: '' },
     clinicians: null,
     paymentmode: "",
     cost: 0,
@@ -62,17 +69,6 @@ export default function Billing({ }) {
   const [selected, setSelected] = useState(null);
   const [testArray, setTestArray] = useState([]);
 
-  const getOrgOptions = organization.map((item, index) => {
-    return item.NAME;
-  });
-
-  const getCliOptions = clinicians.map((item, index) => {
-    return item.NAME;
-  });
-
-  const getSamOptions = branch.map((item, index) => {
-    return item.NAME;
-  });
 
   const emptytestcart = (e) => {
     setTestArray([]);
@@ -105,11 +101,8 @@ export default function Billing({ }) {
     // return all tests except the selected test
     // set test array to the new cart
     setTestArray(cart);
-
     // remove test from data test array
-
     let test = data.test.filter((item) => item != single.NAME);
-
     setData({ ...data, test: test });
   };
 
@@ -119,8 +112,6 @@ export default function Billing({ }) {
       return data.length > 0 ? data[0]['ID'] : 0
     }
 
-    const organizationID = filteroutID(data.organizations, organization)
-    const clinicianID = filteroutID(data.clinicians, clinicians)
 
     const defaultData = {
       organizations: null,
@@ -137,23 +128,28 @@ export default function Billing({ }) {
     //    send data to server using fecth
     e.preventDefault();
 
-    let refinedData = { ...data, organizations: organizationID, clinicians: clinicianID, paid: parseInt(data.paid) }
+    let refinedData = { ...data, paid: parseInt(data.paid) }
     try {
-      console.log(refinedData,router)
-      const pushResponse = await customPost('billing', 'POST', refinedData);
+      //  if(NaN(refinedData.paid) == false)
 
-      const { statusCode, status } = pushResponse;
+      if (isNaN(refinedData.paid) == false) {
+        const pushResponse = await customPost('billing', 'POST', refinedData);
 
-      if (statusCode == 200 && status == "success") {
-        // displayt message to user
-        alert('client billed successfully')
-        // empty test array or cart and set default data 
-        setData(defaultData);
-        setTestArray([]);
-        // navigate to activatio page
-        navigate.push('/activation')
+         const { statusCode, status } = pushResponse;
+
+         if (statusCode == 200 && status == "success") {
+           // displayt message to user
+           alert('client billed successfully')
+           // empty test array or cart and set default data 
+           setData(defaultData);
+           setTestArray([]);
+           // navigate to activatio page
+           navigate.push('/activation')
+         } else {
+           alert('something failed!!!!. Ensure all data filled in correctly')
+         }
       } else {
-        alert('something failed!!!!. Ensure all data filled in correctly')
+        alert('Enter a valid payment amount')
       }
     } catch (err) {
       console.log(err)
@@ -215,15 +211,17 @@ export default function Billing({ }) {
           <div style={{ width: "40vw", marginLeft: "20px", marginTop: "20px" }}>
             <div style={{ marginTop: "20px", width: "80%" }}>
               <Autocomplete
-                value={data.organizations}
+                value={data.organizationLabel}
                 size="small"
-                options={getOrgOptions.map((option) => option)}
-                getOptionLabel={(option) => option}
+                options={organization}
+                getOptionLabel={(option) => option.NAME}
                 onChange={(e, newValue) => {
-                  setData({ ...data, organizations: newValue });
+                  const { ID, NAME } = newValue;
+                  setData({ ...data, organizations: ID, organizationLabel: getStringValue(ID, organization, 'ID', 'NAME') });
                 }}
-                renderInput={(params) => (
+                renderInput={(params, index) => (
                   <TextField
+                    key={index}
                     {...params}
                     label="Select a organization"
                     variant="outlined"
@@ -234,12 +232,13 @@ export default function Billing({ }) {
             {/* same autocomplete for clinicians */}
             <div style={{ marginTop: "20px", width: "80%" }}>
               <Autocomplete
-                value={data.clinicians}
+                value={data.clinicianLabel}
                 size="small"
-                options={getCliOptions.map((option) => option)}
-                getOptionLabel={(option) => option}
+                options={clinicians}
+                getOptionLabel={(option) => option.NAME}
                 onChange={(e, newValue) => {
-                  setData({ ...data, clinicians: newValue });
+                  const { ID, NAME } = newValue;
+                  setData({ ...data, clinicians: ID, clinicianLabel: getStringValue(ID, clinicians, 'ID', 'NAME') });
                 }}
                 renderInput={(params) => (
                   <TextField
@@ -305,12 +304,13 @@ export default function Billing({ }) {
             </div>
             <div style={{ width: "80%", marginTop: "20px" }}>
               <Autocomplete
-                value={data.samplingCenter}
+                value={data.samplingCenterLabel}
                 size="small"
-                options={getSamOptions.map((option) => option)}
-                getOptionLabel={(option) => option}
+                options={branch}
+                getOptionLabel={(option) => option.NAME}
                 onChange={(e, newValue) => {
-                  setData({ ...data, samplingCenter: newValue });
+                  const { NAME, BRANCHID } = newValue;
+                  setData({ ...data, samplingCenter: BRANCHID, samplingCenterLabel: getStringValue(BRANCHID, branch, 'BRANCHID', 'NAME') });
                 }}
                 renderInput={(params) => (
                   <TextField

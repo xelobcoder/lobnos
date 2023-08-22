@@ -64,14 +64,14 @@ export default function ListTable({ data, handleCollectSample }) {
                         >
                           pull sample
                         </Button>
-                        <Button
+                        {/* <Button
                           variant='contained'
                           size='small'
                           sx={{ marginLeft: "5px" }}
                           color='error'
                         >
                           Report
-                        </Button>
+                        </Button> */}
                       </td>
                     </tr>
                   )

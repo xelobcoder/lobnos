@@ -7,25 +7,30 @@ import {
   IconButton,
   Avatar,
 } from "@mui/material";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import WidgetsIcon from "@mui/icons-material/Widgets";
 import Widget from "./Headers/Widget";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { Refresh } from "@mui/icons-material";
+import { customFetch } from "./Auth/customFetch";
+
 
 
 function Header() {
-  const [showWidget, setShowWidget] = React.useState(false);
-  console.log(showWidget)
+  const [showWidget, setShowWidget] = useState(false);
+  const [branch, setBranch] = useState('');
 
   const handleClickedLink = () => {
     setShowWidget(false);
   }
   const handleClose = () => { setShowWidget(!showWidget); };
 
-
-
   const pageUrl = useRouter().pathname;
+
+  useEffect(() => { setBranch(localStorage.getItem('deviceDefaultBranch')) }, [])
+
+
   return (
     <>
       <Box className="software_header">
@@ -34,7 +39,7 @@ function Header() {
           sx={{
             backgroundColor: "#00224f",
             display: "grid",
-            gridTemplateColumns: "70% 20% auto",
+            gridTemplateColumns: "60% auto auto auto",
           }}
         >
           <Toolbar>
@@ -45,12 +50,16 @@ function Header() {
             </Typography>
           </Toolbar>
           <Toolbar>
-            <div className="d-flex justify-content-between">
-              <Avatar />
-              <Typography variant="h6" color='warning'>
-                Tiifu Hamza
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <Avatar sx={{ mr: 1 }} />
+              <Typography variant="h6" color='warning mt-3'>
+                Glover Agbevia
               </Typography>
             </div>
+          </Toolbar>
+          <Toolbar>
+            <Refresh sx={{ mr: 1, cursor: 'pointer' }} onClick={() => { window.location.reload() }} />
+            {branch == '' ? 'ALL BRANCHES' : branch}
           </Toolbar>
           <Toolbar>
             {pageUrl === '/authentication/login' || pageUrl == '/' ? null : (

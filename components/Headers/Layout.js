@@ -5,11 +5,11 @@ import LoginCredentials from '../../pages/authentication/login';
 import { useEffect } from 'react';
 export default function MAIN_LAYOUT({ children }) {
   const { auth, updateAuthentication } = useContext(AuthContext);
+  const [user, setUser] = useState(null)
   const navigate = useRouter();
 
   useEffect(() => {
-
-    if (auth == null || auth == undefined || auth == '') {
+    if (auth == null || auth == undefined || auth == '' ||Object.keys(auth).length == 0) {
       let user = localStorage.getItem('user');
       if (user == null || user == undefined || user == '') {
         if (navigate.pathname !== '/authentication/login') {
@@ -21,10 +21,12 @@ export default function MAIN_LAYOUT({ children }) {
     }
   }, [])
 
+  console.log(auth)
+
   return (
     <>
-      <div>
-        {children}
+      <div >
+      {children}
       </div>
     </>
   )
