@@ -1,7 +1,7 @@
 import React from 'react';
-import { TestPanelProvider } from '../../components/testpanel/contextTest';
-import TestPanelLayout from '../../components/testpanel/TestPanelLayout';
-import { customFetch } from '../../components/Auth/customFetch';
+import { TestPanelProvider } from '../../../components/testpanel/contextTest';
+import TestPanelLayout from '../../../components/testpanel/TestPanelLayout';
+import { customFetch } from '../../../components/Auth/customFetch';
 import { Suspense } from 'react';
 import { Button } from '@mui/material';
 

@@ -33,19 +33,20 @@ function Header() {
 
   return (
     <>
-      <Box className="software_header">
+      <Box>
         <AppBar
           position="sticky"
           sx={{
             backgroundColor: "#00224f",
             display: "grid",
+            padding:'0px',
             gridTemplateColumns: "60% auto auto auto",
           }}
         >
           <Toolbar>
             <Typography variant="h4" color="error" component={"div"}>
               <Link href={'/'}>
-                LIMS
+                ZOOM
               </Link>
             </Typography>
           </Toolbar>

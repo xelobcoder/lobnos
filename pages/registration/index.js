@@ -187,12 +187,11 @@ export default function Registration({ organization, clinician }) {
 
 
 
-
 Registration.getLayout = function (page) {
   return (
     <>
       <Header />
-      <div className="wrapper">
+      <div className="wrapper" >
         <div className="side">
           <SidebarFrontPage />
         </div>

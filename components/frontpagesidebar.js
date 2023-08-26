@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   AssignmentInd,
@@ -16,6 +16,7 @@ import {
   Settings,
   BusinessCenter,
   Work,
+  Forward,
 } from '@mui/icons-material';
 
 export default function SidebarFrontPage() {
@@ -23,43 +24,53 @@ export default function SidebarFrontPage() {
     <>
       <ul className="frontpagesidebar">
         <li>
-          <Link href="/registration">
-            <AssignmentInd /> Registration
+          <Link title='registration' href="/registration" >
+            <div> <AssignmentInd /></div>
+            <div> Registration</div>
           </Link>
         </li>
         <li>
-          <Link href="/activation">
-            <VerifiedUser /> Activation
+          <Link href="/activation" title='activation'>
+            <div> <VerifiedUser /></div>
+            <div> Activation</div>
           </Link>
         </li>
         <li>
           <Link href="/billed-clients">
-            <MonetizationOn /> Billed Clients
+            <div> <MonetizationOn /></div>
+            <div>Billed Clients</div>
           </Link>
         </li>
         <li>
           <Link href="/clients">
-            <Person /> Clients
+            <div> <Person /></div>
+            <div>Clients</div>
           </Link>
         </li>
         <li>
           <Link href="/waiting-list">
-            <Schedule /> Waiting List
+            <div><Schedule /></div>
+            <div> Waiting List</div>
           </Link>
         </li>
         <li>
           <Link href="/results">
-            <Poll /> Results
+            <div> <Poll /></div>
+            <div>Results</div>
           </Link>
         </li>
         <li>
           <Link href="/appointments">
-            <Event /> Appointments
+            <div>
+              <Event />
+            </div>
+            <div>Appointments</div>
           </Link>
         </li>
         <li>
           <Link href="/organization">
-            <Business /> Organization
+            <div> <Business /> </div>
+            <div>Organization</div>
           </Link>
         </li>
         <li>

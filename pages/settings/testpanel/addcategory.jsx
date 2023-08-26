@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import TestPanelLayout from '../../components/testpanel/TestPanelLayout'
-import TestContext, { TestPanelProvider } from '../../components/testpanel/contextTest';
+import TestPanelLayout from '../../../components/testpanel/TestPanelLayout'
+import TestContext, { TestPanelProvider } from '../../../components/testpanel/contextTest';
 import SendSharpIcon from '@mui/icons-material/SendSharp';
 
 export default function Addcategory() {

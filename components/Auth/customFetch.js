@@ -173,6 +173,32 @@ export const handleChange = (event, target) => {
 }
 
 
+export const getSampleTypeList = async function (setSource) {
+   const getResponse = await customFetch('sampletype');
+   const { result, statusCode, status } = getResponse;
+   if (statusCode == 200 && status == 'success') {
+      setSource(result)
+   }
+}
+
+export const getApplicationSettings = async function (setApplicationSettings) {
+   const getResponse = await customFetch('applicationsettings');
+   const { status, result, statusCode } = getResponse;
+   if (statusCode == 200 && status == 'success') {
+      setApplicationSettings(result[0])
+   }
+}
+
+
+export  const handleTestListChange = (ev, index, item) => {
+   setPanel((prev) => {
+     const mappedFiltered = prev[index]
+     mappedFiltered[item] = ev.target.value;
+     prev[index] = mappedFiltered;
+     return [...prev]
+   })
+ }
+
 export const defaultApplicationSettings = {
    bulkregistration: 1,
    fontsize: 14,

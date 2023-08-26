@@ -6,6 +6,7 @@ import SAMPLE_REJECTION_MODAL_MESSAGE from "../samples/sampleRejectionModal";
 
 export default function Accord({ data, removeClient }) {
   const [show, setShow] = useState(false);
+  const [loadcount,setLoadingCount] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [sampleList, setSampleList] = useState([]);
   const [rejectionTarget, setRejectionTarget] = useState({ billingid: '', test: '', testid: "" })
@@ -17,12 +18,13 @@ export default function Accord({ data, removeClient }) {
     const { statusCode, status, result } = response;
     if (status == "success" && statusCode == 200) {
       setSampleList(result);
+      setLoadingCount(loadcount+1)
     }
   };
 
 
   useEffect(() => {
-    if (sampleList.length == 0) {
+    if (sampleList.length == 0 && loadcount != 0 ) {
       setShow(false);
       removeClient(data?.BILLINGID)
     }

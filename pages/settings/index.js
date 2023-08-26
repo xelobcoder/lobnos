@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { customFetch, customPost, defaultApplicationSettings } from '../../components/Auth/customFetch';
+import { customFetch, customPost, defaultApplicationSettings, getApplicationSettings } from '../../components/Auth/customFetch';
 import { Table } from 'react-bootstrap';
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout'
 
@@ -39,17 +39,11 @@ export default function Settings() {
 	}
 
 
-	const getApplicationSettings = async function () {
-		const getResponse = await customFetch('applicationsettings');
-		const { status, result, statusCode } = getResponse;
-		if (statusCode == 200 && status == 'success') {
-			setApplicationSettings(result[0])
-		}
-	}
+	
 
 
 	useEffect(() => {
-		getApplicationSettings()
+		getApplicationSettings(setApplicationSettings)
 	}, [])
 
 
@@ -71,7 +65,7 @@ export default function Settings() {
 			const { statusCode, status, message } = pushSettings;
 			if (statusCode == 200 && status == 'success') {
 				alert(message);
-				getApplicationSettings();
+				getApplicationSettings(setApplicationSettings);
 				setDefaultBranch(localStorage.getItem('deviceDefaultBranch'))
 			}
 		}

@@ -1,28 +1,49 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import TestContext from "../../components/testpanel/contextTest";
 import { TestPanelProvider } from "../../components/testpanel/contextTest";
-import { useRouter } from "next/router";
+import Link from "next/link";
+
+import { AdUnits, AddCardSharp, Bloodtype, Category, DepartureBoard, Forward, PriceChange, Update, UpdateOutlined } from "@mui/icons-material";
 
 export default function TestPanelLayout({ children }) {
-  const router = useRouter();
+  const [collapse, setCollapse] = useState(true);
+
   return (
     <>
-      <div className="container-fluid">
-        <div className="testpanel">
-          <div>
-            <ul>
-              <li onClick={(e) => router.push("/testpanel")}>test</li>
-              <li onClick={(e) => router.push("/testpanel/categories")}>
-                categories
-              </li>
-              <li onClick={(e) => router.push("/testpanel/addcategory")}>
-                Add categories
-              </li>
-              <li  onClick={(e) => router.push("/testpanel/addtest")}>add test</li>
-            </ul>
-          </div>
-          <div>{children}</div>
+      <div className="wrapper">
+        <div className="frontpagesidebar">
+          <li>
+            <Link href="/settings/testpanel">
+              <div> <Bloodtype /></div>
+              <div>test list</div>
+            </Link>
+          </li>
+          {/* <li>
+            <Link href="/settings/testpanel/addtest">
+              <div><UpdateOutlined /></div>
+              <div> update test</div>
+            </Link>
+          </li> */}
+          <li>
+            <Link href={'/settings/testpanel/categories'}>
+              <div><DepartureBoard /></div>
+              <div>update department info</div>
+            </Link>
+          </li>
+          <li>
+            <Link href={'/settings/testpanel/testpricing'}>
+              <div><PriceChange /></div>
+              <div>Bulk test update</div>
+            </Link>
+          </li>
+          <li>
+            <Link href={'/settings/testpanel/sampletypes'}>
+              <div><AddCardSharp /></div>
+              <div>Add Samples Type</div>
+            </Link>
+          </li>
         </div>
+        <div>{children}</div>
       </div>
     </>
   );

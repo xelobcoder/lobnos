@@ -2,23 +2,43 @@
   list-style: none;
   padding: 0;
   background-color: black;
+  border-right: 1px solid lightgray;
   margin: 0;
-  height: 100%;
+  min-height: 120vh;
+  max-height: max-content;
 }
 
 .frontpagesidebar li a {
   display: block;
   padding: 10px;
-  font-size: 12px !important;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: white;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 20% auto;
   transition: background-color 0.3s ease;
 }
 
-.frontpagesidebar li a:hover {
-  background-color: #555;
-  color: white;
+.frontpagesidebar li a:hover{
+  background-color: #00224f;
+  color: white !important;
+}
+
+
+.frontpagesidebar > li {
+  /* background-color: white; */
+  color: #00224f;
+  /* border-bottom: 1px solid lightgray; */
+  text-transform: capitalize;
+}
+
+.frontpagesidebar > li:hover{
+  background-color: #00224f;
+  color: white !important;
+}
+
+.testpanel {
+  display: grid;
+  grid-template-columns: 100%;
+  grid-template-rows: 4% auto;
 }
 
 .wrapper {
@@ -42,7 +62,6 @@
   .wrapper {
     grid-template-columns: 100%;
     overflow-x: none;
-    
   }
   .wrapper > .side {
     display: none;
@@ -53,8 +72,6 @@
   input[type='password'] {
     width: calc(100% - 20px);
   }
-
-
 }
 
 /* For screens larger than or equal to 768px */
