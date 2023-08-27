@@ -91,24 +91,24 @@ export default function Settings() {
 							<td>1</td>
 							<td className="text-capitalize">Bulk registration</td>
 							<td>
-								{ApplicationSettings.bulkregistration == 0
+								{ApplicationSettings?.bulkregistration == 0
 									? "deactivated"
 									: "Activated"}
 							</td>
 							<td>
 								<button className={
-									ApplicationSettings.bulkregistration == 0
+									ApplicationSettings?.bulkregistration == 0
 										? "btn btn-success btn-sm"
 										: "btn btn-danger btn-sm"
 								}
 									onClick={(e) => {
-										handleAppSettingsActivation('bulkregistration', ApplicationSettings.bulkregistration == 0
+										handleAppSettingsActivation('bulkregistration', ApplicationSettings?.bulkregistration == 0
 											? 1
 											: 0)
 									}}
 								>
 									{
-										ApplicationSettings.bulkregistration == 0
+										ApplicationSettings?.bulkregistration == 0
 											? "activate"
 											: "deactivate"
 									}
@@ -118,7 +118,7 @@ export default function Settings() {
 						<tr>
 							<td>2</td>
 							<td className="text-capitalize"> font size</td>
-							<td>{ApplicationSettings.fontsize}px</td>
+							<td>{ApplicationSettings?.fontsize}px</td>
 							<td>
 								<input step="1" type="number" className="form-control" onChange={(e) => handleAppSettingsActivation('fontsize',e.target.value)} />
 							</td>
@@ -128,7 +128,7 @@ export default function Settings() {
 							<td className="text-capitalize">text color</td>
 							<td>black</td>
 							<td>
-								<input type="color" />
+								<input type="color" value={ApplicationSettings?.textcolor || 'black'} />
 							</td>
 						</tr>
 						<tr>
@@ -136,7 +136,7 @@ export default function Settings() {
 							<td className="text-capitalize">background color</td>
 							<td>white</td>
 							<td>
-								<input type="color" />
+								<input type="color"  value={ApplicationSettings?.BackgroundColor || 'wheat'}/>
 							</td>
 						</tr>
 						{/* deactivate after 24 hrs */}
@@ -146,25 +146,25 @@ export default function Settings() {
 								deactivate client after 24 hrs
 							</td>
 							<td>
-								{ApplicationSettings.DeactivateBilling24hrs == 0
+								{ApplicationSettings?.DeactivateBilling24hrs == 0
 									? "Deactivated"
 									: "Activated"}
 							</td>
 							<td>
 								<button
 									className={
-										ApplicationSettings.DeactivateBilling24hrs == 0
+										ApplicationSettings?.DeactivateBilling24hrs == 0
 											? "btn btn-success btn-sm"
 											: " btn btn-danger btn-sm"
 									}
 
 									onClick={(e) => {
-										handleAppSettingsActivation('DeactivateBilling24hrs', ApplicationSettings.DeactivateBilling24hrs == 0
+										handleAppSettingsActivation('DeactivateBilling24hrs', ApplicationSettings?.DeactivateBilling24hrs == 0
 											? 1
 											: 0)
 									}}
 								>
-									{ApplicationSettings.DeactivateBilling24hrs == 0
+									{ApplicationSettings?.DeactivateBilling24hrs == 0
 										? "Activate"
 										: " Deactivate"}
 								</button>
@@ -177,24 +177,24 @@ export default function Settings() {
 								clear all bills before new transaction
 							</td>
 							<td>
-								{ApplicationSettings.PaidBillsBeforeTransaction == 0
+								{ApplicationSettings?.PaidBillsBeforeTransaction == 0
 									? "Deactivated"
 									: "Activated"}
 							</td>
 							<td>
 								<button
 									className={
-										ApplicationSettings.PaidBillsBeforeTransaction == 0
+										ApplicationSettings?.PaidBillsBeforeTransaction == 0
 											? "btn btn-success btn-sm"
 											: "btn btn-danger btn-sm"
 									}
 									onClick={(e) => {
-										handleAppSettingsActivation('PaidBillsBeforeTransaction', ApplicationSettings.PaidBillsBeforeTransaction == 0
+										handleAppSettingsActivation('PaidBillsBeforeTransaction', ApplicationSettings?.PaidBillsBeforeTransaction == 0
 											? 1
 											: 0)
 									}}
 								>
-									{ApplicationSettings.PaidBillsBeforeTransaction == 0
+									{ApplicationSettings?.PaidBillsBeforeTransaction == 0
 										? "Activate"
 										: " Deactivate"}
 								</button>
@@ -204,24 +204,24 @@ export default function Settings() {
 							<td>7</td>
 							<td className="text-capitalize">complete laboratory flow</td>
 							<td>
-								{ApplicationSettings.completeFlow == 0
+								{ApplicationSettings?.completeFlow == 0
 									? "Deactivated"
 									: "Activated"}
 							</td>
 							<td>
 								<button
 									className={
-										ApplicationSettings.completeFlow == 0
+										ApplicationSettings?.completeFlow == 0
 											? "btn btn-success btn-sm"
 											: "btn btn-danger btn-sm"
 									}
 									onClick={(e) => {
-										handleAppSettingsActivation('completeFlow', ApplicationSettings.completeFlow == 0
+										handleAppSettingsActivation('completeFlow', ApplicationSettings?.completeFlow == 0
 											? 1
 											: 0)
 									}}
 								>
-									{ApplicationSettings.completeFlow == 0
+									{ApplicationSettings?.completeFlow == 0
 										? "Activate"
 										: " Deactivate"}
 								</button>
@@ -233,26 +233,26 @@ export default function Settings() {
 								approval before result printing
 							</td>
 							<td>
-								{ApplicationSettings.approvalbeforeprinting == 0
+								{ApplicationSettings?.approvalbeforeprinting == 0
 									? "Deactivated"
 									: "Activated"}
 							</td>
 							<td>
 								<button
 									className={
-										ApplicationSettings.approvalbeforeprinting == 0
+										ApplicationSettings?.approvalbeforeprinting == 0
 											? "btn btn-success btn-sm"
 											: "btn btn-danger btn-sm"
 									}
 
 									onClick={(e) => {
-										handleAppSettingsActivation('approvalbeforeprinting', ApplicationSettings.approvalbeforeprinting == 0
+										handleAppSettingsActivation('approvalbeforeprinting', ApplicationSettings?.approvalbeforeprinting == 0
 											? 1
 											: 0)
 									}}
 
 								>
-									{ApplicationSettings.approvalbeforeprinting == 0
+									{ApplicationSettings?.approvalbeforeprinting == 0
 										? "Activate"
 										: " Deactivate"}
 								</button>

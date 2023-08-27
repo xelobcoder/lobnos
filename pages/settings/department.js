@@ -7,7 +7,7 @@ import Add_department from '../../components/settingsComponents/department';
 import DepartmentList from '../../components/settingsComponents/departmentList';
 import { Suspense } from 'react';
 import { useEffect } from 'react';
-import { customFetch, customPost } from '../../components/Auth/customFetch';
+import { customFetch, customPost,getDepartment } from '../../components/Auth/customFetch';
 
 export default function Department() {
   const [key, setKey] = useState('department_list');
@@ -20,16 +20,9 @@ export default function Department() {
   const router = useRouter();
 
 
-  const getDepartment = async () => {
-    const response = await customFetch('departments');
-    const { status, data } = response;
-    if (status === 'success') {
-      setDepartments(data)
-    }
-  }
 
   useEffect(() => {
-    getDepartment()
+    getDepartment(setDepartments)
   }, [])
 
   const handleDelete = (id) => {

@@ -10,8 +10,9 @@ export default function SECOND_NO_DATA({ message }) {
         </svg>
       </div>
       <div className='d-flex justify-content-center'>
-       {message == null || message == ' ' ?
-       <h4 className='btn btn-secondary'>   No data found</h4> : `${message}` }
+      
+       <h4 className='btn btn-secondary'>
+          {(message == null || message == ' ' ) ?  'No data found' : message}  </h4> 
       </div>
     </div>
   )

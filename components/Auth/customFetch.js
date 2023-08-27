@@ -185,19 +185,32 @@ export const getApplicationSettings = async function (setApplicationSettings) {
    const getResponse = await customFetch('applicationsettings');
    const { status, result, statusCode } = getResponse;
    if (statusCode == 200 && status == 'success') {
-      setApplicationSettings(result[0])
+      if (result.length > 0) {
+         setApplicationSettings(result[0])
+      } else {
+         setApplicationSettings(defaultApplicationSettings)
+      }
    }
 }
 
 
-export  const handleTestListChange = (ev, index, item) => {
+export const handleTestListChange = (ev, index, item) => {
    setPanel((prev) => {
-     const mappedFiltered = prev[index]
-     mappedFiltered[item] = ev.target.value;
-     prev[index] = mappedFiltered;
-     return [...prev]
+      const mappedFiltered = prev[index]
+      mappedFiltered[item] = ev.target.value;
+      prev[index] = mappedFiltered;
+      return [...prev]
    })
- }
+}
+
+
+export const getDepartment = async (setDepartments) => {
+   const response = await customFetch('departments');
+   const { status, data } = response;
+   if (status == 'success') {
+      setDepartments(data)
+   }
+}
 
 export const defaultApplicationSettings = {
    bulkregistration: 1,

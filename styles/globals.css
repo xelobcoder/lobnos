@@ -79,6 +79,16 @@
   --border-radius: 4px;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital@1&display=swap');
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Ubuntu', sans-serif, 'Roboto';
+  font-weight: 400;
+  font-size: 15px;
+}
+
 .red {
   background-color: var(--red-500) !important;
   padding: 4px;
@@ -101,15 +111,6 @@
   background-color: var(--secondary) !important;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital@1&display=swap');
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Ubuntu', sans-serif, 'Roboto';
-  font-weight: 400;
-  font-size: 14px;
-}
 .red-border-row {
   border: 1px solid red;
 }
@@ -154,7 +155,7 @@
   outline: 1px solid #00224f;
 }
 body {
-  background-color: wheat;
+  background-color: white;
 }
 .grid-2 {
   display: -ms-grid;
@@ -1457,12 +1458,16 @@ option:hover {
 #custom-table > tfoot tr td,
 #custom-table tbody {
   font-size: smaller;
+  max-width: 200px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
   /* border: 1px solid lightgray; */
 }
 
 #custom-table thead tr {
   width: 100%;
-  background-color: #00224f;
+  background-color: #198754;
   border-bottom: 1px solid lightgray;
 }
 
@@ -2686,4 +2691,48 @@ input[type='text'] {
 }
 .bg-lims-default {
   background-color: #00224f;
+}
+
+.minicard-wrapper {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  margin: 0px 20px 0px 20px;
+  grid-gap: 20px;
+}
+
+.minicard {
+  display: grid;
+  grid-template-columns: 20% auto;
+  height: 130px;
+  margin-top: 20px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  cursor: pointer;
+  /* background-color: white; */
+}
+
+.minicard > .icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.minicard > .mini-rest {
+  display: grid;
+  grid-template-columns: 100%;
+  border-left: 1px solid lightgray;
+  grid-template-rows: 50% auto;
+}
+
+.minicard > .mini-rest > .text,
+.minicard > .mini-rest > .number {
+  font-size: 19px;
+  font-weight: 200 !important;
+  display: flex;
+  text-transform: uppercase;
+  justify-content: center;
+  align-items: center;
+}
+.minicard > .mini-rest > .text {
+  border-bottom: 1px solid lightgray;
 }

@@ -1,26 +1,61 @@
-import React, { useState, useMemo, Suspense, useContext } from 'react';
-import { customFetch } from '../Auth/customFetch';
+import React, { useState, useMemo, Suspense, useContext, useEffect } from 'react';
+import { customFetch, getDepartment } from '../Auth/customFetch';
 import OperationsContext from './OperationsContext';
+import { useRouter } from 'next/router';
 import BloodtypeIcon from '@mui/icons-material/Bloodtype';
 import SECOND_NO_DATA from '../accessories/secondNodata';
+
 
 export default function OperationsTestCollection() {
   const { operationsKey, updateOperations } = useContext(OperationsContext)
   const [collection, setCollections] = useState([]);
+  const [departments, setDepartments] = useState([])
+  const [query, setQuery] = useState({ bydept: false, queryDept: 0 })
+
+  // get department from router query
+
+  const { departmentid } = useRouter().query;
 
 
   // intial data fetching from the server
   const getCollection = async function () {
+    let url = `operations/collection`;
+
+    if (query.bydept == true) {
+      url += `?category=${query.queryDept}`
+    }
     try {
-      const response = await customFetch('operations/collection')
-      setCollections(response?.result)
+      const response = await customFetch(url)
+      if (response?.result == false) {
+        setCollections([])
+      } else {
+        setCollections(response?.result)
+      }
     }
     catch (err) {
-      alert('error connecting to server')
+      alert('error in connecting to server')
     }
   }
 
-  useMemo(() => getCollection(), [])
+  useMemo(() => {
+    getDepartment(setDepartments);
+    getCollection();
+  }, [])
+
+
+
+
+  useEffect(() => {
+    if (departmentid) {
+      setQuery({ bydept: true, queryDept: departmentid })
+    }
+  }, [departmentid])
+
+  useEffect(() => {
+    getCollection()
+  }, [query.queryDept])
+
+
 
   const handleSearch = (e) => {
     const value = e.target.value;
@@ -45,6 +80,13 @@ export default function OperationsTestCollection() {
       <Suspense fallback={<div>loading.....</div>}>
         <div>
           <div className="p-2">
+            <label>select department</label>
+            <select className='form-control mb-2' value={query.queryDept} onChange={(e) => { setQuery({ queryDept: e.target.value, bydept: true }) }} disabled={departmentid == undefined ? false : true}>
+              {
+                departments.map((item, index) => { return (<option key={index} value={item.id}>{item.department}</option>) })
+              }
+            </select>
+            <label>filter</label>
             <input
               className="custom-input"
               tabIndex={1}
@@ -62,7 +104,7 @@ export default function OperationsTestCollection() {
                   key={index}
                 >
                   {/* <BloodtypeIcon /> */}
-                   {item.FULLNAME} - {item.BILLINGID}
+                  {item.FULLNAME} - {item.BILLINGID}
                 </li>
               ))
             ) : (

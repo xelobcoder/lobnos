@@ -109,7 +109,7 @@ export default function TESTPANEL() {
       <TestPanelProvider>
         <TestPanelLayout>
           <Suspense>
-            <TableDisplay data={testData} column={columns} />
+            <TableDisplay data={testData} column={columns}  styling={""}/>
           </Suspense>
         </TestPanelLayout>
       </TestPanelProvider>
