@@ -1,5 +1,6 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import OperationsContext from './OperationsContext';
+import { useRouter } from 'next/router';
 import { customFetch, customPost } from '../Auth/customFetch';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { Suspense } from 'react';
@@ -16,14 +17,19 @@ export default function TestPreview() {
   // use thr billing id of operationsKey to fetch the data from the server
   // and display it in the preview section
 
+  // get departmentid if present from the query of the router
+  const { departmentid } = useRouter().query;
+
   const getPreview = async function () {
     const billingid = operationsKey?.billingid;
     if (operationsKey == null) {
       return
     }
-    const response = await customFetch(`operations/test?billingid=${billingid}`)
+    const response = await customFetch(`operations/test?billingid=${billingid}&&departmentid=${departmentid}`)
     setDatapool(response?.result)
   }
+
+
 
   useMemo(() => getPreview(), [operationsKey])
 

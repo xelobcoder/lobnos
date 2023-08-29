@@ -14,6 +14,7 @@ export default function Billing({ }) {
   const [organization, setOrganization] = useState([]);
   const [clinicians, setClinicians] = useState([]);
   const [branch, setBranch] = useState([]);
+  const [refered, setRefered] = useState(true);
   const [paymentmode, setPaymentMode] = useState([])
 
   useEffect(() => {
@@ -135,19 +136,19 @@ export default function Billing({ }) {
       if (isNaN(refinedData.paid) == false) {
         const pushResponse = await customPost('billing', 'POST', refinedData);
 
-         const { statusCode, status } = pushResponse;
+        const { statusCode, status } = pushResponse;
 
-         if (statusCode == 200 && status == "success") {
-           // displayt message to user
-           alert('client billed successfully')
-           // empty test array or cart and set default data 
-           setData(defaultData);
-           setTestArray([]);
-           // navigate to activatio page
-           navigate.push('/activation')
-         } else {
-           alert('something failed!!!!. Ensure all data filled in correctly')
-         }
+        if (statusCode == 200 && status == "success") {
+          // displayt message to user
+          alert('client billed successfully')
+          // empty test array or cart and set default data 
+          setData(defaultData);
+          setTestArray([]);
+          // navigate to activatio page
+          navigate.push('/activation')
+        } else {
+          alert('something failed!!!!. Ensure all data filled in correctly')
+        }
       } else {
         alert('Enter a valid payment amount')
       }
@@ -195,6 +196,7 @@ export default function Billing({ }) {
                 />
               )}
             />
+
             <Button
               disabled={selected == null ? true : false}
               startIcon={<AddBoxIcon />}
@@ -209,46 +211,73 @@ export default function Billing({ }) {
             </Button>
           </div>
           <div style={{ width: "40vw", marginLeft: "20px", marginTop: "20px" }}>
-            <div style={{ marginTop: "20px", width: "80%" }}>
-              <Autocomplete
-                value={data.organizationLabel}
-                size="small"
-                options={organization}
-                getOptionLabel={(option) => option.NAME}
-                onChange={(e, newValue) => {
-                  const { ID, NAME } = newValue;
-                  setData({ ...data, organizations: ID, organizationLabel: getStringValue(ID, organization, 'ID', 'NAME') });
-                }}
-                renderInput={(params, index) => (
-                  <TextField
-                    key={index}
-                    {...params}
-                    label="Select a organization"
-                    variant="outlined"
-                  />
-                )}
-              />
-            </div>
-            {/* same autocomplete for clinicians */}
-            <div style={{ marginTop: "20px", width: "80%" }}>
-              <Autocomplete
-                value={data.clinicianLabel}
-                size="small"
-                options={clinicians}
-                getOptionLabel={(option) => option.NAME}
-                onChange={(e, newValue) => {
-                  const { ID, NAME } = newValue;
-                  setData({ ...data, clinicians: ID, clinicianLabel: getStringValue(ID, clinicians, 'ID', 'NAME') });
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Select a clinician"
-                    variant="outlined"
-                  />
-                )}
-              />
-            </div>
+            <Autocomplete
+              style={{ width: "80%" }}
+              options={['walkin client', 'refered']}
+              getOptionLabel={(option) => option}
+              value={refered ? 'refered' : 'walkin client'}
+              size="small"
+              onChange={(e, newValue) => {
+                if (newValue == 'refered') {
+                  setRefered(true);
+                } else {
+                  setRefered(false);
+                  setData({...data, organizations: 0, clinicians: 0})
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="client type"
+                  variant="outlined"
+                />
+              )}
+            />
+          </div>
+          <div style={{ width: "40vw", marginLeft: "20px", marginTop: "20px" }}>
+            {refered  && (
+              <div style={{ marginTop: "20px", width: "80%" }}>
+                <Autocomplete
+                  value={data.organizationLabel}
+                  size="small"
+                  options={organization}
+                  getOptionLabel={(option) => option.NAME}
+                  onChange={(e, newValue) => {
+                    const { ID, NAME } = newValue;
+                    setData({ ...data, organizations: ID, organizationLabel: getStringValue(ID, organization, 'ID', 'NAME') });
+                  }}
+                  renderInput={(params, index) => (
+                    <TextField
+                      key={index}
+                      {...params}
+                      label="Select a organization"
+                      variant="outlined"
+                    />
+                  )}
+                />
+              </div>
+            )}
+            {refered  && (
+              <div style={{ marginTop: "20px", width: "80%" }}>
+                <Autocomplete
+                  value={data.clinicianLabel}
+                  size="small"
+                  options={clinicians}
+                  getOptionLabel={(option) => option.NAME}
+                  onChange={(e, newValue) => {
+                    const { ID, NAME } = newValue;
+                    setData({ ...data, clinicians: ID, clinicianLabel: getStringValue(ID, clinicians, 'ID', 'NAME') });
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Select a clinician"
+                      variant="outlined"
+                    />
+                  )}
+                />
+              </div>
+            )}
             <div style={{ width: "80%", marginTop: "20px" }}>
               <FormControl size="small" sx={{ width: "100%" }}>
                 <InputLabel>payment mode</InputLabel>

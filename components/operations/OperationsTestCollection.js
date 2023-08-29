@@ -12,20 +12,19 @@ export default function OperationsTestCollection() {
   const [departments, setDepartments] = useState([])
   const [query, setQuery] = useState({ bydept: false, queryDept: 0 })
 
+
+
   // get department from router query
 
   const { departmentid } = useRouter().query;
 
-
   // intial data fetching from the server
   const getCollection = async function () {
-    let url = `operations/collection`;
+    let url = `operations/collection?category=${departmentid}`;
 
-    if (query.bydept == true) {
-      url += `?category=${query.queryDept}`
-    }
     try {
       const response = await customFetch(url)
+
       if (response?.result == false) {
         setCollections([])
       } else {
@@ -33,26 +32,24 @@ export default function OperationsTestCollection() {
       }
     }
     catch (err) {
-      alert('error in connecting to server')
+      console.log(err)
     }
   }
 
-  useMemo(() => {
-    getDepartment(setDepartments);
-    getCollection();
+
+
+
+
+  useEffect(() => {
+    getDepartment(setDepartments)
+    setQuery({ bydept: true, queryDept: departmentid });
+    getCollection()
   }, [])
 
 
 
-
   useEffect(() => {
-    if (departmentid) {
-      setQuery({ bydept: true, queryDept: departmentid })
-    }
-  }, [departmentid])
-
-  useEffect(() => {
-    getCollection()
+    getCollection();
   }, [query.queryDept])
 
 
@@ -71,6 +68,8 @@ export default function OperationsTestCollection() {
   }
 
 
+
+
   const handleUpdate = (e, item) => { updateOperations({ billingid: item.BILLINGID, patientid: item.PATIENTID }) }
 
 
@@ -81,9 +80,10 @@ export default function OperationsTestCollection() {
         <div>
           <div className="p-2">
             <label>select department</label>
-            <select className='form-control mb-2' value={query.queryDept} onChange={(e) => { setQuery({ queryDept: e.target.value, bydept: true }) }} disabled={departmentid == undefined ? false : true}>
+            <select className='form-control mb-2' value={query.queryDept} onChange={(e) => { setQuery({ queryDept: e.target.value, bydept: true }) }}
+              disabled={departmentid ? true : false}>
               {
-                departments.map((item, index) => { return (<option key={index} value={item.id}>{item.department}</option>) })
+                departments.map((item, index) => { return (<option key={index} value={item.id} >{item.department}</option>) })
               }
             </select>
             <label>filter</label>
@@ -94,6 +94,7 @@ export default function OperationsTestCollection() {
               placeholder="search using name or id"
               autoFocus
             />
+
           </div>
           <ul>
             {collection.length > 0 ? (

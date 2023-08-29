@@ -7,7 +7,8 @@ import SECOND_NO_DATA from '../../components/accessories/secondNodata';
 export default function OperationsOverview({ colorIndex }) {
   const [summary, setSummary] = useState([]);
   const [noDeptTest, setNoDeptTest] = useState(false);
-  const [department, setDepartments] = useState([])
+  const [department, setDepartments] = useState([]);
+  const [totalcount, setTotalCount] = useState(0)
 
   const getOperationsOverview = async function () {
     const overview = await customFetch('operations/overview');
@@ -24,6 +25,7 @@ export default function OperationsOverview({ colorIndex }) {
           const count = result.filter((e, i) => { { return e.department == item.department; } });
           return { department: item.department, count: count.length, id: item.id }
         }))
+        setTotalCount(result.length)
       }
     }
   }
@@ -34,18 +36,26 @@ export default function OperationsOverview({ colorIndex }) {
     if (department.length > 0) {
       getOperationsOverview()
     }
-  },[department.length])
+  }, [department.length])
 
 
 
 
   return (
     <>
-      <h3 className='d-flex justify-content-center text-capitalize mt-2 text-primary'>cases count awaiting result entry by department  for today {new Date().toISOString().slice(0, 10)}</h3>
+      <h3 className='d-flex justify-content-center text-capitalize mt-2 text-danger'>cases count awaiting result entry by department  for today {new Date().toISOString().slice(0, 10)}</h3>
       <hr />
       {
         noDeptTest ? <div className='mt-3'> <SECOND_NO_DATA message={'No test added to departments'} /> </div> : (
           <div className='minicard-wrapper' >
+            <MiniCard
+              number={totalcount}
+              colorIndex={0}
+              text={'all department'}
+              color={"green"}
+              link={`/operations/departments/all`}
+              icon={<Bloodtype sx={{ height: "50%", width: "50%" }} />}
+            />
             {summary.map((item, index) => {
               return (
                 <MiniCard
@@ -54,7 +64,7 @@ export default function OperationsOverview({ colorIndex }) {
                   colorIndex={1 + index}
                   text={item.department}
                   color={"green"}
-                  link={`/operations/resultentry?departmentid=${item.id}`}
+                  link={`/operations/departments/${item.id}`}
                   icon={<Bloodtype sx={{ height: "50%", width: "50%" }} />}
                 />
               )
