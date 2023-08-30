@@ -3,13 +3,17 @@ import { OperationsProvider } from '../../../components/operations/OperationsCon
 import OperationsContext from '../../../components/operations/OperationsContext';
 import OperationsLayout from '../../../components/operations/OperationsLayout';
 import DisplayTest from '../../../components/operations/DisplayTest';
+import OperationsTestCollection from '../../../components/operations/OperationsTestCollection';
+import TestPreview from '../../../components/operations/TestPreview';
 
 export default function OPERATIONS() {
   return (
     <>
       <OperationsProvider>
-        <OperationsLayout>
-          <DisplayTest/>
+        <OperationsLayout
+          componentOne={<OperationsTestCollection />}
+          componentTwo={<TestPreview />}>
+          <DisplayTest />
         </OperationsLayout>
       </OperationsProvider>
     </>

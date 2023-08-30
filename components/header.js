@@ -13,13 +13,13 @@ import Widget from "./Headers/Widget";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Refresh } from "@mui/icons-material";
-import { customFetch } from "./Auth/customFetch";
 
 
 
 function Header() {
   const [showWidget, setShowWidget] = useState(false);
   const [branch, setBranch] = useState('');
+  const [username, setUsername] = useState('');
 
   const handleClickedLink = () => {
     setShowWidget(false);
@@ -28,7 +28,21 @@ function Header() {
 
   const pageUrl = useRouter().pathname;
 
-  useEffect(() => { setBranch(localStorage.getItem('deviceDefaultBranch')) }, [])
+  const router = useRouter();
+
+  useEffect(() => {
+    setBranch(localStorage.getItem('deviceDefaultBranch'));
+    let user = localStorage.getItem('user');
+    if (user) {
+      const parsed = JSON.parse(user);
+      const { EMPLOYEEID, USERNAME } = parsed;
+
+      if (USERNAME && EMPLOYEEID) {
+        setUsername(USERNAME)
+      }
+    }
+  }, [])
+
 
 
   return (
@@ -39,7 +53,7 @@ function Header() {
           sx={{
             backgroundColor: "#00224f",
             display: "grid",
-            padding:'0px',
+            padding: '0px',
             gridTemplateColumns: "60% auto auto auto",
           }}
         >
@@ -53,14 +67,15 @@ function Header() {
           <Toolbar>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <Avatar sx={{ mr: 1 }} />
-              <Typography variant="h6" color='warning mt-3'>
-                Glover Agbevia
+              <Typography variant="h6" color='warning' className="text-capitalize" >
+                {username} 
               </Typography>
-            </div>
+              </div>
           </Toolbar>
           <Toolbar>
             <Refresh sx={{ mr: 1, cursor: 'pointer' }} onClick={() => { window.location.reload() }} />
-            {branch == '' ? 'ALL BRANCHES' : branch}
+            {branch == null ? <button
+              onClick={(e) => router.push('/settings')} className="btn btn-dark text-capitalize ">set branch</button> : branch}
           </Toolbar>
           <Toolbar>
             {pageUrl === '/authentication/login' || pageUrl == '/' ? null : (

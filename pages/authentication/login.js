@@ -23,6 +23,9 @@ export default function LoginCredentials() {
       if (statusCode == 200 && status == 'success') {
         setMessage({ message, status });
         const transformed = JSON.stringify(user);
+        // remove previous if exist 
+        localStorage.removeItem('user');
+        // add new info
         localStorage.setItem('user', transformed);
         updateAuthentication(transformed);
         navigate.back()

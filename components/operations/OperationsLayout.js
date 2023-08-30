@@ -4,19 +4,19 @@ import { useState } from 'react';
 import OperationsTestCollection from './OperationsTestCollection';
 import TestPreview from './TestPreview';
 
-export default function OperationsLayout({ children }) {
+export default function OperationsLayout({componentOne,componentTwo,componentThree}) {
   return (
     <>
       <OperationsProvider >
         <div className='operations-wrapper'>
           <aside>
-            <OperationsTestCollection />
+            {componentOne}
           </aside>
           <main id='operation-test-collection-wrapper'>
-           <TestPreview/>
+           {componentTwo}
           </main>
           <main className='children'>
-            {children}
+            {componentThree}
           </main>
         </div>
       </OperationsProvider>

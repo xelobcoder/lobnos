@@ -2736,3 +2736,9 @@ input[type='text'] {
 .minicard > .mini-rest > .text {
   border-bottom: 1px solid lightgray;
 }
+#child {
+  position: absolute;
+  top: 100%;
+  left:10%;
+  width: 300px;
+}

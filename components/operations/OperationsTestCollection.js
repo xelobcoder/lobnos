@@ -2,7 +2,7 @@ import React, { useState, useMemo, Suspense, useContext, useEffect } from 'react
 import { customFetch, getDepartment } from '../Auth/customFetch';
 import OperationsContext from './OperationsContext';
 import { useRouter } from 'next/router';
-import BloodtypeIcon from '@mui/icons-material/Bloodtype';
+import { Button } from '@mui/material';
 import SECOND_NO_DATA from '../accessories/secondNodata';
 
 
@@ -11,6 +11,7 @@ export default function OperationsTestCollection() {
   const [collection, setCollections] = useState([]);
   const [departments, setDepartments] = useState([])
   const [query, setQuery] = useState({ bydept: false, queryDept: 0 })
+
 
 
 
@@ -77,6 +78,7 @@ export default function OperationsTestCollection() {
   return (
     <>
       <Suspense fallback={<div>loading.....</div>}>
+
         <div>
           <div className="p-2">
             <label>select department</label>
@@ -96,6 +98,7 @@ export default function OperationsTestCollection() {
             />
 
           </div>
+
           <ul>
             {collection.length > 0 ? (
               collection.map((item, index) => (
