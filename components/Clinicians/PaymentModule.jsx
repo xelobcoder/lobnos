@@ -19,7 +19,7 @@ import {
 }
   from '@mui/icons-material'
 
-export default function PaymentModuleClinician({ data, handleSubmit,handleChange }) {
+export default function PaymentModuleClinician({ data, handleSubmit, handleChange }) {
   return (
     <>
       <form
@@ -121,18 +121,6 @@ export default function PaymentModuleClinician({ data, handleSubmit,handleChange
             )
           }}
         />
-
-        <Button
-          type="button"
-          variant="contained"
-          className='custom-button'
-          color="primary"
-          onClick={handleSubmit}
-          startIcon={<SaveAs />}
-          style={{ marginTop: '16px', marginBottom: '20px' }}
-        >
-          Submit
-        </Button>
       </form>
     </>
   )

@@ -48,38 +48,53 @@ export default function OperationsOverview({ colorIndex }) {
 
   return (
     <>
-      <div className='d-flex justify-content-between m-3'>
-        <h3 className='d-flex justify-content-center text-capitalize  text-danger'>cases count awaiting result entry by department  for today {new Date().toISOString().slice(0, 10)}</h3>
-        <Button variant='contained' color='success' onClick={(e) => navigate.push('/operations/enteredresult')}>view entered result</Button>
+      <div className="minicard-top-text">
+        <div className='head'>
+          <h3 className="text-bold text-capitalize">
+            cases count awaiting result entry by department for today{" "}
+            {new Date().toISOString().slice(0, 10)}
+          </h3></div>
+        <div className='tail'>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={(e) => navigate.push("/operations/enteredresult")}
+          >
+            view entered result
+          </Button>
+        </div>
       </div>
       <hr />
-      {
-        noDeptTest ? <div className='mt-3'> <SECOND_NO_DATA message={'No test added to departments'} /> </div> : (
-          <div className='minicard-wrapper' >
-            <MiniCard
-              number={totalcount}
-              colorIndex={0}
-              text={'all department'}
-              color={"green"}
-              link={`/operations/departments/all`}
-              icon={<Bloodtype sx={{ height: "50%", width: "50%" }} />}
-            />
-            {summary.map((item, index) => {
-              return (
-                <MiniCard
-                  key={index}
-                  number={item.count}
-                  colorIndex={1 + index}
-                  text={item.department}
-                  color={"green"}
-                  link={`/operations/departments/${item.id}`}
-                  icon={<Bloodtype sx={{ height: "50%", width: "50%" }} />}
-                />
-              )
-            })}
-          </div>
-        )
-      }
+      {noDeptTest ? (
+        <div className="mt-3">
+          {" "}
+          <SECOND_NO_DATA message={"No test added to departments"} />{" "}
+        </div>
+      ) : (
+        <div className="minicard-wrapper">
+          <MiniCard
+            number={totalcount}
+            colorIndex={0}
+            text={"all department"}
+            color={"green"}
+            link={`/operations/departments/all`}
+            icon={<Bloodtype sx={{ height: "50%", width: "50%" }} />}
+          />
+          {summary.map((item, index) => {
+            return (
+              <MiniCard
+                key={index}
+                number={item.count}
+                colorIndex={1 + index}
+                text={item.department}
+                color={"green"}
+                link={`/operations/departments/${item.id}`}
+                icon={<Bloodtype sx={{ height: "50%", width: "50%" }} />}
+              />
+            );
+          })}
+        </div>
+      )}
     </>
   );
 }

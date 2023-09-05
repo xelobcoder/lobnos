@@ -5,8 +5,9 @@ import { Dropdown } from 'react-bootstrap';
 import styles from '../../styles/payment.module.css';
 import { Email, MonetizationOn, Print, WhatsApp } from '@mui/icons-material';
 
-export default function Navbar({ query,updateBill, handleChange,select,runquery,setBill,selectedBilling }) {
+export default function Navbar({ query, updateBill, handleChange, select, runquery, setBill, selectedBilling }) {
 
+  const navigate = useRouter();
 
   return (
     <div className={styles.navbar}>
@@ -23,7 +24,7 @@ export default function Navbar({ query,updateBill, handleChange,select,runquery,
         <Dropdown.Toggle
           className={styles.dropdownToggle}
           style={{ height: "40px" }}
-         
+
           id="dropdown-basic"
         >
           Select transaction month
@@ -53,8 +54,8 @@ export default function Navbar({ query,updateBill, handleChange,select,runquery,
         value={query.date}
         onChange={(e) => { handleChange(e, 'date') }}
       />
-      <Button type="button" variant="contained" size="small" 
-      onClick={runquery} >
+      <Button type="button" variant="contained" size="small"
+        onClick={runquery} >
         search
       </Button>
       <div className="d-flex" style={{ marginLeft: "20px" }}>
@@ -63,11 +64,11 @@ export default function Navbar({ query,updateBill, handleChange,select,runquery,
           type="number"
           value={selectedBilling}
           onChange={(event) => setBill(event)}
-          style={{width:'200px',marginRight:'20px'}}
+          style={{ width: '200px', marginRight: '20px' }}
           placeholder="Enter Billing ID here"
         />
         <Button variant='contained' color='primary' onClick={updateBill}>
-          update 
+          update
         </Button>
         <Button
           startIcon={<Print />}
@@ -77,8 +78,9 @@ export default function Navbar({ query,updateBill, handleChange,select,runquery,
             color: 'white',
             width: "100px", backgroundColor: "black"
           }}
+          onClick={(e) => {navigate.push(`payment/invoice/${selectedBilling}`)}}
         >
-          print
+          invoice
         </Button>
         <Button
           startIcon={<Email />}
@@ -94,7 +96,7 @@ export default function Navbar({ query,updateBill, handleChange,select,runquery,
           Email
         </Button>
         <Button
-          startIcon={<MonetizationOn/>}
+          startIcon={<MonetizationOn />}
           variant="contained"
           sx={{
             color: "white",

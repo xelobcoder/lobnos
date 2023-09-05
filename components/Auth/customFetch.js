@@ -3,6 +3,7 @@ export async function customFetch(endpoint) {
       headers: {
          Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
          "Content-Type": "application/json",
+         mode: 'no-cors'
       },
    });
 
@@ -17,6 +18,7 @@ export async function customPost(endpoint, method, data) {
       headers: {
          "content-type": "application/json",
          Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+         mode: 'no-cors'
       },
       body: JSON.stringify(data),
    });
@@ -167,10 +169,16 @@ export const validateMobileNumber = async function (number, len) {
    }
 };
 
-export const handleChange = (event, target) => {
+export const handleChange = (event, target,data) => {
    const { value } = event.target;
    setData({ ...data, [target]: value })
 }
+
+export const handleChangeWithState = (event, target,setData,data) => {
+   const { value } = event.target;
+   setData({ ...data, [target]: value })
+}
+
 
 
 export const getSampleTypeList = async function (setSource) {
@@ -211,6 +219,16 @@ export const getDepartment = async (setDepartments) => {
       setDepartments(data)
    }
 }
+
+
+export  const getCompanyInformation = async function (setHeaders) {
+   try {
+     const getdata = await customFetch('settings/companyprofile');
+     setHeaders(getdata)
+   } catch (err) {
+     alert('error in connecting to server')
+   }
+ }
 
 export const defaultApplicationSettings = {
    bulkregistration: 1,

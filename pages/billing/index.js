@@ -8,6 +8,7 @@ import CancelScheduleSendIcon from "@mui/icons-material/CancelScheduleSend";
 import SendIcon from "@mui/icons-material/Send";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import { customFetch, customPost } from "../../components/Auth/customFetch";
+import { ShopOutlined } from "@mui/icons-material";
 
 export default function Billing({ }) {
   const [allpanels, setAllpanels] = useState([]);
@@ -161,26 +162,18 @@ export default function Billing({ }) {
 
   return (
     <>
+      <div style={{margin:'10px 20px'}} className="d-flex justify-content-end alert alert-warning">
+        <span style={{ fontSize: '20px' }}>Cart {" "}{testArray.length}</span>
+        <ShopOutlined fontSize='large' />
+      </div>
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "50% auto",
-          gridGap: "20px 20px",
-        }}
+        id="billing-page-main-wrapper"
       >
-        <div>
+        <div id="top-wrap">
           <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-start",
-              width: "40vw",
-              height: "40px",
-              marginTop: "40px",
-              marginLeft: "20px",
-            }}
+            id="test-selection"
           >
             <Autocomplete
-              sx={{ width: "80%" }}
               options={allpanels}
               getOptionLabel={(option) => option.NAME}
               value={selected}
@@ -210,9 +203,8 @@ export default function Billing({ }) {
               add
             </Button>
           </div>
-          <div style={{ width: "40vw", marginLeft: "20px", marginTop: "20px" }}>
+          <div id="test-selection-others">
             <Autocomplete
-              style={{ width: "80%" }}
               options={['walkin client', 'refered']}
               getOptionLabel={(option) => option}
               value={refered ? 'refered' : 'walkin client'}
@@ -222,7 +214,7 @@ export default function Billing({ }) {
                   setRefered(true);
                 } else {
                   setRefered(false);
-                  setData({...data, organizations: 0, clinicians: 0})
+                  setData({ ...data, organizations: 0, clinicians: 0 })
                 }
               }}
               renderInput={(params) => (
@@ -234,9 +226,9 @@ export default function Billing({ }) {
               )}
             />
           </div>
-          <div style={{ width: "40vw", marginLeft: "20px", marginTop: "20px" }}>
-            {refered  && (
-              <div style={{ marginTop: "20px", width: "80%" }}>
+          <div id="test-selection-others">
+            {refered && (
+              <div>
                 <Autocomplete
                   value={data.organizationLabel}
                   size="small"
@@ -257,9 +249,10 @@ export default function Billing({ }) {
                 />
               </div>
             )}
-            {refered  && (
-              <div style={{ marginTop: "20px", width: "80%" }}>
+            {refered && (
+              <div id="test-selection-others">
                 <Autocomplete
+                  sx={{ marginTop: '20px' }}
                   value={data.clinicianLabel}
                   size="small"
                   options={clinicians}
@@ -278,8 +271,8 @@ export default function Billing({ }) {
                 />
               </div>
             )}
-            <div style={{ width: "80%", marginTop: "20px" }}>
-              <FormControl size="small" sx={{ width: "100%" }}>
+            <div >
+              <FormControl size="small" sx={{ width: "100%", marginTop: '20px' }}>
                 <InputLabel>payment mode</InputLabel>
                 <Select
                   value={data.paymentmode}
@@ -353,7 +346,7 @@ export default function Billing({ }) {
           </div>
         </div>
 
-        <div style={{ width: "40vw" }}>
+        <div id="test-selection-cart">
           <TESTCART
             testArray={testArray}
             handleRemove={handleRemove}
@@ -396,6 +389,7 @@ export default function Billing({ }) {
               }}
               variant="contained"
               sx={{ mt: 5, ml: 2, borderRadius: 0 }}
+
               endIcon={
                 testArray.length == 0 ? (
                   <CancelScheduleSendIcon />
@@ -407,7 +401,7 @@ export default function Billing({ }) {
                 testArray.length == 0 || !data.paymentmode ? true : false
               }
             >
-              proceed
+              bill
             </Button>
           </div>
         </div>

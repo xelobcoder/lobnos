@@ -94,8 +94,8 @@ export default function Activator() {
   return (
     <>
       {!advancedSearch && (
-        <div className="d-flex justify-content-between m-2">
-          <div className="col-4 mb-2">
+        <div className='not-activation-advanced'>
+          <div>
             <input
               placeholder="Enter patientid"
               value={id}
@@ -106,33 +106,34 @@ export default function Activator() {
             />
           </div>
           <div>
-            <button className="btn btn-outline-success m-2" onClick={(w) => ActivationBulk(w, 'TRUE',getInitData)}>
-              Activate all
-            </button>
-            <button className="btn btn-outline-danger m-2" onClick={(e) => ActivationBulk(e, 'FALSE',getInitData)}>
-              Deactivate all
-            </button>
-            <button
-              className="btn btn-primary m-2"
-              onClick={() => setAdvancedSearch(!advancedSearch)}
-            >
-              advanced search
-            </button>
+            <div>
+              <button className="btn btn-outline-success  m-2" onClick={(w) => ActivationBulk(w, 'TRUE', getInitData)}>
+                Activate all
+              </button>
+            </div>
+            <div>
+              <button className="btn btn-outline-danger m-2" onClick={(e) => ActivationBulk(e, 'FALSE', getInitData)}>
+                Deactivate all
+              </button>
+            </div>
+            <div>
+              <button
+                className="btn btn-primary m-2"
+                onClick={() => setAdvancedSearch(!advancedSearch)}
+              >
+                advanced 
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {advancedSearch && (
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "30% 20% 20% auto",
-            gridGap: "5px 5px",
-            margin: "10px",
-          }}
+          id='activation-advanced'
         >
           <input
-            className="custom-input"
+            className="form-control"
             name="patientid"
             onChange={(e) => handleAdvancedQuery(e)}
             placeholder="enter patientid"
@@ -140,14 +141,14 @@ export default function Activator() {
             id="patientid"
           />
           <input
-            className="custom-input"
+            className="form-control"
             onChange={(e) => handleAdvancedQuery(e)}
             type="text"
             placeholder="fullname"
             name="fullname"
           />
           <input
-            className="custom-input"
+            className="form-control"
             onChange={(e) => handleAdvancedQuery(e)}
             type="tell"
             maxLength={10}
@@ -157,7 +158,7 @@ export default function Activator() {
             name="mobile"
           />
           <input
-            className="custom-input"
+            className="form-control"
             onChange={(e) => handleAdvancedQuery(e)}
             type="date"
             size="small"
@@ -166,30 +167,32 @@ export default function Activator() {
             inputMode="date"
           />
           <input
-            className="custom-input"
+            className="form-control"
             onChange={(e) => handleAdvancedQuery(e)}
             tui
             type="date"
             size="small"
             name="to"
           />
-          <Button
+          <button
             type="button"
             className="custom-button"
             onClick={(e) => advancedSearchButton(e)}
             variant="contained"
             color="primary"
+            size='small'
           >
             search
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
+            size='small'
             className="btn btn-danger"
             color="error"
             onClick={(e) => setAdvancedSearch(false)}
           >
             close
-          </Button>
+          </button>
         </div>
       )}
       <div style={{ height: "100vh", overflowY: "auto", margin: "10px" }}>

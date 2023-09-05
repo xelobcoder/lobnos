@@ -50,12 +50,7 @@ function Header() {
       <Box>
         <AppBar
           position="sticky"
-          sx={{
-            backgroundColor: "#00224f",
-            display: "grid",
-            padding: '0px',
-            gridTemplateColumns: "60% auto auto auto",
-          }}
+          className="software-header-nav"
         >
           <Toolbar>
             <Typography variant="h4" color="error" component={"div"}>
@@ -64,7 +59,7 @@ function Header() {
               </Link>
             </Typography>
           </Toolbar>
-          <Toolbar>
+          <Toolbar className='userHeader'>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <Avatar sx={{ mr: 1 }} />
               <Typography variant="h6" color='warning' className="text-capitalize" >
@@ -72,7 +67,7 @@ function Header() {
               </Typography>
               </div>
           </Toolbar>
-          <Toolbar>
+          <Toolbar className='flow-child'>
             <Refresh sx={{ mr: 1, cursor: 'pointer' }} onClick={() => { window.location.reload() }} />
             {branch == null ? <button
               onClick={(e) => router.push('/settings')} className="btn btn-dark text-capitalize ">set branch</button> : branch}

@@ -12,8 +12,8 @@ export default function OPERATIONS() {
       <OperationsProvider>
         <OperationsLayout
           componentOne={<OperationsTestCollection />}
-          componentTwo={<TestPreview />}>
-          <DisplayTest />
+          componentTwo={<TestPreview />}
+          componentThree={<DisplayTest/>}>
         </OperationsLayout>
       </OperationsProvider>
     </>

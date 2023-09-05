@@ -12,8 +12,9 @@ export default function Enteredresult() {
       <OperationsProvider>
         <OperationsLayout
           componentTwo={<AllresultSecondPanel/>}
-          componentOne={<ResultEnteredSidePanel />}>
-          <DisplayTest />
+          componentOne={<ResultEnteredSidePanel />}
+          componentThree={ <DisplayTest />}>
+        
         </OperationsLayout>
       </OperationsProvider>
     </>

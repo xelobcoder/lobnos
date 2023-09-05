@@ -10,11 +10,6 @@ export default function BasicInformationClinician({ data, handleChange, stateUpd
       <form
         autoCapitalize="true"
         autoComplete="true"
-        style={{
-          height: "max-content",
-          overflowX: "hidden",
-          overflowY: "auto",
-        }}
       >
         <div>
           <div className="mb-3 mt-3">

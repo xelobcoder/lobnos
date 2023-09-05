@@ -3,17 +3,43 @@ import { Alert, AlertTitle, Button } from '@mui/material';
 import Link from 'next/link';
 import CheckIcon from '@mui/icons-material/Check';
 import { useRouter } from 'next/router';
-export default function Widget({ show ,handleClickedLink}) {
+import { AppRegistration, Approval, Inventory, SupportAgent } from '@mui/icons-material';
+export default function Widget({ show, handleClickedLink }) {
   const pagesList = [
     {
       title: 'Registration',
-      Link: '/registration'
+      Link: '/registration',
+      icon: <AppRegistration />
     },
     {
       title: 'Activation',
-      Link: '/activation'
+      Link: '/activation',
+    },
+    {
+      title: 'phelobotomy',
+      Link: '/phelobotomy'
+    },
+    {
+      title: 'samples',
+      Link: '/sample'
+    },
+    {
+      title: 'Operations',
+      Link: '/operations'
     }
     ,
+    {
+      title: 'Approvals',
+      Link: '/administration/approval'
+    },
+    {
+      title: 'Results',
+      Link: '/registration/ready'
+    },
+    {
+      title: 'payments',
+      Link: '/billing/payment'
+    },
     {
       title: 'inventory',
       Link: '/inventory'
@@ -25,48 +51,15 @@ export default function Widget({ show ,handleClickedLink}) {
     }
     ,
     {
-      title: 'phelobotomy',
-      Link: '/phelobotomy'
-    }
-   
-    ,
-    {
-      title: 'samples',
-      Link: '/sample'
-    },
-    {
       title: 'billed clients',
       Link: '/billing/billedclients'
     }
-    ,
-    {
-      title: 'Operations',
-      Link: '/operations'
-    }
+
     ,
     {
       title: 'settings',
       Link: '/settings'
-    }
-    ,
-    {
-      title: 'Approvals',
-      Link: '/administration/approval'
-    }
-   
-    ,
-    {
-      title: 'Results',
-      Link: '/registration/ready'
-    }
-
-    ,
-    {
-      title: 'payments',
-      Link: '/billing/payment'
-    }
-
-    ,
+    },
     {
       title: 'Dashboard',
       Link: '/billing/payment/sales'
@@ -106,23 +99,23 @@ export default function Widget({ show ,handleClickedLink}) {
               pagesList.map((item, index) => {
                 return (
                   <div key={index} id='list' >
-                    <Alert severity={'success'}>
-                      <AlertTitle>
-                        <h3>{item.title}</h3>
-                      </AlertTitle>
-                     <strong>
-                      <Button 
-                        onClick={
-                          (ev) => {
-                            handleClickedLink();
-                            router.push(item.Link)
+                    <div className='items'>
+                      <div className='text'> {item.title}</div>
+                      <div>
+                        <Button
+                          size='small'
+                          variant='contained'
+                          onClick={
+                            (ev) => {
+                              handleClickedLink();
+                              router.push(item.Link)
+                            }
                           }
-                        }
-                      variant='contained' color='success' >
-                        open page
-                      </Button>
-                     </strong>
-                    </Alert>
+                        >
+                          open
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 )
               })

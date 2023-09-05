@@ -29,6 +29,7 @@ import BleedingNClotting from '../LabTestForms/bleedingnclotting';
 import SemenAnalysis from '../LabTestForms/SemenAnalysis';
 import LHHormone from '../LabTestForms/LHHormone';
 import FSHHormone from '../LabTestForms/FSHHormone';
+import Helicobacter_Pylori from '../LabTestForms/helicobacter_pylori';
 
 export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
@@ -53,15 +54,16 @@ export default function DisplayTest() {
     malaria: <Malaria clientdata={operationsKey} />,
     thyroid_functional_test: <ThyroidTest clientdata={operationsKey} />,
     betahcg: <BetaHcg clientdata={operationsKey} />,
-    random_blood_sugar: <RandomBloodSugar clientdata={operationsKey} type={'random blood sugar'}/>,
-    fasting_blood_sugar: <FastingSugar clientdata={operationsKey} type={'fasting blood sugar'}/>,
-    full_blood_count: <FullBloodCountEntry clientdata={operationsKey}/>,
-    haemoglobin_electrophoresis: <HemoglobinElectrophoresisForm clientdata={operationsKey}/>,
-    stool_analysis: <StoolAnalysis  clientdata={operationsKey}/>,
-    clotting_and_bleeding_time: <BleedingNClotting clientdata={operationsKey}/>,
-    semen_analysis: <SemenAnalysis clientdata={operationsKey}/>,
-    follicle_stimulating_hormone: <FSHHormone clientdata={operationsKey}/>,
-    luteinizing_hormone: <LHHormone clientdata={operationsKey}/>,
+    random_blood_sugar: <RandomBloodSugar clientdata={operationsKey} type={'random blood sugar'} />,
+    fasting_blood_sugar: <FastingSugar clientdata={operationsKey} type={'fasting blood sugar'} />,
+    full_blood_count: <FullBloodCountEntry clientdata={operationsKey} />,
+    haemoglobin_electrophoresis: <HemoglobinElectrophoresisForm clientdata={operationsKey} />,
+    stool_analysis: <StoolAnalysis clientdata={operationsKey} />,
+    clotting_and_bleeding_time: <BleedingNClotting clientdata={operationsKey} />,
+    semen_analysis: <SemenAnalysis clientdata={operationsKey} />,
+    follicle_stimulating_hormone: <FSHHormone clientdata={operationsKey} />,
+    luteinizing_hormone: <LHHormone clientdata={operationsKey} />,
+    helicobacter_pylori: <Helicobacter_Pylori clientdata={operationsKey} />
   }
   return (
     <div>

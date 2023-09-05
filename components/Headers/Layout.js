@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import AuthContext from '../Auth/useAuthentification';
 import LoginCredentials from '../../pages/authentication/login';
 import { useEffect } from 'react';
+
+
 export default function MAIN_LAYOUT({ children }) {
   const { auth, updateAuthentication } = useContext(AuthContext);
   const [user, setUser] = useState(null)

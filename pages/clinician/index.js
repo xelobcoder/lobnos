@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 import { customFetch, customPost, handleChange, validateFormData } from "../../components/Auth/customFetch";
 import TableDisplay from '../../components/accessories/TableDisplay';
 import { IconButton, Typography } from "@mui/material";
-import { BarChart, DeleteForeverOutlined, Edit, MedicalInformation, Money, Visibility } from "@mui/icons-material";
+import { Add, BarChart, DeleteForeverOutlined, Edit, MedicalInformation, Money, ViewAgenda, Visibility } from "@mui/icons-material";
 import BasicInformationClinician from '../../components/Clinicians/BasicInformationClinician';
 import PaymentModuleClinician from "../../components/Clinicians/PaymentModule";
 
 export default function Clinicians() {
   // this set the clinician id for updating payment infor
   const [selectedClinician, setSelectedClinician] = useState(null);
+  const [view, setView] = useState(true);
 
   const defaultData = {
     name: "",
@@ -87,9 +88,9 @@ export default function Clinicians() {
       accessor: '',
       Cell: ({ row }) => {
         const { original } = row;
-        return ( <div>
-           <IconButton  onClick={() => getClientForEdit(original)}>
-            <Edit/>
+        return (<div>
+          <IconButton onClick={() => getClientForEdit(original)}>
+            <Edit />
           </IconButton>
           <IconButton size="small">
             <Visibility sx={{ color: 'green' }} />
@@ -181,6 +182,10 @@ export default function Clinicians() {
       UPDATE_ON } = originaldata;
 
 
+      setView(false);
+
+
+
     const data = {
       id: ID,
       name: NAME,
@@ -206,43 +211,65 @@ export default function Clinicians() {
 
   return (
     <>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "25% auto",
-          gridGap: "10px",
-          padding: "10px",
-        }}
-      >
-        <div className="card br-5">
-          <div className="card-header bg-secondary">
-           <button className="btn btn-danger" onClick={setDefault}>
+
+      <div id="clinician-page-main">
+        <div className="d-flex justify-content-end mb-1">
+          <button className="btn btn-light text-primary"
+          onClick={(e) => setView(false)}>
+            <Add />
             add new clinician
-           </button>
-          </div>
-          <div className="card-body p-3">
-            <BasicInformationClinician
-              data={data}
-              organization={OrganizationList}
-              stateUpdate={setData}
-              handleChange={handleChange}
-            />
-            <PaymentModuleClinician
-              data={data}
-              handleSubmit={handleSubmit}
-              handleChange={handleChange}
-            />
-          </div>
+          </button>
+          <button  onClick={(e) => setView(true)} className="btn btn-light text-primary" style={{marginLeft:'10px'}}>
+            <ViewAgenda />
+            view clinicians
+          </button>
         </div>
+        {!view && (
+          <div className="card br-5">
+            <div className="card-header bg-secondary">
+              <button className="btn btn-danger" onClick={setDefault}>
+                add new clinician
+              </button>
+            </div>
+            <div className="card-body" id="clinician-info-new">
+              <BasicInformationClinician
+                data={data}
+                organization={OrganizationList}
+                stateUpdate={setData}
+                handleChange={handleChange}
+              />
+              <PaymentModuleClinician
+                data={data}
+                handleSubmit={handleSubmit}
+                handleChange={handleChange}
+              />
+            </div>
+            <div className="card-footer">
+              <button
+                type="button"
+                variant="contained"
+                className='custom-button'
+                color="primary"
+                onClick={handleSubmit}
+                // startIcon={<SaveAs />}
+                style={{ marginTop: '16px', marginBottom: '20px' }}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      {view && (
         <div>
           <TableDisplay
-            // styling={"excel-table"}
+            styling={"excel-table"}
             column={columns}
             data={ClinicianList}
             filtering={true}
           />
         </div>
-      </div>
+      )}
     </>
   );
 }

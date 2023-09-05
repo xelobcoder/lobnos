@@ -5,7 +5,7 @@ export default function Malaria({result,testname}) {
       <div>
         {result.length > 0 && (
           <table className='table mt-5'>
-            <thead className='table-dark text-uppercase p-0'>
+            <thead className='table-primary text-uppercase p-0'>
               <tr>
                 <th>test name</th>
                 <th>result</th>

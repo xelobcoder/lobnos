@@ -37,7 +37,7 @@ export default function TESTCART({ testArray, emptytestcart, handleRemove, outst
                 <tr>
                   <td colSpan={1}></td>
                   <td>
-                    <h5>Payable Amount</h5>
+                    <span>Payable Amount</span>
                   </td>
                   <td>
                     {testArray.reduce((acc, curr) => {
@@ -51,6 +51,7 @@ export default function TESTCART({ testArray, emptytestcart, handleRemove, outst
                       className='m-2'
                       variant="contained"
                       color='error'
+                      size='small'
                       onClick={(e) => emptytestcart(e)}
                     >
                       remove all

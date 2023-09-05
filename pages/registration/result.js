@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import CompanyHeaders from '../../components/ResultView/CompanyHeaders';
 import CompanyFooter from '../../components/ResultView/CompanyFooter';
-import { customFetch, readyToPrint } from '../../components/Auth/customFetch';
+import { customFetch, getCompanyInformation, readyToPrint } from '../../components/Auth/customFetch';
 import ChemistryTable from '../../components/ResultView/ChemistryTable';
 import SamplingInformationResult from '../../components/ResultView/SamplingInformationResult';
 import PersonalInformation from '../../components/ResultView/PersonalInformation';
@@ -18,15 +18,7 @@ export default function RESULT_FOR_PRINTING() {
   const [errorInDetails, setErrorInDetails] = useState(false);
 
   useEffect(() => {
-    const getInformation = async function () {
-      try {
-        const getdata = await customFetch('settings/companyprofile');
-        setHeaders(getdata)
-      } catch (err) {
-        alert('error in connecting to server')
-      }
-    }
-    getInformation();
+    getCompanyInformation(setHeaders);
   }, [])
 
 
@@ -36,7 +28,7 @@ export default function RESULT_FOR_PRINTING() {
         if (billingid && test && testid) {
           const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}&&category=${category}`);
           const { result, sampling, testcategory } = response;
-          console.log(response)
+          console.log(response,'---------------------result')
           setResult(result);
           setSampling(sampling);
           setCategory(testcategory)
@@ -75,6 +67,7 @@ export default function RESULT_FOR_PRINTING() {
         {category == 'chemistry' && <ChemistryTable data={result} testname={test} />}
         {category == 'hema' && <HemaSingle result={result || []} testname={test} />}
         <CompanyFooter details={headers} />
+        
       </div>
       <div className='print-section'>
         <Button

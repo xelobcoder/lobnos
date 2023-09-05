@@ -5,6 +5,7 @@ import PregnancyTestUI from '../ResutlUI/PregnancyTestUI';
 import UrinalysisUI from '../ResutlUI/UrinalysisUI';
 import HepatitisBProfileUI from '../ResutlUI/HepatitisBProfile';
 import EsrResultUI from '../ResutlUI/Esr';
+import HepatitisBResultUi from '../ResutlUI/HepatitisBResultUi';
 
 export default function HemaSingle({ result, testname }) {
 
@@ -15,7 +16,8 @@ export default function HemaSingle({ result, testname }) {
     pregnancy_test: <PregnancyTestUI result={result} testname={testname} />,
     urinalysis: <UrinalysisUI result={result} testname={testname} />,
     hepatitis_b_profile: <HepatitisBProfileUI result={result} testname={testname} />,
-    esr: <EsrResultUI result={result} testname={testname} />
+    esr: <EsrResultUI result={result} testname={testname} />,
+    hepatitis_b: <HepatitisBResultUi result={result} testname={'Hepatitis B test'}/>
   };
 
   return (

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { customFetch } from '../Auth/customFetch';
 import { Email, Print, WhatsApp } from '@mui/icons-material';
 import styles from '../../styles/readyTest.module.css';
+import { useRouter } from 'next/router';
 
 export default function ReadyTest({ id }) {
   const [test, setTest] = useState([]);
@@ -17,9 +18,23 @@ export default function ReadyTest({ id }) {
     }
   };
 
+
+  const navigate = useRouter();
+
   useEffect(() => {
     getTest();
   }, [id]);
+
+  const printResult = async (item) => {
+    const { testid, name } = item;
+    let nwName = name;
+    if (name.split(" ").length > 1) {
+       nwName = name.replace(" ", '_')
+    }
+
+
+    navigate.push(`/registration/result?billingid=${id}&&testid=${testid}&&test=${nwName.toLowerCase()}`)
+  }
 
   return (
     <div>
@@ -32,7 +47,7 @@ export default function ReadyTest({ id }) {
                 {item.ready === 'true' && (
                   <>
                     <li className={styles.textPrimary}>share via</li>
-                    <li className='btn btn-secondary'>
+                    <li className='btn btn-secondary' onClick={(e) => printResult(item)}>
                       <Print className={`${styles.icon} text-white ${styles.printIcon}`} />
                     </li>
                     <li className='btn btn-success'>
