@@ -30,6 +30,10 @@ export default function ReadyTest({ id }) {
     let nwName = name;
     if (name.split(" ").length > 1) {
        nwName = name.split(" ").join("_")
+       if (new String(nwName).includes('(')){
+         nwName = nwName.split("(");
+         nwName = nwName[0]
+       }
     }
 
 
