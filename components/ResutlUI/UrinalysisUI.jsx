@@ -13,29 +13,32 @@ export default function UrinalysisUI({ result, testname }) {
       delete obj.patientid;
       delete obj.remarks;
       delete obj.billingid;
-      
+
       setParameters(obj)
     }
   }, [])
   return (
     <div>
       {result.length > 0 && (
-        <table id='custom-table' className='mt-5'>
-          <thead className='table-dark'>
-            <tr>
-              <th>paramaters</th>
-              <th>values</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(parameters).map(([key, value]) => (
-              <tr key={key}>
-                <td>{key}</td>
-                <td>{value}</td>
+        <div>
+          <h6 className='d-flex justify-content-center p-2'>Urinalysis Report</h6>
+          <table className='table'>
+            <thead className='table-primary'>
+              <tr>
+                <th>paramaters</th>
+                <th>values</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {Object.entries(parameters).map(([key, value]) => (
+                <tr key={key}>
+                  <td>{key}</td>
+                  <td>{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
       <div>
         <h4>comments</h4>

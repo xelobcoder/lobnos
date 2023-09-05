@@ -29,7 +29,7 @@ export default function ReadyTest({ id }) {
     const { testid, name } = item;
     let nwName = name;
     if (name.split(" ").length > 1) {
-       nwName = name.replace(" ", '_')
+       nwName = name.split(" ").join("_")
     }
 
 

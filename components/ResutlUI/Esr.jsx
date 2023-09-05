@@ -6,8 +6,8 @@ export default function EsrResultUI({ result, testname }) {
     <div>
       {result.length > 0 && (
         <>
-          <table id='custom-table' className='mt-3'>
-            <thead>
+          <table className='table mt-3'>
+            <thead className='table-primary'>
               <tr>
                 <th>testname</th>
                 <th>result</th>

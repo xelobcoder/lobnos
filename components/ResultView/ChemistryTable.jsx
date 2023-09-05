@@ -21,8 +21,8 @@ export default function ChemistryTable({ data = [], testname }) {
               {testname.split("_").join(' ') || ''}
             </Typography>
           </div>
-          <table id="custom-table" className="chemistry_print">
-            <thead>
+          <table className="chemistry_print table">
+            <thead className='table-primary'>
               <tr>
                 <th className="text-capitalize">parameter</th>
                 <th className="text-capitalize">result</th>
@@ -35,7 +35,7 @@ export default function ChemistryTable({ data = [], testname }) {
               {data.map((item, index) => {
                 return (
                   <tr key={index}>
-                    <td>{item?.parameter}</td>
+                    <td>{item?.parameter.toUpperCase()}</td>
                     <td>{item?.value}</td>
                     <td className="text-lowercase">{item.unit}</td>
                     <td>

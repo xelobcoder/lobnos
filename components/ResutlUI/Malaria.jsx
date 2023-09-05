@@ -15,7 +15,7 @@ export default function Malaria({result,testname}) {
             </thead>
             <tbody>
               <tr>
-                <td>{testname}</td>
+                <td>{">>>"}{testname}</td>
                 <td>{result[0]?.['PARASITENUMBER']} parasites</td>
                 <td></td>
                 <td>{result[0]?.['SPECIES']}</td>

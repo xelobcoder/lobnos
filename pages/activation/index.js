@@ -61,7 +61,7 @@ export default function Activator() {
   const handleBilling = (item) => {
     const { PATIENTID } = item;
     if (PATIENTID) {
-      router.push(`/billing?patientid=${PATIENTID}`);
+      router.push(`/billing/patientid/${PATIENTID}`);
     } else {
       alert('Patientid not included')
     }

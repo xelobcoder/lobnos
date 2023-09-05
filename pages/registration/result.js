@@ -28,7 +28,6 @@ export default function RESULT_FOR_PRINTING() {
         if (billingid && test && testid) {
           const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}&&category=${category}`);
           const { result, sampling, testcategory } = response;
-          console.log(response,'---------------------result')
           setResult(result);
           setSampling(sampling);
           setCategory(testcategory)
