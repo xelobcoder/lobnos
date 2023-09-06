@@ -5,7 +5,7 @@ export default function HepatitisBResultUi({ testname, result }) {
     <>
       {result.length > 0 && (
         <div>
-          <table className='table mt-5'>
+          <table className='table'>
             <thead className='table-primary text-uppercase p-0'>
               <tr>
                 <th>test name</th>

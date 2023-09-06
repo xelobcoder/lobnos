@@ -21,7 +21,8 @@ export default function HemaSingle({ result, testname }) {
     esr: <EsrResultUI result={result} testname={testname} />,
     hepatitis_b: <HepatitisBResultUi result={result} testname={'Hepatitis B test'}/>,
     widal: <Widal result={result} testname={testname}/>,
-    helicobacter_pylori: <HelicobacterUI result={result} testname={'Helicobacter pylori'}/>
+    helicobacter_pylori: <HelicobacterUI result={result} testname={'Helicobacter pylori'}/>,
+    hepatitis_c: <HepatitisBResultUi result={result} testname={'Hepatitis C test Report '} />
   };
 
   return (
