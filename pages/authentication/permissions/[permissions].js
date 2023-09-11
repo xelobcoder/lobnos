@@ -2,52 +2,50 @@ import React, { use, useEffect, useState } from 'react'
 import { Accordion, Button } from 'react-bootstrap';
 import { useRouter } from 'next/router';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
-import { customerRepresentative, scientistPermission, pageAccess } from '../../../components/Auth/Roles/permissions';
+import { customerRepresentative, scientistPermission, pageAccess, phelobotomy, administrator } from '../../../components/Auth/Roles/permissions';
+import PagesAccessView from '../../../components/Auth/Roles/PagesAccessView';
 export default function PermissionsOfUsers() {
   const permissions = useRouter().query.permissions;
   // state for customer permission
-  const [customer, setCustomer] = useState(customerRepresentative)
-  // state for scientist permission
-  const [scientist, setScientist] = useState(scientistPermission);
-  // user permision
+  const [clientPermissions, setClientPermissions] = useState({});
   const [user, setUser] = useState({ name: '', role: '' });
-  // set eventTarget for tha accordion so we scroll to depending on the role of the user
-  const [scrollTo, setScroll] = useState('')
+  const [previous, setPrevious] = useState(false);
+
   // get user permission data
   const getUserPermissions = async function () {
     const response = await customFetch(`user/permissions?permissions=${permissions}`);
     // we will set the permission to the state using the response or the default permission
-    //  Using thr function to determine to use the default permission or the response permission
-    console.log(response)
-    const backendPageAccess = function () {
-      if (response?.pageAccess) {
-        const keysPresent = Object.keys(response?.pageAccess);
+    //  Using the function to determine to use the default permission or the response permission
+    const backendPageAccess = function (default_pageAccess) {
+      const { permissions } = response;
+      console.log(permissions)
+      if (permissions) {
+        const keysPresent = Object.keys(permissions);
         // check if the keys are present in the default page access
         if (keysPresent.length > 0) {
-          return response?.pageAccess;
+          setPrevious(true);
+          setClientPermissions(permissions)
         } else {
-          return pageAccess;
+          const { role } = user;
+          if (role == 'phelobotomist') {
+            setClientPermissions(phelobotomy)
+          } else if (role == 'customer service representative') {
+            setClientPermissions(customerRepresentative)
+          } else if (role == 'scientist') {
+            setClientPermissions(scientistPermission)
+          } else {
+            setClientPermissions(administrator)
+          }
         }
-      } else {
-        return pageAccess;
       }
     }
-    // set persission based on the role
-    if (response['role'] == 'customer service representative') {
-      setCustomer({ ...response, pageAccess: backendPageAccess() });
-      // set name of person who permission is being set to permission
-      setScroll('0')
-    }
 
-    if (response['role'] == 'scientist') {
-      setScientist({ ...response, pageAccess: backendPageAccess() });
-      // set name of person who permission is being set to permission
-      setScroll('1')
-    }
-    setUser({ name: response?.name, role: response?.role })
-    // delete the page access from the response
-    delete response.pageaccess;
+    setUser({ name: response?.username, role: response?.role })
+
+    backendPageAccess(clientPermissions)
   }
+
+
 
 
 
@@ -62,7 +60,9 @@ export default function PermissionsOfUsers() {
   }, [permissions])
 
 
-  // handle checkbox Chnages 
+
+
+  // handle checkbox Changes 
 
   const handleChange = (ev, target, setTarget) => {
     const { name, checked } = ev.target;
@@ -83,12 +83,13 @@ export default function PermissionsOfUsers() {
   const handleSubmitPermission = async (ev, target) => {
     ev.preventDefault();
     //  we will submit the permission to the server
-    const response = await customPost(`user/permissions`, 'PUT', target);
+    const response = await customPost(`user/permissions?id=${permissions}`, 'PUT', target);
     if (response.statusCode === 200) {
       alert(response.message)
     }
   }
 
+  console.log(permissions, clientPermissions)
 
   return (
     <>
@@ -111,329 +112,29 @@ export default function PermissionsOfUsers() {
           </div>
           <div className="row p-3">
             <div className="col-12">
-              <Accordion defaultActiveKey={scrollTo}>
-                <Accordion.Item eventKey='0'>
+              <Accordion defaultActiveKey={1} >
+                <Accordion.Item>
                   <Accordion.Header>
-                    Permissions [sales service representative]
+                    {user.role}
                   </Accordion.Header>
                   <Accordion.Body>
-                    <div className="row">
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          name="registerv"
-                          className="form-check-input"
-                          onChange={(ev) =>
-                            handleChange(ev, customer, setCustomer)
-                          }
-                          value={customer['registerv']}
-                          checked={customer['registerv']}
-                        />{" "}
-                        Register client
-                      </div>
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          className="form-check-input"
-                          value={customer.viewv}
-                          onChange={(ev) =>
-                            handleChange(ev, customer, setCustomer)
-                          }
-                          name="viewv"
-                          checked={customer.viewv}
-                        />{" "}
-                        View client
-                      </div>
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          className="form-check-input"
-                          value={customer.editv}
-                          onChange={(ev) =>
-                            handleChange(ev, customer, setCustomer)
-                          }
-                          name="editv"
-                          checked={customer.editv}
-                        />{" "}
-                        Edit client
-                      </div>
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          value={customer.deletev}
-                          onChange={(ev) =>
-                            handleChange(ev, customer, setCustomer)
-                          }
-                          name="deletev"
-                          checked={customer.deletev}
-                          className="form-check-input"
-                        />{" "}
-                        Delete client
-                      </div>
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          value={customer.printv}
-                          name="printv"
-                          onChange={(ev) =>
-                            handleChange(ev, customer, setCustomer)
-                          }
-                          checked={customer.printv}
-                          className="form-check-input"
-                        />{" "}
-                        Print result
-                      </div>
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          value={customer.activatev}
-                          onChange={(ev) =>
-                            handleChange(ev, customer, setCustomer)
-                          }
-                          name="activatev"
-                          checked={customer.activatev}
-                          className="form-check-input"
-                        />{" "}
-                        activate client
-                      </div>
-                      <div className="row">
-                        <h5 className="mt-3 text-lead text-danger">
-                          Page Access
-                        </h5>
-                        {Object.entries(pageAccess).map((item, index) => {
-                          const [keys, value] = item;
-                          return (
-                            <div className="col-12" key={index}>
-                              <input
-                                type="checkbox"
-                                value={customer.pageAccess[keys]}
-                                onChange={(ev) =>
-                                  handlePageAccess(ev, customer, setCustomer)
-                                }
-                                id={keys}
-                                name={keys}
-                                checked={customer.pageAccess[keys]}
-                                className="form-check-input"
-                              />{" "}
-                              <label htmlFor={pageAccess.keys}>{keys}</label>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    <div className="row">
-                      <div className="col-md-12">
-                        <button onClick={(ev) => handleSubmitPermission(ev, customer)}
-                          className="btn btn-outline-success mt-2">
-                          update permissions
-                        </button>
-                      </div>
+                    <PagesAccessView
+                      data={clientPermissions}
+                      changeEvent={setClientPermissions}
+                      handler={handleChange}
+                      target={clientPermissions}
+                      pageAcesshandler={handlePageAccess}
+                      role={user.role}
+                    />
+                    <div>
+                      <button className='btn btn-success'
+                        onClick={(ev) => handleSubmitPermission(ev, clientPermissions)}>
+                        update permissions
+                      </button>
                     </div>
                   </Accordion.Body>
                 </Accordion.Item>
-                <Accordion.Item eventKey="1">
-                  <Accordion.Header>Permissions [scientist]</Accordion.Header>
-                  <Accordion.Body>
-                    <div className="row">
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          name="viewv"
-                          onChange={(ev) =>
-                            handleChange(ev, scientist, setScientist)
-                          }
-                          value={scientist['viewv']}
-                          checked={scientist['viewv']}
-                          className="form-check-input"
-                        />
-                        View client
-                      </div>
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          name="printv"
-                          onChange={(ev) =>
-                            handleChange(ev, scientist, setScientist)
-                          }
-                          value={scientist['printv']}
-                          checked={scientist['printv']}
-                          className="form-check-input"
-                        />
-                        Print result
-                      </div>
 
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          name="activatev"
-                          onChange={(ev) =>
-                            handleChange(ev, scientist, setScientist)
-                          }
-                          value={scientist['activatev']}
-                          checked={scientist['activatev']}
-                          className="form-check-input"
-                        />
-                        Activate client
-                      </div>
-                      <div className="col-12">
-                        <input
-
-                          type="checkbox"
-                          name="editv"
-                          onChange={(ev) =>
-                            handleChange(ev, scientist, setScientist)
-                          }
-                          checked={scientist['editv']}
-                          value={scientist['editv']}
-                          className="form-check-input"
-                        />
-                        Edit client
-                      </div>
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          name="deletev"
-                          onChange={(ev) =>
-                            handleChange(ev, scientist, setScientist)
-                          }
-                          value={scientist['deletev']}
-                          checked={scientist['deletev']}
-                          className="form-check-input"
-                        />
-                        Delete client
-                      </div>
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          name="registerv"
-                          onChange={(ev) =>
-                            handleChange(ev, scientist, setScientist)
-                          }
-                          value={scientist['registerv']}
-                          checked={scientist['registerv']}
-                          className="form-check-input"
-                        />
-                        register client
-                      </div>
-                    </div>
-                    <div className="row">
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          name="enterresult"
-                          onChange={(ev) =>
-                            handleChange(ev, scientist, setScientist)
-                          }
-                          value={scientist['enterresult']}
-                          checked={scientist['enterresult']}
-                          className="form-check-input"
-                        />
-                        enter results
-                      </div>
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          name="viewresult"
-                          onChange={(ev) =>
-                            handleChange(ev, scientist, setScientist)
-                          }
-                          value={scientist['viewresult']}
-                          checked={scientist['viewresult']}
-                          className="form-check-input"
-                        />
-                        view results
-                      </div>
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          name={"editresult"}
-                          onChange={(ev) =>
-                            handleChange(ev, scientist, setScientist)
-                          }
-                          value={scientist['editresult']}
-                          checked={scientist['editresult']}
-                          className="form-check-input"
-                        />
-                        edit results
-                      </div>
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          name="deleteresult"
-                          onChange={(ev) =>
-                            handleChange(ev, scientist, setScientist)
-                          }
-                          value={scientist['deleteresult']}
-                          checked={scientist['deleteresult']}
-                          className="form-check-input"
-                        />
-                        delete results
-                      </div>
-                      <div className="col-12">
-                        <input
-                          type="checkbox"
-                          name="printresult"
-                          onChange={(ev) =>
-                            handleChange(ev, scientist, setScientist)
-                          }
-                          value={scientist['printresult']}
-                          checked={scientist['printresult']}
-                          className="form-check-input"
-                        />
-                        print results
-                      </div>
-                    </div>
-                    <div className="row">
-                      <h5 className="mt-3 text-lead text-danger">
-                        Page Access
-                      </h5>
-                      {Object.entries(pageAccess).map((item, index) => {
-                        const [keys, value] = item;
-                        return (
-                          <div className="col-12" key={index}>
-                            <input
-                              type="checkbox"
-                              value={scientist.pageAccess.keys}
-                              onChange={(ev) =>
-                                handlePageAccess(ev, scientist, setScientist)
-                              }
-                              id={keys}
-                              name={keys}
-                              checked={scientist.pageAccess[keys]}
-                              className="form-check-input"
-                            />{" "}
-                            <label htmlFor={keys}>{keys}</label>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="row">
-                      <div className="col-12 mt-3">
-                        <button onClick={(ev) => handleSubmitPermission(ev, scientist)}
-                          className="btn btn-outline-success">
-                          update permissions
-                        </button>
-                      </div>
-                    </div>
-                  </Accordion.Body>
-                </Accordion.Item>
-                <Accordion.Item eventKey="2">
-                  <Accordion.Header> [administrator]</Accordion.Header>
-                  <Accordion.Body>
-                    <div
-                      className="alert alert-info m-2 col-11"
-                      style={{ fontSize: "14px" }}
-                    >
-                      <strong>Manager</strong> has all the permissions of a{" "}
-                      <strong>scientist</strong> and{" "}
-                      <strong>
-                        sales service representative as well as financial
-                        information access except editing and inputing client
-                        result
-                      </strong>
-                    </div>
-                  </Accordion.Body>
-                </Accordion.Item>
               </Accordion>
             </div>
           </div>

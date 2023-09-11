@@ -19,7 +19,7 @@ export default function LoginCredentials() {
     // send the email and password to the server
     // if the server responds with a 200 status code;
     const responseHandler = function (data) {
-      const { status, message, statusCode, user } = data;
+      const { status, message, statusCode, user ,token} = data;
       if (statusCode == 200 && status == 'success') {
         setMessage({ message, status });
         const transformed = JSON.stringify(user);

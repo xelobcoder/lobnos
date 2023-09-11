@@ -16,6 +16,14 @@ export const pageAccess = {
 }
 
 
+export const phelobotomy = {
+  deletev: true,
+  role: 'phelobotomist',
+  registerv: false,
+  pageAccess
+}
+
+
 export const customerRepresentative = {
   activatev: true,
   deletev: true,
@@ -24,7 +32,7 @@ export const customerRepresentative = {
   registerv: true,
   printv: true,
   viewv: true,
-  pageAccess
+  pageAccess 
 }
 
 
@@ -34,10 +42,10 @@ export const scientistPermission = {
   editv: false,
   deletev: false,
   registerv: false,
-  enterResult:false,
-  viewResult:false,
+  enterResult: false,
+  viewResult: false,
   role: 'scientist',
-  printResult:false,
+  printResult: false,
   deleteResult: false,
   pageAccess,
   activatev: false,
@@ -76,3 +84,7 @@ export const administrator = {
   pageAccess
 }
 
+
+export const generalPermission = {
+  
+}

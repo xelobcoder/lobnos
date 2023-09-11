@@ -49,19 +49,19 @@ export default function Authentication_index_page() {
   }
 
 
-  const activateUser = async (id,previousStatus) => {
+  const activateUser = async (id, previousStatus) => {
     let currentv;
     if (previousStatus == 0) {
       currentv = 1;
     }
 
     if (previousStatus == 1) {
-     currentv = 0;
+      currentv = 0;
     }
     //  show a confimation message before deleting
     const confirm = window.confirm('Are you sure you want to activate this user?');
     if (confirm) {
-      const response = await customPost(`user/authentication/activate`, 'PUT', { id,currentv});
+      const response = await customPost(`user/authentication/activate`, 'PUT', { id, currentv });
       const { statusCode, message, result } = response;
       console.log(response)
       if (statusCode === 200) {
@@ -94,7 +94,7 @@ export default function Authentication_index_page() {
       setEditing(true)
       setRegister(newObject);
       // we want scroll to the top of the page
-      window.scrollTo(0,0)
+      window.scrollTo(0, 0)
     }
   }
 
@@ -129,7 +129,7 @@ export default function Authentication_index_page() {
             <div className="card-header bg-secondary text-white d-flex justify-content-between">
               <h6 className="text-capitalize mt-2">add new user</h6>
               <Add sx={{ cursor: 'pointer' }} />
-              {editing == true ? <button className='btn btn-sm btn-danger' onClick={() => {setEditing(false);setRegister(defaultData)}}>cancel edit</button> : null
+              {editing == true ? <button className='btn btn-sm btn-danger' onClick={() => { setEditing(false); setRegister(defaultData) }}>cancel edit</button> : null
               }
             </div>
             <div className="card-body p-2">
@@ -204,6 +204,8 @@ export default function Authentication_index_page() {
                         <option value='customer service representative'>customer service representative</option>
                         <option value='scientist'>scientist</option>
                         <option value='manager'>manager</option>
+                        <option value='clinician'>clinician</option>
+                        <option value='phelobotomist'>phelobotomist</option>
                       </select>
                     </div>
                   </div>
