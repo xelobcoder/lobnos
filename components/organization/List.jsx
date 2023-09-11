@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import TableDisplay from '../../components/accessories/TableDisplay';
 import { customFetch } from '../Auth/customFetch';
 import { Button, IconButton } from '@mui/material';
-import { DeleteOutlineOutlined, Tab, Visibility, VisibilityIcon } from '@mui/icons-material';
+import { Add, DeleteOutlineOutlined, Tab, Visibility, VisibilityIcon } from '@mui/icons-material';
+import Link from 'next/link';
 
 export default function OrganizationList() {
   const [organization, setOrganization] = useState([]);
@@ -59,7 +60,15 @@ export default function OrganizationList() {
 
   return (
     <>
-      <TableDisplay column={columns}  data={organization} filtering={true} />
+      <div className='d-flex justify-content-end m-2'>
+        <Link href={'/organization/neworganization'}>
+          <button className='btn btn-primary border-none mt-2 '>
+            <Add />
+            new organization
+          </button>
+        </Link>
+      </div>
+      <TableDisplay column={columns} data={organization} filtering={true} />
     </>
   )
 }

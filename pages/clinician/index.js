@@ -8,8 +8,9 @@ import PaymentModuleClinician from "../../components/Clinicians/PaymentModule";
 
 export default function Clinicians() {
   // this set the clinician id for updating payment infor
-  const [selectedClinician, setSelectedClinician] = useState(null);
+  const [selectedClinician, setSelectedClinician] = useState({ name: '', id: "" });
   const [view, setView] = useState(true);
+  const [editing, setEditing] = useState(false);
 
   const defaultData = {
     name: "",
@@ -143,11 +144,13 @@ export default function Clinicians() {
 
 
       if (statusCode === 200 || statusCode === 201) {
-        setData(defaultData)
+        setData(defaultData);
         alert(message);
-        customFetch('clinicians').then((response) => {
-          setClinician(response)
-        }).catch((error) => console.log(error))
+        customFetch("clinicians")
+          .then((response) => {
+            setClinician(response);
+          })
+          .catch((error) => console.log(error));
       }
 
       if (statusCode === 401 || statusCode === 400) {
@@ -155,11 +158,17 @@ export default function Clinicians() {
       }
     }
 
-    await validateFormData(data, false, ['name', 'phone', 'email', 'location', 'address', 'occupation', 'module', 'commission'], 'clinicians', responseCallback)
+    if (selectedClinician) {
+      let updateRecords = await customPost('clinicians', 'PUT', { id: selectedClinician.id, ...data });
+      alert(updateRecords?.message)
+    } else {
+      await validateFormData(data, false, ['name', 'phone', 'email', 'location', 'address', 'occupation', 'module', 'commission'], 'clinicians', responseCallback)
+    }
   }
 
 
   const getClientForEdit = (originaldata) => {
+    setEditing(true)
     // converting the data to lowercase
     const {
       ACCOUNTNAME,
@@ -182,8 +191,8 @@ export default function Clinicians() {
       UPDATE_ON } = originaldata;
 
 
-      setView(false);
-
+    setView(false);
+    setSelectedClinician({ id: ID, name: NAME, })
 
 
     const data = {
@@ -215,11 +224,11 @@ export default function Clinicians() {
       <div id="clinician-page-main">
         <div className="d-flex justify-content-end mb-1">
           <button className="btn btn-light text-primary"
-          onClick={(e) => setView(false)}>
+            onClick={(e) => setView(false)}>
             <Add />
             add new clinician
           </button>
-          <button  onClick={(e) => setView(true)} className="btn btn-light text-primary" style={{marginLeft:'10px'}}>
+          <button onClick={(e) => setView(true)} className="btn btn-light text-primary" style={{ marginLeft: '10px' }}>
             <ViewAgenda />
             view clinicians
           </button>
@@ -228,7 +237,8 @@ export default function Clinicians() {
           <div className="card br-5">
             <div className="card-header bg-secondary">
               <button className="btn btn-danger" onClick={setDefault}>
-                add new clinician
+                {editing ? 'updating record for ' : 'add new clinician'}
+                {selectedClinician && `>>>>>>>>>>>>> ${selectedClinician.name}`}
               </button>
             </div>
             <div className="card-body" id="clinician-info-new">

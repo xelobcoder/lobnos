@@ -126,8 +126,9 @@ export default function Index() {
 
           if (response.ok) {
             alert(message);
+            setData(defaultData);
+            navigation.push('/organization');
           } else {
-            console.error('Error uploading file:', response.statusText);
             alert('Error uploading file:', response.statusText)
           }
         } catch (error) {

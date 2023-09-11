@@ -1,10 +1,7 @@
 import React from 'react'
-
-import { TextField, MenuItem, Select, FormControl, Button, InputLabel, TextareaAutosize, Autocomplete } from '@mui/material';
-import { useState } from 'react';
+import { TextField, MenuItem, Select, FormControl, InputLabel, Autocomplete } from '@mui/material';
 
 export default function BasicInformationClinician({ data, handleChange, stateUpdate, organization }) {
-
   return (
     <>
       <form
@@ -28,7 +25,7 @@ export default function BasicInformationClinician({ data, handleChange, stateUpd
           <div className="mb-3 mt-3">
             <TextField
               type="tel"
-              inputMode='numeric'   
+              inputMode='numeric'
               value={data.phone}
               onChange={(event) => handleChange(event, "phone")}
               sx={{ width: "100%" }}
@@ -59,6 +56,7 @@ export default function BasicInformationClinician({ data, handleChange, stateUpd
           <div className="mb-3 mt-3">
             <Autocomplete
               id="organization"
+              value={data.organizationName || ''}
               options={organization}
               getOptionLabel={(option) => option.NAME}
               sx={{ width: "100%" }}
@@ -71,8 +69,9 @@ export default function BasicInformationClinician({ data, handleChange, stateUpd
                 />
               )}
               onChange={(event, value) => {
-                console.log(value)
-                stateUpdate({ ...data, organization: value.ID })
+                if (Array.isArray(organization) && organization.length > 0) {
+                  stateUpdate({ ...data, organization: value.ID, organizationName: value.NAME })
+                }
               }}
             />
           </div>

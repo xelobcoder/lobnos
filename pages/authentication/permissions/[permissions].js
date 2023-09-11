@@ -18,7 +18,6 @@ export default function PermissionsOfUsers() {
     //  Using the function to determine to use the default permission or the response permission
     const backendPageAccess = function (default_pageAccess) {
       const { permissions } = response;
-      console.log(permissions)
       if (permissions) {
         const keysPresent = Object.keys(permissions);
         // check if the keys are present in the default page access
@@ -89,7 +88,7 @@ export default function PermissionsOfUsers() {
     }
   }
 
-  console.log(permissions, clientPermissions)
+
 
   return (
     <>
