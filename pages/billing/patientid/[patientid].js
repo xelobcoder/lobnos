@@ -27,8 +27,8 @@ export default function Billing({ }) {
       const paymentModes = await customFetch('paymentmodes');
 
       setAllpanels(data?.data || []);
-      setOrganization(organization || []);
-      setClinicians(clinician || []);
+      setOrganization(organization?.result || []);
+      setClinicians(clinician?.result || []);
       setBranch(branch || []);
       setPaymentMode(paymentModes?.data || [])
     }
@@ -238,6 +238,7 @@ export default function Billing({ }) {
                   getOptionLabel={(option) => option.NAME}
                   onChange={(e, newValue) => {
                     const { ID, NAME } = newValue;
+                    console.log(newValue)
                     setData({ ...data, organizations: ID, organizationLabel: getStringValue(ID, organization, 'ID', 'NAME') });
                   }}
                   renderInput={(params, index) => (
