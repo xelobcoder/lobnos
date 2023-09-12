@@ -169,12 +169,12 @@ export const validateMobileNumber = async function (number, len) {
    }
 };
 
-export const handleChange = (event, target,data) => {
+export const handleChange = (event, target, data) => {
    const { value } = event.target;
    setData({ ...data, [target]: value })
 }
 
-export const handleChangeWithState = (event, target,setData,data) => {
+export const handleChangeWithState = (event, target, setData, data) => {
    const { value } = event.target;
    setData({ ...data, [target]: value })
 }
@@ -221,14 +221,14 @@ export const getDepartment = async (setDepartments) => {
 }
 
 
-export  const getCompanyInformation = async function (setHeaders) {
+export const getCompanyInformation = async function (setHeaders) {
    try {
-     const getdata = await customFetch('settings/companyprofile');
-     setHeaders(getdata)
+      const getdata = await customFetch('settings/companyprofile');
+      setHeaders(getdata)
    } catch (err) {
-     alert('error in connecting to server')
+      alert('error in connecting to server')
    }
- }
+}
 
 export const defaultApplicationSettings = {
    bulkregistration: 1,
@@ -239,4 +239,33 @@ export const defaultApplicationSettings = {
    PaidBillsBeforeTransaction: 1,
    completeFlow: 1,
    approvalbeforeprinting: 1,
-} 
+}
+
+
+export const deleteOrganization = async function (id, getdatafxn) {
+   if (!id) {
+      alert(`id required`);
+   }
+   let confirmation = window.confirm('Do you want to delete organization? This will affect your finances records');
+   if (confirmation) {
+      const deleteResponse = await customPost(`organization?id=${id}`, 'DELETE', {});
+      const { statusCode } = deleteResponse;
+      if (statusCode == 201) {
+         getdatafxn();
+      }
+   }
+}
+
+
+export const getDataAndUpdateState = async function (setfxn, endpoint, returner) {
+   const getResponse = await customFetch(endpoint);
+   const { statusCode, status, result } = getResponse;
+   if (statusCode == 200) {
+      if (returner == true || returner != undefined) {
+         return result
+      } else {
+         setfxn(result)
+      }
+   }
+}
+

@@ -1,126 +1,203 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { TextField, MenuItem, Select, FormControl, InputLabel, Autocomplete } from '@mui/material';
+import { getDataAndUpdateState, handleResponse, validateFormData } from '../../components/Auth/customFetch';
+import { useRouter } from 'next/router';
+export default function BasicInformationClinician() {
+  const [OrganizationList, setOrganization] = useState([]);
+  const clinicianid = useRouter().query.clinicianid;
 
-export default function BasicInformationClinician({ data, handleChange, stateUpdate, organization }) {
+  const defaultData = {
+    id: clinicianid,
+    name: "",
+    phone: "",
+    email: "",
+    organization: 0,
+    location: "",
+    address: "",
+    occupation: "",
+  };
+
+  const [data, setData] = useState(defaultData);
+
+  const handleChange = (event, target) => {
+    const { value } = event.target;
+    setData({ ...data, [target]: value })
+  }
+
+  const getClientForEdit = (originaldata) => {
+    // converting the data to lowercase
+    const {
+      EMAIL,
+      ID,
+      LOCATION,
+      NAME,
+      OCCUPATION,
+      ORGANIZATION,
+      ADDRESS,
+      PHONE } = originaldata;
+
+    const data = {
+      id: ID,
+      name: NAME,
+      phone: PHONE,
+      email: EMAIL,
+      organization: ORGANIZATION,
+      location: LOCATION,
+      address: ADDRESS,
+      occupation: OCCUPATION,
+    }
+    setData(data)
+  }
+
+  const setDefault = () => { setData(defaultData) }
+
+  const handleSubmit = async () => {
+    const handleResponse = function (data) {
+      const { statusCode, status, message } = data;
+      if (statusCode == 200 && status == 'success') {
+        alert(message);
+        setDefault()
+      }
+    }
+    await validateFormData(data, true, [], 'clinicians', handleResponse)
+  }
+
+
+  useEffect(() => {
+    if (clinicianid) {
+      try {
+        getDataAndUpdateState(setData, `clinicians?id=${clinicianid}`, true)
+          .then((data) => {
+            if (Array.isArray(data) && data.length > 0) {
+              getClientForEdit(data[0])
+            }
+          })
+          .catch((err) => console.log(err))
+      } catch (err) {
+        console.log(err)
+      }
+    }
+  }, [clinicianid])
+
+  useEffect(() => {
+    getDataAndUpdateState(setOrganization, 'organization')
+  }, [])
   return (
     <>
-      <form
-        autoCapitalize="true"
-        autoComplete="true"
-      >
-        <div>
-          <div className="mb-3 mt-3">
-            <TextField
-              type="text"
-              required
-              id="name"
-              variant="outlined"
-              value={data.name}
-              size="medium"
-              label="Name"
-              onChange={(event) => handleChange(event, "name")}
-              sx={{ width: "100%" }}
-            />
+      <div className='container'>
+        <form autoCapitalize="true" autoComplete="true">
+          <div>
+            <div className="mb-3 mt-3">
+              <label>clinician name</label>
+              <input
+                type="text"
+                required
+                id="name"
+                className='form-control'
+                value={data.name}
+                onChange={(event) => handleChange(event, "name")}
+              />
+            </div>
+            <div className="mb-3 mt-3">
+              <label>phone number</label>
+              <input
+                type="tel"
+                inputMode='numeric'
+                className='form-control'
+                value={data.phone}
+                onChange={(event) => handleChange(event, "phone")}
+                required
+                maxLength={10} minLength={10}
+              />
+            </div>
+            <div className="mb-3 mt-3">
+              <label>Email</label>
+              <input className='form-control'
+                type="email"
+                required
+                id="email"
+                value={data.email}
+                onChange={(event) => handleChange(event, "email")}
+              />
+            </div>
+            <div className="mb-3 mt-3">
+              <Autocomplete
+                id="organization"
+                options={OrganizationList}
+                getOptionLabel={(option) => option.NAME}
+                sx={{ width: "100%" }}
+                renderInput={(params) => (
+                  <>
+                    <TextField
+                      {...params}
+                      label="Organization"
+                      size="small"
+                    />
+                  </>
+                )}
+                onChange={(event, value) => {
+                  if (Array.isArray(OrganizationList) && OrganizationList.length > 0) {
+                    setData({ ...data, organization: value.ID })
+                  }
+                }}
+              />
+            </div>
+            <div className="mb-3 mt-3">
+              <TextField
+                type="text"
+                onChange={(event) => handleChange(event, "location")}
+                id="location"
+                size="small"
+                value={data.location}
+                label="Location"
+                sx={{ width: "100%" }}
+              />
+            </div>
+            <div className="mb-3 mt-3">
+              <TextField
+                id="address"
+                size="small"
+                value={data.address}
+                onChange={(event) => handleChange(event, "address")}
+                label="Address"
+                sx={{ width: "100%" }}
+              />
+            </div>
+            <div className="mb-3 mt-3">
+              <label className='text-info'>Select occupation that matches closest to yours</label>
+              <FormControl sx={{ width: "100%" }}>
+                <InputLabel id="occupation-label">Occupation</InputLabel>
+                <Select
+                  labelId="occupation-label"
+                  id="occupation"
+                  value={data.occupation}
+                  onChange={(event) => handleChange(event, "occupation")}
+                  variant="filled"
+                  size="small"
+                >
+                  <MenuItem value="">Select occupation</MenuItem>
+                  <MenuItem value="doctor">Doctor</MenuItem>
+                  <MenuItem value="nurse">Nurse</MenuItem>
+                  <MenuItem value="pharmacist">Pharmacist</MenuItem>
+                  <MenuItem value="therapist">Therapist</MenuItem>
+                  <MenuItem value="other">Other</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
           </div>
-          <div className="mb-3 mt-3">
-            <TextField
-              type="tel"
-              inputMode='numeric'
-              value={data.phone}
-              onChange={(event) => handleChange(event, "phone")}
-              sx={{ width: "100%" }}
-              required
-              inputProps={{
-                maxLength: 10,
-                minLength: 10,
-              }}
-              id="phone"
-              variant="outlined"
-              size="medium"
-              label="Phone"
-            />
-          </div>
-          <div className="mb-3 mt-3">
-            <TextField
-              type="email"
-              required
-              id="email"
-              value={data.email}
-              onChange={(event) => handleChange(event, "email")}
-              variant="outlined"
-              size="medium"
-              label="Email"
-              sx={{ width: "100%" }}
-            />
-          </div>
-          <div className="mb-3 mt-3">
-            <Autocomplete
-              id="organization"
-              value={data.organizationName || ''}
-              options={organization}
-              getOptionLabel={(option) => option.NAME}
-              sx={{ width: "100%" }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Organization"
-                  variant="outlined"
-                  size="medium"
-                />
-              )}
-              onChange={(event, value) => {
-                if (Array.isArray(organization) && organization.length > 0) {
-                  stateUpdate({ ...data, organization: value.ID, organizationName: value.NAME })
-                }
-              }}
-            />
-          </div>
-          <div className="mb-3 mt-3">
-            <TextField
-              type="text"
-              onChange={(event) => handleChange(event, "location")}
-              id="location"
-              variant="outlined"
-              size="medium"
-              value={data.location}
-              label="Location"
-              sx={{ width: "100%" }}
-            />
-          </div>
-          <div className="mb-3 mt-3">
-            <TextField
-              id="address"
-              variant="outlined"
-              size="medium"
-              value={data.address}
-              onChange={(event) => handleChange(event, "address")}
-              label="Address"
-              sx={{ width: "100%" }}
-            />
-          </div>
-          <div className="mb-3 mt-3">
-            <p>Select occupation that matches closest to yours</p>
-            <FormControl sx={{ width: "100%" }}>
-              <InputLabel id="occupation-label">Occupation</InputLabel>
-              <Select
-                labelId="occupation-label"
-                id="occupation"
-                value={data.occupation}
-                onChange={(event) => handleChange(event, "occupation")}
-                variant="outlined"
-                size="medium"
-              >
-                <MenuItem value="">Select occupation</MenuItem>
-                <MenuItem value="doctor">Doctor</MenuItem>
-                <MenuItem value="nurse">Nurse</MenuItem>
-                <MenuItem value="pharmacist">Pharmacist</MenuItem>
-                <MenuItem value="therapist">Therapist</MenuItem>
-                <MenuItem value="other">Other</MenuItem>
-              </Select>
-            </FormControl>
-          </div>
-        </div>
-      </form>
+          <button
+            type="button"
+            variant="contained"
+            className='custom-button'
+            color="primary"
+            onClick={handleSubmit}
+            // startIcon={<SaveAs />}
+            style={{ marginTop: '16px', marginBottom: '20px' }}
+          >
+            Submit
+          </button>
+        </form>
+      </div>
     </>
   );
 }

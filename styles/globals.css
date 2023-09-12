@@ -1620,7 +1620,7 @@ option:hover {
   width: 100%;
   background-color: white;
   display: grid;
-  grid-template-columns: repeat(5,1fr);
+  grid-template-columns: repeat(5, 1fr);
 }
 
 .custom-navigation > #list {
@@ -2331,8 +2331,8 @@ option:hover {
 input[type='email'] {
   text-transform: lowercase !important;
 }
-input:invalid {
-  border: 1px solid var(--red-500);
+input:required:invalid {
+  border: 3px solid var(--red-500);
 }
 
 .company-view-result > .wrapper {
@@ -2920,4 +2920,36 @@ input[type='text'] {
   #billing-page-main-wrapper > #test-selection-cart {
     margin: 4%;
   }
+}
+
+#sidebarmap {
+  background-color: whitesmoke;
+  width: 100%;
+  height: 100vh;
+}
+
+#sidebarmap > ul {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+#sidebarmap > ul > .linker {
+  margin: 5px 10px 4px 10px;
+}
+
+#sidebarmap > ul > .linker > .content {
+  display: grid;
+  grid-template-columns: 20% auto;
+  grid-gap: 5px;
+  padding: 10px;
+  text-transform: capitalize;
+  align-items: center;
+}
+#sidebarmap > ul > .linker:is(:hover, :focus) {
+  background-color: var(--green-700);
+  color: white;
+  transition: 500ms all cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-radius: 10px;
 }

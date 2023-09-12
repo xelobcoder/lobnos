@@ -115,7 +115,7 @@ export default function Settings() {
 								</button>
 							</td>
 						</tr>
-						<tr>
+						{/* <tr>
 							<td>2</td>
 							<td className="text-capitalize"> font size</td>
 							<td>{ApplicationSettings?.fontsize}px</td>
@@ -130,15 +130,15 @@ export default function Settings() {
 							<td>
 								<input type="color" value={ApplicationSettings?.textcolor || 'black'} />
 							</td>
-						</tr>
-						<tr>
+						</tr> */}
+						{/* <tr>
 							<td>4</td>
 							<td className="text-capitalize">background color</td>
 							<td>white</td>
 							<td>
 								<input type="color"  value={ApplicationSettings?.BackgroundColor || 'wheat'}/>
 							</td>
-						</tr>
+						</tr> */}
 						{/* deactivate after 24 hrs */}
 						<tr>
 							<td>5</td>

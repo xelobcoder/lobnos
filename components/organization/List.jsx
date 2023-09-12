@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import TableDisplay from '../../components/accessories/TableDisplay';
-import { customFetch } from '../Auth/customFetch';
+import { customFetch, deleteOrganization } from '../Auth/customFetch';
 import { Button, IconButton } from '@mui/material';
-import { Add, DeleteOutlineOutlined, Tab, Visibility, VisibilityIcon } from '@mui/icons-material';
+import { Add, DeleteOutlineOutlined, Edit, Tab, Visibility, VisibilityIcon } from '@mui/icons-material';
 import Link from 'next/link';
 
 export default function OrganizationList() {
@@ -36,10 +36,13 @@ export default function OrganizationList() {
       Header: 'details',
       accessor: 'viewmore', Cell: ({ row }) => {
         return <span>
+          <IconButton edge='start' size='small' color='primary'>
+            <Edit />
+          </IconButton>
           <IconButton edge='start' size='small' sx={{ color: 'green' }}>
             <Visibility />
           </IconButton>
-          <IconButton edge='start' size='small' sx={{ color: 'red' }}>
+          <IconButton edge='start' size='small' sx={{ color: 'red' }} onClick={(e) => deleteOrganization(row.original.ID, getOrganizationData)}>
             <DeleteOutlineOutlined />
           </IconButton>
         </span>
@@ -47,7 +50,8 @@ export default function OrganizationList() {
     }
   ]
 
-  useEffect(() => {
+
+  const getOrganizationData = function () {
     customFetch('organizations/details')
       .then((response) => {
         const { statusCode, status, records } = response;
@@ -56,6 +60,10 @@ export default function OrganizationList() {
           setOrganization([])
       })
       .catch((err) => setOrganization([]))
+  }
+
+  useEffect(() => {
+    getOrganizationData();
   }, [])
 
   return (

@@ -8,7 +8,7 @@ import CancelScheduleSendIcon from "@mui/icons-material/CancelScheduleSend";
 import SendIcon from "@mui/icons-material/Send";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import { customFetch, customPost } from "../../../components/Auth/customFetch";
-import { ShopOutlined } from "@mui/icons-material";
+import TopComponentBillingButton from "../../../components/Billing/topComponentBillingButton";
 
 export default function Billing({ }) {
   const [allpanels, setAllpanels] = useState([]);
@@ -69,7 +69,7 @@ export default function Billing({ }) {
     samplingCenter: "",
   });
 
- 
+
   useEffect(() => { setData({ ...data, patientid: router }) }, [router])
 
   const [selected, setSelected] = useState(null);
@@ -170,17 +170,11 @@ export default function Billing({ }) {
 
   return (
     <>
-      <div style={{ margin: '10px 20px' }} className="d-flex justify-content-end alert alert-warning">
-        <span style={{ fontSize: '20px' }}>Cart {" "}{testArray.length}</span>
-        <ShopOutlined fontSize='large' />
-      </div>
+      <TopComponentBillingButton  cart={testArray.length}/>
       <div
-        id="billing-page-main-wrapper"
-      >
+        id="billing-page-main-wrapper" >
         <div id="top-wrap">
-          <div
-            id="test-selection"
-          >
+          <div id="test-selection">
             <Autocomplete
               options={allpanels}
               getOptionLabel={(option) => option.NAME}

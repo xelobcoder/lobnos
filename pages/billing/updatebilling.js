@@ -19,12 +19,9 @@ export default function Updatebilling() {
     try {
      async  function getData() {
         const { result, statusCode } = await customFetch(`billing?billingid=${billid}`)
-
         statusCode === 200 && setClientDetails(result)
       }
-
       getData()
-
     } catch (error) {
       throw error;
     }

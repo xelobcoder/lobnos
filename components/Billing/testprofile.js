@@ -157,13 +157,6 @@ export default function TestProfileBilling() {
     }
   }
 
-
-  const validateProgres = function (target, id) {
-    const getSpecific = initiated.filter((t, i) => { return t.TESTID == id })
-    return getSpecific[0]?.[`${target}`]
-  }
-
-
   return (
     <>
       <ClientContextConsumer>

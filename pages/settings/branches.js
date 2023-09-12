@@ -122,7 +122,7 @@ export default function Branches() {
           className="m-0 p-1"
           style={{
             display: "grid",
-            gridTemplateColumns: "20% 30% 20% 10% 20%",
+            gridTemplateColumns: "10% 25% 20% 10% 25%",
             borderBottom: "1px solid lightgray",
             backgroundColor: `${(index % 2) != 0 ? 'whitesmoke' : 'white'}`
           }}
@@ -136,19 +136,18 @@ export default function Branches() {
           </div>
           <div>{item.NAME.toUpperCase()}</div>
           <div>{item.DATE.slice(0, 10)}</div>
-          <div className={`${item.ACTIVATION == 0 ? 'text-danger' : 'text-success'}`}>{item.ACTIVATION == 0 ? 'Inactive' : 'Active'}</div>
+          <div className={`text-capitalize ${item.ACTIVATION == 0 ? 'text-danger p-0' : 'text-success p-0'}`}>{item.ACTIVATION == 0 ? 'Inactive' : 'Active'}</div>
           <div style={{ display: 'grid', gridTemplateColumns: '40% auto auto' }}>
-            <button style={{ marginRight: '10px' }} className={`${item.ACTIVATION == 0 ? 'btn btn-success' : 'btn btn-danger'}`}
+            <button style={{ marginRight: '10px' }} className={`text-capitalize ${item.ACTIVATION == 0 ? 'btn btn-success' : 'btn btn-danger'}`}
               onClick={(e) => activateDeactivateBranch(e, item.ACTIVATION, item.BRANCHID)}>
               {item.ACTIVATION == 0 ? 'activate' : 'deactivate'}
             </button>
-            <button className='btn btn-primary text-white' onClick={(e) => editData(e, index)}>
+            <button className='btn btn-primary text-white p-0' onClick={(e) => editData(e, index)}>
               <EditIcon
                 editset={index}
-
               />
             </button>
-            <button className='btn btn-danger text-white' style={{ marginLeft: "5px" }} onClick={(e) => deleteData(e, index)} >
+            <button className='btn btn-danger text-white p-0' style={{ marginLeft: "5px" }} onClick={(e) => deleteData(e, index)} >
               <DeleteForeverIcon
               />
             </button>
@@ -177,7 +176,7 @@ export default function Branches() {
                 />
               </div>
               <div className="col">
-                <Button variant="contained" onClick={(e) => onClick(e)}>
+                <Button variant="contained"  onClick={(e) => onClick(e)}>
                   {edit ? "edit branch" : "add branch"}
                 </Button>
                 <button
@@ -197,7 +196,7 @@ export default function Branches() {
             className="card-header p-2 bg-lims-default text-white"
             style={{
               display: "grid",
-              gridTemplateColumns: "20% 30% 20% 10% 20%",
+              gridTemplateColumns: "10% 25% 20% 10% 25%",
               textTransform: "uppercase",
             }}
           >

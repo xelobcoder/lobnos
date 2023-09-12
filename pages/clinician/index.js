@@ -1,54 +1,29 @@
 import React, { useEffect, useState } from "react";
-import { customFetch, customPost, handleChange, validateFormData } from "../../components/Auth/customFetch";
+import { customFetch, customPost, getDataAndUpdateState, handleChange, validateFormData } from "../../components/Auth/customFetch";
 import TableDisplay from '../../components/accessories/TableDisplay';
-import { IconButton, Typography } from "@mui/material";
-import { Add, BarChart, DeleteForeverOutlined, Edit, MedicalInformation, Money, ViewAgenda, Visibility } from "@mui/icons-material";
-import BasicInformationClinician from '../../components/Clinicians/BasicInformationClinician';
-import PaymentModuleClinician from "../../components/Clinicians/PaymentModule";
+import { Avatar, IconButton, Typography } from "@mui/material";
+import { Add, AddBox, AddOutlined, DeleteForeverOutlined, Edit, MedicalInformation, Visibility } from "@mui/icons-material";
+import { useRouter } from "next/router";
+import SideBarMapView from "../../components/Clinicians/SideBarMapView";
+import SidebarLayoutMap from "../../components/Clinicians/SidebarLayoutMap";
 
 export default function Clinicians() {
-  // this set the clinician id for updating payment infor
-  const [selectedClinician, setSelectedClinician] = useState({ name: '', id: "" });
-  const [view, setView] = useState(true);
-  const [editing, setEditing] = useState(false);
-
-  const defaultData = {
-    name: "",
-    phone: "",
-    email: "",
-    organization: "",
-    location: "",
-    address: "",
-    occupation: "",
-    module: '',
-    commission: '',
-    momo: '',
-    bankName: '',
-    accountName: '',
-    branch: '',
-    account: '',
-  };
   const [ClinicianList, setClinician] = useState([]);
-  const [OrganizationList, setOrganization] = useState([]);
-
-  const [data, setData] = useState(defaultData);
+  const router = useRouter();
 
   useEffect(() => {
-    // using promises all to fetch all the data at once
-    const promises = [
-      customFetch('clinicians'),
-      customFetch('organization')
-    ]
-    // get all the response from the promises
-    Promise.all(promises).then((response) => {
-      const [clinicians, organizations] = response;
-      setClinician(clinicians)
-      setOrganization(organizations)
+    try {
+      getDataAndUpdateState(setClinician, 'clinicians')
+    } catch (err) {
+      console.log(err)
     }
-    ).catch((error) => console.log(error))
-
   }, []);
 
+  const ForClientEdit = (originaldata) => {
+    // converting the data to lowercase
+    const { ID } = originaldata;
+    router.push(`/clinician/update/${ID}`)
+  }
   const columns = [
     {
       Header: 'Name',
@@ -90,7 +65,7 @@ export default function Clinicians() {
       Cell: ({ row }) => {
         const { original } = row;
         return (<div>
-          <IconButton onClick={() => getClientForEdit(original)}>
+          <IconButton onClick={() => ForClientEdit(original)}>
             <Edit />
           </IconButton>
           <IconButton size="small">
@@ -104,10 +79,6 @@ export default function Clinicians() {
     }
   ]
 
-  const handleChange = (event, target) => {
-    const { value } = event.target;
-    setData({ ...data, [target]: value })
-  }
 
   const handleDelete = async (original) => {
     // confirm if client want to delete clinician, if yes delete ,if no  cancel and  ignore everything
@@ -137,149 +108,21 @@ export default function Clinicians() {
     return
   }
 
-  const handleSubmit = async () => {
-
-    const responseCallback = (response) => {
-      const { statusCode, message } = response;
 
 
-      if (statusCode === 200 || statusCode === 201) {
-        setData(defaultData);
-        alert(message);
-        customFetch("clinicians")
-          .then((response) => {
-            setClinician(response);
-          })
-          .catch((error) => console.log(error));
-      }
-
-      if (statusCode === 401 || statusCode === 400) {
-        alert(message)
-      }
-    }
-
-    if (selectedClinician) {
-      let updateRecords = await customPost('clinicians', 'PUT', { id: selectedClinician.id, ...data });
-      alert(updateRecords?.message)
-    } else {
-      await validateFormData(data, false, ['name', 'phone', 'email', 'location', 'address', 'occupation', 'module', 'commission'], 'clinicians', responseCallback)
-    }
-  }
 
 
-  const getClientForEdit = (originaldata) => {
-    setEditing(true)
-    // converting the data to lowercase
-    const {
-      ACCOUNTNAME,
-      ACCOUNTNUMBER,
-      ADDRESS,
-      BANKBRANCH,
-      BANKNAME,
-      COMMISSION,
-      CONTACT,
-      CREATED_ON,
-      EMAIL,
-      ID,
-      LOCATION,
-      MODULE,
-      MOMO,
-      NAME,
-      OCCUPATION,
-      ORGANIZATION,
-      PHONE,
-      UPDATE_ON } = originaldata;
-
-
-    setView(false);
-    setSelectedClinician({ id: ID, name: NAME, })
-
-
-    const data = {
-      id: ID,
-      name: NAME,
-      phone: PHONE,
-      email: EMAIL,
-      organization: ORGANIZATION,
-      location: LOCATION,
-      address: ADDRESS,
-      occupation: OCCUPATION,
-      module: MODULE,
-      commission: COMMISSION,
-      momo: MOMO,
-      bankName: BANKNAME,
-      accountName: ACCOUNTNAME,
-      branch: BANKBRANCH,
-      account: ACCOUNTNUMBER
-    }
-    setData(data)
-  }
-
-  const setDefault = () => { setData(defaultData) }
-
+  const linkers = [
+    { title: "clinicians", link: "/clinician", icon: <MedicalInformation /> },
+    { title: "new clinician", link: "/clinician/new", icon: <AddBox /> },
+  ];
 
   return (
     <>
-
-      <div id="clinician-page-main">
-        <div className="d-flex justify-content-end mb-1">
-          <button className="btn btn-light text-primary"
-            onClick={(e) => setView(false)}>
-            <Add />
-            add new clinician
-          </button>
-          <button onClick={(e) => setView(true)} className="btn btn-light text-primary" style={{ marginLeft: '10px' }}>
-            <ViewAgenda />
-            view clinicians
-          </button>
-        </div>
-        {!view && (
-          <div className="card br-5">
-            <div className="card-header bg-secondary">
-              <button className="btn btn-danger" onClick={setDefault}>
-                {editing ? 'updating record for ' : 'add new clinician'}
-                {selectedClinician && `>>>>>>>>>>>>> ${selectedClinician.name}`}
-              </button>
-            </div>
-            <div className="card-body" id="clinician-info-new">
-              <BasicInformationClinician
-                data={data}
-                organization={OrganizationList}
-                stateUpdate={setData}
-                handleChange={handleChange}
-              />
-              <PaymentModuleClinician
-                data={data}
-                handleSubmit={handleSubmit}
-                handleChange={handleChange}
-              />
-            </div>
-            <div className="card-footer">
-              <button
-                type="button"
-                variant="contained"
-                className='custom-button'
-                color="primary"
-                onClick={handleSubmit}
-                // startIcon={<SaveAs />}
-                style={{ marginTop: '16px', marginBottom: '20px' }}
-              >
-                Submit
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-      {view && (
-        <div>
-          <TableDisplay
-            styling={"excel-table"}
-            column={columns}
-            data={ClinicianList}
-            filtering={true}
-          />
-        </div>
-      )}
+      <SidebarLayoutMap sidebar={<SideBarMapView linkers={linkers} />}>
+        <TableDisplay data={ClinicianList} column={columns} filtering={true}
+        />
+      </SidebarLayoutMap>
     </>
   );
 }
