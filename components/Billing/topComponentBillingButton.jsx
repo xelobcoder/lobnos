@@ -14,9 +14,10 @@ export default function TopComponentBillingButton({ cart }) {
       <SnapClinicianModal
         show={show}
         close={handleShow}
-        component={whattoShow == "c" && <BasicInformationClinician />}
         title={"add new clinician"}
-      />
+      >
+        {whattoShow == "c" && <BasicInformationClinician />}
+      </SnapClinicianModal>
       <div className="container  d-flex justify-content-end mt-2 gap-2">
         <button
           className="btn btn-success"

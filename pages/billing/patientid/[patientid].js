@@ -35,7 +35,6 @@ export default function Billing({ }) {
     try {
       check();
     } catch (err) {
-      // Display a message to the user.
       alert(err.message);
     }
   }, [])
