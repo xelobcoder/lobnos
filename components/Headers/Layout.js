@@ -1,7 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { useRouter } from 'next/router';
 import AuthContext from '../Auth/useAuthentification';
-import LoginCredentials from '../../pages/authentication/login';
 import { useEffect } from 'react';
 
 

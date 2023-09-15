@@ -169,7 +169,7 @@ export default function Billing({ }) {
 
   return (
     <>
-      <TopComponentBillingButton  cart={testArray.length}/>
+      <TopComponentBillingButton cart={testArray.length} />
       <div
         id="billing-page-main-wrapper" >
         <div id="top-wrap">
@@ -414,6 +414,7 @@ export default function Billing({ }) {
 
 
 Billing.getLayout = function (page) {
+
   return (
     <>
       <Header />

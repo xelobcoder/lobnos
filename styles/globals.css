@@ -2807,7 +2807,7 @@ input[type='text'] {
 .software-header-nav {
   background-color: #00224f !important;
   display: grid !important;
-  grid-template-columns: 60% auto auto auto !important;
+  grid-template-columns: 60% auto auto auto auto !important;
 }
 
 #billing-page-main-wrapper {

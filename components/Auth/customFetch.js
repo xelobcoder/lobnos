@@ -3,9 +3,10 @@ export async function customFetch(endpoint) {
       headers: {
          Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
          "Content-Type": "application/json",
-         mode: 'no-cors'
+         mode: 'no-cors',
       },
    });
+
 
    return await response.json();
 }
@@ -18,7 +19,7 @@ export async function customPost(endpoint, method, data) {
       headers: {
          "content-type": "application/json",
          Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
-         mode: 'no-cors'
+         mode: 'no-cors',
       },
       body: JSON.stringify(data),
    });

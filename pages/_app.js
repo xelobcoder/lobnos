@@ -14,11 +14,12 @@ import { useContext } from 'react';
 import MAIN_LAYOUT from '../components/Headers/Layout';
 
 
-function MyApp({ Component, pageProps }) {
+
+function MyApp({ Component, pageProps: { pageProps } }) {
   if (Component.getLayout) {
     return Component.getLayout(<Component {...pageProps} />)
   }
-  
+
   return (
     <>
       <AuthentificationProvider>

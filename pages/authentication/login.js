@@ -6,20 +6,20 @@ import { customPost, validateFormData } from '../../components/Auth/customFetch'
 
 
 
+
 export default function LoginCredentials() {
   const { updateAuthentication } = useContext(AuthContext);
   const navigate = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState({ message: '', status: '' });
-
-
   const handleSubmit = async (e) => {
+
     e.preventDefault();
     // send the email and password to the server
     // if the server responds with a 200 status code;
     const responseHandler = function (data) {
-      const { status, message, statusCode, user ,token} = data;
+      const { status, message, statusCode, user, token } = data;
       if (statusCode == 200 && status == 'success') {
         setMessage({ message, status });
         const transformed = JSON.stringify(user);
@@ -27,7 +27,6 @@ export default function LoginCredentials() {
         localStorage.removeItem('user');
         // add new info
         localStorage.setItem('user', transformed);
-        updateAuthentication(transformed);
         navigate.back()
       } else {
         setMessage({ message, status })
@@ -35,6 +34,7 @@ export default function LoginCredentials() {
     }
     await validateFormData({ email, password }, true, [], 'authenticate', responseHandler)
   }
+
 
 
 
