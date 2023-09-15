@@ -1,4 +1,10 @@
 export async function customFetch(endpoint) {
+   /**
+    * Sends an HTTP request to the specified endpoint and returns the response as JSON.
+    * 
+    * @param {string} endpoint - The endpoint URL to send the request to.
+    * @returns {Promise<object>} - The response from the server as JSON.
+    */
    let response = await fetch(`${process.env.BASEURL}/${endpoint}`, {
       headers: {
          Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
@@ -14,6 +20,18 @@ export async function customFetch(endpoint) {
 export const Glucoseoptions = ["", "mg/dl", "mmol/L"];
 
 export async function customPost(endpoint, method, data) {
+   /**
+    * Sends a POST request to a specified endpoint with the provided data.
+    * Includes necessary headers and authorization token.
+    * Parses the response and checks for a specific status and message.
+    * If the status is 401 and the message is "Unauthorized", redirects the user to the login page.
+    * Otherwise, returns the parsed response.
+    * 
+    * @param {string} endpoint - The endpoint to send the POST request to.
+    * @param {string} method - The HTTP method to use for the request (e.g., "POST", "PUT").
+    * @param {object} data - The data to send in the request body.
+    * @returns {Promise<object>} - The parsed response from the POST request.
+    */
    let response = await fetch(`${process.env.BASEURL}/${endpoint}`, {
       method: method,
       headers: {
@@ -34,6 +52,13 @@ export async function customPost(endpoint, method, data) {
 }
 
 export async function CheckResultEntered(testname, billingid) {
+   /**
+    * Checks if a test result has been entered for a given test name and billing ID.
+    * 
+    * @param {string} testname - The name of the test to check the result for.
+    * @param {string} billingid - The billing ID associated with the test.
+    * @returns {Promise<boolean>} - A promise that resolves to a boolean indicating whether a test result has been entered.
+    */
    if (!(testname && billingid)) {
       return false;
    } else {
@@ -52,6 +77,18 @@ export async function validateFormData(
    callback,
    updateState
 ) {
+   /**
+    * Validates form data before sending it to the server.
+    * 
+    * @param {object} data - The form data to be validated.
+    * @param {boolean} allrequired - A flag indicating whether all fields are required or not.
+    * @param {array} [requiredFields=[]] - An optional array of field names that are required.
+    * @param {string} endpoint - The endpoint to send the form data to.
+    * @param {function} callback - A callback function to handle the response from the server.
+    * @param {boolean} updateState - update state function , optional
+    * @returns {void}
+    */
+   
    const isObject = typeof requiredFields === "object";
    const requiredLen = requiredFields.length;
 
@@ -105,11 +142,30 @@ export async function validateFormData(
 }
 
 export async function handleComments(e, stateVariable, target, datafunction) {
+   /**
+    * Updates a state variable with the value of a target element in response to an event.
+    * 
+    * @param {Event} e - The event object that triggered the function.
+    * @param {Object} stateVariable - The current state variable that needs to be updated.
+    * @param {string} target - The key of the state variable that needs to be updated.
+    * @param {Function} datafunction - The function that updates the state variable.
+    * @returns {void}
+    */
    datafunction({ ...stateVariable, [target]: e.target.value });
 }
 
 
 export const resultCommentHander = async function (statecallback, target, datasource, testid, billingid) {
+   /**
+    * Retrieves comments from a server and updates the state of a callback function.
+    * 
+    * @param {function} statecallback - The callback function that will be called with the updated state.
+    * @param {string} target - The key in the `datasource` object where the comments will be stored.
+    * @param {object} datasource - An object that holds the data.
+    * @param {string} testid - The ID of the test.
+    * @param {string} billingid - The ID of the billing.
+    * @returns {void} - This function does not return any value. It updates the state of the `statecallback` function with the merged comments.
+    */
    const commentResponse = await customFetch(`result/preview/comments?billingid=${billingid}&testid=${testid}`);
    if (Array.isArray(commentResponse) && commentResponse.length > 0) {
       const { comments } = commentResponse[0];
@@ -270,3 +326,21 @@ export const getDataAndUpdateState = async function (setfxn, endpoint, returner)
    }
 }
 
+
+export const printResultNavigator = async (navigate, billingid, item, newTab = false) => {
+   const { testid, name } = item;
+   let nwName = name;
+   if (name.split(" ").length > 1) {
+      nwName = name.split(" ").join("_")
+      if (new String(nwName).includes('(')) {
+         nwName = nwName.split("(");
+         nwName = nwName[0]
+      }
+   }
+
+   if (newTab) {
+      window.open(`/registration/result?billingid=${billingid}&&testid=${testid}&&test=${nwName.toLowerCase()}`)
+   } else {
+      navigate.push(`/registration/result?billingid=${billingid}&&testid=${testid}&&test=${nwName.toLowerCase()}`)
+   }
+}

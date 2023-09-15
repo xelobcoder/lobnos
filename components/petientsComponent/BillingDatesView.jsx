@@ -1,6 +1,9 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import SECOND_NO_DATA from '../accessories/secondNodata';
+import style from '../../styles/patients.module.css'
+import { PatientContext } from '../../pages/patients';
 export default function BillingDatesView({ source }) {
+  const { initials, updateInitials } = useContext(PatientContext);
 
   return (
     <>
@@ -9,8 +12,20 @@ export default function BillingDatesView({ source }) {
       {source.length > 0 && (
         source.map((item, index) => {
           return (
-            <li className='p-2 text-primary m-0 hover-text-success  border-bottom cursor-pointer bg-opacity-50' key={index}>{item.date}</li>
-          )
+            <li
+              className={`${style.transaclist} bg-secondary rounded text-center text-dark m-0   border-bottom cursor-pointer bg-opacity-50`}
+              key={index}
+              onClick={(e) => {
+                updateInitials({
+                  ...initials,
+                  selected: true,
+                  selectedValue: item.TransactionId,
+                });
+              }}
+            >
+              {item.TransactionsDate.slice(0,10)}
+            </li>
+          );
         })
       )}
     </>

@@ -1,11 +1,12 @@
 import React, { useState, createContext } from 'react'
 import SearchFieldPatients from '../../components/petientsComponent/searchField'
+import TestsTable from '../../components/petientsComponent/TestsTable';
 export const PatientContext = createContext();
 const PatientProvider = PatientContext.Provider;
 
 export default function PATIENTS_INDEX_PAGE() {
   const initialParams = {
-    query: 0,
+    query: 2023854,
     selected: true,
     selectedValue: null,
     runprogressionRate: false,
@@ -14,17 +15,8 @@ export default function PATIENTS_INDEX_PAGE() {
     runComparisionFlow: false,
     comparisoncount: 0,
     view: 'list',
-    datesSource: [
-      { date: "2023-09-14T10:24:19.201Z"},
-      { date: "2023-09-14T10:24:19.201Z"},
-      { date: "2023-09-14T10:24:19.201Z"},
-      { date: "2023-09-14T10:24:19.201Z"},
-      { date: "2023-09-14T10:24:19.201Z"},
-      { date: "2023-09-14T10:24:19.201Z"},
-      { date: "2023-09-14T10:24:19.201Z"},
-      { date: "2023-09-14T10:24:19.201Z"},
-      { date: "2023-09-14T10:24:19.201Z"}
-    ],
+    datesSource:[],
+    selectedBillingidTest: [],
     runBillingDates: function () {
       if (this.query && this.query.toString().length > 4) {
         return 'Allah is your creator';
@@ -40,14 +32,12 @@ export default function PATIENTS_INDEX_PAGE() {
   return (
     <>
       <PatientProvider value={{ initials, updateInitials }}>
-        <div className='wrapper p-2'>
+        <div className='wrapper p-2 whitesmoke'>
           <div className='p-2'>
             <SearchFieldPatients />
           </div>
           <div className='main p-2'>
-            jife89pggleo78gwef9p84ioroiihirgphorb4rg
-            pogpk3iog3ogio3go3ioooiogioogwiogoiwoow4
-            ieggigiigwiiefwdklivuosgwpogvpoefogq3ro
+           <TestsTable/>
           </div>
         </div>
       </PatientProvider>

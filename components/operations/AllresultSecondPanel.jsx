@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { customFetch } from '../Auth/customFetch';
+import { customFetch, printResultNavigator } from '../Auth/customFetch';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { Button } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
 import OperationsContext from './OperationsContext'
@@ -10,6 +11,7 @@ export default function AllresultSecondPanel() {
   const [expandAll, setExpandAll] = useState(false);
   const [datapool, setDatapool] = useState([]);
   const [active, setActive] = useState(null);
+  const navigator = useRouter();
 
 
   const getPreview = async function () {
@@ -55,7 +57,7 @@ export default function AllresultSecondPanel() {
               {
                 (active == index || expandAll == true) && (
                   <div className='buttons'>
-                    <button
+                    {/* <button
                       style={{ textTransform: 'lowercase', height: '40px' }}
                       className={
                         item.processing == 'true' ? 'custom-button' : 'bg-custom-red'
@@ -65,7 +67,7 @@ export default function AllresultSecondPanel() {
                       title={item.processing == 'true' ? 'item already procesing hence button disabled' : 'click to start processing sample'}
                     >
                       processing
-                    </button>
+                    </button> */}
                     <button
                       style={{ textTransform: 'lowercase', height: '40px' }}
                       className={
@@ -74,13 +76,15 @@ export default function AllresultSecondPanel() {
                       onClick={() => handleResult(item.testid, item.billingid, item.NAME)}>
                       result
                     </button >
-                    {
+                    {/* {
                       item.ready == 'true' && (<button
                         style={{ textTransform: 'lowercase', height: '40px' }}
-                        className='custom-button'>
+                        className='custom-button'
+                        onClick={(ev) => { printResultNavigator(navigator, item.billingid, { name: item.NAME, testid: item.testid }) }}
+                      >
                         preview
                       </button>)
-                    }
+                    } */}
                   </div>
                 )
               }

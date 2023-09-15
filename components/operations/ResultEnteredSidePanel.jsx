@@ -23,8 +23,6 @@ export default function ResultEnteredSidePanel() {
   const handleUpdate = (e, item) => { updateOperations({ billingid: item.BILLINGID, patientid: item.PATIENTID }) }
 
 
-  console.log(operationsKey)
-
 
   return (
     <>
