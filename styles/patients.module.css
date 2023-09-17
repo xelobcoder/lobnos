@@ -1,5 +1,7 @@
 .transaclist:hover {
   cursor: pointer;
+  border: 2px solid gray;
+  transition: 50ms all cubic-bezier(0.175, 0.885, 0.32, 1.275);
   color: white !important;
 }
 
@@ -11,8 +13,9 @@
 .ptttmenu {
   /* Display the menu as a column on screens narrower than 768px */
   position: absolute;
-  left: 90%;
+  left: 85vw;
   margin: 0;
+  width: auto;
   padding: 0;
   border-radius: 5px;
   background-color: #fff;
@@ -20,12 +23,14 @@
   z-index: 1;
 }
 
-/* Add a media query for responsiveness */
+
 @media (max-width: 768px) {
   .ptttmenu {
-    left: auto; /* Reset the left position to allow full-width menu */
-    right: 0; /* Align the menu to the right edge */
-    width: 100%; /* Make the menu full-width */
+    left: auto;
+    top: auto; 
+    right: 0;
+    margin: 10px; 
+    width: 95%; 
   }
 }
 

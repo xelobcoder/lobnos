@@ -16,11 +16,7 @@ export default function BillingDatesView({ source }) {
               className={`${style.transaclist} bg-secondary rounded text-center text-dark m-0   border-bottom cursor-pointer bg-opacity-50`}
               key={index}
               onClick={(e) => {
-                updateInitials({
-                  ...initials,
-                  selected: true,
-                  selectedValue: item.TransactionId,
-                });
+                updateInitials({type: 'POPULATE_SELECTED',selection: item.TransactionId})
               }}
             >
               {item.TransactionsDate.slice(0,10)}

@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect} from 'react';
 
 
-export default function Message({ props,handleView}) {
-  const { message, type, displaytime, show, width } = props;
+export default function Message({ props, handleView }) {
+  const { message, type, show, width } = props;
 
   const [showx, setShowx] = useState(show);
 
@@ -13,16 +13,12 @@ export default function Message({ props,handleView}) {
       switch (type) {
         case 'error':
           return 'alert alert-danger';
-          break;
         case 'success':
           return 'alert alert-success';
-          break;
         case 'info':
-          return 'alert alert-info';
-          break;
+          return 'alert alert-info bg-info';
         case 'warning':
           return 'alert alert-warning';
-          break;
         default:
           return 'alert alert-secondary'
       }
@@ -34,8 +30,8 @@ export default function Message({ props,handleView}) {
     setTimeout(() => {
       setShowx(false);
       handleView();
-    }, displaytime);
-  }, [displaytime])
+    }, 5000);
+  }, [])
 
 
 
@@ -44,7 +40,7 @@ export default function Message({ props,handleView}) {
       {
         showx ?
           <div className='container'>
-            <div className={typeDx()}>
+            <div className={`${typeDx()} p-4 text-white`} style={{ width: width || '400px', position:'absolute',top:'8%',left:'70%' }}>
               {message}
             </div>
           </div>
