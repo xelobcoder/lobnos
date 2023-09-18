@@ -3,8 +3,10 @@ import PersonalInformationRegistration from '../../../components/registration/Pe
 import { patientRegistrationDefaultData } from '../../../components/Auth/registerclient';
 import { Info } from '@mui/icons-material';
 import PatientRecordsLayout from '../../../components/petientsComponent/PatientRecordsLayout';
+import { useRouter } from 'next/router';
 
 export default function Update() {
+
   return (
     <>
       <PatientRecordsLayout>

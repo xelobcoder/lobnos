@@ -275,7 +275,7 @@ export default function Activator() {
                           size="small"
                           color='primary'
                           onClick={(e) => {
-                            router.push(`/registration/?patientid=${item.PATIENTID}`)
+                            router.push(`/patients/${item.PATIENTID}`)
                           }}
                         >
                           update info
