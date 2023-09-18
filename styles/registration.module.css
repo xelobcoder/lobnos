@@ -7,8 +7,8 @@
 
 .age {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-gap: 20%;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  grid-gap: 50px;
 }
 
 .age_desc {
@@ -78,6 +78,12 @@
     margin-top: 10px;
   }
 
+  .age {
+    grid-template-columns: 100% !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    grid-gap: auto;
+  }
+
   .personal {
     padding: 10px;
   }
@@ -86,7 +92,6 @@
     padding: 10px;
   }
 }
-
 
 @media screen and (max-width: 708px) {
   #registration_generate {

@@ -6,6 +6,7 @@ import { Typography } from '@mui/material';
 
 const Yearly = dynamic(() => import('../../../components/salesSummary/Yearly'), { ssr: false });
 
+
 export default function Sales() {
   return (
     <>

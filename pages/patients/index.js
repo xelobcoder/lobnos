@@ -6,6 +6,7 @@ export const PatientContext = createContext();
 const PatientProvider = PatientContext.Provider;
 import style from '../../styles/patients.module.css';
 import { Link } from '@mui/material';
+import ChartView from '../../components/petientsComponent/WeeksChartView';
 
 export default function PATIENTS_INDEX_PAGE() {
   const initialParams = {
@@ -18,6 +19,10 @@ export default function PATIENTS_INDEX_PAGE() {
     runComparisionFlow: false,
     comparisoncount: 0,
     view: 'list',
+    displayChart: false,
+    chartTarget: null,
+    chartData: {},
+    rerunChart: false,
     datesSource: [],
     selectedBillingidTest: [],
     runBillingDates: function () {
@@ -55,6 +60,10 @@ export default function PATIENTS_INDEX_PAGE() {
         return { ...state, selectedValue: null, selected: false, selectedBillingidTest: [] }
       case 'POPULATE_SALES_SUMMARY':
         return { ...state, clientSalesSummaryGeneral: action.data }
+      case 'RENDER_CHART':
+        return { ...state, displayChart: true, chartTarget: action.target, rerunChart: true }
+      case 'POPULATE_CHART_DATA':
+        return { ...state, chartData: action.data }
       default:
         return {}
     }
@@ -69,14 +78,15 @@ export default function PATIENTS_INDEX_PAGE() {
           <div className='p-2'>
             <SearchFieldPatients />
           </div>
-          <div className='main'>
+          <div className='main container'>
             <ul className={style.ul} >
               <Link href='/patients/records' >patient records</Link>
-              <Link href='/patients/update' >update records</Link>
+              <Link href={`/patients/${initials.query}`} >update records</Link>
               <Link href='/patients/notifications'>Notification settings</Link>
               <Link href='/patients/emailsettings'>Email preference</Link>
             </ul>
             <SalesSummaryPatient currency={'$'} data={initials.clientSalesSummaryGeneral} header={'Financial Transaction Summary'} />
+            <ChartView patientid={initials.query} />
             <TestsTable />
           </div>
         </div>

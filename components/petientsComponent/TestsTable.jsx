@@ -26,7 +26,7 @@ export default function TestsTable() {
   }, [selected, selectedValue]);
 
   const openModal = () => {
-    TrackRef.current.open();
+    TrackRef.current.handleShow;
   };
 
   return (

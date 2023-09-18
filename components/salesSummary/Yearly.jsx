@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { customFetch } from '../Auth/customFetch';
 import Chart from 'react-apexcharts'
 
-export default function Yearly({ target, headers }) {
+export default function Yearly({ target, headers, patientid = null, run = false }) {
   const [data, setData] = useState([]);
   // determines how the label is displayed
   const labelid = function (target) {
@@ -86,19 +86,29 @@ export default function Yearly({ target, headers }) {
     }
   ]
 
-  useEffect(() => {
-    const fetchYearly = async () => {
-      const response = await customFetch(`sales/summary/general?target=${target}`);
-      const { status, statusCode, result } = response;
-      if (status == "success" && statusCode == 200) {
-        setData(result);
-      }
+
+  const fetchYearly = async () => {
+    let endpoint = patientid == null ? `sales/summary/general?target=${target}` : `sales/summary/general?target=${target}&&patientid=${patientid}`
+    const response = await customFetch(endpoint);
+    const { status, statusCode, result } = response;
+    if (status == "success" && statusCode == 200) {
+      setData(result);
     }
+  }
+
+  useEffect(() => {
     fetchYearly();
   }, [])
+
+
+  useEffect(() => {
+    fetchYearly();
+  }, [run])
+
+  console.log(run,data,target)
   return (
     <>
-      <div className="card br-5">
+      <div className="card">
         <div className="card-header" style={{ backgroundColor: "white" }}>
           <h6 className="card-title btn btn-success">
             {headers}

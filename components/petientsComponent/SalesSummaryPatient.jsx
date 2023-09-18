@@ -5,8 +5,9 @@ import { useEffect } from 'react';
 import { customFetch, monthCollection, dayCollection } from '../Auth/customFetch';
 import { AnalyticsOutlined } from '@mui/icons-material';
 
+
 export default function SalesSummaryPatient({ header, data, currency }) {
-  const { initials, updateInitials } = useContext(PatientContext);
+  const { initials, updateInitials, chartData } = useContext(PatientContext);
   const targetPatientId = initials.query;
   const runSales = initials.runSales;
 
@@ -20,6 +21,15 @@ export default function SalesSummaryPatient({ header, data, currency }) {
         const week = await customFetch(`sales/summary/general?target=weekly&&patientid=${targetPatientId}`);
         try {
           const [yearly, daily, monthly, weekly] = await Promise.all([year, day, month, week]);
+
+          updateInitials({
+            type: 'POPULATE_CHART_DATA', data: {
+              yearly: yearly?.result,
+              daily: daily?.result,
+              monthly: monthly?.result,
+              weekly: weekly?.result
+            }
+          })
 
           let field = {};
 
@@ -82,7 +92,13 @@ export default function SalesSummaryPatient({ header, data, currency }) {
     }
   }, [targetPatientId, runSales])
 
-  console.log(new Date().getDay())
+
+  const renderChart = function (target) {
+    if (targetPatientId && runSales) {
+      updateInitials({ type: 'RENDER_CHART', target })
+    }
+  }
+
 
   return (
     <>
@@ -94,7 +110,7 @@ export default function SalesSummaryPatient({ header, data, currency }) {
               <div className='card-header d-flex justify-content-between pointer'>
                 <span> Day ({data?.day?.day}th)</span>
                 <span>
-                  <AnalyticsOutlined />
+                  {/* <AnalyticsOutlined /> */}
                 </span>
               </div>
               <div className='card-body'>
@@ -106,7 +122,7 @@ export default function SalesSummaryPatient({ header, data, currency }) {
               <div className='card-header d-flex justify-content-between pointer'>
                 <span>  Week ({data?.week?.week})</span>
                 <span>
-                  <AnalyticsOutlined />
+                  <AnalyticsOutlined onClick={(ev) => { renderChart('weekly') }} />
                 </span>
               </div>
               <div className='card-body'>
@@ -118,7 +134,7 @@ export default function SalesSummaryPatient({ header, data, currency }) {
               <div className='card-header d-flex justify-content-between pointer'>
                 <span>Month( {data?.month?.month})</span>
                 <span>
-                  <AnalyticsOutlined/>
+                  <AnalyticsOutlined onClick={(ev) => { renderChart('monthly') }} />
                 </span>
               </div>
               <div className='card-body'>
@@ -131,7 +147,7 @@ export default function SalesSummaryPatient({ header, data, currency }) {
                 <span>
                   Year ({new Date().getFullYear()})
                 </span>
-                <span><AnalyticsOutlined /></span>
+                <span><AnalyticsOutlined onClick={(ev) => { renderChart('yearly') }} /></span>
               </div>
               <div className='card-body'>
                 <h1>{currency} {data?.yearly?.sales}</h1>

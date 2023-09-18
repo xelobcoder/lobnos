@@ -84,7 +84,7 @@ export default function PersonalInfomationRegistration({ setData, data, setError
             label="email"
           />
           <label>Date of Birth</label>
-          <FormControl className={style.age}>
+          <div className={`${style.age} form-row`} >
             <input
               className="custom-input"
               min={1}
@@ -127,7 +127,7 @@ export default function PersonalInfomationRegistration({ setData, data, setError
               placeholder="years"
               tabIndex={9}
             />
-          </FormControl>
+          </div>
           <label>age</label>
           <input
             value={data.personalInformation.age}
