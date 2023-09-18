@@ -84,9 +84,11 @@ export default function Widget({ show, handleClickedLink }) {
     {
       title: 'Authentication',
       Link: '/authentication/register'
+    },
+    {
+      title: 'patients Records',
+      Link: '/patients'
     }
-
-
   ]
 
   const router = useRouter();
