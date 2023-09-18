@@ -4,16 +4,18 @@ import { PersonPinCircle } from '@mui/icons-material';
 import { handleMobile, handleEmail } from '../Auth/registerclient';
 import style from "../../styles/registration.module.css";
 
-export default function PersonalInfomationRegistration({ setData, data,  setError}) {
+export default function PersonalInfomationRegistration({ setData, data, setError, card }) {
   return (
     <>
-      <div className='card m-0 p-0' id="card-border">
+      <div className={card == true ? `card m-0 p-0` : 'none'} id="card-border">
         <div className="card-header">
-          <h5 className='btn btn-danger text-white'>
-            <IconButton sx={{ color: 'white' }}>
-              <PersonPinCircle />
-            </IconButton>
-            Personal Information</h5>
+          {card == true &&
+            <h5 className='btn btn-danger text-white'>
+              <IconButton sx={{ color: 'white' }}>
+                <PersonPinCircle />
+              </IconButton>
+              Personal Information
+            </h5>}
         </div>
         <div className="card-body">
           <label>first name </label>
@@ -132,8 +134,8 @@ export default function PersonalInfomationRegistration({ setData, data,  setErro
             onChange={(e) => setData({ ...data, personalInformation: { ...data.personalInformation, age: e.target.value } })}
             type="number"
             tabIndex={10}
-             min={0}
-             max={150}
+            min={0}
+            max={150}
             className="custom-input"
             placeholder="age"
           />

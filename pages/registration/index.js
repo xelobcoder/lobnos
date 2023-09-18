@@ -18,8 +18,6 @@ export default function Registration({ organization, clinician }) {
   const [detailRegistration, setDetailRegistration] = useState(false);
   const [error,setError]= useState(false)
  
-
-
   const [data, setData] = useState(patientRegistrationDefaultData);
 
   const [disable, setDisable] = useState(false);

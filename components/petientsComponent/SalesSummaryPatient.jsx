@@ -7,7 +7,6 @@ import { AnalyticsOutlined } from '@mui/icons-material';
 
 export default function SalesSummaryPatient({ header, data, currency }) {
   const { initials, updateInitials } = useContext(PatientContext);
-
   const targetPatientId = initials.query;
   const runSales = initials.runSales;
 
@@ -32,7 +31,7 @@ export default function SalesSummaryPatient({ header, data, currency }) {
             if (Array.isArray(result) && result.length > 0 && status == 'success' && statusCode == 200) {
               if (key == 'day') {
                 let total = result.filter((item, index) => { return today == new Date(item.date).getDate() })
-                total.length > 0 ? field[key] = total[0] : field[key] = { sales: 0, count: 0 }
+                total.length > 0 ? field[key] = { sales: total[0]['salesAmount'], count: total[0]['totalCases'], day: today } : field[key] = { sales: 0, count: 0, day: today }
               }
 
               if (key == 'week') {
@@ -60,7 +59,9 @@ export default function SalesSummaryPatient({ header, data, currency }) {
                     let current = { sales: a.sales + b.sales, count: a.count + b.count };
                     return current;
                   });
-                field[key] = total;
+                if (month) {
+                  field[key] = { ...total, month: monthCollection[new Date().getMonth()] };
+                }
               }
             }
           }
@@ -91,9 +92,9 @@ export default function SalesSummaryPatient({ header, data, currency }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gridGap: '10px', marginBottom: '20px' }}>
             <div className='card br-5'>
               <div className='card-header d-flex justify-content-between pointer'>
-                <span> Day</span>
+                <span> Day ({data?.day?.day}th)</span>
                 <span>
-                  <AnalyticsOutlined/>
+                  <AnalyticsOutlined />
                 </span>
               </div>
               <div className='card-body'>
@@ -105,7 +106,7 @@ export default function SalesSummaryPatient({ header, data, currency }) {
               <div className='card-header d-flex justify-content-between pointer'>
                 <span>  Week ({data?.week?.week})</span>
                 <span>
-                  <AnalyticsOutlined/>
+                  <AnalyticsOutlined />
                 </span>
               </div>
               <div className='card-body'>
@@ -114,8 +115,11 @@ export default function SalesSummaryPatient({ header, data, currency }) {
             </div>
             {/* total paid */}
             <div className='card br-5'>
-              <div className='card-header'>
-                Month { }
+              <div className='card-header d-flex justify-content-between pointer'>
+                <span>Month( {data?.month?.month})</span>
+                <span>
+                  <AnalyticsOutlined/>
+                </span>
               </div>
               <div className='card-body'>
                 <h1>{currency} {data?.month?.sales}</h1>
@@ -123,8 +127,11 @@ export default function SalesSummaryPatient({ header, data, currency }) {
             </div>
             {/* outstanding */}
             <div className='card br-5'>
-              <div className='card-header'>
-                Year ({new Date().getFullYear()})
+              <div className='card-header d-flex justify-content-between pointer'>
+                <span>
+                  Year ({new Date().getFullYear()})
+                </span>
+                <span><AnalyticsOutlined /></span>
               </div>
               <div className='card-body'>
                 <h1>{currency} {data?.yearly?.sales}</h1>

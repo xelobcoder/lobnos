@@ -2,16 +2,20 @@ import React from 'react'
 import { IconButton } from '@mui/material';
 import { Home } from '@mui/icons-material';
 
-export default function Addressing({ setData, data }) {
+export default function Addressing({ setData, data, card }) {
   return (
     <>
-      <div className='card mt-4' id="card-border">
+      <div className={card == true ? 'card mt-4' : 'none'} id="card-border">
         <div className="card-header">
-          <h5 className='btn btn-danger text-white'>
-            <IconButton sx={{ color: 'white' }}>
-              <Home />
-            </IconButton>
-            Address Information</h5>
+          {
+            card &&
+            <h5 className='btn btn-danger text-white'>
+              <IconButton sx={{ color: 'white' }}>
+                <Home />
+              </IconButton>
+              Address Information
+            </h5>
+          }
         </div>
         <div className="card-body">
           <label>Area</label>

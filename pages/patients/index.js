@@ -4,6 +4,8 @@ import TestsTable from '../../components/petientsComponent/TestsTable';
 import SalesSummaryPatient from '../../components/petientsComponent/SalesSummaryPatient';
 export const PatientContext = createContext();
 const PatientProvider = PatientContext.Provider;
+import style from '../../styles/patients.module.css';
+import { Link } from '@mui/material';
 
 export default function PATIENTS_INDEX_PAGE() {
   const initialParams = {
@@ -63,11 +65,17 @@ export default function PATIENTS_INDEX_PAGE() {
   return (
     <>
       <PatientProvider value={{ initials, updateInitials }}>
-        <div className='wrapper p-2 whitesmoke' style={{ height: '100vh' }}>
+        <div className='wrapper  whitesmoke' style={{ height: '100vh' }}>
           <div className='p-2'>
             <SearchFieldPatients />
           </div>
-          <div className='main p-2'>
+          <div className='main'>
+            <ul className={style.ul} >
+              <Link href='/patients/records' >patient records</Link>
+              <Link href='/patients/update' >update records</Link>
+              <Link href='/patients/notifications'>Notification settings</Link>
+              <Link href='/patients/emailsettings'>Email preference</Link>
+            </ul>
             <SalesSummaryPatient currency={'$'} data={initials.clientSalesSummaryGeneral} header={'Financial Transaction Summary'} />
             <TestsTable />
           </div>
