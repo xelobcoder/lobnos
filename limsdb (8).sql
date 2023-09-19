@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 05, 2023 at 07:06 AM
+-- Generation Time: Sep 19, 2023 at 04:52 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -37,36 +37,6 @@ CREATE TABLE `activation` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `adminmanagerpermission`
---
-
-CREATE TABLE `adminmanagerpermission` (
-  `id` int(11) NOT NULL,
-  `employeeid` int(11) DEFAULT 1,
-  `deletev` tinyint(1) DEFAULT 1,
-  `editv` tinyint(1) DEFAULT 1,
-  `registerv` tinyint(1) DEFAULT 1,
-  `viewv` tinyint(1) DEFAULT 1,
-  `printv` tinyint(1) DEFAULT 1,
-  `activatev` tinyint(1) DEFAULT 1,
-  `pageaccess` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '{}' CHECK (json_valid(`pageaccess`)),
-  `printresult` tinyint(1) DEFAULT 1,
-  `viewresult` tinyint(1) DEFAULT 1,
-  `enterresult` tinyint(1) DEFAULT 1,
-  `editresult` tinyint(1) DEFAULT 1,
-  `deleteresult` tinyint(1) DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `adminmanagerpermission`
---
-
-INSERT INTO `adminmanagerpermission` (`id`, `employeeid`, `deletev`, `editv`, `registerv`, `viewv`, `printv`, `activatev`, `pageaccess`, `printresult`, `viewresult`, `enterresult`, `editresult`, `deleteresult`) VALUES
-(1, 1, 1, 1, 1, 1, 1, 1, '{}', 1, 1, 1, 1, 1);
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `applicationsettings`
 --
 
@@ -87,7 +57,7 @@ CREATE TABLE `applicationsettings` (
 --
 
 INSERT INTO `applicationsettings` (`keyid`, `bulkregistration`, `fontsize`, `textcolor`, `BackgroundColor`, `DeactivateBilling24hrs`, `PaidBillsBeforeTransaction`, `completeFlow`, `approvalbeforeprinting`) VALUES
-(1, 0, '56', 'black', 'wheat', 1, 0, 0, 0);
+(1, 0, '56', 'black', 'wheat', 0, 0, 1, 0);
 
 -- --------------------------------------------------------
 
@@ -112,19 +82,27 @@ CREATE TABLE `billing` (
 --
 
 INSERT INTO `billing` (`BILLINGID`, `PATIENTID`, `PAID_AMOUNT`, `PAYABLE`, `DISCOUNT`, `ORGANIZATION`, `CLINICIAN`, `TYPE`, `OUTSTANDING`) VALUES
-(41, 2023842, 600, 600, 0, 0, 0, 'PREPAID', 0),
-(42, 202384, 6000, 6000, 0, 0, 0, 'PREPAID', 0),
-(43, 202384, 6000, 6000, 0, 0, 0, 'PREPAID', 0),
-(45, 202384, 500, 500, 0, 0, 0, 'PREPAID', 0),
-(46, 202384, 6000, 6000, 0, 0, 0, 'PREPAID', 0),
-(47, 202384, 6000, 6000, 0, 0, 0, 'PREPAID', 0),
-(48, 202384, 6000, 6000, 0, 0, 0, 'PREPAID', 0),
-(49, 202384, 600, 600, 0, 0, 0, 'PREPAID', 0),
-(50, 202384, 600, 600, 0, 0, 0, 'PREPAID', 0),
-(51, 2023842, 20, 20, 0, 0, 0, 'PREPAID', 0),
-(52, 202384, 50, 50, 0, 0, 0, 'PREPAID', 0),
-(53, 2023842, 10, 20, 0, 0, 0, 'PREPAID', 10),
-(54, 2023842, 20, 20, 0, 0, 0, 'PREPAID', 0);
+(58, 2023854, 1600, 1600, 0, 0, 0, 'PREPAID', 0),
+(59, 202385, 99, 99, 0, 0, 0, 'PREPAID', 0),
+(60, 202385, 6090, 6090, 0, 0, 0, 'PREPAID', 0),
+(61, 202385, 1100, 1100, 0, 0, 0, 'PREPAID', 0),
+(62, 2023854, 1050, 1050, 0, 0, 0, 'PREPAID', 0),
+(63, 2023854, 620, 620, 0, 0, 0, 'PREPAID', 0),
+(64, 2023854, 6500, 6500, 0, 0, 0, 'PREPAID', 0),
+(65, 202385, 50, 70, 0, 2, 1, 'PREPAID', 20),
+(66, 2023854, 550, 550, 0, 1, 1, 'PREPAID', 0),
+(67, 202385, 50, 50, 0, 0, 0, 'PREPAID', 0),
+(68, 2023854, 600, 600, 0, 0, 0, 'PREPAID', 0),
+(69, 2023854, 0, 50, 0, 7, 5, 'PREPAID', 50),
+(70, 2023854, 500, 550, 0, 6, 4, 'PREPAID', 50),
+(71, 2023854, 20, 20, 0, 7, 4, 'PREPAID', 0),
+(72, 202385, 6000, 6000, 0, 0, 0, 'PREPAID', 0),
+(73, 2023854, 0, 620, 0, 7, 6, 'PREPAID', 620),
+(74, 2023854, 6500, 6500, 0, 0, 0, 'PREPAID', 0),
+(75, 2023854, 7100, 7100, 0, 0, 0, 'PREPAID', 0),
+(76, 2023854, 60, 60, 0, 0, 0, 'PREPAID', 0),
+(77, 2023854, 6000, 6000, 0, 6, 2, 'PREPAID', 0),
+(78, 20238186, 120, 169, 0, 0, 0, 'PREPAID', 49);
 
 --
 -- Triggers `billing`
@@ -213,7 +191,37 @@ INSERT INTO `billinghx` (`KeyID`, `Billingid`, `Date`, `PaymentMode`, `Amount`) 
 (56, 52, '2023-09-04 16:38:38.836998', 4, 40),
 (57, 52, '2023-09-04 16:42:20.442478', 0, 10),
 (58, 53, '2023-09-05 05:25:22.165408', 4, 10),
-(59, 54, '2023-09-05 05:42:21.176938', 4, 20);
+(59, 54, '2023-09-05 05:42:21.176938', 4, 20),
+(60, 55, '2023-09-05 06:10:18.022738', 4, 60),
+(61, 55, '2023-09-05 06:29:08.990250', 0, 540),
+(62, 53, '2023-09-05 06:29:30.908101', 0, 10),
+(63, 56, '2023-09-05 06:29:42.874786', 4, 20),
+(64, 57, '2023-09-05 06:48:57.341853', 4, 50),
+(65, 58, '2023-09-05 11:24:11.546122', 4, 1000),
+(66, 59, '2023-09-05 11:25:17.872689', 4, 99),
+(67, 60, '2023-09-05 11:32:19.962174', 4, 6090),
+(68, 61, '2023-09-05 11:32:40.258033', 4, 1100),
+(69, 58, '2023-09-06 09:55:09.742135', 0, 600),
+(70, 62, '2023-09-06 09:55:18.984260', 4, 1050),
+(71, 63, '2023-09-06 10:19:02.283597', 4, 620),
+(72, 64, '2023-09-11 07:52:14.574556', 4, 6000),
+(73, 65, '2023-09-11 07:53:01.940418', 4, 50),
+(74, 66, '2023-09-11 08:07:34.903033', 4, 50),
+(75, 67, '2023-09-12 04:58:32.169330', 4, 50),
+(76, 68, '2023-09-12 08:51:18.460026', 4, 600),
+(77, 69, '2023-09-12 20:44:09.456661', 2, 0),
+(78, 70, '2023-09-12 20:51:52.200091', 2, 500),
+(79, 71, '2023-09-12 23:35:01.908407', 2, 20),
+(80, 72, '2023-09-13 00:08:07.190810', 2, 6000),
+(81, 73, '2023-09-13 01:49:24.574099', 4, 0),
+(82, 74, '2023-09-13 06:12:29.826591', 4, 6000),
+(83, 66, '2023-09-15 07:43:04.732271', 0, 500),
+(84, 64, '2023-09-15 07:43:17.003856', 0, 500),
+(85, 74, '2023-09-16 21:13:40.090473', 0, 500),
+(86, 75, '2023-09-17 10:36:55.627653', 4, 7100),
+(87, 76, '2023-09-18 09:37:48.112257', 2, 60),
+(88, 77, '2023-09-18 09:59:19.182735', 4, 6000),
+(89, 78, '2023-09-18 10:15:37.781630', 4, 120);
 
 -- --------------------------------------------------------
 
@@ -238,7 +246,13 @@ CREATE TABLE `bloodgroup` (
 --
 
 INSERT INTO `bloodgroup` (`ID`, `BILLINGID`, `BGROUP`, `RHESUS`, `CREATED_ON`, `UPDATED_ON`, `TIME`, `PATIENTID`, `REMARKS`) VALUES
-(1, 1, 'AB', 'positive', '2023-09-03', '2023-09-03', '09:02:43.000000', 2023729, 'wefjjfu');
+(1, 1, 'AB', 'positive', '2023-09-03', '2023-09-03', '09:02:43.000000', 2023729, 'wefjjfu'),
+(2, 62, 'B', 'negative', '2023-09-06', '2023-09-06', '09:56:05.000000', 2023854, 'jfuiwquiududu'),
+(3, 67, 'B', 'positive', '2023-09-12', '2023-09-12', '20:54:33.000000', 202385, 'hhh'),
+(4, 73, 'B', 'positive', '2023-09-15', '2023-09-15', '14:37:13.000000', 2023854, 'oef2efi2if2'),
+(5, 69, 'B', 'negative', '2023-09-18', '2023-09-18', '13:01:05.000000', 2023854, 'jfjfjqfhqfgw'),
+(6, 66, 'AB', 'negative', '2023-09-18', '2023-09-18', '13:01:47.000000', 2023854, 'kefoqwoioqwo\nkwiirfiw\n\n\nuefuiqrui'),
+(7, 70, 'B', 'positive', '2023-09-18', '2023-09-18', '13:02:28.000000', 2023854, 'ieriowefiowfioefo\noweoffopofofofws\n;wkfwlfl2flqfkqe\n\nk2eqkgwf\'olq\'l');
 
 -- --------------------------------------------------------
 
@@ -258,24 +272,70 @@ CREATE TABLE `branch` (
 --
 
 INSERT INTO `branch` (`BRANCHID`, `NAME`, `DATE`, `ACTIVATION`) VALUES
-(1, 'yendi branch', '2023-09-03', 1),
-(2, 'sda branch', '2023-09-03', 1),
-(3, 'buipe branch', '2023-09-03', 1),
-(4, 'Tamale central', '2023-09-03', 1);
+(1, 'yendi branch', '2023-09-03', 0),
+(2, 'sda branch', '2023-09-03', 0),
+(3, 'buipe branch', '2023-09-03', 0),
+(4, 'Tamale central', '2023-09-03', 1),
+(5, 'headquarters', '2023-09-11', 1);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `clinician`
+-- Table structure for table `clinicianbasicinfo`
 --
 
-CREATE TABLE `clinician` (
+CREATE TABLE `clinicianbasicinfo` (
   `ID` int(255) NOT NULL,
   `NAME` varchar(255) NOT NULL,
   `EMAIL` varchar(100) NOT NULL,
   `LOCATION` varchar(100) NOT NULL,
   `ADDRESS` varchar(255) NOT NULL,
   `OCCUPATION` varchar(100) NOT NULL,
+  `ORGANIZATION` int(50) NOT NULL,
+  `UPDATE_ON` date DEFAULT NULL,
+  `CREATED_ON` datetime(6) NOT NULL DEFAULT current_timestamp(6),
+  `PHONE` int(10) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='collects only the basic information of the clinician';
+
+--
+-- Dumping data for table `clinicianbasicinfo`
+--
+
+INSERT INTO `clinicianbasicinfo` (`ID`, `NAME`, `EMAIL`, `LOCATION`, `ADDRESS`, `OCCUPATION`, `ORGANIZATION`, `UPDATE_ON`, `CREATED_ON`, `PHONE`) VALUES
+(2, 'Mr razak abdulai', 'zak@gmail.com', 'Tamale', 'kalphonin lowcost ', 'doctor', 0, '2023-09-12', '0000-00-00 00:00:00.000000', 500005000),
+(4, 'Mildred Bag', 'hamzatiifu45@gmail.com', 'yanale', 'jdjfkdjud', 'nurse', 0, NULL, '2023-09-12 17:37:59.431113', 585949378),
+(5, 'mohammmed hamza', 'mohammaed@gmial.cpm', 'Tamale', 'Kalpohin Lowcost 30A', 'nurse', 0, NULL, '2023-09-12 17:50:52.588645', 398494984),
+(6, 'tiifu faizah', 'hamzatiifgu457@gmail.com', 'popodpodpo', 'podpodpopo', 'nurse', 0, NULL, '2023-09-12 18:28:41.207588', 693493773),
+(7, 'Tiifu hamza', 'hamzatiifu45props@gmail.com', 'yanale', 'Northern region', 'nurse', 0, NULL, '2023-09-12 19:45:35.722453', 595964565),
+(8, 'ffefeiofio', 'johnsonbuma@gmail.com', 'tamale', 'podpodpopo', 'nurse', 0, NULL, '2023-09-12 19:53:08.712140', 241758550),
+(9, 'none', '00000000000@gmail.com', 'popodpodpo', 'Northern region', 'therapist', 0, NULL, '2023-09-12 20:43:12.230917', 0);
+
+--
+-- Triggers `clinicianbasicinfo`
+--
+DELIMITER $$
+CREATE TRIGGER `onDeleteClinician` AFTER DELETE ON `clinicianbasicinfo` FOR EACH ROW BEGIN 
+DELETE FROM clinicianpaymentinfo WHERE CLINICIANID = OLD.ID;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `onInsertClinician` AFTER INSERT ON `clinicianbasicinfo` FOR EACH ROW BEGIN 
+INSERT INTO clinicianpaymentinfo (CLINICIANID)
+VALUE(NEW.ID);
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `clinicianpaymentinfo`
+--
+
+CREATE TABLE `clinicianpaymentinfo` (
+  `ID` int(255) NOT NULL,
+  `CLINICIANID` int(10) NOT NULL,
   `MODULE` varchar(100) NOT NULL,
   `MOMO` int(50) DEFAULT NULL,
   `BANKNAME` varchar(255) DEFAULT NULL,
@@ -283,18 +343,25 @@ CREATE TABLE `clinician` (
   `ACCOUNTNUMBER` int(100) DEFAULT NULL,
   `ACCOUNTNAME` varchar(255) DEFAULT NULL,
   `ORGANIZATION` int(50) NOT NULL,
-  `UPDATE_ON` date NOT NULL DEFAULT current_timestamp(),
+  `UPDATE_ON` date DEFAULT NULL,
   `CREATED_ON` datetime(6) NOT NULL DEFAULT current_timestamp(6),
-  `PHONE` int(10) NOT NULL,
-  `COMMISSION` int(10) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `COMMISSION` int(10) DEFAULT NULL,
+  `MOMONAME` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='collects only the basic information of the clinician';
 
 --
--- Dumping data for table `clinician`
+-- Dumping data for table `clinicianpaymentinfo`
 --
 
-INSERT INTO `clinician` (`ID`, `NAME`, `EMAIL`, `LOCATION`, `ADDRESS`, `OCCUPATION`, `MODULE`, `MOMO`, `BANKNAME`, `BANKBRANCH`, `ACCOUNTNUMBER`, `ACCOUNTNAME`, `ORGANIZATION`, `UPDATE_ON`, `CREATED_ON`, `PHONE`, `COMMISSION`) VALUES
-(0, 'direct', 'labhill@gmail.com', 'null', '', '', '', NULL, NULL, NULL, NULL, NULL, 0, '2023-09-03', '0000-00-00 00:00:00.000000', 0, NULL);
+INSERT INTO `clinicianpaymentinfo` (`ID`, `CLINICIANID`, `MODULE`, `MOMO`, `BANKNAME`, `BANKBRANCH`, `ACCOUNTNUMBER`, `ACCOUNTNAME`, `ORGANIZATION`, `UPDATE_ON`, `CREATED_ON`, `COMMISSION`, `MOMONAME`) VALUES
+(1, 0, 'cash', 595964565, 'feditlity banck', '9393030', 0, 'Tiifu hamza', 0, '2023-09-03', '0000-00-00 00:00:00.000000', 10, NULL),
+(2, 2, '', NULL, NULL, NULL, NULL, NULL, 0, '2023-09-12', '2023-09-12 07:40:42.538780', NULL, NULL),
+(4, 4, '', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2023-09-12 17:37:59.431113', NULL, NULL),
+(5, 5, '', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2023-09-12 17:50:52.588645', NULL, NULL),
+(6, 6, '', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2023-09-12 18:28:41.207588', NULL, NULL),
+(7, 7, '', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2023-09-12 19:45:35.722453', NULL, NULL),
+(8, 8, '', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2023-09-12 19:53:08.712140', NULL, NULL),
+(9, 9, '', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2023-09-12 20:43:12.230917', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -333,25 +400,7 @@ CREATE TABLE `companyprofile` (
 --
 
 INSERT INTO `companyprofile` (`ID`, `NAME`, `EMAIL`, `MOTTO`, `PHONENUMBER`, `ADDRESS`, `ALTERNATIVENUMBER`, `WEBSITE`, `STREET`) VALUES
-(1, 'Mauplaus Diagnostic Limited', 'mauplausl@gmail.com', 'Health and happiness', 595964565, 'Opposite SDA Gbanjil Road Hse No 19', 240434803, 'mauplus@gmail.com', 'Kalpohin Lowcost 30A');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `customerrepresentativepermission`
---
-
-CREATE TABLE `customerrepresentativepermission` (
-  `employeeid` int(255) NOT NULL,
-  `deletev` tinyint(1) NOT NULL DEFAULT 0,
-  `editv` tinyint(1) NOT NULL DEFAULT 0,
-  `viewv` tinyint(1) NOT NULL DEFAULT 0,
-  `registerv` tinyint(1) NOT NULL DEFAULT 0,
-  `printv` tinyint(1) NOT NULL DEFAULT 0,
-  `activatev` tinyint(1) NOT NULL DEFAULT 0,
-  `keyid` int(255) NOT NULL,
-  `pageAccess` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '{}' CHECK (json_valid(`pageAccess`))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+(1, 'Mauplaus Diagnostic Limited', 'mauplausl@gmail.com', 'Health and happiness', 595964565, 'Opposite SDA Gbanjil Road Hse No 19', NULL, 'mauplus@gmail.com', 'Kalpohin Lowcost 30A');
 
 -- --------------------------------------------------------
 
@@ -432,6 +481,13 @@ CREATE TABLE `fshresult` (
   `updated_on` datetime(6) NOT NULL,
   `comment` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `fshresult`
+--
+
+INSERT INTO `fshresult` (`keyid`, `parameter`, `billingid`, `patientid`, `value`, `dateadded_on`, `updated_on`, `comment`) VALUES
+(1, 'fsh', 73, 2023854, 444, '2023-09-15 14:38:03.042504', '2023-09-15 14:38:48.000000', 'ifoweoweiofioweio');
 
 -- --------------------------------------------------------
 
@@ -517,7 +573,11 @@ CREATE TABLE `hepatitisbresult` (
 --
 
 INSERT INTO `hepatitisbresult` (`ID`, `BILLINGID`, `PATIENTID`, `CREATED_ON`, `TIME`, `RESULTS`, `SCIENTISTID`, `REMARKS`) VALUES
-(1, 1, 2023729, '2023-09-03', '09:02:53.000000', 'non reactive', 2, 'jdjwdfjkwdfj');
+(1, 1, 2023729, '2023-09-03', '09:02:53.000000', 'non reactive', 2, 'jdjwdfjkwdfj'),
+(2, 58, 2023854, '2023-09-05', '11:26:47.000000', 'non reactive', 2, 'kle;fioefuiqo7fyuqwjh'),
+(3, 61, 202385, '2023-09-05', '11:34:42.000000', 'non reactive', 2, 'juduqwfqwyu'),
+(4, 73, 2023854, '2023-09-15', '14:37:34.000000', 'non reactive', 2, 'kwfiwiwefiiwef'),
+(5, 66, 2023854, '2023-09-18', '13:01:32.000000', 'non reactive', 2, 'kwefkfoqioio');
 
 -- --------------------------------------------------------
 
@@ -546,7 +606,9 @@ CREATE TABLE `hepatitisb_profile` (
 
 INSERT INTO `hepatitisb_profile` (`ID`, `HBsAg`, `HBsAb`, `HBeAg`, `HBeAb`, `HBcAb`, `COMMENTS`, `BILLINGID`, `CREATED_ON`, `UPDATED_ON`, `SCIENTIST`, `PATIENTID`) VALUES
 (1, 'non reactive', 'non reactive', 'reactive', 'reactive', 'reactive', 'wekfkwejkwekj', 5, '2023-09-04', NULL, NULL, 2023729),
-(2, 'reactive', 'reactive', 'non reactive', 'reactive', 'non reactive', 'wdkjqJFKAFUY', 36, '2023-09-04', NULL, NULL, 2023729);
+(2, 'reactive', 'reactive', 'non reactive', 'reactive', 'non reactive', 'wdkjqJFKAFUY', 36, '2023-09-04', NULL, NULL, 2023729),
+(3, 'reactive', 'reactive', 'reactive', 'reactive', 'non reactive', 'qfjkjqwfwfhjh', 62, '2023-09-06', NULL, NULL, 2023854),
+(4, 'reactive', 'non reactive', 'reactive', 'non reactive', 'reactive', 'weiogoweoiqwefoqwerio', 70, '2023-09-18', NULL, NULL, 2023854);
 
 -- --------------------------------------------------------
 
@@ -572,7 +634,8 @@ CREATE TABLE `hepatitiscresult` (
 INSERT INTO `hepatitiscresult` (`ID`, `BILLINGID`, `PATIENTID`, `CREATED_ON`, `TIME`, `RESULTS`, `SCIENTISTID`, `REMARKS`) VALUES
 (1, 34, 2023729, '2023-09-04', '12:47:33.000000', 'reactive', 2, 'iweiwiqwi'),
 (2, 50, 202384, '2023-09-04', '16:32:13.000000', 'non reactive', 2, '3kjeetu2et2euifjkwxm,zui\njiwuflwegjeug2eifwduijefjejf\n\nejwfjwefj2efjwdwyfuefsvwduig\n\njhejkwei2eioo2ei2eio2r'),
-(3, 49, 202384, '2023-09-04', '17:24:31.000000', 'non reactive', 2, 'wdkjawhjwej');
+(3, 49, 202384, '2023-09-04', '17:24:31.000000', 'non reactive', 2, 'wdkjawhjwej'),
+(4, 61, 202385, '2023-09-05', '11:34:20.000000', 'non reactive', 2, 'juweujuqwfy');
 
 -- --------------------------------------------------------
 
@@ -650,7 +713,10 @@ CREATE TABLE `malaria` (
 --
 
 INSERT INTO `malaria` (`KEY`, `PATIENTID`, `BILLINGID`, `SPECIES`, `COMMENTS`, `PARASITENUMBER`, `CREATED_ON`, `UPDATED_ON`) VALUES
-(1, 2023729, 1, 'Falciparum', 'oiwiwefi', 100, '2023-09-03 09:01:43.626931', NULL);
+(1, 2023729, 1, 'Falciparum', 'oiwiwefi', 100, '2023-09-03 09:01:43.626931', NULL),
+(2, 2023854, 63, 'Falciparum', 'kgwjgkwjk', 18, '2023-09-06 10:44:41.349574', NULL),
+(3, 20238186, 78, 'Falciparum', 'ieieiifoqweo', 2120, '2023-09-18 10:16:54.200351', NULL),
+(4, 2023854, 71, 'Falciparum', 'iowefiwefiooqweoioi', 500, '2023-09-18 13:01:19.677786', NULL);
 
 -- --------------------------------------------------------
 
@@ -717,8 +783,10 @@ CREATE TABLE `new_patients` (
 --
 
 INSERT INTO `new_patients` (`ID`, `PATIENTID`, `FIRSTNAME`, `EMAIL`, `DOB`, `AGE`, `GENDER`, `MARITAL_STATUS`, `MOBILE_NUMBER`, `AGETYPE`, `OCCUPATION`, `DATE`, `ACTIVATION_STATUS`, `LASTNAME`, `MIDDLENAME`, `ORGANIZATION`) VALUES
-(2, 202384, 'Tiifu', 'hamzatiifu45@gmail.com', '1991-11-06', 31, 'male', 'married', '059594565', 'years', 'Nursing', '2023-09-04', 'TRUE', 'Hamza', 'boronson kojo', 'leonides'),
-(3, 2023842, 'mildred', 'hamzatiifu45@gemail.com', '1992-11-11', 30, 'female', 'married', '0543085842', 'years', 'Nursing', '2023-09-04', 'TRUE', 'nyaaba', 'awineyila', 'leonides');
+(4, 202385, 'Tiifu', 'hamzatiifu45@gmail.com', '1995-11-06', 27, 'male', 'married', '0509594565', 'years', 'Nursing', '2023-09-05', 'TRUE', 'Hamza', 'botonso n', 'leonides'),
+(5, 2023854, 'tiifu', 'hamzatiifu45@gmail.com', '1995-11-06', 27, 'male', 'married', '0595964565', '', 'Nursing', '2023-09-05', 'TRUE', 'hamza', 'kpjp', 'Leonides'),
+(6, 20238155, 'tiifu hamza', 'hamzatiifu455@gmail.com', '1991-11-06', 31, 'male', 'married', '0595964565', 'years', 'Nursing', '2023-09-15', 'TRUE', 'hamza', 'kojo', 'leonides'),
+(7, 20238186, 'haruna', 'harunadams44@gmail.com', '1991-11-06', 31, 'male', 'single', '0202002025', 'years', 'Nursing', '2023-09-18', 'FALSE', 'adams', 'stubborn', 'Tamale senior high school');
 
 --
 -- Triggers `new_patients`
@@ -812,6 +880,15 @@ CREATE TABLE `organization` (
   `CONTACTNUMBER` int(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `organization`
+--
+
+INSERT INTO `organization` (`ID`, `NAME`, `LOCATION`, `STREETNAME`, `MOBILENUMBER`, `ADDRESS`, `WEBSITE`, `EMAIL`, `REGION`, `DISTRICT`, `GPSMAPPING`, `CONTACTPERSON`, `PAYMENTMODULE`, `COMMISSION`, `BANKNAME`, `BRANCH`, `ACCOUNTNAME`, `CONTACTEMAIL`, `ACCOUNTNUMBER`, `MOMO`, `CONTACTNUMBER`) VALUES
+(6, 'prime phoenix property limited', 'Tamale', 'Northern region ', 'Tamale', 'kalpohin lowcost ', 'www.labhill.org', 'hamzatiifu45gmail.com', 'Northern region', 'Tamale Metro', 'nS-2949-38993', 'tiifu hamza', '', 0, '', '', '', '', '', 0, 241758550),
+(7, 'prime limited', 'Tamale', 'Northern region ', '0595964565', 'kalpohin lowcost ', 'www.labhill.org', 'hamzatiifu495gmail.com', 'Northern region', 'Tamale Metro', 'nS-2949-38993', 'tiifu hamza', '', 0, '', '', '', '', '', 0, 241758550),
+(8, 'prime limited ididi', 'Tamale', 'Northern region ', '0595964565', 'kalpohin lowcost ', 'www.labhill.org', 'hamzatiifu495gmail.com', 'Northern region', 'Tamale Metro', 'nS-2949-38993', 'tiifu hamza', '', 0, '', '', '', '', '', 0, 241758550);
+
 -- --------------------------------------------------------
 
 --
@@ -900,8 +977,10 @@ CREATE TABLE `patientemmergencycontactinformation` (
 --
 
 INSERT INTO `patientemmergencycontactinformation` (`keyid`, `patientid`, `emmergencyContactName`, `emmergencyContactNumber`, `relationship`, `occupation`, `address`) VALUES
-(1, 202384, NULL, NULL, NULL, NULL, NULL),
-(2, 2023842, NULL, NULL, NULL, NULL, NULL);
+(3, 202385, NULL, NULL, NULL, NULL, NULL),
+(4, 2023854, NULL, NULL, NULL, NULL, NULL),
+(5, 20238155, NULL, NULL, NULL, NULL, NULL),
+(6, 20238186, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -923,8 +1002,23 @@ CREATE TABLE `patientsaddress` (
 --
 
 INSERT INTO `patientsaddress` (`keyid`, `patientid`, `area`, `region`, `gpsLocation`, `address`) VALUES
-(1, 202384, NULL, NULL, NULL, NULL),
-(2, 2023842, NULL, NULL, NULL, NULL);
+(3, 202385, NULL, NULL, NULL, NULL),
+(4, 2023854, NULL, NULL, NULL, NULL),
+(5, 20238155, NULL, NULL, NULL, NULL),
+(6, 20238186, NULL, NULL, NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `patients_credentials`
+--
+
+CREATE TABLE `patients_credentials` (
+  `id` int(20) NOT NULL,
+  `patientid` bigint(50) NOT NULL,
+  `username` varchar(100) NOT NULL,
+  `password` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -973,19 +1067,27 @@ CREATE TABLE `performing_test` (
 --
 
 INSERT INTO `performing_test` (`ID`, `PATIENTID`, `DATE`, `URGENCY`, `BILLINGID`, `SAMPLING_CENTER`, `PHELOBOTOMIST`, `TIME`, `PHELOBOTOMY_MESSAGE`, `INSPECTION`, `INSPECTION_TIME`) VALUES
-(41, '2023842', '2023-09-04', 'moderate', 41, 1, NULL, '15:38:36.000000', '', 0, '15:38:36.000000'),
-(42, '202384', '2023-09-04', 'emmergency', 42, 1, NULL, '15:46:49.000000', '', 0, '15:46:49.000000'),
-(43, '202384', '2023-09-04', 'emmergency', 43, 1, NULL, '15:47:09.000000', '', 0, '15:47:09.000000'),
-(45, '202384', '2023-09-04', 'moderate', 45, 1, NULL, '16:02:28.000000', '', 0, '16:02:28.000000'),
-(46, '202384', '2023-09-04', 'none', 46, 1, NULL, '16:12:13.000000', '', 0, '16:12:13.000000'),
-(47, '202384', '2023-09-04', 'none', 47, 1, NULL, '16:14:20.000000', '', 0, '16:14:20.000000'),
-(48, '202384', '2023-09-04', 'none', 48, 1, NULL, '16:17:30.000000', '', 0, '16:17:30.000000'),
-(49, '202384', '2023-09-04', 'none', 49, 1, NULL, '16:18:05.000000', '', 0, '16:18:05.000000'),
-(50, '202384', '2023-09-04', 'none', 50, 1, NULL, '16:20:00.000000', '', 0, '16:20:00.000000'),
-(51, '2023842', '2023-09-04', 'none', 51, 1, NULL, '16:37:45.000000', '', 0, '16:37:45.000000'),
-(52, '202384', '2023-09-04', 'moderate', 52, 1, NULL, '16:38:38.000000', '', 0, '16:38:38.000000'),
-(53, '2023842', '2023-09-05', 'none', 53, 1, NULL, '05:25:22.000000', '', 0, '05:25:22.000000'),
-(54, '2023842', '2023-09-05', 'moderate', 54, 1, NULL, '05:42:21.000000', '', 0, '05:42:21.000000');
+(58, '2023854', '2023-09-05', 'moderate', 58, 1, NULL, '11:24:11.000000', '', 0, '11:24:11.000000'),
+(59, '202385', '2023-09-05', 'none', 59, 1, NULL, '11:25:17.000000', '', 0, '11:25:17.000000'),
+(60, '202385', '2023-09-05', 'emmergency', 60, 1, NULL, '11:32:19.000000', '', 0, '11:32:19.000000'),
+(61, '202385', '2023-09-05', 'none', 61, 1, NULL, '11:32:40.000000', '', 0, '11:32:40.000000'),
+(62, '2023854', '2023-09-06', 'moderate', 62, 1, NULL, '09:55:18.000000', '', 0, '09:55:18.000000'),
+(63, '2023854', '2023-09-06', 'moderate', 63, 1, NULL, '10:19:02.000000', '', 0, '10:19:02.000000'),
+(64, '2023854', '2023-09-11', 'moderate', 64, 5, NULL, '07:52:14.000000', '', 0, '07:52:14.000000'),
+(65, '202385', '2023-09-11', 'moderate', 65, 5, NULL, '07:53:01.000000', '', 0, '07:53:01.000000'),
+(66, '2023854', '2023-09-11', 'none', 66, 2, NULL, '08:07:34.000000', '', 0, '08:07:34.000000'),
+(67, '202385', '2023-09-12', 'none', 67, 4, NULL, '04:58:32.000000', '', 0, '04:58:32.000000'),
+(68, '2023854', '2023-09-12', 'none', 68, 1, NULL, '08:51:18.000000', '', 0, '08:51:18.000000'),
+(69, '2023854', '2023-09-12', 'moderate', 69, 3, NULL, '20:44:09.000000', '', 0, '20:44:09.000000'),
+(70, '2023854', '2023-09-12', 'emmergency', 70, 1, NULL, '20:51:52.000000', '', 0, '20:51:52.000000'),
+(71, '2023854', '2023-09-12', 'moderate', 71, 1, NULL, '23:35:01.000000', '', 0, '23:35:01.000000'),
+(72, '202385', '2023-09-13', 'moderate', 72, 1, NULL, '00:08:07.000000', '', 0, '00:08:07.000000'),
+(73, '2023854', '2023-09-13', 'moderate', 73, 4, NULL, '01:49:24.000000', '', 0, '01:49:24.000000'),
+(74, '2023854', '2023-09-13', 'moderate', 74, 1, NULL, '06:12:29.000000', '', 0, '06:12:29.000000'),
+(75, '2023854', '2023-09-17', 'moderate', 75, 5, NULL, '10:36:55.000000', '', 0, '10:36:55.000000'),
+(76, '2023854', '2023-09-18', 'emmergency', 76, 5, NULL, '09:37:48.000000', '', 0, '09:37:48.000000'),
+(77, '2023854', '2023-09-18', 'none', 77, 5, NULL, '09:59:19.000000', '', 0, '09:59:19.000000'),
+(78, '20238186', '2023-09-18', 'emmergency', 78, 4, NULL, '10:15:37.000000', '', 0, '10:15:37.000000');
 
 --
 -- Triggers `performing_test`
@@ -1068,7 +1170,13 @@ INSERT INTO `result_cardiac_enzymes` (`LIVERID`, `PARAMETER`, `BILLINGID`, `VALU
 (15, 'lactate dehydrogenase (LDH)', 46, 44, '2023-09-04 17:24:54.450054', '2023-09-04 17:24:54.450054', 202384),
 (16, 'creatinine kinase (CK)', 48, 444, '2023-09-04 17:25:04.354330', '2023-09-04 17:25:04.354330', 202384),
 (17, 'aspartate transaminase(AST)', 48, 444, '2023-09-04 17:25:04.354330', '2023-09-04 17:25:04.354330', 202384),
-(18, 'lactate dehydrogenase (LDH)', 48, 444, '2023-09-04 17:25:04.354330', '2023-09-04 17:25:04.354330', 202384);
+(18, 'lactate dehydrogenase (LDH)', 48, 444, '2023-09-04 17:25:04.354330', '2023-09-04 17:25:04.354330', 202384),
+(19, 'creatinine kinase (CK)', 60, 555, '2023-09-05 11:34:13.012162', '2023-09-05 11:34:13.012162', 202385),
+(20, 'aspartate transaminase(AST)', 60, 555, '2023-09-05 11:34:13.012162', '2023-09-05 11:34:13.012162', 202385),
+(21, 'lactate dehydrogenase (LDH)', 60, 55, '2023-09-05 11:34:13.012162', '2023-09-05 11:34:13.012162', 202385),
+(22, 'creatinine kinase (CK)', 74, 444, '2023-09-15 14:41:14.449552', '2023-09-15 14:41:14.449552', 2023854),
+(23, 'aspartate transaminase(AST)', 74, 444, '2023-09-15 14:41:14.449552', '2023-09-15 14:41:14.449552', 2023854),
+(24, 'lactate dehydrogenase (LDH)', 74, 444, '2023-09-15 14:41:14.449552', '2023-09-15 14:41:14.449552', 2023854);
 
 -- --------------------------------------------------------
 
@@ -1099,7 +1207,19 @@ INSERT INTO `result_comments` (`keyid`, `testid`, `billingid`, `comments`) VALUE
 (9, 10, 45, 'jdgjkwgjhjhafwdhfn'),
 (10, 5, 43, '44wfkwgjkwefgdqfhmqwsjh'),
 (11, 5, 46, '4'),
-(12, 5, 48, 'JKFJKWdGHQGDH');
+(12, 5, 48, 'JKFJKWdGHQGDH'),
+(13, 11, 58, 'korfelf;euif2ep9egf\n\nifioe;kluefio;elefiuguefk\n\n\nwfidgi3rgyuviefg[pwuirqik'),
+(14, 5, 60, 'wkfjqjkfjhqjheh'),
+(15, 4, 62, 'jfuiwquiududu'),
+(16, 11, 62, '5qwkwfgh'),
+(17, 15, 63, 'kgkwekgk'),
+(18, 4, 67, 'hhh'),
+(19, 4, 73, 'oef2efi2if2'),
+(20, 5, 74, 'fkowkfjj'),
+(21, 22, 78, '3rke3kfkoefko'),
+(22, 4, 69, 'jfjfjqfhqfgw'),
+(23, 4, 66, 'kefoqwoioqwo\nkwiirfiw\n\n\nuefuiqrui'),
+(24, 4, 70, 'ieriowefiowfioefo\noweoffopofofofws\n;wkfwlfl2flqfkqe\n\nk2eqkgwf\'olq\'l');
 
 -- --------------------------------------------------------
 
@@ -1116,6 +1236,13 @@ CREATE TABLE `result_esr` (
   `created_on` datetime(6) NOT NULL DEFAULT current_timestamp(6),
   `updated_on` datetime(6) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `result_esr`
+--
+
+INSERT INTO `result_esr` (`keyid`, `value`, `comments`, `billingid`, `patientid`, `created_on`, `updated_on`) VALUES
+(1, 67, 'kwfkkj', 76, 2023854, '2023-09-18 10:00:01.204534', NULL);
 
 -- --------------------------------------------------------
 
@@ -1150,6 +1277,23 @@ CREATE TABLE `result_function_full_blood_count` (
   `VALUE` int(20) NOT NULL,
   `PATIENTID` bigint(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `result_function_full_blood_count`
+--
+
+INSERT INTO `result_function_full_blood_count` (`KEYID`, `PARAMETER`, `BILLINGID`, `UNIT`, `CREATED_ON`, `UPDATED_ON`, `VALUE`, `PATIENTID`) VALUES
+(1, 'wbc', 78, '', '2023-09-18 10:16:43.079918', '2023-09-18 10:16:43.079918', 555, 20238186),
+(2, 'neutrophils', 78, 'g/dl', '2023-09-18 10:16:43.079918', '2023-09-18 10:16:43.079918', 4544, 20238186),
+(3, 'eosinophils', 78, '', '2023-09-18 10:16:43.079918', '2023-09-18 10:16:43.079918', 444, 20238186),
+(4, 'basophils', 78, '', '2023-09-18 10:16:43.079918', '2023-09-18 10:16:43.079918', 44, 20238186),
+(5, 'lymphocytes', 78, '', '2023-09-18 10:16:43.079918', '2023-09-18 10:16:43.079918', 4454, 20238186),
+(6, 'monocytes', 78, 'g/hj', '2023-09-18 10:16:43.079918', '2023-09-18 10:16:43.079918', 45, 20238186),
+(7, 'mch', 78, 'g/hj', '2023-09-18 10:16:43.079918', '2023-09-18 10:16:43.079918', 55, 20238186),
+(8, 'mcv', 78, 'g/hj', '2023-09-18 10:16:43.079918', '2023-09-18 10:16:43.079918', 5, 20238186),
+(9, 'mchc', 78, '%', '2023-09-18 10:16:43.079918', '2023-09-18 10:16:43.079918', 555, 20238186),
+(10, 'rdw-cv', 78, '%', '2023-09-18 10:16:43.079918', '2023-09-18 10:16:43.079918', 555, 20238186),
+(11, 'rdw-sd', 78, '%', '2023-09-18 10:16:43.079918', '2023-09-18 10:16:43.079918', 55, 20238186);
 
 -- --------------------------------------------------------
 
@@ -1230,7 +1374,21 @@ INSERT INTO `result_function_renal` (`KEYID`, `PARAMETER`, `BILLINGID`, `UNIT`, 
 (18, 'sodium', 36, 'mg/dl', '2023-09-04 12:48:28.371105', '2023-09-04 12:48:28.371105', 11, 2023729),
 (19, 'chloride', 36, 'mg/dl', '2023-09-04 12:48:28.371105', '2023-09-04 12:48:28.371105', 11, 2023729),
 (20, 'bicarbonate', 36, 'mg/dl', '2023-09-04 12:48:28.371105', '2023-09-04 12:48:28.371105', 11, 2023729),
-(21, 'albumin', 36, 'mg/dl', '2023-09-04 12:48:28.371105', '2023-09-04 12:48:28.371105', 11, 2023729);
+(21, 'albumin', 36, 'mg/dl', '2023-09-04 12:48:28.371105', '2023-09-04 12:48:28.371105', 11, 2023729),
+(22, 'BUN', 58, 'mg/dl', '2023-09-05 11:26:39.651770', '2023-09-05 11:26:39.651770', 44, 2023854),
+(23, 'Creatinine', 58, 'mg/dl', '2023-09-05 11:26:39.651770', '2023-09-05 11:26:39.651770', 44, 2023854),
+(24, 'potasium', 58, 'mg/dl', '2023-09-05 11:26:39.651770', '2023-09-05 11:26:39.651770', 599, 2023854),
+(25, 'sodium', 58, 'mg/dl', '2023-09-05 11:26:39.651770', '2023-09-05 11:26:39.651770', 568, 2023854),
+(26, 'chloride', 58, 'mg/dl', '2023-09-05 11:26:39.651770', '2023-09-05 11:26:39.651770', 5589, 2023854),
+(27, 'bicarbonate', 58, 'mg/dl', '2023-09-05 11:26:39.651770', '2023-09-05 11:26:39.651770', 566, 2023854),
+(28, 'albumin', 58, 'mg/dl', '2023-09-05 11:26:39.651770', '2023-09-05 11:26:39.651770', 69, 2023854),
+(29, 'BUN', 62, 'mg/dl', '2023-09-06 09:56:24.875914', '2023-09-06 09:56:24.875914', 555, 2023854),
+(30, 'Creatinine', 62, 'mg/dl', '2023-09-06 09:56:24.875914', '2023-09-06 09:56:24.875914', 55, 2023854),
+(31, 'potasium', 62, 'mg/dl', '2023-09-06 09:56:24.875914', '2023-09-06 09:56:24.875914', 55, 2023854),
+(32, 'sodium', 62, 'mg/dl', '2023-09-06 09:56:24.875914', '2023-09-06 09:56:24.875914', 555, 2023854),
+(33, 'chloride', 62, 'mg/dl', '2023-09-06 09:56:24.875914', '2023-09-06 09:56:24.875914', 55, 2023854),
+(34, 'bicarbonate', 62, 'mg/dl', '2023-09-06 09:56:24.875914', '2023-09-06 09:56:24.875914', 55, 2023854),
+(35, 'albumin', 62, 'mg/dl', '2023-09-06 09:56:24.875914', '2023-09-06 09:56:24.875914', 5, 2023854);
 
 -- --------------------------------------------------------
 
@@ -1273,7 +1431,9 @@ CREATE TABLE `result_helicobacter_pylori` (
 INSERT INTO `result_helicobacter_pylori` (`keyid`, `specimen`, `result`, `billingid`, `created_on`, `updated_on`, `patientid`, `comments`) VALUES
 (1, 'blood', 'non reactive', 3, '2023-09-03 14:39:35.466056', NULL, 2023729, 'jefujwejwewek\n\n\nprobably'),
 (2, 'blood', 'non reactive', 2, '2023-09-03 14:43:09.644603', NULL, 2023729, 'fljkkfkwfhfefujqehfjh\njejejtjej\nprince is here to stay\ngoing to time with in close database and probably things'),
-(3, 'blood', 'non reactive', 52, '2023-09-05 05:43:59.951468', NULL, 202384, 'wekgjkgjk');
+(3, 'blood', 'non reactive', 52, '2023-09-05 05:43:59.951468', NULL, 202384, 'wekgjkgjk'),
+(4, 'blood', 'non reactive', 59, '2023-09-05 11:27:15.568153', NULL, 202385, 'ekofilwgwhufykfpoo\n\niowgiuigfuwefoweuiui\n\n\nefiwgoegufiwdfui'),
+(5, 'blood', 'non reactive', 78, '2023-09-18 10:17:02.523009', NULL, 20238186, 'ieqiweiweiiwe');
 
 -- --------------------------------------------------------
 
@@ -1315,7 +1475,8 @@ CREATE TABLE `result_pregnancy_test` (
 --
 
 INSERT INTO `result_pregnancy_test` (`KEYID`, `METHOD`, `VALUE`, `CREATED_ON`, `UPDATED_ON`, `COMMENTS`, `PATIENTID`, `BILLINGID`, `TESTID`) VALUES
-(1, 'Urine', 'positive', '2023-09-04 12:49:55.667196', '2023-09-04 12:49:55.667196', 'WJIUHfhqwfy', 2023729, 36, 14);
+(1, 'Urine', 'positive', '2023-09-04 12:49:55.667196', '2023-09-04 12:49:55.667196', 'WJIUHfhqwfy', 2023729, 36, 14),
+(2, 'Urine', 'negative', '2023-09-05 11:33:55.911099', '2023-09-05 11:33:55.911099', 'ejfhqfhqwfhqwh', 202385, 60, 14);
 
 -- --------------------------------------------------------
 
@@ -1351,6 +1512,15 @@ CREATE TABLE `result_thyroid_functional_test` (
   `unit` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `result_thyroid_functional_test`
+--
+
+INSERT INTO `result_thyroid_functional_test` (`keyid`, `parameter`, `billingid`, `value`, `created_on`, `updated_on`, `patientid`, `unit`) VALUES
+(1, 'TSH', 63, 44, '2023-09-06 10:44:49.042498', NULL, 2023854, 'pmol/L'),
+(2, 'T4', 63, 444, '2023-09-06 10:44:49.042498', NULL, 2023854, 'pmol/L'),
+(3, 'T3', 63, 44, '2023-09-06 10:44:49.042498', NULL, 2023854, 'pmol/L');
+
 -- --------------------------------------------------------
 
 --
@@ -1375,7 +1545,8 @@ CREATE TABLE `result_widal` (
 --
 
 INSERT INTO `result_widal` (`KEYID`, `TYPHIO`, `TYPHIH`, `PARATYPHIAH`, `PARATYPHIBH`, `COMMENTS`, `CREATED_ON`, `UPDATED_ON`, `BILLINGID`, `PATIENTID`) VALUES
-(1, '1/20', '1/80', '1/80', '1/20', 'gkrgllwel', '2023-09-04 05:22:06.357165', NULL, 5, 2023729);
+(1, '1/20', '1/80', '1/80', '1/20', 'gkrgllwel', '2023-09-04 05:22:06.357165', NULL, 5, 2023729),
+(2, '1/20', '1/20', '1/80', '1/80', 'wdfowfgiwufgouidqvuedgu2eoufgi', '2023-09-05 11:26:58.154081', NULL, 58, 2023854);
 
 -- --------------------------------------------------------
 
@@ -1392,15 +1563,19 @@ CREATE TABLE `roles` (
   `TIME` time(6) NOT NULL DEFAULT current_timestamp(),
   `REFRESH_TOKEN` varchar(255) DEFAULT NULL,
   `ACTIVATION` tinyint(1) NOT NULL DEFAULT 0,
-  `EMAIL` varchar(200) NOT NULL
+  `EMAIL` varchar(200) NOT NULL,
+  `PERMISSIONS` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '{}',
+  `UPDATED_ON` datetime(6) NOT NULL DEFAULT current_timestamp(6)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `roles`
 --
 
-INSERT INTO `roles` (`EMPLOYEEID`, `USERNAME`, `ROLE`, `PASSWORD`, `DATE_CREATED`, `TIME`, `REFRESH_TOKEN`, `ACTIVATION`, `EMAIL`) VALUES
-(1, 'Nyaaba Asana Awineyila', 'admin', '$2b$10$HkJnj8Spk4SP7ShOK4hh0uIc9pKJaBgR6wxf3ALexqnV6W2bLhD.S', '2023-09-03', '08:54:05.000000', NULL, 1, 'mildred@gmail.com');
+INSERT INTO `roles` (`EMPLOYEEID`, `USERNAME`, `ROLE`, `PASSWORD`, `DATE_CREATED`, `TIME`, `REFRESH_TOKEN`, `ACTIVATION`, `EMAIL`, `PERMISSIONS`, `UPDATED_ON`) VALUES
+(1, 'Nyaaba Asana Awineyila', 'phelobotomist', '$2b$10$fIYDDQWDBYZ3LGGU0P.aZudJ0a..SZbLg8U7rrFQV63Ec2BS.a3BS', '2023-09-03', '08:54:05.000000', NULL, 1, 'mildred@gmail.com', '{\"deletev\":true,\"role\":\"phelobotomist\",\"registerv\":false,\"pageAccess\":{\"registration\":true,\"inventory\":false,\"activation\":false,\"suppliers\":true,\"operations\":true,\"approvals\":true,\"settings\":true,\"payments\":false,\"billing\":true,\"phelobotomy\":true,\"samples\":false,\"organization\":false,\"clinician\":false,\"appointment\":true}}', '0000-00-00 00:00:00.000000'),
+(2, 'tiifu', 'admin', '$2b$10$VQAUNbjKwGiv99NZa.iQpeK7M6FKXrkVwmuyTONpaRTSmJocyAMUO', '2023-09-06', '10:24:18.000000', NULL, 1, 'tiifu@gmail.com', '{}', '0000-00-00 00:00:00.000000'),
+(3, 'opoku razak', 'clinician', '$2b$10$FKKEr5mPHzgTEpMD0ZQa2uVSZH0fN6MpNZ4amqBNen8Gbdvvc1QxS', '2023-09-10', '14:29:06.000000', NULL, 1, 'raak@gmail.com', '{}', '0000-00-00 00:00:00.000000');
 
 --
 -- Triggers `roles`
@@ -1453,20 +1628,49 @@ CREATE TABLE `samplestatus` (
 --
 
 INSERT INTO `samplestatus` (`keyid`, `date`, `message`, `testid`, `billingid`, `approvalstatus`) VALUES
-(16, '2023-09-04 15:38:36.755021', NULL, 2, 41, 1),
-(17, '2023-09-04 15:46:49.549541', NULL, 5, 42, 1),
-(18, '2023-09-04 15:47:09.475569', NULL, 5, 43, 1),
-(20, '2023-09-04 16:02:28.245635', NULL, 10, 45, 1),
-(21, '2023-09-04 16:12:13.792479', NULL, 5, 46, 1),
-(22, '2023-09-04 16:14:21.188564', NULL, 5, 47, 1),
-(23, '2023-09-04 16:17:31.067719', NULL, 5, 48, 1),
-(24, '2023-09-04 16:18:05.700664', NULL, 5, 49, 1),
-(25, '2023-09-04 16:18:05.725784', NULL, 8, 49, 1),
-(26, '2023-09-04 16:20:00.979558', NULL, 8, 50, 1),
-(27, '2023-09-04 16:37:45.677649', NULL, 1, 51, 1),
-(28, '2023-09-04 16:38:38.912637', NULL, 27, 52, 1),
-(29, '2023-09-05 05:25:22.238282', NULL, 1, 53, 1),
-(30, '2023-09-05 05:42:21.227022', NULL, 1, 54, 1);
+(34, '2023-09-05 11:24:11.671994', NULL, 3, 58, 1),
+(35, '2023-09-05 11:24:11.715702', NULL, 6, 58, 1),
+(36, '2023-09-05 11:24:11.738722', NULL, 11, 58, 1),
+(37, '2023-09-05 11:25:17.923364', NULL, 27, 59, 1),
+(38, '2023-09-05 11:25:17.964509', NULL, 33, 59, 1),
+(39, '2023-09-05 11:32:20.051124', NULL, 5, 60, 1),
+(40, '2023-09-05 11:32:20.140457', NULL, 13, 60, 1),
+(41, '2023-09-05 11:32:20.190402', NULL, 14, 60, 1),
+(42, '2023-09-05 11:32:40.316921', NULL, 6, 61, 1),
+(43, '2023-09-05 11:32:40.349386', NULL, 8, 61, 1),
+(44, '2023-09-06 09:55:19.043329', NULL, 4, 62, 1),
+(45, '2023-09-06 09:55:19.176252', NULL, 7, 62, 1),
+(46, '2023-09-06 09:55:19.201231', NULL, 11, 62, 1),
+(47, '2023-09-06 10:19:02.358731', NULL, 1, 63, 1),
+(48, '2023-09-06 10:19:02.391082', NULL, 15, 63, 1),
+(49, '2023-09-11 07:52:14.615653', NULL, 5, 64, 1),
+(50, '2023-09-11 07:53:01.982509', NULL, 4, 65, 1),
+(51, '2023-09-11 08:00:57.547517', NULL, 1, 65, 1),
+(52, '2023-09-11 08:02:02.010176', NULL, 10, 64, 1),
+(53, '2023-09-11 08:07:34.936789', NULL, 4, 66, 1),
+(54, '2023-09-12 04:09:16.763764', NULL, 6, 66, 1),
+(55, '2023-09-12 04:58:32.212322', NULL, 4, 67, 1),
+(56, '2023-09-12 08:51:18.498920', NULL, 2, 68, 1),
+(57, '2023-09-12 20:44:09.509797', NULL, 4, 69, 1),
+(58, '2023-09-12 20:51:52.228428', NULL, 4, 70, 1),
+(59, '2023-09-12 20:51:52.241610', NULL, 7, 70, 1),
+(60, '2023-09-12 23:35:01.953908', NULL, 1, 71, 1),
+(61, '2023-09-13 00:08:07.207447', NULL, 5, 72, 1),
+(62, '2023-09-13 01:49:24.622243', NULL, 4, 73, 1),
+(63, '2023-09-13 01:49:24.670989', NULL, 6, 73, 1),
+(64, '2023-09-13 01:49:24.704641', NULL, 20, 73, 1),
+(65, '2023-09-13 01:49:24.748687', NULL, 32, 73, 1),
+(66, '2023-09-13 06:12:29.871937', NULL, 5, 74, 1),
+(67, '2023-09-16 20:55:24.449541', NULL, 7, 74, 0),
+(68, '2023-09-17 10:36:55.699751', NULL, 34, 75, 0),
+(69, '2023-09-17 10:36:55.760750', NULL, 5, 75, 0),
+(70, '2023-09-17 10:36:55.774464', NULL, 8, 75, 0),
+(71, '2023-09-18 09:37:48.259118', NULL, 19, 76, 1),
+(72, '2023-09-18 09:59:19.216906', NULL, 5, 77, 0),
+(73, '2023-09-18 10:15:37.864559', NULL, 1, 78, 1),
+(74, '2023-09-18 10:15:37.915419', NULL, 22, 78, 1),
+(75, '2023-09-18 10:15:38.017534', NULL, 27, 78, 1),
+(76, '2023-09-18 10:34:06.330859', NULL, 33, 78, 0);
 
 -- --------------------------------------------------------
 
@@ -1500,29 +1704,6 @@ CREATE TABLE `samplingtest` (
   `TestKey` int(255) NOT NULL,
   `TestId` int(50) NOT NULL,
   `Billingid` int(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `scientistpermission`
---
-
-CREATE TABLE `scientistpermission` (
-  `id` int(11) NOT NULL,
-  `employeeid` int(11) NOT NULL,
-  `deletev` tinyint(1) DEFAULT 0,
-  `editv` tinyint(1) DEFAULT 0,
-  `registerv` tinyint(1) DEFAULT 0,
-  `viewv` tinyint(1) DEFAULT 0,
-  `printv` tinyint(1) DEFAULT 0,
-  `activatev` tinyint(1) DEFAULT 0,
-  `pageAccess` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '\'{}\'',
-  `viewresult` tinyint(1) DEFAULT 0,
-  `printresult` tinyint(1) DEFAULT 0,
-  `enterresult` tinyint(1) DEFAULT 0,
-  `editresult` tinyint(1) DEFAULT 0,
-  `deleteresult` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -1908,20 +2089,49 @@ CREATE TABLE `test_ascension` (
 --
 
 INSERT INTO `test_ascension` (`id`, `testid`, `billingid`, `collection`, `processing`, `ready`, `processing_date`, `collection_date`, `ready_date`, `printedNumber`, `printedDate`, `ApprovalStatus`, `Scientist`, `ApprovedBy`, `declineMessage`, `actionPlan`) VALUES
-(16, 2, 41, 'true', 'true', 'false', '2023-09-04 15:46:21.000000', '2023-09-04 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(17, 5, 42, 'true', 'false', 'false', NULL, '2023-09-04 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(18, 5, 43, 'true', 'true', 'true', '2023-09-04 17:24:16.000000', '2023-09-04 00:00:00.000000', '2023-09-04 17:24:22.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(20, 10, 45, 'true', 'true', 'true', '2023-09-04 16:03:24.000000', '2023-09-04 00:00:00.000000', '2023-09-04 16:03:37.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(21, 5, 46, 'true', 'true', 'true', '2023-09-04 17:24:49.000000', '2023-09-04 00:00:00.000000', '2023-09-04 17:24:54.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(22, 5, 47, 'true', 'false', 'false', NULL, '2023-09-04 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(23, 5, 48, 'true', 'true', 'true', '2023-09-04 17:24:58.000000', '2023-09-04 00:00:00.000000', '2023-09-04 17:25:04.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(24, 5, 49, 'true', 'false', 'false', NULL, '2023-09-04 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(25, 8, 49, 'true', 'true', 'true', '2023-09-04 17:24:27.000000', '2023-09-04 00:00:00.000000', '2023-09-04 17:24:31.000000', NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(26, 8, 50, 'true', 'true', 'true', '2023-09-04 16:31:58.000000', '2023-09-04 00:00:00.000000', '2023-09-04 16:32:13.000000', NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(27, 1, 51, 'true', 'false', 'false', NULL, '2023-09-04 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(28, 27, 52, 'true', 'false', 'true', NULL, '2023-09-04 00:00:00.000000', '2023-09-05 05:43:59.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(29, 1, 53, 'true', 'false', 'false', NULL, '2023-09-05 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(30, 1, 54, 'true', 'false', 'false', NULL, '2023-09-05 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL);
+(34, 3, 58, 'true', 'true', 'true', '2023-09-05 11:26:50.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:26:58.000000', NULL, NULL, 1, NULL, 0, 'sample not ', 'Repeat test'),
+(35, 6, 58, 'true', 'true', 'true', '2023-09-05 11:26:20.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:26:47.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(36, 11, 58, 'true', 'true', 'true', '2023-09-05 11:26:20.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:26:39.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(37, 27, 59, 'true', 'true', 'true', '2023-09-05 11:26:15.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:27:15.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(38, 33, 59, 'true', 'true', 'false', '2023-09-05 11:26:16.000000', '2023-09-05 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(39, 5, 60, 'true', 'true', 'true', '2023-09-05 11:34:05.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:34:13.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(40, 13, 60, 'true', 'true', 'true', '2023-09-05 11:37:05.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:37:21.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(41, 14, 60, 'true', 'true', 'true', '2023-09-05 11:33:50.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:33:55.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(42, 6, 61, 'true', 'true', 'true', '2023-09-05 11:34:38.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:34:42.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(43, 8, 61, 'true', 'true', 'true', '2023-09-05 11:34:16.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:34:20.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(44, 4, 62, 'true', 'true', 'true', '2023-09-06 09:55:57.000000', '2023-09-06 00:00:00.000000', '2023-09-06 09:56:05.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(45, 7, 62, 'true', 'true', 'true', '2023-09-06 09:56:45.000000', '2023-09-06 00:00:00.000000', '2023-09-06 09:56:54.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(46, 11, 62, 'true', 'true', 'true', '2023-09-06 09:56:09.000000', '2023-09-06 00:00:00.000000', '2023-09-06 09:56:24.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(47, 1, 63, 'true', 'true', 'true', '2023-09-06 10:44:23.000000', '2023-09-06 00:00:00.000000', '2023-09-06 10:44:41.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(48, 15, 63, 'true', 'true', 'true', '2023-09-06 10:44:26.000000', '2023-09-06 00:00:00.000000', '2023-09-06 10:44:49.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(49, 5, 64, 'true', 'false', 'false', NULL, '2023-09-11 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(50, 4, 65, 'true', 'false', 'false', NULL, '2023-09-11 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(51, 1, 65, 'true', 'false', 'false', NULL, '2023-09-11 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(52, 10, 64, 'true', 'false', 'false', NULL, '2023-09-11 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(53, 4, 66, 'true', 'false', 'true', NULL, '2023-09-11 00:00:00.000000', '2023-09-18 13:01:47.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(54, 6, 66, 'true', 'false', 'true', NULL, '2023-09-12 00:00:00.000000', '2023-09-18 13:01:32.000000', NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(55, 4, 67, 'true', 'true', 'true', '2023-09-12 20:54:23.000000', '2023-09-12 00:00:00.000000', '2023-09-12 20:54:33.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(56, 2, 68, 'true', 'true', 'false', '2023-09-12 20:54:11.000000', '2023-09-12 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(57, 4, 69, 'true', 'true', 'true', '2023-09-12 20:54:17.000000', '2023-09-12 00:00:00.000000', '2023-09-18 13:01:05.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(58, 4, 70, 'true', 'false', 'true', NULL, '2023-09-12 00:00:00.000000', '2023-09-18 13:02:29.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(59, 7, 70, 'true', 'false', 'true', NULL, '2023-09-12 00:00:00.000000', '2023-09-18 13:02:41.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(60, 1, 71, 'true', 'false', 'true', NULL, '2023-09-13 00:00:00.000000', '2023-09-18 13:01:19.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(61, 5, 72, 'true', 'false', 'false', NULL, '2023-09-13 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(62, 4, 73, 'true', 'false', 'true', NULL, '2023-09-13 00:00:00.000000', '2023-09-15 14:37:13.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(63, 6, 73, 'true', 'false', 'true', NULL, '2023-09-13 00:00:00.000000', '2023-09-15 14:37:34.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(64, 20, 73, 'true', 'false', 'false', NULL, '2023-09-13 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(65, 32, 73, 'true', 'false', 'true', NULL, '2023-09-13 00:00:00.000000', '2023-09-15 14:38:03.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(66, 5, 74, 'true', 'false', 'true', NULL, '2023-09-13 00:00:00.000000', '2023-09-15 14:41:14.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(67, 7, 74, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(68, 34, 75, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(69, 5, 75, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(70, 8, 75, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(71, 19, 76, 'true', 'true', 'true', '2023-09-18 09:59:54.000000', '2023-09-18 00:00:00.000000', '2023-09-18 10:00:01.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(72, 5, 77, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(73, 1, 78, 'true', 'true', 'true', '2023-09-18 10:16:24.000000', '2023-09-18 00:00:00.000000', '2023-09-18 10:16:54.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(74, 22, 78, 'true', 'true', 'true', '2023-09-18 10:16:29.000000', '2023-09-18 00:00:00.000000', '2023-09-18 10:16:43.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(75, 27, 78, 'true', 'true', 'true', '2023-09-18 10:16:30.000000', '2023-09-18 00:00:00.000000', '2023-09-18 10:17:02.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
+(76, 33, 78, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL);
 
 --
 -- Triggers `test_ascension`
@@ -1984,18 +2194,18 @@ INSERT INTO `test_panels` (`ID`, `NAME`, `CATEGORY`, `PRICE`, `CREATED_ON`, `SAM
 (6, 'Hepatitis B', 2, 500, '2023-04-13 07:06:15', '6', 'Hepatitis b is not null', 'edta tube', 'mls', '320'),
 (7, 'Hepatitis B Profile', 3, 500, '2023-04-13 07:20:25', 'serum', 'Test for all antigens related to viral hepatitis ', 'gell tube', 'mls', '50'),
 (8, 'Hepatitis C', 1, 600, '2023-04-13 07:21:47', '9', 'Testing for Hepatitis C infection', 'edta tube', 'mls', '3'),
-(10, 'liver function test', 1, 500, '2023-04-13 18:53:09', '4', 'priced here is not null be offensive', 'gell tube', 'mls', '3'),
-(11, 'renal function test', 2, 500, '2023-04-13 18:53:34', 'serum', 'RENAL FUNCTION TEST', 'gell tube', 'mls', '5'),
-(12, 'Lipid profile', 0, 900, '2023-04-17 12:15:45', 'serum', 'efjwejfjwfjq', 'gell tube', 'mls', '4'),
-(13, 'urinalysis', 0, 60, '2023-04-27 01:48:23', 'urine', 'Urine taking', 'urine', 'mls', '50'),
+(10, 'liver function test', 1, 500000, '2023-04-13 18:53:09', '4', 'priced here is not null be offensive', 'gell tube', 'mls', '3'),
+(11, 'renal function test', 2, 500, '2023-04-13 18:53:34', 'serum', 'Renal functional test is a test to check the function of the kidney', 'gell tube', 'mls', '5'),
+(12, 'Lipid profile', 4, 900, '2023-04-17 12:15:45', 'serum', 'efjwejfjwfjq', 'gell tube', 'mls', '4'),
+(13, 'urinalysis', 5, 60, '2023-04-27 01:48:23', 'urine', 'Urine taking', 'urine', 'mls', '50'),
 (14, 'Pregnancy test(Urine)', 3, 30, '2023-04-30 09:16:19', '3', 'Test for pregnancy antigen', 'urine', 'mls', '5'),
 (15, 'Thyroid functional test', 3, 600, '2023-05-02 22:33:32', 'serum', 'Test for the functionality of the thyroid', 'gell tube', 'mg/dl', '5'),
 (16, 'BetaHcg', 5, 600, '2023-05-07 12:21:11', '2', 'BetaHcg', 'edta tube', 'mls', '4'),
 (17, 'aids', 2, 20, '2023-05-07 12:34:48', 'blood', 'testing for aids test', 'blood', 'mls', '4'),
 (19, 'estimated sedimentation rate (ESR)', 1, 60, '2023-05-07 23:34:36', 'blood', 'uefueururu', 'gell tube', 'mls', '5'),
 (20, 'fasting blood sugar', 3, 20, '2023-05-16 10:45:28', 'blood', 'testing for blood sugar in the body', 'edta tube', 'mg/dl', '3'),
-(21, 'random blood sugar', 6, 20, '2023-05-16 10:46:09', 'blood', 'sugar testing ', 'gell tube ', 'mg/dl', '3'),
-(22, 'full blood count', 6, 50, '2023-04-30 09:16:19', 'blood', 'Blood cell analysis', 'edta tube', 'mls', '4'),
+(21, 'random blood sugar', 4, 20, '2023-05-16 10:46:09', 'blood', 'sugar testing ', 'gell tube ', 'mg/dl', '3'),
+(22, 'full blood count', 3, 50, '2023-04-30 09:16:19', 'blood', 'Blood cell analysis', 'edta tube', 'mls', '4'),
 (25, 'stool analysis', 2, 29, '2023-07-15 22:39:21', 'stool', 'rjgje', 'stool container', 'g', '10g'),
 (26, 'clotting and bleeding time', 3, 200, '2023-07-16 00:08:49', '3', 'jdjdjdj', 'edta tube', 'mls', '5'),
 (27, 'helicobacter pylori', 5, 50, '2023-07-17 10:08:56', '4', 'jgjwgjk', 'edta tube', 'mls', '5'),
@@ -2053,6 +2263,13 @@ CREATE TABLE `urinalysisresult` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- Dumping data for table `urinalysisresult`
+--
+
+INSERT INTO `urinalysisresult` (`urinalysisKey`, `appearance`, `color`, `urobilinogen`, `ketones`, `bilirubin`, `nitrite`, `microalbumin`, `glucose`, `specific_gravity`, `ph`, `microscopy`, `billingid`, `remarks`, `patientid`, `blood`, `leukocytes`) VALUES
+(0, 'Hazy', 'straw', 'negative', 'negative', 'negative', 'negative', 'negative', 'negative', 1.02, 9, NULL, 60, 'ejfuwFQWTJDRHWHMFQWFYUQWTYYUQWDTY', 202385, 'yellpw', 'negative');
+
+--
 -- Indexes for dumped tables
 --
 
@@ -2061,12 +2278,6 @@ CREATE TABLE `urinalysisresult` (
 --
 ALTER TABLE `activation`
   ADD PRIMARY KEY (`ID`);
-
---
--- Indexes for table `adminmanagerpermission`
---
-ALTER TABLE `adminmanagerpermission`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `applicationsettings`
@@ -2078,7 +2289,8 @@ ALTER TABLE `applicationsettings`
 -- Indexes for table `billing`
 --
 ALTER TABLE `billing`
-  ADD PRIMARY KEY (`BILLINGID`);
+  ADD PRIMARY KEY (`BILLINGID`),
+  ADD KEY `BILLINGID` (`BILLINGID`);
 
 --
 -- Indexes for table `billinghx`
@@ -2099,9 +2311,15 @@ ALTER TABLE `branch`
   ADD PRIMARY KEY (`BRANCHID`);
 
 --
--- Indexes for table `clinician`
+-- Indexes for table `clinicianbasicinfo`
 --
-ALTER TABLE `clinician`
+ALTER TABLE `clinicianbasicinfo`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `clinicianpaymentinfo`
+--
+ALTER TABLE `clinicianpaymentinfo`
   ADD PRIMARY KEY (`ID`);
 
 --
@@ -2115,12 +2333,6 @@ ALTER TABLE `commodity`
 --
 ALTER TABLE `companyprofile`
   ADD PRIMARY KEY (`ID`);
-
---
--- Indexes for table `customerrepresentativepermission`
---
-ALTER TABLE `customerrepresentativepermission`
-  ADD PRIMARY KEY (`keyid`);
 
 --
 -- Indexes for table `departmentrequisitionhx`
@@ -2224,7 +2436,8 @@ ALTER TABLE `newstock`
 --
 ALTER TABLE `new_patients`
   ADD PRIMARY KEY (`ID`),
-  ADD UNIQUE KEY `PATIENTID` (`PATIENTID`);
+  ADD UNIQUE KEY `PATIENTID` (`PATIENTID`),
+  ADD KEY `PATIENTID_2` (`PATIENTID`);
 
 --
 -- Indexes for table `orders`
@@ -2278,6 +2491,13 @@ ALTER TABLE `patientsaddress`
   ADD PRIMARY KEY (`keyid`),
   ADD UNIQUE KEY `patientid` (`patientid`),
   ADD UNIQUE KEY `patientid_2` (`patientid`);
+
+--
+-- Indexes for table `patients_credentials`
+--
+ALTER TABLE `patients_credentials`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `patientid` (`patientid`);
 
 --
 -- Indexes for table `paymentmodes`
@@ -2411,12 +2631,6 @@ ALTER TABLE `sampletype`
 --
 ALTER TABLE `samplingtest`
   ADD PRIMARY KEY (`TestKey`);
-
---
--- Indexes for table `scientistpermission`
---
-ALTER TABLE `scientistpermission`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `semenanalysis`
@@ -2562,12 +2776,6 @@ ALTER TABLE `activation`
   MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `adminmanagerpermission`
---
-ALTER TABLE `adminmanagerpermission`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
 -- AUTO_INCREMENT for table `applicationsettings`
 --
 ALTER TABLE `applicationsettings`
@@ -2577,31 +2785,37 @@ ALTER TABLE `applicationsettings`
 -- AUTO_INCREMENT for table `billing`
 --
 ALTER TABLE `billing`
-  MODIFY `BILLINGID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `BILLINGID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 
 --
 -- AUTO_INCREMENT for table `billinghx`
 --
 ALTER TABLE `billinghx`
-  MODIFY `KeyID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `KeyID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=90;
 
 --
 -- AUTO_INCREMENT for table `bloodgroup`
 --
 ALTER TABLE `bloodgroup`
-  MODIFY `ID` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ID` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `branch`
 --
 ALTER TABLE `branch`
-  MODIFY `BRANCHID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `BRANCHID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
--- AUTO_INCREMENT for table `clinician`
+-- AUTO_INCREMENT for table `clinicianbasicinfo`
 --
-ALTER TABLE `clinician`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+ALTER TABLE `clinicianbasicinfo`
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT for table `clinicianpaymentinfo`
+--
+ALTER TABLE `clinicianpaymentinfo`
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `commodity`
@@ -2614,12 +2828,6 @@ ALTER TABLE `commodity`
 --
 ALTER TABLE `companyprofile`
   MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `customerrepresentativepermission`
---
-ALTER TABLE `customerrepresentativepermission`
-  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `departmentrequisitionhx`
@@ -2643,7 +2851,7 @@ ALTER TABLE `departmentstocks`
 -- AUTO_INCREMENT for table `fshresult`
 --
 ALTER TABLE `fshresult`
-  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT;
+  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `fshsetup`
@@ -2667,19 +2875,19 @@ ALTER TABLE `haemoglobinelectrophoresis`
 -- AUTO_INCREMENT for table `hepatitisbresult`
 --
 ALTER TABLE `hepatitisbresult`
-  MODIFY `ID` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ID` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `hepatitisb_profile`
 --
 ALTER TABLE `hepatitisb_profile`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `hepatitiscresult`
 --
 ALTER TABLE `hepatitiscresult`
-  MODIFY `ID` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `ID` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `lhresult`
@@ -2703,7 +2911,7 @@ ALTER TABLE `loginlogs`
 -- AUTO_INCREMENT for table `malaria`
 --
 ALTER TABLE `malaria`
-  MODIFY `KEY` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `KEY` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `manager_sample_descision`
@@ -2721,7 +2929,7 @@ ALTER TABLE `newstock`
 -- AUTO_INCREMENT for table `new_patients`
 --
 ALTER TABLE `new_patients`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `orders`
@@ -2733,7 +2941,7 @@ ALTER TABLE `orders`
 -- AUTO_INCREMENT for table `organization`
 --
 ALTER TABLE `organization`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `organizationaccountinformation`
@@ -2763,13 +2971,19 @@ ALTER TABLE `pageaccess`
 -- AUTO_INCREMENT for table `patientemmergencycontactinformation`
 --
 ALTER TABLE `patientemmergencycontactinformation`
-  MODIFY `keyid` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `keyid` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `patientsaddress`
 --
 ALTER TABLE `patientsaddress`
-  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `patients_credentials`
+--
+ALTER TABLE `patients_credentials`
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `paymentmodes`
@@ -2781,7 +2995,7 @@ ALTER TABLE `paymentmodes`
 -- AUTO_INCREMENT for table `performing_test`
 --
 ALTER TABLE `performing_test`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 
 --
 -- AUTO_INCREMENT for table `result_aids`
@@ -2799,19 +3013,19 @@ ALTER TABLE `result_beta_hcg`
 -- AUTO_INCREMENT for table `result_cardiac_enzymes`
 --
 ALTER TABLE `result_cardiac_enzymes`
-  MODIFY `LIVERID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `LIVERID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `result_comments`
 --
 ALTER TABLE `result_comments`
-  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `result_esr`
 --
 ALTER TABLE `result_esr`
-  MODIFY `keyid` int(100) NOT NULL AUTO_INCREMENT;
+  MODIFY `keyid` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `result_fasting_blood_sugar`
@@ -2823,7 +3037,7 @@ ALTER TABLE `result_fasting_blood_sugar`
 -- AUTO_INCREMENT for table `result_function_full_blood_count`
 --
 ALTER TABLE `result_function_full_blood_count`
-  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT;
+  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `result_function_liver`
@@ -2835,7 +3049,7 @@ ALTER TABLE `result_function_liver`
 -- AUTO_INCREMENT for table `result_function_renal`
 --
 ALTER TABLE `result_function_renal`
-  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `result_haemoglobin_electrophoresis`
@@ -2847,7 +3061,7 @@ ALTER TABLE `result_haemoglobin_electrophoresis`
 -- AUTO_INCREMENT for table `result_helicobacter_pylori`
 --
 ALTER TABLE `result_helicobacter_pylori`
-  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `result_lipid_profile`
@@ -2859,7 +3073,7 @@ ALTER TABLE `result_lipid_profile`
 -- AUTO_INCREMENT for table `result_pregnancy_test`
 --
 ALTER TABLE `result_pregnancy_test`
-  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `result_random_blood_sugar`
@@ -2871,25 +3085,25 @@ ALTER TABLE `result_random_blood_sugar`
 -- AUTO_INCREMENT for table `result_thyroid_functional_test`
 --
 ALTER TABLE `result_thyroid_functional_test`
-  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT;
+  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `result_widal`
 --
 ALTER TABLE `result_widal`
-  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `EMPLOYEEID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `EMPLOYEEID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `samplestatus`
 --
 ALTER TABLE `samplestatus`
-  MODIFY `keyid` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `keyid` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
 
 --
 -- AUTO_INCREMENT for table `sampletype`
@@ -2902,12 +3116,6 @@ ALTER TABLE `sampletype`
 --
 ALTER TABLE `samplingtest`
   MODIFY `TestKey` int(255) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `scientistpermission`
---
-ALTER TABLE `scientistpermission`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `semenanalysis`
@@ -2991,7 +3199,7 @@ ALTER TABLE `setup_thyroid_test`
 -- AUTO_INCREMENT for table `test_ascension`
 --
 ALTER TABLE `test_ascension`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
