@@ -25,7 +25,7 @@ export default function PersonalInfomationRegistration({ setData, data, setError
             }}
             placeholder="firstname"
             className="custom-input"
-            value={data.firstname}
+            value={data.personalInformation.firstname}
             type="text"
             size='small'
             required
