@@ -252,3 +252,12 @@ export const patientRegistrationDefaultData = {
     relationship: "",
   }
 }
+
+
+export const submitFormData = async function (endpoint,target) {
+  const pushResponse = await customPost(endpoint, 'PUT', target);
+  const { statusCode, status, message } = pushResponse;
+  if (statusCode == 200 && status == 'success') {
+    alert(message)
+  }
+}

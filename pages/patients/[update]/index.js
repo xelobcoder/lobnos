@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import PersonalInformationRegistration from '../../../components/registration/PersonalInfomationRegistration'
-import { patientRegistrationDefaultData } from '../../../components/Auth/registerclient';
+import { patientRegistrationDefaultData ,submitFormData} from '../../../components/Auth/registerclient';
 import { Info } from '@mui/icons-material';
 import PatientRecordsLayout from '../../../components/petientsComponent/PatientRecordsLayout';
 import { useRouter } from 'next/router';
@@ -15,7 +15,7 @@ export default function Update() {
     const response = await customFetch(`register/personalinformation?patientid=${patientid}`);
     const { statusCode, status, result } = response;
     if (statusCode == 200 && status == 'success') {
-      setPersonalInformation({ personalInformation: result });
+      setPersonalInformation({ ...personalInformation,personalInformation: result });
     }
   }
   useEffect(() => {
@@ -27,14 +27,7 @@ export default function Update() {
   }, [patientid])
 
 
-  console.log(personalInformation)
-  const submitFormData = async function () {
-    const pushResponse = await customPost(`register/personalinformation?patientid=${patientid}`, 'PUT', personalInformation.personalInformation);
-    const { statusCode, status, message } = pushResponse;
-    if (statusCode == 200 && status == 'success') {
-      alert(message)
-    }
-  }
+ 
 
 
   return (
@@ -55,7 +48,7 @@ export default function Update() {
           <PersonalInformationRegistration card={false} setError={setError} setData={setPersonalInformation}
             data={personalInformation} />
           <div className='m-3'>
-            <button className='btn btn-primary' onClick={(ev) => { submitFormData() }}>update information</button>
+            <button className='btn btn-primary' onClick={(ev) => { submitFormData(`register/personalinformation?patientid=${patientid}`,personalInformation.personalInformation) }}>update information</button>
           </div>
         </div>
       </PatientRecordsLayout>
