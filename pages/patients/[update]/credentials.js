@@ -1,11 +1,15 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import PatientRecordsLayout from '../../../components/petientsComponent/PatientRecordsLayout'
-import PatientCredentialsUpdate from '../../../components/petientsComponent/PatientCredentialsUpdate'
+import PatientCredentialsUpdate from '../../../components/petientsComponent/PatientCredentialsUpdate';
+import PatientProvider from '../index';
+import { useRouter } from 'next/router';
+import { customPost } from '../../../components/Auth/customFetch';
 
 export default function PatientCredentialsInformation() {
-  const [credentials, setCredentials] = useState({ username: '', npassword: '', nppassword: '', opassword: '' })
+  const patientid = useRouter().query.update;
+
+  const [credentials, setCredentials] = useState({ username: parseInt(patientid), npassword: '', nppassword: '', opassword: '' })
   const [error, setError] = useState('')
-  console.log(credentials)
 
   const handleSubmit = function () {
     let errorCount = 0;
@@ -21,7 +25,14 @@ export default function PatientCredentialsInformation() {
     }
 
     if (errorCount == 0) {
-      setError('')
+      setError('');
+      customPost('patients/updatecredentials', 'POST', credentials)
+        .then((response) => {
+          const { statusCode, status, message } = response;
+          // alert(message)
+          if (statusCode == 404) { setError(message)}
+        })
+        .catch((err) => console.log(err))
     }
   }
   return (

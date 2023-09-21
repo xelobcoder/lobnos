@@ -110,7 +110,7 @@ export default function SalesSummaryPatient({ header, data, currency }) {
               <div className='card-header d-flex justify-content-between pointer'>
                 <span> Day ({data?.day?.day}th)</span>
                 <span>
-                  {/* <AnalyticsOutlined /> */}
+                  <AnalyticsOutlined titleAccess='Daily chart of the month'  onClick={(ev) => { renderChart('daily') }} />
                 </span>
               </div>
               <div className='card-body'>
@@ -122,7 +122,7 @@ export default function SalesSummaryPatient({ header, data, currency }) {
               <div className='card-header d-flex justify-content-between pointer'>
                 <span>  Week ({data?.week?.week})</span>
                 <span>
-                  <AnalyticsOutlined onClick={(ev) => { renderChart('weekly') }} />
+                  <AnalyticsOutlined titleAccess='Week of the month' onClick={(ev) => { renderChart('weekly') }} />
                 </span>
               </div>
               <div className='card-body'>
@@ -134,7 +134,7 @@ export default function SalesSummaryPatient({ header, data, currency }) {
               <div className='card-header d-flex justify-content-between pointer'>
                 <span>Month( {data?.month?.month})</span>
                 <span>
-                  <AnalyticsOutlined onClick={(ev) => { renderChart('monthly') }} />
+                  <AnalyticsOutlined titleAccess='month of the year' onClick={(ev) => { renderChart('monthly') }} />
                 </span>
               </div>
               <div className='card-body'>
@@ -147,7 +147,7 @@ export default function SalesSummaryPatient({ header, data, currency }) {
                 <span>
                   Year ({new Date().getFullYear()})
                 </span>
-                <span><AnalyticsOutlined onClick={(ev) => { renderChart('yearly') }} /></span>
+                <span><AnalyticsOutlined titleAccess= 'chart in years' onClick={(ev) => { renderChart('yearly') }} /></span>
               </div>
               <div className='card-body'>
                 <h1>{currency} {data?.yearly?.sales}</h1>

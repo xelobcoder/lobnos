@@ -9,7 +9,7 @@ export default function PatientCredentialsUpdate({ data, setData }) {
           <label>username
             <span className='text-danger'> *</span>
           </label>
-          <input value={data.username} onChange={(ev) => handleChangeWithState(ev, 'username', setData, data)} className='form-control' type='text' placeholder='Enter username here' required />
+          <input  disabled value={data.username} onChange={(ev) => handleChangeWithState(ev, 'username', setData, data)} className='form-control' type='text' placeholder='Enter username here' required />
         </div>
         <div className='form-row'>
           <label>old password

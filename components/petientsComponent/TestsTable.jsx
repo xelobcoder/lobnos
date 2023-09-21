@@ -31,8 +31,12 @@ export default function TestsTable() {
 
   return (
     <>
-      {selected && selectedValue? (
+      {selected && selectedValue ? (
         <div className='bg-white p-2'>
+          <button className='btn btn-light' onClick={(ev) => {
+            console.log('hkkk')
+            testStatus(selectedValue)
+          }}>refresh</button>
           <h5 className='text-warning text-capitalize'>Transaction test records</h5>
           <table className='table'>
             <thead className='table-secondary text-capitalize br-7'>
@@ -57,7 +61,7 @@ export default function TestsTable() {
           </table>
         </div>
       ) : (
-        <NotSelected  message={'select a transaction date to continue'} />
+        <NotSelected message={'select a transaction date to continue'} />
       )}
       <OptionsTrackClient ref={TrackRef} />
     </>

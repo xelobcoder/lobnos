@@ -4,13 +4,16 @@ import TestsTable from '../../components/petientsComponent/TestsTable';
 import SalesSummaryPatient from '../../components/petientsComponent/SalesSummaryPatient';
 export const PatientContext = createContext();
 const PatientProvider = PatientContext.Provider;
+import dynamic from 'next/dynamic';
 import style from '../../styles/patients.module.css';
 import { Link } from '@mui/material';
-import ChartView from '../../components/petientsComponent/WeeksChartView';
+import PreviewPatientInformation from '../../components/petientsComponent/PreviewPatientInformation';
+const Yearly = dynamic(() => import('../../components/salesSummary/Yearly'), { ssr: false });
 
 export default function PATIENTS_INDEX_PAGE() {
   const initialParams = {
     query: 2023854,
+    runquery: false,
     selected: false,
     selectedValue: null,
     runprogressionRate: false,
@@ -43,14 +46,13 @@ export default function PATIENTS_INDEX_PAGE() {
 
   const [initials, updateInitials] = useReducer(Reducer, initialParams);
 
-
   function Reducer(state, action) {
     const { type } = action;
     switch (type) {
       case 'SEARCH_QUERY':
-        return { ...state, datesSource: action.result, runSales: true }
+        return { ...state, datesSource: action.result, runSales: true, runquery: true }
       case 'FILL_QUERY':
-        return { ...state, query: action.fieldValue }
+        return { ...initialParams, query: action.fieldValue }
       case 'POPULATE_SELECTED':
         const currentState = { ...state, selectedValue: action.selection, selected: true }
         return currentState;
@@ -81,13 +83,20 @@ export default function PATIENTS_INDEX_PAGE() {
           <div className='main container'>
             <ul className={style.ul} >
               <Link href='/patients/records' >patient records</Link>
-              <Link href={`/patients/${initials.query}`} >update records</Link>
-              <Link href='/patients/notifications'>Notification settings</Link>
-              <Link href='/patients/emailsettings'>Email preference</Link>
+              <a onClick={(ev) => {window.open(`/patients/${initials.query}`)}} >update records</a>
+              <Link href={`/patients/${initials.query}/notifications`}>Notification settings</Link>
+              <Link href={`/patients/${initials.query}/resultsettings`}>Email preference</Link>
             </ul>
+            {
+              initials.runquery && <PreviewPatientInformation patientid={initials.query} />
+            }
             <SalesSummaryPatient currency={'$'} data={initials.clientSalesSummaryGeneral} header={'Financial Transaction Summary'} />
-            <ChartView patientid={initials.query} />
-            <TestsTable />
+            <div>
+              <TestsTable />
+            </div>
+            <div className='mt-2 mb-2'>
+              {initials.displayChart && <Yearly target={initials.chartTarget} rawData={initials.chartData?.[initials.chartTarget]} />}
+            </div>
           </div>
         </div>
       </PatientProvider>

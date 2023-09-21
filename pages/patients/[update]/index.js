@@ -11,7 +11,7 @@ export default function Update() {
   const [error, setError] = useState('');
   const patientid = useRouter().query.update;
 
-  const getResponse = async function () {
+  const getPatientPersonalInformation = async function () {
     const response = await customFetch(`register/personalinformation?patientid=${patientid}`);
     const { statusCode, status, result } = response;
     if (statusCode == 200 && status == 'success') {
@@ -20,7 +20,7 @@ export default function Update() {
   }
   useEffect(() => {
     try {
-      getResponse();
+      getPatientPersonalInformation();
     } catch (err) {
       console.log(err)
     }

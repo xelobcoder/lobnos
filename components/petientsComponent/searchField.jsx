@@ -12,11 +12,10 @@ export default function SearchFieldPatients() {
   const getTransactionDates = useCallback(async function (patientid) {
     const getTrans = await customFetch(`patients/analytics/date?patientid=${patientid}`);
     const { statusCode, result } = getTrans;
-    updateInitials({ type: 'SEARCH_QUERY', result: statusCode == 200 ? result : [] })
+    updateInitials({ type: 'SEARCH_QUERY', result: statusCode == 200 ? result : []})
     if(statusCode == 401) {
      updateInitials({type: 'RESET_FILL_QUERY'}) 
     }
-    console.log(getTrans)
   }, [])
 
  

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { customFetch } from '../Auth/customFetch';
 import Chart from 'react-apexcharts'
 
-export default function Yearly({ target, headers, patientid = null, run = false }) {
+export default function Yearly({ target, headers, rawData = []}) {
   const [data, setData] = useState([]);
   // determines how the label is displayed
   const labelid = function (target) {
@@ -39,6 +39,17 @@ export default function Yearly({ target, headers, patientid = null, run = false 
         show: false
       }
     },
+    stacked: true,
+    plotOptions: {
+      column: {
+        barWidth: '10%'
+      },
+      bar: {
+        distributed: true,
+        borderRadius:5
+      }
+    },
+
     xaxis: {
       categories: data.map(item => item[`${dataTarget(target)}`]),
       title: {
@@ -50,24 +61,12 @@ export default function Yearly({ target, headers, patientid = null, run = false 
       enabledOnSeries: [1]
     },
     stroke: {
-      width: [0, 6]
+      width: [0, 5]
     },
-    colors: ['#F44336', '#00E396'],
+    // colors: ['#F44336', '#00E396','#EB8C87'],
     title: {
       text: 'Financial information chart'
     },
-    yaxis: [{
-      title: {
-
-      }
-    },
-    {
-      opposite: false,
-      title: {
-        text: 'Amount',
-      }
-    }
-    ],
     tooltip: {
       shared: true,
       intersect: false,
@@ -88,7 +87,7 @@ export default function Yearly({ target, headers, patientid = null, run = false 
 
 
   const fetchYearly = async () => {
-    let endpoint = patientid == null ? `sales/summary/general?target=${target}` : `sales/summary/general?target=${target}&&patientid=${patientid}`
+    let endpoint = `sales/summary/general?target=${target}`;
     const response = await customFetch(endpoint);
     const { status, statusCode, result } = response;
     if (status == "success" && statusCode == 200) {
@@ -97,15 +96,14 @@ export default function Yearly({ target, headers, patientid = null, run = false 
   }
 
   useEffect(() => {
-    fetchYearly();
-  }, [])
+    if (Array.isArray(rawData) && rawData && rawData.length > 0) {
+      setData(rawData)
+    } else {
+      fetchYearly();
+    }
+  }, [target])
 
 
-  useEffect(() => {
-    fetchYearly();
-  }, [run])
-
-  console.log(run,data,target)
   return (
     <>
       <div className="card">
@@ -115,7 +113,7 @@ export default function Yearly({ target, headers, patientid = null, run = false 
           </h6>
         </div>
         <div className="card-body p-0">
-          <Chart options={options} series={series} type="line" height={350} />
+          <Chart options={options} series={series} height={'350'}  />
         </div>
       </div>
     </>

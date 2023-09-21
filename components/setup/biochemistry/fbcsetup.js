@@ -10,6 +10,7 @@ export default function FullBloodCountSetup() {
   const [category, setCategory] = useState('male')
   const [childrenAge, setChildrenAge] = useState('0-10');
   // used for setting paramater to use per category of  data entry
+  // if usingdefault is true, we display default params
   const [usingdefault, setUsingDefault] = useState(false);
   const [disable, setDisabled] = useState(true)
   const [mode, setmode] = useState('new')
@@ -109,7 +110,7 @@ export default function FullBloodCountSetup() {
             <label>children range</label>
             <input className='custom-input' value={childrenAge} disabled={disable}></input>
           </div>
-          <div className='form-group d-flex'>
+          <div className='form-group d-flex '>
 
             <Link href={'/settings/setup/createparam?target=fbc'}>
               <Button variant='contained' >
@@ -117,12 +118,16 @@ export default function FullBloodCountSetup() {
               </Button>
             </Link>
 
-            <Button variant='contained' sx={{padding:'0px 20px',margin:'0px 10px'}}
-              onClick={() => setUsingDefault(!usingdefault)}>
-              {usingdefault === true ? 'table params' : 'use default'}
+            <Button variant='contained' sx={{padding:'0px 10px',margin:'0px 10px'}}
+              onClick={() => setUsingDefault(true)}>
+              default params
+            </Button>
+            <Button variant='contained' sx={{padding:'0px 10px',margin:'0px 10px'}}
+              onClick={() => setUsingDefault(false)}>
+               table params
             </Button>
             <Button variant='contained' onClick={handleCreatedParamsView}>
-              view created params
+              created params
             </Button>
           </div>
         </div>
