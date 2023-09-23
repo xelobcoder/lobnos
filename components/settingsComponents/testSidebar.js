@@ -13,11 +13,6 @@ export default function TestSidebar() {
         <div className="box-tail mt-2">
           <ul>
             <li>
-              <Link href={'/settings/setup/new'}>
-                add new test
-              </Link>
-            </li>
-            <li>
               <Link href='/settings/setup/liverfunctiontest'>
                 liver function test
               </Link>
@@ -56,12 +51,12 @@ export default function TestSidebar() {
               </Link>
             </li>
             <li>
-              <Link href={'/settings/setup/esr'}> 
+              <Link href={'/settings/setup/esr'}>
                 estimated sedimentation rate (ESR)
               </Link>
             </li>
             <li>
-              <Link href={'/settings/setup/electrophoresis'}> 
+              <Link href={'/settings/setup/electrophoresis'}>
                 Haemoglobin electrophoresis
               </Link>
             </li>

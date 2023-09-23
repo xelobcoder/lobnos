@@ -14,7 +14,13 @@ export async function customFetch(endpoint) {
    });
 
 
-   return await response.json();
+   const source = await response.json();
+   const { status, message } = source
+   if (status == 401 && message == 'Unauthorized') {
+      window.location.href = '/authentication/login'
+   } else {
+      return source
+   }
 }
 
 export const Glucoseoptions = ["", "mg/dl", "mmol/L"];
@@ -246,14 +252,14 @@ export const getSampleTypeList = async function (setSource) {
    }
 }
 
-export const getApplicationSettings = async function (setApplicationSettings) {
+export const getApplicationSettings = async function () {
    const getResponse = await customFetch('applicationsettings');
    const { status, result, statusCode } = getResponse;
    if (statusCode == 200 && status == 'success') {
       if (result.length > 0) {
-         setApplicationSettings(result[0])
+        return result[0]
       } else {
-         setApplicationSettings(defaultApplicationSettings)
+         return defaultApplicationSettings
       }
    }
 }
@@ -287,6 +293,10 @@ export const getCompanyInformation = async function (setHeaders) {
    }
 }
 
+export const defaultSmsSettings = { result: 'No', registration: 'Yes', sample: 'No', birthday: 'No' };
+
+
+
 export const defaultApplicationSettings = {
    bulkregistration: 1,
    fontsize: 14,
@@ -296,6 +306,7 @@ export const defaultApplicationSettings = {
    PaidBillsBeforeTransaction: 1,
    completeFlow: 1,
    approvalbeforeprinting: 1,
+   smsSettings: defaultSmsSettings
 }
 
 
@@ -370,3 +381,4 @@ export const dayCollection = {
    5: 'Friday',
    6: 'Saturday'
 }
+

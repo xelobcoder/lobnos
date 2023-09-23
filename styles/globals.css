@@ -2210,6 +2210,10 @@ option:hover {
   grid-template-columns: 20% auto;
 }
 
+.test-setup-layout > div:nth-child(1) {
+  border-right: 1px solid lightgray;
+}
+
 .create-param-form {
   margin: 1% 5%;
   display: grid;

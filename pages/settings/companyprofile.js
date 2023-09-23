@@ -93,12 +93,12 @@ export default function CompanyProfile() {
     <SettingsLayout>
       <div className='card br-5 m-3'>
         <div className='card-header p-2' style={{ backgroundColor: 'whitesmoke' }}>
-          <h3 className='btn btn-danger'>Upload Company information</h3>
+          <h4 className='text-capitalize'>Upload Company information</h4>
         </div>
         <div className='card-body'>
-          <form>
-            <div className="form-group mt-2">
-              <label>name: </label>
+          <form  style={{display:'grid',gridTemplateColumns:'50% auto',gridGap:'10px'}}>
+            <div className="form-group ">
+              <label className='text-primary'>name </label>
               <input
                 className="custom-input"
                 value={companydata.name}
@@ -110,8 +110,8 @@ export default function CompanyProfile() {
               />
             </div>
 
-            <div className="form-group  mt-2">
-              <label>email: </label>
+            <div className="form-group  ">
+              <label className='text-primary'>email</label>
               <input
                 className="custom-input"
                 value={companydata.email}
@@ -123,8 +123,8 @@ export default function CompanyProfile() {
               />
             </div>
 
-            <div className="form-group mt-2">
-              <label>address: </label>
+            <div className="form-group ">
+              <label className='text-primary'>address </label>
               <input
                 className="custom-input"
                 value={companydata.address}
@@ -136,8 +136,8 @@ export default function CompanyProfile() {
               />
             </div>
 
-            <div className="form-group mt-2">
-              <label>motto: </label>
+            <div className="form-group ">
+              <label className='text-primary'>motto</label>
               <input
                 className="custom-input"
                 value={companydata.motto}
@@ -149,8 +149,8 @@ export default function CompanyProfile() {
               />
             </div>
 
-            <div className="form-group mt-2">
-              <label>phone number: </label>
+            <div className="form-group ">
+              <label className='text-primary'>phone number </label>
               <input
                 className="custom-input"
                 multiple
@@ -166,23 +166,23 @@ export default function CompanyProfile() {
                 }}
               />
             </div>
-            <div className='form-group mt-3'>
-              <label>street</label>
+            <div className='form-group'>
+              <label className='text-primary'>street</label>
               <input className='custom-input' value={companydata.street}
                 onChange={(e) => setcompanyData({ ...companydata, street: e.target.value })} />
             </div>
-            <div className='form-group mt-3'>
-              <label>alternativeNumber</label>
+            <div className='form-group'>
+              <label className='text-primary'>alternative Number</label>
               <input className='custom-input' value={companydata.alternativeNumber}
                 onChange={(e) => setcompanyData({ ...companydata, alternativeNumber: e.target.value })} />
             </div>
-            <div className='form-group mt-3'>
-              <label>website</label>
+            <div className='form-group'>
+              <label className='text-primary'>website</label>
               <input className='custom-input' value={companydata.website}
                 onChange={(e) => setcompanyData({ ...companydata, website: e.target.value })} />
             </div>
-            <div className="form-group mt-2">
-              <label>Upload Images </label>
+            <div className="form-group ">
+              <label className='text-primary'>Upload Images </label>
               <input
                 type="file"
                 className="custom-input mt-3"

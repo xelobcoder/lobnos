@@ -3,7 +3,7 @@ import React from 'react'
 import { useContext } from 'react';
 import { PatientContext } from '../../pages/patients';
 
-export default function NotSelected({ message }) {
+export default function NotSelected({ message,secondary }) {
   const { initials } = useContext(PatientContext);
   const { datesSource } = initials;
   return (

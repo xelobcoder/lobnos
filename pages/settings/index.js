@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { customFetch, customPost, defaultApplicationSettings, getApplicationSettings } from '../../components/Auth/customFetch';
 import { Table } from 'react-bootstrap';
+import { useRouter } from 'next/router';
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout'
 
 export default function Settings() {
 	const [branches, setBranch] = useState([])
+	const navigate = useRouter();
 	const [defaultBranch, setDefaultBranch] = useState('');
 	const [ApplicationSettings, setApplicationSettings] = useState(defaultApplicationSettings)
 
@@ -39,11 +41,15 @@ export default function Settings() {
 	}
 
 
-	
+	const get_our_data = async function () {
+		const data = await getApplicationSettings();
+		setApplicationSettings(data)
+	}
+
 
 
 	useEffect(() => {
-		getApplicationSettings(setApplicationSettings)
+		get_our_data();
 	}, [])
 
 
@@ -65,7 +71,7 @@ export default function Settings() {
 			const { statusCode, status, message } = pushSettings;
 			if (statusCode == 200 && status == 'success') {
 				alert(message);
-				getApplicationSettings(setApplicationSettings);
+				get_our_data()
 				setDefaultBranch(localStorage.getItem('deviceDefaultBranch'))
 			}
 		}
@@ -115,30 +121,6 @@ export default function Settings() {
 								</button>
 							</td>
 						</tr>
-						{/* <tr>
-							<td>2</td>
-							<td className="text-capitalize"> font size</td>
-							<td>{ApplicationSettings?.fontsize}px</td>
-							<td>
-								<input step="1" type="number" className="form-control" onChange={(e) => handleAppSettingsActivation('fontsize',e.target.value)} />
-							</td>
-						</tr>
-						<tr>
-							<td>3</td>
-							<td className="text-capitalize">text color</td>
-							<td>black</td>
-							<td>
-								<input type="color" value={ApplicationSettings?.textcolor || 'black'} />
-							</td>
-						</tr> */}
-						{/* <tr>
-							<td>4</td>
-							<td className="text-capitalize">background color</td>
-							<td>white</td>
-							<td>
-								<input type="color"  value={ApplicationSettings?.BackgroundColor || 'wheat'}/>
-							</td>
-						</tr> */}
 						{/* deactivate after 24 hrs */}
 						<tr>
 							<td>5</td>
@@ -280,6 +262,16 @@ export default function Settings() {
 											);
 										})}
 								</select>
+							</td>
+						</tr>
+						<tr>
+							<td>10</td>
+							<td>
+								update application email settings
+							</td>
+							<td>-------</td>
+							<td>
+								<button onClick={(ev) => navigate.push('/settings/emailsettings')} className='btn btn-primary btn-sm'>update</button>
 							</td>
 						</tr>
 					</tbody>

@@ -10,7 +10,6 @@ export default function PatientResultSettings() {
 
   const submitResponse = async function () {
     const response = await customPost(`patients/notifications`, 'PUT', { ...settings, patientid });
-
     const { statusCode, status, message } = response;
     if (statusCode == 404) { setError(message) } else {alert(message);setError('')}
   }

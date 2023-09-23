@@ -51,8 +51,8 @@ export default function Sampletypes() {
                 <button onClick={addList} className='btn btn-success'>add sample</button>
               </div>
             </div>
-            <table id='custom-table' className='mt-2'>
-              <thead>
+            <table className='mt-2 table border pointer'>
+              <thead className='bordered table-light br-7 text-capitalize'>
                 <tr>
                   <th>#</th>
                   <th>name</th>

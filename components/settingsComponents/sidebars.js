@@ -1,4 +1,4 @@
-import { Settings, SettingsApplications, Forest, CorporateFareRounded, BloodtypeRounded, TripOrigin, PriceChange } from "@mui/icons-material";
+import { Settings, SettingsApplications, Forest, CorporateFareRounded, BloodtypeRounded, TripOrigin, PriceChange, Sms } from "@mui/icons-material";
 import Link from "next/link";
 import { useState } from "react";
 export default function SettingsSidebarLayout() {
@@ -56,6 +56,16 @@ export default function SettingsSidebarLayout() {
               </div>
               <div className="text">
                 <Link href={'/settings/testpanel/testpricing'}>test pricing and setup</Link>
+              </div>
+            </li>
+            <li>
+              <div className="icons">
+                <Sms />
+              </div>
+              <div className="text">
+                <Link href={'/settings/sms'}>
+                  sms settings
+                </Link>
               </div>
             </li>
           </ul>
