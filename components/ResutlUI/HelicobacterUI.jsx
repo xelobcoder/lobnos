@@ -1,6 +1,7 @@
 import React from 'react'
 
 export default function HelicobacterUI({ result, testname }) {
+  const comments = result[0]?.['comments'];
   return (
     <>
       <div>
@@ -27,7 +28,7 @@ export default function HelicobacterUI({ result, testname }) {
             </table>
             <div>
               <h4 className='text-capitalize'>comments</h4>
-              <p>{result[0]?.['comments']}</p>
+              <p>{comments}</p>
             </div>
           </div>
         )}

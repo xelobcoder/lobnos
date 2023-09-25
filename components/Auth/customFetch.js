@@ -257,7 +257,7 @@ export const getApplicationSettings = async function () {
    const { status, result, statusCode } = getResponse;
    if (statusCode == 200 && status == 'success') {
       if (result.length > 0) {
-        return result[0]
+         return result[0]
       } else {
          return defaultApplicationSettings
       }
@@ -306,7 +306,8 @@ export const defaultApplicationSettings = {
    PaidBillsBeforeTransaction: 1,
    completeFlow: 1,
    approvalbeforeprinting: 1,
-   smsSettings: defaultSmsSettings
+   smsSettings: defaultSmsSettings,
+   emailNotification: 0
 }
 
 
@@ -382,3 +383,12 @@ export const dayCollection = {
    6: 'Saturday'
 }
 
+
+export const emailPreference = {
+   registration: 'No',
+   result: 'No',
+   approval: 'No',
+   rejection: 'No',
+   transactions: 'No',
+   birthday: 'Yes'
+}

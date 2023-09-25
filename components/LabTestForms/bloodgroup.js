@@ -10,7 +10,7 @@ export default function BloodGroup({ clientdata }) {
   const optionRhesus = ['', 'positive', 'negative'];
   const [group, setGroup] = useState('');
   const [rhesus, setRhesus] = useState('');
-  const [remarks, setRemarks] = useState('');
+  const [remarks, setRemarks] = useState({comment:''});
   const [resultEntered, setResultEntered] = useState(false);
 
 
@@ -30,7 +30,7 @@ export default function BloodGroup({ clientdata }) {
           setResultEntered(result);
           const data = records[0];
           setGroup(data?.BGROUP);
-          setRemarks(data?.REMARKS);
+          setRemarks({comment: data?.REMARKS});
           setRhesus(data?.RHESUS)
         }
       }
@@ -44,7 +44,7 @@ export default function BloodGroup({ clientdata }) {
     e.preventDefault();
     let response = await customPost('test/result/enter', 'POST', {
       rhesus,
-      remarks,
+      remarks:remarks.comment,
       bloodgroup: group,
       testname: client.test,
       patientid: client.patientid,
@@ -89,7 +89,7 @@ export default function BloodGroup({ clientdata }) {
             }}
           ></Autocomplete>
         </div>
-        <CommentSection value={remarks} getcomment={getComment} />
+        <CommentSection value={remarks.comment} datasource={remarks} target='comment' datafunction={setRemarks} getcomment={getComment} />
         <div>
           <Button
             className="mt-3"

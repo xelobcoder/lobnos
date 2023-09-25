@@ -4,7 +4,7 @@ import { handleChangeWithState } from '../Auth/customFetch'
 export default function SmsUpdateComponent({ data, setData, handleSubmit }) {
   return (
     <>
-      <div className='p-3'>
+      <div className='p-3 container'>
         <div className='alert alert-info '>
           <strong>
             To use sms service, you need to be activated for it. Activation API KEY AND AUTH key required to use a third party service like mtn sms gateway to forward messages. Reqular sms bundle need to be subscribed.

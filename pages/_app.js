@@ -5,7 +5,8 @@ import '../styles/Frontpageside.css'
 import "../styles/fullblood.css";
 import '../styles/admin.css'
 import '../styles/setup.css'
-import '../styles/exceltable.css'
+import '../styles/exceltable.css';
+import 'react-quill/dist/quill.snow.css'
 import "../styles/invoice.css";
 import Header from '../components/header'
 // import SidebarFrontPage from '../components/frontpagesidebar';

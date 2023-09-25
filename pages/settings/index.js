@@ -83,7 +83,7 @@ export default function Settings() {
 				<h4 className="btn btn-danger text-white">Application settings</h4>
 			</div>
 			<div className="p-2">
-				<Table className="bg-white" id="custom-table" striped bordered hover>
+				<Table className="bg-white" striped bordered hover>
 					<thead className="bg-dark text-white">
 						<tr>
 							<th className="text-capitalize">#</th>
@@ -265,13 +265,42 @@ export default function Settings() {
 							</td>
 						</tr>
 						<tr>
+							<td>9</td>
+							<td>Email Notifications</td>
+							<td>
+								{ApplicationSettings?.emailNotification == 0
+									? "Deactivated"
+									: "Activated"}
+							</td>
+							<td>
+								<button
+									className={
+										ApplicationSettings?.emailNotification== 0
+											? "btn btn-success btn-sm"
+											: "btn btn-danger btn-sm"
+									}
+
+									onClick={(e) => {
+										handleAppSettingsActivation('emailNotification', ApplicationSettings?.emailNotification== 0
+											? 1
+											: 0)
+									}}
+
+								>
+									{ApplicationSettings?.emailNotification== 0
+										? "Activate"
+										: " Deactivate"}
+								</button>
+							</td>
+						</tr>
+						<tr>
 							<td>10</td>
 							<td>
 								update application email settings
 							</td>
 							<td>-------</td>
 							<td>
-								<button onClick={(ev) => navigate.push('/settings/emailsettings')} className='btn btn-primary btn-sm'>update</button>
+								<button onClick={(ev) => navigate.push('/settings/emailsetting')} className='btn btn-primary btn-sm'>update</button>
 							</td>
 						</tr>
 					</tbody>

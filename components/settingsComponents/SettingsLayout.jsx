@@ -1,13 +1,13 @@
 import React from 'react'
 import SettingsSidebarLayout from './sidebars'
 
-export default function SettingsLayout({ children }) {
+export default function SettingsLayout({ children, sidebar }) {
   return (
     <>
       <div>
         <div className='wrapper'>
           <div className='side'>
-            <SettingsSidebarLayout />
+            {sidebar || <SettingsSidebarLayout />}
           </div>
           <div className='main'>
             {children}

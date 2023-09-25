@@ -2962,6 +2962,14 @@ input[type='text'] {
   background-color: whitesmoke !important;
 }
 
-.pointer{
+.pointer {
   cursor: pointer;
+}
+
+
+textarea:required:invalid {
+  border: 3px solid red;
+}
+.bg-white {
+  background-color: white !important;
 }
