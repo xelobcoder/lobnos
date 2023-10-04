@@ -392,3 +392,29 @@ export const emailPreference = {
    transactions: 'No',
    birthday: 'Yes'
 }
+
+
+export const modulex = {
+   toolbar: [
+      ['bold', 'italic', 'underline', 'strike'],
+      ['blockquote', 'code-block'],
+      [{ 'header': '1' }, { 'header': '2' }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'script': 'sub' }, { 'script': 'super' }],
+      // Remove 'direction' from the toolbar
+      ['link', 'image', 'video', 'formula'],
+      [{ 'align': [] }],
+      ['clean'],
+      [{ 'color': [] }],
+   ],
+};
+
+export const formats = [
+   'bold', 'italic', 'underline', 'strike',
+   'blockquote', 'code-block',
+   'header', 'list', 'bullet',
+   'script', 'indent', 'direction',
+   'link', 'image', 'video', 'formula',
+   'align',
+   'color',
+];

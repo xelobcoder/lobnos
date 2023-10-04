@@ -5,6 +5,7 @@ import { customFetch, getDepartment } from '../../components/Auth/customFetch';
 import SECOND_NO_DATA from '../../components/accessories/secondNodata';
 import { Button } from '@mui/material';
 import { useRouter } from 'next/router';
+import DateTimer from '../../components/accessories/DateTimer';
 
 export default function OperationsOverview({ colorIndex }) {
   const [summary, setSummary] = useState([]);
@@ -18,6 +19,7 @@ export default function OperationsOverview({ colorIndex }) {
   const getOperationsOverview = async function () {
     const overview = await customFetch('operations/overview?stage=unentered');
     const { status, statusCode, result } = overview;
+    console.log(overview,'overview')
     if (statusCode == 200 && status == 'success') {
       const departments = department.map((item, index) => {
         return { department: item.department, id: item.id };
@@ -30,6 +32,7 @@ export default function OperationsOverview({ colorIndex }) {
           const count = result.filter((e, i) => { { return e.department == item.department; } });
           return { department: item.department, count: count.length, id: item.id }
         }))
+        // console.log(summary,department)
         setTotalCount(result.length)
       }
     }
@@ -52,8 +55,9 @@ export default function OperationsOverview({ colorIndex }) {
         <div className='head'>
           <h3 className="text-bold text-capitalize">
             cases count awaiting result entry by department for today{" "}
-            {new Date().toISOString().slice(0, 10)}
-          </h3></div>
+            <DateTimer />
+          </h3>
+        </div>
         <div className='tail'>
           <Button
             variant="contained"

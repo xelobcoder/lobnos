@@ -16,8 +16,8 @@ import EmmergencyContactInformation from "../../components/registration/Emmergen
 export default function Registration({ organization, clinician }) {
   // statr for handlinf whether the other informationsuch as  addressing ,emmergency contact and others are shown
   const [detailRegistration, setDetailRegistration] = useState(false);
-  const [error,setError]= useState(false)
- 
+  const [error, setError] = useState(false)
+
   const [data, setData] = useState(patientRegistrationDefaultData);
 
   const [disable, setDisable] = useState(false);
@@ -26,7 +26,7 @@ export default function Registration({ organization, clinician }) {
   useEffect(() => {
     const getRegistratonSettings = async function () {
       const response = await customFetch("register/registration/settings");
-      const { status, statusCode, message, bulkRegistration} = response;
+      const { status, statusCode, message, bulkRegistration } = response;
       if (statusCode == 200 && status == "success") {
         setDetailRegistration(bulkRegistration);
       }
@@ -153,30 +153,31 @@ export default function Registration({ organization, clinician }) {
     }
   }, [clientID]);
 
+
+
   return (
     <>
-      <div className="p-3 m-2">
+      <div className={`p-3 m-2 ${detailRegistration ? 'grid-2' : 'none'}`}>
         <PersonalInfomationRegistration setData={setData} data={data} setError={setError} />
-       {
-          detailRegistration ? <Addressing setData={setData} data={data} /> : null
-       }
-       {
-          detailRegistration ? <EmmergencyContactInformation setData={setData} data={data} /> : null
-       }
+        {detailRegistration && (
+          <div>
+            <Addressing setData={setData} data={data} />
+            <EmmergencyContactInformation setData={setData} data={data} />
+          </div>)
+        }
       </div>
-      <Box className="p-3 m-2">
-        <Button
-          type="button"
-          variant="contained"
-          tabIndex={31}
-          onClick={(e) => {
-            const typer = clientID === undefined || clientID === null ? 'POST' : 'PUT';
-            handleSubmitRegistration(e, data, typer, setData);
-          }}
-        >
-          submit
-        </Button>
-      </Box>
+      <Button
+        type="button"
+        style={{marginLeft:'40px',marginTop:'-50px'}}
+        variant="contained"
+        tabIndex={31}
+        onClick={(e) => {
+          const typer = clientID === undefined || clientID === null ? 'POST' : 'PUT';
+          handleSubmitRegistration(e, data, typer, setData);
+        }}
+      >
+        save new record
+      </Button>
     </>
   );
 }

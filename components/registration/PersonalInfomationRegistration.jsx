@@ -7,7 +7,7 @@ import style from "../../styles/registration.module.css";
 export default function PersonalInfomationRegistration({ setData, data, setError, card }) {
   return (
     <>
-      <div className={card == true ? `card m-0 p-0` : 'none'} id="card-border">
+      <div className={card == true ? `card m-0 p-0` : 'none '} id="card-border">
         <div className="card-header">
           {card == true &&
             <h5 className='btn btn-danger text-white'>

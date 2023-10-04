@@ -45,7 +45,7 @@ export default function EmailSidebarJSX() {
                 <Error />
               </div>
               <div className="text">
-                <Link href={'/settings/emailsetting/logs'}> Email Logs</Link>
+                <Link href={'/settings/emailsetting/customemail'}> compomse email</Link>
               </div>
             </li>
           </ul>

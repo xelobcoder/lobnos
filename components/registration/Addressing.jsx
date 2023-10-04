@@ -5,7 +5,7 @@ import { Home } from '@mui/icons-material';
 export default function Addressing({ setData, data, card }) {
   return (
     <>
-      <div className={card == true ? 'card mt-4' : 'none'} id="card-border">
+      <div className={card  ? 'card mt-4' : 'none'} id="card-border">
         <div className="card-header">
           {
             card &&

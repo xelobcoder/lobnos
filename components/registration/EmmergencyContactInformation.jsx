@@ -1,11 +1,11 @@
 import React from 'react'
 
-export default function EmmergencyContactInformation({ data, setData }) {
+export default function EmmergencyContactInformation({ data, setData, card }) {
   return (
     <>
-      <div className='card br-5 mt-4'>
+      <div className={card == true ? `card m-0 p-0` : 'none '} id="card-border">
         <div className='card-header p-3'>
-          <h5 className='btn btn-danger text-white'>
+          <h5 className={card ? 'btn btn-danger text-white' : 'none text-uppercase'}>
             emmergency contact information
           </h5>
         </div>

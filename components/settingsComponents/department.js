@@ -6,11 +6,6 @@ import { customFetch, customPost } from '../../components/Auth/customFetch';
 import TopMessage from '../accessories/TopMessage';
 
 export default function Add_department() {
-  const [showMessage, setShowMessage] = React.useState({
-    display: false,
-    type: '',
-    message: ''
-  })
   const [department, setDepartment] = React.useState({
     department: '',
     departmentManager: '',
@@ -64,11 +59,7 @@ export default function Add_department() {
           router.reload()
         }
       } else {
-        setShowMessage({
-          display: true,
-          type: "error",
-          message: message,
-        });
+        alert(message)
       }
     }
 
@@ -83,7 +74,7 @@ export default function Add_department() {
   const getEmployees = async () => {
     const response = await customFetch('logins');
     const { message, statusCode, result } = response;
-    if (message == "success" && statusCode == 200) {
+    if (message == "Success" && statusCode == 200) {
       setEmployeeList(result);
     } else {
       setEmployeeList([]);
@@ -99,7 +90,7 @@ export default function Add_department() {
 
   // monitor for edit tab in the url
   useEffect(() => {
-    const { tab, id, employeeid,department,departmentManager} = router.query;
+    const { tab, id, employeeid, department, departmentManager } = router.query;
     if (tab === 'edit') {
       setTab('update');
       // fetch department from server
@@ -113,18 +104,6 @@ export default function Add_department() {
 
   return (
     <>
-      {showMessage.display ? (
-        <TopMessage
-          message="Department Added Successfully"
-          type={showMessage.type}
-          display={showMessage.display}
-          messageTimer={() =>
-            setTimeout(() => {
-              setShowMessage({ display: false, type: "", message: "" });
-            }, 3000)
-          }
-        />
-      ) : null}
       <div className="p-2">
         <div className="card br-7">
           <div className="card-header">

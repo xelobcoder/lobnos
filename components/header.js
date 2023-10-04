@@ -55,7 +55,8 @@ function Header() {
           <Toolbar>
             <Typography variant="h4" color="error" component={"div"}>
               <Link href={'/'}>
-                ZOOM
+                HPLIMS
+                <span className="text-white">(High performance laboratory information management system) || prime health</span>
               </Link>
             </Typography>
           </Toolbar>

@@ -20,13 +20,14 @@ export default function PreviewPatientInformation({ patientid }) {
   useEffect(() => {
     if (initials.runquery) { getData(patientid) }
   }, [initials.runquery, patientid])
+
   return (
     <>
       <div className='card br-5 mb-2 mt-2'>
         <div className='card-header '>
-          Patient information summary
+          <h4> Patient information summary</h4>
         </div>
-        <div className='card-body' style={{display:'grid',gridTemplateColumns:'auto auto',gridGap:'10px,20%'}}>
+        <div className='card-body' style={{ display: 'grid', gridTemplateColumns: 'auto auto', gridGap: '10px,20%' }}>
           <ul className='d-flex justify-content'>
             <li className='text-capitalize '>fullname: </li>
             <li className='text-capitalize text-primary'> {data?.firstname} {data?.middlename} {data?.lastname}</li>

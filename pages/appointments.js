@@ -1,5 +1,8 @@
 import SidebarFrontPage from "../components/frontpagesidebar";
 import Header from "../components/header";
+import React from 'react'
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
 
 export default function Appointment() {
   return (
@@ -8,6 +11,10 @@ export default function Appointment() {
         <code>
           TOD0: fullstack calender framework to be used here. Take note
         </code>
+        <FullCalendar
+          plugins={[dayGridPlugin]}
+          initialView="dayGridMonth"
+        />
       </div>
     </>
   )

@@ -25,7 +25,7 @@ export default function Widget({ show, handleClickedLink }) {
     },
     {
       title: 'Operations',
-      Link: '/operations'
+      Link: '/operations/laboratory'
     }
     ,
     {
