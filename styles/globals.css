@@ -2,81 +2,6 @@
   /* --sans-serif: 'ColfaxAI', helvetica, sans-serif; */
   /* --monospace: 'Roboto Mono', sfmono-regular, consolas, liberation mono, menlo, */
   /* courier, monospace; */
-  -primary: #10a37f;
-  --primary-50: #ebfaeb;
-  --primary-100: #d2f4d3;
-  --primary-200: #b9eebc;
-  --primary-300: #93e69c;
-  --primary-400: #68de7a;
-  --primary-500: #19c37d;
-  --primary-600: #10a37f;
-  --primary-700: #1a7f64;
-  --primary-800: #1b5d4a;
-  --primary-900: #183d31;
-  --primary-50a: rgba(16, 163, 127, 0.2);
-  --primary-100a: rgba(16, 163, 127, 0.3);
-  --secondary: #5436da;
-  --secondary-50: #ecebf9;
-  --secondary-100: #d2cff2;
-  --secondary-200: #b9b4ec;
-  --secondary-300: #a198e6;
-  --secondary-400: #897ce2;
-  --secondary-500: #715fde;
-  --secondary-600: #5436da;
-  --secondary-700: #482da8;
-  --secondary-800: #3b2479;
-  --secondary-900: #281852;
-  --secondary-100a: rgba(84, 54, 218, 0.3);
-  --green-50: #ebfaeb;
-  --green-100: #d2f4d3;
-  --green-200: #b9eebc;
-  --green-300: #93e69c;
-  --green-400: #68de7a;
-  --green-500: #19c37d;
-  --green-600: #10a37f;
-  --green-700: #1a7f64;
-  --green-800: #1b5d4a;
-  --green-900: #183d31;
-  --green-100a: rgba(16, 163, 127, 0.3);
-  --red-50: #fdebeb;
-  --red-100: #f9cfcf;
-  --red-200: #f6b2b3;
-  --red-300: #f49394;
-  --red-400: #f17173;
-  --red-500: #ef4146;
-  --red-600: #c23539;
-  --red-700: #9d2b2e;
-  --red-800: #7b2124;
-  --red-900: #59181a;
-  --red-100a: rgba(239, 65, 70, 0.3);
-  --gray-50: #f7f7f8;
-  --gray-100: #ececf1;
-  --gray-200: #d9d9e3;
-  --gray-300: #c5c5d2;
-  --gray-400: #acacbe;
-  --gray-500: #8e8ea0;
-  --gray-600: #6e6e80;
-  --gray-700: #565869;
-  --gray-800: #353740;
-  --gray-900: #202123;
-  --medium-wash: #eff7f8;
-  --bg-color: #fff;
-  --text-primary: #202123;
-  --text-default: #353740;
-  --text-secondary: #6e6e80;
-  --text-disabled: #acacbe;
-  --text-error: #ef4146;
-  --font-size-small: 16px;
-  --input-border: var(--gray-300);
-  --input-border-focus: var(--primary-600);
-  --input-focus-ring: 0px 0px 0px 1px #10a37f;
-  --icon-warning-color: #f4ac36;
-  --heading-margin-top: 30px;
-  --heading-margin-bottom: 16px;
-  --content-width: 760px;
-  --content-v-padding: 40px;
-  --content-h-padding: 56px;
-  --border-radius: 4px;
 }
 
 /* @import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital@1&display=swap'); */
@@ -1123,90 +1048,7 @@ option:hover {
   color: white;
 }
 
-#addsupplier {
-  padding: 0 40px;
-}
 
-#addsupplier .form-group {
-  margin-bottom: 10px;
-}
-#addsupplier ::placeholder {
-  color: #00224f;
-  font-size: 14px;
-}
-
-#addsupplier .form-group label {
-  font-size: 18px;
-  font-weight: 600;
-  color: #00224f;
-  display: none;
-}
-#addsupplier .form-group input {
-  height: 50px;
-  border: 1px solid lightgray;
-  border-radius: 5px;
-  padding: 10px;
-  font-size: 14px;
-  width: 100%;
-  color: #00224f;
-}
-
-#addsupplier .form-group input:focus {
-  outline: none;
-  border: 2px solid #00224f;
-  box-shadow: none !important;
-}
-
-#addsupplier .form-group select {
-  height: 50px;
-  border: 1px solid lightgray;
-  border-radius: 5px;
-  padding: 10px;
-  font-size: 14px;
-  width: 100%;
-  color: #00224f;
-}
-
-#addsupplier .form-group select:focus {
-  outline: none;
-  border: 2px solid #00224f;
-  box-shadow: none !important;
-}
-
-#addsupplier > h1 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #00224f;
-  text-transform: uppercase;
-  margin-bottom: 20px;
-}
-
-#addsupplier .form-group .btn {
-  background-color: #00224f;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  padding: 10px;
-  font-size: 14px;
-  width: 20%;
-  cursor: pointer;
-}
-
-#addsupplier .form-group .btn:hover {
-  background-color: #00224f;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  padding: 10px;
-  font-size: 14px;
-  width: 20%;
-  cursor: pointer;
-}
-
-#addsupplier .form-group input:placeholder {
-  color: #00224f !important;
-  font-size: 20px;
-}
 
 #page-main-view {
   background-color: white !important;
@@ -1678,30 +1520,7 @@ option:hover {
   margin: 0px 5px;
 }
 
-#instruction-view {
-  background-color: rgba(0, 0, 0, 0.227);
-  width: 100%;
-  height: 100vh;
-  position: absolute;
-  top: 7%;
-  left: 0;
-  width: 100%;
-  z-index: 999;
-  /* display: none; */
-}
 
-#instruction-view > .content {
-  width: 50%;
-  height: auto;
-  position: absolute;
-  top: 30%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 10px;
-  z-index: 9999;
-  border-radius: 5px;
-  overflow-y: auto;
-}
 
 #redplaceholder::placeholder {
   color: red;

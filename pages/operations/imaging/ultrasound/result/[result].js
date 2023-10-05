@@ -23,16 +23,18 @@ export default function EnterResultUltrasound() {
 
 
   useEffect(() => {
-    customFetch(`test/result/check?billingid=${result}&&testname=scan&&testid=${query?.testid}`)
-      .then((data) => {
-        const { result, statusCode, records } = data;
-        setEnteredResult(result);
-        if (result && records.length > 0 && records[0]['content']) {
-          setContent(records[0]['content'])
-        }
-      })
-      .catch((err) => console.log(err))
-  }, [])
+    if (query?.result && query?.testid) {
+      customFetch(`test/result/check?billingid=${query?.result}&&testname=scan&&testid=${query?.testid}`)
+        .then((data) => {
+          const { result, statusCode, records } = data;
+          setEnteredResult(result);
+          if (result && records.length > 0 && records[0]['content']) {
+            setContent(records[0]['content'])
+          }
+        })
+        .catch((err) => console.log(err))
+    }
+  }, [query?.result, query?.testid])
 
   return (
     <>
