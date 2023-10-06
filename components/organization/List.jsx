@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import TableDisplay from '../../components/accessories/TableDisplay';
 import { customFetch, deleteOrganization } from '../Auth/customFetch';
-import { Button, IconButton } from '@mui/material';
-import { Add, DeleteOutlineOutlined, Edit, Tab, Visibility, VisibilityIcon } from '@mui/icons-material';
+import { IconButton } from '@mui/material';
+import { Add, DeleteOutlineOutlined, Edit, Visibility } from '@mui/icons-material';
 import Link from 'next/link';
 
 export default function OrganizationList() {
@@ -54,9 +54,9 @@ export default function OrganizationList() {
   const getOrganizationData = function () {
     customFetch('organizations/details')
       .then((response) => {
-        const { statusCode, status, records } = response;
+        const { statusCode, status, result } = response;
         statusCode == 200 && status == 'success' ?
-          setOrganization(records) :
+          setOrganization(result) :
           setOrganization([])
       })
       .catch((err) => setOrganization([]))

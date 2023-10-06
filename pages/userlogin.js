@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Header from "../components/header";
-import SidebarFrontPage from "../components/frontpagesidebar";
-import { Paper, TextField, Container, Button } from "@mui/material";
+import { TextField, Container, Button } from "@mui/material";
 
 export default function USERLOGIN() {
  const [user, setuser] = useState({ username: '', password: "" })

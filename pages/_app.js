@@ -5,13 +5,14 @@ import '../styles/Frontpageside.css'
 import "../styles/fullblood.css";
 import '../styles/admin.css'
 import '../styles/setup.css'
+import '../styles/inventory.css'
+import '../styles/supplier.css'
 import '../styles/exceltable.css';
 import 'react-quill/dist/quill.snow.css'
 import "../styles/invoice.css";
 import Header from '../components/header'
-// import SidebarFrontPage from '../components/frontpagesidebar';
-import { AuthentificationProvider, AuthContext } from '../components/Auth/useAuthentification';
-import { useContext } from 'react';
+import { AuthentificationProvider } from '../components/Auth/useAuthentification';
+
 import MAIN_LAYOUT from '../components/Headers/Layout';
 
 

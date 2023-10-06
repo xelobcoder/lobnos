@@ -3,8 +3,8 @@ import Navbar from "../../../components/payment/Navbar";
 import AccountSummary from "../../../components/payment/AccountSummary";
 import TableDisplay from "../../../components/accessories/TableDisplay";
 import { customFetch } from "../../../components/Auth/customFetch";
-import UpdateBilling from "../../../components/payment/updateBilling";
-import { CheckBox } from "@mui/icons-material";
+import dynamic from "next/dynamic";
+const UpdateBilling = dynamic(() => import("../../../components/payment/updateBilling", { ssr: false }));
 
 export default function Payment_Extra() {
   const layoutdefault = { update: false, billid: null, filteringData: {} };
@@ -160,7 +160,7 @@ export default function Payment_Extra() {
   return (
     <>
       <div
-       
+
       >
         <Navbar
           handleChange={handleChange}
