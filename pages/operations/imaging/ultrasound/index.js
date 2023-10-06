@@ -7,7 +7,7 @@ export default function UltrasoundHomePage() {
     <div>
       <h1 className='text-center'>{new Date().toDateString()}</h1>
       <h2 className='text-center text-success'>---------------Ultrasound Department <Home fontSize='large' /> -----------------</h2>
-      <div className='container d-flex justify-content-between'>
+      <div className='container d-flex justify-content-between' >
         <Link href={'./ultrasound/waitinglist'}>
           <button className='btn btn-primary p-5'>
             <Queue />

@@ -39,15 +39,6 @@ export default function Widget({ show, handleClickedLink }) {
     {
       title: 'payments',
       Link: '/billing/payment'
-    },
-    {
-      title: 'inventory',
-      Link: '/inventory'
-    }
-    ,
-    {
-      title: 'suppliers',
-      Link: '/supplier'
     }
     ,
     {

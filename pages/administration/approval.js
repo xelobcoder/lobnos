@@ -2,14 +2,11 @@ import React, { useEffect, useState } from "react";
 import {
   customFetch,
   customPost,
-  handleChange,
   handleComments,
-  handleResponse,
   validateFormData,
 } from "../../components/Auth/customFetch";
 import { IconButton, Tooltip } from "@mui/material";
 import { Launch } from "@mui/icons-material";
-import DisplayTest from "../../components/operations/DisplayTest";
 import Tip from "../../components/accessories/Tip";
 
 export default function Approval() {
