@@ -4,12 +4,11 @@ import React, { useEffect, useState, useMemo } from "react";
 import { customFetch } from "../../components/Auth/customFetch";
 import { useRouter } from "next/router";
 import { handleAge, patientRegistrationDefaultData, handleSubmitRegistration } from "../../components/Auth/registerclient";
-import {
-  Button, Box
-} from "@mui/material";
+import { Button, Box } from "@mui/material";
 import Addressing from "../../components/registration/Addressing";
 import PersonalInfomationRegistration from "../../components/registration/PersonalInfomationRegistration";
 import EmmergencyContactInformation from "../../components/registration/EmmergencyContactInformation";
+import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
 
 
 
@@ -157,45 +156,30 @@ export default function Registration({ organization, clinician }) {
 
   return (
     <>
-      <div className={`p-3 m-2 ${detailRegistration ? 'grid-2' : 'none'}`}>
-        <PersonalInfomationRegistration setData={setData} data={data} setError={setError} />
-        {detailRegistration && (
-          <div>
-            <Addressing setData={setData} data={data} />
-            <EmmergencyContactInformation setData={setData} data={data} />
-          </div>)
-        }
-      </div>
-      <Button
-        type="button"
-        style={{marginLeft:'40px',marginTop:'-50px'}}
-        variant="contained"
-        tabIndex={31}
-        onClick={(e) => {
-          const typer = clientID === undefined || clientID === null ? 'POST' : 'PUT';
-          handleSubmitRegistration(e, data, typer, setData);
-        }}
-      >
-        save new record
-      </Button>
+      <SettingsLayout sidebar={<SidebarFrontPage/>}>
+        <div className={`p-3 m-2 ${detailRegistration ? 'grid-2' : 'none'}`}>
+          <PersonalInfomationRegistration setData={setData} data={data} setError={setError} />
+          {detailRegistration && (
+            <div>
+              <Addressing setData={setData} data={data} />
+              <EmmergencyContactInformation setData={setData} data={data} />
+            </div>)
+          }
+        </div>
+        <Button
+          type="button"
+          style={{ marginLeft: '40px', marginTop: '-50px' }}
+          variant="contained"
+          tabIndex={31}
+          onClick={(e) => {
+            const typer = clientID === undefined || clientID === null ? 'POST' : 'PUT';
+            handleSubmitRegistration(e, data, typer, setData);
+          }}
+        >
+          save new record
+        </Button>
+      </SettingsLayout>
     </>
   );
 }
 
-
-
-
-
-Registration.getLayout = function (page) {
-  return (
-    <>
-      <Header />
-      <div className="wrapper" >
-        <div className="side">
-          <SidebarFrontPage />
-        </div>
-        <div className="main">{page}</div>
-      </div>
-    </>
-  )
-}

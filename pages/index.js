@@ -9,11 +9,11 @@ export default function Index() {
         <Link href="/registration">registration and bilLinkng</Link>
         <Link href="/operations/laboratory">laboratory</Link>
         <Link href="/operations/imaging/ultrasound">Imaging</Link>
-        <Link href="/">Inventory</Link>
+        <Link href="/inventory">Inventory</Link>
         <Link href="/">suppLinkes</Link>
         <Link href="/settings/emailsetting">EmaiLinkng system</Link>
-        <Link href="/">Sms management</Link>
-        <Link href="/">instructions </Link>
+        <Link href="/settings/sms">Sms management</Link>
+        <Link href="/instructions">instructions </Link>
       </ul>
     </div>
   )

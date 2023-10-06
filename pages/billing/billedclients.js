@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { Edit} from '@mui/icons-material';
+import { Edit } from '@mui/icons-material';
 import { customFetch } from '../../components/Auth/customFetch';
 import TableDisplay from '../../components/accessories/TableDisplay';
 import { Button } from '@mui/material';
@@ -57,19 +57,19 @@ export default function Billedclients() {
 
 
   const columns = [
-    { Header: 'BILLINGID', accessor: 'BILLINGID', checkboxSelection: true },
-    { Header: 'PATIENTID', accessor: 'PATIENTID' },
-    { Header: 'FULLNAME', accessor: 'FULLNAME' },
     {
       Header: 'DATE', accessor: 'DATE', Cell: dateCellRenderer
     },
+    { Header: 'PATIENTID', accessor: 'PATIENTID' },
+    { Header: 'BILLINGID', accessor: 'BILLINGID', checkboxSelection: true },
+    { Header: 'FULLNAME', accessor: 'FULLNAME' },
     { Header: 'AMOUNT DUE', accessor: 'PAYABLE' },
     { Header: 'AMOUNT PAID', accessor: 'PAID' },
     { Header: 'DISCOUNT', accessor: 'DISCOUNT' },
-    { Header: 'OUTSTANDING', accessor: 'OUTSTANDING', Cell: outstandingCellRenderer },
+    { Header: 'DEBT', accessor: 'OUTSTANDING', Cell: outstandingCellRenderer },
     // { Header: 'ORGANIZATION', accessor: 'ORGANIZATION' },
     // { Header: 'CLINICIAN', accessor: 'CLINICIAN' },
-    { Header: 'PAYMENT_MODE', accessor: 'PAYMENT_MODE' },
+    { Header: 'PAYMENT MODE', accessor: 'PAYMENT_MODE' },
     { Header: 'TYPE', accessor: 'TYPE' },
     { Header: 'ACTION', accessor: 'ACTION', Cell: actionCellRenderer, width: 300 },
   ]

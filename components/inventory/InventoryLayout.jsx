@@ -1,13 +1,13 @@
 import React from 'react'
 import InventoryHeaders from '../Headers/inventoryHeaders'
+import SettingsLayout from '../settingsComponents/SettingsLayout'
 
 export default function InventoryLayout({ children }) {
   return (
     <>
-      <div style={{backgroundColor:'#00224f17',height:'100vh'}}>
-        <InventoryHeaders />
+      <SettingsLayout sidebar={<InventoryHeaders />}>
         {children}
-      </div>
+      </SettingsLayout>
     </>
   )
 }

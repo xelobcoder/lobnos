@@ -696,8 +696,9 @@ option:hover {
 /* settings side bar css begins @............................................................................................... */
 .settings-sidebar {
   width: 100%;
-  background-color: black;
+  border-right: 1px solid lightgray;
   height: 120vh;
+  background-color: #00224f;
 }
 
 .settings-sidebar > .contents {
@@ -707,14 +708,14 @@ option:hover {
 
 .settings-sidebar > .contents > ul {
   margin: 0;
-  padding: 0;
+  padding: 10px;
 }
 
 .settings-sidebar > .contents > ul > li {
   padding: 10px;
   text-transform: uppercase;
   font-size: 12px !important;
-  margin: 0;
+  margin: 0px 10px;
   display: -ms-grid;
   display: grid;
   grid-template-columns: 10% auto;
@@ -724,11 +725,13 @@ option:hover {
 .settings-sidebar > .contents > ul > li > .text > a,
 .settings-sidebar > .contents > ul > li > .icons {
   color: white !important;
+  font-size: 14px;
 }
 
 .settings-sidebar > .contents > ul > li:hover,
 .settings-sidebar > .contents > ul > li:active,
-.settings-sidebar > .contents > ul > li:focus {
+.settings-sidebar > .contents > ul > li:focus,
+.settings-sidebar > .contents > ul > li:hover + .text > a {
   background-color: wheat;
   cursor: pointer;
   border-radius: 5px;
@@ -1217,15 +1220,16 @@ option:hover {
 
 #custom-table thead tr {
   width: 100%;
-  background-color: #198754;
-  border-bottom: 1px solid lightgray;
+  background-color: whitesmoke;
+  border-bottom: 5px solid black;
 }
 
 #custom-table thead tr th,
 .headerClass {
   font-size: 13px;
   font-weight: 400;
-  color: white;
+  color: inherit;
+  font-weight: 600;
   padding: 10px;
   text-transform: uppercase;
 }

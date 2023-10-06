@@ -6,6 +6,7 @@ import SECOND_NO_DATA from "../../components/accessories/secondNodata";
 import DepartmentStockLevel from "../../components/inventory/departmentStockLevel";
 import TopMessage from "../../components/accessories/TopMessage";
 import { customFetch, customPost } from "../../components/Auth/customFetch";
+import InventoryLayout from "../../components/inventory/InventoryLayout";
 
 const REQUISITIONS_URL = "departments/requisitions";
 
@@ -185,47 +186,49 @@ const DepartmentRequisition = () => {
 
   return (
     <>
-      <div style={{ backgroundColor: "#00224f17", height: "100vh" }}>
-        {message.display && <TopMessage message={message.message} type={message.type} messageTimer={messageTimer} />}
-        <div
-          className="p-2 lims-text-color"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "40% 35% auto",
-            gridGap: "10px",
-          }}
-        >
-          {eventKey === "1" && <DepartmentRequisitionForm />}
-          <div>
-            <button className="custom-button" onClick={() => handleEventKeyChange("2")}>
-              stocks level
-            </button>
-            <button
-              className="custom-button"
-              onClick={() => {
-                if (selectedDept === "") {
-                  setMessage({ message: "Please select a department", type: "error", display: true });
-                } else {
-                  router.push(`/inventory/requisition?dept=${selectedDept}`);
-                }
-              }}
-            >
-              requested
-            </button>
-            {eventKey !== "1" && <PlaceOrderButton />}
+      <InventoryLayout>
+        <div style={{ backgroundColor: "#00224f17", height: "100vh" }}>
+          {message.display && <TopMessage message={message.message} type={message.type} messageTimer={messageTimer} />}
+          <div
+            className="p-2 lims-text-color"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "40% 35% auto",
+              gridGap: "10px",
+            }}
+          >
+            {eventKey === "1" && <DepartmentRequisitionForm />}
+            <div>
+              <button className="custom-button" onClick={() => handleEventKeyChange("2")}>
+                stocks level
+              </button>
+              <button
+                className="custom-button"
+                onClick={() => {
+                  if (selectedDept === "") {
+                    setMessage({ message: "Please select a department", type: "error", display: true });
+                  } else {
+                    router.push(`/inventory/requisition?dept=${selectedDept}`);
+                  }
+                }}
+              >
+                requested
+              </button>
+              {eventKey !== "1" && <PlaceOrderButton />}
+            </div>
           </div>
+          {eventKey === "1" && (
+            <div>
+              {selectedDept.length > 0 ? (
+                <TableDisplay column={columns} data={stocks} filtering={true} />
+              ) : (
+                <SECOND_NO_DATA message={"No department selected"} />
+              )}
+            </div>
+          )}
+          {eventKey === "2" && <DepartmentStockLevel datasource={departmentStocksLevel} deleteStock={deleteStock} />}
         </div>
-        {eventKey === "1" && (
-          <div>
-            {selectedDept.length > 0 ? (
-              <TableDisplay column={columns} data={stocks} filtering={true} />
-            ) : (
-              <SECOND_NO_DATA message={"No department selected"} />
-            )}
-          </div>
-        )}
-        {eventKey === "2" && <DepartmentStockLevel datasource={departmentStocksLevel} deleteStock={deleteStock} />}
-      </div>
+      </InventoryLayout>
     </>
   );
 };

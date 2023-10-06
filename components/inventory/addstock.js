@@ -117,10 +117,10 @@ export default function ADD_STOCK_INVENTORY() {
   }
 
   useEffect(() => {
-   try {
-    getcategorylist();
-   }
-    catch(error) {
+    try {
+      getcategorylist();
+    }
+    catch (error) {
       setCategorylist([]);
       alert('error getting category list')
     }
@@ -144,7 +144,10 @@ export default function ADD_STOCK_INVENTORY() {
           }}
         />
       )}
-      <div id="addsupplier" className="mt-3">
+      <div className="mt-3 p-3">
+        <div className='alert alert-info'>
+          <h6> kindly fill in all fields to {tab == 'edit' ? 'update stock information' : ' add a new stock '}</h6>
+        </div>
         <form
           style={{
             display: "grid",
@@ -156,7 +159,7 @@ export default function ADD_STOCK_INVENTORY() {
             <label htmlFor="name">Name</label>
             <input
               type="text"
-              className="custom-input"
+              className="form-control"
               id="name"
               placeholder="Enter name"
               value={name}
@@ -167,7 +170,7 @@ export default function ADD_STOCK_INVENTORY() {
           <div className="form-group">
             <label htmlFor="category">Category</label>
             <select
-              className="custom-input"
+              className="form-control"
               id="category"
               value={category}
               onChange={(ev) => inputhandler(ev, "category")}
@@ -186,7 +189,7 @@ export default function ADD_STOCK_INVENTORY() {
           <div className="form-group">
             <label htmlFor="consumptionunit">Consumption Unit</label>
             <select
-              className="custom-input"
+              className="form-control"
               id="consumptionunit"
               value={consumptionunit}
               onChange={(ev) => inputhandler(ev, "consumptionunit")}
@@ -205,7 +208,7 @@ export default function ADD_STOCK_INVENTORY() {
           <div className="form-group">
             <label htmlFor="purchaseunit">Purchase Unit</label>
             <select
-              className="custom-input"
+              className="form-control"
               id="purchaseunit"
               value={purchaseunit}
               onChange={(ev) => inputhandler(ev, "purchaseunit")}
@@ -225,7 +228,7 @@ export default function ADD_STOCK_INVENTORY() {
             <label htmlFor="unitquantity">Unit Quantity</label>
             <input
               type="text"
-              className="custom-input"
+              className="form-control"
               id="unitquantity"
               placeholder="Enter unit quantity"
               value={unitquantity}
@@ -237,7 +240,7 @@ export default function ADD_STOCK_INVENTORY() {
             <label htmlFor="alertlevel">Alert Level</label>
             <input
               type="text"
-              className="custom-input"
+              className="form-control"
               id="alertlevel"
               placeholder="Enter alert level"
               value={alertlevel}
@@ -249,7 +252,7 @@ export default function ADD_STOCK_INVENTORY() {
             <label htmlFor="materialcode">Material Code</label>
             <input
               type="text"
-              className="custom-input"
+              className="form-control"
               id="materialcode"
               placeholder="Enter material code"
               value={materialcode}
@@ -261,7 +264,7 @@ export default function ADD_STOCK_INVENTORY() {
             <label htmlFor="tax">Tax</label>
             <input
               type="text"
-              className="custom-input"
+              className="form-control"
               id="tax"
               placeholder="Enter tax"
               value={tax}
@@ -269,14 +272,14 @@ export default function ADD_STOCK_INVENTORY() {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group mt-3">
             <button
               type="submit"
               className="btn btn-primary"
               onClick={handleSubmit}
             >
               {tab === "edit" ? <SystemUpdate /> : <AddCircleOutline />}
-              {tab === "edit" ? "Update" : "Add"}
+              {tab === "edit" ? "Update stock information" : "Add new stock"}
             </button>
           </div>
         </form>
