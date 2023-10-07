@@ -36,66 +36,114 @@ export default function SidebarFrontPage() {
               </div>
             </li>
             <li>
-              <Link href="/activation" title='activation'>
-                <div> <VerifiedUser /></div>
-                <div> Activation</div>
-              </Link>
+              <div className='icons'>
+                <VerifiedUser />
+              </div>
+              <div className='text'>
+                <Link href="/activation" title='activation'>
+                  Activation
+                </Link>
+              </div>
             </li>
             <li>
-              <Link href="/billing/billedclients">
-                <div> <MonetizationOn /></div>
-                <div>Billed Clients</div>
-              </Link>
+              <div className='icons'>
+                <MonetizationOn />
+              </div>
+              <div className='text'>
+                <Link href="/billing/billedclients">
+                  <div>Billed Clients</div>
+                </Link>
+              </div>
             </li>
             <li>
-              <Link href="/patients">
-                <div> <Person /></div>
-                <div>Clients</div>
-              </Link>
+              <div className='icons'>
+                <LocalHospital />
+              </div>
+              <div className='text'>
+                <Link href="/phlebotomy">
+                  Phlebotomy
+                </Link>
+              </div>
             </li>
             <li>
-              <Link href="/appointments">
-                <div>
-                  <Event />
-                </div>
-                <div>Appointments</div>
-              </Link>
+              <div className='icons'>
+                <Science />
+              </div>
+              <div className='text'>
+                <Link href="/sample">
+                  Sample
+                </Link>
+              </div>
             </li>
             <li>
-              <Link href="/organization">
-                <div> <Business /> </div>
-                <div>Organization</div>
-              </Link>
+              <div className='icons'>
+                <Work />
+              </div>
+              <div className='text'>
+                <Link href="/operations">
+                  Operations
+                </Link>
+              </div>
             </li>
             <li>
-              <Link href="/clinicians">
-                <SupervisorAccount /> Clinicians
-              </Link>
+              <div className='icons'>
+                <Settings />
+              </div>
+              <div className='text'>
+                <Link href="/settings">
+                  Settings
+                </Link>
+              </div>
             </li>
             <li>
-              <Link href="/sample">
-                <Science /> Sample
-              </Link>
+              <div className='icons'>
+                <Person />
+              </div>
+              <div className='text'>
+                <Link href="/patients">
+                  Clients
+                </Link>
+              </div>
             </li>
             <li>
-              <Link href="/phlebotomy">
-                <LocalHospital /> Phlebotomy
-              </Link>
+              <div className='icons'>
+                <Event />
+              </div>
+              <div className='text'>
+                <Link href="/appointments">
+                  Appointments
+                </Link>
+              </div>
             </li>
             <li>
-              <Link href="/settings">
-                <Settings /> Settings
-              </Link>
+              <div className='icons'>
+                <Business />
+              </div>
+              <div className='text'>
+                <Link href="/organization">
+                  <div>Organization</div>
+                </Link>
+              </div>
             </li>
             <li>
-              <Link href="/suppliers">
-                <BusinessCenter /> Suppliers
-              </Link>
+              <div className='icons'>
+                <SupervisorAccount />
+              </div>
+              <div className='text'>
+                <Link href="/clinicians">
+                  Clinicians
+                </Link>
+              </div>
             </li>
             <li>
-              <Link href="/operations">
-                <Work /> Operations
-              </Link>
+              <div className='icons'>
+                <BusinessCenter />
+              </div>
+              <div className='text'>
+                <Link href="/suppliers">
+                  Suppliers
+                </Link>
+              </div>
             </li>
           </ul>
         </div>

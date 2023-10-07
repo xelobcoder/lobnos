@@ -5,6 +5,8 @@ import { Button, Typography } from '@mui/material';
 import TableIsLoading from '../../components/accessories/TableIsLoading';
 import { ActivationBulk, handleActivation } from '../../components/Auth/registerclient';
 import { customFetch } from '../../components/Auth/customFetch';
+import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
+import SidebarFrontPage from '../../components/frontpagesidebar';
 
 export default function Activator() {
   const [activationData, setActivationData] = useState([]);
@@ -93,209 +95,211 @@ export default function Activator() {
 
   return (
     <>
-      {!advancedSearch && (
-        <div className='not-activation-advanced'>
-          <div>
-            <input
-              placeholder="Enter patientid"
-              value={id}
-              name="patientid"
-              id="patientid"
-              className="custom-input"
-              onChange={handleNameFilter}
-            />
+      <SettingsLayout sidebar={<SidebarFrontPage />}>
+        {!advancedSearch && (
+          <div className='not-activation-advanced'>
+            <div>
+              <input
+                placeholder="Enter patientid"
+                value={id}
+                name="patientid"
+                id="patientid"
+                className="custom-input"
+                onChange={handleNameFilter}
+              />
+            </div>
+            <div>
+              <div>
+                <button className="btn btn-outline-success  m-2" onClick={(w) => ActivationBulk(w, 'TRUE', getInitData)}>
+                  Activate all
+                </button>
+              </div>
+              <div>
+                <button className="btn btn-outline-danger m-2" onClick={(e) => ActivationBulk(e, 'FALSE', getInitData)}>
+                  Deactivate all
+                </button>
+              </div>
+              <div>
+                <button
+                  className="btn btn-primary m-2"
+                  onClick={() => setAdvancedSearch(!advancedSearch)}
+                >
+                  advanced
+                </button>
+              </div>
+            </div>
           </div>
-          <div>
-            <div>
-              <button className="btn btn-outline-success  m-2" onClick={(w) => ActivationBulk(w, 'TRUE', getInitData)}>
-                Activate all
-              </button>
-            </div>
-            <div>
-              <button className="btn btn-outline-danger m-2" onClick={(e) => ActivationBulk(e, 'FALSE', getInitData)}>
-                Deactivate all
-              </button>
-            </div>
-            <div>
-              <button
-                className="btn btn-primary m-2"
-                onClick={() => setAdvancedSearch(!advancedSearch)}
-              >
-                advanced 
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {advancedSearch && (
-        <div
-          id='activation-advanced'
-        >
-          <input
-            className="form-control"
-            name="patientid"
-            onChange={(e) => handleAdvancedQuery(e)}
-            placeholder="enter patientid"
-            type="number"
-            id="patientid"
-          />
-          <input
-            className="form-control"
-            onChange={(e) => handleAdvancedQuery(e)}
-            type="text"
-            placeholder="fullname"
-            name="fullname"
-          />
-          <input
-            className="form-control"
-            onChange={(e) => handleAdvancedQuery(e)}
-            type="tell"
-            maxLength={10}
-            minLength={0}
-            inputMode="numeric"
-            placeholder="mobile number"
-            name="mobile"
-          />
-          <input
-            className="form-control"
-            onChange={(e) => handleAdvancedQuery(e)}
-            type="date"
-            size="small"
-            placeholder="from"
-            name="from"
-            inputMode="date"
-          />
-          <input
-            className="form-control"
-            onChange={(e) => handleAdvancedQuery(e)}
-            tui
-            type="date"
-            size="small"
-            name="to"
-          />
-          <button
-            type="button"
-            className="custom-button"
-            onClick={(e) => advancedSearchButton(e)}
-            variant="contained"
-            color="primary"
-            size='small'
-          >
-            search
-          </button>
-          <button
-            type="button"
-            size='small'
-            className="btn btn-danger"
-            color="error"
-            onClick={(e) => setAdvancedSearch(false)}
-          >
-            close
-          </button>
-        </div>
-      )}
-      <div style={{ height: "100vh", overflowY: "auto", margin: "10px" }}>
-        {activationData.length > 0 && (
-          <table id="custom-table">
-            <thead>
-              <tr>
-                <th>reg date</th>
-                <th>patient id</th>
-                <th>fullname</th>
-                <th style={{ display: "flex", justifyContent: "center" }}>
-                  status
-                </th>
-                <th>action</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activationData.length === 0 && <TableIsLoading col={8} />}
-              {activationData.length > 0 &&
-                activationData.map((item) => (
-                  <tr key={item.ID}>
-                    <td>{item.DATE.slice(0, 10)}</td>
-                    <td>{item.PATIENTID}</td>
-                    <td>{item.FULLNAME}</td>
-                    <td>
-                      <div
-                        className={
-                          item.ACTIVATION_STATUS === "TRUE"
-                            ? "activated"
-                            : "deactivated"
-                        }
-                      >
-                        {item.ACTIVATION_STATUS === "TRUE"
-                          ? "activated"
-                          : "deactivated"}
-                      </div>
-                    </td>
-                    <td className="activation-cell">
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color={
-                          item.ACTIVATION_STATUS === "TRUE"
-                            ? "error"
-                            : "success"
-                        }
-                        onClick={(e) => {
-                          handleActivation(
-                            e,
-                            item.ID,
-                            item.ACTIVATION_STATUS,
-                            item.PATIENTID,
-                            getInitData
-                          );
-                        }}
-                      >
-                        {item.ACTIVATION_STATUS === "FALSE"
-                          ? "activate"
-                          : "deactivate"}
-                      </Button>
-                    </td>
-                    <td>
-                      {item.ACTIVATION_STATUS === "TRUE" ? (
-                        <Button
-                          sx={{ width: "100px" }}
-                          color="success"
-                          variant="contained"
-                          size="small"
-                          onClick={(e) => {
-                            handleBilling(item);
-                          }}
-                        >
-                          bill client
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="contained"
-                          sx={{ width: "100px" }}
-                          size="small"
-                          color='primary'
-                          onClick={(e) => {
-                            router.push(`/patients/${item.PATIENTID}`)
-                          }}
-                        >
-                          update info
-
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-            {activationData.length === 0 && (
-              <tr>
-                <td colSpan="7">
-                  <Typography variant="h5">No data found</Typography>
-                </td>
-              </tr>
-            )}
-          </table>
         )}
-      </div>
+
+        {advancedSearch && (
+          <div
+            id='activation-advanced'
+          >
+            <input
+              className="form-control"
+              name="patientid"
+              onChange={(e) => handleAdvancedQuery(e)}
+              placeholder="enter patientid"
+              type="number"
+              id="patientid"
+            />
+            <input
+              className="form-control"
+              onChange={(e) => handleAdvancedQuery(e)}
+              type="text"
+              placeholder="fullname"
+              name="fullname"
+            />
+            <input
+              className="form-control"
+              onChange={(e) => handleAdvancedQuery(e)}
+              type="tell"
+              maxLength={10}
+              minLength={0}
+              inputMode="numeric"
+              placeholder="mobile number"
+              name="mobile"
+            />
+            <input
+              className="form-control"
+              onChange={(e) => handleAdvancedQuery(e)}
+              type="date"
+              size="small"
+              placeholder="from"
+              name="from"
+              inputMode="date"
+            />
+            <input
+              className="form-control"
+              onChange={(e) => handleAdvancedQuery(e)}
+              tui
+              type="date"
+              size="small"
+              name="to"
+            />
+            <button
+              type="button"
+              className="custom-button"
+              onClick={(e) => advancedSearchButton(e)}
+              variant="contained"
+              color="primary"
+              size='small'
+            >
+              search
+            </button>
+            <button
+              type="button"
+              size='small'
+              className="btn btn-danger"
+              color="error"
+              onClick={(e) => setAdvancedSearch(false)}
+            >
+              close
+            </button>
+          </div>
+        )}
+        <div style={{ height: "100vh", overflowY: "auto", margin: "10px" }}>
+          {activationData.length > 0 && (
+            <table id="custom-table">
+              <thead>
+                <tr>
+                  <th>reg date</th>
+                  <th>patient id</th>
+                  <th>fullname</th>
+                  <th style={{ display: "flex", justifyContent: "center" }}>
+                    status
+                  </th>
+                  <th>action</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activationData.length === 0 && <TableIsLoading col={8} />}
+                {activationData.length > 0 &&
+                  activationData.map((item) => (
+                    <tr key={item.ID}>
+                      <td>{item.DATE.slice(0, 10)}</td>
+                      <td>{item.PATIENTID}</td>
+                      <td>{item.FULLNAME}</td>
+                      <td>
+                        <div
+                          className={
+                            item.ACTIVATION_STATUS === "TRUE"
+                              ? "activated"
+                              : "deactivated"
+                          }
+                        >
+                          {item.ACTIVATION_STATUS === "TRUE"
+                            ? "activated"
+                            : "deactivated"}
+                        </div>
+                      </td>
+                      <td className="activation-cell">
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color={
+                            item.ACTIVATION_STATUS === "TRUE"
+                              ? "error"
+                              : "success"
+                          }
+                          onClick={(e) => {
+                            handleActivation(
+                              e,
+                              item.ID,
+                              item.ACTIVATION_STATUS,
+                              item.PATIENTID,
+                              getInitData
+                            );
+                          }}
+                        >
+                          {item.ACTIVATION_STATUS === "FALSE"
+                            ? "activate"
+                            : "deactivate"}
+                        </Button>
+                      </td>
+                      <td>
+                        {item.ACTIVATION_STATUS === "TRUE" ? (
+                          <Button
+                            sx={{ width: "100px" }}
+                            color="success"
+                            variant="contained"
+                            size="small"
+                            onClick={(e) => {
+                              handleBilling(item);
+                            }}
+                          >
+                            bill client
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="contained"
+                            sx={{ width: "100px" }}
+                            size="small"
+                            color='primary'
+                            onClick={(e) => {
+                              router.push(`/patients/${item.PATIENTID}`)
+                            }}
+                          >
+                            update info
+
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+              {activationData.length === 0 && (
+                <tr>
+                  <td colSpan="7">
+                    <Typography variant="h5">No data found</Typography>
+                  </td>
+                </tr>
+              )}
+            </table>
+          )}
+        </div>
+      </SettingsLayout>
     </>
   );
 }

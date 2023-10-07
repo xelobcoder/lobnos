@@ -88,6 +88,7 @@ body {
   display: -ms-grid;
   display: grid;
   -ms-grid-columns: 50% 50%;
+  grid-gap: 10px;
   grid-template-columns: 50% 50%;
 }
 
@@ -2743,12 +2744,48 @@ textarea:required:invalid {
 }
 
 #frontpagecards > a {
-  border: 1px solid lightgray;
   height: 200px;
-  background-color: white;
-  box-shadow: 1px 2px 2px slateblue;
+  background-color: rgba(0, 0, 0, 0.248);
   cursor: pointer;
   transform: rotateX('30deg');
   justify-content: center;
   display: flex;
+}
+
+#frontpagecards > a:is(:hover,:focus) {
+  border: 2px solid #00224f;
+}
+
+#frontpagecards > a > div {
+  display: grid;
+  grid-template-columns: 100%;
+  grid-gap: 10%;
+  grid-template-rows: 50% auto;
+}
+
+#frontpagecards > a > div > .image {
+  height: 100%;
+  width: 100%;
+  color: #00224f;
+  display: flex;
+  justify-content: center;
+}
+
+#frontpagecards > a > div > .image > img {
+  border-radius: 50%;
+  border: 2px solid lightblue;
+}
+
+#frontpagecards > a > div > .text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #e83e8c;
+  padding: 5px;
+  border-radius: 10px;
+  margin: 15px;
+}
+#frontpagecards > a > div > .text > h4 {
+  text-transform: capitalize !important;
+  color: white !important;
 }

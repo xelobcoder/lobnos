@@ -4,6 +4,8 @@ import { Edit } from '@mui/icons-material';
 import { customFetch } from '../../components/Auth/customFetch';
 import TableDisplay from '../../components/accessories/TableDisplay';
 import { Button } from '@mui/material';
+import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
+import SidebarFrontPage from '../../components/frontpagesidebar';
 
 export default function Billedclients() {
   const [billedclients, setBilledclients] = React.useState([]);
@@ -78,7 +80,9 @@ export default function Billedclients() {
 
   return (
     <>
-      <TableDisplay data={billedclients} column={columns} filtering={true} />
+      <SettingsLayout sidebar={<SidebarFrontPage/>}>
+        <TableDisplay data={billedclients} column={columns} filtering={true} />
+      </SettingsLayout>
     </>
   );
 }

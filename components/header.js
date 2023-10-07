@@ -60,14 +60,14 @@ function Header() {
               </Link>
             </Typography>
           </Toolbar>
-          <Toolbar className='userHeader'>
+          {/* <Toolbar className='userHeader'>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <Avatar sx={{ mr: 1 }} />
               <Typography variant="h6" color='warning' className="text-capitalize" >
                 {username}
               </Typography>
             </div>
-          </Toolbar>
+          </Toolbar> */}
           <Toolbar className='flow-child'>
             <Refresh sx={{ mr: 1, cursor: 'pointer' }} onClick={() => { window.location.reload() }} />
             {branch == null ? <button
@@ -81,21 +81,6 @@ function Header() {
               />
             )}
           </Toolbar>
-          {/* {status == 'authenticated' &&
-            <Toolbar>
-              <button onClick={(e) => { signOut() }} className="custom-button text-white">
-                signout
-              </button>
-            </Toolbar>}
-          {
-            status === 'unauthenticated' &&
-            <Toolbar>
-              <button onClick={(e) => { signIn() }} className="custom-button text-white">
-                signIn
-              </button>
-            </Toolbar>
-
-          } */}
         </AppBar>
       </Box>
       <Box>

@@ -13,7 +13,7 @@ import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
 
 
 export default function Registration({ organization, clinician }) {
-  // statr for handlinf whether the other informationsuch as  addressing ,emmergency contact and others are shown
+  // state for handlinf whether the other informationsuch as  addressing ,emmergency contact and others are shown
   const [detailRegistration, setDetailRegistration] = useState(false);
   const [error, setError] = useState(false)
 
@@ -157,7 +157,7 @@ export default function Registration({ organization, clinician }) {
   return (
     <>
       <SettingsLayout sidebar={<SidebarFrontPage/>}>
-        <div className={`p-3 m-2 ${detailRegistration ? 'grid-2' : 'none'}`}>
+        <div className={`p-3 m-2 `}>
           <PersonalInfomationRegistration setData={setData} data={data} setError={setError} />
           {detailRegistration && (
             <div>

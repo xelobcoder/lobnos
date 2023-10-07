@@ -8,7 +8,8 @@ import {
 import { IconButton, Tooltip } from "@mui/material";
 import { Launch } from "@mui/icons-material";
 import Tip from "../../components/accessories/Tip";
-
+import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
+import SidebarFrontPage from '../../components/frontpagesidebar';
 export default function Approval() {
   const [clients, setClients] = useState([]);
   const [splinter, setSplinter] = useState(false);
@@ -107,7 +108,7 @@ export default function Approval() {
 
 
   return (
-    <>
+    <SettingsLayout sidebar={<SidebarFrontPage />}>
       <div className={splinter ? "client-results splinter" : "client-results"}>
         <div className="card m-2 mt-4  br-5">
           <div className="card-header">
@@ -213,6 +214,6 @@ export default function Approval() {
           </div>
         )}
       </div>
-    </>
+    </SettingsLayout>
   );
 }
