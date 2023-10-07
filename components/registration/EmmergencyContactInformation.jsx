@@ -16,7 +16,7 @@ export default function EmmergencyContactInformation({ data, setData, card }) {
             </label>
             <input
               type="text"
-              className="custom-input"
+              className="form-control"
               id="emergencyName"
               name="emergencyName"
               value={data.emmergencyInformation.emergencyName}
@@ -31,7 +31,7 @@ export default function EmmergencyContactInformation({ data, setData, card }) {
             </label>
             <input
               type="text"
-              className="custom-input"
+              className="form-control"
               id="relationship"
               name="relationship"
               value={data.emmergencyInformation.relationship}
@@ -45,7 +45,7 @@ export default function EmmergencyContactInformation({ data, setData, card }) {
             <input
               type="tel"
               inputMode="tel"
-              className="custom-input"
+              className="form-control"
               minLength={10}
               maxLength={10}
               id="emergencyContactNumber"
@@ -62,7 +62,7 @@ export default function EmmergencyContactInformation({ data, setData, card }) {
             </label>
             <input
               type="text"
-              className="custom-input"
+              className="form-control"
               id="location"
               name="location"
               value={data.emmergencyInformation.location}
@@ -77,7 +77,7 @@ export default function EmmergencyContactInformation({ data, setData, card }) {
             </label>
             <input
               type="text"
-              className="custom-input"
+              className="form-control"
               id="address"
               name="address"
               value={data.emmergencyInformation.address}
@@ -92,7 +92,7 @@ export default function EmmergencyContactInformation({ data, setData, card }) {
             </label>
             <input
               type="text"
-              className="custom-input"
+              className="form-control"
               id="occupation"
               name="occupation"
               value={data.emmergencyInformation.occupation}

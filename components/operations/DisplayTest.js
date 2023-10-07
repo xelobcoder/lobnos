@@ -27,9 +27,10 @@ import HemoglobinElectrophoresisForm from '../LabTestForms/HeamoglobinElectophor
 import StoolAnalysis from '../LabTestForms/stoolAnalysis';
 import BleedingNClotting from '../LabTestForms/bleedingnclotting';
 import SemenAnalysis from '../LabTestForms/SemenAnalysis';
-import LHHormone from '../LabTestForms/LHHormone';
 import FSHHormone from '../LabTestForms/FSHHormone';
 import Helicobacter_Pylori from '../LabTestForms/helicobacter_pylori';
+import UseSingleHormoneHook from '../LabTestForms/useSingleHormoneHook';
+
 
 export default function DisplayTest() {
   const { operationsKey } = useContext(OperationsContext);
@@ -62,8 +63,10 @@ export default function DisplayTest() {
     clotting_and_bleeding_time: <BleedingNClotting clientdata={operationsKey} />,
     semen_analysis: <SemenAnalysis clientdata={operationsKey} />,
     follicle_stimulating_hormone: <FSHHormone clientdata={operationsKey} />,
-    luteinizing_hormone: <LHHormone clientdata={operationsKey} />,
-    helicobacter_pylori: <Helicobacter_Pylori clientdata={operationsKey} />
+    luteinizing_hormone: <UseSingleHormoneHook clientdata={operationsKey} testname={'LH'} testHeader={'Leutinizing Hormone(LH)'} />,
+    helicobacter_pylori: <Helicobacter_Pylori clientdata={operationsKey} />,
+    prostate_specific_antigen_test: <UseSingleHormoneHook
+      clientdata={operationsKey} testHeader={'prostate specific antigen test(PSA)'} testname={'PSA'} />
   }
   return (
     <div>

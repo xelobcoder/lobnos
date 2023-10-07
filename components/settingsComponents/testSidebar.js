@@ -71,6 +71,11 @@ export default function TestSidebar() {
                 Follicle stimulating hormone
               </Link>
             </li>
+            <li>
+              <Link href={'/settings/setup/psahormone'}>
+                Prostate specific antigen hormone
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

@@ -908,8 +908,12 @@ option:hover {
   margin: 10px;
 }
 
+.input-height {
+  height: 30px !important;
+}
+
 .custom-input {
-  height: 40px;
+  height: 30px;
   border: 1px solid lightgray;
   border-radius: 5px;
   padding: 10px;
@@ -921,7 +925,7 @@ option:hover {
 
 .custom-input:focus {
   outline: none;
-  border: 2px solid #00224f;
+  border: 1px solid #00224f;
   box-shadow: none !important;
 }
 
@@ -1596,6 +1600,12 @@ option:hover {
   grid-template-columns: 50% 50%;
   grid-gap: 10px;
 }
+.grid-30-30-30 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 10px;
+}
+
 #billing-update-payment {
   /* background-color: whitesmoke; */
   padding: 10px;
@@ -2752,8 +2762,9 @@ textarea:required:invalid {
   display: flex;
 }
 
-#frontpagecards > a:is(:hover,:focus) {
+#frontpagecards > a:is(:hover, :focus) {
   border: 2px solid #00224f;
+  transition: 500ms all cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
 #frontpagecards > a > div {
@@ -2788,4 +2799,205 @@ textarea:required:invalid {
 #frontpagecards > a > div > .text > h4 {
   text-transform: capitalize !important;
   color: white !important;
+}
+#addsupplier {
+  padding: 0 40px;
+}
+
+#addsupplier .form-group {
+  margin-bottom: 10px;
+}
+#addsupplier ::placeholder {
+  color: #00224f;
+  font-size: 14px;
+}
+
+#addsupplier .form-group label {
+  font-size: 18px;
+  font-weight: 600;
+  color: #00224f;
+  display: none;
+}
+#addsupplier .form-group input {
+  height: 50px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
+  width: 100%;
+  color: #00224f;
+}
+
+#addsupplier .form-group input:focus {
+  outline: none;
+  border: 2px solid #00224f;
+  box-shadow: none !important;
+}
+
+#addsupplier .form-group select {
+  height: 50px;
+  border: 1px solid lightgray;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
+  width: 100%;
+  color: #00224f;
+}
+
+#addsupplier .form-group select:focus {
+  outline: none;
+  border: 2px solid #00224f;
+  box-shadow: none !important;
+}
+
+#addsupplier > h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #00224f;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+#addsupplier .form-group .btn {
+  background-color: #00224f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
+  width: 20%;
+  cursor: pointer;
+}
+
+#addsupplier .form-group .btn:hover {
+  background-color: #00224f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
+  width: 20%;
+  cursor: pointer;
+}
+
+#addsupplier .form-group input:placeholder {
+  color: #00224f !important;
+  font-size: 20px;
+}
+
+/* instarcution view  */
+
+#instruction-view {
+  background-color: rgba(0, 0, 0, 0.227);
+  width: 100%;
+  height: 100vh;
+  position: absolute;
+  top: 7%;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+  /* display: none; */
+}
+
+#instruction-view > .content {
+  width: 50%;
+  height: auto;
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 10px;
+  z-index: 9999;
+  border-radius: 5px;
+  overflow-y: auto;
+}
+.supplier-information-page {
+  background-color: #00224f27;
+  height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.supplier-information-page > .wrapper > .information,
+.supplier-information-page > .wrapper > .transaction,
+.supplier-information-page > .wrapper > .supplier-summary {
+  background-color: white;
+  height: 25vh;
+  max-height: max-content;
+  margin: 10px;
+  border-radius: 5px;
+  box-shadow: 1px 2px 5px whitesmoke;
+}
+
+.supplier-information-page > .wrapper {
+  display: grid;
+  grid-template-columns: 50% auto;
+}
+.supplier-information-page .transaction {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 100%;
+  grid-template-rows: 20% 80%;
+}
+
+.supplier-information-page .transaction > .transaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid lightgray;
+}
+
+.supplier-information-page .transaction h4 {
+  font-size: 17px;
+  text-transform: capitalize;
+  color: #00224f;
+}
+
+.supplier-information-page .transaction input {
+  height: 30px !important;
+  width: 40%;
+}
+
+.supplier-information-page .transaction > .transaction-body {
+  overflow-y: auto;
+  height: 100%;
+  padding: 10px;
+}
+
+.supplier-information-page .transaction > .transaction-body > .commodity {
+  margin: 0;
+  padding: 0;
+}
+
+.supplier-information-page .transaction > .transaction-body > .commodity > p {
+  margin: 0;
+  padding: 5px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.supplier-information-page .transaction > .transaction-body > .commodity:hover,
+.supplier-information-page .transaction > .transaction-body > .commodity:focus {
+  background-color: #00224f1c;
+  color: seagreen;
+}
+
+.supplier-information-page
+  .transaction
+  > .transaction-body
+  > .commodity
+  > p::first-letter {
+  text-transform: uppercase;
+}
+
+.supply-profile-wrapper {
+  display: grid;
+  grid-template-columns: 40% auto;
+  grid-gap: 10px;
+}
+.supply-profile-wrapper .supply-additional-info > p {
+  font-size: 14px;
+  color: #00224f;
 }

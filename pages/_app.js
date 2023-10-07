@@ -3,10 +3,8 @@ import '../styles/globals.css';
 import '../styles/testpanel.css';
 import '../styles/Frontpageside.css'
 import "../styles/fullblood.css";
-import '../styles/admin.css'
-import '../styles/setup.css'
-// import '../styles/inventory.css'
-import '../styles/supplier.css'
+import '../styles/admin.css';
+import '../styles/setup.css';
 import '../styles/exceltable.css';
 import 'react-quill/dist/quill.snow.css'
 import "../styles/invoice.css";

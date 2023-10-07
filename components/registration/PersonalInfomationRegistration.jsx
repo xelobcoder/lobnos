@@ -5,23 +5,21 @@ import { PersonPinCircle } from '@mui/icons-material';
 import { handleMobile, handleEmail } from '../Auth/registerclient';
 import style from "../../styles/registration.module.css";
 
-export default function PersonalInformationRegistration({ setData, data, setError, card }) {
+export default function PersonalInformationRegistration({ setData, data, setError, card, minify }) {
   return (
     <>
       <div className={card === true ? `card m-0 p-0` : 'none '} id="card-border">
         <div className="card-header">
-          {card === true ? (
+          {card === true && (
             <h5 className='btn btn-danger text-white'>
               <IconButton sx={{ color: 'white' }}>
                 <PersonPinCircle />
               </IconButton>
               Personal Information
             </h5>
-          ) : (
-            <h4 className='text-capitalize' style={{ marginLeft: '20px' }}>Personal Information</h4>
           )}
         </div>
-        <div className="card-body grid-2">
+        <div className={`card-body ${minify ? ' grid-30-30-30' : ''} `}>
           <div className='form-row'>
             <label>First Name</label>
             <input
@@ -29,7 +27,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
                 setData({ ...data, personalInformation: { ...data.personalInformation, firstname: e.target.value } });
               }}
               placeholder="First Name"
-              className="custom-input"
+              className="form-control"
               value={data.personalInformation.firstname}
               type="text"
               size='small'
@@ -39,7 +37,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
           <div className='form-row'>
             <label>Last Name</label>
             <input
-              className="custom-input"
+              className="form-control"
               type="text"
               label="lastname"
               placeholder="Last Name"
@@ -53,7 +51,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
           <div className='form-row'>
             <label>Middle Name</label>
             <input
-              className="custom-input"
+              className="form-control"
               placeholder="Middle Name"
               type="text"
               value={data.personalInformation.middlename}
@@ -72,7 +70,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
               required
               value={data.personalInformation.mobile}
               name="mobilenumber"
-              className="custom-input"
+              className="form-control"
               label="Mobile Number"
               onChange={(e) => {
                 handleMobile(e, setData, data, setError);
@@ -85,7 +83,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
               size="small"
               type="email"
               value={data.personalInformation.email}
-              className="custom-input"
+              className="form-control"
               name="email"
               onChange={(e) => handleEmail(e, setData, data, setError)}
               label="Email"
@@ -95,7 +93,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
             <label>Date of Birth</label>
             <div className={style.age}>
               <input
-                className="custom-input"
+                className="form-control"
                 min={1}
                 max={31}
                 type="number"
@@ -107,7 +105,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
                 label="Day"
               />
               <input
-                className="custom-input"
+                className="form-control"
                 label="Months"
                 min={1}
                 max={12}
@@ -120,7 +118,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
                 }}
               />
               <input
-                className="custom-input"
+                className="form-control"
                 label="Years"
                 min={1900}
                 max={new Date().getFullYear()}
@@ -142,14 +140,14 @@ export default function PersonalInformationRegistration({ setData, data, setErro
               type="number"
               min={0}
               max={150}
-              className="custom-input"
+              className="form-control"
               placeholder="Age"
             />
           </div>
           <div className='form-row'>
             <label>Age Type</label>
             <select
-              className="custom-input"
+              className="form-control"
               onChange={(e) =>
                 setData({ ...data, personalInformation: { ...data.personalInformation, agetype: e.target.value } })
               }
@@ -167,7 +165,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
               type="text"
               placeholder="Occupation"
               name="occupation"
-              className="custom-input"
+              className="form-control"
               value={data.personalInformation.occupation}
               onChange={(e) => {
                 setData({
@@ -186,7 +184,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
               type="text"
               placeholder="Patient Organization"
               name="patientOrganization"
-              className="custom-input"
+              className="form-control"
               value={data.personalInformation.patientOrganization}
               onChange={(e) => {
                 setData({

@@ -40,7 +40,7 @@ export default function Message({ props, handleView }) {
       {
         showx ?
           <div className='container'>
-            <div className={`${typeDx()} p-4 text-white`} style={{ width: width || '400px', position:'absolute',top:'8%',left:'70%' }}>
+            <div className={`${typeDx()} p-4`} >
               {message}
             </div>
           </div>

@@ -4,6 +4,7 @@ import { Button, TextField, Typography } from '@mui/material';
 import { Dropdown } from 'react-bootstrap';
 import styles from '../../styles/payment.module.css';
 import { Email, MonetizationOn, Print, WhatsApp } from '@mui/icons-material';
+import { forwardEmailReceipt } from '../Auth/customFetch';
 
 export default function Navbar({ query, updateBill, handleChange, select, runquery, setBill, selectedBilling }) {
 
@@ -78,13 +79,14 @@ export default function Navbar({ query, updateBill, handleChange, select, runque
             color: 'white',
             width: "100px", backgroundColor: "black"
           }}
-          onClick={(e) => {navigate.push(`payment/invoice/${selectedBilling}`)}}
+          onClick={(e) => { navigate.push(`payment/invoice/${selectedBilling}`) }}
         >
           invoice
         </Button>
         <Button
           startIcon={<Email />}
           variant="contained"
+          onClick={(ev) => { forwardEmailReceipt(selectedBilling) }}
           sx={{
             color: "white",
             width: "150px",

@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react'
 import Indicator from '../accessories/Reports/indicator'
 import CommentSection from './commentSection';
-import { handleComments, customFetch ,validateFormData,handleResponse} from '../Auth/customFetch';
+import { handleComments, customFetch, validateFormData, handleResponse } from '../Auth/customFetch';
 import { Button } from '@mui/material';
-export default function LHHormone({ clientdata }) {
+
+export default function UseSingleHormoneHook({ testHeader, testname, clientdata }) {
   const { billingid, patientid, test, testid } = clientdata;
 
   const defaultParameter = {
-    parameter: 'lh',
+    parameter: testname,
     value: '',
     comment: ''
   };
 
   const [result, setResult] = useState(defaultParameter);
   const [resultEntered, setResultEntered] = useState(false);
-  console.log(test)
+
 
   // check if rsult was previously entered on the database
 
@@ -48,11 +49,13 @@ export default function LHHormone({ clientdata }) {
       handleResponse
     );
   }
+
+
   return (
     <>
       <div className='p-4'>
         <div>
-          <h5>Leutinizing  Hormone (LH)</h5>
+          <h5>{testHeader}</h5>
           <Indicator resultEntered={resultEntered} />
           <form className='bg-white'>
             <div >
@@ -67,7 +70,7 @@ export default function LHHormone({ clientdata }) {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>LH</td>
+                    <td>{testname}</td>
                     <td><input type='text' value={result.value} onChange={(e) => setResult({ ...result, value: e.target.value })} /></td>
                     <td>U/L</td>
                     <td>2.4-12.6</td>

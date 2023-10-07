@@ -5,7 +5,7 @@ import { Home } from '@mui/icons-material';
 export default function Addressing({ setData, data, card }) {
   return (
     <>
-      <div className={card ? 'card mt-4' : 'none'} id="card-border">
+      <div className={card ? 'card mt-1' : 'none'} id="card-border">
         <div className="card-header">
           {card && (
             <h5 className='btn btn-danger text-white'>
@@ -20,7 +20,7 @@ export default function Addressing({ setData, data, card }) {
           <div className="form-row">
             <label>Area</label>
             <input
-              className="custom-input"
+              className="form-control"
               value={data.addressingInformation.area}
               onChange={(e) => setData({ ...data, addressingInformation: { ...data.addressingInformation, area: e.target.value } })}
               placeholder="Area"
@@ -30,7 +30,7 @@ export default function Addressing({ setData, data, card }) {
           <div className="form-row">
             <label>Region</label>
             <input
-              className="custom-input"
+              className="form-control"
               value={data.addressingInformation.region}
               onChange={(e) => setData({ ...data, addressingInformation: { ...data.addressingInformation, region: e.target.value } })}
               placeholder="Region"
@@ -40,7 +40,7 @@ export default function Addressing({ setData, data, card }) {
           <div className="form-row">
             <label>GPS Location or Landmark</label>
             <input
-              className="custom-input"
+              className="form-control"
               value={data.addressingInformation.gpsLocation}
               onChange={(e) => setData({ ...data, addressingInformation: { ...data.addressingInformation, gpsLocation: e.target.value } })}
               placeholder="GPS Location"
@@ -53,7 +53,7 @@ export default function Addressing({ setData, data, card }) {
             </label>
             <input
               type="text"
-              className="custom-input"
+              className="form-control"
               id="address"
               name="address"
               value={data.addressingInformation.address}

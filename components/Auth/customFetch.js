@@ -277,9 +277,11 @@ export const handleTestListChange = (ev, index, item) => {
 
 export const getDepartment = async (setDepartments) => {
    const response = await customFetch('departments');
-   const { status, data } = response;
-   if (status == 'success') {
+   const { status, data, statusCode } = response;
+   if (status == 'success' && statusCode === 200) {
       setDepartments(data)
+   } else {
+      setDepartments([]);
    }
 }
 
@@ -418,3 +420,11 @@ export const formats = [
    'align',
    'color',
 ];
+
+
+export const forwardEmailReceipt = async (billingid) => {
+   if (billingid) {
+      const mail = await customFetch(`billing/email/receipt?billingid=${billingid}`);
+      console.log(mail)
+   } else alert(`Please select a billingid to forward receipt via email `)
+}

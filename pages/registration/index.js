@@ -156,9 +156,12 @@ export default function Registration({ organization, clinician }) {
 
   return (
     <>
-      <SettingsLayout sidebar={<SidebarFrontPage/>}>
-        <div className={`p-3 m-2 `}>
-          <PersonalInfomationRegistration setData={setData} data={data} setError={setError} />
+      <SettingsLayout sidebar={<SidebarFrontPage />}>
+        <div className={`p-3 m-1 `}>
+          <h6 style={{ marginLeft: '20px', textTransform: 'capitalize' }}>
+            <span className="alert alert-info">register a new client</span>
+          </h6>
+          <PersonalInfomationRegistration minify={true} setData={setData} data={data} setError={setError} />
           {detailRegistration && (
             <div>
               <Addressing setData={setData} data={data} />
@@ -168,7 +171,7 @@ export default function Registration({ organization, clinician }) {
         </div>
         <Button
           type="button"
-          style={{ marginLeft: '40px', marginTop: '-50px' }}
+          style={{ marginLeft: '40px', marginTop: '-40px' }}
           variant="contained"
           tabIndex={31}
           onClick={(e) => {

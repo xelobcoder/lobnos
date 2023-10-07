@@ -4,13 +4,19 @@ import React from "react";
 import { useState, useEffect, useMemo } from "react";
 import TableDisplay from "../../components/accessories/TableDisplay";
 import InventoryIcon from "@mui/icons-material/Inventory";
-import { customFetch } from "../../components/Auth/customFetch";
+import { customFetch, customPost, getDepartment } from "../../components/Auth/customFetch";
 import InventoryLayout from "../../components/inventory/InventoryLayout";
-export default function Stocksrequest({ departments }) {
+export default function Stocksrequest() {
   const [request, setRequest] = useState([]);
   const [hxData, setHxData] = useState([]);
   const [departmentId, setDepartmentId] = useState("");
-  const [department, setDepartments] = useState(departments || []);
+  const [department, setDepartments] = useState([]);
+
+
+  // get department once page loads
+  useEffect(() => { getDepartment(setDepartments) }, []);
+
+
   useMemo(() => {
     async function fetchRequisitions() {
       if (departmentId) {
@@ -28,7 +34,7 @@ export default function Stocksrequest({ departments }) {
   }, [departmentId]);
 
   // handle the supply button
-  const handleSupply = (e, id) => {
+  const handleSupply = async (e, id) => {
     // check if the quantity approved is not empty by filtering the hxdata using the id
     const filtered = hxData.filter((item) => item.id === id);
     // quantity parsed to integer
@@ -56,22 +62,14 @@ export default function Stocksrequest({ departments }) {
       // send the data to the backend
       try {
         const patch_requisition = async () => {
-          const response = await fetch(
-            `${process.env.BASEURL}/departments/requisitions?id=${id}`,
-            {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-                'Authorization': `Baerer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-              },
-              body: JSON.stringify({
-                quantity_approved: approved,
-                store_supplied: approved === 0 ? 0 : 1,
-              }),
-            }
-          );
-          const data = await response.json();
-          if (data?.status === "success" && data?.statusCode === 200) {
+          const response = await customPost(`departments/requisitions?id=${id}`, 'PATCH', {
+            quantity_approved: approved,
+            store_supplied: approved === 0 ? 0 : 1,
+          })
+
+          const { status, statusCode } = response;
+          
+          if (status === "success" && statusCode === 200) {
             alert("Request approved successfully");
             // update the table
             const filtered = hxData.filter((item) => item.id !== id);
@@ -161,7 +159,7 @@ export default function Stocksrequest({ departments }) {
               style={{ display: "grid", gridTemplateColumns: "auto auto 40%" }}
             >
               <select
-                className="custom-input"
+                className="form-control"
                 onChange={(e) => setDepartmentId(e.target.value)}
               >
                 <option value="">Select Department</option>
@@ -188,30 +186,3 @@ export default function Stocksrequest({ departments }) {
 }
 
 // get depaertments using server side props
-export async function getServerSideProps(context) {
-  try {
-    const data = await customFetch("departments");
-    const { result, status } = data;
-    if (status === "success") {
-      return {
-        props: {
-          departments: data?.data,
-        },
-      };
-    }
-
-    if (data?.err) {
-      return {
-        props: {
-          departments: []
-        }
-      }
-    }
-  } catch (error) {
-    return {
-      props: {
-        departments: [],
-      },
-    };
-  }
-}

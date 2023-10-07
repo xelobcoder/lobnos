@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../../../components/payment/Navbar";
 import AccountSummary from "../../../components/payment/AccountSummary";
 import TableDisplay from "../../../components/accessories/TableDisplay";
+import { useRouter } from "next/router";
 import { customFetch } from "../../../components/Auth/customFetch";
 import dynamic from "next/dynamic";
 const UpdateBilling = dynamic(() => import("../../../components/payment/updateBilling", { ssr: false }));
 
 export default function Payment_Extra() {
+  const router = useRouter();
   const layoutdefault = { update: false, billid: null, filteringData: {} };
   // using this state , we bind to the checkbox and can print, whatsapp or email client receipt 
   const [refresh, setRefresh] = useState(false)

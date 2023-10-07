@@ -14,7 +14,7 @@ export default function Index() {
               <Image height={'100'} width={'100'} alt='registration and billing image' src={'/asserts/billing.jpg'} />
             </span>
             <div className='text'>
-              <h4>registration and billing</h4>
+              <h4>registration && billing</h4>
             </div>
           </div>
         </Link>

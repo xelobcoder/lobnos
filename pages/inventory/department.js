@@ -9,8 +9,7 @@ import { customFetch, customPost } from "../../components/Auth/customFetch";
 import InventoryLayout from "../../components/inventory/InventoryLayout";
 
 const REQUISITIONS_URL = "departments/requisitions";
-
-const DepartmentRequisition = () => {
+export default function DepartmentRequisition() {
   const router = useRouter();
   const [departments, setDepartments] = useState([]);
   const [stocks, setStocks] = useState([]);
@@ -132,7 +131,7 @@ const DepartmentRequisition = () => {
   const DepartmentRequisitionForm = () => (
     <>
       <h4 className="font-bold">Department Requisition</h4>
-      <select className="custom-input" onChange={(e) => setSelectedDept(e.target.value)} value={selectedDept}>
+      <select className="form-control" onChange={(e) => setSelectedDept(e.target.value)} value={selectedDept}>
         <option>select a department</option>
         {departments.map((dept) => (
           <option key={dept.id} value={dept.id}>
@@ -232,5 +231,3 @@ const DepartmentRequisition = () => {
     </>
   );
 };
-
-export default DepartmentRequisition;
