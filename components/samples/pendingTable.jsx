@@ -1,8 +1,6 @@
-import React, { useState } from 'react'
-import { Button, Typography } from '@mui/material';
-import TableDisplay from '../accessories/TableDisplay';
+import React from 'react'
 import Accord from '../accessories/Accord';
-import { useEffect } from 'react';
+
 
 export default function PendingTableSample({ data, setShow,removeClient }) {
   // this is trigger after the pending sample list of a client becomes zero

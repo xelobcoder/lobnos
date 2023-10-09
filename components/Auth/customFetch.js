@@ -463,3 +463,28 @@ export const activateInstitutionUser = async (id, previousStatus, setUser) => {
 
 
 export const getDateExpression = `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`
+
+
+export const getBranches = async function (setBranches, id) {
+   let endpoint = `branches`;
+   if (id) { endpoint = endpoint + `?branchid=${id}` };
+   let response = await customFetch(endpoint)
+   const { result, status } = response;
+   if (status == 'success') {
+      if (id && result.length > 0) {
+         setBranches(result[0])
+      } else {
+         setBranches(result)
+      }
+   }
+}
+
+
+
+export const newBranchDefault = {
+   name: '',
+   contact: '',
+   email: '',
+   address: '',
+   managerid: ''
+}

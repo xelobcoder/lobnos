@@ -18,9 +18,6 @@ function Header() {
   const [branch, setBranch] = useState('');
   const [username, setUsername] = useState('');
 
-  const handleClose = () => { setShowWidget(!showWidget); };
-
-  const pageUrl = useRouter().pathname;
 
   const router = useRouter();
 
@@ -42,30 +39,33 @@ function Header() {
   return (
     <>
       <AppBar
-          position="sticky"
-          className="software-header-nav"
-        >
-          <Toolbar>
-            <Typography variant="h4" color="error" component={"div"}>
-              <Link href={'/'}>
-                HPLIMS
-                <span className="text-white onlyDesktop">(High performance laboratory information management system) || prime health</span>
-              </Link>
+        position="sticky"
+        className="software-header-nav"
+      >
+        <Toolbar>
+          <Typography variant="h4" color="error" component={"div"}>
+            <Link className='text-white' href={'/'}>
+              Prime laboratory information system
+              <span className="text-white">
+                || PLS
+              </span>
+            </Link>
+          </Typography>
+        </Toolbar>
+        <Toolbar className='userHeader'>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <Avatar sx={{ mr: 1 }} />
+            <Typography variant="h6" color='warning' className="text-capitalize" >
+              {username}
             </Typography>
-          </Toolbar>
-          <Toolbar className='userHeader'>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <Avatar sx={{ mr: 1 }} />
-              <Typography variant="h6" color='warning' className="text-capitalize" >
-                {username}
-              </Typography>
-            </div>
-          </Toolbar>
-          <Toolbar className='flow-child'>
-            {branch == null ? <button
-              onClick={(e) => router.push('/settings')} className="btn btn-dark text-capitalize ">set branch</button> : `${branch}`}
-          </Toolbar>
-        </AppBar>
+          </div>
+        </Toolbar>
+        <Toolbar className='flow-child'>
+          <Refresh className="pointer"/>
+          {branch == null ? <button
+            onClick={(e) => router.push('/settings')} className="btn btn-dark text-capitalize ">set branch</button> : `${branch}`}
+        </Toolbar>
+      </AppBar>
     </>
   );
 }

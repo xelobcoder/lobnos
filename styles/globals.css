@@ -705,6 +705,11 @@ option:hover {
 
 /* settings side bar css begins @............................................................................................... */
 
+a {
+  text-decoration: underline;
+  color: black !important;
+}
+
 .settings-sidebar {
   width: 100%;
   border-right: 1px solid lightgray;
@@ -744,7 +749,7 @@ option:hover {
 .settings-sidebar > .contents > ul > li:active,
 .settings-sidebar > .contents > ul > li:focus,
 .settings-sidebar > .contents > ul > li:hover + .text > a {
-  background-color: wheat;
+  background-color: black;
   cursor: pointer;
   border-radius: 5px;
   transition: all 0.5s ease;
@@ -1249,7 +1254,7 @@ option:hover {
 .headerClass {
   font-size: 13px;
   font-weight: 400;
-  color: inherit;
+  color: #00224f;
   font-weight: 600;
   padding: 10px;
   text-transform: uppercase;
@@ -1257,9 +1262,9 @@ option:hover {
 
 #custom-table tbody tr td,
 .cellClass {
-  font-size: 12px !important;
-  font-weight: 400;
-  color: black;
+  font-size: 15px !important;
+  font-weight: 500;
+  color: #00224f;
   text-transform: lowercase !important;
   text-overflow: ellipsis;
   /* min-width: 150px; */

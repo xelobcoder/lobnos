@@ -7,6 +7,7 @@ import { Button } from '@mui/material';
 import { Preview, Send, ViewAgenda } from '@mui/icons-material';
 import ScanPreview from '../../../../../components/operations/scanPreview';
 import Indicator from '../../../../../components/accessories/Reports/indicator';
+
 export default function EnterResultUltrasound() {
   const [content, setContent] = useState('');
   const [entered, setEnteredResult] = useState(false);

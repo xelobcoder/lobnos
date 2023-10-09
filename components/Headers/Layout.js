@@ -6,7 +6,6 @@ import { useEffect } from 'react';
 
 export default function MAIN_LAYOUT({ children }) {
   const { auth, updateAuthentication } = useContext(AuthContext);
-  const [user, setUser] = useState(null)
   const navigate = useRouter();
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { Settings, SettingsApplications, Forest, CorporateFareRounded, BloodtypeRounded, TripOrigin, PriceChange, Sms} from "@mui/icons-material";
+import { Settings, SettingsApplications, Forest, CorporateFareRounded, BloodtypeRounded, TripOrigin, PriceChange, Sms, Add } from "@mui/icons-material";
 import Link from "next/link";
 
 export default function SettingsSidebarLayout() {
@@ -13,6 +13,14 @@ export default function SettingsSidebarLayout() {
               </div>
               <div className="text">
                 <Link href={'/settings'}> Applications settings</Link>
+              </div>
+            </li>
+            <li>
+              <div className="icons">
+                <Add/>
+              </div>
+              <div className="text">
+                <Link href={'/settings/branches/new'}> Add Branch</Link>
               </div>
             </li>
             <li>

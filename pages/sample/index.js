@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from "react";
-import { customFetch, customPost } from '../../components/Auth/customFetch';
+import { useEffect, useState} from "react";
+import { customFetch} from '../../components/Auth/customFetch';
 import PendingTableSample from "../../components/samples/pendingTable";
 import SECOND_NO_DATA from "../../components/accessories/secondNodata";
 import { Error } from "@mui/icons-material";
@@ -7,7 +7,6 @@ import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
 import SidebarFrontPage from "../../components/frontpagesidebar";
 
 export default function SAMPLE_ASSESSMENT() {
-  const [showAction, setShowAction] = useState(false);
   const [data, setData] = useState([]);
   const [show, setShow] = useState(false);
   const [completed, setCompleted] = useState(false);
