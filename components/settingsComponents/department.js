@@ -126,7 +126,7 @@ export default function Add_department() {
               <div className="form-group">
                 <FormLabel htmlFor="department">Department Manager</FormLabel>
                 <select
-                  className="custom-input"
+                  className="custom-select"
                   id="departmentManager"
                   name="departmentManager"
                   value={department.departmentManager}

@@ -428,3 +428,38 @@ export const forwardEmailReceipt = async (billingid) => {
       console.log(mail)
    } else alert(`Please select a billingid to forward receipt via email `)
 }
+
+
+
+export const getInstitutionUsers = async (setUser) => {
+   const response = await customFetch('logins');
+   const { statusCode, message, result } = response;
+   if (statusCode === 200) {
+      setUser(result);
+   }
+}
+
+export const activateInstitutionUser = async (id, previousStatus, setUser) => {
+   let currentv;
+   if (previousStatus == 0) {
+      currentv = 1;
+   }
+
+   if (previousStatus == 1) {
+      currentv = 0;
+   }
+   //  show a confimation message before deleting
+   const confirm = window.confirm(`Are you sure you want to ${currentv === 1 ? 'activate' : 'deactivate'} this user?`);
+   if (confirm) {
+      const response = await customPost(`user/authentication/activate`, 'PUT', { id, currentv });
+      const { statusCode, message, status, result } = response;
+      console.log(response)
+      if (statusCode === 200 && status == 'success') {
+         alert(message);
+         getInstitutionUsers(setUser)
+      }
+   }
+}
+
+
+export const getDateExpression = `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`

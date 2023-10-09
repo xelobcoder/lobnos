@@ -83,8 +83,8 @@ export default function Settings() {
 				<h4 className="btn btn-danger text-white">Application settings</h4>
 			</div>
 			<div className="p-2">
-				<Table className="bg-white" striped bordered hover>
-					<thead className="bg-dark text-white">
+				<Table className="bg-white" striped bordered hover id='custom-table'>
+					<thead className="bg-dark">
 						<tr>
 							<th className="text-capitalize">#</th>
 							<th className="text-capitalize">setting</th>

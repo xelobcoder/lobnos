@@ -1,8 +1,7 @@
-import { Settings, SettingsApplications, Forest, CorporateFareRounded, BloodtypeRounded, TripOrigin, PriceChange, Sms } from "@mui/icons-material";
+import { Settings, SettingsApplications, Forest, CorporateFareRounded, BloodtypeRounded, TripOrigin, PriceChange, Sms} from "@mui/icons-material";
 import Link from "next/link";
-import { useState } from "react";
+
 export default function SettingsSidebarLayout() {
-  const { hideText, setHideText } = useState(false);
   return (
     <>
       <div className="settings-sidebar">

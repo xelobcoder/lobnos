@@ -4,10 +4,11 @@ import GlobalFilter from './GlobalFilter'
 import SECOND_NO_DATA from './secondNodata'
 
 export default function TableDisplay({ column, data, styling, filtering }) {
+
   const tableInstance = useTable({
     columns: useMemo(() => column, [column]),
     data: useMemo(() => data, [data]),
-    initialState: {pageSize: 20},
+    initialState: {pageSize: 10},
   }, useFilters, useGlobalFilter, useSortBy, usePagination)
 
   const {
@@ -65,24 +66,24 @@ export default function TableDisplay({ column, data, styling, filtering }) {
                         )}
                       </tbody>
                     </table>
-                    <div className='d-flex justify-content-center'>
-                      <span className='p-2'>
+                    <div className='d-flex justify-content-center '>
+                      <span className='p-2 mt-2'>
                         Page{' '}
                         <strong>
                           {pageIndex + 1} of {pageOptions.length}
                         </strong>{' '}
                       </span>
                       <span style={{ marginRight: '20px' }}>
-                        <select className='custom-input' value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
-                          {[20,25,50,75,100, 150,200].map(pageSize => (
+                        <select className='form-control mt-2' value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
+                          {[10,20,25,50,75,100, 150,200].map(pageSize => (
                             <option key={pageSize} value={pageSize}>
                               Show {pageSize}
                             </option>
                           ))}
                         </select>
                       </span>
-                      <button className='btn btn-primary btn-sm' onClick={() => previousPage()} disabled={!canPreviousPage} style={{ marginRight: '10px' }}>Previous</button>
-                      <button className='btn btn-primary btn-sm' onClick={() => nextPage()} disabled={!canNextPage}>Next</button>
+                      <button className='btn btn-primary btn-sm mt-2' onClick={() => previousPage()} disabled={!canPreviousPage} style={{ marginRight: '10px' }}>Previous</button>
+                      <button className='btn btn-primary btn-sm mt-2' onClick={() => nextPage()} disabled={!canNextPage}>Next</button>
                     </div>
                   </div>
                 </>

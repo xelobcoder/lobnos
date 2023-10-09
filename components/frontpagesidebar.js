@@ -5,18 +5,15 @@ import {
   VerifiedUser,
   MonetizationOn,
   Person,
-  Schedule,
-  Poll,
   Event,
   Business,
   SupervisorAccount,
-  Assessment,
   Science,
   LocalHospital,
   Settings,
   BusinessCenter,
   Work,
-  Forward,
+  Menu,
 } from '@mui/icons-material';
 
 export default function SidebarFrontPage() {

@@ -4,6 +4,8 @@ import { useRouter } from 'next/router';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import { customerRepresentative, scientistPermission, pageAccess, phelobotomy, administrator } from '../../../components/Auth/Roles/permissions';
 import PagesAccessView from '../../../components/Auth/Roles/PagesAccessView';
+import SettingsLayout from '../../../components/settingsComponents/SettingsLayout';
+import AuthenticationSidebar from '../../../components/settingsComponents/AuthenticationSidebar';
 export default function PermissionsOfUsers() {
   const permissions = useRouter().query.permissions;
   // state for customer permission
@@ -92,53 +94,55 @@ export default function PermissionsOfUsers() {
 
   return (
     <>
-      <div className="card m-2" style={{ borderRadius: "10px" }}>
-        <div className="card-header p-3 bg-secondary text-white">
-          <h6 className="text-capitalize">
-            permissions of {user?.name} a {user?.role}
-          </h6>
-        </div>
-        <div className="card-body">
-          <div className="row p-4">
-            <h4>Permissions</h4>
-            <div
-              className="alert alert-info m-1 col-11"
-              style={{ fontSize: "14px" }}
-            >
-              Default permissions are <strong>based on the role</strong>,
-              however changes can be made to suit administration purposes
-            </div>
+      <SettingsLayout sidebar={<AuthenticationSidebar/>}>
+        <div className="card m-2" style={{ borderRadius: "10px" }}>
+          <div className="card-header p-3 bg-secondary text-white">
+            <h6 className="text-capitalize">
+              permissions of {user?.name} a {user?.role}
+            </h6>
           </div>
-          <div className="row p-3">
-            <div className="col-12">
-              <Accordion defaultActiveKey={1} >
-                <Accordion.Item>
-                  <Accordion.Header>
-                    {user.role}
-                  </Accordion.Header>
-                  <Accordion.Body>
-                    <PagesAccessView
-                      data={clientPermissions}
-                      changeEvent={setClientPermissions}
-                      handler={handleChange}
-                      target={clientPermissions}
-                      pageAcesshandler={handlePageAccess}
-                      role={user.role}
-                    />
-                    <div>
-                      <button className='btn btn-success'
-                        onClick={(ev) => handleSubmitPermission(ev, clientPermissions)}>
-                        update permissions
-                      </button>
-                    </div>
-                  </Accordion.Body>
-                </Accordion.Item>
+          <div className="card-body">
+            <div className="row p-4">
+              <h4>Permissions</h4>
+              <div
+                className="alert alert-info m-1 col-11"
+                style={{ fontSize: "14px" }}
+              >
+                Default permissions are <strong>based on the role</strong>,
+                however changes can be made to suit administration purposes
+              </div>
+            </div>
+            <div className="row p-3">
+              <div className="col-12">
+                <Accordion defaultActiveKey={1} >
+                  <Accordion.Item>
+                    <Accordion.Header>
+                      {user.role}
+                    </Accordion.Header>
+                    <Accordion.Body>
+                      <PagesAccessView
+                        data={clientPermissions}
+                        changeEvent={setClientPermissions}
+                        handler={handleChange}
+                        target={clientPermissions}
+                        pageAcesshandler={handlePageAccess}
+                        role={user.role}
+                      />
+                      <div>
+                        <button className='btn btn-success'
+                          onClick={(ev) => handleSubmitPermission(ev, clientPermissions)}>
+                          update permissions
+                        </button>
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Item>
 
-              </Accordion>
+                </Accordion>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </SettingsLayout>
     </>
   );
 }

@@ -40,56 +40,58 @@ export default function LoginCredentials() {
 
   return (
     <>
-      <div className='d-flex justify-content-center mt-5'>
-        <div className="card br-5" style={{ width: '500px', marginTop: '50px' }}>
-          <div className="card-header">Please login here</div>
-          <div className="card-body">
-            <div
-              className={
-                message.status === ""
-                  ? message.status
-                  : message.status === "success"
-                    ? "text-success"
-                    : "text-danger"
-              }
-            >
-              {message.message}
+      <div id='loginWrapper' >
+        <div className='d-flex justify-content-center  ' >
+          <div className="card br-5 mt-5" style={{ width: '500px' }}>
+            <div className="card-header">Please login here</div>
+            <div className="card-body">
+              <div
+                className={
+                  message.status === ""
+                    ? message.status
+                    : message.status === "success"
+                      ? "text-success"
+                      : "text-danger"
+                }
+              >
+                {message.message}
+              </div>
+              <label htmlFor="email">Email</label>
+
+              <input
+                type="email"
+                name="email"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                }}
+                className='form-control'
+                value={email}
+                required
+                id="email"
+              />
+
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                required
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                }}
+                className='form-control'
+                name="password"
+                value={password}
+                id="password"
+              />
             </div>
-            <label htmlFor="email">Email</label>
-
-            <input
-              type="email"
-              name="email"
-              onChange={(e) => {
-                setEmail(e.target.value);
-              }}
-              className='form-control'
-              value={email}
-              required
-              id="email"
-            />
-
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              required
-              onChange={(e) => {
-                setPassword(e.target.value);
-              }}
-              className='form-control'
-              name="password"
-              value={password}
-              id="password"
-            />
-          </div>
-          <div className="card-footer">
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={(e) => handleSubmit(e)}
-            >
-              Login
-            </button>
+            <div className="card-footer">
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={(e) => handleSubmit(e)}
+              >
+                Login
+              </button>
+            </div>
           </div>
         </div>
       </div>

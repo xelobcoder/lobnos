@@ -8,8 +8,6 @@ import {
   Avatar,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import WidgetsIcon from "@mui/icons-material/Widgets";
-import Widget from "./Headers/Widget";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Refresh } from "@mui/icons-material";
@@ -17,13 +15,9 @@ import { Refresh } from "@mui/icons-material";
 
 
 function Header() {
-  const [showWidget, setShowWidget] = useState(false);
   const [branch, setBranch] = useState('');
   const [username, setUsername] = useState('');
 
-  const handleClickedLink = () => {
-    setShowWidget(false);
-  }
   const handleClose = () => { setShowWidget(!showWidget); };
 
   const pageUrl = useRouter().pathname;
@@ -47,8 +41,7 @@ function Header() {
 
   return (
     <>
-      <Box>
-        <AppBar
+      <AppBar
           position="sticky"
           className="software-header-nav"
         >
@@ -56,36 +49,23 @@ function Header() {
             <Typography variant="h4" color="error" component={"div"}>
               <Link href={'/'}>
                 HPLIMS
-                <span className="text-white">(High performance laboratory information management system) || prime health</span>
+                <span className="text-white onlyDesktop">(High performance laboratory information management system) || prime health</span>
               </Link>
             </Typography>
           </Toolbar>
-          {/* <Toolbar className='userHeader'>
+          <Toolbar className='userHeader'>
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <Avatar sx={{ mr: 1 }} />
               <Typography variant="h6" color='warning' className="text-capitalize" >
                 {username}
               </Typography>
             </div>
-          </Toolbar> */}
-          <Toolbar className='flow-child'>
-            <Refresh sx={{ mr: 1, cursor: 'pointer' }} onClick={() => { window.location.reload() }} />
-            {branch == null ? <button
-              onClick={(e) => router.push('/settings')} className="btn btn-dark text-capitalize ">set branch</button> : branch}
           </Toolbar>
-          <Toolbar>
-            {pageUrl === '/authentication/login' || pageUrl == '/' ? null : (
-              <WidgetsIcon
-                sx={{ cursor: "pointer" }}
-                onClick={(ev) => handleClose()}
-              />
-            )}
+          <Toolbar className='flow-child'>
+            {branch == null ? <button
+              onClick={(e) => router.push('/settings')} className="btn btn-dark text-capitalize ">set branch</button> : `${branch}`}
           </Toolbar>
         </AppBar>
-      </Box>
-      <Box>
-        <Widget show={showWidget} handleClickedLink={handleClickedLink} />
-      </Box>
     </>
   );
 }

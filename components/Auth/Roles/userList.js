@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import TableDisplay from '../../../components/accessories/TableDisplay';
 import { Button } from '@mui/material';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
-export default function UserList({ users, handleDelete, editUser,activateUser }) {
-
+export default function UserList({ users, handleDelete, editUser, activateUser, updateRefresh }) {
+  const navigateTo = useRouter();
 
 
 
@@ -21,25 +22,26 @@ export default function UserList({ users, handleDelete, editUser,activateUser })
       Header: "Role",
       accessor: "ROLE",
     },
-    { Header: "activation status", accessor: "ACTIVATION",
-  Cell: function ({ row }) {
-    const { original } = row;
-    const { ACTIVATION } = original;
-    return (
-      <div>
-        {ACTIVATION === 1 ? (
-          <div size="small" className="text-success" variant="text">
-            active
+    {
+      Header: "status", accessor: "ACTIVATION",
+      Cell: function ({ row }) {
+        const { original } = row;
+        const { ACTIVATION } = original;
+        return (
+          <div>
+            {ACTIVATION === 1 ? (
+              <div className="text-success" variant="text">
+                active
+              </div>
+            ) : (
+              <div className="text-danger" variant="text">
+                inactive
+              </div>
+            )}
           </div>
-        ) : (
-          <div size="small" className="text-danger" variant="text">
-            inactive
-          </div>
-        )}
-      </div>
-    );
-  }
-  },
+        );
+      }
+    },
     {
       Header: "permissions",
       Cell: function ({ row }) {
@@ -47,14 +49,10 @@ export default function UserList({ users, handleDelete, editUser,activateUser })
         const { EMPLOYEEID } = original;
         return (
           <div>
-            <Button size="small" color="success" variant="text">
-              <Link
-                style={{ textTransform: "capitalize", color: "green" }}
-                href={`/authentication/permissions/${EMPLOYEEID}`}
-              >
-                view or update permissions
-              </Link>
-            </Button>
+            <Link
+              href={`/authentication/permissions/${EMPLOYEEID}`}>
+              update permissions
+            </Link>
           </div>
         );
       },
@@ -67,17 +65,15 @@ export default function UserList({ users, handleDelete, editUser,activateUser })
         return (
           <div>
             <Button
-              size="small"
               color="primary"
               sx={{ textTransform: "capitalize" }}
-              onClick={() => editUser(EMPLOYEEID)}
+              onClick={() => { navigateTo.push(`/authentication/register?employeeid=${EMPLOYEEID}`) }}
               variant="text"
             >
               edit
             </Button>
             <Button
               sx={{ textTransform: "capitalize" }}
-              size="small"
               color="error"
               onClick={() => handleDelete(EMPLOYEEID)}
             >
@@ -85,20 +81,10 @@ export default function UserList({ users, handleDelete, editUser,activateUser })
             </Button>
             <Button
               sx={{ textTransform: "capitalize" }}
-              size="small"
-              color={original.ACTIVATION === 1 ? "error" : "success"  }
-              onClick={() => activateUser(EMPLOYEEID,original.ACTIVATION)}
+              color={original.ACTIVATION === 1 ? "error" : "success"}
+              onClick={() => activateUser(EMPLOYEEID, original.ACTIVATION, updateRefresh)}
             >
               {original.ACTIVATION === 1 ? "deactivate" : "activate"}
-            </Button>
-            <Button
-              sx={{ textTransform: "capitalize" }}
-              size="small"
-              color="warning"
-            >
-              <Link href={`/authentication/updateinformation/${EMPLOYEEID}`}>
-                advanced information entry
-              </Link>
             </Button>
           </div>
         );

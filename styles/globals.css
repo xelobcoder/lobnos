@@ -5,6 +5,15 @@
 }
 
 /* @import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital@1&display=swap'); */
+
+.sidebarMenu {
+  display: none;
+}
+
+.showSetting {
+  display: block;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -695,10 +704,12 @@ option:hover {
 }
 
 /* settings side bar css begins @............................................................................................... */
+
 .settings-sidebar {
   width: 100%;
   border-right: 1px solid lightgray;
   height: 120vh;
+  display: block;
   background-color: #00224f;
 }
 
@@ -912,7 +923,8 @@ option:hover {
   height: 30px !important;
 }
 
-.custom-input {
+.custom-input,
+.custom-select {
   height: 30px;
   border: 1px solid lightgray;
   border-radius: 5px;
@@ -921,6 +933,10 @@ option:hover {
   text-transform: capitalize;
   width: 100%;
   color: #00224f;
+}
+
+.custom-select {
+  height: 40px !important;
 }
 
 .custom-input:focus {
@@ -1373,19 +1389,24 @@ option:hover {
   position: absolute;
   top: 10;
   left: 0;
-  right: 80%;
+  right: 0%;
   z-index: 999;
   width: 100%;
-  background-color: white;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  height: 100vh;
+  background-color: whitesmoke;
 }
 
-.custom-navigation > #list {
-  background-color: #00224f;
+.custom-navigation > .content {
+  width: 15%;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  background-color: black;
+  z-index: 99999;
+}
+.custom-navigation > .content > #list {
   text-transform: capitalize;
   padding: 10px;
-  border: 1px solid lightgray;
   color: white;
 }
 
@@ -1397,12 +1418,14 @@ option:hover {
   color: #00224f;
 }
 
-.custom-navigation > #list > .items > .text {
-  font-size: 20px;
+.custom-navigation > .content > #list > .items > .text {
+  font-size: 15px;
+  color: white !important;
   text-transform: uppercase;
+  padding-left: 10px;
 }
 
-.custom-navigation > #list > .items :nth-child(1) {
+.custom-navigation > .content > #list > .items:nth-child(1) {
   margin-top: 10px;
 }
 
@@ -2074,11 +2097,13 @@ option:hover {
 input[type='email'] {
   text-transform: lowercase !important;
 }
-input:required:invalid {
+input:focus:invalid:required,
+input[type='email']:focus:invalid,
+input[type='email']:focus:invalid:required {
   border: 3px solid red;
 }
 
-.company-view-result > .wrapper {
+input[type='email']:focus:invalid .company-view-result > .wrapper {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -2411,6 +2436,16 @@ input[type='text'] {
   }
 }
 
+.onlyDesktop {
+  display: none;
+}
+
+@media screen and (min-width: 1000px) {
+  .onlyDesktop {
+    display: block;
+  }
+}
+
 .ready-panel-half {
   display: grid;
   grid-template-columns: 20% auto;
@@ -2550,7 +2585,9 @@ input[type='text'] {
 .software-header-nav {
   background-color: #00224f !important;
   display: grid !important;
-  grid-template-columns: 60% auto auto auto auto !important;
+  grid-template-columns: 60% 30% auto;
+  margin: 0;
+  padding: 0;
 }
 
 #billing-page-main-wrapper {
@@ -2740,10 +2777,13 @@ textarea:required:invalid {
   transition: 50ms all cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
-#frontpagewrapper {
+#frontpagewrapper,
+#loginWrapper {
   background: url('../public/asserts/companylogo/scale.jpg') no-repeat;
   height: 100vh;
   width: 100%;
+  margin: 0;
+  padding: 50px;
 }
 
 #frontpagecards {

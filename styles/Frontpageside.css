@@ -1,7 +1,7 @@
 .frontpagesidebar {
   list-style: none;
   padding: 0;
-  background-color:wheat;
+  background-color: wheat;
   border-right: 1px solid lightgray;
   margin: 0;
   min-height: 120vh;
@@ -17,7 +17,6 @@
   grid-template-columns: 20% auto;
   transition: background-color 0.3s ease;
 }
-
 
 .frontpagesidebar li a:hover {
   background-color: #00224f;
@@ -55,9 +54,14 @@
   padding: 0px;
 }
 
+.d-none {
+  display: none;
+}
+
 /* Responsive Styles */
 
 /* For screens smaller than 768px */
+
 @media (max-width: 767px) {
   .frontpagesidebar li a {
     padding: 8px;
@@ -67,9 +71,34 @@
   .wrapper {
     grid-template-columns: 100%;
     overflow-x: none;
+    overflow-y: hidden;
   }
-  .wrapper > .side {
+
+  .settings-sidebar {
     display: none;
+  }
+
+  .sidebarMenu {
+    display: block;
+    margin: 10px 10px 10px;
+    border-radius: 5px;
+    padding: 3px;
+    width: max-content;
+    position: absolute;
+    top: 0%;
+    left: 85%;
+    right: 0;
+    z-index: 9999;
+  }
+
+  .sidebarMenu > svg {
+    color: white;
+  }
+
+  .sidebarMenu:focus,
+  .sidebarMenu:hover {
+    box-shadow: 1px 2px 3px #00224f;
+    outline: 2px solid lightblue;
   }
 
   input[type='text'],
