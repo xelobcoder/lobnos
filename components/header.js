@@ -61,7 +61,6 @@ function Header() {
           </div>
         </Toolbar>
         <Toolbar className='flow-child'>
-          <Refresh className="pointer"/>
           {branch == null ? <button
             onClick={(e) => router.push('/settings')} className="btn btn-dark text-capitalize ">set branch</button> : `${branch}`}
         </Toolbar>

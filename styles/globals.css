@@ -705,10 +705,6 @@ option:hover {
 
 /* settings side bar css begins @............................................................................................... */
 
-a {
-  text-decoration: underline;
-  color: black !important;
-}
 
 .settings-sidebar {
   width: 100%;

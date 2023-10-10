@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import TestPanelLayout from '../../../components/testpanel/TestPanelLayout'
 import { customFetch,handleTestListChange, getSampleTypeList, validateFormData } from '../../../components/Auth/customFetch'
+import SettingsLayout from '../../../components/settingsComponents/SettingsLayout';
 
 
 export default function TESTPRICING() {
@@ -58,7 +59,7 @@ export default function TESTPRICING() {
 
 
   return (
-    <TestPanelLayout>
+    <SettingsLayout>
       <div className='container-fluid bg-white p-2'>
         <table className='table'>
           <thead className='striped'>
@@ -77,7 +78,7 @@ export default function TESTPRICING() {
                 <tr key={index}>
                   <td className='text-capitalize text-success'>{item.NAME}</td>
                   <td>
-                    <select className='form-control' onChange={(e) => handleTestListChange(e, index, 'CATEGORY')} value={item.CATEGORY}>
+                    <select onChange={(e) => handleTestListChange(e, index, 'CATEGORY')} value={item.CATEGORY}>
                       <option>select category</option>
                       {
                         dept.map((d, ii) => {
@@ -90,7 +91,7 @@ export default function TESTPRICING() {
                     </select>
                   </td>
                   <td>
-                    <select className='form-control' value={item.SAMPLE} onChange={(e) => handleTestListChange(e, index, 'SAMPLE')}>
+                    <select  value={item.SAMPLE} onChange={(e) => handleTestListChange(e, index, 'SAMPLE')}>
                       {
                         sampleType.map((s, ie) => {
                           return (
@@ -103,13 +104,13 @@ export default function TESTPRICING() {
                     </select>
                   </td>
                   <td>
-                    <input className='form-control' value={item.UNIT} />
+                    <input value={item.UNIT} />
                   </td>
                   <td>
-                    <input className='form-control' value={item.QTY_REQUIRED} onChange={(e) => handleTestListChange(e, index, 'QTY_REQUIRED')} />
+                    <input value={item.QTY_REQUIRED} onChange={(e) => handleTestListChange(e, index, 'QTY_REQUIRED')} />
                   </td>
                   <td>
-                    <input className='form-control' value={item.PRICE}
+                    <input value={item.PRICE}
                       onChange={(e) => handleTestListChange(e, index, 'PRICE')} />
                   </td>
                 </tr>
@@ -121,6 +122,6 @@ export default function TESTPRICING() {
           update changes
         </button>
       </div>
-    </TestPanelLayout>
+    </SettingsLayout>
   )
 }

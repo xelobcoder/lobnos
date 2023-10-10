@@ -1,76 +1,60 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../../../components/payment/Navbar";
-import AccountSummary from "../../../components/payment/AccountSummary";
 import TableDisplay from "../../../components/accessories/TableDisplay";
-import { useRouter } from "next/router";
 import { customFetch } from "../../../components/Auth/customFetch";
-import dynamic from "next/dynamic";
-const UpdateBilling = dynamic(() => import("../../../components/payment/updateBilling", { ssr: false }));
+import { useRouter } from "next/router";
 
 export default function Payment_Extra() {
-  const router = useRouter();
-  const layoutdefault = { update: false, billid: null, filteringData: {} };
   // using this state , we bind to the checkbox and can print, whatsapp or email client receipt 
-  const [refresh, setRefresh] = useState(false)
-  const [querystate, setQueryState] = useState({
-    date: "",
-    month: "",
-    patientid: "",
-  });
+  const [querystate, setQueryState] = useState({ date: "", month: "", patientid: "" });
   const [selectedBilling, setBilling] = useState(null);
+  // this temporarily stores the transaction data to prevent frequent backend fetching
   const [temporary, setTemporary] = useState([]);
+  // store all the returned transactions data
   const [transactionData, setTransactionsData] = useState([]);
-  const [updatingBill, setUpdatingBill] = useState(layoutdefault);
+  // create a router instance
+  const router = useRouter();
 
-  const columns = [
-    {
-      Header: "Date",
-      accessor: "date",
-      Cell: ({ value }) => <span>{value.slice(0, 10)}</span>,
-    },
-    {
-      Header: "Patient ID",
-      accessor: "patientid",
-      Cell: ({ value }) => (
-        <div
-          onClick={(e) => setQueryState({ ...querystate, patientid: value })}
-        >
-          {value}
-        </div>
-      ),
-    },
-    {
-      Header: "Billing ID",
-      accessor: "billingid",
-      Cell: ({ value }) => (
-        <span onClick={() => setBilling(value)}>{value}</span>
-      )
-    },
-    {
-      Header: "Amount Due",
-      accessor: "payable",
-      Cell: ({ value }) => <span> {value}</span>,
-    },
-    {
-      Header: "Paid Amount",
-      accessor: "paid_amount",
-    },
-    {
-      Header: "Outstanding",
-      accessor: "outstanding",
-      Cell: ({ value, row }) => (
-        <div
-          className={`${value > 0 ? 'red' : ''}`}
-          {...row.getRowProps()}>
-          {value}
-        </div>
-      ),
-    },
-    // {
-    //   Header: 'Email',
-    //   accessor: 'email'
-    // }
+  // definition of rows
+  const columns = [{ Header: "Date", accessor: "date", Cell: ({ value }) => <span>{value.slice(0, 10)}</span> },
+  {
+    Header: "Patient ID", accessor: "patientid",
+    Cell: ({ value }) => (
+      <div onClick={(e) => setQueryState({ ...querystate, patientid: value })}>
+        {value}
+      </div>
+    ),
+  },
+  { Header: 'Fullname', accessor: 'fullname' },
+  {
+    Header: "Billing ID",
+    accessor: "billingid",
+    Cell: ({ value }) => (
+      <span onClick={() => setBilling(value)}>{value}</span>
+    )
+  },
+  {
+    Header: "Amount Due",
+    accessor: "payable",
+    Cell: ({ value }) => <span> {value}</span>,
+  },
+  {
+    Header: "Paid Amount",
+    accessor: "paid_amount",
+  },
+  {
+    Header: "Outstanding",
+    accessor: "outstanding",
+    Cell: ({ value, row }) => (
+      <div
+        className={`${value > 0 ? 'text-danger' : 'text-primary'}`}
+        {...row.getRowProps()}>
+        {value}
+      </div>
+    ),
+  }
   ];
+
 
   const handleChange = (event, direct) => {
     setQueryState({ ...querystate, [direct]: event.target.value });
@@ -90,61 +74,24 @@ export default function Payment_Extra() {
   const updateBill = (event) => {
     if (selectedBilling != null) {
       // we filter data from the transaction data
-      const data_to_update = filterData(selectedBilling);
+      let clientdata = filterData(selectedBilling);
 
-      if (data_to_update.length > 0) {
-        if (data_to_update[0].outstanding > 0 || data_to_update[0].outstanding < 0) {
-          setUpdatingBill({
-            update: true,
-            billid: selectedBilling,
-            filteringData: {
-              ...data_to_update[0],
-              pay: 0,
-              paymentMode: "",
-            },
-          });
-        } else {
-          setUpdatingBill({
-            update: true,
-            billid: selectedBilling,
-            filteringData: {
-              ...data_to_update[0]
-            },
-          });
-        }
+      if (clientdata.length > 0 && parseInt(clientdata[0]['outstanding']) === 0) {
+        alert('No outstanding bill.Updates are done only transactions with outstanding bill');
       } else {
-        alert("BillingID not found");
+        router.push(`/billing/payment/update/${selectedBilling}`)
       }
     }
   };
 
-  const setBill = (event) => {
-    const { value } = event.target;
-    setBilling(value);
-
-    if (selectedBilling == null) {
-      return;
-    }
-
-    const filteredBill = filterData(value);
-
-    if (filteredBill.length > 0 && selectedBilling != null) {
-      setTransactionsData(filteredBill);
-    } else {
-      setTransactionsData(temporary);
-    }
-  };
+  const setBill = (event) => { const { value } = event.target; setBilling(value); };
 
   const runQuery = async () => {
-    // change the layout
-    setUpdatingBill(layoutdefault);
     // get data from backend
     let response = await customFetch(
       `billing/payment/info/client?date=${querystate.date}&&month=${querystate.month}&&patientid=${querystate.patientid}`
     );
-
     const { status, statusCode, result } = response;
-
     if (status == "success" && statusCode == 200) {
       setTransactionsData(result);
       setTemporary(result);
@@ -155,15 +102,10 @@ export default function Payment_Extra() {
     runQuery()
   }, [])
 
-  useEffect(() => {
-    runQuery()
-  }, [refresh])
 
   return (
     <>
-      <div
-
-      >
+      <div >
         <Navbar
           handleChange={handleChange}
           query={querystate}
@@ -173,29 +115,12 @@ export default function Payment_Extra() {
           setBill={setBill}
           selectedBilling={selectedBilling}
         />
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: `${updatingBill.update ? "20% auto" : "100%"}`,
-            gridGap: "2%",
-            margin: "10px 10px",
-          }}
-        >
-          {updatingBill.update && (
-            <AccountSummary data={updatingBill.filteringData} />
-          )}
-          {updatingBill.update ? (
-            <UpdateBilling data={updatingBill.filteringData}
-              refresh={setRefresh}
-              close={setUpdatingBill} />
-          ) : (
-            <TableDisplay
-              // styling={"transactionTable"}
-              filtering={false}
-              column={columns}
-              data={transactionData}
-            />
-          )}
+        {(!querystate.date && !querystate.month && !querystate.patientid) && (<h4>Recent Transactions</h4>)}
+        <div>
+          <TableDisplay
+            column={columns}
+            data={transactionData}
+          />
         </div>
       </div>
     </>

@@ -453,7 +453,6 @@ export const activateInstitutionUser = async (id, previousStatus, setUser) => {
    if (confirm) {
       const response = await customPost(`user/authentication/activate`, 'PUT', { id, currentv });
       const { statusCode, message, status, result } = response;
-      console.log(response)
       if (statusCode === 200 && status == 'success') {
          alert(message);
          getInstitutionUsers(setUser)

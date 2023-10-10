@@ -7,8 +7,9 @@ import TESTCART from "../../../components/registration/testCart.js";
 import CancelScheduleSendIcon from "@mui/icons-material/CancelScheduleSend";
 import SendIcon from "@mui/icons-material/Send";
 import AddBoxIcon from "@mui/icons-material/AddBox";
-import { customFetch, customPost } from "../../../components/Auth/customFetch";
+import { customFetch, customPost, getBranches } from "../../../components/Auth/customFetch";
 import TopComponentBillingButton from "../../../components/Billing/topComponentBillingButton";
+import ClientOutstandingBill from "../../../components/Billing/OutstandingBill";
 
 export default function Billing({ }) {
   const [allpanels, setAllpanels] = useState([]);
@@ -23,13 +24,12 @@ export default function Billing({ }) {
       let data = await customFetch('testpanel/list');
       const organization = await customFetch('organization');
       const clinician = await customFetch('clinicians');
-      const branch = await customFetch('center');
+      getBranches(setBranch)
       const paymentModes = await customFetch('paymentmodes');
 
       setAllpanels(data?.data || []);
       setOrganization(organization?.result || []);
       setClinicians(clinician?.result || []);
-      setBranch(branch || []);
       setPaymentMode(paymentModes?.data || [])
     }
     try {
@@ -169,6 +169,7 @@ export default function Billing({ }) {
 
   return (
     <>
+      <ClientOutstandingBill />
       <TopComponentBillingButton cart={testArray.length} />
       <div
         id="billing-page-main-wrapper" >
@@ -331,10 +332,10 @@ export default function Billing({ }) {
                 value={data.samplingCenterLabel}
                 size="small"
                 options={branch}
-                getOptionLabel={(option) => option.NAME}
+                getOptionLabel={(option) => option.name}
                 onChange={(e, newValue) => {
-                  const { NAME, BRANCHID } = newValue;
-                  setData({ ...data, samplingCenter: BRANCHID, samplingCenterLabel: getStringValue(BRANCHID, branch, 'BRANCHID', 'NAME') });
+                  const { name, branchid } = newValue;
+                  setData({ ...data, samplingCenter: branchid, samplingCenterLabel: getStringValue(branchid, branch, 'branchid', 'name') });
                 }}
                 renderInput={(params) => (
                   <TextField

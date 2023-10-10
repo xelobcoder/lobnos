@@ -54,11 +54,21 @@ export default function SidebarFrontPage() {
             </li>
             <li>
               <div className='icons'>
+                <MonetizationOn />
+              </div>
+              <div className='text'>
+                <Link href="/billing/payment">
+                  <div>Billing</div>
+                </Link>
+              </div>
+            </li>
+            <li>
+              <div className='icons'>
                 <LocalHospital />
               </div>
               <div className='text'>
-                <Link href="/phlebotomy">
-                  Phlebotomy
+                <Link href="/phelobotomy">
+                  Phelobotomy
                 </Link>
               </div>
             </li>
@@ -77,8 +87,8 @@ export default function SidebarFrontPage() {
                 <Work />
               </div>
               <div className='text'>
-                <Link href="/operations">
-                  Operations
+                <Link href="/operations/laboratory">
+                  laboratory operations
                 </Link>
               </div>
             </li>

@@ -62,7 +62,7 @@ export default function SettingsSidebarLayout() {
                 <PriceChange />
               </div>
               <div className="text">
-                <Link href={'/settings/testpanel/testpricing'}>test pricing and setup</Link>
+                <Link href={'/settings/testpanel/testpricing'}>test panels</Link>
               </div>
             </li>
             <li>

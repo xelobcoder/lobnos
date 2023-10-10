@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useRouter } from 'next/router';
-import { Button, TextField, Typography } from '@mui/material';
+import { Button, TextField } from '@mui/material';
 import { Dropdown } from 'react-bootstrap';
 import styles from '../../styles/payment.module.css';
-import { Email, MonetizationOn, Print, WhatsApp } from '@mui/icons-material';
+import { Email, MonetizationOn, Print} from '@mui/icons-material';
 import { forwardEmailReceipt } from '../Auth/customFetch';
 
 export default function Navbar({ query, updateBill, handleChange, select, runquery, setBill, selectedBilling }) {
@@ -88,11 +88,8 @@ export default function Navbar({ query, updateBill, handleChange, select, runque
           variant="contained"
           onClick={(ev) => { forwardEmailReceipt(selectedBilling) }}
           sx={{
-            color: "white",
-            width: "150px",
             marginRight: "10px",
             marginLeft: "10px",
-            backgroundColor: "#2196f3",
           }}
         >
           Email
@@ -101,8 +98,6 @@ export default function Navbar({ query, updateBill, handleChange, select, runque
           startIcon={<MonetizationOn />}
           variant="contained"
           sx={{
-            color: "white",
-            width: "200px",
             marginLeft: "10px",
             backgroundColor: "#4caf50",
           }}

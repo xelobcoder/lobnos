@@ -1,13 +1,14 @@
 import { TextField, Autocomplete, Button, CircularProgress } from '@mui/material'
 import React, { useState } from 'react'
 import { customPost } from '../Auth/customFetch';
+import { billingoptions } from '../Auth/billing';
 
 
 
-const options = ['cash', 'mobile money', 'cheque', 'bank transfer'];
 
 
-export default function UpdateBilling({ data, close,refresh }) {
+
+export default function UpdateBilling() {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentInfo, setpaymentInfo] = useState(data || {})
 
@@ -103,7 +104,7 @@ export default function UpdateBilling({ data, close,refresh }) {
         />
 
         <Autocomplete
-          options={options}
+          options={billingoptions}
           value={paymentInfo.paymentMode}
           onChange={(event, value) => setpaymentInfo({ ...paymentInfo, paymentMode: value })}
           variant="standard"
