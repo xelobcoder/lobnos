@@ -1,12 +1,16 @@
+
+
 export class Billing {
   constructor(patientid) {
     this.patientid = patientid;
   }
 
-  async getOutstandingBill () {
+  async getOutstandingBill() {
 
   }
+
   
+
 }
 
 

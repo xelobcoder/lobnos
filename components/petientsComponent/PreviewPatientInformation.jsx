@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { customFetch } from '../Auth/customFetch';
-import { useContext } from 'react';
-import { PatientContext } from '../../pages/patients';
+// import { useContext } from 'react';
+// import { PatientContext } from '../../pages/patients';
 
 export default function PreviewPatientInformation({ patientid }) {
   const [data, setData] = useState({});
-  const { initials, updateInitials } = useContext(PatientContext)
+  // const { initials, updateInitials } = useContext(PatientContext)
 
   let getData = async function (patientid) {
     let response = await customFetch(`register/personalinformation?patientid=${patientid}`);
@@ -15,11 +15,10 @@ export default function PreviewPatientInformation({ patientid }) {
     }
   }
 
-  console.log(data)
 
   useEffect(() => {
-    if (initials.runquery) { getData(patientid) }
-  }, [initials.runquery, patientid])
+    getData(patientid)
+  }, [patientid])
 
   return (
     <>

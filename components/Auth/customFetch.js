@@ -178,6 +178,21 @@ export const resultCommentHander = async function (statecallback, target, dataso
       statecallback({ ...datasource, [target]: comments });
    }
 }
+/**
+ * Handles the response object and displays appropriate messages based on the status property.
+ * 
+ * @param {object} response - The response object containing the status, message, and statusCode properties.
+ * @returns {void}
+ * 
+ * @example
+ * const response = {
+ *   status: "success",
+ *   message: "Request successful",
+ *   statusCode: 200
+ * };
+ * 
+ * handleResponse(response);
+ */
 
 
 export async function handleResponse(response) {
@@ -192,41 +207,35 @@ export async function handleResponse(response) {
    }
 }
 
+
 export const readyToPrint = async function (billingid, testid) {
-   const isApproved = await customPost(
-      "test/result/preview/approved/check",
-      "POST",
-      { billingid, testid }
-   );
-   const { approved } = isApproved;
-   if (approved) {
-      window.print();
-   } else {
-      alert("Test not approved. Printing cannot be done.");
-      window.document.body.style.display = "none";
-      window.close();
+   try {
+      const isApproved = await customPost(
+         "test/result/preview/approved/check",
+         "POST",
+         { billingid, testid }
+      );
+      const { approved } = isApproved;
+      if (approved) {
+         window.print();
+      } else {
+         alert("Test not approved. Printing cannot be done.");
+         window.document.body.style.display = "none";
+         window.close();
+      }
+   } catch (error) {
+      console.error(error);
+      // Handle the error here
    }
 };
 
 export const validateMobileNumber = async function (number, len) {
-   // convert number to string expliticly
-   const nmString = new String(number);
+   const nmString = String(number);
    const digitLen = nmString.length;
 
-   if (len == 10) {
-      if (digitLen != 10 && !nmString.startsWith(0)) {
-         return "number must be 10 and starts with 0";
-      } else {
-         return true;
-      }
-   } else if (len == 13) {
-      if (digitLen != 13 && !nmString.startsWith("+")) {
-         return "number must be 13 and starts with +";
-      } else {
-         return true;
-      }
-   } else if (!len || !number) {
-      return "required variables not given";
+   const regex = /^(0|\+)[0-9]{9,12}$/;
+   if (!regex.test(number)) {
+      return "number must be 10 and starts with 0 or 13 and starts with +";
    } else {
       return true;
    }
@@ -486,4 +495,12 @@ export const newBranchDefault = {
    email: '',
    address: '',
    managerid: ''
+}
+
+export const customData = async (endpoint, setData) => {
+   const response = await customFetch(endpoint);
+   const { statusCode, status, result } = response;
+   if (statusCode == 200 && status == 'success') {
+      setData(result)
+   } else setData(result)
 }

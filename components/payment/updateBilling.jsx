@@ -8,7 +8,7 @@ import { billingoptions } from '../Auth/billing';
 
 
 
-export default function UpdateBilling() {
+export default function UpdateBilling({ data }) {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentInfo, setpaymentInfo] = useState(data || {})
 
@@ -100,7 +100,7 @@ export default function UpdateBilling() {
             }
           }}
           className="mt-3" sx={{ width: '100%' }}
-          disabled = {data.outstanding == 0 ?  true : false}
+          disabled={data.outstanding == 0 ? true : false}
         />
 
         <Autocomplete
@@ -108,7 +108,7 @@ export default function UpdateBilling() {
           value={paymentInfo.paymentMode}
           onChange={(event, value) => setpaymentInfo({ ...paymentInfo, paymentMode: value })}
           variant="standard"
-          disabled = {data.outstanding == 0 ?  true : false}
+          disabled={data.outstanding == 0 ? true : false}
           className="mt-3" sx={{ width: '100%' }}
           renderInput={(params) => (
             <TextField {...params} label="Payment Method" variant="standard" />
@@ -121,7 +121,7 @@ export default function UpdateBilling() {
           sx={{ width: '20%', marginTop: '20px' }}
           size="large"
           onClick={handleSaveChanges}
-          disabled = {data.outstanding == 0 ?  true : false}
+          disabled={data.outstanding == 0 ? true : false}
         >
           {isLoading ? <CircularProgress size={24} color="primary" /> : 'Save Changes'}
         </Button>

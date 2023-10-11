@@ -3,22 +3,22 @@ import { useRouter } from 'next/router';
 import { Button, TextField } from '@mui/material';
 import { Dropdown } from 'react-bootstrap';
 import styles from '../../styles/payment.module.css';
-import { Email, MonetizationOn, Print} from '@mui/icons-material';
+import { Email, MonetizationOn, Print } from '@mui/icons-material';
 import { forwardEmailReceipt } from '../Auth/customFetch';
 
-export default function Navbar({ query, updateBill, handleChange, select, runquery, setBill, selectedBilling }) {
-
+export default function Navbar({ query, updateBill, handleChange, select, runquery, selectedBilling }) {
   const navigate = useRouter();
 
   return (
     <div className={styles.navbar}>
       <TextField
         type="text"
+        style={{ width: '200px' }}
         variant="outlined"
         label="Enter clientID here"
         size="small"
         value={query.patientid}
-        onChange={(e) => { handleChange(e, 'patientid') }}
+        onChange={(e) => { handleChange(e, 'patientid'); }}
         className={styles.navbarItem}
       />
       <Dropdown className={styles.navbarItem} onSelect={select}>
@@ -59,15 +59,7 @@ export default function Navbar({ query, updateBill, handleChange, select, runque
         onClick={runquery} >
         search
       </Button>
-      <div className="d-flex" style={{ marginLeft: "20px" }}>
-        <input
-          className="form-control"
-          type="number"
-          value={selectedBilling}
-          onChange={(event) => setBill(event)}
-          style={{ width: '200px', marginRight: '20px' }}
-          placeholder="Enter Billing ID here"
-        />
+      <div className="d-flex" style={{ marginLeft: "30px" }}>
         <Button variant='contained' color='primary' onClick={updateBill}>
           update
         </Button>

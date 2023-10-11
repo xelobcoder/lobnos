@@ -48,7 +48,7 @@ export default function SidebarFrontPage() {
               </div>
               <div className='text'>
                 <Link href="/billing/billedclients">
-                  <div>Billed Clients</div>
+                  Billed Clients
                 </Link>
               </div>
             </li>
@@ -58,7 +58,7 @@ export default function SidebarFrontPage() {
               </div>
               <div className='text'>
                 <Link href="/billing/payment">
-                  <div>Billing</div>
+                  Billing
                 </Link>
               </div>
             </li>
@@ -128,7 +128,7 @@ export default function SidebarFrontPage() {
               </div>
               <div className='text'>
                 <Link href="/organization">
-                  <div>Organization</div>
+                  Organization
                 </Link>
               </div>
             </li>
