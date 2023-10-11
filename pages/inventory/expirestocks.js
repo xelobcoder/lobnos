@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import TableDisplay from '../../components/accessories/TableDisplay';
-import { DeleteForever, EditIcon } from '@mui/icons-material';
+import { DeleteForever} from '@mui/icons-material';
 import { customFetch } from '../../components/Auth/customFetch';
 import InventoryLayout from '../../components/inventory/InventoryLayout';
 
