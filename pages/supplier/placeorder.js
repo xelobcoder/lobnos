@@ -46,7 +46,7 @@ export default function PLACE_ORDER_PAGE() {
         // Fetch data about the suppliers
         const suppliersData = await customFetch('suppliers');
 
-     
+
 
         // Handle the fetched data based on the response status
         if (orders.status === 'success' && suppliersData.status === 'success') {
@@ -54,8 +54,8 @@ export default function PLACE_ORDER_PAGE() {
           setDatasource(orders?.result);
           setTempStorage(orders?.result);
           setSuppliers(suppliersData?.result);
-             // Log the fetched data
-        console.log(orders, suppliersData);
+          // Log the fetched data
+          console.log(orders, suppliersData);
         } else {
           // Handle the case when the data fetching was not successful
         }
@@ -112,7 +112,7 @@ export default function PLACE_ORDER_PAGE() {
   // handler for placing an order
 
 
-  const placeOrderHandler =  (e, stockid) => {
+  const placeOrderHandler = (e, stockid) => {
     e.preventDefault();
     // get the cart data
     // filter cartdata using the stockid
@@ -121,10 +121,10 @@ export default function PLACE_ORDER_PAGE() {
     const order = filtered[0];
     // send the data 
 
-  
+
     const sendData = async function () {
 
-      let data = await customPost('orders','POST',order)
+      let data = await customPost('orders', 'POST', order)
       console.log(data);
       // when successfully placed removwe the item from the cart
       if (data.status === 'success' && data.message === 'order placed successfully') {
@@ -176,55 +176,45 @@ export default function PLACE_ORDER_PAGE() {
   }
 
   return (
-    <>
-      <SupplierLayout>
-        <div>
-          {messageshow ? (
-            <TopMessage
-              message={message.message}
-              type={message.type}
-              display={message.display}
-              messageTimer={viewMessageTimer}
-            />
-          ) : null}
-          <div id="place-order-search">
-            <input
-              className="custom-input"
-              type="text"
-              onChange={(ev) => searchHandler(ev)}
-              placeholder="search for a product here"
-              value={search}
-            />
-            {source.length > 0 && (
-              <button
-                onClick={(ev) => {
-                  !cart.display
-                    ? setCart({ ...cart, display: true })
-                    : setCart({ ...cart, display: false });
-                }}
-                className="btn btn-sm btn-primary alert alert-primary"
-              >
-                <ShoppingBagOutlined fontSize='large'/>
-                cart {cart.data.length}
-              </button>
-            )}
-          </div>
-          {cart.display ? (
-            <CART_DISPLAY_COMPONENT
-              removeCartHandler={removeCartHandler}
-              placeOrderHandler={placeOrderHandler}
-              data={cart.data}
-            />
-          ) : (
-            <PLACE_ORDER
-              source={source}
-              cartHandler={cartHandler}
-              suppliers={suppliers}
-            />
+    <SupplierLayout>
+      <div className='p-2'>
+        <div className='grid-70-30'>
+          <input
+            className="custom-input"
+            type="text"
+            onChange={(ev) => searchHandler(ev)}
+            placeholder="search for a product here"
+            value={search}
+          />
+          {source.length > 0 && (
+            <button
+              onClick={(ev) => {
+                !cart.display
+                  ? setCart({ ...cart, display: true })
+                  : setCart({ ...cart, display: false });
+              }}
+              className="btn btn-sm btn-primary alert alert-primary"
+            >
+              <ShoppingBagOutlined fontSize='large' />
+              cart {cart.data.length}
+            </button>
           )}
         </div>
-      </SupplierLayout>
-    </>
+        {cart.display ? (
+          <CART_DISPLAY_COMPONENT
+            removeCartHandler={removeCartHandler}
+            placeOrderHandler={placeOrderHandler}
+            data={cart.data}
+          />
+        ) : (
+          <PLACE_ORDER
+            source={source}
+            cartHandler={cartHandler}
+            suppliers={suppliers}
+          />
+        )}
+      </div>
+    </SupplierLayout>
   );
 }
 

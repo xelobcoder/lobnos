@@ -1,44 +1,76 @@
 import React from 'react';
 import Link from 'next/link';
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import { Inventory, MoneyOffCsredRounded, OutboxRounded, Storage } from '@mui/icons-material';
+import { Inventory, MoneyOffCsredRounded, OutboxRounded, Person, Storage } from '@mui/icons-material';
 
 export default function SupplierTopNav() {
   return (
-    <div>
-      <ul className='inventory_sidebar'>
-        <li>
-          <Link href="/supplier/addsupplier">
-            <AddBoxIcon fontSize='medium' />
-            Add supplier
-          </Link>
-        </li>
-        <li>
-          <Link href="/inventory">
-            <Inventory fontSize='medium'/>
-            inventory
-          </Link>
-        </li>
-        <li>
-          <Link href="/supplier/placeorder">
-            <OutboxRounded fontSize='medium' />
-            place order
-          </Link>
-        </li>
-        <li>
-          <Link href="/supplier/purchases">
-          <MoneyOffCsredRounded fontSize='medium' />
-              purchases
-          </Link>
-        </li>
-        <li>
-          <Link href="/inventory">
-            <Storage fontSize='medium' />
-            stock
-          </Link>
-        </li>
+    <div className='settings-sidebar'>
+      <div className='contents'>
+        <ul>
+          <li>
+            <div className='icons'>
+              <Person/>
+            </div>
+            <div className='text'>
+              <Link href="/supplier">
+                suppliers
+              </Link>
+            </div>
+          </li>
+          <li>
+            <div className='icons'>
+              <AddBoxIcon fontSize='medium' />
+            </div>
+            <div className='text'>
+              <Link href="/supplier/addsupplier">
+                Add supplier
+              </Link>
+            </div>
+          </li>
+          <li>
+            <div className='icons'>
+              <Inventory fontSize='medium' />
+            </div>
+            <div className='text'>
+              <Link href="/inventory">
+                inventory
+              </Link>
+            </div>
+          </li>
+          <li>
+            <div className='icons'>
+              <OutboxRounded fontSize='medium' />
+            </div>
+            <div className='text'>
+              <Link href="/supplier/placeorder">
+                place order
+              </Link>
+            </div>
+          </li>
+          <li>
+            <div className='icons'>
+              <MoneyOffCsredRounded fontSize='medium' />
+            </div>
+            <div className='text'>
+              <Link href="/supplier/purchases">
+                purchases
+              </Link>
+            </div>
+          </li>
+          <li>
+            <div className='icons'>
+              <Storage fontSize='medium' />
+            </div>
+            <div className='text'>
+              <Link href="/inventory">
+                stock
+              </Link>
+            </div>
+          </li>
 
-      </ul>
+        </ul>
+      </div>
     </div>
   )
 }

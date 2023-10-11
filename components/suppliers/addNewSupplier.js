@@ -1,61 +1,18 @@
-import React ,{useState} from 'react';
-import CloseIcon from '@mui/icons-material/Close';
-import { Container } from '@mui/material';
-import TopMessage from '../accessories/TopMessage';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from 'react-bootstrap';
-import AddBoxIcon from '@mui/icons-material/AddBox';
-import ADD_COMMODITY_MODAL from './addcommodity';
 import UpgradeIcon from '@mui/icons-material/Upgrade';
 import AddCommentIcon from '@mui/icons-material/AddComment';
 import { useRouter } from 'next/router';
-import { customFetch } from '../Auth/customFetch';
+import { customFetch, regions, defaultSupplierdata, customPost } from '../Auth/customFetch';
+
 
 export default function ADD_NEW_SUPPLIER() {
-  const default_source = {
-    name: '',
-    commodity: '',
-    address: '',
-    region: '',
-    contactperson: '',
-    email: '',
-    phonenumber: ''
-  };
-
-  // regions in ghana 
-  const regions = [
-    'Greater Accra',
-    'Ashanti',
-    'Western',
-    'Eastern',
-    'Central',
-    'Volta',
-    'Northern',
-    'Upper East',
-    'Upper West',
-    'Bono',
-    'Bono East',
-    'Ahafo',
-    'Savannah',
-    'North East',
-    'Oti',
-    'Western North'
-  ];
-
   const tab = useRouter().query.tab;
   const supplierid = useRouter().query.supplierid;
 
-  // list of all commodities
-  const [commoditiesList, setCommoditiesList] =useState([]);
-
-  // show modal for adding commodity to db when it is not in the datalist show 
-  const [showcmmodal, setshowcmmodal] =useState(false);
-
-  const [show, setMessageshow] =useState(false);
-  const [message, setMessage] =useState({ type: 'success', message: '' })
-
-  const [newsupplier, setNewSupplier] =useState(default_source);
+  const [newsupplier, setNewSupplier] = useState(defaultSupplierdata);
   // destructure 
-  const { name, commodity, address, email, phonenumber, region, contactperson } = newsupplier;
+  const { name, address, email, phonenumber, region, contactperson } = newsupplier;
   // handle the inputs
   const inputhandler = (ev, field) => {
     let value = ev.target.value;
@@ -65,51 +22,17 @@ export default function ADD_NEW_SUPPLIER() {
   }
 
 
-  const handleCommidity = async (ev) => {
-    // get the list of commodities from the db
-    const data = await customFetch('commodities')
-    setCommoditiesList(data.result);
-  }
-
   const handleSubmit = async (ev, tab, newsupplier) => {
     ev.preventDefault();
     const method = tab === 'edit' ? 'PUT' : 'POST';
     try {
       const senddata = async () => {
-        const response = await fetch(tab == 'edit' ? `${process.env.BASEURL}/?supplierid=${supplierid}` :
-          `${process.env.BASEURL}/suppliers`, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`
-          },
-          body: JSON.stringify(newsupplier)
-        })
-        const data = await response.json();
-        console.log(data);
-        if (data.status === 'success') {
-          setNewSupplier({
-            name: '',
-            commodity: '',
-            address: '',
-            region: '',
-            contactperson: '',
-            email: '',
-            phonenumber: ''
-          })
-          setMessageshow(true);
-          setMessage({
-            type: 'success',
-            message: tab === 'edit' ? 'supplier updated successfully' : 'supplier added successfully'
-          })
+        const data = await customPost(`suppliers?supplierid=${supplierid}`, method, newsupplier);
+        const { statusCode, status, message } = data;
+        if (statusCode === 200 && status === 'success') {
+          setNewSupplier(defaultSupplierdata);
         }
-        else {
-          setMessageshow(true);
-          setMessage({
-            type: 'danger',
-            message: data.err.sqlMessage
-          })
-        }
+        alert(message);
       }
 
       const checkEmptyFields = (dataset) => {
@@ -132,61 +55,34 @@ export default function ADD_NEW_SUPPLIER() {
       }
     }
     catch (error) {
-      setMessage({ type: 'error', message: error.message })
-      setMessageshow(true)
+      console.log(error)
     }
   }
 
 
-  const messageTimer = () => {
-    setTimeout(() => {
-      setMessageshow(false);
-    }, 3000)
-  }
 
 
-  React.useMemo(() => {
-    handleCommidity();
 
-  }, [])
-
-
-  React.useMemo(() => {
+  useEffect(() => {
     if (tab === 'edit' && supplierid) {
       const getResponse = async () => {
         const data = await customFetch(`suppliers?supplierid=${supplierid}`)
-        if (data?.result.length === 0) {
-          return;
-        }
-        else {
-          // transform keys to lowercase to match 
-          const xmap = result[0];
-          let transformed = function () {
-            let obj = {};
-            for (let key in xmap) {
-              obj[key.toLowerCase()] = xmap[key];
-            }
-            // remove supplier id and date created
-            delete obj.supplierid;
-            delete obj.date
-            return obj;
-          }
-          setNewSupplier(transformed());
+        const { statusCode, status, result } = data;
+        if (statusCode === 200  && result.length > 0) {
+          setNewSupplier(result[0])
         }
       }
-
       getResponse()
     }
   }, [tab, supplierid])
 
   return (
     <>
-      {
-        show && <TopMessage type={message.type} display={show} message={message.message} messageTimer={messageTimer} />
-      }
-      <div style={{ marginTop: '20px' }}>
-        <div id='addsupplier' className='mt-2='>
-          <h1>Add new supplier</h1>
+      <div className='p-3'>
+        <div className='mt-2='>
+          <h4 className='bg-info br-5 p-2 lims-color' style={{ width: '300px' }}>
+            {tab === 'edit' ? 'Update supplier information' : 'Add New supplier'}
+          </h4>
           <form>
             <div className='form-group'>
               <label htmlFor='name'>supplier name</label>
@@ -194,25 +90,7 @@ export default function ADD_NEW_SUPPLIER() {
                 onChange={(ev) => inputhandler(ev, 'name')} />
 
             </div>
-            <div className='form-group'>
-              <label htmlFor='commodity'>commodity</label>
-              <div className='d-flex'>
-                <input className='custom-input' value={commodity} id='commodity' multiple={true} required list='mycommodity' placeholder='commodity name'
-                  onChange={(ev) => {
-                    inputhandler(ev, 'commodity');
-                  }}
-                />
-                <datalist id='mycommodity'>
-                  {
-                    commoditiesList.length > 0 && commoditiesList.map((item, index) => {
-                      return <option key={index} value={item.COMMODITY} />
-                    })
-                  }
-                </datalist>
-                {/* display modal */}
-                <AddBoxIcon fontSize='large' onClick={() => setshowcmmodal(true)} />
-              </div>
-            </div>
+
             <div className='form-group'>
               <label htmlFor='address'>address</label>
               <input className='custom-input' id='addx' value={address}
@@ -228,13 +106,13 @@ export default function ADD_NEW_SUPPLIER() {
             {/* phone number */}
             <div className='form-group'>
               <label htmlFor='phonenumber'>phone number</label>
-              <input className='custom-input' type='number' id='phonenumber' required value={phonenumber} placeholder='phone number'
+              <input className='custom-input' type='number' id='phonenumber' maxLength={10} minLength={10} required value={phonenumber} placeholder='phone number'
                 onChange={(ev) => inputhandler(ev, 'phonenumber')} />
             </div>
             {/* region */}
             <div className='form-group'>
               <label htmlFor='region'>region</label>
-              <select className='custom-input' id='region' value={newsupplier.region} onChange={(ev) => inputhandler(ev, 'region')}>
+              <select className='custom-select' id='region' value={newsupplier.region} onChange={(ev) => inputhandler(ev, 'region')}>
                 <option value=''>select region</option>
                 {
                   regions.length > 0 && regions.map((item, index) => {
@@ -249,17 +127,16 @@ export default function ADD_NEW_SUPPLIER() {
               <input className='custom-input' id='contactperson' value={contactperson} placeholder='contact person'
                 onChange={(ev) => inputhandler(ev, 'contactperson')} />
             </div>
-            <div className='form-group'>
+            <div className='form-group mt-2'>
               <Button className='btn btn-primary' type='submit'
                 onClick={(ev) => handleSubmit(ev, tab, newsupplier)}
               >
                 {tab === 'edit' ? <UpgradeIcon /> : <AddCommentIcon />}
-                {tab === 'edit' ? 'Update' : 'Add New'}
+                {tab === 'edit' ? 'Update supplier information' : 'Add New supplier'}
               </Button>
             </div>
 
           </form>
-          <ADD_COMMODITY_MODAL show={showcmmodal} onHide={() => setshowcmmodal(false)} />
         </div>
 
       </div></>

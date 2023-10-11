@@ -86,8 +86,8 @@ export default function ReceivedOrderModal({
 
       try {
         //  send a request to the server to add the order to the stock
-        const data = await customPost('purchases','POST',tt)
-  
+        const data = await customPost('purchases', 'POST', tt)
+
         if (data["status"] === "success") {
           alert("order received successfully");
           handleClose();
@@ -243,12 +243,12 @@ export default function ReceivedOrderModal({
             <h5>GHC {totalprice}</h5>
           </div>
 
-          <div id="gross-amount-modal" className="mt-5">
+          {/* <div id="gross-amount-modal" className="mt-5">
             <div>
               <h5 style={{ fontSize: "15px" }}>upload invoice here </h5>
               <input className="form-control" type="file" accept=".pdf" />
             </div>
-          </div>
+          </div> */}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="danger" onClick={handleClose}>

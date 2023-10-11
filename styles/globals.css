@@ -19,7 +19,7 @@
   padding: 0;
   box-sizing: border-box;
   -webkit-font-smoothing: antialiased;
-    text-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
   font-family: 'Proxima Nova Regular', Arial, sans-serif;
   font-weight: 400;
   font-size: 15px;
@@ -711,7 +711,6 @@ option:hover {
 
 /* settings side bar css begins @............................................................................................... */
 
-
 .settings-sidebar {
   width: 100%;
   border-right: 1px solid lightgray;
@@ -935,18 +934,14 @@ option:hover {
   height: 30px;
   border: 1px solid lightgray;
   border-radius: 5px;
-  padding: 10px;
   font-size: 14px;
+  padding-left: 10px;
   text-transform: capitalize;
   width: 100%;
   color: #00224f;
 }
 
-.custom-select {
-  height: 40px !important;
-}
-
-.custom-input:focus {
+.custom-input:focus,.customs-select:focus {
   outline: none;
   border: 1px solid #00224f;
   box-shadow: none !important;
@@ -1005,28 +1000,6 @@ option:hover {
 
 #modal-msg {
   font-size: small;
-}
-
-#placeorder {
-  padding: 0 10px;
-  margin-top: 20px;
-}
-
-#place-order-search {
-  display: grid;
-  grid-template-columns: 50% auto;
-  margin: 10px 10px;
-  padding: 5px;
-}
-
-#place-order-search > input {
-  height: 40px;
-  border: 1px solid lightgray;
-  border-radius: 5px;
-  padding: 10px;
-  font-size: 14px;
-  width: 70%;
-  color: #00224f;
 }
 
 #placeorder > table {
@@ -1157,12 +1130,12 @@ option:hover {
 .received-modal-purchases > h5 > span {
   font-size: 14px;
   color: #00224f;
-  text-transform: uppercase;
   padding-left: 10px;
 }
 
 .received-modal-purchases > h5 > header {
   font-weight: 600 !important;
+  text-transform: uppercase;
 }
 
 #modal-header-color {
@@ -1178,13 +1151,13 @@ option:hover {
   display: grid;
   grid-template-columns: repeat(11, 1fr);
   width: 100%;
-  background-color: #00224f21;
+  background-color: whitesmoke;
 }
 
 #order-receivable-table > form > table > thead > tr > th {
   padding: 10px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: #00224f;
   text-transform: uppercase;
 }
@@ -1199,6 +1172,12 @@ option:hover {
 #order-receivable-table > form > table > tbody > tr > td {
   text-transform: capitalize;
   color: #00224f;
+  border-bottom: 1px solid lightgray;
+  padding-bottom: 10px;
+}
+
+#order-receivable-table > form > table > tbody > tr > td:nth-child(10) {
+  text-align: center;
 }
 
 #gross-amount-modal {
@@ -2592,7 +2571,7 @@ input[type='text'] {
 .software-header-nav {
   background-color: #00224f !important;
   display: grid !important;
-  grid-template-columns: 60% 30% auto;
+  grid-template-columns: 40% 30% auto;
   margin: 0;
   padding: 0;
 }

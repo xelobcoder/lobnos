@@ -1,13 +1,12 @@
 import React from 'react';
 import SupplierTopNav from '../../components/supplierTopNav';
-
+import SettingsLayout from '../settingsComponents/SettingsLayout';
 export default function SupplierLayout({ children }) {
   return (
     <>
-      <div style={{backgroundColor:'#00224f17',height:'100vh'}}>
-        <SupplierTopNav />
+      <SettingsLayout sidebar={<SupplierTopNav/>}>
         {children}
-      </div>
+      </SettingsLayout>
     </>
   )
 }

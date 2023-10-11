@@ -52,6 +52,10 @@ function Header() {
             </Link>
           </Typography>
         </Toolbar>
+        <Toolbar className='flow-child'>
+          {branch == null ? <button
+            onClick={(e) => router.push('/settings')} className="btn btn-dark text-capitalize ">set branch</button> : `${branch}`}
+        </Toolbar>
         <Toolbar className='userHeader'>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <Avatar sx={{ mr: 1 }} />
@@ -59,10 +63,6 @@ function Header() {
               {username}
             </Typography>
           </div>
-        </Toolbar>
-        <Toolbar className='flow-child'>
-          {branch == null ? <button
-            onClick={(e) => router.push('/settings')} className="btn btn-dark text-capitalize ">set branch</button> : `${branch}`}
         </Toolbar>
       </AppBar>
     </>

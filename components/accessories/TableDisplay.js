@@ -41,8 +41,8 @@ export default function TableDisplay({ column, data, styling, filtering }) {
                   <div className='custom-table-wrapper'>
                     <table style={{marginTop:'10px'}} {...getTableProps()} id={styling || 'custom-table'}>
                       <thead>
-                        {headerGroups.map((headerGroup) => (
-                          <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
+                        {headerGroups.map((headerGroup,index) => (
+                          <tr {...headerGroup.getHeaderGroupProps()} key={index}>
                             {headerGroup.headers.map((column) => (
                               <th {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
                                 {column.render('Header')}
@@ -53,10 +53,10 @@ export default function TableDisplay({ column, data, styling, filtering }) {
                         ))}
                       </thead>
                       <tbody {...getTableBodyProps()}>
-                        {page.map((row) => {
+                        {page.map((row,index) => {
                           prepareRow(row)
                           return (
-                            <tr {...row.getRowProps()} key={row.id}>
+                            <tr {...row.getRowProps()} key={index}>
                               {row.cells.map((cell) => {
                                 return <td {...cell.getCellProps()} key={cell.column.id}>{cell.render('Cell')}</td>
                               })}
@@ -75,8 +75,8 @@ export default function TableDisplay({ column, data, styling, filtering }) {
                       </span>
                       <span style={{ marginRight: '20px' }}>
                         <select className='form-control mt-2' value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
-                          {[10,20,25,50,75,100, 150,200].map(pageSize => (
-                            <option key={pageSize} value={pageSize}>
+                          {[10,20,25,50,75,100, 150,200].map((pageSize,index) => (
+                            <option key={index} value={pageSize}>
                               Show {pageSize}
                             </option>
                           ))}

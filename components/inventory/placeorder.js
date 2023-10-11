@@ -21,7 +21,7 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
         {source.length === 0 ? (
           <SECOND_NO_DATA/>
         ) : (
-          <div className="card" style={{ borderRadius: '10px' }}>
+          <div className="card br-5">
             <div className="card-header" id='split-8'>
               <div>stk id</div>
               <div>item name</div>
@@ -41,7 +41,7 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
                         <div>{item.category}</div>
                         <div>
                           <select
-                            className="form-control"
+                            className="custom-select"
                             onChange={(ev) => {
                               setSelectedproduct({
                                 ...selectedproduct,
@@ -62,7 +62,7 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
                         {/* <div>{item.unitquantity}</div> */}
                         <div>
                           <select
-                            className="form-control"
+                            className="custom-select"
                             onChange={(ev) => {
                               setSelectedproduct({
                                 ...selectedproduct,
@@ -96,7 +96,7 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
                                 quantity: ev.target.value,
                               });
                             }}
-                            className="form-control"
+                            className="custom-input"
                             type="number"
                           />
                         </div>
