@@ -941,7 +941,8 @@ option:hover {
   color: #00224f;
 }
 
-.custom-input:focus,.customs-select:focus {
+.custom-input:focus,
+.customs-select:focus {
   outline: none;
   border: 1px solid #00224f;
   box-shadow: none !important;
@@ -1093,6 +1094,7 @@ option:hover {
 #cart-place-order {
   margin: 0 2%;
   background-color: white;
+  border: 1px solid lightgray;
 }
 
 #cart-place-order > #wrapper {
@@ -1102,7 +1104,7 @@ option:hover {
 }
 #cart-place-order > #wrapper > .row {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(5, 1fr);
 }
 
 #cart-place-order > #wrapper > .row > .col {
@@ -1129,13 +1131,12 @@ option:hover {
 .received-modal-purchases > h5 > header,
 .received-modal-purchases > h5 > span {
   font-size: 14px;
-  color: #00224f;
   padding-left: 10px;
 }
 
 .received-modal-purchases > h5 > header {
   font-weight: 600 !important;
-  text-transform: uppercase;
+  text-transform: capitalize;
 }
 
 #modal-header-color {
@@ -1144,7 +1145,7 @@ option:hover {
 
 #order-receivable-table {
   padding: 0;
-  margin: 0;
+  margin: 10px;
 }
 
 #order-receivable-table > form > table > thead > tr {
@@ -1604,7 +1605,8 @@ option:hover {
   /* width: 100%; */
   font-size: 14px;
 }
-.grid-50 {
+.grid-50 ,
+.grid-50-responsive{
   display: grid;
   grid-template-columns: 50% 50%;
   grid-gap: 10px;
@@ -2212,6 +2214,9 @@ input[type='email']:focus:invalid .company-view-result > .wrapper {
 @media screen and (max-width: 600px) {
   .clinician-view .card .card-body .list-group-item > div {
     font-size: 14px;
+  }
+  .grid-50-responsive{
+    grid-template-columns: 100%;
   }
   .clinician-view .card .card-body .list-group-item {
     display: grid;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import TopMessage from '../accessories/TopMessage';
-import { SystemUpdate, AddCircleOutline } from '@mui/icons-material';
+import { SystemUpdate, AddCircleOutline, Info } from '@mui/icons-material';
 import { customFetch, customPost } from '../Auth/customFetch';
 import { Button } from '@mui/material';
 
@@ -15,7 +15,6 @@ export default function ADD_STOCK_INVENTORY() {
     unitquantity: '',
     alertlevel: '',
     materialcode: '',
-    tax: 0
   })
 
   const [show, setMessageshow] = useState(false);
@@ -49,9 +48,7 @@ export default function ADD_STOCK_INVENTORY() {
     const method = tab === 'edit' ? 'PUT' : 'POST';
     try {
       const senddata = async () => {
-        console.log(tab)
         const data = await customPost(`stock?stockid=${stockid}`, method, { ...productdetails, tax: parseInt(productdetails.tax) });
-
         const { status, message } = data;
         if (status === 'success') {
           setMessageshow(true);
@@ -60,7 +57,6 @@ export default function ADD_STOCK_INVENTORY() {
         else {
           setMessageshow(true);
           setMessage({ type: 'warning', message: message })
-          console.log(message)
         }
       }
 
@@ -85,7 +81,7 @@ export default function ADD_STOCK_INVENTORY() {
     }
     catch (error) {
       setMessageshow(true);
-      setMessage({ type: 'danger', message: error.message })
+      // setMessage({ type: 'danger', message: error?.message })
     }
   }
 
@@ -145,15 +141,11 @@ export default function ADD_STOCK_INVENTORY() {
         />
       )}
       <div className="mt-3 p-3">
-        <div className='alert alert-info'>
-          <h6> kindly fill in all fields to {tab == 'edit' ? 'update stock information' : ' add a new stock '}</h6>
+        <div className='alert alert-info' style={{ width: '400px' }}>
+          <h6>kindly fill in all fields to {tab == 'edit' ? 'update stock information' : ' add a new stock '}</h6>
         </div>
         <form
-          style={{
-            display: "grid",
-            gridTemplateColumns: "48% 48%",
-            gridGap: "0px 1%",
-          }}
+          className='grid-50-responsive'
         >
           <div className="form-group">
             <label htmlFor="name">Name</label>
@@ -259,30 +251,17 @@ export default function ADD_STOCK_INVENTORY() {
               onChange={(ev) => inputhandler(ev, "materialcode")}
             />
           </div>
-
-          <div className="form-group">
-            <label htmlFor="tax">Tax</label>
-            <input
-              type="text"
-              className="form-control"
-              id="tax"
-              placeholder="Enter tax"
-              value={tax}
-              onChange={(ev) => inputhandler(ev, "tax")}
-            />
-          </div>
-
-          <div className="form-group mt-3">
-            <button
-              type="submit"
-              className="btn btn-primary"
-              onClick={handleSubmit}
-            >
-              {tab === "edit" ? <SystemUpdate /> : <AddCircleOutline />}
-              {tab === "edit" ? "Update stock information" : "Add new stock"}
-            </button>
-          </div>
         </form>
+        <div className="form-group mt-3">
+          <button
+            type="submit"
+            className="btn btn-primary"
+            onClick={handleSubmit}
+          >
+            {tab === "edit" ? <SystemUpdate /> : <AddCircleOutline />}
+            {tab === "edit" ? "Update stock information" : "Add new stock"}
+          </button>
+        </div>
       </div>
     </>
   );

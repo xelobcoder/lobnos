@@ -16,46 +16,20 @@ export default function PLACE_ORDER_PAGE() {
   });
   const [search, setSearch] = useState('');
 
-  // handle messages view begin ---states
-  const [messageshow, setMessageshow] = useState(false);
-  const [message, setMessage] = useState({
-    type: '',
-    message: '',
-    display: false
-  });
-
-  const viewMessageTimer = () => {
-    setTimeout(() => {
-      setMessageshow(false);
-      setMessage({
-        type: '',
-        message: '',
-        display: false
-      })
-    }, 2000)
-  }
-  // handle messages view end ---states
-
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch data from external API
         const orders = await customFetch('stock');
-
         // Fetch data about the suppliers
         const suppliersData = await customFetch('suppliers');
-
-
-
         // Handle the fetched data based on the response status
         if (orders.status === 'success' && suppliersData.status === 'success') {
           // Update the state or perform any other logic with the fetched data
           setDatasource(orders?.result);
           setTempStorage(orders?.result);
           setSuppliers(suppliersData?.result);
-          // Log the fetched data
-          console.log(orders, suppliersData);
         } else {
           // Handle the case when the data fetching was not successful
         }
@@ -63,7 +37,6 @@ export default function PLACE_ORDER_PAGE() {
         // Handle any errors that occurred during data fetching
       }
     };
-
     fetchData();
   }, []);
 
@@ -112,45 +85,17 @@ export default function PLACE_ORDER_PAGE() {
   // handler for placing an order
 
 
-  const placeOrderHandler = (e, stockid) => {
+  const placeOrderHandler = (e) => {
     e.preventDefault();
-    // get the cart data
-    // filter cartdata using the stockid
-    const filtered = cart.data.filter(item => parseInt(item.stockid) === parseInt(stockid));
-    // get the first data 
-    const order = filtered[0];
-    // send the data 
-
-
+    // transform data
+    const cartdata = { stock: cart.data }
     const sendData = async function () {
-
-      let data = await customPost('orders', 'POST', order)
-      console.log(data);
+      let data = await customPost('orders', 'POST', cartdata)
       // when successfully placed removwe the item from the cart
       if (data.status === 'success' && data.message === 'order placed successfully') {
-        removeCartHandler(e, stockid);
-        setMessageshow(true);
-        setMessage({
-          type: 'success',
-          message: data.message,
-          display: true
-        })
-      } else if
-        (data.status == 'success' && data.message === 'order already exist') {
-        setMessageshow(true);
-        setMessage({
-          type: 'warning',
-          message: data.info,
-          display: true
-        })
-      } else {
-        setMessageshow(true);
-        setMessage({
-          type: 'danger',
-          message: data.message,
-          display: true
-        })
+        // removeCartHandler(e, stockid);
       }
+      alert(data.message)
     }
 
     sendData()

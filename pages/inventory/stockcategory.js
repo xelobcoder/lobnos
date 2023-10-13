@@ -74,8 +74,8 @@ export default function StockCategory() {
                             <div className='category'>
                               {item?.category}
                             </div>
-                            <div className='action'>
-                              <Button color='error' size='small' onClick={(e) => deleteCat(item?.id)}>
+                            <div>
+                              <Button color='error' className='mt-1' variant='contained' size='small' onClick={(e) => deleteCat(item?.id)}>
                                 <DeleteForever />
                                 delete
                               </Button>

@@ -256,8 +256,8 @@ export default function Settings() {
 									{branches.length > 0 &&
 										branches.map((i, e) => {
 											return (
-												<option key={e} dataid={i.BRANCHID} value={i.BRANCHID}>
-													{i.NAME}
+												<option key={e} dataid={i.branchid} value={i.branchid}>
+													{i.name}
 												</option>
 											);
 										})}
