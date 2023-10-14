@@ -1,3 +1,5 @@
+import { customPost, customFetch } from "./customFetch";
+const REQUISITIONS_URL = "departments/requisitions";
 class Inventory {
   constructor(pricing, taxcaluatedIn) {
     this.pricing = pricing;
@@ -53,6 +55,61 @@ class Inventory {
       alert('tax calculated not set up');
     }
   }
+
+  getPlaceOrderStocks = async function (setStocks, setTemp) {
+    try {
+      let data = await customFetch('stock');
+      const { status, result } = data;
+      if (status === 'success' && result.length > 0) {
+        let transfromed = result.map((item, index) => {
+          return { ...item, quantityrequired: 0 };
+        })
+        setTemp(transfromed)
+        setStocks(transfromed)
+      } else {
+        setStocks([]);
+      }
+    } catch (err) {
+      setStocks([]);
+    }
+  }
+
+  departmentRequisition = async (e, id, departmentId, setStocks, stocks) => {
+    const filteredStock = stocks.find((stock) => stock.stockid === id);
+
+    const transformedData = {
+      stockid: filteredStock.stockid,
+      departmentid: departmentId,
+      quantity: parseInt(filteredStock.quantityrequired),
+      comsumptionunit: filteredStock.consumptionunit,
+      requisitionid: Date.now(),
+    };
+
+    const emptyValues = Object.values(transformedData).filter(
+      (value) => value === ""
+    );
+
+
+    if (emptyValues.length > 0 || transformedData.quantity === 0) {
+      alert("Please fill in the required quantity.")
+      return;
+    }
+
+    try {
+      const pushResponse = await customPost(`${REQUISITIONS_URL}`, "POST", transformedData);
+      const { status, statusCode, message } = pushResponse;
+      if (status === "success" && statusCode === 200 && message === "Department requisition added successfully"
+      ) {
+        alert(message);
+        const updatedStocks = stocks.filter((stock) => stock.stockid !== id);
+        setStocks(updatedStocks);
+      } else {
+        alert(message);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
 }
 
 

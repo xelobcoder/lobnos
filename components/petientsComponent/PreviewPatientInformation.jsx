@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { customFetch } from '../Auth/customFetch';
+import { customData, customFetch } from '../Auth/customFetch';
 // import { useContext } from 'react';
 // import { PatientContext } from '../../pages/patients';
 
@@ -7,17 +7,10 @@ export default function PreviewPatientInformation({ patientid }) {
   const [data, setData] = useState({});
   // const { initials, updateInitials } = useContext(PatientContext)
 
-  let getData = async function (patientid) {
-    let response = await customFetch(`register/personalinformation?patientid=${patientid}`);
-    const { status, statusCode, result } = response;
-    if (statusCode == 200 && status == 'success') {
-      setData(result);
-    }
-  }
-
+ 
 
   useEffect(() => {
-    getData(patientid)
+    customData(`register/personalinformation?patientid=${patientid}`,setData)
   }, [patientid])
 
   return (

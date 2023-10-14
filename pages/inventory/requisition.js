@@ -8,7 +8,7 @@ import ViewCompactAltIcon from '@mui/icons-material/ViewCompactAlt';
 import CallReceivedIcon from '@mui/icons-material/CallReceived';
 import { CheckCircle } from '@mui/icons-material';
 import DepartureBoard from '@mui/icons-material/DepartureBoard';
-import { customFetch ,customPost} from '../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../components/Auth/customFetch';
 
 export default function Requisition() {
   const router = useRouter();
@@ -82,7 +82,7 @@ export default function Requisition() {
       // send data to the server
       async function sendReceivedData() {
         try {
-          const data = await customPost('departments/requisitions', 'PUT',transformData)
+          const data = await customPost('departments/requisitions', 'PUT', transformData)
           console.log(data)
           if (data.status === 'success' && data.statusCode === 200) {
             alert(data.message);
@@ -200,7 +200,7 @@ export default function Requisition() {
 
   return (
     <>
-      {
+      {/* {
         instructionView ? (
           <div id='instruction-view'>
             <div className='content'>
@@ -233,55 +233,58 @@ export default function Requisition() {
             </div>
           </div>
         ) : null
-      }
-      <div className='d-flex'>
-        <div>
-          <button className='custom-button mt-2 text-danger' onClick={handleBack}>
-            <Backspace sx={{ marginRight: '10px' }} />
-            Back
-          </button>
-        </div>
-        <div>
-          <button className='custom-button mt-2' onClick={(e) => setInstructionView(!instructionView)}>
-            <ViewCompactAltIcon sx={{ marginRight: '10px' }} />
-            view instructions</button>
-        </div>
-        {/* BUTTON FOR RECIEVED */}
-        <div>
-          <button className='custom-button mt-2 text-success'
-            onClick={(e) => setDataCategory('received')}
-          >
-            <CallReceivedIcon sx={{ marginRight: '10px' }} />
-            Received stocks
-          </button>
-        </div>
-        {/* button for pending approval */}
-        <div>
-          <button className='custom-button mt-2 text-warning'
-            onClick={(e) => setDataCategory('pending')}
-          >
-            <PendingActions />
-            Pending approval
-          </button>
-        </div>
-        {/* button for approved */}
-        <div>
-          <button className='custom-button mt-2 text-success'
-            onClick={(e) => setDataCategory('approved')}
-          >
-            <CheckCircle OutlineIcon sx={{ marginRight: '10px' }} />
-            Approved
-          </button>
-        </div>
-        {/* button for department stocks */}
-        <div>
-          <button className='custom-button mt-2 text-info'>
-            <DepartureBoard OutlineIcon sx={{ marginRight: '10px' }} />
-            Department Stocks
-          </button>
-        </div>
-      </div>
+      } */}
+
       <TableDisplay data={hxData} column={columns} />
     </>
   );
 }
+
+
+// <div className='d-flex'>
+//         <div>
+//           <button className='custom-button mt-2 text-danger' onClick={handleBack}>
+//             <Backspace sx={{ marginRight: '10px' }} />
+//             Back
+//           </button>
+//         </div>
+//         <div>
+//           <button className='custom-button mt-2' onClick={(e) => setInstructionView(!instructionView)}>
+//             <ViewCompactAltIcon sx={{ marginRight: '10px' }} />
+//             view instructions</button>
+//         </div>
+//         {/* BUTTON FOR RECIEVED */}
+//         <div>
+//           <button className='custom-button mt-2 text-success'
+//             onClick={(e) => setDataCategory('received')}
+//           >
+//             <CallReceivedIcon sx={{ marginRight: '10px' }} />
+//             Received stocks
+//           </button>
+//         </div>
+//         {/* button for pending approval */}
+//         <div>
+//           <button className='custom-button mt-2 text-warning'
+//             onClick={(e) => setDataCategory('pending')}
+//           >
+//             <PendingActions />
+//             Pending approval
+//           </button>
+//         </div>
+//         {/* button for approved */}
+//         <div>
+//           <button className='custom-button mt-2 text-success'
+//             onClick={(e) => setDataCategory('approved')}
+//           >
+//             <CheckCircle OutlineIcon sx={{ marginRight: '10px' }} />
+//             Approved
+//           </button>
+//         </div>
+//         {/* button for department stocks */}
+//         <div>
+//           <button className='custom-button mt-2 text-info'>
+//             <DepartureBoard OutlineIcon sx={{ marginRight: '10px' }} />
+//             Department Stocks
+//           </button>
+//         </div>
+//       </div>

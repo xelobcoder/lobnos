@@ -4,7 +4,7 @@ import React from "react";
 import { useState, useEffect, useMemo } from "react";
 import TableDisplay from "../../components/accessories/TableDisplay";
 import InventoryIcon from "@mui/icons-material/Inventory";
-import { customFetch, customPost, getDepartment } from "../../components/Auth/customFetch";
+import { customData, customFetch, customPost, getDepartment } from "../../components/Auth/customFetch";
 import InventoryLayout from "../../components/inventory/InventoryLayout";
 export default function Stocksrequest() {
   const [request, setRequest] = useState([]);
@@ -21,10 +21,7 @@ export default function Stocksrequest() {
     async function fetchRequisitions() {
       if (departmentId) {
         try {
-          const data = await customFetch(`departments/requisitions?id=${departmentId}&&type=pending`);
-          if (data?.status === "success" && data?.statusCode === 200) {
-            setHxData(data?.data);
-          }
+          const data = await customData(`departments/requisitions?id=${departmentId}&&type=pending`,setHxData);
         } catch (error) {
           console.error(error);
         }

@@ -75,11 +75,6 @@ export default function INVENTORY_PAGE() {
       accessor: 'materialcode',
     },
     {
-      Header: 'Tax',
-      accessor: 'tax',
-    },
-
-    {
       Header: 'Action',
       Cell: ({ row }) => (
         <div>

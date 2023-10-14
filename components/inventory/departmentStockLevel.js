@@ -1,11 +1,9 @@
 import React from 'react'
-import SECOND_NO_DATA from '../accessories/secondNodata';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Button } from '@mui/material';
-import { useRouter } from 'next/router';
 import TableDisplay from '../accessories/TableDisplay';
+import SECOND_NO_DATA from '../accessories/secondNodata';
 export default function DepartmentStockLevel({ datasource, deleteStock }) {
-  const router = useRouter();
 
   const columns = [
     { Header: 'stockid', accessor: 'stockid' },
@@ -31,7 +29,9 @@ export default function DepartmentStockLevel({ datasource, deleteStock }) {
 
   return (
     <>
-      <TableDisplay data={datasource} column={columns} filtering={true} />
+      {datasource.length === 0 ?
+        <SECOND_NO_DATA /> :
+        (<TableDisplay data={datasource} column={columns} filtering={true} />)}
     </>
   )
 }

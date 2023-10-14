@@ -1092,8 +1092,8 @@ option:hover {
 }
 
 #cart-place-order {
-  margin: 0 2%;
   background-color: white;
+  padding: 0% 1%;
   border: 1px solid lightgray;
 }
 
@@ -1605,8 +1605,8 @@ option:hover {
   /* width: 100%; */
   font-size: 14px;
 }
-.grid-50 ,
-.grid-50-responsive{
+.grid-50,
+.grid-50-responsive {
   display: grid;
   grid-template-columns: 50% 50%;
   grid-gap: 10px;
@@ -2215,7 +2215,7 @@ input[type='email']:focus:invalid .company-view-result > .wrapper {
   .clinician-view .card .card-body .list-group-item > div {
     font-size: 14px;
   }
-  .grid-50-responsive{
+  .grid-50-responsive {
     grid-template-columns: 100%;
   }
   .clinician-view .card .card-body .list-group-item {
@@ -2324,11 +2324,11 @@ input[type='email']:focus:invalid .company-view-result > .wrapper {
 
 #split-8 {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   grid-gap: 10px 10px;
   color: #00224f;
-  text-transform: uppercase;
-  font-size: 14px;
+  text-transform: capitalize;
+  font-size: 13px;
   font-weight: 500;
 }
 

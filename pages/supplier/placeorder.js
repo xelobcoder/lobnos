@@ -5,6 +5,7 @@ import TopMessage from '../../components/accessories/TopMessage';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import SupplierLayout from '../../components/inventory/SupplierLayout';
 import { Shop, ShoppingBagOutlined } from '@mui/icons-material';
+import { Button } from '@mui/material';
 
 export default function PLACE_ORDER_PAGE() {
   const [source, setDatasource] = useState([]);
@@ -123,26 +124,29 @@ export default function PLACE_ORDER_PAGE() {
   return (
     <SupplierLayout>
       <div className='p-2'>
-        <div className='grid-70-30'>
-          <input
-            className="custom-input"
-            type="text"
-            onChange={(ev) => searchHandler(ev)}
-            placeholder="search for a product here"
-            value={search}
-          />
+        <div style={{ display: 'grid', gridTemplateColumns: '90% auto' }}>
+          <div>
+            <input
+            style={{width:'60%'}}
+              className="custom-input"
+              type="text"
+              onChange={(ev) => searchHandler(ev)}
+              placeholder="search for a product here"
+              value={search}
+            />
+          </div>
           {source.length > 0 && (
-            <button
+            <Button
               onClick={(ev) => {
                 !cart.display
                   ? setCart({ ...cart, display: true })
                   : setCart({ ...cart, display: false });
               }}
-              className="btn btn-sm btn-primary alert alert-primary"
+              className="btn btn-sm btn-primary mb-3"
             >
               <ShoppingBagOutlined fontSize='large' />
               cart {cart.data.length}
-            </button>
+            </Button>
           )}
         </div>
         {cart.display ? (

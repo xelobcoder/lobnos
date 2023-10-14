@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button } from "@mui/material";
-import TableDisplay from "../../components/accessories/TableDisplay";
-import SECOND_NO_DATA from "../../components/accessories/secondNodata";
-import DepartmentStockLevel from "../../components/inventory/departmentStockLevel";
-import TopMessage from "../../components/accessories/TopMessage";
-import { customFetch, customPost } from "../../components/Auth/customFetch";
-import InventoryLayout from "../../components/inventory/InventoryLayout";
+import TableDisplay from "../../../components/accessories/TableDisplay";
+import SECOND_NO_DATA from "../../../components/accessories/secondNodata";
+import DepartmentStockLevel from "../../../components/inventory/departmentStockLevel";
+import TopMessage from "../../../components/accessories/TopMessage";
+import { customFetch, customPost } from "../../../components/Auth/customFetch";
+import InventoryLayout from "../../../components/inventory/InventoryLayout";
 
 const REQUISITIONS_URL = "departments/requisitions";
 export default function DepartmentRequisition() {
@@ -101,22 +101,7 @@ export default function DepartmentRequisition() {
     }
   };
 
-  const deleteStock = async (e, id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this stock?");
-    if (confirmDelete) {
-      try {
-        const deleteStockAsync = await customPost(`departments/stocks?id=${id}`, "DELETE", {});
-        const { status, message } = deleteStockAsync;
-        if (status === "success") {
-          const updatedStocks = stocks.filter((stock) => stock.stockid !== id);
-          setMessage({ message, type: "success", display: true });
-          setDepartmentStocksLevel(updatedStocks);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    }
-  };
+
 
   const messageTimer = () => {
     setTimeout(() => {

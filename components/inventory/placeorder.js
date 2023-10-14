@@ -29,7 +29,6 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
               <div>purchase unit</div>
               <div>supplier</div>
               <div>qty required </div>
-              <div>tax</div>
               <div>action</div>
             </div>
             <div className="card-body">
@@ -100,7 +99,6 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
                             type="number"
                           />
                         </div>
-                        <div>{item.tax + '%'}</div>
                         <div dataid={item.stockid}>
                           <button
                             dataid={item.stockid}
@@ -130,7 +128,7 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
                                
                               }
                             }}
-                            className="btn btn-sm btn-primary"
+                            className="btn btn-sm btn-warning"
                           >
                             Add to cart
                           </button>

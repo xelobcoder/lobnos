@@ -12,7 +12,7 @@ export default function ADD_STOCK_INVENTORY() {
     category: '',
     consumptionunit: '',
     purchaseunit: '',
-    unitquantity: '',
+    quantity: '',
     alertlevel: '',
     materialcode: '',
   })
@@ -30,7 +30,7 @@ export default function ADD_STOCK_INVENTORY() {
   const [Purchaseunitlist, setPurchaseunitlist] = useState(['kg', 'g', 'l', 'ml', 'pcs', 'others', 'bottle', 'kit', 'box'])
 
 
-  const { name, category, consumptionunit, purchaseunit, unitquantity, alertlevel, materialcode, tax } = productdetails;
+  const { name, category, consumptionunit, purchaseunit, quantity, alertlevel, materialcode, tax } = productdetails;
 
   const inputhandler = (ev, field) => {
     let value = ev.target.value;
@@ -217,14 +217,14 @@ export default function ADD_STOCK_INVENTORY() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="unitquantity">Unit Quantity</label>
+            <label htmlFor="quantity">Unit Quantity</label>
             <input
               type="text"
               className="form-control"
-              id="unitquantity"
+              id="quantity"
               placeholder="Enter unit quantity"
-              value={unitquantity}
-              onChange={(ev) => inputhandler(ev, "unitquantity")}
+              value={quantity}
+              onChange={(ev) => inputhandler(ev, "quantity")}
             />
           </div>
 

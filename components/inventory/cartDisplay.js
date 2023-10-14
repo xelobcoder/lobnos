@@ -3,7 +3,7 @@ import React from 'react'
 export default function CART_DISPLAY_COMPONENT({ data, removeCartHandler, placeOrderHandler }) {
   return (
     <>
-      <div className='list-group' id='cart-place-order'>
+      <div  id='cart-place-order' className='br-5'>
         <div id='wrapper'>
           <div className='row'>
             <div className='col'>
@@ -55,11 +55,13 @@ export default function CART_DISPLAY_COMPONENT({ data, removeCartHandler, placeO
             })
         }
       </div>
-      <div style={{ margin: '20px' }}>
-        <button className='btn btn-primary' onClick={(e) => { placeOrderHandler(e) }}>
-          place order
-        </button>
-      </div>
+      {data.length > 0 && (
+        <div style={{ margin: '20px' }}>
+          <button className='btn btn-primary' onClick={(e) => { placeOrderHandler(e) }}>
+            place order
+          </button>
+        </div>
+      )}
     </>
   )
 }
