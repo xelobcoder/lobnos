@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { FactCheck, Inventory, Pending, ShoppingBasket, TransferWithinAStation } from '@mui/icons-material';
+import { FactCheck, GetApp, Inventory, Pending, ShoppingBasket, TransferWithinAStation } from '@mui/icons-material';
 export default function DepartmentLevelSidebar() {
   const departmentId = useRouter().query.id;
   return (
@@ -35,6 +35,16 @@ export default function DepartmentLevelSidebar() {
             <div className='text'>
               <Link href={`/inventory/department/${departmentId}/accepted`}>
                 Accepted Requests
+              </Link>
+            </div>
+          </li>
+          <li>
+            <div className='icons'>
+              <GetApp/>
+            </div>
+            <div className='text'>
+              <Link href={`/inventory/department/${departmentId}/receive`}>
+                Receive stocks
               </Link>
             </div>
           </li>

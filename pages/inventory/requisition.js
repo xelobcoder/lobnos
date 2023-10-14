@@ -83,7 +83,6 @@ export default function Requisition() {
       async function sendReceivedData() {
         try {
           const data = await customPost('departments/requisitions', 'PUT', transformData)
-          console.log(data)
           if (data.status === 'success' && data.statusCode === 200) {
             alert(data.message);
             //  udate the state
@@ -200,91 +199,7 @@ export default function Requisition() {
 
   return (
     <>
-      {/* {
-        instructionView ? (
-          <div id='instruction-view'>
-            <div className='content'>
-              <Alert severity='info' className='mt-2' sx={{ fontSize: 15 }}>
-                <h5 >
-                  Instructions
-                  <strong>
-                    <span className='float-end' onClick={() => setInstructionView(!instructionView)}>
-                      <CloseOutlined />
-                    </span>
-                  </strong>
-                </h5>
-                <ul>
-                  <li className='mb-2'>
-                    1. Enter the quantity supplied in the supplied quantity column and click on received button to mark the
-                    requisition as received.
-                  </li>
-                  <li className='mb-2'>
-                    2. Incase the quantity supplied is less or more than the approved quantity,<br />Alert enter the quantity supplied in the
-                    supplied quantity column and click on report button to report the issue
-                  </li>
-                  <li className='mb-2'>
-                    3. If the delete button is clicked on, a modal will appear to input reason for reporting an issue incase the supplied quantity is equal to the approved quantity
-                  </li>
-                  <li className='mb-2'>
-                    4. Click on the delete button to delete the requisition if it has not been approved
-                  </li>
-                </ul>
-              </Alert>
-            </div>
-          </div>
-        ) : null
-      } */}
-
       <TableDisplay data={hxData} column={columns} />
     </>
   );
 }
-
-
-// <div className='d-flex'>
-//         <div>
-//           <button className='custom-button mt-2 text-danger' onClick={handleBack}>
-//             <Backspace sx={{ marginRight: '10px' }} />
-//             Back
-//           </button>
-//         </div>
-//         <div>
-//           <button className='custom-button mt-2' onClick={(e) => setInstructionView(!instructionView)}>
-//             <ViewCompactAltIcon sx={{ marginRight: '10px' }} />
-//             view instructions</button>
-//         </div>
-//         {/* BUTTON FOR RECIEVED */}
-//         <div>
-//           <button className='custom-button mt-2 text-success'
-//             onClick={(e) => setDataCategory('received')}
-//           >
-//             <CallReceivedIcon sx={{ marginRight: '10px' }} />
-//             Received stocks
-//           </button>
-//         </div>
-//         {/* button for pending approval */}
-//         <div>
-//           <button className='custom-button mt-2 text-warning'
-//             onClick={(e) => setDataCategory('pending')}
-//           >
-//             <PendingActions />
-//             Pending approval
-//           </button>
-//         </div>
-//         {/* button for approved */}
-//         <div>
-//           <button className='custom-button mt-2 text-success'
-//             onClick={(e) => setDataCategory('approved')}
-//           >
-//             <CheckCircle OutlineIcon sx={{ marginRight: '10px' }} />
-//             Approved
-//           </button>
-//         </div>
-//         {/* button for department stocks */}
-//         <div>
-//           <button className='custom-button mt-2 text-info'>
-//             <DepartureBoard OutlineIcon sx={{ marginRight: '10px' }} />
-//             Department Stocks
-//           </button>
-//         </div>
-//       </div>

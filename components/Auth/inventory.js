@@ -110,6 +110,64 @@ class Inventory {
       console.log(err);
     }
   };
+
+  async handleReceiveField(e, id, stocks) {
+    const { value } = e.target;
+    // update the input field with the value
+    // filter the hxData using the id
+    const filtered = stocks.filter((item) => item.id === id);
+    // quantity parsed to integer
+    if (filtered.length > 0) {
+      filtered[0].quantityReceived = value;
+    }
+  }
+
+
+  async handleReceivedButton(e, id, departmentid, setStocks, stocks) {
+    // filter the srocks using the id
+    const filtered = stocks.filter((item) => item.id === id);
+    // quantity parsed to integer
+    const requested = parseInt(filtered[0].quantity_requested);
+    const approved = parseInt(filtered[0].quantity_approved);
+    const supplied = parseInt(filtered[0].quantityReceived);
+
+
+    if (supplied < approved || supplied > approved) {
+      alert('Entered exactly as qty approved. click on report if received item is less or greater than approved');
+    }
+
+    if (supplied === approved) {
+      //  send data to the server
+      const transformData = {
+        id,
+        quantityReceived: supplied,
+        departmentReceived: 1,
+        status: 'received',
+        stockid: filtered[0].stockid,
+        departmentid: parseInt(departmentid),
+        consumptionunit: filtered[0].comsumptionunit,
+      }
+
+      // send data to the server
+      try {
+        const data = await customPost('departments/requisitions', 'PUT', transformData)
+        if (data.status === 'success' && data.statusCode === 200) {
+          alert(data.message);
+          //  udate the state
+          const updatedstocks = stocks.filter((item) => item.id !== id);
+          setStocks(updatedstocks);
+        }
+
+        if (data.status === 'error') {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+
+
 }
 
 

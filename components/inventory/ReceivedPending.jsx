@@ -16,7 +16,6 @@ export default function ReceivedPending({ type = 'pending' }) {
         customData(`departments/requisitions?id=${departmentId}&&type=${type}`, setStocks);
         setLoading(false);
       } catch (err) {
-        console.log(err)
         setStocks([])
       }
     }
@@ -38,8 +37,13 @@ export default function ReceivedPending({ type = 'pending' }) {
       accessor: 'status',
       Cell: ({ row }) => (
         <div>
-          {row.original.status === 'pending' && (<div className='bg-warning px-2'> Pending</div>)}
-          {row.original.status === 'approved' && (<div className='bg-success px-2'>Approved</div>)}
+          {row.original.status === 'pending' && (<div >
+            <span className='bg-warning px-2 br-7 py-1 text-white'>Pending</span>
+          </div>)}
+          {row.original.status === 'approved' && (<div>
+            <span className='bg-success px-2 br-7 py-1 text-white'>
+              Approved
+            </span></div>)}
         </div>
       ),
     },
@@ -69,8 +73,7 @@ export default function ReceivedPending({ type = 'pending' }) {
     <>
       <SettingsLayout sidebar={<DepartmentLevelSidebar />}>
         {loading && <ISLOADING />}
-        {(stocks.length > 0 && !loading) && (
-          <TableDisplay column={columns} data={stocks} filtering={true} />)}
+        <TableDisplay column={columns} data={stocks} filtering={true} />)
       </SettingsLayout>
     </>
   )
