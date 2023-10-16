@@ -29,10 +29,6 @@ export default function INVENTORY_PAGE() {
         </div>
       ),
     },
-    // {
-    //   Header: 'Stock ID',
-    //   accessor: 'stockid',
-    // },
     {
       Header: 'Name',
       accessor: 'name',
@@ -54,12 +50,18 @@ export default function INVENTORY_PAGE() {
       accessor: 'quantity',
       Cell: ({ row }) => {
         const alertLevel = row.original.alertlevel >= row.original.quantity ? 'High' : 'Low';
-        const alertLevelClass =
-          row.original.alertlevel === row.original.quantity ? 'alertlevel-medium' :
-            row.original.alertlevel > row.original.quantity ? 'alertlevel-high' : 'alertlevel-low';
+        const alertLevelClass = function (value) {
+          if (value.alertlevel === value.quantity) {
+            return 'alertlevel-medium';
+          } else if (value.alertlevel > value.quantity) {
+            return 'alertlevel-high'
+          } else {
+            return 'alertlevel-low'
+          }
+        }
         return (
           <Tooltip title={`stock alert level is ${alertLevel}`} placement='top'>
-            <div className={alertLevelClass}>
+            <div className={alertLevelClass(row.original)}>
               {row.original.quantity}
             </div>
           </Tooltip>

@@ -1247,7 +1247,6 @@ option:hover {
   font-size: 15px !important;
   font-weight: 500;
   color: #00224f;
-  text-transform: lowercase !important;
   text-overflow: ellipsis;
   /* min-width: 150px; */
   padding: 3px 5px 3px;
@@ -1314,7 +1313,7 @@ option:hover {
 }
 
 .alertlevel-high {
-  background-color: var(--red-500);
+  background-color:red;
 }
 .alertlevel-low {
   background-color: green;
@@ -1322,8 +1321,6 @@ option:hover {
 .alertlevel-medium {
   background-color: yellow;
   color: #00224f;
-  color: bg-gradient-to-r from-zinc-700 to-indigo-600 bg-clip-text
-    text-transparent;
 }
 
 #custom-sidebar {

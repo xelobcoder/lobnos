@@ -39,16 +39,13 @@ export default function DepartmentStockLevel({ datasource, deleteStock }) {
     }
   ]
 
-  const updateConsume = async (qty) => {
-    setConsumeStock({ ...consumeStock, quantity: parseInt(qty) })
-  }
 
   return (
     <>
       {datasource.length === 0 ?
         <SECOND_NO_DATA /> :
         (<TableDisplay data={datasource} column={columns} filtering={true} />)}
-      <ConsumeStocKModal show={consume} update={updateConsume} data={consumeStock} setShow={setConsume} />
+      <ConsumeStocKModal show={consume}  data={consumeStock} setShow={setConsume} />
     </>
   )
 }
