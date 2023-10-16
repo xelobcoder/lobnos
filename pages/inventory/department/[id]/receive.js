@@ -10,6 +10,7 @@ import { DeleteForever } from '@mui/icons-material';
 import ISLOADING from '../../../../components/isLoading'
 import TableDisplay from '../../../../components/accessories/TableDisplay'
 import InventoryClass from '../../../../components/Auth/inventory'
+import { ProgressBar } from 'react-bootstrap'
 export default function ReceiveStocksDepartmentLevel() {
   const departmentId = useRouter().query.id;
   const [stocks, setStocks] = useState([]);
@@ -27,7 +28,7 @@ export default function ReceiveStocksDepartmentLevel() {
       accessor: 'name',
     },
     {
-      Header: 'Consumption Unit',
+      Header: 'Unit',
       accessor: 'comsumptionunit',
     },
     {
@@ -35,12 +36,17 @@ export default function ReceiveStocksDepartmentLevel() {
       accessor: 'quantity_requested',
     },
     {
+      Header: 'brand',
+      accessor: 'brand'
+    },
+    { Header: 'lot number', accessor: 'batchnumber' },
+    {
       Header: 'Status',
       accessor: 'status',
       Cell: ({ row }) => (
-        <div>{row.original.status === 'approved' && <div >
-          <span className='bg-success text-white br-7 px-1 py-1'>approved</span>
-        </div>}</div>
+        <div>
+          <ProgressBar variant={'success'} title='almost done.90% through' now={90} />
+        </div>
       ),
     },
     {
@@ -85,7 +91,7 @@ export default function ReceiveStocksDepartmentLevel() {
               ) : (
                 <div>
                   <Button variant='contained' color='success'
-                    onClick={(e) =>  inventory.handleReceivedButton(e, row.original.id, departmentId,setStocks,stocks)}
+                    onClick={(e) => inventory.handleReceivedButton(e, row.original.id, departmentId, setStocks, stocks)}
                     size='small' startIcon={<CallReceivedIcon />}>
                     Received
                   </Button>
@@ -112,6 +118,9 @@ export default function ReceiveStocksDepartmentLevel() {
       }
     }
   }, [departmentId]);
+
+
+  console.log(stocks)
 
 
 

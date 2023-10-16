@@ -1,9 +1,19 @@
-import React from 'react'
+import React, { useState } from 'react'
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Button } from '@mui/material';
 import TableDisplay from '../accessories/TableDisplay';
 import SECOND_NO_DATA from '../accessories/secondNodata';
+import ConsumeStocKModal from './ConsumeStocKModal';
+import { useRouter } from 'next/router';
 export default function DepartmentStockLevel({ datasource, deleteStock }) {
+  const departmentId = useRouter().query.id;
+  const [consume, setConsume] = useState(false);
+  const [consumeStock, setConsumeStock] = useState({ departmentid: departmentId, stockid: '', stockname: '', quantityAvailble: '', quantity: '' })
+
+  const pushConsume = async (ev, item) => {
+    const { stockid, name, quantityAvailable } = item;
+    setConsumeStock({ stockid, departmentid: departmentId, stockname: name, quantityAvailable:quantityAvailable })
+    setConsume(true)
+  }
 
   const columns = [
     { Header: 'stockid', accessor: 'stockid' },
@@ -14,24 +24,31 @@ export default function DepartmentStockLevel({ datasource, deleteStock }) {
     {
       Header: 'Action',
       Cell: function ({ row }) {
-
         return (
-          <Button variant='contained'
-            size='small'
-            onClick={(e) => {
-              deleteStock(e, item.stockid);
-            }}
-            color='error' startIcon={<DeleteIcon />}>Delete</Button>
+          <div>
+            <button onClick={(ev) => { pushConsume(ev, row.original) }} className='btn btn-sm btn-primary'>
+              consume
+            </button >
+            <button className='btn btn-sm btn-danger mx-1' title='delete stock'
+              onClick={(e) => { deleteStock(e, item.stockid); }}>
+              <DeleteIcon />
+            </button >
+          </div>
         )
       }
     }
   ]
+
+  const updateConsume = async (qty) => {
+    setConsumeStock({ ...consumeStock, quantity: parseInt(qty) })
+  }
 
   return (
     <>
       {datasource.length === 0 ?
         <SECOND_NO_DATA /> :
         (<TableDisplay data={datasource} column={columns} filtering={true} />)}
+      <ConsumeStocKModal show={consume} update={updateConsume} data={consumeStock} setShow={setConsume} />
     </>
   )
 }

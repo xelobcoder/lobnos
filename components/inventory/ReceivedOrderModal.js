@@ -12,10 +12,14 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
   const addToStock = async function () {
     // ensure data is valid
     // send a request to the server to add the order to the stock
-    const checkForEmptyFields = async function () {
+    const checkForEmptyFields = function () {
       let empty = false;
       data.map((item) => {
-        if (item["quantityReceived"] == 0 || item["price"] == 0) {
+        const { quantityReceived, price, brand, batchnumber, expirydate, receiveddate } = item;
+
+        const requiredx = [quantityReceived, price, brand, batchnumber, expirydate, receiveddate];
+
+        if (requiredx.includes(0) || requiredx.includes(' ') || requiredx.includes(null)) {
           empty = true;
         }
       });
@@ -24,7 +28,9 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
 
 
 
-    if (await checkForEmptyFields()) {
+
+
+    if (checkForEmptyFields()) {
       alert("please fill all fields");
       return;
     } else {
@@ -84,16 +90,16 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
               <table>
                 <thead className="border-bottom">
                   <tr>
-                    <th>inven. name</th>
+                    <th>name</th>
                     <th>unit</th>
                     <th>purchase qty</th>
                     <th>balance qty</th>
                     <th>received qty</th>
-                    <th>price
-                    </th>
+                    <th>price</th>
                     <th>received date</th>
                     <th>expiry date</th>
-                    <th>batch number</th>
+                    <th>brand name</th>
+                    <th>lot</th>
                     <th>total</th>
                     <th>status</th>
                   </tr>
@@ -101,7 +107,7 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
                 <tbody>
                   {data.length === 0 ? (
                     <tr>
-                      <td colSpan={11} style={{ width: "100%" }}>
+                      <td colSpan={12} style={{ width: "100%" }}>
                         <Delete color="primary" fontSize="large"></Delete>
                         <h4>No data found</h4>
                       </td>
@@ -169,6 +175,16 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
                           <td>
                             <input
                               type="text"
+                              value={item.brand}
+                              onChange={(e) =>
+                                handleChange(e, "brand", index)
+                              }
+                              className="custom-input"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="text"
                               value={item.batchnumber}
                               onChange={(e) =>
                                 handleChange(e, "batchnumber", index)
@@ -176,6 +192,7 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
                               className="custom-input"
                             />
                           </td>
+
                           <td>{item.totalamount}</td>
                           <td>
                             <button

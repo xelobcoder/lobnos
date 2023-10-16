@@ -1150,7 +1150,7 @@ option:hover {
 
 #order-receivable-table > form > table > thead > tr {
   display: grid;
-  grid-template-columns: repeat(11, 1fr);
+  grid-template-columns: repeat(12, 1fr);
   width: 100%;
   background-color: whitesmoke;
 }
@@ -1165,7 +1165,7 @@ option:hover {
 
 #order-receivable-table > form > table > tbody > tr {
   display: grid;
-  grid-template-columns: repeat(11, 1fr);
+  grid-template-columns: repeat(12, 1fr);
   width: 100%;
   padding: 10px;
 }
@@ -1177,7 +1177,7 @@ option:hover {
   padding-bottom: 10px;
 }
 
-#order-receivable-table > form > table > tbody > tr > td:nth-child(10) {
+#order-receivable-table > form > table > tbody > tr > td:nth-child(11) {
   text-align: center;
 }
 
@@ -2692,6 +2692,8 @@ input[type='text'] {
     margin: 4%;
   }
 }
+
+
 
 #sidebarmap {
   background-color: whitesmoke;

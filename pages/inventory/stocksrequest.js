@@ -7,7 +7,7 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import { customData, customFetch, customPost, getDepartment } from "../../components/Auth/customFetch";
 import InventoryLayout from "../../components/inventory/InventoryLayout";
 export default function Stocksrequest() {
-  const [request, setRequest] = useState([]);
+  const [brandLot, setBrandLot] = useState([]);
   const [hxData, setHxData] = useState([]);
   const [departmentId, setDepartmentId] = useState("");
   const [department, setDepartments] = useState([]);
@@ -21,7 +21,7 @@ export default function Stocksrequest() {
     async function fetchRequisitions() {
       if (departmentId) {
         try {
-          const data = await customData(`departments/requisitions?id=${departmentId}&&type=pending`,setHxData);
+          await customData(`departments/requisitions?id=${departmentId}&&type=pending`, setHxData);
         } catch (error) {
           console.error(error);
         }
@@ -30,10 +30,19 @@ export default function Stocksrequest() {
     fetchRequisitions();
   }, [departmentId]);
 
+
+  useEffect(() => {
+    if (hxData.length > 0) {
+      let stockidx = hxData.map((item, index) => { return item.stockid }).join(',');
+      customData(`stock/general/lotno?stockidx=${stockidx}`, setBrandLot);
+    }
+  }, [hxData.length])
+
   // handle the supply button
   const handleSupply = async (e, id) => {
     // check if the quantity approved is not empty by filtering the hxdata using the id
     const filtered = hxData.filter((item) => item.id === id);
+    let BrandError = 0;
     // quantity parsed to integer
     const quantity = parseInt(filtered[0].quantity);
     const approved = parseInt(filtered[0].quantity_approved);
@@ -53,19 +62,34 @@ export default function Stocksrequest() {
       return;
     }
 
+    filtered.map((item, index) => {
+      const { brand, lot } = item;
+      if (!brand || !lot) {
+        alert('lot or brand not selected');
+        BrandError++;
+      }
+    });
+
+
+
+
     // check if the quantity approved is less than the quantity requested
-    if (approved >= 0 && approved <= quantity) {
+    if (approved >= 0 && approved <= quantity && BrandError === 0) {
       // update the quantity approved
       // send the data to the backend
       try {
+        const batchnumber = filtered[0]['lot'];
+        const brand = filtered[0]['brand'];
         const patch_requisition = async () => {
           const response = await customPost(`departments/requisitions?id=${id}`, 'PATCH', {
             quantity_approved: approved,
             store_supplied: approved === 0 ? 0 : 1,
+            batchnumber,
+            brand
           })
 
           const { status, statusCode } = response;
-          
+
           if (status === "success" && statusCode === 200) {
             alert("Request approved successfully");
             // update the table
@@ -112,6 +136,34 @@ export default function Stocksrequest() {
       accessor: "quantity_requested",
     },
     {
+      Header: 'brand', accessor: '', Cell: ({ row }) => (
+        <>
+          <select className="custom-select" value={row.original?.brand || ''} onChange={(ev) => handleBrandlotUpdate(ev, row.original, 'brand')}>
+            <option>select brand</option>
+            {brandLot.map((item, index) => {
+              return (
+                <option key={index}>{item.brand}</option>
+              )
+            })}
+          </select>
+        </>
+      )
+    },
+    {
+      Header: 'lot', accessor: '', Cell: ({ row }) => (
+        <>
+          <select className="custom-select"  value={row.original?.lot || ''} onChange={(ev) => handleBrandlotUpdate(ev, row.original, 'lot')}>
+            <option >selet lot number</option>
+            {brandLot.map((item, index) => {
+              return (
+                <option key={index}>{item.batchnumber}</option>
+              )
+            })}
+          </select>
+        </>
+      )
+    },
+    {
       Header: "Quantity Approved",
       accessor: "quantity_approved",
       Cell: ({ row }) => (
@@ -147,6 +199,20 @@ export default function Stocksrequest() {
     },
   ];
 
+
+  const handleBrandlotUpdate = async (ev, data, target) => {
+    const { value } = ev.target;
+    const { stockid } = data;
+    const getIndex = hxData.findIndex((item, index) => { return item.stockid === stockid })
+    const nwdata = hxData.map((item, index) => {
+      if (index === getIndex) {
+        return { ...item, [target]: value }
+      } else {
+        return item;
+      }
+    });
+    setHxData(nwdata);
+  }
   return (
     <>
       <InventoryLayout>
