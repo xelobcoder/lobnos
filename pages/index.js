@@ -1,35 +1,40 @@
 import React from 'react';
 import Link from 'next/link';
-import { MonetizationOn } from '@mui/icons-material';
+import { useContext } from 'react';
+import AuthContext from '../components/Auth/useAuthentification';
 
 export default function Index() {
+  const { auth } = useContext(AuthContext);
+  const { username } = auth;
+
   return (
     <div id='frontpagewrapper'>
+      <h1 className='text-center text-success'>{username || ''}</h1>
       <h1 className='text-center'>{new Date().toDateString()}</h1>
       <h3 className='text-center'>Apps</h3>
-      <ul>
-        <Link href="/registration">
+      <ul style={{display:'grid',gridTemplateColumns:'30% 30% 30%', gridGap:'20px'}}>
+        <Link className='bg-primary p-4  text-white text-center' href="/registration">
           Registration & Billing
         </Link>
-        <Link href="/operations/laboratory">
+        <Link className='bg-primary p-4  text-white text-center' href="/operations/laboratory">
           Laboratory
         </Link>
-        <Link href="/operations/imaging/ultrasound">
+        <Link className='bg-primary p-4  text-white text-center' href="/operations/imaging/ultrasound">
           Imaging
         </Link>
-        <Link href="/inventory">
+        <Link className='bg-primary p-4  text-white text-center' href="/inventory">
           Inventory
         </Link>
-        <Link href="/">
+        <Link className='bg-primary p-4  text-white text-center' href="/">
           Supplies
         </Link>
-        <Link href="/settings/emailsetting">
+        <Link className='bg-primary p-4  text-white text-center' href="/settings/emailsetting">
           Email Management
         </Link>
-        <Link href="/settings/sms">
+        <Link className='bg-primary p-4  text-white text-center' href="/settings/sms">
           SMS Management
         </Link>
-        <Link href="/instructions">
+        <Link className='bg-primary p-4  text-white text-center' href="/instructions">
           Instructions
         </Link>
       </ul>

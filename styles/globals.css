@@ -1211,12 +1211,13 @@ option:hover {
   border-collapse: collapse;
   background-color: #ffffff;
   border-radius: 0.25rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
   margin-top: 10px;
 }
 
 .table > thead > tr > th {
   color: #757383;
+  font-weight: bold;
   font-size: 13px;
   text-transform: uppercase;
   -webkit-font-smoothing: antialiased;
@@ -1227,9 +1228,8 @@ option:hover {
   background-clip: padding-box;
   border-top: 1px solid #fff;
   border-bottom: 1px solid #fff;
+  cursor: pointer;
 }
-
-
 
 .table > thead > tr > th::after {
   position: absolute;
@@ -1244,10 +1244,10 @@ option:hover {
   pointer-events: none;
 }
 
-
 .table > tbody > tr > td {
   color: #00224fcf;
-  font-weight: 400;
+  font-size: 14px;
+  cursor: pointer;
 }
 .table > tbody > tr > td::first-letter {
   text-transform: uppercase;
@@ -1264,7 +1264,6 @@ option:hover {
     grid-template-columns: 100%;
     grid-gap: 20px 20px;
   }
-
 }
 
 .alertlevel-low,
@@ -2545,9 +2544,9 @@ input[type='text'] {
 
 .software-header-nav > ul {
   margin: 0;
-  padding: 10px;
+  padding: 20px;
   display: grid;
-  grid-template-columns: 90% 5% 5%;
+  grid-template-columns: 70% 5% 15% 5%;
 }
 
 .software-header-nav > ul > a {

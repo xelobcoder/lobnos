@@ -24,12 +24,3 @@ export default function NotFound() {
 }
 
 
-
-NotFound.getLayout = function getLayout(page) {
-  return (
-    <>
-      <Header />
-      {page}
-    </>
-  )
-}

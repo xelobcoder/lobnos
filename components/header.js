@@ -1,31 +1,18 @@
-import { AppBar, Toolbar, Typography, Avatar } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/router";
-import { Apps } from "@mui/icons-material";
+import { Apps, Settings } from "@mui/icons-material";
+import { useContext } from "react";
+import AuthContext from "./Auth/useAuthentification";
 
 
 
 function Header() {
   const [branch, setBranch] = useState('');
-  const [username, setUsername] = useState('');
-
-
-  const router = useRouter();
+  const { auth } = useContext(AuthContext);
 
   useEffect(() => {
     setBranch(localStorage.getItem('deviceDefaultBranch'));
-    let user = localStorage.getItem('user');
-    if (user) {
-      const parsed = JSON.parse(user);
-      const { EMPLOYEEID, USERNAME } = parsed;
-
-      if (USERNAME && EMPLOYEEID) {
-        setUsername(USERNAME)
-      }
-    }
   }, [])
-
 
 
   return (
@@ -37,11 +24,12 @@ function Header() {
               || PLS
             </span>
           </Link>
+          <li><Settings/></li>
           <li>
-            Leonides
+            {auth?.username || ''}
           </li>
           <li>
-            <Apps/>
+            <Apps />
           </li>
         </ul>
       </div>

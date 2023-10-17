@@ -7,7 +7,7 @@ export default function ListTable({ data, handleCollectSample }) {
     <>
       {data.length > 0 && (
         <div className='m-2'>
-          <table id='custom-table'>
+          <table className='table' >
             <thead>
               <tr>
                 <th>DATE</th>

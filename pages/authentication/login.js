@@ -14,20 +14,22 @@ export default function LoginCredentials() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState({ message: '', status: '' });
   const handleSubmit = async (e) => {
-
     e.preventDefault();
     // send the email and password to the server
     // if the server responds with a 200 status code;
     const responseHandler = function (data) {
       const { status, message, statusCode, user, token } = data;
       if (statusCode == 200 && status == 'success') {
-        setMessage({ message, status });
-        const transformed = JSON.stringify(user);
-        // remove previous if exist 
-        localStorage.removeItem('user');
-        // add new info
-        localStorage.setItem('user', transformed);
-        navigate.back()
+        setMessage({ message, status })
+        window.cookieStore.set('X-AUTH-PRIME-LAB-SYSTEMS', token);
+        let permissions = user?.permissions;
+        if (permissions && typeof permissions === 'object') {
+          permissions = JSON.parse(user?.permissions);
+        }
+        const { username, role, email, employeeid } = user;
+        updateAuthentication({ username, role, email, permissions });
+        // got to previous history; 
+        navigate.back();
       } else {
         setMessage({ message, status })
       }

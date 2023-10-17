@@ -239,7 +239,7 @@ export default function Phelobotomy() {
 
   return (
     <>
-      <SettingsLayout sidebar={<SidebarFrontPage/>}>
+      <SettingsLayout sidebar={<SidebarFrontPage />}>
         <div className={splitScreen === true ? "splitScreen" : null}>
           <div className="phelobotomy-wrapper">
             <div className="m-2 col-10 d-flex">
@@ -304,7 +304,7 @@ export default function Phelobotomy() {
                   {/* create a table of all the test with respective sample type and the requied button to indicate collected or not  */}
                   {testcollection.length > 0 && (
                     <>
-                      <table id="custom-table">
+                      <table className="table">
                         <thead>
                           <tr>
                             <th>test</th>
@@ -337,13 +337,15 @@ export default function Phelobotomy() {
                                 <td>{item.unit}</td>
                                 <td>{item.sample_container}</td>
                                 {item.collected == true ? (
-                                  <>
-                                    <CheckIcon
-                                      sx={{ marginTop: "10px" }}
-                                      color="success"
-                                      fontSize="medium"
-                                    />
-                                  </>
+                                  <td>
+                                    <>
+                                      <CheckIcon
+                                        sx={{ marginTop: "10px" }}
+                                        color="success"
+                                        fontSize="medium"
+                                      />
+                                    </>
+                                  </td>
                                 ) : (
                                   <td>
                                     <Button
