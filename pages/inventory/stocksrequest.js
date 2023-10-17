@@ -34,7 +34,18 @@ export default function Stocksrequest() {
   useEffect(() => {
     if (hxData.length > 0) {
       let stockidx = hxData.map((item, index) => { return item.stockid }).join(',');
-      customData(`stock/general/lotno?stockidx=${stockidx}`, setBrandLot);
+      customFetch(`stock/general/lotno?stockidx=${stockidx}`)
+        .then((data) => {
+          const { statusCode, status, result } = data;
+          if (statusCode == 200 && status == 'success') {
+            const modifiedhx = hxData.map((item, index) => {
+              const { stockid } = item;
+              const brands = result.filter((ee, ii) => { return ee.stockid == stockid });
+              return { ...item, brands, selectedbatch: null }
+            })
+            setHxData(modifiedhx);
+          }
+        }).catch((err) => setBrandLot([]))
     }
   }, [hxData.length])
 
@@ -63,8 +74,8 @@ export default function Stocksrequest() {
     }
 
     filtered.map((item, index) => {
-      const { brand, lot } = item;
-      if (!brand || !lot) {
+      const { brand, batchnumber } = item;
+      if (!brand || !batchnumber) {
         alert('lot or brand not selected');
         BrandError++;
       }
@@ -78,7 +89,7 @@ export default function Stocksrequest() {
       // update the quantity approved
       // send the data to the backend
       try {
-        const batchnumber = filtered[0]['lot'];
+        const batchnumber = filtered[0]['batchnumber'];
         const brand = filtered[0]['brand'];
         const patch_requisition = async () => {
           const response = await customPost(`departments/requisitions?id=${id}`, 'PATCH', {
@@ -136,32 +147,38 @@ export default function Stocksrequest() {
       accessor: "quantity_requested",
     },
     {
-      Header: 'brand', accessor: '', Cell: ({ row }) => (
-        <>
-          <select className="custom-select" value={row.original?.brand || ''} onChange={(ev) => handleBrandlotUpdate(ev, row.original, 'brand')}>
-            <option>select brand</option>
-            {brandLot.map((item, index) => {
-              return (
-                <option key={index}>{item.brand}</option>
-              )
-            })}
-          </select>
-        </>
-      )
+      Header: 'brand', accessor: '', Cell: ({ row }) => {
+        const brands = row.original?.brands || [];
+        return (
+          <>
+            <select className="custom-select" value={row.original?.brand || ''} onChange={(ev) => handleBrandlotUpdate(ev, row.original, 'brand')}>
+              <option>select brand</option>
+              {brands.map((item, index) => {
+                return (
+                  <option key={index}>{item.brand}</option>
+                )
+              })}
+            </select>
+          </>
+        )
+      }
     },
     {
-      Header: 'lot', accessor: '', Cell: ({ row }) => (
-        <>
-          <select className="custom-select"  value={row.original?.lot || ''} onChange={(ev) => handleBrandlotUpdate(ev, row.original, 'lot')}>
-            <option >selet lot number</option>
-            {brandLot.map((item, index) => {
-              return (
-                <option key={index}>{item.batchnumber}</option>
-              )
-            })}
-          </select>
-        </>
-      )
+      Header: 'lot', accessor: '', Cell: ({ row }) => {
+        const brands = row.original?.selectedbatch || [];
+        return (
+          <>
+            <select className="custom-select" value={row.original?.batchnumber || ''} onChange={(ev) => handlelotUpdate(ev, row.original, 'lot')}>
+              <option >selet lot number</option>
+              {brands.map((item, index) => {
+                return (
+                  <option key={index}>{item.batchnumber}</option>
+                )
+              })}
+            </select>
+          </>
+        )
+      }
     },
     {
       Header: "Quantity Approved",
@@ -191,6 +208,7 @@ export default function Stocksrequest() {
             startIcon={<InventoryIcon />}
             variant="contained"
             color="success"
+            size="small"
           >
             Supply
           </Button>
@@ -203,16 +221,44 @@ export default function Stocksrequest() {
   const handleBrandlotUpdate = async (ev, data, target) => {
     const { value } = ev.target;
     const { stockid } = data;
-    const getIndex = hxData.findIndex((item, index) => { return item.stockid === stockid })
+    const getIndex = hxData.findIndex((item, index) => { return item.stockid === stockid });
+    // update selected brand
     const nwdata = hxData.map((item, index) => {
       if (index === getIndex) {
-        return { ...item, [target]: value }
+        // filter brand of stock and update atch number 
+        const { brands } = item;
+        item['brand'] = value;
+        if (brands.length > 0) {
+          const batchNumber = brands.filter((ii, index) => { return ii.brand == value });
+          return { ...item, [target]: value, selectedbatch: batchNumber }
+        } else {
+          return { ...item, [target]: value }
+        }
       } else {
         return item;
       }
     });
     setHxData(nwdata);
   }
+
+
+  const handlelotUpdate = async (ev, data, target) => {
+    const { value } = ev.target;
+    const { stockid } = data;
+    const getIndex = hxData.findIndex((item, index) => { return item.stockid === stockid });
+    const nwdata = hxData.map((item, index) => {
+      if (index == getIndex) {
+        item['batchnumber'] = value;
+        return item;
+      }
+      return item;
+    })
+    setHxData(nwdata);
+  }
+
+
+  console.log(hxData[0])
+
   return (
     <>
       <InventoryLayout>

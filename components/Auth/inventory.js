@@ -79,10 +79,11 @@ class Inventory {
 
     const transformedData = {
       stockid: filteredStock.stockid,
-      departmentid: departmentId,
+      departmentid: parseInt(departmentId),
       quantity: parseInt(filteredStock.quantityrequired),
       comsumptionunit: filteredStock.consumptionunit,
       requisitionid: Date.now(),
+      employeeid: 3,
     };
 
     const emptyValues = Object.values(transformedData).filter(
@@ -146,6 +147,7 @@ class Inventory {
         stockid: filtered[0].stockid,
         departmentid: parseInt(departmentid),
         consumptionunit: filtered[0].comsumptionunit,
+        employeeid: 3
       }
 
       // send data to the server

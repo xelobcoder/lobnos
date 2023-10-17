@@ -54,7 +54,7 @@ export default function ConsumeStocKModal({ data, setShow, show, update }) {
 
   return (
     <>
-      <Modal size='lg' show={show} onHide={setShow} style={{ zIndex: 9999, position: 'absolute', top: '20%' }}>
+      <Modal size='lg' show={show} onHide={setShow} style={{ zIndex: 9999}}>
         <Modal.Header  >
           <Modal.Title>
             <h4>Consume {stockname}</h4>

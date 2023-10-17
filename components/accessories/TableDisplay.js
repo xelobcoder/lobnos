@@ -38,8 +38,8 @@ export default function TableDisplay({ column, data, styling, filtering }) {
               data.length == 0 ? null :
                 <>
                   {filtering == true && (<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />)}
-                  <div className='custom-table-wrapper'>
-                    <table style={{marginTop:'10px'}} {...getTableProps()} id={styling || 'custom-table'}>
+                  <div className='table-wrapper'>
+                    <table className='table' {...getTableProps()} >
                       <thead>
                         {headerGroups.map((headerGroup,index) => (
                           <tr {...headerGroup.getHeaderGroupProps()} key={index}>

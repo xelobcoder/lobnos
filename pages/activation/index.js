@@ -200,7 +200,7 @@ export default function Activator() {
         )}
         <div style={{ height: "100vh", overflowY: "auto", margin: "10px" }}>
           {activationData.length > 0 && (
-            <table id="custom-table">
+            <table className='table'>
               <thead>
                 <tr>
                   <th>reg date</th>

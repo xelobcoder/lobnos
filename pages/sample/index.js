@@ -45,10 +45,6 @@ export default function SAMPLE_ASSESSMENT() {
                   If pending count is greater than 0 and the sample list is empty please contact the lab admin, it means the sample was not collected or received.
                   kindly update that at the phelobotomy unit to proceed further.  At all time ,verify the pending count is equal to the sample list count
                 </div>
-                <button className="btn btn-danger mb-3 text-capitalize">
-                  <Error fontSize="large" />
-                  view rejected samples
-                </button>
               </div>
               <div className="list-group">
                 {data.length == 0

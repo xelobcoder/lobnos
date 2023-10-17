@@ -10,6 +10,7 @@ import AddBoxIcon from "@mui/icons-material/AddBox";
 import { customFetch, customPost, getBranches } from "../../../components/Auth/customFetch";
 import TopComponentBillingButton from "../../../components/Billing/topComponentBillingButton";
 import ClientOutstandingBill from "../../../components/Billing/OutstandingBill";
+import SettingsLayout from '../../../components/settingsComponents/SettingsLayout'
 
 export default function Billing({ }) {
   const [allpanels, setAllpanels] = useState([]);
@@ -169,262 +170,249 @@ export default function Billing({ }) {
 
   return (
     <>
-      <ClientOutstandingBill />
-      <TopComponentBillingButton cart={testArray.length} />
-      <div
-        id="billing-page-main-wrapper" >
-        <div id="top-wrap">
-          <div id="test-selection">
-            <Autocomplete
-              options={allpanels}
-              getOptionLabel={(option) => option.NAME}
-              value={selected}
-              size="small"
-              onChange={(e, newValue) => {
-                setSelected(newValue);
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Select a panel"
-                  variant="outlined"
-                />
-              )}
-            />
-
-            <Button
-              disabled={selected == null ? true : false}
-              startIcon={<AddBoxIcon />}
-              onClick={(e) => {
-                handleAutocomplete(e);
-              }}
-              color="primary"
-              variant="contained"
-              sx={{ borderRadius: 0, marginLeft: "10px" }}
-            >
-              add
-            </Button>
-          </div>
-          <div id="test-selection-others">
-            <Autocomplete
-              options={['walkin client', 'refered']}
-              getOptionLabel={(option) => option}
-              value={refered ? 'refered' : 'walkin client'}
-              size="small"
-              onChange={(e, newValue) => {
-                if (newValue == 'refered') {
-                  setRefered(true);
-                } else {
-                  setRefered(false);
-                  setData({ ...data, organizations: 0, clinicians: 0 })
-                }
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="client type"
-                  variant="outlined"
-                />
-              )}
-            />
-          </div>
-          <div id="test-selection-others">
-            {refered && (
-              <div>
-                <Autocomplete
-                  value={data.organizationLabel}
-                  size="small"
-                  options={organization}
-                  getOptionLabel={(option) => option.NAME}
-                  onChange={(e, newValue) => {
-                    const { ID, NAME } = newValue;
-                    console.log(newValue)
-                    setData({ ...data, organizations: ID, organizationLabel: getStringValue(ID, organization, 'ID', 'NAME') });
-                  }}
-                  renderInput={(params, index) => (
-                    <TextField
-                      key={index}
-                      {...params}
-                      label="Select a organization"
-                      variant="outlined"
-                    />
-                  )}
-                />
-              </div>
-            )}
-            {refered && (
-              <div id="test-selection-others">
-                <Autocomplete
-                  sx={{ marginTop: '20px' }}
-                  value={data.clinicianLabel}
-                  size="small"
-                  options={clinicians}
-                  getOptionLabel={(option) => option.NAME}
-                  onChange={(e, newValue) => {
-                    const { ID, NAME } = newValue;
-                    setData({ ...data, clinicians: ID, clinicianLabel: getStringValue(ID, clinicians, 'ID', 'NAME') });
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Select a clinician"
-                      variant="outlined"
-                    />
-                  )}
-                />
-              </div>
-            )}
-            <div >
-              <FormControl size="small" sx={{ width: "100%", marginTop: '20px' }}>
-                <InputLabel>payment mode</InputLabel>
-                <Select
-                  value={data.paymentmode}
-                  onChange={(e) => {
-                    setData({ ...data, paymentmode: e.target.value });
-                  }}
-                >
-                  {
-                    paymentmode.length > 0 && paymentmode.map((item, index) => {
-                      return (<MenuItem key={index} value={item.KeyID}>{item.PaymentMode}</MenuItem>)
-                    })
-                  }
-                </Select>
-              </FormControl>
-            </div>
-            <div>
-              <FormControl>
-                <FormLabel id="demo-radio-buttons-group-label">
-                  urgency
-                </FormLabel>
-                <RadioGroup
-                  aria-labelledby="demo-radio-buttons-group-label"
-                  defaultValue="none"
-                  name="radio-buttons-group"
-                  onChange={(e) =>
-                    setData({ ...data, urgency: e.target.value })
-                  }
-                  sx={{
-                    display: "flex",
-                    justifyContent: "flex-start !important",
-                    flexDirection: "row !important",
-                  }}
-                >
-                  <FormControlLabel
-                    value="none"
-                    control={<Radio />}
-                    label="none"
-                  />
-                  <FormControlLabel
-                    value="moderate"
-                    control={<Radio />}
-                    label="moderate"
-                  />
-                  <FormControlLabel
-                    value="emmergency"
-                    control={<Radio />}
-                    label="emmergency report"
-                  />
-                </RadioGroup>
-              </FormControl>
-            </div>
-            <div style={{ width: "80%", marginTop: "20px" }}>
+      <SettingsLayout sidebar={<SidebarFrontPage/>}>
+        <ClientOutstandingBill />
+        <TopComponentBillingButton cart={testArray.length} />
+        <div
+          id="billing-page-main-wrapper" >
+          <div id="top-wrap">
+            <div id="test-selection">
               <Autocomplete
-                value={data.samplingCenterLabel}
+                options={allpanels}
+                getOptionLabel={(option) => option.NAME}
+                value={selected}
                 size="small"
-                options={branch}
-                getOptionLabel={(option) => option.name}
                 onChange={(e, newValue) => {
-                  const { name, branchid } = newValue;
-                  setData({ ...data, samplingCenter: branchid, samplingCenterLabel: getStringValue(branchid, branch, 'branchid', 'name') });
+                  setSelected(newValue);
                 }}
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Select a sampling center"
+                    label="Select a panel"
+                    variant="outlined"
+                  />
+                )}
+              />
+
+              <Button
+                disabled={selected == null ? true : false}
+                startIcon={<AddBoxIcon />}
+                onClick={(e) => {
+                  handleAutocomplete(e);
+                }}
+                color="primary"
+                variant="contained"
+                sx={{ borderRadius: 0, marginLeft: "10px" }}
+              >
+                add
+              </Button>
+            </div>
+            <div id="test-selection-others">
+              <Autocomplete
+                options={['walkin client', 'refered']}
+                getOptionLabel={(option) => option}
+                value={refered ? 'refered' : 'walkin client'}
+                size="small"
+                onChange={(e, newValue) => {
+                  if (newValue == 'refered') {
+                    setRefered(true);
+                  } else {
+                    setRefered(false);
+                    setData({ ...data, organizations: 0, clinicians: 0 })
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="client type"
                     variant="outlined"
                   />
                 )}
               />
             </div>
+            <div id="test-selection-others">
+              {refered && (
+                <div>
+                  <Autocomplete
+                    value={data.organizationLabel}
+                    size="small"
+                    options={organization}
+                    getOptionLabel={(option) => option.NAME}
+                    onChange={(e, newValue) => {
+                      const { ID, NAME } = newValue;
+                      console.log(newValue)
+                      setData({ ...data, organizations: ID, organizationLabel: getStringValue(ID, organization, 'ID', 'NAME') });
+                    }}
+                    renderInput={(params, index) => (
+                      <TextField
+                        key={index}
+                        {...params}
+                        label="Select a organization"
+                        variant="outlined"
+                      />
+                    )}
+                  />
+                </div>
+              )}
+              {refered && (
+                <div id="test-selection-others">
+                  <Autocomplete
+                    sx={{ marginTop: '20px' }}
+                    value={data.clinicianLabel}
+                    size="small"
+                    options={clinicians}
+                    getOptionLabel={(option) => option.NAME}
+                    onChange={(e, newValue) => {
+                      const { ID, NAME } = newValue;
+                      setData({ ...data, clinicians: ID, clinicianLabel: getStringValue(ID, clinicians, 'ID', 'NAME') });
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Select a clinician"
+                        variant="outlined"
+                      />
+                    )}
+                  />
+                </div>
+              )}
+              <div >
+                <FormControl size="small" sx={{ width: "100%", marginTop: '20px' }}>
+                  <InputLabel>payment mode</InputLabel>
+                  <Select
+                    value={data.paymentmode}
+                    onChange={(e) => {
+                      setData({ ...data, paymentmode: e.target.value });
+                    }}
+                  >
+                    {
+                      paymentmode.length > 0 && paymentmode.map((item, index) => {
+                        return (<MenuItem key={index} value={item.KeyID}>{item.PaymentMode}</MenuItem>)
+                      })
+                    }
+                  </Select>
+                </FormControl>
+              </div>
+              <div>
+                <FormControl>
+                  <FormLabel id="demo-radio-buttons-group-label">
+                    urgency
+                  </FormLabel>
+                  <RadioGroup
+                    aria-labelledby="demo-radio-buttons-group-label"
+                    defaultValue="none"
+                    name="radio-buttons-group"
+                    onChange={(e) =>
+                      setData({ ...data, urgency: e.target.value })
+                    }
+                    sx={{
+                      display: "flex",
+                      justifyContent: "flex-start !important",
+                      flexDirection: "row !important",
+                    }}
+                  >
+                    <FormControlLabel
+                      value="none"
+                      control={<Radio />}
+                      label="none"
+                    />
+                    <FormControlLabel
+                      value="moderate"
+                      control={<Radio />}
+                      label="moderate"
+                    />
+                    <FormControlLabel
+                      value="emmergency"
+                      control={<Radio />}
+                      label="emmergency report"
+                    />
+                  </RadioGroup>
+                </FormControl>
+              </div>
+              <div style={{ width: "80%", marginTop: "20px" }}>
+                <Autocomplete
+                  value={data.samplingCenterLabel}
+                  size="small"
+                  options={branch}
+                  getOptionLabel={(option) => option.name}
+                  onChange={(e, newValue) => {
+                    const { name, branchid } = newValue;
+                    setData({ ...data, samplingCenter: branchid, samplingCenterLabel: getStringValue(branchid, branch, 'branchid', 'name') });
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Select a sampling center"
+                      variant="outlined"
+                    />
+                  )}
+                />
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div id="test-selection-cart">
-          <TESTCART
-            testArray={testArray}
-            handleRemove={handleRemove}
-            emptytestcart={emptytestcart}
-            outstanding={data.cost}
-          />
-
-          <div style={{ display: "flex", justifyContet: "flex-start" }}>
-            <TextField
-              onChange={(e) => setData({ ...data, paid: e.target.value })}
-              value={data.paid}
-              disabled={
-                testArray.length == 0 || data.paymentmode == "invoice"
-                  ? true
-                  : false
-              }
-              sx={{ mt: 5, mr: 3 }}
-              label="amount paid"
-              size="small"
-              type="number"
-            ></TextField>
-            <TextField
-              value={data.discount}
-              onChange={(e) => setData({ ...data, discount: e.target.value })}
-              disabled={
-                testArray.length == 0 || data.paymentmode == "invoice"
-                  ? true
-                  : false
-              }
-              sx={{ mt: 5 }}
-              label="discount"
-              type="number"
-              size="small"
+          <div id="test-selection-cart">
+            <TESTCART
+              testArray={testArray}
+              handleRemove={handleRemove}
+              emptytestcart={emptytestcart}
+              outstanding={data.cost}
             />
-            <Button
-              type="button"
-              color="success"
-              onClick={(e) => {
-                handleSubmit(e);
-              }}
-              variant="contained"
-              sx={{ mt: 5, ml: 2, borderRadius: 0 }}
 
-              endIcon={
-                testArray.length == 0 ? (
-                  <CancelScheduleSendIcon />
-                ) : (
-                  <SendIcon />
-                )
-              }
-              disabled={
-                testArray.length == 0 || !data.paymentmode ? true : false
-              }
-            >
-              bill
-            </Button>
+            <div style={{ display: "flex", justifyContet: "flex-start" }}>
+              <TextField
+                onChange={(e) => setData({ ...data, paid: e.target.value })}
+                value={data.paid}
+                disabled={
+                  testArray.length == 0 || data.paymentmode == "invoice"
+                    ? true
+                    : false
+                }
+                sx={{ mt: 5, mr: 3 }}
+                label="amount paid"
+                size="small"
+                type="number"
+              ></TextField>
+              <TextField
+                value={data.discount}
+                onChange={(e) => setData({ ...data, discount: e.target.value })}
+                disabled={
+                  testArray.length == 0 || data.paymentmode == "invoice"
+                    ? true
+                    : false
+                }
+                sx={{ mt: 5 }}
+                label="discount"
+                type="number"
+                size="small"
+              />
+              <Button
+                type="button"
+                color="success"
+                onClick={(e) => {
+                  handleSubmit(e);
+                }}
+                variant="contained"
+                sx={{ mt: 5, ml: 2, borderRadius: 0 }}
+
+                endIcon={
+                  testArray.length == 0 ? (
+                    <CancelScheduleSendIcon />
+                  ) : (
+                    <SendIcon />
+                  )
+                }
+                disabled={
+                  testArray.length == 0 || !data.paymentmode ? true : false
+                }
+              >
+                bill
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      </SettingsLayout>
     </>
   );
 }
 
-
-Billing.getLayout = function (page) {
-
-  return (
-    <>
-      <Header />
-      <div className="wrapper">
-        <div className="side">
-          <SidebarFrontPage />
-        </div>
-        <div className="main" id='page-main-view'>{page}</div>
-      </div>
-    </>
-  );
-};

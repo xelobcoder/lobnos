@@ -120,7 +120,7 @@ export default function ReceiveStocksDepartmentLevel() {
   }, [departmentId]);
 
 
-  console.log(stocks)
+
 
 
 

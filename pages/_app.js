@@ -22,8 +22,8 @@ function MyApp({ Component, pageProps: { pageProps } }) {
   return (
     <>
       <AuthentificationProvider>
-        <Header />
         <MAIN_LAYOUT>
+          <Header />
           <Component {...pageProps} />
         </MAIN_LAYOUT>
       </AuthentificationProvider>

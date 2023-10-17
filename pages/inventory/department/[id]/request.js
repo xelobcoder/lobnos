@@ -58,7 +58,7 @@ export default function DepartmentRequestCustom() {
         </div>
       </div>
 
-      <table id='custom-table'>
+      <table className='table'>
         <thead>
           <tr>
             <th>stockid</th>

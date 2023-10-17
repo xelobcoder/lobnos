@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import { customData } from '../Auth/customFetch';
 import TableDisplay from '../accessories/TableDisplay';
 import { ProgressBar } from 'react-bootstrap';
-export default function ReceivedPending({ type = 'pending' }) {
+export default function ReceivedPending({ type = 'pending', caption }) {
   const departmentId = useRouter().query.id;
   const [loading, setLoading] = useState(true);
   const [stocks, setStocks] = useState([])
@@ -38,7 +38,7 @@ export default function ReceivedPending({ type = 'pending' }) {
       accessor: 'status',
       Cell: ({ row }) => (
         <div>
-          <ProgressBar variant={`${row.original.status === 'pending' ? 'warning' : 'primary'}`}  now={row.original.status === 'pending' ? 35 : 70}/>
+          <ProgressBar variant={`${row.original.status === 'pending' ? 'warning' : 'primary'}`} now={row.original.status === 'pending' ? 35 : 70} />
         </div>
       ),
     },
@@ -68,6 +68,7 @@ export default function ReceivedPending({ type = 'pending' }) {
     <>
       <SettingsLayout sidebar={<DepartmentLevelSidebar />}>
         {loading && <ISLOADING />}
+        <h3>{caption}</h3>
         <TableDisplay column={columns} data={stocks} filtering={true} />
       </SettingsLayout>
     </>

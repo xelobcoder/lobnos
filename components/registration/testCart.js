@@ -7,7 +7,7 @@ export default function TESTCART({ testArray, emptytestcart, handleRemove, outst
       <div>
         {testArray.length == 0 ? null : (
           <>
-            <table sx={{ mt: 5 }} id='custom-table' className='mt-5'>
+            <table sx={{ mt: 5 }} className='mt-5 table'>
               <thead className="p-0">
                 <tr>
                   <th>no</th>
