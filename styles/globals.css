@@ -1,7 +1,5 @@
 :root {
-  /* --sans-serif: 'ColfaxAI', helvetica, sans-serif; */
-  /* --monospace: 'Roboto Mono', sfmono-regular, consolas, liberation mono, menlo, */
-  /* courier, monospace; */
+  --topband-bg: #21263c;
 }
 
 /* @import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital@1&display=swap'); */
@@ -2538,7 +2536,7 @@ input[type='text'] {
   width: 300px;
 }
 .software-header-nav {
-  background-color: #00224f;
+  background-color: var(--topband-bg);
   margin: 0;
 }
 
