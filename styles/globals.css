@@ -1,11 +1,56 @@
 :root {
   --topband-bg: #21263c;
+  --sidebar-bg: #f7f7fe;
+  --zf-font-family-base: 'Inter', 'Source Sans Pro', Helvetica, Arial,
+    sans-serif;
 }
-
-/* @import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital@1&display=swap'); */
 
 .sidebarMenu {
   display: none;
+}
+.custom-autocomplete {
+  overflow-y: auto;
+  margin: inherit;
+  z-index: 1054;
+  overflow: hidden;
+  padding: 4px;
+}
+
+.custom-autocomplete > input {
+  margin-bottom: 10px;
+}
+.custom-autocomplete > .list {
+  max-height: 25vh;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  top: 0;
+  left: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-snap-type: proximity;
+  scroll-behavior: smooth;
+  scrollbar-arrow-color: #00224f;
+  background-color: white;
+  box-shadow: 1px 1px 1px white;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid lightgray;
+}
+
+.custom-autocomplete > .list > .items {
+  cursor: pointer;
+  padding-left: 10px;
+  padding-bottom: 7px;
+  padding-top: 7px;
+  border-radius: 10px;
+  margin: 10px 10px;
+}
+
+.custom-autocomplete > .list > .items:is(:hover, :active, :focus) {
+  background-color: var(--topband-bg);
+  color: white;
+  transition: none;
 }
 
 .showSetting {
@@ -264,44 +309,11 @@ body {
   padding: 10px;
 }
 .activated {
-  color: #2fad66;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  padding: 5px;
-  text-align: left;
-  display: flex;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  border-radius: 3%;
-  text-transform: capitalize;
-  background-color: rgba(0, 128, 0, 0.103);
+  color: green !important;
 }
 
 .deactivated {
-  color: red;
-  margin: 0px;
-  text-align: left;
-  padding: 5px;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  border-radius: 3%;
-  background-color: rgba(255, 0, 0, 0.068);
-  text-transform: capitalize;
-}
-
-.activation-cell > button {
-  width: 100px;
+  color: red !important;
 }
 
 a {
@@ -748,8 +760,9 @@ option:hover {
 .settings-sidebar > .contents > ul > li:active,
 .settings-sidebar > .contents > ul > li:focus,
 .settings-sidebar > .contents > ul > li:hover + .text > a {
-  background-color: black;
+  background-color: var(--topband-bg);
   cursor: pointer;
+  border: 1px dashed white;
   border-radius: 5px;
   transition: all 0.5s ease;
 }
@@ -2544,7 +2557,7 @@ input[type='text'] {
   margin: 0;
   padding: 20px;
   display: grid;
-  grid-template-columns: 70% 5% 15% 5%;
+  grid-template-columns: 60% 5% 15% 5% 10%;
 }
 
 .software-header-nav > ul > a {
@@ -2745,7 +2758,7 @@ textarea:required:invalid {
 #frontpagewrapper,
 #loginWrapper {
   background: url('../public/asserts/companylogo/scale.jpg') no-repeat;
-  height: 100vh;
+  height: 92vh;
   width: 100%;
   margin: 0;
   padding: 50px;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import UserList from '../../../components/Auth/Roles/userList'
-import { activateInstitutionUser, getInstitutionUsers } from '../../../components/Auth/customFetch'
+import { activateInstitutionUser, getInstitutionUsers ,customPost} from '../../../components/Auth/customFetch'
 import SettingsLayout from '../../../components/settingsComponents/SettingsLayout';
 import AuthenticationSidebar from '../../../components/settingsComponents/AuthenticationSidebar';
 
@@ -18,7 +18,6 @@ export default function ApplicationUsersPage() {
       const { statusCode, message, result } = response;
       if (statusCode === 200) {
         alert(message);
-        setRefresh(true);
       }
     }
   }

@@ -25,7 +25,7 @@ export default function DailySalesListView() {
             Days of the month
           </Typography>
         </div>
-        <table id='custom-table'>
+        <table  className='table'>
           <thead>
             <tr>
               <th>day</th>

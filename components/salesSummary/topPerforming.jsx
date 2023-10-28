@@ -23,7 +23,7 @@ export default function TopPerforming({ category, count }) {
             Month Top performing {category}s
           </Typography>
         </div>
-        <table id='custom-table'>
+        <table className='table'>
           <thead>
             <tr>
               <th>#</th>

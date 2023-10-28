@@ -150,6 +150,7 @@ export default function Authentication_index_page() {
                           <option value="manager">manager</option>
                           <option value="clinician">clinician</option>
                           <option value="phelobotomist">phelobotomist</option>
+                          <option value="sonographer">sonographer</option>
                         </select>
                       </div>
                     </div>

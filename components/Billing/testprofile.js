@@ -186,7 +186,7 @@ export default function TestProfileBilling() {
                 </div>
                 <div className='billing-personal-info'>
                   {/* create a table */}
-                  <table id='custom-table'>
+                  <table className='table'>
                     <thead>
                       <tr>
                         <th>Test Name</th>

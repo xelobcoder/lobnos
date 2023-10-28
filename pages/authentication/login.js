@@ -29,7 +29,7 @@ export default function LoginCredentials() {
         const { username, role, email, employeeid } = user;
         updateAuthentication({ username, role, email, permissions });
         // got to previous history; 
-        navigate.back();
+        navigate.push('/')
       } else {
         setMessage({ message, status })
       }

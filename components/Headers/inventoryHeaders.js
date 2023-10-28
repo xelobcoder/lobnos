@@ -1,9 +1,22 @@
-import React from 'react'
+import React, { useContext, useEffect } from 'react'
 import GridViewIcon from '@mui/icons-material/GridView';
 import DepartureBoardIcon from '@mui/icons-material/DepartureBoard';
 import { AddShoppingCart, Category, ExpandCircleDownSharp, UnarchiveRounded } from '@mui/icons-material';
 import Link from 'next/link';
+import AuthContext from '../Auth/useAuthentification';
+import { useRouter } from 'next/router';
 export default function InventoryHeaders() {
+  const router = useRouter();
+  const { auth } = useContext(AuthContext);
+  const pageAccess = auth?.permissions?.pageAccess;
+
+  useEffect(() => {
+    if (pageAccess) {
+      const { inventory } = pageAccess;
+      if (!inventory) { router.push('/authorization') }
+    }
+  }, []);
+
   return (
     <div className='settings-sidebar'>
       <div className='contents'>

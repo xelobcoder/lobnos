@@ -32,7 +32,22 @@ export const customerRepresentative = {
   registerv: true,
   printv: true,
   viewv: true,
-  pageAccess 
+  pageAccess: {
+    registration: true,
+    inventory:false,
+    activation:false,
+    suppliers:false,
+    operations:false,
+    approvals:false,
+    settings:false,
+    payments:false,
+    billing:true,
+    phelobotomy:false,
+    samples:false,
+    organization:false,
+    clinician:false,
+    appointment:false,
+  }
 }
 
 
@@ -86,5 +101,5 @@ export const administrator = {
 
 
 export const generalPermission = {
-  
+
 }

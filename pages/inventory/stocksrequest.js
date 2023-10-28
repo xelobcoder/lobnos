@@ -257,7 +257,6 @@ export default function Stocksrequest() {
   }
 
 
-  console.log(hxData[0])
 
   return (
     <>

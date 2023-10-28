@@ -19,7 +19,7 @@ export default function Activator() {
   })
 
 
-  // 
+
   const router = useRouter();
 
   const [id, setId] = useState('');
@@ -111,12 +111,12 @@ export default function Activator() {
             <div>
               <div>
                 <button className="btn btn-outline-success  m-2" onClick={(w) => ActivationBulk(w, 'TRUE', getInitData)}>
-                  Activate all
+                  Bulk Activation
                 </button>
               </div>
               <div>
                 <button className="btn btn-outline-danger m-2" onClick={(e) => ActivationBulk(e, 'FALSE', getInitData)}>
-                  Deactivate all
+                  Bulk Deactivation
                 </button>
               </div>
               <div>
@@ -198,7 +198,7 @@ export default function Activator() {
             </button>
           </div>
         )}
-        <div style={{ height: "100vh", overflowY: "auto", margin: "10px" }}>
+        <div style={{ overflowY: "auto", margin: "10px" }}>
           {activationData.length > 0 && (
             <table className='table'>
               <thead>
@@ -206,7 +206,7 @@ export default function Activator() {
                   <th>reg date</th>
                   <th>patient id</th>
                   <th>fullname</th>
-                  <th style={{ display: "flex", justifyContent: "center" }}>
+                  <th>
                     status
                   </th>
                   <th>action</th>
@@ -221,20 +221,16 @@ export default function Activator() {
                       <td>{item.DATE.slice(0, 10)}</td>
                       <td>{item.PATIENTID}</td>
                       <td>{item.FULLNAME}</td>
-                      <td>
-                        <div
-                          className={
-                            item.ACTIVATION_STATUS === "TRUE"
-                              ? "activated"
-                              : "deactivated"
-                          }
-                        >
-                          {item.ACTIVATION_STATUS === "TRUE"
-                            ? "activated"
-                            : "deactivated"}
-                        </div>
+                      <td className={
+                        item.ACTIVATION_STATUS === "TRUE"
+                          ? "activated"
+                          : "deactivated"
+                      }>
+                        {item.ACTIVATION_STATUS === "TRUE"
+                          ? "activated"
+                          : "deactivated"}
                       </td>
-                      <td className="activation-cell">
+                      <td>
                         <Button
                           size="small"
                           variant="outlined"
@@ -281,8 +277,7 @@ export default function Activator() {
                               router.push(`/patients/${item.PATIENTID}`)
                             }}
                           >
-                            update info
-
+                            update
                           </Button>
                         )}
                       </td>

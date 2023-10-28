@@ -24,15 +24,13 @@ export default function MAIN_LAYOUT({ children }) {
         if (statusCode == 200 && status == 'success') {
           const { username, role, email, employeeid } = authentic?.user;
           const permissions = JSON.parse(authentic?.user?.permissions);
-          updateAuthentication({ username, role, email, employeeid,permissions })
+          updateAuthentication({ username, role, email, employeeid, permissions })
         }
       }
-    } 
+    }
   }
 
   useEffect(() => { isAuthenticated() }, [])
-
-
 
 
 
