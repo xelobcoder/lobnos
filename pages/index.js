@@ -5,6 +5,7 @@ import FrontPageFrontdeskView from '../components/FrontPageView/frontdeskView';
 import FrontPageAdminView from '../components/FrontPageView/adminView';
 import FrontPageLabScientistView from '../components/FrontPageView/labScientistView';
 import FrontPageSonographerView from '../components/FrontPageView/sonographerView';
+import FrontPagePhelobotomyView from '../components/FrontPageView/phelobotomyView';
 
 export default function Index() {
   const { auth } = useContext(AuthContext);
@@ -18,6 +19,7 @@ export default function Index() {
       {role === 'admin' && <FrontPageAdminView />}
       {role === 'scientist' && <FrontPageLabScientistView />}
       {role === 'sonographer' && <FrontPageSonographerView />}
+      {role === 'phelobotomist' && <FrontPagePhelobotomyView/>}
     </div>
   );
 }

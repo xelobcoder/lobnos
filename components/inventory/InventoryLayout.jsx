@@ -8,11 +8,11 @@ export default function InventoryLayout({ children }) {
   const { auth } = useContext(AuthContext);
   const router = useRouter();
   useEffect(() => {
-    if (['manager,admin'].includes(auth?.roles) == false) {
+    if (['manager','admin'].includes(auth?.role) == false) {
       router.push('/authorization')
     }
   }, []);
-  
+
   return (
     <>
       <SettingsLayout sidebar={<InventoryHeaders />}>

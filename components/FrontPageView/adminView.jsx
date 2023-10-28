@@ -17,7 +17,7 @@ export default function FrontPageAdminView() {
         <Link className='bg-primary p-4  text-white text-center' href="/inventory">
           Inventory
         </Link>
-        <Link className='bg-primary p-4  text-white text-center' href="/">
+        <Link className='bg-primary p-4  text-white text-center' href="/supplier">
           Supplies
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/settings/emailsetting">
