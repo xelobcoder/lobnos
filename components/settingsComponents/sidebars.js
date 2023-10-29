@@ -1,4 +1,4 @@
-import { Settings, SettingsApplications, Forest, CorporateFareRounded, BloodtypeRounded, TripOrigin, PriceChange, Sms, Add } from "@mui/icons-material";
+import {  SettingsApplications, Forest, CorporateFareRounded, BloodtypeRounded, TripOrigin, PriceChange, Sms, Add } from "@mui/icons-material";
 import Link from "next/link";
 
 export default function SettingsSidebarLayout() {
@@ -72,6 +72,16 @@ export default function SettingsSidebarLayout() {
               <div className="text">
                 <Link href={'/settings/sms'}>
                   sms settings
+                </Link>
+              </div>
+            </li>
+            <li>
+              <div className="icons">
+                <Sms />
+              </div>
+              <div className="text">
+                <Link href={'/settings/emailsetting'}>
+                 Email Management
                 </Link>
               </div>
             </li>

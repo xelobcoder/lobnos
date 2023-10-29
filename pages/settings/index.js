@@ -4,6 +4,7 @@ import { customFetch, customPost, defaultApplicationSettings, getApplicationSett
 import { Table } from 'react-bootstrap';
 import { useRouter } from 'next/router';
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout'
+import MainSettingsLayoutView from '../../components/settingsComponents/MainSettingsLayoutView';
 
 export default function Settings() {
 	const [branches, setBranch] = useState([])
@@ -78,7 +79,7 @@ export default function Settings() {
 	}
 
 	return (
-		<SettingsLayout>
+		<MainSettingsLayoutView>
 			<div className="m-2">
 				<h4 className="btn btn-danger text-white">Application settings</h4>
 			</div>
@@ -95,7 +96,7 @@ export default function Settings() {
 					<tbody>
 						<tr>
 							<td>1</td>
-							<td className="text-capitalize">Bulk registration</td>
+							<td className="text-capitalize">Detail registration</td>
 							<td>
 								{ApplicationSettings?.bulkregistration == 0
 									? "deactivated"
@@ -309,6 +310,6 @@ export default function Settings() {
 					<button className="btn btn-primary mt-3" onClick={(e) => { updateSettings(e) }}>update settings</button>
 				</div>
 			</div>
-		</SettingsLayout>
+		</MainSettingsLayoutView>
 	);
 }

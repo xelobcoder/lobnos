@@ -1,8 +1,12 @@
-import React, { useState, useRef } from 'react'
-import SettingsSidebarLayout from './sidebars';
+import React, { useState, useContext, useEffect } from 'react';
+import AuthContext from '../Auth/useAuthentification'
 import { Menu, Close } from '@mui/icons-material';
 
+
+
 export default function SettingsLayout({ children, sidebar }) {
+  const { auth } = useContext(AuthContext);
+
   const [close, setClose] = useState(false);
 
   const handleShow = () => {
@@ -16,6 +20,12 @@ export default function SettingsLayout({ children, sidebar }) {
     }
   }
 
+  useEffect(() => {
+
+  }, [])
+
+
+
 
   return (
     <>
@@ -23,10 +33,10 @@ export default function SettingsLayout({ children, sidebar }) {
         <div className='wrapper'>
           <div className='side'>
             <div className='sidebarMenu'>
-              {!close ? <Menu onClick={(ev) => handleShow()} className='pointer' fontSize='large' /> : 
-              <Close className='pointer' fontSize='large' onClick={(ev) => handleShow()} />}
+              {!close ? <Menu onClick={(ev) => handleShow()} className='pointer' fontSize='large' /> :
+                <Close className='pointer' fontSize='large' onClick={(ev) => handleShow()} />}
             </div>
-            {sidebar || <SettingsSidebarLayout />}
+            {sidebar}
           </div>
           <div className='main'>
             {children}

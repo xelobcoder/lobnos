@@ -210,7 +210,7 @@ export default function Activator() {
                     status
                   </th>
                   <th>action</th>
-                  <th>Actions</th>
+                  <th>action</th>
                 </tr>
               </thead>
               <tbody>
@@ -231,13 +231,11 @@ export default function Activator() {
                           : "deactivated"}
                       </td>
                       <td>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color={
+                        <button 
+                         className={
                             item.ACTIVATION_STATUS === "TRUE"
-                              ? "error"
-                              : "success"
+                              ? "btn btn-danger btn-sm"
+                              : "btn btn-success btn-sm"
                           }
                           onClick={(e) => {
                             handleActivation(
@@ -252,33 +250,25 @@ export default function Activator() {
                           {item.ACTIVATION_STATUS === "FALSE"
                             ? "activate"
                             : "deactivate"}
-                        </Button>
+                        </button>
                       </td>
                       <td>
                         {item.ACTIVATION_STATUS === "TRUE" ? (
-                          <Button
-                            sx={{ width: "100px" }}
-                            color="success"
-                            variant="contained"
-                            size="small"
+                          <button className='btn btn-success btn-sm'
                             onClick={(e) => {
                               handleBilling(item);
                             }}
                           >
                             bill client
-                          </Button>
+                          </button>
                         ) : (
-                          <Button
-                            variant="contained"
-                            sx={{ width: "100px" }}
-                            size="small"
-                            color='primary'
+                          <button className='btn btn-primary btn-sm'
                             onClick={(e) => {
                               router.push(`/patients/${item.PATIENTID}`)
                             }}
                           >
                             update
-                          </Button>
+                          </button>
                         )}
                       </td>
                     </tr>

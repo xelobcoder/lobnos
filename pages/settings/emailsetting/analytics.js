@@ -1,12 +1,12 @@
 import React from 'react'
-import SettingsLayout from '../../../components/settingsComponents/SettingsLayout'
 import EmailSidebarJSX from '../../../components/settingsComponents/EmailSidebar'
 import { ErrorOutlineRounded, Send } from '@mui/icons-material'
+import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView'
 
 export default function Analytics() {
   return (
     <>
-      <SettingsLayout sidebar={<EmailSidebarJSX />}>
+      <MainSettingsLayoutView sidebar={<EmailSidebarJSX />}>
         <div className='container p-2' style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridGap:'30px' }}>
           <div className='card br-5'>
             <div className='card-header bg-light d-flex justify-content-between pointer'>
@@ -33,7 +33,7 @@ export default function Analytics() {
             </div>
           </div>
         </div>
-      </SettingsLayout>
+      </MainSettingsLayoutView>
     </>
   )
 }

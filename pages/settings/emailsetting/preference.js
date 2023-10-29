@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import SettingsLayout from '../../../components/settingsComponents/SettingsLayout'
 import EmailSidebarJSX from '../../../components/settingsComponents/EmailSidebar';
 import { customFetch, customPost, emailPreference, handleChangeWithState, handleResponse } from '../../../components/Auth/customFetch';
+import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 
 export default function EmailPreference() {
   const [preference, setPreference] = useState(emailPreference);
@@ -22,7 +22,7 @@ export default function EmailPreference() {
 
   return (
     <>
-      <SettingsLayout sidebar={<EmailSidebarJSX />}>
+      <MainSettingsLayoutView sidebar={<EmailSidebarJSX />}>
         <form className='container  br-5'>
           <h2 className='text-capitalize mt-2'>update preference</h2>
           <p className='alert alert-warning mt-2'>
@@ -69,7 +69,7 @@ export default function EmailPreference() {
             update preference
           </button>
         </form>
-      </SettingsLayout>
+      </MainSettingsLayoutView>
     </>
   )
 }

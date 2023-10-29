@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import EditIcon from '@mui/icons-material/Edit';
 import { getBranches, customPost } from '../../../components/Auth/customFetch';
-import SettingsLayout from '../../../components/settingsComponents/SettingsLayout';
 import TableDisplay from '../../../components/accessories/TableDisplay';
 import { useRouter } from 'next/router';
+import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 
 
 export default function Branches() {
@@ -117,13 +117,13 @@ export default function Branches() {
 
 
   return (
-    <SettingsLayout>
+    <MainSettingsLayoutView>
       <div className='container'>
         <h4> Branches List</h4>
         <div className='row p-1'>
           <TableDisplay column={columns} data={branches} filtering={true} />
         </div>
       </div>
-    </SettingsLayout>
+    </MainSettingsLayoutView>
   );
 }

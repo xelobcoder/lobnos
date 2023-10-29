@@ -8,9 +8,8 @@ import { ClientContextProvider } from "../../components/Billing/cxtProvider";
 import { customFetch } from "../../components/Auth/customFetch";
 import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
 export default function Updatebilling() {
-  const [clientDetails, setClientDetails] = React.useState([]);
-  const [updateViewer, setUpdateViewer] = React.useState(false);
-
+  const [clientDetails, setClientDetails] = useState([]);
+  const [updateViewer, setUpdateViewer] = useState(false);
 
   // pick infromation from the database
   const billid = useRouter().query.billingid;

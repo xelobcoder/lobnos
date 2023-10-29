@@ -14,17 +14,17 @@ export default function FrontPageAdminView() {
         <Link className='bg-primary p-4  text-white text-center' href="/operations/imaging/ultrasound">
           Imaging
         </Link>
+        <Link className='bg-primary p-4  text-white text-center' href="/phelobotomy">
+         Phelobotomy
+        </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/inventory">
           Inventory
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/supplier">
           Supplies
         </Link>
-        <Link className='bg-primary p-4  text-white text-center' href="/settings/emailsetting">
-          Email Management
-        </Link>
-        <Link className='bg-primary p-4  text-white text-center' href="/settings/sms">
-          SMS Management
+        <Link className='bg-primary p-4  text-white text-center' href="/settings">
+          Settings
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/instructions">
           Instructions

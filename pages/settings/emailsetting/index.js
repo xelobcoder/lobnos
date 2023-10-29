@@ -1,10 +1,10 @@
 import React from 'react'
-import SettingsLayout from '../../../components/settingsComponents/SettingsLayout'
 import EmailSidebarJSX from '../../../components/settingsComponents/EmailSidebar'
+import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView'
 
 export default function ApplicationEmailSettings() {
   return (
-    <SettingsLayout sidebar={<EmailSidebarJSX/>} >
+    <MainSettingsLayoutView sidebar={<EmailSidebarJSX />} >
       <div className='container'>
         <h3>Update Email Settings</h3>
         <div className='alert alert-info p-3'>
@@ -42,6 +42,6 @@ export default function ApplicationEmailSettings() {
         </form>
       </div>
 
-    </SettingsLayout>
+    </MainSettingsLayoutView>
   )
 }

@@ -88,7 +88,7 @@ export default function TestPreview() {
                       <button
                         style={{ textTransform: 'lowercase', height: '40px' }}
                         className={
-                          item.processing == 'true' ? 'custom-button' : 'bg-custom-red'
+                          item.processing == 'true' ? 'btn btn-success btn-sm' : 'btn btn-danger btn-sm mx-1'
                         }
                         disabled={item.processing == 'true' ? true : false}
                         onClick={() => handleProocessing(item.testid, item.billingid)}
@@ -99,7 +99,7 @@ export default function TestPreview() {
                       <button
                         style={{ textTransform: 'lowercase', height: '40px' }}
                         className={
-                          item.ready == 'true' ? 'custom-button' : 'bg-custom-red'
+                          item.ready == 'true' ? 'btn btn-success btn-sm' : 'btn btn-danger btn-sm mx-1'
                         }
                         onClick={() => handleResult(item.testid, item.billingid, item.NAME)}>
                         result
@@ -107,7 +107,7 @@ export default function TestPreview() {
                       {
                         item.ready == 'true' && (<button
                           style={{ textTransform: 'lowercase', height: '40px' }}
-                          className='custom-button'>
+                          className='btn btn-success btn-sm'>
                           preview
                         </button>)
                       }

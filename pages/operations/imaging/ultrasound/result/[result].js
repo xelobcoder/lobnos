@@ -3,10 +3,10 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import { modulex, formats, customPost, customFetch } from '../../../../../components/Auth/customFetch';
-import { Button } from '@mui/material';
 import { Preview, Send, ViewAgenda } from '@mui/icons-material';
 import ScanPreview from '../../../../../components/operations/scanPreview';
 import Indicator from '../../../../../components/accessories/Reports/indicator';
+import ImagingSidebar from '../../../../../components/ImagingSidebar';
 
 export default function EnterResultUltrasound() {
   const [content, setContent] = useState('');
@@ -39,7 +39,8 @@ export default function EnterResultUltrasound() {
 
   return (
     <>
-      <div className={`mt-2 ${view == true && !preview ? 'grid-view' : view && preview ? 'grid-2' : 'straight-view'}`} >
+    <ImagingSidebar/>
+      <div className={`scan-interface mt-2 ${view == true && !preview ? 'grid-view' : view && preview ? 'grid-2' : 'straight-view'}`} >
         {!preview ? (
           <div>
             <h4>Personal Information</h4>
@@ -61,25 +62,24 @@ export default function EnterResultUltrasound() {
           <div className='mt-4'>
             <Indicator resultEntered={entered} />
           </div>
-          <h2 className='text-center mt-2 text-uppercase'>{query?.scan}</h2>
+          <h4 className='text-center  text-uppercase'>{query?.scan}</h4>
           {ReactQuill ? (
             <ReactQuill
               theme="snow"
               value={content}
               modules={modulex}
-              style={{ height: '70vh' }}
+              style={{ height: '60vh' }}
               formats={formats}
               onChange={setContent}
-              placeholder="Write something here..."
             />
           ) : (
             'Loading...'
           )}
           <div className='mt-5'>
-            <Button onClick={(ev) => { handleResult() }} variant='contained' className='mt-5'>  save result <Send /></Button>
-            <Button variant='contained' className='mt-5' style={{ marginLeft: '20px' }} onClick={(ev) => { setPreview(!preview) }}>
+            <button onClick={(ev) => { handleResult() }} className='btn btn-primary  mt-2'>  save result <Send /></button>
+            <button className='btn btn-primary  mt-2' style={{ marginLeft: '20px' }} onClick={(ev) => { setPreview(!preview) }}>
               preview result <Preview />
-            </Button>
+            </button>
           </div>
         </div>
       </div>

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import SettingsLayout from '../../../components/settingsComponents/SettingsLayout'
 import { useRouter } from 'next/router'
 import AddBranchComponent from '../../../components/settingsComponents/AddBranchComponent';
 import { getBranches } from '../../../components/Auth/customFetch';
+import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 
 export default function UpdateBranchPage() {
   const id = useRouter().query.branch;
@@ -11,7 +11,7 @@ export default function UpdateBranchPage() {
   useEffect(() => { getBranches(setBranchData, id) }, [id]);
 
   return (
-    <SettingsLayout>
+    <MainSettingsLayoutView>
       <div className='container'>
         <h3 className='mt-2'>
           <span className='alert alert-info'>
@@ -20,6 +20,6 @@ export default function UpdateBranchPage() {
         </h3>
       </div>
       <AddBranchComponent data={branchData} update={setBranchData}  target={'PUT'}/>
-    </SettingsLayout>
+    </MainSettingsLayoutView>
   )
 }

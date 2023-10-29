@@ -1,7 +1,7 @@
 import React, { useState ,useEffect} from 'react'
 import { customFetch, customPost, defaultSmsSettings, handleResponse } from '../../components/Auth/customFetch';
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout'
 import SmsUpdateComponent from '../../components/settingsComponents/smsUpdateComponent'
+import MainSettingsLayoutView from '../../components/settingsComponents/MainSettingsLayoutView';
 
 
 export default function SMS_SETTINGS() {
@@ -28,8 +28,8 @@ export default function SMS_SETTINGS() {
 
 
   return (
-    <SettingsLayout>
+    <MainSettingsLayoutView>
       <SmsUpdateComponent handleSubmit={handleSubmit} data={data} setData={setData} />
-    </SettingsLayout>
+    </MainSettingsLayoutView>
   )
 }

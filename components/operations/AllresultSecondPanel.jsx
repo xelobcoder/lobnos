@@ -56,35 +56,14 @@ export default function AllresultSecondPanel() {
               </div>
               {
                 (active == index || expandAll == true) && (
-                  <div className='buttons'>
-                    {/* <button
-                      style={{ textTransform: 'lowercase', height: '40px' }}
-                      className={
-                        item.processing == 'true' ? 'custom-button' : 'bg-custom-red'
-                      }
-                      disabled={item.processing == 'true' ? true : false}
-                      onClick={() => handleProocessing(item.testid, item.billingid)}
-                      title={item.processing == 'true' ? 'item already procesing hence button disabled' : 'click to start processing sample'}
-                    >
-                      processing
-                    </button> */}
+                  <div className='px-2'>
                     <button
-                      style={{ textTransform: 'lowercase', height: '40px' }}
                       className={
-                        item.ready == 'true' ? 'custom-button' : 'bg-custom-red'
+                        item.ready == 'true' ? 'btn btn-success btn-sm' : 'btn btn-danger btn-sm'
                       }
                       onClick={() => handleResult(item.testid, item.billingid, item.NAME)}>
                       result
                     </button >
-                    {/* {
-                      item.ready == 'true' && (<button
-                        style={{ textTransform: 'lowercase', height: '40px' }}
-                        className='custom-button'
-                        onClick={(ev) => { printResultNavigator(navigator, item.billingid, { name: item.NAME, testid: item.testid }) }}
-                      >
-                        preview
-                      </button>)
-                    } */}
                   </div>
                 )
               }

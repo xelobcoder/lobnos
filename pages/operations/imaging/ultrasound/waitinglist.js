@@ -3,6 +3,7 @@ import { customFetch } from '../../../../components/Auth/customFetch';
 import TableDisplay from '../../../../components/accessories/TableDisplay'
 import { Button } from '@mui/material';
 import { useRouter } from 'next/router';
+import ImagingSidebar from '../../../../components/ImagingSidebar';
 
 export default function UltrasoundWaitingList() {
   const [waitingList, setWaitingList] = useState([]);
@@ -23,21 +24,25 @@ export default function UltrasoundWaitingList() {
     {
       Header: 'entry', Cell: function ({ row }) {
         const source = row.original;
-        const { FULLNAME, NAME, BILLINGID, TESTID,PATIENTID} = source;
+        const { FULLNAME, NAME, BILLINGID, TESTID, PATIENTID } = source;
         const link = `./result/${BILLINGID}?scan=${NAME}&&testid=${TESTID}&&fullname=${FULLNAME}&&patientid=${PATIENTID}`
-        return (<Button variant='contained'
-          onClick={(ev) => router.push(link)}>
-          enter result
-        </Button>)
+        return (
+          <Button variant='contained' size='small'
+            onClick={(ev) => router.push(link)}>
+            enter result
+          </Button>)
       }
     }
   ]
 
   useEffect(() => { getWaitingList() }, [])
   return (
-    <div className='container-fluid'>
-      <h1 className='text-primary'>Ultrasound Department Waiting List ({waitingList.length} -- on queue)</h1>
-      <TableDisplay styling={'excel-table'} filtering={true} column={columns} data={waitingList} />
-    </div>
+    <>
+      <ImagingSidebar />
+      <div className='container-fluid'>
+        <h1 className='text-primary'>Ultrasound Department Waiting List ({waitingList.length} -- on queue)</h1>
+        <TableDisplay styling={'excel-table'} filtering={true} column={columns} data={waitingList} />
+      </div>
+    </>
   )
 }

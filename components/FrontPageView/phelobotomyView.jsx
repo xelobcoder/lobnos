@@ -5,7 +5,7 @@ export default function FrontPagePhelobotomyView() {
     <div>
       <ul style={{ display: 'grid', gridTemplateColumns: '30% 30% 30%', gridGap: '20px' }}>
         <Link className='bg-primary p-4  text-white text-center' href="/phelobotomy">
-          phelobotomy
+          Phelobotomy
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/instructions">
           Instructions

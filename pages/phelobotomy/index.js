@@ -1,14 +1,12 @@
 import { Button } from "@mui/material";
-import Header from "../../components/header";
 import React, { useEffect, useRef, useState } from "react";
-import router, { useRouter } from "next/router";
+import { useRouter } from "next/router";
 import CheckIcon from "@mui/icons-material/Check";
-import { Route, Settings } from "@mui/icons-material";
 import SECOND_NO_DATA from "../../components/accessories/secondNodata";
 import { customFetch, customPost } from "../../components/Auth/customFetch";
 import ListTable from "../../components/phelobotomy/ListTable";
-import SidebarFrontPage from "../../components/frontpagesidebar";
 import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
+import PhelobotomySidebar from "../../components/PhelobotomySidebar";
 export default function Phelobotomy() {
   const [fallback, setFallback] = useState([]);
   const [data, setData] = useState([]);
@@ -239,7 +237,7 @@ export default function Phelobotomy() {
 
   return (
     <>
-      <SettingsLayout sidebar={<SidebarFrontPage />}>
+      <SettingsLayout sidebar={<PhelobotomySidebar />}>
         <div className={splitScreen === true ? "splitScreen" : null}>
           <div className="phelobotomy-wrapper">
             <div className="m-2 col-10 d-flex">

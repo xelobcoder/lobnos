@@ -8,6 +8,8 @@
 .sidebarMenu {
   display: none;
 }
+
+
 .custom-autocomplete {
   overflow-y: auto;
   margin: inherit;
@@ -1219,7 +1221,7 @@ option:hover {
 
 .table {
   width: 100%;
-  border-collapse: collapse;
+  border: 1px solid lightgray;
   background-color: #ffffff;
   border-radius: 0.25rem;
   /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
@@ -1230,6 +1232,7 @@ option:hover {
   color: #757383;
   font-weight: bold;
   font-size: 13px;
+  border: 1px solid lightgray;
   text-transform: uppercase;
   -webkit-font-smoothing: antialiased;
   position: sticky;
@@ -1258,6 +1261,7 @@ option:hover {
 .table > tbody > tr > td {
   color: #00224fcf;
   font-size: 14px;
+  border: 1px solid lightgray;
   cursor: pointer;
 }
 .table > tbody > tr > td::first-letter {
@@ -1814,16 +1818,7 @@ option:hover {
   height: 100vh;
 }
 
-#operations-test-collection > div > button {
-  color: white;
-  border: none;
-  font-size: 14px;
-  border-radius: 5px;
-  display: flex;
-  padding: 10px;
-  place-self: center;
-  margin-right: 5px;
-}
+
 
 #expand {
   margin-left: 17px;
@@ -2524,15 +2519,11 @@ input[type='text'] {
   grid-template-rows: 50% auto;
 }
 
-.minicard-top-text {
-  display: grid;
-  grid-template-columns: 70% auto;
-  margin: 20px;
-}
+
 
 .minicard > .mini-rest > .text,
 .minicard > .mini-rest > .number {
-  font-size: 19px;
+  font-size: 15px;
   font-weight: 200 !important;
   display: flex;
   text-transform: uppercase;
@@ -2621,6 +2612,7 @@ input[type='text'] {
     grid-gap: 10px;
     margin: 0px 10px 0px 10px !important;
   }
+ 
 
   .minicard-wrapper > .minicard {
     height: 100px;
@@ -2631,18 +2623,7 @@ input[type='text'] {
   .minicard-top-text {
     grid-template-columns: 100%;
   }
-  .minicard-top-text > .head {
-    background-color: var(--green-600);
-    padding: 20px;
-    border-radius: 5px;
-    margin-bottom: 5px;
-  }
-  .minicard-top-text > .head > h3 {
-    font-size: 16px !important;
-    font-weight: lighter !important;
-    color: white !important;
-    line-height: 2rem !important;
-  }
+ 
   #activation-advanced {
     grid-template-columns: 50% 50%;
     grid-gap: 10px;

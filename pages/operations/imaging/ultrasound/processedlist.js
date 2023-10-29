@@ -4,9 +4,11 @@ import { Button } from '@mui/material';
 import TableDisplay from '../../../../components/accessories/TableDisplay';
 import { Edit, PrintRounded } from '@mui/icons-material';
 import { useRouter } from 'next/router';
+import ImagingSidebar from '../../../../components/ImagingSidebar';
 
 export default function Ulrtrasoundprocessedlist() {
-  const [query, setQuery] = useState({ from: '', to: '', search: '' });
+  const defaultState = { from: '', to: '', search: '' }
+  const [query, setQuery] = useState(defaultState);
   const [data, setData] = useState([]);
   const router = useRouter();
 
@@ -26,7 +28,7 @@ export default function Ulrtrasoundprocessedlist() {
     {
       Header: 'status', accessor: 'ready', Cell: function ({ row }) {
         const status = row.original.ready === 'true' ? 'completed' : 'pending';
-        return (<span className='bg-success rounded' style={{ padding: '2px 10px', color: 'white' }}>
+        return (<span className='text-success'>
           {status}
         </span>)
       }
@@ -38,13 +40,13 @@ export default function Ulrtrasoundprocessedlist() {
         const link = `./result/${BILLINGID}?scan=${NAME}&&testid=${TESTID}&&fullname=${FULLNAME}&&patientid=${PATIENTID}`
         return (
           <div>
-            <Button variant='contained' size='small'
+            <button className='btn btn-primary  btn-sm'
               onClick={(ev) => router.push(link)}>
-              <Edit />  edit result
-            </Button>
-            <Button variant='contained' color='warning' sx={{ ml: 2 }} size='small'>
-              <PrintRounded /> print result
-            </Button>
+              <Edit />  edit
+            </button>
+            <button className='btn btn-secondary mx-1  btn-sm' >
+              <PrintRounded /> print
+            </button>
           </div>
         )
       }
@@ -56,34 +58,39 @@ export default function Ulrtrasoundprocessedlist() {
   useEffect(() => { filter() }, [])
 
   return (
-    <div className='container-fluid'>
-      <div className='container'>
-        <div className='row d-block'>
-          <div className='col'>
-            <h5>Filter Processed List</h5>
-            <section className='d-flex justify-content-between bg-warning p-3 br-5'>
-              <div className='col-3'>
-                <label>from</label>
-                <input type='date' value={query.from} onChange={(ev) => { handleChangeWithState(ev, 'from', setQuery, query) }} className='form-control' placeholder='date' />
-              </div>
-              <div className='col-3'>
-                <label>to</label>
-                <input type='date' onChange={(ev) => { handleChangeWithState(ev, 'to', setQuery, query) }} value={query.to} className='form-control' placeholder='date' />
-              </div>
-              <div className='col-3'>
-                <label>search using firstname, lastname, middlename or clientid</label>
-                <input type='text' onChange={(ev) => { handleChangeWithState(ev, 'search', setQuery, query) }} className='form-control' value={query.search} placeholder='search using firstname, lastname, middlename or clientid' />
-              </div>
-              <div className='col-2'>
-                <button onClick={filter} className='btn btn-primary mt-4 '>search</button>
-              </div>
-            </section>
+    <>
+      <div className='container-fluid'>
+        <div>
+          <ImagingSidebar/>
+          <div className='card br-5'>
+            <div className='card-header bg-secondary text-white'>
+              <h5>Filter Processed List</h5>
+            </div>
+            <div className='card-body'>
+              <section className='d-flex justify-content-between'>
+                <div className='col-3'>
+                  <label>from</label>
+                  <input type='date' value={query.from} onChange={(ev) => { handleChangeWithState(ev, 'from', setQuery, query) }} className='form-control' placeholder='date' />
+                </div>
+                <div className='col-3'>
+                  <label>to</label>
+                  <input type='date' onChange={(ev) => { handleChangeWithState(ev, 'to', setQuery, query) }} value={query.to} className='form-control' placeholder='date' />
+                </div>
+                <div className='col-3'>
+                  <label>search using fullname </label>
+                  <input type='text' onChange={(ev) => { handleChangeWithState(ev, 'search', setQuery, query) }} className='form-control' value={query.search} placeholder='search using fullname' />
+                </div>
+                <div className='col-2 mt-2'>
+                  <button onClick={filter} className='btn btn-primary mt-4 '>search</button>
+                  <button  onClick={(ev) => setQuery(defaultState)}className='btn btn-danger mt-4 mx-1'>clear</button>
+                </div>
+              </section>
+            </div>
           </div>
-          <div className='col'>
-            <TableDisplay styling={'excel-table'} filtering={true} column={columns} data={data} />
-          </div>
+          <h4 className='mt-2 text-success'>Processed List</h4>
+          <TableDisplay styling={'excel-table'} filtering={true} column={columns} data={data} />
         </div>
       </div>
-    </div>
+    </>
   )
 }

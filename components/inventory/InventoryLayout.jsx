@@ -2,22 +2,21 @@ import React, { useContext, useEffect } from 'react'
 import InventoryHeaders from '../Headers/inventoryHeaders'
 import SettingsLayout from '../settingsComponents/SettingsLayout'
 import AuthContext from '../Auth/useAuthentification'
-import { useRouter } from 'next/router';
+import Authorization from '../accessories/authorization';
 
 export default function InventoryLayout({ children }) {
   const { auth } = useContext(AuthContext);
-  const router = useRouter();
-  useEffect(() => {
-    if (['manager','admin'].includes(auth?.role) == false) {
-      router.push('/authorization')
-    }
-  }, []);
+  const authorized = ['manager', 'admin'].includes(auth?.role) != false
+
 
   return (
     <>
-      <SettingsLayout sidebar={<InventoryHeaders />}>
-        {children}
-      </SettingsLayout>
+      {authorized ?
+        (<SettingsLayout sidebar={<InventoryHeaders />}>
+          {children}
+        </SettingsLayout>)
+        :
+        (<Authorization/>)}
     </>
   )
 }

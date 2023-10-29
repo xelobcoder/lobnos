@@ -47,8 +47,8 @@ export default function SidebarFrontPage() {
                 <MonetizationOn />
               </div>
               <div className='text'>
-                <Link href="/billing/billedclients">
-                  Billed Clients
+                <Link href="/billing/payment">
+                  Billing
                 </Link>
               </div>
             </li>
@@ -57,48 +57,8 @@ export default function SidebarFrontPage() {
                 <MonetizationOn />
               </div>
               <div className='text'>
-                <Link href="/billing/payment">
-                  Billing
-                </Link>
-              </div>
-            </li>
-            <li>
-              <div className='icons'>
-                <LocalHospital />
-              </div>
-              <div className='text'>
-                <Link href="/phelobotomy">
-                  Phelobotomy
-                </Link>
-              </div>
-            </li>
-            <li>
-              <div className='icons'>
-                <Science />
-              </div>
-              <div className='text'>
-                <Link href="/sample">
-                  Sample
-                </Link>
-              </div>
-            </li>
-            <li>
-              <div className='icons'>
-                <Work />
-              </div>
-              <div className='text'>
-                <Link href="/operations/laboratory">
-                  laboratory operations
-                </Link>
-              </div>
-            </li>
-            <li>
-              <div className='icons'>
-                <Settings />
-              </div>
-              <div className='text'>
-                <Link href="/settings">
-                  Settings
+                <Link href="/billing/billedclients">
+                  Billed Clients
                 </Link>
               </div>
             </li>
@@ -137,18 +97,8 @@ export default function SidebarFrontPage() {
                 <SupervisorAccount />
               </div>
               <div className='text'>
-                <Link href="/clinicians">
+                <Link href="/clinician">
                   Clinicians
-                </Link>
-              </div>
-            </li>
-            <li>
-              <div className='icons'>
-                <BusinessCenter />
-              </div>
-              <div className='text'>
-                <Link href="/suppliers">
-                  Suppliers
                 </Link>
               </div>
             </li>

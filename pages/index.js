@@ -12,14 +12,16 @@ export default function Index() {
 
   const { username, role } = auth;
   return (
-    <div id='frontpagewrapper'>
-      <h2 className='d-flex justify-content-center text-uppercase text-bold'>{username}</h2>
-      <h2 className='d-flex justify-content-center text-uppercase text-bold'>{role}</h2>
-      {role === 'customer service representative' && <FrontPageFrontdeskView />}
-      {role === 'admin' && <FrontPageAdminView />}
-      {role === 'scientist' && <FrontPageLabScientistView />}
-      {role === 'sonographer' && <FrontPageSonographerView />}
-      {role === 'phelobotomist' && <FrontPagePhelobotomyView/>}
-    </div>
+    <>
+      <div id='frontpagewrapper'>
+        <h2 className='d-flex justify-content-center text-capitalize'>Hi {username}!!!!</h2>
+        <h2 className='d-flex justify-content-center text-capitalize'>{role}</h2>
+        {role === 'customer service representative' && <FrontPageFrontdeskView />}
+        {role === 'admin' && <FrontPageAdminView />}
+        {role === 'scientist' && <FrontPageLabScientistView />}
+        {role === 'sonographer' && <FrontPageSonographerView />}
+        {role === 'phelobotomist' && <FrontPagePhelobotomyView />}
+      </div>
+    </>
   );
 }

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import SettingsLayout from '../../../components/settingsComponents/SettingsLayout';
 import EmailSidebarJSX from '../../../components/settingsComponents/EmailSidebar';
 import { formats, modulex } from '../../../components/Auth/customFetch';
 import { Drafts, Send } from '@mui/icons-material';
 import { TextField } from '@mui/material';
+import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
@@ -14,7 +14,7 @@ export default function EMAIL_LOGS() {
 
   return (
     <>
-      <SettingsLayout sidebar={<EmailSidebarJSX />}>
+      <MainSettingsLayoutView sidebar={<EmailSidebarJSX />}>
         <div className='container'>
           <div className='row '>
             <div className='col p-2' style={{ display: 'grid', gridTemplateColumns: '20% auto', gridGap: '10px' }}>
@@ -50,7 +50,7 @@ export default function EMAIL_LOGS() {
           <button className='btn btn-primary mt-2' style={{ marginLeft: '20px' }}><Drafts /> save as draft </button>
         </div>
 
-      </SettingsLayout>
+      </MainSettingsLayoutView>
     </>
   );
 }

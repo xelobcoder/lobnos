@@ -4,6 +4,7 @@ import TableDisplay from "../../../components/accessories/TableDisplay";
 import { customFetch } from "../../../components/Auth/customFetch";
 import { useRouter } from "next/router";
 import SettingsLayout from "../../../components/settingsComponents/SettingsLayout";
+import SidebarFrontPage from "../../../components/frontpagesidebar";
 
 export default function Payment_Extra() {
   // using this state , we bind to the checkbox and can print, whatsapp or email client receipt 
@@ -122,7 +123,7 @@ export default function Payment_Extra() {
 
   return (
     <>
-      <SettingsLayout>
+      <SettingsLayout sidebar={<SidebarFrontPage/>}>
         <div >
           <Navbar
             handleChange={handleChange}
