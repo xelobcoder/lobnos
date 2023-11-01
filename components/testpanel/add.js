@@ -62,8 +62,8 @@ export default function AddPanel() {
   return (
     <>
       <main>
-        <div className="container-fluid p-4">
-          <div className="m-2 bg-white br-5 p-3">
+        <div className="container-fluid">
+          <div className="m-2 bg-white br-5">
             <header className="mb-3">
               <h4 className="btn btn-danger">update test information</h4>
             </header>
@@ -175,11 +175,11 @@ export default function AddPanel() {
               </div>
               <button
                 type="button"
-                className="custom-button mt-3"
+                className=" btn btn-primary mt-3"
                 onClick={handleSubmit}
               >
                 <AddBoxSharpIcon />
-                add test
+                update test information
               </button>
             </form>
           </div>

@@ -1,8 +1,8 @@
 :root {
   --topband-bg: #21263c;
   --sidebar-bg: #f7f7fe;
-  --zf-font-family-base: 'Inter', 'Source Sans Pro', Helvetica, Arial,
-    sans-serif;
+  --zf-font-family-base: 'Inter', 'Source Sans Pro', Helvetica, Arial, 
+     sans-serif;
 }
 
 .sidebarMenu {
@@ -63,7 +63,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  -webkit-font-smoothing: antialiased;
+   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
   font-family: 'Proxima Nova Regular', Arial, sans-serif;
   font-weight: 400;
@@ -431,21 +431,6 @@ a {
   color: red;
 }
 
-/* .alert-primary,
-.alert-danger {
-  border-radius: 0px;
-  margin-left: 4%;
-  margin-right: 4%;
-  cursor: pointer;
-  list-style-type: none;
-  display: -ms-grid;
-  display: grid;
-  -ms-grid-columns: 10% 20% 20% 20% 20% auto;
-      grid-template-columns: 10% 20% 20% 20% 20% auto;
-  text-align: left;
-  padding: 10px 20px;
-  background-color: white;
-} */
 
 .phelobotomy-table {
   margin: 0;
@@ -592,10 +577,7 @@ option:hover {
   color: #00224f;
   margin-right: 5px;
 }
-/* #sample-panel-span > #then-child {
-  display: grid;
-  grid-template-columns: repeat(4,1fr);
-} */
+
 
 #sample-panel {
   margin-bottom: 20px;
@@ -1221,24 +1203,21 @@ option:hover {
 
 .table {
   width: 100%;
-  border: 1px solid lightgray;
   background-color: #ffffff;
   border-radius: 0.25rem;
-  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
   margin-top: 10px;
 }
 
 .table > thead > tr > th {
-  color: #757383;
+  color: white;
   font-weight: bold;
   font-size: 13px;
-  border: 1px solid lightgray;
   text-transform: uppercase;
   -webkit-font-smoothing: antialiased;
   position: sticky;
   top: -1px;
   z-index: 1;
-  background-color: #fff;
+  background-color:#00224f;
   background-clip: padding-box;
   border-top: 1px solid #fff;
   border-bottom: 1px solid #fff;
@@ -1260,10 +1239,12 @@ option:hover {
 
 .table > tbody > tr > td {
   color: #00224fcf;
-  font-size: 14px;
-  border: 1px solid lightgray;
   cursor: pointer;
+  font-size: 14px;
+  padding: 4px !important;
+  padding-left: 10px !important;
 }
+
 .table > tbody > tr > td::first-letter {
   text-transform: uppercase;
 }
@@ -1278,6 +1259,9 @@ option:hover {
     display: grid;
     grid-template-columns: 100%;
     grid-gap: 20px 20px;
+  }
+  .chaplain{
+   grid-template-columns: 100%;
   }
 }
 
@@ -1374,6 +1358,9 @@ option:hover {
   text-transform: capitalize;
   padding: 10px;
   color: white;
+}
+.br-0 {
+border-radius: 0px !important;
 }
 
 .custom-navigation > #list > .items {
@@ -1664,7 +1651,6 @@ option:hover {
   height: 90vh;
   color: #00224f;
   background-color: white;
-  padding: 10px;
   overflow-y: auto;
 }
 
@@ -1956,43 +1942,12 @@ option:hover {
   border: 1px solid lightgray;
   height: 10px;
   margin-top: -20px;
-  /* aanimate it 00 */
 }
 
 /* ready page  custom css */
 /* ready.module.css */
 
-.table_container {
-  height: 80vh;
-  overflow-y: auto;
-}
 
-.custom_table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: #fff;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.custom_table thead {
-  background-color: #3949ab;
-  color: #fff;
-}
-
-.custom_table th,
-.custom_table td {
-  padding: 12px 15px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-.custom_table tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.custom_table tbody tr:hover {
-  background-color: #e6e6e6;
-}
 
 .billing_id {
   color: #3949ab;
@@ -2184,6 +2139,9 @@ input[type='email']:focus:invalid .company-view-result > .wrapper {
 @media screen and (max-width: 600px) {
   .clinician-view .card .card-body .list-group-item > div {
     font-size: 14px;
+  }
+  .grid-30-30-30 {
+    grid-template-columns: 100%;
   }
   .grid-50-responsive {
     grid-template-columns: 100%;

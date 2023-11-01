@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import TestPanelLayout from '../../../components/testpanel/TestPanelLayout'
-import { customFetch,handleTestListChange, getSampleTypeList, validateFormData } from '../../../components/Auth/customFetch'
-import SettingsLayout from '../../../components/settingsComponents/SettingsLayout';
+import { customFetch, getSampleTypeList, validateFormData } from '../../../components/Auth/customFetch'
+import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 
 
 export default function TESTPRICING() {
@@ -11,7 +10,7 @@ export default function TESTPRICING() {
 
   // get the test list
   const getTestList = async function () {
-    const getResponse = await customFetch('testpanel/list');
+    const getResponse = await customFetch('testpanel/list/bulk');
     const { data, statusCode, status } = getResponse;
     if (status == 'success' && statusCode == 200) {
       setPanel(data)
@@ -59,8 +58,8 @@ export default function TESTPRICING() {
 
 
   return (
-    <SettingsLayout>
-      <div className='container-fluid bg-white p-2'>
+    <MainSettingsLayoutView>
+      <div className='container-fluid bg-white p-2' style={{height:'100vh',overflowY:'auto'}}>
         <table className='table'>
           <thead className='striped'>
             <tr>
@@ -122,6 +121,6 @@ export default function TESTPRICING() {
           update changes
         </button>
       </div>
-    </SettingsLayout>
+    </MainSettingsLayoutView>
   )
 }

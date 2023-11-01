@@ -47,7 +47,7 @@ export default function Billedclients() {
           <Button variant='contained' size='small'
             startIcon={<Edit />}
             onClick={() => updateFunction(params)}>
-            update billing
+            update
           </Button>
         </div>
       </>
@@ -69,8 +69,6 @@ export default function Billedclients() {
     { Header: 'AMOUNT PAID', accessor: 'PAID' },
     { Header: 'DISCOUNT', accessor: 'DISCOUNT' },
     { Header: 'DEBT', accessor: 'OUTSTANDING', Cell: outstandingCellRenderer },
-    // { Header: 'ORGANIZATION', accessor: 'ORGANIZATION' },
-    // { Header: 'CLINICIAN', accessor: 'CLINICIAN' },
     { Header: 'PAYMENT MODE', accessor: 'PAYMENT_MODE' },
     { Header: 'TYPE', accessor: 'TYPE' },
     { Header: 'ACTION', accessor: 'ACTION', Cell: actionCellRenderer, width: 300 },

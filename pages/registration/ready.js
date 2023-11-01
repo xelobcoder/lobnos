@@ -6,6 +6,7 @@ import ReadyTest from '../../components/readyComponents/ReadyTest';
 import { Typography } from '@mui/material';
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 import SidebarFrontPage from '../../components/frontpagesidebar';
+import ResultFilterAdvancedSearch from '../../components/readyComponents/ResultFilterAdvancedSearch';
 
 export default function ReadyResult() {
   const [layout, setLayout] = useState('two');
@@ -24,14 +25,12 @@ export default function ReadyResult() {
     const getReadyData = async function () {
       let response = await customFetch(`result/ready?querydate=${query.querydate}&&content=${query.content}`);
       const summary = await customFetch(`result/ready/crm/summary?querydate=${query.querydate}`);
-      setLayout('two')
       setReady(response)
       setSummaryArea(summary)
     }
     getReadyData()
   }, [query.querydate, query.content])
 
-  const changeLayout = (target, item) => { setLayout(target); setDropdown(item) }
 
 
   // change handler for advanced search
@@ -54,17 +53,26 @@ export default function ReadyResult() {
     const { status, statusCode, result } = pushRequest;
     if (status == 'success' && statusCode == 200) {
       setReady(result)
-      setLayout('two');
     }
   }
 
 
   return (
     <SettingsLayout sidebar={<SidebarFrontPage />}>
-      <div>
-        <Typography variant='h5' className='text-lead text-dark' sx={{ margin: '0px 10px 0px 10px' }}>
-          Summary for {query.querydate}
-        </Typography>
+      <div className='container'>
+        <div className='d-flex justify-content-between mt-1'>
+          <Typography variant='h5' className='text-lead text-dark' sx={{ margin: '0px 10px 0px 10px' }}>
+            Summary for {query.querydate}
+          </Typography>
+          <button
+            className="btn btn-primary mb-1"
+            onClick={() => setAdvanced(!advanced)}
+          >
+            advanced search
+          </button>
+        </div>
+
+        {/* summary section */}
         <div
           style={{
             display: "grid",
@@ -81,82 +89,15 @@ export default function ReadyResult() {
               );
             })}
         </div>
-        <div
+        {/* advanced query section */}
+        {advanced && (
+          <section>
+            <ResultFilterAdvancedSearch advancedQuery={advancedQuery} handleAdvancedChange={handleAdvancedChange} handleAdvancedSubmit={handleAdvancedSubmit} />
+          </section>)}
+        {/* <div
           className={layout == "two" ? "ready-panel-half" : "ready-panel-three"}
-        >
-          <div>
-            <Typography
-              variant="h5"
-              className="btn btn-primary mb-1"
-              onClick={() => setAdvanced(!advanced)}
-            >
-              advanced search
-            </Typography>
-            <br />
-            {!advanced && (
-              <>
-                <input
-                  className="form-control"
-                  type="date"
-                  value={query.querydate}
-                  placeholder="query with date here"
-                  onChange={(e) =>
-                    setQuery({ ...query, querydate: e.target.value })
-                  }
-                />
-              </>
-            )}
-            {advanced && (
-              <>
-                <label>patient id</label>
-                <input
-                  className="form-control mb-2"
-                  value={advancedQuery.patientid}
-                  name="patientid"
-                  type='number'
-                  onChange={(e) => handleAdvancedChange(e)}
-                  placeholder="Type client patientid here eg. 48493927390"
-                />
-                <label>fullname</label>
-                <input
-                  className="form-control mb-2"
-                  value={advancedQuery.fullname}
-                  name="fullname"
-                  onChange={(e) => handleAdvancedChange(e)}
-                  placeholder="Type client fullname like Tiifu Hamza "
-                />
-                <label>mobile number</label>
-                <input
-                  className="form-control mb-2"
-                  value={advancedQuery.mobile}
-                  name="mobile"
-                  type='tell'
-                  onChange={(e) => handleAdvancedChange(e)}
-                  placeholder="Type patient mobile number here"
-                />
-                <label>from</label>
-                <input type="date" className="form-control"
-                  value={advancedQuery.from}
-                  name="from"
-                  onChange={(e) => handleAdvancedChange(e)}
-                />
-                <label>To</label>
-                <input type="date" className="form-control"
-                  value={advancedQuery.to}
-                  name="to"
-                  onChange={(e) => handleAdvancedChange(e)}
-                />
-                <button className="btn btn-primary mt-2"
-                  onClick={(e) => handleAdvancedSubmit(e)}
-                >
-                  search
-                </button>
-              </>
-            )}
-          </div>
-          <ReadyList changeLayout={changeLayout} readydata={ready} />
-          <div>{layout == "three" && <ReadyTest id={dropdown} />}</div>
-        </div>
+        > */}
+        <ReadyList  readydata={ready} />
       </div>
     </SettingsLayout>
   );

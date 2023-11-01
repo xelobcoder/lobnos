@@ -9,6 +9,7 @@ import Addressing from "../../components/registration/Addressing";
 import PersonalInfomationRegistration from "../../components/registration/PersonalInfomationRegistration";
 import EmmergencyContactInformation from "../../components/registration/EmmergencyContactInformation";
 import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
+import styled from "@emotion/styled";
 
 
 
@@ -157,30 +158,29 @@ export default function Registration({ organization, clinician }) {
   return (
     <>
       <SettingsLayout sidebar={<SidebarFrontPage />}>
-        <div className={`p-3 m-1 `}>
-          <h6 style={{ marginLeft: '20px', textTransform: 'capitalize' }}>
-            <span className="alert alert-info">register a new client</span>
-          </h6>
-          <PersonalInfomationRegistration minify={true} setData={setData} data={data} setError={setError} />
-          {detailRegistration && (
-            <div>
-              <Addressing setData={setData} data={data} />
-              <EmmergencyContactInformation setData={setData} data={data} />
-            </div>)
-          }
-        </div>
-        <Button
-          type="button"
-          style={{ marginLeft: '40px', marginTop: '-40px' }}
-          variant="contained"
-          tabIndex={31}
-          onClick={(e) => {
-            const typer = clientID === undefined || clientID === null ? 'POST' : 'PUT';
-            handleSubmitRegistration(e, data, typer, setData);
-          }}
-        >
-          save new record
-        </Button>
+      <div className={`mx-2 my-2 bg-white p-2`} >
+            <h5 className="text-capitalize mx-3 text-primary">
+              register a new client
+            </h5>
+            <PersonalInfomationRegistration minify={true} setData={setData} data={data} setError={setError} />
+            {detailRegistration && (
+              <div>
+                <Addressing setData={setData} data={data} />
+                <EmmergencyContactInformation setData={setData} data={data} />
+              </div>)
+            }
+          </div>
+          <button
+            type="button"
+            className="btn btn-primary text-capitalize mx-2"
+            tabIndex={31}
+            onClick={(e) => {
+              const typer = clientID === undefined || clientID === null ? 'POST' : 'PUT';
+              handleSubmitRegistration(e, data, typer, setData);
+            }}
+          >
+            save new record
+          </button>
       </SettingsLayout>
     </>
   );

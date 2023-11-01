@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TableDisplay from '../../components/accessories/TableDisplay';
 import { customFetch, deleteOrganization } from '../Auth/customFetch';
-import { IconButton } from '@mui/material';
+import { IconButton, Input } from '@mui/material';
 import { Add, DeleteOutlineOutlined, Edit, Visibility } from '@mui/icons-material';
 import Link from 'next/link';
 
@@ -10,27 +10,33 @@ export default function OrganizationList() {
 
   const columns = [
     {
+      Header: '#',
+      Cell: function ({ row }) {
+        return (<Input type='checkbox' />)
+      }
+    },
+    {
       Header: 'organization',
-      accessor: 'NAME'
+      accessor: 'name'
     },
     {
       Header: 'Location',
-      accessor: 'LOCATION'
+      accessor: 'location'
     },
     {
       Header: 'Contact',
-      accessor: 'MOBILENUMBER'
+      accessor: 'mobile'
     }, {
       Header: 'Email',
-      accessor: 'EMAIL'
+      accessor: 'email'
     },
     {
       Header: 'Region',
-      accessor: 'REGION'
+      accessor: 'region'
     },
     {
-      Header: 'District',
-      accessor: 'DISTRICT'
+      Header: 'address',
+      accessor: 'address'
     },
     {
       Header: 'details',
@@ -68,14 +74,6 @@ export default function OrganizationList() {
 
   return (
     <>
-      <div className='d-flex justify-content-end m-2'>
-        <Link href={'/organization/neworganization'}>
-          <button className='btn btn-primary border-none mt-2 '>
-            <Add />
-            new organization
-          </button>
-        </Link>
-      </div>
       <TableDisplay column={columns} data={organization} filtering={true} />
     </>
   )

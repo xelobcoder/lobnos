@@ -19,7 +19,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
             </h5>
           )}
         </div>
-        <div className={`card-body ${minify ? ' grid-30-30-30' : ''} `}>
+        <div className={`card-body ${minify ? 'grid-30-30-30' : ''}`}>
           <div className='form-row'>
             <label>First Name</label>
             <input

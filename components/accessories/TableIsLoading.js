@@ -5,9 +5,9 @@ export default function TableIsLoading({ col }) {
     <>
       <tr>
         <td colSpan={col} className='text-center'>
-          <div className='spinner-border' role='status'>
+          <span className='spinner-border' role='status'>
             <span className='visually-hidden'>Loading...</span>
-          </div>
+          </span>
         </td>
       </tr>
     </>

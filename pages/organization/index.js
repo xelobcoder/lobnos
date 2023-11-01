@@ -1,15 +1,13 @@
 import React from 'react'
 import OrganizationList from '../../components/organization/List'
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout'
-import SidebarFrontPage from '../../components/frontpagesidebar'
+import OrganizationWrapperLayout from '../../components/organization/OrganizationWrapperLayout'
 
 
 export default function OrganizationMainPage() {
   return (
-    <div>
-      <SettingsLayout sidebar={<SidebarFrontPage />}>
-        <OrganizationList />
-      </SettingsLayout>
-    </div>
+    <OrganizationWrapperLayout>
+      <OrganizationList />
+    </OrganizationWrapperLayout>
+
   )
 }

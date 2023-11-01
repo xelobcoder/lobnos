@@ -147,7 +147,6 @@ export const handleSubmitRegistration = async (
     "maritalstatus",
     "mobile",
     "gender",
-    "patientOrganization",
     "occupation",
   ];
 
@@ -169,7 +168,7 @@ export const handleSubmitRegistration = async (
     const { status, statusCode, message, patientid } = response;
 
     if (statusCode == 200 && status == "SUCCESS") {
-      // alert(message);
+      alert(message);
       callback(patientRegistrationDefaultData);
       window.location.href = `/activation?patientid=${patientid}`;
     } else {

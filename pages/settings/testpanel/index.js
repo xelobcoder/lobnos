@@ -5,6 +5,7 @@ import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import { Button } from '@mui/material';
 import TableDisplay from '../../../components/accessories/TableDisplay';
 import { useRouter } from 'next/router';
+import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 
 export default function TESTPANEL() {
   const [testData, setTestData] = useState([]);
@@ -39,7 +40,10 @@ export default function TESTPANEL() {
   },
   {
     Header: 'ADDED ON',
-    accessor: 'CREATED_ON'
+    accessor: 'CREATED_ON',
+    Cell: ({ row }) => {
+      return <span>{row.original?.CREATED_ON.slice(0, 10)}</span>
+    }
   },
   {
     Header: 'SAMPLE',
@@ -50,51 +54,28 @@ export default function TESTPANEL() {
     accessor: 'SAMPLE_CONTAINER'
   },
   {
-    Header: 'UNIT',
-    accessor: 'UNIT'
-  },
-  {
     Header: 'QTY',
     accessor: 'QTY_REQUIRED'
+  },
+  {
+    Header: 'UNIT',
+    accessor: 'UNIT'
   },
   {
     Header: 'ACTION',
     Cell: function ({ row }) {
       return (
         <div>
-          <Button variant='contained' size='small' 
-          onClick={(e) => {
-            router.push(`/settings/testpanel/updatetest/${row.original.ID}`)
-          }}
-          >
+          <Button variant='contained' size='small'
+            onClick={(e) => { router.push(`/settings/testpanel/updatetest/${row.original.ID}`) }}>
             update
           </Button>
-          {/* <Button color='error' onClick={() => deleteHandler(row.original.ID)}>
-            Delete
-          </Button> */}
         </div>
       )
     }
   }
   ]
 
-  const deleteHandler = async (e) => {
-    const response = await customPost(`testpanel/list?id=${e}`, 'DELETE', { id: e });
-
-    const { statusCode, status } = response;
-
-    if (statusCode === 200 && status === 'success') {
-      alert('deleted successfully');
-      // remove deleted item from the table
-      const filteredData = testData.filter(item => item.ID !== e);
-      setTestData(filteredData);
-    }
-
-    if (response?.err || statusCode === 401 || statusCode === 500 || status === 'error' || status == 'warning') {
-      alert(response?.message)
-    }
-
-  }
 
   const getTestPanel = async function () {
     const response = await customFetch('testpanel/list');
@@ -107,11 +88,9 @@ export default function TESTPANEL() {
   return (
     <>
       <TestPanelProvider>
-        <TestPanelLayout>
-          <Suspense>
-            <TableDisplay data={testData} column={columns}  styling={""}/>
-          </Suspense>
-        </TestPanelLayout>
+        <MainSettingsLayoutView>
+          <TableDisplay data={testData} column={columns} styling={""} />
+        </MainSettingsLayoutView>
       </TestPanelProvider>
     </>
   )

@@ -409,7 +409,7 @@ export const modulex = {
    toolbar: [
       ['bold', 'italic', 'underline', 'strike'],
       ['blockquote', 'code-block'],
-      [{ 'header': '1' }, { 'header': '2' }],
+      [{ 'header': '1' }, { 'header': '2' },{ 'header': '3' }, { 'header': '4' },{ 'header': '5' }, { 'header': '6' }],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       [{ 'script': 'sub' }, { 'script': 'super' }],
       // Remove 'direction' from the toolbar
@@ -561,3 +561,26 @@ export const isAuthenticated = async function (auth, navigate, updateAuthenticat
       }
    }
 }
+
+
+export const organizationDefaultBasicInfo = {
+   // module: '',
+   // commission: '',
+   // momo: '',
+   // bankName: '',
+   // accountName: '',
+   // branch: '',
+   // account: '',
+   // person: '',
+   email: '',
+   // contactPerson: '',
+   // contactEmail: '',
+   name: '',
+   location: '',
+   street: '',
+   mobile: '',
+   address: '',
+   website: '',
+   gpsMapping: '',
+   region: '',
+ }

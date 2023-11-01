@@ -14,6 +14,7 @@ import {
   BusinessCenter,
   Work,
   Menu,
+  ViewArray,
 } from '@mui/icons-material';
 
 export default function SidebarFrontPage() {
@@ -99,6 +100,16 @@ export default function SidebarFrontPage() {
               <div className='text'>
                 <Link href="/clinician">
                   Clinicians
+                </Link>
+              </div>
+            </li>
+            <li>
+              <div className='icons'>
+                <ViewArray/>
+              </div>
+              <div className='text'>
+                <Link href="/registration/ready">
+                  Result
                 </Link>
               </div>
             </li>

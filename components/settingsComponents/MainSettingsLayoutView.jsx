@@ -13,11 +13,10 @@ export default function MainSettingsLayoutView({ children, sidebar }) {
     <>
       {authorized ? (
         <SettingsLayout sidebar={sidebar || <SettingsSidebarLayout />}>
-          {" "}
-          children
+          {children}
         </SettingsLayout>
       ) : (
-        <Authorization/>
+        <Authorization />
       )}
     </>
   );

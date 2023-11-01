@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import { useRouter } from 'next/router';
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 import Add_department from '../../components/settingsComponents/department';
 import DepartmentList from '../../components/settingsComponents/departmentList';
-import { Suspense } from 'react';
-import { useEffect } from 'react';
-import { customFetch, customPost,getDepartment } from '../../components/Auth/customFetch';
+import { customPost, getDepartment } from '../../components/Auth/customFetch';
+import MainSettingsLayoutView from '../../components/settingsComponents/MainSettingsLayoutView';
 
 export default function Department() {
   const [key, setKey] = useState('department_list');
@@ -46,7 +44,7 @@ export default function Department() {
     router.push(`/settings/department?tab=edit&&id=${id}&&employeeid=${employeeid}&&department=${department}&&departmentManager=${departmentManager}`)
   }
   return (
-    <SettingsLayout>
+    <MainSettingsLayoutView>
       <Tabs
         id="controlled-tab-example"
         activeKey={key}
@@ -57,13 +55,11 @@ export default function Department() {
           <Add_department />
         </Tab>
         <Tab eventKey="department_list" title="Department list">
-          <Suspense fallback={<div>Loading...</div>}>
-            <DepartmentList data={department} handleDelete={handleDelete} handleEdit={handleEdit} />
-          </Suspense>
+          <DepartmentList data={department} handleDelete={handleDelete} handleEdit={handleEdit} />
         </Tab>
         <Tab eventKey="" title="" disabled></Tab>
       </Tabs>
-    </SettingsLayout>
+    </MainSettingsLayoutView>
   );
 }
 

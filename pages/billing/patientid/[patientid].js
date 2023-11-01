@@ -1,5 +1,4 @@
 import SidebarFrontPage from "../../../components/frontpagesidebar";
-import Header from "../../../components/header";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Autocomplete, FormLabel, Radio, RadioGroup, FormControlLabel, Button, TextField, MenuItem, FormControl, Select, InputLabel } from "@mui/material";
@@ -22,7 +21,7 @@ export default function Billing({ }) {
 
   useEffect(() => {
     const check = async function () {
-      let data = await customFetch('testpanel/list');
+      let data = await customFetch('testpanel/list/bulk');
       const organization = await customFetch('organization');
       const clinician = await customFetch('clinicians');
       getBranches(setBranch)

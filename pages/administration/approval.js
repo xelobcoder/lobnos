@@ -112,7 +112,7 @@ export default function Approval() {
       <div className={splinter ? "client-results splinter" : "client-results"}>
         <div className="card m-2 mt-4  br-5">
           <div className="card-header">
-            <strong className="btn btn-danger">Result awaiting approval</strong>
+            <h3>Result awaiting approval</h3>
           </div>
           <div className="card-body p-0">
             {clients.map((client, index) => (
@@ -151,13 +151,13 @@ export default function Approval() {
                 <div>
                   <button
                     style={{ marginRight: "10px" }}
-                    className="btn btn-success"
+                    className="btn btn-sm btn-success"
                     onClick={() => handleDecision(client, "approve", null)}
                   >
                     Approve
                   </button>
                   <button
-                    className="btn btn-danger"
+                    className="btn btn-sm btn-danger"
                     onClick={() => handleDecision(client, 'decline', null)}
                   >
                     Decline

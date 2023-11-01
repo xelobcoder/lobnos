@@ -293,7 +293,7 @@ export default function Phelobotomy() {
             // screen display as a modal when the split screen is true
             splitScreen === false ? null : (
               <div className="side-pane">
-                <header className="collection-header bg-warning p-2 text-capitalize text-lead d-flex justify-content-between">
+                <header className="bg-warning p-3 text-capitalize text-lead d-flex justify-content-between">
                   <span>Billid: {collection.billingid}</span>
                   <span>clientid:{collection.patientid}</span>
                   <span>fullname:{collection.fullname}</span>
@@ -302,7 +302,7 @@ export default function Phelobotomy() {
                   {/* create a table of all the test with respective sample type and the requied button to indicate collected or not  */}
                   {testcollection.length > 0 && (
                     <>
-                      <table className="table">
+                      <table className="table m-0">
                         <thead>
                           <tr>
                             <th>test</th>

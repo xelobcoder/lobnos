@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
-import Image from 'next/image';
-import { Container } from '@mui/material';
-import { Padding } from '@mui/icons-material';
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
+import MainSettingsLayoutView from '../../components/settingsComponents/MainSettingsLayoutView';
 
 export default function CompanyProfile() {
   const defaultdata = {
@@ -90,7 +87,7 @@ export default function CompanyProfile() {
 
 
   return (
-    <SettingsLayout>
+    <MainSettingsLayoutView>
       <div className='card br-5 m-3'>
         <div className='card-header p-2' style={{ backgroundColor: 'whitesmoke' }}>
           <h4 className='text-capitalize'>Upload Company information</h4>
@@ -201,6 +198,6 @@ export default function CompanyProfile() {
           </button>
         </div>
       </div>
-    </SettingsLayout>
+    </MainSettingsLayoutView>
   );
 }

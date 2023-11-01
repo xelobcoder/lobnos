@@ -1,8 +1,6 @@
-import { Card } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { customFetch, printResultNavigator } from '../Auth/customFetch';
-import { Email, Print, WhatsApp } from '@mui/icons-material';
-import styles from '../../styles/readyTest.module.css';
+import { Email, Print } from '@mui/icons-material';
 import { useRouter } from 'next/router';
 
 export default function ReadyTest({ id }) {
@@ -12,12 +10,10 @@ export default function ReadyTest({ id }) {
     try {
       const response = await customFetch(`result/ready/:${id}`);
       setTest(response);
-      console.log(response);
     } catch (err) {
       alert('error in connecting to server');
     }
   };
-
 
   const navigate = useRouter();
 
@@ -28,31 +24,23 @@ export default function ReadyTest({ id }) {
 
 
   return (
-    <div>
-      <Card className={styles.card}>
-        {test.length > 0 &&
-          test.map((item, index) => {
-            return (
-              <ul key={index} className={styles.dropdownlist}>
-                <li>{item.name}</li>
-                {item.ready === 'true' && (
-                  <>
-                    <li className={styles.textPrimary}>share via</li>
-                    <li className='btn btn-secondary' onClick={(e) => printResultNavigator(navigate, id, item)}>
-                      <Print className={`${styles.icon} text-white ${styles.printIcon}`} />
-                    </li>
-                    <li className='btn btn-success'>
-                      <WhatsApp className={`${styles.icon} text-white ${styles.whatsappIcon}`} />
-                    </li>
-                    <li className='btn btn-primary'>
-                      <Email className={`${styles.icon} text-white ${styles.emailIcon}`} />
-                    </li>
-                  </>
-                )}
-              </ul>
-            );
-          })}
-      </Card>
-    </div>
+    <>
+      {test.length > 0 && test.filter((e, i) => { return e.ready === 'true' }).map((item, index) => {
+        return (
+          <ul key={index} className='border-bottom m-0 p-2 br-5' style={{ display: 'grid', gridTemplateColumns: '60% 20% 10% 10% ' }}>
+            <>
+              <li className='text-capitalize text-secondary'>{item.name}</li>
+              <li>share via</li>
+              <li className='btn btn-secondary ' onClick={(e) => printResultNavigator(navigate, id, item, true)}>
+                <Print className={`text-white`} />
+              </li>
+              <li className='btn btn-primary'>
+                <Email className={`text-white`} />
+              </li>
+            </>
+          </ul>
+        );
+      })}
+    </>
   );
 }

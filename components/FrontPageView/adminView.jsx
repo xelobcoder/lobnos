@@ -17,6 +17,9 @@ export default function FrontPageAdminView() {
         <Link className='bg-primary p-4  text-white text-center' href="/phelobotomy">
          Phelobotomy
         </Link>
+        <Link className='bg-primary p-4  text-white text-center' href="/administration/approval">
+        Result Approval
+        </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/inventory">
           Inventory
         </Link>

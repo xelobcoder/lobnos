@@ -64,8 +64,11 @@
   text-transform: lowercase !important;
   text-overflow: ellipsis;
   padding-left: 14px;
-  color: #4caf50;
   margin-top: 4px;
+}
+.client-card:hover {
+  background-color: whitesmoke;
+  cursor: pointer;
 }
 
 .client-card > .client-info >

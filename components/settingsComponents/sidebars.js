@@ -1,4 +1,4 @@
-import {  SettingsApplications, Forest, CorporateFareRounded, BloodtypeRounded, TripOrigin, PriceChange, Sms, Add } from "@mui/icons-material";
+import { SettingsApplications, Forest, CorporateFareRounded, BloodtypeRounded, TripOrigin, PriceChange, Sms, Add, TextSnippetRounded } from "@mui/icons-material";
 import Link from "next/link";
 
 export default function SettingsSidebarLayout() {
@@ -17,7 +17,7 @@ export default function SettingsSidebarLayout() {
             </li>
             <li>
               <div className="icons">
-                <Add/>
+                <Add />
               </div>
               <div className="text">
                 <Link href={'/settings/branches/new'}> Add Branch</Link>
@@ -43,14 +43,6 @@ export default function SettingsSidebarLayout() {
             </li>
             <li>
               <div className="icons">
-                <BloodtypeRounded />
-              </div>
-              <div className="text">
-                <Link href={'/settings/setup'}>test setup</Link>
-              </div>
-            </li>
-            <li>
-              <div className="icons">
                 <TripOrigin />
               </div>
               <div className="text">
@@ -59,10 +51,26 @@ export default function SettingsSidebarLayout() {
             </li>
             <li>
               <div className="icons">
+                <BloodtypeRounded />
+              </div>
+              <div className="text">
+                <Link href={'/settings/setup'}>test setup</Link>
+              </div>
+            </li>
+            <li>
+              <div className="icons">
+                <TextSnippetRounded />
+              </div>
+              <div className="text">
+                <Link href={'/settings/testpanel'}>Test panels</Link>
+              </div>
+            </li>
+            <li>
+              <div className="icons">
                 <PriceChange />
               </div>
               <div className="text">
-                <Link href={'/settings/testpanel/testpricing'}>test panels</Link>
+                <Link href={'/settings/testpanel/testpricing'}>bulk test update</Link>
               </div>
             </li>
             <li>
@@ -81,7 +89,7 @@ export default function SettingsSidebarLayout() {
               </div>
               <div className="text">
                 <Link href={'/settings/emailsetting'}>
-                 Email Management
+                  Email Management
                 </Link>
               </div>
             </li>

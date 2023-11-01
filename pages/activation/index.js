@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
-import { Button, Typography } from '@mui/material';
 import TableIsLoading from '../../components/accessories/TableIsLoading';
 import { ActivationBulk, handleActivation } from '../../components/Auth/registerclient';
 import { customFetch } from '../../components/Auth/customFetch';
@@ -9,6 +7,7 @@ import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 import SidebarFrontPage from '../../components/frontpagesidebar';
 
 export default function Activator() {
+  const [loading, setLoading] = useState(true);
   const [activationData, setActivationData] = useState([]);
   const [tempStore, setStore] = useState([]);
   const [urlquery, seturlQuery] = useState(`activation?`)
@@ -56,8 +55,12 @@ export default function Activator() {
   }
 
   const handleAdvancedQuery = async function (e) {
+    setLoading(true);
     const { name, value } = e.target;
     setFilter({ ...filter, [name]: value })
+    if (value.length > 2) {
+      advancedSearchButton();
+    }
   }
 
   const handleBilling = (item) => {
@@ -74,13 +77,14 @@ export default function Activator() {
       const data = await customFetch(urlquery);
       setActivationData(data);
       if (!advancedSearch) {
-        setStore(data)
+        setStore(data);
       }
     } catch (err) {
       alert('error occured in connecting to server')
     }
   }
   useEffect(() => {
+    setLoading(false);
     if (advancedSearch == false) {
       if (activationData.length == 0 && tempStore.length == 0) {
         getInitData()
@@ -198,8 +202,9 @@ export default function Activator() {
             </button>
           </div>
         )}
-        <div style={{ overflowY: "auto", margin: "10px" }}>
-          {activationData.length > 0 && (
+
+
+          <div style={{ overflowY: "auto", margin: "10px" }}>
             <table className='table'>
               <thead>
                 <tr>
@@ -214,8 +219,7 @@ export default function Activator() {
                 </tr>
               </thead>
               <tbody>
-                {activationData.length === 0 && <TableIsLoading col={8} />}
-                {activationData.length > 0 &&
+                {(activationData.length > 0 && !loading ) &&
                   activationData.map((item) => (
                     <tr key={item.ID}>
                       <td>{item.DATE.slice(0, 10)}</td>
@@ -231,8 +235,8 @@ export default function Activator() {
                           : "deactivated"}
                       </td>
                       <td>
-                        <button 
-                         className={
+                        <button
+                          className={
                             item.ACTIVATION_STATUS === "TRUE"
                               ? "btn btn-danger btn-sm"
                               : "btn btn-success btn-sm"
@@ -273,18 +277,19 @@ export default function Activator() {
                       </td>
                     </tr>
                   ))}
+                  {
+                    (activationData.length === 0 && !loading) && (<tr>
+                      <td colSpan={6}>No data to display</td>
+                    </tr>)
+                  }
+                  {
+                    loading && <TableIsLoading/>
+                  }
               </tbody>
-              {activationData.length === 0 && (
-                <tr>
-                  <td colSpan="7">
-                    <Typography variant="h5">No data found</Typography>
-                  </td>
-                </tr>
-              )}
             </table>
-          )}
-        </div>
+          </div>
       </SettingsLayout>
     </>
   );
 }
+
