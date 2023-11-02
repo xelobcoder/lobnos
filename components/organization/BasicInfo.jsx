@@ -1,11 +1,14 @@
-import React, { useContext, useState } from 'react';
-import { regions, organizationDefaultBasicInfo, validateFormData } from '../Auth/customFetch';
-import { OrgContext } from './OrganizationWrapperLayout';
+import React, { useCallback, useEffect, useState } from 'react';
+import { regions, organizationDefaultBasicInfo, validateFormData, handleResponse, customFetch, getDataAndUpdateState, customPost } from '../Auth/customFetch';
+import { useRouter } from 'next/router';
+
 
 export default function OrganizationBasic() {
   const [data, setData] = useState(organizationDefaultBasicInfo);
-  const {userContext,setContext} = useContext(OrgContext);
-  console.log(userContext)
+  const [message, setMessage] = useState('Add new organization');
+  const organizationid = useRouter().query.id;
+
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -14,13 +17,35 @@ export default function OrganizationBasic() {
 
   const handleSubmit = async (ev) => {
     ev.preventDefault();
-    await validateFormData(data, true, [], 'new/organizations', (response) => {
-      console.log(response);
-    });
+    if (!organizationid) { await validateFormData(data, false, ['name', 'location', 'street', 'address', 'region'], 'new/organizations', handleResponse); }
+    else {
+      const updateInfo = await customPost('organization/update/basic','PUT',data);
+      alert(updateInfo?.message)
+    }
   }
+
+  const getOrganizationData = useCallback(() => {
+    customFetch(`organization/basic?id=${organizationid}`)
+      .then((response) => {
+        const { statusCode, status, result } = response;
+        (statusCode === 200 && status == 'success') && setData(result[0]);
+      }).catch((err) => { setData(organizationDefaultBasicInfo); alert('error getting data;') })
+  }, [organizationid])
+
+
+  useEffect(() => {
+    if (organizationid) {
+      setMessage('update organization basic information');
+      getOrganizationData();
+    }
+  }, [organizationid,getOrganizationData])
+
+
+
 
   return (
     <>
+      <h4 className='bg-info p-2 br-5 mx-3 mt-1'>{message}</h4>
       <form className='mx-2 bg-white my-2 px-3 py-2 br-5'>
         <div className='form-row'>
           <label>organization name</label>
@@ -111,8 +136,8 @@ export default function OrganizationBasic() {
             className='form-control'
             type='text'
             placeholder='NS-1004-383'
-            name='gpsMapping'
-            value={data.gpsMapping}
+            name='gpsmapping'
+            value={data.gpsmapping}
             onChange={handleChange}
           />
         </div>

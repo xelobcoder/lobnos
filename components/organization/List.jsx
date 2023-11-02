@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import TableDisplay from '../../components/accessories/TableDisplay';
 import { customFetch, deleteOrganization } from '../Auth/customFetch';
-import { IconButton, Input } from '@mui/material';
-import { Add, DeleteOutlineOutlined, Edit, Visibility } from '@mui/icons-material';
-import Link from 'next/link';
+import { IconButton } from '@mui/material';
+import { DeleteOutlineOutlined, Edit } from '@mui/icons-material';
+import { useRouter } from 'next/router';
+
+
+
 
 export default function OrganizationList() {
   const [organization, setOrganization] = useState([]);
+  const router = useRouter();
+
+  const handleEditing = async (id) => { router.push(`/organization/${id}/basicinfo`) }
 
   const columns = [
-    {
-      Header: '#',
-      Cell: function ({ row }) {
-        return (<Input type='checkbox' />)
-      }
-    },
     {
       Header: 'organization',
       accessor: 'name'
@@ -39,14 +39,11 @@ export default function OrganizationList() {
       accessor: 'address'
     },
     {
-      Header: 'details',
+      Header: 'action',
       accessor: 'viewmore', Cell: ({ row }) => {
         return <span>
-          <IconButton edge='start' size='small' color='primary'>
+          <IconButton edge='start' size='small' sx={{ color: 'blue' }} onClick={(ev) => {handleEditing(row.original.id)}}>
             <Edit />
-          </IconButton>
-          <IconButton edge='start' size='small' sx={{ color: 'green' }}>
-            <Visibility />
           </IconButton>
           <IconButton edge='start' size='small' sx={{ color: 'red' }} onClick={(e) => deleteOrganization(row.original.ID, getOrganizationData)}>
             <DeleteOutlineOutlined />

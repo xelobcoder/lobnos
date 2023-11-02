@@ -578,9 +578,9 @@ export const organizationDefaultBasicInfo = {
    name: '',
    location: '',
    street: '',
-   mobile: '',
+   mobile: 0,
    address: '',
    website: '',
-   gpsMapping: '',
+   gpsmapping: '',
    region: '',
  }
