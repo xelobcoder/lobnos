@@ -57,7 +57,8 @@ export default function ResultFilterAdvancedSearch({ handleAdvancedChange, handl
             />
           </div>
           <div className='form-row'>
-            <button className="btn btn-primary mt-2"
+            <button className="btn btn-primary  btn-sm"
+            style={{marginTop:'30px'}}
               onClick={(e) => handleAdvancedSubmit(e)}
             >
               search

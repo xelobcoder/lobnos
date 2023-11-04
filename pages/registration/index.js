@@ -158,29 +158,35 @@ export default function Registration({ organization, clinician }) {
   return (
     <>
       <SettingsLayout sidebar={<SidebarFrontPage />}>
-      <div className={`mx-2 my-2 bg-white p-2`} >
-            <h5 className="text-capitalize mx-3 text-primary">
-              register a new client
-            </h5>
-            <PersonalInfomationRegistration minify={true} setData={setData} data={data} setError={setError} />
-            {detailRegistration && (
-              <div>
-                <Addressing setData={setData} data={data} />
-                <EmmergencyContactInformation setData={setData} data={data} />
-              </div>)
-            }
-          </div>
-          <button
-            type="button"
-            className="btn btn-primary text-capitalize mx-2"
-            tabIndex={31}
-            onClick={(e) => {
-              const typer = clientID === undefined || clientID === null ? 'POST' : 'PUT';
-              handleSubmitRegistration(e, data, typer, setData);
-            }}
-          >
-            save new record
-          </button>
+        <h5 className="text-capitalize mx-3 bg-primary br-5 p-2 my-2 text-white" style={{maxWidth:'200px'}} >
+          register a new client
+        </h5>
+        <div className={`mx-2 my-2 bg-white p-2`} id="registration">
+          <PersonalInfomationRegistration minify={true} setData={setData} data={data} setError={setError} />
+        </div>
+        {detailRegistration && (
+          <>
+            <div id="registration" className="mx-2 my-2 bg-white p-2">
+              <h5>Address information</h5>
+              <Addressing  setData={setData} data={data} />
+            </div>
+            <div id="registration" className="mx-2 my-2 bg-white p-2">
+              <h5> Emmergency Contact Information</h5>
+              <EmmergencyContactInformation setData={setData} data={data} />
+            </div>
+          </>)
+        }
+        <button
+          type="button"
+          className="btn btn-primary text-capitalize mx-2"
+          tabIndex={31}
+          onClick={(e) => {
+            const typer = clientID === undefined || clientID === null ? 'POST' : 'PUT';
+            handleSubmitRegistration(e, data, typer, setData);
+          }}
+        >
+          save new record
+        </button>
       </SettingsLayout>
     </>
   );

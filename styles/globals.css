@@ -1,15 +1,34 @@
 :root {
   --topband-bg: #21263c;
   --sidebar-bg: #f7f7fe;
-  --zf-font-family-base: 'Inter', 'Source Sans Pro', Helvetica, Arial, 
-     sans-serif;
+  --zf-font-family-base: 'Inter', 'Source Sans Pro', Helvetica, Arial,
+    sans-serif;
 }
 
 .sidebarMenu {
   display: none;
 }
 
+label {
+  font-weight: 200;
+}
 
+.grid-100 {
+  display: grid;
+  grid-template-columns: 100%;
+}
+#registration {
+  box-shadow: 0px 1.6px 3.6px rgba(0, 0, 0, 0.13),
+    0px 0px 2.9px rgba(0, 0, 0, 0.11);
+  transition: all 0.2s ease-in-out;
+  background: #ffffff;
+  border-radius: 4px;
+}
+
+.label-helper {
+  font-size: 10px;
+  color: red !important;
+}
 .custom-autocomplete {
   overflow-y: auto;
   margin: inherit;
@@ -63,7 +82,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-   -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
   font-family: 'Proxima Nova Regular', Arial, sans-serif;
   font-weight: 400;
@@ -136,7 +155,7 @@
   outline: 1px solid #00224f;
 }
 body {
-  background-color: white;
+  background-color: whitesmoke;
 }
 .grid-2 {
   display: -ms-grid;
@@ -431,7 +450,6 @@ a {
   color: red;
 }
 
-
 .phelobotomy-table {
   margin: 0;
   padding: 20px;
@@ -577,7 +595,6 @@ option:hover {
   color: #00224f;
   margin-right: 5px;
 }
-
 
 #sample-panel {
   margin-bottom: 20px;
@@ -1217,7 +1234,7 @@ option:hover {
   position: sticky;
   top: -1px;
   z-index: 1;
-  background-color:#00224f;
+  background-color: #00224f;
   background-clip: padding-box;
   border-top: 1px solid #fff;
   border-bottom: 1px solid #fff;
@@ -1260,8 +1277,8 @@ option:hover {
     grid-template-columns: 100%;
     grid-gap: 20px 20px;
   }
-  .chaplain{
-   grid-template-columns: 100%;
+  .chaplain {
+    grid-template-columns: 100%;
   }
 }
 
@@ -1360,7 +1377,7 @@ option:hover {
   color: white;
 }
 .br-0 {
-border-radius: 0px !important;
+  border-radius: 0px !important;
 }
 
 .custom-navigation > #list > .items {
@@ -1804,8 +1821,6 @@ border-radius: 0px !important;
   height: 100vh;
 }
 
-
-
 #expand {
   margin-left: 17px;
   color: #00224f !important;
@@ -1946,8 +1961,6 @@ border-radius: 0px !important;
 
 /* ready page  custom css */
 /* ready.module.css */
-
-
 
 .billing_id {
   color: #3949ab;
@@ -2477,8 +2490,6 @@ input[type='text'] {
   grid-template-rows: 50% auto;
 }
 
-
-
 .minicard > .mini-rest > .text,
 .minicard > .mini-rest > .number {
   font-size: 15px;
@@ -2570,7 +2581,6 @@ input[type='text'] {
     grid-gap: 10px;
     margin: 0px 10px 0px 10px !important;
   }
- 
 
   .minicard-wrapper > .minicard {
     height: 100px;
@@ -2581,7 +2591,7 @@ input[type='text'] {
   .minicard-top-text {
     grid-template-columns: 100%;
   }
- 
+
   #activation-advanced {
     grid-template-columns: 50% 50%;
     grid-gap: 10px;

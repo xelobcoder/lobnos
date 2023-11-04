@@ -1,6 +1,3 @@
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import { Typography } from "@mui/material";
-
 export default function ISLOADING() {
  return (
   <>

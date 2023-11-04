@@ -6,7 +6,7 @@ import { Forward } from '@mui/icons-material';
 export default function PrintModalReady({ display, active, hide }) {
   return (
     <Modal show={display}>
-      <Modal.Header className='text-white' style={{backgroundColor:'#00224f'}}>
+      <Modal.Header className='bg-secondary text-white' >
         BillingID <Forward /> {active}
       </Modal.Header>
       <Modal.Body className='p-0'>

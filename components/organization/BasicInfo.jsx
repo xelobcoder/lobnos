@@ -3,7 +3,7 @@ import { regions, organizationDefaultBasicInfo, validateFormData, handleResponse
 import { useRouter } from 'next/router';
 
 
-export default function OrganizationBasic() {
+export default function OrganizationBasic({ titleshow = true }) {
   const [data, setData] = useState(organizationDefaultBasicInfo);
   const [message, setMessage] = useState('Add new organization');
   const organizationid = useRouter().query.id;
@@ -19,7 +19,7 @@ export default function OrganizationBasic() {
     ev.preventDefault();
     if (!organizationid) { await validateFormData(data, false, ['name', 'location', 'street', 'address', 'region'], 'new/organizations', handleResponse); }
     else {
-      const updateInfo = await customPost('organization/update/basic','PUT',data);
+      const updateInfo = await customPost('organization/update/basic', 'PUT', data);
       alert(updateInfo?.message)
     }
   }
@@ -38,19 +38,19 @@ export default function OrganizationBasic() {
       setMessage('update organization basic information');
       getOrganizationData();
     }
-  }, [organizationid,getOrganizationData])
+  }, [organizationid, getOrganizationData])
 
 
 
 
   return (
     <>
-      <h4 className='bg-info p-2 br-5 mx-3 mt-1'>{message}</h4>
-      <form className='mx-2 bg-white my-2 px-3 py-2 br-5'>
+      {titleshow && (<div className='alert alert-primary mx-2 my-1'>{message}</div>)}
+      <form className='mx-2 bg-white my-2 px-3 py-2 br-5 grid-50'>
         <div className='form-row'>
           <label>organization name</label>
           <input
-            className='form-control'
+            className='custom-input'
             type='text'
             placeholder='organization name'
             name='name'
@@ -62,7 +62,7 @@ export default function OrganizationBasic() {
         <div className='form-row'>
           <label>location</label>
           <input
-            className='form-control'
+            className='custom-input'
             type='text'
             placeholder='location'
             name='location'
@@ -74,7 +74,7 @@ export default function OrganizationBasic() {
         <div className='form-row'>
           <label>street name</label>
           <input
-            className='form-control'
+            className='custom-input'
             type='text'
             placeholder='street name'
             name='street'
@@ -86,7 +86,7 @@ export default function OrganizationBasic() {
         <div className='form-row'>
           <label>mobile number</label>
           <input
-            className='form-control'
+            className='custom-input'
             type='tel'
             inputMode='tel'
             placeholder='0595964565'
@@ -98,7 +98,7 @@ export default function OrganizationBasic() {
         <div className='form-row'>
           <label>address</label>
           <input
-            className='form-control'
+            className='custom-input'
             type='text'
             placeholder='kalpohin lowcost 30A'
             name='address'
@@ -109,7 +109,7 @@ export default function OrganizationBasic() {
         <div className='form-row'>
           <label>Email address</label>
           <input
-            className='form-control'
+            className='custom-input'
             type='email'
             placeholder='mylab@ymail.com'
             name='email'
@@ -121,7 +121,7 @@ export default function OrganizationBasic() {
         <div className='form-row'>
           <label>website</label>
           <input
-            className='form-control'
+            className='custom-input'
             type='text'
             placeholder='mylab.com'
             name='website'
@@ -133,7 +133,7 @@ export default function OrganizationBasic() {
         <div className='form-row'>
           <label>Gps Address</label>
           <input
-            className='form-control'
+            className='custom-input'
             type='text'
             placeholder='NS-1004-383'
             name='gpsmapping'
@@ -145,7 +145,7 @@ export default function OrganizationBasic() {
         <div className='form-row'>
           <label>region</label>
           <select
-            className='form-control'
+            className='custom-input'
             name='region'
             value={data.region}
             onChange={handleChange}
@@ -156,17 +156,14 @@ export default function OrganizationBasic() {
             })}
           </select>
         </div>
-
-        <div className='form-row'>
-          <button
-            type='button'
-            className='mt-3 btn btn-primary'
-            onClick={handleSubmit}
-          >
-            save organization
-          </button>
-        </div>
       </form>
+      <button
+        type='button'
+        className='mt-3 btn btn-primary mx-4'
+        onClick={handleSubmit}
+      >
+        save organization
+      </button>
     </>
   )
 }

@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 
 
 export default function ContactPerson({ organizationid }) {
-  const defaultData = { name: 'tiifu hamza', email: '', mobile: '' };
+  const defaultData = { name: '', email: '', mobile: '' };
   const [data, setData] = useState(defaultData);
 
   const contactDetails = useCallback(async () => {
@@ -28,47 +28,50 @@ export default function ContactPerson({ organizationid }) {
 
   const handleSubmit = async function () {
     let postResponse = await customPost(`organization/update/contact`, 'PUT', data);
-    console.log(postResponse, 'pp')
+    const { statusCode, status, message } = postResponse;
+    (statusCode === 200 & status == 'success') && alert(message);
   }
 
 
   return (
     <>
-      <form className='p-2'>
-        <div className='bg-primary p-2 br-5 text-white'>update contact person</div>
-        <div className='form-row'>
-          <label>contact person</label>
-          <input
-            className='form-control'
-            value={data.name}
-            onChange={(event) => handleChange(event, 'name')}
+      <form className='p-2' >
+        <div className='alert alert-primary'>update contact person</div>
+        <div id='registration' className='p-3'>
+          <div className='form-row'>
+            <label>contact person</label>
+            <input
+              className='form-control'
+              value={data.name}
+              onChange={(event) => handleChange(event, 'name')}
 
-          />
-        </div>
-        <div className='form-row'>
-          <label>email </label>
-          <input
-            label="Contact Person Email"
-            className='form-control'
-            value={data.email}
-            onChange={(event) => handleChange(event, 'email')}
+            />
+          </div>
+          <div className='form-row'>
+            <label>email </label>
+            <input
+              label="Contact Person Email"
+              className='form-control'
+              value={data.email}
+              onChange={(event) => handleChange(event, 'email')}
 
-          />
-        </div>
-        <div>
-          <label>mobile number</label>
-          <input
-            label="Contact Phone Number"
-            className='form-control'
-            value={data.mobile}
-            onChange={(event) => handleChange(event, 'mobile')}
+            />
+          </div>
+          <div>
+            <label>mobile number</label>
+            <input
+              label="Contact Phone Number"
+              className='form-control'
+              value={data.mobile}
+              onChange={(event) => handleChange(event, 'mobile')}
 
-          />
-        </div>
-        <div className='form-row mt-3'>
-          <button type='button' className='btn btn-primary' onClick={(ev) => { handleSubmit() }}>
-            save changes
-          </button>
+            />
+          </div>
+          <div className='form-row mt-3'>
+            <button type='button' className='btn btn-primary' onClick={(ev) => { handleSubmit() }}>
+              save changes
+            </button>
+          </div>
         </div>
       </form>
     </>

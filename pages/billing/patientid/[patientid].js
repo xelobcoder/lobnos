@@ -170,8 +170,8 @@ export default function Billing({ }) {
   return (
     <>
       <SettingsLayout sidebar={<SidebarFrontPage/>}>
-        <ClientOutstandingBill />
         <TopComponentBillingButton cart={testArray.length} />
+        <hr/>
         <div
           id="billing-page-main-wrapper" >
           <div id="top-wrap">

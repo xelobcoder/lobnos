@@ -13,7 +13,7 @@ export default function NewClinicianPage() {
   return (
     <SidebarLayoutMap sidebar={<SideBarMapView linkers={linkers} />}>
        <div className='container '>
-          <h2 className='alert alert-info mt-2 text-capitalize'>add new clinician</h2>
+          <div className='alert alert-info mx-2 my-1 text-capitalize'>add new clinician</div>
           <BasicInformationClinician />
         </div>
     </SidebarLayoutMap>

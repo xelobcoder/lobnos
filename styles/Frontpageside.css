@@ -117,27 +117,3 @@
   }
 }
 
-#card-border {
-  border-radius: 5px;
-}
-
-#card-border > .card-body {
-  padding: 20px;
-}
-
-#card-border > .card-body > label {
-  color: #00224f;
-  margin: 5px 0px;
-}
-
-#card-border > .card-header > h5 {
-  font-weight: 400;
-  color: #00224f;
-  margin-top: 10px;
-  margin-left: 4px;
-}
-
-#card-border > .card-header {
-  display: flex;
-  justify-content: flex-start;
-}

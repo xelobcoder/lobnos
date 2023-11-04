@@ -13,7 +13,6 @@ export default function ReadyResult() {
   const [query, setQuery] = useState({ querydate: getDateExpression, content: '' });
   const [ready, setReady] = useState([]);
   const [summaryArea, setSummaryArea] = useState([])
-  const [dropdown, setDropdown] = useState(null);
   const [advanced, setAdvanced] = useState(false);
 
   // data state for advanced search

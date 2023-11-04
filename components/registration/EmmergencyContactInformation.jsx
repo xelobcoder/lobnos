@@ -3,13 +3,15 @@ import React from 'react';
 export default function EmmergencyContactInformation({ data, setData, card }) {
   return (
     <>
-      <div className={card === true ? `card m-0 p-0` : 'none '} id="card-border">
-        <div className='card-header p-3'>
-          <h5 className={card ? 'btn btn-danger text-white' : 'none text-uppercase'}>
-            Emergency Contact Information
-          </h5>
+      <div className={card === true ? `card m-0 p-0` : 'none p-2'}>
+      <div className="card-header">
+          {card && (
+            <h5>
+             Emmergency Contact Information
+            </h5>
+          )}
         </div>
-        <div className='card-body grid-2'>
+        <div className='card-body grid-2 chaplain'>
           <div className="form-row">
             <label htmlFor="emergencyName" className="form-label">
               Emergency Contact Name

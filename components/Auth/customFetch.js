@@ -246,6 +246,8 @@ export const handleChange = (event, target, data) => {
    setData({ ...data, [target]: value })
 }
 
+
+
 export const handleChangeWithState = (event, target, setData, data) => {
    const { value } = event.target;
    setData({ ...data, [target]: value })
@@ -409,7 +411,7 @@ export const modulex = {
    toolbar: [
       ['bold', 'italic', 'underline', 'strike'],
       ['blockquote', 'code-block'],
-      [{ 'header': '1' }, { 'header': '2' },{ 'header': '3' }, { 'header': '4' },{ 'header': '5' }, { 'header': '6' }],
+      [{ 'header': '1' }, { 'header': '2' }, { 'header': '3' }, { 'header': '4' }, { 'header': '5' }, { 'header': '6' }],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       [{ 'script': 'sub' }, { 'script': 'super' }],
       // Remove 'direction' from the toolbar
@@ -564,17 +566,7 @@ export const isAuthenticated = async function (auth, navigate, updateAuthenticat
 
 
 export const organizationDefaultBasicInfo = {
-   // module: '',
-   // commission: '',
-   // momo: '',
-   // bankName: '',
-   // accountName: '',
-   // branch: '',
-   // account: '',
-   // person: '',
    email: '',
-   // contactPerson: '',
-   // contactEmail: '',
    name: '',
    location: '',
    street: '',
@@ -583,4 +575,17 @@ export const organizationDefaultBasicInfo = {
    website: '',
    gpsmapping: '',
    region: '',
- }
+}
+
+
+
+export const organizationPaymentDefault = {
+   module: '',
+   commission: '',
+   momo: '',
+   bankname: '',
+   accountname: '',
+   branch: '',
+   account: '',
+   momoname:''
+}

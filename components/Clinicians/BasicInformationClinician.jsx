@@ -57,6 +57,8 @@ export default function BasicInformationClinician() {
       if (statusCode == 200 && status == 'success') {
         alert(message);
         setDefault()
+      } else {
+        alert(message);
       }
     }
     await validateFormData(data, true, [], 'clinicians', handleResponse)
@@ -88,34 +90,35 @@ export default function BasicInformationClinician() {
         <form autoCapitalize="true" autoComplete="true">
           <div>
             <div className="mb-3 mt-3">
-              <label>clinician name</label>
-              <input
+              <TextField
                 type="text"
-                required
+                label='clinician name'
                 id="name"
-                className='form-control'
                 value={data.name}
+                sx={{ width: "100%" }}
+                size='small'
                 onChange={(event) => handleChange(event, "name")}
               />
             </div>
             <div className="mb-3 mt-3">
-              <label>phone number</label>
-              <input
+              <TextField
                 type="tel"
                 inputMode='numeric'
-                className='form-control'
+                label='phone number'
                 value={data.phone}
                 onChange={(event) => handleChange(event, "phone")}
-                required
                 maxLength={10} minLength={10}
+                sx={{ width: "100%" }}
+                size='small'
               />
             </div>
             <div className="mb-3 mt-3">
-              <label>Email</label>
-              <input className='form-control'
+              <TextField
                 type="email"
-                required
+                label='email'
                 id="email"
+                sx={{ width: "100%" }}
+                size='small'
                 value={data.email}
                 onChange={(event) => handleChange(event, "email")}
               />
