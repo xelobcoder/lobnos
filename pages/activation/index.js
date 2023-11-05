@@ -114,18 +114,18 @@ export default function Activator() {
             </div>
             <div>
               <div>
-                <button className="btn btn-outline-success  m-2" onClick={(w) => ActivationBulk(w, 'TRUE', getInitData)}>
+                <button className="btn btn-success btn-sm " onClick={(w) => ActivationBulk(w, 'TRUE', getInitData)}>
                   Bulk Activation
                 </button>
               </div>
               <div>
-                <button className="btn btn-outline-danger m-2" onClick={(e) => ActivationBulk(e, 'FALSE', getInitData)}>
+                <button className="btn btn-danger mx-2 btn-sm" onClick={(e) => ActivationBulk(e, 'FALSE', getInitData)}>
                   Bulk Deactivation
                 </button>
               </div>
               <div>
                 <button
-                  className="btn btn-primary m-2"
+                  className="btn btn-primary btn-sm mx-2"
                   onClick={() => setAdvancedSearch(!advancedSearch)}
                 >
                   advanced
@@ -140,7 +140,7 @@ export default function Activator() {
             id='activation-advanced'
           >
             <input
-              className="form-control"
+              className="custom-input"
               name="patientid"
               onChange={(e) => handleAdvancedQuery(e)}
               placeholder="enter patientid"
@@ -148,14 +148,14 @@ export default function Activator() {
               id="patientid"
             />
             <input
-              className="form-control"
+              className="custom-input"
               onChange={(e) => handleAdvancedQuery(e)}
               type="text"
               placeholder="fullname"
               name="fullname"
             />
             <input
-              className="form-control"
+              className="custom-input"
               onChange={(e) => handleAdvancedQuery(e)}
               type="tell"
               maxLength={10}
@@ -165,7 +165,7 @@ export default function Activator() {
               name="mobile"
             />
             <input
-              className="form-control"
+              className="custom-input"
               onChange={(e) => handleAdvancedQuery(e)}
               type="date"
               size="small"
@@ -174,7 +174,7 @@ export default function Activator() {
               inputMode="date"
             />
             <input
-              className="form-control"
+              className="custom-input"
               onChange={(e) => handleAdvancedQuery(e)}
               tui
               type="date"
@@ -183,7 +183,7 @@ export default function Activator() {
             />
             <button
               type="button"
-              className="custom-button"
+              className="btn btn-primary btn-sm"
               onClick={(e) => advancedSearchButton(e)}
               variant="contained"
               color="primary"
@@ -194,7 +194,7 @@ export default function Activator() {
             <button
               type="button"
               size='small'
-              className="btn btn-danger"
+              className="btn btn-danger btn-sm"
               color="error"
               onClick={(e) => setAdvancedSearch(false)}
             >

@@ -1,43 +1,47 @@
 "use client"
-import React from 'react';
+import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import TopPerforming from '../../../components/salesSummary/topPerforming';
 import DailySalesListView from '../../../components/salesSummary/dailySalesListView';
 import { Typography } from '@mui/material';
-
-const Yearly = dynamic(() => import('../../../components/salesSummary/Yearly'), { ssr: false });
+import DashBoardLayoutSales from '../../../components/salesSummary/DashBoardLayout';
+import { useEffect } from 'react';
+import { getBranches, customFetch } from '../../../components/Auth/customFetch';
+import PerformanceChartGeneral from '../../../components/salesSummary/PerformanceChartGeneral';
 
 
 export default function Sales() {
+  const [branches, setBranches] = useState([]);
+  useEffect(() => { getBranches(setBranches) }, []);
+
+  const year = new Date().getFullYear();
+
+
   return (
     <>
-      <div style={{ backgroundColor: 'whitesmoke' }}>
-        <div className='d-flex mt-1' style={{ margin: '0px 20px 0px 20px' }}>
-          <Typography variant='h5'>
-            Month
-          </Typography> 
-           <select placeholder='select month' >
-            <option>select month</option>
-          </select>
-          <input  placeholder='select year' />
-          <select >
-            <option> select branch</option>
-          </select> 
-        </div>
-        <div className='sales_summary mb-3 m-4'>
+      <DashBoardLayoutSales>
+        {/* <div className='sales_summary mb-3 m-4'>
           <TopPerforming category={'organization'} count={5} />
           <TopPerforming category={'clinician'} count={5} />
-        </div>
-        <div className='sales_summary mb-4 m-4'>
+        </div> */}
+        {/* <div className='sales_summary mb-4 m-4'>
           <DailySalesListView />
+        </div> */}
+        <div className='col-3 mt-1 mb-1'>
+          <select className='custom-select'>
+            <option> select branch</option>
+            <option value={'0'}>all</option>
+            {branches.map((item, index) => { return <option key={item.branchid}>{item.name}</option> })}
+          </select>
         </div>
-        <div className='sales_summary m-4 mb-3' >
-          <Yearly target={'yearly'} headers={'Annual sales'} />
-          <Yearly target={'monthly'} headers={'Year Monthly sales'} />
-          <Yearly target={'weekly'} headers={'Month Weekly sales'} />
-          <Yearly target={'daily'} headers={'Week daily sales'} />
+        <div className='sales_summary' >
+          <PerformanceChartGeneral target={'yearly'} subtarget='Year' title={'Annual sales performance chart'} />
+          <PerformanceChartGeneral target={'monthly'} subtarget='Month' title={`${year} Monthly sales`} />
+          <PerformanceChartGeneral target={'weekly'} subtarget='Week' title={'Month Weekly sales'} />
+          <PerformanceChartGeneral target={'daily'} subtarget='Day' title={'Daily sales of the month'} />
         </div>
-      </div>
+
+      </DashBoardLayoutSales>
     </>
   )
 }

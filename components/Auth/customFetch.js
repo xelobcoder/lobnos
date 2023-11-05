@@ -340,14 +340,18 @@ export const deleteOrganization = async function (id, getdatafxn) {
 
 
 export const getDataAndUpdateState = async function (setfxn, endpoint, returner) {
-   const getResponse = await customFetch(endpoint);
-   const { statusCode, status, result } = getResponse;
-   if (statusCode == 200) {
-      if (returner == true || returner != undefined) {
-         return result
-      } else {
-         setfxn(result)
+   try {
+      const getResponse = await customFetch(endpoint);
+      const { statusCode, status, result } = getResponse;
+      if (statusCode == 200) {
+         if (returner == true || returner != undefined) {
+            return result
+         } else {
+            setfxn(result)
+         }
       }
+   } catch (err) {
+      console.log(err);
    }
 }
 
@@ -587,5 +591,13 @@ export const organizationPaymentDefault = {
    accountname: '',
    branch: '',
    account: '',
-   momoname:''
+   momoname: ''
 }
+
+
+export const handleLogout = async () => {
+   await window.cookieStore.delete('X-AUTH-PRIME-LAB-SYSTEMS');
+   window.location.reload();
+}
+
+

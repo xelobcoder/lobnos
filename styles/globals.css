@@ -1277,8 +1277,23 @@ option:hover {
     grid-template-columns: 100%;
     grid-gap: 20px 20px;
   }
+
+
   .chaplain {
     grid-template-columns: 100%;
+  }
+  .software-header-nav > ul {
+    display: grid;
+    grid-template-columns: 80% auto;
+  }
+  .softfullname{
+    display: none;
+  }
+  .software-header-nav > ul > li:nth-child(3),
+  .software-header-nav > ul > li:nth-child(2),
+  .software-header-nav > ul > li:nth-child(4),
+  .software-header-nav > ul > li:nth-child(5) {
+    display: none;
   }
 }
 
@@ -2398,20 +2413,11 @@ input[type='text'] {
 }
 
 .read-result-list > div {
-  /* font-weight: 500; */
   font-size: 14px;
   text-transform: uppercase;
 }
 
-/* @media (prefers-color-scheme: dark) {
-  * {
-    background-color: #000 !important;
-    color: white;
-  }
-  .lims-text-color {
-    color: white;
-  }
-} */
+
 .rejected-view {
   display: grid;
   grid-template-columns: 20% auto;
@@ -2562,20 +2568,7 @@ input[type='text'] {
   #clinician-info-new {
     grid-template-columns: 100%;
   }
-  .software-header-nav {
-    background-color: #00224f;
-    display: grid;
-    grid-template-columns: 80% auto;
-  }
 
-  .software-header-nav h6 {
-    font-size: 12px !important;
-  }
-
-  .software-header-nav .userHeader,
-  .software-header-nav .flow-child {
-    display: none;
-  }
   .minicard-wrapper {
     grid-template-columns: 100%;
     grid-gap: 10px;

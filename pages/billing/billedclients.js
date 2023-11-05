@@ -44,11 +44,10 @@ export default function Billedclients() {
     return (
       <>
         <div>
-          <Button variant='contained' size='small'
-            startIcon={<Edit />}
+          <button className='btn btn-sm btn-primary'
             onClick={() => updateFunction(params)}>
-            update
-          </Button>
+            <Edit fontSize='small' />  update
+          </button>
         </div>
       </>
     );
@@ -70,7 +69,6 @@ export default function Billedclients() {
     { Header: 'DISCOUNT', accessor: 'DISCOUNT' },
     { Header: 'DEBT', accessor: 'OUTSTANDING', Cell: outstandingCellRenderer },
     { Header: 'PAYMENT MODE', accessor: 'PAYMENT_MODE' },
-    { Header: 'TYPE', accessor: 'TYPE' },
     { Header: 'ACTION', accessor: 'ACTION', Cell: actionCellRenderer, width: 300 },
   ]
 
@@ -78,7 +76,7 @@ export default function Billedclients() {
 
   return (
     <>
-      <SettingsLayout sidebar={<SidebarFrontPage/>}>
+      <SettingsLayout sidebar={<SidebarFrontPage />}>
         <TableDisplay data={billedclients} column={columns} filtering={true} />
       </SettingsLayout>
     </>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Apps, Logout, Settings } from "@mui/icons-material";
 import { useContext } from "react";
 import AuthContext from "./Auth/useAuthentification";
+import { handleLogout } from "./Auth/customFetch";
 
 
 
@@ -16,20 +17,15 @@ function Header() {
   }, [])
 
 
-  const handleLogout = async () => {
-    await window.cookieStore.delete('X-AUTH-PRIME-LAB-SYSTEMS');
-    window.location.reload();
-  }
+
 
 
   return (
     <>
       <div className="software-header-nav">
         <ul>
-          <Link className="text-white" href={'/'} >Prime laboratory system
-            <span className="text-white">
-              || PLS
-            </span>
+          <Link className="text-white" href={'/'} >
+            <span className="softfullname">Prime laboratory system||</span>PLS
           </Link>
           <li><Settings /></li>
           <li className="text-uppercase">
