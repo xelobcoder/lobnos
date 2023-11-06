@@ -15,16 +15,19 @@ export default function FrontPageAdminView() {
           Imaging
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/phelobotomy">
-         Phelobotomy
+          Phelobotomy
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/administration/approval">
-        Result Approval
+          Result Approval
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/inventory">
           Inventory
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/supplier">
           Supplies
+        </Link>
+        <Link className='bg-primary p-4  text-white text-center' href="/dashboard">
+          DashBoard
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/settings">
           Settings

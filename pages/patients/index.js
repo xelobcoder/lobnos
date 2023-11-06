@@ -8,7 +8,7 @@ import dynamic from 'next/dynamic';
 import style from '../../styles/patients.module.css';
 import { Link } from '@mui/material';
 import PreviewPatientInformation from '../../components/petientsComponent/PreviewPatientInformation';
-const Yearly = dynamic(() => import('../../components/salesSummary/Yearly'), { ssr: false });
+import PerformanceChartGeneral from '../../components/salesSummary/PerformanceChartGeneral';
 
 export default function PATIENTS_INDEX_PAGE() {
   const initialParams = {
@@ -95,7 +95,7 @@ export default function PATIENTS_INDEX_PAGE() {
               <TestsTable />
             </div>
             <div className='mt-2 mb-2'>
-              {initials.displayChart && <Yearly target={initials.chartTarget} rawData={initials.chartData?.[initials.chartTarget]} />}
+              {initials.displayChart && <PerformanceChartGeneral subtarget={initials.chartTarge}  target={initials.chartTarget} rawData={initials.chartData?.[initials.chartTarget]} />}
             </div>
           </div>
         </div>

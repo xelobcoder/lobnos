@@ -1,5 +1,5 @@
 import React from 'react'
-import { AssignmentInd } from '@mui/icons-material'
+import { AssignmentInd, House } from '@mui/icons-material'
 import Link from 'next/link'
 export default function DashboardSidebar() {
   return (
@@ -12,8 +12,18 @@ export default function DashboardSidebar() {
                 <AssignmentInd />
               </div>
               <div className='text'>
-                <Link title='registration' href="/billing/payment/sales" >
-                  Registration
+                <Link title='registration' href="/dashboard" >
+                  sales
+                </Link>
+              </div>
+            </li>
+            <li>
+              <div className='icons'>
+                <House/>
+              </div>
+              <div className='text'>
+                <Link title='registration' href="/dashboard/organization" >
+                  organization
                 </Link>
               </div>
             </li>
