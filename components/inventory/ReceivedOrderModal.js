@@ -87,7 +87,7 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
           </div>
           <div id="order-receivable-table" >
             <form className="br-5">
-              <table>
+              <table className="table">
                 <thead className="border-bottom">
                   <tr>
                     <th>name</th>
