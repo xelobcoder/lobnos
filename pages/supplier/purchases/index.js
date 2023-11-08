@@ -54,7 +54,7 @@ export default function PURCHASES() {
       <SupplierLayout>
         {ordersplacedList.length > 0 ? (
           <div className='mt-2'>
-            <table id='custom-table'>
+            <table className='table'>
               <thead>
                 <tr>
                   <th>orderid</th>
