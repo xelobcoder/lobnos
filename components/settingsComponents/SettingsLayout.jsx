@@ -20,11 +20,6 @@ export default function SettingsLayout({ children, sidebar }) {
     }
   }
 
-  useEffect(() => {
-
-  }, [])
-
-
 
 
   return (

@@ -1,4 +1,4 @@
-import { SettingsApplications, Forest, CorporateFareRounded, BloodtypeRounded, TripOrigin, PriceChange, Sms, Add, TextSnippetRounded } from "@mui/icons-material";
+import { SettingsApplications, Forest, CorporateFareRounded, BloodtypeRounded, TripOrigin, PriceChange, Sms, Add, TextSnippetRounded, Looks3Sharp } from "@mui/icons-material";
 import Link from "next/link";
 
 export default function SettingsSidebarLayout() {
@@ -47,6 +47,14 @@ export default function SettingsSidebarLayout() {
               </div>
               <div className="text">
                 <Link href={'/settings/department'}>departments</Link>
+              </div>
+            </li>
+            <li>
+              <div className="icons">
+                <Looks3Sharp />
+              </div>
+              <div className="text">
+                <Link href={'/settings/tax'}>taxes</Link>
               </div>
             </li>
             <li>
