@@ -27,8 +27,9 @@ export default function Application_Taxes_List() {
               <th>#</th>
               <th>name</th>
               <th>value</th>
-              <th>applied</th>
-              <th>action</th>
+              <th>status</th>
+              <th>change status</th>
+              <th>delete</th>
             </tr>
           </thead>
           <tbody>
@@ -44,11 +45,13 @@ export default function Application_Taxes_List() {
                     <td>{index + 1}</td>
                     <td>{item.name}</td>
                     <td>{item.value}</td>
-                    <td>{item.apply}</td>
+                    <td>{item.apply === 'Yes' ? 'Yes' : 'No'}</td>
                     <td>
-                      {/* <button
+                      <button
                         className={`btn btn-sm ${item.apply === 'Yes' ? 'btn-danger' : 'btn-success'}`}
-                      >{item.apply === 'Yes' ? 'Deactivate' : 'Activate'}</button> */}
+                      >{item.apply === 'Yes' ? 'Deactivate' : 'Activate'}</button>
+                    </td>
+                    <td>
                       <DeleteForever color='error' />
                     </td>
                   </tr>)
