@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 29, 2023 at 03:25 AM
+-- Generation Time: Nov 12, 2023 at 09:44 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -26,6 +26,8 @@ SET time_zone = "+00:00";
 --
 -- Table structure for table `activation`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `activation` (
   `ID` int(255) NOT NULL,
@@ -34,10 +36,16 @@ CREATE TABLE `activation` (
   `DATE` date NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `activation`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `applicationsettings`
+--
+-- Creation: Sep 28, 2023 at 03:28 AM
 --
 
 CREATE TABLE `applicationsettings` (
@@ -56,16 +64,22 @@ CREATE TABLE `applicationsettings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `applicationsettings`:
+--
+
+--
 -- Dumping data for table `applicationsettings`
 --
 
 INSERT INTO `applicationsettings` (`keyid`, `bulkregistration`, `fontsize`, `textcolor`, `BackgroundColor`, `DeactivateBilling24hrs`, `PaidBillsBeforeTransaction`, `completeFlow`, `approvalbeforeprinting`, `smsActivated`, `smsSettings`, `emailNotification`) VALUES
-(1, 1, '14', 'black', 'wheat', 0, 0, 0, 0, 0, '{\"result\":\"Yes\",\"registration\":\"Yes\",\"sample\":\"Yes\",\"birthday\":\"Yes\"}', 1);
+(1, 0, '14', 'black', 'wheat', 1, 0, 1, 1, 0, '{\"result\":\"No\",\"registration\":\"Yes\",\"sample\":\"No\",\"birthday\":\"No\"}', 0);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `billing`
+--
+-- Creation: Sep 05, 2023 at 12:41 PM
 --
 
 CREATE TABLE `billing` (
@@ -79,6 +93,10 @@ CREATE TABLE `billing` (
   `TYPE` varchar(255) NOT NULL DEFAULT 'PREPAID',
   `OUTSTANDING` int(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `billing`:
+--
 
 --
 -- Dumping data for table `billing`
@@ -110,7 +128,52 @@ INSERT INTO `billing` (`BILLINGID`, `PATIENTID`, `PAID_AMOUNT`, `PAYABLE`, `DISC
 (80, 202382111, 20, 20, 0, 0, 0, 'PREPAID', 0),
 (81, 2023854, 600, 600, 0, 0, 0, 'PREPAID', 0),
 (82, 202382112, 50, 50, 0, 0, 0, 'PREPAID', 0),
-(83, 202382111, 1100, 1100, 0, 0, 0, 'PREPAID', 0);
+(83, 202382111, 1100, 1100, 0, 0, 0, 'PREPAID', 0),
+(84, 202382111, 6600, 6600, 0, 0, 0, 'PREPAID', 0),
+(85, 20238186, 100, 100, 0, 0, 0, 'PREPAID', 0),
+(86, 20238186, 50, 50, 0, 0, 0, 'PREPAID', 0),
+(87, 202381910, 6000, 6000, 0, 0, 0, 'PREPAID', 0),
+(88, 202382111, 100, 100, 0, 6, 2, 'PREPAID', 0),
+(89, 202381910, 180, 180, 0, 0, 0, 'PREPAID', 0),
+(90, 202382112, 180, 180, 0, 7, 7, 'PREPAID', 0),
+(91, 202382112, 180, 180, 0, 7, 7, 'PREPAID', 0),
+(92, 202381910, 180, 180, 0, 0, 0, 'PREPAID', 0),
+(93, 202382112, 100, 100, 0, 0, 0, 'PREPAID', 0),
+(94, 2023854, 360, 360, 0, 0, 0, 'PREPAID', 0),
+(95, 202382111, 120, 220, 0, 0, 0, 'PREPAID', 100),
+(96, 20238187, 300, 300, 0, 6, 4, 'PREPAID', 0),
+(97, 20238155, 120, 360, 0, 0, 0, 'PREPAID', 240),
+(98, 20238187, 20, 20, 0, 6, 6, 'PREPAID', 0),
+(99, 20238187, 50, 50, 0, 0, 0, 'PREPAID', 0),
+(100, 202381910, 600, 600, 0, 0, 0, 'PREPAID', 0),
+(101, 202382112, 100, 100, 0, 0, 0, 'PREPAID', 0),
+(102, 202382112, 3160, 6240, 0, 6, 4, 'PREPAID', 3080),
+(103, 20239720, 100, 150, 0, 6, 2, 'PREPAID', 50),
+(104, 20239721, 100, 100, 0, 0, 0, 'PREPAID', 0),
+(105, 20239722, 100, 100, 0, 6, 5, 'PREPAID', 0),
+(106, 20239723, 0, 7200, 0, 0, 0, 'PREPAID', 7200),
+(107, 20239723, 0, 6720, 0, 0, 0, 'PREPAID', 6720),
+(108, 20239723, 0, 620, 0, 8, 6, 'PREPAID', 620),
+(109, 20238155, 20, 20, 0, 6, 6, 'PREPAID', 0),
+(110, 20239723, 0, 1720, 0, 0, 0, 'PREPAID', 1720),
+(111, 20239723, 20, 20, 0, 6, 5, 'PREPAID', 0),
+(112, 20239721, 1600, 1620, 20, 6, 4, 'PREPAID', 0),
+(113, 20239723, 20, 20, 0, 0, 0, 'PREPAID', 0),
+(114, 20239723, 1719, 1719, 0, 6, 5, 'PREPAID', 0),
+(115, 20239619, 600, 600, 0, 0, 0, 'PREPAID', 0),
+(116, 20239723, 500, 500, 0, 7, 11, 'PREPAID', 0),
+(117, 20239723, 500, 500, 0, 7, 11, 'PREPAID', 0),
+(118, 202392724, 20, 20, 0, 0, 0, 'PREPAID', 0),
+(119, 20239723, 120, 120, 0, 6, 7, 'PREPAID', 0),
+(120, 202392724, 100, 100, 20, 8, 4, 'PREPAID', -20),
+(121, 202392724, 30, 30, 10, 6, 5, 'PREPAID', -10),
+(122, 20238155, 1000, 1320, 320, 0, 0, 'PREPAID', 0),
+(123, 202393126, 1800, 1849, 0, 6, 6, 'PREPAID', 49),
+(124, 202393126, 20, 20, 0, 0, 0, 'PREPAID', 0),
+(125, 202310127, 35, 40, 5, 8, 5, 'PREPAID', 0),
+(127, 202310428, 20, 20, 0, 9, 4, 'PREPAID', 0),
+(128, 202310428, 1600, 1629, 29, 1, 7, 'PREPAID', 0),
+(129, 202310428, 600, 640, 0, 0, 0, 'PREPAID', 40);
 
 --
 -- Triggers `billing`
@@ -127,6 +190,8 @@ DELIMITER ;
 --
 -- Table structure for table `billinghx`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `billinghx` (
   `KeyID` int(255) NOT NULL,
@@ -135,6 +200,10 @@ CREATE TABLE `billinghx` (
   `PaymentMode` int(25) NOT NULL,
   `Amount` int(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `billinghx`:
+--
 
 --
 -- Dumping data for table `billinghx`
@@ -238,12 +307,89 @@ INSERT INTO `billinghx` (`KeyID`, `Billingid`, `Date`, `PaymentMode`, `Amount`) 
 (95, 81, '2023-09-21 12:51:17.356349', 4, 600),
 (96, 82, '2023-09-21 17:48:52.360800', 4, 50),
 (97, 83, '2023-09-23 07:50:17.471615', 4, 1100),
-(98, 65, '2023-09-24 04:27:29.907256', 0, 20);
+(98, 65, '2023-09-24 04:27:29.907256', 0, 20),
+(99, 84, '2023-10-03 07:47:53.692528', 4, 100),
+(100, 85, '2023-10-03 09:48:00.520495', 4, 100),
+(101, 86, '2023-10-03 09:48:46.021558', 4, 50),
+(102, 87, '2023-10-03 09:49:35.047552', 4, 6000),
+(103, 88, '2023-10-03 09:50:07.173057', 4, 100),
+(104, 89, '2023-10-03 10:56:38.425621', 4, 180),
+(105, 84, '2023-10-04 11:59:57.104313', 0, 6500),
+(106, 90, '2023-10-04 12:28:28.475975', 4, 80),
+(107, 91, '2023-10-04 12:28:28.925845', 4, 80),
+(108, 92, '2023-10-04 12:41:55.502556', 4, 180),
+(109, 93, '2023-10-04 21:45:30.742930', 4, 100),
+(110, 94, '2023-10-04 22:00:12.669082', 4, 360),
+(111, 95, '2023-10-05 08:05:47.252421', 4, 120),
+(112, 96, '2023-10-05 08:10:15.567086', 2, 300),
+(113, 97, '2023-10-05 09:14:37.871066', 4, 120),
+(114, 98, '2023-10-05 10:08:46.736947', 4, 20),
+(115, 99, '2023-10-05 20:22:54.268034', 4, 50),
+(116, 100, '2023-10-05 21:10:35.097971', 4, 600),
+(117, 101, '2023-10-05 21:22:22.005222', 4, 100),
+(118, 102, '2023-10-06 03:19:49.681602', 4, 180),
+(119, 103, '2023-10-07 10:03:18.383633', 4, 100),
+(120, 104, '2023-10-07 10:52:09.363538', 1, 100),
+(121, 105, '2023-10-07 18:51:14.486697', 4, 100),
+(122, 106, '2023-10-07 19:32:06.167913', 4, 7200),
+(123, 107, '2023-10-07 19:52:20.727270', 4, 6720),
+(124, 108, '2023-10-08 04:16:21.248781', 4, 620),
+(125, 109, '2023-10-09 05:25:10.230705', 4, 20),
+(126, 110, '2023-10-10 05:46:08.564854', 4, 600),
+(127, 110, '2023-10-10 13:25:19.221950', 4, 620),
+(128, 90, '2023-10-10 13:34:22.240320', 4, 100),
+(129, 90, '2023-10-10 13:34:22.337809', 4, 100),
+(130, 90, '2023-10-10 13:34:22.378375', 4, 100),
+(131, 91, '2023-10-10 13:35:45.811910', 4, 100),
+(132, 91, '2023-10-10 13:35:45.904761', 4, 100),
+(133, 102, '2023-10-10 13:43:14.144364', 4, 2000),
+(134, 102, '2023-10-10 13:43:32.697056', 4, 2000),
+(135, 102, '2023-10-10 13:43:40.850706', 4, 2000),
+(136, 102, '2023-10-10 13:43:41.924959', 4, 2000),
+(137, 102, '2023-10-10 13:43:58.956210', 4, 200),
+(138, 102, '2023-10-10 13:44:00.755663', 4, 20),
+(139, 102, '2023-10-10 13:44:19.289689', 4, 20),
+(140, 102, '2023-10-10 13:44:39.478978', 4, 20),
+(141, 102, '2023-10-10 13:45:37.859678', 4, 20),
+(142, 102, '2023-10-10 13:46:24.994624', 4, 20),
+(143, 102, '2023-10-10 13:46:33.575058', 4, 20),
+(144, 102, '2023-10-10 13:46:39.619237', 4, 20),
+(145, 102, '2023-10-10 13:46:41.542885', 4, 20),
+(146, 102, '2023-10-10 13:46:47.965159', 4, 20),
+(147, 102, '2023-10-10 13:46:50.910013', 4, 20),
+(148, 102, '2023-10-10 13:46:52.467599', 4, 20),
+(149, 102, '2023-10-10 13:46:55.873756', 4, 20),
+(150, 102, '2023-10-10 13:46:57.790402', 4, 20),
+(151, 102, '2023-10-10 13:48:13.252450', 4, 20),
+(152, 102, '2023-10-10 13:48:30.136503', 4, 1000),
+(153, 102, '2023-10-10 19:04:34.268384', 4, 1000),
+(154, 102, '2023-10-10 19:04:38.276644', 4, 1000),
+(155, 111, '2023-10-11 09:33:02.169804', 4, 20),
+(156, 112, '2023-10-17 11:21:25.869799', 4, 1600),
+(157, 113, '2023-10-17 19:51:16.354537', 4, 20),
+(158, 114, '2023-10-17 19:59:20.209667', 4, 1719),
+(159, 115, '2023-10-26 07:51:17.564909', 3, 600),
+(160, 116, '2023-10-27 04:54:17.587524', 1, 500),
+(161, 117, '2023-10-27 04:54:17.844611', 1, 500),
+(162, 118, '2023-10-28 10:17:04.873275', 4, 20),
+(163, 119, '2023-10-28 10:48:04.199367', 4, 120),
+(164, 120, '2023-10-29 14:29:30.538671', 4, 100),
+(165, 121, '2023-10-31 00:25:47.119296', 4, 30),
+(166, 122, '2023-10-31 00:35:31.065494', 4, 1000),
+(167, 123, '2023-11-01 00:49:57.414437', 4, 1800),
+(168, 124, '2023-11-03 00:14:27.466050', 4, 20),
+(169, 125, '2023-11-04 01:53:57.867553', 4, 35),
+(170, 126, '2023-11-04 02:23:00.783336', 4, 20),
+(171, 127, '2023-11-06 13:17:24.619059', 4, 20),
+(172, 128, '2023-11-06 16:08:24.484583', 4, 1600),
+(173, 129, '2023-11-08 20:53:30.729022', 4, 600);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `bloodgroup`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `bloodgroup` (
@@ -257,6 +403,10 @@ CREATE TABLE `bloodgroup` (
   `PATIENTID` int(255) NOT NULL,
   `REMARKS` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `bloodgroup`:
+--
 
 --
 -- Dumping data for table `bloodgroup`
@@ -276,29 +426,42 @@ INSERT INTO `bloodgroup` (`ID`, `BILLINGID`, `BGROUP`, `RHESUS`, `CREATED_ON`, `
 --
 -- Table structure for table `branch`
 --
+-- Creation: Oct 09, 2023 at 05:16 PM
+--
 
 CREATE TABLE `branch` (
-  `BRANCHID` int(255) NOT NULL,
-  `NAME` varchar(255) NOT NULL,
-  `DATE` date NOT NULL DEFAULT current_timestamp(),
-  `ACTIVATION` tinyint(1) NOT NULL DEFAULT 0
+  `branchid` int(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `date` date NOT NULL DEFAULT current_timestamp(),
+  `activation` tinyint(1) NOT NULL DEFAULT 0,
+  `address` varchar(200) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `contact` int(21) NOT NULL,
+  `managerid` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `branch`:
+--
 
 --
 -- Dumping data for table `branch`
 --
 
-INSERT INTO `branch` (`BRANCHID`, `NAME`, `DATE`, `ACTIVATION`) VALUES
-(1, 'yendi branch', '2023-09-03', 0),
-(2, 'sda branch', '2023-09-03', 0),
-(3, 'buipe branch', '2023-09-03', 0),
-(4, 'Tamale central', '2023-09-03', 1),
-(5, 'headquarters', '2023-09-11', 1);
+INSERT INTO `branch` (`branchid`, `name`, `date`, `activation`, `address`, `email`, `contact`, `managerid`) VALUES
+(1, 'yendi branch', '2023-09-03', 1, 'Kalpohin Lowcost 30A', 'tiifuhamza@gmail.com', 249493933, '3'),
+(2, 'sda branch', '2023-09-03', 1, 'Kalpohin Lowcost 30A.\n\nPrincipal throry', 'tiifuhamza@gmail.com', 249493933, '3'),
+(3, 'buipe branch', '2023-09-03', 1, 'Kalpohin Lowcost 30A', 'tiifuhamza@gmail.com', 249493933, ''),
+(4, 'Tamale central', '2023-09-03', 1, 'Kalpohin Lowcost 30A', 'tiifuhamza@gmail.com', 249493933, '1'),
+(9, 'kumasi ', '2023-10-09', 0, 'hwdfjwfjjfjqfj', 'jjajajjajaj@gmail.com', 2147483647, '1'),
+(10, 'bimbilla', '2023-10-11', 1, 'Bimbilla Makayila \nP.O Box 1293\nKalpohin Lowcost 30A', 'bimbilla@lobnos.com', 283838383, '1');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `clinicianbasicinfo`
+--
+-- Creation: Sep 12, 2023 at 06:41 AM
 --
 
 CREATE TABLE `clinicianbasicinfo` (
@@ -315,6 +478,10 @@ CREATE TABLE `clinicianbasicinfo` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='collects only the basic information of the clinician';
 
 --
+-- RELATIONSHIPS FOR TABLE `clinicianbasicinfo`:
+--
+
+--
 -- Dumping data for table `clinicianbasicinfo`
 --
 
@@ -326,7 +493,9 @@ INSERT INTO `clinicianbasicinfo` (`ID`, `NAME`, `EMAIL`, `LOCATION`, `ADDRESS`, 
 (7, 'Tiifu hamza', 'hamzatiifu45props@gmail.com', 'yanale', 'Northern region', 'nurse', 0, NULL, '2023-09-12 19:45:35.722453', 595964565),
 (8, 'ffefeiofio', 'johnsonbuma@gmail.com', 'tamale', 'podpodpopo', 'nurse', 0, NULL, '2023-09-12 19:53:08.712140', 241758550),
 (9, 'none', '00000000000@gmail.com', 'popodpodpo', 'Northern region', 'therapist', 0, NULL, '2023-09-12 20:43:12.230917', 0),
-(10, 'enam akoetey', 'enam@gmsir.com', 'Tamale', 'principelk sad dogs', 'nurse', 0, NULL, '2023-09-23 07:49:49.758853', 374784894);
+(10, 'enam akoetey', 'enam@gmsir.com', 'Tamale', 'principelk sad dogs', 'nurse', 0, NULL, '2023-09-23 07:49:49.758853', 374784894),
+(11, 'Mildred Bagxxx', 'mildred@gmail.com', 'Tamale', 'Kalpohin Lowcost 30A', 'nurse', 0, NULL, '2023-10-27 04:53:39.526922', 595964565),
+(12, 'tiifu hamza vercel', 'hamzatiifdjjsdju45@gmail.com', 'Tamale', 'kalpohin lowcost 30A', 'nurse', 0, NULL, '2023-10-28 10:38:40.198143', 595964565);
 
 --
 -- Triggers `clinicianbasicinfo`
@@ -350,6 +519,8 @@ DELIMITER ;
 --
 -- Table structure for table `clinicianpaymentinfo`
 --
+-- Creation: Sep 12, 2023 at 06:42 AM
+--
 
 CREATE TABLE `clinicianpaymentinfo` (
   `ID` int(255) NOT NULL,
@@ -368,6 +539,10 @@ CREATE TABLE `clinicianpaymentinfo` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='collects only the basic information of the clinician';
 
 --
+-- RELATIONSHIPS FOR TABLE `clinicianpaymentinfo`:
+--
+
+--
 -- Dumping data for table `clinicianpaymentinfo`
 --
 
@@ -380,12 +555,16 @@ INSERT INTO `clinicianpaymentinfo` (`ID`, `CLINICIANID`, `MODULE`, `MOMO`, `BANK
 (7, 7, '', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2023-09-12 19:45:35.722453', NULL, NULL),
 (8, 8, '', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2023-09-12 19:53:08.712140', NULL, NULL),
 (9, 9, '', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2023-09-12 20:43:12.230917', NULL, NULL),
-(10, 10, '', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2023-09-23 07:49:49.758853', NULL, NULL);
+(10, 10, '', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2023-09-23 07:49:49.758853', NULL, NULL),
+(11, 11, '', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2023-10-27 04:53:39.526922', NULL, NULL),
+(12, 12, '', NULL, NULL, NULL, NULL, NULL, 0, NULL, '2023-10-28 10:38:40.198143', NULL, NULL);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `commodity`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `commodity` (
@@ -396,10 +575,24 @@ CREATE TABLE `commodity` (
   `suppliedby` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `commodity`:
+--
+
+--
+-- Dumping data for table `commodity`
+--
+
+INSERT INTO `commodity` (`COMID`, `COMMODITY`, `date`, `CATEGORY`, `suppliedby`) VALUES
+(1, 'solutions cleaner', '2023-10-11 10:57:18.607047', 'chemicals', NULL),
+(2, 'edta tubes ', '2023-10-11 10:57:18.665805', 'consumables', NULL);
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `companyprofile`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `companyprofile` (
@@ -415,16 +608,104 @@ CREATE TABLE `companyprofile` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `companyprofile`:
+--
+
+--
 -- Dumping data for table `companyprofile`
 --
 
 INSERT INTO `companyprofile` (`ID`, `NAME`, `EMAIL`, `MOTTO`, `PHONENUMBER`, `ADDRESS`, `ALTERNATIVENUMBER`, `WEBSITE`, `STREET`) VALUES
-(1, 'Mauplaus Diagnostic Limited', 'mauplausl@gmail.com', 'Health and happiness', 595964565, 'Opposite SDA Gbanjil Road Hse No 19', 249434803, 'mauplus@gmail.com', 'Kalpohin Lowcost 30A');
+(1, 'Mauplaus Diagnostic Limited', 'mauplausl@gmail.com', 'Health and happiness', 595964565, 'Opposite SDA Gbanjil Road Hse No 19', NULL, 'mauplus@gmail.com', 'Kalpohin Lowcost 30A');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `departmentconsumption`
+--
+-- Creation: Oct 16, 2023 at 01:38 AM
+--
+
+CREATE TABLE `departmentconsumption` (
+  `id` int(50) NOT NULL,
+  `quantity` int(50) NOT NULL,
+  `stockid` int(50) NOT NULL,
+  `departmentid` int(50) NOT NULL,
+  `batchnumber` varchar(50) DEFAULT NULL,
+  `createdOn` datetime(6) NOT NULL DEFAULT current_timestamp(6),
+  `brand` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `departmentconsumption`:
+--
+
+--
+-- Dumping data for table `departmentconsumption`
+--
+
+INSERT INTO `departmentconsumption` (`id`, `quantity`, `stockid`, `departmentid`, `batchnumber`, `createdOn`, `brand`) VALUES
+(1, 20, 1, 5, NULL, '2023-10-17 14:51:17.826577', 'villa'),
+(2, 100, 2, 5, NULL, '2023-10-17 14:51:22.212813', 'lobba'),
+(3, 70, 8, 5, '6766', '2023-10-17 14:51:26.098505', 'litmus'),
+(4, 980, 1, 4, 'gerald', '2023-10-28 11:46:11.986890', 'lobba'),
+(5, 3800, 2, 4, '5666', '2023-10-28 11:46:16.337547', 'johnson'),
+(6, 1000, 8, 4, '6766', '2023-10-28 11:46:27.031306', 'litmus');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `departmentconsumptionhx`
+--
+-- Creation: Oct 16, 2023 at 04:30 AM
+--
+
+CREATE TABLE `departmentconsumptionhx` (
+  `comsumeid` int(255) NOT NULL,
+  `department` int(50) NOT NULL,
+  `stockid` int(50) NOT NULL,
+  `batchnumber` varchar(50) DEFAULT NULL,
+  `brand` varchar(50) DEFAULT NULL,
+  `debit` int(50) NOT NULL,
+  `credit` int(50) NOT NULL,
+  `date` date NOT NULL DEFAULT current_timestamp(),
+  `time` time(6) NOT NULL DEFAULT current_timestamp(),
+  `employeeid` int(10) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `departmentconsumptionhx`:
+--
+
+--
+-- Dumping data for table `departmentconsumptionhx`
+--
+
+INSERT INTO `departmentconsumptionhx` (`comsumeid`, `department`, `stockid`, `batchnumber`, `brand`, `debit`, `credit`, `date`, `time`, `employeeid`) VALUES
+(1, 5, 8, '6766', 'litmus', 200, 300, '2023-10-17', '14:55:22.000000', 3),
+(2, 5, 8, '6766', 'litmus', 0, 400000, '2023-10-17', '15:21:53.000000', 3),
+(3, 5, 8, '6766', 'litmus', 4000, 0, '2023-10-17', '19:39:57.000000', 3),
+(4, 5, 8, '6766', 'litmus', 396400, 0, '2023-10-18', '03:49:31.000000', 3),
+(5, 5, 8, '6766', 'litmus', 30, 0, '2023-10-24', '04:27:26.000000', 3),
+(6, 4, 2, '5666', 'johnson', 200, 0, '2023-10-29', '15:45:27.000000', 3),
+(7, 4, 1, 'gerald', 'lobba', 20, 0, '2023-10-29', '15:45:52.000000', 3);
+
+--
+-- Triggers `departmentconsumptionhx`
+--
+DELIMITER $$
+CREATE TRIGGER `updateDepartmentMainStocks` AFTER INSERT ON `departmentconsumptionhx` FOR EACH ROW BEGIN
+UPDATE departmentstocks SET quantityAvailable = quantityAvailable - NEW.debit WHERE deptid = NEW.department AND stockid = NEW.stockid;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `departmentrequisitionhx`
+--
+-- Creation: Oct 17, 2023 at 11:21 AM
 --
 
 CREATE TABLE `departmentrequisitionhx` (
@@ -440,20 +721,98 @@ CREATE TABLE `departmentrequisitionhx` (
   `issue_message` text DEFAULT NULL,
   `departmentReceived` int(10) DEFAULT 0,
   `store_supplied` int(10) DEFAULT 0,
-  `quantityReceived` int(20) DEFAULT 0
+  `quantityReceived` int(20) DEFAULT 0,
+  `batchnumber` varchar(50) DEFAULT NULL,
+  `brand` varchar(50) DEFAULT NULL,
+  `requestingemployee` int(20) NOT NULL,
+  `receivingemployee` int(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `departmentrequisitionhx`:
+--
 
 --
 -- Dumping data for table `departmentrequisitionhx`
 --
 
-INSERT INTO `departmentrequisitionhx` (`id`, `departmentid`, `stockid`, `quantity_requested`, `quantity_approved`, `comsumptionunit`, `status`, `date`, `requisitionid`, `issue_message`, `departmentReceived`, `store_supplied`, `quantityReceived`) VALUES
-(1, 5, 1, 404, NULL, 'g', 'pending', '2023-09-24', '226f5d6f-5f60-4a9e-9f91-28bf58f16cb9', NULL, 0, 0, 0);
+INSERT INTO `departmentrequisitionhx` (`id`, `departmentid`, `stockid`, `quantity_requested`, `quantity_approved`, `comsumptionunit`, `status`, `date`, `requisitionid`, `issue_message`, `departmentReceived`, `store_supplied`, `quantityReceived`, `batchnumber`, `brand`, `requestingemployee`, `receivingemployee`) VALUES
+(1, 5, 1, 1000, 20, 'g', 'received', '2023-10-17', '2411edce-17e8-4d54-b8bc-69d9bde4ea09', NULL, 1, 1, 20, NULL, 'villa', 3, 3),
+(2, 5, 2, 1000, 100, 'l', 'received', '2023-10-17', '75bf445e-2b8e-4d0e-8c13-540cc389feae', NULL, 1, 1, 100, NULL, 'lobba', 3, 3),
+(3, 5, 8, 1000, 400, 'ml', 'received', '2023-10-17', 'a8d2efd2-e0ae-460e-a978-57d59099a969', NULL, 1, 1, 400, '6766', 'litmus', 3, 3),
+(4, 5, 8, 200, 300, 'ml', 'received', '2023-10-17', 'b06b7914-19e2-43d2-80f8-47d3a5076588', NULL, 1, 1, 300, '6766', 'litmus', 3, 3),
+(5, 5, 8, 400000, 400000, 'ml', 'received', '2023-10-17', '7694c263-a47f-48fb-882c-706134695ba9', NULL, 1, 1, 400000, '6766', 'litmus', 3, 3),
+(6, 4, 1, 1000, 1000, 'g', 'received', '2023-10-26', 'a198c0e5-55bb-4afa-b168-413b83feaebe', NULL, 1, 1, 1000, 'gerald', 'lobba', 3, 3),
+(7, 4, 2, 4000, 4000, 'l', 'received', '2023-10-26', 'eaa7fa5a-fb72-4ce9-b997-a9b3c200eba1', NULL, 1, 1, 4000, '5666', 'johnson', 3, 3),
+(8, 4, 8, 1000, 1000, 'ml', 'received', '2023-10-26', 'ad74dbcb-0377-4e99-83c9-0331482bb785', NULL, 1, 1, 1000, '6766', 'litmus', 3, 3),
+(9, 4, 1, 200, NULL, 'g', 'pending', '2023-10-28', '9bbd8d55-5f3e-48af-9b7a-c1ee79f33b00', NULL, 0, 0, 0, NULL, NULL, 3, 0),
+(10, 4, 2, 1000, NULL, 'l', 'pending', '2023-10-28', '39742d95-4c85-4c3a-887d-3bde8b0248f2', NULL, 0, 0, 0, NULL, NULL, 3, 0),
+(11, 4, 3, 8228, NULL, 'l', 'pending', '2023-10-28', '9fc27af7-f3e8-4b3f-96e5-b3f6c1c8c8ba', NULL, 0, 0, 0, NULL, NULL, 3, 0),
+(12, 4, 8, 1000, NULL, 'ml', 'pending', '2023-10-28', '7f80c8ef-d7f9-4119-9414-2c0b5cdd4013', NULL, 0, 0, 0, NULL, NULL, 3, 0);
+
+--
+-- Triggers `departmentrequisitionhx`
+--
+DELIMITER $$
+CREATE TRIGGER `updateMainStocks` AFTER UPDATE ON `departmentrequisitionhx` FOR EACH ROW BEGIN
+  -- Declare variables for stock count and batch availability
+  DECLARE stock_count INT;
+  DECLARE batchAvailable INT;
+
+  -- Check if the stockid exists in departmentstocks
+  SELECT COUNT(*) INTO stock_count
+  FROM departmentstocks
+  WHERE stockid = NEW.stockid AND deptid = OLD.departmentid;
+
+  -- Check if a batch is available in departmentconsumption
+  SELECT COUNT(*) INTO batchAvailable
+  FROM departmentconsumption WHERE stockid = NEW.stockid AND batchnumber = OLD.batchnumber AND departmentid = OLD.departmentid AND brand = OLD.brand;
+
+  -- If department received the item and the quantity received is greater than 0
+  IF NEW.departmentReceived = 1 AND NEW.quantityReceived > 0 THEN
+    -- Update department consumption if a batch is available
+    IF batchAvailable > 0 THEN 
+      -- Update the quantity in departmentconsumption
+      UPDATE departmentconsumption SET quantity = NEW.quantityReceived + quantity
+      WHERE stockid = NEW.stockid AND departmentid = OLD.departmentid;
+    
+      -- Update the historical record in departmentconsumptionhx
+       
+    INSERT INTO departmentconsumptionhx(department,stockid,batchnumber,brand,credit,employeeid) 
+    VALUES (OLD.departmentid,NEW.stockid,OLD.batchnumber,OLD.brand,NEW.quantityReceived,NEW.receivingemployee);
+    ELSE 
+      -- Insert a new record in departmentconsumption if no batch is available
+      INSERT INTO departmentconsumption (quantity, stockid, departmentid, batchnumber, brand) 
+      VALUES (NEW.quantityReceived, OLD.stockid, OLD.departmentid, OLD.batchnumber, OLD.brand);
+    END IF;
+
+    -- Update department main stocks if stock_count is greater than 0
+    IF stock_count > 0 THEN
+      -- Stockid exists, update the quantityAvailable in departmentstocks
+      UPDATE departmentstocks
+      SET quantityAvailable = NEW.quantityReceived + quantityAvailable
+      WHERE stockid = NEW.stockid AND deptid = OLD.departmentid;
+    ELSE
+      -- Stockid doesn't exist, insert a new record in departmentstocks
+      INSERT INTO departmentstocks (stockid, quantityAvailable, deptid, comsumptionunit)
+      VALUES (NEW.stockid, NEW.quantityReceived, OLD.departmentid, OLD.comsumptionunit);
+    END IF;
+
+    -- Update the generalstocks table
+    UPDATE generalstocks
+    SET quantity = quantity - NEW.quantityReceived
+    WHERE stockid = OLD.stockid;
+  END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `departments`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `departments` (
@@ -465,20 +824,28 @@ CREATE TABLE `departments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `departments`:
+--
+
+--
 -- Dumping data for table `departments`
 --
 
 INSERT INTO `departments` (`id`, `department`, `departmentManager`, `date`, `employeeid`) VALUES
-(1, 'serology', '', '2023-09-03 08:53:29.767465', 0),
-(2, 'hematology', '', '2023-09-03 08:53:29.842905', 0),
-(3, 'endocrinology', '', '2023-09-03 08:53:29.892959', 0),
+(1, 'serology', 'tiifu', '2023-09-03 08:53:29.767465', 2),
+(2, 'hematology', 'opoku razak', '2023-09-03 08:53:29.842905', 3),
+(3, 'endocrinology', 'opoku razak', '2023-09-03 08:53:29.892959', 3),
 (4, 'chemistry', 'Nyaaba Asana Awineyila', '2023-09-03 08:53:29.959643', 1),
-(5, 'microbiology', 'Nyaaba Asana Awineyila', '2023-09-03 08:53:30.000791', 1);
+(5, 'microbiology', 'Nyaaba Asana Awineyila', '2023-09-03 08:53:30.000791', 1),
+(6, 'ultrasound', 'Nyaaba Asana Awineyila', '2023-10-03 07:56:04.602421', 1),
+(8, 'endoscopy', 'Nyaaba Asana Awineyila', '2023-10-08 18:42:27.532698', 1);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `departmentstocks`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `departmentstocks` (
@@ -491,10 +858,28 @@ CREATE TABLE `departmentstocks` (
   `comsumptionunit` varchar(210) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `departmentstocks`:
+--
+
+--
+-- Dumping data for table `departmentstocks`
+--
+
+INSERT INTO `departmentstocks` (`id`, `deptid`, `stockid`, `quantityAvailable`, `date_added`, `dateupdated`, `comsumptionunit`) VALUES
+(1, 5, 1, 20, '2023-10-17', NULL, 'g'),
+(2, 5, 2, 100, '2023-10-17', NULL, 'l'),
+(3, 5, 8, 70, '2023-10-17', NULL, 'ml'),
+(4, 4, 1, 980, '2023-10-28', NULL, 'g'),
+(5, 4, 2, 3800, '2023-10-28', NULL, 'l'),
+(6, 4, 8, 1000, '2023-10-28', NULL, 'ml');
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `emailpreference`
+--
+-- Creation: Sep 25, 2023 at 07:46 AM
 --
 
 CREATE TABLE `emailpreference` (
@@ -509,6 +894,10 @@ CREATE TABLE `emailpreference` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `emailpreference`:
+--
+
+--
 -- Dumping data for table `emailpreference`
 --
 
@@ -519,6 +908,8 @@ INSERT INTO `emailpreference` (`id`, `registration`, `result`, `rejection`, `app
 
 --
 -- Table structure for table `fshresult`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `fshresult` (
@@ -533,16 +924,23 @@ CREATE TABLE `fshresult` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `fshresult`:
+--
+
+--
 -- Dumping data for table `fshresult`
 --
 
 INSERT INTO `fshresult` (`keyid`, `parameter`, `billingid`, `patientid`, `value`, `dateadded_on`, `updated_on`, `comment`) VALUES
-(1, 'fsh', 73, 2023854, 444, '2023-09-15 14:38:03.042504', '2023-09-15 14:38:48.000000', 'ifoweoweiofioweio');
+(1, 'fsh', 73, 2023854, 444, '2023-09-15 14:38:03.042504', '2023-09-15 14:38:48.000000', 'ifoweoweiofioweio'),
+(2, 'fsh', 101, 202382112, 444, '2023-10-05 21:23:18.827755', '0000-00-00 00:00:00.000000', 'kjfj2ef1wjj');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `fshsetup`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `fshsetup` (
@@ -554,10 +952,24 @@ CREATE TABLE `fshsetup` (
   `parameter` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `fshsetup`:
+--
+
+--
+-- Dumping data for table `fshsetup`
+--
+
+INSERT INTO `fshsetup` (`setupid`, `upper`, `lower`, `unit`, `gender`, `parameter`) VALUES
+(1, 88, 88, 'U/L', 'male', 'FSH'),
+(2, 8888, 88, 'U/L', 'female', 'FSH');
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `generalemailsettings`
+--
+-- Creation: Sep 24, 2023 at 03:46 AM
 --
 
 CREATE TABLE `generalemailsettings` (
@@ -571,10 +983,55 @@ CREATE TABLE `generalemailsettings` (
   `billingSubject` varchar(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `generalemailsettings`:
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `generalstocks`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
+
+CREATE TABLE `generalstocks` (
+  `stockid` int(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `category` int(10) NOT NULL,
+  `consumptionunit` varchar(255) NOT NULL,
+  `purchaseunit` varchar(255) NOT NULL,
+  `quantity` int(255) NOT NULL,
+  `alertlevel` int(255) NOT NULL,
+  `materialcode` varchar(255) NOT NULL,
+  `updatedOn` datetime(6) DEFAULT NULL ON UPDATE current_timestamp(6),
+  `date` datetime(6) NOT NULL DEFAULT current_timestamp(6)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `generalstocks`:
+--
+
+--
+-- Dumping data for table `generalstocks`
+--
+
+INSERT INTO `generalstocks` (`stockid`, `name`, `category`, `consumptionunit`, `purchaseunit`, `quantity`, `alertlevel`, `materialcode`, `updatedOn`, `date`) VALUES
+(1, 'edta tubes', 2, 'g', 'box', 118980, 200, 'edta', '2023-10-28 11:46:11.986890', '2023-09-23 23:38:08.758000'),
+(2, 'syringes', 1, 'l', 'ml', 51900, 100, 'KKD', '2023-10-28 11:46:16.337547', '2023-10-06 09:40:48.098000'),
+(3, 'Tiifu hamza', 1, 'l', 'others', 0, 100, 'box738', '2023-10-17 13:22:25.231229', '2023-10-06 08:50:22.972000'),
+(4, 'blood lancets', 1, 'l', 'l', 0, 100, 'mate7', '2023-10-16 16:44:17.304599', '2023-10-07 06:57:37.369000'),
+(5, 'scan gell', 4, 'bottle', 'ml', 0, 2, 'scangell', '2023-10-16 02:38:26.687927', '2023-10-13 06:54:19.573000'),
+(6, 'pricker ', 3, 'pcs', 'pcs', 0, 100, 'pricker6', '2023-10-16 16:44:17.304599', '2023-10-13 08:33:29.287851'),
+(7, 'Mildred Bag', 4, 'kg', 'kg', 0, 200, 'Mild', '2023-10-16 16:44:17.304599', '2023-10-13 08:44:29.560326'),
+(8, 'cotton', 2, 'ml', 'l', 168300, 8484, 'jdjdj', '2023-10-28 11:46:27.031306', '2023-10-13 09:53:21.830583');
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `glycated_haemoglobin`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `glycated_haemoglobin` (
@@ -591,10 +1048,16 @@ CREATE TABLE `glycated_haemoglobin` (
   `TIME` time(6) NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `glycated_haemoglobin`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `haemoglobinelectrophoresis`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `haemoglobinelectrophoresis` (
@@ -605,6 +1068,10 @@ CREATE TABLE `haemoglobinelectrophoresis` (
   `SETUPID` int(255) NOT NULL,
   `DATEADDED` datetime(6) NOT NULL DEFAULT current_timestamp(6)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `haemoglobinelectrophoresis`:
+--
 
 --
 -- Dumping data for table `haemoglobinelectrophoresis`
@@ -623,6 +1090,8 @@ INSERT INTO `haemoglobinelectrophoresis` (`PARAMETER`, `UNIT`, `UPPER`, `LOWER`,
 --
 -- Table structure for table `hepatitisbresult`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `hepatitisbresult` (
   `ID` int(100) NOT NULL,
@@ -636,6 +1105,10 @@ CREATE TABLE `hepatitisbresult` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `hepatitisbresult`:
+--
+
+--
 -- Dumping data for table `hepatitisbresult`
 --
 
@@ -644,12 +1117,15 @@ INSERT INTO `hepatitisbresult` (`ID`, `BILLINGID`, `PATIENTID`, `CREATED_ON`, `T
 (2, 58, 2023854, '2023-09-05', '11:26:47.000000', 'non reactive', 2, 'kle;fioefuiqo7fyuqwjh'),
 (3, 61, 202385, '2023-09-05', '11:34:42.000000', 'non reactive', 2, 'juduqwfqwyu'),
 (4, 73, 2023854, '2023-09-15', '14:37:34.000000', 'non reactive', 2, 'kwfiwiwefiiwef'),
-(5, 66, 2023854, '2023-09-18', '13:01:32.000000', 'non reactive', 2, 'kwefkfoqioio');
+(5, 66, 2023854, '2023-09-18', '13:01:32.000000', 'non reactive', 2, 'kwefkfoqioio'),
+(6, 84, 202382111, '2023-10-03', '08:06:15.000000', 'non reactive', 2, 'kgkkgwjgjwfj');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `hepatitisb_profile`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `hepatitisb_profile` (
@@ -668,6 +1144,10 @@ CREATE TABLE `hepatitisb_profile` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `hepatitisb_profile`:
+--
+
+--
 -- Dumping data for table `hepatitisb_profile`
 --
 
@@ -675,12 +1155,15 @@ INSERT INTO `hepatitisb_profile` (`ID`, `HBsAg`, `HBsAb`, `HBeAg`, `HBeAb`, `HBc
 (1, 'non reactive', 'non reactive', 'reactive', 'reactive', 'reactive', 'wekfkwejkwekj', 5, '2023-09-04', NULL, NULL, 2023729),
 (2, 'reactive', 'reactive', 'non reactive', 'reactive', 'non reactive', 'wdkjqJFKAFUY', 36, '2023-09-04', NULL, NULL, 2023729),
 (3, 'reactive', 'reactive', 'reactive', 'reactive', 'non reactive', 'qfjkjqwfwfhjh', 62, '2023-09-06', NULL, NULL, 2023854),
-(4, 'reactive', 'non reactive', 'reactive', 'non reactive', 'reactive', 'weiogoweoiqwefoqwerio', 70, '2023-09-18', NULL, NULL, 2023854);
+(4, 'reactive', 'non reactive', 'reactive', 'non reactive', 'reactive', 'weiogoweoiqwefoqwerio', 70, '2023-09-18', NULL, NULL, 2023854),
+(5, 'reactive', 'non reactive', 'reactive', 'reactive', 'reactive', 'no rounds ', 114, '2023-10-28', NULL, NULL, 20239723);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `hepatitiscresult`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `hepatitiscresult` (
@@ -693,6 +1176,10 @@ CREATE TABLE `hepatitiscresult` (
   `SCIENTISTID` int(255) NOT NULL,
   `REMARKS` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `hepatitiscresult`:
+--
 
 --
 -- Dumping data for table `hepatitiscresult`
@@ -709,6 +1196,8 @@ INSERT INTO `hepatitiscresult` (`ID`, `BILLINGID`, `PATIENTID`, `CREATED_ON`, `T
 --
 -- Table structure for table `lhresult`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `lhresult` (
   `keyid` int(255) NOT NULL,
@@ -721,10 +1210,24 @@ CREATE TABLE `lhresult` (
   `comment` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `lhresult`:
+--
+
+--
+-- Dumping data for table `lhresult`
+--
+
+INSERT INTO `lhresult` (`keyid`, `parameter`, `billingid`, `patientid`, `value`, `dateadded_on`, `updated_on`, `comment`) VALUES
+(1, 'lh', 101, 202382112, 777, '2023-10-05 21:23:28.095631', '0000-00-00 00:00:00.000000', 'kjqshfqwjj'),
+(2, 'LH', 103, 20239720, 444, '2023-10-07 10:26:34.427341', '2023-10-07 10:38:31.000000', 'kekkqkkwkk');
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `lhsetup`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `lhsetup` (
@@ -735,6 +1238,10 @@ CREATE TABLE `lhsetup` (
   `gender` varchar(50) NOT NULL,
   `parameter` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `lhsetup`:
+--
 
 --
 -- Dumping data for table `lhsetup`
@@ -749,6 +1256,8 @@ INSERT INTO `lhsetup` (`setupid`, `upper`, `lower`, `unit`, `gender`, `parameter
 --
 -- Table structure for table `loginlogs`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `loginlogs` (
   `keyid` int(255) NOT NULL,
@@ -758,10 +1267,16 @@ CREATE TABLE `loginlogs` (
   `logoutTime` datetime(6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `loginlogs`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `malaria`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `malaria` (
@@ -776,6 +1291,10 @@ CREATE TABLE `malaria` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `malaria`:
+--
+
+--
 -- Dumping data for table `malaria`
 --
 
@@ -785,12 +1304,25 @@ INSERT INTO `malaria` (`KEY`, `PATIENTID`, `BILLINGID`, `SPECIES`, `COMMENTS`, `
 (3, 20238186, 78, 'Falciparum', 'ieieiifoqweo', 2120, '2023-09-18 10:16:54.200351', NULL),
 (4, 2023854, 71, 'Falciparum', 'iowefiwefiooqweoioi', 500, '2023-09-18 13:01:19.677786', NULL),
 (5, 202382111, 79, 'Falciparum', '<p>severe aneamia		</p>', 4949, '2023-09-21 09:54:01.460682', '2023-09-25 23:11:52.000000'),
-(6, 202382111, 80, 'Falciparum', 'uwduwifquu', 400, '2023-09-21 12:52:18.246753', NULL);
+(6, 202382111, 80, 'Falciparum', 'uwduwifquu', 400, '2023-09-21 12:52:18.246753', NULL),
+(7, 20238187, 98, 'Falciparum', 'kwkwdkkwfk', 200, '2023-10-05 10:09:29.779214', NULL),
+(8, 20238155, 109, 'ovalex', 'hwvjjvwdsjjjscjjj', 290, '2023-10-09 05:26:08.810072', NULL),
+(9, 20239723, 108, 'Falciparum', 'k2efjfyudhwefhwhfhdfhwdfhqh  hwfhhwvuwiifdfqhfdfiwdifq   ywdfqufuwd\n\n\nhwfhwdhfqtfqufuya', 8238, '2023-10-10 19:24:24.690064', NULL),
+(10, 20239723, 111, 'ovalex', 'iqsqsjaj', 88, '2023-10-17 19:34:48.441375', NULL),
+(11, 202392724, 118, 'Falciparum', 'jfjfjdjjjsj', 100, '2023-10-28 10:19:24.602066', NULL),
+(12, 20239723, 110, 'Falciparum', 'kdkwdkk', 120, '2023-10-30 13:45:29.165821', NULL),
+(13, 20239721, 112, 'Falciparum', 'kwdkwkk', 400, '2023-10-30 13:46:13.402324', NULL),
+(14, 20239723, 107, 'Falciparum', 'oiwfkwei', 120, '2023-10-30 13:46:42.028086', NULL),
+(15, 20238155, 122, 'Falciparum', 'Malaria reactive', 400, '2023-10-31 00:37:25.188668', NULL),
+(16, 202310127, 125, 'Falciparum', 'Malaria parasites seen', 200, '2023-11-04 02:28:18.924044', NULL),
+(17, 202310428, 127, 'Falciparum', 'Malaria parasites seen ', 300, '2023-11-06 16:40:47.668993', NULL);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `manager_sample_descision`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `manager_sample_descision` (
@@ -803,36 +1335,16 @@ CREATE TABLE `manager_sample_descision` (
   `testid` int(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
 --
--- Table structure for table `newstock`
+-- RELATIONSHIPS FOR TABLE `manager_sample_descision`:
 --
-
-CREATE TABLE `newstock` (
-  `stockid` int(255) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `category` int(10) NOT NULL,
-  `consumptionunit` varchar(255) NOT NULL,
-  `purchaseunit` varchar(255) NOT NULL,
-  `quantity` int(255) NOT NULL,
-  `alertlevel` int(255) NOT NULL,
-  `materialcode` varchar(255) NOT NULL,
-  `tax` int(255) NOT NULL,
-  `date` datetime(6) NOT NULL DEFAULT current_timestamp(6)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `newstock`
---
-
-INSERT INTO `newstock` (`stockid`, `name`, `category`, `consumptionunit`, `purchaseunit`, `quantity`, `alertlevel`, `materialcode`, `tax`, `date`) VALUES
-(1, 'edta tubes', 0, 'g', 'box', 3000, 200, 'edta', 1, '2023-09-24 02:38:08.758195');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `new_patients`
+--
+-- Creation: Sep 21, 2023 at 09:46 AM
 --
 
 CREATE TABLE `new_patients` (
@@ -855,6 +1367,10 @@ CREATE TABLE `new_patients` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `new_patients`:
+--
+
+--
 -- Dumping data for table `new_patients`
 --
 
@@ -866,7 +1382,18 @@ INSERT INTO `new_patients` (`ID`, `PATIENTID`, `FIRSTNAME`, `EMAIL`, `DOB`, `AGE
 (10, 20238187, 'haruna', 'harunadams474@gmail.com', '1991-11-06', 31, 'male', 'single', '0202002025', 'years', 'Nursing', '2023-09-18', 'TRUE', 'adams', 'stubborn', 'Tamale senior high school'),
 (11, 202381910, 'florence', 'florence@mail.com', '1983-11-27', 39, 'female', 'married', '0506305306', 'years', 'Teacher', '2023-09-19', 'TRUE', 'ayaaba', 'awain', 'Leonides'),
 (12, 202382111, 'nyaaba', 'xelobcoder45@gmail.com', '1995-11-06', 27, 'female', 'married', '0249434803', 'years', 'nursing', '2023-09-21', 'TRUE', 'asana', 'awineyila', 'Leonides'),
-(18, 202382112, 'natalie', 'tiifuofficial@gmail.com', '1991-11-06', 31, 'male', 'married', '0249434876', 'years', 'Nursing', '2023-09-21', 'FALSE', 'fort ', 'HKSL', 'Labhill');
+(18, 202382112, 'natalie', 'tiifuofficial@gmail.com', '1991-11-06', 31, 'male', 'married', '0249434876', '', 'Nursing', '2023-09-21', 'TRUE', 'fort ', 'HKSL', 'Labhill'),
+(19, 20239518, 'tiifu', 'hamza45@gmail.com', '1995-11-06', 27, 'male', 'single', '0595967778', 'years', 'Nursing', '2023-10-05', 'TRUE', 'hamza', 'kojo', 'Leonides'),
+(20, 20239619, 'aputunliga', 'apuntin@nyaaba.com', '1993-03-03', 30, 'female', 'married', '0543085842', 'years', 'nursinfg ', '2023-10-06', 'TRUE', 'nyaaba', 'asana', 'Bimbilla hospital'),
+(21, 20239720, 'issifu', 'issifuyussif@gmail.com', '0000-00-00', 29, 'male', 'married', '200000000', '', 'nursind', '2023-10-07', 'TRUE', 'yussif', 'john', 'leonides'),
+(22, 20239721, 'alhaji', 'hamzatiifu45props@gmail.com', '0000-00-00', 27, 'male', 'married', '0294949637', 'years', 'Malam', '2023-10-07', 'TRUE', 'salam', 'Ibrahim', 'Itikaja'),
+(23, 20239722, 'tiifu', 'tiifu@gmail.com', '1882-11-06', 140, 'female', 'married', '0595900000', 'years', 'Nursing', '2023-10-07', 'TRUE', 'hamza', 'boronson', 'leonides'),
+(24, 20239723, 'jane', 'xelobcoder@gmail.com', '1992-11-11', 30, 'other', 'married', '400000000', '', 'Nursing', '2023-10-07', 'TRUE', 'filla', 'middlename', 'Leonides'),
+(25, 202392724, 'tiifu', 'hamzatiifu45xsuccess@gmail.com', '1995-11-06', 27, 'male', 'married', '0506305307', 'years', 'software engineer', '2023-10-27', 'TRUE', 'hamza', 'boronson', 'Leonides'),
+(26, 202393125, 'nyaaba ', 'love@gmail.com', '1994-11-06', 28, 'female', 'married', '0547738388', 'years', 'house wife', '2023-10-31', 'TRUE', 'lovw', '', 'nurisnn'),
+(27, 202393126, 'nyaaba ', 'lovyyye@gmail.com', '1994-11-06', 28, 'female', 'married', '0548738388', 'years', 'house wife', '2023-10-31', 'TRUE', 'lovw', '', 'nurisnn'),
+(28, 202310127, 'tiifu', 'asaanayaaba47775@yahoo.com', '1994-07-11', 29, 'female', 'married', '0597567763', 'years', 'Nursing', '2023-11-01', 'TRUE', 'asana ', 'nyaaba', 'leonides technologies'),
+(29, 202310428, 'abrahman', 'gorleku@gmail.com', '1911-11-11', 111, 'male', 'married', '0595956456', 'years', 'retired teacher', '2023-11-04', 'TRUE', 'joseph', 'gorleku', 'none');
 
 --
 -- Triggers `new_patients`
@@ -919,122 +1446,218 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `orderreceivedaccountsummary`
+--
+-- Creation: Oct 13, 2023 at 06:05 AM
+--
+
+CREATE TABLE `orderreceivedaccountsummary` (
+  `orderTransactionid` bigint(50) DEFAULT NULL,
+  `taxAmount` int(20) DEFAULT NULL,
+  `method` varchar(20) NOT NULL DEFAULT 'absolute',
+  `debit` int(50) NOT NULL DEFAULT 0,
+  `credit` int(50) NOT NULL DEFAULT 0,
+  `insertedOn` datetime(6) NOT NULL DEFAULT current_timestamp(6),
+  `updatedOn` datetime(6) DEFAULT NULL ON UPDATE current_timestamp(6)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `orderreceivedaccountsummary`:
+--
+
+--
+-- Dumping data for table `orderreceivedaccountsummary`
+--
+
+INSERT INTO `orderreceivedaccountsummary` (`orderTransactionid`, `taxAmount`, `method`, `debit`, `credit`, `insertedOn`, `updatedOn`) VALUES
+(1697545418110, 2000, 'absolute', 12002000, 0, '2023-10-17 13:23:38.117625', '2023-10-17 13:25:16.000000'),
+(1697545818728, 5000, 'absolute', 741008, 0, '2023-10-17 13:30:18.731316', '2023-10-17 13:31:46.000000'),
+(1698490452810, NULL, 'absolute', 0, 0, '2023-10-28 11:54:12.813154', NULL),
+(1699476988728, NULL, 'absolute', 0, 0, '2023-11-08 20:56:28.737499', NULL);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `orders`
+--
+-- Creation: Oct 15, 2023 at 05:36 PM
 --
 
 CREATE TABLE `orders` (
   `productordersid` int(255) NOT NULL,
   `stockid` int(255) NOT NULL,
+  `orderTransactionid` bigint(255) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `tax` int(255) NOT NULL,
   `supplierid` int(255) NOT NULL,
   `suppliername` varchar(255) NOT NULL,
   `purchaseunit` varchar(255) NOT NULL,
   `date` datetime(6) NOT NULL DEFAULT current_timestamp(6),
   `quantity` int(255) NOT NULL,
   `received` varchar(255) DEFAULT 'FALSE',
-  `quantityReceived` int(255) DEFAULT NULL,
-  `Batchnumber` varchar(255) DEFAULT NULL,
+  `quantityReceived` int(255) DEFAULT 0,
+  `batchnumber` varchar(255) DEFAULT NULL,
   `balance` int(255) DEFAULT 0,
   `expirydate` date DEFAULT NULL,
   `receiveddate` date DEFAULT NULL,
   `status` varchar(255) DEFAULT NULL,
-  `price` int(255) DEFAULT NULL,
-  `totalamount` int(255) DEFAULT NULL,
-  `productused` varchar(50) DEFAULT 'FALSE'
+  `price` int(255) DEFAULT 0,
+  `totalamount` int(255) DEFAULT 0,
+  `productused` varchar(50) DEFAULT 'FALSE',
+  `pricing` varchar(15) NOT NULL DEFAULT 'unit',
+  `brand` varchar(70) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `orders`:
+--
+
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`productordersid`, `stockid`, `orderTransactionid`, `name`, `supplierid`, `suppliername`, `purchaseunit`, `date`, `quantity`, `received`, `quantityReceived`, `batchnumber`, `balance`, `expirydate`, `receiveddate`, `status`, `price`, `totalamount`, `productused`, `pricing`, `brand`) VALUES
+(1, 1, 1697545418110, 'edta tubes', 3, 'king joe suppliers', 'Box', '2023-10-17 13:23:38.117625', 50000, 'TRUE', 50000, '7838', 0, '2023-11-05', '2023-10-13', 'received', 20, 1000000, 'FALSE', 'unit', 'villa'),
+(2, 8, 1697545418110, 'cotton', 1, 'johnson johnson', 'Box', '2023-10-17 13:23:38.128459', 500000, 'TRUE', 500000, '6766', 0, '2023-11-05', '2023-09-28', 'received', 20, 10000000, 'FALSE', 'unit', 'litmus'),
+(3, 2, 1697545418110, 'syringes', 1, 'johnson johnson', 'g', '2023-10-17 13:23:38.128632', 50000, 'TRUE', 50000, '5666', 0, '2023-11-05', '2023-09-27', 'received', 20, 1000000, 'FALSE', 'unit', 'johnson'),
+(4, 1, 1697545818728, 'edta tubes', 1, 'johnson johnson', 'Bottle', '2023-10-17 13:30:18.731316', 70000, 'TRUE', 70000, 'gerald', 0, '2023-11-04', '2023-10-05', 'received', 10, 700000, 'FALSE', 'unit', 'lobba'),
+(5, 2, 1697545818728, 'syringes', 3, 'king joe suppliers', 'Box', '2023-10-17 13:30:18.731482', 6000, 'TRUE', 6000, 'nitmz', 0, '2023-10-28', '2023-10-13', 'received', 0, 1008, 'FALSE', 'unit', 'lobba'),
+(6, 8, 1697545818728, 'cotton', 1, 'johnson johnson', 'Box', '2023-10-17 13:30:18.731606', 70000, 'TRUE', 70000, 'nimx', 0, '2023-10-27', '2023-10-05', 'received', 1, 35000, 'FALSE', 'unit', 'lobba'),
+(7, 1, 1698490452810, 'edta tubes', 3, 'king joe suppliers', 'g', '2023-10-28 11:54:12.813154', 4000, 'FALSE', 0, NULL, 0, NULL, NULL, NULL, 0, 0, 'FALSE', 'unit', NULL),
+(8, 2, 1699476988728, 'syringes', 1, 'johnson johnson', 'kg', '2023-11-08 20:56:28.737499', 500, 'FALSE', 0, NULL, 0, NULL, NULL, NULL, 0, 0, 'FALSE', 'unit', NULL);
+
+--
+-- Triggers `orders`
+--
+DELIMITER $$
+CREATE TRIGGER `createorderTransactionSummary` AFTER INSERT ON `orders` FOR EACH ROW BEGIN
+INSERT INTO orderreceivedaccountsummary (orderTransactionid) VALUE(NEW.orderTransactionid) ON DUPLICATE KEY UPDATE orderTransactionid = NEW.orderTransactionid;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `updateGeneralStocksOnUpdate` AFTER UPDATE ON `orders` FOR EACH ROW BEGIN
+    UPDATE generalstocks
+    SET quantity= quantity + NEW.quantityReceived,updatedOn = NOW()  WHERE stockid = NEW.stockid;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `organization`
 --
+-- Creation: Nov 01, 2023 at 06:46 PM
+--
 
 CREATE TABLE `organization` (
-  `ID` int(11) NOT NULL,
-  `NAME` varchar(255) DEFAULT NULL,
-  `LOCATION` varchar(255) DEFAULT NULL,
-  `STREETNAME` varchar(255) DEFAULT NULL,
-  `MOBILENUMBER` varchar(20) DEFAULT NULL,
-  `ADDRESS` text DEFAULT NULL,
-  `WEBSITE` varchar(255) DEFAULT NULL,
-  `EMAIL` varchar(255) DEFAULT NULL,
-  `REGION` varchar(100) DEFAULT NULL,
-  `DISTRICT` varchar(100) DEFAULT NULL,
-  `GPSMAPPING` varchar(255) DEFAULT NULL,
-  `CONTACTPERSON` varchar(255) DEFAULT NULL,
-  `PAYMENTMODULE` varchar(255) DEFAULT NULL,
-  `COMMISSION` int(255) DEFAULT NULL,
-  `BANKNAME` varchar(255) DEFAULT NULL,
-  `BRANCH` varchar(255) DEFAULT NULL,
-  `ACCOUNTNAME` varchar(255) DEFAULT NULL,
-  `CONTACTEMAIL` varchar(255) DEFAULT NULL,
-  `ACCOUNTNUMBER` varchar(255) DEFAULT NULL,
-  `MOMO` int(255) DEFAULT NULL,
-  `CONTACTNUMBER` int(100) DEFAULT NULL
+  `id` int(11) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `street` varchar(255) DEFAULT NULL,
+  `mobile` int(20) DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `region` varchar(100) DEFAULT NULL,
+  `gpsmapping` varchar(255) DEFAULT NULL,
+  `website` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `organization`:
+--
 
 --
 -- Dumping data for table `organization`
 --
 
-INSERT INTO `organization` (`ID`, `NAME`, `LOCATION`, `STREETNAME`, `MOBILENUMBER`, `ADDRESS`, `WEBSITE`, `EMAIL`, `REGION`, `DISTRICT`, `GPSMAPPING`, `CONTACTPERSON`, `PAYMENTMODULE`, `COMMISSION`, `BANKNAME`, `BRANCH`, `ACCOUNTNAME`, `CONTACTEMAIL`, `ACCOUNTNUMBER`, `MOMO`, `CONTACTNUMBER`) VALUES
-(6, 'prime phoenix property limited', 'Tamale', 'Northern region ', 'Tamale', 'kalpohin lowcost ', 'www.labhill.org', 'hamzatiifu45gmail.com', 'Northern region', 'Tamale Metro', 'nS-2949-38993', 'tiifu hamza', '', 0, '', '', '', '', '', 0, 241758550),
-(7, 'prime limited', 'Tamale', 'Northern region ', '0595964565', 'kalpohin lowcost ', 'www.labhill.org', 'hamzatiifu495gmail.com', 'Northern region', 'Tamale Metro', 'nS-2949-38993', 'tiifu hamza', '', 0, '', '', '', '', '', 0, 241758550),
-(8, 'prime limited ididi', 'Tamale', 'Northern region ', '0595964565', 'kalpohin lowcost ', 'www.labhill.org', 'hamzatiifu495gmail.com', 'Northern region', 'Tamale Metro', 'nS-2949-38993', 'tiifu hamza', '', 0, '', '', '', '', '', 0, 241758550);
+INSERT INTO `organization` (`id`, `name`, `location`, `street`, `mobile`, `address`, `email`, `region`, `gpsmapping`, `website`) VALUES
+(1, 'leonides', 'tamale', 'Kalpohin Lowcost 30A', 2147483647, 'Kalpohin Lowcost 30A', 'hamzatiifu45@gmail.com', 'Northern', 'NS-9309-399', 'www.leonides.com'),
+(7, 'leonides technologies and suivellance', 'tamale', 'Kalpohin Lowcost 30A', 2147483647, 'Kalpohin Lowcost 30A', 'hamzatiifu45@gmail.com', 'Northern', NULL, 'www.leonides.com'),
+(8, 'tiifu boronson engineering and principals', 'tamale ', 'jolly friends', 241758559, 'Kalpohin Lowcost 30A', 'hamzatiifu45@gemail.com', 'Eastern', NULL, ''),
+(9, 'kabsad hospital', 'tamale', 'Kalpohin Lowcost 30A', 2147483647, 'Tamale Technical university, Wurishes', 'hamzatiifu45@gmail.com', 'Northern', NULL, '0595964565');
+
+--
+-- Triggers `organization`
+--
+DELIMITER $$
+CREATE TRIGGER `insertIntoContactNaccount` AFTER INSERT ON `organization` FOR EACH ROW BEGIN 
+INSERT INTO organizationcontactperson(organizationid) VALUE(NEW.id);
+
+INSERT INTO organizationaccountinformation (organizationid) VALUE(NEW.id);
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `organizationaccountinformation`
 --
+-- Creation: Nov 04, 2023 at 12:37 AM
+--
 
 CREATE TABLE `organizationaccountinformation` (
   `id` int(11) NOT NULL,
-  `organization_id` int(11) NOT NULL,
+  `organizationid` int(11) NOT NULL,
   `bankname` varchar(255) DEFAULT NULL,
   `branch` varchar(255) DEFAULT NULL,
   `accountname` varchar(255) DEFAULT NULL,
-  `accountnumber` varchar(255) DEFAULT NULL
+  `account` varchar(255) DEFAULT NULL,
+  `module` varchar(20) DEFAULT 'cash',
+  `momoname` varchar(100) DEFAULT NULL,
+  `momo` int(15) DEFAULT NULL,
+  `commission` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `organizationaccountinformation`:
+--
+
+--
+-- Dumping data for table `organizationaccountinformation`
+--
+
+INSERT INTO `organizationaccountinformation` (`id`, `organizationid`, `bankname`, `branch`, `accountname`, `account`, `module`, `momoname`, `momo`, `commission`) VALUES
+(1, 7, NULL, NULL, NULL, NULL, 'cash', NULL, NULL, 0),
+(2, 8, 'Access bank', 'Tamale', 'tiifu hamza', '8349493993', 'momo', 'tiifu hamqa', 241758557, 10),
+(3, 9, NULL, NULL, NULL, NULL, 'cash', NULL, NULL, 10);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `organizationcontactperson`
 --
+-- Creation: Nov 02, 2023 at 02:46 PM
+--
 
 CREATE TABLE `organizationcontactperson` (
   `id` int(11) NOT NULL,
-  `organization_id` int(11) NOT NULL,
-  `contactperson` varchar(255) DEFAULT NULL,
-  `contactemail` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `organization_basic`
---
-
-CREATE TABLE `organization_basic` (
-  `id` int(11) NOT NULL,
+  `organizationid` int(11) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
-  `location` varchar(255) DEFAULT NULL,
-  `streetname` varchar(255) DEFAULT NULL,
-  `mobilenumber` int(20) DEFAULT NULL,
-  `address` text DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
-  `region` varchar(100) DEFAULT NULL,
-  `district` varchar(100) DEFAULT NULL,
-  `gpsmapping` varchar(255) DEFAULT NULL,
-  `commission` int(255) DEFAULT NULL
+  `mobile` int(14) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `organizationcontactperson`:
+--
+
+--
+-- Dumping data for table `organizationcontactperson`
+--
+
+INSERT INTO `organizationcontactperson` (`id`, `organizationid`, `name`, `email`, `mobile`) VALUES
+(1, 7, 'tiifu hamza kojo hamza', 'hamzatiifu45@gmail.com', 2147483647),
+(2, 8, 'Tiifu Hamza', 'tiifuofficial@gmail.com', 241758550),
+(3, 9, 'nyaaba mildred', 'hamzatiifu45@gmail.com', 2147483647);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `pageaccess`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `pageaccess` (
@@ -1050,10 +1673,16 @@ CREATE TABLE `pageaccess` (
   `phelobotomy` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `pageaccess`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `patientemmergencycontactinformation`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `patientemmergencycontactinformation` (
@@ -1065,6 +1694,10 @@ CREATE TABLE `patientemmergencycontactinformation` (
   `occupation` varchar(100) DEFAULT NULL,
   `address` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `patientemmergencycontactinformation`:
+--
 
 --
 -- Dumping data for table `patientemmergencycontactinformation`
@@ -1079,12 +1712,25 @@ INSERT INTO `patientemmergencycontactinformation` (`keyid`, `patientid`, `emmerg
 (9, 20238187, NULL, NULL, NULL, NULL, NULL),
 (10, 202381910, NULL, NULL, NULL, NULL, NULL),
 (11, 202382111, NULL, NULL, NULL, NULL, NULL),
-(17, 202382112, NULL, NULL, NULL, NULL, NULL);
+(17, 202382112, NULL, NULL, NULL, NULL, NULL),
+(18, 20239518, NULL, NULL, NULL, NULL, NULL),
+(19, 20239619, NULL, NULL, NULL, NULL, NULL),
+(20, 20239720, NULL, NULL, NULL, NULL, NULL),
+(21, 20239721, NULL, NULL, NULL, NULL, NULL),
+(22, 20239722, NULL, NULL, NULL, NULL, NULL),
+(23, 20239723, NULL, NULL, NULL, NULL, NULL),
+(24, 202392724, NULL, NULL, NULL, NULL, NULL),
+(25, 202393125, NULL, NULL, NULL, NULL, NULL),
+(26, 202393126, NULL, NULL, NULL, NULL, NULL),
+(27, 202310127, NULL, NULL, NULL, NULL, NULL),
+(28, 202310428, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `patientsaddress`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `patientsaddress` (
@@ -1095,6 +1741,10 @@ CREATE TABLE `patientsaddress` (
   `gpsLocation` varchar(50) DEFAULT NULL,
   `address` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `patientsaddress`:
+--
 
 --
 -- Dumping data for table `patientsaddress`
@@ -1109,12 +1759,25 @@ INSERT INTO `patientsaddress` (`keyid`, `patientid`, `area`, `region`, `gpsLocat
 (9, 20238187, NULL, NULL, NULL, NULL),
 (10, 202381910, 'Sagni', 'northern ', 'NS-48499-84', 'sagni preparatory school'),
 (11, 202382111, NULL, NULL, NULL, NULL),
-(17, 202382112, NULL, NULL, NULL, NULL);
+(17, 202382112, 'Tamale', 'Northern ', 'NS-3848-4848', 'Kalpohin Lowcost 30A'),
+(18, 20239518, 'kalpohin', 'lowcost 30A', 'NS-3949-383', 'TAMALE'),
+(19, 20239619, 'Tamale Technical University', 'Northern region', 'NS-3849-744', 'Kalpohin lowcost 30A'),
+(20, 20239720, 'kalpohin lowcost 30A', 'Northern region ', 'NS-3748-4848', 'Tamale Area 73737'),
+(21, 20239721, NULL, NULL, NULL, NULL),
+(22, 20239722, NULL, NULL, NULL, NULL),
+(23, 20239723, NULL, NULL, NULL, NULL),
+(24, 202392724, NULL, NULL, NULL, NULL),
+(25, 202393125, NULL, NULL, NULL, NULL),
+(26, 202393126, NULL, NULL, NULL, NULL),
+(27, 202310127, NULL, NULL, NULL, NULL),
+(28, 202310428, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `patients_credentials`
+--
+-- Creation: Sep 21, 2023 at 07:33 AM
 --
 
 CREATE TABLE `patients_credentials` (
@@ -1127,6 +1790,10 @@ CREATE TABLE `patients_credentials` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `patients_credentials`:
+--
+
+--
 -- Dumping data for table `patients_credentials`
 --
 
@@ -1134,12 +1801,25 @@ INSERT INTO `patients_credentials` (`id`, `patientid`, `username`, `password`, `
 (2, 20238187, 'harunaadams', '$2b$10$TPqAW/hIh843kSvPLafwy.tGaC9VW17BMY6FgqozqSyw0WGRm5F2S', 'false', '0000-00-00 00:00:00.000000'),
 (3, 202381910, 'florenceayaaba', '$2b$10$Ejjuwfy1KnH87Adgb0dGxu41ENmNnyuW8xPOinmAfWfJ6ZLUa55mW', 'true', '2023-09-21 08:55:44.667026'),
 (4, 202382111, 'nyaabaasana', '$2b$10$p3SaU4hgG0M9GIxqfBLWAerUbfe31YYyqW1h8hR9nVBhTH0v7xfKa', 'true', '2023-09-21 09:13:55.449348'),
-(10, 202382112, 'nataliefort ', 'nataliefort 202382112', 'false', '0000-00-00 00:00:00.000000');
+(10, 202382112, 'nataliefort ', 'nataliefort 202382112', 'false', '0000-00-00 00:00:00.000000'),
+(11, 20239518, 'tiifuhamza', 'tiifuhamza20239518', 'false', '0000-00-00 00:00:00.000000'),
+(12, 20239619, 'aputunliganyaaba', 'aputunliganyaaba20239619', 'false', '0000-00-00 00:00:00.000000'),
+(13, 20239720, 'issifuyussif', 'issifuyussif20239720', 'false', '0000-00-00 00:00:00.000000'),
+(14, 20239721, 'alhajisalam', 'alhajisalam20239721', 'false', '0000-00-00 00:00:00.000000'),
+(15, 20239722, 'tiifuhamza', 'tiifuhamza20239722', 'false', '0000-00-00 00:00:00.000000'),
+(16, 20239723, 'janefilla', 'janefilla20239723', 'false', '0000-00-00 00:00:00.000000'),
+(17, 202392724, 'tiifuhamza', 'tiifuhamza202392724', 'false', '0000-00-00 00:00:00.000000'),
+(18, 202393125, 'nyaaba lovw', 'nyaaba lovw202393125', 'false', '0000-00-00 00:00:00.000000'),
+(19, 202393126, 'nyaaba lovw', 'nyaaba lovw202393126', 'false', '0000-00-00 00:00:00.000000'),
+(20, 202310127, 'tiifuasana ', 'tiifuasana 202310127', 'false', '0000-00-00 00:00:00.000000'),
+(21, 202310428, 'abrahmanjoseph', 'abrahmanjoseph202310428', 'false', '0000-00-00 00:00:00.000000');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `patients_settings`
+--
+-- Creation: Sep 22, 2023 at 02:06 AM
 --
 
 CREATE TABLE `patients_settings` (
@@ -1155,22 +1835,43 @@ CREATE TABLE `patients_settings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `patients_settings`:
+--
+
+--
 -- Dumping data for table `patients_settings`
 --
 
 INSERT INTO `patients_settings` (`id`, `patientid`, `mode`, `method`, `notify`, `_read`, `read_on`, `authenticated`, `authenticationMode`) VALUES
-(1, 202382112, 'WhatApp', 'email', 0, NULL, NULL, 0, NULL);
+(1, 202382112, 'WhatApp', 'email', 0, NULL, NULL, 0, NULL),
+(2, 20239518, 'WhatApp', 'sms', 0, NULL, NULL, 0, NULL),
+(3, 20239619, 'hardcopy', 'None', 1, NULL, NULL, 0, NULL),
+(4, 20239720, 'hardcopy', 'None', 1, NULL, NULL, 0, NULL),
+(5, 20239721, 'hardcopy', 'None', 1, NULL, NULL, 0, NULL),
+(6, 20239722, 'hardcopy', 'None', 1, NULL, NULL, 0, NULL),
+(7, 20239723, 'hardcopy', 'None', 1, NULL, NULL, 0, NULL),
+(8, 202392724, 'hardcopy', 'None', 1, NULL, NULL, 0, NULL),
+(9, 202393125, 'hardcopy', 'None', 1, NULL, NULL, 0, NULL),
+(10, 202393126, 'hardcopy', 'None', 1, NULL, NULL, 0, NULL),
+(11, 202310127, 'hardcopy', 'None', 1, NULL, NULL, 0, NULL),
+(12, 202310428, 'hardcopy', 'None', 1, NULL, NULL, 0, NULL);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `paymentmodes`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `paymentmodes` (
   `KeyID` int(255) NOT NULL,
   `PaymentMode` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `paymentmodes`:
+--
 
 --
 -- Dumping data for table `paymentmodes`
@@ -1188,6 +1889,8 @@ INSERT INTO `paymentmodes` (`KeyID`, `PaymentMode`) VALUES
 --
 -- Table structure for table `performing_test`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `performing_test` (
   `ID` int(255) NOT NULL,
@@ -1202,6 +1905,10 @@ CREATE TABLE `performing_test` (
   `INSPECTION` int(11) NOT NULL,
   `INSPECTION_TIME` time(6) NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `performing_test`:
+--
 
 --
 -- Dumping data for table `performing_test`
@@ -1233,7 +1940,52 @@ INSERT INTO `performing_test` (`ID`, `PATIENTID`, `DATE`, `URGENCY`, `BILLINGID`
 (80, '202382111', '2023-09-21', 'moderate', 80, 4, NULL, '12:47:50.000000', '', 0, '12:47:50.000000'),
 (81, '2023854', '2023-09-21', 'moderate', 81, 4, NULL, '12:51:17.000000', '', 0, '12:51:17.000000'),
 (82, '202382112', '2023-09-21', 'emmergency', 82, 4, NULL, '17:48:52.000000', '', 0, '17:48:52.000000'),
-(83, '202382111', '2023-09-23', 'moderate', 83, 4, NULL, '07:50:17.000000', '', 0, '07:50:17.000000');
+(83, '202382111', '2023-09-23', 'moderate', 83, 4, NULL, '07:50:17.000000', '', 0, '07:50:17.000000'),
+(84, '202382111', '2023-10-03', 'moderate', 84, 2, NULL, '07:47:53.000000', '', 0, '07:47:53.000000'),
+(85, '20238186', '2023-10-03', 'moderate', 85, 4, NULL, '09:48:00.000000', '', 0, '09:48:00.000000'),
+(86, '20238186', '2023-10-03', 'none', 86, 4, NULL, '09:48:45.000000', '', 0, '09:48:45.000000'),
+(87, '202381910', '2023-10-03', 'emmergency', 87, 4, NULL, '09:49:35.000000', '', 0, '09:49:35.000000'),
+(88, '202382111', '2023-10-03', 'none', 88, 4, NULL, '09:50:07.000000', '', 0, '09:50:07.000000'),
+(89, '202381910', '2023-10-01', 'emmergency', 89, 4, NULL, '10:56:38.000000', '', 0, '10:56:38.000000'),
+(90, '202382112', '2023-10-04', 'none', 90, 4, NULL, '12:28:28.000000', '', 0, '12:28:28.000000'),
+(91, '202382112', '2023-10-04', 'none', 91, 4, NULL, '12:28:28.000000', '', 0, '12:28:28.000000'),
+(92, '202381910', '2023-10-01', 'emmergency', 92, 4, NULL, '12:41:55.000000', '', 0, '12:41:55.000000'),
+(93, '202382112', '2023-10-04', 'emmergency', 93, 4, NULL, '21:45:30.000000', '', 0, '21:45:30.000000'),
+(94, '2023854', '2023-10-04', 'moderate', 94, 4, NULL, '22:00:12.000000', '', 0, '22:00:12.000000'),
+(95, '202382111', '2023-10-05', 'none', 95, 4, NULL, '08:05:47.000000', '', 0, '08:05:47.000000'),
+(96, '20238187', '2023-10-05', 'moderate', 96, 4, NULL, '08:10:15.000000', '', 0, '08:10:15.000000'),
+(97, '20238155', '2023-10-05', 'none', 97, 4, NULL, '09:14:37.000000', '', 0, '09:14:37.000000'),
+(98, '20238187', '2023-10-02', 'moderate', 98, 4, NULL, '10:08:46.000000', '', 0, '10:08:46.000000'),
+(99, '20238187', '2023-10-05', 'emmergency', 99, 4, NULL, '20:22:54.000000', '', 0, '20:22:54.000000'),
+(100, '202381910', '2023-10-05', 'moderate', 100, 4, NULL, '21:10:35.000000', '', 0, '21:10:35.000000'),
+(101, '202382112', '2023-10-05', 'moderate', 101, 5, NULL, '21:22:21.000000', '', 0, '21:22:21.000000'),
+(102, '202382112', '2023-10-06', 'moderate', 102, 4, NULL, '03:19:49.000000', '', 0, '03:19:49.000000'),
+(103, '20239720', '2023-10-07', 'moderate', 103, 4, NULL, '10:03:18.000000', '', 0, '10:03:18.000000'),
+(104, '20239721', '2023-10-07', 'none', 104, 4, NULL, '10:52:09.000000', '', 0, '10:52:09.000000'),
+(105, '20239722', '2023-10-07', 'moderate', 105, 4, NULL, '18:51:14.000000', '', 0, '18:51:14.000000'),
+(106, '20239723', '2023-10-07', 'moderate', 106, 4, NULL, '19:32:06.000000', '', 0, '19:32:06.000000'),
+(107, '20239723', '2023-10-07', 'none', 107, 4, NULL, '19:52:20.000000', '', 0, '19:52:20.000000'),
+(108, '20239723', '2023-10-08', 'none', 108, 2, NULL, '04:16:21.000000', '', 0, '04:16:21.000000'),
+(109, '20238155', '2023-10-09', 'none', 109, 4, NULL, '05:25:10.000000', '', 0, '05:25:10.000000'),
+(110, '20239723', '2023-10-10', 'emmergency', 110, 2, NULL, '05:46:08.000000', '', 0, '05:46:08.000000'),
+(111, '20239723', '2023-10-11', 'none', 111, 10, NULL, '09:33:02.000000', '', 0, '09:33:02.000000'),
+(112, '20239721', '2023-10-17', 'moderate', 112, 2, NULL, '11:21:25.000000', '', 0, '11:21:25.000000'),
+(113, '20239723', '2023-10-17', 'moderate', 113, 4, NULL, '19:51:16.000000', '', 0, '19:51:16.000000'),
+(114, '20239723', '2023-10-17', 'none', 114, 10, NULL, '19:59:20.000000', '', 0, '19:59:20.000000'),
+(115, '20239619', '2023-10-26', 'emmergency', 115, 10, NULL, '07:51:17.000000', '', 0, '07:51:17.000000'),
+(116, '20239723', '2023-10-27', 'none', 116, 10, NULL, '04:54:17.000000', '', 0, '04:54:17.000000'),
+(117, '20239723', '2023-10-27', 'none', 117, 10, NULL, '04:54:17.000000', '', 0, '04:54:17.000000'),
+(118, '202392724', '2023-10-28', 'none', 118, 10, NULL, '10:17:04.000000', '', 0, '10:17:04.000000'),
+(119, '20239723', '2023-10-28', 'none', 119, 10, NULL, '10:48:04.000000', '', 0, '10:48:04.000000'),
+(120, '202392724', '2023-10-29', 'none', 120, 4, NULL, '14:29:30.000000', '', 0, '14:29:30.000000'),
+(121, '202392724', '2023-10-31', 'none', 121, 10, NULL, '00:25:47.000000', '', 0, '00:25:47.000000'),
+(122, '20238155', '2023-10-31', 'moderate', 122, 9, NULL, '00:35:31.000000', '', 0, '00:35:31.000000'),
+(123, '202393126', '2023-11-01', 'none', 123, 10, NULL, '00:49:57.000000', '', 0, '00:49:57.000000'),
+(124, '202393126', '2023-11-03', 'moderate', 124, 10, NULL, '00:14:27.000000', '', 0, '00:14:27.000000'),
+(125, '202310127', '2023-11-04', 'none', 125, 1, NULL, '01:53:57.000000', '', 0, '01:53:57.000000'),
+(127, '202310428', '2023-11-06', 'none', 127, 10, NULL, '13:17:24.000000', '', 0, '13:17:24.000000'),
+(128, '202310428', '2023-11-06', 'none', 128, 10, NULL, '16:08:24.000000', '', 0, '16:08:24.000000'),
+(129, '202310428', '2023-11-08', 'none', 129, 10, NULL, '20:53:30.000000', '', 0, '20:53:30.000000');
 
 --
 -- Triggers `performing_test`
@@ -1248,7 +2000,70 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `psaresult`
+--
+-- Creation: Oct 07, 2023 at 09:33 AM
+--
+
+CREATE TABLE `psaresult` (
+  `keyid` int(255) NOT NULL,
+  `parameter` varchar(50) NOT NULL,
+  `billingid` int(20) NOT NULL,
+  `patientid` bigint(255) NOT NULL,
+  `value` int(100) NOT NULL,
+  `dateadded_on` datetime(6) NOT NULL DEFAULT current_timestamp(6),
+  `updated_on` datetime(6) NOT NULL,
+  `comment` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `psaresult`:
+--
+
+--
+-- Dumping data for table `psaresult`
+--
+
+INSERT INTO `psaresult` (`keyid`, `parameter`, `billingid`, `patientid`, `value`, `dateadded_on`, `updated_on`, `comment`) VALUES
+(1, 'PSA', 103, 20239720, 8848, '2023-10-07 10:45:06.656859', '0000-00-00 00:00:00.000000', 'jfjwfjjj'),
+(2, 'PSA', 107, 20239723, 55, '2023-10-10 19:23:38.720847', '0000-00-00 00:00:00.000000', 'kekkwdkvhvjjsdvkakvajvkdvwdjks  hwjhasdjkvavadkva   \njfjwjvdvjjwdfs kxskvkkvhjwdvjsjkvajkjkajk\n\n'),
+(3, 'PSA', 122, 20238155, 10, '2023-10-31 00:37:08.725457', '0000-00-00 00:00:00.000000', 'PSA high');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `psasetup`
+--
+-- Creation: Oct 07, 2023 at 09:35 AM
+--
+
+CREATE TABLE `psasetup` (
+  `setupid` int(255) NOT NULL,
+  `upper` int(10) NOT NULL,
+  `lower` int(10) NOT NULL,
+  `unit` varchar(20) NOT NULL,
+  `gender` varchar(50) NOT NULL,
+  `parameter` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `psasetup`:
+--
+
+--
+-- Dumping data for table `psasetup`
+--
+
+INSERT INTO `psasetup` (`setupid`, `upper`, `lower`, `unit`, `gender`, `parameter`) VALUES
+(1, 200, 100, 'U/L', 'male', '  PSA'),
+(2, 200, 100, 'U/L', 'female', 'PSA');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `result_aids`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `result_aids` (
@@ -1261,10 +2076,16 @@ CREATE TABLE `result_aids` (
   `comments` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `result_aids`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `result_beta_hcg`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `result_beta_hcg` (
@@ -1278,10 +2099,16 @@ CREATE TABLE `result_beta_hcg` (
   `COMMENTS` varchar(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `result_beta_hcg`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `result_cardiac_enzymes`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `result_cardiac_enzymes` (
@@ -1293,6 +2120,10 @@ CREATE TABLE `result_cardiac_enzymes` (
   `UPDATED_ON` datetime(6) NOT NULL DEFAULT current_timestamp(6),
   `PATIENTID` bigint(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `result_cardiac_enzymes`:
+--
 
 --
 -- Dumping data for table `result_cardiac_enzymes`
@@ -1322,12 +2153,26 @@ INSERT INTO `result_cardiac_enzymes` (`LIVERID`, `PARAMETER`, `BILLINGID`, `VALU
 (21, 'lactate dehydrogenase (LDH)', 60, 55, '2023-09-05 11:34:13.012162', '2023-09-05 11:34:13.012162', 202385),
 (22, 'creatinine kinase (CK)', 74, 444, '2023-09-15 14:41:14.449552', '2023-09-15 14:41:14.449552', 2023854),
 (23, 'aspartate transaminase(AST)', 74, 444, '2023-09-15 14:41:14.449552', '2023-09-15 14:41:14.449552', 2023854),
-(24, 'lactate dehydrogenase (LDH)', 74, 444, '2023-09-15 14:41:14.449552', '2023-09-15 14:41:14.449552', 2023854);
+(24, 'lactate dehydrogenase (LDH)', 74, 444, '2023-09-15 14:41:14.449552', '2023-09-15 14:41:14.449552', 2023854),
+(25, 'creatinine kinase (CK)', 84, 100, '2023-10-03 09:14:21.644768', '2023-10-03 09:14:21.644768', 202382111),
+(26, 'aspartate transaminase(AST)', 84, 100, '2023-10-03 09:14:21.644768', '2023-10-03 09:14:21.644768', 202382111),
+(27, 'lactate dehydrogenase (LDH)', 84, 100, '2023-10-03 09:14:21.644768', '2023-10-03 09:14:21.644768', 202382111),
+(28, 'creatinine kinase (CK)', 102, 82, '2023-10-06 12:23:02.086329', '2023-10-06 12:23:02.086329', 202382112),
+(29, 'aspartate transaminase(AST)', 102, 993, '2023-10-06 12:23:02.086329', '2023-10-06 12:23:02.086329', 202382112),
+(30, 'lactate dehydrogenase (LDH)', 102, 939, '2023-10-06 12:23:02.086329', '2023-10-06 12:23:02.086329', 202382112),
+(31, 'creatinine kinase (CK)', 87, 55, '2023-10-07 17:33:17.538269', '2023-10-07 17:33:17.538269', 202381910),
+(32, 'aspartate transaminase(AST)', 87, 55, '2023-10-07 17:33:17.538269', '2023-10-07 17:33:17.538269', 202381910),
+(33, 'lactate dehydrogenase (LDH)', 87, 55, '2023-10-07 17:33:17.538269', '2023-10-07 17:33:17.538269', 202381910),
+(34, 'creatinine kinase (CK)', 107, 100, '2023-10-30 13:46:32.148551', '2023-10-30 13:46:32.148551', 20239723),
+(35, 'aspartate transaminase(AST)', 107, 100, '2023-10-30 13:46:32.148551', '2023-10-30 13:46:32.148551', 20239723),
+(36, 'lactate dehydrogenase (LDH)', 107, 100, '2023-10-30 13:46:32.148551', '2023-10-30 13:46:32.148551', 20239723);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `result_comments`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `result_comments` (
@@ -1336,6 +2181,10 @@ CREATE TABLE `result_comments` (
   `billingid` int(50) NOT NULL,
   `comments` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `result_comments`:
+--
 
 --
 -- Dumping data for table `result_comments`
@@ -1366,12 +2215,20 @@ INSERT INTO `result_comments` (`keyid`, `testid`, `billingid`, `comments`) VALUE
 (22, 4, 69, 'jfjfjqfhqfgw'),
 (23, 4, 66, 'kefoqwoioqwo\nkwiirfiw\n\n\nuefuiqrui'),
 (24, 4, 70, 'ieriowefiowfioefo\noweoffopofofofws\n;wkfwlfl2flqfkqe\n\nk2eqkgwf\'olq\'l'),
-(25, 22, 79, 'ugoiegiefkwfj');
+(25, 22, 79, 'ugoiegiefkwfj'),
+(26, 5, 84, 'JFJWW\n\nFARHan is here to stay and have a good time so that things can be better for him'),
+(27, 5, 102, '99292929'),
+(28, 5, 87, '2k2fwdjhjh'),
+(29, 11, 112, 'oego2eo1o'),
+(30, 5, 107, 'jjjjj'),
+(31, 10, 128, 'jddjj');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `result_esr`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `result_esr` (
@@ -1385,6 +2242,10 @@ CREATE TABLE `result_esr` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `result_esr`:
+--
+
+--
 -- Dumping data for table `result_esr`
 --
 
@@ -1395,6 +2256,8 @@ INSERT INTO `result_esr` (`keyid`, `value`, `comments`, `billingid`, `patientid`
 
 --
 -- Table structure for table `result_fasting_blood_sugar`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `result_fasting_blood_sugar` (
@@ -1408,10 +2271,16 @@ CREATE TABLE `result_fasting_blood_sugar` (
   `comments` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `result_fasting_blood_sugar`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `result_function_full_blood_count`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `result_function_full_blood_count` (
@@ -1424,6 +2293,10 @@ CREATE TABLE `result_function_full_blood_count` (
   `VALUE` int(20) NOT NULL,
   `PATIENTID` bigint(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `result_function_full_blood_count`:
+--
 
 --
 -- Dumping data for table `result_function_full_blood_count`
@@ -1458,6 +2331,8 @@ INSERT INTO `result_function_full_blood_count` (`KEYID`, `PARAMETER`, `BILLINGID
 --
 -- Table structure for table `result_function_liver`
 --
+-- Creation: Sep 04, 2023 at 04:15 AM
+--
 
 CREATE TABLE `result_function_liver` (
   `liverid` int(255) NOT NULL,
@@ -1469,6 +2344,10 @@ CREATE TABLE `result_function_liver` (
   `value` int(255) NOT NULL,
   `patientid` bigint(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `result_function_liver`:
+--
 
 --
 -- Dumping data for table `result_function_liver`
@@ -1488,12 +2367,21 @@ INSERT INTO `result_function_liver` (`liverid`, `parameter`, `billingid`, `unit`
 (11, 'ast', 45, 'mg/dl', '2023-09-04 16:03:37.930716', NULL, 94994, 202384),
 (12, 'alt', 45, 'mg/dl', '2023-09-04 16:03:37.930716', NULL, 9499, 202384),
 (13, 'bun', 45, 'mg/dl', '2023-09-04 16:03:37.930716', NULL, 9393, 202384),
-(14, 'creatinine', 45, 'mg/dl', '2023-09-04 16:03:37.930716', NULL, 9439, 202384);
+(14, 'creatinine', 45, 'mg/dl', '2023-09-04 16:03:37.930716', NULL, 9439, 202384),
+(15, 'albumin', 128, 'mg/dl', '2023-11-06 16:41:14.229962', NULL, 30, 202310428),
+(16, 'total protein', 128, 'mg/dl', '2023-11-06 16:41:14.229962', NULL, 40, 202310428),
+(17, 'alp', 128, 'mg/dl', '2023-11-06 16:41:14.229962', NULL, 30, 202310428),
+(18, 'ast', 128, 'mg/dl', '2023-11-06 16:41:14.229962', NULL, 30, 202310428),
+(19, 'alt', 128, 'mg/dl', '2023-11-06 16:41:14.229962', NULL, 3, 202310428),
+(20, 'bun', 128, 'mg/dl', '2023-11-06 16:41:14.229962', NULL, 3, 202310428),
+(21, 'creatinine', 128, 'mg/dl', '2023-11-06 16:41:14.229962', NULL, 839, 202310428);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `result_function_renal`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `result_function_renal` (
@@ -1506,6 +2394,10 @@ CREATE TABLE `result_function_renal` (
   `VALUE` int(20) NOT NULL,
   `PATIENTID` bigint(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `result_function_renal`:
+--
 
 --
 -- Dumping data for table `result_function_renal`
@@ -1546,12 +2438,22 @@ INSERT INTO `result_function_renal` (`KEYID`, `PARAMETER`, `BILLINGID`, `UNIT`, 
 (32, 'sodium', 62, 'mg/dl', '2023-09-06 09:56:24.875914', '2023-09-06 09:56:24.875914', 555, 2023854),
 (33, 'chloride', 62, 'mg/dl', '2023-09-06 09:56:24.875914', '2023-09-06 09:56:24.875914', 55, 2023854),
 (34, 'bicarbonate', 62, 'mg/dl', '2023-09-06 09:56:24.875914', '2023-09-06 09:56:24.875914', 55, 2023854),
-(35, 'albumin', 62, 'mg/dl', '2023-09-06 09:56:24.875914', '2023-09-06 09:56:24.875914', 5, 2023854);
+(35, 'albumin', 62, 'mg/dl', '2023-09-06 09:56:24.875914', '2023-09-06 09:56:24.875914', 5, 2023854),
+(36, 'BUN', 112, 'mg/dl', '2023-10-30 13:46:04.253241', '2023-10-30 13:46:04.253241', 88, 20239721),
+(37, 'Creatinine', 112, 'mg/dl', '2023-10-30 13:46:04.253241', '2023-10-30 13:46:04.253241', 44, 20239721),
+(38, 'potasium', 112, 'mg/dl', '2023-10-30 13:46:04.253241', '2023-10-30 13:46:04.253241', 444, 20239721),
+(39, 'sodium', 112, 'mg/dl', '2023-10-30 13:46:04.253241', '2023-10-30 13:46:04.253241', 44, 20239721),
+(40, 'chloride', 112, 'mg/dl', '2023-10-30 13:46:04.253241', '2023-10-30 13:46:04.253241', 444, 20239721),
+(41, 'bicarbonate', 112, 'mg/dl', '2023-10-30 13:46:04.253241', '2023-10-30 13:46:04.253241', 444, 20239721),
+(42, 'albumin', 112, 'mg/dl', '2023-10-30 13:46:04.253241', '2023-10-30 13:46:04.253241', 444, 20239721),
+(43, 'ahDy', 112, 'UH', '2023-10-30 13:46:04.253241', '2023-10-30 13:46:04.253241', 44, 20239721);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `result_haemoglobin_electrophoresis`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `result_haemoglobin_electrophoresis` (
@@ -1565,10 +2467,16 @@ CREATE TABLE `result_haemoglobin_electrophoresis` (
   `patientid` bigint(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `result_haemoglobin_electrophoresis`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `result_helicobacter_pylori`
+--
+-- Creation: Sep 03, 2023 at 12:32 PM
 --
 
 CREATE TABLE `result_helicobacter_pylori` (
@@ -1581,6 +2489,10 @@ CREATE TABLE `result_helicobacter_pylori` (
   `patientid` bigint(255) NOT NULL,
   `comments` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `result_helicobacter_pylori`:
+--
 
 --
 -- Dumping data for table `result_helicobacter_pylori`
@@ -1598,6 +2510,8 @@ INSERT INTO `result_helicobacter_pylori` (`keyid`, `specimen`, `result`, `billin
 --
 -- Table structure for table `result_lipid_profile`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `result_lipid_profile` (
   `keyid` int(255) NOT NULL,
@@ -1610,10 +2524,16 @@ CREATE TABLE `result_lipid_profile` (
   `patientid` bigint(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `result_lipid_profile`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `result_pregnancy_test`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `result_pregnancy_test` (
@@ -1629,17 +2549,24 @@ CREATE TABLE `result_pregnancy_test` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `result_pregnancy_test`:
+--
+
+--
 -- Dumping data for table `result_pregnancy_test`
 --
 
 INSERT INTO `result_pregnancy_test` (`KEYID`, `METHOD`, `VALUE`, `CREATED_ON`, `UPDATED_ON`, `COMMENTS`, `PATIENTID`, `BILLINGID`, `TESTID`) VALUES
 (1, 'Urine', 'positive', '2023-09-04 12:49:55.667196', '2023-09-04 12:49:55.667196', 'WJIUHfhqwfy', 2023729, 36, 14),
-(2, 'Urine', 'negative', '2023-09-05 11:33:55.911099', '2023-09-05 11:33:55.911099', 'ejfhqfhqwfhqwh', 202385, 60, 14);
+(2, 'Urine', 'negative', '2023-09-05 11:33:55.911099', '2023-09-05 11:33:55.911099', 'ejfhqfhqwfhqwh', 202385, 60, 14),
+(3, 'Urine', 'positive', '2023-10-31 00:27:20.369358', '2023-10-31 00:27:20.369358', 'Beta Hcg positive', 202392724, 121, 14);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `result_random_blood_sugar`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `result_random_blood_sugar` (
@@ -1653,10 +2580,16 @@ CREATE TABLE `result_random_blood_sugar` (
   `comments` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `result_random_blood_sugar`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `result_thyroid_functional_test`
+--
+-- Creation: Sep 04, 2023 at 09:00 AM
 --
 
 CREATE TABLE `result_thyroid_functional_test` (
@@ -1671,6 +2604,10 @@ CREATE TABLE `result_thyroid_functional_test` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `result_thyroid_functional_test`:
+--
+
+--
 -- Dumping data for table `result_thyroid_functional_test`
 --
 
@@ -1683,6 +2620,8 @@ INSERT INTO `result_thyroid_functional_test` (`keyid`, `parameter`, `billingid`,
 
 --
 -- Table structure for table `result_widal`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `result_widal` (
@@ -1699,6 +2638,10 @@ CREATE TABLE `result_widal` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `result_widal`:
+--
+
+--
 -- Dumping data for table `result_widal`
 --
 
@@ -1706,12 +2649,17 @@ INSERT INTO `result_widal` (`KEYID`, `TYPHIO`, `TYPHIH`, `PARATYPHIAH`, `PARATYP
 (1, '1/20', '1/80', '1/80', '1/20', 'gkrgllwel', '2023-09-04 05:22:06.357165', NULL, 5, 2023729),
 (2, '1/20', '1/20', '1/80', '1/80', 'wdfowfgiwufgouidqvuedgu2eoufgi', '2023-09-05 11:26:58.154081', NULL, 58, 2023854),
 (3, '1/20', '1/80', '1/20', '1/20', 'eiiuwfuweu', '2023-09-21 09:47:49.660265', NULL, 79, 202382111),
-(4, '1/80', '1/80', '1/160', '1/80', 'efuie2ui', '2023-09-21 12:52:36.129191', NULL, 81, 2023854);
+(4, '1/80', '1/80', '1/160', '1/80', 'efuie2ui', '2023-09-21 12:52:36.129191', NULL, 81, 2023854),
+(5, '1/20', '1/160', '1/80', '1/80', 'jqjjwdjfjjcjqsj', '2023-10-10 19:24:40.233861', NULL, 108, 20239723),
+(6, '1/20', '1/20', '1/80', '1/80', 'efowowefoo', '2023-10-30 13:45:17.066345', NULL, 110, 20239723),
+(7, '1/20', '1/20', '', '', 'reactive', '2023-10-31 00:37:36.950871', NULL, 122, 20238155);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `roles`
+--
+-- Creation: Sep 10, 2023 at 03:39 PM
 --
 
 CREATE TABLE `roles` (
@@ -1729,49 +2677,27 @@ CREATE TABLE `roles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `roles`:
+--
+
+--
 -- Dumping data for table `roles`
 --
 
 INSERT INTO `roles` (`EMPLOYEEID`, `USERNAME`, `ROLE`, `PASSWORD`, `DATE_CREATED`, `TIME`, `REFRESH_TOKEN`, `ACTIVATION`, `EMAIL`, `PERMISSIONS`, `UPDATED_ON`) VALUES
-(1, 'Nyaaba Asana Awineyila', 'phelobotomist', '$2b$10$fIYDDQWDBYZ3LGGU0P.aZudJ0a..SZbLg8U7rrFQV63Ec2BS.a3BS', '2023-09-03', '08:54:05.000000', NULL, 1, 'mildred@gmail.com', '{\"deletev\":true,\"role\":\"phelobotomist\",\"registerv\":false,\"pageAccess\":{\"registration\":true,\"inventory\":false,\"activation\":false,\"suppliers\":true,\"operations\":true,\"approvals\":true,\"settings\":true,\"payments\":false,\"billing\":true,\"phelobotomy\":true,\"samples\":false,\"organization\":false,\"clinician\":false,\"appointment\":true}}', '0000-00-00 00:00:00.000000'),
-(2, 'tiifu', 'admin', '$2b$10$VQAUNbjKwGiv99NZa.iQpeK7M6FKXrkVwmuyTONpaRTSmJocyAMUO', '2023-09-06', '10:24:18.000000', NULL, 1, 'tiifu@gmail.com', '{}', '0000-00-00 00:00:00.000000'),
-(3, 'opoku razak', 'phelobotomist', '$2b$10$HhqI0CFm29/PUEiRUv0tne9CHlW/VDmFtIGT5VAsNFwuR6Y1v7JbW', '2023-09-10', '14:29:06.000000', NULL, 1, 'raak@gmail.com', '{\"registerClient\":true,\"deleteClient\":true,\"editClient\":true,\"printResult\":true,\"activateClient\":true,\"viewClient\":true,\"enterResult\":true,\"viewResult\":true,\"deleteResult\":true,\"pageAccess\":{\"registration\":true,\"inventory\":true,\"activation\":true,\"suppliers\":true,\"operations\":true,\"approvals\":true,\"settings\":true,\"payments\":true,\"billing\":true,\"phelobotomy\":true,\"samples\":true,\"organization\":true,\"clinician\":true,\"appointment\":true}}', '0000-00-00 00:00:00.000000');
-
---
--- Triggers `roles`
---
-DELIMITER $$
-CREATE TRIGGER `autoPermissionLogging` AFTER INSERT ON `roles` FOR EACH ROW BEGIN
-  IF NEW.ROLE = 'SCIENTIST' THEN
-    INSERT INTO scientistpermission (EMPLOYEEID)
-    VALUES (NEW.EMPLOYEEID);
-  ELSEIF NEW.ROLE = 'CUSTOMER SERVICE REPRESENTATIVE' THEN
-    INSERT INTO customerrepresentativepermission (EMPLOYEEID)
-    VALUES (NEW.EMPLOYEEID);
-  ELSE
-    INSERT INTO adminmanagerpermission (EMPLOYEEID)
-    VALUES (NEW.EMPLOYEEID);
-  END IF;
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `deleteautoLogging` AFTER DELETE ON `roles` FOR EACH ROW BEGIN
-  IF OLD.ROLE = 'customer service representative' THEN
-    DELETE FROM customerrepresentativepermission WHERE EMPLOYEEID = OLD.EMPLOYEEID;
-  ELSEIF OLD.ROLE = 'scientist' THEN
-    DELETE FROM scientistpermission WHERE EMPLOYEEID = OLD.EMPLOYEEID;
-  ELSE
-    DELETE FROM adminmanagerpermission WHERE EMPLOYEEID = OLD.EMPLOYEEID;
-  END IF;
-END
-$$
-DELIMITER ;
+(1, 'Nyaaba Asana Awineyila', 'phelobotomist', '$2b$10$F.klTJZBHH6eBf0PsjZwA.mFY8ciMrYSKnoJeEZaQsceh6/G7YWde', '2023-09-03', '08:54:05.000000', NULL, 1, 'mildred@gmail.com', '{\"deletev\":false,\"role\":\"phelobotomist\",\"registerv\":false,\"pageAccess\":{\"registration\":false,\"inventory\":false,\"activation\":false,\"suppliers\":false,\"operations\":false,\"approvals\":false,\"settings\":false,\"payments\":false,\"billing\":false,\"phelobotomy\":true,\"samples\":false,\"organization\":false,\"clinician\":false,\"appointment\":false}}', '0000-00-00 00:00:00.000000'),
+(2, 'Tiifu Hamza Boronson', 'admin', '$2b$10$VQAUNbjKwGiv99NZa.iQpeK7M6FKXrkVwmuyTONpaRTSmJocyAMUO', '2023-09-06', '10:24:18.000000', NULL, 1, 'tiifu@gmail.com', '{}', '0000-00-00 00:00:00.000000'),
+(3, 'tiifu hamza', 'admin', '$2b$10$M3oXcg3BPJUPK6uFxq0cvuVffwlp/yjjwEhZ7bUtWq6Dl9qgHXgpm', '2023-09-10', '14:29:06.000000', NULL, 1, 'hamzatiifu45@gmail.com', '{\"registerClient\":true,\"deleteClient\":true,\"editClient\":true,\"printResult\":true,\"activateClient\":true,\"viewClient\":true,\"enterResult\":true,\"viewResult\":true,\"deleteResult\":true,\"pageAccess\":{\"registration\":true,\"inventory\":true,\"activation\":true,\"suppliers\":true,\"operations\":true,\"approvals\":true,\"settings\":true,\"payments\":true,\"billing\":true,\"phelobotomy\":true,\"samples\":true,\"organization\":true,\"clinician\":true,\"appointment\":true}}', '0000-00-00 00:00:00.000000'),
+(26, 'shefik tiifu', 'customer service representative', '$2b$10$sXTNsHAATjbcER/KJGgAnOn1xRfhUWO/aUBhS5GSlhtIOv6J3VCn6', '2023-10-28', '03:46:52.000000', NULL, 1, 'shefiktiifu@yahoo.com', '{\"registerClient\":true,\"deleteClient\":false,\"editClient\":true,\"printResult\":false,\"activateClient\":true,\"viewClient\":true,\"enterResult\":false,\"viewResult\":false,\"deleteResult\":false,\"pageAccess\":{\"registration\":true,\"inventory\":false,\"activation\":true,\"suppliers\":false,\"operations\":false,\"approvals\":false,\"settings\":false,\"payments\":false,\"billing\":false,\"phelobotomy\":false,\"samples\":false,\"organization\":true,\"clinician\":true,\"appointment\":false}}', '2023-10-28 03:46:52.628656'),
+(27, 'abu hajia sheheda', 'scientist', '$2b$10$AwtvrsW7AmD.7f1mui7yne.LrIepeCLI1JmKCxoR/kLGssamtnsWW', '2023-10-28', '04:06:27.000000', NULL, 1, 'hajiasheheda@yahoo.com', '{}', '2023-10-28 04:06:27.665669'),
+(28, 'tiifu hak', 'sonographer', '$2b$10$nsd0KxWtMDafszAKigxh1OV1hK8kKbwxXg5n3t2GuN3nYjlIrWfdu', '2023-10-28', '04:53:39.000000', NULL, 1, 'haktiifu@yahoo.com', '{}', '2023-10-28 04:53:39.218409');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `samplestatus`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `samplestatus` (
@@ -1784,66 +2710,72 @@ CREATE TABLE `samplestatus` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='this keep a log of samples accepted or declined';
 
 --
+-- RELATIONSHIPS FOR TABLE `samplestatus`:
+--
+
+--
 -- Dumping data for table `samplestatus`
 --
 
 INSERT INTO `samplestatus` (`keyid`, `date`, `message`, `testid`, `billingid`, `approvalstatus`) VALUES
-(34, '2023-09-05 11:24:11.671994', NULL, 3, 58, 1),
-(35, '2023-09-05 11:24:11.715702', NULL, 6, 58, 1),
-(36, '2023-09-05 11:24:11.738722', NULL, 11, 58, 1),
-(37, '2023-09-05 11:25:17.923364', NULL, 27, 59, 1),
-(38, '2023-09-05 11:25:17.964509', NULL, 33, 59, 1),
-(39, '2023-09-05 11:32:20.051124', NULL, 5, 60, 1),
-(40, '2023-09-05 11:32:20.140457', NULL, 13, 60, 1),
-(41, '2023-09-05 11:32:20.190402', NULL, 14, 60, 1),
-(42, '2023-09-05 11:32:40.316921', NULL, 6, 61, 1),
-(43, '2023-09-05 11:32:40.349386', NULL, 8, 61, 1),
-(44, '2023-09-06 09:55:19.043329', NULL, 4, 62, 1),
-(45, '2023-09-06 09:55:19.176252', NULL, 7, 62, 1),
-(46, '2023-09-06 09:55:19.201231', NULL, 11, 62, 1),
-(47, '2023-09-06 10:19:02.358731', NULL, 1, 63, 1),
-(48, '2023-09-06 10:19:02.391082', NULL, 15, 63, 1),
-(49, '2023-09-11 07:52:14.615653', NULL, 5, 64, 1),
-(50, '2023-09-11 07:53:01.982509', NULL, 4, 65, 1),
-(51, '2023-09-11 08:00:57.547517', NULL, 1, 65, 1),
-(52, '2023-09-11 08:02:02.010176', NULL, 10, 64, 1),
-(53, '2023-09-11 08:07:34.936789', NULL, 4, 66, 1),
-(54, '2023-09-12 04:09:16.763764', NULL, 6, 66, 1),
-(55, '2023-09-12 04:58:32.212322', NULL, 4, 67, 1),
-(56, '2023-09-12 08:51:18.498920', NULL, 2, 68, 1),
-(57, '2023-09-12 20:44:09.509797', NULL, 4, 69, 1),
-(58, '2023-09-12 20:51:52.228428', NULL, 4, 70, 1),
-(59, '2023-09-12 20:51:52.241610', NULL, 7, 70, 1),
-(60, '2023-09-12 23:35:01.953908', NULL, 1, 71, 1),
-(61, '2023-09-13 00:08:07.207447', NULL, 5, 72, 1),
-(62, '2023-09-13 01:49:24.622243', NULL, 4, 73, 1),
-(63, '2023-09-13 01:49:24.670989', NULL, 6, 73, 1),
-(64, '2023-09-13 01:49:24.704641', NULL, 20, 73, 1),
-(65, '2023-09-13 01:49:24.748687', NULL, 32, 73, 1),
-(66, '2023-09-13 06:12:29.871937', NULL, 5, 74, 1),
-(67, '2023-09-16 20:55:24.449541', NULL, 7, 74, 1),
-(68, '2023-09-17 10:36:55.699751', NULL, 34, 75, 1),
-(69, '2023-09-17 10:36:55.760750', NULL, 5, 75, 1),
-(70, '2023-09-17 10:36:55.774464', NULL, 8, 75, 1),
-(71, '2023-09-18 09:37:48.259118', NULL, 19, 76, 1),
-(72, '2023-09-18 09:59:19.216906', NULL, 5, 77, 1),
-(73, '2023-09-18 10:15:37.864559', NULL, 1, 78, 1),
-(74, '2023-09-18 10:15:37.915419', NULL, 22, 78, 1),
-(75, '2023-09-18 10:15:38.017534', NULL, 27, 78, 1),
-(76, '2023-09-18 10:34:06.330859', NULL, 33, 78, 1),
-(77, '2023-09-21 09:41:11.636787', NULL, 1, 79, 1),
-(78, '2023-09-21 09:41:11.737997', NULL, 3, 79, 1),
-(79, '2023-09-21 09:41:11.758842', NULL, 22, 79, 1),
-(80, '2023-09-21 12:47:50.208230', NULL, 1, 80, 1),
-(81, '2023-09-21 12:51:17.460868', NULL, 3, 81, 1),
-(82, '2023-09-21 17:48:52.460048', 'ALTER TABLE applicationsettings ADD COLUMN emailNotification(TINYINT(2) DEFAULT NULL)', 4, 82, 0),
-(83, '2023-09-23 07:50:17.660062', NULL, 2, 83, 0),
-(84, '2023-09-23 07:50:17.801139', NULL, 6, 83, 0);
+(130, '2023-10-07 19:52:20.774130', NULL, 2, 107, 1),
+(131, '2023-10-07 19:52:20.819357', NULL, 1, 107, 1),
+(132, '2023-10-07 19:52:20.843354', NULL, 5, 107, 1),
+(133, '2023-10-07 19:52:20.901722', NULL, 56, 107, 1),
+(134, '2023-10-08 04:16:21.324566', 'sample was contaminated and the quantity serum after centrifugation is insufficient to continue with the test', 3, 108, 1),
+(135, '2023-10-08 04:16:21.362015', NULL, 1, 108, 1),
+(136, '2023-10-09 05:25:10.359360', NULL, 1, 109, 1),
+(137, '2023-10-10 05:46:08.648851', NULL, 2, 110, 1),
+(138, '2023-10-10 07:28:04.929593', NULL, 1, 110, 1),
+(139, '2023-10-10 07:28:04.956272', NULL, 3, 110, 1),
+(140, '2023-10-11 03:03:45.218795', NULL, 7, 110, 1),
+(141, '2023-10-11 09:33:02.439143', NULL, 1, 111, 1),
+(142, '2023-10-17 11:21:25.891655', NULL, 2, 112, 1),
+(143, '2023-10-17 11:21:25.927728', NULL, 1, 112, 1),
+(144, '2023-10-17 11:21:26.011030', NULL, 7, 112, 1),
+(145, '2023-10-17 11:21:26.035898', NULL, 11, 112, 1),
+(146, '2023-10-17 19:51:16.374592', NULL, 1, 113, 1),
+(147, '2023-10-17 19:59:20.248759', NULL, 4, 114, 1),
+(148, '2023-10-17 19:59:20.289848', NULL, 7, 114, 1),
+(149, '2023-10-17 19:59:20.309288', NULL, 10, 114, 1),
+(150, '2023-10-17 19:59:20.384290', NULL, 13, 114, 1),
+(151, '2023-10-17 19:59:20.434300', NULL, 15, 114, 1),
+(152, '2023-10-26 07:51:17.616091', NULL, 2, 115, 1),
+(153, '2023-10-27 04:54:17.662150', 'gell tube not available hence we wouldnt be able to collect samples', 7, 116, 1),
+(154, '2023-10-27 04:54:17.869702', NULL, 7, 117, 1),
+(155, '2023-10-28 10:17:04.898490', NULL, 1, 118, 1),
+(156, '2023-10-28 10:48:04.232677', NULL, 54, 119, 1),
+(157, '2023-10-29 14:29:30.664545', NULL, 50, 120, 1),
+(158, '2023-10-31 00:25:47.189053', NULL, 14, 121, 1),
+(159, '2023-10-31 00:35:31.108066', NULL, 56, 122, 1),
+(160, '2023-10-31 00:35:31.165326', NULL, 1, 122, 1),
+(161, '2023-10-31 00:35:31.207084', NULL, 3, 122, 1),
+(162, '2023-10-31 00:35:31.324153', NULL, 5, 122, 1),
+(163, '2023-11-01 00:49:57.466114', NULL, 50, 123, 1),
+(164, '2023-11-01 00:49:57.548540', NULL, 54, 123, 1),
+(165, '2023-11-01 00:49:57.598419', NULL, 7, 123, 1),
+(166, '2023-11-01 00:49:57.647375', NULL, 1, 123, 1),
+(167, '2023-11-01 00:49:57.664460', NULL, 5, 123, 1),
+(168, '2023-11-01 00:49:57.707473', NULL, 10, 123, 1),
+(169, '2023-11-03 00:14:27.502921', NULL, 1, 124, 1),
+(170, '2023-11-04 01:53:57.954165', NULL, 1, 125, 1),
+(171, '2023-11-04 01:53:58.068871', NULL, 20, 125, 1),
+(173, '2023-11-06 13:17:24.678683', NULL, 1, 127, 1),
+(174, '2023-11-06 16:08:24.499160', NULL, 1, 128, 1),
+(175, '2023-11-06 16:08:24.517657', NULL, 6, 128, 1),
+(176, '2023-11-06 16:08:24.531636', NULL, 8, 128, 1),
+(177, '2023-11-06 16:08:24.548706', NULL, 10, 128, 1),
+(178, '2023-11-08 20:53:31.574244', NULL, 1, 129, 0),
+(179, '2023-11-08 20:53:32.140608', NULL, 19, 129, 0),
+(180, '2023-11-08 20:53:32.424147', NULL, 13, 129, 0),
+(181, '2023-11-08 20:53:32.851455', NULL, 7, 129, 0);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `sampletype`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `sampletype` (
@@ -1851,6 +2783,10 @@ CREATE TABLE `sampletype` (
   `name` varchar(50) NOT NULL,
   `addedon` date NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `sampletype`:
+--
 
 --
 -- Dumping data for table `sampletype`
@@ -1868,6 +2804,8 @@ INSERT INTO `sampletype` (`id`, `name`, `addedon`) VALUES
 --
 -- Table structure for table `samplingtest`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `samplingtest` (
   `TestKey` int(255) NOT NULL,
@@ -1875,10 +2813,59 @@ CREATE TABLE `samplingtest` (
   `Billingid` int(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `samplingtest`:
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `scanreport`
+--
+-- Creation: Oct 04, 2023 at 01:38 PM
+--
+
+CREATE TABLE `scanreport` (
+  `id` int(255) NOT NULL,
+  `patientid` bigint(50) NOT NULL,
+  `billingid` int(50) NOT NULL,
+  `testid` int(10) NOT NULL,
+  `scan` varchar(100) NOT NULL,
+  `created_on` datetime(6) NOT NULL DEFAULT current_timestamp(6),
+  `updated_on` datetime(6) DEFAULT NULL ON UPDATE current_timestamp(6),
+  `content` longtext NOT NULL,
+  `sonographer` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `scanreport`:
+--
+
+--
+-- Dumping data for table `scanreport`
+--
+
+INSERT INTO `scanreport` (`id`, `patientid`, `billingid`, `testid`, `scan`, `created_on`, `updated_on`, `content`, `sonographer`) VALUES
+(38, 20238187, 96, 50, 'abdominal ultrasound scan', '2023-10-05 10:21:10.601925', '2023-10-05 18:23:03.799463', '<p>KWIIDI	</p><p>02/09/2022</p><p>​Director</p><p>Client Company name</p><p>Box KN 472 Kaneshie</p><p>Accra, Ghana</p><p><br></p><p><br></p><p>Dear Sir/Madam,</p><p class=\"ql-align-center\"><strong><u>MTR11 PROPOSAL CONSIDERATION</u></strong></p><p>Thank you for meeting with us to discuss your company’s software project requirements. Attached is our detailed software proposal for your consideration and approval.</p><p>At Ethnicsoft solutions, we know that creating client-oriented software takes a mixture of technical excellence and clear communication.</p><p>Our firm hires only the very best to ensure you receive both. We know that every client is unique, so we strive to deliver an individual, innovative, and affordable proposal every time, following through with an outstanding delivery that is both on time and within budget.</p><p>We have more than 12 years of development in this area and our previous clients include:</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Bestcare Clinic at Target</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Prestige Hospital at NMTC Campus</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Abdel Kadiri clinic at kukuo last stop</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Newlife hospital at Kukuo and other facilities and pharmacies to mention.</p><p>Please let us know if you would like to get in touch with these existing clients to hear their testimonials about Ethnicsoft solutions. You can learn more from our website at <a href=\"https://www.ethnicsoft.com/\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.ethnicsoft.com</a> and our Facebook page https://wwwfacebook.com/ethnicsoft, where you can view our portfolio of previous work and our highly-trained staff.</p><p>We also pride ourselves on our after-sales client-care including our guarantees, staff training, and onsite and offsite support.</p><p>Finally, we realize that you are very busy and wanted to thank you in advance for your time spent reviewing our business proposal.</p><p><br></p><p>Yours Faithfully</p><p><img src=\"//:0\"></p><p>_________________________</p><p>ILHAM AMISSAH (Managing Director)</p><p>(Ethnicsoft Solutions)</p>', 'Tiifu Hamza Kojo Boronson'),
+(39, 202382111, 95, 50, 'abdominal ultrasound scan', '2023-10-05 10:21:19.781697', '2023-10-05 18:22:51.948184', '<p>KJIW	</p><p>02/09/2022</p><p>​Director</p><p>Client Company name</p><p>Box KN 472 Kaneshie</p><p>Accra, Ghana</p><p><br></p><p><br></p><p>Dear Sir/Madam,</p><p class=\"ql-align-center\"><strong><u>MTR11 PROPOSAL CONSIDERATION</u></strong></p><p>Thank you for meeting with us to discuss your company’s software project requirements. Attached is our detailed software proposal for your consideration and approval.</p><p>At Ethnicsoft solutions, we know that creating client-oriented software takes a mixture of technical excellence and clear communication.</p><p>Our firm hires only the very best to ensure you receive both. We know that every client is unique, so we strive to deliver an individual, innovative, and affordable proposal every time, following through with an outstanding delivery that is both on time and within budget.</p><p>We have more than 12 years of development in this area and our previous clients include:</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Bestcare Clinic at Target</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Prestige Hospital at NMTC Campus</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Abdel Kadiri clinic at kukuo last stop</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Newlife hospital at Kukuo and other facilities and pharmacies to mention.</p><p>Please let us know if you would like to get in touch with these existing clients to hear their testimonials about Ethnicsoft solutions. You can learn more from our website at <a href=\"https://www.ethnicsoft.com/\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.ethnicsoft.com</a> and our Facebook page https://wwwfacebook.com/ethnicsoft, where you can view our portfolio of previous work and our highly-trained staff.</p><p>We also pride ourselves on our after-sales client-care including our guarantees, staff training, and onsite and offsite support.</p><p>Finally, we realize that you are very busy and wanted to thank you in advance for your time spent reviewing our business proposal.</p><p><br></p><p>Yours Faithfully</p><p><img src=\"//:0\"></p><p>_________________________</p><p>ILHAM AMISSAH (Managing Director)</p><p>(Ethnicsoft Solutions)</p>', 'Tiifu Hamza Kojo Boronson'),
+(40, 202382112, 93, 50, 'abdominal ultrasound scan', '2023-10-05 10:24:26.035084', '2023-10-05 18:23:11.322244', '<p>keofdufjwghdmnqscqsgtfdyjhmdnqs az	</p><p>02/09/2022</p><p>​Director</p><p>Client Company name</p><p>Box KN 472 Kaneshie</p><p>Accra, Ghana</p><p><br></p><p><br></p><p>Dear Sir/Madam,</p><p class=\"ql-align-center\"><strong><u>MTR11 PROPOSAL CONSIDERATION</u></strong></p><p>Thank you for meeting with us to discuss your company’s software project requirements. Attached is our detailed software proposal for your consideration and approval.</p><p>At Ethnicsoft solutions, we know that creating client-oriented software takes a mixture of technical excellence and clear communication.</p><p>Our firm hires only the very best to ensure you receive both. We know that every client is unique, so we strive to deliver an individual, innovative, and affordable proposal every time, following through with an outstanding delivery that is both on time and within budget.</p><p>We have more than 12 years of development in this area and our previous clients include:</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Bestcare Clinic at Target</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Prestige Hospital at NMTC Campus</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Abdel Kadiri clinic at kukuo last stop</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Newlife hospital at Kukuo and other facilities and pharmacies to mention.</p><p>Please let us know if you would like to get in touch with these existing clients to hear their testimonials about Ethnicsoft solutions. You can learn more from our website at <a href=\"https://www.ethnicsoft.com/\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.ethnicsoft.com</a> and our Facebook page https://wwwfacebook.com/ethnicsoft, where you can view our portfolio of previous work and our highly-trained staff.</p><p>We also pride ourselves on our after-sales client-care including our guarantees, staff training, and onsite and offsite support.</p><p>Finally, we realize that you are very busy and wanted to thank you in advance for your time spent reviewing our business proposal.</p><p><br></p><p>Yours Faithfully</p><p><img src=\"//:0\"></p><p>_________________________</p><p>ILHAM AMISSAH (Managing Director)</p><p>(Ethnicsoft Solutions)</p>', 'Tiifu Hamza Kojo Boronson');
+INSERT INTO `scanreport` (`id`, `patientid`, `billingid`, `testid`, `scan`, `created_on`, `updated_on`, `content`, `sonographer`) VALUES
+(41, 202381910, 92, 51, 'obstetrics scan', '2023-10-05 10:24:45.804563', '2023-10-05 19:41:24.220452', '<p><br></p><p><span style=\"color: black;\">Aggression against others should be avoided and petty annoyances will be found if you push issues, it is better to back off for now. Working hard to make things beautiful can be satisfying for you. Don\'t hurt someone you like by making a ruthless remark that you have to apologize for later. This is a very artistic time that should be utilized to the maximum.</span></p><p><span style=\"color: black;\"> Romantic relationships started at this time will prove to be most stimulating and fulfilling. Business connected to art, music, luxury items and insurance is favored.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 10 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Sextile Node</span></p><p><span style=\"color: black;\">Communications increase with harmonious results now. This is also a favorable time for public relations, advertising, short trips and contacts with the general public and it is also a very sociable time for the exchange of ideas. You have a good grasp of any situation at hand and your judgements are sound so use it for any form of the written or oral word. Joint plans and the exchange of ideas will prosper now and the same goes for any intellectual pursuits, social or business communications.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 11 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Jupiter Trine Mercury</span></p><p><span style=\"color: black;\">Education, self study and communications are favored because of your optimistic attitude and relationships can come much closer together through travel or an increase in knowledge that you both have something in common in. Your communications with your spouse or partner will flow very easily as well.</span></p><p><span style=\"color: black;\"> Incoming news is apt to be very good at this time and a lucky break can happen, just when you need it. Opportunities can present themselves for acquiring something of substantial value and should you have the need, get expert professional opinions from others now. The power of positive thinking will get you what you want, so magnetize it and make it yours.</span></p><p><span style=\"color: black;\"> Make pacts or agreements and sign documents while this transit is in effect. Credit purchases can soar now, just make sure that you can afford what you buy. Fair settlements can be attained in legal or business transactions as well. Decisions can be made to take legal action against another at this time, perhaps with great reluctance. At the very least you may be forced to seek the advice and counsel of an attorney, especially while Jupiter is retrograde.</span></p><p><span style=\"color: black;\"> Travels (short distance or long distance) and communications are favored. This is a great time for fun and fond memories. Communications with foreigner or people at a distance will be flawless and this will prove to be a favorable time for writing, teaching, lecturing, or reading. Expect everyday phone calls to increase drastically now!</span></p><p><span style=\"color: black;\"> Mail order sales and shipping is favored and a promotion of some kind may have your name on it. Increases in mail and phone calls may keep you very busy. If you have been under the weather at all, this transit can help to put the rosiness back into those cherub cheeks. Are you waiting for a car loan to be approved? This can be the time to get the financing you need, as Jupiter rules travel and transortation and Mercury also rules transportation, travel and good news.</span></p><p><span style=\"color: black;\"> Take tests or written exams now and write down ideas, you may miss out on some inspirational insights. Words come very easy to you at this time or that long awaited phone call or letter may come.</span></p><p><span style=\"color: black;\"> Talking will be highly beneficial in your relations with others. The Mind becomes very stimulated and there is great ease in grasping \"game\" ideas. This transit may expand the thinking process somewhere in the realm of exaggerations which can make for some really great tall tales.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 12 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Trine Moon</span></p><p><span style=\"color: black;\">It will be very easy for you to express your feelings to loved ones or the public now. Perhaps you need to seek favors of others in authority and the time is appropriate to do so. You will be able to grasp situations easily and your judgment will be correct so make positive use of it. An active time where your dealings with others will have a protective and compassionate feel to it. You may also receive some very pleasant news that puts a smile on your face. This period is important for all who need to have an honest talk with others. Consider buying items at this time because you will know what you need and what you don\'t.</span></p><p><span style=\"color: black;\"> You will experience an increase in phone calls from people and relations will be better. This is a great transit for bringing people together in very odd ways and life is sure to speed up to some extent.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 13 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Sextile Mercury</span></p><p><span style=\"color: black;\">That trip you may have been planning is favored now. Communications will be at their peak, so get your point across to others while you can. You will be able to understand new concepts very easily and your social intercourse with others will be pleasant.</span></p><p><span style=\"color: black;\"> You will notice a state of restlessness now so don\'t sit around, go for a walk at least. This is the time to sign contracts or conclude agreements that have been pending. Appointments made now, will be on time and prosperous. This transit also favors reading, teaching, lecturing and group activities.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 14 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Jupiter Square Venus</span></p><p><span style=\"color: black;\">Be careful when offering your opinion without having all of the available facts, we don\'t wan\'t you making any foolish mistakes. Overindulgences can cause you to put on excess body weight during this time, so be careful what you indulge in. Sweets are one way this can be accomplished, but laziness that often accompanies this placement is the best way.</span></p><p><span style=\"color: black;\"> Insincere friendships are likely during this transit. There will be difficulty in sharing with others at this time, or in finding the delight in other peoples happiness.</span></p><p><span style=\"color: black;\"> Taking chances with money is unwise and any health problems that occur now may be linked to overindulgence, so be good to your body. Stay as close to earth as possible, so you won\'t have too far to fall should circumstances go wrong.</span></p><p><span style=\"color: black;\"> Modify your extravagance, you are likely to wind up broke! Plans you have been looking forward to will NOT materialize now and items purchased now will have a high probability of being returned to the store. Faulty emotional and financial judgment is to be expected at this time, but you will do okay if you keep expectations realistic and practical.</span></p><p><span style=\"color: black;\"> A new and significant relationship can start at this time and it will be very stimulating to say the least and allow to see yourself in a new light. Caution is advised however, because your emotions are out of whack temporarily.</span></p><p><span style=\"color: black;\"> Too much partying can leave you feeling under the weather now and gambling and speculative ventures may be very appealing to you now but don\'t go overboard so you can keep your losses to a minimum.</span></p><p><span style=\"color: black;\"> Evasion of work for the pursuit of pleasures is the theme of this transit. The expanded love urge is looking for expression, so seek and you just may find what you are looking for.</span></p><p><span style=\"color: black;\"> Vacation trips will not work out as expected because there can easily be some hidden costs involved that you didn\'t count on. This is not a productive period for work, because how can you work when your heart is set on play.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 15 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Sun Sextile Node</span></p><p><span style=\"color: black;\">Social activities and artistic expression are favored. Social popularity soars. You may assume a leadership role. Intellectual contacts and meetings can take place where you can assume a role to work as a team. Relationships with the public become more important and a woman can be united with a man.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 16 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Jupiter Sextile Moon</span></p><p><span style=\"color: black;\">Luck is sure to arrive in all areas of family life and business matters as well. You will share good times with your partners where there will be an abundance of emotional enjoyment. Sports and outdoor activities and pleasant contacts with others are very favorable now and people will enjoy your increased sense of humor.</span></p><p><span style=\"color: black;\"> This transit should find you feeling pretty good, so go out and work in the garden if you can and get a little closer to old mother earth. This is a good time to pay bills and balance the check book and caring for others in some way will be at the top of your list, especially people who may call on you for assistance. You are in an excellent frame of mind now, so enjoy it, you never know when someone is going to come along and foul it up!</span></p><p><span style=\"color: black;\"> Educational and group activities can take place at your home and people who come from a great distance from you can be a source of enjoyment, entertainment, educational or religious stimulation. Your mind may wander back to times that were very happy for you and find a greater understanding and compassion for those people less fortunate than yourself.</span></p><p><span style=\"color: black;\"> Personal contacts with others will be warm and sincere and you will see only the good in people while recognizing that everyone has a bad side. This transit increases faith in the universe and supports a greater devotion to ones higher self.</span></p><p><span style=\"color: black;\"> Prosperity will be found in finances, food related fields, business, farming, real estate and domestic products and services and your emotional responses will be filled with curiosity. One danger of this transit is laziness however and this is an excellent transit for any dealings with people.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 17 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Sun Trine Moon</span></p><p><span style=\"color: black;\">The creative juices are flowing now! What can you use that creativity on? Let your mind go free and experience something perhaps for the first time.</span></p><p><span style=\"color: black;\"> Don\'t be so easygoing now that people take advantage of you unless you want them to, that is the only real danger. Ultra Mellow frames of mind exist at this time. Romance and Real Estate matters are also favored.</span></p><p><span style=\"color: black;\"> Satisfaction with working conditions allows a better product to be produced and a more traditional type of entertainment will prove more satisfying to you in your off time.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 18 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Sextile Sun</span></p><p><span style=\"color: black;\">Are you the creative type? Do you have to make a speech or get your point across to others? Now is the time to do it. The thought and speech processes are clear as a bell and ready for ringing. Business will go well if other aspects support it.</span></p><p><span style=\"color: black;\"> This aspect is notorious for letting the phone ring off the wall with activity and keeping you extremely busy. Present your new ideas to those in authority now as they will be more open to receive them.</span></p><p><span style=\"color: black;\"> Romances, social affairs, pleasure trips, studying, publishing, dieting, buying clothes and personal hygiene are all under favorable auspices now.</span></p><p><span style=\"color: black;\"> Communications are favored, so if you have to buy, sell, travel, write, teach, or do any research this is the time to do so.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 19 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Sun Sextile Mercury</span></p><p><span style=\"color: black;\">Speak your mind in any way you need to because now is the time. This is an excellent time for romantic encounters or a special trip to a place with no return address or a rendezvous of some sort.</span></p><p><span style=\"color: black;\"> The thought and speech process are clear as a bell and ready for ringing. If you have to give a speech or think out problems to a successful conclusion, this is the time. Business will go well if other aspects support it.</span></p><p><span style=\"color: black;\"> News that arrives at this time is bound to be very gratifying and if you are awaiting news involving finances, this can be a very exciting time for you. Contracts can be agreed to and settlements can come to a head now.</span></p><p><span style=\"color: black;\"> This aspect is known for letting the phone ring off the wall with activity and keeps you extremely busy. Present your new ideas to those in authority NOW! Romance, social affairs, pleasure trips, studying, publishing, dieting, buying clothes and personal hygiene are all under favorable auspices.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 20 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Venus Square Moon</span></p><p><span style=\"color: black;\">Don\'t make the mistake of smothering others with love now, instead give them enough attention to make them want more, but not so much that they gag from it. Give them breathing room! Relations with people in general will not be very successful.</span></p><p><span style=\"color: black;\"> You may very well choose to end a relationship with a woman who has been dishonest to you recently, no matter how strong the feelings are.</span></p><p><span style=\"color: black;\"> Problems can develop in business especially if your dealings are with people you are close to. You may be a little more overprotective than usual and may feel somewhat unloved. Avoid diving into the sugar syndrome (cakes, sweets and fattening foods) for satisfaction.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 21 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mars Conjunct Mars</span></p><p><span style=\"color: black;\">This transit brings with it a renewal of a 2 year cycle connected with energy, so take the initiative and start something brand new. Restless energy is activated NOW and it needs a positive outlet. Energy is rated high and physical work, sports, athletics and competition are favored. An excellent time for dealing with machinery, tools, weapons, taxes and wills.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 22 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Sextile Saturn</span></p><p><span style=\"color: black;\">Common sense is the rule to follow for success and seek advice from those people whom you respect. This is also an excellent time for seeking the advice from a doctor for the correct diagnosis. Saying the right thing can make a great impression on people now so choose your words well or rehearse them in your mind just before you speak. Shop for practical and long lasting items because this is a favorable time for it.</span></p><p><span style=\"color: black;\"> The ability to find the right words for any situation is with you now, and problem solving should be a breeze. This is also a good time for writing and research.</span></p><p><span style=\"color: black;\"> Your education may become very important to you now, or if you are so inclined, marriage plans or engagement plans can be entered into or discussed now. Household repairs should be considered during this favorable phase as well. Cooperation can be best obtained by working in cooperation with others.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 23 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Uranus Opposes Sun</span></p><p><span style=\"color: black;\">Expect circumstances to arise quite suddenly that can make you quite \"miffed\" to say the very least. Matters that were previously settled and agreed to can come back to haunt you through missed correspondence and messages. Expect any accounts with debtors \"NOT\" to be serviced as promised at this time, no matter how hard you try. It is important to have all the information available when dealing with people, remember to get the names of people that you spoke to, times and dates. Keep copies of all letters for future reference.</span></p><p><span style=\"color: black;\"> Freedom will be sought no matter what the consequences and sudden romance begin and will end just as quickly now. This is an unfavorable time for group activity. Discrepancies in legal disputes and settlements can be found and ruinous speculation has its home here. Irregular heart actions are a direct effect of this transit. This can be a time of electrical fires as well so make sure you take precautions.</span></p><p><span style=\"color: black;\"> Murphys Law is in full effect now, so if it can go wrong it will now so hold on to something and prepare for a shock! This is not a good time for private negotiations and disappointments in all areas of life are to be expected. Conflicts of interest can easily occur and a whole new set of problems can arise without any warning. The possibility for accidents is high now, and challenges, separations and divorces can occur as well.</span></p><p><span style=\"color: black;\"> You will experience difficulties in expressing yourself and it will be tough to do with your foot in your mouth. You will have the advice potential of a blind man now, you just won\'t see it, or take it.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 24 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Conjunct Neptune</span></p><p><span style=\"color: black;\">Straightforward explanations will work best now, so if you are looking for the right time to discuss something with someone, you have it now. You may find that people you idolize have feet of clay and check out those great ideas carefully before implementing them as you may find some errors to be corrected at the last minute. Bring comfort to those who need it. Patience and tolerance is needed to keep your life in harmony and you will find that dreams and dreamlike states have you a little fuzzy in the reality department for a few days.</span></p><p><span style=\"color: black;\"> The imagination and illusion levels are high so try to keep your prospective as unclear and confused thinking accompany this transit. In the romance department, recognize love for what it is. Is it Sex, love or a short lived infatuation?</span></p><p><span style=\"color: black;\"> This is a very creative time to explore something new using the intuitive self. The ability to attract love is strong and exotic travel to places real or imagined can take place now. Drink plenty of liquids for the functioning of the kidneys can be susceptible to slowdowns now. This is not the time to make decisions on any matter. If you are wondering whether you\'re in love or not, you\'re not!</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 25 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Saturn Sextile Jupiter</span></p><p><span style=\"color: black;\">This is the right time to make some realistic and practical goals for yourself, both in your time and energy. An auspicious time to add to your resources for the future as well. Your needs for a partner at this time will be for someone who is somewhat serious but has a longing for travel and an adventure or two. It will be easy to see your relationship for what it really is now.</span></p><p><span style=\"color: black;\"> Achieve success by using the middle of the road approach in all matters now and long range business and financial plans looks good. Opportunities can be gained through hard work now and expect some growth potential from business, professional or educational pursuits.</span></p><p><span style=\"color: black;\"> Foundations for heavy responsibility can be formulated now. The projects that you have been working on for so long can pay off handsomely for you now and working with people or groups of people in some sort of structured unit has the greatest chances for success. Take note that as soon as this influence ends, it will become very quiet in your life. Perhaps that is because you have been working so hard that you deserve a break. Take advantage of the quiet time after this transit and take a rest, you never know when the next \"rush\" will be coming in.</span></p><p><span style=\"color: black;\"> Harmony will be found among friends and in social situations and you will find that you possess a remarkable organizational ability with this transit and should utilize it to get your life in order.</span></p><p><span style=\"color: black;\"> Wise investments for future rewards are favorable to make now, just make sure that you are honest and above board in all dealings. Opportunities for advancement can come from older, more mature, or authority figures. A Stable time has arrived in your life.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 26 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Conjunct Uranus</span></p><p><span style=\"color: black;\">The quest for scientific knowledge can take a sudden turn in a new direction at this time and you may come up with a terrific new idea. A totally unplanned trip may arise that can take you quite by surprise. Changes are coming, trouble is, no one knows what they are! Think before you speak so you don\'t offend someone, as it will be easy to do especially now. New concepts will come to you easily now because the thought process is accelerated. You may be asked to mediate between opposing parties that are facing problems and every attempt should be made to offer assistance. This transit also favors writing, teaching and visiting others.</span></p><p><span style=\"color: black;\"> Transportation accidents and electrical problems can manifest on aircraft, in the home, automobile or at work. If you have been waiting for the best time to sign contracts and make agreements, this is the time.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 27 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Sun Sextile Sun</span></p><p><span style=\"color: black;\">If other aspects point to it, this is a good day to put $1 on your favorite lotto number or other diversion of your choice.</span></p><p><span style=\"color: black;\"> This transit characterizes harmony in social endeavors, romantic encounters, self expression, energy and vitality, educational pursuits, leadership and confidence and creativity. Investments may pay off handsomely now and pleasure and travel trips will be very enjoyable.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 28 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mars Conjunct Jupiter</span></p><p><span style=\"color: black;\">Good fortune can come to you from behind the scenes now. It is better to stand firm on ideas now, rather then let them get away. Good will towards others can work to your advantage if you play your cards right, and an active lifestyle now can bring your special projects or accomplishments to a successful conclusion. This transit favors bravery, courage, working with men, seeking employment or advancement, legal actions, wills and taxes. Business is under a very fortunate star at this time.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 29 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Square Node</span></p><p><span style=\"color: black;\">Communications and ideas are out of sync with the rest of the world at this time. Socializing may be non existent or very difficult, so it would be best to leave it until a more favorable time. This is not a favorable time for dealing with the public, media relations or advertising.</span></p><p><span style=\"color: black;\"> Problems with the nervous system can develop, so make sure to add some physical exercise to your daily routine to stay in shape. The negative side of this transit is disruptions in relationships, gossiping, being unpleasant or totally unsociable.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 30 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mars Square Saturn</span></p><p><span style=\"color: black;\">Industrial or transportation accidents are possible, so use extreme caution. Urgent situations can arise at this time, calling for urgent solutions to problems. The presence of extreme anger should be recognized and dealt with before it gets out of hand. Young and old can easily face each other in that old popular favorite, the generation gap and matters of law and order may seem to be ineffective temporarily.</span></p><p><span style=\"color: black;\"> Don\'t force any issues because you are going to be very frustrated in your attempt, so expect blockages to your plans and ideas. Don\'t panic! The universe has a sense of humor, don\'t forget to keep yours. Difficulties can easily arise with father figures, the boss or any authority figures. Legal matters and dealing with the government are unfavorable.</span></p><p><span style=\"color: black;\"> Stick only to programs that have been working for a long time and don\'t try to make any changes or rock the boat. Those of you who waste the bosses time with foolish actions or behavior will feel the mighty wrath of who is really in charge. Difficulties over financial arrangements can arise and durability testing in relationships occurs from time to time to point out the weak areas to be worked on, this is one of those times. Separations and breakups from close attachments that occur at this time will be the result of your own actions and no one can be blamed but you!</span></p><p><span style=\"color: black;\"> Health matters that can arise now are broken bones and problems with the teeth and caution should be observed with automobiles, tools, machinery and weapons no matter how small, as injuries can occur. The burdens of older people can arise now to be dealt with as well.</span></p><p><span style=\"color: rgb(86, 70, 107);\">December 31 2021</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Sextile Pluto</span></p><p><span style=\"color: black;\">This is a very Spiritually attuned time in which new insights can be gained into the world. Your thinking may be off in the edges of \"outer space\" somewhere now, so wait until you come back to earth to make decisions. Recreational clubs and activities can flourish and the potential for writing or speaking to others is very favorable now.</span></p><p><span style=\"color: black;\"> Be on the alert for positive trends in business and finance, you may be able to take advantage of it for your own personal use. The accuracy of interpretations and personal insights are profound at this time. Paying attention to details can uncover some wonderful facets of your life, so practice positive thinking for mental stability. Your perceptions are right on target, so make sure to pay attention to your own little voice. Be flexible and willing to bend when dealing with others. You possess the ability to comfort others in their time of need.</span></p><p><span style=\"color: black;\"> Courage is abundant to face the future now and any dealings and communications with other people is favored. You can act as a mediator for people experiencing conflicts, or go over your personal finances and make the necessary changes. Advise and council others if you are asked.</span></p><p><span style=\"color: rgb(86, 70, 107);\">January 01 2022</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Square Moon</span></p><p><span style=\"color: black;\">Communications will be strained during this time, so do not issue emotional ultimatums to others now, wait until another time when you are better in sync to speak \"to\" people, not \"at\" them. Start a diary or journal of daily routines to reflect on for future reference.</span></p><p><span style=\"color: black;\"> If you make appointments during this transit expect them to be missed, cancelled, late, experience traffic delays, or get lost in route. Unexpected visits by people you probably don\'t want to see can easily occur.</span></p><p><span style=\"color: black;\"> On the health front you can experience colds or digestive problems and watch what you put in your body, it can have an adverse reaction to the wrong substances. Wait until another time to consider advertising or deal with the public, as the ideas are good, but the timing is wrong.</span></p><p><span style=\"color: rgb(86, 70, 107);\">January 02 2022</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Square Mercury</span></p><p><span style=\"color: black;\">This short period will not be beneficial to try and discuss matters with others because the mind is inflexible and not willing to compromise. The Ego may be out of sync with others and verbal confrontations can be expected with heavy oppositions to your ideas. Wait for another more prosperous day to make your point to others. Concerns for brothers or sisters can cause agitation in relationships and everyday matters and insignificant problems will be of greater concern than normal.</span></p><p><span style=\"color: black;\"> Incoming news may be upsetting and the thinking process will be slow and seem to be very fuzzy. How can you grasp new concepts when your mind is not functioning at its peak? Simply reschedule that meeting for another day. A fidgety type of composure exists with the urge to go and do, but you may not be sure of just what it is you should do. Patience will be non existent at this time that can cause mistakes. Stay away from stimulants which will only upset the inner you.</span></p><p><span style=\"color: rgb(86, 70, 107);\">January 03 2022</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Sextile Venus</span></p><p><span style=\"color: black;\">This is a time of fortunate communications with others, both in person and long distance by phone. Communications are easy now and will flow quite nicely.</span></p><p><span style=\"color: black;\"> Mentally stimulating friends can be fun and this is also a good time for a sincere chat about important issues as the mind and emotions are in sync. Use this transit for making speeches to the public or attend a lecture.</span></p><p><span style=\"color: black;\"> This is an auspicious time for legal matters and marriage or studying any subject. This transit favors advertising and business communications as well as short trips. Good news might be received about a loved one that can make you very happy.</span></p><p><span style=\"color: black;\"> Consider this a quiet and peaceful time in your life. Enjoy it, you never know when the inlaws or other oddities in life will be showing up. Opportunities for social activities and romantic interludes can also come up at this time.</span></p><p><span style=\"color: rgb(86, 70, 107);\">January 04 2022</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Sun Sextile Saturn</span></p><p><span style=\"color: black;\">Long lasting commitments and responsibilities are favorable. Buy a new car for endurance and to insure a long lasting investment at this time. You may find someone from your past coming back into your life at this time as well, or find that relationships that have experienced disagreements or breakups can suddenly begin again on another level.</span></p><p><span style=\"color: black;\"> Long range goals become important and this transit favors the favorable outcome for legal matters. Art forms are likely to have a much more structured appearance. This transit favors politics, executives and business. Have faith in yourself to reach your goals. Perhaps this is the time to face the fact that you need to seek the advice or counsel of an attorney to take you out of unpleasant situations, but with great reluctance.</span></p><p><span style=\"color: rgb(86, 70, 107);\">January 05 2022</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Sun Conjunct Neptune</span></p><p><span style=\"color: black;\">Visionary projects of vast proportions or spiritual endeavors should be started now if you are so inclined. An artistic and creative time exists where you are very receptive to the world around you. Unusual experiences, dreams and visions can occur. You will be extremely sensitive to your surroundings and more spiritually attuned to the universe. Wait until you come back to earth for a clearer picture of what is happening. Spiritual help and guidance can easily arrive from any walk of life. Your \" psychic abilities \" will prove to be very accurate, but only if you listen. Unexplainable luck and good fortune that cannot be rationalized can easily arrive at this time.</span></p><p><span style=\"color: black;\"> This is a great transit for playing psychic detective and discovering secrets. What a day for a day dream! Ideal love relationships can begin at this time as well as those that are kept secret for reasons of your own.</span></p><p><span style=\"color: rgb(86, 70, 107);\">January 06 2022</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Saturn Square Sun</span></p><p><span style=\"color: black;\">A time of ENDINGS has arrived in your life. What has been limiting your growth? These are the things that will pass from existence now. Let things go as gracefully as possible and prepare for new beginnings up the road.</span></p><p><span style=\"color: black;\"> This is a time of restructuring, streamlining and reorganizing the way that you work. Frustrations and depression just prior to this transit will signal the changes that are coming. Normal procedures that are done with ease will face the inevitable frustrations called \"one step forward, and two steps back.\" Work hours will increase as you try to correct the foul ups that are bound to coincide as well. You can completely abandon the work you are doing so that you can begin again at a new level.</span></p><p><span style=\"color: black;\"> The back, heart and teeth are susceptible to illness at this time, so do all that you can to prevent it, by slowing down and taking it easy! Colds or the flu can put you to bed for a while as well now.</span></p><p><span style=\"color: black;\"> Someone in your domestic arena or friends may depart at this time, and expect delays and obstacles to confront you, but you can overcome them, just be realistic in your approach and you will be fine.</span></p><p><span style=\"color: black;\"> Take further note that because of incidents that come up now you may adopt a very rigid, hard and unforgiving attitude. That\'s okay, but remember how easy it is to crack a stone.</span></p><p><span style=\"color: black;\"> Needless to say this isn\'t a favorable time for social appointments or romance as many burdens and resentments can pop up to be dealt with. Perhaps they have been neglected for too long and it will be a way of clearing the air.</span></p><p><span style=\"color: rgb(86, 70, 107);\">January 07 2022</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Square Sun</span></p><p><span style=\"color: black;\">Communication with others is apt to be intense to say the least. That may prove to be the key to survival here. \"Say the least.\" Do not formulate or sign contracts and legal documents at this time as important points can easily be overlooked. Business meetings can be delayed at the last minute, or cancelled altogether.</span></p><p><span style=\"color: black;\"> This transit is notorious for absent-minded behavior and you may wind up somewhere you had no intention of going, with no idea how you got there. A very fuzzy mind exists that will cause you to make mistakes. You may encounter some unpleasant experiences or receive some disturbing news at this time.</span></p><p><span style=\"color: black;\"> This is a very busy and active time, but you can expect HEAVY opposition in communications with others. Avoid making any promises, forming contracts or agreements now because they are likely to fall apart as fast as they started.</span></p><p><span style=\"color: rgb(86, 70, 107);\">January 08 2022</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Mercury Sextile Mars</span></p><p><span style=\"color: black;\">People involved in sales or communications will prosper and the home, property and family interests will be activated. Mental alertness now will bring quick decisions resulting in success. Total recall of past events aids you in discovering hidden elements of yourself. This is one of those time periods that supports sticking to your guns for what you believe in.</span></p><p><span style=\"color: black;\"> Winning arguments can be easy now and any communications, study, writing and research of any kind will be fortunate. This is an excellent placement for the formulation of agreements and contracts and any military and police activities.</span></p><p><span style=\"color: black;\"> This is an excellent transit to make peace with others, not war. Teach, council and help others. Short trips related to work are emphasized and last minute invitations to sporting events can arrive. This is an excellent time to do some investigative work into something you are curious about.</span></p><p><span style=\"color: rgb(86, 70, 107);\">January 09 2022</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Sun Conjunct Uranus</span></p><p><span style=\"color: black;\">The dandiest friendships can develop most unexpectedly. Excitement is on your mind in every fiber of your being. Metaphysical, psychological, spiritual and astrological interests can light up your life. Every aspect of these days can take on an electrical, exciting and a very surprising tone. Surprising others through your actions is also possible. Explosions and fire potentials can increase now, so keep an eye out for hazards.</span></p><p><span style=\"color: black;\"> When forming a contract, don\'t forget an escape clause just in case you need to do just that. Conflicts and arguments can pop up easily in your daily environment. Your intuitive and psychic abilities will be high, so pay some attention to your \"little voice\" and expect to remember your dreams.</span></p><p><span style=\"color: rgb(86, 70, 107);\">January 10 2022</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Pluto Conjunct Uranus</span></p><p><span style=\"color: black;\">Being a rebel with a cause is a wonderful thing, unfortunately there are no \"causes\" connected with this transit, but that won\'t stop you from being a rebel anyway.</span></p><p><span style=\"color: black;\"> Changes at the very root of your self can take place now and very rapidly I might add. Evidently you had the chance to make changes before this transit came up, but you didn\'t take advantage of it so now the Universe in all of its wisdom is forcing you to do it and now there is no choice. You can easily experience some clairvoyant and psychic occurrences at this time as well.</span></p><p><span style=\"color: black;\"> Friendships can very well end now and new ones can begin just as suddenly, or if you have any interest in reincarnation or parapsychology, this would be an excellent time to look into it, as latent talents and abilities you never knew you had can emerge quite nicely at this time.</span></p><p><span style=\"color: black;\"> You can experience changes in money matters, the way that you handle your taxes and insurance needs as well during this transit.</span></p><p><span style=\"color: rgb(86, 70, 107);\">January 11 2022</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Jupiter Sextile Moon</span></p><p><span style=\"color: black;\">Luck is sure to arrive in all areas of family life and business matters as well. You will share good times with your partners where there will be an abundance of emotional enjoyment. Sports and outdoor activities and pleasant contacts with others are very favorable now and people will enjoy your increased sense of humor.</span></p><p><span style=\"color: black;\"> This transit should find you feeling pretty good, so go out and work in the garden if you can and get a little closer to old mother earth. This is a good time to pay bills and balance the check book and caring for others in some way will be at the top of your list, especially people who may call on you for assistance. You are in an excellent frame of mind now, so enjoy it, you never know when someone is going to come along and foul it up!</span></p><p><span style=\"color: black;\"> Educational and group activities can take place at your home and people who come from a great distance from you can be a source of enjoyment, entertainment, educational or religious stimulation. Your mind may wander back to times that were very happy for you and find a greater understanding and compassion for those people less fortunate than yourself.</span></p><p><span style=\"color: black;\"> Personal contacts with others will be warm and sincere and you will see only the good in people while recognizing that everyone has a bad side. This transit increases faith in the universe and supports a greater devotion to ones higher self.</span></p><p><span style=\"color: black;\"> Prosperity will be found in finances, food related fields, business, farming, real estate and domestic products and services and your emotional responses will be filled with curiosity. One danger of this transit is laziness however and this is an excellent transit for any dealings with people.</span></p><p><span style=\"color: rgb(86, 70, 107);\">January 12 2022</span></p><p><br></p><p class=\"ql-align-justify\"><span style=\"color: rgb(93, 143, 72);\">Neptune Conjunct Saturn</span></p><p><span style=\"color: black;\">There may be a need to deceive others as to your intentions or make sure that lies or non truths told to others will not be discovered in any way.</span></p><p><span style=\"color: black;\"> Adverse conditions for business and government are in full effect now and thefts can occur especially in business. A very uninspired time for the creative, musical and artistic mind and you may find that some sacrifices are not only necessary, but they are called for in your life at this time.</span></p><p><span style=\"color: black;\"> Unrealistic hopes, desires and expectations will be difficult to overcome and you can best utilize this energy to find someone that can use compassion and charity and help them. This is not a favorable time for any drinking, smoking or the taking of drugs (pharmaceutical or other) because they will have an adverse affect on the body and you may find that the lungs are equally as vulnerable. This would be an excellent time for self discipline for a specific purpose.</span></p><p><span style=\"color: black;\"> Leave the psychic and spiritual endeavors for another time as they will be out of whack now and you will also fin uncertainties in business and partnerships can occur. Neptune always offers that foggy appearance to everything and that fog will not clear until this transit does. You may also be involved in some secret investigations or secret business negotiations during this transit.</span></p><p class=\"ql-align-center\"><span style=\"color: black;\">COPYRIGHT © 2000-2021 AstroMary. All rights reserved&nbsp;</span><em style=\"color: black;\">-</em><span style=\"color: black;\">&nbsp;</span><a href=\"https://www.astromary.com/terms.php?token=D0499F5E3C3CDD9623ECC5064AEA09D6\" rel=\"noopener noreferrer\" target=\"_blank\" style=\"color: rgb(34, 34, 34);\">Terms &amp; Conditions of services - Privacy Policy</a></p><p><br></p><p><br></p><p>djuwquqjkqcqw</p><p><br></p><p><br></p><p><br></p><p>uwuqwfjk</p><p><br></p><p><br></p><p><br></p><p>fuqwfjqwfkfwqa</p><p><br></p><p><br></p><p>02/09/2022</p><p>​Director</p><p>Client Company name</p><p>Box KN 472 Kaneshie</p><p>Accra, Ghana</p><p><br></p><p><br></p><p>Dear Sir/Madam,</p><p class=\"ql-align-center\"><strong><u>MTR11 PROPOSAL CONSIDERATION</u></strong></p><p>Thank you for meeting with us to discuss your company’s software project requirements. Attached is our detailed software proposal for your consideration and approval.</p><p>At Ethnicsoft solutions, we know that creating client-oriented software takes a mixture of technical excellence and clear communication.</p><p>Our firm hires only the very best to ensure you receive both. We know that every client is unique, so we strive to deliver an individual, innovative, and affordable proposal every time, following through with an outstanding delivery that is both on time and within budget.</p><p>We have more than 12 years of development in this area and our previous clients include:</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Bestcare Clinic at Target</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Prestige Hospital at NMTC Campus</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Abdel Kadiri clinic at kukuo last stop</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Newlife hospital at Kukuo and other facilities and pharmacies to mention.</p><p>Please let us know if you would like to get in touch with these existing clients to hear their testimonials about Ethnicsoft solutions. You can learn more from our website at <a href=\"https://www.ethnicsoft.com/\" rel=\"noopener noreferrer\" target=\"_blank\">https://www.ethnicsoft.com</a> and our Facebook page https://wwwfacebook.com/ethnicsoft, where you can view our portfolio of previous work and our highly-trained staff.</p><p>We also pride ourselves on our after-sales client-care including our guarantees, staff training, and onsite and offsite support.</p><p>Finally, we realize that you are very busy and wanted to thank you in advance for your time spent reviewing our business proposal.</p><p><br></p><p>Yours Faithfully</p><p><img src=\"//:0\"></p><p>_________________________</p><p>ILHAM AMISSAH (Managing Director)</p><p>(Ethnicsoft Solutions)</p>', 'Tiifu Hamza Kojo Boronson'),
+(42, 20238187, 96, 54, 'abdominal pelvic scan', '2023-10-05 21:19:02.820427', NULL, '<p>gqhdjq,kdq	ws	hjkld/q`w	hkl;\'</p><p>;lkwjhvdcjkl;\'</p><p>	\';lskjhcvsnnk;l\'</p><p>4\';lkjhmjkl;\'</p><p>45</p><p>\';lkjhgjkl;\'</p><p>4\';jhg	</p>', 'Tiifu Hamza Kojo Boronson'),
+(43, 202382112, 102, 50, 'abdominal ultrasound scan', '2023-10-06 03:20:51.998147', NULL, '<p>lp2eoeogieklfwdifeiofwklvsdfweiofoiof2ejkfkwds</p><p><br></p><p><br></p><p><br></p><p>wpfoegpogjkwdgwd</p><p>4</p><p><br></p><p><br></p><p><br></p><p><br></p><p>dfpwpfgoepogepopoewpowe</p><p><br></p><p><br></p><p><br></p><p><br></p><p>powpfoepofpoepfowdpofw</p><p><br></p><p><br></p><p><br></p><p><br></p><p>poefpowepofeppo	</p>', 'Tiifu Hamza Kojo Boronson'),
+(44, 202382112, 102, 51, 'obstetrics scan', '2023-10-06 03:21:05.191331', NULL, '<p>ki2efi2eoroq	edpo</p><p><br></p><p><br></p><p><br></p><p><br></p><p>wpowpfwpfp[qw</p><p><br></p><p><br></p><p><br></p><p><br></p><p>plqwpfqp[</p>', 'Tiifu Hamza Kojo Boronson'),
+(45, 20239723, 110, 7, 'Hepatitis B Profile', '2023-10-17 19:35:22.141227', NULL, '<p>ooFIOIOFIQFIFOOIFIQFQIO]</p><p><br></p><p><br></p><p><br></p><p>FKWKFKWFJKSA</p><p><br></p><p><br></p><p><br></p><p>authentic?.user?.permissions</p><p><br></p><p><br></p><p><br></p><p><br></p><p>\'JDVKWD</p>', 'Tiifu Hamza Kojo Boronson');
+INSERT INTO `scanreport` (`id`, `patientid`, `billingid`, `testid`, `scan`, `created_on`, `updated_on`, `content`, `sonographer`) VALUES
+(46, 20239721, 112, 7, 'Hepatitis B Profile', '2023-10-17 19:35:35.739322', NULL, '<p>OAWFOWODO	</p><p><br></p><p><br></p><p><br></p><p>SLVDLAL</p><p><br></p><p><br></p><p><br></p><p>LKSVKASK</p>', 'Tiifu Hamza Kojo Boronson'),
+(47, 20239723, 119, 54, 'abdominal pelvic scan', '2023-10-28 11:09:26.927401', '2023-10-31 03:00:17.267597', '<p>Tiifu Hamza</p><p>Kalpohin Lowcost 30A, Tamale</p><p>Northern Region, Tamale.</p><p>21/04/2023.</p><p><br></p><p>The Registrar</p><p>Klintaps College of Health Science</p><p>DTD TDC Plot 30A, Klagon, Community 19, Tema.Accra,Klagon,</p><p>Dear Registrar,</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong><u>REQUEST TO PUT HOLD ON EDUCATION FOR A YEAR</u></strong></p><p>I hope this letter finds you well. I am writing to formally request a hold on my education for a year at Klintaps college of Health Sciences Due to financial constraints, I am unable to continue with my studies at the present time.</p><p>I have been facing significant financial challenges that have made it difficult for me to meet the financial obligations associated with my education. Despite my best efforts to secure financial assistance, I am unable to afford the tuition fees and other expenses associated with my studies at this time.</p><p>After careful consideration, I have made the difficult decision to put my education on hold for a year in order to work and save up the necessary funds to continue my studies. During this time, I plan to seek additional sources of financial support and explore various options to alleviate my financial situation.</p><p>I would like to assure you that I am committed to completing my education and I plan to return to resume my studies as soon as I am able to overcome my financial challenges.</p><p>I kindly request your assistance in facilitating the process of putting my education on hold for a year. I am also open to any advice or guidance you may have on this matter. I am grateful for your understanding and support in this situation. Please let me know of any further steps or documentation required from my end to formalize this request.</p><p>Thank you for considering my request. I am looking forward to your positive response.</p><p>Sincerely,</p><p>Tiifu Hamza</p><h1>0595964565</h1>', 'Tiifu Hamza Kojo Boronson'),
+(48, 202392724, 120, 50, 'abdominal ultrasound scan', '2023-10-29 14:45:08.713976', '2023-10-31 02:59:29.947885', '<p>Tiifu Hamza</p><p>Kalpohin Lowcost 30A, Tamale</p><p>Northern Region, Tamale.</p><p>21/04/2023.</p><p><br></p><p>The Registrar</p><p>Klintaps College of Health Science</p><p>DTD TDC Plot 30A, Klagon, Community 19, Tema.Accra,Klagon,</p><p>Dear Registrar,</p><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong><u>REQUEST TO PUT HOLD ON EDUCATION FOR A YEAR</u></strong></p><p>I hope this letter finds you well. I am writing to formally request a hold on my education for a year at Klintaps college of Health Sciences Due to financial constraints, I am unable to continue with my studies at the present time.</p><p>I have been facing significant financial challenges that have made it difficult for me to meet the financial obligations associated with my education. Despite my best efforts to secure financial assistance, I am unable to afford the tuition fees and other expenses associated with my studies at this time.</p><p>After careful consideration, I have made the difficult decision to put my education on hold for a year in order to work and save up the necessary funds to continue my studies. During this time, I plan to seek additional sources of financial support and explore various options to alleviate my financial situation.</p><p>I would like to assure you that I am committed to completing my education and I plan to return to resume my studies as soon as I am able to overcome my financial challenges.</p><p>I kindly request your assistance in facilitating the process of putting my education on hold for a year. I am also open to any advice or guidance you may have on this matter. I am grateful for your understanding and support in this situation. Please let me know of any further steps or documentation required from my end to formalize this request.</p><p>Thank you for considering my request. I am looking forward to your positive response.</p><p>Sincerely,</p><p>Tiifu Hamza</p><h1>0595964565</h1>', 'Tiifu Hamza Kojo Boronson');
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `semenanalysis`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `semenanalysis` (
@@ -1905,10 +2892,16 @@ CREATE TABLE `semenanalysis` (
   `updated_on` datetime(6) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `semenanalysis`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `setup_beta_hcg`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `setup_beta_hcg` (
@@ -1918,6 +2911,10 @@ CREATE TABLE `setup_beta_hcg` (
   `UPPER` int(255) NOT NULL,
   `UNIT` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `setup_beta_hcg`:
+--
 
 --
 -- Dumping data for table `setup_beta_hcg`
@@ -1945,6 +2942,8 @@ INSERT INTO `setup_beta_hcg` (`KEYID`, `WEEKS`, `LOWER`, `UPPER`, `UNIT`) VALUES
 --
 -- Table structure for table `setup_cardiac_enzymes`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `setup_cardiac_enzymes` (
   `SETUPID` int(255) NOT NULL,
@@ -1954,6 +2953,10 @@ CREATE TABLE `setup_cardiac_enzymes` (
   `PARAMETER` varchar(255) NOT NULL,
   `DISPLAY` varchar(10) NOT NULL DEFAULT 'TRUE'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `setup_cardiac_enzymes`:
+--
 
 --
 -- Dumping data for table `setup_cardiac_enzymes`
@@ -1969,6 +2972,8 @@ INSERT INTO `setup_cardiac_enzymes` (`SETUPID`, `UNIT`, `UPPER`, `LOWER`, `PARAM
 --
 -- Table structure for table `setup_esr`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `setup_esr` (
   `keyid` int(255) NOT NULL,
@@ -1979,10 +2984,16 @@ CREATE TABLE `setup_esr` (
   `gender` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `setup_esr`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `setup_fullcount_paramters`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `setup_fullcount_paramters` (
@@ -1993,6 +3004,10 @@ CREATE TABLE `setup_fullcount_paramters` (
   `UNIT` varchar(20) NOT NULL,
   `DATE` datetime(6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `setup_fullcount_paramters`:
+--
 
 --
 -- Dumping data for table `setup_fullcount_paramters`
@@ -2006,6 +3021,8 @@ INSERT INTO `setup_fullcount_paramters` (`ID`, `PARAMETER`, `UPPER`, `LOWER`, `U
 --
 -- Table structure for table `setup_full_blood_count_test_general`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `setup_full_blood_count_test_general` (
   `FBCID` int(255) NOT NULL,
@@ -2015,6 +3032,10 @@ CREATE TABLE `setup_full_blood_count_test_general` (
   `UPPER` int(10) NOT NULL,
   `DATE` datetime(6) NOT NULL DEFAULT current_timestamp(6)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `setup_full_blood_count_test_general`:
+--
 
 --
 -- Dumping data for table `setup_full_blood_count_test_general`
@@ -2038,6 +3059,8 @@ INSERT INTO `setup_full_blood_count_test_general` (`FBCID`, `PARAMETER`, `UNIT`,
 --
 -- Table structure for table `setup_full_blood_count_test_male`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `setup_full_blood_count_test_male` (
   `FBCID` int(255) NOT NULL,
@@ -2047,6 +3070,10 @@ CREATE TABLE `setup_full_blood_count_test_male` (
   `UPPER` float NOT NULL,
   `DATE` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `setup_full_blood_count_test_male`:
+--
 
 --
 -- Dumping data for table `setup_full_blood_count_test_male`
@@ -2081,6 +3108,8 @@ INSERT INTO `setup_full_blood_count_test_male` (`FBCID`, `PARAMETER`, `UNIT`, `L
 --
 -- Table structure for table `setup_full_count_count_female`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `setup_full_count_count_female` (
   `PARAMETER` varchar(255) NOT NULL,
@@ -2090,6 +3119,10 @@ CREATE TABLE `setup_full_count_count_female` (
   `DATE` datetime(6) NOT NULL DEFAULT current_timestamp(6),
   `keyid` int(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `setup_full_count_count_female`:
+--
 
 --
 -- Dumping data for table `setup_full_count_count_female`
@@ -2113,15 +3146,23 @@ INSERT INTO `setup_full_count_count_female` (`PARAMETER`, `UNIT`, `UPPER`, `LOWE
 --
 -- Table structure for table `setup_glycated_heamoglobin_test`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `setup_glycated_heamoglobin_test` (
   `TESTID` int(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `setup_glycated_heamoglobin_test`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `setup_lipid_profile_test`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `setup_lipid_profile_test` (
@@ -2131,6 +3172,10 @@ CREATE TABLE `setup_lipid_profile_test` (
   `LOWER` int(100) NOT NULL,
   `UNIT` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `setup_lipid_profile_test`:
+--
 
 --
 -- Dumping data for table `setup_lipid_profile_test`
@@ -2149,6 +3194,8 @@ INSERT INTO `setup_lipid_profile_test` (`SETUPID`, `PARAMETER`, `UPPER`, `LOWER`
 --
 -- Table structure for table `setup_liver_function_test`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `setup_liver_function_test` (
   `SETUPID` int(255) NOT NULL,
@@ -2158,6 +3205,10 @@ CREATE TABLE `setup_liver_function_test` (
   `DATE` datetime(6) NOT NULL DEFAULT current_timestamp(6),
   `UNIT` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `setup_liver_function_test`:
+--
 
 --
 -- Dumping data for table `setup_liver_function_test`
@@ -2177,6 +3228,8 @@ INSERT INTO `setup_liver_function_test` (`SETUPID`, `PARAMETER`, `UPPER`, `LOWER
 --
 -- Table structure for table `setup_renal_function_test`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `setup_renal_function_test` (
   `SETUPID` int(255) NOT NULL,
@@ -2185,6 +3238,10 @@ CREATE TABLE `setup_renal_function_test` (
   `LOWER` int(50) NOT NULL,
   `UNIT` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `setup_renal_function_test`:
+--
 
 --
 -- Dumping data for table `setup_renal_function_test`
@@ -2205,6 +3262,8 @@ INSERT INTO `setup_renal_function_test` (`SETUPID`, `PARAMETER`, `UPPER`, `LOWER
 --
 -- Table structure for table `setup_thyroid_test`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `setup_thyroid_test` (
   `SETUPID` int(255) NOT NULL,
@@ -2213,6 +3272,10 @@ CREATE TABLE `setup_thyroid_test` (
   `UPPER` int(255) NOT NULL,
   `LOWER` int(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `setup_thyroid_test`:
+--
 
 --
 -- Dumping data for table `setup_thyroid_test`
@@ -2228,6 +3291,8 @@ INSERT INTO `setup_thyroid_test` (`SETUPID`, `PARAMETER`, `UNIT`, `UPPER`, `LOWE
 --
 -- Table structure for table `stockcategory`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `stockcategory` (
   `id` int(255) NOT NULL,
@@ -2236,16 +3301,28 @@ CREATE TABLE `stockcategory` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `stockcategory`:
+--
+
+--
 -- Dumping data for table `stockcategory`
 --
 
 INSERT INTO `stockcategory` (`id`, `category`, `date`) VALUES
-(0, 'consumables', '2023-09-24 02:37:41.387396');
+(1, 'consumables', '2023-09-24 02:37:41.387396'),
+(2, 'disposable', '2023-10-13 07:50:18.375552'),
+(3, 'furnitures', '2023-10-13 07:51:34.740246'),
+(4, 'asserts', '2023-10-13 07:53:23.156986'),
+(5, 'medicine ', '2023-10-13 08:32:38.932631'),
+(6, 'liquids', '2023-10-16 18:10:58.236496'),
+(7, 'assets', '2023-10-27 18:30:48.349296');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `stocktransactions`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `stocktransactions` (
@@ -2259,28 +3336,78 @@ CREATE TABLE `stocktransactions` (
   `supplierid` int(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `stocktransactions`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `supplier`
 --
+-- Creation: Oct 11, 2023 at 10:51 AM
+--
 
 CREATE TABLE `supplier` (
-  `SUPPLIERID` int(255) NOT NULL,
-  `NAME` varchar(255) NOT NULL,
-  `COMMODITY` varchar(255) NOT NULL,
-  `ADDRESS` varchar(255) NOT NULL,
-  `DATE` datetime(6) NOT NULL DEFAULT current_timestamp(6),
-  `PHONENUMBER` int(255) NOT NULL,
-  `CONTACTPERSON` varchar(255) NOT NULL,
-  `REGION` varchar(255) NOT NULL,
-  `EMAIL` varchar(255) NOT NULL
+  `supplierid` int(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `address` varchar(255) NOT NULL,
+  `date` datetime(6) NOT NULL DEFAULT current_timestamp(6),
+  `phonenumber` int(255) NOT NULL,
+  `contactperson` varchar(255) NOT NULL,
+  `region` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `supplier`:
+--
+
+--
+-- Dumping data for table `supplier`
+--
+
+INSERT INTO `supplier` (`supplierid`, `name`, `address`, `date`, `phonenumber`, `contactperson`, `region`, `email`) VALUES
+(1, 'johnson johnson', 'jfkwk', '2023-10-11 10:58:08.074301', 595964565, 'tiifu shefik ', 'Upper East', 'lkk2@gmail.com'),
+(3, 'king joe suppliers', 'Kalpohin Lowcost 30A', '2023-10-11 12:50:16.958579', 595964565, 'Tiifu Hamza', 'Northern', 'hamzatiifu455jsdjs5@99gmail.com');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tax`
+--
+-- Creation: Nov 08, 2023 at 10:06 PM
+--
+
+CREATE TABLE `tax` (
+  `name` varchar(50) NOT NULL,
+  `value` int(50) NOT NULL,
+  `createdOn` datetime(6) NOT NULL DEFAULT current_timestamp(6),
+  `apply` varchar(10) NOT NULL DEFAULT 'Yes',
+  `id` int(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `tax`:
+--
+
+--
+-- Dumping data for table `tax`
+--
+
+INSERT INTO `tax` (`name`, `value`, `createdOn`, `apply`, `id`) VALUES
+('VAT', 10, '2023-11-08 22:28:29.972006', 'Yes', 1),
+('NHIS-Levy', 3, '2023-11-08 22:40:38.408875', 'Yes', 2),
+('E-levy', 4, '2023-11-08 23:49:12.457009', 'Yes', 3),
+('sanitation Tax', 2, '2023-11-08 23:52:22.074302', 'Yes', 4),
+('Energy Tax', 1, '2023-11-08 23:53:42.261833', 'Yes', 5);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `tempo`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `tempo` (
@@ -2288,10 +3415,16 @@ CREATE TABLE `tempo` (
   `TITLE` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `tempo`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `test_ascension`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `test_ascension` (
@@ -2314,61 +3447,65 @@ CREATE TABLE `test_ascension` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `test_ascension`:
+--
+
+--
 -- Dumping data for table `test_ascension`
 --
 
 INSERT INTO `test_ascension` (`id`, `testid`, `billingid`, `collection`, `processing`, `ready`, `processing_date`, `collection_date`, `ready_date`, `printedNumber`, `printedDate`, `ApprovalStatus`, `Scientist`, `ApprovedBy`, `declineMessage`, `actionPlan`) VALUES
-(34, 3, 58, 'true', 'true', 'true', '2023-09-05 11:26:50.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:26:58.000000', NULL, NULL, 1, NULL, 0, 'sample not ', 'Repeat test'),
-(35, 6, 58, 'true', 'true', 'true', '2023-09-05 11:26:20.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:26:47.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
-(36, 11, 58, 'true', 'true', 'true', '2023-09-05 11:26:20.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:26:39.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
-(37, 27, 59, 'true', 'true', 'true', '2023-09-05 11:26:15.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:27:15.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
-(38, 33, 59, 'true', 'true', 'false', '2023-09-05 11:26:16.000000', '2023-09-05 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(39, 5, 60, 'true', 'true', 'true', '2023-09-05 11:34:05.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:34:13.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
-(40, 13, 60, 'true', 'true', 'true', '2023-09-05 11:37:05.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:37:21.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
-(41, 14, 60, 'true', 'true', 'true', '2023-09-05 11:33:50.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:33:55.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
-(42, 6, 61, 'true', 'true', 'true', '2023-09-05 11:34:38.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:34:42.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
-(43, 8, 61, 'true', 'true', 'true', '2023-09-05 11:34:16.000000', '2023-09-05 00:00:00.000000', '2023-09-05 11:34:20.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
-(44, 4, 62, 'true', 'true', 'true', '2023-09-06 09:55:57.000000', '2023-09-06 00:00:00.000000', '2023-09-06 09:56:05.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
-(45, 7, 62, 'true', 'true', 'true', '2023-09-06 09:56:45.000000', '2023-09-06 00:00:00.000000', '2023-09-06 09:56:54.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
-(46, 11, 62, 'true', 'true', 'true', '2023-09-06 09:56:09.000000', '2023-09-06 00:00:00.000000', '2023-09-06 09:56:24.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
-(47, 1, 63, 'true', 'true', 'true', '2023-09-06 10:44:23.000000', '2023-09-06 00:00:00.000000', '2023-09-06 10:44:41.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(48, 15, 63, 'true', 'true', 'true', '2023-09-06 10:44:26.000000', '2023-09-06 00:00:00.000000', '2023-09-06 10:44:49.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(49, 5, 64, 'true', 'false', 'false', NULL, '2023-09-11 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(50, 4, 65, 'true', 'false', 'false', NULL, '2023-09-11 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(51, 1, 65, 'true', 'false', 'false', NULL, '2023-09-11 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(52, 10, 64, 'true', 'false', 'false', NULL, '2023-09-11 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(53, 4, 66, 'true', 'false', 'true', NULL, '2023-09-11 00:00:00.000000', '2023-09-18 13:01:47.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(54, 6, 66, 'true', 'false', 'true', NULL, '2023-09-12 00:00:00.000000', '2023-09-18 13:01:32.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
-(55, 4, 67, 'true', 'true', 'true', '2023-09-12 20:54:23.000000', '2023-09-12 00:00:00.000000', '2023-09-12 20:54:33.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(56, 2, 68, 'true', 'true', 'false', '2023-09-12 20:54:11.000000', '2023-09-12 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(57, 4, 69, 'true', 'true', 'true', '2023-09-12 20:54:17.000000', '2023-09-12 00:00:00.000000', '2023-09-18 13:01:05.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(58, 4, 70, 'true', 'false', 'true', NULL, '2023-09-12 00:00:00.000000', '2023-09-18 13:02:29.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(59, 7, 70, 'true', 'false', 'true', NULL, '2023-09-12 00:00:00.000000', '2023-09-18 13:02:41.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(60, 1, 71, 'true', 'false', 'true', NULL, '2023-09-13 00:00:00.000000', '2023-09-18 13:01:19.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(61, 5, 72, 'true', 'false', 'false', NULL, '2023-09-13 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(62, 4, 73, 'true', 'false', 'true', NULL, '2023-09-13 00:00:00.000000', '2023-09-15 14:37:13.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(63, 6, 73, 'true', 'false', 'true', NULL, '2023-09-13 00:00:00.000000', '2023-09-15 14:37:34.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
-(64, 20, 73, 'true', 'false', 'false', NULL, '2023-09-13 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(65, 32, 73, 'true', 'false', 'true', NULL, '2023-09-13 00:00:00.000000', '2023-09-15 14:38:03.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(66, 5, 74, 'true', 'false', 'true', NULL, '2023-09-13 00:00:00.000000', '2023-09-15 14:41:14.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(67, 7, 74, 'true', 'false', 'false', NULL, '2023-09-21 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(68, 34, 75, 'true', 'false', 'false', NULL, '2023-09-21 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(69, 5, 75, 'true', 'false', 'false', NULL, '2023-09-21 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(70, 8, 75, 'true', 'false', 'false', NULL, '2023-09-21 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(71, 19, 76, 'true', 'true', 'true', '2023-09-18 09:59:54.000000', '2023-09-18 00:00:00.000000', '2023-09-18 10:00:01.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(72, 5, 77, 'true', 'false', 'false', NULL, '2023-09-21 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(73, 1, 78, 'true', 'true', 'true', '2023-09-18 10:16:24.000000', '2023-09-18 00:00:00.000000', '2023-09-18 10:16:54.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(74, 22, 78, 'true', 'true', 'true', '2023-09-18 10:16:29.000000', '2023-09-18 00:00:00.000000', '2023-09-18 10:16:43.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(75, 27, 78, 'true', 'true', 'true', '2023-09-18 10:16:30.000000', '2023-09-18 00:00:00.000000', '2023-09-18 10:17:02.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(76, 33, 78, 'true', 'false', 'false', NULL, '2023-09-21 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(77, 1, 79, 'true', 'true', 'true', '2023-09-21 09:52:43.000000', '2023-09-21 00:00:00.000000', '2023-09-21 09:54:01.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(78, 3, 79, 'true', 'true', 'true', '2023-09-21 09:47:40.000000', '2023-09-21 00:00:00.000000', '2023-09-21 09:47:49.000000', NULL, NULL, 1, NULL, NULL, NULL, NULL),
-(79, 22, 79, 'true', 'true', 'true', '2023-09-21 09:52:40.000000', '2023-09-21 00:00:00.000000', '2023-09-21 19:30:35.000000', NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(80, 1, 80, 'true', 'true', 'true', '2023-09-21 12:52:11.000000', '2023-09-21 00:00:00.000000', '2023-09-21 12:52:18.000000', NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(81, 3, 81, 'true', 'true', 'true', '2023-09-21 12:52:23.000000', '2023-09-21 00:00:00.000000', '2023-09-21 12:52:36.000000', NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(82, 4, 82, 'true', 'false', 'false', NULL, '2023-09-25 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(83, 2, 83, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
-(84, 6, 83, 'false', 'false', 'false', NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL);
+(130, 2, 107, 'true', 'false', 'false', NULL, '2023-10-07 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(131, 1, 107, 'true', 'false', 'true', NULL, '2023-10-07 00:00:00.000000', '2023-10-30 13:46:42.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(132, 5, 107, 'true', 'false', 'true', NULL, '2023-10-07 00:00:00.000000', '2023-10-30 13:46:32.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(133, 56, 107, 'true', 'false', 'true', NULL, '2023-10-07 00:00:00.000000', '2023-10-10 19:23:38.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(134, 3, 108, 'true', 'true', 'true', '2023-10-08 23:39:30.000000', '2023-10-08 00:00:00.000000', '2023-10-10 19:24:40.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(135, 1, 108, 'true', 'false', 'true', NULL, '2023-10-08 00:00:00.000000', '2023-10-10 19:24:24.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(136, 1, 109, 'true', 'true', 'true', '2023-10-09 05:25:55.000000', '2023-10-09 00:00:00.000000', '2023-10-09 05:26:08.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(137, 2, 110, 'true', 'false', 'false', NULL, '2023-10-11 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(138, 1, 110, 'true', 'false', 'true', NULL, '2023-10-11 00:00:00.000000', '2023-10-30 13:45:29.000000', NULL, NULL, 1, NULL, 0, 'All parameters are very high', 'Kindly rerun test again'),
+(139, 3, 110, 'true', 'false', 'true', NULL, '2023-10-11 00:00:00.000000', '2023-10-30 13:45:17.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(140, 7, 110, 'true', 'false', 'true', NULL, '2023-10-16 00:00:00.000000', '2023-10-17 19:35:22.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(141, 1, 111, 'true', 'false', 'true', NULL, '2023-10-11 00:00:00.000000', '2023-10-17 19:34:48.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(142, 2, 112, 'true', 'false', 'false', NULL, '2023-10-17 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(143, 1, 112, 'true', 'false', 'true', NULL, '2023-10-17 00:00:00.000000', '2023-10-30 13:46:13.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(144, 7, 112, 'true', 'false', 'true', NULL, '2023-10-17 00:00:00.000000', '2023-10-17 19:35:35.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(145, 11, 112, 'true', 'false', 'true', NULL, '2023-10-17 00:00:00.000000', '2023-10-30 13:46:04.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(146, 1, 113, 'true', 'false', 'false', NULL, '2023-10-26 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(147, 4, 114, 'true', 'false', 'false', NULL, '2023-10-17 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(148, 7, 114, 'true', 'false', 'true', NULL, '2023-10-17 00:00:00.000000', '2023-10-28 10:13:02.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(149, 10, 114, 'true', 'false', 'false', NULL, '2023-10-17 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(150, 13, 114, 'true', 'false', 'false', NULL, '2023-10-17 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(151, 15, 114, 'true', 'false', 'false', NULL, '2023-10-17 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(152, 2, 115, 'true', 'true', 'false', '2023-10-26 07:52:20.000000', '2023-10-26 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(153, 7, 116, 'true', 'false', 'false', NULL, '2023-10-27 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(154, 7, 117, 'true', 'false', 'false', NULL, '2023-10-27 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(155, 1, 118, 'true', 'true', 'true', '2023-10-28 10:19:13.000000', '2023-10-28 00:00:00.000000', '2023-10-28 10:19:24.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(156, 54, 119, 'true', 'false', 'true', NULL, '2023-10-29 00:00:00.000000', '2023-10-28 11:09:26.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(157, 50, 120, 'true', 'false', 'true', NULL, '2023-10-29 00:00:00.000000', '2023-10-29 14:45:08.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(158, 14, 121, 'true', 'true', 'true', '2023-10-31 00:27:01.000000', '2023-10-31 00:00:00.000000', '2023-10-31 00:27:20.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(159, 56, 122, 'true', 'true', 'true', '2023-10-31 00:36:49.000000', '2023-10-31 00:00:00.000000', '2023-10-31 00:37:08.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(160, 1, 122, 'true', 'true', 'true', '2023-10-31 00:36:50.000000', '2023-10-31 00:00:00.000000', '2023-10-31 00:37:25.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(161, 3, 122, 'true', 'true', 'true', '2023-10-31 00:36:51.000000', '2023-10-31 00:00:00.000000', '2023-10-31 00:37:37.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(162, 5, 122, 'true', 'false', 'false', NULL, '2023-10-31 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(163, 50, 123, 'true', 'false', 'false', NULL, '2023-11-03 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(164, 54, 123, 'true', 'false', 'false', NULL, '2023-11-03 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(165, 7, 123, 'true', 'true', 'false', '2023-11-01 01:45:24.000000', '2023-11-01 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(166, 1, 123, 'true', 'true', 'false', '2023-11-01 01:45:27.000000', '2023-11-01 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(167, 5, 123, 'true', 'true', 'false', '2023-11-01 01:45:29.000000', '2023-11-01 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(168, 10, 123, 'true', 'true', 'false', '2023-11-01 01:45:31.000000', '2023-11-01 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(169, 1, 124, 'true', 'false', 'false', NULL, '2023-11-03 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(170, 1, 125, 'true', 'true', 'true', '2023-11-04 02:28:01.000000', '2023-11-04 00:00:00.000000', '2023-11-04 02:28:18.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(171, 20, 125, 'true', 'true', 'false', '2023-11-04 01:54:44.000000', '2023-11-04 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(173, 1, 127, 'true', 'true', 'true', '2023-11-06 16:40:30.000000', '2023-11-06 00:00:00.000000', '2023-11-06 16:40:47.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(174, 1, 128, 'true', 'true', 'false', '2023-11-06 16:40:52.000000', '2023-11-06 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(175, 6, 128, 'true', 'true', 'false', '2023-11-06 16:40:55.000000', '2023-11-06 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(176, 8, 128, 'true', 'true', 'false', '2023-11-06 16:40:57.000000', '2023-11-06 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(177, 10, 128, 'true', 'true', 'true', '2023-11-06 16:40:59.000000', '2023-11-06 00:00:00.000000', '2023-11-06 16:41:14.000000', NULL, NULL, 1, NULL, 0, NULL, NULL),
+(178, 1, 129, 'true', 'false', 'false', NULL, '2023-11-08 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(179, 19, 129, 'true', 'false', 'false', NULL, '2023-11-08 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(180, 13, 129, 'true', 'false', 'false', NULL, '2023-11-08 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL),
+(181, 7, 129, 'true', 'false', 'false', NULL, '2023-11-08 00:00:00.000000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL);
 
 --
 -- Triggers `test_ascension`
@@ -2392,6 +3529,8 @@ DELIMITER ;
 --
 -- Table structure for table `test_categories`
 --
+-- Creation: Aug 31, 2023 at 07:10 PM
+--
 
 CREATE TABLE `test_categories` (
   `ID` int(255) NOT NULL,
@@ -2399,10 +3538,16 @@ CREATE TABLE `test_categories` (
   `DESCRIPTION` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `test_categories`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `test_panels`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `test_panels` (
@@ -2419,19 +3564,23 @@ CREATE TABLE `test_panels` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- RELATIONSHIPS FOR TABLE `test_panels`:
+--
+
+--
 -- Dumping data for table `test_panels`
 --
 
 INSERT INTO `test_panels` (`ID`, `NAME`, `CATEGORY`, `PRICE`, `CREATED_ON`, `SAMPLE`, `DESCRIPTION`, `SAMPLE_CONTAINER`, `UNIT`, `QTY_REQUIRED`) VALUES
-(1, 'Malaria', 3, 20, '2023-04-12 05:54:35', '4', 'jwdfjwdjkwdjkfjkwejk wdfkwegkekge\nhejhwdjgjev\negjejgjegje', 'urine', 'mls', '499'),
+(1, 'Malaria', 2, 20, '2023-04-12 05:54:35', '4', 'jwdfjwdjkwdjkfjkwejk wdfkwegkekge\nhejhwdjgjev\negjejgjegje', 'urine', 'mls', '499'),
 (2, 'Glycated Heamoglobin', 3, 600, '2023-04-12 07:02:57', '4', 'test for blood sugar usage ', 'edta tube', 'mls', '4'),
-(3, 'Widal', 2, 600, '2023-04-12 13:08:29', '4', 'For testing salmonella typhi infection\n\n\nprop up for more challenges ahead and try not to be johnson\n', 'edta tube', 'mls', '3'),
+(3, 'Widal', 2, 600, '2023-04-12 13:08:29', '4', 'For testing salmonella typhi infection', 'edta tube', 'mls', '3'),
 (4, 'blood grouping', 2, 50, '2023-04-12 15:28:43', '4', 'nullKFKWKFWEKFKWFKQKFKQWFKWKFKWFKQWK', 'edta tube', 'mls', '32'),
-(5, 'cardiac enzymes', 1, 6000, '2023-04-12 15:29:35', '4', 'analysis of cardiac enzymes', 'gell tube ', 'g/dl', '5'),
+(5, 'cardiac enzymes', 1, 600, '2023-04-12 15:29:35', '4', 'analysis of cardiac enzymes', 'gell tube ', 'g/dl', '5'),
 (6, 'Hepatitis B', 2, 500, '2023-04-13 07:06:15', '6', 'Hepatitis b is not null', 'edta tube', 'mls', '320'),
-(7, 'Hepatitis B Profile', 3, 500, '2023-04-13 07:20:25', 'serum', 'Test for all antigens related to viral hepatitis ', 'gell tube', 'mls', '50'),
+(7, 'Hepatitis B Profile', 5, 500, '2023-04-13 07:20:25', 'serum', 'Test for all antigens related to viral hepatitis ', 'gell tube', 'mls', '50'),
 (8, 'Hepatitis C', 1, 600, '2023-04-13 07:21:47', '9', 'Testing for Hepatitis C infection', 'edta tube', 'mls', '3'),
-(10, 'liver function test', 1, 500000, '2023-04-13 18:53:09', '4', 'priced here is not null be offensive', 'gell tube', 'mls', '3'),
+(10, 'liver function test', 1, 509, '2023-04-13 18:53:09', '4', 'priced here is not null be offensive', 'gell tube', 'mls', '3'),
 (11, 'renal function test', 2, 500, '2023-04-13 18:53:34', 'serum', 'Renal functional test is a test to check the function of the kidney', 'gell tube', 'mls', '5'),
 (12, 'Lipid profile', 4, 900, '2023-04-17 12:15:45', 'serum', 'efjwejfjwfjq', 'gell tube', 'mls', '4'),
 (13, 'urinalysis', 5, 60, '2023-04-27 01:48:23', 'urine', 'Urine taking', 'urine', 'mls', '50'),
@@ -2450,12 +3599,21 @@ INSERT INTO `test_panels` (`ID`, `NAME`, `CATEGORY`, `PRICE`, `CREATED_ON`, `SAM
 (31, 'Luteinizing Hormone', 3, 50, '2023-07-17 10:20:19', 'blood', 'uhfjsdjvjk', 'gell tube', 'mls', '5'),
 (32, 'Follicle Stimulating Hormone', 3, 50, '2023-07-17 10:20:46', 'blood', 'uhfjsdjvjk', 'gell tube', 'mls', '5'),
 (33, 'heamoglobin test', 4, 49, '2023-08-24 22:41:14', 'urine', 'lorem ipsum', 'Edta Tube', 'mls', '5'),
-(34, 'Haemoglogin electrophoreesis', 4, 500, '2023-08-25 08:46:19', 'blood', 'AGREEMENT\n\n\nTHIS agreement is entered into as of ___________________ by and between kadimart enterprise, a subsidiary of Kadima Company limited and __________________ also referred herein as a sale representative both of whom agree to be bound by this agr', 'edta tube', 'mls', '4');
+(34, 'Haemoglogin electrophoreesis', 4, 500, '2023-08-25 08:46:19', 'blood', 'AGREEMENT\n\n\nTHIS agreement is entered into as of ___________________ by and between kadimart enterprise, a subsidiary of Kadima Company limited and __________________ also referred herein as a sale representative both of whom agree to be bound by this agr', 'edta tube', 'mls', '4'),
+(50, 'abdominal ultrasound scan', 6, 100, '2023-10-03 07:46:28', 'null', 'null', 'null', '', '50'),
+(51, 'obstetrics scan', 6, 80, '2023-10-03 10:55:42', '3', NULL, '', '', '93'),
+(52, 'breast scan', 6, 200, '2023-10-04 21:58:38', '', NULL, '', '', NULL),
+(53, 'pelvic scan', 6, 60, '2023-10-04 21:58:38', '', NULL, '', '', NULL),
+(54, 'abdominal pelvic scan', 6, 120, '2023-10-04 21:59:25', '', NULL, '', '', NULL),
+(55, 'urological scan', 6, 200, '2023-10-04 21:59:25', '', NULL, '', '', NULL),
+(56, 'prostate specific antigen test', 3, 100, '2023-10-07 10:02:20', '2', 'prostate specific antigen test is indicator of the growth of the prostate gland', 'gell tubbe', 'mls', '4');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `typhoid_test`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `typhoid_test` (
@@ -2473,10 +3631,16 @@ CREATE TABLE `typhoid_test` (
   `ENTERED_BY` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `typhoid_test`:
+--
+
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `urinalysisresult`
+--
+-- Creation: Aug 31, 2023 at 07:10 PM
 --
 
 CREATE TABLE `urinalysisresult` (
@@ -2498,6 +3662,10 @@ CREATE TABLE `urinalysisresult` (
   `blood` varchar(50) NOT NULL,
   `leukocytes` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `urinalysisresult`:
+--
 
 --
 -- Dumping data for table `urinalysisresult`
@@ -2545,7 +3713,7 @@ ALTER TABLE `bloodgroup`
 -- Indexes for table `branch`
 --
 ALTER TABLE `branch`
-  ADD PRIMARY KEY (`BRANCHID`);
+  ADD PRIMARY KEY (`branchid`);
 
 --
 -- Indexes for table `clinicianbasicinfo`
@@ -2570,6 +3738,18 @@ ALTER TABLE `commodity`
 --
 ALTER TABLE `companyprofile`
   ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `departmentconsumption`
+--
+ALTER TABLE `departmentconsumption`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `departmentconsumptionhx`
+--
+ALTER TABLE `departmentconsumptionhx`
+  ADD PRIMARY KEY (`comsumeid`);
 
 --
 -- Indexes for table `departmentrequisitionhx`
@@ -2613,6 +3793,12 @@ ALTER TABLE `fshsetup`
 --
 ALTER TABLE `generalemailsettings`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `generalstocks`
+--
+ALTER TABLE `generalstocks`
+  ADD PRIMARY KEY (`stockid`);
 
 --
 -- Indexes for table `glycated_haemoglobin`
@@ -2675,18 +3861,18 @@ ALTER TABLE `manager_sample_descision`
   ADD PRIMARY KEY (`sampleid`);
 
 --
--- Indexes for table `newstock`
---
-ALTER TABLE `newstock`
-  ADD PRIMARY KEY (`stockid`);
-
---
 -- Indexes for table `new_patients`
 --
 ALTER TABLE `new_patients`
   ADD PRIMARY KEY (`ID`),
   ADD UNIQUE KEY `PATIENTID` (`PATIENTID`),
   ADD KEY `PATIENTID_2` (`PATIENTID`);
+
+--
+-- Indexes for table `orderreceivedaccountsummary`
+--
+ALTER TABLE `orderreceivedaccountsummary`
+  ADD UNIQUE KEY `orderTransactionid` (`orderTransactionid`);
 
 --
 -- Indexes for table `orders`
@@ -2698,27 +3884,21 @@ ALTER TABLE `orders`
 -- Indexes for table `organization`
 --
 ALTER TABLE `organization`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `organizationaccountinformation`
 --
 ALTER TABLE `organizationaccountinformation`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `organization_id` (`organization_id`);
+  ADD KEY `organization_id` (`organizationid`);
 
 --
 -- Indexes for table `organizationcontactperson`
 --
 ALTER TABLE `organizationcontactperson`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `organization_id` (`organization_id`);
-
---
--- Indexes for table `organization_basic`
---
-ALTER TABLE `organization_basic`
-  ADD PRIMARY KEY (`id`);
+  ADD KEY `organization_id` (`organizationid`);
 
 --
 -- Indexes for table `pageaccess`
@@ -2767,6 +3947,18 @@ ALTER TABLE `paymentmodes`
 --
 ALTER TABLE `performing_test`
   ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `psaresult`
+--
+ALTER TABLE `psaresult`
+  ADD PRIMARY KEY (`keyid`);
+
+--
+-- Indexes for table `psasetup`
+--
+ALTER TABLE `psasetup`
+  ADD PRIMARY KEY (`setupid`);
 
 --
 -- Indexes for table `result_aids`
@@ -2889,6 +4081,12 @@ ALTER TABLE `samplingtest`
   ADD PRIMARY KEY (`TestKey`);
 
 --
+-- Indexes for table `scanreport`
+--
+ALTER TABLE `scanreport`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `semenanalysis`
 --
 ALTER TABLE `semenanalysis`
@@ -2982,7 +4180,13 @@ ALTER TABLE `stocktransactions`
 -- Indexes for table `supplier`
 --
 ALTER TABLE `supplier`
-  ADD PRIMARY KEY (`SUPPLIERID`);
+  ADD PRIMARY KEY (`supplierid`);
+
+--
+-- Indexes for table `tax`
+--
+ALTER TABLE `tax`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `tempo`
@@ -3041,13 +4245,13 @@ ALTER TABLE `applicationsettings`
 -- AUTO_INCREMENT for table `billing`
 --
 ALTER TABLE `billing`
-  MODIFY `BILLINGID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
+  MODIFY `BILLINGID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
 
 --
 -- AUTO_INCREMENT for table `billinghx`
 --
 ALTER TABLE `billinghx`
-  MODIFY `KeyID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=99;
+  MODIFY `KeyID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=174;
 
 --
 -- AUTO_INCREMENT for table `bloodgroup`
@@ -3059,25 +4263,25 @@ ALTER TABLE `bloodgroup`
 -- AUTO_INCREMENT for table `branch`
 --
 ALTER TABLE `branch`
-  MODIFY `BRANCHID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `branchid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `clinicianbasicinfo`
 --
 ALTER TABLE `clinicianbasicinfo`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `clinicianpaymentinfo`
 --
 ALTER TABLE `clinicianpaymentinfo`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `commodity`
 --
 ALTER TABLE `commodity`
-  MODIFY `COMID` int(255) NOT NULL AUTO_INCREMENT;
+  MODIFY `COMID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `companyprofile`
@@ -3086,22 +4290,34 @@ ALTER TABLE `companyprofile`
   MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT for table `departmentconsumption`
+--
+ALTER TABLE `departmentconsumption`
+  MODIFY `id` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `departmentconsumptionhx`
+--
+ALTER TABLE `departmentconsumptionhx`
+  MODIFY `comsumeid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
 -- AUTO_INCREMENT for table `departmentrequisitionhx`
 --
 ALTER TABLE `departmentrequisitionhx`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `departments`
 --
 ALTER TABLE `departments`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `departmentstocks`
 --
 ALTER TABLE `departmentstocks`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `emailpreference`
@@ -3113,19 +4329,25 @@ ALTER TABLE `emailpreference`
 -- AUTO_INCREMENT for table `fshresult`
 --
 ALTER TABLE `fshresult`
-  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `fshsetup`
 --
 ALTER TABLE `fshsetup`
-  MODIFY `setupid` int(255) NOT NULL AUTO_INCREMENT;
+  MODIFY `setupid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `generalemailsettings`
 --
 ALTER TABLE `generalemailsettings`
   MODIFY `id` int(100) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `generalstocks`
+--
+ALTER TABLE `generalstocks`
+  MODIFY `stockid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `glycated_haemoglobin`
@@ -3143,13 +4365,13 @@ ALTER TABLE `haemoglobinelectrophoresis`
 -- AUTO_INCREMENT for table `hepatitisbresult`
 --
 ALTER TABLE `hepatitisbresult`
-  MODIFY `ID` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `ID` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `hepatitisb_profile`
 --
 ALTER TABLE `hepatitisb_profile`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `hepatitiscresult`
@@ -3161,7 +4383,7 @@ ALTER TABLE `hepatitiscresult`
 -- AUTO_INCREMENT for table `lhresult`
 --
 ALTER TABLE `lhresult`
-  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT;
+  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `lhsetup`
@@ -3179,7 +4401,7 @@ ALTER TABLE `loginlogs`
 -- AUTO_INCREMENT for table `malaria`
 --
 ALTER TABLE `malaria`
-  MODIFY `KEY` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `KEY` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `manager_sample_descision`
@@ -3188,46 +4410,34 @@ ALTER TABLE `manager_sample_descision`
   MODIFY `sampleid` int(255) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `newstock`
---
-ALTER TABLE `newstock`
-  MODIFY `stockid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
 -- AUTO_INCREMENT for table `new_patients`
 --
 ALTER TABLE `new_patients`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `productordersid` int(255) NOT NULL AUTO_INCREMENT;
+  MODIFY `productordersid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `organization`
 --
 ALTER TABLE `organization`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `organizationaccountinformation`
 --
 ALTER TABLE `organizationaccountinformation`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `organizationcontactperson`
 --
 ALTER TABLE `organizationcontactperson`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `organization_basic`
---
-ALTER TABLE `organization_basic`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `pageaccess`
@@ -3239,25 +4449,25 @@ ALTER TABLE `pageaccess`
 -- AUTO_INCREMENT for table `patientemmergencycontactinformation`
 --
 ALTER TABLE `patientemmergencycontactinformation`
-  MODIFY `keyid` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `keyid` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `patientsaddress`
 --
 ALTER TABLE `patientsaddress`
-  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `patients_credentials`
 --
 ALTER TABLE `patients_credentials`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `patients_settings`
 --
 ALTER TABLE `patients_settings`
-  MODIFY `id` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `paymentmodes`
@@ -3269,7 +4479,19 @@ ALTER TABLE `paymentmodes`
 -- AUTO_INCREMENT for table `performing_test`
 --
 ALTER TABLE `performing_test`
-  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
+
+--
+-- AUTO_INCREMENT for table `psaresult`
+--
+ALTER TABLE `psaresult`
+  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `psasetup`
+--
+ALTER TABLE `psasetup`
+  MODIFY `setupid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `result_aids`
@@ -3287,13 +4509,13 @@ ALTER TABLE `result_beta_hcg`
 -- AUTO_INCREMENT for table `result_cardiac_enzymes`
 --
 ALTER TABLE `result_cardiac_enzymes`
-  MODIFY `LIVERID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `LIVERID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `result_comments`
 --
 ALTER TABLE `result_comments`
-  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `keyid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `result_esr`
@@ -3317,13 +4539,13 @@ ALTER TABLE `result_function_full_blood_count`
 -- AUTO_INCREMENT for table `result_function_liver`
 --
 ALTER TABLE `result_function_liver`
-  MODIFY `liverid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `liverid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `result_function_renal`
 --
 ALTER TABLE `result_function_renal`
-  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- AUTO_INCREMENT for table `result_haemoglobin_electrophoresis`
@@ -3347,7 +4569,7 @@ ALTER TABLE `result_lipid_profile`
 -- AUTO_INCREMENT for table `result_pregnancy_test`
 --
 ALTER TABLE `result_pregnancy_test`
-  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `result_random_blood_sugar`
@@ -3365,19 +4587,19 @@ ALTER TABLE `result_thyroid_functional_test`
 -- AUTO_INCREMENT for table `result_widal`
 --
 ALTER TABLE `result_widal`
-  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `KEYID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `EMPLOYEEID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `EMPLOYEEID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `samplestatus`
 --
 ALTER TABLE `samplestatus`
-  MODIFY `keyid` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
+  MODIFY `keyid` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=182;
 
 --
 -- AUTO_INCREMENT for table `sampletype`
@@ -3390,6 +4612,12 @@ ALTER TABLE `sampletype`
 --
 ALTER TABLE `samplingtest`
   MODIFY `TestKey` int(255) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `scanreport`
+--
+ALTER TABLE `scanreport`
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT for table `semenanalysis`
@@ -3470,10 +4698,34 @@ ALTER TABLE `setup_thyroid_test`
   MODIFY `SETUPID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT for table `stockcategory`
+--
+ALTER TABLE `stockcategory`
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `supplier`
+--
+ALTER TABLE `supplier`
+  MODIFY `supplierid` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `tax`
+--
+ALTER TABLE `tax`
+  MODIFY `id` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
 -- AUTO_INCREMENT for table `test_ascension`
 --
 ALTER TABLE `test_ascension`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=182;
+
+--
+-- AUTO_INCREMENT for table `test_panels`
+--
+ALTER TABLE `test_panels`
+  MODIFY `ID` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
