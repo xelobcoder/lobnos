@@ -63,7 +63,6 @@ export default function PersonalInformationRegistration({ setData, data, setErro
                 inputMode="tel"
                 maxLength={10}
                 minLength={10}
-                required
                 value={data.personalInformation.mobile}
                 name="mobilenumber"
                 className="form-control"
@@ -149,6 +148,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
                 }
                 value={data.personalInformation.agetype}
               >
+                <option>select an option</option>
                 <option value="years">Years</option>
                 <option value="months">Months</option>
                 <option value="days">Days</option>

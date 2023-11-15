@@ -128,31 +128,14 @@ export const handleAge = (y, m, d) => {
   }
 };
 
-export const handleSubmitRegistration = async (
-  e,
-  data = {},
-  typer,
-  callback
-) => {
+export const handleSubmitRegistration = async (e,data = {},typer,callback) => {
   e.preventDefault();
   // error marker , at end run if true , data is not sent to endpoint.
   var error = false;
   // fields that must have values
-  const requiredFields = [
-    "firstname",
-    "lastname",
-    "patientid",
-    "age",
-    "ageType",
-    "maritalstatus",
-    "mobile",
-    "gender",
-    "occupation",
-  ];
-
+  const requiredFields = ["firstname","lastname","age","agetype","maritalstatus","gender"];
   // function theat checks to esnsure required fields are filled
-  const checkRequiredFields = (data) => {
-    requiredFields.forEach((field) => {
+  const checkRequiredFields = (data) => { requiredFields.forEach((field) => {
       if (data.personalInformation[field] == "") {
         error = true;
         return;
@@ -175,7 +158,7 @@ export const handleSubmitRegistration = async (
       alert(message);
       return;
     }
-  }
+  } else {alert ('fill in all required fields')}
 };
 
 export async function handleActivation(e, id, status, patientid, callbackfunction) {

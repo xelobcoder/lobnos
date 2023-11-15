@@ -3,16 +3,17 @@
     "sqltools.connections": [
         {
             "mysqlOptions": {
-                "authProtocol": "default"
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
             },
             "previewLimit": 50,
             "server": "localhost",
             "port": 3306,
-            "askForPassword": false,
             "driver": "MariaDB",
-            "name": "localhost",
+            "name": "primesys",
             "database": "limsdb",
-            "username": "root"
+            "username": "root",
+            "password": ""
         }
     ],
     "editor.tabSize": 2,

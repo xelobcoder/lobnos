@@ -15,9 +15,7 @@ export default function DepartmentRequestCustom() {
 
 
 
-  useEffect(() => {
-    inventory.getPlaceOrderStocks(setStocks, setTemp);
-  }, []);
+  useEffect(() => { inventory.getPlaceOrderStocks(setStocks, setTemp);}, []);
 
   const handleRequiredQty = (e, stockid) => {
     const qty = parseInt(e.target.value);

@@ -1,9 +1,8 @@
-import { AddOutlined, ShoppingBag } from '@mui/icons-material'
+import { AddOutlined, RemoveOutlined, ShoppingBag } from '@mui/icons-material'
 import React, { useState } from 'react'
 import SnapClinicianModal from './SnapClinicianModal'
 import BasicInformationClinician from '../Clinicians/BasicInformationClinician';
 import BasicInfo from '../organization/BasicInfo';
-import ClientOutstandingBill from './OutstandingBill';
 export default function TopComponentBillingButton({ cart }) {
   const [whattoShow, setWhattoShow] = useState(null);
   const [show, setShow] = useState(false);
@@ -12,9 +11,11 @@ export default function TopComponentBillingButton({ cart }) {
 
   return (
     <>
-      <div className='mx-2' style={{ display: 'grid', gridTemplateColumns: '60% auto', marginTop: '10px' }}>
-        <ClientOutstandingBill />
-        <div className='grid-30-30-30'>
+      <div className='mx-1 my-1'>
+        <div className='d-flex justify-content-end'>
+          <button className='btn btn-success btn-sm mx-1'>
+            <RemoveOutlined/> remove taxes
+          </button>
           <button
             className="btn btn-success btn-sm"
             onClick={(e) => {
@@ -25,7 +26,7 @@ export default function TopComponentBillingButton({ cart }) {
             <AddOutlined /> organization
           </button>
           <button
-            className="btn btn-success btn-sm"
+            className="btn btn-success btn-sm mx-2"
             onClick={(e) => {
               setWhattoShow('c')
               handleShow();
@@ -33,7 +34,7 @@ export default function TopComponentBillingButton({ cart }) {
           >
             <AddOutlined /> clinician
           </button>
-          <button className="btn btn-primary btn-sm text-wite">
+          <button className="btn btn-primary btn-sm text-wite mx-2">
             <h5>cart <ShoppingBag /> {cart} </h5>
           </button>
         </div>

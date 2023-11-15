@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import TableDisplay from '../../components/accessories/TableDisplay';
-import { DeleteForever} from '@mui/icons-material';
+import { DeleteForever, Print} from '@mui/icons-material';
 import { customFetch } from '../../components/Auth/customFetch';
 import InventoryLayout from '../../components/inventory/InventoryLayout';
 
@@ -52,23 +52,15 @@ export default function EXPIRE_STOCKS() {
       accessor: 'purchaseunit',
     },
     {
-      Header: 'Action',
-      Cell: function (row) {
-        return (
-          <DeleteForever color='error' onClick={() => handleDelete(row.original.stockid)} />
-        )
+      Header: 'action',
+      accessor: '',
+      Cell:  function ({row}) {
+        console.log(row.original)
+        return <button className='btn btn-primary btn-sm'>removed</button>
       }
-
-    }
+    },
   ]
 
-  const handleDelete = async (id) => {
-    console.log(id);
-  }
-
-  const handleEdit = async (id) => {
-    console.log(id);
-  }
 
 
   const getData = async () => {
@@ -87,9 +79,17 @@ export default function EXPIRE_STOCKS() {
     }
   }, [])
 
+  const handlePrint = async function (ev) {
+    console.log(ev.target);
+    window.print()
+  }
+
   return (
     <InventoryLayout>
       <div>
+        <div className='d-flex justify-content-end'>
+        <button onClick={(ev) => {handlePrint(ev)}} className='btn btn-secondary btn-sm mt-1 mx-1'><Print/> print</button>
+        </div>
         <TableDisplay data={expireStock} column={columns} />
       </div>
     </InventoryLayout>

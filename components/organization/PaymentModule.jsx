@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { customFetch, customPost, handleChangeWithState, organizationPaymentDefault } from '../Auth/customFetch'
 import { useRouter } from 'next/router';
 import ISLOADING from '../isLoading';
@@ -9,19 +9,20 @@ export default function PaymentModule() {
   const organizationid = useRouter().query.id;
 
 
-  const getPaymentData = async (organizationid) => {
+  const getPaymentData = useCallback( async (organizationid) => {
     const response = await customFetch(`organization/payment?id=${organizationid}`);
     const { statusCode, status, result } = response;
     if (statusCode === 200 && status == 'success' && result.length > 0) { setData(result[0]);setLoading(false)}
-  }
+  },[]);
 
   useEffect(() => {
     if (organizationid) { getPaymentData(organizationid); }
-  }, [organizationid])
+  }, [organizationid,getPaymentData]);
 
   const handleSubmit = async () => {
     let pushResponse = await customPost(`organization/update/payment`, 'PUT', data);
-    console.log(pushResponse);
+    const {status,statusCode,message} = pushResponse;
+    alert(message);
   }
 
   return (

@@ -308,6 +308,19 @@ export const getCompanyInformation = async function (setHeaders) {
 
 export const defaultSmsSettings = { result: 'No', registration: 'Yes', sample: 'No', birthday: 'No' };
 
+export const fetchRequisitionsByIdAndCategory = async function (departmentId,dataCategory,setHxData) {
+   if (departmentId) {
+     try {
+       const data = await customFetch(`departments/requisitions?id=${departmentId}&&type=${dataCategory}`)
+       if (data?.status === 'success' && data?.statusCode === 200) {
+         setHxData(data?.data);
+       }
+     } catch (error) {
+       setHxData([])
+     }
+   }
+ }
+
 
 
 export const defaultApplicationSettings = {

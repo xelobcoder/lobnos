@@ -48,7 +48,7 @@ export default function ADD_STOCK_INVENTORY() {
     const method = tab === 'edit' ? 'PUT' : 'POST';
     try {
       const senddata = async () => {
-        const data = await customPost(`stock?stockid=${stockid}`, method, { ...productdetails, tax: parseInt(productdetails.tax) });
+        const data = await customPost(`stock?stockid=${stockid}`, method, productdetails);
         const { status, message } = data;
         if (status === 'success') {
           setMessageshow(true);
@@ -145,7 +145,7 @@ export default function ADD_STOCK_INVENTORY() {
           <h6>kindly fill in all fields to {tab == 'edit' ? 'update stock information' : ' add a new stock '}</h6>
         </div>
         <form
-          className='grid-50-responsive'
+          className='grid-50-responsive p-3' id='registration'
         >
           <div className="form-group">
             <label htmlFor="name">Name</label>

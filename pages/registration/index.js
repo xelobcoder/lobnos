@@ -16,10 +16,8 @@ import styled from "@emotion/styled";
 export default function Registration({ organization, clinician }) {
   // state for handlinf whether the other informationsuch as  addressing ,emmergency contact and others are shown
   const [detailRegistration, setDetailRegistration] = useState(false);
-  const [error, setError] = useState(false)
-
+  const [error, setError] = useState('')
   const [data, setData] = useState(patientRegistrationDefaultData);
-
   const [disable, setDisable] = useState(false);
 
 
@@ -158,9 +156,12 @@ export default function Registration({ organization, clinician }) {
   return (
     <>
       <SettingsLayout sidebar={<SidebarFrontPage />}>
-        <h5 className="text-capitalize mx-3 bg-primary br-5 p-2 my-2 text-white" style={{maxWidth:'200px'}} >
+        <h6 className="text-capitalize  bg-warning br-5 p-2 my-2" style={{maxWidth:'max-content',marginLeft:'10px'}} >
           register a new client
-        </h5>
+        </h6>
+        {
+          error && (<div style={{maxWidth:'max-content',marginLeft:'10px'}} className="btn btn-danger">{error}</div>)
+        }
         <div className={`mx-2 my-2 bg-white p-2`} id="registration">
           <PersonalInfomationRegistration minify={true} setData={setData} data={data} setError={setError} />
         </div>
@@ -178,7 +179,7 @@ export default function Registration({ organization, clinician }) {
         }
         <button
           type="button"
-          className="btn btn-primary text-capitalize mx-2"
+          className="btn btn-primary btn-sm text-capitalize mx-2"
           tabIndex={31}
           onClick={(e) => {
             const typer = clientID === undefined || clientID === null ? 'POST' : 'PUT';

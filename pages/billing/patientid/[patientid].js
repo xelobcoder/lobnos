@@ -8,7 +8,6 @@ import SendIcon from "@mui/icons-material/Send";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import { customFetch, customPost, getBranches } from "../../../components/Auth/customFetch";
 import TopComponentBillingButton from "../../../components/Billing/topComponentBillingButton";
-import ClientOutstandingBill from "../../../components/Billing/OutstandingBill";
 import SettingsLayout from '../../../components/settingsComponents/SettingsLayout'
 
 export default function Billing({ }) {
@@ -327,25 +326,6 @@ export default function Billing({ }) {
                     />
                   </RadioGroup>
                 </FormControl>
-              </div>
-              <div style={{ width: "80%", marginTop: "20px" }}>
-                <Autocomplete
-                  value={data.samplingCenterLabel}
-                  size="small"
-                  options={branch}
-                  getOptionLabel={(option) => option.name}
-                  onChange={(e, newValue) => {
-                    const { name, branchid } = newValue;
-                    setData({ ...data, samplingCenter: branchid, samplingCenterLabel: getStringValue(branchid, branch, 'branchid', 'name') });
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Select a sampling center"
-                      variant="outlined"
-                    />
-                  )}
-                />
               </div>
             </div>
           </div>

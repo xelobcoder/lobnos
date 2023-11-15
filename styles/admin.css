@@ -37,8 +37,12 @@
 
 
 @media print {
-  .print-section {
-    display: none;
+  .print-section,button ,.settings-sidebar,.softfullname,.software-header-nav{
+    display: none !important;
+    table,tr,td,th{
+      border: 1px solid lightgray !important;
+      border-collapse: collapse !important;
+    }
   }
 }
 

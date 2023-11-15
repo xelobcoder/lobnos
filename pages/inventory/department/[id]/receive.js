@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import SettingsLayout from '../../../../components/settingsComponents/SettingsLayout'
 import DepartmentLevelSidebar from '../../../../components/inventory/DepartmentLevelSidebar'
 import { useRouter } from 'next/router'
@@ -108,24 +108,12 @@ export default function ReceiveStocksDepartmentLevel() {
     },
   ];
 
-  useEffect(() => {
-    if (departmentId) {
-      try {
-        customData(`departments/requisitions?id=${departmentId}&&type=approved`, setStocks);
-        setLoading(false);
-      } catch (err) {
-        setStocks([])
-      }
-    }
-  }, [departmentId]);
+  const getApprovedStock = useCallback( async () =>  {
+    try {customData(`departments/requisitions?id=${departmentId}&&type=approved`, setStocks);setLoading(false);} 
+    catch (err) {setStocks([]) }
+  },[departmentId])
 
-
-
-
-
-
-
-
+  useEffect(() => {if (departmentId) {getApprovedStock();}}, [departmentId,getApprovedStock]);
 
 
   return (

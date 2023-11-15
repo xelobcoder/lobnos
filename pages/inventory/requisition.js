@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import { Alert, Button } from '@mui/material';
-import { Backspace, CloseOutlined, DeleteForever, PendingActions } from '@mui/icons-material';
+import {Button } from '@mui/material';
+import { DeleteForever } from '@mui/icons-material';
 import TableDisplay from '../../components/accessories/TableDisplay';
 import BugReportIcon from '@mui/icons-material/BugReport';
-import ViewCompactAltIcon from '@mui/icons-material/ViewCompactAlt';
 import CallReceivedIcon from '@mui/icons-material/CallReceived';
 import { CheckCircle } from '@mui/icons-material';
-import DepartureBoard from '@mui/icons-material/DepartureBoard';
-import { customFetch, customPost } from '../../components/Auth/customFetch';
+import {fetchRequisitionsByIdAndCategory, customPost } from '../../components/Auth/customFetch';
 
 export default function Requisition() {
   const router = useRouter();
@@ -18,21 +16,10 @@ export default function Requisition() {
   const [instructionView, setInstructionView] = useState(false);
   const [dataCategory, setDataCategory] = useState('approved');
 
-  useEffect(() => {
-    async function fetchRequisitions() {
-      if (departmentId) {
-        try {
-          const data = await customFetch(`departments/requisitions?id=${departmentId}&&type=${dataCategory}`)
-          if (data?.status === 'success' && data?.statusCode === 200) {
-            setHxData(data?.data);
-          }
-        } catch (error) {
-          console.error(error);
-        }
-      }
-    }
-    fetchRequisitions();
-  }, [departmentId, dataCategory]);
+  const fetchRequisitions = useCallback(async () => {fetchRequisitionsByIdAndCategory(departmentId,dataCategory,setHxData)}
+  ,[departmentId,dataCategory])
+
+  useEffect(() => {fetchRequisitions();}, [departmentId, dataCategory,fetchRequisitions]);
 
   const handleBack = () => {
     router.back();
@@ -94,7 +81,7 @@ export default function Requisition() {
             alert(data.message);
           }
         } catch (error) {
-          console.error(error);
+          setHxData([])
         }
       }
       sendReceivedData();
