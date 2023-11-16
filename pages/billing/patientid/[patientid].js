@@ -23,6 +23,10 @@ export default function Billing({}) {
     taxes: [],
   });
 
+  const [branch,setBranch] = useState(null);
+
+
+
   const [panelinputValue, setPanelInputValue] = useState("");
   const [selectedPanel, setSelectedPanel] = useState(defaultpanel);
 
@@ -37,13 +41,7 @@ export default function Billing({}) {
   const clientid = useRouter().query.patientid;
 
   
-  const billingClass = new BillingClass(
-    clientid,
-    billingdata,
-    setBillingData,
-    cart,
-    setCart
-  );
+  const billingClass = new BillingClass(clientid,billingdata,setBillingData,cart,setCart);
 
   useEffect(() => {
     billingClass.prefillData();
@@ -59,14 +57,7 @@ export default function Billing({}) {
     setClinicianInputValue(selected[clinicianOptions.target]);
   };
 
-  const toggleTax = () => { 
-     if (includeTax) {
-      setIncludeTax(false);
-     } else {
-      setIncludeTax(true);
-     }
-   };
-
+  const toggleTax = () => {setIncludeTax(!includeTax); };
 
    const recalculateTotalBill = useCallback(() => {
     setTotalBill(billingClass.payableAmount(cart,payment.concession,billingdata.taxes,includeTax));
@@ -76,78 +67,44 @@ export default function Billing({}) {
    recalculateTotalBill();
    }, [includeTax,payment.concession,cart,billingdata.taxes,recalculateTotalBill]);
 
-  const [data, setData] = useState({
-    organizations: null,
-    organizationLabel: { NAME: "", ID: "" },
-    clinicianLabel: { NAME: "", ID: "" },
-    clinicians: null,
-    paymentmode: "",
-    cost: 0,
-    test: [],
-    paid: 0,
-    discount: 0,
-    urgency: "none",
-    patientid: clientid,
-    samplingCenter: "",
-  });
 
 
   const [selected, setSelected] = useState(null);
 
-  // const handleSubmit = async (e) => {
-  //   const filteroutID = function (value, datasource) {
-  //     const data = datasource.filter((item, index) => { return item.NAME == value });
-  //     return data.length > 0 ? data[0]['ID'] : 0
-  //   }
+  useEffect(() => {
+    const branch = localStorage.getItem('branch');
+    if (branch) {
+      setBranch(branch);
+    } else {
+      alert('please select a branch. you will be redirected to the branch selection page');
+      setTimeout(() => {
+        window.location.href = '/settings';
+      }, 1000);
+    }
+  }, []);
 
-  //   const defaultData = {
-  //     organizations: null,
-  //     clinicians: null,
-  //     paymentmode: "",
-  //     cost: 0,
-  //     test: [],
-  //     paid: 0,
-  //     discount: 0,
-  //     urgency: "none",
-  //     patientid: router,
-  //     samplingCenter: ""
-  //   }
-  //   //    send data to server using fecth
-  //   e.preventDefault();
-
-  //   let refinedData = { ...data, paid: parseInt(data.paid) }
-  //   try {
-  //     //  if(NaN(refinedData.paid) == false)
-
-  //     if (isNaN(refinedData.paid) == false) {
-  //       const pushResponse = await customPost('billing', 'POST', refinedData);
-
-  //       const { statusCode, status, code, message } = pushResponse;
-
-  //       if ([0, -1, null, 'AppSett'].includes(code)) {
-  //         alert(message)
-  //       } else {
-  //         if (statusCode == 200 && status == "success" && code == 1) {
-  //           // displayt message to user
-  //           alert('client billed successfully')
-  //           // empty test array or cart and set default data
-  //           setData(defaultData);
-  //           setTestArray([]);
-  //           // router to activatio page
-  //           router.push('/activation')
-  //         } else {
-  //           alert(message)
-  //         }
-  //       }
-  //     } else {
-  //       alert('Enter a valid payment amount')
-  //     }
-  //   } catch (err) {
-  //     console.log(err)
-  //   }
-
-  // }
-
+  const handleSubmit = (ev) => {
+     ev.preventDefault();
+     const test = cart.map((item) => item.id);
+     const organization = selectedOrganization.id;
+      const clinician = selectedClinician.id;
+      const paymentmode = payment.mode;
+      const amount = payment.amount;
+      const concession = payment.concession;
+    
+      const data = {
+        test,
+        organization,
+        clinician,
+        paymentmode,
+        paid: amount,
+        concession,
+        cost : totalBill,
+        type: source,
+        includeTax,
+        patientid:clientid
+      };
+  }
   const handleSelectedPanel = (selected) => {
     setSelectedPanel(selected);
     setSelected(true);
@@ -229,7 +186,7 @@ export default function Billing({}) {
                <label>select patient type</label>
                <select
                  value={source}
-                 className="form-control"
+                 className="custom-input"
                  onChange={(e) => setSource(e.target.value)}
                >
                  <option>select</option>
@@ -275,25 +232,10 @@ export default function Billing({}) {
           </div>
           <div  className="bg-white p-3 br-5 my-2">
           <h5 className="lims-text-color text-capitalize">payment information </h5>
-          <div className="col-3">
-               <label>advance payment</label>
-               <input
-                 type="number"
-                 className="form-control"
-                 value={payment.amount}
-                 onChange={(e) =>
-                   setPayment({ ...payment, amount: e.target.value })
-                 }
-               />
-             </div>
-             <div>
+          <div>
                  <label>payment mode</label>
-                 <select
-                   value={payment.mode}
-                   className="form-control"
-                   onChange={(e) =>
-                     setPayment({ ...payment, mode: e.target.value })
-                   }
+                 <select value={payment.mode} className="custom-input" onChange={(e) =>
+                     setPayment({ ...payment, mode: e.target.value })}
                  >
                    <option>select</option>
                    {billingoptions.map((item, index) => {
@@ -306,16 +248,27 @@ export default function Billing({}) {
                    )}
                  </select>
             </div>
+          <div className="col-3">
+               <label className="text-primary">advance payment</label>
+               <input
+                 type="number"
+                 className="custom-input"
+                 value={payment.amount}
+                 onChange={(e) =>
+                   setPayment({ ...payment, amount: e.target.value })
+                 }
+               />
+             </div>
             <div>
              <label> concession</label>
-               <input type="number" className="form-control" value={payment.concession} onChange={(e) => setPayment({ ...payment, concession: e.target.value })} />
+               <input type="number" className="custom-input" value={payment.concession} onChange={(e) => setPayment({ ...payment, concession: e.target.value })} />
             </div>
             <div className="card br-5 mt-1">
               <h5 className="card-header">Payable Amount</h5>
               <h1 className="text-extra-large text-center">{totalBill}</h1>
              </div>
              <div className="mt-2 d-flex justify-content-end">
-              <button className="btn btn-success">bill client </button>
+              <button className="btn btn-success" onClick={(ev) => {handleSubmit(ev)}}>bill client </button>
               <button className="btn  btn-danger mx-2">cancel billing</button>
               </div>
           </div>
