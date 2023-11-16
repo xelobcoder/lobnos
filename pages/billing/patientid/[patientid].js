@@ -1,5 +1,5 @@
 import SidebarFrontPage from "../../../components/frontpagesidebar";
-import { usePathname } from "next/navigation.js";
+import { useRouter } from "next/router.js";
 import {  useEffect, useState } from "react";
 import TESTCART from "../../../components/registration/testCart.js";
 import AddBoxIcon from "@mui/icons-material/AddBox";
@@ -38,7 +38,9 @@ export default function Billing({}) {
 
 
   const [cart, setCart] = useState([]);
-  const clientid = usePathname().split("/")[3];
+  const clientid = useRouter().query.patientid;
+
+  
   const billingClass = new BillingClass(
     clientid,
     billingdata,
