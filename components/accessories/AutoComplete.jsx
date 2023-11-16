@@ -1,41 +1,59 @@
-import React, { useState } from 'react'
+import React, { useState ,useRef, useEffect} from 'react'
 
-export default function CustomAutocomplete({ data, placeholder }) {
+export default function CustomAutocompleteList({ data, placeholder,tabindex,selected,setSelected }) {
+  const [computedTabindex,setComputedTabindex] = useState(tabindex);
   const [dataList, setDataList] = useState(data);
   const [show, setShow] = useState(false);
-  const [selected, setSelected] = useState(null);
+  const [filteringValue, setFilteringValue] = useState('');
+  const inputRef = useRef(null);
+  const listRef = useRef(null);
 
   const handleFiltered = function (ev) {
-    const { value } = ev.target;
-    if (value.length > 0) {
-      let f = data.filter((item, index) => { console.log(item == value) })
-      console.log(f)
-      setDataList(f)
+    const value = ev.target.value;
+    setFilteringValue(value);
+    setDataList(data);
+    if (value) {
+      const filteredData = data.filter((item) => item.toLowerCase().includes(value.toLowerCase()));
+      setDataList(filteredData);
+      setShow(true);
     } else {
       setDataList(data);
+      setShow(false);
     }
   }
 
+  useEffect(() => {
+    if (selected) {
+      setFilteringValue(selected);
+      setShow(false);
+    }
+  }, [selected]);
+
+
+
+
+  const listKeyDown = (ev) => {
+    if (ev.code === 'ArrowDown' || ev.code === 'Enter') {
+     const dataid = ev.target.getAttribute('dataid');
+     const filteredData = dataList[dataid];
+      setSelected(filteredData);
+    }
+  }
+ 
+
+  
+
   return (
-    <div className='custom-autocomplete'>
-      <input className='form-control' onClick={(ev) => { setShow(!show) }} value={selected} type='text' placeholder={placeholder} />
+    <div  className='custom-autocomplete mx-3 my-4'>
+      <label>{placeholder}</label>
+      <input ref={inputRef} className='form-control'  tabIndex={tabindex} onChange={(ev) => { handleFiltered(ev) }} value={filteringValue} type='text' placeholder={placeholder} />
       {show && (
-        <div className='list' >
-          <div className='p-2'>
-            <input className='form-control items ' onChange={(ev) => { handleFiltered(ev) }} />
-          </div>
-          {
-            dataList.map((item, index) => {
-              return (
-                <div className='items' onClick={(ev) => { setSelected(item); setShow(false) }} dataid={index} key={index}>{item}</div>
-              )
-            })
-          }
-          <div className='items'>
-            + add new item
-          </div>
-        </div>
+        <div className='custom-autocomplete-list' >
+          {dataList.map((item, index) => (
+            <li ref={listRef}  dataid={index} onKeyDown={(ev) => {listKeyDown(ev)}} tabIndex={computedTabindex+(index+1)}    className='list' key={index} onClick={(ev) => { setSelected(item) }}>{item}</li>
+          ))}
+        </div>  
       )}
-    </div>
+     </div>
   )
 }

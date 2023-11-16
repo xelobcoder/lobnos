@@ -1,27 +1,56 @@
-import React, { useEffect, useRef } from 'react';
-import CustomAutocomplete from '../components/accessories/AutoComplete';
+import React ,{useState} from 'react';
+import CustomAutocompleteList from '../components/accessories/AutoComplete';
+import AutoCompleteObject from '../components/accessories/AutoCompleteObject';
+
+
 
 
 export default function AutocompleteForm() {
-  const states = [
-    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California',
-    'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia',
-    'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
-    'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland',
-    'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri',
-    'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey',
-    'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
-    'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina',
-    'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
-    'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming',
-  ];
+  const [selected,setSelected] = useState({country:'Ghana',name:'',code:''});
+
+  const handleSelected = (selected) => {
+    setSelected(selected)
+  }
+  
+  const options =  {
+    tabindex: 1,
+    filter: 'contains',
+    target: 'name',
+    placeholder: 'Search for a state',
+    data:[
+      { country: 'USA', name: 'Alabama', code: 'AL' },
+      { country: 'USA', name: 'Alaska', code: 'AK' },
+      { country: 'USA', name: 'Arizona', code: 'AZ' },
+      { country: 'USA', name: 'Washington', code: 'W' },
+      { country: 'USA', name: 'West Virginia', code: 'WV' },
+      { country: 'USA', name: 'Wisconsin', code: 'WI' },
+      { country: 'USA', name: 'Wyoming', code: 'WY' },
+      { country: 'USA', name: 'Alabama', code: 'AL' },
+      { country: 'USA', name: 'Alaska', code: 'AK' },
+      { country: 'USA', name: 'Arizona', code: 'AZ' },
+      { country: 'USA', name: 'Washington', code: 'W' },
+      { country: 'USA', name: 'West Virginia', code: 'WV' },
+      { country: 'USA', name: 'Wisconsin', code: 'WI' },
+      { country: 'USA', name: 'Wyoming', code: 'WY' },
+      { country: 'USA', name: 'Alabama', code: 'AL' },
+      { country: 'USA', name: 'Alaska', code: 'AK' },
+      { country: 'USA', name: 'Arizona', code: 'AZ' },
+      { country: 'USA', name: 'Washington', code: 'W' },
+      { country: 'USA', name: 'West Virginia', code: 'WV' },
+      { country: 'USA', name: 'Wisconsin', code: 'WI' },
+      { country: 'USA', name: 'Wyoming', code: 'WY' }
+    ],
+    selected: selected,
+    handleSelected: handleSelected,
+  }
+  
+
+  
 
   return (
     <>
-      <div style={{ width: '40vw' }}>
-        <CustomAutocomplete data={states} placeholder={'USA states '} />
-        <CustomAutocomplete data={states} placeholder={'USA states '} />
-        <CustomAutocomplete data={states} placeholder={'USA states '} />
+      <div className='col-8'>
+       <AutoCompleteObject options={options}/>
       </div>
     </>
   )

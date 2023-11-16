@@ -3,6 +3,7 @@
   --sidebar-bg: #f7f7fe;
   --zf-font-family-base: 'Inter', 'Source Sans Pro', Helvetica, Arial,
     sans-serif;
+    --autocomplete-width: 30vw;
 }
 
 .sidebarMenu {
@@ -30,49 +31,45 @@ label {
   color: red !important;
 }
 .custom-autocomplete {
-  overflow-y: auto;
-  margin: inherit;
-  z-index: 1054;
-  overflow: hidden;
-  padding: 4px;
+  width: var(--autocomplete-width);
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 14px;
+    color: #00224f;
 }
 
-.custom-autocomplete > input {
-  margin-bottom: 10px;
-}
-.custom-autocomplete > .list {
-  max-height: 25vh;
+.custom-autocomplete>.custom-autocomplete-list {
+  position: absolute;
+  background-color: white;
+  height: max-content;
+  width: calc(var(--autocomplete-width) - 20px);
+  max-height: 30vh;
+  z-index: 9999;
   margin: 0;
   padding: 0;
-  position: relative;
-  top: 0;
-  left: 0;
-  overflow-x: hidden;
   overflow-y: auto;
-  scroll-snap-type: proximity;
-  scroll-behavior: smooth;
-  scrollbar-arrow-color: #00224f;
-  background-color: white;
-  box-shadow: 1px 1px 1px white;
-  width: 100%;
-  border-radius: 10px;
-  border: 1px solid lightgray;
+  border-radius: 0px;
+    -webkit-box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
 }
 
-.custom-autocomplete > .list > .items {
+.custom-autocomplete>.custom-autocomplete-list>.list {
+  list-style: none;
+  padding: 5px 5px;
+  border-bottom: 1px solid lightgray;
+}
+
+.custom-autocomplete>.custom-autocomplete-list > li:is(:last-child) {
+  border-bottom: none;
+}
+
+.custom-autocomplete>.custom-autocomplete-list> li:is(:hover, :active, :focus) {
   cursor: pointer;
-  padding-left: 10px;
-  padding-bottom: 7px;
-  padding-top: 7px;
-  border-radius: 10px;
-  margin: 10px 10px;
+  border-radius: 5px;
+  border: 3px solid orange !important;
+  font-family: 'Proxima Nova Regular', Arial, sans-serif;
 }
 
-.custom-autocomplete > .list > .items:is(:hover, :active, :focus) {
-  background-color: var(--topband-bg);
-  color: white;
-  transition: none;
-}
 
 .showSetting {
   display: block;
