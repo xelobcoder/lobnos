@@ -1,12 +1,11 @@
-import { Button } from '@mui/material'
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle'
 import AutoDeleteIcon from '@mui/icons-material/AutoDelete'
-export default function TESTCART({ testArray, emptytestcart, handleRemove, outstanding }) {
+export default function TESTCART({ testArray, emptytestcart,  handleRemove, outstanding }) {
   return (
     <>
       {testArray.length == 0 ? null : (
           <>
-            <table className='billing-cart-table br-5 bg-white'>
+            <table className='billing-cart-table br-5 bg-white' >
               <thead className="p-0">
                 <tr>
                   <th>no</th>
@@ -44,17 +43,9 @@ export default function TESTCART({ testArray, emptytestcart, handleRemove, outst
                     }, 0)}
                   </td>
                   <td>
-                    <Button
-                      startIcon={<AutoDeleteIcon />}
-                      type="button"
-                      className='m-2'
-                      variant="contained"
-                      color='error'
-                      size='small'
-                      onClick={(e) => emptytestcart(e)}
-                    >
-                      remove all
-                    </Button>
+                    <button className='btn btn-danger btn-sm my-1' onClick={(e) => emptytestcart(e)}    >
+                      <AutoDeleteIcon /> remove all
+                    </button>
                   </td>
                 </tr>
               </tfoot>

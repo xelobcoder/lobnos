@@ -7,6 +7,7 @@ export class BillingClass {
     this.updateBillingData = updateBillingData;
     this.cart = cart;
     this.updateCart = updateCart;
+    this.includeTax = true;
   }
 
   prefillData = async () => {
@@ -69,16 +70,32 @@ removeFromCart = (id) => {
   this.updateCart(filteredCart);
 }
 
-totalTaxValue = (taxes) => {
-  return taxes.reduce((acc, curr) => {
-    return acc + curr.value;
-  }, 0);
+excludeTax = () => {
+  this.includeTax = false;
 }
 
-payableAmount = (cart, discount, taxes) => {
+addTax = () => {
+  this.includeTax = true;
+}
+
+totalTaxValue = (taxes) => {
+  if (Array.isArray(taxes)) {
+    return taxes.reduce((acc, curr) => {
+      return acc + curr.value;
+    }, 0);
+  } else {
+    return 0;
+  }
+}
+
+payableAmount = (cart, discount, taxes,includeTax) => {
   const totalTax = this.totalTaxValue(taxes);
   const totalBill = this.calculateCost(cart);
-  return (totalBill- discount) + totalTax;
+  if (includeTax ) {
+    return (totalBill- discount) + totalTax;
+  } else {
+    return totalBill - discount;
+  }
 }
 }
 

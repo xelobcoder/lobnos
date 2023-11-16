@@ -1,22 +1,18 @@
 import SidebarFrontPage from "../../../components/frontpagesidebar";
 import { useRouter } from "next/router.js";
-import {  useEffect, useState } from "react";
+import {  useCallback, useEffect, useState } from "react";
 import TESTCART from "../../../components/registration/testCart.js";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 
-import {
-  BillingClass,
-  billingoptions,
-  defaultClinician,
-  defaultOrganization,
-  defaultpanel,
-} from "../../../components/Auth/billing.js";
+import {BillingClass,billingoptions,defaultClinician,defaultOrganization,defaultpanel} from "../../../components/Auth/billing.js";
 import TopComponentBillingButton from "../../../components/Billing/topComponentBillingButton";
 import SettingsLayout from "../../../components/settingsComponents/SettingsLayout";
 import AutoCompleteObject from "../../../components/accessories/AutoCompleteObject.jsx";
 
 export default function Billing({}) {
   const [source, setSource] = useState("");
+  const [totalBill, setTotalBill] = useState(0);
+  const [includeTax, setIncludeTax] = useState(true);
   const [payment, setPayment] = useState({ amount: 0, mode: "",concession:'' });
   const [billingdata, setBillingData] = useState({
     allpanels: [],
@@ -63,8 +59,22 @@ export default function Billing({}) {
     setClinicianInputValue(selected[clinicianOptions.target]);
   };
 
-  const removeAllTax = () => { setBillingData({ ...billingdata, taxes: [] }) };
-  // const router = useRouter();
+  const toggleTax = () => { 
+     if (includeTax) {
+      setIncludeTax(false);
+     } else {
+      setIncludeTax(true);
+     }
+   };
+
+
+   const recalculateTotalBill = useCallback(() => {
+    setTotalBill(billingClass.payableAmount(cart,payment.concession,billingdata.taxes,includeTax));
+    }, [cart,includeTax,payment.concession,billingdata.taxes,billingClass]
+  );
+   useEffect(() => { 
+   recalculateTotalBill();
+   }, [includeTax,payment.concession,cart,billingdata.taxes,recalculateTotalBill]);
 
   const [data, setData] = useState({
     organizations: null,
@@ -83,7 +93,6 @@ export default function Billing({}) {
 
 
   const [selected, setSelected] = useState(null);
-  const [testArray, setTestArray] = useState([]);
 
   // const handleSubmit = async (e) => {
   //   const filteroutID = function (value, datasource) {
@@ -184,8 +193,8 @@ export default function Billing({}) {
   return (
     <>
       <SettingsLayout sidebar={<SidebarFrontPage />}>
-        <div className="mx-2 d-flex justify-content-between align-content-center">
-          <div className="mx-2 my-2  d-flex justify-content-between align-content-center">
+        <div className="mx-2 grid-50-responsive" >
+          <div id='panel-selection' className="mx-3 my-2  d-flex justify-content-between align-content-center">
             <AutoCompleteObject options={panelsOptions} />
             <div>
               <button
@@ -200,22 +209,23 @@ export default function Billing({}) {
               </button>
             </div>
           </div>
-          <TopComponentBillingButton emptyTax={removeAllTax} cart={cart.length} />
+          <TopComponentBillingButton 
+          includeTax={includeTax}
+          toggleTax={toggleTax} cart={cart.length} />
         </div>
         <div className="mx-4 my-2">
         <TESTCART
               testArray={cart}
               handleRemove={billingClass.removeFromCart}
               emptytestcart={billingClass.emptyCart}
-              // outstanding={totalBill}
             />
         {cart.length > 0 
         &&
          (
-          <div className="grid-2">
-          <div id="other-information" className="bg-white p-3 my-2 br-5">
+          <div className="grid-50-responsive">
+          <div  className="bg-white p-3 my-2 br-5">
           <h5 className="lims-text-color text-capitalize">other information </h5>
-           <div className="col-3">
+           <div>
                <label>select patient type</label>
                <select
                  value={source}
@@ -230,16 +240,16 @@ export default function Billing({}) {
              </div>
 
              {/* organization name */}
-             <div className="col-3">
+             <div>
                <label>organization name</label>
                <AutoCompleteObject options={organizationOptions} />
              </div>
-             <div className="col-3">
+             <div>
                <label>select clinician</label>
                <AutoCompleteObject options={clinicianOptions} />
              </div>
            {
-            billingdata.taxes.length > 0 && (
+           ( billingdata.taxes.length > 0 && includeTax) && (
               <div>
               <label>Taxes Applied</label>
               <ul className="list-group border br-5">
@@ -263,7 +273,7 @@ export default function Billing({}) {
             )
            }
           </div>
-          <div id="payment-information" className="bg-white p-3 br-5 my-2">
+          <div  className="bg-white p-3 br-5 my-2">
           <h5 className="lims-text-color text-capitalize">payment information </h5>
           <div className="col-3">
                <label>advance payment</label>
@@ -301,8 +311,8 @@ export default function Billing({}) {
                <input type="number" className="form-control" value={payment.concession} onChange={(e) => setPayment({ ...payment, concession: e.target.value })} />
             </div>
             <div className="card br-5 mt-1">
-              <h5 className="card-header">payable Amount</h5>
-              <h1 className="text-extra-large text-center">{billingClass.payableAmount(cart,payment.concession,billingdata.taxes)}</h1>
+              <h5 className="card-header">Payable Amount</h5>
+              <h1 className="text-extra-large text-center">{totalBill}</h1>
              </div>
              <div className="mt-2 d-flex justify-content-end">
               <button className="btn btn-success">bill client </button>

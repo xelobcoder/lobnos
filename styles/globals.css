@@ -3,7 +3,7 @@
   --sidebar-bg: #f7f7fe;
   --zf-font-family-base: 'Inter', 'Source Sans Pro', Helvetica, Arial,
     sans-serif;
-    --autocomplete-width: 30vw;
+    --autocomplete-width: 100%;
 }
 
 .sidebarMenu {
@@ -44,7 +44,8 @@ label {
   position: absolute;
   background-color: white;
   height: max-content;
-  width: calc(var(--autocomplete-width) - 20px);
+  min-width: 400px;
+  max-width: 90%;
   max-height: 30vh;
   z-index: 9999;
   border-radius: 5px;
@@ -439,10 +440,6 @@ a {
   text-transform: capitalize;
 }
 
-.billing-cart-table > tfoot > tr > td > button {
-  color: #f50057;
-  color: red;
-}
 
 .phelobotomy-table {
   margin: 0;
@@ -1279,7 +1276,14 @@ option:hover {
     grid-template-columns: 100%;
     grid-gap: 20px 20px;
   }
+  .span-close {
+    left: 80% !important;
+  }
 
+  #panel-selection{
+    display: grid !important;
+    grid-template-columns: 90% auto !important;
+  }
 
   .chaplain {
     grid-template-columns: 100%;
