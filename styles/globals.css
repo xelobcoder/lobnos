@@ -1605,6 +1605,12 @@ option:hover {
   /* width: 100%; */
   font-size: 14px;
 }
+.text-extra-large {
+  font-size: 100px;
+}
+.text-sm {
+  font-size: 13px;
+}
 .grid-50,
 .grid-50-responsive {
   display: grid;

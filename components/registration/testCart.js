@@ -36,11 +36,11 @@ export default function TESTCART({ testArray, emptytestcart, handleRemove, outst
                 <tr>
                   <td colSpan={1}></td>
                   <td>
-                    <span>Payable Amount</span>
+                    <span>Amount</span>
                   </td>
                   <td>
                     {testArray.reduce((acc, curr) => {
-                      return acc + curr.PRICE
+                      return acc + curr.price
                     }, 0)}
                   </td>
                   <td>

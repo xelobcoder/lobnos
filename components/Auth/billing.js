@@ -15,13 +15,15 @@ export class BillingClass {
       const organization = await customFetch('organization');
       const clinician = await customFetch('clinicians');
       const paymentModes = await customFetch('paymentmodes');
+      const taxes = await customFetch('application/tax');
       this.updateBillingData( (prev) => {
         return {
           ...prev,
           allpanels: data?.data || [],
           organizations: organization?.result || [],
           clinicians: clinician?.result || [],
-          paymentmode: paymentModes?.data || []
+          paymentmode: paymentModes?.data || [],
+taxes: taxes?.result || [],
         }
       
       })
@@ -65,6 +67,18 @@ emptyCart = () => {
 removeFromCart = (id) => {
   const filteredCart = this.cart.filter((item) => item.id !== id);
   this.updateCart(filteredCart);
+}
+
+totalTaxValue = (taxes) => {
+  return taxes.reduce((acc, curr) => {
+    return acc + curr.value;
+  }, 0);
+}
+
+payableAmount = (cart, discount, taxes) => {
+  const totalTax = this.totalTaxValue(taxes);
+  const totalBill = this.calculateCost(cart);
+  return (totalBill- discount) + totalTax;
 }
 }
 

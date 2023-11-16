@@ -1,5 +1,5 @@
 import { Close } from "@mui/icons-material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const AutoCompleteObject = ({ options }) => {
   const [showClose, setShowClose] = useState(false);
@@ -56,6 +56,13 @@ const AutoCompleteObject = ({ options }) => {
     setFilteredOptions([]);
     setShowClose(true);
   };
+
+useEffect(() => {
+  // filtered options should be emptied when the body of the document is clicked
+  document.body.addEventListener('click', (ev) => {
+    setFilteredOptions([]);
+  });
+}, []);
 
 
   return (
