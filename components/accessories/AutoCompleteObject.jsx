@@ -1,24 +1,35 @@
+import { Close } from "@mui/icons-material";
 import React, { useState } from "react";
 
 const AutoCompleteObject = ({ options }) => {
+  const [showClose, setShowClose] = useState(false);
   const {
     target,
     filter,
-    data,
+    data = [],
     tabindex,
     handleSelected,
-    selected,
     placeholder,
+    inputValue,
+    setInputValue,
   } = options;
-  const [inputValue, setInputValue] = useState(selected[target]);
+
+
+  const handleClose = () => {
+    setInputValue("");
+    setShowClose(false);
+    setFilteredOptions(data);
+  }
+
   const [computedTabindex, setComputedTabindex] = useState(tabindex);
   const [filteredOptions, setFilteredOptions] = useState([]);
 
   const handleInputChange = (event) => {
     const value = event.target.value;
     setInputValue(value);
+    setShowClose(false);
 
-    if ((target, filter, data && data.length > 0)) {
+    if ((target, filter, data && data.length && Array.isArray(data))) {
       const filtered = data.filter((option) => {
         if (filter == "contains") {
           return option[target].toLowerCase().includes(value.toLowerCase());
@@ -36,18 +47,19 @@ const AutoCompleteObject = ({ options }) => {
     if (ev.code === "ArrowDown" || ev.code === "Enter") {
       handleSelected(option);
       setFilteredOptions([]);
+      setShowClose(true);
     }
   };
 
   const handleOptionClick = (option) => {
     handleSelected(option);
     setFilteredOptions([]);
+    setShowClose(true);
   };
 
-  console.log(selected);
 
   return (
-    <div className="custom-autocomplete mx-3">
+    <div className="custom-autocomplete">
       <input
         type="text"
         tabIndex={tabindex}
@@ -55,12 +67,13 @@ const AutoCompleteObject = ({ options }) => {
         placeholder={placeholder}
         value={inputValue}
         onChange={(ev) => {
-          handleInputChange;
+          handleInputChange(ev)
         }}
         onClick={(ev) => {
           setFilteredOptions(data);
         }}
       />
+     {showClose && ( <span onClick={(ev) => {handleClose(ev)}} className="span-close"><Close color='primary'/></span>)}
       {filteredOptions.length > 0 && (
         <div className="custom-autocomplete-list">
           {filteredOptions.map((option, index) => (

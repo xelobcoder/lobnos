@@ -1,13 +1,12 @@
-import { Container, Button } from '@mui/material'
+import { Button } from '@mui/material'
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle'
 import AutoDeleteIcon from '@mui/icons-material/AutoDelete'
 export default function TESTCART({ testArray, emptytestcart, handleRemove, outstanding }) {
   return (
     <>
-      <div>
-        {testArray.length == 0 ? null : (
+      {testArray.length == 0 ? null : (
           <>
-            <table sx={{ mt: 5 }} className='mt-5 table'>
+            <table className='billing-cart-table br-5 bg-white'>
               <thead className="p-0">
                 <tr>
                   <th>no</th>
@@ -21,8 +20,8 @@ export default function TESTCART({ testArray, emptytestcart, handleRemove, outst
                   return (
                     <tr key={index}>
                       <td>{index + 1}</td>
-                      <td>{item.NAME}</td>
-                      <td>{item.PRICE}</td>
+                      <td>{item.name}</td>
+                      <td>{item.price}</td>
                       <td>
                         <RemoveCircleIcon
                           onClick={(e) => handleRemove(e, item)}
@@ -65,7 +64,6 @@ export default function TESTCART({ testArray, emptytestcart, handleRemove, outst
             </div>
           </>
         )}
-      </div>
     </>
   )
 }

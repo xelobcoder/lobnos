@@ -7,11 +7,13 @@ import AutoCompleteObject from '../components/accessories/AutoCompleteObject';
 
 export default function AutocompleteForm() {
   const [selected,setSelected] = useState({country:'Ghana',name:'',code:''});
+  const [inputValue, setInputValue] = useState('');
 
   const handleSelected = (selected) => {
-    setSelected(selected)
+    setSelected(selected);
+    setInputValue(selected[options.target]);
   }
-  
+
   const options =  {
     tabindex: 1,
     filter: 'contains',
@@ -40,9 +42,13 @@ export default function AutocompleteForm() {
       { country: 'USA', name: 'Wisconsin', code: 'WI' },
       { country: 'USA', name: 'Wyoming', code: 'WY' }
     ],
+    inputValue: inputValue,
+    setInputValue: setInputValue,
     selected: selected,
     handleSelected: handleSelected,
   }
+  
+ 
   
 
   

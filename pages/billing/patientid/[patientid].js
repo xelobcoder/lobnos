@@ -1,61 +1,84 @@
 import SidebarFrontPage from "../../../components/frontpagesidebar";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import { Autocomplete, FormLabel, Radio, RadioGroup, FormControlLabel, Button, TextField, MenuItem, FormControl, Select, InputLabel } from "@mui/material";
+import { useCallback, useEffect, useState } from "react";
+import {
+  FormLabel,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  Button,
+  MenuItem,
+  FormControl,
+  Select,
+  InputLabel,
+} from "@mui/material";
 import TESTCART from "../../../components/registration/testCart.js";
 import CancelScheduleSendIcon from "@mui/icons-material/CancelScheduleSend";
 import SendIcon from "@mui/icons-material/Send";
 import AddBoxIcon from "@mui/icons-material/AddBox";
-import { customFetch, customPost, getBranches } from "../../../components/Auth/customFetch";
+import { customPost } from "../../../components/Auth/customFetch";
+import {
+  BillingClass,
+  billingoptions,
+  defaultClinician,
+  defaultOrganization,
+  defaultpanel,
+} from "../../../components/Auth/billing.js";
 import TopComponentBillingButton from "../../../components/Billing/topComponentBillingButton";
-import SettingsLayout from '../../../components/settingsComponents/SettingsLayout'
+import SettingsLayout from "../../../components/settingsComponents/SettingsLayout";
+import AutoCompleteObject from "../../../components/accessories/AutoCompleteObject.jsx";
 
-export default function Billing({ }) {
-  const [allpanels, setAllpanels] = useState([]);
-  const [organization, setOrganization] = useState([]);
-  const [clinicians, setClinicians] = useState([]);
-  const [branch, setBranch] = useState([]);
-  const [refered, setRefered] = useState(true);
-  const [paymentmode, setPaymentMode] = useState([])
+export default function Billing({}) {
+  const [source, setSource] = useState("");
+  const [payment, setPayment] = useState({ amount: 0, mode: "",concession:'' });
+  const [billingdata, setBillingData] = useState({
+    allpanels: [],
+    organizations: [],
+    clinicians: [],
+    refered: true,
+    paymentmode: [],
+  });
+
+  const [panelinputValue, setPanelInputValue] = useState("");
+  const [selectedPanel, setSelectedPanel] = useState(defaultpanel);
+
+  const [organizationinputValue, setOrganizationInputValue] = useState("");
+  const [selectedOrganization, setSelectedOrganization] =
+    useState(defaultOrganization);
+
+  const [clinicianinputValue, setClinicianInputValue] = useState("");
+  const [selectedClinician, setSelectedClinician] = useState(defaultClinician);
+
+  const [cart, setCart] = useState([]);
+  const clientid = useRouter().query.patientid;
+  const billingClass = new BillingClass(
+    clientid,
+    billingdata,
+    setBillingData,
+    cart,
+    setCart
+  );
 
   useEffect(() => {
-    const check = async function () {
-      let data = await customFetch('testpanel/list/bulk');
-      const organization = await customFetch('organization');
-      const clinician = await customFetch('clinicians');
-      getBranches(setBranch)
-      const paymentModes = await customFetch('paymentmodes');
+    billingClass.prefillData();
+  }, []);
 
-      setAllpanels(data?.data || []);
-      setOrganization(organization?.result || []);
-      setClinicians(clinician?.result || []);
-      setPaymentMode(paymentModes?.data || [])
-    }
-    try {
-      check();
-    } catch (err) {
-      alert(err.message);
-    }
-  }, [])
+  const handleSelectedOrganization = (selected) => {
+    setSelectedOrganization(selected);
+    setOrganizationInputValue(selected[organizationOptions.target]);
+  };
 
+  const handleSelectedClinician = (selected) => {
+    setSelectedClinician(selected);
+    setClinicianInputValue(selected[clinicianOptions.target]);
+  };
 
-  const getStringValue = function (id, array, objectKey, returner) {
-    const filteredValue = array.filter((item, index) => { return item[objectKey] == id });
-    return filteredValue[0]
-  }
-
-
-
-
-  const router = useRouter().query.patientid;
-  const navigate = useRouter();
-
+  const router = useRouter();
 
   const [data, setData] = useState({
     organizations: null,
-    organizationLabel: { NAME: '', ID: '' },
-    clinicianLabel: { NAME: '', ID: '' },
-    samplingCenterLabel: { NAME: '', BRANCHID: '' },
+    organizationLabel: { NAME: "", ID: "" },
+    clinicianLabel: { NAME: "", ID: "" },
     clinicians: null,
     paymentmode: "",
     cost: 0,
@@ -63,335 +86,213 @@ export default function Billing({ }) {
     paid: 0,
     discount: 0,
     urgency: "none",
-    patientid: router,
+    patientid: clientid,
     samplingCenter: "",
   });
 
-
-  useEffect(() => { setData({ ...data, patientid: router }) }, [router])
+  useEffect(() => {
+    setData({ ...data, patientid: router });
+  }, [router]);
 
   const [selected, setSelected] = useState(null);
   const [testArray, setTestArray] = useState([]);
 
+  // const handleSubmit = async (e) => {
+  //   const filteroutID = function (value, datasource) {
+  //     const data = datasource.filter((item, index) => { return item.NAME == value });
+  //     return data.length > 0 ? data[0]['ID'] : 0
+  //   }
 
-  const emptytestcart = (e) => {
-    setTestArray([]);
+  //   const defaultData = {
+  //     organizations: null,
+  //     clinicians: null,
+  //     paymentmode: "",
+  //     cost: 0,
+  //     test: [],
+  //     paid: 0,
+  //     discount: 0,
+  //     urgency: "none",
+  //     patientid: router,
+  //     samplingCenter: ""
+  //   }
+  //   //    send data to server using fecth
+  //   e.preventDefault();
+
+  //   let refinedData = { ...data, paid: parseInt(data.paid) }
+  //   try {
+  //     //  if(NaN(refinedData.paid) == false)
+
+  //     if (isNaN(refinedData.paid) == false) {
+  //       const pushResponse = await customPost('billing', 'POST', refinedData);
+
+  //       const { statusCode, status, code, message } = pushResponse;
+
+  //       if ([0, -1, null, 'AppSett'].includes(code)) {
+  //         alert(message)
+  //       } else {
+  //         if (statusCode == 200 && status == "success" && code == 1) {
+  //           // displayt message to user
+  //           alert('client billed successfully')
+  //           // empty test array or cart and set default data
+  //           setData(defaultData);
+  //           setTestArray([]);
+  //           // router to activatio page
+  //           router.push('/activation')
+  //         } else {
+  //           alert(message)
+  //         }
+  //       }
+  //     } else {
+  //       alert('Enter a valid payment amount')
+  //     }
+  //   } catch (err) {
+  //     console.log(err)
+  //   }
+
+  // }
+
+  const handleSelectedPanel = (selected) => {
+    setSelectedPanel(selected);
+    setSelected(true);
+    setPanelInputValue(selected[panelsOptions.target]);
   };
 
-  const handleAutocomplete = (e) => {
-    // check cart to ensure no duplicate data is found
-    let cart = testArray.filter((item) => item.ID === selected.ID);
-    // if cart is empty, add data to cart
-    // adding data function
-    const addData = () => {
-      setTestArray([...testArray, selected]);
-      setData({ ...data, test: [...data.test, selected.ID] });
-    };
-    cart.length === 0 ? addData() : alert("test already in cart");
+  const panelsOptions = {
+    data: billingdata.allpanels,
+    target: "name",
+    filter: "contains",
+    tabindex: 1,
+    placeholder: "Search for a panel",
+    handleSelected: handleSelectedPanel,
+    selected: selectedPanel,
+    inputValue: panelinputValue,
+    setInputValue: setPanelInputValue,
   };
 
-  useEffect(() => {
-    // calculate test cost and update data
-    let cost = testArray.reduce((acc, curr) => {
-      return acc + curr.PRICE;
-    }, 0);
-    // update data
-    setData({ ...data, cost: cost });
-  }, [testArray]);
-
-  const handleRemove = (e, single) => {
-    // filter out the selected test from the cart
-    let cart = testArray.filter((item) => item.ID != single.ID);
-    // return all tests except the selected test
-    // set test array to the new cart
-    setTestArray(cart);
-    // remove test from data test array
-    let test = data.test.filter((item) => item != single.NAME);
-    setData({ ...data, test: test });
+  const organizationOptions = {
+    data: billingdata.organizations,
+    target: "name",
+    filter: "contains",
+    tabindex: 2,
+    placeholder: "Search for an organization",
+    handleSelected: handleSelectedOrganization,
+    selected: selectedOrganization,
+    inputValue: organizationinputValue,
+    setInputValue: setOrganizationInputValue,
   };
 
-  const handleSubmit = async (e) => {
-    const filteroutID = function (value, datasource) {
-      const data = datasource.filter((item, index) => { return item.NAME == value });
-      return data.length > 0 ? data[0]['ID'] : 0
-    }
-
-
-    const defaultData = {
-      organizations: null,
-      clinicians: null,
-      paymentmode: "",
-      cost: 0,
-      test: [],
-      paid: 0,
-      discount: 0,
-      urgency: "none",
-      patientid: router,
-      samplingCenter: ""
-    }
-    //    send data to server using fecth
-    e.preventDefault();
-
-    let refinedData = { ...data, paid: parseInt(data.paid) }
-    try {
-      //  if(NaN(refinedData.paid) == false)
-
-      if (isNaN(refinedData.paid) == false) {
-        const pushResponse = await customPost('billing', 'POST', refinedData);
-
-        const { statusCode, status, code, message } = pushResponse;
-
-        if ([0, -1, null, 'AppSett'].includes(code)) {
-          alert(message)
-        } else {
-          if (statusCode == 200 && status == "success" && code == 1) {
-            // displayt message to user
-            alert('client billed successfully')
-            // empty test array or cart and set default data 
-            setData(defaultData);
-            setTestArray([]);
-            // navigate to activatio page
-            navigate.push('/activation')
-          } else {
-            alert(message)
-          }
-        }
-      } else {
-        alert('Enter a valid payment amount')
-      }
-    } catch (err) {
-      console.log(err)
-    }
-
-  }
-
+  const clinicianOptions = {
+    data: billingdata.clinicians,
+    target: "name",
+    filter: "contains",
+    tabindex: 4,
+    placeholder: "Search for a clinician",
+    handleSelected: handleSelectedClinician,
+    selected: selectedClinician,
+    inputValue: clinicianinputValue,
+    setInputValue: setClinicianInputValue,
+  };
 
   return (
     <>
-      <SettingsLayout sidebar={<SidebarFrontPage/>}>
-        <TopComponentBillingButton cart={testArray.length} />
-        <hr/>
-        <div
-          id="billing-page-main-wrapper" >
-          <div id="top-wrap">
-            <div id="test-selection">
-              <Autocomplete
-                options={allpanels}
-                getOptionLabel={(option) => option.NAME}
-                value={selected}
-                size="small"
-                onChange={(e, newValue) => {
-                  setSelected(newValue);
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Select a panel"
-                    variant="outlined"
-                  />
-                )}
-              />
-
+      <SettingsLayout sidebar={<SidebarFrontPage />}>
+        <div className="mx-2 d-flex justify-content-between align-content-center">
+          <div className="mx-2 my-2  d-flex justify-content-between align-content-center">
+            <AutoCompleteObject options={panelsOptions} />
+            <div>
               <Button
+              className="mx-2"
                 disabled={selected == null ? true : false}
                 startIcon={<AddBoxIcon />}
-                onClick={(e) => {
-                  handleAutocomplete(e);
+                onClick={(ev) => {
+                  billingClass.addToCart(selectedPanel);
                 }}
                 color="primary"
                 variant="contained"
-                sx={{ borderRadius: 0, marginLeft: "10px" }}
+                sx={{ borderRadius: 0 }}
               >
                 add
               </Button>
             </div>
-            <div id="test-selection-others">
-              <Autocomplete
-                options={['walkin client', 'refered']}
-                getOptionLabel={(option) => option}
-                value={refered ? 'refered' : 'walkin client'}
-                size="small"
-                onChange={(e, newValue) => {
-                  if (newValue == 'refered') {
-                    setRefered(true);
-                  } else {
-                    setRefered(false);
-                    setData({ ...data, organizations: 0, clinicians: 0 })
-                  }
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="client type"
-                    variant="outlined"
-                  />
-                )}
-              />
-            </div>
-            <div id="test-selection-others">
-              {refered && (
-                <div>
-                  <Autocomplete
-                    value={data.organizationLabel}
-                    size="small"
-                    options={organization}
-                    getOptionLabel={(option) => option.NAME}
-                    onChange={(e, newValue) => {
-                      const { ID, NAME } = newValue;
-                      console.log(newValue)
-                      setData({ ...data, organizations: ID, organizationLabel: getStringValue(ID, organization, 'ID', 'NAME') });
-                    }}
-                    renderInput={(params, index) => (
-                      <TextField
-                        key={index}
-                        {...params}
-                        label="Select a organization"
-                        variant="outlined"
-                      />
-                    )}
-                  />
-                </div>
-              )}
-              {refered && (
-                <div id="test-selection-others">
-                  <Autocomplete
-                    sx={{ marginTop: '20px' }}
-                    value={data.clinicianLabel}
-                    size="small"
-                    options={clinicians}
-                    getOptionLabel={(option) => option.NAME}
-                    onChange={(e, newValue) => {
-                      const { ID, NAME } = newValue;
-                      setData({ ...data, clinicians: ID, clinicianLabel: getStringValue(ID, clinicians, 'ID', 'NAME') });
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Select a clinician"
-                        variant="outlined"
-                      />
-                    )}
-                  />
-                </div>
-              )}
-              <div >
-                <FormControl size="small" sx={{ width: "100%", marginTop: '20px' }}>
-                  <InputLabel>payment mode</InputLabel>
-                  <Select
-                    value={data.paymentmode}
-                    onChange={(e) => {
-                      setData({ ...data, paymentmode: e.target.value });
-                    }}
-                  >
-                    {
-                      paymentmode.length > 0 && paymentmode.map((item, index) => {
-                        return (<MenuItem key={index} value={item.KeyID}>{item.PaymentMode}</MenuItem>)
-                      })
-                    }
-                  </Select>
-                </FormControl>
-              </div>
-              <div>
-                <FormControl>
-                  <FormLabel id="demo-radio-buttons-group-label">
-                    urgency
-                  </FormLabel>
-                  <RadioGroup
-                    aria-labelledby="demo-radio-buttons-group-label"
-                    defaultValue="none"
-                    name="radio-buttons-group"
-                    onChange={(e) =>
-                      setData({ ...data, urgency: e.target.value })
-                    }
-                    sx={{
-                      display: "flex",
-                      justifyContent: "flex-start !important",
-                      flexDirection: "row !important",
-                    }}
-                  >
-                    <FormControlLabel
-                      value="none"
-                      control={<Radio />}
-                      label="none"
-                    />
-                    <FormControlLabel
-                      value="moderate"
-                      control={<Radio />}
-                      label="moderate"
-                    />
-                    <FormControlLabel
-                      value="emmergency"
-                      control={<Radio />}
-                      label="emmergency report"
-                    />
-                  </RadioGroup>
-                </FormControl>
-              </div>
-            </div>
           </div>
-
-          <div id="test-selection-cart">
-            <TESTCART
-              testArray={testArray}
-              handleRemove={handleRemove}
-              emptytestcart={emptytestcart}
-              outstanding={data.cost}
+          <TopComponentBillingButton cart={cart.length} />
+        </div>
+        <div className="mx-4 my-2">
+        <TESTCART
+              testArray={cart}
+              handleRemove={billingClass.removeFromCart}
+              emptytestcart={billingClass.emptyCart}
+              outstanding={billingClass.calculateCost(cart)}
             />
+          <div className="grid-2">
+             <div id="other-information" className="bg-white p-3 my-2 br-5">
+             <h5 className="lims-text-color text-capitalize">other information </h5>
+              <div className="col-3">
+                  <label>select patient type</label>
+                  <select
+                    value={source}
+                    className="form-control"
+                    onChange={(e) => setSource(e.target.value)}
+                  >
+                    <option>select</option>
+                    <option value="self">Self</option>
+                    <option value="organization">Organization</option>
+                    <option value="clinician">clinician</option>
+                  </select>
+                </div>
 
-            <div style={{ display: "flex", justifyContet: "flex-start" }}>
-              <TextField
-                onChange={(e) => setData({ ...data, paid: e.target.value })}
-                value={data.paid}
-                disabled={
-                  testArray.length == 0 || data.paymentmode == "invoice"
-                    ? true
-                    : false
-                }
-                sx={{ mt: 5, mr: 3 }}
-                label="amount paid"
-                size="small"
-                type="number"
-              ></TextField>
-              <TextField
-                value={data.discount}
-                onChange={(e) => setData({ ...data, discount: e.target.value })}
-                disabled={
-                  testArray.length == 0 || data.paymentmode == "invoice"
-                    ? true
-                    : false
-                }
-                sx={{ mt: 5 }}
-                label="discount"
-                type="number"
-                size="small"
-              />
-              <Button
-                type="button"
-                color="success"
-                onClick={(e) => {
-                  handleSubmit(e);
-                }}
-                variant="contained"
-                sx={{ mt: 5, ml: 2, borderRadius: 0 }}
-
-                endIcon={
-                  testArray.length == 0 ? (
-                    <CancelScheduleSendIcon />
-                  ) : (
-                    <SendIcon />
-                  )
-                }
-                disabled={
-                  testArray.length == 0 || !data.paymentmode ? true : false
-                }
-              >
-                bill
-              </Button>
-            </div>
+                {/* organization name */}
+                <div className="col-3">
+                  <label>organization name</label>
+                  <AutoCompleteObject options={organizationOptions} />
+                </div>
+                <div className="col-3">
+                  <label>select clinician</label>
+                  <AutoCompleteObject options={clinicianOptions} />
+                </div>
+             </div>
+             <div id="payment-information" className="bg-white p-3 br-5 my-2">
+             <h5 className="lims-text-color text-capitalize">payment information </h5>
+             <div className="col-3">
+                  <label>advance payment</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={payment.amount}
+                    onChange={(e) =>
+                      setPayment({ ...payment, amount: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                    <label>payment mode</label>
+                    <select
+                      value={payment.mode}
+                      className="form-control"
+                      onChange={(e) =>
+                        setPayment({ ...payment, mode: e.target.value })
+                      }
+                    >
+                      <option>select</option>
+                      {billingoptions.map((item, index) => {
+                        return (
+                          <option key={index} value={item}>
+                            {item}
+                          </option>
+                        );
+                      }
+                      )}
+                    </select>
+               </div>
+               <div>
+                <label> concession</label>
+              <input type="number" className="form-control" value={payment.concession} onChange={(e) => setPayment({ ...payment, concession: e.target.value })} />
+               </div>
+             </div>
+           
           </div>
         </div>
       </SettingsLayout>
     </>
   );
 }
-
