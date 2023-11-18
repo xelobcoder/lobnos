@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { customFetch, customPost, defaultApplicationSettings, getApplicationSettings } from '../../components/Auth/customFetch';
 import { Table } from 'react-bootstrap';
 import { useRouter } from 'next/router';
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout'
 import MainSettingsLayoutView from '../../components/settingsComponents/MainSettingsLayoutView';
 
 export default function Settings() {
@@ -30,13 +29,13 @@ export default function Settings() {
 
 	const makeDefaultBranch = async function (e) {
 		const branchid = e.target.value;
-		const selected = branches.filter((e, i) => { return branchid == e.BRANCHID });
+		const selected = branches.filter((e, i) => { return branchid == e.branchid });
 		if (selected.length > 0) {
 			const isActive = selected[0]['ACTIVATION'] == 0 ? true : false;
 			if (isActive) {
 				alert('Activate branch in the branches page to continue');
 			} else {
-				localStorage.setItem('deviceDefaultBranch', selected[0]['NAME'].toUpperCase())
+				localStorage.setItem('deviceDefaultBranch', `${selected[0]['name']}-${selected[0]['branchid']}`)
 			}
 		}
 	}
@@ -78,6 +77,7 @@ export default function Settings() {
 		}
 	}
 
+	console.log(defaultBranch)
 	return (
 		<MainSettingsLayoutView>
 			<div className="m-2">
@@ -244,7 +244,7 @@ export default function Settings() {
 						<tr>
 							<td>9</td>
 							<td>Default Branch</td>
-							<td>{defaultBranch == null ? "Not Set" : defaultBranch}</td>
+							<td>{defaultBranch == null ? "Not Set" : defaultBranch?.split('-')[0]}</td>
 							<td>
 								<select
 									name="defaultBranch"

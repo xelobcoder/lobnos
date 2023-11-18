@@ -75,7 +75,7 @@ export default function TESTPRICING() {
             {panel.map((item, index) => {
               return (
                 <tr key={index}>
-                  <td className='text-capitalize text-success'>{item.NAME}</td>
+                  <td className='text-capitalize text-success'>{item.name}</td>
                   <td>
                     <select onChange={(e) => handleTestListChange(e, index, 'CATEGORY')} value={item.CATEGORY}>
                       <option>select category</option>
@@ -103,13 +103,13 @@ export default function TESTPRICING() {
                     </select>
                   </td>
                   <td>
-                    <input value={item.UNIT} />
+                    <input value={item.unit} />
                   </td>
                   <td>
-                    <input value={item.QTY_REQUIRED} onChange={(e) => handleTestListChange(e, index, 'QTY_REQUIRED')} />
+                    <input value={item.qty_required} onChange={(e) => handleTestListChange(e, index, 'QTY_REQUIRED')} />
                   </td>
                   <td>
-                    <input value={item.PRICE}
+                    <input value={item.price}
                       onChange={(e) => handleTestListChange(e, index, 'PRICE')} />
                   </td>
                 </tr>

@@ -6,7 +6,8 @@ import "../styles/fullblood.css";
 import '../styles/admin.css';
 import '../styles/setup.css';
 import '../styles/exceltable.css';
-import 'react-quill/dist/quill.snow.css'
+import '../node_modules/react-toastify/dist/ReactToastify.css'
+// import 'react-quill/dist/quill.snow.css'
 import "../styles/invoice.css";
 import Header from '../components/header'
 import { AuthentificationProvider } from '../components/Auth/useAuthentification';

@@ -14,7 +14,7 @@ export default function TopComponentBillingButton({ cart,toggleTax ,includeTax})
       <div className='mx-1 my-1'>
         <div className='d-flex justify-content-end'>
           <button onClick={(ev) => {toggleTax()}} className='btn btn-success btn-sm mx-1'>
-        {includeTax ? 'exclude tax' : 'include tax'}
+          {includeTax ? 'exclude tax' : 'include tax'}
           </button>
           <button
             className="btn btn-success btn-sm"

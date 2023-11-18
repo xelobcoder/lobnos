@@ -419,12 +419,17 @@ a {
   padding: 0;
 }
 
+.billing-cart-table > thead > tr > th{
+  font-weight: bold;
+}
+
 .billing-cart-table > thead > tr > th,
-.billing-cart-table > tbody > tr > td {
+.billing-cart-table > tbody > tr > td,
+.billing-cart-table > tfoot > tr > td {
   text-transform: capitalize;
   text-align: left;
   font-size: 14px;
-  border-bottom: 1px solid lightgray;
+  border: 1px solid lightgray;
   padding: 10px;
 }
 
@@ -436,7 +441,6 @@ a {
 .billing-cart-table > tfoot > tr > td {
   text-align: left;
   font-weight: 300;
-  margin-left: 20px;
   text-transform: capitalize;
 }
 
