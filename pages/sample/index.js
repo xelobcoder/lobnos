@@ -1,10 +1,9 @@
 import { useEffect, useState} from "react";
-import { customFetch, getDataAndUpdateState} from '../../components/Auth/customFetch';
+import {  getDataAndUpdateState} from '../../components/Auth/customFetch';
 import PendingTableSample from "../../components/samples/pendingTable";
 import SECOND_NO_DATA from "../../components/accessories/secondNodata";
-import { Error } from "@mui/icons-material";
 import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
-import SidebarFrontPage from "../../components/frontpagesidebar";
+import LabSideBarComponents from "../../components/operations/labSideBarComponents";
 
 export default function SAMPLE_ASSESSMENT() {
   const [data, setData] = useState([]);
@@ -14,15 +13,17 @@ export default function SAMPLE_ASSESSMENT() {
   useEffect(() => { fetchInitialData() }, [])
 
   const removeClientFromList=(id)=>{
+   setTimeout(() => {
     setData((prev)=>{
       return prev.filter((item)=>item.billingid !== id)
     })
+   }, 3000);
   }
   
 
   return (
     <>
-      <SettingsLayout sidebar={<SidebarFrontPage />}>
+      <SettingsLayout sidebar={<LabSideBarComponents />}>
         <div className="container-fluid">
           <div>
             <div className="p-2">
