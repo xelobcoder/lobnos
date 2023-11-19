@@ -5,10 +5,12 @@ import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
 import PhelobotomySidebar from "../../components/PhelobotomySidebar";
 import CollectionSampleModal from "../../components/phelobotomy/CollectionSampleModal";
 import { customFetch, getDataAndUpdateState } from "../../components/Auth/customFetch";
+import ReceiveLabSampleModal from "../../components/phelobotomy/ReceiveLabSampleModal/ReceiveLabSampleModal";
 export default function Phelobotomy() {
   const [data, setData] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [openModal, setOpenModal] = useState(false);
   const [collection, setCollection] = useState({ billingid: null, patientid: null, fullname: null });
 
   const handleCollectSample = async (id, patientid,fullname) => {
@@ -32,14 +34,17 @@ export default function Phelobotomy() {
     getPhelobotomy();
   }, [getPhelobotomy]);
 
+  const closeModal = () => { setOpenModal(false); }
 
+  const receiveSample = () => { setOpenModal(true); }
 
   return (
     <>
       <SettingsLayout sidebar={<PhelobotomySidebar />}>
         {loading && <ISLOADING />}
-        {!loading && <ListTable data={data} handleCollectSample={handleCollectSample} />}
+        {!loading && <ListTable data={data} receive={receiveSample} handleCollectSample={handleCollectSample} />}
       {showModal  &&   <CollectionSampleModal collection={collection} show={showModal} hide={hideModal} />}
+        {openModal && <ReceiveLabSampleModal show={openModal} hide={closeModal} />}
       </SettingsLayout>
     </>
   );

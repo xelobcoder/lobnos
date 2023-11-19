@@ -1,6 +1,6 @@
 import React  from "react";
 import TableDisplay from '../accessories/TableDisplay';
-export default function ListTable({ data, handleCollectSample }) {
+export default function ListTable({ data, handleCollectSample ,receive}) {
   const columns = [
     { Header: "DATE", accessor: "date",Cell:  ({value}) => {return new Date(value).toLocaleDateString()}},
     { Header: "BILLINGID", accessor: "billingid" },
@@ -11,7 +11,7 @@ export default function ListTable({ data, handleCollectSample }) {
     { Header: "ACTION", accessor: "action",
       Cell: ({ row }) => (
         <div>
-          <button className="btn btn-primary btn-sm mx-1" color="primary">
+          <button onClick={(ev) => {receive()}} className="btn btn-primary btn-sm mx-1" color="primary">
             receive
           </button>
           <button

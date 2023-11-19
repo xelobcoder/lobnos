@@ -21,7 +21,7 @@ export default function PhelobotomySidebar() {
               <Book />
             </div>
             <div className='text'>
-              <Link href="/phelobotomy/rejected">
+              <Link href="/phelobotomy/rejectedsamples">
                 rejected samples
               </Link>
             </div>
