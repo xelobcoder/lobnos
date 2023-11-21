@@ -1,11 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import CHEMISTRY_LAYOUT_SETUP from '../../../components/setup/biochemistry/Layout'
-import { Button } from '@mui/material'
 import { customFetch, customPost, validateFormData } from '../../../components/Auth/customFetch'
 import esrparams from '../../../components/setup/biochemistry/esrparams';
-import { useEffect } from 'react'
-import { Suspense } from 'react';
-import NODATA_FOUND from '../../../components/Nodata';
+
 
 export default function ESR() {
   const [range, setRange] = useState(esrparams);
@@ -55,9 +52,9 @@ export default function ESR() {
     <div>
       <CHEMISTRY_LAYOUT_SETUP>
         <form>
-          <div className="range-table">
+          <div className='mx-3 my-2' >
             <h5>Erthyrocyte sedimentation rate</h5>
-            <table>
+            <table className='billing-cart-table'>
               <thead>
                 <tr>
                   <th>gender</th>
@@ -67,48 +64,46 @@ export default function ESR() {
                 </tr>
               </thead>
               <tbody>
-                <Suspense fallback={<NODATA_FOUND />}>
-                  {
-                    range.length == 0 ? null : (
-                      range.map((item, index) => {
-                        return (
-                          <tr key={index}>
-                            <td>{item.gender}</td>
-                            <td>{item.agelimit}</td>
-                            <td>
-                              <input
-                                className='custom-input'
-                                placeholder="lower"
-                                step={1}
-                                minLength={0}
-                                inputMode="numeric"
-                                type="number"
-                                value={item.lower}
-                                name='lower'
-                                onChange={(e) => onChangeValue(e, index, 'lower')}
-                              />
-                            </td>
-                            <td>
-                              <input
-                                placeholder="higher"
-                                step={1}
-                                className='custom-input'
-                                value={item.upper}
-                                name='upper'
-                                onChange={(e) => onChangeValue(e, index, 'upper')}
-                                minLength={0}
-                              />
-                            </td>
-                          </tr>
-                        )
-                      })
-                    )
-                  }
-                </Suspense>
+                {
+                  range.length == 0 ? <h6 className='d-flex justify-content-center'>No Data Found</h6>: (
+                    range.map((item, index) => {
+                      return (
+                        <tr key={index}>
+                          <td>{item.gender}</td>
+                          <td>{item.agelimit}</td>
+                          <td>
+                            <input
+                              className='custom-input'
+                              placeholder="lower"
+                              step={1}
+                              minLength={0}
+                              inputMode="numeric"
+                              type="number"
+                              value={item.lower}
+                              name='lower'
+                              onChange={(e) => onChangeValue(e, index, 'lower')}
+                            />
+                          </td>
+                          <td>
+                            <input
+                              placeholder="higher"
+                              step={1}
+                              className='custom-input'
+                              value={item.upper}
+                              name='upper'
+                              onChange={(e) => onChangeValue(e, index, 'upper')}
+                              minLength={0}
+                            />
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )
+                }
               </tbody>
             </table>
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <Button variant="contained" sx={{ mt: 4 }} onClick={pushResult}>save changes</Button>
+              <button type='button' className='btn btn-primary btn-sm mt-4' onClick={pushResult}>save changes</button>
             </div>
           </div>
         </form>

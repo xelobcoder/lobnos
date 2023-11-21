@@ -76,89 +76,62 @@ export default function BetaHcg() {
   return (
     <>
       <CHEMISTRY_LAYOUT_SETUP>
-        <div className="_fbc">
-          <header className="d-flex justify-content-between">
-            <h4>Setup BetaHcg</h4>
+        <div className="my-2 mx-2">
+          <div className="d-flex gap-2 justify-content-between mb-2">
             <div>
-              <Button
-                variant="contained"
+              <input
+                className="custom-input"
+                type="text"
+                placeholder="enter unit here"
+                onChange={(e) => updateUnit(e)}
+              />
+            </div>
+            <div className="d-flex gap-1">
+              <button className="btn btn-primary btn-sm"
                 onClick={() => setDataModification(betahcgparameter)}
                 sx={{ marginRight: "20px" }}
               >
                 default values
-              </Button>
-              <Button variant="contained" onClick={getCustomValues}>
+              </button>
+              <button className="btn btn-primary btn-sm" onClick={getCustomValues}>
                 custom values
-              </Button>
-            </div>
-          </header>
-          <input
-            className="custom-input mt-2"
-            type="text"
-            placeholder="enter unit here"
-            onChange={(e) => updateUnit(e)}
-          />
-          <div className="wrapperx">
-            <div className="fbc_header">
-              <ul>
-                <li>weeks</li>
-                <li>unit</li>
-                <li>upper</li>
-                <li>lower</li>
-                <li>entered</li>
-              </ul>
-            </div>
-            <div className="fbc_header">
-              <div className="parameter-list">
-                {dataModification.length == 0 ? (
-                  <h5>No data found</h5>
-                ) : (
-                  dataModification.map((item, index) => {
-                    return (
-                      <ul
-                        key={index}
-                        style={{
-                          border: `${
-                            item.upper == 0 ||
-                            item.lower == 0 ||
-                            item.lower > item.upper
-                              ? "1px solid red"
-                              : ""
-                          }`,
-                        }}
-                      >
-                        <li>{item.weeks}</li>
-                        <li>
-                          <input type="text" disabled value={unit} />
-                        </li>
-                        <li>
-                          <input
-                            value={item.upper || 0}
-                            type="number"
-                            className="form-control"
-                            onChange={(e) => onChangeUpper(e, index)}
-                          />
-                        </li>
-                        <li>
-                          <input
-                            value={item.lower || 0}
-                            type="number"
-                            className="form-control"
-                            onChange={(e) => onChangeLower(e, index)}
-                          />
-                        </li>
-                        <li>
-                          {item.upper != 0 && item.lower != 0
-                            ? "true"
-                            : "false"}
-                        </li>
-                      </ul>
-                    );
-                  })
-                )}
-              </div>
+              </button>
             </div>
           </div>
+          <table className="billing-cart-table">
+            <thead>
+              <tr>
+                <th>weeks</th>
+                <th>lower</th>
+                <th>upper</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dataModification.map((item, index) => {
+                return (
+                  <tr key={index}>
+                    <td>{item.weeks}</td>
+                    <td>
+                      <input
+                        className="custom-input"
+                        type="number"
+                        value={item.lower}
+                        onChange={(e) => onChangeLower(e, index)}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        className="custom-input"
+                        type="number"
+                        value={item.upper}
+                        onChange={(e) => onChangeUpper(e, index)}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
           <div
             className="fbc_header mt-2"
             style={{ display: "flex", justifyContent: "right" }}
