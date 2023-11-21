@@ -13,8 +13,6 @@ export default function OperationsTestCollection() {
   const [query, setQuery] = useState({ bydept: false, queryDept: 0 })
 
 
-
-
   // get department from router query
 
   const { departmentid } = useRouter().query;
@@ -45,7 +43,7 @@ export default function OperationsTestCollection() {
     getDepartment(setDepartments)
     setQuery({ bydept: true, queryDept: departmentid });
     getCollection()
-  }, [])
+  }, [departmentid])
 
 
 

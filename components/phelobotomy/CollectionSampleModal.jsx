@@ -1,9 +1,11 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback,useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import { customPost, getDataAndUpdateState } from "../Auth/customFetch";
 import { ToastContainer, toast } from "react-toastify";
 import ISLOADING from "../isLoading";
-export default function CollectionSampleModal({ show, hide, collection }) {
+
+
+export default function CollectionSampleModal({ show, hide, collection,employeeid }) {
   const { billingid, patientid, fullname } = collection;
   const [loading, setLoading] = useState(true);
   const [testcollection, setTestCollection] = useState([]);
@@ -69,13 +71,10 @@ export default function CollectionSampleModal({ show, hide, collection }) {
       return { samplemessage, billingid, testid, collection, collection_date };
     });
 
-    const pushResponse = await customPost("phelobotomy", "POST", {
-      testinfo,
-      employeeid: 1,
-    });
+    const pushResponse = await customPost("phelobotomy", "POST", {testinfo,employeeid, });
 
     const { status, message, statusCode } = pushResponse;
-    if (status) {
+    if (status == 'success' && statusCode == 200) {
       toast.success(message);
       getClientAscention(billingid);
     } else {

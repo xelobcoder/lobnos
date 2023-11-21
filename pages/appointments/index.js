@@ -6,8 +6,10 @@ export default function Appointment() {
   return (
     <>
       <SettingsLayout sidebar={<SidebarFrontPage />}>
-        <div>
-         
+        <h1>Appointment</h1>
+        <div style={{ marginLeft: '5%', marginRight: '5%', height: '100%' }} >
+          <embed width='100%' height='90%' src='http://localhost:5000/billing/receipt?billingid=196&&testid=5&&testname=cardiac_enzymes'>
+          </embed>
         </div>
       </SettingsLayout>
     </>

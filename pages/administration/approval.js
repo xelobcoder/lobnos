@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  customFetch,
-  customPost,
-  handleComments,
-  validateFormData,
-} from "../../components/Auth/customFetch";
+import { customFetch, customPost, handleComments, validateFormData } from "../../components/Auth/customFetch";
 import { IconButton, Tooltip } from "@mui/material";
 import { Launch } from "@mui/icons-material";
 import Tip from "../../components/accessories/Tip";
@@ -22,8 +17,8 @@ export default function Approval() {
   useEffect(() => {
     function sortByUrgency(data) {
       return data.sort((a, b) => {
-        const urgencyA = a.URGENCY.toLowerCase();
-        const urgencyB = b.URGENCY.toLowerCase();
+        const urgencyA = a?.urgency.toLowerCase();
+        const urgencyB = b?.urgency.toLowerCase();
         if (urgencyA < urgencyB) {
           return -1;
         }
@@ -105,7 +100,7 @@ export default function Approval() {
     }
   }
 
-
+console.log(clients)
 
   return (
     <SettingsLayout sidebar={<SidebarFrontPage />}>

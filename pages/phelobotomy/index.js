@@ -1,12 +1,16 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useContext } from "react";
 import ListTable from "../../components/phelobotomy/ListTable";
 import ISLOADING from "../../components/isLoading";
 import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
 import PhelobotomySidebar from "../../components/PhelobotomySidebar";
 import CollectionSampleModal from "../../components/phelobotomy/CollectionSampleModal";
-import { customFetch, getDataAndUpdateState } from "../../components/Auth/customFetch";
+import { customFetch } from "../../components/Auth/customFetch";
 import ReceiveLabSampleModal from "../../components/phelobotomy/ReceiveLabSampleModal/ReceiveLabSampleModal";
+import AuthContext from "../../components/Auth/useAuthentification";
+
 export default function Phelobotomy() {
+  const { auth } = useContext(AuthContext);
+  const { employeeid } = auth;
   const [data, setData] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -35,7 +39,6 @@ export default function Phelobotomy() {
   }, [getPhelobotomy]);
 
   const closeModal = () => { setOpenModal(false); }
-
   const receiveSample = () => { setOpenModal(true); }
 
   return (
@@ -43,7 +46,7 @@ export default function Phelobotomy() {
       <SettingsLayout sidebar={<PhelobotomySidebar />}>
         {loading && <ISLOADING />}
         {!loading && <ListTable data={data} receive={receiveSample} handleCollectSample={handleCollectSample} />}
-      {showModal  &&   <CollectionSampleModal collection={collection} show={showModal} hide={hideModal} />}
+        {showModal && <CollectionSampleModal employeeid={employeeid} collection={collection} show={showModal} hide={hideModal} />}
         {openModal && <ReceiveLabSampleModal show={openModal} hide={closeModal} />}
       </SettingsLayout>
     </>

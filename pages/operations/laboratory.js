@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import MiniCard from '../../components/operations/miniCard'
 import { Bloodtype } from '@mui/icons-material';
 import { customFetch, getDepartment } from '../../components/Auth/customFetch';
 import SECOND_NO_DATA from '../../components/accessories/secondNodata';
-import { Button } from '@mui/material';
-import { useRouter } from 'next/router';
 import DateTimer from '../../components/accessories/DateTimer';
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 import LabSideBarComponents from '../../components/operations/labSideBarComponents';
@@ -16,9 +14,9 @@ export default function OperationsOverview({ colorIndex }) {
   const [totalcount, setTotalCount] = useState(0)
 
 
-  const navigate = useRouter();
 
-  const getOperationsOverview = async function () {
+
+  const getOperationsOverview = useCallback(async function () {
     const overview = await customFetch('operations/overview?stage=unentered');
     const { status, statusCode, result } = overview;
     if (statusCode == 200 && status == 'success') {
@@ -33,11 +31,10 @@ export default function OperationsOverview({ colorIndex }) {
           const count = result.filter((e, i) => { { return e.department == item.department; } });
           return { department: item.department, count: count.length, id: item.id }
         }))
-        // console.log(summary,department)
         setTotalCount(result.length)
       }
     }
-  }
+  }, [department])
 
 
   useEffect(() => {

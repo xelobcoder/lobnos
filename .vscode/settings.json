@@ -17,7 +17,7 @@
         }
     ],
     "editor.tabSize": 2,
-    "editor.fontFamily": "Fira Code,Roboto,Consolas",
+    "editor.fontFamily": "Cascadia Code",
     "editor.tabCompletion": "on",
     "editor.fontSize": 16
 }

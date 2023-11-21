@@ -1227,7 +1227,9 @@ option:hover {
   border-radius: 0.25rem;
   margin-top: 10px;
 }
-
+.modal-color{
+  background-color: #e9ecef
+}
 .table > thead > tr > th {
   color: white;
   font-weight: bold;

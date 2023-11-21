@@ -1,6 +1,6 @@
 import React, { useState,useContext } from 'react';
 import OperationsContext from './OperationsContext';
-import { customFetch, handleComments, validateFormData } from '../Auth/customFetch'
+import { customFetch, handleComments} from '../Auth/customFetch'
 import SECOND_NO_DATA from '../accessories/secondNodata';
 
 export default function ResultEnteredSidePanel() {
@@ -20,7 +20,7 @@ export default function ResultEnteredSidePanel() {
     }
   }
 
-  const handleUpdate = (e, item) => { updateOperations({ billingid: item.BILLINGID, patientid: item.PATIENTID }) }
+  const handleUpdate = (e, item) => { updateOperations({ billingid: item.billingid, patientid: item.patientid }) }
 
 
 
@@ -49,7 +49,7 @@ export default function ResultEnteredSidePanel() {
                 key={index}
               >
                 {/* <BloodtypeIcon /> */}
-                {item.FULLNAME} - {item.BILLINGID}
+                {item.fullname} - {item.billingid}
               </li>
             ))
           ) : (

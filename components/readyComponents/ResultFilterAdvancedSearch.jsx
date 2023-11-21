@@ -3,8 +3,8 @@ import React from 'react'
 export default function ResultFilterAdvancedSearch({ handleAdvancedChange, handleAdvancedSubmit, advancedQuery }) {
   return (
     <div className='card m-0 p-0 br-5'>
-      <div className='card-header bg-secondary text-white'>
-        <h5> Filter result </h5>
+      <div className='card-header modal-color'>
+        <h6> Filter result </h6>
       </div>
       <div className='card-body'>
         <div className='d-flex gap-2'>

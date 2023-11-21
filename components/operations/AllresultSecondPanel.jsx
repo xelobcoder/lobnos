@@ -16,9 +16,7 @@ export default function AllresultSecondPanel() {
 
   const getPreview = async function () {
     const billingid = operationsKey?.billingid;
-    if (operationsKey == null) {
-      return
-    }
+    if (operationsKey == null) { return}
     const response = await customFetch(`operations/test/result?billingid=${billingid}`)
     setDatapool(response?.result)
   }

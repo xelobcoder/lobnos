@@ -3,7 +3,6 @@ import Sampling from '../../components/readyComponents/Sampling'
 import { customFetch, customPost, getDateExpression } from '../../components/Auth/customFetch';
 import ReadyList from '../../components/readyComponents/ReadyList';
 import ReadyTest from '../../components/readyComponents/ReadyTest';
-import { Typography } from '@mui/material';
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 import SidebarFrontPage from '../../components/frontpagesidebar';
 import ResultFilterAdvancedSearch from '../../components/readyComponents/ResultFilterAdvancedSearch';
@@ -60,11 +59,9 @@ export default function ReadyResult() {
     <SettingsLayout sidebar={<SidebarFrontPage />}>
       <div className='container'>
         <div className='d-flex justify-content-between mt-1'>
-          <Typography variant='h5' className='text-lead text-dark' sx={{ margin: '0px 10px 0px 10px' }}>
-            Summary for {query.querydate}
-          </Typography>
+         <h6 className='lims-text-color'>Summary for {query.querydate}</h6>
           <button
-            className="btn btn-primary mb-1"
+            className="btn btn-primary btn-sm mb-1"
             onClick={() => setAdvanced(!advanced)}
           >
             advanced search
