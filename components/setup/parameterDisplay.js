@@ -1,9 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Button } from '@mui/material';
 import { serverCall, getRecords } from './connector.js';
 import Message from '../accessories/message';
 import { DeleteForever } from '@mui/icons-material';
-import AddIcon from '@mui/icons-material/Add';
 import MARKDOWN_EDITOR from '../accessories/markdownEditor.js';
 import Link from 'next/link.js';
 
@@ -70,75 +68,72 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category, createTarget,tes
       }
       <div >
         <div className='p-4'>
-          <div className='card' style={{ borderRadius: '5px' }}>
-            <div className='card-header p-2 d-flex justify-content-between'>
-              <div className='d-flex justify-content-start mt-3'>
-                <h4 className='btn btn-danger'>{testname}</h4>
+          <div className='card br-5 m-0'>
+            <div className='card-header modal-color d-flex justify-content-between'>
+              <div className='card-title fw-bold'>
+                <button className='btn btn-danger text-sm'>
+                  {testname}
+                </button>
               </div>
-              <div className='d-flex justify-content-end p-2'>
-                <Link href={`/settings/setup/createparam?target=${createTarget}`}>
-                  <button className='custom-button'>
-                    <AddIcon />
+              <Link href={`/settings/setup/createparam?target=${createTarget}`}>
+                <button className='custom-button'>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
+                  </svg>
                     create paramater
                   </button>
-                </Link>
-              </div>
+              </Link>
             </div>
-            <div className='card-body p-0 m-0'>
-              <div className='setup-ul-wrapper '>
-                <ul >
-                  <li>parameter name</li>
-                  <li>unit</li>
-                  <li>upper</li>
-                  <li>lower</li>
-                  {dataModification.length > 0 && dataModification[0]['gender'] ? <li>gender</li>: null}
-                  <li>action</li>
-                </ul>
-              </div>
-              <div className='setup-ul-wrapper'>
+            <table className='billing-cart-table'>
+              <thead>
+                <tr>
+                  <th>parameter name</th>
+                  <th>unit</th>
+                  <th>upper</th>
+                  <th>lower</th>
+                  {dataModification.length > 0 && dataModification[0]['gender'] ? <th>gender</th> : null}
+                  <th>action</th>
+                </tr>
+              </thead>
+              <tbody>
                 {
                   dataModification.length == 0 ? null : dataModification.map((item, index) => {
                     return (
-                      <ul key={index}>
-                        <li>{item.parameter}</li>
-                        <li>
+                      <tr key={index}>
+                        <td>{item.parameter}</td>
+                        <td>
                           <input value={item.unit || ''}
                             className='form-control' type='text' onChange={(e) => onChangeUnit(e, index)} />
-                        </li>
-                        <li>
+                        </td>
+                        <td>
                           <input value={item.upper || 0} type='number' className='form-control' onChange={(e) => onChangeUpper(e, index)} />
-                        </li>
-                        <li>
+                        </td>
+                        <td>
                           <input value={item.lower || 0} type='number' className='form-control' onChange={(e) => onChangeLower(e, index)} />
-                        </li>
+                        </td>
                         {
-                          item?.gender && <li>{item.gender}</li>
+                          item?.gender && <td>{item.gender}</td>
                         }
-                        <li>
-                          <DeleteForever color='error' sx={{ cursor: 'pointer' }} fontSize='medium' />
-                        </li>
-                      </ul>
+                        <td>
+                          <button className='btn btn-danger btn-sm'>
+                            <DeleteForever color='white' sx={{ cursor: 'pointer' }} fontSize='medium' />
+                          </button>
+                        </td>
+                      </tr>
                     )
                   })
                 }
-              </div>
-            </div>
+              </tbody>
+            </table>
           </div>
-          <h4 className='lims-text-color text-capitalize mt-2'>comments</h4>
+        </div>
+        <div className='mx-3'>
+          <h4 className='lims-text-color text-capitalize'>comments</h4>
           <MARKDOWN_EDITOR />
-          <div className='fbc_header' style={{ display: "flex", justifyContent: 'right' }} >
-            <Button variant='contained' color='success'
-              onClick={(ev) => {
-                serverCall(ev, dataModification, category, setMsgDx)
-              }
-              }
-            >
-              {/* if new entry button dispaly save changes, else update */}
-              {
-                mode === 'new' ? 'save changes' : 'update changes'
-              }
-            </Button>
-          </div>
+          <button className='btn btn-primary btn-sm' style={{ marginRight: '10px' }}
+            onClick={(ev) => { serverCall(ev, dataModification, category, setMsgDx) }}>
+            {mode === 'new' ? 'save changes' : 'update changes'}
+          </button>
         </div>
 
       </div>

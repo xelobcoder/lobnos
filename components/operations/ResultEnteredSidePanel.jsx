@@ -11,10 +11,8 @@ export default function ResultEnteredSidePanel() {
 
   const submitData = async function () {
     const { from, to, billingid, patientid } = query;
-
     const response = await customFetch(`operations/collection/result?from=${from}&&to=${to}&&billingid=${billingid}&&patientid=${patientid}`);
     const { statusCode, status, result } = response;
-
     if (statusCode == 200 && status == 'success') {
       setCollection(result)
     }

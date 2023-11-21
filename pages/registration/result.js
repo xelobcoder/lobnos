@@ -69,9 +69,9 @@ export default function RESULT_FOR_PRINTING() {
         
       </div>
       <div className='print-section'>
-        <Button
+        <Button 
           sx={{ position: 'absolute', top: '10%', left: '10%' }}
-          variant='contained' size='large' color='success' onClick={() => readyToPrint(billingid, testid)}>
+          variant='contained' size='small' color='success' onClick={() => readyToPrint(billingid, testid)}>
           print
         </Button>
       </div>

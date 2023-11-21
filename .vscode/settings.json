@@ -19,5 +19,7 @@
     "editor.tabSize": 2,
     "editor.fontFamily": "Cascadia Code",
     "editor.tabCompletion": "on",
-    "editor.fontSize": 16
+    "editor.fontSize": 14,
+    "editor.bracketPairColorization.enabled": true,
+
 }

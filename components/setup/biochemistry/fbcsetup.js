@@ -1,5 +1,5 @@
 import {Button} from '@mui/material'
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import parameter from  './countparameter'
 import { customFetch, customPost } from '../../Auth/customFetch';
 import { DeleteForever } from '@mui/icons-material';
@@ -13,7 +13,7 @@ export default function FullBloodCountSetup() {
   // if usingdefault is true, we display default params
   const [usingdefault, setUsingDefault] = useState(false);
   const [disable, setDisabled] = useState(true)
-  const [mode, setmode] = useState('new')
+
 
   const onChangeUnit = (e, index) => {
     setFullcount(prevState => {
@@ -92,83 +92,75 @@ export default function FullBloodCountSetup() {
 
   return (
     <>
-      <div className='_fbc'>
-        <Link href='/instructions/setup/fullbloodcount'>
-          Read Instructions
-        </Link>
-
-        <div className='top_cart'>
-          <div className='form-group'>
-            <label>category</label>
+      <div className='mx-3 my-1'>
+        <div >
+          <div className='d-flex  justify-content-between my-2'>
+            <div className='col-4'>
             <select value={category} onChange={(e) => { setCategory(e.target.value) }} className='custom-input'>
+                <option value=''>select category</option>
               <option value='male'>male</option>
               <option value='female'>female</option>
               <option value='children'>children</option>
             </select>
-          </div>
-          <div className='form-group'>
-            <label>children range</label>
-            <input className='custom-input' value={childrenAge} disabled={disable}></input>
-          </div>
-          <div className='form-group d-flex '>
-
+            </div>
+            <div className='d-flex '>
             <Link href={'/settings/setup/createparam?target=fbc'}>
-              <Button variant='contained' >
+              <button className='btn btn-primary btn-sm mx-1' >
                 create parameter
-              </Button>
+              </button>
             </Link>
 
-            <Button variant='contained' sx={{padding:'0px 10px',margin:'0px 10px'}}
+            <button className='btn btn-primary btn-sm mx-1' sx={{ padding: '0px 10px', margin: '0px 10px' }}
               onClick={() => setUsingDefault(true)}>
               default params
-            </Button>
-            <Button variant='contained' sx={{padding:'0px 10px',margin:'0px 10px'}}
+            </button>
+            <button className='btn btn-primary btn-sm mx-1' sx={{ padding: '0px 10px', margin: '0px 10px' }}
               onClick={() => setUsingDefault(false)}>
                table params
-            </Button>
-            <Button variant='contained' onClick={handleCreatedParamsView}>
+            </button>
+            <button className='btn btn-primary btn-sm mx-1' onClick={handleCreatedParamsView}>
               created params
-            </Button>
+            </button>
+          </div >
+            <h6  className='text-capitalize bg-secondary text-white'> children age range: {childrenAge}</h6>
           </div>
         </div>
         {/* parameter section */}
         <div className='wrapperx'>
-          <div className='fbc_header'>
-            <ul>
-              <li>parameter name</li>
-              <li>unit</li>
-              <li>upper</li>
-              <li>lower</li>
-              <li>action </li>
-            </ul>
-          </div>
-          <div className='fbc_header'>
-            <div className='parameter-list'>
-              <Suspense fallback={<div>loading ................</div>}>
-                {
+          <table className='billing-cart-table'>
+            <thead>
+              <tr>
+                <th>parameter name</th>
+                <th>unit</th>
+                <th>upper</th>
+                <th>lower</th>
+                <th>action </th>
+              </tr>
+            </thead>
+            <tbody>
+              {
                   fullcount.map((item, index) => {
                     return (
-                      <ul key={index}>
-                        <li>{item.PARAMETER}</li>
-                        <li>
-                          <input value={item.UNIT} type='text' onChange={(e) => onChangeUnit(e, index)} />
-                        </li>
-                        <li>
-                          <input value={item.UPPER} type='number' onChange={(e) => onChangeUpper(e, index)} />
-                        </li>
-                        <li>
-                          <input value={item.LOWER} type='number' onChange={(e) => onChangeLower(e, index)} />
-                        </li>
-                        <li>
-                          <DeleteForever color='error' onClick={() => handleDelete(item)} />
-                        </li>
-                      </ul>
+                      <tr key={index}>
+                        <td>{item.PARAMETER}</td>
+                        <td>
+                          <input className='form-control' value={item.UNIT} type='text' onChange={(e) => onChangeUnit(e, index)} />
+                        </td>
+                        <td>
+                          <input className='form-control' value={item.UPPER} type='number' onChange={(e) => onChangeUpper(e, index)} />
+                        </td>
+                        <td>
+                          <input className='form-control' value={item.LOWER} type='number' onChange={(e) => onChangeLower(e, index)} />
+                        </td>
+                        <td>
+                          <DeleteForever color='error' onCtdck={() => handleDelete(item)} />
+                        </td>
+                      </tr>
                     )
                   })
-                }
-              </Suspense>
-            </div>
-          </div>
+              }
+            </tbody>
+          </table>
         </div>
         <div >
           <Button variant='contained' color='success' className='mt-2' onClick={saveData}>

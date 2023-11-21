@@ -215,7 +215,10 @@ export const readyToPrint = async function (billingid, testid) {
          "POST",
          { billingid, testid }
       );
+
+      console.log(isApproved);
       const { approved } = isApproved;
+      console.log(approved)
       if (approved) {
          window.print();
       } else {
