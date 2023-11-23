@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LineChart, Bar, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, BarChart } from "recharts";
 
 export default function PatientTrendChart({ data, parameters, chart }) {
