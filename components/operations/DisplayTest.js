@@ -29,7 +29,7 @@ import SemenAnalysis from '../LabTestForms/SemenAnalysis';
 import FSHHormone from '../LabTestForms/FSHHormone';
 import Helicobacter_Pylori from '../LabTestForms/helicobacter_pylori';
 import UseSingleHormoneHook from '../LabTestForms/useSingleHormoneHook';
-import PatientTrendModalJsx from './PatientTrendModalJsx/PatientTrendModalJsx.jsx';
+import PatientTrendModalJsx from './PatientTrendModalJsx/PatientTrendModal.jsx';
 
 export default function DisplayTest() {
   const { operationsKey, updateOperations } = useContext(OperationsContext);

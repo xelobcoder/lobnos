@@ -3,9 +3,11 @@ import { Modal } from "react-bootstrap";
 import { customFetch, customPost } from "../../Auth/customFetch";
 import TrendSingleList from "./TrendSingleList";
 import ISLOADING from "../../isLoading";
+import PatientTrendChart from "./PatientTrendChart";
 export default function PatientTrendModalJsx({ show, hide, data }) {
   const { test, patientid, billingid, testid } = data;
   const [instances, setInstances] = useState(5); // [5,6,7,8,9]
+  const [chartOptions, setChartOptions] = useState(''); // [5,6,7,8,9
   const [loading, setLoading] = useState(true);
   const [dataSet, setDataSet] = useState({
     trend: [],
@@ -13,13 +15,14 @@ export default function PatientTrendModalJsx({ show, hide, data }) {
     parameters: [],
   });
 
+
   const handleTrendView = async () => {
     const response = await customFetch(
       `result/patientrend/single?billingid=${billingid}&&patientid=${patientid}&&test=${test}&&testid=${testid}&&instances=${instances}`
     );
 
     const { statusCode, status, result } = response;
-    
+
     if (statusCode == 200 && status == "success") {
       const { parameters, trend, category } = result;
       setDataSet({ parameters, trend, category });
@@ -34,22 +37,24 @@ export default function PatientTrendModalJsx({ show, hide, data }) {
     if (patientid != null) {
       handleTrendView();
     }
-  }, [patientid]);
+  }, [patientid, instances]);
+  
 
   return (
     <div>
       <Modal show={show} size="xl" backdrop="static" onHide={hide}>
-        <Modal.Header closeButton>
-          <div className="d-flex justify-content-between">
-            <h5 className="mt-2">Test Trend Analysis</h5>
+        <Modal.Header closeButton >
+          <div className="d-flex justify-content-between mx-2">
+            <p className="btn btn-primary btn-sm br-0">Test Trend Analysis</p>
             <div>
               <select
-                className="form-control mx-3"
+                className="custom-select mx-2"
                 value={instances}
                 onChange={(ev) => {
                   setInstances(parseInt(ev.target.value));
                 }}>
                 <option>select number of instance</option>
+                <option value={2}>2</option>
                 <option value={5}>5</option>
                 <option value={6}>6</option>
                 <option value={7}>7</option>
@@ -57,7 +62,16 @@ export default function PatientTrendModalJsx({ show, hide, data }) {
                 <option value={9}>9</option>
               </select>
             </div>
+            <div className="mx-3">
+              <select value={chartOptions} className="custom-select" onChange={(ev) => setChartOptions(ev.target.value)} >
+                <option>select chart type</option>
+                <option value="bar">Bar Chart</option>
+                <option value="line">Line Chart</option>
+              </select>
+            </div>
           </div>
+          <p className="mx-3">ID:{patientid}</p>{' '}
+          <p>BILLID: {billingid}</p>
         </Modal.Header>
         <Modal.Body>
           {loading ? (
@@ -87,6 +101,7 @@ export default function PatientTrendModalJsx({ show, hide, data }) {
               )}
             </>
           )}
+            {dataSet.trend.length > 0 && (<PatientTrendChart chart={chartOptions} parameters={dataSet.parameters}  data={dataSet.trend} />)}
         </Modal.Body>
       </Modal>
     </div>

@@ -427,30 +427,30 @@ export const emailPreference = {
 }
 
 
-export const modulex = {
-   toolbar: [
-      ['bold', 'italic', 'underline', 'strike'],
-      ['blockquote', 'code-block'],
-      [{ 'header': '1' }, { 'header': '2' }, { 'header': '3' }, { 'header': '4' }, { 'header': '5' }, { 'header': '6' }],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'script': 'sub' }, { 'script': 'super' }],
-      // Remove 'direction' from the toolbar
-      ['link', 'image', 'video', 'formula'],
-      [{ 'align': [] }],
-      ['clean'],
-      [{ 'color': [] }],
-   ],
-};
+// export const modulex = {
+//    toolbar: [
+//       ['bold', 'italic', 'underline', 'strike'],
+//       ['blockquote', 'code-block'],
+//       [{ 'header': '1' }, { 'header': '2' }, { 'header': '3' }, { 'header': '4' }, { 'header': '5' }, { 'header': '6' }],
+//       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+//       [{ 'script': 'sub' }, { 'script': 'super' }],
+//       // Remove 'direction' from the toolbar
+//       ['link', 'image', 'video', 'formula'],
+//       [{ 'align': [] }],
+//       ['clean'],
+//       [{ 'color': [] }],
+//    ],
+// };
 
-export const formats = [
-   'bold', 'italic', 'underline', 'strike',
-   'blockquote', 'code-block',
-   'header', 'list', 'bullet',
-   'script', 'indent', 'direction',
-   'link', 'image', 'video', 'formula',
-   'align',
-   'color',
-];
+// export const formats = [
+//    'bold', 'italic', 'underline', 'strike',
+//    'blockquote', 'code-block',
+//    'header', 'list', 'bullet',
+//    'script', 'indent', 'direction',
+//    'link', 'image', 'video', 'formula',
+//    'align',
+//    'color',
+// ];
 
 
 export const forwardEmailReceipt = async (billingid) => {
@@ -617,3 +617,14 @@ export const handleLogout = async () => {
 }
 
 
+export const filterTrendData = async (parameters, data) => {
+   const trend = parameters.map((item, index) => {
+      const filtered = data.filter((u, t) => {
+         return u.parameter == item;
+      });
+      return filtered.length > 0
+         ? filtered[0]
+         : { upper: null, lower: null, value: "Nil",parameter:'null' };
+   });
+   return trend;
+}
