@@ -5,11 +5,6 @@ export default function TestSidebar() {
   return (
     <>
       <div className="box">
-        <div className="box-head">
-          <input className='custom-input' style={{ paddingLeft: '40px' }} placeholder='search test here '>
-          </input>
-          <ManageSearchIcon color='primary' sx={{ position: 'relative', top: '-35px', left: '10px' }} />
-        </div>
         <div className="box-tail mt-2">
           <ul>
             <li>

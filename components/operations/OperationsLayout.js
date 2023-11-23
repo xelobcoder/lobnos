@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import  { OperationsProvider } from '../../components/operations/OperationsContext';
 
-export default function OperationsLayout({componentOne,componentTwo,componentThree}) {
+export default function OperationsLayout({ componentOne, componentTwo, componentThree }) {
+
   return (
     <>
       <OperationsProvider >

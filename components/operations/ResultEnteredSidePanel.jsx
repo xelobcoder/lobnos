@@ -28,7 +28,7 @@ export default function ResultEnteredSidePanel() {
         <h5 className='m-2 text-capitalize bold'>filter result</h5>
         <div className='m-2 bg-warning p-2 br-5'>
           <label> from</label>
-          <input type='date' className='form-control' onChange={(e) => handleComments(e, query, 'from', setQuery)} />
+          <input type='date'  className='form-control' onChange={(e) => handleComments(e, query, 'from', setQuery)} />
           <label>to</label>
           <input type='date' className='form-control' onChange={(e) => handleComments(e, query, 'to', setQuery)} />
           <label>billing id</label>

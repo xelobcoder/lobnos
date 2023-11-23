@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import OperationsContext from '../../components/operations/OperationsContext';
 import AIDS from '../LabTestForms/aids';
 import LiverTest from '../LabTestForms/liver';
@@ -19,7 +19,6 @@ import Pregnancy from '../LabTestForms/pregnancy';
 import Malaria from '../LabTestForms/malaria';
 import BetaHcg from '../LabTestForms/BetaHcg';
 import Image from 'next/image';
-import { Button } from '@mui/material';
 import RandomBloodSugar from '../LabTestForms/randomsugar';
 import FastingSugar from '../LabTestForms/fastingSugar';
 import FullBloodCountEntry from '../LabTestForms/FullBloodCountEntry';
@@ -30,10 +29,12 @@ import SemenAnalysis from '../LabTestForms/SemenAnalysis';
 import FSHHormone from '../LabTestForms/FSHHormone';
 import Helicobacter_Pylori from '../LabTestForms/helicobacter_pylori';
 import UseSingleHormoneHook from '../LabTestForms/useSingleHormoneHook';
-
+import PatientTrendModalJsx from './PatientTrendModalJsx/PatientTrendModalJsx.jsx';
 
 export default function DisplayTest() {
-  const { operationsKey } = useContext(OperationsContext);
+  const { operationsKey, updateOperations } = useContext(OperationsContext);
+  const [showtrend, setshowtrend] = useState(false);
+  const closeTrend = () => { setshowtrend(false) }
 
   const componentsList = {
     aids: <AIDS clientdata={operationsKey} />,
@@ -68,9 +69,24 @@ export default function DisplayTest() {
     prostate_specific_antigen_test: <UseSingleHormoneHook
       clientdata={operationsKey} testHeader={'prostate specific antigen test(PSA)'} testname={'PSA'} />
   }
+
   return (
-    <div>
-      {operationsKey?.display ? componentsList[(operationsKey.test).toLowerCase()] : <>
+    <>
+      <div>
+        {operationsKey?.display &&
+          (<div className='d-flex justify-content-end mx-1 my-1 gap-1 pointer '>
+          <button onClick={(ev) => { setshowtrend(true) }} className='btn btn-primary btn-sm'>
+            <span className='mx-2'>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-graph-up-arrow" viewBox="0 0 16 16">
+                <path fillRule="evenodd" d="M0 0h1v15h15v1H0zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5" />
+              </svg>
+            </span>
+            Patient Trend
+          </button>
+          {showtrend && ( <PatientTrendModalJsx show={showtrend} hide={closeTrend} data={operationsKey} />)}
+        </div>)}
+        {operationsKey?.display ? componentsList[(operationsKey.test).toLowerCase()] :
+          <>
         <div className='d-flex justify-content-center m-4 '>
           <div>
             <div className='d-flex justify-content-center'>
@@ -80,14 +96,12 @@ export default function DisplayTest() {
                 alt={'No patient selected'}
               />
             </div>
-            <h4 className='lims-text text-uppercase mt-3 alert alert-warning'>select a test to continue </h4>
-            <div className='d-flex justify-content-center'>
-              <Button>read instructions </Button>
+                <h4 className='lims-text text-uppercase mt-3 alert alert-warning'>select a test to continue </h4>
+              </div>
             </div>
-          </div>
-        </div>
-
-      </>}
-    </div>
+          </>
+        }
+      </div>
+    </>
   )
 }

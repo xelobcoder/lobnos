@@ -39,7 +39,7 @@ export default function TableDisplay({ column, data, styling, filtering }) {
                 <>
                   {filtering == true && (<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />)}
                   <div className='table-wrapper'>
-                    <table className='table' {...getTableProps()} >
+                    <table className={styling ? styling : 'table'} {...getTableProps()} >
                       <thead>
                         {headerGroups.map((headerGroup,index) => (
                           <tr {...headerGroup.getHeaderGroupProps()} key={index}>

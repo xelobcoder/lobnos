@@ -162,6 +162,8 @@ label {
 }
 body {
   background-color: whitesmoke;
+  /* font-family: "aktiv-grotesk", sans-serif; */
+  /* line-height: 1.428571429; */
 }
 .grid-2 {
   display: -ms-grid;
@@ -411,8 +413,10 @@ a {
   border: 1px solid lightgray;
   height: auto;
   width: 100%;
+  border-collapse: collapse !important;
   overflow-y: auto;
 }
+
 
 .billing-cart-table > thead {
   margin: 0;
@@ -429,6 +433,7 @@ a {
   text-transform: capitalize;
   text-align: left;
   font-size: 14px;
+  border-collapse: collapse !important;
   border: 1px solid lightgray;
   padding: 10px;
 }
@@ -437,6 +442,11 @@ a {
   background-color: #00224f1b;
 }
 
+.light-x-trend {
+  /* color: #00224f; */
+  font-size: 20px !important;
+  text-transform: lowercase !important;
+}
 
 .billing-cart-table > tfoot > tr > td {
   text-align: left;
@@ -444,7 +454,25 @@ a {
   text-transform: capitalize;
 }
 
+.x-trend {
+  border: 0px !important;
+}
 
+.x-trend td {
+  min-width: 200px;
+  font-size: 13px !important;
+  padding: 5px 10px !important;
+  cursor: pointer;
+  border-collapse: collapse;
+}
+
+.x-trend>tbody>tr>td:nth-child(1) {
+  font-weight: bold;
+}
+
+.x-trend>tbody>tr>td:nth-child(even) {
+  background-color: whitesmoke;
+}
 .phelobotomy-table {
   margin: 0;
   padding: 20px;

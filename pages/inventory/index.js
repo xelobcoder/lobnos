@@ -132,7 +132,7 @@ export default function INVENTORY_PAGE() {
   return (
     <>
       <InventoryLayout>
-        <TableDisplay data={stocksource} column={columns} filtering={true} styling={'custom-table'} />
+        <TableDisplay data={stocksource} column={columns} filtering={true}  />
       </InventoryLayout>
     </>
   );

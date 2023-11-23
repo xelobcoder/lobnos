@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
-import { modulex, formats, customPost, customFetch } from '../../../../../components/Auth/customFetch';
+import {customPost, customFetch } from '../../../../../components/Auth/customFetch';
 import { Preview, Send, ViewAgenda } from '@mui/icons-material';
 import ScanPreview from '../../../../../components/operations/scanPreview';
 import Indicator from '../../../../../components/accessories/Reports/indicator';
@@ -63,18 +61,6 @@ export default function EnterResultUltrasound() {
             <Indicator resultEntered={entered} />
           </div>
           <h4 className='text-center  text-uppercase'>{query?.scan}</h4>
-          {ReactQuill ? (
-            <ReactQuill
-              theme="snow"
-              value={content}
-              modules={modulex}
-              style={{ height: '60vh' }}
-              formats={formats}
-              onChange={setContent}
-            />
-          ) : (
-            'Loading...'
-          )}
           <div className='mt-5'>
             <button onClick={(ev) => { handleResult() }} className='btn btn-primary  mt-2'>  save result <Send /></button>
             <button className='btn btn-primary  mt-2' style={{ marginLeft: '20px' }} onClick={(ev) => { setPreview(!preview) }}>

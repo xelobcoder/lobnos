@@ -71,12 +71,12 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category, createTarget,tes
           <div className='card br-5 m-0'>
             <div className='card-header modal-color d-flex justify-content-between'>
               <div className='card-title fw-bold'>
-                <button className='btn btn-danger text-sm'>
+                <h5 className='fw-bold  align-self-center'>
                   {testname}
-                </button>
+                </h5>
               </div>
               <Link href={`/settings/setup/createparam?target=${createTarget}`}>
-                <button className='custom-button'>
+                <button className='btn btn-primary btn-sm'>
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
                   </svg>
