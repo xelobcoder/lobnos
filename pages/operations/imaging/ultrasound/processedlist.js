@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { customFetch, handleChangeWithState } from '../../../../components/Auth/customFetch';
-import { Button } from '@mui/material';
 import TableDisplay from '../../../../components/accessories/TableDisplay';
 import { Edit, PrintRounded } from '@mui/icons-material';
 import { useRouter } from 'next/router';
@@ -88,7 +87,7 @@ export default function Ulrtrasoundprocessedlist() {
             </div>
           </div>
           <h4 className='mt-2 text-success'>Processed List</h4>
-          <TableDisplay styling={'excel-table'} filtering={true} column={columns} data={data} />
+          <TableDisplay  filtering={true} column={columns} data={data} />
         </div>
       </div>
     </>

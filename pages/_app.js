@@ -1,20 +1,17 @@
-import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
-import '../styles/globals.css';
-import '../styles/testpanel.css';
-import '../styles/Frontpageside.css'
-import "../styles/fullblood.css";
-import '../styles/admin.css';
-import '../styles/setup.css';
-import '../styles/exceltable.css';
-import '../node_modules/react-toastify/dist/ReactToastify.css'
-import "../styles/invoice.css";
+import ('../styles/globals.css');
+import ('../styles/Frontpageside.css')
 import Header from '../components/header'
 import { AuthentificationProvider } from '../components/Auth/useAuthentification';
 import MAIN_LAYOUT from '../components/Headers/Layout';
+import { useEffect } from 'react';
 
 
 
 function MyApp({ Component, pageProps: { pageProps } }) {
+  useEffect(() => {
+    import('../node_modules/react-toastify/dist/ReactToastify.css');
+    import ('../node_modules/bootstrap/dist/css/bootstrap.min.css');
+  }, [])
   if (Component.getLayout) {
     return Component.getLayout(<Component {...pageProps} />)
   }

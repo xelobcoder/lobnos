@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Navbar, NavbarBrand } from 'react-bootstrap';
 import CompanyHeaders from '../../../../components/ResultView/CompanyHeaders'
 import { customFetch, getCompanyInformation } from '../../../../components/Auth/customFetch'
-import { ArrowBackIos, ArrowUpward, Edit, Print } from '@mui/icons-material';
+import { ArrowBackIos, Edit, Print } from '@mui/icons-material';
 import VersionFooter from '../../../../components/accessories/VersionFooter';
 
 
@@ -27,7 +26,6 @@ export default function GenerateBillingInvoice() {
     getCompanyInformation(setCenterInfo)
   }, [billingid])
 
-  console.log(centerInfo)
   return (
     <>
       <nav className='text-white p-2 m-0 d-flex' id='print-receipt-bar'>

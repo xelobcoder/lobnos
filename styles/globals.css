@@ -10,6 +10,15 @@
   display: none;
 }
 
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+ul > li {
+  list-style-type: none;
+}
+
 label {
   font-weight: 500;
 }
@@ -461,6 +470,7 @@ a {
 .x-trend td {
   min-width: 200px;
   font-size: 13px !important;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
   padding: 5px 10px !important;
   cursor: pointer;
   border-collapse: collapse;
@@ -1945,47 +1955,7 @@ option:hover {
   font-size: 15px;
   text-transform: capitalize;
 }
-#entry-table-chemistry {
-  margin: 0;
-  width: 100%;
-  height: auto;
-}
-#entry-table-chemistry > thead,
-#entry-table-chemistry > tbody {
-  margin: 0;
-  padding: 0;
-  font-size: 14px;
-  border-bottom: 1px solid lightgray;
-}
-#entry-table-chemistry > thead > tr > th {
-  padding: 10px;
-  text-align: left;
-  font-weight: 600;
-  font-weight: 200;
-  color: gray;
-  text-transform: uppercase;
-}
 
-#entry-table-chemistry > tbody > tr > td {
-  padding: 5px 10px;
-  text-align: left;
-  font-weight: 600;
-  font-weight: 200;
-  color: #00224f;
-  text-transform: lowercase;
-}
-#entry-table-chemistry > tbody > tr > td:first-child {
-  text-transform: uppercase !important;
-}
-
-#entry-table-chemistry > tbody > tr > td > input {
-  width: 200px;
-  border: 1px solid lightgray;
-}
-#entry-table-chemistry > tbody > tr {
-  margin: 0;
-  padding: 0;
-}
 
 .test-setup-layout {
   display: grid;
@@ -2008,10 +1978,7 @@ option:hover {
   text-transform: uppercase;
 }
 
-.continue-scroll {
-  height: 100vh !important;
-  overflow-y: auto !important;
-}
+
 
 .state-indicator {
   width: 40px;

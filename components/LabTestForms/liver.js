@@ -57,12 +57,14 @@ export default function LiverTest({ clientdata }) {
 
   return (
     <>
-      <div className="p-4">
-        <div>
-          <h5>Liver Function Test</h5>
-          <form className="bg-white">
+      <div className="mx-3">
+        <div className="card">
+          <div className="card-header modal-color">
+            <h5>Liver Function Test</h5>
             <Indicator resultEntered={resultEntered} />
-            <table id="entry-table-chemistry">
+          </div>
+          <div className="card-body">
+            <table className="billing-cart-table">
               <thead>
                 <tr>
                   <th>Parameter</th>
@@ -80,6 +82,7 @@ export default function LiverTest({ clientdata }) {
                         type="number"
                         name={item.parameter}
                         value={item.value}
+                        className="custom-input"
                         onChange={(e) => handleValueChange(e, index)}
                         style={{ height: "30px" }}
                         step="0.5"
@@ -93,7 +96,6 @@ export default function LiverTest({ clientdata }) {
                 ))}
               </tbody>
             </table>
-          </form>
           <CommentSection
             getcomment={handleComments}
             target={"comments"}
@@ -101,9 +103,10 @@ export default function LiverTest({ clientdata }) {
             datasource={comments}
             datafunction={setComments}
           />
-          <Button variant="contained" color="success" onClick={handleResult}>
+            <button className="btn btn-primary btn-sm" onClick={handleResult}>
             save changes
-          </Button>
+            </button >
+          </div>
         </div>
       </div>
     </>

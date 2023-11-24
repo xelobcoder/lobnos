@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Button } from '@mui/material';
 import { customFetch, handleComments, handleResponse, validateFormData, CheckResultEntered } from '../Auth/customFetch';
 import CommentSection from './commentSection';
 import Indicator from '../accessories/Reports/indicator';
@@ -86,12 +85,14 @@ export default function FullBloodCountEntry({ clientdata }) {
 
 
   return (
-    <div className="continue-scroll p-4">
-      <div>
-        <h5>Full Blood Count</h5>
-        <Indicator resultEntered={resultEntered} />
-        <form className="bg-white">
-          <table id="entry-table-chemistry">
+    <div className='mx-3'>
+      <div className="card m-0 br-5">
+        <div className="card-header modal-color">
+          <h5>Full Blood Count</h5>
+          <Indicator resultEntered={resultEntered} />
+        </div>
+        <div className="card-body ">
+          <table className="m-0 billing-cart-table">
             <thead>
               <tr>
                 <th>Parameter</th>
@@ -103,11 +104,12 @@ export default function FullBloodCountEntry({ clientdata }) {
             <tbody>
               {data.map((item, index) => (
                 <tr key={index} className="border-bottom">
-                  <td>{item.parameter}</td>
+                  <td className='lims-text-color'>{item.parameter}</td>
                   <td>
                     <input
                       type="number"
-                      style={{ height: '30px' }}
+                      style={{ height: "30px" }}
+                      className="custom-input"
                       step="0.5"
                       value={item.value}
                       onChange={(e) => handleChange(item.parameter, e.target.value)}
@@ -121,18 +123,18 @@ export default function FullBloodCountEntry({ clientdata }) {
               ))}
             </tbody>
           </table>
-        </form>
-        <CommentSection
-          getcomment={handleComments}
-          datasource={comments}
-          datafunction={setComments}
-          target="comments"
-          value={comments.comments}
-        />
-        <Button variant="contained" color="primary" onClick={saveResult}>
-          Save Result
-        </Button>
+        </div>
       </div>
+      <CommentSection
+        getcomment={handleComments}
+        datasource={comments}
+        datafunction={setComments}
+        target="comments"
+        value={comments.comments}
+      />
+      <button className='btn btn-primary btn-sm' onClick={saveResult}>
+        Save Result
+      </button>
     </div>
   );
 }

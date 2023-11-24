@@ -5,7 +5,6 @@ import SalesSummaryPatient from '../../components/petientsComponent/SalesSummary
 export const PatientContext = createContext();
 const PatientProvider = PatientContext.Provider;
 import dynamic from 'next/dynamic';
-import style from '../../styles/patients.module.css';
 import { Link } from '@mui/material';
 import PreviewPatientInformation from '../../components/petientsComponent/PreviewPatientInformation';
 import PerformanceChartGeneral from '../../components/salesSummary/PerformanceChartGeneral';
@@ -81,7 +80,7 @@ export default function PATIENTS_INDEX_PAGE() {
             <SearchFieldPatients />
           </div>
           <div className='main container'>
-            <ul className={style.ul} >
+            <ul >
               <Link href='/patients/records' >patient records</Link>
               <a onClick={(ev) => {window.open(`/patients/${initials.query}`)}} >update records</a>
               <Link href={`/patients/${initials.query}/notifications`}>Notification settings</Link>

@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { AnalyticsRounded, ExploreTwoTone, Menu, TrackChanges, ViewCompactAltTwoTone } from '@mui/icons-material';
-import styles from '../../styles/patients.module.css';
 import { printResultNavigator } from '../Auth/customFetch';
 import { useRouter } from 'next/router';
-import Message from '../accessories/message';
 
 
 
@@ -18,7 +16,7 @@ export default function TableTrPatient({ index, item,openModal}) {
         <td>{item.NAME}</td>
         <td className="pointer">
           <span
-            className={`${styles.ptlist} text-center text-white ${item.COLLECTION == "true" ? "bg-success" : "bg-danger"
+            className={` text-center text-white ${item.COLLECTION == "true" ? "bg-success" : "bg-danger"
               }`}
           >
             {item.COLLECTION == "true" ? "collected" : "Not Yet"}
@@ -26,7 +24,7 @@ export default function TableTrPatient({ index, item,openModal}) {
         </td>
         <td className="pointer">
           <span
-            className={` ${styles.ptlist} text-center text-white ${item.PROCESSING == "true" ? "bg-success" : "bg-danger"
+            className={`  text-center text-white ${item.PROCESSING == "true" ? "bg-success" : "bg-danger"
               }`}
           >
             {item.PROCESSING == "true" ? "processed" : "Not Yet"}
@@ -34,7 +32,7 @@ export default function TableTrPatient({ index, item,openModal}) {
         </td>
         <td className="pointer">
           <span
-            className={` ${styles.ptlist} text-center text-white ${item.READY == "true" ? "bg-success" : "bg-danger"
+            className={`  text-center text-white ${item.READY == "true" ? "bg-success" : "bg-danger"
               }`}
           >
             {item.READY == "true" ? "ready" : "Not Yet"}
@@ -42,7 +40,7 @@ export default function TableTrPatient({ index, item,openModal}) {
         </td>
         <td className="pointer">
           <span
-            className={` ${styles.ptlist} text-center text-white ${item.APPROVALSTATUS == 1 ? "bg-success" : "bg-danger"
+            className={`  text-center text-white ${item.APPROVALSTATUS == 1 ? "bg-success" : "bg-danger"
               }`}
           >
             {item.APPROVALSTATUS == 1 ? "approved" : "Not Yet"}

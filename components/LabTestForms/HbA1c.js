@@ -50,12 +50,14 @@ export default function HbA1c({ clientdata }) {
 
   return (
     <>
-      <div className="p-2" style={{ backgroundColor: 'whitesmoke' }}>
-        <div>
-          <h5>Glycated Heamoglobin</h5>
-          <form className='bg-white'>
+      <div className='mx-3'>
+        <div className='card'>
+          <div className='card-header modal-color'>
+            <h5>Glycated Heamoglobin</h5>
             <Indicator resultEntered={resultEntered} />
-            <table id="entry-table-chemistry">
+          </div>
+          <div className='card-body'>
+            <table className='billing-cart-table' >
               <thead>
                 <tr>
                   <th>testname</th>
@@ -111,7 +113,7 @@ export default function HbA1c({ clientdata }) {
                 </tr>
               </tbody>
             </table>
-            <div className='p-2'>
+            <div>
               <label>Technology Used</label>
               <input type='text' className='custom-input' name='technology' onChange={(e) => handleResult(e)} value={formdata.technology} />
               <div className='form-group'>
@@ -119,18 +121,15 @@ export default function HbA1c({ clientdata }) {
                 <input className='custom-input' value={formdata.method} placeholder='Method used' name='method' onChange={(e) => handleResult(e)} />
               </div>
               <CommentSection getcomment={handleResult} value={formdata.comment} />
-              <div className='form-group mt-2'>
-                <Button variant='contained' color='primary' sx={{ mr: '20px' }} onClick={saveData}>
+              <div className='form-group mx-1 my-2'>
+                <button className='btn btn-primary btn-sm' onClick={saveData}>
                   save result
-                </Button>
-                <Button variant='contained' color='primary'>
-                  preview Result
-                </Button>
+                </button>
               </div>
             </div>
-          </form>
+          </div>
         </div>
-      </div >
+      </div>
     </>
   )
 }

@@ -53,42 +53,39 @@ export default function Malaria({ clientdata }) {
   }, [])
 
   return (
-    <div className="p-4">
-      <form>
-        <h4>Malaria test</h4>
-        <Indicator resultEntered={resultEntered} />
-        <div className="form-group">
-          <label>parasite present </label>
-          <input
-            type="number"
-            className="custom-input"
-            placeholder="number of parasite seen"
-            required
-            value={data.number}
-            onChange={(e) => setData({ ...data, number: e.target.value })}
-          />
+    <div className="mx-3">
+      <div className="card">
+        <div className="card-header modal-color">
+          <h4>Malaria test</h4>
+          <Indicator resultEntered={resultEntered} />
         </div>
-        <div className="form-group mt-2">
-          <label>Select species here</label>
-          <select
-            value={data.species}
-            className="custom-input"
-            onChange={(e) => setData({ ...data, species: e.target.value })}
-          >
-            <option value=''>select an option here</option>
-            <option value={"Falciparum"}> plasmodium Falciparum</option>
-            <option value={"ovalex"}>plasmodium ovalex</option>
-            <option value={"vivax"}>plasmodium vivax</option>
-          </select>
+        <div className='card-body'>
+          <div className="form-group">
+            <label>parasite present </label>
+            <input
+              type="number"
+              className="custom-input"
+              placeholder="number of parasite seen"
+              required
+              value={data.number}
+              onChange={(e) => setData({ ...data, number: e.target.value })}
+            />
+          </div>
+          <div className="form-group mt-2">
+            <label>Select species here</label>
+            <select value={data.species} className="custom-input" onChange={(e) => setData({ ...data, species: e.target.value })}>
+              <option value="">select an option here</option>
+              <option value={"Falciparum"}> plasmodium Falciparum</option>
+              <option value={"ovalex"}>plasmodium ovalex</option>
+              <option value={"vivax"}>plasmodium vivax</option>
+            </select>
+          </div>
+          <CommentSection getcomment={handleComments} value={data.comments} datasource={data} datafunction={setData} target={"comments"} />
+          <button  className="mx-1 my-2 btn btn-sm btn-primary" onClick={handleResult}>
+            save result
+          </button>
         </div>
-        <CommentSection getcomment={handleComments} value={data.comments} datasource={data} datafunction={setData} target={'comments'} />
-        <Button variant='contained' color='primary' className='mt-3' onClick={handleResult}>
-          save result
-        </Button>
-        <Button variant='contained' sx={{ marginLeft: '20px' }} color='primary' className='mt-3'>
-          preview result
-        </Button>
-      </form>
+      </div>
     </div>
   );
 }

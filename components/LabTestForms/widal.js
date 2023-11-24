@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, Typography, Button } from '@mui/material';
 import { useState,useEffect } from 'react';
 import CommentSection from './commentSection';
 import { handleComments, validateFormData,CheckResultEntered } from '../Auth/customFetch';
@@ -46,7 +45,6 @@ function Widal({ clientdata }) {
       billingid: clientdata.billingid
     }
 
-    console.log(widal)
 
     function respond(response) {
       const { status, message, statusCode } = response;
@@ -61,11 +59,14 @@ function Widal({ clientdata }) {
 
   return (
     <>
-      <div className='p-3' >
-        <h5>Widal Test</h5>
-        <div className='form-row'>
-          <div className='form-group'>
+      <div className='mx-3' >
+        <div className='card'>
+          <div className='card-header modal-color'>
+            <h5>Widal Test</h5>
             <Indicator resultEntered={resultEntered} />
+          </div>
+          <div className='card-body'>
+            <div className='form-group'>
             <label>typhi o</label>
             <select value={widal.TYPHIO} className='custom-input'
               onChange={(e) => setWidal({ ...widal, TYPHIO: e.target.value })}>
@@ -109,8 +110,9 @@ function Widal({ clientdata }) {
             </select>
           </div>
           <CommentSection getcomment={handleComments} target={'COMMENTS'} datasource={widal} datafunction={setWidal} value={widal.COMMENTS} />
-          <Button type='button' onClick={(e) => handleSave(e)}
-            variant='contained' color='primary' sx={{ mt: 2 }}>save information</Button>
+          <button className='btn btn-sm btn-primary mx-1' type='button' onClick={(e) => handleSave(e)}
+           >save information</button>
+          </div>
         </div>
       </div>
     </>

@@ -41,7 +41,7 @@ export default function UltrasoundWaitingList() {
       <ImagingSidebar />
       <div className='container-fluid'>
         <h1 className='text-primary'>Ultrasound Department Waiting List ({waitingList.length} -- on queue)</h1>
-        <TableDisplay styling={'excel-table'} filtering={true} column={columns} data={waitingList} />
+        <TableDisplay  filtering={true} column={columns} data={waitingList} />
       </div>
     </>
   )

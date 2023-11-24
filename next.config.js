@@ -12,7 +12,6 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // matching all API routes
         source: "/api/v1/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
@@ -25,9 +24,5 @@ const nextConfig = {
   }
 }
 
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-})
-module.exports = withBundleAnalyzer(nextConfig)
 
-// module.exports = nextConfig;
+module.exports = nextConfig;

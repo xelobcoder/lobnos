@@ -1,5 +1,4 @@
-import { Button } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckResultEntered, customFetch, handleComments, handleResponse, validateFormData } from "../Auth/customFetch";
 import CommentSection from "./commentSection";
 import Indicator from "../accessories/Reports/indicator";
@@ -86,12 +85,14 @@ export default function RenalResults({ clientdata }) {
 
   return (
     <>
-      <div className="continue-scroll p-4">
-        <div>
-          <h5>Renal Function Test </h5>
+      <div className="mx-2">
+        <div className="card">
+          <div className="card-header modal-color">
+            <h5>Renal Function Test </h5>
           <Indicator resultEntered={resultEntered} />
-          <form className="bg-white">
-            <table id="entry-table-chemistry">
+          </div>
+          <div className="card-body">
+            <table className="billing-cart-table">
               <thead>
                 <tr>
                   <th>parameter</th>
@@ -110,6 +111,7 @@ export default function RenalResults({ clientdata }) {
                           type="number"
                           style={{ height: "30px" }}
                           step={"0.5"}
+                          className="custom-input"
                           value={item.value}
                           onChange={(e) => handleChange(item.parameter, e.target.value)}
                         />
@@ -123,17 +125,17 @@ export default function RenalResults({ clientdata }) {
                 })}
               </tbody>
             </table>
-          </form>
-          <CommentSection
+            <CommentSection
             getcomment={handleComments}
             datasource={comments}
             datafunction={setComments}
             target={'comments'}
             value={comments.comments}
           />
-          <Button variant="contained" color="primary" onClick={saveResult}>
+            <button className="btn btn-primary btn-sm mx-1" onClick={saveResult}>
             Save Result
-          </Button>
+            </button>
+          </div>
         </div>
       </div>
     </>
