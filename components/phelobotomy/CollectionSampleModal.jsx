@@ -15,7 +15,7 @@ export default function CollectionSampleModal({ show, hide, collection,employeei
   const getClientAscention = useCallback(async (id) => {
     getDataAndUpdateState(
       setTestCollection,
-      `phelobotomy/ascension?billingid=${id}`
+      `phelobotomy/ascension?billingid=${id}&&state=false`
     );
   }, []);
 

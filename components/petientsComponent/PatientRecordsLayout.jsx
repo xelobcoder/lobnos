@@ -6,7 +6,7 @@ export default function PatientRecordsLayout({ children }) {
 
   return (
     <>
-      <ul  >
+      <ul>
         <Link href={'/patients'}>Dashboard</Link>
         <Link href={`/patients/${patientid}`} >personal Information</Link >
         <Link href={`/patients/${patientid}/address`}>Address Information</Link >

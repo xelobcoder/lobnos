@@ -1,5 +1,5 @@
 import { Delete } from "@mui/icons-material";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { customPost } from "../Auth/customFetch";
 import { Button } from "@mui/material";
 import Inventory from "../Auth/inventory";
@@ -60,23 +60,22 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
 
 
   return (
-    <>
-      <div>
-        <div >
-          <div id="order-receivable-table" className="d-flex">
-            <div className="form-row">
+    <div className="mx-3 my-3 card">
+      <div className="card-header" >
+        <div className="d-flex" style={{ display: 'grid', gridTemplateColumns: '50% auto' }}>
+          <div className="form-row d-flex">
               <label>change pricing</label>
-              <select onChange={(ev) => {
+            <select className="custom-select" onChange={(ev) => {
                 setPricing(ev.target.value);
-              }} style={{ width: '200px', height: '25px' }}>
+            }} >
                 <option>select pricing</option>
                 <option value='absolute'>absolute</option>
                 <option value='unit'>unit price</option>
               </select>
             </div>
-            <div className="form-row">
+          <div className="form-row d-flex">
               <label>tax calculated in</label>
-              <select onChange={(ev) => {
+            <select className="custom-select" onChange={(ev) => {
                 setTaxIncurred(ev.target.value);
               }} style={{ width: '200px', height: '25px' }}>
                 <option>select pricing</option>
@@ -85,10 +84,10 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
               </select>
             </div>
           </div>
-          <div id="order-receivable-table" >
-            <form className="br-5">
-              <table className="table">
-                <thead className="border-bottom text-white">
+      </div>
+      <div className="card-body">
+        <table className="billing-cart-table">
+          <thead>
                   <tr>
                     <th>name</th>
                     <th>unit</th>
@@ -98,7 +97,7 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
                     <th>price</th>
                     <th>received date</th>
                     <th>expiry date</th>
-                    <th>brand name</th>
+              <th>brand</th>
                     <th>lot</th>
                     <th>total</th>
                     <th>status</th>
@@ -211,11 +210,9 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
                     </>
                   )}
                 </tbody>
-              </table>
-            </form>
-          </div>
-        </div>
-        <div id="order-receivable-table">
+        </table>
+      </div>
+      <div className="my-3 mx-3">
           <div className="form-row">
             <label>Cost incurred from tax <span style={{ fontSize: '13px' }} className="text-danger">(absolute figures required)</span></label>
             <input
@@ -226,19 +223,18 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
               }} style={{ width: '200px' }} className="form-control" type="number" />
           </div>
         </div>
-        <div id="gross-amount-modal">
+      <div className="my-2 mx-3">
           <h5>Total Amount Payable: </h5>
           <h5>GHC {totalprice}</h5>
         </div>
-        <div id='order-receivable-table' className="d-flex justify-content-end">
-          <Button variant="contained" color="error" >
+      <div className="d-flex justify-content-end mb-2">
+        <button className="btn btn-primary btn-sm mx-2"  >
             Close
-          </Button>
-          <Button sx={{ marginLeft: '20px' }} variant="contained" color="success" onClick={addToStock}>
+        </button>
+        <button className="btn btn-primary btn-sm mx-2" sx={{ marginLeft: '20px' }} variant="contained" color="success" onClick={addToStock}>
             Add to stock
-          </Button>
+        </button>
         </div>
-      </div>
-    </>
+    </div>
   );
 }

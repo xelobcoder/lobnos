@@ -628,3 +628,6 @@ export const filterTrendData = async (parameters, data) => {
    });
    return trend;
 }
+
+
+

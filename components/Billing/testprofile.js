@@ -1,5 +1,4 @@
 import { DeleteOutlineTwoTone } from '@mui/icons-material';
-import { Button } from '@mui/material';
 import React, { useState, useMemo, useRef } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import { Autocomplete, TextField } from '@mui/material';
@@ -10,9 +9,7 @@ import { useRouter } from 'next/router';
 
 export default function TestProfileBilling() {
   const [testportal, setTestPortal] = useState([]);
-  const [previousTest, setPreviousTest] = useState([]);
   const [workingTest, setWorkingTest] = useState([]);
-  const [initiated, setIniated] = useState([])
   const [testvalueid, setTestValueId] = useState(null);
   const router = useRouter().query
   // define ref on the auto complete input field
@@ -137,7 +134,6 @@ export default function TestProfileBilling() {
         const pushdb = async () => {
           let data = await customPost('billing', 'PUT', billSummary)
           const { status, statusCode, err, message } = data;
-
           if (status === 'success' && statusCode === 200) {
             alert(message);
           }
@@ -165,36 +161,35 @@ export default function TestProfileBilling() {
             const amountpaid = clientDetails[0]?.['PAID_AMOUNT'];
             return (
               <>
-                <div className='add-new-test'>
-                  <Autocomplete
-                    id="test-panel-auto-complete"
-                    options={testportal}
-                    getOptionLabel={(option) => option.NAME}
-                    style={{ width: 'inherit' }}
-                    size='small'
-                    renderInput={(params) => <TextField {...params} label="Test panels" variant="outlined" />}
-                    onChange={handleAddTest}
-                    ref={AutocompleteRef}
-                  />
+                <div className='card'>
+                  <div className='card-header'>
+                    <div className='m-0 d-flex justify-content-between'>
+                      <Autocomplete
+                        options={testportal}
+                        getOptionLabel={(option) => option.NAME}
+                        style={{ width: '80%' }}
+                        size='small'
+                        renderInput={(params) => <TextField {...params} label="Test panels" variant="filled" />}
+                        onChange={handleAddTest}
+                        ref={AutocompleteRef}
+                      />
 
-                  <button className='custom-button'
+                      <button className='btn btn-primary btn-sm'
                     onClick={() => handleAddTestButton()}
                   >
-                    <AddIcon />
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-lg" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2" />
+                        </svg>
                     Add Test
                   </button>
-                </div>
-                <div className='billing-personal-info'>
-                  {/* create a table */}
-                  <table className='table'>
+                    </div>
+                  </div>
+                  <div className='card-body'>
+                    <table className='billing-cart-table'>
                     <thead>
                       <tr>
                         <th>Test Name</th>
                         <th>Test Price</th>
-                        <th>sample</th>
-                        <th>collection status</th>
-                        <th>processing </th>
-                        <th>result ready</th>
                         <th>action</th>
                         <th>payment made </th>
                       </tr>
@@ -205,26 +200,14 @@ export default function TestProfileBilling() {
                         workingTest.length > 0 && workingTest.map((item, index) => {
                           return (
                             <tr key={index} id='move-left-sm'>
-                              <td>{item?.NAME}</td>
+                              <td className='lims-text-color'>{item?.NAME}</td>
                               <td>{item?.PRICE}</td>
-                              <td>{item?.SAMPLE || 'BLOOD'}</td>
-                              <td className={item?.COLLECTION == 'true' ? 'text-success' : 'text-danger'}>
-                                {
-                                  item?.COLLECTION == 'true' ? 'collected' : 'Not yet'
-                                }
-                              </td>
-                              <td className={item?.PROCESSING == 'true' ? 'text-success' : 'text-danger'}>
-                                {item?.PROCESSING == 'true' ? 'processing' : 'Not yet'}
-                              </td>
-                              <td className={item?.READY == 'true' ? 'text-success' : 'text-danger'}>
-                                {item?.READY == 'true' ? 'result ready' : 'Not yet'}
-                              </td>
                               <td>
-                                <Button color='error' size='small'
+                                <button className='btn btn-sm btn-danger py-0'
                                   onClick={() => handleRemoveTest(item)}>
                                   <DeleteOutlineTwoTone />
                                   remove
-                                </Button>
+                                </button >
                               </td>
                             </tr>
                           )
@@ -233,42 +216,37 @@ export default function TestProfileBilling() {
                     </tbody>
                     <tfoot>
                       <tr>
-                        <td>Total</td>
-                        <td className='lims-text-color'>{handleCurrency()}{handleTotalPrice()}</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                          <td >Total</td>
+                          <td className='lims-text-color' >{handleCurrency()}{handleTotalPrice()}</td>
                         <td>
                           {
                             workingTest.length > 0 && (
-                              <Button variant='contained' size='small' className='mt-2' color='error' onClick={(e) => removeAllTest()}>
-                                remove all test
-                              </Button>
+                                <button className='mt-2 btn-danger btn-sm btn text-capitalize' color='error' onClick={(e) => removeAllTest()}>
+                                  remove all
+                                </button>
                             )
                           }
                         </td>
                         <td>
-                          {amountpaid}
+                          
                         </td>
                       </tr>
-                    </tfoot>
-                  </table>
-                  {/* amount to pay */}
-                  <div className='d-flex justify-content-between alert alert-warning' id='billing-update-payment'>
-                    <h5>Payment details</h5>
-                    <h6 className='lims-text-color'>
-                      <p>Amt paid:{amountpaid} </p>
-                      <p>Discount: {clientDetails[0]?.['DISCOUNT']}</p>
-                      <p>Outstanding: {clientDetails[0]?.['OUTSTANDING']}</p>
-                      <p>Amount to pay: {handleCurrency()}{handleTotalPrice() - amountpaid}</p>
-                    </h6>
-                  </div>
-                  <div id='update-billing-button' className='mb-5'>
-                    <Button variant='contained'
-                      color='primary' className='custom-button' onClick={(e) => updateBilling(e, clientDetails, amountpaid)}>
-                      update billing info
-                    </Button>
+                      </tfoot>
+                    </table>
+                    <div className='mt-3' >
+                      <h5>Payment details</h5>
+                      <h6 className='lims-text-color d-flex gap-4 justify-content-between'>
+                        <p>Amt paid = {amountpaid} </p>
+                        <p>Discount =  {clientDetails[0]?.['discount']}</p>
+                        <p>Outstanding =  {clientDetails[0]?.['outstanding']}</p>
+                        <p>Amount to pay {handleCurrency()}{handleTotalPrice() - amountpaid}</p>
+                      </h6>
+                    </div>
+                    <div className='d-flex justify-content-end'>
+                      <button className='btn btn-primary btn-sm my-3' onClick={(e) => updateBilling(e, clientDetails, amountpaid)}>
+                        update billing info
+                      </button>
+                    </div>
                   </div>
                 </div>
               </>

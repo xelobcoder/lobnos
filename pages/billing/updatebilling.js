@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import SidebarFrontPage from "../../components/frontpagesidebar";
 import UpdatePersonal from "../../components/Billing/updatePersonal";
 import TestProfileBilling from "../../components/Billing/testprofile";
@@ -12,17 +12,19 @@ export default function Updatebilling() {
   const [updateViewer, setUpdateViewer] = useState(false);
 
   // pick infromation from the database
-  const billid = useRouter().query.billingid;
+  const billid = useSearchParams().get('billingid');
 
   useEffect(() => {
-    try {
-     async  function getData() {
-        const { result, statusCode } = await customFetch(`billing?billingid=${billid}`)
-        statusCode === 200 && setClientDetails(result)
+    if (billid) {
+      try {
+        async function getData() {
+          const { result, statusCode } = await customFetch(`billing?billingid=${billid}`)
+          statusCode === 200 && setClientDetails(result)
+        }
+        getData()
+      } catch (error) {
+        throw error;
       }
-      getData()
-    } catch (error) {
-      throw error;
     }
   }, [billid]);
 
@@ -37,7 +39,7 @@ export default function Updatebilling() {
           <>
             <ClientContextProvider value={clientDetails}>
               <UpdatePersonal handleview={updateTestButton} />
-              <SamplingInformation source={clientDetails} />
+                <SamplingInformation id={billid} source={clientDetails} />
               {updateViewer && (
                 <TestProfileBilling />
               )}

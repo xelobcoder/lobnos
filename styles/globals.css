@@ -444,7 +444,7 @@ a {
   font-size: 14px;
   border-collapse: collapse !important;
   border: 1px solid lightgray;
-  padding: 10px;
+  padding: 4px;
 }
 
 .billing-cart-table > tbody > tr:nth-of-type(even) {
@@ -1196,43 +1196,6 @@ option:hover {
   padding: 10px;
 }
 
-#order-receivable-table {
-  padding: 0;
-  margin: 10px;
-}
-
-#order-receivable-table > form > table > thead > tr {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  width: 100%;
-  background-color: whitesmoke;
-}
-
-#order-receivable-table > form > table > thead > tr > th {
-  padding: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  color: white;
-  text-transform: uppercase;
-}
-
-#order-receivable-table > form > table > tbody > tr {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  width: 100%;
-  padding: 10px;
-}
-
-#order-receivable-table > form > table > tbody > tr > td {
-  text-transform: capitalize;
-  color: #00224f;
-  border-bottom: 1px solid lightgray;
-  padding-bottom: 10px;
-}
-
-#order-receivable-table > form > table > tbody > tr > td:nth-child(11) {
-  text-align: center;
-}
 
 #gross-amount-modal {
   font-size: 14px;
@@ -1528,92 +1491,7 @@ option:hover {
   padding: 20px;
   background-color: whitesmoke;
 }
-.billing-personal-info {
-  background-color: white;
-  margin: 10px 20px;
-  max-height: auto;
-  padding: 10px;
-  border-radius: 5px;
-  box-shadow: 1px 2px 5px 1px rgba(0, 0, 0, 0.2);
-  margin-bottom: 20px;
-}
-.billing-personal-info > .billing-personal-info-header {
-  padding-left: 20px;
-}
-.billing-personal-info > .billing-personal-info-header > .split {
-  display: flex;
-  justify-content: space-between;
-}
-.billing-personal-info > .billing-personal-info-header > .split > h4 {
-  font-size: 16px;
-  text-transform: capitalize;
-  width: max-content;
-  border-radius: 10px;
-  padding: 5px;
-}
 
-.billing-personal-info > .billing-personal-info-header > main {
-  display: grid;
-  grid-template-columns: 50% auto;
-}
-
-.billing-personal-info
-  > .billing-personal-info-header
-  > main
-  > .billing-side:first-child {
-  border-right: 1px solid lightgray !important;
-}
-.billing-personal-info
-  > .billing-personal-info-header
-  > main
-  > .billing-side
-  > div
-  > svg {
-  height: 100px;
-  width: 100px;
-}
-
-.billing-personal-info
-  > .billing-personal-info-header
-  > main
-  > .billing-side
-  > div
-  > h6 {
-  display: block;
-  font-size: 14px;
-  padding-left: 10px;
-  color: #00224f;
-  font-weight: 900 !important;
-}
-
-.billing-personal-info .reference-information {
-  display: grid;
-  grid-template-columns: auto auto auto;
-  grid-template-rows: repeat(2, 1fr);
-  grid-gap: 10px;
-}
-
-.billing-personal-info .reference-information > div > p:nth-of-type(1) {
-  font-size: 14px;
-  color: #00224f;
-  text-transform: capitalize;
-  font-weight: 600 !important;
-}
-
-.billing-personal-info .reference-information > div > p:nth-of-type(2) {
-  font-size: 15px;
-  color: black;
-  font-weight: 700;
-  text-transform: capitalize;
-  margin-top: -10px;
-}
-
-.billing-personal-info
-  .reference-information
-  > div
-  > p:nth-of-type(2):last-child {
-  text-transform: lowercase !important;
-}
 
 .add-new-test {
   background-color: white;
@@ -1628,31 +1506,7 @@ option:hover {
   padding-left: 10px !important;
 }
 
-.sampling-billing-info {
-  display: flex;
-  align-items: center;
-  margin-top: 10px;
-  padding-left: 20px;
-  width: 500px;
-}
-.sampling-billing-info > .text-header {
-  margin-right: 20px;
-  text-transform: capitalize;
-  font-size: 14px;
-  font-weight: 600;
-  color: grey;
-}
-.sampling-billing-info > .text-body > button {
-  text-transform: capitalize !important;
-  padding: 3px;
-  font-size: 12px;
-  font-weight: 600;
-}
 
-.sampling-billing-info > .text-body {
-  /* width: 100%; */
-  font-size: 14px;
-}
 .text-extra-large {
   font-size: 100px;
 }
@@ -1671,27 +1525,6 @@ option:hover {
   grid-gap: 10px;
 }
 
-#billing-update-payment {
-  /* background-color: whitesmoke; */
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-}
-#billing-update-payment > h6 > p {
-  font-size: 14px;
-}
-
-#billing-update-payment > h5 {
-  text-transform: uppercase;
-  color: #00224f;
-}
-
-#billing-update-payment > h6 > p:last-child {
-  padding: 5px;
-  background-color: #00224f;
-  color: white;
-  font-size: 15px;
-}
 
 #checkbo {
   margin-left: 20px;
