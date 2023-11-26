@@ -89,7 +89,7 @@ export default function FullBloodCountSetup() {
   }
 
 
-
+console.log(fullcount)
   return (
     <>
       <div className='mx-3 my-1'>
@@ -142,7 +142,7 @@ export default function FullBloodCountSetup() {
                   fullcount.map((item, index) => {
                     return (
                       <tr key={index}>
-                        <td>{item.PARAMETER}</td>
+                        <td>{item.parameter}</td>
                         <td>
                           <input className='form-control' value={item.UNIT} type='text' onChange={(e) => onChangeUnit(e, index)} />
                         </td>

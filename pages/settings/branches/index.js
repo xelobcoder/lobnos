@@ -102,7 +102,7 @@ export default function Branches() {
               <EditIcon editset={item.branchid} />
             </button>
             <button
-              className="btn btn-danger text-white p-0"
+              className="btn btn-danger btn-sm text-white p-0"
               style={{ marginLeft: "5px" }}
               onClick={(e) => deleteData(e, item.branchid)}
             >
@@ -121,7 +121,7 @@ export default function Branches() {
       <div className='container'>
         <h4> Branches List</h4>
         <div className='row p-1'>
-          <TableDisplay column={columns} data={branches} filtering={true} />
+          <TableDisplay styling={'billing-cart-table mt-3'} column={columns} data={branches} filtering={true} />
         </div>
       </div>
     </MainSettingsLayoutView>

@@ -1,35 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { customFetch, customPost, handleComments, validateFormData } from "../../components/Auth/customFetch";
-import { IconButton, Tooltip } from "@mui/material";
+import React, { useContext, useEffect, useState } from "react";
+import { customFetch, handleDecision, handleComments, validateFormData } from "../../components/Auth/customFetch";
+import { IconButton } from "@mui/material";
 import { Launch } from "@mui/icons-material";
-import Tip from "../../components/accessories/Tip";
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 import SidebarFrontPage from '../../components/frontpagesidebar';
+import AuthContext from "../../components/Auth/useAuthentification";
 export default function Approval() {
   const [clients, setClients] = useState([]);
-  const [splinter, setSplinter] = useState(false);
-  const [active, setActive] = useState({ billingid: null, testid: null });
-  const [rejectionMessage, setRejectionMessage] = useState({
-    declineMessage: "",
-    actionplan: "",
-  });
+  const { auth } = useContext(AuthContext);
+  const { employeeid } = auth;
+
+
 
   useEffect(() => {
-    function sortByUrgency(data) {
-      return data.sort((a, b) => {
-        const urgencyA = a?.urgency.toLowerCase();
-        const urgencyB = b?.urgency.toLowerCase();
-        if (urgencyA < urgencyB) {
-          return -1;
-        }
-        if (urgencyA > urgencyB) {
-          return 1;
-        }
-        return 0;
-      });
-    }
     customFetch("manager/approvalist")
-      .then((response) => setClients(sortByUrgency(response)))
+      .then((response) => setClients(response))
       .catch((error) => console.log(error));
   }, []);
 
@@ -52,162 +37,79 @@ export default function Approval() {
     );
   };
 
-  const handleDecision = async function (client, decision, message) {
-    setSplinter(false);
-    if (decision == 'approve') {
-      const pushData = await customPost('result/approve', 'POST', { ...client, decision, message });
-      if (pushData?.status == 'success' && decision == 'approve') {
-        //  remove item ffrom clients
-        const getClient = clients.filter((item, index) => { return !(item.billingid == client?.billingid && client?.testid == item?.testid) })
-        setClients(getClient)
-      }
-    }
 
-    if (decision == 'decline') {
-      setSplinter(true);
-      setRejectionMessage({
-        actionplan: '',
-        declineMessage: ''
-      })
-      setActive({ billingid: client.billingid, testid: client.testid })
-    }
-  };
-
-
-  const declineTest = async function (client) {
-    // we want to ensure at all time the rejectionMessage object properties are filled.
-    // setSplinter(true);
-    const { billingid, testid } = client;
-    setActive({ billingid, testid });
-    // update the state of active after successful entry of the data
-    const clearFields = function (data) {
-      const { status, statusCode, message } = data;
-      if (status == 'success' && statusCode == 200) {
-        alert(message)
-        setActive({ billingid: '', testid: '' });
-        setRejectionMessage({ declineMessage: '', actionplan: '' });
-        setSplinter(false);
-        //  remove item ffrom clients
-        const getClient = clients.filter((item, index) => { return !(item.billingid == client?.billingid && client?.testid == item?.testid) })
-        setClients(getClient);
-      }
-    }
-    // validate form data before sending the result
-    if (rejectionMessage.declineMessage && rejectionMessage.actionplan) {
-      await validateFormData({ ...client, decision: 'decline', message: rejectionMessage }, true, [], 'result/approve', clearFields)
-    } else {
-      alert('All fields required')
-    }
+  const handleMessage = function (ev, client, target, index) {
+    const value = ev.target.value;
+    setClients((prev) => {
+      const newClient = [...prev];
+      newClient[index][target] = value;
+      return newClient;
+    })
   }
-
-console.log(clients)
 
   return (
     <SettingsLayout sidebar={<SidebarFrontPage />}>
-      <div className={splinter ? "client-results splinter" : "client-results"}>
-        <div className="card m-2 mt-4  br-5">
+      <div className="mx-3 my-2">
+        <div className="card">
           <div className="card-header">
-            <h3>Result awaiting approval</h3>
+            <h5>Result awaiting approval</h5>
           </div>
-          <div className="card-body p-0">
-            {clients.map((client, index) => (
-              <div
-                key={index}
-                className={
-                  client.billingid == active.billingid &&
-                    client.testid == active.testid
-                    ? "client-card active-card"
-                    : "client-card"
-                }
-              >
-                <div className="client-info">
-                  <p>
-                    {client.declineMessage &&
-                      <Tooltip arrow
-                        sx={{
-                          bgcolor: 'white',
-                          color: 'black',
-                          width: '500px',
-                          padding: 0
-                        }}
-                        title={<Tip body={client.declineMessage} header={'previously declined'} />}>
-                        <span
-                          className={client.declineMessage != null && 'show-previous-decline '}
-                        >{client.billingid}
-                        </span>
-                      </Tooltip>}
-                    {
-                      !client.declineMessage && client.billingid
-                    }
-                  </p>
-                  <p>{client.fullname}</p>
-                  <p>{client.NAME}</p>
-                </div>
-                <div>
-                  <button
-                    style={{ marginRight: "10px" }}
-                    className="btn btn-sm btn-success"
-                    onClick={() => handleDecision(client, "approve", null)}
-                  >
-                    Approve
-                  </button>
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={() => handleDecision(client, 'decline', null)}
-                  >
-                    Decline
-                  </button>
-                  <IconButton
-                    component="a"
-                    rel="noopener noreferrer"
-                    onClick={() =>
-                      navigation(client.testid, client.billingid, client.NAME)
-                    }
-                  >
-                    <Launch />
-                  </IconButton>
-                </div>
-              </div>
-            ))}
+          <div className="card-body mx-3 my-2 p-0">
+            <table className="billing-cart-table">
+              <thead>
+                <tr>
+                  <th> Billing ID</th>
+                  <th> Patient Name</th>
+                  <th> Test</th>
+                  <th>actions</th>
+                  <th>Decline message</th>
+                  <th>plan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.length > 0 && clients.map((client, index) => {
+                  return (
+                    <tr key={index}>
+                      <td>{client.billingid}</td>
+                      <td>{client.fullname}</td>
+                      <td>{client.NAME}</td>
+                      <td>
+                        <button
+                          style={{ marginRight: "10px" }}
+                          className="btn btn-sm btn-success"
+                          onClick={() => handleDecision(client, "approve", setClients, clients,employeeid)}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleDecision(client, 'decline', setClients, clients,employeeid)}
+                        >
+                          Decline
+                        </button>
+                        <IconButton
+                          component="a"
+                          rel="noopener noreferrer"
+                          onClick={() =>
+                            navigation(client.testid, client.billingid, client.NAME)
+                          }
+                        >
+                          <Launch />
+                        </IconButton>
+                      </td>
+                      <td>
+                        <textarea value={client.declineMessage} className="form-control" rows="2" onChange={(e) => { handleMessage(e, client, 'declineMessage', index) }}></textarea>
+                      </td>
+                      <td>
+                        <textarea value={client.actionPlan} className="form-control" rows="2" onChange={(e) => { handleMessage(e, client, 'actionPlan', index) }}></textarea>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
-        {splinter && (
-          <div className="splinter-section">
-            <div className="card mt-4 br-5" style={{ marginRight: "20px" }}>
-              <div className="card-header bg-light">
-                <strong>Reason for decline</strong>
-              </div>
-              <div className="card-body">
-                <textarea
-                  row={5}
-                  value={rejectionMessage.declineMessage}
-                  className="form-control"
-                  onChange={(e) =>
-                    handleComments(e, rejectionMessage, "declineMessage", setRejectionMessage)
-                  }
-                />
-              </div>
-              <div className="card-header border bg-light">
-                <label>
-                  <strong>action</strong>
-                </label>
-              </div>
-              <div className="card-body">
-                <textarea
-                  row={4}
-                  value={rejectionMessage.actionplan}
-                  onChange={(e) =>
-                    handleComments(e, rejectionMessage, "actionplan", setRejectionMessage)
-                  }
-                  className="form-control"
-                />
-              </div>
-              <div className="card-footer">
-                <button className="btn btn-danger" onClick={() => declineTest(active)}>execute</button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </SettingsLayout>
   );

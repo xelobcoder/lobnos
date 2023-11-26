@@ -384,7 +384,7 @@ export const printResultNavigator = async (navigate, billingid, item, newTab = f
    }
 
    if (newTab) {
-      window.open(`/registration/result?billingid=${billingid}&&testid=${testid}&&test=${nwName.toLowerCase()}`)
+      window.open(`http://localhost:5000/billing/result/pdf?billingid=${billingid}&&testid=${testid}&&testname=${nwName.toLowerCase()}`)
    } else {
       navigate.push(`/registration/result?billingid=${billingid}&&testid=${testid}&&test=${nwName.toLowerCase()}`)
    }
@@ -561,8 +561,8 @@ export const isAuthenticated = async function (auth, navigate, updateAuthenticat
    if (auth === null || auth === undefined || auth == '' || Object.keys(auth).length == 0) {
       let user = await window.cookieStore.get('X-AUTH-PRIME-LAB-SYSTEMS');
       if (user == null || user == undefined || user == '' || Object.keys(user).length == 0) {
-         if (navigate.pathname !== '/authentication/login') {
-            navigate.push('/authentication/login')
+         if (navigate !== '/authentication/login') {
+            window.location.href = '/authentication/login'
          }
       } else {
          const token = user?.value;
@@ -578,7 +578,7 @@ export const isAuthenticated = async function (auth, navigate, updateAuthenticat
 
             updateAuthentication({ username, role, email, employeeid, permissions });
          } else {
-            navigate.push('/authentication/login')
+            window.location.href = '/authentication/login'
          }
       }
    }
@@ -629,5 +629,25 @@ export const filterTrendData = async (parameters, data) => {
    return trend;
 }
 
-
-
+export const handleDecision = async function (client, decision, setClients, clients, employeeid) {
+   if (decision == 'approve') {
+      const pushData = await customPost('result/approve', 'POST', { ...client, approvedby: employeeid,approvalstatus: 1 });
+      if (pushData?.status == 'success' && decision == 'approve') {
+         //  remove item ffrom clients
+         const getClient = clients.filter((item, index) => { return !(item.billingid == client?.billingid && client?.testid == item?.testid) })
+         setClients(getClient);
+      }
+   } else {
+      const { declineMessage } = client;
+      if (declineMessage) {
+         const pushData = await customPost('result/approve', 'POST', { ...client, approvedby: employeeid });
+         if (pushData?.status == 'success' && decision == 'decline') {
+            //  remove item ffrom clients
+            const getClient = clients.filter((item, index) => { return !(item.billingid == client?.billingid && client?.testid == item?.testid) })
+            setClients(getClient);
+         }
+      } else {
+         alert('Please provide a reason for decline');
+      }
+   }
+};

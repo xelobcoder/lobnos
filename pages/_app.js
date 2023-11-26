@@ -1,5 +1,5 @@
-import'../node_modules/react-toastify/dist/ReactToastify.css';
 import'../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import '../node_modules/react-toastify/dist/ReactToastify.css';
 import'../styles/globals.css';
 import '../styles/Frontpageside.css'
 import Header from '../components/header'

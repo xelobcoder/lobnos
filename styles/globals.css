@@ -1,8 +1,7 @@
 :root {
   --topband-bg: #21263c;
   --sidebar-bg: #f7f7fe;
-  --zf-font-family-base: 'Inter', 'Source Sans Pro', Helvetica, Arial,
-    sans-serif;
+  --zf-font-family-base: 'Proxima Nova Regular', Arial, sans-serif;
     --autocomplete-width: 100%;
 }
 
@@ -171,8 +170,6 @@ label {
 }
 body {
   background-color: whitesmoke;
-  /* font-family: "aktiv-grotesk", sans-serif; */
-  /* line-height: 1.428571429; */
 }
 .grid-2 {
   display: -ms-grid;
@@ -989,7 +986,6 @@ option:hover {
   border-radius: 5px;
   font-size: 14px;
   padding-left: 10px;
-  text-transform: capitalize;
   width: 100%;
   color: #00224f;
 }
@@ -2158,9 +2154,6 @@ input[type='email']:focus:invalid .company-view-result > .wrapper {
   border-bottom: 1px solid lightgray;
 }
 
-input[type='text'] {
-  text-transform: capitalize;
-}
 
 /* ------accord */
 .accord-grid {

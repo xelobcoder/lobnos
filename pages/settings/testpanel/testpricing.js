@@ -29,7 +29,7 @@ export default function TESTPRICING() {
 
 
 
-  const handleTestListChange = (ev, index, item) => {
+  const handleTestListChange = (ev, index, item,sampleid) => {
     setPanel((prev) => {
       const mappedFiltered = prev[index]
       mappedFiltered[item] = ev.target.value;
@@ -51,17 +51,17 @@ export default function TESTPRICING() {
   }
 
   useEffect(() => {
-    getTestList()
-    getDeptments()
-    getSampleTypeList(setSampleType)
+    getTestList();
+    getDeptments();
+    getSampleTypeList(setSampleType);
   }, [])
 
 
   return (
     <MainSettingsLayoutView>
       <div className='container-fluid bg-white p-2' style={{height:'100vh',overflowY:'auto'}}>
-        <table className='table'>
-          <thead className='striped'>
+        <table className='billing-cart-table'>
+          <thead>
             <tr>
               <th>NAME</th>
               <th>CATEGORY</th>
@@ -77,7 +77,7 @@ export default function TESTPRICING() {
                 <tr key={index}>
                   <td className='text-capitalize text-success'>{item.name}</td>
                   <td>
-                    <select onChange={(e) => handleTestListChange(e, index, 'CATEGORY')} value={item.CATEGORY}>
+                    <select  className='custom-select'  onChange={(e) => handleTestListChange(e, index, 'category')} value={item.category}>
                       <option>select category</option>
                       {
                         dept.map((d, ii) => {
@@ -90,7 +90,7 @@ export default function TESTPRICING() {
                     </select>
                   </td>
                   <td>
-                    <select  value={item.SAMPLE} onChange={(e) => handleTestListChange(e, index, 'SAMPLE')}>
+                    <select  value={item.SAMPLE} className='custom-select' onChange={(e) => handleTestListChange(e, index, 'sample')}>
                       {
                         sampleType.map((s, ie) => {
                           return (
@@ -103,21 +103,21 @@ export default function TESTPRICING() {
                     </select>
                   </td>
                   <td>
-                    <input value={item.unit} />
+                    <input className='custom-input' value={item.unit} onChange={(ev) => handleTestListChange(ev,index,'unit')} />
                   </td>
                   <td>
-                    <input value={item.qty_required} onChange={(e) => handleTestListChange(e, index, 'QTY_REQUIRED')} />
+                    <input value={item.qty_required} className='custom-input' onChange={(e) => handleTestListChange(e, index, 'qty_required')} />
                   </td>
                   <td>
-                    <input value={item.price}
-                      onChange={(e) => handleTestListChange(e, index, 'PRICE')} />
+                    <input className='custom-input' value={item.price}
+                      onChange={(e) => handleTestListChange(e, index, 'price')} />
                   </td>
                 </tr>
               )
             })}
           </tbody>
         </table>
-        <button className='btn btn-outline-danger' onClick={updatePanelList}>
+        <button className='btn btn-outline-danger fw-bold my-3 btn-sm' onClick={updatePanelList}>
           update changes
         </button>
       </div>

@@ -1,20 +1,12 @@
-import React, { useContext, useState } from 'react';
-import { useRouter } from 'next/router';
+import React, { useContext, useEffect } from 'react';
 import AuthContext from '../Auth/useAuthentification';
-import { useEffect } from 'react';
 import { isAuthenticated } from '../Auth/customFetch';
-
+import { usePathname } from 'next/navigation';
 
 export default function MAIN_LAYOUT({ children }) {
   const { auth, updateAuthentication } = useContext(AuthContext);
-  const navigate = useRouter();
-
-
-
-
-  useEffect(() => { isAuthenticated(auth, navigate, updateAuthentication) }, [])
-
-
+  const pathname = usePathname();
+  useEffect(() => { isAuthenticated(auth, pathname, updateAuthentication) }, [])
   return (
     <>
       {children}
