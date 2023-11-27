@@ -14,29 +14,20 @@ export default function FullBloodCountEntry({ clientdata }) {
   useState(async () => {
     try {
       const setupdataResponse = await customFetch(`test/setup/fbc?patientid=${patientid}&&category=filling`);
-      const converted = setupdataResponse.map((item, index) => {
-        return convertKeysToLowerCase(item)
-      })
-      setSetup(converted);
+      const { statusCode ,result} = setupdataResponse;
+      if (statusCode == 200) {
+        console.log(result);
+        setSetup(result);
+      }
+      // setSetup(converted);
 
       const hasBeenEntered = await CheckResultEntered(test, billingid);
 
       if (hasBeenEntered?.result === true && hasBeenEntered.statusCode == 200) {
         setResultEntered(true);
-        const { records } = hasBeenEntered;
-        setData(records.map((item, index) => {
-          let obj = {};
-          Object.entries(item).forEach((s, i) => {
-            const [key, value] = s;
-            obj[key.toLowerCase()] = value;
-          });
-          const filteredPanels = converted.find((item, index) => item.parameter === obj.parameter);
-          obj.upper = filteredPanels?.upper;
-          obj.lower = filteredPanels?.lower;
-          return obj;
-        }));
+        setData(hasBeenEntered.records)
       } else {
-        setData(converted);
+        setData([...setup]);
       }
 
       const getcomments = await customFetch(`result/preview/comments?billingid=${billingid}&&testid=${testid}`);
@@ -49,16 +40,6 @@ export default function FullBloodCountEntry({ clientdata }) {
   }, []);
 
 
-
-  function convertKeysToLowerCase(obj) {
-    const convertedObj = {};
-    for (const key in obj) {
-      convertedObj[key.toLowerCase()] = obj[key];
-    }
-    convertedObj.value = '';
-    return convertedObj;
-  }
-
   const handleChange = (name, value) => {
     const updatedSetup = data.map((item) => {
       if (item.parameter === name) {
@@ -67,7 +48,7 @@ export default function FullBloodCountEntry({ clientdata }) {
       return item;
     });
 
-    setData(updatedSetup);
+    setData(updatedSetup,data);
   };
 
   const saveResult = async () => {
@@ -84,6 +65,7 @@ export default function FullBloodCountEntry({ clientdata }) {
   };
 
 
+  console.log(data);
   return (
     <div className='mx-3'>
       <div className="card m-0 br-5">

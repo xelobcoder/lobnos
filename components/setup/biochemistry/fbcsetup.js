@@ -1,97 +1,73 @@
 import {Button} from '@mui/material'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import parameter from  './countparameter'
-import { customFetch, customPost } from '../../Auth/customFetch';
+import { customFetch, customPost, getDataAndUpdateState } from '../../Auth/customFetch';
 import { DeleteForever } from '@mui/icons-material';
+import ISLOADING from '../../isLoading';
 import Link from 'next/link';
+import { ToastContainer, toast } from 'react-toastify';
 
 export default function FullBloodCountSetup() {
   const [fullcount, setFullcount] = useState(parameter)
   const [category, setCategory] = useState('male')
   const [childrenAge, setChildrenAge] = useState('0-10');
-  // used for setting paramater to use per category of  data entry
-  // if usingdefault is true, we display default params
-  const [usingdefault, setUsingDefault] = useState(false);
-  const [disable, setDisabled] = useState(true)
+  const [loading, setLoading] = useState(true);
 
 
   const onChangeUnit = (e, index) => {
     setFullcount(prevState => {
-      return [...prevState.slice(0, index), { ...prevState[index], UNIT: e.target.value }, ...prevState.slice(index + 1)]
+      return [...prevState.slice(0, index), { ...prevState[index], unit: e.target.value }, ...prevState.slice(index + 1)]
     })
   }
   const onChangeLower = (e, index) => {
     setFullcount(prevState => {
-      return [...prevState.slice(0, index), { ...prevState[index], LOWER: e.target.value }, ...prevState.slice(index + 1)]
+      return [...prevState.slice(0, index), { ...prevState[index], lower: e.target.value }, ...prevState.slice(index + 1)]
     }
     )
   }
   const onChangeUpper = (e, index) => {
     setFullcount(prevState => {
-      return [...prevState.slice(0, index), { ...prevState[index], UPPER: e.target.value }, ...prevState.slice(index + 1)]
+      return [...prevState.slice(0, index), { ...prevState[index], upper: e.target.value }, ...prevState.slice(index + 1)]
     }
     )
   }
 
 
+  const setDefaultParams = () => { setFullcount(parameter) }
+
+  const getFullCountData = useCallback(async function () {
+    setLoading(true);
+    const response = await customFetch(`test/setup/fbc?category=${category}`);
+    const { result, statusCode, status } = response;
+    if (statusCode == 200 && status == 'success') {
+      setFullcount(result);
+      setLoading(false);
+    }
+  }, [category]);
+
+  useEffect(() => { getFullCountData() }, [category, getFullCountData])
+
+
+
+  const getCreatedParams = async function (e) {
+    const response = await customFetch(`test/setup/fbc/createparams`);
+    response?.data && setFullcount(response.data)
+  }
+
   const saveData = async function (e) {
-    const pushdata = await customPost(`test/setup/fbc`, 'POST', {
-      setupdata: fullcount, setup: 'FBC', category
-    })
-  }
-
-
-
-  const getdata = async function () {
-    let response = await customFetch(`test/setup/fbc?category=${category}`);
-    Array.isArray(response) && setFullcount(response)
-  }
-  // select options for savin g data im terms of male,female,children
-  useEffect(() => {
-    if (category) {
-      getdata();
-    }
-  }, [category])
-
-
-  // this monitor for changes made to useDefault category
-
-
-  useEffect(() => {
-    usingdefault ? setFullcount(parameter) : getdata();
-  }, [usingdefault])
-
-
-
-
-  // this handle delete of a parameter
-
-  const handleDelete = async function (e) {
-    const { FBCID, PARAMETER, UNIT, LOWER, UPPER } = e;
-
-    // using fbcid to delte data
-    const response = await customPost(`test/setup/fbc?category=${category}&&id=${FBCID}`, 'DELETE', {});
-
-    const { status, message, statusCode } = response;
-
-    if (status == 'success' && statusCode == 200) {
-      alert(message)
-      getdata()
-    }
-    else {
-      alert(response?.message)
+    const pushdata = await customPost(`test/setup/fbc`, 'POST', { setupdata: fullcount, setup: 'FBC', category })
+    const { status, message, statusCode } = pushdata;
+    if (statusCode == 200 && status == 'success') {
+      toast.success(message);
+    } else {
+      toast.error(message);
     }
   }
 
-  const handleCreatedParamsView = async function (e) {
-     const response = await customFetch(`test/setup/fbc/createparams`);
-     response?.data && setFullcount(response.data)
-  }
 
-
-console.log(fullcount)
   return (
     <>
+      <ToastContainer />
       <div className='mx-3 my-1'>
         <div >
           <div className='d-flex  justify-content-between my-2'>
@@ -111,14 +87,14 @@ console.log(fullcount)
             </Link>
 
             <button className='btn btn-primary btn-sm mx-1' sx={{ padding: '0px 10px', margin: '0px 10px' }}
-              onClick={() => setUsingDefault(true)}>
+                onClick={() => { setDefaultParams() }}>
               default params
             </button>
             <button className='btn btn-primary btn-sm mx-1' sx={{ padding: '0px 10px', margin: '0px 10px' }}
-              onClick={() => setUsingDefault(false)}>
+                onClick={() => { getFullCountData() }}>
                table params
             </button>
-            <button className='btn btn-primary btn-sm mx-1' onClick={handleCreatedParamsView}>
+              <button className='btn btn-primary btn-sm mx-1' onClick={getCreatedParams}>
               created params
             </button>
           </div >
@@ -127,45 +103,46 @@ console.log(fullcount)
         </div>
         {/* parameter section */}
         <div className='wrapperx'>
-          <table className='billing-cart-table'>
-            <thead>
-              <tr>
-                <th>parameter name</th>
-                <th>unit</th>
-                <th>upper</th>
-                <th>lower</th>
-                <th>action </th>
-              </tr>
-            </thead>
-            <tbody>
-              {
-                  fullcount.map((item, index) => {
-                    return (
-                      <tr key={index}>
-                        <td>{item.parameter}</td>
-                        <td>
-                          <input className='form-control' value={item.UNIT} type='text' onChange={(e) => onChangeUnit(e, index)} />
-                        </td>
-                        <td>
-                          <input className='form-control' value={item.UPPER} type='number' onChange={(e) => onChangeUpper(e, index)} />
-                        </td>
-                        <td>
-                          <input className='form-control' value={item.LOWER} type='number' onChange={(e) => onChangeLower(e, index)} />
-                        </td>
-                        <td>
-                          <DeleteForever color='error' onCtdck={() => handleDelete(item)} />
-                        </td>
-                      </tr>
-                    )
-                  })
-              }
-            </tbody>
-          </table>
+          {!loading && (
+            <table className='billing-cart-table'>
+              <thead>
+                <tr>
+                  <th>parameter name</th>
+                  <th>unit</th>
+                  <th>upper</th>
+                  <th>lower</th>
+                  <th>action </th>
+                </tr>
+              </thead>
+              <tbody>
+                {(fullcount.length > 0) ? fullcount.map((item, index) => {
+                  return (
+                    <tr key={index}>
+                      <td>{item.parameter}</td>
+                      <td>
+                        <input className='form-control' value={item.unit} type='text' onChange={(e) => onChangeUnit(e, index)} />
+                      </td>
+                      <td>
+                        <input className='form-control' value={item.upper} type='number' onChange={(e) => onChangeUpper(e, index)} />
+                      </td>
+                      <td>
+                        <input className='form-control' value={item.lower} type='number' onChange={(e) => onChangeLower(e, index)} />
+                      </td>
+                      <td>
+                        <DeleteForever color='error' onCtdck={() => handleDelete(item)} />
+                      </td>
+                    </tr>
+                  )
+                }) : <tr><td colSpan='5' className='text-center'>no data</td></tr>}
+              </tbody>
+            </table>
+          )}
+          {loading && (<ISLOADING />)}
         </div>
         <div >
-          <Button variant='contained' color='success' className='mt-2' onClick={saveData}>
-            save changes
-          </Button>
+          <button className='btn btn-success btn-sm mt-2' onClick={saveData}>
+            save data
+          </button>
         </div>
       </div>
     </>

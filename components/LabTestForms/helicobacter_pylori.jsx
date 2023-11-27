@@ -31,43 +31,58 @@ export default function Helicobacter_Pylori({ clientdata }) {
 
   return (
     <>
-      <div className='p-4'>
-        <h5>Helicobacter Pylori</h5>
-        <Indicator resultEntered={resultEntered} />
-        <form>
-          <label>specimen type</label>
-          <select className='custom-input'
-            value={data.specimen}
-            onChange={(e) => handleChangeWithState(e, 'specimen', setData, data)} >
-            <option value='stool'>stool</option>
-            <option value='blood'>blood</option>
-          </select>
-          <label>result</label>
-          <select className='custom-input'
-            value={data.result}
-            onChange={(e) => handleChangeWithState(e, 'result', setData, data)}>
-            <option value='reactive'>
-              reactive
-            </option>
-            <option value='non reactive'>
-              non reactive
-            </option>
-          </select>
-          <CommentSection
-            target={'comments'}
-            datasource={data}
-            value={data.comments}
-            getcomment={handleComments}
-            datafunction={setData}
-          />
-          <Button
-            onClick={handleResult}
-            variant='contained' color='primary'>
-            save changes
-          </Button>
-        </form>
-
+      <div className="mx-3">
+        <div className="card">
+          <div className="card-header">
+            <h5>Helicobacter Pylori</h5>
+            <Indicator resultEntered={resultEntered} />
+          </div>
+          <div className="card-body">
+            <table className='billing-cart-table'>
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>specimen type</td>
+                  <td>
+                    <select
+                      className="custom-input"
+                      value={data.specimen}
+                      onChange={(e) => handleChangeWithState(e, "specimen", setData, data)}>
+                      <option value="stool">stool</option>
+                      <option value="blood">blood</option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>result</td>
+                  <td>
+                    <select
+                      className="custom-input"
+                      value={data.result}
+                      onChange={(e) => handleChangeWithState(e, "result", setData, data)}>
+                      <option value="reactive">reactive</option>
+                      <option value="non reactive">non reactive</option>
+                    </select>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <CommentSection
+              target={"comments"}
+              datasource={data}
+              value={data.comments}
+              getcomment={handleComments}
+              datafunction={setData}
+            />
+            <button className='btn btn-primary btn-sm mx-1' onClick={handleResult}>Save</button>
+          </div>
+        </div>
       </div>
     </>
-  )
+  );
 }

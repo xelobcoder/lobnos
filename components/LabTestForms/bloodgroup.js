@@ -60,49 +60,59 @@ export default function BloodGroup({ clientdata }) {
 
   return (
     <>
-      <div className="p-3 mt-3">
-        <div>
-        <Indicator resultEntered={resultEntered} />
-          <Autocomplete
-            size="small"
-            options={option}
-            getOptionLabel={(option) => option}
-            renderInput={(params) => (
-              <TextField {...params} label="blood group" variant="outlined" />
-            )}
-            sx={{ marginBottom: "20px" }}
-            value={group}
-            onChange={(e, newValue) => setGroup(newValue)}
-          ></Autocomplete>
-        </div>
-        <div>
-          <Autocomplete
-            size="small"
-            options={optionRhesus}
-            getOptionLabel={(option) => option}
-            renderInput={(params) => (
-              <TextField {...params} label="rhesus" variant="outlined" />
-            )}
-            value={rhesus}
-            onChange={(e, newValue) => {
-              setRhesus(newValue);
-            }}
-          ></Autocomplete>
-        </div>
-        <CommentSection value={remarks.comment} datasource={remarks} target='comment' datafunction={setRemarks} getcomment={getComment} />
-        <div>
-          <Button
-            className="mt-3"
-            variant="contained"
-            color="primary"
-            type="button"
-            onClick={handleResult}
-          >
-            save result
-          </Button>
-          <Button variant='contained' sx={{ mt: 2, ml: 2 }} >
-            preview Result
-          </Button>
+      <div className="mx-3">
+        <div className="card">
+          <div className="card-header">
+            <h4>Blood Grouping</h4>
+            <Indicator resultEntered={resultEntered} />
+          </div>
+          <div className="card-body">
+            <table className="billing-cart-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>grouping</td>
+                  <td>
+                    <Autocomplete
+                      size="small"
+                      options={option}
+                      getOptionLabel={(option) => option}
+                      renderInput={(params) => (
+                        <TextField {...params} label="blood group" variant="outlined" />
+                      )}
+                      sx={{ marginBottom: "20px" }}
+                      value={group}
+                      onChange={(e, newValue) => setGroup(newValue)}
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <td>rhesus</td>
+                  <td>
+                    <Autocomplete
+                      size="small"
+                      options={optionRhesus}
+                      getOptionLabel={(option) => option}
+                      renderInput={(params) => (
+                        <TextField {...params} label="rhesus" variant="outlined" />
+                      )}
+                      value={rhesus}
+                      onChange={(e, newValue) => {
+                        setRhesus(newValue);
+                      }}
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <CommentSection value={remarks.comment} datasource={remarks} target='comment' datafunction={setRemarks} getcomment={getComment} />
+            <button className="btn btn-primary btn-sm mx-1" onClick={handleResult}> save </button>
+          </div>
         </div>
       </div>
     </>
