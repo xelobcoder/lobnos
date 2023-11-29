@@ -1,4 +1,3 @@
-import { Autocomplete, Button, TextField } from "@mui/material";
 import { useState } from "react";
 export default function G6PD() {
  const [result, setResult] = useState('');
@@ -8,17 +7,17 @@ export default function G6PD() {
  }
  return (
   <>
-   <div className="p-4">
-    <Autocomplete size='small'
-     options={option}
-     getOptionLabel={(option) => option}
-     renderInput={(params) => <TextField {...params} label="g6pd" variant="outlined" />}
-     value={result} onChange={(e, newValue) => { setResult(newValue) }}>
-    </Autocomplete>
+     <div className="p-4">
+      <label className="form-label">G6PD</label>
+       <select className="custom-select" aria-label="Default select example" onChange={(e) => setResult(e.target.value)}>
+         {option.map((item, index) => (
+            <option key={index} value={item}>{item}</option>
+         ))}
+        </select>
   
-    <Button type='button' variant="contained" color="primary"
+    <button  type='button' className="btn btn-primary btn-sm"
      sx={{ mt: 3 }} onClick={(e) => { handleResult(e) }}>save results
-    </Button>
+    </button >
    </div>
   </>
  )

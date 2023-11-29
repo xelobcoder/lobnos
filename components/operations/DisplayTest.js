@@ -19,7 +19,6 @@ import HemoglobinElectrophoresisForm from '../LabTestForms/HeamoglobinElectophor
 import StoolAnalysis from '../LabTestForms/stoolAnalysis';
 import BleedingNClotting from '../LabTestForms/bleedingnclotting';
 import SemenAnalysis from '../LabTestForms/SemenAnalysis';
-import FSHHormone from '../LabTestForms/FSHHormone';
 import Helicobacter_Pylori from '../LabTestForms/helicobacter_pylori';
 import UseSingleHormoneHook from '../LabTestForms/useSingleHormoneHook';
 import PatientTrendModalJsx from './PatientTrendModalJsx/PatientTrendModal.jsx';
@@ -59,8 +58,8 @@ export default function DisplayTest() {
     stool_analysis: <StoolAnalysis clientdata={operationsKey} />,
     clotting_and_bleeding_time: <BleedingNClotting clientdata={operationsKey} />,
     semen_analysis: <SemenAnalysis clientdata={operationsKey} />,
-    follicle_stimulating_hormone: <FSHHormone clientdata={operationsKey} />,
-    luteinizing_hormone: <UseSingleHormoneHook clientdata={operationsKey} testname={'LH'} testHeader={'Leutinizing Hormone(LH)'} />,
+    follicle_stimulating_hormone: <UseChemistryTestHook clientdata={operationsKey} testname={'Follicle stimulating Hormone'}/>,
+    luteinizing_hormone: <UseChemistryTestHook clientdata={operationsKey} testname={'Luteinizing Hormone'} />,
     helicobacter_pylori: <Helicobacter_Pylori clientdata={operationsKey} />,
     prostate_specific_antigen_test: <UseSingleHormoneHook
       clientdata={operationsKey} testHeader={'prostate specific antigen test(PSA)'} testname={'PSA'} />

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import ISLOADING from '../isLoading';
 import { getDataAndUpdateState } from '../Auth/customFetch';
 
-export default function SamplingInformation({ source, id }) {
+export default function SamplingInformation({ id }) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState([]);
 
@@ -14,7 +14,7 @@ export default function SamplingInformation({ source, id }) {
     if (id) { getAscensionInformation(id) }
   }, [id])
 
-  console.log(data[2])
+
 
   return (
     <div>
@@ -23,7 +23,7 @@ export default function SamplingInformation({ source, id }) {
           <div className='card-header'>
             <h4>Sampling information</h4>
           </div>
-          <div className='card-body'>
+          <div className='card-body overflow-scroll'>
             <table className='billing-cart-table'>
               <thead>
                 <tr>
@@ -44,22 +44,22 @@ export default function SamplingInformation({ source, id }) {
               <tbody>
                 {data.map((item, index) => (
                   <tr key={index} className={`${(item?.collection == 'true' && item?.approvalstatus == 1) ? 'text-success':'text-danger'}`}>
-                    <td>{item.name}</td>
-                    <td>{item.collection == "false" ? 'Not collected' : 'collected'}</td>
-                    <td>{new Date(item.collection_date).toLocaleDateString()}</td>
-                    <td>{new Date(item?.collection_date).toLocaleTimeString()}</td>
-                    <td>{item?.samplevalidatedon != null ? new Date(item.samplevalidatedon).toLocaleDateString() : 'None'}</td>
-                    <td>{item?.samplemessage}</td>
-                    <td>
-                      {(item.approvalstatus == 0 && item.rejectionmessage == null) && 'awaiting approvall'}
+                    <td className='p-3'>{item.name}</td>
+                    <td className='p-3'>{item.collection == "false" ? 'Not collected' : 'collected'}</td>
+                    <td className='p-3'>{item.collection == 'false' ? 'N/A' : new Date(item.collection_date).toLocaleDateString()}</td>
+                    <td className='p-3'>{item.collection == 'false' ? 'N/A' : new Date(item?.collection_date).toLocaleTimeString()}</td>
+                    <td className='p-3'>{item?.samplevalidatedon != null ? new Date(item.samplevalidatedon).toLocaleDateString() : 'None'}</td>
+                    <td className='p-3'>{item?.samplemessage}</td>
+                    <td className='p-3'>
+                      {(item.approvalstatus == 0 && item.rejectionmessage == null && item.collection != 'false') && 'awaiting approvall'}
                       {(item.approvalstatus == 0 && item.rejectionmessage != null) && 'Rejected'}
                       {(item.approvalstatus == 1) && 'Approved'}
                     </td>
-                    <td>{item.rejectionmessage}</td>
-                    <td>{item.disputed}</td>
-                    <td>{item.disputedon != null ? new Date(item.disputedon).toLocaleDateString() : 'None'}</td>
-                    <td>{item.disputereason}</td>
-                    <td>{item.actionplan}</td>
+                    <td className='p-3'>{item.rejectionmessage}</td>
+                    <td className='p-3'>{item.disputed}</td>
+                    <td className='p-3'>{item.disputedon != null ? new Date(item.disputedon).toLocaleDateString() : ''}</td>
+                    <td className='p-3'>{item.disputereason}</td>
+                    <td className='p-3'>{item.actionplan}</td>
                   </tr>
                 ))}
               </tbody>

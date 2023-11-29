@@ -68,43 +68,42 @@ export default function Pregnancy({ clientdata }) {
 
   return (
     <>
-      <div className="p-4">
-        <div>
-          <Indicator resultEntered={resultEntered} />
-          <form>
-            <Autocomplete
-              options={option}
-              getOptionLabel={(option) => option}
-              value={result.reaction}
-              size='small'
-              onChange={(event, newValue) => {
-                setResults({
-                  ...result, reaction: newValue
-                })
-              }}
-              renderInput={(params) => <TextField {...params} label="Pregnancy test" variant="outlined" />}
-            >
-            </Autocomplete>
-            <div className='form-group mt-3'>
-              <Autocomplete
-                options={method}
-                getOptionLabel={(method) => method}
-                value={result.method}
-                size='small'
-                onChange={(event, newValue) => {
-                  setResults({
-                    ...result, method: newValue
-                  })
-                }}
-                renderInput={(params) => <TextField {...params} label="method of  test" variant="outlined" />}
-              >
-              </Autocomplete>
-            </div>
-            <CommentSection getcomment={handleComments} datafunction={setResults} target={'comments'} value={result.comments} datasource={result} />
-          </form>
-          <Button variant='contained' onClick={(e) => handleResult(e)} color='primary' sx={{ mt: 2 }}>save results</Button>
+      <div className="mx-3">
+        <div className="card">
+          <div className="card-header">
+            <h4 className="card-title">Pregnancy Test</h4>
+            <Indicator resultEntered={resultEntered} />
+          </div>
+          <div className="card-body">
+            <form>
+              <div className="form-row">
+                <label className="col-sm-2 col-form-label">Method</label>
+                <select className="custom-select col-sm-4" aria-label="Default select example" value={result.method} onChange={(e) => setResults({ ...result, method: e.target.value })}>
+                  <option value="">Select Method</option>
+                  {method.map((value, index) => <option key={index} value={value}>{value}</option>)}
+                </select>
+              </div>
+              <div className="form-row">
+                <label className="col-sm-2 col-form-label">Reaction</label>
+                <select className="custom-select col-sm-4" aria-label="Default select example" value={result.reaction} onChange={(e) => setResults({ ...result, reaction: e.target.value })}>
+                  <option value="">Select Reaction</option>
+                  {option.map((value, index) => <option key={index} value={value}>{value}</option>)}
+                </select>
+              </div>
+              <CommentSection
+                getcomment={handleComments}
+                datafunction={setResults}
+                target={"comments"}
+                value={result.comments}
+                datasource={result}
+              />
+              <button type='button' onClick={(e) => handleResult(e)} className='btn btn-primary btn-sm' sx={{ mt: 2 }}>
+                save results
+              </button >
+            </form>
+          </div>
         </div>
       </div>
     </>
-  )
+  );
 }

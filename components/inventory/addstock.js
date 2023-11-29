@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import TopMessage from '../accessories/TopMessage';
+
 import { SystemUpdate, AddCircleOutline, Info } from '@mui/icons-material';
 import { customFetch, customPost } from '../Auth/customFetch';
 import { Button } from '@mui/material';
@@ -92,10 +92,6 @@ export default function ADD_STOCK_INVENTORY() {
     if (status === 'success') {
       setProductdetails(result[0]);
     }
-    else {
-      setMessageshow(true);
-      setMessage({ type: 'warning', message: message })
-    }
   }
   // use Memo to get the data of item to edit
   useEffect(() => {
@@ -128,18 +124,6 @@ export default function ADD_STOCK_INVENTORY() {
 
   return (
     <>
-      {show && (
-        <TopMessage
-          display={show}
-          message={message.message}
-          type={message.type}
-          messageTimer={() => {
-            setTimeout(() => {
-              setMessageshow(false);
-            }, 3000);
-          }}
-        />
-      )}
       <div className="mt-3 p-3">
         <div className='alert alert-info' style={{ width: '400px' }}>
           <h6>kindly fill in all fields to {tab == 'edit' ? 'update stock information' : ' add a new stock '}</h6>

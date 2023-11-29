@@ -561,8 +561,8 @@ export const isAuthenticated = async function (auth, navigate, updateAuthenticat
    if (auth === null || auth === undefined || auth == '' || Object.keys(auth).length == 0) {
       let user = await window.cookieStore.get('X-AUTH-PRIME-LAB-SYSTEMS');
       if (user == null || user == undefined || user == '' || Object.keys(user).length == 0) {
-         if (navigate !== '/authentication/login') {
-            window.location.href = '/authentication/login'
+         if (window.location.href !== '/authentication/login') {
+            navigate.push('/authentication/login')
          }
       } else {
          const token = user?.value;
@@ -578,7 +578,7 @@ export const isAuthenticated = async function (auth, navigate, updateAuthenticat
 
             updateAuthentication({ username, role, email, employeeid, permissions });
          } else {
-            window.location.href = '/authentication/login'
+            navigate.push('/authentication/login')
          }
       }
    }

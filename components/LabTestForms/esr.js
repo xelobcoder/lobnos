@@ -1,4 +1,3 @@
-import { TextField, Button } from "@mui/material";
 import { useState } from "react";
 import CommentSection from './commentSection';
 import { CheckResultEntered, handleComments, handleResponse, validateFormData } from "../Auth/customFetch";
@@ -30,31 +29,33 @@ export default function ESR({ clientdata }) {
   }, [billingid])
   return (
     <>
-      <div className="p-2" style={{ width: "100%", marginTop: "0px" }}>
-        <h5>Erthrocyte Sedimentation Rate (ESR)</h5>
-        <Indicator resultEntered={resultEntered}/>
-        <div style={{ width: "100%" }}>
-          <label>value</label>
-          <TextField
+      <div className="mx-3" >
+        <div className="card">
+          <div className="card-header">
+            <h5>Erthrocyte Sedimentation Rate (ESR)</h5>
+            <Indicator resultEntered={resultEntered} />
+          </div>
+          <div className="card-body">
+            <div style={{ width: "100%" }}>
+              <label className="form-label">ESR</label>
+              <input
             type="number"
-            sx={{ width: "100%" }}
-            size="small"
-            label="ESR"
-            variant="outlined"
+                className="custom-input"
+                label="ESR"
             value={result.value}
             onChange={(e) => setResult({ ...result, value: e.target.value })}
           />
         </div>
         <CommentSection getcomment={handleComments} target={'comments'} datasource={result} datafunction={setResult} value={result.comments} />
-        <Button
+            <button 
           onClick={(e) => handleResult(e)}
-          className="mt-3"
-          variant="contained"
-          color="primary"
+              className="mt-1 btn btn-primary btn-sm"
           type="button"
         >
           save result
-        </Button>
+            </button >
+          </div>
+        </div>
       </div>
     </>
   );

@@ -1,4 +1,3 @@
-import'../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import '../node_modules/react-toastify/dist/ReactToastify.css';
 import'../styles/globals.css';
 import '../styles/Frontpageside.css'
@@ -9,6 +8,7 @@ import MAIN_LAYOUT from '../components/Headers/Layout';
 
 
 function MyApp({ Component, pageProps: { pageProps } }) {
+  import('../node_modules/bootstrap/dist/css/bootstrap.min.css');
   if (Component.getLayout) {
     return Component.getLayout(<Component {...pageProps} />)
   }
