@@ -5,6 +5,8 @@ import { Preview, Send, ViewAgenda } from '@mui/icons-material';
 import ScanPreview from '../../../../../components/operations/scanPreview';
 import Indicator from '../../../../../components/accessories/Reports/indicator';
 import ImagingSidebar from '../../../../../components/ImagingSidebar';
+import dynamic from 'next/dynamic';
+const  MARKDOWN_EDITOR = dynamic(  () => import('../../../../../components/accessories/markdownEditor'), { ssr: false })
 
 export default function EnterResultUltrasound() {
   const [content, setContent] = useState('');
@@ -62,6 +64,7 @@ export default function EnterResultUltrasound() {
           </div>
           <h4 className='text-center  text-uppercase'>{query?.scan}</h4>
           <div className='mt-5'>
+            <MARKDOWN_EDITOR initialData={ '<h5>Type something here </h5>'} />
             <button onClick={(ev) => { handleResult() }} className='btn btn-primary  mt-2'>  save result <Send /></button>
             <button className='btn btn-primary  mt-2' style={{ marginLeft: '20px' }} onClick={(ev) => { setPreview(!preview) }}>
               preview result <Preview />

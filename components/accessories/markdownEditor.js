@@ -1,13 +1,40 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React from 'react';
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from 'ckeditor5-custom-build/build/ckeditor';
 
+const editorConfiguration = {
+    toolbar: [
+        'heading',
+        '|',
+        'bold',
+        'italic',
+        'link',
+        'bulletedList',
+        'numberedList',
+        '|',
+        'outdent',
+        'indent',
+        '|',
+        'imageUpload',
+        'blockQuote',
+        'insertTable',
+        'mediaEmbed',
+        'undo',
+        'redo'
+    ]
+};
 
-export default function MARKDOWN_EDITOR() {
-
-  return (
-    <>
-      <div className='mb-2'>
-        <textarea style={{resize:'none'}} className='form-control' rows={5} placeholder='comments here' defaultValue='place your comments here'/>
-      </div>
-    </>
-  );
+export default function MARKDOWN_EDITOR( props ) {
+        return (
+            <CKEditor
+            editor={ClassicEditor}
+                config={ editorConfiguration }
+                data={ props.initialData }
+                onChange={ (event, editor ) => {
+                    const data = editor.getData();
+                    console.log( { event, editor, data } );
+                } }
+            />
+        )
 }
+
