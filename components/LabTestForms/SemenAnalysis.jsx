@@ -1,9 +1,8 @@
-import { Typography, Autocomplete, TextField, Button } from '@mui/material'
+import { Typography, Autocomplete, TextField } from '@mui/material'
 import React, { useState, useEffect } from 'react'
 import defaultData from './semenAnalysisDefaultData';
 import Indicator from '../accessories/Reports/indicator';
 import CommentSection from './commentSection';
-import { Save } from '@mui/icons-material';
 import { customFetch, handleComments, handleResponse, validateFormData } from '../Auth/customFetch';
 
 export default function SemenAnalysis({ clientdata }) {
@@ -45,15 +44,19 @@ export default function SemenAnalysis({ clientdata }) {
       {/* we will be collecting time of collection,
      time of liquefaction,
      abstinence,quantity  and colour, consistency */}
-      <div className='p-3'>
-        <h5>Semen Analysis</h5>
-        <Indicator resultEntered={resultEntered} />
-        <form className='bg-white p-3'>
+      <div className='mx-3'>
+        <div className='card'>
+          <div className='card-header'>
+            <h5>Semen Analysis</h5>
+          <Indicator resultEntered={resultEntered} />
+          </div>
+          <div className='card-body'>
+          <form className='bg-white p-3'>
           {/* collectionDate */}
           <div className='form-row'>
-            <label className='col-sm-2 col-form-label'>Date of Collection</label>
+            <label className='col-form-label'>Date of Collection</label>
             <div className='col-sm-12'>
-              <input type='date' className='form-control'
+              <input type='date' className='custom-input'
                 onChange={(e) => setResult({ ...result, collectionDate: e.target.value })}
                 value={result.collectionDate}
               />
@@ -64,7 +67,7 @@ export default function SemenAnalysis({ clientdata }) {
           <div className='form-row'>
             <label className='col-sm-12 col-form-label'>Time of Collection</label>
             <div className='col-sm-12'>
-              <input type='time' className='form-control' placeholder='12:30 pm'
+              <input type='time' className='custom-input' placeholder='12:30 pm'
                 onChange={(e) => setResult({ ...result, collectionTime: e.target.value })}
                 value={result.collectionTime}
               />
@@ -74,7 +77,7 @@ export default function SemenAnalysis({ clientdata }) {
           <div className='form-row'>
             <label className='col-sm-2 col-form-label'>Time of Liquefaction</label>
             <div className='col-sm-12'>
-              <input type='text' className='form-control' placeholder='19 min'
+              <input type='text' className='custom-input' placeholder='19 min'
                 onChange={(e) => setResult({ ...result, liquefactionTime: e.target.value })}
                 value={result.liquefactionTime}
               />
@@ -84,7 +87,7 @@ export default function SemenAnalysis({ clientdata }) {
           <div className='form-row'>
             <label className='col-sm-2 col-form-label'>Abstinence</label>
             <div className='col-sm-12'>
-              <input type='text' className='form-control'
+              <input type='text' className='custom-input'
                 onChange={(e) => setResult({ ...result, abstinence: e.target.value })}
                 value={result.abstinence}
                 placeholder='3 days' />
@@ -94,7 +97,7 @@ export default function SemenAnalysis({ clientdata }) {
           <div className='form-row'>
             <label className='col-sm-2 col-form-label'>Quantity</label>
             <div className='col-sm-12'>
-              <input type='text' className='form-control'
+              <input type='text' className='custom-input'
                 onChange={(e) => setResult({ ...result, quantity: e.target.value })}
                 value={result.quantity}
                 placeholder='3.5 ml' />
@@ -107,7 +110,7 @@ export default function SemenAnalysis({ clientdata }) {
               <input type='text'
                 onChange={(e) => setResult({ ...result, colour: e.target.value })}
                 value={result.colour}
-                className='form-control' placeholder='Greyish white' />
+                className='custom-input' placeholder='Greyish white' />
             </div>
           </div>
           {/* consistency */}
@@ -117,7 +120,7 @@ export default function SemenAnalysis({ clientdata }) {
               <input type='text'
                 onChange={(e) => setResult({ ...result, consistency: e.target.value })}
                 value={result.consistency}
-                className='form-control' placeholder='Viscous' />
+                className='custom-input' placeholder='Viscous' />
             </div>
           </div>
           <Typography variant='h5' className='mt-3'>
@@ -130,7 +133,7 @@ export default function SemenAnalysis({ clientdata }) {
               <input type='number' step='0.1' max={14} min={0}
                 onChange={(e) => setResult({ ...result, ph: e.target.value })}
                 value={result.ph}
-                className='form-control' placeholder='7.2' />
+                className='custom-input' placeholder='7.2' />
             </div>
           </div>
           {/* fructose */}
@@ -140,7 +143,7 @@ export default function SemenAnalysis({ clientdata }) {
               <input type='text'
                 onChange={(e) => setResult({ ...result, fructose: e.target.value })}
                 value={result.fructose}
-                className='form-control' placeholder='Positive' />
+                className='custom-input' placeholder='Positive' />
             </div>
           </div>
           {/* microscopic examination */}
@@ -152,7 +155,7 @@ export default function SemenAnalysis({ clientdata }) {
             <label className='col-sm-2 col-form-label'>Sperm Count
               (in million) </label>
             <div className='col-sm-12'>
-              <input type='text' className='form-control'
+              <input type='text' className='custom-input'
                 onChange={(e) => setResult({ ...result, spermCount: e.target.value })}
                 value={result.spermCount}
                 placeholder='60 million/ml' />
@@ -171,7 +174,7 @@ export default function SemenAnalysis({ clientdata }) {
               <input type='text'
                 onChange={(e) => setResult({ ...result, motility: e.target.value })}
                 value={result.motility}
-                className='form-control' placeholder='60%' />
+                className='custom-input' placeholder='60%' />
             </div>
             {/* reference range */}
             <span>
@@ -291,11 +294,12 @@ export default function SemenAnalysis({ clientdata }) {
           value={result.impression}
           datafunction={setResult}
           datasource={result}
-        />
-        <Button type='button' variant='contained' onClick={handleResult}>
-          <Save />
-          Save
-        </Button>
+            />
+         <button type='button' className='btn btn-primary btn-sm mx-2' onClick={handleResult}>
+          Save Result
+        </button>
+          </div>
+       </div>
       </div>
     </>
   )

@@ -22,7 +22,7 @@ export default function Updatebilling() {
         }
         getData()
       } catch (error) {
-        throw error;
+        console.error(error);
       }
     }
   }, [billid]);

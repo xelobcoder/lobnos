@@ -1,135 +1,131 @@
 import React, { useState, useEffect } from "react";
 import CommentSection from "./commentSection";
-import { Button } from "@mui/material";
+import {ToastContainer,toast} from "react-toastify";
 import Indicator from "../accessories/Reports/indicator";
-import {
-  CheckResultEntered,
-  customFetch,
-  handleComments,
-  validateFormData,
-} from "../Auth/customFetch";
+import {CheckResultEntered,customFetch,handleComments,validateFormData} from "../Auth/customFetch";
 export default function BetaHcg({ clientdata }) {
+  const {billingid,patientid,testid,test} = clientdata;
   const [data, setData] = useState({ value: "", unit: "", comments: "" });
-  const [resultEntered, setResultEntered] = useState(true);
+  const [resultEntered, setResultEntered] = useState(false);
   const [reference, setReference] = useState([]);
 
-  useEffect(() => {
-    async function getData() {
-      try {
-        const response = await customFetch("setup/get/betahcg");
-        const checkresult = await CheckResultEntered(
-          clientdata.test,
-          clientdata.billingid
-        );
-        setReference(response?.records);
-        setData({ ...data, unit: response?.records[0]["UNIT"] });
-        setResultEntered(checkresult?.result ? true : false);
-        // if result have been entered then we get collect the previously entered data
-        if (checkresult?.result == true) {
-          const { records } = checkresult;
-          const nv = {
-            value: records[0]["VALUE"],
-            unit: records[0]["UNIT"],
-            comments: records[0]["COMMENTS"],
-          };
-
-          setData(nv);
-        }
-      } catch (err) {
-        console.log(err);
-      }
+  const getBetaHcgData = async function () { 
+    const getdata = await CheckResultEntered(test, billingid);
+    const { statusCode, message, result, records, status } = getdata;
+    if (status == "success" && statusCode == 200 && records.length > 0 && result) {
+      setData(records[0]);
+      setResultEntered(true);
+    } else {
+      setResultEntered(false);
     }
-    getData();
-  }, []);
+  }
 
-  // enter result
+  const getReference = async function () { 
+    const reference = await customFetch(`result/reference/betahcg`);
+    const { statusCode, result } = reference;
+    if (statusCode == 200) {
+      setReference(result);
+    }
+  }
+ 
+  useEffect(() => {
+    if (billingid && test) {
+      getBetaHcgData();
+      getReference();
+     }
+  }, []);
 
   const handleResult = async function () {
     await validateFormData(
-      {
-        ...data,
-        testname: clientdata.test,
-        billingid: clientdata.billingid,
-        testid: clientdata.testid,
-        patientid: clientdata.patientid,
-      },
-      true,
-      [],
-      "test/result/enter",
-      function (response) {
-        const { status, message } = response;
-        alert(message);
+      {  ...data,testname: test,billingid: billingid,testid: testid,patientid: patientid },true,[], "test/result/enter",async function (response) {
+        const { status, message,statusCode } = response;
+        if (status == "success" && statusCode == 200) {
+          toast.success(message);
+          setResultEntered(true);
+        } else {
+          toast.error(message);
+        }
       }
     );
   };
   return (
+    <>
+      <ToastContainer/>
+     <div className="mx-3">
     <div>
-      <div className="p-2" style={{ backgroundColor: "whitesmoke" }}>
-        <div>
-          <h5>Beta human chorionic hormone (Beta Hcg) test</h5>
-          <Indicator resultEntered={resultEntered} />
-          <form className="bg-white">
-            <table id="entry-table-chemistry">
-              <thead>
-                <tr>
-                  <th>paramater</th>
-                  <th>value</th>
-                  <th> unit</th>
-                  <th>reference</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-bottom">
-                  <td>beta hcg</td>
-                  <td>
-                    <input
-                      type="number"
-                      name=""
-                      style={{ height: "30px" }}
-                      value={data.value}
-                      onChange={(e) =>
-                        setData({ ...data, value: e.target.value })
-                      }
-                      step={"0.5"}
-                    />
-                  </td>
-                  <td>{data.unit}</td>
-                  <td>
-                    {reference.map((single, index) => {
-                      return (
-                        <p key={index} style={{ fontSize: 10 }}>
-                          {single["WEEKS"] +
-                            " Weeks: " +
-                            "(" +
-                            single["LOWER"] +
-                            "-" +
-                            single["UPPER"] +
-                            ")"}
-                        </p>
-                      );
-                    })}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </form>
-          <CommentSection
-            getcomment={handleComments}
-            datasource={data}
-            datafunction={setData}
-            value={data.comments}
-            target={"comments"}
-          />
-          <Button
-            variant="contained"
-            className="mt-3"
-            color="primary"
-            onClick={handleResult}
-          >
-            save changes
-          </Button>
+      <div className="card">
+        <div className="card-header modal-color">
+            <h5>Beta human chorionic hormone (Beta Hcg) test</h5>
+            <Indicator resultEntered={resultEntered} />
         </div>
-      </div>
+        <div className="card-body">
+        <form className="bg-white">
+        <table className="billing-cart-table">
+          <thead>
+            <tr>
+              <th>paramater</th>
+              <th>value</th>
+              <th> unit</th>
+              <th>reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>beta hcg</td>
+              <td>
+               <input type="number" className="custom-input" name="" value={data.value}
+                          onChange={(e) => setData({ ...data, value: e.target.value })}
+                    step={"0.5"}
+                />
+              </td>
+                <td>
+                      <input className="custom-input" value={data.unit}  onChange={(ev) => {setData({...data, unit: ev.target.value})}} />
+              </td>
+              <td>
+                (See reference range below)
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        </form>
+              <h3 className="my-2">Reference Ranges Below</h3>
+              <table className="billing-cart-table">
+                <thead>
+                  <tr>
+                    <th>week</th>
+                    <th>upper</th>
+                    <th>lower</th>
+                    <th>unit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reference.map((item, index)  => {
+                    return (
+                      <tr key={index}>
+                        <td>{item.weeks}</td>
+                        <td>{item.upper}</td>
+                        <td>{item.lower}</td>
+                        <td>{item.unit}</td>
+                      </tr>
+                    );
+                   })}
+                </tbody>
+              </table>
+      <CommentSection
+        getcomment={handleComments}
+        datasource={data}
+        datafunction={setData}
+        value={data.comments}
+        target={"comments"}
+          />
+           <button className="btn btn-primary btn-sm" onClick={handleResult} >
+        save changes
+              </button>
+              
+        </div>
+     </div>
     </div>
+  </div>
+    </>
   );
 }

@@ -2,29 +2,33 @@ import { Button } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import CommentSection from './commentSection'
 import Indicator from '../accessories/Reports/indicator'
-import { CheckResultEntered, customPost } from '../Auth/customFetch';
+import { CheckResultEntered, customPost, handleComments } from '../Auth/customFetch';
+import { ToastContainer, toast } from 'react-toastify';
 
 export default function HbA1c({ clientdata }) {
-  const [client, setclientdata] = useState(clientdata);
+  const { billingid, patientid, testid, test } = clientdata;
   const [resultEntered, setResultEntered] = useState(false);
-  const [formdata, setFormData] = useState({ glycated: '', glucose: '', technology: '', method: '', comment: '' })
+  const [formdata, setFormData] = useState({ result:  '', glucose: '',  comments: '' })
 
-  // used to determine if result has been entered
+  // used to determine if result has been entered.
   useEffect(() => {
     try {
-      const verify = async function () {
-        const response = await CheckResultEntered('glycated_haemoglobin', client.billingid);
-        const { result, records } = response;
-        setResultEntered(result)
+      if (billingid) {
+        const verify = async function () {
+          const response = await CheckResultEntered(test, billingid);
+          const { result, records, statusCode } = response;
+          if (statusCode === 200 && records.length > 0) {
+            setResultEntered(result); 
+            setFormData(records[0])
+          }
+        }
+        verify();
       }
-      // 
-      verify();
     }
     catch (err) {
-      console.log(err)
       setResultEntered(false)
     }
-  }, [])
+  }, [test,billingid])
 
   // handle Result
 
@@ -39,9 +43,14 @@ export default function HbA1c({ clientdata }) {
 
 
   async function saveData() {
-    let sendResponse = await customPost('test/result/enter', 'POST',
-      { ...formdata, billingid: client.billingid, patientid: client.patientid, testname: 'glycated_haemoglobin' })
-      alert(sendResponse?.message)
+    const data = { patientid, billingid, testname: test, ...formdata , testid};
+    let sendResponse = await customPost('test/result/enter', 'POST', data);
+    const { statusCode, status,message } = sendResponse;
+    if (statusCode === 200 && status === 'success') {
+      toast.success(message)
+    } else {
+      toast.error(message);
+    }
   }
 
 
@@ -50,6 +59,7 @@ export default function HbA1c({ clientdata }) {
 
   return (
     <>
+      <ToastContainer/>
       <div className='mx-3'>
         <div className='card'>
           <div className='card-header modal-color'>
@@ -71,7 +81,7 @@ export default function HbA1c({ clientdata }) {
                   <td>HbAic</td>
                   <td>
                     <input type='number' step={'0.5'} className='custom-input'
-                      value={formdata.glycated} name='glycated' onChange={(e) => handleResult(e)} />
+                      value={formdata.result} name='result' onChange={(e) => handleResult(e)} />
                   </td>
                   <td>
                     %
@@ -114,13 +124,7 @@ export default function HbA1c({ clientdata }) {
               </tbody>
             </table>
             <div>
-              <label>Technology Used</label>
-              <input type='text' className='custom-input' name='technology' onChange={(e) => handleResult(e)} value={formdata.technology} />
-              <div className='form-group'>
-                <label>method</label>
-                <input className='custom-input' value={formdata.method} placeholder='Method used' name='method' onChange={(e) => handleResult(e)} />
-              </div>
-              <CommentSection getcomment={handleResult} value={formdata.comment} />
+              <CommentSection getcomment={handleComments} datafunction={setFormData} target={'comments'} datasource={formdata} value={formdata.comments}/>
               <div className='form-group mx-1 my-2'>
                 <button className='btn btn-primary btn-sm' onClick={saveData}>
                   save result

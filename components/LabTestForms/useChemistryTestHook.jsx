@@ -37,14 +37,14 @@ export default function UseChemistryTestHook({ clientdata, testname }) {
   const getTestData = useCallback(
     async function () {
       const isResultEntered = await CheckResultEntered(test, billingid);
-      const { statusCode, message, result, records } = isResultEntered;
-      if (result == true && statusCode == 200) {
-        setResultEntered(true);
+      const { statusCode, message, result, records ,status} = isResultEntered;
+      result ? setResultEntered(true) : setResultEntered(false);
+      if (status == 'success' && statusCode == 200 && result.length !== 0 )  {
         setData(records);
-        setLoading(false);
       } else {
         toast.error(message);
       }
+      setLoading(false);
     },
     [billingid, test]
   );
