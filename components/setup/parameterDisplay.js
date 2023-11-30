@@ -1,24 +1,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import { serverCall, getRecords } from './connector.js';
-import Message from '../accessories/message';
 import { DeleteForever } from '@mui/icons-material';
-import MARKDOWN_EDITOR from '../accessories/markdownEditor.js';
+import dynamic from 'next/dynamic';
+const  MARKDOWN_EDITOR = dynamic(  () => import('../accessories/markdownEditor.js'), { ssr: false })
 import Link from 'next/link.js';
 
 
-function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category, createTarget,testname }) {
+function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category, createTarget, testname }) {
   const [mode, setMode] = useState('new');
-  const [dataModification, setDataModification] = useState('')
-  const [MsgDx, setMsgDx] = useState({
-    show: false,
-    display: true,
-    type: 'error',
-    displaytime: '5000',
-    width: 'col-12',
-    message: ''
-  })
+  const [dataModification, setDataModification] = useState('');
+  const [literature, setLiterature] = useState('');
 
 
+  const updateLiterature = async function (event, data) { setLiterature(data) }
   useEffect(() => {
     getRecords(category, setDataModification, parameterdata)
   }, [])
@@ -56,16 +50,6 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category, createTarget,tes
 
   return (
     <>
-
-      {
-        MsgDx.show ?
-          <div className='mt-2'>
-            <Message props={MsgDx}
-              handleView={handleView}
-            />
-          </div>
-          : null
-      }
       <div >
         <div className='p-4'>
           <div className='card br-5 m-0'>
@@ -128,10 +112,10 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category, createTarget,tes
           </div>
         </div>
         <div className='mx-3'>
-          <h4 className='lims-text-color text-capitalize'>comments</h4>
-          <MARKDOWN_EDITOR />
-          <button className='btn btn-primary btn-sm' style={{ marginRight: '10px' }}
-            onClick={(ev) => { serverCall(ev, dataModification, category, setMsgDx) }}>
+          <h4 className='lims-text-color text-capitalize'>literature</h4>
+          <MARKDOWN_EDITOR updatedata={updateLiterature} initialData={literature} />
+          <button className='btn btn-primary btn-sm my-3'
+            onClick={(ev) => { serverCall(ev, dataModification, category) }}>
             {mode === 'new' ? 'save changes' : 'update changes'}
           </button>
         </div>

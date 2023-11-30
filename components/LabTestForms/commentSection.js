@@ -1,7 +1,13 @@
-import { Button } from '@mui/material';
 import React from 'react';
+import dynamic from 'next/dynamic'
+const  MARKDOWN_EDITOR = dynamic(  () => import('../../components/accessories/markdownEditor'), { ssr: false })
+
 
 export default function CommentSection({ getcomment, datafunction, target, value, datasource }) {
+
+  const updatedata = async function (event, data) {
+    datafunction({ ...datasource, [target]: data });
+  }
 
   return (
     <>
@@ -14,7 +20,7 @@ export default function CommentSection({ getcomment, datafunction, target, value
         }}
       >
         <h5>comments</h5>
-        <textarea
+        {/* <textarea
           className="form-control mb-2"
           value={value}
           rows={4}
@@ -25,7 +31,8 @@ export default function CommentSection({ getcomment, datafunction, target, value
           }}
           placeholder="comments here"
           onChange={(e) => getcomment(e, datasource, target, datafunction)}
-        ></textarea>
+        ></textarea> */}
+        <MARKDOWN_EDITOR updatedata={updatedata}  initialData={value} />
       </div>
     </>
   );

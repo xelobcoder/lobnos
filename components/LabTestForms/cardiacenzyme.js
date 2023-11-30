@@ -149,7 +149,7 @@ export default function CardiacEnzymes({ clientdata }) {
             />
                     </div>
                     <div className="form-group d-flex justify-content-between">
-                      <button type="button" className="btn btn-primary btn-sm" onClick={handleSubmit}>
+                      <button type="button" className="btn btn-primary btn-sm my-2" onClick={handleSubmit}>
                         Save Result
                       </button>
                       <Link href='/settings/setup/cardiacenzymes'>

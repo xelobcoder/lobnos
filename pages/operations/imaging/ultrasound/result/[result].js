@@ -64,7 +64,7 @@ export default function EnterResultUltrasound() {
           </div>
           <h4 className='text-center  text-uppercase'>{query?.scan}</h4>
           <div className='mt-5'>
-            <MARKDOWN_EDITOR initialData={ '<h5>Type something here </h5>'} />
+            <MARKDOWN_EDITOR updatedata={(ev,data) => {setContent(data)}} initialData={ '<h5>Type something here </h5>'} />
             <button onClick={(ev) => { handleResult() }} className='btn btn-primary  mt-2'>  save result <Send /></button>
             <button className='btn btn-primary  mt-2' style={{ marginLeft: '20px' }} onClick={(ev) => { setPreview(!preview) }}>
               preview result <Preview />

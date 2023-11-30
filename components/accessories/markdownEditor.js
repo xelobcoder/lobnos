@@ -1,6 +1,6 @@
 import React from 'react';
 import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from 'ckeditor5-custom-build/build/ckeditor';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 
 const editorConfiguration = {
     toolbar: [
@@ -29,10 +29,10 @@ export default function MARKDOWN_EDITOR( props ) {
             <CKEditor
             editor={ClassicEditor}
                 config={ editorConfiguration }
-                data={ props.initialData }
+                data={ props.initialData || 'Type your text here'}
                 onChange={ (event, editor ) => {
                     const data = editor.getData();
-                    console.log( { event, editor, data } );
+                    props.updatedata(event,data)
                 } }
             />
         )

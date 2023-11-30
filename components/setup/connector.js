@@ -7,7 +7,7 @@ import { customFetch, customPost } from "../Auth/customFetch"
  * @param {object} setMsgDx  attaches to a state for display messages after request made to server
  * @ return a promise
  */
-export const serverCall = function (ev, source, category, setMsgDx) {
+export const serverCall = function (ev, source, category) {
   // this define final data to be sent to the server
   let finalproductdata = {
     data: source,
@@ -38,22 +38,16 @@ export const serverCall = function (ev, source, category, setMsgDx) {
     response.then(
       (res) => {
         if (res.status == 'success' && res.statusCode == 200) {
-          setMsgDx({
-            show: true, displaytime: 5000, message: 'data saved successfully', type: 'success'
-          })
+         
         }
         else {
-          setMsgDx({
-            show: true, displaytime: 5000, message: 'error occured during transaction', type: 'error'
-          })
+         
         }
       }
     )
       .catch(
         (err) => {
-          setMsgDx({
-            show: true, displaytime: 5000, message: 'error occured during transaction', type: 'error'
-          })
+          
         }
       )
   }
