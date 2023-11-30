@@ -1,24 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import CommentSection from "./commentSection";
 import {ToastContainer,toast} from "react-toastify";
 import Indicator from "../accessories/Reports/indicator";
-import {CheckResultEntered,customFetch,handleComments,validateFormData} from "../Auth/customFetch";
+import ISLOADING from "../isLoading";
+import {customFetch,getHematologicalResultEntered,handleComments,validateFormData} from "../Auth/customFetch";
 export default function BetaHcg({ clientdata }) {
   const {billingid,patientid,testid,test} = clientdata;
   const [data, setData] = useState({ value: "", unit: "", comments: "" });
   const [resultEntered, setResultEntered] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [reference, setReference] = useState([]);
 
-  const getBetaHcgData = async function () { 
-    const getdata = await CheckResultEntered(test, billingid);
-    const { statusCode, message, result, records, status } = getdata;
-    if (status == "success" && statusCode == 200 && records.length > 0 && result) {
-      setData(records[0]);
-      setResultEntered(true);
-    } else {
-      setResultEntered(false);
-    }
-  }
+
+  const getdata = useCallback(async () => {
+    getHematologicalResultEntered(billingid, test, setLoading, setData, setResultEntered);
+  }, [billingid, test]);
+
 
   const getReference = async function () { 
     const reference = await customFetch(`result/reference/betahcg`);
@@ -30,10 +27,10 @@ export default function BetaHcg({ clientdata }) {
  
   useEffect(() => {
     if (billingid && test) {
-      getBetaHcgData();
+      getdata();
       getReference();
      }
-  }, []);
+  }, [billingid, test]);
 
   const handleResult = async function () {
     await validateFormData(
@@ -59,7 +56,10 @@ export default function BetaHcg({ clientdata }) {
             <Indicator resultEntered={resultEntered} />
         </div>
         <div className="card-body">
-        <form className="bg-white">
+              {loading && <ISLOADING />} 
+              {!loading && (
+                <>
+                     <form className="bg-white">
         <table className="billing-cart-table">
           <thead>
             <tr>
@@ -120,8 +120,9 @@ export default function BetaHcg({ clientdata }) {
           />
            <button className="btn btn-primary btn-sm" onClick={handleResult} >
         save changes
-              </button>
-              
+        </button>
+                </>
+  )}            
         </div>
      </div>
     </div>

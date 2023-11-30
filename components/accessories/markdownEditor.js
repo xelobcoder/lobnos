@@ -20,7 +20,7 @@ const editorConfiguration = {
         'insertTable',
         'mediaEmbed',
         'undo',
-        'redo'
+        'redo',
     ]
 };
 
@@ -29,7 +29,7 @@ export default function MARKDOWN_EDITOR( props ) {
             <CKEditor
             editor={ClassicEditor}
                 config={ editorConfiguration }
-                data={ props.initialData || 'Type your text here'}
+                data={ props.initialData || ''}
                 onChange={ (event, editor ) => {
                     const data = editor.getData();
                     props.updatedata(event,data)

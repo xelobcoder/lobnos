@@ -266,6 +266,18 @@ export const getSampleTypeList = async function (setSource) {
    }
 }
 
+ /**
+    * Retrieves application settings from a server.
+    * If the server returns a successful response with settings, it returns the first result.
+    * Otherwise, it returns a default set of application settings.
+    * 
+    * @returns {Promise<Object>} The retrieved application settings or the default application settings.
+    * 
+    * @example
+    * const settings = await getApplicationSettings();
+    * console.log(settings);
+    * // Output: The application settings object
+    */
 export const getApplicationSettings = async function () {
    const getResponse = await customFetch('applicationsettings');
    const { status, result, statusCode } = getResponse;
@@ -371,8 +383,17 @@ export const getDataAndUpdateState = async function (setfxn, endpoint, returner)
    }
 }
 
-
-export const printResultNavigator = async (navigate, billingid, item, newTab = false) => {
+   /**
+    * Navigates to a result page based on the provided parameters.
+    * 
+    * @param {function} navigate - The navigation function.
+    * @param {string} billingid - The ID of the billing.
+    * @param {object} item - An object containing properties 'testid' and 'name'.
+    * @param {boolean} [newTab=false] - Flag indicating whether to open the result page in a new tab.
+    * 
+    * @returns {void}
+    */
+export const printResultNavigator = async (navigate, billingid, item, newTab = false) => {   
    const { testid, name } = item;
    let nwName = name;
    if (name.split(" ").length > 1) {
@@ -425,33 +446,6 @@ export const emailPreference = {
    transactions: 'No',
    birthday: 'Yes'
 }
-
-
-// export const modulex = {
-//    toolbar: [
-//       ['bold', 'italic', 'underline', 'strike'],
-//       ['blockquote', 'code-block'],
-//       [{ 'header': '1' }, { 'header': '2' }, { 'header': '3' }, { 'header': '4' }, { 'header': '5' }, { 'header': '6' }],
-//       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-//       [{ 'script': 'sub' }, { 'script': 'super' }],
-//       // Remove 'direction' from the toolbar
-//       ['link', 'image', 'video', 'formula'],
-//       [{ 'align': [] }],
-//       ['clean'],
-//       [{ 'color': [] }],
-//    ],
-// };
-
-// export const formats = [
-//    'bold', 'italic', 'underline', 'strike',
-//    'blockquote', 'code-block',
-//    'header', 'list', 'bullet',
-//    'script', 'indent', 'direction',
-//    'link', 'image', 'video', 'formula',
-//    'align',
-//    'color',
-// ];
-
 
 export const forwardEmailReceipt = async (billingid) => {
    if (billingid) {
@@ -630,24 +624,27 @@ export const filterTrendData = async (parameters, data) => {
 }
 
 export const handleDecision = async function (client, decision, setClients, clients, employeeid) {
-   if (decision == 'approve') {
-      const pushData = await customPost('result/approve', 'POST', { ...client, approvedby: employeeid,approvalstatus: 1 });
-      if (pushData?.status == 'success' && decision == 'approve') {
-         //  remove item ffrom clients
-         const getClient = clients.filter((item, index) => { return !(item.billingid == client?.billingid && client?.testid == item?.testid) })
-         setClients(getClient);
-      }
-   } else {
-      const { declineMessage } = client;
-      if (declineMessage) {
-         const pushData = await customPost('result/approve', 'POST', { ...client, approvedby: employeeid });
-         if (pushData?.status == 'success' && decision == 'decline') {
-            //  remove item ffrom clients
-            const getClient = clients.filter((item, index) => { return !(item.billingid == client?.billingid && client?.testid == item?.testid) })
-            setClients(getClient);
-         }
-      } else {
-         alert('Please provide a reason for decline');
-      }
+   const data = decision === 'approve' ? { ...client, approvedby: employeeid, approvalstatus: 1 } : { ...client, approvedby: employeeid };
+   const pushData = await customPost('result/approve', 'POST', data);
+   if (pushData?.status == 'success' && decision == 'approve') {
+      //  remove item ffrom clients
+      const getClient = clients.filter((item, index) => { return !(item.billingid == client?.billingid && client?.testid == item?.testid) })
+      setClients(getClient);
    }
 };
+
+export const getHematologicalResultEntered = async function (billingid, test,loadingFxn,setter,updateentered) {
+   try {
+      const response = await CheckResultEntered(test, billingid);
+   const { result, statusCode, records, status, message } = response;
+   if (status == 'success' && statusCode === 200 && records.length > 0 && result) {
+      setter(records[0]);
+      updateentered(true);
+   } else {
+      updateentered(false);
+   }
+   loadingFxn(false);
+  }catch(err){
+    loadingFxn(false);
+  }
+ }
