@@ -48,26 +48,32 @@ export const serverCall = function (ev, source, category,toast) {
 // this checks if panel has table,
 // get the records and populate the tabale with it data
 
-export const getRecords = async function (panelname, datasource, defaultsource) {
+export const getRecords = async function (panelname, datasource, defaultsource,setloading) {
   let endpoint = `test/setup/entry?testname=${panelname}`
   try {
     let response = await customFetch(endpoint)
-    const { status, statusCode } = response;
-    if (status == 'success' && statusCode == 200) {
-      const { records } = response;
-      console.log(records)
-      if (records.length > 0) {
-        datasource(records)
-      }
-      else {
-        datasource(defaultsource)
-      }
+    const { status, statusCode,resolve,message,records } = response;
+    if (status == 'success' && statusCode == 200 && resolve && records.length > 0) {
+      datasource(records);
+        setloading(false);
     } else {
       datasource(defaultsource)
+      setloading(false);
     }
+
   }
   catch (err) {
-   alert('error occured connecting to server')
+    alert('error occured connecting to server');
+    datasource(defaultsource)
+    setloading(false);
   }
 
+}
+
+
+export const handleDeleteParams = async (ev, item,toast) => {
+  ev.preventDefault();
+  const { setupid } = item;
+  if (!setupid) { toast.info('default parameter cannot be deleted,update form to continue or  create custom parameters please'); return;}
+  const response = await customPost('test/setup/entry/delete', 'DELETE', item);
 }

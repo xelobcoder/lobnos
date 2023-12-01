@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { serverCall, getRecords } from './connector.js';
+import { serverCall, getRecords,handleDeleteParams } from './connector.js';
 import { DeleteForever } from '@mui/icons-material';
 import dynamic from 'next/dynamic';
 const  MARKDOWN_EDITOR = dynamic(  () => import('../accessories/markdownEditor.js'), { ssr: false })
 import Link from 'next/link.js';
 import { ToastContainer, toast } from 'react-toastify';
+import ISLOADING from '../isLoading.js';
 
 
 function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
@@ -12,12 +13,13 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
   const [dataModification, setDataModification] = useState('');
   const [linksrc, setLinksrc] = useState(`/settings/setup/createparam?target=${testname}`);
   const [literature, setLiterature] = useState('');
+  const [loading, setLoading] = useState(true);
 
 
   const updateLiterature = async function (event, data) { setLiterature(data) };
 
   useEffect(() => {
-    getRecords(testname, setDataModification, parameterdata)
+    getRecords(testname, setDataModification, parameterdata,setLoading)
   }, [])
 
 
@@ -46,12 +48,6 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
     )
   }
 
-  const handleView = function () {
-    setMsgDx(prevState => {
-      return { ...prevState, show: false }
-    })
-
-  }
 
 
   return (
@@ -60,12 +56,10 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
       <div >
         <div className='p-4'>
           <div className='card br-5 m-0'>
-            <div className='card-header modal-color d-flex justify-content-between'>
-              <div className='card-title fw-bold'>
-                <h5 className='fw-bold  align-self-center'>
+            <div className='card-header d-flex justify-content-between'>
+            <h4>
                   {testname}
-                </h5>
-              </div>
+                </h4>
               <Link href={linksrc}>
                 <button className='btn btn-primary btn-sm'>
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
@@ -75,9 +69,14 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
                   </button>
               </Link>
             </div>
-            <table className='billing-cart-table'>
+            <div className='card-body'>
+              {loading && <ISLOADING />}
+              {!loading && (
+                <>
+                 <table className='billing-cart-table'>
               <thead>
                 <tr>
+                  <th>#</th>
                   <th>parameter name</th>
                   <th>unit</th>
                   <th>upper</th>
@@ -91,6 +90,7 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
                   dataModification.length == 0 ? null : dataModification.map((item, index) => {
                     return (
                       <tr key={index}>
+                        <td>{index + 1}</td>
                         <td>{item.parameter}</td>
                         <td>
                           <input value={item.unit || ''}
@@ -106,7 +106,7 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
                           item?.gender && <td>{item.gender}</td>
                         }
                         <td>
-                          <button className='btn btn-danger btn-sm'>
+                          <button className='btn btn-danger btn-sm' onClick={(ev) => {handleDeleteParams(ev,item,toast)}}>
                             <DeleteForever color='white' sx={{ cursor: 'pointer' }} fontSize='medium' />
                           </button>
                         </td>
@@ -115,18 +115,20 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
                   })
                 }
               </tbody>
-            </table>
+              </table>
+              <div className='my-3'>
+                  <h4 className='lims-text-color text-capitalize'>literature</h4>
+                  <MARKDOWN_EDITOR updatedata={updateLiterature} initialData={literature} />
+                  <button className='btn btn-primary btn-sm my-3'
+                    onClick={(ev) => { serverCall(ev, dataModification, testname,toast) }}>
+                    {mode === 'new' ? 'save changes' : 'update changes'}
+                  </button>
+             </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
-        <div className='mx-3'>
-          <h4 className='lims-text-color text-capitalize'>literature</h4>
-          <MARKDOWN_EDITOR updatedata={updateLiterature} initialData={literature} />
-          <button className='btn btn-primary btn-sm my-3'
-            onClick={(ev) => { serverCall(ev, dataModification, testname,toast) }}>
-            {mode === 'new' ? 'save changes' : 'update changes'}
-          </button>
-        </div>
-
       </div>
     </>
   )

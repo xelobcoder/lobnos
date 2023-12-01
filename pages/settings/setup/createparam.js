@@ -14,26 +14,45 @@ export default function CREATE_PARAMETER() {
   const gender = useSearchParams().get('gender');
 
   useEffect(() => {
-    if (gender) { setDetails({ ...defaultValue, gender: '' }) }
+    if (gender) { setDetails({ ...defaultValue, gender: '' }) };
 },[gender])
 
   const handleSaving = async function () {
-    if (data.length === 0) {
-      setData([parameterDetails])
-      setDetails(defaultValue)
+    const ObjectValues = Object.values(parameterDetails).includes("") || Object.values(parameterDetails).includes(0);
+    if (ObjectValues) { 
+      toast.error('fill all fields',{position:'top-center',autoClose:500})
       return;
-    }
-
-    if (data.length > 0) { 
-      //  filter out the parameter that has the same name as the one being added
-      const filteredData = data.filter((item, index) => {
-        return item.parameter !== parameterDetails.parameter
-      })
-      setData([...filteredData, parameterDetails])
-      setDetails(defaultValue)
-      return;
+    } else {
+      if (data.length === 0) {
+        setData([parameterDetails])
+        setDetails(defaultValue)
+        return;
+      } else { 
+        //  filter out the parameter that has the same name as the one being added
+        let filteredData = [];
+        if (gender == 'true') {
+          // compare both gender and parameter
+          filteredData = data.filter(item => {
+            if (parameterDetails?.parameter === item?.parameter) {
+              return item?.gender != parameterDetails?.gender;
+            } else {
+              return item?.parameter != parameterDetails?.parameter
+               }
+           })
+        } else {
+          // compare only parameter
+          filteredData = data.filter(item => {
+            return item?.parameter != parameterDetails?.parameter
+          })
+        }
+        setData([...filteredData, parameterDetails])
+        // if gender is true, we assume you want to add for both male and female and hence we dont want to clear the text field
+        return;
+      }
     }
   }
+
+ 
 
   const handleCreation = async function (ev) { 
     ev.preventDefault();
@@ -99,8 +118,8 @@ export default function CREATE_PARAMETER() {
             }}
               />
               {
-                gender && (
-                  <select className="form-control" onChange={(ev) => {setDetails({...parameterDetails, gender:ev.target.value})}}>
+                gender == 'true' && (
+                  <select className="form-control" value={parameterDetails?.gender} onChange={(ev) => {setDetails({...parameterDetails, gender:ev.target.value})}}>
                     <option>select gender</option>
                     <option value={'male'}>male</option>
                     <option value={'female'}>female</option>
@@ -121,6 +140,7 @@ export default function CREATE_PARAMETER() {
                   <th>unit</th>
                   <th>upper</th>
                   <th>lower</th>
+                  {gender == 'true' && <th>gender</th>}
                 </tr>
               </thead>
               <tbody>
@@ -132,6 +152,7 @@ export default function CREATE_PARAMETER() {
                         <td>{item.unit}</td>
                         <td>{item.upper}</td>
                         <td>{item.lower}</td>
+                        {gender == 'true' && <td>{ item?.gender}</td>}
                       </tr>
                     )
                   })
