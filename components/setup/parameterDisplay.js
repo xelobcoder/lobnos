@@ -23,7 +23,7 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
 
   useEffect(() => {
     if (gender) { setLinksrc(linksrc + '&gender=true') } else { setLinksrc(linksrc + '&gender=false') }
-  },[gender])
+  },[])
 
   // listener for changing unit
   const onChangeUnit = (e, index) => {

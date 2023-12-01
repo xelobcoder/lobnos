@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import CHEMISTRY_LAYOUT_SETUP from "../../../components/setup/biochemistry/Layout";
-import MARKDOWN_EDITOR from "../../../components/accessories/markdownEditor";
+// import MARKDOWN_EDITOR from "../../../components/accessories/markdownEditor";
 export default function BloodCultureAndSensitivity() {
   const [setup, setSetup] = useState([]);
   const [drug, setDrug] = useState('');
   
 
 
-  const removeDrug = async function (item,index) {setSetup(setup.filter((e, i) => { return i != index }) ) }
+  const removeDrug = async function (item, index) { setSetup(setup.filter((e, i) => { return i != index })) };
   return (
     <CHEMISTRY_LAYOUT_SETUP>
       <div className="mx-3 my-2">
@@ -73,7 +73,6 @@ export default function BloodCultureAndSensitivity() {
               </tbody>
             </table>
             <h4>Literature Review</h4>
-            <MARKDOWN_EDITOR />
           </div>
         </div>
       </div>
