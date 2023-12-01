@@ -1,58 +1,69 @@
-import { Alert, Button } from "@mui/material";
-import React from "react";
-import AddIcon from '@mui/icons-material/Add';
 import { useState } from "react";
 import CHEMISTRY_LAYOUT_SETUP from "../../../components/setup/biochemistry/Layout";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
+import { ToastContainer, toast } from 'react-toastify';
 import { customPost } from "../../../components/Auth/customFetch";
+
 
 export default function CREATE_PARAMETER() {
   const defaultValue = { unit: "", parameter: "", upper: 0, lower: 0 };
   const [parameterDetails, setDetails] = useState(defaultValue);
-  const { target } = useRouter().query;
-
+  const [data, setData] = useState([]); 
+  const target = useSearchParams().get('target');
+  const gender = useSearchParams().get('gender');
 
   useEffect(() => {
-    if (target === null) {
+    if (gender) { setDetails({ ...defaultValue, gender: '' }) }
+},[gender])
+
+  const handleSaving = async function () {
+    if (data.length === 0) {
+      setData([parameterDetails])
+      setDetails(defaultValue)
       return;
     }
 
-  }, [target])
+    if (data.length > 0) { 
+      //  filter out the parameter that has the same name as the one being added
+      const filteredData = data.filter((item, index) => {
+        return item.parameter !== parameterDetails.parameter
+      })
+      setData([...filteredData, parameterDetails])
+      setDetails(defaultValue)
+      return;
+    }
+  }
 
-
-  const handleSaving = async function () {
-    if (target != undefined) {
-      const emptyFields = Object.values(parameterDetails)
-        .filter((item, index) => { return item === '' || item == 0 })
-        .length;
-
-      if (emptyFields == 0) {
-        const data = { parameterDetails, target }
-        const response = await customPost('test/setup/createparams', 'POST', data)
-        const {status,statusCode,message} = response;
-        if(status == 'success'){
-          setDetails(defaultValue)
-          alert(message)
-        }
-        else{
-          alert(message)
-        }
-      }
-      else {
-        alert('fill in all blank fields')
-      }
+  const handleCreation = async function (ev) { 
+    ev.preventDefault();
+    if (data.length === 0) {
+      toast.warning('Add parameter to save',{position:'top-center',autoClose:500})
+      return;
+    }
+    const requestData = { parameterDetails: data, target }
+    const response = await customPost('test/setup/createparams', 'POST', requestData)
+    const {status,statusCode,message} = response;
+    if(status == 'success' && statusCode == 200){
+      setDetails(defaultValue)
+      toast.success(message)
+    }
+    else{
+      toast.error(message)
     }
   }
   return (
     <>
       <CHEMISTRY_LAYOUT_SETUP>
-        <h6 className="create-param-header">
-          create parameter here  for {target}
-        </h6>
-        <form className="create-param-form">
+        <ToastContainer/>
+        <div className="card mx-3 my-3">
+          <div className="card-header">
+            <h4 className="card-title">Create Parameter for { target}</h4>
+          </div>
+          <div className="card-body" >
+          <form className="form-row d-flex gap-2 justify-content-between" >
           <input
-            className="custom-input"
+            className="form-control"
             value={parameterDetails.parameter}
             placeholder="parameter name"
             onChange={(e) =>
@@ -61,7 +72,7 @@ export default function CREATE_PARAMETER() {
             type="text"
           />
           <input
-            className="custom-input"
+            className="form-control"
             value={parameterDetails.unit}
             placeholder="unit"
             type="text"
@@ -70,7 +81,7 @@ export default function CREATE_PARAMETER() {
             }}
           />
           <input
-            className="custom-input"
+            className="form-control"
             value={parameterDetails.upper}
             placeholder="upper limit"
             type="number"
@@ -79,20 +90,58 @@ export default function CREATE_PARAMETER() {
             }}
           />
           <input
-            className="custom-input"
+            className="form-control"
             value={parameterDetails.lower}
             placeholder="lower limit"
             type="number"
             onChange={(e) => {
               setDetails({ ...parameterDetails, lower: e.target.value });
             }}
-          />
-          <Button variant='contained' color='primary' startIcon={<AddIcon />}
-            onClick={handleSaving}
-          >
-            send
-          </Button>
-        </form>
+              />
+              {
+                gender && (
+                  <select className="form-control" onChange={(ev) => {setDetails({...parameterDetails, gender:ev.target.value})}}>
+                    <option>select gender</option>
+                    <option value={'male'}>male</option>
+                    <option value={'female'}>female</option>
+                  </select>
+                )
+              }
+              <button type="button" className="btn btn-primary btn-sm" onClick={handleSaving}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-plus-lg" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"/>
+</svg>
+                </button>
+            </form>
+            
+            <table className="billing-cart-table my-3">
+              <thead>
+                <tr>
+                  <th>parameter name</th>
+                  <th>unit</th>
+                  <th>upper</th>
+                  <th>lower</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.length > 0 &&(
+                  data.map((item, index) => {
+                    return (
+                      <tr key={index}>
+                        <td>{item.parameter}</td>
+                        <td>{item.unit}</td>
+                        <td>{item.upper}</td>
+                        <td>{item.lower}</td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+            <button onClick={(ev) => {handleCreation(ev)}} className="btn btn-primary btn-sm my-3" type="button">save paramaters</button>
+          </div>
+        </div>
+       
       </CHEMISTRY_LAYOUT_SETUP>
     </>
   );

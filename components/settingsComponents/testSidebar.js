@@ -1,6 +1,5 @@
 import React from 'react';
 import Link from 'next/link';
-import ManageSearchIcon from '@mui/icons-material/ManageSearch';
 export default function TestSidebar() {
   return (
     <>
@@ -69,6 +68,11 @@ export default function TestSidebar() {
             <li>
               <Link href={'/settings/setup/psahormone'}>
                 Prostate specific antigen hormone
+              </Link>
+            </li>
+            <li>
+              <Link href={'/settings/setup/bloodculture'}>
+                blood culture and sensitivity test
               </Link>
             </li>
           </ul>

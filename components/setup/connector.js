@@ -7,15 +7,13 @@ import { customFetch, customPost } from "../Auth/customFetch"
  * @param {object} setMsgDx  attaches to a state for display messages after request made to server
  * @ return a promise
  */
-export const serverCall = function (ev, source, category) {
+export const serverCall = function (ev, source, category,toast) {
   // this define final data to be sent to the server
   let finalproductdata = {
     data: source,
-    category
+    testname: category
   }
-
   // sanitize liverpanel to ensure it dosent call empty values
-
   let sanitizeValues = function (data) {
     let result = data.filter(item => {
       return item.unit == '' || item.lower == '' || item.upper == '' || item.upper == 0 || item.lower == 0
@@ -23,25 +21,19 @@ export const serverCall = function (ev, source, category) {
     return result;
   }
 
-
   if (sanitizeValues(source).length > 0) {
-    setMsgDx({
-      show: true, displaytime: 5000, message: 'fill in all input fields', type: 'error'
-    })
+    toast.info('fill in all blank fields');
     return;
   }
   else {
-    let response = customPost('test/setup/chemistry', 'POST', finalproductdata)
-
-
-
+    let response = customPost('test/setup/entry', 'POST', finalproductdata)
     response.then(
       (res) => {
         if (res.status == 'success' && res.statusCode == 200) {
-         
+          toast.success(res.message)
         }
         else {
-         
+          toast.error(res.message)
         }
       }
     )
@@ -57,8 +49,7 @@ export const serverCall = function (ev, source, category) {
 // get the records and populate the tabale with it data
 
 export const getRecords = async function (panelname, datasource, defaultsource) {
-  let endpoint = `test/setup/chemistry?panelname=${panelname}`
-  
+  let endpoint = `test/setup/entry?testname=${panelname}`
   try {
     let response = await customFetch(endpoint)
     const { status, statusCode } = response;

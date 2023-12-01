@@ -4,20 +4,26 @@ import { DeleteForever } from '@mui/icons-material';
 import dynamic from 'next/dynamic';
 const  MARKDOWN_EDITOR = dynamic(  () => import('../accessories/markdownEditor.js'), { ssr: false })
 import Link from 'next/link.js';
+import { ToastContainer, toast } from 'react-toastify';
 
 
-function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category, createTarget, testname }) {
+function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
   const [mode, setMode] = useState('new');
   const [dataModification, setDataModification] = useState('');
+  const [linksrc, setLinksrc] = useState(`/settings/setup/createparam?target=${testname}`);
   const [literature, setLiterature] = useState('');
 
 
-  const updateLiterature = async function (event, data) { setLiterature(data) }
+  const updateLiterature = async function (event, data) { setLiterature(data) };
+
   useEffect(() => {
-    getRecords(category, setDataModification, parameterdata)
+    getRecords(testname, setDataModification, parameterdata)
   }, [])
 
 
+  useEffect(() => {
+    if (gender) { setLinksrc(linksrc + '&gender=true') } else { setLinksrc(linksrc + '&gender=false') }
+  },[gender])
 
   // listener for changing unit
   const onChangeUnit = (e, index) => {
@@ -50,6 +56,7 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category, createTarget, te
 
   return (
     <>
+      <ToastContainer/>
       <div >
         <div className='p-4'>
           <div className='card br-5 m-0'>
@@ -59,7 +66,7 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category, createTarget, te
                   {testname}
                 </h5>
               </div>
-              <Link href={`/settings/setup/createparam?target=${createTarget}`}>
+              <Link href={linksrc}>
                 <button className='btn btn-primary btn-sm'>
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
@@ -115,7 +122,7 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, category, createTarget, te
           <h4 className='lims-text-color text-capitalize'>literature</h4>
           <MARKDOWN_EDITOR updatedata={updateLiterature} initialData={literature} />
           <button className='btn btn-primary btn-sm my-3'
-            onClick={(ev) => { serverCall(ev, dataModification, category) }}>
+            onClick={(ev) => { serverCall(ev, dataModification, testname,toast) }}>
             {mode === 'new' ? 'save changes' : 'update changes'}
           </button>
         </div>

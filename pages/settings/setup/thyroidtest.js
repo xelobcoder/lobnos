@@ -8,7 +8,7 @@ export default function THYROID_TEST_SETUP() {
     <>
       <CHEMISTRY_LAYOUT_SETUP>
         <PARAMETER_DISPLAY_COMPONENT
-          testname={'THYROID HORMONE'}
+          testname={'thyroid_functional_test'}
           parameterdata={thyroidparameters} category='THYROID_SETUP' createTarget={'thyroid'} />
       </CHEMISTRY_LAYOUT_SETUP>
     </>

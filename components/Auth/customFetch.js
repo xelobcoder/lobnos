@@ -647,4 +647,22 @@ export const getHematologicalResultEntered = async function (billingid, test,loa
   }catch(err){
     loadingFxn(false);
   }
- }
+}
+ 
+export const defaultHormonesParameters = [{
+   parameter: 'LH',
+   unit: 'U/L',
+   value: '',
+   upper: '',
+   lower: '',
+   gender: 'male',
+},
+{
+   parameter: 'LH',
+   unit: 'U/L',
+   value: '',
+   upper: '',
+   lower: '',
+   gender: 'female'
+}
+]
