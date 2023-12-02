@@ -8,7 +8,6 @@ import AllresultSecondPanel from '../../components/operations/AllresultSecondPan
 
 
 export default function Enteredresult() {
-
   return (
     <>
       <OperationsProvider>

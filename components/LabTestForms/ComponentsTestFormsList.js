@@ -11,8 +11,7 @@ import HbA1c from '../LabTestForms/HbA1c';
 import Pregnancy from '../LabTestForms/pregnancy';
 import Malaria from '../LabTestForms/malaria';
 import BetaHcg from '../LabTestForms/BetaHcg';
-import RandomBloodSugar from '../LabTestForms/randomsugar';
-import FastingSugar from '../LabTestForms/fastingSugar';
+import SugarHook from '../LabTestForms/SugarHook.js';
 import HemoglobinElectrophoresisForm from '../LabTestForms/HeamoglobinElectophoresis';
 import StoolAnalysis from '../LabTestForms/stoolAnalysis';
 import BleedingNClotting from '../LabTestForms/bleedingnclotting';
@@ -43,8 +42,8 @@ const componentsList = {
   malaria: Malaria ,
   thyroid_functional_test: UseChemistryTestHook ,
   betahcg: BetaHcg ,
-  random_blood_sugar: RandomBloodSugar ,
-  fasting_blood_sugar: FastingSugar ,
+  random_blood_sugar: SugarHook ,
+  fasting_blood_sugar: SugarHook,
   full_blood_count: UseChemistryTestHook ,
   haemoglobin_electrophoresis: HemoglobinElectrophoresisForm ,
   stool_analysis: StoolAnalysis ,

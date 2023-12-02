@@ -23,7 +23,7 @@ export async function customFetch(endpoint) {
    }
 }
 
-export const Glucoseoptions = ["", "mg/dl", "mmol/L"];
+export const Glucoseoptions = ["mg/dl", "mmol/L"];
 
 export async function customPost(endpoint, method, data) {
    /**
@@ -622,7 +622,16 @@ export const filterTrendData = async (parameters, data) => {
    });
    return trend;
 }
-
+  /**
+    * Handles the decision for a client.
+    * 
+    * @param {object} client - The client object.
+    * @param {string} decision - The decision to be made (e.g., "approve", "reject").
+    * @param {function} setClients - A function to update the clients array.
+    * @param {array} clients - An array of client objects.
+    * @param {string} employeeid - The ID of the employee making the decision.
+    * @returns {void}
+    */
 export const handleDecision = async function (client, decision, setClients, clients, employeeid) {
    const data = decision === 'approve' ? { ...client, approvedby: employeeid, approvalstatus: 1 } : { ...client, approvedby: employeeid };
    const pushData = await customPost('result/approve', 'POST', data);
@@ -633,20 +642,30 @@ export const handleDecision = async function (client, decision, setClients, clie
    }
 };
 
-export const getHematologicalResultEntered = async function (billingid, test,loadingFxn,setter,updateentered) {
-   try {
-      const response = await CheckResultEntered(test, billingid);
-   const { result, statusCode, records, status, message } = response;
-   if (status == 'success' && statusCode === 200 && records.length > 0 && result) {
-      setter(records[0]);
-      updateentered(true);
-   } else {
-      updateentered(false);
-   }
-   loadingFxn(false);
-  }catch(err){
-    loadingFxn(false);
-  }
+  /**
+     * Checks if a test result has been entered for a given billing ID and test name.
+     * 
+     * @param {string} billingid - The billing ID associated with the test.
+     * @param {string} test - The name of the test to check the result for.
+     * @param {function} loadingFxn - A function to set the loading state.
+     * @param {function} setter - A function to set the result state.
+     * @param {function} updateentered - A function to update the entered flag state.
+     * @returns {void}
+     */
+export const getHematologicalResultEntered = async function (billingid, test, loadingFxn, setter, updateentered) {
+    try {
+        const response = await CheckResultEntered(test, billingid);
+        const { result, statusCode, records, status, message } = response;
+        if (status == 'success' && statusCode === 200 && records.length > 0 && result) {
+            setter(records[0]);
+            updateentered(true);
+        } else {
+            updateentered(false);
+        }
+        loadingFxn(false);
+    } catch (err) {
+        loadingFxn(false);
+    }
 }
  
 export const defaultHormonesParameters = [{
