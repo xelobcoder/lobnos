@@ -18,7 +18,7 @@ export const OperationsProvider = ({ children }) => {
         <>
             {
                 auth && (roles.includes(auth?.role)) ?
-                    <OperaProvider value={{ operationsKey, updateOperations,employeeid: auth?.employeeid }} >
+                    <OperaProvider value={{ operationsKey, updateOperations,employeeid: auth?.employeeid}} >
                         {children}
                     </OperaProvider>
                     :

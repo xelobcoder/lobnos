@@ -10,8 +10,8 @@ export default function TestPanelsSetup() {
             src={"/asserts/ill-nodata.jpg"}
             height={200}
             property="prority"
-            style={{ backgroundColor: "transparent" }}
-            alt="No transaction date selected"
+            style={{ backgroundColor: 'transparent' }}
+            alt="No Test selected"
             width={300}
           />
           <span className="bg-warning p-3 lead rounded pointer text-primary">

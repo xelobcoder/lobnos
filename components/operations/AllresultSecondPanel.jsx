@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { customFetch, printResultNavigator } from '../Auth/customFetch';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import { Button } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
 import OperationsContext from './OperationsContext'
@@ -11,7 +10,7 @@ export default function AllresultSecondPanel() {
   const [expandAll, setExpandAll] = useState(false);
   const [datapool, setDatapool] = useState([]);
   const [active, setActive] = useState(null);
-  const navigator = useRouter();
+
 
 
   const getPreview = async function () {

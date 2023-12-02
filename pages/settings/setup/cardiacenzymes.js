@@ -8,7 +8,8 @@ export default function Cardiacenzymes() {
     <>
       <CHEMISTRY_LAYOUT_SETUP>
         <PARAMETER_DISPLAY_COMPONENT parameterdata={cardiacenzymes}
-          category={'CARDIAC_ENZYMES'} createTarget={'cardiac'}  testname={'CARDIAC ENZYMES TEST'}/>
+          testname={'cardiac_enzymes'}
+         />
       </CHEMISTRY_LAYOUT_SETUP>
     </>
   )
