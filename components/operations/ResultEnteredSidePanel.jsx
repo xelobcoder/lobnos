@@ -24,7 +24,7 @@ export default function ResultEnteredSidePanel() {
   return (
     <>
       <div>
-        <Accordion >
+        <Accordion flush >
           <Accordion.Item>
           <Accordion.Header>
              Filter result
@@ -49,7 +49,7 @@ export default function ResultEnteredSidePanel() {
           {collection.length > 0 ? (
             collection.map((item, index) => (
               <li
-                className={item?.billingid === operationsKey?.billingid ? 'bg-primary text-white border-primary': ''}
+                className={item?.billingid === operationsKey?.billingid ? 'bg-primary fw-bold text-white border-primary': ''}
                 tabIndex={1 + index}
                 onClick={(e) => handleUpdate(e, item)}
                 key={index}

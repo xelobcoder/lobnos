@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { serverCall, getRecords,handleDeleteParams } from './connector.js';
+import { useState, useEffect } from 'react';
+import { serverCall, getSetupRecords, handleDeleteParams } from './connector.js';
 import { DeleteForever } from '@mui/icons-material';
 import dynamic from 'next/dynamic';
 const  MARKDOWN_EDITOR = dynamic(  () => import('../accessories/markdownEditor.js'), { ssr: false })
@@ -19,7 +19,7 @@ const [usingDefault,setUsingDefault] = useState(false);
   const updateLiterature = async function (event, data) { setLiterature(data) };
 
   useEffect(() => {
-    getRecords(testname, setDataModification, parameterdata,setLoading,setUsingDefault)
+    getSetupRecords(testname, setDataModification, parameterdata,setLoading,setUsingDefault,setLiterature)
   }, [])
 
 
@@ -56,7 +56,7 @@ const [usingDefault,setUsingDefault] = useState(false);
       <div >
         <div className='p-4'>
           <div className='card br-5 m-0'>
-            <div className='card-header d-flex justify-content-between'>
+            <div className='card-header bg-secondary text-white d-flex justify-content-between'>
             <h4 className='text-capitalize'>
                   {testname.split("_").join(" ") || ''}
               </h4>
@@ -114,7 +114,9 @@ const [usingDefault,setUsingDefault] = useState(false);
                               handleDeleteParams(ev, item, toast, testname, {
                                 l: setLoading,
                                 d: setDataModification,
-                                ds: parameterdata
+                                ds: parameterdata,
+                                loading: setLoading,
+                                literature: setLiterature
                               })
                             }}>
                             <DeleteForever color='white' sx={{ cursor: 'pointer' }} fontSize='medium' />
@@ -130,7 +132,7 @@ const [usingDefault,setUsingDefault] = useState(false);
                   <h4 className='lims-text-color text-capitalize'>literature</h4>
                   <MARKDOWN_EDITOR updatedata={updateLiterature} initialData={literature} />
                   <button className='btn btn-primary btn-sm my-3'
-                    onClick={(ev) => { serverCall(ev, dataModification, testname,toast) }}>
+                    onClick={(ev) => { serverCall(ev, dataModification,literature, testname,toast) }}>
                     {mode === 'new' ? 'save changes' : 'update changes'}
                   </button>
              </div>

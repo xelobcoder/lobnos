@@ -3,7 +3,8 @@ import { customFetch, printResultNavigator } from '../Auth/customFetch';
 import Link from 'next/link';
 import { Button } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';
-import OperationsContext from './OperationsContext'
+import OperationsContext from './OperationsContext';
+import Form from 'react-bootstrap/Form';
 
 export default function AllresultSecondPanel() {
   const { operationsKey, updateOperations } = useContext(OperationsContext);
@@ -42,8 +43,11 @@ export default function AllresultSecondPanel() {
     <>
       <div className='text-capitalize' id='expand'>
         <input type='checkbox' onChange={() => setExpandAll(!expandAll)} checked={expandAll} />
-        expand all
-      </div>
+        expand all <br/>
+        <div className='d-flex justify-content-between'>
+        Patient overview <Form.Check type='switch' disabled={operationsKey?.billingid == undefined} /> 
+       </div>
+    </div>
       <div>
         {
           datapool.length > 0 ? datapool.map((item, index) => (

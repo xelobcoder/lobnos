@@ -7,11 +7,17 @@ import { customFetch, customPost } from "../Auth/customFetch"
  * @param {object} setMsgDx  attaches to a state for display messages after request made to server
  * @ return a promise
  */
-export const serverCall = function (ev, source, category,toast) {
+export const serverCall = function (ev, source,literature, category,toast) {
   // this define final data to be sent to the server
   let finalproductdata = {
     data: source,
-    testname: category
+    testname: category,
+    literature
+  }
+
+  if (literature.length == 0) {
+    toast.error('Comments or literature cannot be null');
+    return;
   }
   // sanitize liverpanel to ensure it dosent call empty values
   let sanitizeValues = function (data) {
@@ -20,6 +26,7 @@ export const serverCall = function (ev, source, category,toast) {
     })
     return result;
   }
+  
 
   if (sanitizeValues(source).length > 0) {
     toast.info('fill in all blank fields');
@@ -55,14 +62,15 @@ export const serverCall = function (ev, source, category,toast) {
    * @param {function} usedefault - A function to indicate whether the default data source is being used.
    * @returns {void} - None. The function performs actions based on the response from the server and updates the table accordingly.
    */
-export const getRecords = async function (panelname, datasource, defaultsource,setloading,usedefault) {
+export const getSetupRecords = async function (panelname, datasource, defaultsource,setloading,usedefault,setLiterature) {
   let endpoint = `test/setup/entry?testname=${panelname}`
   try {
     let response = await customFetch(endpoint)
-    const { status, statusCode,resolve,message,records } = response;
+    const { status, statusCode,resolve,message,records,literature } = response;
     if (status == 'success' && statusCode == 200 && resolve && records.length > 0) {
       datasource(records);
-        setloading(false);
+      setloading(false);
+      literature.length > 0 ? setLiterature(literature[0]['literature']) : "";
     } else {
       datasource(defaultsource)
       setloading(false);
@@ -71,7 +79,6 @@ export const getRecords = async function (panelname, datasource, defaultsource,s
 
   }
   catch (err) {
-    alert('error occured connecting to server');
     datasource(defaultsource)
     setloading(false);
   }
@@ -89,7 +96,7 @@ export const getRecords = async function (panelname, datasource, defaultsource,s
    * @returns {void}
    */
 export const handleDeleteParams = async (ev, item, toast, testname, updateData) => {
-  const { l, d, ds } = updateData;
+  const { l, d, ds,loading,literature } = updateData;
   ev.preventDefault()
   const confirmation = window.confirm("Are you sure you want to delete this parameter?")
   if (confirmation) {
@@ -102,9 +109,10 @@ export const handleDeleteParams = async (ev, item, toast, testname, updateData) 
     const { status, statusCode, message } = response
     if (status == "success" && statusCode == 200) {
       toast.success(message);
-      getRecords(testname, d, ds,l)
+      getSetupRecords(testname, d, ds, l,loading, literature);
     } else {
       toast.error(message)
     }
   }
+
 }
