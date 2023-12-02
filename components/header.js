@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Apps, Logout, Settings } from "@mui/icons-material";
+import { Apps, Login, Logout, Settings } from "@mui/icons-material";
 import { useContext } from "react";
 import AuthContext from "./Auth/useAuthentification";
 import { handleLogout } from "./Auth/customFetch";
@@ -9,15 +9,11 @@ import { handleLogout } from "./Auth/customFetch";
 
 function Header() {
   const [branch, setBranch] = useState('');
-
   const { auth } = useContext(AuthContext);
 
   useEffect(() => {
     setBranch(localStorage.getItem('deviceDefaultBranch'));
   }, [])
-
-
-
 
 
   return (
@@ -28,15 +24,21 @@ function Header() {
             <span className="softfullname">Prime laboratory system||</span>PLS
           </Link>
           <li><Settings /></li>
-          <li className="text-uppercase">
+          <li className="text-capitalize">
             {auth?.username || ''}
           </li>
           <li>
             <Apps />
           </li>
-          <li onClick={(ev) => { handleLogout(ev) }}>
+          {
+            auth?.username ?
+            <li onClick={(ev) => { handleLogout(ev) }}>
             <Logout /> Logout
-          </li>
+              </li> :
+              <li>
+             <Login/>   signin
+              </li>
+         }
         </ul>
       </div>
     </>

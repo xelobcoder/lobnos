@@ -45,10 +45,17 @@ export const serverCall = function (ev, source, category,toast) {
   }
 }
 
-// this checks if panel has table,
-// get the records and populate the tabale with it data
-
-export const getRecords = async function (panelname, datasource, defaultsource,setloading) {
+  /**
+   * Retrieves records from a server and populates a table with the data.
+   * 
+   * @param {string} panelname - The name of the panel to retrieve records for.
+   * @param {function} datasource - A function that takes an array of records and populates the table with the data.
+   * @param {array} defaultsource - The default data source to use if no records are retrieved from the server.
+   * @param {function} setloading - A function to set the loading state of the table.
+   * @param {function} usedefault - A function to indicate whether the default data source is being used.
+   * @returns {void} - None. The function performs actions based on the response from the server and updates the table accordingly.
+   */
+export const getRecords = async function (panelname, datasource, defaultsource,setloading,usedefault) {
   let endpoint = `test/setup/entry?testname=${panelname}`
   try {
     let response = await customFetch(endpoint)
@@ -59,6 +66,7 @@ export const getRecords = async function (panelname, datasource, defaultsource,s
     } else {
       datasource(defaultsource)
       setloading(false);
+      usedefault(true);
     }
 
   }
@@ -70,10 +78,33 @@ export const getRecords = async function (panelname, datasource, defaultsource,s
 
 }
 
-
-export const handleDeleteParams = async (ev, item,toast) => {
-  ev.preventDefault();
-  const { setupid } = item;
-  if (!setupid) { toast.info('default parameter cannot be deleted,update form to continue or  create custom parameters please'); return;}
-  const response = await customPost('test/setup/entry/delete', 'DELETE', item);
+/**
+   * Handles the deletion of a parameter.
+   * 
+   * @param {Event} ev - The event object triggered by the user action.
+   * @param {Object} item - The parameter object to be deleted.
+   * @param {Object} toast - The toast object used for displaying notifications.
+   * @param {string} testname - The name of the test.
+   * @param {Object} updateData - An object containing data to be updated.
+   * @returns {void}
+   */
+export const handleDeleteParams = async (ev, item, toast, testname, updateData) => {
+  const { l, d, ds } = updateData;
+  ev.preventDefault()
+  const confirmation = window.confirm("Are you sure you want to delete this parameter?")
+  if (confirmation) {
+    const { setupid } = item
+    if (!setupid) {
+      toast.info("default parameter cannot be deleted,update form to continue or  create custom parameters please")
+      return
+    }
+    const response = await customPost("test/setup/entry/delete", "DELETE", { ...item, testname })
+    const { status, statusCode, message } = response
+    if (status == "success" && statusCode == 200) {
+      toast.success(message);
+      getRecords(testname, d, ds,l)
+    } else {
+      toast.error(message)
+    }
+  }
 }

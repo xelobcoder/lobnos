@@ -24,9 +24,7 @@ export default function FshHormone() {
     <CHEMISTRY_LAYOUT_SETUP>
       <PARAMETER_DISPLAY_COMPONENT
         parameterdata={defaultParameters}
-        category={'FSHHORMONE'}
-        createTarget={'FSH'}
-        testname={'FOLLICLE STIMULATING HORMONE'}
+        testname={'follicle_stimulating_hormone'}
       >
 
       </PARAMETER_DISPLAY_COMPONENT>

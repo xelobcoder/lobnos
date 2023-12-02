@@ -14,12 +14,12 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
   const [linksrc, setLinksrc] = useState(`/settings/setup/createparam?target=${testname}`);
   const [literature, setLiterature] = useState('');
   const [loading, setLoading] = useState(true);
-
+const [usingDefault,setUsingDefault] = useState(false);
 
   const updateLiterature = async function (event, data) { setLiterature(data) };
 
   useEffect(() => {
-    getRecords(testname, setDataModification, parameterdata,setLoading)
+    getRecords(testname, setDataModification, parameterdata,setLoading,setUsingDefault)
   }, [])
 
 
@@ -57,13 +57,16 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
         <div className='p-4'>
           <div className='card br-5 m-0'>
             <div className='card-header d-flex justify-content-between'>
-            <h4>
-                  {testname}
-                </h4>
+            <h4 className='text-capitalize'>
+                  {testname.split("_").join(" ") || ''}
+              </h4>
+             {usingDefault && ( <div>
+              <span className='badge bg-info'>using default parameter</span>
+           </div>)}
               <Link href={linksrc}>
                 <button className='btn btn-primary btn-sm'>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus-lg" viewBox="0 0 16 16">
+                    <path fillRule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
                   </svg>
                     create paramater
                   </button>
@@ -106,7 +109,14 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
                           item?.gender && <td>{item.gender}</td>
                         }
                         <td>
-                          <button className='btn btn-danger btn-sm' onClick={(ev) => {handleDeleteParams(ev,item,toast)}}>
+                          <button className='btn btn-danger btn-sm'
+                            onClick={(ev) => {
+                              handleDeleteParams(ev, item, toast, testname, {
+                                l: setLoading,
+                                d: setDataModification,
+                                ds: parameterdata
+                              })
+                            }}>
                             <DeleteForever color='white' sx={{ cursor: 'pointer' }} fontSize='medium' />
                           </button>
                         </td>

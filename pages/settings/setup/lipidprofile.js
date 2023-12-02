@@ -7,7 +7,7 @@ export default function LIPIDPROFILESETUP() {
   return (
     <div>
       <CHEMISTRY_LAYOUT_SETUP>
-        <PARAMETER_DISPLAY_COMPONENT parameterdata={lipidprofile} category='LIPID_PROFILE_SETUP' createTarget={'lipidprofile'} />
+        <PARAMETER_DISPLAY_COMPONENT parameterdata={lipidprofile} testname={'lipid_profile'} />
       </CHEMISTRY_LAYOUT_SETUP>
     </div>
   )

@@ -1,69 +1,16 @@
-import React, { useContext, useState } from 'react';
+import  { useContext, useState } from 'react';
 import OperationsContext from '../../components/operations/OperationsContext';
-import AIDS from '../LabTestForms/aids';
-import HepatitisB from '../LabTestForms/hepB';
-import Widal from '../LabTestForms/widal';
-import G6PD from '../LabTestForms/g6pd';
-import Urinalysis from '../LabTestForms/urinalysis';
-import HepatitisC from '../LabTestForms/hepC';
-import HEPATITISBPROFILE from '../LabTestForms/hepatitisBprofile.jsx';
-import BloodGroup from '../LabTestForms/bloodgroup';
-import ESR from '../LabTestForms/esr';
-import HbA1c from '../LabTestForms/HbA1c';
-import Pregnancy from '../LabTestForms/pregnancy';
-import Malaria from '../LabTestForms/malaria';
-import BetaHcg from '../LabTestForms/BetaHcg';
-import RandomBloodSugar from '../LabTestForms/randomsugar';
-import FastingSugar from '../LabTestForms/fastingSugar';
-import HemoglobinElectrophoresisForm from '../LabTestForms/HeamoglobinElectophoresis';
-import StoolAnalysis from '../LabTestForms/stoolAnalysis';
-import BleedingNClotting from '../LabTestForms/bleedingnclotting';
-import SemenAnalysis from '../LabTestForms/SemenAnalysis';
-import Helicobacter_Pylori from '../LabTestForms/helicobacter_pylori';
-import UseSingleHormoneHook from '../LabTestForms/useSingleHormoneHook';
 import PatientTrendModalJsx from './PatientTrendModalJsx/PatientTrendModal.jsx';
-import Syphilis from '../LabTestForms/syphilis.jsx';
-import UseChemistryTestHook from '../LabTestForms/useChemistryTestHook.jsx';
+import { getTestComponent } from '../LabTestForms/ComponentsTestFormsList.js';
 
 export default function DisplayTest() {
   const { operationsKey, updateOperations } = useContext(OperationsContext);
   const [showtrend, setshowtrend] = useState(false);
   const closeTrend = () => { setshowtrend(false) }
 
-  const componentsList = {
-    aids: <AIDS clientdata={operationsKey} />,
-    liver_function_test: <UseChemistryTestHook clientdata={operationsKey}  testname={'Liver function test'}/>,
-    renal_function_test: <UseChemistryTestHook clientdata={operationsKey} testname={'Renal function test'} />,
-    hepatitis_b: <HepatitisB clientdata={operationsKey} />,
-    syphilis: <Syphilis clientdata={operationsKey} />,
-    widal: <Widal clientdata={operationsKey} />,
-    gpd: <G6PD clientdata={operationsKey} />,
-    cardiac_enzymes: <UseChemistryTestHook clientdata={operationsKey} testname={'Cardiac enzymes'} />,
-    urinalysis: <Urinalysis clientdata={operationsKey} />,
-    hepatitis_b_profile: <HEPATITISBPROFILE clientdata={operationsKey} />,
-    hepatitis_b: <HepatitisB clientdata={operationsKey} />,
-    hepatitis_c: <HepatitisC clientdata={operationsKey} />,
-    blood_grouping: <BloodGroup clientdata={operationsKey} />,
-    estimated_sedimentation_rate_: <ESR clientdata={operationsKey} />,
-    lipid_profile: <UseChemistryTestHook clientdata={operationsKey} testname={'Lipid profile'} />,
-    glycated_heamoglobin: <HbA1c clientdata={operationsKey} />,
-    pregnancy_test: <Pregnancy clientdata={operationsKey} />,
-    malaria: <Malaria clientdata={operationsKey} />,
-    thyroid_functional_test: <UseChemistryTestHook clientdata={operationsKey} testname={'Thyroid functional test'} />,
-    betahcg: <BetaHcg clientdata={operationsKey} />,
-    random_blood_sugar: <RandomBloodSugar clientdata={operationsKey} type={'random blood sugar'} />,
-    fasting_blood_sugar: <FastingSugar clientdata={operationsKey} type={'fasting blood sugar'} />,
-    full_blood_count: <UseChemistryTestHook clientdata={operationsKey} testname={'Full blood count'} />,
-    haemoglobin_electrophoresis: <HemoglobinElectrophoresisForm clientdata={operationsKey} />,
-    stool_analysis: <StoolAnalysis clientdata={operationsKey} />,
-    clotting_and_bleeding_time: <BleedingNClotting clientdata={operationsKey} />,
-    semen_analysis: <SemenAnalysis clientdata={operationsKey} />,
-    follicle_stimulating_hormone: <UseChemistryTestHook clientdata={operationsKey} testname={'Follicle stimulating Hormone'}/>,
-    luteinizing_hormone: <UseChemistryTestHook clientdata={operationsKey} testname={'Luteinizing Hormone'} />,
-    helicobacter_pylori: <Helicobacter_Pylori clientdata={operationsKey} />,
-    prostate_specific_antigen_test: <UseSingleHormoneHook
-      clientdata={operationsKey} testHeader={'prostate specific antigen test(PSA)'} testname={'PSA'} />
-  }
+  let Component = operationsKey?.test ? getTestComponent(operationsKey?.test.toLowerCase()) : <h1>Null</h1>
+
+
 
   return (
     <>
@@ -80,12 +27,12 @@ export default function DisplayTest() {
           </button>
           {showtrend && ( <PatientTrendModalJsx show={showtrend} hide={closeTrend} data={operationsKey} />)}
         </div>)}
-        {operationsKey?.display ? componentsList[(operationsKey.test).toLowerCase()] :
+        {operationsKey?.display ? <Component clientdata={operationsKey} /> :
           <>
         <div className='d-flex justify-content-center m-4 '>
           <div>
                 <div className='d-flex justify-content-center'>
-                <svg width="256px" height="256px" viewBox="-102.4 -102.4 1228.80 1228.80" className="icon" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" strokeWidth="204.8"><path d="M227.7 180.4h455.2v22.8H227.7z" fill="#446EB1"></path><path d="M666 196.6l17-16.2 136.4 159.4-17 16.2L666 196.6zM227.7 203.2h22.8V795h-22.8z" fill="#446EB1"></path><path d="M250.5 203.2v594.7h546.2V363.3H660.2V203.2H250.5z" fill="#E1F0FF"></path><path d="M796.7 339.7h22.8v455.2h-22.8zM227.7 794.9h591.8v22.8H227.7z" fill="#446EB1"></path><path d="M500.8 430.8h204.8v22.8H500.8zM341.5 521.8h364.2v22.8H341.5zM341.5 612.9h364.2v22.8H341.5zM341.5 703.9h364.2v22.8H341.5z" fill="#6D9EE8"></path><path d="M660.2 203.2H683v159.3h-22.8z" fill="#446EB1"></path><path d="M682.9 339.7h113.8v22.8H682.9zM442.3 277.3h15.3L440 347.7l-22.8-99h-36.6l-26.5 99-19.9-99H296L334.8 408h37.4l26.2-94.2 23.4 94.2h34.5l44.5-159.3h-58.6v28.6h0.1z" fill="#446EB1"></path></g><g id="SVGRepo_iconCarrier"><path d="M227.7 180.4h455.2v22.8H227.7z" fill="#446EB1"></path><path d="M666 196.6l17-16.2 136.4 159.4-17 16.2L666 196.6zM227.7 203.2h22.8V795h-22.8z" fill="#446EB1"></path><path d="M250.5 203.2v594.7h546.2V363.3H660.2V203.2H250.5z" fill="#E1F0FF"></path><path d="M796.7 339.7h22.8v455.2h-22.8zM227.7 794.9h591.8v22.8H227.7z" fill="#446EB1"></path><path d="M500.8 430.8h204.8v22.8H500.8zM341.5 521.8h364.2v22.8H341.5zM341.5 612.9h364.2v22.8H341.5zM341.5 703.9h364.2v22.8H341.5z" fill="#6D9EE8"></path><path d="M660.2 203.2H683v159.3h-22.8z" fill="#446EB1"></path><path d="M682.9 339.7h113.8v22.8H682.9zM442.3 277.3h15.3L440 347.7l-22.8-99h-36.6l-26.5 99-19.9-99H296L334.8 408h37.4l26.2-94.2 23.4 94.2h34.5l44.5-159.3h-58.6v28.6h0.1z" fill="#446EB1"></path></g></svg>
+                <svg width="256px" height="256px" viewBox="-102.4 -102.4 1228.80 1228.80" className="icon" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" strokeLinejoin="round" stroke="#CCCCCC" strokeWidth="204.8"><path d="M227.7 180.4h455.2v22.8H227.7z" fill="#446EB1"></path><path d="M666 196.6l17-16.2 136.4 159.4-17 16.2L666 196.6zM227.7 203.2h22.8V795h-22.8z" fill="#446EB1"></path><path d="M250.5 203.2v594.7h546.2V363.3H660.2V203.2H250.5z" fill="#E1F0FF"></path><path d="M796.7 339.7h22.8v455.2h-22.8zM227.7 794.9h591.8v22.8H227.7z" fill="#446EB1"></path><path d="M500.8 430.8h204.8v22.8H500.8zM341.5 521.8h364.2v22.8H341.5zM341.5 612.9h364.2v22.8H341.5zM341.5 703.9h364.2v22.8H341.5z" fill="#6D9EE8"></path><path d="M660.2 203.2H683v159.3h-22.8z" fill="#446EB1"></path><path d="M682.9 339.7h113.8v22.8H682.9zM442.3 277.3h15.3L440 347.7l-22.8-99h-36.6l-26.5 99-19.9-99H296L334.8 408h37.4l26.2-94.2 23.4 94.2h34.5l44.5-159.3h-58.6v28.6h0.1z" fill="#446EB1"></path></g><g id="SVGRepo_iconCarrier"><path d="M227.7 180.4h455.2v22.8H227.7z" fill="#446EB1"></path><path d="M666 196.6l17-16.2 136.4 159.4-17 16.2L666 196.6zM227.7 203.2h22.8V795h-22.8z" fill="#446EB1"></path><path d="M250.5 203.2v594.7h546.2V363.3H660.2V203.2H250.5z" fill="#E1F0FF"></path><path d="M796.7 339.7h22.8v455.2h-22.8zM227.7 794.9h591.8v22.8H227.7z" fill="#446EB1"></path><path d="M500.8 430.8h204.8v22.8H500.8zM341.5 521.8h364.2v22.8H341.5zM341.5 612.9h364.2v22.8H341.5zM341.5 703.9h364.2v22.8H341.5z" fill="#6D9EE8"></path><path d="M660.2 203.2H683v159.3h-22.8z" fill="#446EB1"></path><path d="M682.9 339.7h113.8v22.8H682.9zM442.3 277.3h15.3L440 347.7l-22.8-99h-36.6l-26.5 99-19.9-99H296L334.8 408h37.4l26.2-94.2 23.4 94.2h34.5l44.5-159.3h-58.6v28.6h0.1z" fill="#446EB1"></path></g></svg>
             </div>
                 <h4 className='lims-text text-capitalize mt-2 alert alert-info'>select a test to continue </h4>
               </div>

@@ -8,7 +8,7 @@ export default function Authorization() {
         <div className='d-flex justify-content-center'>
           <Dangerous color='error' sx={{ height: '100px', width: '100px' }} />
         </div>
-        <h1 className='text-danger'>Please you do not have the Authorization to view this page</h1>
+        <h1 className='text-danger'>Access Denied!!!!</h1>
       </div>
     </div>
   )

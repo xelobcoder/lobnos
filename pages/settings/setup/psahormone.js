@@ -8,15 +8,6 @@ export default function PSAHormoneSetup() {
     value: '',
     upper: '',
     lower: '',
-    gender: 'male',
-  },
-  {
-    parameter: 'PSA',
-    unit: 'U/L',
-    value: '',
-    upper: '',
-    lower: '',
-    gender: 'female'
   }
   ]
   return (
@@ -24,9 +15,7 @@ export default function PSAHormoneSetup() {
       <CHEMISTRY_LAYOUT_SETUP>
         <PARAMETER_DISPLAY_COMPONENT
           parameterdata={defaultParameters}
-          category="PSAHORMONE"
-          createTarget={"psa"}
-          testname={"PROSTATE SPECIFIC ANTIGEN TEST"}
+          testname={'prostate_specific_antigen_test'}
         />
       </CHEMISTRY_LAYOUT_SETUP>
     </>
