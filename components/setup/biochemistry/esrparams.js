@@ -2,26 +2,26 @@ const data = [
   {
     agelimit: "under 50 years",
     gender: "male",
-    lower: 0,
-    upper: 20,
+    lower: 50,
+    upper: 200,
   },
   {
     agelimit: "over 50 years",
     gender: "male",
-    lower: 0,
-    upper: 20,
+    lower: 50,
+    upper: 200,
   },
   {
     agelimit: "under 50 years",
     gender: "female",
-    lower: 0,
-    upper: 20,
+    lower: 50,
+    upper: 200,
   },
   {
     agelimit: "over 50 years",
     gender: "female",
-    lower: 0,
-    upper: 20,
+    lower: 50,
+    upper: 200,
   },
 ];
 
