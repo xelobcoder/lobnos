@@ -116,3 +116,24 @@ export const handleDeleteParams = async (ev, item, toast, testname, updateData) 
   }
 
 }
+
+
+export const drugs = [
+  { drug: 'Fluconazole' },
+  { drug: 'Vancomycin' },
+  { drug: 'Ceftriaxone' },
+  { drug: 'Gentamicin' },
+  { drug: 'Meropenem' },
+  { drug: 'Doxycycline' },
+  { drug: 'Clindamycin' },
+  { drug: 'Trimethoprim-sulfamethoxazole' },
+  { drug: 'Ciprofloxacin' },
+  { drug: 'Amphotericin B' }
+];
+
+
+
+export const glucoseParams = [
+  { upper: 10, lower: 4, parameter: "random blood sugar", unit: "mg/dl" },
+  { upper: 10, lower: 4, parameter: "fasting blood sugar", unit: "mg/dl" },
+]

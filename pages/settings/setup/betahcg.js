@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import CHEMISTRY_LAYOUT_SETUP from "../../../components/setup/biochemistry/Layout";
 import betahcgparameter from "../../../components/setup/biochemistry/betahcgparameter";
 import { Button } from "@mui/material";
@@ -77,28 +77,31 @@ export default function BetaHcg() {
     <>
       <CHEMISTRY_LAYOUT_SETUP>
         <div className="my-2 mx-2">
-          <div className="d-flex gap-2 justify-content-between mb-2">
-            <div>
-              <input
-                className="custom-input"
-                type="text"
-                placeholder="enter unit here"
-                onChange={(e) => updateUnit(e)}
-              />
-            </div>
-            <div className="d-flex gap-1">
-              <button className="btn btn-primary btn-sm"
-                onClick={() => setDataModification(betahcgparameter)}
-                sx={{ marginRight: "20px" }}
-              >
-                default values
-              </button>
-              <button className="btn btn-primary btn-sm" onClick={getCustomValues}>
-                custom values
-              </button>
-            </div>
-          </div>
-          <table className="billing-cart-table">
+        <div className="card">
+            <div className="card-header d-flex justify-content-between">
+            <h4>Beta Hcg</h4>
+              <div>
+                  <input
+                    className="custom-input"
+                    type="text"
+                    placeholder="enter unit here"
+                    onChange={(e) => updateUnit(e)}
+                  />
+                </div>
+                <div className="d-flex gap-1">
+                  <button className="btn btn-primary btn-sm"
+                    onClick={() => setDataModification(betahcgparameter)}
+                    sx={{ marginRight: "20px" }}
+                  >
+                    default values
+                  </button>
+                  <button className="btn btn-primary btn-sm" onClick={getCustomValues}>
+                    custom values
+                  </button>
+                </div>
+              </div>
+              <div className="card-body">
+                <table className="billing-cart-table">
             <thead>
               <tr>
                 <th>weeks</th>
@@ -131,8 +134,8 @@ export default function BetaHcg() {
                 );
               })}
             </tbody>
-          </table>
-          <div
+                </table>
+                <div
             className="fbc_header mt-2"
             style={{ display: "flex", justifyContent: "right" }}
           >
@@ -140,6 +143,8 @@ export default function BetaHcg() {
               save changes
             </Button>
           </div>
+              </div>
+           </div>
         </div>
       </CHEMISTRY_LAYOUT_SETUP>
     </>

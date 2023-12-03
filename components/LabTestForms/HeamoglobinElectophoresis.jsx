@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button } from '@mui/material';
+import {  Button } from '@mui/material';
 import CommentSection from './commentSection';
 import Indicator from '../accessories/Reports/indicator';
 import { Send, SendTimeExtension } from '@mui/icons-material';
 import electrophoresisParams from '../setup/biochemistry/electrophoresisParams';
 import { CheckResultEntered, customFetch } from '../Auth/customFetch';
-import { getRecords } from '../setup/connector';
+
 const HemoglobinElectrophoresisForm = ({ clientdata }) => {
   // destuture thr billingid ,testname ,patirntid and testid from the clientdata object
   const { billingid, testname, testid, patientid } = clientdata;

@@ -1,15 +1,34 @@
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import CHEMISTRY_LAYOUT_SETUP from "../../../components/setup/biochemistry/Layout";
-// import MARKDOWN_EDITOR from "../../../components/accessories/markdownEditor";
+import { serverCall, drugs, getSetupRecords } from "../../../components/setup/connector";
+import { ToastContainer, toast } from "react-toastify";
+const MARKDOWN_EDITOR = dynamic(() => import('../../../components/accessories/markdownEditor'), { ssr: false });
+
 export default function BloodCultureAndSensitivity() {
   const [setup, setSetup] = useState([]);
   const [drug, setDrug] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [literature, setLiterature] = useState('');
+  const [useDefault, setUsingDefault] = useState(false);
   
-
-
   const removeDrug = async function (item, index) { setSetup(setup.filter((e, i) => { return i != index })) };
+
+
+  const saveChanges = async function (event) { 
+    serverCall(event, setup, literature, 'bloodCulture', toast,setLiterature);
+  }
+
+
+  useEffect(() => {
+    getSetupRecords('bloodCulture', setSetup, drugs, setLoading, setUsingDefault,setLiterature);
+  },[])
+
+
+  const updateLiterature = (event, data) => { setLiterature(data) }
   return (
     <CHEMISTRY_LAYOUT_SETUP>
+      <ToastContainer/>
       <div className="mx-3 my-2">
         <div className="card">
           <div className="card-header">
@@ -31,7 +50,8 @@ export default function BloodCultureAndSensitivity() {
                 <button
                   className="btn btn-primary mx-3"
                   onClick={(ev) => {
-                    setSetup([...setup, { drug }]); setDrug('')
+                    const data = setup.filter((item) => { return item.drug == drug })
+                    data.length === 0 ? setSetup([...setup, { drug }]) : null;
                   }}>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -62,7 +82,7 @@ export default function BloodCultureAndSensitivity() {
                         <td>{item?.drug}</td>
                         <td>
                           <button type="button" className="btn btn-danger btn-sm" onClick={(ev) => {removeDrug(item,index)}}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-x-lg" viewBox="0 0 16 16">
                               <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
                             </svg>
                           </button>
@@ -73,6 +93,12 @@ export default function BloodCultureAndSensitivity() {
               </tbody>
             </table>
             <h4>Literature Review</h4>
+            <MARKDOWN_EDITOR initialData={literature} updatedata={updateLiterature} />
+            <div className="d-flex justify-content-end">
+                <button className="btn btn-primary btn-sm my-3" onClick={(ev) => {saveChanges(ev)}}>
+                  save changes
+                </button>
+            </div>
           </div>
         </div>
       </div>

@@ -77,7 +77,7 @@ export default function CREATE_PARAMETER() {
         <ToastContainer/>
         <div className="card mx-3 my-3">
           <div className="card-header bg-secondary text-white">
-            <h4 className="card-title text-capitalize">Create Parameter for  {target.split("_").join(" ") || ''}</h4>
+            <h4 className="card-title text-capitalize">Create Parameter for  {target || ''}</h4>
           </div>
           <div className="card-body" >
           <form className="form-row d-flex gap-2 justify-content-between" >

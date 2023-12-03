@@ -12,6 +12,11 @@ export default function TestSidebar() {
               </Link>
             </li>
             <li>
+              <Link href='/settings/setup/randombloodglucose'>
+                random blood sugar
+              </Link>
+            </li>
+            <li>
               <Link href='/settings/setup/renalfunctiontest'>
                 renal function test
               </Link>
