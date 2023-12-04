@@ -169,7 +169,8 @@ label {
   outline: 1px solid #00224f;
 }
 body {
-  background-color: white;
+  background-color: #efefef3f !important;
+  /* background-image: linear-gradient(-225deg,#f3f0ff,#e3fafc) !important; */
 }
 .grid-2 {
   display: -ms-grid;
@@ -989,11 +990,13 @@ option:hover {
   width: 100%;
   color: #00224f;
 }
-
+.h-40 {
+  height: 40px !important;
+}
 .custom-input:focus,
 .customs-select:focus {
   outline: none;
-  border: 1px solid #00224f;
+  border: 2px solid lightseagreen;
   box-shadow: none !important;
 }
 
@@ -1219,28 +1222,40 @@ option:hover {
 }
 
 .table {
+  table-layout: fixed;
   width: 100%;
-  background-color: #ffffff;
-  border-radius: 0.25rem;
-  margin-top: 10px;
+  margin-top: 15px;
+  position: relative;
+  border-collapse: collapse;
+  background-color: white;
+}
+
+.table > thead {
+  display: table-header-group;
+  vertical-align: middle;
+  border-color: inherit;
+}
+
+.table > thead > tr {
+  border-bottom: 1px solid #e9ecef;
+  background-color:whitesmoke;
+  display: table-row;
+    vertical-align: inherit;
+    border-color: inherit;
 }
 .modal-color{
   background-color: #e9ecef
 }
 .table > thead > tr > th {
-  color: white;
-  font-weight: bold;
-  font-size: 13px;
-  text-transform: uppercase;
-  -webkit-font-smoothing: antialiased;
+  height: 36px;
+  text-align: left;
+  font-weight: 400;
+  position: -webkit-sticky;
   position: sticky;
-  top: -1px;
-  z-index: 1;
-  background-color: #00224f;
-  background-clip: padding-box;
-  border-top: 1px solid #fff;
-  border-bottom: 1px solid #fff;
-  cursor: pointer;
+  top: 0;
+  z-index: 10;
+  /* background-color: #f8f9fa; */
+  border-bottom: 1px solid #dee2e6;
 }
 
 .table > thead > tr > th::after {
@@ -1645,6 +1660,8 @@ option:hover {
 
 .operations-wrapper > aside {
   padding: 0px;
+  height: 100vh;
+  overflow-y: auto;
   margin: 0;
   border-right: 1px solid lightgray;
   opacity: 0.9;
@@ -1871,10 +1888,13 @@ option:hover {
 input[type='email'] {
   text-transform: lowercase !important;
 }
-input:focus:invalid:required,
-input[type='email']:focus:invalid,
-input[type='email']:focus:invalid:required {
+
+input[type='email']:focus:invalid {
   border: 3px solid red;
+}
+
+input:focus{
+  border : 1px solid lightskyblue;
 }
 
 input[type='email']:focus:invalid .company-view-result > .wrapper {

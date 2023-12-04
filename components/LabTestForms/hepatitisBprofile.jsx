@@ -1,14 +1,17 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Autocomplete, TextField} from "@mui/material";
 import CommentSection from "./commentSection";
-import { handleComments, validateFormData,CheckResultEntered } from "../Auth/customFetch";
+import { handleComments, validateFormData,CheckResultEntered, getHematologicalResultEntered } from "../Auth/customFetch";
 import Indicator from "../accessories/Reports/indicator";
+import ISLOADING from "../isLoading";
 
-function HEPATITISBPROFILE({ clientdata }) {
+function HEPATITISBPROFILE({ clientdata,employeeid }) {
+  const { billingid, test, testid, patientid } = clientdata;
   const options = ['reactive', 'non reactive'];
+  const [loading, setLoading] = useState(true);
   const [resultEntered, setResultEntered] = useState(false)
   const [results, setResults] = useState({
-    HBsAg: 'reactive',
+    HBsAg: '',
     HBsAb: '',
     HBeAg: '',
     HBeAb: '',
@@ -16,32 +19,23 @@ function HEPATITISBPROFILE({ clientdata }) {
     comments: '',
   });
 
+  const getPreviousResult = useCallback(async function () {
+    getHematologicalResultEntered(billingid, test, setLoading, setResults, setResultEntered);
+  },[billingid, test])
+
+
 
   //  check if result have een previously entered or not and flagged the indicator
   useEffect(() => {
-    async function check() {
-      const response = await CheckResultEntered(clientdata.test, clientdata.billingid);
-      const {result, statusCode, records} = response;
-      // result true means result entered
-      if (result ) {
-        setResultEntered(true);
-        const {HBsAg,HBsAb,HBeAg,HBeAb, HBcAb,COMMENTS} = records[0];
-        setResults({HBsAg,HBsAb,HBeAg,HBeAb, HBcAb,comments: COMMENTS})
-      }
-    }
-    check()
+    getPreviousResult();
   }, [])
+
+  console.log(results)
 
 
   const handleResult = async function () {
     await validateFormData(
-      {
-        ...results,
-        testname: clientdata.test,
-        patientid: clientdata.patientid,
-        testid: clientdata.testid,
-        billingid: clientdata.billingid,
-      },
+      { ...results,testname: test,patientid,testid,billingid,employeeid},
       true,
       [],
       'test/result/enter',
@@ -61,7 +55,10 @@ function HEPATITISBPROFILE({ clientdata }) {
             <Indicator resultEntered={resultEntered} />
           </div>
           <div className="card-body">
-            <table className="billing-cart-table">
+            {loading && <ISLOADING />}
+            {!loading && (
+              <>
+               <table className="billing-cart-table">
               <thead>
                 <tr>
                   <th>Description</th>
@@ -161,9 +158,11 @@ function HEPATITISBPROFILE({ clientdata }) {
                 target={"comments"}
               />
             </div>
-            <button className="btn btn-primary btn-sm mx-1" onClick={handleResult}>
-              Save
+            <button className="btn btn-primary btn-sm mx-1 my-3" onClick={handleResult}>
+              Save result
             </button>
+              </>
+            )}
           </div>
         </div>
       </div>

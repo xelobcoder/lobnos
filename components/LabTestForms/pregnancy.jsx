@@ -5,14 +5,13 @@ import { getHematologicalResultEntered, handleComments, validateFormData } from 
 import ISLOADING from '../isLoading';
 import { toast,ToastContainer } from 'react-toastify';
 
-export default function Pregnancy({ clientdata }) {
+export default function Pregnancy({ clientdata,employeeid}) {
   const {billingid,test,testid,patientid} =clientdata
   const [resultEntered, setResultsEntered] = useState(false)
   const [loading, setLoading] = useState(true);
   const option = ['positive', 'negative'];
   const method = ['Urine', 'Blood'];
   const [result, setResults] = useState({value: '',method: '',comments: '' })
-
 
   // this handles Results of the test form
 
@@ -27,8 +26,7 @@ export default function Pregnancy({ clientdata }) {
         toast.error(message, { autoClose: 500 })
       }
     }
-    const data = { ...result, testname: test, billingid, patientid, testid }
-    console.log(data)
+    const data = { ...result, testname: test, billingid, patientid, testid,employeeid }
     await validateFormData(data,true,[],'test/result/enter', handleResponse)
   }
 
@@ -40,10 +38,6 @@ export default function Pregnancy({ clientdata }) {
   useEffect(() => {
     getPreviousResult();
   }, [getPreviousResult])
-
-  console.log(result)
-
-
 
 
   return (
@@ -66,7 +60,6 @@ export default function Pregnancy({ clientdata }) {
                   {method.map((value, index) => <option key={index} value={value}>{value}</option>)}
                 </select>
                 </div>
-                
           <div className="list-group-item">
                 <label className="col-sm-2 col-form-label">Reaction</label>
                 <select className="custom-select" aria-label="Default select example" value={result.value} onChange={(e) => setResults({ ...result, value: e.target.value })}>
