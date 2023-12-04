@@ -4,8 +4,7 @@ const data = [
     options:['','Brown', 'Yellow', 'pale Yellow', 'Greenish Yellow', 'Dark Yellow'],
     label: 'color',
     value:'',
-    category: 'Physical Examination',
-    
+    category: 'Physical Examination',   
   },
   {
     name: 'consistency',

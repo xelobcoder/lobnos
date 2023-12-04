@@ -1,73 +1,54 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import Indicator from '../accessories/Reports/indicator'
-import { Autocomplete, TextField, Button } from '@mui/material';
 import CommentSection from './commentSection';
-import { CheckResultEntered, handleComments, validateFormData } from '../Auth/customFetch';
+import { getHematologicalResultEntered, handleComments, validateFormData } from '../Auth/customFetch';
+import ISLOADING from '../isLoading';
+import { toast,ToastContainer } from 'react-toastify';
 
 export default function Pregnancy({ clientdata }) {
+  const {billingid,test,testid,patientid} =clientdata
   const [resultEntered, setResultsEntered] = useState(false)
+  const [loading, setLoading] = useState(true);
   const option = ['positive', 'negative'];
   const method = ['Urine', 'Blood'];
-  const [result, setResults] = useState({
-    reaction: '',
-    method: '',
-    comments: ''
-  })
+  const [result, setResults] = useState({value: '',method: '',comments: '' })
 
 
   // this handles Results of the test form
 
   const handleResult = async function () {
-    await validateFormData({
-      ...result,
-      billingid: clientdata.billingid,
-      testname: clientdata.test,
-      patientid: clientdata.patientid,
-      testid: clientdata.testid
-    },
-      true,
-      [],
-      'test/result/enter'
-      ,
-      function (response) {
-        const { statusCode, status, message } = response;
-
-        if (statusCode == 200 && status == 'success') {
-          alert(message);
-          setResultsEntered(true);
-        }
-        else {
-          alert(message)
-        }
-      })
-  }
-
-  useEffect(() => {
-    const { billingid } = clientdata;
-    async function getInputedData() {
-      let response = await CheckResultEntered('pregnancy_test', billingid)
-      const { statusCode, records, result } = response;
-      if (statusCode === 200 && result == true) {
-        // map and filter records
-        setResultsEntered(true)
-        setResults({
-          method: records[0]['METHOD'],
-          reaction: records[0]['VALUE'],
-          comments: records[0]['COMMENTS']
-        })
-
+    const handleResponse = async function (response) {
+      const { statusCode, status, message } = response;
+      if (statusCode == 200 && status == 'success') {
+        toast.success(message, { autoClose: 500 })
+        setResultsEntered(true);
+      }
+      else {
+        toast.error(message, { autoClose: 500 })
       }
     }
+    const data = { ...result, testname: test, billingid, patientid, testid }
+    console.log(data)
+    await validateFormData(data,true,[],'test/result/enter', handleResponse)
+  }
 
-    getInputedData()
-  }, [resultEntered])
 
+  const getPreviousResult = useCallback( async function () {
+    getHematologicalResultEntered(billingid, test, setLoading, setResults, setResultsEntered);
+  },[billingid, test])
+
+  useEffect(() => {
+    getPreviousResult();
+  }, [getPreviousResult])
+
+  console.log(result)
 
 
 
 
   return (
     <>
+      <ToastContainer/>
       <div className="mx-3">
         <div className="card">
           <div className="card-header">
@@ -75,32 +56,40 @@ export default function Pregnancy({ clientdata }) {
             <Indicator resultEntered={resultEntered} />
           </div>
           <div className="card-body">
-            <form>
-              <div className="form-row">
+            {loading && <ISLOADING />}
+            {!loading && (
+              <div className='list-group'>
+                <div className="list-group-item">
                 <label className="col-sm-2 col-form-label">Method</label>
-                <select className="custom-select col-sm-4" aria-label="Default select example" value={result.method} onChange={(e) => setResults({ ...result, method: e.target.value })}>
+                <select className="custom-select" aria-label="Default select example" value={result.method} onChange={(e) => setResults({ ...result, method: e.target.value })}>
                   <option value="">Select Method</option>
                   {method.map((value, index) => <option key={index} value={value}>{value}</option>)}
                 </select>
-              </div>
-              <div className="form-row">
+                </div>
+                
+          <div className="list-group-item">
                 <label className="col-sm-2 col-form-label">Reaction</label>
-                <select className="custom-select col-sm-4" aria-label="Default select example" value={result.reaction} onChange={(e) => setResults({ ...result, reaction: e.target.value })}>
+                <select className="custom-select" aria-label="Default select example" value={result.value} onChange={(e) => setResults({ ...result, value: e.target.value })}>
                   <option value="">Select Reaction</option>
                   {option.map((value, index) => <option key={index} value={value}>{value}</option>)}
                 </select>
               </div>
-              <CommentSection
+                <div className='list-group-item'>
+                <CommentSection
                 getcomment={handleComments}
                 datafunction={setResults}
                 target={"comments"}
                 value={result.comments}
                 datasource={result}
               />
-              <button type='button' onClick={(e) => handleResult(e)} className='btn btn-primary btn-sm' sx={{ mt: 2 }}>
+              </div>
+                <div className='list-group-item'>
+                <button type='button' onClick={(e) => handleResult(e)} className='btn btn-primary btn-sm' sx={{ mt: 2 }}>
                 save results
               </button >
-            </form>
+                  </div>
+                </div>
+            )}
           </div>
         </div>
       </div>

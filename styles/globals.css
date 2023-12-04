@@ -169,7 +169,7 @@ label {
   outline: 1px solid #00224f;
 }
 body {
-  background-color: whitesmoke;
+  background-color: white;
 }
 .grid-2 {
   display: -ms-grid;

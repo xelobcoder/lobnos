@@ -1,35 +1,38 @@
 import { useEffect, useState } from "react";
 import CommentSection from "./commentSection";
 import Indicator from "../accessories/Reports/indicator";
-import { CheckResultEntered, Glucoseoptions, getHematologicalResultEntered, handleComments, validateFormData } from "../Auth/customFetch";
+import {  Glucoseoptions, getHematologicalResultEntered, handleComments, validateFormData } from "../Auth/customFetch";
 import ISLOADING from "../isLoading";
+import {ToastContainer,toast} from 'react-toastify';
+
 export default function SugarHook({employeeid, clientdata}) {
   const { billingid, test, testid, patientid } = clientdata;
   const [data, setData] = useState({result: 0,unit: '',comments: "" });
   const [resultEntered, setResultEntered] = useState(false);
   const [loading, setLoading] = useState(true);
-
   const testname = test ? test.split("_").join(" ") : '';
   
   useEffect(() => {
     if (billingid && test) {
-      getHematologicalResultEntered(billingid, test, setLoading, setData, setResultEntered)
+      getHematologicalResultEntered(billingid, test, setLoading, setData, setResultEntered);
     }
-  }, [billingid,test])
-
+  }, [billingid, test]);
 
   const handleResult = async function () {
     const handleCalback = async function (response) {
       const { status, message, statusCode } = response;
       if (status == 'success' && statusCode == 200) {
-        alert(message);
+      toast.success(message,{autoClose:500});
+      } else {
+        toast.error(message,{autoClose:500});
       }
     }
-    const nw = { ...data, testname: 'randombloodsugar', testid, patientid, billingid,employeeid }
-    await validateFormData(nw, true, [], 'test/result/enter', handleCalback)
+    const requestBody = { ...data, testname: test, testid, patientid, billingid,employeeid }
+    await validateFormData(requestBody, true, [], 'test/result/enter', handleCalback)
   }
   return (
     <>
+      <ToastContainer />
       <div className="mx-3">
         <div className="card">
           <div className="card-header">
