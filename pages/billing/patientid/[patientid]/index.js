@@ -174,14 +174,15 @@ export default function Billing({ }) {
       <SettingsLayout sidebar={<SidebarFrontPage />}>
         <ToastContainer />
         <div className="mx-2 grid-50-responsive" >
-          <div id='panel-selection' className="mx-3 my-2  d-flex justify-content-between align-content-center">
+          <div id='panel-selection' className="mx-3 my-2   d-flex justify-content-between align-content-center">
             <AutoCompleteObject options={panelsOptions} />
             <div>
               <button
-                className="mx-2 btn btn-primary"
+                className="my-0 mx-2 btn btn-primary rounded"
                 disabled={selected == null ? true : false}
                 onClick={(ev) => {
                   billingClass.addToCart(selectedPanel);
+                  setPanelInputValue('');
                 }}
                 style={{ borderRadius: 0 }}
               >
@@ -261,13 +262,13 @@ export default function Billing({ }) {
                             <span>value</span>
                           </li>
                           {billingdata.taxes.map((item, index) => {
-                            return <li key={index} className="grid-50 text-sm p-2 border-bottom p-1">
+                            return <li key={index} className="grid-50 fw-bolder text-sm p-2 border-bottom p-1">
                               <span>{item.name}</span>
                               <span>{item.value}</span>
                             </li>
                           }
                           )}
-                          <li className="grid-50 p-2 text-dark border-bottom border-top text-capitalize">
+                          <li className="grid-50 p-2 text-dark  border-bottom border-top text-capitalize">
                             <span>Total tax:</span>
                             <span>{billingClass.totalTaxValue(billingdata.taxes)}</span>
                           </li>

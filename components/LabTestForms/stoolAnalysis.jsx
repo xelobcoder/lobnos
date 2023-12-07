@@ -4,8 +4,8 @@ import data from './stoolAnalaysisData'
 import CommentSection from './commentSection'
 import { ToastContainer,toast } from 'react-toastify'
 import Indicator from '../accessories/Reports/indicator'
-import ISLOADING from '../isLoading'
-import {validateFormData,handleResponse, handleComments, customFetch, CheckResultEntered } from '../Auth/customFetch'
+import ISLOADING from '../isLoading';
+import {validateFormData,handleComments,  CheckResultEntered } from '../Auth/customFetch'
 
 export default function StoolAnalysis({ employeeid, clientdata }) {
   const {billingid,testid,test,patientid} = clientdata;
@@ -67,7 +67,17 @@ export default function StoolAnalysis({ employeeid, clientdata }) {
       return { name: item.name, value: item.value }
     })
     const data = { patientid, testid, testname: test, data: structuredResukt, employeeid, billingid, comments: comments.comments };
-    await validateFormData(data,true,[],'test/result/enter',handleResponse)
+
+    const handleFormChange = async function (response) {
+      const { statusCode, status, message } = response;
+        if (status === "success" && statusCode === 200) {
+            setResultEntered(true);
+            toast.success(message, { autoClose: 450 });
+        } else {
+            toast.error(message, { autoClose: 450 });
+        }
+    }
+    await validateFormData(data,true,[],'test/result/enter',handleFormChange)
   }
 
   return (

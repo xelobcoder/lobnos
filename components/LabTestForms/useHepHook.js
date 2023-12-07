@@ -1,101 +1,80 @@
-import { Autocomplete, TextField, Button } from "@mui/material";
-import React, { useState, useMemo } from "react";
+import  { useState, useEffect, useCallback } from "react";
 import CommentSection from "./commentSection";
 import Indicator from "../accessories/Reports/indicator";
-import { customFetch, CheckResultEntered, customPost, handleComments, validateFormData, handleResponse } from "../Auth/customFetch";
+import {handleComments, validateFormData, getHematologicalResultEntered } from "../Auth/customFetch";
+import { ToastContainer, toast } from "react-toastify";
+import ISLOADING from '../isLoading';
 
-export default function UseHepHook({ testname, clientdata, description }) {
-  const { billingid, patientid, testid } = clientdata;
+export default function UseHepHook({clientdata,employeeid}) {
+  const { billingid, patientid, testid,test } = clientdata;
   // state for handling if result was previously entered
   const [resultEntered, setResultEntered] = useState(false);
-  // select options
-  const option = ['', 'reactive', 'non reactive'];
-  // results of  test here 
-  const [result, setResults] = useState({
-    result: '',
-    remarks: ''
-  });
-  // handle results
+  const [loading,setLoading] = useState(true);
+  const option = ['reactive', 'non reactive'];
+  const [result, setResults] = useState({results: '',comments: ''});
 
 
   const handleTestResult = async (e) => {
-    const formdata = {
-      ...result,
-      billingid,
-      patientid,
-      testid,
-      testname,
-      scientistid: 2
-    }
-    await validateFormData(formdata, true, [], 'test/result/enter', handleResponse,setResultEntered(true))
-  }
-
-  // THIS CHECKS IF A RESULT WAS PREVIOUSLY ENTERED AND UPDATES THE STATE
-  // IF RESULT WAS PREVIOUSLY ENTERED, THE RESULT IS DISPLAYED IN THE AUTOCOMPLETE
-
-  useMemo(() => {
-    const check = async () => {
-      let customSend = await CheckResultEntered(testname, billingid);
-      const { result, statusCode, records } = customSend;
-      if (statusCode == 200 && result == true) {
-        result == false ? setResultEntered(false) : setResultEntered(true);
-        if (result == true) {
-          setResults(
-            {
-              remarks: records[0]?.REMARKS,
-              result: records[0]?.RESULTS
-            }
-          )
-        }
+    const handleResponse = async (response) => { 
+      console.log(response)
+      const { status, statusCode, message } = response;
+      if (status === 'success' && statusCode === 200) {
+        toast.success(message,{autoClose: 500})
+        setResultEntered(true);
+      } else {
+        toast.error(message,{autoClose: 500})
       }
     }
+    const formdata = { ...result, billingid, patientid, testid, testname:test, employeeid}
+    await validateFormData(formdata, true, [], 'test/result/enter',handleResponse)
+  }
 
-    try { check() } catch (err) { console.log(err) }
-  }, [resultEntered])
+  const getPreviousResult = useCallback(async () => { 
+   getHematologicalResultEntered(billingid,test,setLoading,setResults,setResultEntered)
+  },[billingid,test])
+
+  useEffect(() => {
+    getPreviousResult()
+  }, [getPreviousResult])
 
 
 
   return (
     <>
-      <div className="p-4">
-        <Indicator resultEntered={resultEntered} />
-        <div>
-          <form className="mb-3">
-            <Autocomplete
-              options={option}
-              getOptionLabel={(option) => option}
-              value={result.result}
-              size="small"
-              onChange={(event, newValue) => {
-                setResults({
-                  ...result,
-                  result: newValue,
-                });
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label={description}
-                  variant="outlined"
-                />
-              )}
-            ></Autocomplete>
+      <ToastContainer/>
+      <div className="mx-3">
+        <div className="card">
+          <div className="card-header">
+            <h4 className="text-capitalize">{test.split("_").join(" ")} test</h4>
+            <Indicator resultEntered={resultEntered} />
+          </div>
+          <div className="card-body">
+            {loading && (<ISLOADING />)}
+            {!loading && (
+              <>
+               <form className="mb-3">
+              <select className="form-control" value={result.results} onChange={(e) => setResults({ ...result, results: e.target.value })}>
+              <option >select an option here </option>
+              {option.map((item, index) => (
+                <option key={index} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
           </form>
           <CommentSection
-            value={result.remarks}
-            target={"remarks"}
+            value={result.comments}
+            target={"comments"}
             getcomment={handleComments}
             datasource={result}
             datafunction={setResults}
           />
-          <Button
-            variant="contained"
-            onClick={(e) => handleTestResult(e)}
-            color="primary"
-            sx={{ mt: 2 }}
-          >
+          <button className="btn btn-primary btn-sm my-3 mx-1" onClick={(e) => handleTestResult(e)}>
             {resultEntered ? "update result" : "enter result"}
-          </Button>
+          </button >
+              </>
+            )}
+        </div>
         </div>
       </div>
     </>

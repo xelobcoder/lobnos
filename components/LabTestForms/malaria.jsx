@@ -1,74 +1,51 @@
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import Indicator from '../accessories/Reports/indicator'
 import CommentSection from './commentSection'
-import { CheckResultEntered, handleComments, validateFormData } from '../Auth/customFetch'
-import { Button } from '@mui/material';
+import { CheckResultEntered, handleComments, validateFormData,handleResponse, getHematologicalResultEntered } from '../Auth/customFetch'
+import { toast,ToastContainer } from 'react-toastify'
+import ISLOADING from '../isLoading'
 
-export default function Malaria({ clientdata }) {
+export default function Malaria({ clientdata, employeeid }) {
+  const {billingid, test, testid, patientid} = clientdata;
   const [resultEntered, setResultEntered] = useState(false);
-  const [data, setData] = useState({ number: 0, species: '', comments: '' })
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({ parasitenumber: 0, species: '', comments: '' })
 
   const handleResult = async function () {
-    await validateFormData(
-      {
-        ...data,
-        testname: clientdata.test,
-        testid: clientdata.testid,
-        patientid: clientdata.patientid,
-        billingid: clientdata.billingid
-      },
-      true,
-      [],
-      "test/result/enter",
-      function (response) {
-        const { status, message } = response;
-        if (status == 'success') {
-          setResultEntered(true)
-        }
-        alert(message)
-      }
-    );
+    await validateFormData({ ...data, billingid, testname: test, testid, patientid, employeeid }, true, [], 'test/result/enter', handleResponse);
   }
 
 
-  useEffect(() => {
-    async function check() {
-      const response = await CheckResultEntered(clientdata.test, clientdata.billingid);
-      const { result, message, statusCode, records } = response;
-      if (result == true) {
-        setResultEntered(true);
-        if (records.length != 0) {
-          const number = records[0]['PARASITENUMBER']
-          const species = records[0]['SPECIES'];
-          const comments = records[0]['COMMENTS'];
-          setData({
-            number,
-            species,
-            comments
-          })
-        }
-      }
-    }
-    check()
-  }, [])
+  const getPreviousResult = useCallback(async () => {
+    getHematologicalResultEntered(billingid, test, setLoading, setData, setResultEntered);
+  }, [billingid, test]);
 
+  useEffect(() => {
+    getPreviousResult();
+  }, [getPreviousResult])
+
+  console.log(data);
   return (
     <div className="mx-3">
+      <ToastContainer/>
       <div className="card">
         <div className="card-header modal-color">
           <h4>Malaria test</h4>
           <Indicator resultEntered={resultEntered} />
         </div>
         <div className='card-body'>
-          <div className="form-group">
+          {loading && <ISLOADING />}
+          {!loading && (
+            <>
+            <div className="form-group">
             <label>parasite present </label>
             <input
               type="number"
               className="custom-input"
               placeholder="number of parasite seen"
               required
-              value={data.number}
-              onChange={(e) => setData({ ...data, number: e.target.value })}
+              value={data.parasitenumber}
+              onChange={(e) => setData({ ...data, parasitenumber: e.target.value })}
             />
           </div>
           <div className="form-group mt-2">
@@ -84,6 +61,8 @@ export default function Malaria({ clientdata }) {
           <button  className="mx-1 my-2 btn btn-sm btn-primary" onClick={handleResult}>
             save result
           </button>
+            </>
+          )}
         </div>
       </div>
     </div>

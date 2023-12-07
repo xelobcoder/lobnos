@@ -5,7 +5,7 @@ import { customFetch,validateFormData, handleComments, CheckResultEntered } from
 import ISLOADING from "../isLoading";
 import { ToastContainer,toast } from "react-toastify";
 
-export default function UseChemistryTestHook({ clientdata, testname }) {
+export default function UseChemistryTestHook({ clientdata,employeeid }) {
   const { billingid, test, testid, patientid } = clientdata;
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState([]);
@@ -42,7 +42,7 @@ export default function UseChemistryTestHook({ clientdata, testname }) {
       if (status == 'success' && statusCode == 200 && result.length !== 0 )  {
         setData(records);
       } else {
-        toast.error(message);
+        toast.error(message,{autoClose: 500});
       }
       setLoading(false);
     },
@@ -55,16 +55,17 @@ export default function UseChemistryTestHook({ clientdata, testname }) {
       testid,
       patientid,
       billingid,
+      employeeid,
       records: data,
       comments: comments.comments,
     };
     const handleResponse = (response) => {
       const { status, statusCode, message } = response;
       if (status) {
-        toast.success(message);
+        toast.success(message,{autoClose: 400});
         setResultEntered(true);
       } else {
-        toast.error(message);
+        toast.error(message,{autoClose:400});
       }
     };
     await validateFormData(forwardingData, true, [], "test/result/enter",handleResponse);
@@ -84,14 +85,15 @@ export default function UseChemistryTestHook({ clientdata, testname }) {
       <ToastContainer />
       <div className="mx-3">
         <div className="card m-0 br-5">
-          <div className="card-header modal-color">
-            <h5>{testname}</h5>
+          <div className="card-header modal-color text-capitalize">
+            <h5>{test.split("_").join(" ") || " "} test</h5>
             <Indicator resultEntered={resultEntered} />
           </div>
           <div className="card-body ">
             {loading && <ISLOADING />}
             {!loading && data.length !== 0 && (
-              <table className="m-0 billing-cart-table">
+              <>
+               <table className="m-0 billing-cart-table">
                 <thead>
                   <tr>
                     <th>Parameter</th>
@@ -122,19 +124,20 @@ export default function UseChemistryTestHook({ clientdata, testname }) {
                   ))}
                 </tbody>
               </table>
+               <CommentSection
+               getcomment={handleComments}
+               datasource={comments}
+               datafunction={setComments}
+               target="comments"
+               value={comments.comments}
+             />
+             <button className="btn btn-primary btn-sm mx-1 my-2" onClick={saveResult}>
+               Save Result
+             </button>
+              </>
             )}
           </div>
         </div>
-        <CommentSection
-          getcomment={handleComments}
-          datasource={comments}
-          datafunction={setComments}
-          target="comments"
-          value={comments.comments}
-        />
-        <button className="btn btn-primary btn-sm" onClick={saveResult}>
-          Save Result
-        </button>
       </div>
     </>
   );

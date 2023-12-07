@@ -52,8 +52,8 @@ const componentsList = {
   follicle_stimulating_hormone: UseChemistryTestHook ,
   luteinizing_hormone: UseChemistryTestHook ,
   helicobacter_pylori: Helicobacter_Pylori ,
-  prostate_specific_antigen_test: UseSingleHormoneHook
-    
+  prostate_specific_antigen_test:UseChemistryTestHook,
+  beta_thalassemia: UseChemistryTestHook ,
 }
 
 

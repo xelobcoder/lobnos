@@ -1,9 +1,13 @@
-import { Autocomplete, TextField, Typography, Button } from "@mui/material";
-import { useEffect, useState } from "react";
+import { Autocomplete, TextField} from "@mui/material";
+import { useCallback, useEffect, useState } from "react";
 import Indicator from "../accessories/Reports/indicator";
-import { customFetch, validateFormData } from "../Auth/customFetch";
-export default function Urinalysis({ clientdata }) {
-  // have test been entered state
+import {  getHematologicalResultEntered, handleComments, validateFormData } from "../Auth/customFetch";
+import CommentSection from "./commentSection";
+import { ToastContainer, toast } from 'react-toastify';
+import ISLOADING from "../isLoading";
+export default function Urinalysis({ clientdata,employeeid}) {
+  const { billingid, test, patientid, testid } = clientdata;
+  const [loading, setLoading] = useState(true);
   const [resultEntered, setResultEntered] = useState(false);
   const [data, setData] = useState({
     appearance: '',
@@ -49,64 +53,47 @@ export default function Urinalysis({ clientdata }) {
 
   // this will constatnt check for a check in the status of whether the test result have veen entered or not
 
-  useEffect(() => {
-    try {
-      async function checkedEntered() {
-        const response = await customFetch(`test/result/check?testname=urinalysis&&billingid=${clientdata.billingid}`)
-        const { status, statusCode, result,records } = response;
-        if (result == true && statusCode == 200 && records.length > 0) {
-          setResultEntered(true)
-          setData(records[0])
-        }
-      }
+  const getPreviosResult = useCallback(async () => {
+    getHematologicalResultEntered(billingid, test, setLoading, setData, setResultEntered);
+  }, [billingid, test]);
 
-      checkedEntered()
-    }
-    catch (error) {
-      console.log(error)
-    }
-  }, [clientdata.billingid]);
+
+  useEffect(() => {
+    getPreviosResult();
+  }, [getPreviosResult]);
 
 
 
   // this will handle the submit of the form
 
   const handleSubmit = async (e) => {
+    const handleCallback = async (reponse) => {
+      const { status, message, statusCode } = reponse;
+      if (status === 'success' && statusCode === 200) {
+        setResultEntered(true); 
+        toast.success(message,{autoClose: 500});
+      } else {
+        toast.error(message,{autoClose: 500});
+      }
+     }
     e.preventDefault();
-
-    async function callback(response) {
-      const { status, statusCode, message } = response;
-      // if the status is true, we set the result entered to true
-      if (status == true) {
-        setResultEntered(true)
-        alert(message)
-      }
-      else {
-        alert(message)
-      }
-    }
-    try {
-      await validateFormData({
-        ...data,
-        testname: 'urinalysis',
-        billingid: clientdata.billingid,
-        patientid: clientdata.patientid,
-        testid: clientdata.testid,
-      }, true, ['comment'], `test/result/enter`, callback)
-    }
-    catch (error) {
-      console.log(error)
-    }
+    await validateFormData({ ...data, billingid, testname:test, patientid, testid, employeeid }, true, [], 'test/result/enter', handleCallback);
   }
 
   return (
     <>
-      <div>
-        <div className="p-4">
-          <form>
+      <ToastContainer />
+      <div className="mx-3">
+        <div className="card">
+          <div className="card-header modal-color">
             <h5>Urinalysis Test</h5>
             <Indicator resultEntered={resultEntered} />
-            <div className="form-group">
+          </div>
+          <div className="card-body">
+            {loading && <ISLOADING />}
+            {!loading && (
+              <>
+                            <div>
               <Autocomplete
                 size='small'
                 value={data.appearance}
@@ -116,7 +103,7 @@ export default function Urinalysis({ clientdata }) {
                 renderInput={(params) => <TextField {...params} label="Appearance" variant="filled" />}
               />
             </div>
-            <div className="form-group mt-3">
+            <div >
               <Autocomplete
                 size='small'
                 value={data.color}
@@ -126,7 +113,7 @@ export default function Urinalysis({ clientdata }) {
                 renderInput={(params) => <TextField {...params} label="Color" variant="filled" />}
               />
             </div>
-            <div className="form-group mt-3">
+            <div >
               <Autocomplete
                 size='small'
                 value={data.urobilinogen}
@@ -136,7 +123,7 @@ export default function Urinalysis({ clientdata }) {
                 renderInput={(params) => <TextField {...params} label="urobilinogen" variant="filled" />}
               />
             </div>
-            <div className="form-group mt-3">
+            <div >
               <Autocomplete
                 size='small'
                 value={data.ketones}
@@ -146,7 +133,7 @@ export default function Urinalysis({ clientdata }) {
                 renderInput={(params) => <TextField {...params} label="ketones" variant="filled" />}
               />
             </div>
-            <div className="form-group mt-3">
+            <div >
               <Autocomplete
                 size='small'
                 value={data.bilirubin}
@@ -156,7 +143,7 @@ export default function Urinalysis({ clientdata }) {
                 renderInput={(params) => <TextField {...params} label="bilirubin" variant="filled" />}
               />
             </div>
-            <div className="form-group mt-3">
+            <div >
               <Autocomplete
                 size='small'
                 value={data.nitrite}
@@ -166,7 +153,7 @@ export default function Urinalysis({ clientdata }) {
                 renderInput={(params) => <TextField {...params} label="nitrite" variant="filled" />}
               />
             </div>
-            <div className="form-group mt-3">
+            <div >
               <Autocomplete
                 size='small'
                 value={data.leukocytes}
@@ -176,7 +163,7 @@ export default function Urinalysis({ clientdata }) {
                 renderInput={(params) => <TextField {...params} label="leukocytes" variant="filled" />}
               />
             </div>
-            <div className="form-group mt-3">
+            <div >
               <Autocomplete
                 size='small'
                 value={data.microalbumin}
@@ -186,7 +173,7 @@ export default function Urinalysis({ clientdata }) {
                 renderInput={(params) => <TextField {...params} label="microalbumin" variant="filled" />}
               />
             </div>
-            <div className="form-group mt-3">
+            <div >
               <Autocomplete
                 size='small'
                 value={data.glucose}
@@ -196,7 +183,7 @@ export default function Urinalysis({ clientdata }) {
                 renderInput={(params) => <TextField {...params} label="glucose" variant="filled" />}
               />
             </div>
-            <div className="form-group mt-3">
+            <div >
               <Autocomplete
                 size='small'
                 value={data.specific_gravity}
@@ -207,20 +194,16 @@ export default function Urinalysis({ clientdata }) {
               />
             </div>
             {/* ph */}
-            <div className="form-group mt-3 mb-2">
+            <div >
               <TextField size='small' value={data.ph} sx={{ width: '100%' }} step='0.1' type="number"
                 onChange={(event) => { setData({ ...data, ph: parseFloat(event.target.value) }) }} label="ph" variant="filled" />
-            </div>
-            <Typography variant="h6">Microscopy</Typography>
-            <div className="form-group mt-3">
-              {/* comments */}
-              <TextField size='small' value={data.remarks} sx={{ width: '100%' }} rows={4} multiline={true}
-                onChange={(event) => { setData({ ...data, remarks: event.target.value }) }} label="comments" variant="filled" />
-            </div>
-            <div className="form-group mt-3">
-              <Button type='button' variant='contained' color='primary' onClick={(e) => handleSubmit(e)}>save results</Button>
-            </div>
-          </form>
+              </div>
+            <CommentSection getcomment={handleComments}  target={'remarks'} datasource={data} datafunction={setData} value={data.remarks} />
+                <div ></div>
+                <button type='button ' className="btn btn-primary btn-sm mt-2" onClick={(e) => handleSubmit(e)}>save results</button >
+              </>
+            )}
+          </div>
         </div>
       </div>
     </>

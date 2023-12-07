@@ -15,61 +15,61 @@ export default function TESTPANEL() {
   // using react table to display data
   const columns = [{
     Header: 'ID',
-    accessor: 'ID'
+    accessor: 'id'
   },
   {
     Header: 'NAME',
-    accessor: 'NAME',
+    accessor: 'name',
     Cell: function ({ row }) {
       return <span className='text-success'>
-        {row.original.NAME}
+        {row.original.name}
       </span>
     }
   },
   {
     Header: 'CATEGORY',
-    accessor: 'CATEGORY'
+    accessor: 'category'
   },
   {
     Header: 'DESCRIPTION',
-    accessor: 'DESCRIPTION'
+    accessor: 'description'
   },
   {
     Header: 'PRICE',
-    accessor: 'PRICE'
+    accessor: 'price'
   },
   {
     Header: 'ADDED ON',
-    accessor: 'CREATED_ON',
+    accessor: 'created_on',
     Cell: ({ row }) => {
-      return <span>{row.original?.CREATED_ON.slice(0, 10)}</span>
+      return <span>{row.original?.created_on.slice(0, 10)}</span>
     }
   },
   {
     Header: 'SAMPLE',
-    accessor: 'SAMPLE'
+    accessor: 'sample'
   },
   {
     Header: 'CONTAINER',
-    accessor: 'SAMPLE_CONTAINER'
+    accessor: 'sample_container'
   },
   {
     Header: 'QTY',
-    accessor: 'QTY_REQUIRED'
+    accessor: 'qty_required'
   },
   {
     Header: 'UNIT',
-    accessor: 'UNIT'
+    accessor: 'unit'
   },
   {
     Header: 'ACTION',
     Cell: function ({ row }) {
       return (
         <div>
-          <Button variant='contained' size='small'
+          <button className='btn btn-sm btn-primary'
             onClick={(e) => { router.push(`/settings/testpanel/updatetest/${row.original.ID}`) }}>
             update
-          </Button>
+          </button>
         </div>
       )
     }

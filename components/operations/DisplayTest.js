@@ -10,7 +10,7 @@ export default function DisplayTest() {
 
   let Component = operationsKey?.test ? getTestComponent(operationsKey?.test.toLowerCase()) : <h1>Null</h1>
 
-
+  console.log(operationsKey?.test)
 
   return (
     <>
@@ -27,7 +27,7 @@ export default function DisplayTest() {
           </button>
           {showtrend && ( <PatientTrendModalJsx show={showtrend} hide={closeTrend} data={operationsKey} />)}
         </div>)}
-        {operationsKey?.display ? <Component employeeid={employeeid} clientdata={operationsKey} /> :
+        {operationsKey?.display ? <Component employeeid={employeeid}   clientdata={operationsKey} /> :
           <>
         <div className='d-flex justify-content-center m-4 '>
           <div>

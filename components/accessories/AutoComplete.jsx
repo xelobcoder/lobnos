@@ -44,9 +44,9 @@ export default function CustomAutocompleteList({ data, placeholder,tabindex,sele
   
 
   return (
-    <div  className='custom-autocomplete mx-3 my-4'>
+    <div  className='custom-autocomplete'>
       <label>{placeholder}</label>
-      <input ref={inputRef} className='form-control'  tabIndex={tabindex} onChange={(ev) => { handleFiltered(ev) }} value={filteringValue} type='text' placeholder={placeholder} />
+      <input ref={inputRef} className='custom-input'  tabIndex={tabindex} onChange={(ev) => { handleFiltered(ev) }} value={filteringValue} type='text' placeholder={placeholder} />
       {show && (
         <div className='custom-autocomplete-list' >
           {dataList.map((item, index) => (

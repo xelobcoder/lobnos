@@ -18,8 +18,21 @@ export default function CREATE_PARAMETER() {
 },[gender])
 
   const handleSaving = async function () {
-    const ObjectValues = Object.values(parameterDetails).includes("") || Object.values(parameterDetails).includes(0);
-    if (ObjectValues) { 
+    let errorBoundary = false;
+    
+    if (gender == true || gender == 'true') { 
+       errorBoundary = Object.values(parameterDetails).includes("") || Object.values(parameterDetails).includes(0);
+    }
+
+    if (gender == false || gender == 'false') { 
+      // remove gender from parameterDetails
+      if ('gender' in parameterDetails) { 
+        delete parameterDetails.gender;
+      }
+      errorBoundary = Object.values(parameterDetails).includes("") || Object.values(parameterDetails).includes(0);
+    }
+
+    if (errorBoundary) { 
       toast.error('fill all fields',{position:'top-center',autoClose:500})
       return;
     } else {

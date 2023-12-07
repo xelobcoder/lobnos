@@ -35,7 +35,7 @@ export default function SugarHook({employeeid, clientdata}) {
       <ToastContainer />
       <div className="mx-3">
         <div className="card">
-          <div className="card-header">
+          <div className="card-header modal-color">
             <h4 className="text-capitalize">{ testname}</h4>
                 <Indicator resultEntered={resultEntered} />
             </div>

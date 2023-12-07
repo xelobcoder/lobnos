@@ -1,32 +1,29 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import Indicator from '../accessories/Reports/indicator'
 import CommentSection from './commentSection'
-import { Button } from '@mui/material'
-import { handleComments, handleResponse, validateFormData, handleChangeWithState, CheckResultEntered } from '../Auth/customFetch'
+import { handleComments, handleResponse, validateFormData, handleChangeWithState,getHematologicalResultEntered } from '../Auth/customFetch'
 import { useEffect } from 'react'
+import ISLOADING from '../isLoading'
 
-export default function Helicobacter_Pylori({ clientdata }) {
+export default function Helicobacter_Pylori({ clientdata,employeeid}) {
+  const [loading, setLoading] = useState(true);
   const [data, setData] = useState({ specimen: '', result: '', comments: '' });
   const [resultEntered, setResultEntered] = useState(false);
   const { billingid, test, testid, patientid } = clientdata;
 
 
   const handleResult = async () => {
-    await validateFormData({ ...data, billingid, testname: test, testid, patientid }, true, [], 'test/result/enter', handleResponse);
+    await validateFormData({ ...data, billingid, testname: test, testid, patientid,employeeid}, true, [], 'test/result/enter', handleResponse);
   }
 
-  useEffect(() => {
-    const getResultState = async function () {
-      const resultState = await CheckResultEntered(test, billingid);
-      const { statusCode, message, result, records } = resultState;
-      if (result == true && statusCode == 200) {
-        setResultEntered(true);
-        setData(records[0]);
-      }
-    }
 
-    getResultState();
-  }, [])
+  const getPreviousResult = useCallback(async () => {
+      getHematologicalResultEntered(billingid, test, setLoading, setData, setResultEntered);
+    }, [billingid, test])
+
+  useEffect(() => {
+   getPreviousResult();
+  }, [getPreviousResult])
 
 
   return (
@@ -38,7 +35,10 @@ export default function Helicobacter_Pylori({ clientdata }) {
             <Indicator resultEntered={resultEntered} />
           </div>
           <div className="card-body">
-            <table className='billing-cart-table'>
+            {loading && <ISLOADING />}
+            {!loading && (
+              <>
+              <table className='billing-cart-table'>
               <thead>
                 <tr>
                   <th>Description</th>
@@ -80,6 +80,8 @@ export default function Helicobacter_Pylori({ clientdata }) {
               datafunction={setData}
             />
             <button className='btn btn-primary btn-sm mx-1' onClick={handleResult}>Save</button>
+              </>
+            )}
           </div>
         </div>
       </div>

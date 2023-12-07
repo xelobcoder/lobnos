@@ -20,7 +20,7 @@ export default function TestProfileBilling({ clientDetails }) {
       // fetch data of a specfic clirnt and test added during billin and current stage in the clinical testing 
       const { result } = await customFetch(`testpanel/list/update?billingid=${billingid}`);
       // this returns all the testpanel 
-      const { data } = await customFetch('testpanel/list');
+      const { data } = await customFetch('testpanel/list/bulk');
       setTestPortal(data);
       setWorkingTest(result)
       setLoading(false);

@@ -14,7 +14,7 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
   const [linksrc, setLinksrc] = useState(`/settings/setup/createparam?target=${testname}`);
   const [literature, setLiterature] = useState('');
   const [loading, setLoading] = useState(true);
-const [usingDefault,setUsingDefault] = useState(false);
+  const [usingDefault,setUsingDefault] = useState(false);
 
   const updateLiterature = async function (event, data) { setLiterature(data) };
 
@@ -24,7 +24,7 @@ const [usingDefault,setUsingDefault] = useState(false);
 
 
   useEffect(() => {
-    if (gender) { setLinksrc(linksrc + '&gender=true') } else { setLinksrc(linksrc + '&gender=false') }
+    if (gender || gender == 'true') { setLinksrc(linksrc + '&gender=true') } else { setLinksrc(linksrc + '&gender=false') }
   },[])
 
   // listener for changing unit

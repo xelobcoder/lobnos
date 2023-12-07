@@ -66,11 +66,12 @@ useEffect(() => {
 
 
   return (
-    <div className="custom-autocomplete">
+    <div className={`custom-autocomplete`}>
+      <div className="custom-head">
       <input
         type="text"
-        tabIndex={tabindex}
-        className="form-control"
+          tabIndex={tabindex}
+          className={`auto-input  ${inputValue.length > 0  || filteredOptions.length > 0 ? 'lower-borders-none' : ''}`}
         placeholder={placeholder}
         value={inputValue}
         onChange={(ev) => {
@@ -81,6 +82,8 @@ useEffect(() => {
         }}
       />
      {showClose && ( <span onClick={(ev) => {handleClose(ev)}} className="span-close"><Close color='primary'/></span>)}
+     </div>
+      <div className={`custom-body ${filteredOptions.length > 0 ? '' : 'border-0'}`}>
       {filteredOptions.length > 0 && (
         <div className="custom-autocomplete-list">
           {filteredOptions.map((option, index) => (
@@ -99,6 +102,7 @@ useEffect(() => {
           ))}
         </div>
       )}
+     </div>
     </div>
   );
 };

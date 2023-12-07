@@ -47,11 +47,13 @@
 
 .wrapper {
   display: grid;
-  grid-template-columns: 15% auto;
+  grid-template-columns: 17% auto;
 }
 
 .wrapper > .side {
   padding: 0px;
+  position: static;
+  overflow: auto;
 }
 
 .d-none {

@@ -8,7 +8,6 @@ export default function Document() {
                 High performance laboratory imformation management system
             </title>
             <Head>
-            
             </Head>
             <body>
                 <Main />
