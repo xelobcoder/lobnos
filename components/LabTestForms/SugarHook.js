@@ -43,47 +43,65 @@ export default function SugarHook({employeeid, clientdata}) {
             {loading && <ISLOADING />}
             {!loading && (
               <>
+                <table className="billing-cart-table">
+                  <thead>
+                    <tr>
+                      <td>parameter</td>
+                      <td>value</td>
+                      <th>unit</th>
+                      <th>reference range</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{testname}</td>
+                      <td>
+                      <input 
+                        className="custom-input"
+                          type="number"
+                          size='small'
+                          value={data.result}
+                          onChange={(e) =>
+                            setData({ ...data, result: e.target.value })
+                          }
+                        />
+                      </td>
+                      <td>
+                      <select className="custom-select"   value={data.unit}  onChange={(e) => setData({ ...data, unit: e.target.value })}>
+                            <option>select option here </option>
+                            {
+                              Glucoseoptions.map((item, index) => {
+                                return (
+                                  <option key={index} value={item}>{item }</option>
+                                )
+                              })
+                            }
+                        </select>
+                      </td>
+                      <td>
+                        {data?.upper || ""} { " - "}{data?.lower || ""}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
                 <div>
-            <label>Value</label>
-            <input 
-             className="form-control"
-              type="number"
-              size='small'
-              value={data.result}
-              onChange={(e) =>
-                setData({ ...data, result: e.target.value })
-              }
-            />
-          </div>
-          <div>
-            <label>Unit</label>
-            <select className="form-control"   value={data.unit}  onChange={(e) => setData({ ...data, unit: e.target.value })}>
-              <option>select option here </option>
-              {
-                Glucoseoptions.map((item, index) => {
-                  return (
-                    <option key={index} value={item}>{item }</option>
-                  )
-                })
-              }
-           </select>
-          </div>
-          <CommentSection
-            value={data.comments}
-            datafunction={setData}
-            datasource={data}
-            target={'comments'}
-            getcomment={handleComments}
+             </div>
+                <CommentSection
+                  value={data.comments}
+                  datafunction={setData}
+                  datasource={data}
+                  target={'comments'}
+                  getcomment={handleComments}
 
-          />
-          <div className="form-group mt-3">
-            <button
-             className="btn btn-primary btn-sm"
-              onClick={(e) => handleResult(e)}
-            >
-              save result
-            </button>
-          </div>
+                />
+                <div className="form-group mt-3">
+                  <button
+                  className="btn btn-primary btn-sm"
+                    onClick={(e) => handleResult(e)}
+                  >
+                    save result
+                  </button>
+                </div>
               </>
             )}
             </div>
