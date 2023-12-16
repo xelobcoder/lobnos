@@ -99,7 +99,7 @@ export default function Billing({ }) {
       clinician,
       paymentmode,
       paid: parseInt(amount),
-      discount: parseInt(concession),
+      discount: parseInt(concession) || 0,
       cost: billingClass.calculateCost(cart) + billingClass.totalTaxValue(billingdata.taxes),
       status: clientStatus,
       payable: totalBill,
