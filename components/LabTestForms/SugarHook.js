@@ -34,20 +34,20 @@ export default function SugarHook({employeeid, clientdata}) {
     <>
       <ToastContainer />
       <div className="mx-3">
-        <div className="card">
-          <div className="card-header modal-color">
+        <div className="card ">
+          <div className="card-header bg-secondary text-white">
             <h4 className="text-capitalize">{ testname}</h4>
                 <Indicator resultEntered={resultEntered} />
             </div>
-            <div className="card-body">
+            <div className="card-body border border-success">
             {loading && <ISLOADING />}
             {!loading && (
               <>
                 <table className="billing-cart-table">
                   <thead>
                     <tr>
-                      <td>parameter</td>
-                      <td>value</td>
+                      <th>parameter</th>
+                      <th>value</th>
                       <th>unit</th>
                       <th>reference range</th>
                     </tr>

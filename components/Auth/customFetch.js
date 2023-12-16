@@ -196,15 +196,13 @@ export const resultCommentHander = async function (statecallback, target, dataso
  */
 
 
-export async function handleResponse(response) {
+export async function handleResponse(response,toast) {
    const { status, message, statusCode } = response;
-
    if (status == "success") {
-      alert(message);
+      toast ? toast.success(message,{autoClose: 5000}) : alert(message);
    }
-
    if (status == "error") {
-      alert(message || "An error occured");
+      toast ? toast.error(message || "something went wrong",{autoClose: 5000} ) : alert(message || "An error occured");
    }
 }
 
@@ -561,11 +559,8 @@ export const isAuthenticated = async function (auth, navigate, updateAuthenticat
          }
       } else {
          const token = user?.value;
-
          const authentic = await customFetch(`authenticate/employee/token?token=${token}`);
-
          const { statusCode, status } = authentic;
-
          if (statusCode == 200 && status == 'success') {
             const { username, role, email, employeeid } = authentic?.user;
 

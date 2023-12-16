@@ -1,74 +1,74 @@
 import React, { useState, useEffect } from 'react'
 import EmailSidebarJSX from '../../../components/settingsComponents/EmailSidebar';
-import { customFetch, customPost, emailPreference, handleChangeWithState, handleResponse } from '../../../components/Auth/customFetch';
+import { customFetch, customPost, emailPreference, handleResponse } from '../../../components/Auth/customFetch';
+import { Form,Switch } from 'react-bootstrap';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
+import { ToastContainer, toast } from 'react-toastify';
+import ISLOADING from "../../../components/isLoading";
 
 export default function EmailPreference() {
   const [preference, setPreference] = useState(emailPreference);
+  const [loading, setLoading] = useState(true);
 
   const handleSubmit = async (ev) => {
     const pushPreference = await customPost('applicationssettings/emailpreference', 'POST', preference);
-    handleResponse(pushPreference)
+    handleResponse(pushPreference,toast)
   }
 
 
   async function getPreference() {
-    console.log(preference)
-    const response = await customFetch('applicationssettings/emailpreference');
-    if (response.length > 0) { setPreference(response[0]) }
+    try {
+      const response = await customFetch('applicationssettings/emailpreference');
+      const { statusCode, status, message, result } = response;
+      if (statusCode === 200 && status === 'success' && result) {
+        if (Object.keys(result).length > 0) {
+          setPreference(result);
+        }
+      }
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      toast.error(err.message ||"something went wrong");
+    }
   }
 
+
+  const handleChangeWithState = (value, key) => {
+    setPreference({ ...preference, [key]: value ? 'Yes' : 'No' });
+  };
+
   useEffect(() => { getPreference() }, []);
+
 
   return (
     <>
       <MainSettingsLayoutView sidebar={<EmailSidebarJSX />}>
-        <form className='container  br-5'>
-          <h2 className='text-capitalize mt-2'>update preference</h2>
-          <p className='alert alert-warning mt-2'>
-            update when email will sent. This will be the general settings of the client.
-            However this can be disabled for a patient at the patient portal by the patient or at the  adminstrative level
-          </p>
-          <div className='form-row br-5 pt-2 border-bottom pointer'>
-            <label className='text-primary'>Send Email when registration is done</label>
-            <br />
-            <input onChange={(ev) => handleChangeWithState(ev, 'registration', setPreference, preference)} type='radio' name='registration' value={'Yes'} /> Yes <br />
-            <input onChange={(ev) => handleChangeWithState(ev, 'registration', setPreference, preference)} type='radio' name='registration' value='No' /> No <br />
-          </div>
-          <div className='form-row br-5 pt-2 border-bottom pointer'>
-            <label className='text-primary'>Send Email when result is done</label>
-            <br />
-            <input onChange={(ev) => handleChangeWithState(ev, 'result', setPreference, preference)} type='radio' name='result' value='Yes' /> Yes <br />
-            <input onChange={(ev) => handleChangeWithState(ev, 'result', setPreference, preference)} type='radio' name='result' value='No' /> No <br />
-          </div>
-          <div className='form-row br-5 pt-2 border-bottom pointer'>
-            <label className='text-primary'>Send Email when sample is rejected</label>
-            <br />
-            <input type='radio' onChange={(ev) => handleChangeWithState(ev, 'rejection', setPreference, preference)} name='rejection' value='Yes' /> Yes <br />
-            <input type='radio' onChange={(ev) => handleChangeWithState(ev, 'rejection', setPreference, preference)} name='rejection' value='No' /> No <br />
-          </div>
-          <div className='form-row br-5 pt-2 border-bottom pointer'>
-            <label className='text-primary'>Send Email when result is approved</label>
-            <br />
-            <input type='radio' onChange={(ev) => handleChangeWithState(ev, 'approval', setPreference, preference)} name='approval' value='Yes' /> Yes <br />
-            <input type='radio' onChange={(ev) => handleChangeWithState(ev, 'approval', setPreference, preference)} name='approval' value='No' /> No <br />
-          </div>
-          <div className='form-row br-5 pt-2 border-bottom pointer'>
-            <label className='text-primary'>Send invoice of transactions</label>
-            <br />
-            <input type='radio' onChange={(ev) => handleChangeWithState(ev, 'transactions', setPreference, preference)} name='transactions' value='Yes' /> Yes <br />
-            <input type='radio' onChange={(ev) => handleChangeWithState(ev, 'transactions', setPreference, preference)} name='transactions' value='No' /> No <br />
-          </div>
-          <div className='form-row br-5 pt-2 border-bottom pointer'>
-            <label className='text-primary'>Send message on birthday of clients </label>
-            <br />
-            <input type='radio' onChange={(ev) => handleChangeWithState(ev, 'birthday', setPreference, preference)} name='birthday' value='Yes' /> Yes <br />
-            <input type='radio' onChange={(ev) => handleChangeWithState(ev, 'birthday', setPreference, preference)} name='birthday' value='No' /> No <br />
-          </div>
-          <button type='button' className='btn btn-primary mt-2' onClick={(ev) => { handleSubmit(ev) }}>
+        <ToastContainer/>
+        {loading ?
+          <ISLOADING />
+          :
+          (
+                <Form className='container br-5'>
+          <h5 className='text-capitalize mt-2'>update email preferences</h5>
+
+              <div className='list-group'>
+              {Object.keys(preference).map((key) => (
+               <div key={key} className='list-group-item d-flex justify-content-between p-3'>
+                  <span className='fw-light text-md-start'>{`Send Email when ${key.replace(/^\w/, c => c.toUpperCase())}`}</span>
+                  <Switch
+                    onChange={(ev) => handleChangeWithState(ev.target.checked, key)}
+                    checked={preference[key] === 'Yes' }
+                    className='float-end'
+              />
+            </div>
+          ))}
+        </div>
+
+          <button type='button' className='btn btn-primary mt-2 btn-sm mx-1' onClick={handleSubmit}>
             update preference
           </button>
-        </form>
+        </Form>
+        )}
       </MainSettingsLayoutView>
     </>
   )

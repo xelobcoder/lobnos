@@ -2038,6 +2038,7 @@ input[type='email']:focus:invalid .company-view-result > .wrapper {
   border-bottom: 1px solid lightgray;
 }
 
+
 .clinician-view .card .card-body {
   margin: 0;
   padding: 0;
@@ -2560,8 +2561,10 @@ input[type='email']:focus:invalid .company-view-result > .wrapper {
   cursor: pointer;
 }
 
-textarea:required:invalid {
-  border: 3px solid red;
+textarea:required:focus:invalid {
+  border: 1px solid red;
+  outline: none !important;
+  box-shadow:  none !important;
 }
 .bg-white {
   background-color: white !important;
