@@ -14,3 +14,5 @@ export const getEmailSummary = async function (setdata, setloading,toast) {
     if (toast) toast.error(err.message || "something went wrong");
    }
 }
+
+

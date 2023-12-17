@@ -24,10 +24,20 @@ const editorConfiguration = {
     ]
 };
 
+editorConfiguration.mediaEmbed = {
+    previewsInData: true
+};
+
+
+// support code syntax highlight
+editorConfiguration.language = 'en';
+
+
 export default function MARKDOWN_EDITOR( props ) {
         return (
             <CKEditor
-            editor={ClassicEditor}
+                height={props.height || '700px'}
+                editor={ClassicEditor}
                 config={ editorConfiguration }
                 data={ props.initialData || ''}
                 onChange={ (event, editor ) => {

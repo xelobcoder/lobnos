@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { Analytics, Error, Home, RoomPreferences, SettingsApplications } from '@mui/icons-material'
+import { Analytics, Error, Forward, Home, RoomPreferences, SettingsApplications } from '@mui/icons-material'
 
 export default function EmailSidebarJSX() {
   return (
@@ -46,6 +46,14 @@ export default function EmailSidebarJSX() {
               </div>
               <div className="text">
                 <Link href={'/settings/emailsetting/customemail'}> compomse email</Link>
+              </div>
+            </li>
+            <li>
+              <div className="icons">
+                <Forward/>
+              </div>
+              <div className="text">
+                <Link href={'/settings/emailsetting/emails'}>Sent/Draft Emails</Link>
               </div>
             </li>
           </ul>

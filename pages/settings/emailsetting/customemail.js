@@ -1,39 +1,73 @@
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useContext, useState } from 'react';
 import EmailSidebarJSX from '../../../components/settingsComponents/EmailSidebar';
 const MARKDOWN = React.lazy(() => import('../../../components/accessories/markdownEditor'));
 import ISLOADING from '../../../components/isLoading';
-import { Drafts, Send } from '@mui/icons-material';
+import { Drafts, Subject } from '@mui/icons-material';
+import { customPost } from '../../../components/Auth/customFetch';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
-
+import { ToastContainer,toast } from 'react-toastify';
+import AuthContext from '../../../components/Auth/useAuthentification';
+import { useRouter } from 'next/navigation';
 export default function EMAIL_LOGS() {
-  const [value, setValue] = useState('');
+  const { auth } = useContext(AuthContext);
+  const [title, setTitle] = useState('');
+  const employeeid = auth?.employeeid;
+  const [draft, setDraft] = useState("<h1>hello world</h1>");
+  const router = useRouter();
+  
+
+  const saveDraft = async () => {
+    const data = { subject:  title, draft,employeeid };
+    if (title.length < 3) {
+      toast.error('Subject must be more than 3 characters',{autoClose:1000});
+      return;
+    }
+    if (draft.length < 50) {
+      toast.error('Draft must be more than 50 characters',{autoClose:1000});
+      return;
+    }
+    if (!employeeid) {
+      toast.error('employeeid is required',{autoClose:1000});
+      return;
+    }
+    const pushDraft = await customPost('email/composed/draft', 'POST', data);
+    const { statusCode, status, message } = pushDraft;
+    if (statusCode === 200 && status === 'success') {
+      toast.success(message, { autoClose: 1000 });
+      setDraft('');
+      setTitle('');
+      setTimeout(() => {
+        router.push("/settings/emailsetting/emails");
+      }, 1000);
+      return;
+    }
+    else {
+      toast.error(message, { autoClose: 1000 });
+      return;
+    }
+  }
+  
 
 
+  
+  const updateData = (ev, data) => { setDraft(data); }
+  
+
+  
   return (
     <>
       <MainSettingsLayoutView sidebar={<EmailSidebarJSX />}>
-        <div className='grid' style={{display:'grid',gridTemplateColumns:'20% auto',gridGap:'20px'}}>
-        <div className='row p-2'>
-            <div>
-              <label>Category</label>
-              <select className='custom-input mb-1'>
-                <option >select category of the recipient</option>
-                <option value={'clients'}>client</option>
-                <option value={'staff'}>staff</option>
-                <option value='bulk clients'>bulk clients</option>
-                <option value='bulk staff'>bulk staff</option>
-              </select>
-              <br />
-              <label>Recipient Email</label>
-              <input multiple type='search' className='custom-input' placeholder='search for recipient email' />
-            </div>
-          </div>
-        <div>
+        <ToastContainer/>
+        <div className='grid mx-2'>
           <div>
+            <h4 className='text-primary fw-bold'>Compose Email Here</h4>
+            <div>
+              <label>Subject</label>
+              <input type='text' className='custom-input mb-3' placeholder='enter email subject' 
+              value={title} onChange={(ev) => setTitle(ev.target.value)} />
           <Suspense fallback={<ISLOADING/>}>
-                <MARKDOWN />
-                <button className='btn btn-sm btn-success mt-2'>post email <Send /></button>
-                <button className='btn btn-sm btn-primary mt-2 mx-3' ><Drafts /> save as draft </button>
+                <MARKDOWN updatedata={updateData} initialData={draft} style={{height:'800px'} } />
+                <button onClick={saveDraft} className='btn btn-sm btn-primary mt-2' ><Drafts /> save as draft </button>
           </Suspense>
           </div>
         </div>
