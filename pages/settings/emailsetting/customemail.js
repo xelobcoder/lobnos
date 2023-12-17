@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import EmailSidebarJSX from '../../../components/settingsComponents/EmailSidebar';
-import { formats, modulex } from '../../../components/Auth/customFetch';
+const MARKDOWN = React.lazy(() => import('../../../components/accessories/markdownEditor'));
 import { Drafts, Send } from '@mui/icons-material';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 
@@ -11,30 +11,32 @@ export default function EMAIL_LOGS() {
   return (
     <>
       <MainSettingsLayoutView sidebar={<EmailSidebarJSX />}>
-        <div className='container'>
-          <div className='row '>
-            <div className='col p-2' style={{ display: 'grid', gridTemplateColumns: '20% auto', gridGap: '10px' }}>
-              <select className='form-control'>
+        <div className='grid' style={{display:'grid',gridTemplateColumns:'20% auto',gridGap:'20px'}}>
+        <div className='row p-2'>
+            <div>
+              <label>Category</label>
+              <select className='custom-input mb-1'>
                 <option >select category of the recipient</option>
                 <option value={'clients'}>client</option>
                 <option value={'staff'}>staff</option>
                 <option value='bulk clients'>bulk clients</option>
                 <option value='bulk staff'>bulk staff</option>
               </select>
-              <input multiple type='search' className='form-control' placeholder='search for recipient email' />
+              <br />
+              <label>Recipient Email</label>
+              <input multiple type='search' className='custom-input' placeholder='search for recipient email' />
             </div>
           </div>
-        </div>
-        <div className='container p-2'>
+        <div>
           <div className='form-row '>
             <label>subject</label>
-            <input className='col-12 mb-4' />
+           <MARKDOWN/>
           </div>
          
-          <button className='btn btn-success mt-2'>post email <Send /></button>
-          <button className='btn btn-primary mt-2' style={{ marginLeft: '20px' }}><Drafts /> save as draft </button>
+          <button className='btn btn-sm btn-success mt-2'>post email <Send /></button>
+          <button className='btn btn-sm btn-primary mt-2' style={{ marginLeft: '20px' }}><Drafts /> save as draft </button>
         </div>
-
+         </div>
       </MainSettingsLayoutView>
     </>
   );

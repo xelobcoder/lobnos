@@ -50,11 +50,11 @@ export default function EmailPreference() {
           (
                 <Form className='container br-5'>
           <h5 className='text-capitalize mt-2'>update email preferences</h5>
-
+<div className='alert alert-info'> Send email  notification when the following events occur. toggle to activate or deactivate</div>
               <div className='list-group'>
               {Object.keys(preference).map((key) => (
                <div key={key} className='list-group-item d-flex justify-content-between p-3'>
-                  <span className='fw-light text-md-start'>{`Send Email when ${key.replace(/^\w/, c => c.toUpperCase())}`}</span>
+                  <span className='fw-light text-md-start'>{` ${key.replace(/^\w/, c => c.toUpperCase())}`}</span>
                   <Switch
                     onChange={(ev) => handleChangeWithState(ev.target.checked, key)}
                     checked={preference[key] === 'Yes' }

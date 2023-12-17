@@ -443,7 +443,8 @@ export const emailPreference = {
    approval: 'No',
    rejection: 'No',
    transactions: 'No',
-   birthday: 'Yes'
+   birthday: 'Yes',
+   billing: 'Yes'
 }
 
 export const forwardEmailReceipt = async (billingid) => {

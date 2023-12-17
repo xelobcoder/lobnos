@@ -28,13 +28,14 @@ export default function Analytics() {
         <ToastContainer/>
         {loading ? <ISLOADING /> : 
           (
-            <div className='container p-2' style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridGap:'30px' }}>
+            <>
+              <div className="mx-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridGap:'20px' }}>
             <div className='card br-5  pointer'>
               <div className='card-header bg-dark text-white d-flex justify-content-between pointer'>
                 <span> <Send /> Total</span>
               </div>
               <div className='card-body'>
-                  <h1>{ data?.total}</h1>
+                  <h2>{ data?.total}</h2>
               </div>
             </div>
             <div className='card br-5  pointer'>
@@ -42,7 +43,7 @@ export default function Analytics() {
                 <span> <ErrorOutlineRounded /> Failed </span>
               </div>
               <div className='card-body'>
-                  <h1 className='text-danger'>{ data?.failed}</h1>
+                  <h2 className='text-danger'>{ data?.failed}</h2>
               </div>
             </div>
             <div className='card br-5  pointer'>
@@ -50,13 +51,16 @@ export default function Analytics() {
                 <span> <Send />  sent</span>
               </div>
               <div className='card-body'>
-                  <h1 className='text-success'>{ data?.success}</h1>
+                  <h2 className='text-success'>{ data?.success}</h2>
               </div>
             </div>
-          </div>
+            </div>
+            <h3 className='mx-2'>Email logs</h3>
+            <EmailLogList data={logs} />
+            <h3 className='mx-2'>Chart</h3>
+              <EmailLogsBarChart data={analyticsData} />
+            </>
           )}
-        <EmailLogList data={logs} />
-        <EmailLogsBarChart   data={analyticsData} />
       </MainSettingsLayoutView>
     </>
   )
