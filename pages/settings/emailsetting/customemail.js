@@ -1,6 +1,7 @@
 import React, { Suspense, useState } from 'react';
 import EmailSidebarJSX from '../../../components/settingsComponents/EmailSidebar';
 const MARKDOWN = React.lazy(() => import('../../../components/accessories/markdownEditor'));
+import ISLOADING from '../../../components/isLoading';
 import { Drafts, Send } from '@mui/icons-material';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 
@@ -28,15 +29,13 @@ export default function EMAIL_LOGS() {
             </div>
           </div>
         <div>
-          <div className='form-row '>
-            <label>subject</label>
-              <Suspense fallback={<h1>Loading Editor</h1>}>
-           <MARKDOWN />
-              </Suspense>
+          <div>
+          <Suspense fallback={<ISLOADING/>}>
+                <MARKDOWN />
+                <button className='btn btn-sm btn-success mt-2'>post email <Send /></button>
+                <button className='btn btn-sm btn-primary mt-2 mx-3' ><Drafts /> save as draft </button>
+          </Suspense>
           </div>
-         
-          <button className='btn btn-sm btn-success mt-2'>post email <Send /></button>
-          <button className='btn btn-sm btn-primary mt-2 mx-3' ><Drafts /> save as draft </button>
         </div>
          </div>
       </MainSettingsLayoutView>
