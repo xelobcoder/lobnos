@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import MainSettingsLayoutView from "../../../components/settingsComponents/MainSettingsLayoutView";
 import EmailSidebarJSX from "../../../components/settingsComponents/EmailSidebar";
 import {useSearchParams,useRouter } from "next/navigation";
-import { customFetch } from "../../../components/Auth/customFetch";
+import { customFetch, customPost } from "../../../components/Auth/customFetch";
 import ISLOADING from "../../../components/isLoading";
 import { Delete, Edit, Preview, Publish } from "@mui/icons-material";
 export default function DraftEmailPage() {
@@ -39,7 +39,14 @@ export default function DraftEmailPage() {
   useEffect(() => {
     setLoading(true);
     getdata(paramcat);
-  },[paramcat])
+  }, [paramcat]);
+
+
+  const publishEmail = async (id) => { 
+    if (!id) return;
+    const response = await customPost(`email/publish`,'POST',{id});
+    console.log(response);
+  }
   return (
     <MainSettingsLayoutView sidebar={<EmailSidebarJSX />}>
       <div className="w-25 mx-2 my-2">
@@ -75,7 +82,8 @@ export default function DraftEmailPage() {
                   {
                     item?.ispublished == 'false' && (
                       <span>
-                        <button className="btn btn-sm btn-success mx-2">
+                        <button onClick={(ev) => { router.push(`/settings/emailsetting/publish?id=${item?.id}`) } } 
+                        className="btn btn-sm btn-success mx-2">
                           <Publish fontSize="small"/>
                           publish
                         </button>

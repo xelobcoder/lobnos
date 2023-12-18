@@ -1,6 +1,7 @@
 import { useState } from "react";
 import MainSettingsLayoutView from "../../../components/settingsComponents/MainSettingsLayoutView";
 import EmailSidebarJSX from "../../../components/settingsComponents/EmailSidebar";
+import { customFetch } from "../../../components/Auth/customFetch";
 export default function EmailsServedPage() {
   const [value, setValue] = useState('');
   const [inputDisabled, setDisabled] = useState(true);
@@ -27,8 +28,7 @@ export default function EmailsServedPage() {
   }
   return (
     <MainSettingsLayoutView sidebar={<EmailSidebarJSX />}>
-      <h1>Emails List</h1>
-      <div className='grid' style={{display:'grid',gridTemplateColumns:'20% auto',gridGap:'20px'}}>
+      <div className='grid'>
         <div className='row p-2'>
             <div>
               <label>Category</label>
@@ -44,11 +44,13 @@ export default function EmailsServedPage() {
               <input value={inputValue} onChange={(ev) => { searchEmail(ev) }} disabled={inputDisabled} multiple type='search' className='custom-input' placeholder='search for recipient email' />
               <div className='mt-2'>
                 <label className='text-primary'>Matching emails</label>
-                <div className='list-group '>
-                  {emails.length > 0 && emails.map((email, index) => (
-                    <div key={index} className='list-group-item grid' >
-                     <input key={index} type='checkbox'/>
-                     <span> {email?.email}</span>
+                <div className='list-group ' >
+                {emails.length > 0 && emails.map((email, index) => (
+                    <div key={index} className='list-group-item' style={{display:'grid',gridTemplateColumns:'1% 30% 30% 30%',gridGap:'10px'}} >
+                      <input key={index} type='checkbox' />
+                      <span> {email?.email}</span>
+                      <span>{email?.firstname} {email?.middlename} {email.lastname}</span>
+                      <span>{ email?.patientid}</span>
                     </div>
                   ))}
                 </div>

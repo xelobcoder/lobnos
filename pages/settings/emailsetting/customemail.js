@@ -20,7 +20,6 @@ export default function EMAIL_LOGS() {
   
 
   const saveDraft = async () => {
-    const data = { subject:  title, draft,employeeid };
     if (title.length < 3) {
       toast.error('Subject must be more than 3 characters',{autoClose:1000});
       return;
@@ -33,11 +32,19 @@ export default function EMAIL_LOGS() {
       toast.error('employeeid is required',{autoClose:1000});
       return;
     }
-    const pushDraft = await customPost('email/composed/draft', 'POST', data);
+
+    let  data = { subject: title, draft, employeeid };
+    
+    const method = emailid ? 'PUT' : 'POST';
+
+    if (method === 'PUT') { 
+      data = { ...data, id: emailid };
+    }
+
+    const pushDraft = await customPost('email/composed/draft', method, data);
     const { statusCode, status, message } = pushDraft;
     if (statusCode === 200 && status === 'success') {
       toast.success(message, { autoClose: 1000 });
-      setDraft(''); setTitle('');
       return;
     }
     else {
