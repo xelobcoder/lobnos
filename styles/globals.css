@@ -2582,6 +2582,31 @@ font-size: 14px;
 grid-template-columns: 100%;
 }
 
+.selected-emailwrapper{
+  height: 80vh;
+  overflow-y: auto;
+}
+
+.selected-emails {
+  max-height: max-content;
+  background-color: white;
+  border-radius: 5px;
+  margin-right: 20px;
+  padding: 5px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  overflow-x: hidden;
+  word-break: break-all;
+}
+
+.selected-emails > span {
+  background-color: whitesmoke !important;
+  margin: 3px;
+  text-align: center;
+  border-radius: 5px;
+  font-size: 12px;
+  border: 1px dashed slategrey;
+}
 
 textarea:required:focus:invalid {
   border: 1px solid red;
