@@ -1,19 +1,22 @@
-import React, { Suspense, useContext, useState } from 'react';
+import React, { Suspense, useContext, useEffect, useState,useRef, useCallback } from 'react';
 import EmailSidebarJSX from '../../../components/settingsComponents/EmailSidebar';
 const MARKDOWN = React.lazy(() => import('../../../components/accessories/markdownEditor'));
 import ISLOADING from '../../../components/isLoading';
 import { Drafts, Subject } from '@mui/icons-material';
-import { customPost } from '../../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 import { ToastContainer,toast } from 'react-toastify';
 import AuthContext from '../../../components/Auth/useAuthentification';
-import { useRouter } from 'next/navigation';
+import { useSearchParams} from 'next/navigation';
+import { getEmailUsingid } from '../../../components/EmailServices/util';
 export default function EMAIL_LOGS() {
   const { auth } = useContext(AuthContext);
   const [title, setTitle] = useState('');
   const employeeid = auth?.employeeid;
   const [draft, setDraft] = useState("<h1>hello world</h1>");
-  const router = useRouter();
+  const params = useSearchParams();
+  const emailid = params.get("id");
+  const editorRef = useRef(null);
   
 
   const saveDraft = async () => {
@@ -34,11 +37,7 @@ export default function EMAIL_LOGS() {
     const { statusCode, status, message } = pushDraft;
     if (statusCode === 200 && status === 'success') {
       toast.success(message, { autoClose: 1000 });
-      setDraft('');
-      setTitle('');
-      setTimeout(() => {
-        router.push("/settings/emailsetting/emails");
-      }, 1000);
+      setDraft(''); setTitle('');
       return;
     }
     else {
@@ -47,11 +46,14 @@ export default function EMAIL_LOGS() {
     }
   }
   
-
-
-  
   const updateData = (ev, data) => { setDraft(data); }
+
+  const getEmail = useCallback(async () =>  {getEmailUsingid(emailid,setTitle,setDraft)},[emailid])
   
+  
+  useEffect(() => { 
+    if (emailid) getEmail();
+  }, [getEmail,emailid]);
 
   
   return (
@@ -65,10 +67,10 @@ export default function EMAIL_LOGS() {
               <label>Subject</label>
               <input type='text' className='custom-input mb-3' placeholder='enter email subject' 
               value={title} onChange={(ev) => setTitle(ev.target.value)} />
-          <Suspense fallback={<ISLOADING/>}>
-                <MARKDOWN updatedata={updateData} initialData={draft} style={{height:'800px'} } />
+              <Suspense fallback={<ISLOADING/>}>
+                <MARKDOWN ref={editorRef} updatedata={updateData} initialData={draft} style={{height:'800px'} } />
                 <button onClick={saveDraft} className='btn btn-sm btn-primary mt-2' ><Drafts /> save as draft </button>
-          </Suspense>
+              </Suspense>
           </div>
         </div>
          </div>

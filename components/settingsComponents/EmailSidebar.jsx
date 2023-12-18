@@ -53,7 +53,7 @@ export default function EmailSidebarJSX() {
                 <Forward/>
               </div>
               <div className="text">
-                <Link href={'/settings/emailsetting/emails'}>Sent/Draft Emails</Link>
+                <Link href={'/settings/emailsetting/emails?category=all'}>Sent/Draft Emails</Link>
               </div>
             </li>
           </ul>

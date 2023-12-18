@@ -1,61 +1,99 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MainSettingsLayoutView from "../../../components/settingsComponents/MainSettingsLayoutView";
 import EmailSidebarJSX from "../../../components/settingsComponents/EmailSidebar";
-export default function EmailsServedPage() {
-  const [value, setValue] = useState('');
-  const [inputDisabled, setDisabled] = useState(true);
-  const [inputValue, setInputValue] = useState('');
-  const [category, setCategory] = useState("");
-  const [selectedEmails, setSelectedEmails] = useState([]);
-  const [emails, setEmail] = useState([]);
-  // make input active
-  const makeInputActive = () => { setDisabled(false);}
+import {useSearchParams,useRouter } from "next/navigation";
+import { customFetch } from "../../../components/Auth/customFetch";
+import ISLOADING from "../../../components/isLoading";
+import { Delete, Edit, Preview, Publish } from "@mui/icons-material";
+export default function DraftEmailPage() {
+  const params = useSearchParams();
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const [category, setCategory] = useState("all");
 
-
-  const searchEmail = async (ev) => { 
-    const { value } = ev.target;
-    setInputValue(value);
-    if (value.length < 3) return;
-    if (value.length > 3 && category) { 
-      const getEmail = await customFetch(`email/custom/search?category=${category}&email=${value}`);
-      const { statusCode, status, message, result } = getEmail;
-      if (statusCode === 200 && result) {
-        setEmail(result);
-      }
-      console.log(getEmail);
-    }
+  const handlecategory = (value) => { 
+    const defaultPath = "/settings/emailsetting/emails";
+    setCategory(value);
+    router.push(`${defaultPath}?category=${value}`);
   }
+
+  const paramcat = params.get("category");
+
+  const getdata = async function (paramcat) {
+    try {
+      const response = await customFetch(`email/composed/draft?target=${paramcat}&&mode=brief&&limit=20`);
+    const { statusCode, status, result } = response;
+    if (statusCode === 200 && status === "success") {
+      setData(result);
+      setLoading(false);
+    } else {
+      setData([]);
+      setLoading(false);
+      }
+    } catch (err) {
+      setLoading(false);
+      setData([]);
+   }
+  }
+  useEffect(() => {
+    setLoading(true);
+    getdata(paramcat);
+  },[paramcat])
   return (
     <MainSettingsLayoutView sidebar={<EmailSidebarJSX />}>
-      <h1>Emails List</h1>
-      <div className='grid' style={{display:'grid',gridTemplateColumns:'20% auto',gridGap:'20px'}}>
-        <div className='row p-2'>
-            <div>
-              <label>Category</label>
-              <select value={category} onChange={(ev) => { setCategory(ev.target.value);  makeInputActive()}} className='custom-input mb-1'>
-                <option >select category of the recipient</option>
-                <option value={'clients'}>client</option>
-                <option value={'staff'}>staff</option>
-                <option value='bulk clients'>bulk clients</option>
-                <option value='bulk staff'>bulk staff</option>
-              </select>
-              <br />
-              <label>Recipient Email</label>
-              <input value={inputValue} onChange={(ev) => { searchEmail(ev) }} disabled={inputDisabled} multiple type='search' className='custom-input' placeholder='search for recipient email' />
-              <div className='mt-2'>
-                <label className='text-primary'>Matching emails</label>
-                <div className='list-group '>
-                  {emails.length > 0 && emails.map((email, index) => (
-                    <div key={index} className='list-group-item grid' >
-                     <input key={index} type='checkbox'/>
-                     <span> {email?.email}</span>
-                    </div>
-                  ))}
+      <div className="w-25 mx-2 my-2">
+        <select value={category} onChange={(ev) => { handlecategory(ev.target.value); }} className='custom-input'>
+        <option value='all'>all</option>
+        <option value='published'>published</option>
+        <option value='draft'>draft</option>
+      </select>
+      </div>
+      {loading && <ISLOADING />}
+      {data.length > 0 && (
+        <div className='list-group mx-2'>
+          {data.map((item, index) => (
+            <div key={index} className='list-group-item grid' id="email-draft-list">
+              <div className="first-row">
+              <span>{item?.id}</span>
+                <span>{item?.subject}</span>
+                <span>{new Date(item?.created_on).toLocaleDateString()}</span>
+                <span
+                 className={item?.ispublished == "true" ? "text-success" : "text-danger"}
+                >{item?.ispublished == "true" ? "Published" : "Draft"}</span>   
+                <div>
+                      <span>
+                      <button onClick={(ev) => {router.push(`/settings/emailsetting/customemail?id=${item.id}`)} } className="btn btn-sm btn-primary"><Edit fontSize="small"/> edit</button>
+                    </span>
+                    {/* previrw */}
+                    <span>
+                      <button onClick={(ev) =>  {router.push(`/settings/emailsetting/preview?id=${item.id}`)}} className="btn btn-sm btn-success mx-2"><Preview fontSize="small"/> preview</button>
+                    </span>
+                    <span>
+                      <button className="btn btn-sm btn-danger"><Delete fontSize="small"/> delete</button>
+                  </span>
+                  {
+                    item?.ispublished == 'false' && (
+                      <span>
+                        <button className="btn btn-sm btn-success mx-2">
+                          <Publish fontSize="small"/>
+                          publish
+                        </button>
+                      </span>
+                    )
+                  }
                 </div>
-              </div>
+                
+            
             </div>
-          </div>
-         </div>
+              <div className="second-row">
+                <span>To:{item?.target}</span>
+             </div>
+            </div>
+          ))}
+        </div>
+      
+      )}
     </MainSettingsLayoutView>
   )
 }

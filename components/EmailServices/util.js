@@ -16,3 +16,14 @@ export const getEmailSummary = async function (setdata, setloading,toast) {
 }
 
 
+
+
+
+export const getEmailUsingid = async function (emailid,setTitle,setDraft) {
+  const response = await customFetch(`email/composed/draft?id=${emailid}`);
+  const { statusCode, status, result } = response;
+  if (statusCode === 200 && status === 'success' && result.length > 0) {
+    const { subject, body } = result[0];
+    setTitle(subject); setDraft(body);
+  }
+}
