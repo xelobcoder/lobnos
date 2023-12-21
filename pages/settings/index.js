@@ -20,6 +20,8 @@ export default function Settings() {
 		}
 	}
 
+	console.log(ApplicationSettings)
+
 
 	useEffect(() => {
 		getData('branches', setBranch);
@@ -67,6 +69,7 @@ export default function Settings() {
 		}
 
 		if (isError == 0) {
+			console.log(ApplicationSettings);
 			const pushSettings = await customPost('applicationsettings', 'POST', ApplicationSettings)
 			const { statusCode, status, message } = pushSettings;
 			if (statusCode == 200 && status == 'success') {
@@ -84,8 +87,8 @@ export default function Settings() {
 				<h4 className="btn btn-danger text-white">Application settings</h4>
 			</div>
 			<div className="p-2">
-				<Table className="bg-white" striped bordered hover id='custom-table'>
-					<thead className="bg-dark">
+				<Table className='billing-cart-table'>
+					<thead>
 						<tr>
 							<th className="text-capitalize">#</th>
 							<th className="text-capitalize">setting</th>
@@ -282,7 +285,7 @@ export default function Settings() {
 									}
 
 									onClick={(e) => {
-										handleAppSettingsActivation('emailNotification', ApplicationSettings?.emailNotification== 0
+										handleAppSettingsActivation('emailNotification', ApplicationSettings?.emailNotification == 0
 											? 1
 											: 0)
 									}}

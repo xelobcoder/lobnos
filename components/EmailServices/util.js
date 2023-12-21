@@ -17,6 +17,10 @@ export const getEmailSummary = async function (setdata, setloading,toast) {
 
 
 
+export const isEmailServiceActvated = async function () {
+  
+ }
+
 
 
 export const getEmailUsingid = async function (emailid,setTitle,setDraft) {

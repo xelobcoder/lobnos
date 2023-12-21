@@ -55,9 +55,9 @@ export default function Analytics() {
               </div>
             </div>
             </div>
-            <h3 className='mx-2'>Email logs</h3>
+            <h4 className='mx-2'>Recent Email logs</h4>
             <EmailLogList data={logs} />
-            <h3 className='mx-2'>Chart</h3>
+            <h4 className='mx-2'>Chart</h4>
               <EmailLogsBarChart data={analyticsData} />
             </>
           )}

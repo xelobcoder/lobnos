@@ -1,17 +1,25 @@
-import { useState } from "react";
+import {useState } from "react";
 import MainSettingsLayoutView from "../../../components/settingsComponents/MainSettingsLayoutView";
 import EmailSidebarJSX from "../../../components/settingsComponents/EmailSidebar";
-import { customFetch } from "../../../components/Auth/customFetch";
+import { customFetch, customPost } from "../../../components/Auth/customFetch";
 import { Close } from "@mui/icons-material";
+import { useSearchParams } from "next/navigation";
+import { ToastContainer,toast } from "react-toastify";
 export default function EmailsServedPage() {
   const [value, setValue] = useState('');
   const [inputDisabled, setDisabled] = useState(true);
   const [inputValue, setInputValue] = useState('');
   const [category, setCategory] = useState("");
   const [selectedEmails, setSelectedEmails] = useState([]);
+  const [shedule, setSchedule] = useState({ date: '', time: '' });
   const [emails, setEmail] = useState([]);
+  const publishid = useSearchParams().get('id');
   // make input active
-  const makeInputActive = () => { setDisabled(false);}
+  const makeInputActive = (value) => { 
+    setCategory(value);
+    if (value == "bulk staff" || value == "bulk clients") { setDisabled(true); return }
+    setDisabled(false);
+  }
 
 
   const searchEmail = async (ev) => { 
@@ -45,14 +53,33 @@ export default function EmailsServedPage() {
     const { email } = item;
     const _isNotremovable = selectedEmails.filter((item) => item.email !== email);
     setSelectedEmails(_isNotremovable);
-   }
+  }
+  
+
+  const handleSubmit = async () => { 
+    const data = { target: selectedEmails, shedule, category,id: publishid};
+    const response = await customPost('email/publish', 'POST', data);
+    const { statusCode, status, message } = response;
+    if (statusCode === 200 && status === 'success') {
+      toast.success(message, { autoClose: 1000 });
+      return;
+    }
+    else {
+      toast.error(message, { autoClose: 1000 });
+      return;
+    }
+  }
+
+
+
   return (
     <MainSettingsLayoutView sidebar={<EmailSidebarJSX />}>
+      <ToastContainer />
       <div className='grid grid-2'>
         <div className='row p-2'>
             <div>
               <label>Category</label>
-              <select value={category} onChange={(ev) => { setCategory(ev.target.value);  makeInputActive()}} className='custom-input mb-1'>
+            <select value={category} onChange={(ev) => { setCategory(ev.target.value); makeInputActive(ev.target.value); }} className='custom-input mb-1'>
                 <option >select category of the recipient</option>
                 <option value={'clients'}>client</option>
                 <option value={'staff'}>staff</option>
@@ -92,15 +119,15 @@ export default function EmailsServedPage() {
           </div>
           <div>
             <label>schedule a date and time</label>
-            <input style={{width:'80%'}} type="date" className="custom-input" />
+            <input style={{width:'80%'}} type="date"  className="custom-input" value={shedule.date} onChange={(ev) => setSchedule({...shedule,date:ev.target.value})} />
           </div>
           {/* /time  */}
           <div>
             <label>schedule a date and time</label>
-            <input style={{ width: '80%' }} type="time" className="custom-input" />
+            <input style={{ width: '80%' }} type="time"  className="custom-input" value={shedule.time} onChange={(ev) => setSchedule({ ...shedule, time: ev.target.value })} />
           </div>
           <div className="my-2">
-            <button className="btn btn-primary btn-sm">publish email</button>
+            <button type="button" onClick={handleSubmit} className="btn btn-primary btn-sm">publish email</button>
           </div>
         </div>
          </div>

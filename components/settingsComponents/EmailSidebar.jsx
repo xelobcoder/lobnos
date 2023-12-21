@@ -1,11 +1,23 @@
-import React from 'react'
+import { useState,useEffect } from 'react';
 import Link from 'next/link'
 import { Analytics, Error, Forward, Home, RoomPreferences, SettingsApplications } from '@mui/icons-material'
-
+import { getApplicationSettings } from '../Auth/customFetch';
+import { useRouter } from 'next/navigation';
 export default function EmailSidebarJSX() {
+const router = useRouter();
+  const appset = async () => {
+    const settings = await getApplicationSettings();
+    const { emailNotification } = settings;
+    emailNotification === 0 && router.push('/settings/emailsetting/notactivated');
+  }
+  
+  useEffect(() => {
+    appset();
+   }, []);
+
   return (
     <>
-      <div className="settings-sidebar">
+    <div className="settings-sidebar">
         <div className="contents">
           <ul>
             <li>
