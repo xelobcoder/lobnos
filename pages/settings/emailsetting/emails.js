@@ -45,8 +45,8 @@ export default function DraftEmailPage() {
   const publishEmail = async (id) => { 
     if (!id) return;
     const response = await customPost(`email/publish`,'POST',{id});
-    console.log(response);
   }
+  
   return (
     <MainSettingsLayoutView sidebar={<EmailSidebarJSX />}>
       <div className="w-25 mx-2 my-2">

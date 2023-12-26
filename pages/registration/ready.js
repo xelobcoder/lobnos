@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Sampling from '../../components/readyComponents/Sampling'
-import { customFetch, customPost, getDateExpression } from '../../components/Auth/customFetch';
+import { customFetch,  getDateExpression } from '../../components/Auth/customFetch';
 import ReadyList from '../../components/readyComponents/ReadyList';
-import ReadyTest from '../../components/readyComponents/ReadyTest';
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 import SidebarFrontPage from '../../components/frontpagesidebar';
 import ResultFilterAdvancedSearch from '../../components/readyComponents/ResultFilterAdvancedSearch';
@@ -69,13 +68,7 @@ export default function ReadyResult() {
         </div>
 
         {/* summary section */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(6,1fr)",
-            gridGap: "5px",
-          }}
-        >
+        <div id='ready-summary-view'>
           {summaryArea.length > 0 &&
             summaryArea.map((item, index) => {
               return (

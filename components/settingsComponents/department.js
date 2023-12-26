@@ -1,16 +1,12 @@
-import { Button } from '@mui/material';
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { useRouter,useSearchParams } from 'next/navigation';
 import { FormLabel } from 'react-bootstrap';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
-
+import {ToastContainer,toast} from 'react-toastify';
 
 export default function Add_department() {
-  const [department, setDepartment] = React.useState({
-    department: '',
-    departmentManager: '',
-    employeeid: 3,
-  })
+  const searchParams = useSearchParams();
+  const [department, setDepartment] = useState({department: '',departmentManager: '',employeeid: ""})
 
   const [employeeList, setEmployeeList] = useState([])
 
@@ -21,50 +17,40 @@ export default function Add_department() {
   const handleEmployeeChange = (event) => {
     const { value } = event.target
     // find from employee list
-    const employee = employeeList.find((employee) => employee.EMPLOYEEID == value);
-    if (employee) {
-      const { USERNAME } = employee;
-      setDepartment({ ...department, departmentManager: USERNAME, employeeid: value })
-    }
+    const employee = employeeList.find((employee) => employee.employeeid == value);
+    if (!employee) return;
+    const { username } = employee;
+    setDepartment({ ...department, departmentManager: username, employeeid: value })
   }
 
 
-  const [tab, setTab] = React.useState('submit');
-
-
+  const [tab, setTab] = useState('submit');
   // use router to relaod and also to look rdit in url for editing a pacticcular department
   const router = useRouter();
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const sendtoServer = async () => {
-      const response = await customPost('departments', tab === 'submit' ? "POST" : "PUT", tab === 'submit' ? department : { ...department, id: router.query.id });
-
+      const response = await customPost('departments', tab === 'submit' ? "POST" : "PUT", tab === 'submit' ? department : { ...department, id:searchParams.get('id')});
       const { status, message } = response;
 
       if (status === "success") {
-        alert(message);
-        setDepartment({
-          department: "",
-          departmentManager: "",
-          employeeid: 3,
-        });
-        if (router.query.tab === 'edit') {
+        toast.success(message, { autoClose: '1000' })
+        setDepartment({department: "",departmentManager: "",employeeid: 0});
+        if (searchParams.get("tab") === 'edit') {
           setTab('submit');
           router.push('/settings/department');
           setTimeout(() => {
-            router.reload();
+
           }, 500)
-        } else {
-          router.reload()
-        }
+        } else {        }
       } else {
-        alert(message)
+        toast.error(message, { autoClose: '1000' })
       }
     }
 
     if (Object.values(department).includes("")) {
-      alert("fill all fields correctly");
+      toast.info('please fill all the fields', { autoClose: '1000' });
     } else {
       sendtoServer();
     }
@@ -74,11 +60,7 @@ export default function Add_department() {
   const getEmployees = async () => {
     const response = await customFetch('logins');
     const { message, statusCode, result } = response;
-    if (message == "Success" && statusCode == 200) {
-      setEmployeeList(result);
-    } else {
-      setEmployeeList([]);
-    }
+    statusCode === 200  && message == 'Success' ? setEmployeeList(result) : setEmployeeList([]);
   }
 
 
@@ -89,21 +71,23 @@ export default function Add_department() {
 
 
   // monitor for edit tab in the url
+  const id = searchParams.get('id');
+  const employeeid = searchParams.get('employeeid');
+  const urltab = searchParams.get('tab');
+  const departmantName = searchParams.get('department');
+  const departmentManager = searchParams.get('departmentManager');
+
   useEffect(() => {
-    const { tab, id, employeeid, department, departmentManager } = router.query;
-    if (tab === 'edit') {
+    if (urltab === 'edit') {
       setTab('update');
       // fetch department from server
-      setDepartment({
-        department: department,
-        departmentManager: departmentManager,
-        employeeid: employeeid,
-      })
+      setDepartment({department: departmantName,departmentManager: departmentManager,employeeid: employeeid})
     }
-  }, [router.query])
+  }, [id, employeeid, departmentManager,urltab,departmantName])
 
   return (
     <>
+      <ToastContainer/>
       <div className="p-2">
         <div className="card br-7">
           <div className="card-header">
@@ -134,8 +118,8 @@ export default function Add_department() {
                 >
                   <option value={department.departmentManager}>{department.departmentManager || 'Select Department Manager'}</option>
                   {employeeList.map((employee, index) => (
-                    <option key={index} value={employee.EMPLOYEEID}>
-                      {employee?.USERNAME}
+                    <option key={index} value={employee.employeeid}>
+                      {employee?.username}
                     </option>
                   ))}
                 </select>
@@ -143,15 +127,9 @@ export default function Add_department() {
             </form>
           </div>
           <div className="card-footer">
-            <Button
-              variant="contained"
-              onClick={handleSubmit}
-              color="primary"
-              type="button"
-              className="mt-4"
-            >
+            <button className='btn btn-primary btn-sm' onClick={handleSubmit} >
               {tab}
-            </Button>
+            </button>
           </div>
         </div>
       </div>

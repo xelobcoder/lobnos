@@ -1,21 +1,20 @@
 import React from 'react'
-import SidebarLayoutMap from '../../components/Clinicians/SidebarLayoutMap'
-import SideBarMapView from '../../components/Clinicians/SideBarMapView';
-import { MedicalInformation, AddBox } from '@mui/icons-material';
 import BasicInformationClinician from '../../components/Clinicians/BasicInformationClinician';
+import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
+import SidebarFrontPage from '../../components/frontpagesidebar';
 
 export default function NewClinicianPage() {
-  const linkers = [
-    { title: "clinicians", link: "/clinician", icon: <MedicalInformation /> },
-    { title: "new clinician", link: "/clinician/new", icon: <AddBox /> },
-  ];
 
   return (
-    <SidebarLayoutMap sidebar={<SideBarMapView linkers={linkers} />}>
-       <div className='container '>
-          <div className='alert alert-info mx-2 my-1 text-capitalize'>add new clinician</div>
-          <BasicInformationClinician />
-        </div>
-    </SidebarLayoutMap>
+    <SettingsLayout sidebar={<SidebarFrontPage />}>
+       <div className='card mx-2 my-2'>
+          <div className='card-header bg-secondary text-white'>
+            <h4>New clinician</h4>
+          </div>
+          <div className='card-body'>
+            <BasicInformationClinician />
+          </div>
+       </div>
+  </SettingsLayout>
   )
 }

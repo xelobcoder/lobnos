@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { TextField, MenuItem, Select, FormControl, InputLabel, Autocomplete } from '@mui/material';
-import { getDataAndUpdateState, handleResponse, validateFormData } from '../../components/Auth/customFetch';
-import { useRouter } from 'next/router';
+import { getDataAndUpdateState, handleChangeWithState, handleResponse, validateFormData } from '../../components/Auth/customFetch';
+import { usePathname } from 'next/navigation';
+import {ToastContainer, toast} from 'react-toastify';
 export default function BasicInformationClinician() {
   const [OrganizationList, setOrganization] = useState([]);
-  const clinicianid = useRouter().query.clinicianid;
-
+  const path = usePathname().split('/');
+  const clinicianid = path[path.length - 1];
   const defaultData = {
     id: clinicianid,
     name: "",
@@ -19,34 +19,8 @@ export default function BasicInformationClinician() {
 
   const [data, setData] = useState(defaultData);
 
-  const handleChange = (event, target) => {
-    const { value } = event.target;
-    setData({ ...data, [target]: value })
-  }
-
   const getClientForEdit = (originaldata) => {
-    // converting the data to lowercase
-    const {
-      EMAIL,
-      ID,
-      LOCATION,
-      NAME,
-      OCCUPATION,
-      ORGANIZATION,
-      ADDRESS,
-      PHONE } = originaldata;
-
-    const data = {
-      id: ID,
-      name: NAME,
-      phone: PHONE,
-      email: EMAIL,
-      organization: ORGANIZATION,
-      location: LOCATION,
-      address: ADDRESS,
-      occupation: OCCUPATION,
-    }
-    setData(data)
+    setData(originaldata)
   }
 
   const setDefault = () => { setData(defaultData) }
@@ -55,10 +29,10 @@ export default function BasicInformationClinician() {
     const handleResponse = function (data) {
       const { statusCode, status, message } = data;
       if (statusCode == 200 && status == 'success') {
-        alert(message);
-        setDefault()
+        toast.success(message,{position: toast.POSITION.TOP_CENTER, autoClose: 2000});
+        setDefault();
       } else {
-        alert(message);
+        toast.error(message,{position: toast.POSITION.TOP_CENTER, autoClose: 2000});
       }
     }
     await validateFormData(data, true, [], 'clinicians', handleResponse)
@@ -84,123 +58,126 @@ export default function BasicInformationClinician() {
   useEffect(() => {
     getDataAndUpdateState(setOrganization, 'organization')
   }, [])
+
+
   return (
     <>
-      <div className='container'>
-        <form autoCapitalize="true" autoComplete="true">
-          <div>
-            <div className="mb-3 mt-3">
-              <TextField
-                type="text"
-                label='clinician name'
-                id="name"
-                value={data.name}
-                sx={{ width: "100%" }}
-                size='small'
-                onChange={(event) => handleChange(event, "name")}
-              />
-            </div>
-            <div className="mb-3 mt-3">
-              <TextField
-                type="tel"
-                inputMode='numeric'
-                label='phone number'
-                value={data.phone}
-                onChange={(event) => handleChange(event, "phone")}
-                maxLength={10} minLength={10}
-                sx={{ width: "100%" }}
-                size='small'
-              />
-            </div>
-            <div className="mb-3 mt-3">
-              <TextField
-                type="email"
-                label='email'
-                id="email"
-                sx={{ width: "100%" }}
-                size='small'
-                value={data.email}
-                onChange={(event) => handleChange(event, "email")}
-              />
-            </div>
-            <div className="mb-3 mt-3">
-              <Autocomplete
-                id="organization"
-                options={OrganizationList}
-                getOptionLabel={(option) => option.NAME}
-                sx={{ width: "100%" }}
-                renderInput={(params) => (
-                  <>
-                    <TextField
-                      {...params}
-                      label="Organization"
-                      size="small"
-                    />
-                  </>
-                )}
-                onChange={(event, value) => {
-                  if (Array.isArray(OrganizationList) && OrganizationList.length > 0) {
-                    setData({ ...data, organization: value.ID })
-                  }
-                }}
-              />
-            </div>
-            <div className="mb-3 mt-3">
-              <TextField
-                type="text"
-                onChange={(event) => handleChange(event, "location")}
-                id="location"
-                size="small"
-                value={data.location}
-                label="Location"
-                sx={{ width: "100%" }}
-              />
-            </div>
-            <div className="mb-3 mt-3">
-              <TextField
-                id="address"
-                size="small"
-                value={data.address}
-                onChange={(event) => handleChange(event, "address")}
-                label="Address"
-                sx={{ width: "100%" }}
-              />
-            </div>
-            <div className="mb-3 mt-3">
-              <label className='text-info'>Select occupation that matches closest to yours</label>
-              <FormControl sx={{ width: "100%" }}>
-                <InputLabel id="occupation-label">Occupation</InputLabel>
-                <Select
-                  labelId="occupation-label"
-                  id="occupation"
-                  value={data.occupation}
-                  onChange={(event) => handleChange(event, "occupation")}
-                  variant="filled"
-                  size="small"
-                >
-                  <MenuItem value="">Select occupation</MenuItem>
-                  <MenuItem value="doctor">Doctor</MenuItem>
-                  <MenuItem value="nurse">Nurse</MenuItem>
-                  <MenuItem value="pharmacist">Pharmacist</MenuItem>
-                  <MenuItem value="therapist">Therapist</MenuItem>
-                  <MenuItem value="other">Other</MenuItem>
-                </Select>
-              </FormControl>
-            </div>
-          </div>
-          <button
-            type="button"
-            variant="contained"
-            className='custom-button'
-            color="primary"
-            onClick={handleSubmit}
-            // startIcon={<SaveAs />}
-            style={{ marginTop: '16px', marginBottom: '20px' }}
-          >
-            Submit
-          </button>
-        </form>
+      <ToastContainer/>
+  <div className='container'>
+  <form autoComplete="true">
+    <div>
+      <div className="mb-3 mt-3">
+        <label htmlFor="name" className="form-label">Clinician Name</label>
+        <input
+          type="text"
+          className="custom-input"
+          id="name"
+          placeholder="Enter Clinician Name"
+          value={data.name}
+          style={{ width: "100%" }}
+          size='sm'
+          onChange={(event) => handleChangeWithState(event, "name", setData, data)}
+        />
       </div>
+      <div className="mb-3 mt-3">
+        <label htmlFor="phone" className="form-label">Phone Number</label>
+        <input
+          type="tel"
+          className="custom-input"
+          id="phone"
+          placeholder="Enter Phone Number"
+          value={data.phone}
+          onChange={(event) => handleChangeWithState(event, "phone", setData, data)}
+          maxLength={10}
+          minLength={10}
+          style={{ width: "100%" }}
+          size='sm'
+        />
+      </div>
+      <div className="mb-3 mt-3">
+        <label htmlFor="email" className="form-label">Email</label>
+        <input
+          type="email"
+          className="custom-input"
+          id="email"
+          placeholder="Enter Email"
+          style={{ width: "100%" }}
+          size='sm'
+          value={data.email}
+          onChange={(event) => handleChangeWithState(event, "email", setData, data)}
+        />
+      </div>
+      <div className="mb-3 mt-3">
+        <label htmlFor="organization" className="form-label">Organization</label>
+        <select
+          className="custom-select"
+          id="organization"
+          style={{ width: "100%" }}
+          onChange={(event) => {
+            if (Array.isArray(OrganizationList) && OrganizationList.length > 0) {
+              setData({ ...data, organization: event.target.value });
+            }
+          }}
+        >
+          <option value="">Organization</option>
+          {OrganizationList.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="mb-3 mt-3">
+        <label htmlFor="location" className="form-label">Location</label>
+        <input
+          type="text"
+          className="custom-input"
+          id="location"
+          onChange={(event) => handleChangeWithState(event, "location", setData, data)}
+          placeholder="Enter Location"
+          style={{ width: "100%" }}
+          size="sm"
+          value={data.location}
+        />
+      </div>
+      <div className="mb-3 mt-3">
+        <label htmlFor="address" className="form-label">Address</label>
+        <input
+          type="text"
+          className="custom-input"
+          id="address"
+          placeholder="Enter Address"
+          value={data.address}
+          onChange={(event) => handleChangeWithState(event, "address", setData, data)}
+          style={{ width: "100%" }}
+          size="sm"
+        />
+      </div>
+      <div className="mb-3 mt-3">
+        <label htmlFor="occupation" className="form-label">Occupation</label>
+        <select
+          className="custom-select"
+          id="occupation"
+          style={{ width: "100%" }}
+          value={data.occupation}
+          onChange={(event) => handleChangeWithState(event, "occupation", setData, data)}
+          size="sm"
+        >
+          <option value="">Select occupation</option>
+          <option value="doctor">Doctor</option>
+          <option value="nurse">Nurse</option>
+          <option value="pharmacist">Pharmacist</option>
+          <option value="therapist">Therapist</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+    </div>
+    <button type="button" className='btn btn-primary btn-sm' onClick={handleSubmit}>
+      Submit
+    </button>
+  </form>
+</div>
+
     </>
   );
 }

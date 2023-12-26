@@ -1,10 +1,8 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import { TestPanelProvider } from '../../../components/testpanel/contextTest';
-import TestPanelLayout from '../../../components/testpanel/TestPanelLayout';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
-import { Button } from '@mui/material';
 import TableDisplay from '../../../components/accessories/TableDisplay';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 
 export default function TESTPANEL() {
@@ -67,7 +65,7 @@ export default function TESTPANEL() {
       return (
         <div>
           <button className='btn btn-sm btn-primary'
-            onClick={(e) => { router.push(`/settings/testpanel/updatetest/${row.original.ID}`) }}>
+            onClick={(e) => { router.push(`/settings/testpanel/updatetest/${row.original.id}`) }}>
             update
           </button>
         </div>

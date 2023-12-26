@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation'
 import Add_department from '../../components/settingsComponents/department';
 import DepartmentList from '../../components/settingsComponents/departmentList';
 import { customPost, getDepartment } from '../../components/Auth/customFetch';
 import MainSettingsLayoutView from '../../components/settingsComponents/MainSettingsLayoutView';
+import { ToastContainer,toast } from 'react-toastify';
 
 export default function Department() {
   const [key, setKey] = useState('department_list');
@@ -28,13 +29,16 @@ export default function Department() {
       let response = await customPost('departments', 'DELETE', { id })
       const { status, message } = response;
       if (status === 'success') {
-        alert(message)
+        toast.success(message,{autoClose:3000});
         setDepartments(department.filter((item) => item.id !== id))
       }
       else {
-        alert(message)
+        toast.error(message,{autoClose:3000});
       }
     }
+    let confirm = window.confirm('Are you sure you want to delete this department?');
+    if (!confirm) return;
+    deleteDepartment();
   }
 
 
@@ -45,6 +49,7 @@ export default function Department() {
   }
   return (
     <MainSettingsLayoutView>
+      <ToastContainer />
       <Tabs
         id="controlled-tab-example"
         activeKey={key}

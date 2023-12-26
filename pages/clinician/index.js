@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { customFetch, customPost, getDataAndUpdateState, handleChange, validateFormData } from "../../components/Auth/customFetch";
+import { customFetch, customPost, getDataAndUpdateState} from "../../components/Auth/customFetch";
 import TableDisplay from '../../components/accessories/TableDisplay';
-import { Avatar, IconButton, Typography } from "@mui/material";
-import { Add, AddBox, AddOutlined, DeleteForeverOutlined, Edit, MedicalInformation, Visibility } from "@mui/icons-material";
-import { useRouter } from "next/router";
-import SideBarMapView from "../../components/Clinicians/SideBarMapView";
-import SidebarLayoutMap from "../../components/Clinicians/SidebarLayoutMap";
+import {IconButton, Typography } from "@mui/material";
+import { DeleteForeverOutlined, Edit,Visibility } from "@mui/icons-material";
+import { useRouter } from "next/navigation";
+import { ToastContainer, toast } from 'react-toastify';
+import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
+import SidebarFrontPage from "../../components/frontpagesidebar";
 
 export default function Clinicians() {
   const [ClinicianList, setClinician] = useState([]);
@@ -21,43 +22,44 @@ export default function Clinicians() {
 
   const ForClientEdit = (originaldata) => {
     // converting the data to lowercase
-    const { ID } = originaldata;
-    router.push(`/clinician/update/${ID}`)
+    const { id } = originaldata;
+    if (!id) return;
+    router.push(`/clinician/update/${id}`)
   }
   const columns = [
     {
       Header: 'Name',
-      accessor: 'NAME'
+      accessor: 'name'
     },
     {
       Header: 'Email',
-      accessor: 'EMAIL'
+      accessor: 'email'
     },
     {
       Header: 'location',
-      accessor: 'LOCATION'
+      accessor: 'location'
     },
     {
-      Header: 'Commission',
-      accessor: 'COMMISSION',
+      Header: 'Commission rate',
+      accessor: 'commission',
       Cell: ({ row }) => {
         const { original } = row;
         return <div>
-          <Typography variant="body2">{original.COMMISSION}%</Typography>
+          <Typography variant="body2">{original?.commission}%</Typography>
         </div>
       }
     },
     {
       Header: 'Phone',
-      accessor: 'PHONE'
+      accessor: 'phone'
     },
     {
       Header: 'Occupation',
-      accessor: 'OCCUPATION'
+      accessor: 'occupation'
     },
     {
       Header: 'Address',
-      accessor: 'ADDRESS'
+      accessor: 'address'
     },
     {
       Header: 'Actions',
@@ -68,7 +70,7 @@ export default function Clinicians() {
           <IconButton onClick={() => ForClientEdit(original)}>
             <Edit />
           </IconButton>
-          <IconButton size="small">
+          <IconButton size="small" onClick={(ev) => {router.push('/clinician/clinicianview')}}>
             <Visibility sx={{ color: 'green' }} />
           </IconButton>
           <IconButton size="small">
@@ -83,46 +85,38 @@ export default function Clinicians() {
   const handleDelete = async (original) => {
     // confirm if client want to delete clinician, if yes delete ,if no  cancel and  ignore everything
     let confirmation = confirm('Do want to delete clinician ?')
+    if (!confirmation) return;
 
-    if (confirmation) {
-      const { ID } = original;
-      if (original && ID) {
-        try {
-          let deletepush = await customPost('clinicians', 'DELETE', { id: ID });
-          const { statusCode, status, message } = deletepush;
-          if (statusCode == 200 && status == 'success') {
-            alert(message);
-            // get current list of clinicians
-            const getClinicians = await customFetch('clinicians');
-            // map data to clinician
-            setClinician(getClinicians || [])
-          } else {
-            alert(message)
-          }
-        } catch (err) {
-          console.log(err)
-        }
+    const { id } = original;
+    if (!id) return;
+
+    try {
+      let deletepush = await customPost('clinicians', 'DELETE', { id });
+      const { statusCode, status, message } = deletepush;
+      if (statusCode == 200 && status == 'success') {
+        toast.success(message,{position:'top-right',autoClose: 1000})
+        // get current list of clinicians
+        const getClinicians = await customFetch('clinicians');
+        // map data to clinician
+        setClinician(getClinicians || [])
+      } else {
+        toast.error(message,{position:'top-right',autoClose: 1000})
       }
-
+    } catch (err) {
+      toast.error(err.message || 'error in connecting to server',{position:'top-right',autoClose: 1000})
     }
-    return
   }
 
 
-
-
-
-  const linkers = [
-    { title: "clinicians", link: "/clinician", icon: <MedicalInformation /> },
-    { title: "new clinician", link: "/clinician/new", icon: <AddBox /> },
-  ];
-
   return (
-    <>
-      <SidebarLayoutMap sidebar={<SideBarMapView linkers={linkers} />}>
-        <TableDisplay data={ClinicianList} column={columns} filtering={true}
-        />
-      </SidebarLayoutMap>
-    </>
+    <SettingsLayout sidebar={< SidebarFrontPage />}>
+      <ToastContainer/>
+      <div className="d-flex justify-content-end">
+        <button type='button' onClick={ (ev) =>  {router.push('/clinician/new')}} className="btn btn-sm btn-primary fw-bold mx-2 my-1"> add clinician</button>
+      </div>
+      <div style={{marginTop:'-40px'}}>
+      <TableDisplay data={ClinicianList} column={columns} filtering={true}/>
+     </div>
+    </SettingsLayout>
   );
 }

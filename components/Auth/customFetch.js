@@ -682,3 +682,16 @@ export const defaultHormonesParameters = [{
    gender: 'female'
 }
 ]
+
+
+export  const getSpecificOrder = async (id,setData,setLoading) => {
+   const url = `orders/temporary/processing?id=${id}`;
+   const response = await customFetch(url);
+   const { status, statusCode, result } = response;
+   if (status == 'success' && statusCode == 200 ) {
+      setData(result)
+   } else {
+      setData({})
+   }
+   setLoading(false);
+ }

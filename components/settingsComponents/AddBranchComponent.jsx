@@ -46,7 +46,7 @@ export default function AddBranchComponent({ data, update, target }) {
             <label className='text-primary' >Branch Manager</label>
             <select className='form-control' onChange={(ev) => handleChangeWithState(ev, 'managerid', update, data)} value={data?.managerid}>
               <option>select Branch Manager</option>
-              {employees.map((item, index) => { return (<option key={index} value={item?.EMPLOYEEID} >{item?.USERNAME}</option>) })}
+              {employees.map((item, index) => { return (<option key={index} value={item?.employeeid} >{item?.username}</option>) })}
             </select>
           </div>
 

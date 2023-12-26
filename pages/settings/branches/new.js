@@ -9,11 +9,15 @@ export default function AddNewBranch() {
     <>
       <MainSettingsLayoutView>
         <div className='container'>
-          <h1>
-            <span className='alert alert-info'>Add New Branch</span>
-          </h1>
-        </div>
-        <AddBranchComponent data={branch} target={'POST'} update={setBranch} />
+          <div className='card mx-1 my-3'>
+          <div className='card-header bg-secondary text-white'>
+             <div className='card-title'>Add New Branch</div >
+          </div>
+          <div className='card-body'>
+          <AddBranchComponent data={branch} target={'POST'} update={setBranch} /> 
+          </div>
+         </div>
+       </div>
       </MainSettingsLayoutView>
     </>
   )

@@ -47,7 +47,7 @@
 
 .wrapper {
   display: grid;
-  grid-template-columns: 17% auto;
+  grid-template-columns: 15% auto;
 }
 
 .wrapper > .side {

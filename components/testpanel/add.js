@@ -2,18 +2,19 @@ import AddBoxSharpIcon from '@mui/icons-material/AddBoxSharp';
 import React, { useContext, useState, useMemo, useEffect } from 'react';
 import { customFetch, customPost, getSampleTypeList, handleTestListChange,handleComments, validateFormData, handleResponse } from '../Auth/customFetch';
 import { useRouter } from 'next/router';
+import {ToastContainer,toast} from 'react-toastify'
 
 export default function AddPanel() {
   const [categories, setCategories] = useState([]);
   const [panel, setPanel] = useState({
-    NAME: '',
-    PRICE: '',
-    SAMPLE: '',
-    QTY_REQUIRED: '',
-    SAMPLE_CONTAINER: '',
-    UNIT: '',
-    DESCRIPTION: '',
-    CATEGORY: ''
+    name: '',
+    price: '',
+   sample: '',
+   qty_required: '',
+   sample_container: '',
+    unit: '',
+    description: '',
+    category: ''
   });
   const [sampletype, setSampleType] = useState([])
 
@@ -26,6 +27,7 @@ export default function AddPanel() {
       setPanel(data[0])
     }
   }
+
 
 
   const getCategories = async function () {
@@ -61,22 +63,24 @@ export default function AddPanel() {
   }
   return (
     <>
+      <ToastContainer/>
       <main>
         <div className="container-fluid">
-          <div className="m-2 bg-white br-5">
-            <header className="mb-3">
-              <h4 className="btn btn-danger">update test information</h4>
-            </header>
+          <div className='card my-2'>
+          <div className="card-header">
+             <div className='card-title'> update test information</div>
+            </div>
+            <div className='card-body'>
             <form>
               <div className="form-group ">
-                <label> test name  <span className='badge btn btn-warning' style={{position: 'relative',top:'-20%'}}>{panel.NAME} test</span></label>
+                <label> Test name  </label>
                 <input
                   className="form-control"
-                  value={panel.NAME}
+                  value={panel.name}
                   type="text"
                   name="test"
                   disabled
-                  onChange={(e)=>handleComments(e,panel,'NAME',setPanel)}
+                  onChange={(e)=>handleComments(e,panel,'name',setPanel)}
                   placeholder=" Test"
                 />
                
@@ -86,9 +90,9 @@ export default function AddPanel() {
                 <input
                   className="form-control"
                   type="number"
-                  value={panel.PRICE}
+                  value={panel.price}
                   name="price"
-                  onChange={(e)=>handleComments(e,panel,'PRICE',setPanel)}
+                  onChange={(e)=>handleComments(e,panel,'price',setPanel)}
                   placeholder="Price"
                 />
               </div>
@@ -96,9 +100,9 @@ export default function AddPanel() {
                 <label>category</label>
                 <select
                   className="form-control"
-                  value={panel.CATEGORY}
+                  value={panel.category}
                   name="category"
-                  onChange={(e)=>handleComments(e,panel,'CATEGORY',setPanel)}
+                  onChange={(e)=>handleComments(e,panel,'category',setPanel)}
                 >
                   <option value="">select category</option>
                   {categories.map((item, index) => (
@@ -114,9 +118,9 @@ export default function AddPanel() {
                 <select
                   className="form-control"
                   name="sample"
-                  onChange={(e) => handleComments(e, panel, "SAMPLE",setPanel)}
+                  onChange={(e) => handleComments(e, panel, "sample",setPanel)}
                 >
-                  {sampletype.map((ss, ii) => {
+                    {sampletype.map((ss, ii) => {
                     return (
                       <option value={ss.id} key={ii}>
                         {ss.name}
@@ -132,8 +136,8 @@ export default function AddPanel() {
                   className="form-control"
                   name="description"
                   rows={5}
-                  value={panel.DESCRIPTION}
-                  onChange={(e) => handleComments(e,panel,'DESCRIPTION',setPanel)}
+                  value={panel.description}
+                  onChange={(e) => handleComments(e,panel,'description',setPanel)}
                   placeholder="description"
                 />
               </div>
@@ -144,8 +148,8 @@ export default function AddPanel() {
                   className="form-control"
                   type="text"
                   name="unit"
-                  value={panel.UNIT}
-                  onChange={(e) => handleComments(e,panel,'UNIT',setPanel)}
+                  value={panel.unit}
+                  onChange={(e) => handleComments(e,panel,'unit',setPanel)}
                   placeholder="unit"
                 />
               </div>
@@ -156,8 +160,8 @@ export default function AddPanel() {
                   className="form-control"
                   type="text"
                   name="samplecontainer"
-                  value={panel.SAMPLE_CONTAINER}
-                  onChange={(e) => handleComments(e,panel,'SAMPLE_CONTAINER',setPanel)}
+                  value={panel.sample_container}
+                  onChange={(e) => handleComments(e,panel,'sample_container',setPanel)}
                   placeholder="sample container"
                 />
               </div>
@@ -167,9 +171,9 @@ export default function AddPanel() {
                 <input
                   className="form-control"
                   type="text"
-                  value={panel.QTY_REQUIRED}
+                  value={panel.qty_required}
                   name="samplevolume"
-                  onChange={(e) => handleComments(e,panel,'QTY_REQUIRED',setPanel)}
+                  onChange={(e) => handleComments(e,panel,'qty_required',setPanel)}
                   placeholder="sample volume"
                 />
               </div>
@@ -183,6 +187,7 @@ export default function AddPanel() {
               </button>
             </form>
           </div>
+        </div>
         </div>
       </main>
     </>

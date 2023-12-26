@@ -11,13 +11,18 @@ export default function EmailsServedPage() {
   const [inputValue, setInputValue] = useState('');
   const [category, setCategory] = useState("");
   const [selectedEmails, setSelectedEmails] = useState([]);
-  const [shedule, setSchedule] = useState({ date: '', time: '' });
+  const [schedule, setSchedule] = useState({ date: '', time: '' });
   const [emails, setEmail] = useState([]);
   const publishid = useSearchParams().get('id');
   // make input active
   const makeInputActive = (value) => { 
     setCategory(value);
-    if (value == "bulk staff" || value == "bulk clients") { setDisabled(true); return }
+    if (value == "bulk staff" || value == "bulk clients") {
+      setDisabled(true);
+      setSelectedEmails([]);
+      setEmail([]);
+      setInputValue('');
+    }
     setDisabled(false);
   }
 
@@ -57,7 +62,7 @@ export default function EmailsServedPage() {
   
 
   const handleSubmit = async () => { 
-    const data = { target: selectedEmails, shedule, category,id: publishid};
+    const data = { target: selectedEmails, schedule, category,id: publishid};
     const response = await customPost('email/publish', 'POST', data);
     const { statusCode, status, message } = response;
     if (statusCode === 200 && status === 'success') {
@@ -119,12 +124,12 @@ export default function EmailsServedPage() {
           </div>
           <div>
             <label>schedule a date and time</label>
-            <input style={{width:'80%'}} type="date"  className="custom-input" value={shedule.date} onChange={(ev) => setSchedule({...shedule,date:ev.target.value})} />
+            <input style={{width:'80%'}} type="date"  className="custom-input" value={schedule.date} onChange={(ev) => setSchedule({...schedule,date:ev.target.value})} />
           </div>
           {/* /time  */}
           <div>
             <label>schedule a date and time</label>
-            <input style={{ width: '80%' }} type="time"  className="custom-input" value={shedule.time} onChange={(ev) => setSchedule({ ...shedule, time: ev.target.value })} />
+            <input style={{ width: '80%' }} type="time"  className="custom-input" value={schedule.time} onChange={(ev) => setSchedule({ ...schedule, time: ev.target.value })} />
           </div>
           <div className="my-2">
             <button type="button" onClick={handleSubmit} className="btn btn-primary btn-sm">publish email</button>

@@ -25,7 +25,7 @@ export default function PermissionsOfUsers() {
         // check if the keys are present in the default page access
         if (keysPresent.length > 0) {
           setPrevious(true);
-          setClientPermissions(permissions)
+          setClientPermissions(permissions);
         } else {
           const { role } = user;
           if (role == 'phelobotomist') {

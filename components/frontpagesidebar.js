@@ -8,13 +8,8 @@ import {
   Event,
   Business,
   SupervisorAccount,
-  Science,
-  LocalHospital,
-  Settings,
-  BusinessCenter,
-  Work,
-  Menu,
   ViewArray,
+  ShoppingBagRounded,
 } from '@mui/icons-material';
 
 export default function SidebarFrontPage() {
@@ -60,6 +55,16 @@ export default function SidebarFrontPage() {
               <div className='text'>
                 <Link href="/billing/billedclients">
                   Billed Clients
+                </Link>
+              </div>
+            </li>
+            <li>
+              <div className='icons'>
+                <ShoppingBagRounded/>
+              </div>
+              <div className='text'>
+                <Link href='/orders'>
+                  orders
                 </Link>
               </div>
             </li>
