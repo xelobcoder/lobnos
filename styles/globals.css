@@ -244,6 +244,18 @@ max-height: 15vh;
   grid-gap: 20px;
 }
 
+.repeat-4{
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  grid-gap: 10px;
+}
+
+.repeat-5 {
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  grid-gap: 10px;
+}
+
 .grid-slide {
   display: -ms-grid;
   display: grid;

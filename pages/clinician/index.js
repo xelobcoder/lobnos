@@ -16,7 +16,7 @@ export default function Clinicians() {
     try {
       getDataAndUpdateState(setClinician, 'clinicians')
     } catch (err) {
-      console.log(err)
+      alert(err || 'error connecting to server');
     }
   }, []);
 
