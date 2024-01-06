@@ -24,7 +24,7 @@ export default function Clinicians() {
     // converting the data to lowercase
     const { id } = originaldata;
     if (!id) return;
-    router.push(`/clinician/update/${id}`)
+    router.push(`/clinician/update?clinicianid=${id}`)
   }
   const columns = [
     {

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { getDataAndUpdateState, handleChangeWithState, handleResponse, validateFormData } from '../../components/Auth/customFetch';
 import {ToastContainer, toast} from 'react-toastify';
-import { useRouter } from 'next/router';
+import { useSearchParams } from 'next/navigation';
 export default function BasicInformationClinician() {
   const [OrganizationList, setOrganization] = useState([]);
-  const router = useRouter();
-  const clinicianid = router.query.id;
+  const clinicianid = useSearchParams().get("clinicianid");
+  console.log(clinicianid);
   const defaultData = {
     id: clinicianid,
     name: "",
