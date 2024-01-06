@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { getDataAndUpdateState, handleChangeWithState, handleResponse, validateFormData } from '../../components/Auth/customFetch';
-import { usePathname } from 'next/navigation';
 import {ToastContainer, toast} from 'react-toastify';
+import { useRouter } from 'next/router';
 export default function BasicInformationClinician() {
   const [OrganizationList, setOrganization] = useState([]);
-  const path = usePathname().split('/');
-  const clinicianid = path[path.length - 1];
+  const router = useRouter();
+  const clinicianid = router.query.id;
   const defaultData = {
     id: clinicianid,
     name: "",
