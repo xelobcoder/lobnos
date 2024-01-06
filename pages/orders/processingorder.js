@@ -4,17 +4,19 @@ import Sampling from "../../components/readyComponents/Sampling";
 import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
 import ISLOADING from "../../components/isLoading";
 import { ToastContainer, toast } from "react-toastify";
-import {  customFetch, getSpecificOrder, handleChangeWithState } from "../../components/Auth/customFetch";
+import { useRouter } from "next/navigation";
+import {  customFetch, customPost, getSpecificOrder, handleChangeWithState } from "../../components/Auth/customFetch";
 import { useSearchParams } from "next/navigation";
 
 export default function ProcessingOrder() {
+  const router = useRouter();
   const [data, setData] = useState({});
   const id = useSearchParams().get('orderid');
   const [loading, setLoading] = useState(true);
   const [paymentmode, setPaymentMode] = useState([]);
-  const order = useCallback(async function (id) { getSpecificOrder(id, setData, setLoading) }, []);
+  const order = useCallback(async (id) => { getSpecificOrder(id, setData, setLoading) }, []);
   
-  const getPaymentMode = async function () {
+  const getPaymentMode = async () => {
     const getdata = await customFetch("paymentmodes");
     const { status, data, statusCode } = getdata;
     (status === "success" && statusCode == 200 && data) && setPaymentMode(data);
@@ -28,35 +30,78 @@ export default function ProcessingOrder() {
   }, [order, id]);
   
   const recalculateTotalBill =  () => {
-    const { totaltestcost, totalTax, discount } = data;
-    const total = totaltestcost + totalTax;
+    const { testcost,taxValue, discount } = data;
+    const cost = testcost + taxValue;
     const discountValue = parseFloat(discount);
-    const payable = total - discountValue;
-    if (discountValue > total) {
-      setData({ ...data, discount: 0,total,payableAmount: total });
+    const payable = cost - discountValue;
+    if (discountValue > cost) {
+      setData({ ...data, discount: 0,cost,payable: cost });
       return;
     }
-    setData({ ...data, total, payableAmount: payable,balance: 0,paid: 0});
+    setData({ ...data, cost, payable: payable,balance: 0,paid: 0});
   }
 
 
   const handlePaidAmount = async (ev) => {
-    const { paid,payableAmount } = data;
+    const { paid,payable } = data;
     const paidValue = parseFloat(paid);
     if (paidValue === 0) return;
-    if (paidValue > payableAmount) {
+    if (paidValue > payable) {
       setData({...data, paid: '0'})
       toast.warning('Please paid amount must be less or equal to payable amount', { autoClose: 3000 });
       return;
     }
-    const balance = payableAmount - paidValue;
+    const balance = payable - paidValue;
     setData({ ...data, balance });
   }
 
 
-  const handleOrder = async (ev) => {
-    console.log(ev.target, data);
+  const handleOrder = async (ev) => {  
+    try {
+      const _this = { ...data };
+      _this.paid = parseInt(data.paid);
+       const { paymentmode, paid, payable,test} = _this;
+       if (paymentmode == "") {
+         toast.error("Payment mode not selected", { autoClose: 1000 });
+         return;
+       }
+       if (paid <= 0 || paid < parseInt(payable) || paid < parseInt(payable)){
+         toast.error("Amount must be greather than 0 and must be less equal to amount payabele");
+         return;
+       }
+       const samplingCenter = window.localStorage.getItem("deviceDefaultBranch");
+   
+       if (samplingCenter) {
+         const branchid = parseInt( samplingCenter.split("branch-")[1]);
+         _this.samplingCenter = branchid;
+       } else {
+         toast.error("default branch not set", { autoClose: 10000 });
+         return;
+       }
+   
+       _this.outstanding = _this.balance;
+       _this.discount = parseFloat(_this.discount);
+       _this.status = 'none';
+       if (test.length > 0) {
+         _this.test = test.map((item, index) => { return item?.id });
+       }
+      const pushorder = await customPost("orders/processed", 'POST', _this);
+      
+      const { statusCode, status, message } = pushorder;
+
+      if (statusCode == 200 && status == "success") {
+        toast.success(message, { autoClose: 500 });
+        setLoading(true);
+        router.push("/orders");
+      }
+      else {
+        toast.error(message, { autoClose: 3000 });
+      }
+    } catch (err) {
+       toast.error("soemthing wrong occured", { autoClose: 3000 });
+    }
   }
+
 
 
   return (
@@ -68,20 +113,20 @@ export default function ProcessingOrder() {
           <>
             <div className="mx-2">
                 <div className="repeat-5">
-                  <Sampling data={{ title: 'Total test cost', value: data.totaltestcost }} />
-                  <Sampling data={{ title: 'Total Tax Value', value: data.totalTax }} />
-                  <Sampling data={{ title: 'Total Cost', value: data.total }} />
+                  <Sampling data={{ title: 'Total test cost', value: data.testcost }} />
+                  <Sampling data={{ title: 'Total Tax Value', value: data.taxValue }} />
+                  <Sampling data={{ title: 'Total Cost', value:data.cost }} />
                   <Sampling data={{ title: 'Discount', value: data.discount || 0 }} />
-                  <Sampling data ={{title: 'payable amount', value:  data.payableAmount}} />
+                  <Sampling data ={{title: 'payable amount', value:  data.payable}} />
                 </div>
               <div className="grid-2">
                 <section >
                   <h4 >Requested clinical test</h4>
                     <div className="list-group">
                     {
-                        (Object.keys(data).length > 0 && 'data' in data) && data?.data.map((item, index) => {
+                        (Object.keys(data).length > 0 && 'test' in data) && data?.test.map((item, index) => {
                             return (
-                              <div key={index} className="d-flex list-group-item justify-content-between">
+                              <div key={item?.id} className="d-flex list-group-item justify-content-between text-sm">
                                 <span className="mb-1">{item.name}</span>
                                 <span className="mb-1">{item.price}</span>
                               </div>
@@ -95,7 +140,7 @@ export default function ProcessingOrder() {
                 <div className="bg-white br-5 py-2 px-2 mx-2">
                   <div>
                     <label>clinician name</label>
-                    <input className="custom-input" disabled type="text" value={data.cliniciandata.name} />
+                    <input className="custom-input" disabled type="text" value={data.clinicianname} />
                   </div>
                 <div className="form-group my-3">
                   <label>discount</label>
@@ -115,7 +160,7 @@ export default function ProcessingOrder() {
                 </div>
                 <div className="form-group my-3">
                   <label>Payment Mode</label>
-                  <select className="custom-select">
+                  <select className="custom-select" value={data.paymentmode} onChange={(ev) => setData({...data, paymentmode: ev.target.value})}>
                     <option> select an  option here </option>
                     {
                      ( paymentmode.length >  0) && (
@@ -133,7 +178,7 @@ export default function ProcessingOrder() {
               </div>
               <div className="grid-2 my-2">
               <section className="mx-2">
-                <h4>Taxes Applied</h4>
+                <h5>Taxes</h5>
                 {
                   (Object.keys(data).length > 0 && 'tax' in data && data.tax.length > 0) ? 
                     (
@@ -149,8 +194,10 @@ export default function ProcessingOrder() {
                       })}
                       </div>
                       </>
-                    ) : (<div>
-                      No Taxes
+                      ) :
+                      (
+                      <div className="text-white br-5 border border-primary bg-primary py-2 px-2">
+                      No Taxes Applied
                   </div>)  
                   }
                 </section>

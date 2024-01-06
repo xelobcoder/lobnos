@@ -16,7 +16,7 @@ export default function Orders() {
     const url = `orders/temporary?target=all` + (date ? `&date=${date}` : '');
     await getDataAndUpdateState(setData, url);
     setLoading(false);
-  }, [])
+  }, [date])
   
 
   useEffect(() => { getOrders() }, [getOrders]);
@@ -28,8 +28,6 @@ export default function Orders() {
     const url = `/orders/processingorder?orderid=${orderid}&patientid=${patientid}&processed=${processed === 0 ? false : true}&&clinicianid=${clinicianid}&orderdate=${date}`;
     navigate.push(url);
   }
-
-  console.log(data);
     
   return (
     <SettingsLayout sidebar={<SidebarFrontPage/>}>
