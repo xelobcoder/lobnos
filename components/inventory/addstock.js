@@ -124,18 +124,18 @@ export default function ADD_STOCK_INVENTORY() {
 
   return (
     <>
-      <div className="mt-3 p-3">
-        <div className='alert alert-info' style={{ width: '400px' }}>
+      <div className="mx-3">
+        {/* <div className='alert alert-info' style={{ width: '400px' }}>
           <h6>kindly fill in all fields to {tab == 'edit' ? 'update stock information' : ' add a new stock '}</h6>
-        </div>
+        </div> */}
         <form
-          className='grid-50-responsive p-3' id='registration'
+          className='grid-50-responsive p-3' 
         >
           <div className="form-group">
             <label htmlFor="name">Name</label>
             <input
               type="text"
-              className="form-control"
+              className="custom-input"
               id="name"
               placeholder="Enter name"
               value={name}
@@ -146,7 +146,7 @@ export default function ADD_STOCK_INVENTORY() {
           <div className="form-group">
             <label htmlFor="category">Category</label>
             <select
-              className="form-control"
+              className="custom-input"
               id="category"
               value={category}
               onChange={(ev) => inputhandler(ev, "category")}
@@ -165,7 +165,7 @@ export default function ADD_STOCK_INVENTORY() {
           <div className="form-group">
             <label htmlFor="consumptionunit">Consumption Unit</label>
             <select
-              className="form-control"
+              className="custom-input"
               id="consumptionunit"
               value={consumptionunit}
               onChange={(ev) => inputhandler(ev, "consumptionunit")}
@@ -184,7 +184,7 @@ export default function ADD_STOCK_INVENTORY() {
           <div className="form-group">
             <label htmlFor="purchaseunit">Purchase Unit</label>
             <select
-              className="form-control"
+              className="custom-input"
               id="purchaseunit"
               value={purchaseunit}
               onChange={(ev) => inputhandler(ev, "purchaseunit")}
@@ -204,7 +204,7 @@ export default function ADD_STOCK_INVENTORY() {
             <label htmlFor="quantity">Unit Quantity</label>
             <input
               type="text"
-              className="form-control"
+              className="custom-input"
               id="quantity"
               placeholder="Enter unit quantity"
               value={quantity}
@@ -216,7 +216,7 @@ export default function ADD_STOCK_INVENTORY() {
             <label htmlFor="alertlevel">Alert Level</label>
             <input
               type="text"
-              className="form-control"
+              className="custom-input"
               id="alertlevel"
               placeholder="Enter alert level"
               value={alertlevel}
@@ -228,7 +228,7 @@ export default function ADD_STOCK_INVENTORY() {
             <label htmlFor="materialcode">Material Code</label>
             <input
               type="text"
-              className="form-control"
+              className="custom-input"
               id="materialcode"
               placeholder="Enter material code"
               value={materialcode}
@@ -236,10 +236,10 @@ export default function ADD_STOCK_INVENTORY() {
             />
           </div>
         </form>
-        <div className="form-group mt-3">
+        <div className="form-group mx-3">
           <button
             type="submit"
-            className="btn btn-primary"
+            className="btn btn-primary btn-sm"
             onClick={handleSubmit}
           >
             {tab === "edit" ? <SystemUpdate /> : <AddCircleOutline />}

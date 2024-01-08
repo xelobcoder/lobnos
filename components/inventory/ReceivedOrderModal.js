@@ -60,11 +60,9 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
 
 
   return (
-    <div className="mx-3 my-3 card">
-      <div className="card-header" >
-        <div className="d-flex" style={{ display: 'grid', gridTemplateColumns: '50% auto' }}>
-          <div className="form-row d-flex">
-              <label>change pricing</label>
+    <div className="mx-2 my-2">
+        <div  style={{ display: 'grid', gridTemplateColumns: 'auto auto',gridGap:'30%' }}>
+          <div className="form-row d-flex  justify-content-around">
             <select className="custom-select" onChange={(ev) => {
                 setPricing(ev.target.value);
             }} >
@@ -73,20 +71,17 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
                 <option value='unit'>unit price</option>
               </select>
             </div>
-          <div className="form-row d-flex">
-              <label>tax calculated in</label>
+          <div className="form-row d-flex ">
             <select className="custom-select" onChange={(ev) => {
                 setTaxIncurred(ev.target.value);
-              }} style={{ width: '200px', height: '25px' }}>
-                <option>select pricing</option>
+              }} >
+                <option>select tax calculation method</option>
                 <option value='absolute'>absolute</option>
                 <option value='percentage'>percentage (%)</option>
               </select>
             </div>
           </div>
-      </div>
-      <div className="card-body">
-        <table className="billing-cart-table">
+       <table className="table">
           <thead>
                   <tr>
                     <th>name</th>
@@ -95,12 +90,11 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
                     <th>balance qty</th>
                     <th>received qty</th>
                     <th>price</th>
-                    <th>received date</th>
+                    <th>receiving date</th>
                     <th>expiry date</th>
               <th>brand</th>
                     <th>lot</th>
                     <th>total</th>
-                    <th>status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -193,7 +187,7 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
                           </td>
 
                           <td>{item.totalamount}</td>
-                          <td>
+                          {/* <td>
                             <button
                               className={
                                 `btn-sm ${item.balance == 0
@@ -204,23 +198,25 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
                             >
                               {item.balance == 0 ? "complete" : "incomplete"}
                             </button>
-                          </td>
+                          </td> */}
                         </tr>
                       ))}
                     </>
                   )}
                 </tbody>
-        </table>
-      </div>
+      </table>
+      
       <div className="my-3 mx-3">
-          <div className="form-row">
-            <label>Cost incurred from tax <span style={{ fontSize: '13px' }} className="text-danger">(absolute figures required)</span></label>
-            <input
-              onBlur={(ev) => {
-                setTaxIncurred({ ...taxIncurred, amount: parseFloat(ev.target.value) });
-                inventory.totalwithTaxAdded({ setdata: setTotal, total: totalprice, amount: parseFloat(ev.target.value), datasource: data }
+          <div className="form-row col-3">
+            <label>Cost incurred from tax</label>
+            <input  
+            onBlur={(ev) => {
+                  setTaxIncurred({ ...taxIncurred, amount: parseFloat(ev.target.value) });
+                   inventory.totalwithTaxAdded({ setdata: setTotal, total: totalprice, amount: parseFloat(ev.target.value), datasource: data }
                 )
-              }} style={{ width: '200px' }} className="form-control" type="number" />
+            }}
+            className="form-control " 
+            type="number" />
           </div>
         </div>
       <div className="my-2 mx-3">
@@ -228,13 +224,14 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
           <h5>GHC {totalprice}</h5>
         </div>
       <div className="d-flex justify-content-end mb-2">
-        <button className="btn btn-primary btn-sm mx-2"  >
-            Close
-        </button>
         <button className="btn btn-primary btn-sm mx-2" sx={{ marginLeft: '20px' }} variant="contained" color="success" onClick={addToStock}>
             Add to stock
         </button>
+        <button className="btn btn-danger btn-sm mx-2"  >
+            Cancel
+        </button>
         </div>
+    
     </div>
   );
 }

@@ -55,7 +55,6 @@ export default function EXPIRE_STOCKS() {
       Header: 'action',
       accessor: '',
       Cell:  function ({row}) {
-        console.log(row.original)
         return <button className='btn btn-primary btn-sm'>removed</button>
       }
     },
@@ -87,9 +86,9 @@ export default function EXPIRE_STOCKS() {
   return (
     <InventoryLayout>
       <div>
-        <div className='d-flex justify-content-end'>
+        {/* <div className='d-flex justify-content-end'>
         <button onClick={(ev) => {handlePrint(ev)}} className='btn btn-secondary btn-sm mt-1 mx-1'><Print/> print</button>
-        </div>
+        </div> */}
         <TableDisplay data={expireStock} column={columns} />
       </div>
     </InventoryLayout>

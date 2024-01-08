@@ -53,7 +53,7 @@ export default function PURCHASES() {
     <>
       <SupplierLayout>
         {ordersplacedList.length > 0 ? (
-          <div className='mt-2'>
+          <div className='mx-2 my-2'>
             <table className='table'>
               <thead>
                 <tr>
@@ -80,12 +80,12 @@ export default function PURCHASES() {
                       <td>{item.quantity}</td>
                       <td>{item.received}</td>
                       <td>
-                        <button className='btn btn-primary btn-sm' onClick={(e) => { viewReceivedOrders(item) }}>
+                        <button className='btn btn-primary  p-1 btn-sm' onClick={(e) => { viewReceivedOrders(item) }}>
                           receive order
                         </button>
                       </td>
                       <td>
-                        <button className='btn btn-danger btn-sm'
+                        <button className='btn btn-danger btn-sm p-1'
                           onClick={(e) => { cancelOrder(item.productordersid) }}>
                           cancel
                         </button>

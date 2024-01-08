@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { customFetch } from '../Auth/customFetch';
-
+import { useRouter } from 'next/navigation';
 
 
 export default function TopPerforming({ category, count, from, to }) {
   const [data, setData] = useState([]);
+  const router = useRouter();
 
   const getTopOrganization = useCallback(async function () {
     const response = await customFetch(`${category}/performance/top?count=${count}&&from=${from}&&to=${to}`);
@@ -29,6 +30,7 @@ export default function TopPerforming({ category, count, from, to }) {
               <th>total sales</th>
               <th>commission rate</th>
               <th>commission</th>
+              <th>action</th>
             </tr>
           </thead>
           <tbody>
@@ -41,6 +43,11 @@ export default function TopPerforming({ category, count, from, to }) {
                     <td>{item.totalSales}</td>
                     <td>{item.commissionRate}</td>
                     <td>{item.commissionEarned}</td>
+                    <td>
+                      <button onClick={(ev) => {router.push(`/dashboard/organization/details?id=${item.id}&&organizationame=${item.name}`)}} className='btn btn-warning btn-sm text-sm '>
+                        view detail
+                      </button>
+                    </td>
                   </tr>)
               })
             }

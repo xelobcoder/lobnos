@@ -39,13 +39,11 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
                         <div>{item.name}</div>
                         <div>{item.category}</div>
                         <div>
-                          <select
-                            className="custom-select"
-                            onChange={(ev) => {
-                              setSelectedproduct({
-                                ...selectedproduct,
-                                purchaseunit: ev.target.value,
-                              });
+                          <select className="custom-select" onChange={(ev) => {
+                            setSelectedproduct({
+                              ...selectedproduct,
+                              purchaseunit: ev.target.value
+                            });
                             }}
                           >
                             <option>select a unit</option>
@@ -128,7 +126,7 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
                                
                               }
                             }}
-                            className="btn btn-sm btn-warning"
+                            className="btn btn-sm btn-primary p-1"
                           >
                             Add to cart
                           </button>

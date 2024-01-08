@@ -1296,6 +1296,7 @@ option:hover {
   margin-top: 15px;
   position: relative;
   border-collapse: collapse;
+  overflow-x: auto;
   background-color: white;
 }
 
@@ -1304,8 +1305,8 @@ option:hover {
   border-bottom: 1px solid #e9ecef;
   vertical-align: inherit;
   border-color: inherit;
-  background-color: #00224f;
-  color: white;
+  background-color: lightgray;
+  color: black;
 }
 .modal-color{
   color: #333333 !important;
@@ -1315,6 +1316,8 @@ option:hover {
 .table > thead > tr > th {
   text-align: left;
   font-weight: 400;
+  font-size: 14px;
+  min-width: 200px !important;
   text-transform: capitalize !important;
 }
 
@@ -2217,8 +2220,8 @@ input[type='email']:focus:invalid .company-view-result > .wrapper {
   grid-gap: 10px 10px;
   color: #00224f;
   text-transform: capitalize;
-  font-size: 13px;
   font-weight: 500;
+  font-size: 14px;
 }
 
 #placeorder > .card {

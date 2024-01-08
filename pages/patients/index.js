@@ -94,7 +94,7 @@ export default function PATIENTS_INDEX_PAGE() {
               <TestsTable />
             </div>
             <div className='mt-2 mb-2'>
-              {initials.displayChart && <PerformanceChartGeneral subtarget={initials.chartTarge}  target={initials.chartTarget} rawData={initials.chartData?.[initials.chartTarget]} />}
+              {initials.displayChart && <PerformanceChartGeneral subtarget={initials.chartTarge}  branchid={"all"} target={initials.chartTarget} rawData={initials.chartData?.[initials.chartTarget]} />}
             </div>
           </div>
         </div>
