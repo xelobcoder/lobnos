@@ -828,9 +828,31 @@ option:hover {
   border-right: 1px solid lightgray;
   height: 100vh;
   display: block;
-  background-color:indigo;
+  background-color: #fff;
 }
 
+.settings-sidebar > .head,
+.settings-sidebar > .user {
+  padding: 10px;
+  background-color:var(--topband-bg);
+}
+
+.settings-sidebar > .user {
+  font-size: 13px;
+  color: black;
+  display: flex;
+  justify-content: center;
+  background-color: whitesmoke;
+  text-transform: capitalize;
+  word-wrap: normal;
+}
+
+.settings-sidebar > .head > a {
+  color: white;
+display: flex;
+
+justify-content: center;
+}
 .settings-sidebar > .contents {
   margin: 0;
   padding: 0;
@@ -846,20 +868,20 @@ option:hover {
   display: block;
   text-transform: uppercase;
   font-size: 12px !important;
-  display: -ms-grid;
   display: grid;
-  grid-template-columns: 15% auto;
-  grid-gap: 10px;
+  grid-template-columns: auto 88%;
+  border-bottom: 1px solid lightgray;
+  grid-gap: 0px;
 }
 
 .settings-sidebar > .contents > ul > li > .text > a,
 .settings-sidebar > .contents > ul > li > .icons {
-  color: white;
+  color: var(--custom-blue);
   overflow: hidden;
   word-break: break-word;
   display: block;
-  padding: 10px;
-  font-size: 15px;
+  padding: 5px;
+  font-size: 14px;
   text-transform: capitalize;
 }
 
@@ -869,10 +891,8 @@ option:hover {
 .settings-sidebar > .contents > ul > li:active,
 .settings-sidebar > .contents > ul > li:focus,
 .settings-sidebar > .contents > ul > li:hover + .text > a {
-  background-color: black;
-  cursor: pointer;
-  text-decoration: underline !important;
-  border-radius: 5px;
+  text-decoration: none !important;
+  background-color: var(--topband-bg);
   transition: all 0.5s ease;
 }
 

@@ -4,11 +4,19 @@ import DepartureBoardIcon from '@mui/icons-material/DepartureBoard';
 import { AddShoppingCart, Category, ExpandCircleDownSharp, UnarchiveRounded } from '@mui/icons-material';
 import Link from 'next/link';
 
-export default function InventoryHeaders() {
-
+export default function InventoryHeaders({auth}) {
+  const { username, role, email } = auth;
 
   return (
     <div className='settings-sidebar'>
+       <div className='head'>
+        <Link  href={'/'} >
+            PLS
+          </Link>
+        </div>
+        <div className='user'>
+          <span>{username}({role})</span>
+        </div>
       <div className='contents'>
         <ul >
           <li>

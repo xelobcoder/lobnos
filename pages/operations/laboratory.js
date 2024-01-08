@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 import MiniCard from '../../components/operations/miniCard'
 import { Bloodtype } from '@mui/icons-material';
 import { customFetch, getDepartment } from '../../components/Auth/customFetch';
@@ -6,8 +6,11 @@ import SECOND_NO_DATA from '../../components/accessories/secondNodata';
 import DateTimer from '../../components/accessories/DateTimer';
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 import LabSideBarComponents from '../../components/operations/labSideBarComponents';
+import AuthContext from '../../components/Auth/useAuthentification';
+import Authorization from '../../components/accessories/authorization';
 
 export default function OperationsOverview({ colorIndex }) {
+  const { auth } = useContext(AuthContext);
   const [summary, setSummary] = useState([]);
   const [noDeptTest, setNoDeptTest] = useState(false);
   const [department, setDepartments] = useState([]);
@@ -49,7 +52,9 @@ export default function OperationsOverview({ colorIndex }) {
 
   return (
     <>
-      <SettingsLayout sidebar={<LabSideBarComponents />}>
+     { ["scientist","admin"].includes(auth?.role) ?
+        (
+          <SettingsLayout sidebar={<LabSideBarComponents auth={auth} />}>
         <div className="minicard-top-text">
           <div className='head'>
             <h5 className="text-bold text-capitalize p-2">
@@ -89,7 +94,11 @@ export default function OperationsOverview({ colorIndex }) {
             })}
           </div>
         )}
-      </SettingsLayout>
+          </SettingsLayout>
+        )
+        :
+      (<Authorization/>)
+      }
     </>
   );
 }

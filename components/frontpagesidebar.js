@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import Link from 'next/link';
 import {
   AssignmentInd,
@@ -11,11 +11,22 @@ import {
   ViewArray,
   ShoppingBagRounded,
 } from '@mui/icons-material';
+import AuthContext from './Auth/useAuthentification';
 
 export default function SidebarFrontPage() {
+  const { auth } = useContext(AuthContext);
+  const { username, email,role } = auth;
   return (
     <>
       <div className='settings-sidebar'>
+        <div className='head'>
+        <Link  href={'/'} >
+            PLS
+          </Link>
+        </div>
+        <div className='user'>
+          <span>{username}({role})</span>
+        </div>
         <div className='contents'>
           <ul>
             <li>

@@ -1,7 +1,6 @@
 import '../node_modules/react-toastify/dist/ReactToastify.css';
 import'../styles/globals.css';
 import '../styles/Frontpageside.css'
-import Header from '../components/header'
 import { AuthentificationProvider } from '../components/Auth/useAuthentification';
 import MAIN_LAYOUT from '../components/Headers/Layout';
 
@@ -17,7 +16,6 @@ function MyApp({ Component, pageProps: { pageProps } }) {
     <>
       <AuthentificationProvider>
         <MAIN_LAYOUT>
-          <Header />
           <Component {...pageProps} />
         </MAIN_LAYOUT>
       </AuthentificationProvider>

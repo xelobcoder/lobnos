@@ -12,7 +12,7 @@ export default function InventoryLayout({ children }) {
   return (
     <>
       {authorized ?
-        (<SettingsLayout sidebar={<InventoryHeaders />}>
+        (<SettingsLayout sidebar={<InventoryHeaders auth={auth} />}>
           {children}
         </SettingsLayout>)
         :

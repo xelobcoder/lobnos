@@ -80,7 +80,6 @@ export default function Settings() {
 		}
 	}
 
-	console.log(defaultBranch)
 	return (
 		<MainSettingsLayoutView>
 			<div className="m-2">

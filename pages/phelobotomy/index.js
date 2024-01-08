@@ -43,7 +43,7 @@ export default function Phelobotomy() {
 
   return (
     <>
-      <SettingsLayout sidebar={<PhelobotomySidebar />}>
+      <SettingsLayout sidebar={<PhelobotomySidebar auth={auth} />}>
         {loading && <ISLOADING />}
         {!loading && <ListTable data={data} receive={receiveSample} handleCollectSample={handleCollectSample} />}
         {showModal && <CollectionSampleModal employeeid={employeeid} collection={collection} show={showModal} hide={hideModal} />}

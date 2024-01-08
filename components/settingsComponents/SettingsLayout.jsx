@@ -1,12 +1,9 @@
 import React, { useState, useContext, useEffect } from 'react';
-import AuthContext from '../Auth/useAuthentification'
 import { Menu, Close } from '@mui/icons-material';
 
 
 
 export default function SettingsLayout({ children, sidebar }) {
-  const { auth } = useContext(AuthContext);
-
   const [close, setClose] = useState(false);
 
   const handleShow = () => {
@@ -19,8 +16,6 @@ export default function SettingsLayout({ children, sidebar }) {
       setClose(false)
     }
   }
-
-
 
   return (
     <>

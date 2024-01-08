@@ -67,14 +67,14 @@ export default function TableDisplay({ column, data, styling, filtering }) {
                       </tbody>
                     </table>
                     <div className='d-flex justify-content-center '>
-                      <span className='p-2 mt-2'>
+                      <span className='mx-2 mt-1'>
                         Page{' '}
                         <strong>
                           {pageIndex + 1} of {pageOptions.length}
                         </strong>{' '}
                       </span>
-                      <span style={{ marginRight: '20px' }}>
-                        <select className='form-control mt-2' value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
+                      <span>
+                        <select className='custom-input' value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
                           {[10,20,25,50,75,100, 150,200].map((pageSize,index) => (
                             <option key={index} value={pageSize}>
                               Show {pageSize}
@@ -82,8 +82,8 @@ export default function TableDisplay({ column, data, styling, filtering }) {
                           ))}
                         </select>
                       </span>
-                      <button className='btn btn-primary btn-sm mt-2' onClick={() => previousPage()} disabled={!canPreviousPage} style={{ marginRight: '10px' }}>Previous</button>
-                      <button className='btn btn-primary btn-sm mt-2' onClick={() => nextPage()} disabled={!canNextPage}>Next</button>
+                      <button className='btn btn-primary btn-sm mx-2 py-1 pointer' onClick={() => previousPage()} disabled={!canPreviousPage} >Previous</button>
+                      <button className='btn btn-primary btn-sm py-1 pointer' onClick={() => nextPage()} disabled={!canNextPage}>Next</button>
                     </div>
                   </div>
                 </>

@@ -1,10 +1,22 @@
 import { SettingsApplications, Forest, CorporateFareRounded, BloodtypeRounded, TripOrigin, PriceChange, Sms, Add, TextSnippetRounded, Looks3Sharp } from "@mui/icons-material";
 import Link from "next/link";
+import { useContext } from "react";
+import AuthContext from "../Auth/useAuthentification";
 
 export default function SettingsSidebarLayout() {
-  return (
+  const { auth } = useContext(AuthContext);
+  const { role, email, username } = auth;
+  return ( 
     <>
       <div className="settings-sidebar">
+      <div className='head'>
+        <Link  href={'/'} >
+            PLS
+          </Link>
+        </div>
+        <div className='user'>
+          <span>{username}({role})</span>
+        </div>
         <div className="contents">
           <ul>
             <li>

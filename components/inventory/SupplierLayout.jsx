@@ -12,7 +12,7 @@ export default function SupplierLayout({ children }) {
     <>
       {authorized ?
         (
-          <SettingsLayout sidebar={<SupplierTopNav />}>{children}</SettingsLayout>
+          <SettingsLayout sidebar={<SupplierTopNav auth={auth} />}>{children}</SettingsLayout>
         )
         :
         (

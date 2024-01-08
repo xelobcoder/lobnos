@@ -1,9 +1,18 @@
 import React from 'react'
 import Link from 'next/link'
 import { Analytics, Book, CalendarMonth } from '@mui/icons-material'
-export default function PhelobotomySidebar() {
+export default function PhelobotomySidebar({ auth }) {
+  const { username, role} = auth;
   return (
     <div className='settings-sidebar'>
+       <div className='head'>
+        <Link  href={'/'} >
+            PLS
+          </Link>
+        </div>
+        <div className='user'>
+          <span>{username}({role})</span>
+        </div>
       <div className='contents'>
         <ul>
           <li>
