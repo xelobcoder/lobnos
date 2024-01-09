@@ -59,19 +59,20 @@ export default function Billedclients() {
 
   const columns = [
     {
-      Header: 'DATE', accessor: 'DATE', Cell: dateCellRenderer
+      Header: 'Date', accessor: 'DATE', Cell: dateCellRenderer
     },
-    { Header: 'PATIENTID', accessor: 'PATIENTID' },
-    { Header: 'BILLINGID', accessor: 'BILLINGID', checkboxSelection: true },
-    { Header: 'FULLNAME', accessor: 'FULLNAME' },
-    { Header: 'AMOUNT DUE', accessor: 'PAYABLE' },
+    { Header: 'Patientid', accessor: 'PATIENTID' },
+    { Header: 'Billingid', accessor: 'BILLINGID', checkboxSelection: true },
+    { Header: 'fullname', accessor: 'FULLNAME' },
+    { Header: 'payable', accessor: 'PAYABLE' },
     { Header: 'AMOUNT PAID', accessor: 'PAID' },
-    { Header: 'DISCOUNT', accessor: 'DISCOUNT' },
-    { Header: 'DEBT', accessor: 'OUTSTANDING', Cell: outstandingCellRenderer },
-    { Header: 'PAYMENT MODE', accessor: 'PAYMENT_MODE' },
-    { Header: 'ACTION', accessor: 'ACTION', Cell: actionCellRenderer, width: 300 },
+    { Header: 'discount', accessor: 'DISCOUNT' },
+    { Header: 'debt', accessor: 'OUTSTANDING', Cell: outstandingCellRenderer },
+    { Header: 'payment mode', accessor: 'PaymentMode' },
+    { Header: 'action', accessor: 'ACTION', Cell: actionCellRenderer, width: 300 },
   ]
 
+  console.log(billedclients)
 
 
   return (
