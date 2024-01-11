@@ -378,7 +378,7 @@ export const getDataAndUpdateState = async function (setfxn, endpoint, returner)
          }
       }
    } catch (err) {
-      console.log(err);
+      alert("something wrong occured");
    }
 }
 

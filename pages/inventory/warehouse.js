@@ -1,36 +1,51 @@
-import { customFetch } from "../../components/Auth/customFetch";
+import { customFetch, getDataAndUpdateState } from "../../components/Auth/customFetch";
 import InventoryLayout from "../../components/inventory/InventoryLayout";
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import AddWarehouseForm from "../../components/inventory/WareHouse/AddNewWareHouse";
 import { ArrowForwardSharp, DeleteForever, Edit } from "@mui/icons-material";
 import AddShelfForm from "../../components/inventory/WareHouse/shelf";
+import ISLOADING from "../../components/isLoading";
 export default function WareHouse() {
   const defaultValues = { show: false, target: 0 };
   const [warehouseList, setWareHouseList] = useState([]);
+  const [shelves, setShelves] = useState([]);
+  const [shelfLoading, setShelfLoading] = useState(true);
   const [shouldReload, setReload] = useState(false);
   const [showModal, setShowModal] = useState(defaultValues);
   const { show, target } = showModal;
 
   const getWareHouseList = () => {
-    customFetch("inventory/warehouse")
-      .then((data) => { setWareHouseList(data?.result)})
-      .catch((err) => toast.error("error in fetching warehouse list", { autoClose: 4000 }));
+    getDataAndUpdateState(setWareHouseList,"inventory/warehouse");
   }
+  const getShelves = (target) => {
+    getDataAndUpdateState(setShelves, `inventory/shelve?target=${target}`);
+    setShelfLoading(false);
+  }
+
+
 
   const displayAddWareHouse = () => { setShowModal({ show: true, target: 1 }); }
   const displayShelf = () => { setShowModal({ show: true, target: 2 }); }
   const closeModal = (isReload) => { setShowModal(defaultValues); setReload(isReload = false); }
 
   
-  useEffect(() => { getWareHouseList() }, []);
+  useEffect(() => { getWareHouseList(); getShelves('all'); }, []);
   useEffect(() => {
     if (shouldReload) {
       getWareHouseList();
       setReload(false);
     }
-  }, [shouldReload])
-  console.log(shouldReload);
+  }, [shouldReload]);
+
+
+  const getWareHouseShelves = (warehouseid) => {
+    if (!warehouseid) return;
+    setShelfLoading(true);
+    getDataAndUpdateState(setShelves, `inventory/warehouse/shelves?warehouseId=${warehouseid}`);
+    setShelfLoading(false);
+  }
+
   return (
     <>
       <InventoryLayout>
@@ -45,8 +60,7 @@ export default function WareHouse() {
             <table className="table" >
             <thead>
               <tr>
-                <th>id</th>
-                <th>name</th>
+                <th>Warehouse</th>
                   <th>date added</th>
                   <th>view shelf</th>
               </tr>
@@ -56,7 +70,6 @@ export default function WareHouse() {
                 warehouseList.map((item, index) => {
                   return (
                     <tr key={index}>
-                      <td>{item.id}</td>
                       <td>{item.name}</td>
                       <td>{new Date(item?.created_on).toLocaleDateString()}</td>
                       <td>
@@ -66,7 +79,7 @@ export default function WareHouse() {
                         <button className="btn btn-danger btn-sm p-0 mx-1">
                           <DeleteForever/>
                         </button>
-                        <button className="btn btn-secondary btn-sm p-0">
+                        <button onClick={(ev) => {getWareHouseShelves(item.id)}} className="btn btn-secondary btn-sm p-0">
                         <ArrowForwardSharp/>
                         </button>
                       </td>
@@ -78,7 +91,31 @@ export default function WareHouse() {
           </table>
           </div>
            <div>
-             <h5>Shelves</h5>
+            <h5>Shelves</h5>
+            {shelfLoading ? <ISLOADING /> : 
+              (
+                <table className="table">
+                <thead>
+                  <tr>
+                    <th>name</th>
+                    <th>warehouse</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {
+                    shelves.map((item, index) => {
+                      return (
+                        <tr key={index}>
+                          <td>{item?.name}</td>
+                          <td>{item?.warehouse}</td>
+                      </tr>
+                      )
+                    })
+                  }
+                </tbody>
+              </table>   
+            )
+            }
           </div>
         </section>
         <div>
