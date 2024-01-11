@@ -1,13 +1,14 @@
-import { useEffect, useState} from "react";
+import { useContext, useEffect, useState} from "react";
 import {  getDataAndUpdateState} from '../../components/Auth/customFetch';
 import PendingTableSample from "../../components/samples/pendingTable";
 import SECOND_NO_DATA from "../../components/accessories/secondNodata";
 import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
 import LabSideBarComponents from "../../components/operations/labSideBarComponents";
+import AuthContext from "../../components/Auth/useAuthentification";
 
 export default function SAMPLE_ASSESSMENT() {
+  const { auth } = useContext(AuthContext);
   const [data, setData] = useState([]);
-
   const fetchInitialData = async function () { getDataAndUpdateState(setData, 'sample') }
 
   useEffect(() => { fetchInitialData() }, [])
@@ -23,7 +24,7 @@ export default function SAMPLE_ASSESSMENT() {
 
   return (
     <>
-      <SettingsLayout sidebar={<LabSideBarComponents />}>
+      <SettingsLayout sidebar={<LabSideBarComponents auth={auth}/>}>
         <div className="container-fluid">
           <div>
             <div className="p-2">

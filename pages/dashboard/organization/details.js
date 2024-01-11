@@ -6,7 +6,7 @@ import ISLOADING from "../../../components/isLoading";
 import PerformanceOrganization from "../../../components/organization/PerformanceOrganization";
 import WeeklyPieChart from "../../../components/organization/WeeklyPieChart";
 import BarChartPerformanceComponent from "../../../components/organization/BarChartPerformance";
-
+import { currencyFormatter } from "../../../components/Auth/customFetch";
 export default function OrganizationDashboardDetails() {
   const organizationid = useSearchParams().get("id");
   const [loading, setLoading] = useState(true);
@@ -34,6 +34,7 @@ export default function OrganizationDashboardDetails() {
 
   return (
     <DashBoardLayoutSales>
+      <main >
       {loading && <ISLOADING />}
       <h2>{organizationName}</h2>
       <div className="grid-30-30-30">
@@ -42,33 +43,86 @@ export default function OrganizationDashboardDetails() {
         {salesReport.monthly && <PerformanceOrganization title={'YEAR SALE SUMMARY'} data={salesReport.yearly} />}
       </div>
       <div>
-        <section className="grid-70-30">
+        <section className="organization-chart">
             <div className="">
             <div className="card br-0"> 
               <div className="card-header">
-                  Weekly Performance
+                 Daily Performance Chart
               </div>
               <div className="card-body">
-                {salesReport.daily && <BarChartPerformanceComponent data={salesReport.daily} />}
+                  {salesReport.daily && salesReport.daily.length > 0 ?
+                     (<BarChartPerformanceComponent data={salesReport.daily} />)
+                    :
+                    ( <h5 className="alert alert-info">No data to display chart of daily Performance</h5>) }
               </div>
             </div>
             </div>
-          <div>
-          {(salesReport?.weekly && salesReport?.weekly.length > 0 ) ?
-                (
-                  <div className="card br-0">
-                    <div className="card-header">
-                      Weekly Sales
-                    </div>
-                    <div className="card-body p-0">
-                       <WeeklyPieChart data={salesReport.weekly} />
-                    </div>
+            <div>
+              <div className="card br-0">
+                <div className="card-header modal-color">
+                  Weekly Performance Chart
                 </div>
-                ) :
-                ( <h5 className="alert alert-primary">No data to display chart of weekly Performance</h5>) }
+                <div className="card-body p-0">
+                { (salesReport?.weekly && salesReport?.weekly.length > 0 ) ?
+                  <WeeklyPieChart data={salesReport.weekly} />:
+                  ( <h5 className="alert alert-info m-2">No data to display chart of weekly Performance</h5>)}
+                </div>
+            </div>
          </div>
-      </section>
+          </section>
+          <section>
+            <h6>Commission Payment History</h6>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Id</th>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Mode</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>ORGNX2000</td>
+                  <td>09/01/2024</td>
+                  <td>{currencyFormatter.format(400) }</td>
+                  <td>cash</td>
+                </tr>
+                <tr>
+                  <td>ORGNX2000</td>
+                  <td>09/01/2024</td>
+                  <td>{currencyFormatter.format(400) }</td>
+                  <td>cash</td>
+                </tr>
+                <tr>
+                  <td>ORGNX2000</td>
+                  <td>09/01/2024</td>
+                  <td>{currencyFormatter.format(400) }</td>
+                  <td>cash</td>
+                </tr>
+                <tr>
+                  <td>ORGNX2000</td>
+                  <td>09/01/2024</td>
+                  <td>{currencyFormatter.format(400) }</td>
+                  <td>cash</td>
+                </tr>
+                <tr>
+                  <td>ORGNX2000</td>
+                  <td>09/01/2024</td>
+                  <td>{currencyFormatter.format(400) }</td>
+                  <td>cash</td>
+                </tr>
+                <tr>
+                  <td>ORGNX2000</td>
+                  <td>09/01/2024</td>
+                  <td>{currencyFormatter.format(400) }</td>
+                  <td>cash</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
       </div>
+    </main>
     </DashBoardLayoutSales>
   )
 }

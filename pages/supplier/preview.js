@@ -1,30 +1,29 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import React, {useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import CommoditiesList from '../../components/suppliers/CommoditiesList';
 import SupllierProfile from '../../components/suppliers/SupllierProfile';
 import ISLOADING from '../../components/isLoading';
 import dynamic from 'next/dynamic';
 import { customFetch } from '../../components/Auth/customFetch';
+import SupplierLayout from '../../components/inventory/SupplierLayout';
 
 const EditorJS = dynamic(() => import('../../components/accessories/markdownEditor'), { ssr: false })
 
 export default function SINGLE_SUPPLIER() {
-  const id = useRouter().query.supplierid;
+  const id = useSearchParams().get("supplierid");
   const [supplier, setSupplier] = React.useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id !== undefined) {
+    if (id) {
       const supplier_information = async function () {
         try {
           const data = await customFetch(`suppliers?supplierid=${id}`)
           const { status, result, message } = data;
           if (status === 200 && message === "success" && result !== null && result !== undefined && result.length > 0 && result[0] !== null) {
             setSupplier(result[0]);
-            setLoading(false);
-          } else {
-            setLoading(true);
-          }
+          } 
+          setLoading(false);
         }
         catch (error) {
           console.log(error);
@@ -44,11 +43,9 @@ export default function SINGLE_SUPPLIER() {
 
 
   return (
-    <>
-      {loading ?
-        <ISLOADING /> :
-        (<>
-          <div className='d-flex p-2'>
+    <SupplierLayout>
+      <Suspense fallback={<ISLOADING/>}>
+      <div className='d-flex p-2'>
             <button type="button" style={{ marginRight: '10px' }}
               className="btn btn-primary btn-sm">
               Orders
@@ -69,7 +66,8 @@ export default function SINGLE_SUPPLIER() {
                 <SupllierProfile datasource={supplier} />
               </div>
               <div className='transaction'>
-                <CommoditiesList datasource={commodities} />
+              {/* <CommoditiesList datasource={commodities} /> */}
+              <h1>Yet to be determined</h1>
               </div>
             </div>
 
@@ -77,8 +75,7 @@ export default function SINGLE_SUPPLIER() {
             <div className='m-10'>
             </div>
           </div>
-        </>)
-      }
-    </>
+       </Suspense>
+    </SupplierLayout>
   )
 }

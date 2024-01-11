@@ -1,7 +1,7 @@
 import { useSearchParams } from "next/navigation";
 import { useState,useRef, useEffect, useCallback } from "react";
 import { getEmailUsingid } from "../../../../components/EmailServices/util";
-
+import Header from "../../../../components/header";
 export default function PreviewEmailDraft() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -17,6 +17,7 @@ export default function PreviewEmailDraft() {
   },[getEmail,idparams])
   return (
     <>
+      <Header/>
       <div className="container-fluid bg-white " style={{height:'100vh'}}>
       <div className="container">
           <div className="row">

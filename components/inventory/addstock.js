@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/router';
+import { useSearchParams } from "next/navigation";
+import { ToastContainer, toast } from "react-toastify";
+import { SystemUpdate, AddCircleOutline } from '@mui/icons-material';
+import { customFetch, customPost, getDataAndUpdateState } from '../Auth/customFetch';
 
-import { SystemUpdate, AddCircleOutline, Info } from '@mui/icons-material';
-import { customFetch, customPost } from '../Auth/customFetch';
-import { Button } from '@mui/material';
 
 export default function ADD_STOCK_INVENTORY() {
-  // iinput fields = name, category, consumption unit,purchase unit, material code,unit quantity,alert level,tax
   const [productdetails, setProductdetails] = useState({
     name: '',
     category: '',
@@ -15,22 +14,19 @@ export default function ADD_STOCK_INVENTORY() {
     quantity: '',
     alertlevel: '',
     materialcode: '',
+    warehouse: '',
+    shelf: ''
   })
-
-  const [show, setMessageshow] = useState(false);
-  const [message, setMessage] = useState({ type: 'success', message: '' })
+  const [Categorylist, setCategorylist] = useState([]);
 
 
-  const tab = useRouter().query.tab;
-  const stockid = useRouter().query.stockid;
+  const tab = useSearchParams().get("tab");
+  const stockid = useSearchParams().get("stockid");
+  const Consumptionunitlist = ['kg', 'g', 'l', 'ml', 'pcs', 'others', 'bottle', 'kit', 'box']
+  const Purchaseunitlist = ['kg', 'g', 'l', 'ml', 'pcs', 'others', 'bottle', 'kit', 'box']
 
 
-  const [Categorylist, setCategorylist] = useState([])
-  const [Consumptionunitlist, setConsumptionunitlist] = useState(['kg', 'g', 'l', 'ml', 'pcs', 'others', 'bottle', 'kit', 'box'])
-  const [Purchaseunitlist, setPurchaseunitlist] = useState(['kg', 'g', 'l', 'ml', 'pcs', 'others', 'bottle', 'kit', 'box'])
-
-
-  const { name, category, consumptionunit, purchaseunit, quantity, alertlevel, materialcode, tax } = productdetails;
+  const { name, category, consumptionunit, purchaseunit, quantity, alertlevel, materialcode, tax ,warehouse,shelf} = productdetails;
 
   const inputhandler = (ev, field) => {
     let value = ev.target.value;
@@ -49,39 +45,36 @@ export default function ADD_STOCK_INVENTORY() {
     try {
       const senddata = async () => {
         const data = await customPost(`stock?stockid=${stockid}`, method, productdetails);
-        const { status, message } = data;
-        if (status === 'success') {
-          setMessageshow(true);
-          setMessage({ type: 'success', message: message })
+        const { status, message,statusCode } = data;
+        if (status === 'success' && statusCode == 200) {
+          toast.success(message, { autoClose: 500 });
+          return;
         }
-        else {
-          setMessageshow(true);
-          setMessage({ type: 'warning', message: message })
-        }
+        toast.error(message, { autoClose: 3000 });
       }
 
       // if product details have no value
       const checkEmptyFields = () => {
         let emptyFields = [];
+        const notRequired = ['shelf', 'warehouse'];
         for (let key in productdetails) {
-          if (productdetails[key] === '') {
+          if (productdetails[key] === '' && !notRequired.includes(key) ) {
             emptyFields.push(key);
+            break;
           }
         }
         return emptyFields.length > 0 ? true : false;
       }
 
       if (checkEmptyFields()) {
-        setMessageshow(true);
-        setMessage({ type: "warning", message: "Please fill all fields" });
+        toast.error('All fields are required', { autoClose: 3000 });
       }
       else {
         senddata();
       }
     }
     catch (error) {
-      setMessageshow(true);
-      // setMessage({ type: 'danger', message: error?.message })
+      toast.error(error, { autoClose: 3000 });
     }
   }
 
@@ -104,8 +97,7 @@ export default function ADD_STOCK_INVENTORY() {
 
   // get the category list
   const getcategorylist = async () => {
-    const data = await customFetch('stock/category');
-    setCategorylist(data);
+    getDataAndUpdateState(setCategorylist, "stock/category");
   }
 
   useEffect(() => {
@@ -124,13 +116,10 @@ export default function ADD_STOCK_INVENTORY() {
 
   return (
     <>
+      <ToastContainer/>
       <div className="mx-3">
-        {/* <div className='alert alert-info' style={{ width: '400px' }}>
-          <h6>kindly fill in all fields to {tab == 'edit' ? 'update stock information' : ' add a new stock '}</h6>
-        </div> */}
         <form
-          className='grid-50-responsive p-3' 
-        >
+          className='grid-50-responsive p-3'>
           <div className="form-group">
             <label htmlFor="name">Name</label>
             <input
@@ -233,6 +222,28 @@ export default function ADD_STOCK_INVENTORY() {
               placeholder="Enter material code"
               value={materialcode}
               onChange={(ev) => inputhandler(ev, "materialcode")}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="materialcode">WareHouse</label>
+            <input
+              type="text"
+              className="custom-input"
+              id="warehouse"
+              placeholder="Enter  warehouse name"
+              value={warehouse}
+              onChange={(ev) => inputhandler(ev, "warehouse")}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="materialcode">Shelf</label>
+            <input
+              type="text"
+              className="custom-input"
+              id="shelf"
+              placeholder="Enter shelf"
+              value={shelf}
+              onChange={(ev) => inputhandler(ev, "shelf")}
             />
           </div>
         </form>

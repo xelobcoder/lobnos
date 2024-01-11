@@ -6,6 +6,7 @@
     "editor.wordWrap": "on",
     "editor.wordWrapColumn": 140,
     "editor.formatOnSave": false,
-    "editor.fontSize": 15,
+    "editor.fontSize": 16,
     "editor.bracketPairColorization.enabled": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
 }

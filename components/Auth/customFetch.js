@@ -695,3 +695,8 @@ export  const getSpecificOrder = async (id,setData,setLoading) => {
    }
    setLoading(false);
  }
+
+ export const currencyFormatter = new Intl.NumberFormat('en-GH', {
+   style: 'currency',
+   currency: 'GHS',
+ });

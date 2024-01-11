@@ -13,7 +13,14 @@ export default function SUPPLIERS_LIST({ rawdata, deleteController, editControll
       { Header: "#", accessor: "supplierid", Cell: ({ row }) => { return <span>{row?.original?.supplierid}</span> } },
       { Header: "name", accessor: "name" },
       { Header: "address", accessor: "address" },
-      { Header: "phone number", accessor: "phonenumber" },
+      { Header: "phone number", accessor: "phonenumber",
+        Cell: function ({ row }) {
+          const mobile = row?.original?.phonenumber;
+          return (
+            <span>{0 + "" + mobile }</span>
+          )
+        }
+      },
       { Header: "email", accessor: "email" },
       { Header: "contact person", accessor: "contactperson" },
       { Header: "region", accessor: "region" },
@@ -24,29 +31,15 @@ export default function SUPPLIERS_LIST({ rawdata, deleteController, editControll
           const value = row.original?.supplierid;
           return (
             <div className="d-flex">
-              <button
-                className="btn btn-info btn-sm"
-                title='edit info'
-                onClick={() => {
-                  router.push(`/supplier/addsupplier?tab=edit&supplierid=${value}`);
-                }}
-                style={{ marginRight: "10px" }}
-              >
-                <EditOffIcon />
-              </button>
-              <button title='delete supplier' className="btn btn-danger btn-sm" onClick={(e) => deleteController(e, value)}>
-                <DeleteForeverIcon />
-              </button>
-              <button className="btn btn-warning btn-sm " title='view supplier'>
-                <Link href={`/supplier/${value}`}>
-                  <PreviewIcon />
-                </Link>
-              </button>
+              <EditOffIcon color='primary' onClick={(ev) => { router.push(`/supplier/addsupplier?tab=edit&supplierid=${value}`) }} />
+              <PreviewIcon color='warning' onClick={(ev) =>  {router.push(`/supplier/preview?supplierid=${value}`)}} />
+              <DeleteForeverIcon color='error' onClick={(e) => deleteController(e, value)} />
             </div>
           )
         },
       },
     ]
+    
 
 
 

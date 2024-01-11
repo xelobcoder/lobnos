@@ -101,6 +101,9 @@ border-none {
   .custom-autocomplete > .custom-body {
     width: auto !important;
   }
+  .organization-chart{
+    grid-template-columns: 100% !important;
+  }
   
 }
 
@@ -869,14 +872,20 @@ justify-content: center;
   text-transform: uppercase;
   font-size: 12px !important;
   display: grid;
+  color: var(--topband-bg);
   grid-template-columns: auto 88%;
   border-bottom: 1px solid lightgray;
   grid-gap: 0px;
 }
 
+.settings-sidebar > .contents > ul > li:hover{
+  background-color: var(--custom-blue) !important;
+  color: white !important;
+}
+
 .settings-sidebar > .contents > ul > li > .text > a,
 .settings-sidebar > .contents > ul > li > .icons {
-  color: var(--custom-blue);
+  color:inherit;
   overflow: hidden;
   word-break: break-word;
   display: block;
@@ -1082,10 +1091,9 @@ justify-content: center;
 .h-40 {
   height: 40px !important;
 }
-.custom-input:focus,
-.customs-select:focus {
+.custom-input:is(:focus,:active,:hover) {
   outline: none;
-  border: 2px solid lightseagreen;
+  border: 1px solid lightblue;
   box-shadow: none !important;
 }
 
@@ -1392,15 +1400,6 @@ justify-content: center;
   .software-header-nav > ul {
     display: grid;
     grid-template-columns: 80% auto;
-  }
-  .softfullname{
-    display: none;
-  }
-  .software-header-nav > ul > li:nth-child(3),
-  .software-header-nav > ul > li:nth-child(2),
-  .software-header-nav > ul > li:nth-child(4),
-  .software-header-nav > ul > li:nth-child(5) {
-    display: none;
   }
 }
 
@@ -2474,9 +2473,10 @@ input[type='email']:focus:invalid .company-view-result > .wrapper {
 
 .software-header-nav > ul {
   margin: 0;
-  padding: 20px;
+  padding: 10px;
   display: grid;
-  grid-template-columns: 60% 5% 15% 5% 10%;
+  grid-template-columns: 65% auto;
+  grid-gap:30%;
 }
 
 .software-header-nav > ul > a {
@@ -2872,23 +2872,12 @@ textarea:required:focus:invalid {
   overflow-y: auto;
 }
 .supplier-information-page {
-  background-color: #00224f27;
   height: 100vh;
   width: 100%;
   margin: 0;
   padding: 0;
 }
 
-.supplier-information-page > .wrapper > .information,
-.supplier-information-page > .wrapper > .transaction,
-.supplier-information-page > .wrapper > .supplier-summary {
-  background-color: white;
-  height: 25vh;
-  max-height: max-content;
-  margin: 10px;
-  border-radius: 5px;
-  box-shadow: 1px 2px 5px whitesmoke;
-}
 
 .supplier-information-page > .wrapper {
   display: grid;
@@ -2952,15 +2941,6 @@ textarea:required:focus:invalid {
   text-transform: uppercase;
 }
 
-.supply-profile-wrapper {
-  display: grid;
-  grid-template-columns: 40% auto;
-  grid-gap: 10px;
-}
-.supply-profile-wrapper .supply-additional-info > p {
-  font-size: 14px;
-  color: #00224f;
-}
 
 .btn-orange{
   background-color: #ff9800 !important;
@@ -2979,5 +2959,13 @@ textarea:required:focus:invalid {
 #ready-summary-view {
   display: grid;
   grid-template-columns: repeat(6,1fr);
+  grid-gap: 10px;
+}
+
+
+.organization-chart {
+  display: grid;
+  grid-template-columns: 67% auto;
+  margin-right: 10px;
   grid-gap: 10px;
 }

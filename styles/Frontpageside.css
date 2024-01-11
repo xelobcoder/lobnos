@@ -55,6 +55,12 @@
   position: static;
   overflow: auto;
 }
+.wrapper > .main {
+  padding: 3px;
+  overflow-y: auto;
+  height: 100vh;
+  overflow-x: hidden;
+}
 
 .d-none {
   display: none;
@@ -96,6 +102,7 @@
   .sidebarMenu > svg {
     color: white;
   }
+
 
   .sidebarMenu:focus,
   .sidebarMenu:hover {

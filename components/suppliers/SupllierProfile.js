@@ -1,28 +1,31 @@
-import { Avatar } from '@mui/material';
 import Image from 'next/image';
 import Link from 'next/link';
-import React from 'react'
+import { useState } from 'react';
 
 export default function SupllierProfile({ datasource }) {
- const [supplier, setSupplier] = React.useState(datasource);
+ const [supplier, setSupplier] = useState(datasource);
 
  return (
-  <>
-   <div className='supply-profile-wrapper'>
-    <div className='supply-image'>
-     <Image src='/../public/male-profile-pic.jpeg' alt='edta tubes' width={500} height={500} />
-    </div>
-    <div className='supply-addtional-info'>
-     <p>Supply Name: {supplier.NAME || ''}</p>
-     <p>Address : {supplier.ADDRESS || 'kalpohin lowcost 30 A'}</p>
-     <p>Phone Number: {supplier.PHONE || '0595964565'} </p>
-     <p>Email: 
-
-      <Link href={`/mail/supplier/${supplier.EMAIL}`}>
-      {supplier.EMAIL || '  hamzatiifu45@gmail.com'}
-     </Link> </p>
-    </div>
-   </div>
+   <>
+     <div className='card'>
+       <div className='card-header'>
+         Brief Information
+       </div>
+       <div className='card-body p-0' style={{display:'grid', gridTemplateColumns:'20% auto'}}>
+        <section className='p-2'>
+            <Image src='/male-profile-pic.jpeg' className='img-fluid img-thumbnail' alt='edta tubes' width={100} height={100} />
+         </section>
+         <section className='d-flex flex-column  border-start'>
+              <span className='border-bottom p-1 text-sm'>Name: {supplier.name} </span>
+              <span className='border-bottom p-1 text-sm'>Address : {supplier.address } </span>
+              <span className='border-bottom p-1 text-sm'>Contact: {supplier.phonenumber}  </span>
+              <span className='p-1 text-sm'>Email: <Link href={`/mail/supplier/${supplier.email}`}>
+                {supplier.email}
+              </Link>
+            </span>
+         </section>
+        </div>
+     </div>
   </>
  )
 }

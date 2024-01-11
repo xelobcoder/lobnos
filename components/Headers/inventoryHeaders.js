@@ -89,6 +89,16 @@ export default function InventoryHeaders({auth}) {
               </Link>
             </div>
           </li>
+          <li>
+            <div className='icons'>
+             
+            </div>
+            <div className='text'>
+              <Link href='/inventory/warehouse'>
+                WareHouse
+              </Link>
+            </div>
+          </li>
         </ul>
       </div>
     </div>
