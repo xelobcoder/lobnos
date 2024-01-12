@@ -1,12 +1,13 @@
-import { customFetch, getDataAndUpdateState } from "../../components/Auth/customFetch";
-import InventoryLayout from "../../components/inventory/InventoryLayout";
+import { getDataAndUpdateState } from "../../../components/Auth/customFetch";
+import InventoryLayout from "../../../components/inventory/InventoryLayout";
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import AddWarehouseForm from "../../components/inventory/WareHouse/AddNewWareHouse";
-import { ArrowForwardSharp, DeleteForever, Edit } from "@mui/icons-material";
-import AddShelfForm from "../../components/inventory/WareHouse/shelf";
-import ISLOADING from "../../components/isLoading";
-import RackQuickView from "../../components/inventory/WareHouse/QuickRackItemsView";
+import AddWarehouseForm from "../../../components/inventory/WareHouse/AddNewWareHouse";
+import { ArrowForwardSharp, DeleteForever, Edit, Preview } from "@mui/icons-material";
+import AddShelfForm from "../../../components/inventory/WareHouse/shelf";
+import ISLOADING from "../../../components/isLoading";
+import RackQuickView from "../../../components/inventory/WareHouse/QuickRackItemsView";
+import { useRouter } from "next/navigation";
 export default function WareHouse() {
   const defaultValues = { show: false, target: 0 };
   const [warehouseList, setWareHouseList] = useState([]);
@@ -16,6 +17,7 @@ export default function WareHouse() {
   const [editing, setEditing] = useState({edit: false, data: {}});
   const [showModal, setShowModal] = useState(defaultValues);
   const { show, target } = showModal;
+  const router = useRouter();
 
   const getWareHouseList = async () => {
     getDataAndUpdateState(setWareHouseList,"inventory/warehouse");
@@ -90,6 +92,9 @@ export default function WareHouse() {
                       <td>
                         <button onClick={(ev) => {editWarehouse(item?.id,item?.name)}} className="btn btn-primary btn-sm p-0 mx-1">
                           <Edit/>
+                        </button>
+                        <button onClick={(ev) => {router.push(`/inventory/warehouse/racks?warehouseid=${item?.id}&&name=${item?.name}`)}} className="btn btn-warning btn-sm p-0">
+                          <Preview/>
                         </button>
                         <button className="btn btn-danger btn-sm p-0 mx-1">
                           <DeleteForever/>
