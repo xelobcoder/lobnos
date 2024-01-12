@@ -33,7 +33,7 @@ const AddShelfForm = ({ handleClose, showModal, warehxlist, editdata=null}) => {
       setMessage({ target: 'alert alert-success', message });
       setShelfData({ warehouseId: '', name: '' });
       setTimeout(() => {
-           handleClose();
+           handleClose(true);
       }, 1000);
     } else {
       setMessage({target:'alert alert-danger opacity-75',message})

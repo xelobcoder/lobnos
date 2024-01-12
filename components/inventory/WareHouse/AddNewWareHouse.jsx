@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { customPost } from '../../Auth/customFetch';
 
-const AddWarehouseForm = ({ showModal, handleClose }) => {
+const AddWarehouseForm = ({ showModal, handleClose,editing,editingdata}) => {
   const [message, setMessage] = useState({ message: '', target: '' });
+  const [method, setMethod] = useState("POST");
   const [warehouseData, setWarehouseData] = useState({
     name: '',
   });
@@ -26,12 +27,12 @@ const AddWarehouseForm = ({ showModal, handleClose }) => {
     addWarehouseToDatabase(warehouseData);
   };
 
-  const addWarehouseToDatabase = async (data) => {
+  const addWarehouseToDatabase = async () => {
     try {
-      const pushResponse = await customPost('inventory/warehouse','POST',warehouseData);
+      const pushResponse = await customPost(`inventory/warehouse`,method,warehouseData);
       const { message, statusCode, status } = pushResponse;
       if (statusCode === 200 && status === "success") {
-        setMessage({ target: 'alert alert-success', message});
+        setMessage({ target: 'alert alert-success opacity-75', message});
       } else {
         setMessage({target:'alert alert-danger opacity-75',message})
       }
@@ -42,6 +43,14 @@ const AddWarehouseForm = ({ showModal, handleClose }) => {
     } catch(err) {setMessage({target:'alert alert-danger opacity-75',message: err || "something went wrong"})}
   };
 
+
+  useEffect(() => {
+    if (editing == true && Object.keys(editingdata).length == 2) {
+      const { name, warehouseid } = editingdata;
+      setWarehouseData({ name,warehouseid});
+      setMethod('PUT');
+     }
+  },[editing,editingdata])
   return (
     <Modal show={showModal} onHide={handleClose} backdrop="static">
       <Modal.Header className='fw-bold'  closeButton>

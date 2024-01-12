@@ -6,16 +6,18 @@ import AddWarehouseForm from "../../components/inventory/WareHouse/AddNewWareHou
 import { ArrowForwardSharp, DeleteForever, Edit } from "@mui/icons-material";
 import AddShelfForm from "../../components/inventory/WareHouse/shelf";
 import ISLOADING from "../../components/isLoading";
+import RackQuickView from "../../components/inventory/WareHouse/QuickRackItemsView";
 export default function WareHouse() {
   const defaultValues = { show: false, target: 0 };
   const [warehouseList, setWareHouseList] = useState([]);
   const [shelves, setShelves] = useState([]);
   const [shelfLoading, setShelfLoading] = useState(true);
   const [shouldReload, setReload] = useState(false);
+  const [editing, setEditing] = useState({edit: false, data: {}});
   const [showModal, setShowModal] = useState(defaultValues);
   const { show, target } = showModal;
 
-  const getWareHouseList = () => {
+  const getWareHouseList = async () => {
     getDataAndUpdateState(setWareHouseList,"inventory/warehouse");
   }
   const getShelves = (target) => {
@@ -27,33 +29,46 @@ export default function WareHouse() {
 
   const displayAddWareHouse = () => { setShowModal({ show: true, target: 1 }); }
   const displayShelf = () => { setShowModal({ show: true, target: 2 }); }
-  const closeModal = (isReload) => { setShowModal(defaultValues); setReload(isReload = false); }
+  const closeModal = (isReload) => {
+    (isReload && target === 1) ? getWareHouseList() : getShelves('all');
+    setShowModal(defaultValues);
+    setReload(false);
+  }
 
   
   useEffect(() => { getWareHouseList(); getShelves('all'); }, []);
-  useEffect(() => {
-    if (shouldReload) {
-      getWareHouseList();
-      setReload(false);
-    }
-  }, [shouldReload]);
 
 
-  const getWareHouseShelves = (warehouseid) => {
+
+  const getWareHouseShelves = async (warehouseid) => {
     if (!warehouseid) return;
     setShelfLoading(true);
-    getDataAndUpdateState(setShelves, `inventory/warehouse/shelves?warehouseId=${warehouseid}`);
+    await getDataAndUpdateState(setShelves, `inventory/warehouse/shelves?warehouseId=${warehouseid}`);
     setShelfLoading(false);
   }
 
+
+  const editWarehouse = async (warehouseid,name) => {
+    if (!warehouseid || !name) return;
+    setShowModal({ show: true, target: 1 });
+    setEditing({ edit: true, data: { name, warehouseid } });
+  }
+
+  // TODO: Implement rack card where rack are display in cards with their following items
+  //  - should be implement together with the analytics
+  // - A click should be added to  warehouse to view rack cards, view stiky notes cards
+  //  - a short cut for viewing items in a card with a bottom-up-show
   return (
     <>
       <InventoryLayout>
         <ToastContainer/>
+        <div className="d-flex justify-content-between">
+           <RackQuickView/>
         <div className="d-flex justify-content-end">
           <button onClick={displayAddWareHouse} className="btn btn-sm btn-primary mx-2">New Warehouse</button>
           <button onClick={displayShelf} className="btn btn-sm btn-primary mx-2">New Rack/shelf</button>
         </div> 
+      </div>
         <section className="grid-50">
           <div>
             <h5>WareHouse</h5>
@@ -73,7 +88,7 @@ export default function WareHouse() {
                       <td>{item.name}</td>
                       <td>{new Date(item?.created_on).toLocaleDateString()}</td>
                       <td>
-                        <button className="btn btn-primary btn-sm p-0 mx-1">
+                        <button onClick={(ev) => {editWarehouse(item?.id,item?.name)}} className="btn btn-primary btn-sm p-0 mx-1">
                           <Edit/>
                         </button>
                         <button className="btn btn-danger btn-sm p-0 mx-1">
@@ -119,8 +134,12 @@ export default function WareHouse() {
           </div>
         </section>
         <div>
-          {(show && target === 1) && <AddWarehouseForm handleClose={closeModal} showModal={show} />}
-          {(show && target === 2) && <AddShelfForm handleClose={closeModal} warehxlist={warehouseList} showModal={show}/>}
+          {(show && target === 1)
+            &&
+           <AddWarehouseForm handleClose={closeModal} editing={editing.edit} editingdata={editing.data} showModal={show} />}
+          {(show && target === 2)
+            &&
+          (<AddShelfForm handleClose={closeModal} warehxlist={warehouseList} showModal={show} />)}
         </div>
      </InventoryLayout>
     </>
