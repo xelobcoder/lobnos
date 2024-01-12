@@ -1,12 +1,13 @@
 :root {
   --topband-bg: #21263c;
   --sidebar-bg: #f7f7fe;
+  --bg-color:  #eef0f1;
   --custom-blue:#2165e3;
   --zf-font-family-base: walsheim,Helvetica,Arial,Lucida Grande,sans-serif;
 }
 
 body {
-  background-color:  #e4e7ed !important;
+  background-color:  var(--bg-color) !important;
   font-family: var(--zf-font-family-base);
   -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -872,15 +873,15 @@ justify-content: center;
   text-transform: uppercase;
   font-size: 12px !important;
   display: grid;
-  color: var(--topband-bg);
+  color:white;
+  background-color: #007bff;
   grid-template-columns: auto 88%;
   border-bottom: 1px solid lightgray;
   grid-gap: 0px;
 }
 
 .settings-sidebar > .contents > ul > li:hover{
-  background-color: var(--custom-blue) !important;
-  color: white !important;
+  background-color: white;
 }
 
 .settings-sidebar > .contents > ul > li > .text > a,

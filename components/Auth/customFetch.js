@@ -13,7 +13,6 @@ export async function customFetch(endpoint) {
       },
    });
 
-
    const source = await response.json();
    const { status, message } = source
    if (status == 401 && message == 'Unauthorized') {

@@ -4,7 +4,7 @@ import { customFetch} from "../../../components/Auth/customFetch";
 import { useEffect, useState } from "react";
 import RackListView from "../../../components/inventory/WareHouse/RackListView";
 export default function WareHouseRacks() {
-  const id = parseInt(useSearchParams().get("warehouseid"));
+  const warehouseid = parseInt(useSearchParams().get("warehouseid"));
   const name = useSearchParams().get("name");
   const [racks, setRacks] = useState([]);
 
@@ -19,10 +19,10 @@ export default function WareHouseRacks() {
   }
 
   useEffect(() => { 
-    if (name && id) {
-      getWareHouseShelves(id);
+    if (name && warehouseid) {
+      getWareHouseShelves(warehouseid);
     }
-   }, [id,name])
+   }, [warehouseid,name])
   
 console.log(racks)
   return ( 
@@ -34,7 +34,7 @@ console.log(racks)
             <div className="grid-6">
             {racks.map((item, index) => {
               return ( 
-                <RackListView key={index} name={item?.name} /> 
+                <RackListView key={index} name={item?.name} warehouseid={item?.warehouseid} shelfid={item?.id} /> 
              )
            })}
             </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { customPost } from '../../Auth/customFetch';
 
@@ -53,7 +53,7 @@ const AddShelfForm = ({ handleClose, showModal, warehxlist, editdata=null}) => {
          {message.message}
        </div>
           <form>
-            <label>
+            <label className='text-sm'>
               Warehouse:
           </label>
           <select
@@ -69,7 +69,7 @@ const AddShelfForm = ({ handleClose, showModal, warehxlist, editdata=null}) => {
                   </option>
                 ))}
               </select>
-            <label>
+            <label className='text-sm'>
               Shelf Name:
           </label>
           <input
@@ -79,6 +79,8 @@ const AddShelfForm = ({ handleClose, showModal, warehxlist, editdata=null}) => {
               value={shelfData.name}
               onChange={handleInputChange}
             />
+            <label className='text-sm'>Max Quantity it can contain</label>
+            <input type='number' name='quantity' className='custom-input' value={shelfData.quantity} />
           </form>
       </Modal.Body>
       <Modal.Footer>

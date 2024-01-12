@@ -3,30 +3,14 @@ import { useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import { SystemUpdate, AddCircleOutline } from '@mui/icons-material';
 import { customFetch, customPost, getDataAndUpdateState } from '../Auth/customFetch';
-
-
-export default function ADD_STOCK_INVENTORY() {
-  const [productdetails, setProductdetails] = useState({
-    name: '',
-    category: '',
-    consumptionunit: '',
-    purchaseunit: '',
-    quantity: '',
-    alertlevel: '',
-    materialcode: '',
-    warehouse: '',
-    shelf: ''
-  })
+import Modal from 'react-bootstrap/Modal';
+import { Purchaseunitlist,Consumptionunitlist, defaultStockDetails, getShelves } from './Util';
+export default function ADD_STOCK_INVENTORY({ show, closeModal, editing ,warehouseList = []}) {
+  const { edit, stockid, data } = editing;
+  const [shelves, setShelves] = useState([]);
+  const [productdetails, setProductdetails] = useState(defaultStockDetails);
+  const { name,  consumptionunit, purchaseunit, quantity, alertlevel, materialcode, warehouse,shelf} = productdetails;
   const [Categorylist, setCategorylist] = useState([]);
-
-
-  const tab = useSearchParams().get("tab");
-  const stockid = useSearchParams().get("stockid");
-  const Consumptionunitlist = ['kg', 'g', 'l', 'ml', 'pcs', 'others', 'bottle', 'kit', 'box']
-  const Purchaseunitlist = ['kg', 'g', 'l', 'ml', 'pcs', 'others', 'bottle', 'kit', 'box']
-
-
-  const { name, category, consumptionunit, purchaseunit, quantity, alertlevel, materialcode, tax ,warehouse,shelf} = productdetails;
 
   const inputhandler = (ev, field) => {
     let value = ev.target.value;
@@ -35,13 +19,42 @@ export default function ADD_STOCK_INVENTORY() {
     })
   }
 
+  const handleSelectFields = (ev, target) => {
+    const value = parseInt(ev.target.value);
+
+    if (target === 'category') {
+      const matchedId = Categorylist.filter((item, index) => { return item.id === value });
+      if (matchedId.length != 0) {
+        const { category } = matchedId[0];
+        setProductdetails({ ...productdetails, category, categoryid: value });
+      }
+    }
+    if (target === 'warehouse') {
+      const matchedId = warehouseList.filter((item, index) => { return item.id === value });
+      if (matchedId.length != 0) {
+        const { name } = matchedId[0];
+        setProductdetails({ ...productdetails, warehouse: name, warehouseid: value });
+        getShelves( value, setShelves);
+      }
+    }
+    if (target === "shelf") {
+      const { warehouseid } = productdetails;
+      const parsedWarehouseid = parseInt(warehouseid);
+      if (!parsedWarehouseid && typeof parseInt(parsedWarehouseid) != 'number') { return false };
+      const matchedId = shelves.filter((item, index) => { return item.id === value });
+      if (matchedId.length != 0) {
+        const { name } = matchedId[0];
+        setProductdetails({ ...productdetails, shelf: name, shelfid: value });
+      }
+    } 
+  }
 
 
 
   const handleSubmit = (ev) => {
     ev.preventDefault();
     // send data to the db
-    const method = tab === 'edit' ? 'PUT' : 'POST';
+    const method = edit === true ? 'PUT' : 'POST';
     try {
       const senddata = async () => {
         const data = await customPost(`stock?stockid=${stockid}`, method, productdetails);
@@ -78,21 +91,13 @@ export default function ADD_STOCK_INVENTORY() {
     }
   }
 
-  // this get the data of item to edit
-  const getdata = async () => {
-    const data = await customFetch(`stock?stockid=${stockid}`)
-    const { status, message, result } = data;
-    if (status === 'success') {
-      setProductdetails(result[0]);
-    }
-  }
+
   // use Memo to get the data of item to edit
   useEffect(() => {
-    if (tab === 'edit' && stockid) {
-      // get data from db and set to the input fields
-      getdata();
+    if (edit === true && stockid && data) {
+      setProductdetails(data);
     }
-  }, [tab, stockid])
+  }, [edit, stockid,data])
 
 
   // get the category list
@@ -106,22 +111,27 @@ export default function ADD_STOCK_INVENTORY() {
     }
     catch (error) {
       setCategorylist([]);
-      alert('error getting category list')
     }
   }, [])
 
 
-
-
+  const handleClose = () => {
+    setProductdetails(defaultStockDetails);
+    closeModal();
+  }
 
   return (
     <>
-      <ToastContainer/>
+      <ToastContainer />
       <div className="mx-3">
-        <form
-          className='grid-50-responsive p-3'>
+        <Modal show={show}  backdrop='static'>
+          <Modal.Header closeButton onHide={handleClose}>
+          {edit  === true ? "Update stock information" : "  New Stock Entry"}
+          </Modal.Header>
+          <Modal.Body>
+          <form>
           <div className="form-group">
-            <label htmlFor="name">Name</label>
+            <label className='text-sm' htmlFor="name">Name</label>
             <input
               type="text"
               className="custom-input"
@@ -133,12 +143,12 @@ export default function ADD_STOCK_INVENTORY() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="category">Category</label>
+            <label className='text-sm' htmlFor="category">Category</label>
             <select
               className="custom-input"
               id="category"
-              value={category}
-              onChange={(ev) => inputhandler(ev, "category")}
+              // value={category}
+              onChange={(ev) =>  handleSelectFields(ev,'category')}
             >
               <option value="">Select category</option>
               {Categorylist.map((item, index) => {
@@ -152,7 +162,7 @@ export default function ADD_STOCK_INVENTORY() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="consumptionunit">Consumption Unit</label>
+            <label className='text-sm' htmlFor="consumptionunit">Consumption Unit</label>
             <select
               className="custom-input"
               id="consumptionunit"
@@ -171,7 +181,7 @@ export default function ADD_STOCK_INVENTORY() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="purchaseunit">Purchase Unit</label>
+            <label className='text-sm' htmlFor="purchaseunit">Purchase Unit</label>
             <select
               className="custom-input"
               id="purchaseunit"
@@ -190,19 +200,20 @@ export default function ADD_STOCK_INVENTORY() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="quantity">Unit Quantity</label>
+            <label className='text-sm' htmlFor="quantity">Unit Quantity</label>
             <input
               type="text"
               className="custom-input"
               id="quantity"
               placeholder="Enter unit quantity"
-              value={quantity}
+                  value={quantity}
+              disabled={edit}
               onChange={(ev) => inputhandler(ev, "quantity")}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="alertlevel">Alert Level</label>
+            <label className='text-sm' htmlFor="alertlevel">Alert Level</label>
             <input
               type="text"
               className="custom-input"
@@ -214,7 +225,7 @@ export default function ADD_STOCK_INVENTORY() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="materialcode">Material Code</label>
+            <label className='text-sm' htmlFor="materialcode">Material Code</label>
             <input
               type="text"
               className="custom-input"
@@ -225,38 +236,61 @@ export default function ADD_STOCK_INVENTORY() {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="materialcode">WareHouse</label>
-            <input
-              type="text"
-              className="custom-input"
-              id="warehouse"
-              placeholder="Enter  warehouse name"
-              value={warehouse}
-              onChange={(ev) => inputhandler(ev, "warehouse")}
-            />
+            <label className='text-sm' htmlFor="materialcode">WareHouse</label>
+                <select
+                  className="custom-select"
+                  id="warehouse"
+                 onChange={(ev) => {handleSelectFields(ev, "warehouse")}}
+                >
+                  <option>select Warehouse</option>
+                  {
+                    warehouseList.map((item, index) => {
+                      return (
+                        <option value={item?.id} key={index}>{item?.name}</option>
+                      )
+                    })
+                 } 
+              </select>
           </div>
           <div className="form-group">
-            <label htmlFor="materialcode">Shelf</label>
-            <input
-              type="text"
-              className="custom-input"
-              id="shelf"
-              placeholder="Enter shelf"
-              value={shelf}
-              onChange={(ev) => inputhandler(ev, "shelf")}
-            />
-          </div>
+            <label className='text-sm' htmlFor="materialcode">Shelf</label>
+                {edit === true
+                  ?
+              ( <select className='custom-select' id='shelf' onChange={(ev) => {handleSelectFields(ev,'shelf')}} name='shelf'>
+              <option>select shelf/racks of the selected warehouse</option>
+              {
+                shelves.map((item, index) => {
+                  return (
+                    <option value={item?.id} key={index}>
+                      {item?.name}
+                    </option>
+                  )
+                })
+              }
+                  </select>)
+                  :
+                  (
+                    <input onChange={(ev) => { inputhandler(ev, 'shelf'); }} className='custom-input' type='input' name='shelf' value={productdetails.shelf}/>
+            )}
+            </div>
         </form>
-        <div className="form-group mx-3">
-          <button
-            type="submit"
-            className="btn btn-primary btn-sm"
-            onClick={handleSubmit}
-          >
-            {tab === "edit" ? <SystemUpdate /> : <AddCircleOutline />}
-            {tab === "edit" ? "Update stock information" : "Add new stock"}
-          </button>
-        </div>
+          </Modal.Body>
+          <Modal.Footer>
+              <div className="form-group mx-3">
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-sm"
+                    onClick={handleSubmit}
+                  >
+                    {edit  === true ? "Update stock information" : "Add new stock"}
+              </button>
+              <button onClick={handleClose} className='btn btn-danger btn-sm mx-2'>
+                cancel
+              </button>
+              </div>
+          </Modal.Footer>
+       </Modal>
+        
       </div>
     </>
   );

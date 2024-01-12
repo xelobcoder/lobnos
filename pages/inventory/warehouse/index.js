@@ -8,6 +8,8 @@ import AddShelfForm from "../../../components/inventory/WareHouse/shelf";
 import ISLOADING from "../../../components/isLoading";
 import RackQuickView from "../../../components/inventory/WareHouse/QuickRackItemsView";
 import { useRouter } from "next/navigation";
+import { getShelves, getWareHouseList } from "../../../components/inventory/Util";
+
 export default function WareHouse() {
   const defaultValues = { show: false, target: 0 };
   const [warehouseList, setWareHouseList] = useState([]);
@@ -19,26 +21,24 @@ export default function WareHouse() {
   const { show, target } = showModal;
   const router = useRouter();
 
-  const getWareHouseList = async () => {
-    getDataAndUpdateState(setWareHouseList,"inventory/warehouse");
-  }
-  const getShelves = (target) => {
-    getDataAndUpdateState(setShelves, `inventory/shelve?target=${target}`);
-    setShelfLoading(false);
-  }
-
+ 
 
 
   const displayAddWareHouse = () => { setShowModal({ show: true, target: 1 }); }
   const displayShelf = () => { setShowModal({ show: true, target: 2 }); }
   const closeModal = (isReload) => {
-    (isReload && target === 1) ? getWareHouseList() : getShelves('all');
+    (isReload && target === 1) ? getWareHouseList() : getShelves('all',setShelves);
     setShowModal(defaultValues);
     setReload(false);
   }
 
   
-  useEffect(() => { getWareHouseList(); getShelves('all'); }, []);
+  useEffect(() => {
+    setShelfLoading(true);
+    getWareHouseList(setWareHouseList);
+    getShelves('all', setShelves);
+    setShelfLoading(false);
+  }, []);
 
 
 
