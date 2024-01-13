@@ -35,7 +35,4 @@ export const defaultStockDetails = {
   materialcode: '',
   warehouse: '',
   shelf: '',
-  categoryid: 0,
-  shelfid: 0,
-  warehouseid: 0
 }
