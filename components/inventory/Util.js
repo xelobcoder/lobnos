@@ -14,6 +14,11 @@ export const getShelves = (target, setShelves) => {
   getDataAndUpdateState(setShelves, `inventory/shelve?target=${target}`);
 }
 
+export const getWareHouseShelves = async (warehouseid, setShelve) => {
+  if (!warehouseid || !setShelve) return false;
+  await getDataAndUpdateState(setShelve,`inventory/warehouse/shelves?warehouseId=${warehouseid}`);
+}
+
 
 
 export const getStocks = async (w,stateHolder) => {

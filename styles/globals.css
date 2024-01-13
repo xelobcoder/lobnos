@@ -3,7 +3,9 @@
   --sidebar-bg: #f7f7fe;
   --bg-color:  #eef0f1;
   --custom-blue:#2165e3;
+  --cds-color-blue-600: #0056d2;
   --zf-font-family-base: walsheim,Helvetica,Arial,Lucida Grande,sans-serif;
+  --wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%)
 }
 
 body {
@@ -19,6 +21,54 @@ body {
 }
 
 
+#rack {
+  min-height: 10vh;
+  border-radius: 4px;
+}
+
+.rack-active{
+  border: 1px !important;
+}
+
+#rack > .card-header{
+  border-top-right-radius: 4px;
+  border-top-left-radius: 4px;
+}
+
+.rack-header-active{
+  background-color: #000 !important;
+  color: white !important;
+}
+
+#rack > #rack-header {
+  color: #000;
+  font-size: 13px;
+  font-weight: 400 !important;
+  padding: 10px;
+  margin: 0;
+}
+
+#rack > #rack-body {
+  margin: 0px 20px;
+  padding: 0;
+  background-color: white;
+}
+
+#rack > #rack-body > div {
+  padding: 10px 0px;
+  width: 100%;
+  font-size: 15px;
+  border-bottom: 1px solid lightgray;
+}
+
+
+
+
+
+.grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+}
 .sidebarMenu {
   display: none;
 }

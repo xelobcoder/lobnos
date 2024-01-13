@@ -19,17 +19,21 @@ export default function RackListView({ warehouseid, name,shelfid }) {
   }, [getdata,warehouseid,shelfid])
   
   return (
-    <div className="card  mx-2 my-2">
-      <div className="card-header text-sm modal-color text-capitalize">
+    <div className="card pointer mx-2 my-2" id="rack">
+      <div className="card-header fw-bold text-capitalize" id="rack-header">
         {name}
       </div>
-      <div className="card-body br-0">
+      <div className="card-body br-0" id="rack-body">
         {loading && <ISLOADING />}
         {(data.length > 0 && !loading) &&
           (
           <>
             {data.map((item, index) => {
-             
+              return (
+                <>
+                  <div key={index}>{item?.name}</div>
+                </>
+             )
            })}
           </>
           )

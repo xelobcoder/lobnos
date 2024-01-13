@@ -86,7 +86,7 @@ export default function Settings() {
 				<h4 className="btn btn-danger text-white">Application settings</h4>
 			</div>
 			<div className="p-2">
-				<Table className='billing-cart-table'>
+				<Table>
 					<thead>
 						<tr>
 							<th className="text-capitalize">#</th>
@@ -107,8 +107,8 @@ export default function Settings() {
 							<td>
 								<button className={
 									ApplicationSettings?.bulkregistration == 0
-										? "btn btn-success btn-sm"
-										: "btn btn-danger btn-sm"
+										? "btn btn-success btn-sm p-1"
+										: "btn btn-danger btn-sm p-1"
 								}
 									onClick={(e) => {
 										handleAppSettingsActivation('bulkregistration', ApplicationSettings?.bulkregistration == 0
@@ -139,8 +139,8 @@ export default function Settings() {
 								<button
 									className={
 										ApplicationSettings?.DeactivateBilling24hrs == 0
-											? "btn btn-success btn-sm"
-											: " btn btn-danger btn-sm"
+											? "btn btn-success btn-sm p-1"
+											: " btn btn-danger btn-sm p-1"
 									}
 
 									onClick={(e) => {
@@ -170,8 +170,8 @@ export default function Settings() {
 								<button
 									className={
 										ApplicationSettings?.PaidBillsBeforeTransaction == 0
-											? "btn btn-success btn-sm"
-											: "btn btn-danger btn-sm"
+											? "btn btn-success btn-sm p-1"
+											: "btn btn-danger btn-sm p-1"
 									}
 									onClick={(e) => {
 										handleAppSettingsActivation('PaidBillsBeforeTransaction', ApplicationSettings?.PaidBillsBeforeTransaction == 0
@@ -197,8 +197,8 @@ export default function Settings() {
 								<button
 									className={
 										ApplicationSettings?.completeFlow == 0
-											? "btn btn-success btn-sm"
-											: "btn btn-danger btn-sm"
+											? "btn btn-success btn-sm p-1"
+											: "btn btn-danger btn-sm p-1"
 									}
 									onClick={(e) => {
 										handleAppSettingsActivation('completeFlow', ApplicationSettings?.completeFlow == 0
@@ -226,8 +226,8 @@ export default function Settings() {
 								<button
 									className={
 										ApplicationSettings?.approvalbeforeprinting == 0
-											? "btn btn-success btn-sm"
-											: "btn btn-danger btn-sm"
+											? "btn btn-success btn-sm p-1"
+											: "btn btn-danger btn-sm p-1"
 									}
 
 									onClick={(e) => {
@@ -279,8 +279,8 @@ export default function Settings() {
 								<button
 									className={
 										ApplicationSettings?.emailNotification== 0
-											? "btn btn-success btn-sm"
-											: "btn btn-danger btn-sm"
+											? "btn btn-success btn-sm p-1"
+											: "btn btn-danger btn-sm p-1"
 									}
 
 									onClick={(e) => {
@@ -303,7 +303,7 @@ export default function Settings() {
 							</td>
 							<td>-------</td>
 							<td>
-								<button onClick={(ev) => navigate.push('/settings/emailsetting')} className='btn btn-primary btn-sm'>update</button>
+								<button onClick={(ev) => navigate.push('/settings/emailsetting')} className='btn btn-primary btn-sm p-1'>update</button>
 							</td>
 						</tr>
 					</tbody>

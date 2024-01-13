@@ -31,7 +31,7 @@ console.log(racks)
       <section>
         {(racks.length === 0) ? <h6 className="d-flex justify-content-center mt-2 alert alert-danger mx-3">No Racks in {name} warehouse</h6> : (
           <>
-            <div className="grid-6">
+            <div className="grid-5">
             {racks.map((item, index) => {
               return ( 
                 <RackListView key={index} name={item?.name} warehouseid={item?.warehouseid} shelfid={item?.id} /> 

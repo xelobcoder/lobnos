@@ -29,7 +29,7 @@ export default function InventoryHeaders({auth}) {
               </Link>
             </div>
           </li>
-          <li>
+          {/* <li>
             <div className='icons'>
               <Category fontSize='small' sx={{ marginRight: '10px' }} />
             </div>
@@ -38,8 +38,8 @@ export default function InventoryHeaders({auth}) {
                 Add category
               </Link>
             </div>
-          </li>
-          <li>
+          </li> */}
+          {/* <li>
             <div className='icons'>
               <AddShoppingCart fontSize='small' sx={{ marginRight: '10px' }} />
             </div>
@@ -48,7 +48,7 @@ export default function InventoryHeaders({auth}) {
                 new stock
               </Link>
             </div>
-          </li>
+          </li> */}
           <li>
             <div className='icons'>
               <ExpandCircleDownSharp fontSize='small' sx={{ marginRight: '10px' }} />

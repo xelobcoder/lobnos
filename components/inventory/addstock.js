@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ToastContainer, toast } from "react-toastify";
 import { customPost, getDataAndUpdateState } from '../Auth/customFetch';
 import Modal from 'react-bootstrap/Modal';
-import { Purchaseunitlist,Consumptionunitlist, defaultStockDetails, getShelves} from './Util';
+import { Purchaseunitlist,Consumptionunitlist, defaultStockDetails, getWareHouseShelves} from './Util';
 export default function ADD_STOCK_INVENTORY({ show, closeModal, editing ,warehouseList = []}) {
   const { edit, stockid, data } = editing;
   const [shelves, setShelves] = useState([]);
@@ -23,7 +23,7 @@ export default function ADD_STOCK_INVENTORY({ show, closeModal, editing ,warehou
       return { ...prev, [target]: value }
     })
     if (target === 'warehouse') {
-      getShelves(value, setShelves);
+      getWareHouseShelves(value, setShelves);
     }
   }
 
@@ -86,7 +86,7 @@ export default function ADD_STOCK_INVENTORY({ show, closeModal, editing ,warehou
   useEffect(() => {
     if (edit === true && stockid && data) {
       setProductdetails(data);
-      getShelves(data?.warehouse, setShelves);
+      getWareHouseShelves(data?.warehouse, setShelves);
     }
   }, [edit, stockid,data])
 
