@@ -25,7 +25,6 @@ body {
   min-height: 10vh;
   border-radius: 4px;
 }
-
 .rack-active{
   border: 1px !important;
 }
@@ -243,8 +242,7 @@ max-height: 15vh;
   border: 1px solid red;
 }
 
-.welcome-page {
-  background: url('../public/frontimage.jfif') no-repeat;
+/* .welcome-page {
   height: 91vh;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -266,7 +264,7 @@ max-height: 15vh;
 .welcome-page > input {
   border-radius: 0px !important;
   border: 20px solid #00224f;
-}
+} */
 
 .border-radius-0 {
   border-radius: 0px;
