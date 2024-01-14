@@ -44,8 +44,7 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
   const onChangeUpper = (e, index) => {
     setDataModification(prevState => {
       return [...prevState.slice(0, index), { ...prevState[index], upper: parseFloat(e.target.value) }, ...prevState.slice(index + 1)]
-    }
-    )
+    })
   }
 
 
@@ -54,7 +53,7 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
     <>
       <ToastContainer/>
       <div >
-        <div className='p-4'>
+        <div className='py-2 px-2'>
           <div className='card br-5 m-0'>
             <div className='card-header bg-secondary text-white d-flex justify-content-between'>
             <h4 className='text-capitalize'>
@@ -97,19 +96,26 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
                         <td>{item.parameter}</td>
                         <td>
                           <input value={item.unit || ''}
-                            className='form-control' type='text' onChange={(e) => onChangeUnit(e, index)} />
+                            className='custom-input' type='text' onChange={(e) => onChangeUnit(e, index)} />
                         </td>
                         <td>
-                          <input value={item.upper || 0} type='number' className='form-control' onChange={(e) => onChangeUpper(e, index)} />
+                          <input
+                            value={item.upper || 0}
+                            type='number' min={0}
+                            required className='custom-input'
+                            onChange={(e) => onChangeUpper(e, index)} />
                         </td>
                         <td>
-                          <input value={item.lower || 0} type='number' className='form-control' onChange={(e) => onChangeLower(e, index)} />
+                          <input value={item.lower || 0}
+                            type='number' required min={0}
+                            className='custom-input'
+                            onChange={(e) => onChangeLower(e, index)} />
                         </td>
                         {
                           item?.gender && <td>{item.gender}</td>
                         }
                         <td>
-                          <button className='btn btn-danger btn-sm'
+                          <button className='btn btn-danger btn-sm p-0'
                             onClick={(ev) => {
                               handleDeleteParams(ev, item, toast, testname, {
                                 l: setLoading,

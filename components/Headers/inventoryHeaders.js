@@ -1,7 +1,7 @@
 import React, {  useEffect } from 'react'
 import GridViewIcon from '@mui/icons-material/GridView';
 import DepartureBoardIcon from '@mui/icons-material/DepartureBoard';
-import { AddShoppingCart, Category, ExpandCircleDownSharp, UnarchiveRounded } from '@mui/icons-material';
+import { AddShoppingCart, Category, ExpandCircleDownSharp, Settings, UnarchiveRounded, Warehouse } from '@mui/icons-material';
 import Link from 'next/link';
 
 export default function InventoryHeaders({auth}) {
@@ -29,16 +29,6 @@ export default function InventoryHeaders({auth}) {
               </Link>
             </div>
           </li>
-          {/* <li>
-            <div className='icons'>
-              <Category fontSize='small' sx={{ marginRight: '10px' }} />
-            </div>
-            <div className='text'>
-              <Link href='/inventory/stockcategory'>
-                Add category
-              </Link>
-            </div>
-          </li> */}
           {/* <li>
             <div className='icons'>
               <AddShoppingCart fontSize='small' sx={{ marginRight: '10px' }} />
@@ -91,11 +81,21 @@ export default function InventoryHeaders({auth}) {
           </li>
           <li>
             <div className='icons'>
-             
+             <Warehouse/>
             </div>
             <div className='text'>
               <Link href='/inventory/warehouse'>
                 WareHouse
+              </Link>
+            </div>
+          </li>
+          <li>
+            <div className='icons'>
+            <Settings/>
+            </div>
+            <div className='text'>
+              <Link href='/inventory/settings'>
+               Settings
               </Link>
             </div>
           </li>

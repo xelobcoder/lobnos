@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const EmailLogsBarChart = ({ data }) => {
+  const [stack, setStack] = useState(data.length >= 10 || false);
   return (
     <div >
       <ResponsiveContainer width="100%" height={300} style={{ backgroundColor: 'white' }}>
@@ -10,9 +11,9 @@ const EmailLogsBarChart = ({ data }) => {
           <YAxis tick={{ fontSize: 12 }} />
           <Tooltip />
           <Legend />
-          <Bar dataKey="total" stackId="1" fill="#0d6efd" barSize={30} />
-          <Bar dataKey="failed" stackId="2" fill="#d63384" barSize={30} />
-          <Bar dataKey="success" stackId="3" fill="#198754" barSize={30} />
+          <Bar dataKey="total" stackId={stack ? 'a' : '1' } fill="#0d6efd" barSize={30} />
+          <Bar dataKey="failed" stackId={stack ? 'a' : '2' } fill="#d63384" barSize={30} />
+          <Bar dataKey="success" stackId={stack ? 'a' : '3' } fill="#198754" barSize={30} />
         </BarChart>
       </ResponsiveContainer>
     </div>

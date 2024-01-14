@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { getDataAndUpdateState } from '../Auth/customFetch';
 import { BarChart, CartesianGrid, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Bar, ResponsiveContainer } from 'recharts';
 import ISLOADING from '../isLoading';
@@ -24,9 +24,9 @@ export default function PerformanceChartGeneral({ target, type, show, title, sub
     <>
       <div className="bg-white px-2">
         {data.length == 0 && !loading && (
-          <h4 className="alert alert-danger">
+          <div className="alert alert-info opacity-75 mt-2">
             No Data Available to display chart
-          </h4>
+          </div>
         )}
         {data.length > 0 && !loading && (
           <>
@@ -41,6 +41,7 @@ export default function PerformanceChartGeneral({ target, type, show, title, sub
                   <Legend />
                   <Bar
                     dataKey={show}
+                    barSize={30}
                     fill={show == "salesAmount" ? "#198cf0" : "#82ca9d"}
                   />
                 </BarChart>

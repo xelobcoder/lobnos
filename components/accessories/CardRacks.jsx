@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function CardRacks  ({ header, activestate, body, icon = null, ...otherProps }) {
+export default function CardRacks  ({ header, activestate, body,footer, icon = null, ...otherProps }) {
   const [active, setActive] = useState(activestate);
 
   return (
@@ -15,9 +15,10 @@ export default function CardRacks  ({ header, activestate, body, icon = null, ..
       >
         {icon} {header}
       </div>
-      <div className="card-body br-0" id="rack-body">
+      <div className="card-body br-0 p-0" id="rack-body">
         {body}
       </div>
+      {footer && (<div className="card-footer">{footer}</div>)}
     </div>
   );
 };
