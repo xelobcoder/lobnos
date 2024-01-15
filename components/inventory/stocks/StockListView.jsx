@@ -8,7 +8,7 @@ export default function StockListView({ data,handleAssignWare,handleDelete,handl
    }
    
    return (
-      <ListGroupItem dataid={stockid} className={`stock-grid p-2 br-0  bg-opacity-50 ${alertSignal()}`}>
+      <ListGroupItem dataid={stockid} className={`stock-grid p-3 br-0  bg-opacity-50 ${alertSignal()}`}>
          <span>{new Date(date).toLocaleDateString()}</span>
          <span>{name}</span>
          <span>{categoryname}</span>

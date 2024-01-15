@@ -40,3 +40,19 @@ export const defaultStockDetails = {
   warehouse: '',
   shelf: '',
 }
+
+
+export const updatePagination = (state, action) => {
+  const { count, page } = state;
+  switch (action) {
+    case "increment":
+      return { count, page: page + 1 };
+    case "decrement":
+      if (page > 1) {
+        return { count, page: page - 1 };
+      }
+      return state;
+    default:
+      return { count, page: action };
+  }
+};

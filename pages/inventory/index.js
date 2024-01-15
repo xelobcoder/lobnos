@@ -1,27 +1,14 @@
-import React, { useCallback, useReducer, useState, useMemo } from "react";
+import React, { useReducer, useState, useMemo } from "react";
 import { ListGroup, ListGroupItem } from 'react-bootstrap';
 import { customFetch, customPost } from "../../components/Auth/customFetch";
 import InventoryLayout from "../../components/inventory/InventoryLayout";
 import { useEffect } from "react";
-import { getWareHouseList, handleAssignWare } from "../../components/inventory/Util";
+import { getWareHouseList, handleAssignWare,updatePagination } from "../../components/inventory/Util";
 import ADD_STOCK_INVENTORY from "../../components/inventory/addstock";
 import Pagination from "../../components/accessories/pagination";
 import StockListView from "../../components/inventory/stocks/StockListView";
 
-const updatePagination = (state, action) => {
-  const { count, page } = state;
-  switch (action) {
-    case "increment":
-      return { count, page: page + 1 };
-    case "decrement":
-      if (page > 1) {
-        return { count, page: page - 1 };
-      }
-      return state;
-    default:
-      return { count, page: action };
-  }
-};
+
 
 export default function INVENTORY_PAGE() {
   const [editing, setEditing] = useState({ edit: false, stockid: null, data: {} });
@@ -29,6 +16,8 @@ export default function INVENTORY_PAGE() {
   const [query, dispatchQuery] = useReducer(updatePagination, { count: 10, page: 1 });
   const [loading, setLoading] = useState(true);
   const [warehouseList, setWareHouseList] = useState([]);
+  const [loadpaginate, setLoadPaginate] = useState(false);
+  const [selectedWarehouse, setSelectedWarehouse] = useState('all');
   const [showModal, setShowmodal] = useState(false);
 
   const getData = (urlquery) => {
@@ -51,8 +40,11 @@ export default function INVENTORY_PAGE() {
 
   useEffect(() => {
     const { count, page } = query;
-    getData(`stock?warehouseid=all&&count=${count}&&page=${page}`);
-  }, [query])
+    if (loadpaginate) {
+      getData(`stock?warehouseid=${selectedWarehouse}&&count=${count}&&page=${page}`);
+      console.log('i loaded')
+    }
+  }, [query, selectedWarehouse,loadpaginate])
 
   const closeModal = () => {
     setShowmodal(false)
@@ -79,18 +71,17 @@ export default function INVENTORY_PAGE() {
     setShowmodal(true)
   }
 
-  const MemoizedPagination = useMemo(() => <Pagination updateFunction={dispatchQuery} />, [dispatchQuery]);
-
+  const MemoizedPagination = useMemo(() => <Pagination load={setLoadPaginate} updateFunction={dispatchQuery} />, [dispatchQuery]);
 
   return (
     <>
       <InventoryLayout>
         <div className="d-flex justify-content-end">
-          <select className="custom-select col-3 mx-2">
+          <select className="custom-select col-3 mx-2" onChange={(ev) => {setSelectedWarehouse(ev.target.value)} }> 
             <option>select a warehouse</option>
             <option value="all">all warehouse</option>
             {warehouseList.map((item, index) => {
-              return <option key={index}>{item?.name}</option>
+              return <option value={item?.id} key={index}>{item?.name}</option>
             })}
           </select>
           <button className="btn btn-primary  btn-sm mx-2">New stock Category</button>
@@ -105,7 +96,7 @@ export default function INVENTORY_PAGE() {
               <>
                 <div>
                   <ListGroup>
-                    <ListGroupItem className="br-0 stock-grid my-2 bg-light  text-capitalize">
+                    <ListGroupItem className="br-0 stock-grid mt-2 bg-light  text-capitalize">
                       <span>date</span>
                       <span>name</span>
                       <span>category</span>
@@ -114,15 +105,26 @@ export default function INVENTORY_PAGE() {
                       <span>Alert level</span>
                       <span>date</span>
                     </ListGroupItem>
-                    {stocksource.map((item, index) => (
-                      <StockListView
-                        handleAssignWare={handleAssignWare}
-                        handleDelete={handleDelete}
-                        handleEditingStock={handleEditingStock}
-                        key={index}
-                        data={item}
-                      />
-                    ))}
+                    {
+                      stocksource.length > 0 ?
+                        (
+                          stocksource.map((item, index) => (
+                            <StockListView
+                              handleAssignWare={handleAssignWare}
+                              handleDelete={handleDelete}
+                              handleEditingStock={handleEditingStock}
+                              key={index}
+                              data={item}
+                            />
+                          ))
+                        )
+                        :
+                        (
+                          <ListGroupItem>
+                            No data Available
+                          </ListGroupItem>
+                        )
+                    }
                   </ListGroup>
                 </div>
                 <div className="d-flex justify-content-center mt-1">
