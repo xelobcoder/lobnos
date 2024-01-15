@@ -3,7 +3,7 @@ import { ListGroup, ListGroupItem } from 'react-bootstrap';
 import { customFetch, customPost } from "../../components/Auth/customFetch";
 import InventoryLayout from "../../components/inventory/InventoryLayout";
 import { useEffect } from "react";
-import { getWareHouseList, handleAssignWare,updatePagination } from "../../components/inventory/Util";
+import { filterStocks, getWareHouseList, handleAssignWare,updatePagination } from "../../components/inventory/Util";
 import ADD_STOCK_INVENTORY from "../../components/inventory/addstock";
 import Pagination from "../../components/accessories/pagination";
 import StockListView from "../../components/inventory/stocks/StockListView";
@@ -42,7 +42,6 @@ export default function INVENTORY_PAGE() {
     const { count, page } = query;
     if (loadpaginate) {
       getData(`stock?warehouseid=${selectedWarehouse}&&count=${count}&&page=${page}`);
-      console.log('i loaded')
     }
   }, [query, selectedWarehouse,loadpaginate])
 
@@ -76,19 +75,26 @@ export default function INVENTORY_PAGE() {
   return (
     <>
       <InventoryLayout>
-        <div className="d-flex justify-content-end">
-          <select className="custom-select col-3 mx-2" onChange={(ev) => {setSelectedWarehouse(ev.target.value)} }> 
-            <option>select a warehouse</option>
-            <option value="all">all warehouse</option>
-            {warehouseList.map((item, index) => {
-              return <option value={item?.id} key={index}>{item?.name}</option>
-            })}
-          </select>
-          <button className="btn btn-primary  btn-sm mx-2">New stock Category</button>
-          <button onClick={show} className="btn btn-primary btn-sm">
-            New stock
-          </button>
-        </div>
+        <div className="d-flex justify-content-between">
+          <div className="d-flex">
+            <input
+              onChange={(ev) => {filterStocks(ev.target.value,selectedWarehouse,query,setStocks)}}
+              className="custom-input col-7" type="text" placeholder="filter stock here" />
+          </div>
+          <div className="d-flex justify-content-end">
+            <select className="custom-select col-3 mx-2" onChange={(ev) => {setSelectedWarehouse(ev.target.value)} }> 
+              <option>select a warehouse</option>
+              <option value="all">all warehouse</option>
+              {warehouseList.map((item, index) => {
+                return <option value={item?.id} key={index}>{item?.name}</option>
+              })}
+            </select>
+            <button className="btn btn-primary  btn-sm mx-2">New stock Category</button>
+            <button onClick={show} className="btn btn-primary btn-sm">
+              New stock
+            </button>
+          </div>
+       </div>
         {
           loading ?
             <div className="loader"></div> :

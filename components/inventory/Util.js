@@ -56,3 +56,18 @@ export const updatePagination = (state, action) => {
       return { count, page: action };
   }
 };
+
+
+export const filterStocks = async (filter, warehouseid, query,setState) => {
+  if (filter.length < 3) return;
+  console.log(warehouseid)
+  let endpoint = `stocks/filter?filter=${filter}&&count=${query?.count}&&page=${query.page}`;
+  if (warehouseid) {
+    endpoint = `${endpoint}&&warehouseid=${warehouseid}`
+  }
+  const response = await customFetch(endpoint);
+  const { status, statusCode, result } = response;
+  if (statusCode == 200 && status == 'success' && Array.isArray(result)) {
+    setState(result);
+  }
+}
