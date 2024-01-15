@@ -21,9 +21,8 @@ export const getWareHouseShelves = async (warehouseid, setShelve) => {
 
 
 
-export const getStocks = async (w,stateHolder) => {
-  const warehouseid = w || 'all';
-  customFetch(`stock?warehouseid=${warehouseid}`)
+export const getStocks = async (query,stateHolder) => {
+  customFetch(`stock?${query}`)
     .then((data) => { data?.status === "success" && stateHolder(data?.result)})
     .catch((err) => console.log(err));
 };

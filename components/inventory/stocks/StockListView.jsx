@@ -6,27 +6,28 @@ export default function StockListView({ data,handleAssignWare,handleDelete,handl
       if (alertlevel >= quantity) return `bg-warning`;
       return;
    }
+   
    return (
-      <ListGroupItem dataid={stockid} className={`stock-grid p-3  bg-opacity-50 ${alertSignal()}`}>
+      <ListGroupItem dataid={stockid} className={`stock-grid p-2 br-0  bg-opacity-50 ${alertSignal()}`}>
          <span>{new Date(date).toLocaleDateString()}</span>
          <span>{name}</span>
          <span>{categoryname}</span>
          <span className='d-flex flex-column text-capitalize'>
             <span>purchase unit({purchaseunit})</span>
-            <spa>consump. unit({consumptionunit})</spa>
+            <span>consump. unit({consumptionunit})</span>
          </span>
          <span>{quantity}</span>
          <span>{alertlevel}</span>
          <span>
-            <buttons onClick={() => handleDelete(stockid)} className='btn btn-sm  btn-danger'>
+            <button onClick={() => handleDelete(stockid)} className='btn btn-sm  btn-danger'>
                delete
-            </buttons>
-            <buttons onClick={() => handleEditingStock(stockid, data)} className='btn btn-sm btn-primary mx-2'>
+            </button>
+            <button onClick={() => handleEditingStock(stockid, data)} className='btn btn-sm btn-primary mx-2'>
                 edit
-            </buttons>
-            <buttons onClick={() => { handleAssignWare(data) }} className='btn btn-secondary btn-sm'>
+            </button>
+            <button onClick={() => { handleAssignWare(data) }} className='btn btn-secondary btn-sm'>
                view
-            </buttons>
+            </button>
          </span>
       </ListGroupItem>
    )

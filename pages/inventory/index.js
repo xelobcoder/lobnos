@@ -1,40 +1,65 @@
-import { useCallback, useState } from "react"
-import {ListGroup,ListGroupItem } from 'react-bootstrap'
-import { customPost } from "../../components/Auth/customFetch"
-import InventoryLayout from "../../components/inventory/InventoryLayout"
-import { useEffect } from "react"
-import { getStocks, getWareHouseList, handleAssignWare } from "../../components/inventory/Util"
+import React, { useCallback, useReducer, useState, useMemo } from "react";
+import { ListGroup, ListGroupItem } from 'react-bootstrap';
+import { customFetch, customPost } from "../../components/Auth/customFetch";
+import InventoryLayout from "../../components/inventory/InventoryLayout";
+import { useEffect } from "react";
+import { getWareHouseList, handleAssignWare } from "../../components/inventory/Util";
 import ADD_STOCK_INVENTORY from "../../components/inventory/addstock";
-import Pagination from "../../components/accessories/pagination"
-import StockListView from "../../components/inventory/stocks/StockListView"
+import Pagination from "../../components/accessories/pagination";
+import StockListView from "../../components/inventory/stocks/StockListView";
 
-
+const updatePagination = (state, action) => {
+  const { count, page } = state;
+  switch (action) {
+    case "increment":
+      return { count, page: page + 1 };
+    case "decrement":
+      if (page > 1) {
+        return { count, page: page - 1 };
+      }
+      return state;
+    default:
+      return { count, page: action };
+  }
+};
 
 export default function INVENTORY_PAGE() {
-  const [editing, setEditing] = useState({ edit: false, stockid: null, data: {} })
-  const [stocksource, setStocks] = useState([])
+  const [editing, setEditing] = useState({ edit: false, stockid: null, data: {} });
+  const [stocksource, setStocks] = useState([]);
+  const [query, dispatchQuery] = useReducer(updatePagination, { count: 10, page: 1 });
   const [loading, setLoading] = useState(true);
-  const [warehouseList, setWareHouseList] = useState([])
-  const [showModal, setShowmodal] = useState(false)
+  const [warehouseList, setWareHouseList] = useState([]);
+  const [showModal, setShowmodal] = useState(false);
 
-  
-  useEffect(() => {
+  const getData = (urlquery) => {
     setLoading(true);
-    async function getdata() {
-      await getStocks("all", setStocks);
-      await getWareHouseList(setWareHouseList);
-    }
-    getdata();
-    setLoading(false);
+    customFetch(urlquery)
+      .then((data) => {
+        const { status, statusCode, result } = data;
+        if (statusCode === 200 && status === 'success') {
+          setStocks(result);
+          setLoading(false);
+        }
+      })
+      .catch((err) => setLoading(false));
+  }
+
+  useEffect(() => {
+    getData(`stock?warehouseid=all&&count=${10}&&page=${1}`);
+    getWareHouseList(setWareHouseList);
   }, [])
 
-  const closeModal = (reload) => {
+  useEffect(() => {
+    const { count, page } = query;
+    getData(`stock?warehouseid=all&&count=${count}&&page=${page}`);
+  }, [query])
+
+  const closeModal = () => {
     setShowmodal(false)
     setEditing({ edit: false, stockid: null });
   }
 
   const show = () => setShowmodal(true);
-
   const handleDelete = async (id) => {
     if (!id) return false;
     try {
@@ -54,10 +79,9 @@ export default function INVENTORY_PAGE() {
     setShowmodal(true)
   }
 
-  const setLoader = useCallback(() => setLoading(false), []);
-  const updateFunction = useCallback((data) => {
-    console.log(data);
-  },[])
+  const MemoizedPagination = useMemo(() => <Pagination updateFunction={dispatchQuery} />, [dispatchQuery]);
+
+
   return (
     <>
       <InventoryLayout>
@@ -76,37 +100,39 @@ export default function INVENTORY_PAGE() {
         </div>
         {
           loading ?
-            <div className="loader"></div>
-            :
+            <div className="loader"></div> :
             (
               <>
-              <div style={{ marginTop: "20px" }}>
-          <ListGroup>
-            <ListGroupItem className="br-0 stock-grid bg-light  text-capitalize">
-              <span>date</span>
-              <span>name</span>
-              <span>category</span>
-              <span>units</span>
-              <span>quantity Avail.</span>
-              <span>Alert level</span>
-              <span>date</span>
-            </ListGroupItem>
-            {stocksource.map((item,index) => {
-              return (
-                <StockListView
-                handleAssignWare={handleAssignWare}
-                handleDelete={handleDelete}
-                handleEditingStock={handleEditingStock}
-                key={index} data={item} />)
-          })}
-          </ListGroup>
-        </div>
-        <ADD_STOCK_INVENTORY warehouseList={warehouseList} editing={editing} show={showModal} closeModal={closeModal} />
-
-        <Pagination setLoader={setLoader} updateFuntion={updateFunction} />
+                <div>
+                  <ListGroup>
+                    <ListGroupItem className="br-0 stock-grid my-2 bg-light  text-capitalize">
+                      <span>date</span>
+                      <span>name</span>
+                      <span>category</span>
+                      <span>units</span>
+                      <span>quantity Avail.</span>
+                      <span>Alert level</span>
+                      <span>date</span>
+                    </ListGroupItem>
+                    {stocksource.map((item, index) => (
+                      <StockListView
+                        handleAssignWare={handleAssignWare}
+                        handleDelete={handleDelete}
+                        handleEditingStock={handleEditingStock}
+                        key={index}
+                        data={item}
+                      />
+                    ))}
+                  </ListGroup>
+                </div>
+                <div className="d-flex justify-content-center mt-1">
+                  {MemoizedPagination}
+                </div>
+                {editing.edit &&
+                  (<ADD_STOCK_INVENTORY warehouseList={warehouseList} editing={editing} show={showModal} closeModal={closeModal} />)}
               </>
             )
-      }
+        }
       </InventoryLayout>
     </>
   )
