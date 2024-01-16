@@ -15,8 +15,8 @@ const StockBrandListViewComponent = ({brands,onDelete,onEdit}) => {
                             <span>{new Date(item?.created_on).toLocaleDateString()}</span>
                            <span>{item?.brand}</span>
                            <span>
-                              <Edit onClick= { (ev) => {onEdit(item?.brandid)}} color='primary'/>
-                              <Delete nClick= { (ev) => {onDelete(item?.brandid)}}  color='error'/>   
+                              <Edit onClick= { (ev) => {onEdit(item)}} color='primary'/>
+                              <Delete onClick= { (ev) => {onDelete(item)}}  color='error'/>   
                            </span>
                         </div>
                      )
