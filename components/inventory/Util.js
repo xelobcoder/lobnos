@@ -1,6 +1,7 @@
 import { customFetch,getDataAndUpdateState } from "../Auth/customFetch"
-export const handleAssignWare = (data, router) => {
-  return;
+export const handleAssignWare = (data,router) => {
+  const { name, stockid } = data;
+  router.push(`/inventory/stocks/brands?stockname=${name}&&stockid=${stockid}`);
 }
 
 

@@ -3,7 +3,7 @@ import { ListGroup, ListGroupItem } from 'react-bootstrap';
 import { customFetch, customPost } from "../../components/Auth/customFetch";
 import InventoryLayout from "../../components/inventory/InventoryLayout";
 import { useEffect } from "react";
-import { filterStocks, getWareHouseList, handleAssignWare,updatePagination} from "../../components/inventory/Util";
+import { filterStocks, getWareHouseList,updatePagination} from "../../components/inventory/Util";
 import ADD_STOCK_INVENTORY from "../../components/inventory/addstock";
 import Pagination from "../../components/accessories/pagination";
 import StockListView from "../../components/inventory/stocks/StockListView";
@@ -119,7 +119,6 @@ export default function INVENTORY_PAGE() {
                         (
                           stocksource.map((item, index) => (
                             <StockListView
-                              handleAssignWare={handleAssignWare}
                               handleDelete={handleDelete}
                               handleEditingStock={handleEditingStock}
                               key={index}

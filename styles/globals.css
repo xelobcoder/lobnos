@@ -51,7 +51,7 @@ body {
 }
 
 #rack > #rack-body {
-  margin: 0px 20px;
+  margin: 0px;
   padding: 0;
   background-color: white;
 }
@@ -1692,9 +1692,9 @@ option:hover {
   grid-gap: 10px;
 }
 .grid-30-30-30 {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-gap: 10px;
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  grid-gap: 3%;
 }
 
 .grid-6 {

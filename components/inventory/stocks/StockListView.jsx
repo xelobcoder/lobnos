@@ -1,6 +1,9 @@
+import { useRouter } from 'next/navigation';
 import { ListGroupItem } from 'react-bootstrap';
-export default function StockListView({ data,handleAssignWare,handleDelete,handleEditingStock}) {
+import { handleAssignWare } from '../Util';
+export default function StockListView({ data,handleDelete, handleEditingStock}) {
    const { stockid, date, categoryname, purchaseunit, name, alertlevel, quantity,consumptionunit } = data;
+   const router = useRouter();
    const alertSignal = () => {
       if (quantity === 0) return `bg-danger`;
       if (alertlevel >= quantity) return `bg-warning`;
@@ -25,10 +28,11 @@ export default function StockListView({ data,handleAssignWare,handleDelete,handl
             <button onClick={() => handleEditingStock(stockid, data)} className='btn btn-sm btn-primary mx-2'>
                 edit
             </button>
-            <button onClick={() => { handleAssignWare(data) }} className='btn btn-secondary btn-sm'>
-               view
+            <button   onClick={() => { handleAssignWare(data,router) }} className='btn btn-secondary btn-sm'>
+               brands
             </button>
          </span>
+
       </ListGroupItem>
    )
 }
