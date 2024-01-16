@@ -3,10 +3,11 @@ import { ListGroup, ListGroupItem } from 'react-bootstrap';
 import { customFetch, customPost } from "../../components/Auth/customFetch";
 import InventoryLayout from "../../components/inventory/InventoryLayout";
 import { useEffect } from "react";
-import { filterStocks, getWareHouseList, handleAssignWare,updatePagination } from "../../components/inventory/Util";
+import { filterStocks, getWareHouseList, handleAssignWare,updatePagination} from "../../components/inventory/Util";
 import ADD_STOCK_INVENTORY from "../../components/inventory/addstock";
 import Pagination from "../../components/accessories/pagination";
 import StockListView from "../../components/inventory/stocks/StockListView";
+import AddStockCategory from "../../components/inventory/stocks/AddStocksCategory";
 
 
 
@@ -19,6 +20,7 @@ export default function INVENTORY_PAGE() {
   const [loadpaginate, setLoadPaginate] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState('all');
   const [showModal, setShowmodal] = useState(false);
+  const [showCatModal, setShowCatModal] = useState(false);
 
   const getData = (urlquery) => {
     setLoading(true);
@@ -34,23 +36,24 @@ export default function INVENTORY_PAGE() {
   }
 
   useEffect(() => {
-    getData(`stock?warehouseid=all&&count=${10}&&page=${1}`);
-    getWareHouseList(setWareHouseList);
-  }, [])
-
-  useEffect(() => {
-    const { count, page } = query;
     if (loadpaginate) {
+      const { count, page } = query;
       getData(`stock?warehouseid=${selectedWarehouse}&&count=${count}&&page=${page}`);
+    } else {
+      getData(`stock?warehouseid=${selectedWarehouse}&&count=${10}&&page=${1}`);
     }
-  }, [query, selectedWarehouse,loadpaginate])
+  }, [selectedWarehouse,loadpaginate,query])
+    // this is ensure getwarehouse dosent load anytime , a warehouse is changed
+   useEffect( () =>  { getWareHouseList(setWareHouseList);},[])
 
   const closeModal = () => {
     setShowmodal(false)
     setEditing({ edit: false, stockid: null });
   }
 
-  const show = () => setShowmodal(true);
+  const closeCategoryModal = () => {setShowCatModal(false)}
+
+  const show = () => {setShowmodal(true)};
   const handleDelete = async (id) => {
     if (!id) return false;
     try {
@@ -89,7 +92,7 @@ export default function INVENTORY_PAGE() {
                 return <option value={item?.id} key={index}>{item?.name}</option>
               })}
             </select>
-            <button className="btn btn-primary  btn-sm mx-2">New stock Category</button>
+            <button onClick={(ev) => { setShowCatModal(true); }} className="btn btn-primary  btn-sm mx-2">New stock Category</button>
             <button onClick={show} className="btn btn-primary btn-sm">
               New stock
             </button>
@@ -136,8 +139,14 @@ export default function INVENTORY_PAGE() {
                 <div className="d-flex justify-content-center mt-1">
                   {MemoizedPagination}
                 </div>
-                {editing.edit &&
+                {showModal &&
                   (<ADD_STOCK_INVENTORY warehouseList={warehouseList} editing={editing} show={showModal} closeModal={closeModal} />)}
+                {
+                  showCatModal && 
+                  (
+                    <AddStockCategory show={showCatModal} onHide={closeCategoryModal} />
+                  )
+              }
               </>
             )
         }

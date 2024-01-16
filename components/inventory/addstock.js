@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ToastContainer, toast } from "react-toastify";
 import { customPost, getDataAndUpdateState } from '../Auth/customFetch';
 import Modal from 'react-bootstrap/Modal';
-import { Purchaseunitlist,Consumptionunitlist, defaultStockDetails, getWareHouseShelves} from './Util';
+import { Purchaseunitlist,Consumptionunitlist, defaultStockDetails, getWareHouseShelves,getcategorylist} from './Util';
 export default function ADD_STOCK_INVENTORY({ show, closeModal, editing ,warehouseList = []}) {
   const { edit, stockid, data } = editing;
   const [shelves, setShelves] = useState([]);
@@ -91,13 +91,10 @@ export default function ADD_STOCK_INVENTORY({ show, closeModal, editing ,warehou
   }, [edit, stockid,data])
 
 
-  // get the category list
-  const getcategorylist = async () => {
-    getDataAndUpdateState(setCategorylist, "stock/category");
-  }
+  
 
   useEffect(() => {
-    getcategorylist();
+    getcategorylist(setCategorylist);
   }, [])
 
 

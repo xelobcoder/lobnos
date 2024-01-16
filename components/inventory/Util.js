@@ -4,6 +4,11 @@ export const handleAssignWare = (data, router) => {
 }
 
 
+export const getcategorylist = async (setCategorylist) => {
+  getDataAndUpdateState(setCategorylist, "stock/category");
+}
+
+
 export const getWareHouseList = async (setWareHouseList) => {
   getDataAndUpdateState(setWareHouseList,"inventory/warehouse");
 }
