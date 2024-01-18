@@ -10,10 +10,7 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
     supplier: '',
     purchaseunit: '',
   });
-
   const [purchaseunit, setPurchaseunit] = useState(['kg', 'g', 'litre','unit','Box','Bottle']);
-
-
 
   return (
     <>
@@ -37,7 +34,7 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
                       <div key={index} id='split-8'>
                         <div>{item.stockid}</div>
                         <div>{item.name}</div>
-                        <div>{item.category}</div>
+                        <div>{item.categoryname}</div>
                         <div>
                           <select className="custom-select" onChange={(ev) => {
                             setSelectedproduct({
@@ -126,8 +123,7 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
                                
                               }
                             }}
-                            className="btn btn-sm btn-primary p-1"
-                          >
+                            className="btn btn-sm btn-primary p-1">
                             Add to cart
                           </button>
                         </div>

@@ -1,26 +1,29 @@
 import { customPost, customFetch } from "./customFetch";
 const REQUISITIONS_URL = "departments/requisitions";
 class Inventory {
-  constructor(pricing, taxcaluatedIn) {
+  constructor(pricing, taxcaluatedIn,alert) {
     this.pricing = pricing;
     this.taxcaluatedIn = taxcaluatedIn;
+    this.alert = alert ||null;
   }
 
   changepricing = function (value) { this.pricing = value }
   async calculatePlaceOrderReceivedBalance(array, index, setupdate) {
-    const { quantityReceived, quantity } = array[index];
+    const { quantityReceived, quantity,price } = array[index];
     if (quantityReceived < quantity) {
       const balance = parseInt(quantity) - parseInt(quantityReceived);
       setupdate((prev) => { prev[index]['balance'] = balance; return [...prev] })
     } else {
       setupdate((prev) => { prev[index]['balance'] = 0; prev[index]['quantityReceived'] = quantity; return [...prev] })
     }
+    if (price > 0) {
+      this.calculateOrderTotal(setupdate, array, index);
+    }
   }
 
   async calculateOrderTotal(setupdata, array, index) {
     const { quantityReceived, price } = array[index];
     let current = [...array];
-    if (!this.pricing) alert('pricing not selected');
     if (this.pricing) {
       if (this.pricing == 'unit') {
         current[index]['totalamount'] = parseInt(quantityReceived) * parseFloat(price);
@@ -31,29 +34,39 @@ class Inventory {
     }
   }
 
-  async placeOrderSum(setupdata, array) {
+  placeOrderSum(array) {
     let sum = 0;
     array.map(element => { sum += parseFloat(element['totalamount']) });
-    setupdata(sum)
+    return sum;
   }
 
-  async totalwithTaxAdded({ setdata, total = 0, amount = 0, datasource }) {
-    // we keep a hold of the previous total so in case the amount was reversed to zero , we revert to the total initially provided
-    let previous = total;
-    if (this.taxcaluatedIn) {
-      if (amount > 0 && total > 0) {
-        if (this.taxcaluatedIn == 'percentage') {
-          setdata(total * amount)
-        }
-        if (this.taxcaluatedIn == 'absolute') {
-          setdata(amount + total);
-        }
-      } else {
-        this.placeOrderSum(setdata, datasource)
-      }
-    } else {
-      alert('tax calculated not set up');
+  async totalwithTaxAdded({ setdata,amount = 0, datasource,setTax}) {
+    if (!this.taxcaluatedIn) {
+      this.alert.success('Tax calculation method not selected');
+      return;
+    };
+
+    if (amount < 0) {
+      this.alert.error('Tax Amount should be 0 or greater');
+      setTax({ method: this.taxcaluatedIn, amount: 0 });
+      return;
     }
+
+    const getTotal = this.placeOrderSum(datasource);
+
+    if (getTotal <= 0) return false;
+    let finalTotal = 0;
+    if (this.taxcaluatedIn === 'absolute') {
+     finalTotal =  getTotal + amount;  
+    }
+
+    if (this.taxcaluatedIn === "percentage") {
+      finalTotal= (amount / 100 ) * getTotal + getTotal;
+    }
+
+    setdata(finalTotal);
+
+    return true;
   }
 
   getPlaceOrderStocks = async function (setStocks, setTemp) {

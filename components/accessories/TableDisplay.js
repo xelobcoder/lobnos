@@ -11,6 +11,7 @@ export default function TableDisplay({ column, data, styling, filtering }) {
     initialState: {pageSize: 10},
   }, useFilters, useGlobalFilter, useSortBy, usePagination)
 
+ 
   const {
     getTableProps,
     getTableBodyProps,
@@ -75,7 +76,7 @@ export default function TableDisplay({ column, data, styling, filtering }) {
                       </span>
                       <span>
                         <select className='custom-input' value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
-                          {[10,20,25,50,75,100, 150,200].map((pageSize,index) => (
+                          {[10,20,30,40,50,60,70,80,90,100].map((pageSize,index) => (
                             <option key={index} value={pageSize}>
                               Show {pageSize}
                             </option>
@@ -93,9 +94,3 @@ export default function TableDisplay({ column, data, styling, filtering }) {
     </>
   )
 }
-
-// The changes made include:
-
-// Removing the eslint-disable comment for the warning.
-// Adding a key prop to the <tr> and <th> elements to fix the warning.
-// Destructuring the required properties directly from the tableInstance state object

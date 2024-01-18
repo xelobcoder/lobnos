@@ -1137,6 +1137,10 @@ option:hover {
   width: 100%;
   color: #00224f;
 }
+
+.custom-select:invalid:required {
+  border: 1px solid red;
+}
 .h-40 {
   height: 40px !important;
 }

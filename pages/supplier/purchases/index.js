@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/router';
-import { customData, customPost } from '../../../components/Auth/customFetch';
+import { customData, customFetch, customPost } from '../../../components/Auth/customFetch';
 import SupplierLayout from '../../../components/inventory/SupplierLayout';
 import SECOND_NO_DATA from '../../../components/accessories/secondNodata';
 
@@ -44,7 +44,12 @@ export default function PURCHASES() {
 
 
   useEffect(() => {
-    customData('orders', setOrdersPlacedList);
+    customFetch(`orders`)
+      .then((data) => {
+        const { products } = data.result;
+        setOrdersPlacedList(products);
+      })
+      .catch((err) => setOrdersPlacedList([]));
   }, [])
 
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import TableDisplay from '../../components/accessories/TableDisplay';
-import { DeleteForever, Print} from '@mui/icons-material';
+import {Print} from '@mui/icons-material';
 import { customFetch } from '../../components/Auth/customFetch';
 import InventoryLayout from '../../components/inventory/InventoryLayout';
 
@@ -63,9 +63,9 @@ export default function EXPIRE_STOCKS() {
 
 
   const getData = async () => {
-    const response = await customFetch(`stock?expireproduct=true`)
-    const { result, status } = response;
-    if (status == 'success') {
+    const response = await customFetch(`stock/expirestocks`)
+    const { result, status,statusCode } = response;
+    if (status === 'success' && statusCode === 200) {
       setExpireStock(result);
     }
   }
@@ -86,9 +86,9 @@ export default function EXPIRE_STOCKS() {
   return (
     <InventoryLayout>
       <div>
-        {/* <div className='d-flex justify-content-end'>
+        <div className='d-flex justify-content-end'>
         <button onClick={(ev) => {handlePrint(ev)}} className='btn btn-secondary btn-sm mt-1 mx-1'><Print/> print</button>
-        </div> */}
+        </div>
         <TableDisplay data={expireStock} column={columns} />
       </div>
     </InventoryLayout>

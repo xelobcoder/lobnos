@@ -10,8 +10,8 @@ import Header from '../components/header';
 
 export default function Index() {
   const { auth } = useContext(AuthContext);
-
   const { username, role } = auth;
+
   return (
     <>
       <Header/>

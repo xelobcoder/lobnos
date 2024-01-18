@@ -23,7 +23,8 @@ export default function StockBrandList({ id,stockname}) {
       };
    }, [getBrands,id])
    
-   const updateBrand = async (brand, httpMethod) => {
+   const updateBrand = async (ev, brand, httpMethod) => {
+      ev.preventDefault();
       if (!id) {
          window.history.back();
          return;

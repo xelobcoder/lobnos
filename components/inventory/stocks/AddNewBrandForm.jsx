@@ -13,15 +13,16 @@ export default function AddNewBrandForm({ updateBrands,editing }) {
    }, [editing]);
 
    return (
-      <form className="my-2 mx-3">
+      <div className="my-2 mx-3">
          <label>Brand Name</label>
-         <input value={brand} onChange={(ev) => {setBrand(ev.target.value)}} className="custom-input" type='text' />
+         <input value={brand} onChange={(ev) => {setBrand(ev.target.value.toLowerCase())}} className="custom-input" type='text' />
          <button type="button" onClick={(ev) => {
             updateBrands(
+               ev,
                method === 'POST' ? brand : {...editing.data,brand}
                , method); setBrand(''); setMethod('POST'); }}  className="btn btn-primary btn-sm mt-2">
             save brand
           </button>
-     </form>
+     </div>
    )
 }
