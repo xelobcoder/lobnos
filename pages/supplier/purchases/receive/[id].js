@@ -30,6 +30,7 @@ export default function ReceiveOrdersPage() {
       })  
       return nw;
     }
+    return [];
   }
 
   useEffect(() => {
@@ -62,6 +63,8 @@ export default function ReceiveOrdersPage() {
   const changePricing = function (ev) {
     setDatasource(datasource.map((item, index) => { return { ...item, pricing: ev.target.value } }))
   }
+
+  console.log(datasource)
 
   return (
     <SupplierLayout>

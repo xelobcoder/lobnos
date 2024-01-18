@@ -1,17 +1,15 @@
 import { Delete} from "@mui/icons-material"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { customPost } from "../Auth/customFetch";
-import { useRouter } from "next/navigation";
 import Inventory from "../Auth/inventory"
 import RackCard from '../accessories/CardRacks';
 import { ToastContainer, toast } from 'react-toastify';
 
-export default function ReceivedOrderModal({ clearData, data, handleChange, totalprice, setupdata, setTotal, changePricing }) {
+export default function ReceivedOrderModal({ clearData, data, handleChange, totalprice, setupdata, setTotal}) {
   // states for managing how is pricing should be calculated either using absolute or unit price
   const [pricing, setPricing] = useState("unit")
   const [taxIncurred, setTaxIncurred] = useState({ method: "absolute", amount: 0 })
   const [ready, setReady] = useState(true);
-  const router = useRouter();
   const inventory =  useMemo( () => new Inventory(pricing, taxIncurred.method,toast),[taxIncurred.method,pricing]);
 
   const addToStock = async function () {
@@ -63,12 +61,11 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
         if (statusCode === 200 && status === "success") {
           toast.success(message, { autoClose: 1000 });
           clearData();
-          router.push('/supplier/purchases');
         } else {
           toast.error(message, { autoClose: 3000 });
         }
       } catch (err) {
-        console.log(err)
+        toast.error(err)
       }
   }
 
