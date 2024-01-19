@@ -14,12 +14,11 @@ const AutoCompleteObject = ({ options }) => {
     setInputValue,
   } = options;
 
-
   const handleClose = () => {
     setInputValue("");
     setShowClose(false);
     setFilteredOptions(data);
-  }
+  };
 
   const [computedTabindex, setComputedTabindex] = useState(tabindex);
   const [filteredOptions, setFilteredOptions] = useState([]);
@@ -31,7 +30,7 @@ const AutoCompleteObject = ({ options }) => {
 
     if ((target, filter, data && data.length && Array.isArray(data))) {
       const filtered = data.filter((option) => {
-        if (filter == "contains") {
+        if (filter === "contains") {
           return option[target].toLowerCase().includes(value.toLowerCase());
         } else {
           return option[target].toLowerCase().startsWith(value.toLowerCase());
@@ -51,58 +50,86 @@ const AutoCompleteObject = ({ options }) => {
     }
   };
 
+  const handleEscapeKey = (ev) => {
+    if (ev.code === "Escape") {
+      setFilteredOptions([]);
+      setShowClose(false);
+    }
+  };
+
   const handleOptionClick = (option) => {
     handleSelected(option);
     setFilteredOptions([]);
     setShowClose(true);
   };
 
-useEffect(() => {
-  // filtered options should be emptied when the body of the document is clicked
-  document.body.addEventListener('click', (ev) => {
-    setFilteredOptions([]);
-  });
-}, []);
+  useEffect(() => {
+    // filtered options should be emptied when the body of the document is clicked
+    document.body.addEventListener("click", (ev) => {
+      setFilteredOptions([]);
+      setShowClose(false);
+    });
 
+    // Listen for the Escape key press
+    document.body.addEventListener("keydown", handleEscapeKey);
+
+    return () => {
+      // Cleanup event listeners on component unmount
+      document.body.removeEventListener("click", (ev) => {
+        setFilteredOptions([]);
+        setShowClose(false);
+      });
+
+      document.body.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, []);
 
   return (
     <div className={`custom-autocomplete`}>
       <div className="custom-head">
-      <input
-        type="text"
+        <input
+          type="text"
           tabIndex={tabindex}
-          className={`auto-input  ${inputValue.length > 0  || filteredOptions.length > 0 ? 'lower-borders-none' : ''}`}
-        placeholder={placeholder}
-        value={inputValue}
-        onChange={(ev) => {
-          handleInputChange(ev)
-        }}
-        onClick={(ev) => {
-          setFilteredOptions(data);
-        }}
-      />
-     {showClose && ( <span onClick={(ev) => {handleClose(ev)}} className="span-close"><Close color='primary'/></span>)}
-     </div>
-      <div className={`custom-body ${filteredOptions.length > 0 ? '' : 'border-0'}`}>
-      {filteredOptions.length > 0 && (
-        <div className="custom-autocomplete-list">
-          {filteredOptions.map((option, index) => (
-            <li
-              key={index}
-              tabIndex={computedTabindex + (index + 1)}
-              className="list"
-              dataid={index}
-              onKeyDown={(ev) => {
-                onKeyDown(ev, option);
-              }}
-              onClick={() => handleOptionClick(option)}
-            >
-              {option[target]}
-            </li>
-          ))}
-        </div>
-      )}
-     </div>
+          className={`auto-input  ${
+            inputValue.length > 0 || filteredOptions.length > 0
+              ? "lower-borders-none"
+              : ""
+          }`}
+          placeholder={placeholder}
+          value={inputValue}
+          onChange={(ev) => {
+            handleInputChange(ev);
+          }}
+          onClick={(ev) => {
+            setFilteredOptions(data);
+          }}
+        />
+        {showClose && (
+          <span onClick={(ev) => { handleClose(ev) }} className="span-close">
+            <Close color="primary" />
+          </span>
+        )}
+      </div>
+      <div className={`custom-body ${filteredOptions.length > 0 ? "" : "border-0"}`}>
+        {filteredOptions.length > 0 && (
+          <div className="custom-autocomplete-list">
+            {filteredOptions.map((option, index) => (
+              <li
+                key={index}
+                tabIndex={computedTabindex + index + 1}
+                className="list"
+                dataid={index}
+                onKeyDown={(ev) => {
+                  onKeyDown(ev, option);
+                }}
+                onClick={() => handleOptionClick(option)}
+              >
+                {option[target]}
+              </li>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

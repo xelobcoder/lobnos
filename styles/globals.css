@@ -247,29 +247,7 @@ border-none {
   border: 1px solid red;
 }
 
-/* .welcome-page {
-  height: 91vh;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  overflow: hidden;
-}
 
-.welcome-page > div {
-  width: 40%;
-  margin-top: -200px;
-}
-
-.welcome-page > input {
-  border-radius: 0px !important;
-  border: 20px solid #00224f;
-} */
 
 .border-radius-0 {
   border-radius: 0px;
@@ -1122,6 +1100,56 @@ option:hover {
 .m-10 {
   margin: 10px;
 }
+/* ---custom -auto complete 2 */
+.card-autocomplete:hover,
+.card-autocomplete:focus,
+.card-autocomplete:active {
+  background-color: lightskyblue !important;
+}
+
+.card-body-active {
+  background-color: var(--custom-blue) !important;
+  outline: none !important;
+  color: white !important;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+.card-autocomplete:focus
+{
+  border: 1px solid lightgray !important;
+  background-color: var(--cds-color-blue-600) !important;
+  outline: none !important;
+  color: white;
+  margin: 5px;
+  border-radius: 5px;
+}
+.card-autocomplete::first-letter{     
+  text-transform: capitalize;
+}
+
+
+.card-autocomplete{
+  font-size: 14px;
+}
+.ptoO {
+  margin: 0px;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  color: white;
+}
+.ptoO:nth-child(1) {
+  background-color: var(--prime-attention);
+}
+
+.ptoO:nth-child(2) {
+  background-color: var(--custom-orange);
+}
+.ptoO:nth-child(3) {
+  background-color: var(--custom-dark_blue);
+}
 
 .input-height {
   height: 30px !important;
@@ -1137,6 +1165,8 @@ option:hover {
   width: 100%;
   color: #00224f;
 }
+
+
 
 .custom-select:invalid:required {
   border: 1px solid red;

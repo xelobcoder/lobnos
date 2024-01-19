@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export default function CardRacks  ({ header, activestate, body,footer, icon = null, ...otherProps }) {
   const [active, setActive] = useState(activestate);
+
+  useEffect(() => { setActive(activestate); console.log('hhh')},[activestate])
 
   return (
     <div
