@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import InventoryLayout from "../../../components/inventory/InventoryLayout";
 import { getStocks } from '../../../components/inventory/Util';
 import CustomAutocomplete from "../../../components/accessories/CustomAutoComplete";
+import { customPost } from "../../../components/Auth/customFetch";
 
 export default function PurchaseOrderAnalytics() {
   const [stocks, setStocks] = useState([]);
@@ -16,6 +17,16 @@ export default function PurchaseOrderAnalytics() {
 
 
   const AppendToCart = (value) => setCart([...cart, value]);
+
+  const get_stock_p_order = async (stockid, records = 5) => {
+    if (!stockid) return;
+    const pushResponse = await customPost('inventory/analytics/purchasetoconsume', 'POST', { stockid, records });
+    console.log(pushResponse);
+  }
+
+  useEffect(() => {
+    get_stock_p_order(2,10);
+  },[])
 
   return (
     <InventoryLayout>

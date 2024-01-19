@@ -258,34 +258,25 @@ export default function Stocksrequest() {
 
 
 
+  const Options = (item,index) => <option value={item.id} key={index+1}>{item.department}</option>;
+
   return (
     <>
       <InventoryLayout>
         <div className="container mt-1">
           <div className="row">
             <div
-              style={{ display: "grid", gridTemplateColumns: "auto auto 40%" }}
-            >
-              <select
-                className="form-control"
-                onChange={(e) => setDepartmentId(e.target.value)}
-              >
+              style={{ display: "grid", gridTemplateColumns: "auto auto 40%" }}>
+              <select className="form-control" onChange={(e) => setDepartmentId(e.target.value)}>
                 <option value="">Select Department</option>
-                {department.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.department}
-                  </option>
-                ))}
+                {department.map((item,index) => Options(item,index))}
               </select>
-              <button className="custom-button">transfered</button>
-              <button className="custom-button">issues raised</button>
+              <button className="btn btn-primary btn-sm mx-2">transfered</button>
+              <button className="btn btn-primary btn-sm mx-2">issues raised</button>
             </div>
           </div>
           <div className="row">
-            <TableDisplay
-              column={columns}
-              data={hxData.length === 0 ? [] : hxData}
-            />
+            <TableDisplay column={columns} data={hxData.length === 0 ? [] : hxData}/>
           </div>
         </div>
       </InventoryLayout>
