@@ -2218,8 +2218,9 @@ input[type="email"]:focus:invalid .company-view-result > .wrapper {
   .grid-30-30-30 {
     grid-template-columns: 100%;
   }
-  .grid-50-responsive {
-    grid-template-columns: 100%;
+  .grid-50-responsive,
+  .grid-5 {
+    grid-template-columns: 100% !important;
   }
   .clinician-view .card .card-body .list-group-item {
     display: grid;

@@ -1,11 +1,10 @@
-// code for getting all request made by the departments and display them in a table and add input for the quantity to be supplied and a button to approve the request
 import { Button } from "@mui/material";
 import React from "react";
 import { useState, useEffect, useMemo } from "react";
-import TableDisplay from "../../components/accessories/TableDisplay";
+import TableDisplay from "../../../components/accessories/TableDisplay";
 import InventoryIcon from "@mui/icons-material/Inventory";
-import { customData, customFetch, customPost, getDepartment } from "../../components/Auth/customFetch";
-import InventoryLayout from "../../components/inventory/InventoryLayout";
+import { customData, customFetch, customPost, getDepartment } from "../../../components/Auth/customFetch";
+import InventoryLayout from "../../../components/inventory/InventoryLayout";
 export default function Stocksrequest() {
   const [brandLot, setBrandLot] = useState([]);
   const [hxData, setHxData] = useState([]);
@@ -21,7 +20,7 @@ export default function Stocksrequest() {
     async function fetchRequisitions() {
       if (departmentId) {
         try {
-          await customData(`departments/requisitions?id=${departmentId}&&type=pending`, setHxData);
+          await customData(`store/departments/requisitions?id=${departmentId}&&type=pending`, setHxData);
         } catch (error) {
           console.error(error);
         }
