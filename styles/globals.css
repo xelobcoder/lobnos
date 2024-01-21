@@ -7,7 +7,7 @@
   --custom-orange: #feb602;
   --custom-dark_blue: #142a5e;
   --cds-color-blue-600: #0056d2;
-  --font-family-w: Lato, "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Verdana, Tahoma, sans-serif;
+  /* --font-family-w: Lato, "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Verdana, Tahoma, sans-serif; */
   --zf-font-family-base: walsheim, Helvetica, Arial, Lucida Grande, sans-serif;
   --wp--preset--gradient--midnight: linear-gradient(135deg, rgb(2, 3, 129) 0%, rgb(40, 116, 252) 100%);
 }
@@ -1426,7 +1426,8 @@ option:hover {
   text-align: left;
   font-weight: 400;
   font-size: 14px;
-  min-width: 200px !important;
+  min-width: auto !important;
+  max-width: 200px !important;
   text-transform: capitalize !important;
 }
 
@@ -1448,7 +1449,10 @@ option:hover {
   cursor: pointer;
   font-size: 14px;
   padding: 4px !important;
+  min-width: auto !important;
+  max-width: 200px !important;
   padding-left: 10px !important;
+  padding: 10px !important;
 }
 
 .table > tbody > tr > td::first-letter {

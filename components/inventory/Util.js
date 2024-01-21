@@ -1,4 +1,4 @@
-import { customFetch,getDataAndUpdateState } from "../Auth/customFetch"
+import { customFetch,customPost,getDataAndUpdateState } from "../Auth/customFetch"
 export const handleAssignWare = (data,router) => {
   const { name, stockid } = data;
   router.push(`/inventory/stocks/brands?stockname=${name}&&stockid=${stockid}`);
@@ -76,4 +76,28 @@ export const filterStocks = async (filter, warehouseid, query,setState) => {
   if (statusCode == 200 && status == 'success' && Array.isArray(result)) {
     setState(result);
   }
+}
+
+
+
+export const inventorySettings = {
+  alertdays: 21,
+  stocksAutoDeduct: false,
+}
+
+
+
+export  async function updateInventorySettings(setting,toast) {
+  const push = await customPost('inventory/settings', 'POST', { setting });
+  if (push?.status === 'success') {
+    toast.success('updates successful', { autoClose: 500 });
+  } else {
+    toast.error('something wrong occured', { autoClose: 500 });
+  }
+}
+
+
+export async function getInvSettings(setInv) {
+  const data = await customFetch('inventory/settings');
+  setInv(data?.result || {});
 }

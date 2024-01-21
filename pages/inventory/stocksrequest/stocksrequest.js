@@ -6,7 +6,6 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import { customData, customFetch, customPost, getDepartment } from "../../../components/Auth/customFetch";
 import InventoryLayout from "../../../components/inventory/InventoryLayout";
 export default function Stocksrequest() {
-  const [brandLot, setBrandLot] = useState([]);
   const [hxData, setHxData] = useState([]);
   const [departmentId, setDepartmentId] = useState("");
   const [department, setDepartments] = useState([]);
@@ -14,6 +13,12 @@ export default function Stocksrequest() {
 
   // get department once page loads
   useEffect(() => { getDepartment(setDepartments) }, []);
+
+  const getRequisitionData = function () {
+    customFetch(`store/departments/requisitions?id=${departmentId}&&type=pending`)
+      .then((data) => console.log(data))
+      .catch( (err) => console.log(err))
+  }
 
 
   useMemo(() => {
@@ -30,23 +35,23 @@ export default function Stocksrequest() {
   }, [departmentId]);
 
 
-  useEffect(() => {
-    if (hxData.length > 0) {
-      let stockidx = hxData.map((item, index) => { return item.stockid }).join(',');
-      customFetch(`stock/general/lotno?stockidx=${stockidx}`)
-        .then((data) => {
-          const { statusCode, status, result } = data;
-          if (statusCode == 200 && status == 'success') {
-            const modifiedhx = hxData.map((item, index) => {
-              const { stockid } = item;
-              const brands = result.filter((ee, ii) => { return ee.stockid == stockid });
-              return { ...item, brands, selectedbatch: null }
-            })
-            setHxData(modifiedhx);
-          }
-        }).catch((err) => setBrandLot([]))
-    }
-  }, [hxData.length])
+  // useEffect(() => {
+  //   if (hxData.length > 0) {
+  //     let stockidx = hxData.map((item, index) => { return item.stockid }).join(',');
+  //     customFetch(`stock/general/lotno?stockidx=${stockidx}`)
+  //       .then((data) => {
+  //         const { statusCode, status, result } = data;
+  //         if (statusCode == 200 && status == 'success') {
+  //           const modifiedhx = hxData.map((item, index) => {
+  //             const { stockid } = item;
+  //             const brands = result.filter((ee, ii) => { return ee.stockid == stockid });
+  //             return { ...item, brands, selectedbatch: null }
+  //           })
+  //           setHxData(modifiedhx);
+  //         }
+  //       }).catch((err) => setBrandLot([]))
+  //   }
+  // }, [hxData.length])
 
   // handle the supply button
   const handleSupply = async (e, id) => {
