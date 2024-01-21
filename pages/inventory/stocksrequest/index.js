@@ -27,6 +27,9 @@ export default function GeneralStoreRequestSummary() {
       setActive(id);
       setActiveDept(id);
    }
+
+
+   const checkDeptReqtAgain = () => {}  
    
 
 
@@ -37,6 +40,7 @@ export default function GeneralStoreRequestSummary() {
               <h4>Department Pending Requisitions</h4>
             </div>
             <div>
+            <button className="btn btn-light btn-block btn-sm mx-2">refresh</button>
             <button className="btn btn-light btn-block btn-sm mx-2">issues</button>
             <button className="btn btn-primary btn-block mx-2 btn-sm">Transfers</button>
           </div>
