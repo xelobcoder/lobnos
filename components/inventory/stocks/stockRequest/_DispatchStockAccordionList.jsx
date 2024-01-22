@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Accordion } from 'react-bootstrap';
 import DebitableBrandBatch from './_DebitableTable';
-export default function DispatchStockAccordionList({ data, index,invsettings }) {
+import { customPost } from '../../../Auth/customFetch';
+export default function DispatchStockAccordionList({ data, index,invsettings,passToast,removeItem}) {
    const [debitable, setdebitable] = useState([]);
 
    useEffect(() => {
@@ -32,8 +33,20 @@ export default function DispatchStockAccordionList({ data, index,invsettings }) 
          setdebitable([...updatedDebitable]);
       }
    }, [data, invsettings]);
-   
-   console.log(debitable)
+
+   const stocksServed = async (t) => {
+      if (Array.isArray(t) && t.length > 0) {
+         const resource = {data: t, qtyApproved: data?.quantity_approved,requisitionid: data?.id}
+         const push_data = await customPost('store/departments/requisitions/serve', 'POST',resource );
+         const { status,message } = push_data;
+         if (status === "success") {
+            passToast("Added to esrow awaiting validation from department", 'success');
+            removeItem(data?.id);
+         } else {
+            passToast(message, 'error');
+         }
+      }
+   }
    return (
       <Accordion.Item   eventKey={index}>
          <Accordion.Header>
@@ -50,37 +63,9 @@ export default function DispatchStockAccordionList({ data, index,invsettings }) 
            </div>
       </Accordion.Header>
          <Accordion.Body>
-            {/* <table className='table'>
-               <thead>
-                  <tr>
-                     <th>Brand</th>
-                     <th>Batch/lot</th>
-                     <th>Store Qty</th>
-                     <th>Available</th>
-                     <th>Current</th>
-                     <th>Served</th>
-                  </tr>
-               </thead>
-               <tbody>
-            {
-               debitable.length > 0 && debitable.map((a, v) => {
-                  return (
-                     <tr key={v}>
-                        <td>{a.brand}</td>
-                        <td>{a.batchnumber}</td>
-                        <td>{a.storeQty}</td>
-                        <td>{a.availableQty}</td>
-                        <td>{a.currentQty}</td>
-                        <td>
-                           <input value={a.served} className='custom-input' type='number'/>
-                        </td>
-                     </tr>
-                )
-             })
-            }
-           </tbody>
-            </table> */}
-            <DebitableBrandBatch disabled={invsettings.stocksAutoDeduct} data={debitable}/>
+      
+            <DebitableBrandBatch stocksServed={stocksServed}
+               disabled={invsettings.stocksAutoDeduct} data={debitable} />
       </Accordion.Body>
 </Accordion.Item>
    )

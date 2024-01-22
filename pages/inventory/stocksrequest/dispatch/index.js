@@ -6,6 +6,8 @@ import Loader from "../../../../components/accessories/Loader";
 import DispatchStockAccordionList from "../../../../components/inventory/stocks/stockRequest/_DispatchStockAccordionList";
 import { getInvSettings, inventorySettings } from "../../../../components/inventory/Util";
 import SelectedDeptServe from "../../../../components/inventory/stocks/stockRequest/_SelectedDeptServe";
+import { ToastContainer, toast } from 'react-toastify';
+
 export default function DispathApprovedStockToDepart() {
    const [data, setData] = useState([]);
    const [selectedDept, setSelectedDept] = useState(null);
@@ -13,6 +15,13 @@ export default function DispathApprovedStockToDepart() {
    const [loading, setLoading] = useState(true);
 
    const updateDept = (id) => setSelectedDept(parseInt(id));
+
+   const removeItem = (id) => {
+      setLoading(true);
+      const nwData = data.filter((item, index) => { return !(item?.id === id) });
+      setData(nwData);
+      setLoading(false);
+   }
    
    useEffect(() => {
       if (selectedDept) {
@@ -29,9 +38,18 @@ export default function DispathApprovedStockToDepart() {
    
    useEffect(() => { getInvSettings(setInvsettings) }, []);
 
+
+   const passToast = async (message, type) => {
+      if (type === 'success') {
+         toast.success(message,{autoClose: 500}); return;
+      }
+      toast.error(message, { autoClose: 2000 });
+   }
+
    return (
       <InventoryLayout>
-         <SelectedDeptServe updateDept={updateDept}/>
+         <ToastContainer/>
+         <SelectedDeptServe updateDept={updateDept} />
          {
          loading && selectedDept != null ?
          <Loader /> 
@@ -40,7 +58,7 @@ export default function DispathApprovedStockToDepart() {
             <>
                <h4>Approved Department Requisitions</h4>
                <Accordion defaultActiveKey="0">
-                  {data.map ( (item,index) => <DispatchStockAccordionList invsettings={invsettings} data={item} key={index} index={index}/>)}
+                  {data.map ( (item,index) => <DispatchStockAccordionList removeItem={removeItem} passToast={passToast} invsettings={invsettings} data={item} key={index} index={index}/>)}
                </Accordion> 
             </>
          )
