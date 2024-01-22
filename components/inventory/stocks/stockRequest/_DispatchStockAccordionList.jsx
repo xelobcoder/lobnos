@@ -80,7 +80,7 @@ export default function DispatchStockAccordionList({ data, index,invsettings }) 
             }
            </tbody>
             </table> */}
-            <DebitableBrandBatch data={debitable}/>
+            <DebitableBrandBatch disabled={invsettings.stocksAutoDeduct} data={debitable}/>
       </Accordion.Body>
 </Accordion.Item>
    )

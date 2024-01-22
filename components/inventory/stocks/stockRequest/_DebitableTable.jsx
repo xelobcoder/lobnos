@@ -1,5 +1,6 @@
+import { PlayDisabledSharp } from '@mui/icons-material';
 import {Table,TableBody,TableContainer,TableHead,TableRow,Paper,TableCell} from '@mui/material';
-export default function DebitableBrandBatch({ data }) {
+export default function DebitableBrandBatch({ data,disabled}) {
    return (
       <>
  <TableContainer component={Paper}>
@@ -23,7 +24,7 @@ export default function DebitableBrandBatch({ data }) {
                 <TableCell>{row.availableQty}</TableCell>
                 <TableCell>{row.currentQty}</TableCell>
                 <TableCell>
-                   <input className='custom-input' value={row.served} />
+                   <input disabled={disabled} className='custom-input' value={row.served} />
                 </TableCell>
             </TableRow>
           ))}
@@ -32,4 +33,4 @@ export default function DebitableBrandBatch({ data }) {
     </TableContainer>
       </>
    )
-}
+} 
