@@ -127,10 +127,7 @@ class Inventory {
 
   async handleReceiveField(e, id, stocks) {
     const { value } = e.target;
-    // update the input field with the value
-    // filter the hxData using the id
     const filtered = stocks.filter((item) => item.id === id);
-    // quantity parsed to integer
     if (filtered.length > 0) {
       filtered[0].quantityReceived = value;
     }
@@ -138,7 +135,6 @@ class Inventory {
 
 
   async handleReceivedButton(e, id, departmentid, setStocks, stocks) {
-    // filter the srocks using the id
     const filtered = stocks.filter((item) => item.id === id);
     // quantity parsed to integer
     const requested = parseInt(filtered[0].quantity_requested);
@@ -151,7 +147,6 @@ class Inventory {
     }
 
     if (supplied === approved) {
-      //  send data to the server
       const transformData = {
         id,
         quantityReceived: supplied,
@@ -166,9 +161,10 @@ class Inventory {
       // send data to the server
       try {
         const data = await customPost('departments/requisitions', 'PUT', transformData)
-        if (data.status === 'success' && data.statusCode === 200) {
+        const { status, message } = data;
+        if (status === 'success') {
           alert(data.message);
-          //  udate the state
+          //  update the state
           const updatedstocks = stocks.filter((item) => item.id !== id);
           setStocks(updatedstocks);
         }
