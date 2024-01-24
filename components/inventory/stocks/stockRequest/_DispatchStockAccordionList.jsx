@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Accordion } from 'react-bootstrap';
 import DebitableBrandBatch from './_DebitableTable';
 import { customPost } from '../../../Auth/customFetch';
-export default function DispatchStockAccordionList({ data, index,invsettings,passToast,removeItem}) {
+export default function DispatchStockAccordionList({ data, departmentid,index,invsettings,passToast,removeItem}) {
    const [debitable, setdebitable] = useState([]);
 
    useEffect(() => {
@@ -36,7 +36,7 @@ export default function DispatchStockAccordionList({ data, index,invsettings,pas
 
    const stocksServed = async (t) => {
       if (Array.isArray(t) && t.length > 0) {
-         const resource = {data: t, qtyApproved: data?.quantity_approved,requisitionid: data?.id}
+         const resource = {data: t, qtyApproved: data?.quantity_approved,requisitionid: data?.id,departmentid}
          const push_data = await customPost('store/departments/requisitions/serve', 'POST',resource );
          const { status,message } = push_data;
          if (status === "success") {

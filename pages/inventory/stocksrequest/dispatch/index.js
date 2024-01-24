@@ -58,7 +58,7 @@ export default function DispathApprovedStockToDepart() {
             <>
                <h4>Approved Department Requisitions</h4>
                <Accordion defaultActiveKey="0">
-                  {data.map ( (item,index) => <DispatchStockAccordionList removeItem={removeItem} passToast={passToast} invsettings={invsettings} data={item} key={index} index={index}/>)}
+                  {data.map ( (item,index) => <DispatchStockAccordionList departmentid={selectedDept} removeItem={removeItem} passToast={passToast} invsettings={invsettings} data={item} key={index} index={index}/>)}
                </Accordion> 
             </>
          )

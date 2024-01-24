@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Modal } from 'react-bootstrap'
 import { customData, customPost, handleResponse } from '../Auth/customFetch';
 
@@ -9,15 +9,14 @@ export default function ConsumeStocKModal({ data, setShow, show, update }) {
   const [filteredBatch, setFilteredBatch] = useState({ data: [], batch: '', qty: '', selected: {} })
   const [qtyprovided, setQtyProvided] = useState(0);
 
-  const getStockLot = async (stockid) => { await customData(`stock/department/consume/lot?stockid=${stockid}&&departmentid=${departmentid}`, setStockLot) };
+  const getStockLot = useCallback(async (stockid) => { await customData(`stock/department/consume/lot?stockid=${stockid}&&departmentid=${departmentid}`, setStockLot) },[departmentid])
 
   useEffect(() => {
     if (stockid && departmentid) { getStockLot(stockid); }
-  }, [stockid, departmentid]);
+  }, [stockid, departmentid,getStockLot]);
 
 
   // this function will filter the lots array for lot brands and qty availble
-
   const getLotsBrandAndQty = async function (name) {
     const matched = stockLot.filter((item, index) => { return item.brand === name });
     setFilteredBatch({ ...filteredBatch, data: matched });
@@ -45,7 +44,6 @@ export default function ConsumeStocKModal({ data, setShow, show, update }) {
     ev.preventDefault();
     const { batchnumber, brand } = filteredBatch.selected;
     const data = { stockname, stockid, departmentid, consumeqty: qtyprovided, batchnumber, brand };
-
     const consumeResponse = await customPost(`departments/stock/consume`, 'POST', data);
     handleResponse(consumeResponse);
   }

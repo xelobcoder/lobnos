@@ -21,7 +21,8 @@ export default function StockBrandList({ id,stockname}) {
       if (id) {
          getBrands();
       };
-   }, [getBrands,id])
+   }, [getBrands, id])
+   
    
    const updateBrand = async (ev, brand, httpMethod) => {
       ev.preventDefault();
@@ -46,7 +47,8 @@ export default function StockBrandList({ id,stockname}) {
    const onEdit = (brand) => { 
       if (!brand) return;
       setEditing({ edit: true, data: brand });
-    }
+   }
+   
    const onDelete = async (data) => {
       const { brandid, stockid } = data;
       if (!brandid || !stockid) return;

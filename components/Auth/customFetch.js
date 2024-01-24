@@ -300,11 +300,15 @@ export const handleTestListChange = (ev, index, item) => {
 
 
 export const getDepartment = async (setDepartments) => {
-   const response = await customFetch('departments');
-   const { status, data, statusCode } = response;
+   try {
+      const response = await customFetch('departments');
+      const { status, data, statusCode } = response;
    if (status == 'success' && statusCode === 200) {
       setDepartments(data)
    } else {
+      setDepartments([]);
+   }
+   } catch (err) {
       setDepartments([]);
    }
 }
@@ -351,17 +355,21 @@ export const defaultApplicationSettings = {
 
 
 export const deleteOrganization = async function (id, getdatafxn) {
-   if (!id) {
-      alert(`id required`);
-   }
-   let confirmation = window.confirm('Do you want to delete organization? This will affect your finances records');
-   if (confirmation) {
-      const deleteResponse = await customPost(`organization?id=${id}`, 'DELETE', {});
-      const { statusCode } = deleteResponse;
-      if (statusCode == 201) {
-         getdatafxn();
+   try {
+      if (!id) {
+         alert(`id required`);
       }
-   }
+      let confirmation = window.confirm('Do you want to delete organization? This will affect your finances records');
+      if (confirmation) {
+         const deleteResponse = await customPost(`organization?id=${id}`, 'DELETE', {});
+         const { statusCode } = deleteResponse;
+         if (statusCode == 201) {
+            getdatafxn();
+         }
+      }
+   } catch (err) {
+      console.log(err);
+  }
 }
 
 
@@ -370,7 +378,7 @@ export const getDataAndUpdateState = async function (setfxn, endpoint, returner)
       const getResponse = await customFetch(endpoint);
       const { statusCode, status, result } = getResponse;
       if (statusCode == 200) {
-         if (returner == true || returner != undefined) {
+         if (returner) {
             return result
          } else {
             setfxn(result)
@@ -629,13 +637,17 @@ export const filterTrendData = async (parameters, data) => {
     * @returns {void}
     */
 export const handleDecision = async function (client, decision, setClients, clients, employeeid) {
-   const data = decision === 'approve' ? { ...client, approvedby: employeeid, approvalstatus: 1 } : { ...client, approvedby: employeeid };
-   const pushData = await customPost('result/approve', 'POST', data);
-   if (pushData?.status == 'success' && decision == 'approve') {
-      //  remove item ffrom clients
-      const getClient = clients.filter((item, index) => { return !(item.billingid == client?.billingid && client?.testid == item?.testid) })
-      setClients(getClient);
-   }
+   try {
+      const data = decision === 'approve' ? { ...client, approvedby: employeeid, approvalstatus: 1 } : { ...client, approvedby: employeeid };
+      const pushData = await customPost('result/approve', 'POST', data);
+      if (pushData?.status == 'success' && decision == 'approve') {
+         //  remove item ffrom clients
+         const getClient = clients.filter((item, index) => { return !(item.billingid == client?.billingid && client?.testid == item?.testid) })
+         setClients(getClient);
+      }
+   } catch (err) {
+      return {};
+  }
 };
 
   /**

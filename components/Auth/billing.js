@@ -24,7 +24,7 @@ export class BillingClass {
           organizations: organization?.result || [],
           clinicians: clinician?.result || [],
           paymentmode: paymentModes?.data || [],
-taxes: taxes?.result || [],
+          taxes: taxes?.result || [],
         }
       
       })
