@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import SettingsLayout from '../settingsComponents/SettingsLayout';
+import Loader from '../accessories/Loader';
 import DepartmentLevelSidebar from './DepartmentLevelSidebar';
-import ISLOADING from '../isLoading';
 import { useRouter } from 'next/router';
 import { customData } from '../Auth/customFetch';
 import TableDisplay from '../accessories/TableDisplay';
@@ -13,11 +13,13 @@ export default function ReceivedPending({ type = 'pending', caption }) {
 
   useEffect(() => {
     if (departmentId) {
+      setLoading(true);
       try {
         customData(`departments/requisitions?id=${departmentId}&&type=${type}`, setStocks);
         setLoading(false);
       } catch (err) {
-        setStocks([])
+        setStocks([]);
+        setLoading(false);
       }
     }
   }, [departmentId, type]);
@@ -64,12 +66,17 @@ export default function ReceivedPending({ type = 'pending', caption }) {
       ),
     },
   ];
+
+
+  const renderer = () => {
+    if (loading) return <Loader />
+    else   <TableDisplay column={columns} data={stocks} filtering={true} />
+  }
   return (
     <>
       <SettingsLayout sidebar={<DepartmentLevelSidebar />}>
-        {loading && <ISLOADING />}
-        <h3>{caption}</h3>
-        <TableDisplay column={columns} data={stocks} filtering={true} />
+        <h4>{caption}</h4>
+        {renderer()}
       </SettingsLayout>
     </>
   )

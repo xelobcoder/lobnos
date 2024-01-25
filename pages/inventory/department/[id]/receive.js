@@ -11,6 +11,7 @@ import ISLOADING from '../../../../components/isLoading'
 import TableDisplay from '../../../../components/accessories/TableDisplay'
 import InventoryClass from '../../../../components/Auth/inventory'
 import { ProgressBar } from 'react-bootstrap'
+import Loader from '../../../../components/accessories/Loader'
 export default function ReceiveStocksDepartmentLevel() {
   const departmentId = useRouter().query.id;
   const [stocks, setStocks] = useState([]);
@@ -108,18 +109,30 @@ export default function ReceiveStocksDepartmentLevel() {
     },
   ];
 
-  const getReceivingStocks = useCallback( async () =>  {
-    try {customData(`departments/requisitions?id=${departmentId}&&type=receiving`, setStocks);setLoading(false);} 
-    catch (err) {setStocks([]) }
+  const getReceivingStocks = useCallback(async () => {
+    try {
+      setLoading(true);
+      customData(`departments/requisitions?id=${departmentId}&&type=receiving`, setStocks); setLoading(false);
+    }
+    catch (err) {
+      setLoading(false);
+      setStocks([]);
+    }
   },[departmentId])
 
-  useEffect(() => {if (departmentId) {getReceivingStocks();}}, [departmentId,getReceivingStocks]);
+  useEffect(() => { if (departmentId) { getReceivingStocks(); } }, [departmentId, getReceivingStocks]);
+
+
+  const renderer = () => {
+    if (loading) return <Loader />
+    else <TableDisplay data={stocks} column={columns} />
+  }
 
 
   return (
     <SettingsLayout sidebar={<DepartmentLevelSidebar />}>
-      {loading && <ISLOADING />}
-      {!loading && <TableDisplay data={stocks} column={columns} />}
+      <h4>Stocks awaiting department validation</h4>
+      {renderer()}
     </SettingsLayout>
   )
 }

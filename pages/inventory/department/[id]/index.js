@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import SettingsLayout from '../../../../components/settingsComponents/SettingsLayout';
 import DepartmentLevelSidebar from '../../../../components/inventory/DepartmentLevelSidebar';
 import { customData } from '../../../../components/Auth/customFetch';
 import DepartmentStockLevel from '../../../../components/inventory/departmentStockLevel';
-
+import AuthContext from '../../../../components/Auth/useAuthentification'
 export default function DepartmentalStockLevelCustom() {
   const departmentId = useRouter().query.id;
+  const { auth } = useContext(AuthContext);
   const [stocks, setStocks] = useState([])
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function DepartmentalStockLevelCustom() {
 
   return (
     <SettingsLayout sidebar={<DepartmentLevelSidebar />}>
-      <DepartmentStockLevel datasource={stocks || []} deleteStock={deleteStock} />
+      <DepartmentStockLevel auth={auth} datasource={stocks || []} deleteStock={deleteStock} />
     </SettingsLayout>
   )
 }

@@ -4,9 +4,10 @@ import TableDisplay from '../accessories/TableDisplay';
 import SECOND_NO_DATA from '../accessories/secondNodata';
 import ConsumeStocKModal from './ConsumeStocKModal';
 import { useRouter } from 'next/router';
-export default function DepartmentStockLevel({ datasource, deleteStock }) {
+export default function DepartmentStockLevel({ datasource, deleteStock,auth }) {
   const departmentId = useRouter().query.id;
   const [consume, setConsume] = useState(false);
+  const employeeid = auth?.employeeid;
   const [consumeStock, setConsumeStock] = useState({ departmentid: departmentId, stockid: '', stockname: '', quantityAvailble: '', quantity: '' })
 
   const pushConsume = async (ev, item) => {
@@ -29,10 +30,14 @@ export default function DepartmentStockLevel({ datasource, deleteStock }) {
             <button onClick={(ev) => { pushConsume(ev, row.original) }} className='btn btn-sm btn-primary'>
               consume
             </button >
-            <button className='btn btn-sm btn-danger mx-1' title='delete stock'
+             {
+              (auth?.role == 'admin' || auth?.role == 'manager')
+              &&
+              (<button className='btn btn-sm btn-danger mx-1' title='delete stock'
               onClick={(e) => { deleteStock(e, item.stockid); }}>
               <DeleteIcon />
-            </button >
+            </button >)
+            }
           </div>
         )
       }
@@ -45,7 +50,7 @@ export default function DepartmentStockLevel({ datasource, deleteStock }) {
       {datasource.length === 0 ?
         <SECOND_NO_DATA /> :
         (<TableDisplay data={datasource} column={columns} filtering={true} />)}
-      <ConsumeStocKModal show={consume}  data={consumeStock} setShow={setConsume} />
+      <ConsumeStocKModal show={consume} employeeid={employeeid} data={consumeStock} setShow={setConsume} />
     </>
   )
 }
