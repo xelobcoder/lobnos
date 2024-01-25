@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import  { useMemo } from 'react'
 import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination } from 'react-table'
 import GlobalFilter from './GlobalFilter'
 import SECOND_NO_DATA from './secondNodata'

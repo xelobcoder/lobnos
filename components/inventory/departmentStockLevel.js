@@ -12,8 +12,8 @@ export default function DepartmentStockLevel({ datasource, deleteStock,auth }) {
 
   const pushConsume = async (ev, item) => {
     const { stockid, name, quantityAvailable } = item;
-    setConsumeStock({ stockid, departmentid: departmentId, stockname: name, quantityAvailable:quantityAvailable })
-    setConsume(true)
+    setConsumeStock({ stockid, departmentid: departmentId, stockname: name, quantityAvailable: quantityAvailable });
+    setConsume(true);
   }
 
   const columns = [
@@ -30,14 +30,14 @@ export default function DepartmentStockLevel({ datasource, deleteStock,auth }) {
             <button onClick={(ev) => { pushConsume(ev, row.original) }} className='btn btn-sm btn-primary'>
               consume
             </button >
-             {
+             {/* {
               (auth?.role == 'admin' || auth?.role == 'manager')
               &&
               (<button className='btn btn-sm btn-danger mx-1' title='delete stock'
               onClick={(e) => { deleteStock(e, item.stockid); }}>
               <DeleteIcon />
             </button >)
-            }
+            } */}
           </div>
         )
       }

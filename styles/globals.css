@@ -13,8 +13,9 @@
 }
 
 body {
-  background-color: var(--bg-color) !important;
-  font-family: var(--zf-font-family-base);
+   /* background-color: var(--bg-color) !important; */
+  font-family: var(--zf-font-family-base); 
+  font-family: 'Inter', sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #6d737d;

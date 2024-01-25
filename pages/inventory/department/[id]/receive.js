@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import  { useState, useEffect, useCallback } from 'react'
 import SettingsLayout from '../../../../components/settingsComponents/SettingsLayout'
 import DepartmentLevelSidebar from '../../../../components/inventory/DepartmentLevelSidebar'
 import { useRouter } from 'next/router'
 import { Button } from '@mui/material'
-import BugReportIcon from '@mui/icons-material/BugReport';
 import CallReceivedIcon from '@mui/icons-material/CallReceived';
 import { customData } from '../../../../components/Auth/customFetch'
 import { DeleteForever } from '@mui/icons-material';
-import ISLOADING from '../../../../components/isLoading'
 import TableDisplay from '../../../../components/accessories/TableDisplay'
 import InventoryClass from '../../../../components/Auth/inventory'
 import { ProgressBar } from 'react-bootstrap'
@@ -96,9 +94,6 @@ export default function ReceiveStocksDepartmentLevel() {
                     size='small' startIcon={<CallReceivedIcon />}>
                     Received
                   </Button>
-                  <Button title='click on report if you are unhappy with the stock  supplied or the stock supplied is less or more than the approved quantity' variant='contained' color='error' size='small' startIcon={<BugReportIcon />}>
-                    Report
-                  </Button>
                 </div>
               )
 
@@ -125,7 +120,7 @@ export default function ReceiveStocksDepartmentLevel() {
 
   const renderer = () => {
     if (loading) return <Loader />
-    else <TableDisplay data={stocks} column={columns} />
+    else return <TableDisplay data={stocks} column={columns} />
   }
 
 
