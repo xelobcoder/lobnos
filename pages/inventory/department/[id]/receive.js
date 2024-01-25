@@ -108,12 +108,12 @@ export default function ReceiveStocksDepartmentLevel() {
     },
   ];
 
-  const getApprovedStock = useCallback( async () =>  {
-    try {customData(`departments/requisitions?id=${departmentId}&&type=approved`, setStocks);setLoading(false);} 
+  const getReceivingStocks = useCallback( async () =>  {
+    try {customData(`departments/requisitions?id=${departmentId}&&type=receiving`, setStocks);setLoading(false);} 
     catch (err) {setStocks([]) }
   },[departmentId])
 
-  useEffect(() => {if (departmentId) {getApprovedStock();}}, [departmentId,getApprovedStock]);
+  useEffect(() => {if (departmentId) {getReceivingStocks();}}, [departmentId,getReceivingStocks]);
 
 
   return (

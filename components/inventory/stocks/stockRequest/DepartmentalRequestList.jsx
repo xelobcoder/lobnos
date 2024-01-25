@@ -34,7 +34,7 @@ export default function DepartmentalStockRequestServing({departmentid}) {
    const handleSupply = async (ev, item) => {
       const { quantity ,quantity_requested,quantity_approved,id} = item;
       const index = requisitions.findIndex((a, b) => a.id === parseInt(id));
-      console.log(quantity, index, quantity_requested, quantity_approved);
+
       if (quantity_approved > quantity || quantity_approved < 0) {
          requisitions[index]['quantity_approved'] = quantity_requested;
          toast.warning('quantity should not be less than 0 and not greater than quantity qty available in store', { autoClose: 3000 });
