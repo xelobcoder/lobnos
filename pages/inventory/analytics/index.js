@@ -3,6 +3,7 @@ import InventoryLayout from "../../../components/inventory/InventoryLayout";
 import { getStocks } from '../../../components/inventory/Util';
 import CustomAutocomplete from "../../../components/accessories/CustomAutoComplete";
 import { customPost } from "../../../components/Auth/customFetch";
+import SummaryInventoryAnalytics from "../../../components/inventory/stocks/analytics/summaryInventory";
 
 export default function PurchaseOrderAnalytics() {
   const [stocks, setStocks] = useState([]);
@@ -30,6 +31,7 @@ export default function PurchaseOrderAnalytics() {
 
   return (
     <InventoryLayout>
+      <SummaryInventoryAnalytics />
       <section className="grid-50">
       <div className="d-flex justify-content-between" id="csautowrapper" >
               <div className="d-flex" style={{zIndex:1000}}>

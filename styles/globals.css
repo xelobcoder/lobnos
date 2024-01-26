@@ -6,21 +6,27 @@
   --prime-attention: #ff6a00;
   --custom-orange: #feb602;
   --custom-dark_blue: #142a5e;
+  --native-font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
   --cds-color-blue-600: #0056d2;
-  /* --font-family-w: Lato, "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Verdana, Tahoma, sans-serif; */
   --zf-font-family-base: walsheim, Helvetica, Arial, Lucida Grande, sans-serif;
   --wp--preset--gradient--midnight: linear-gradient(135deg, rgb(2, 3, 129) 0%, rgb(40, 116, 252) 100%);
 }
 
-body {
-   /* background-color: var(--bg-color) !important; */
-  font-family: var(--zf-font-family-base); 
-  font-family: 'Inter', sans-serif !important;
-  -webkit-font-smoothing: antialiased;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--native-font-family);
+  -webkit-font-smoothing:
+   antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-size: 14px  !important;
+  font-weight: 400;
+  background-color: var(--bg-color) !important;
   color: #6d737d;
-  font-size: 1.4rem;
-  font-weight: 500;
   line-height: 2rem;
   overflow-x: hidden;
 }
@@ -212,15 +218,7 @@ border-none {
   display: block;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  -webkit-font-smoothing: antialiased;
-  text-rendering: geometricPrecision;
-  font-family: var(--zf-font-family-base);
-  font-weight: 400;
-}
+
 
 .red {
   background-color: var(--red-500) !important;
@@ -1411,11 +1409,12 @@ option:hover {
   background-color: white;
 }
 
+
+
 .table > thead > tr {
   border-bottom: 1px solid #e9ecef;
   vertical-align: inherit;
   border-color: inherit;
-  background-color: lightgray;
   color: black;
 }
 .modal-color {
@@ -1702,10 +1701,10 @@ option:hover {
   border-top: 5px solid var(--prime-attention);
   border-right: 5px solid var(--prime-attention);
   border-bottom: 5px solid var(--prime-attention);
-  width: 100px;
-  height: 100px;
   animation: spin 500ms linear infinite;
   margin: 0 auto;
+  height: 100px;
+  width: 100px;
 }
 
 @keyframes spin {

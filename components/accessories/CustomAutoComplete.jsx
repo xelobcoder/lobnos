@@ -128,43 +128,38 @@ export default function CustomAutocomplete(props) {
 
    return (
      <>
-       <div {...props}  ref={wrapperRef}>
-            <input
-               onClick={(ev) => setDisplay(true)}
-               className="custom-input"
-               onKeyDown={handleKeysPress}
-               placeholder={props.label}
-               type="text" value={search}
-               onChange={(event) => { customfilter(event, event.target.value) }} />
-            <span>
-               
-            </span>
-             {display  && 
-               (
-               <div className="card mt-1" style={{ borderRadius:'4px'}}>
-                  {
-                     workingdata.length === 0
-                        ?
-                        <div className="card-body m-0 pointer p-2 br-5">
-                           No data matched
-                        </div>
-                        :
-                        (
-                           workingdata.map((option, index) => (
-                              <div tabIndex={0}
-                                 style={{maxHeight:'20vh !important',overflowY:'auto',zIndex:1000}}
-                                 onClick={(ev) => {handleItemClick(index)}}
-                                 onKeyDown={(ev) => { handleEnterKey(ev,index); }}
-                                 className={`card-body card-autocomplete pointer border-bottom p-2 px-3 ${active === index ? 'card-body-active' : 'none'}`}
-                                 key={index}>
-                                 {option[props.target]}
-                              </div>
-                           ))
-                        )
-                  }
-              </div>
-            )   
-            }
+       <div {...props} ref={wrapperRef}>
+         <input
+           onClick={(ev) => setDisplay(true)}
+           className="custom-input"
+           onKeyDown={handleKeysPress}
+           placeholder={props.label}
+           type="text"
+           value={search}
+           onChange={(event) => {
+             customfilter(event, event.target.value)
+           }}
+         />
+         <span></span>
+         {display && (
+           <div className="card mt-1" style={{ borderRadius: "4px" }}>
+             {workingdata.map((option, index) => (
+               <div
+                 tabIndex={0}
+                 style={{ maxHeight: "20vh !important", overflowY: "auto", zIndex: 1000 }}
+                 onClick={(ev) => {
+                   handleItemClick(index)
+                 }}
+                 onKeyDown={(ev) => {
+                   handleEnterKey(ev, index)
+                 }}
+                 className={`card-body card-autocomplete pointer border-bottom p-2 px-3 ${active === index ? "card-body-active" : "none"}`}
+                 key={index}>
+                 {option[props.target]}
+               </div>
+             ))}
+           </div>
+         )}
        </div>
      </>
    )
