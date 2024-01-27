@@ -84,6 +84,7 @@ export default function SummaryInventoryAnalytics({upCall}) {
         activestate={active == 1}
         onClick={(ev) => {
           setActive(1)
+          upCall(1);
         }}
         header={<h6 className="fw-bold">Urgent Actions</h6>}
         body={urgencActions(summary)}
@@ -91,6 +92,7 @@ export default function SummaryInventoryAnalytics({upCall}) {
       <CardsRack
         onClick={(ev) => {
           setActive(2)
+          upCall(2);
         }}
         activestate={active == 2}
         header={<h6 className="fw-bold">Orders</h6>}
@@ -99,6 +101,7 @@ export default function SummaryInventoryAnalytics({upCall}) {
       <CardsRack
         onClick={(ev) => {
           setActive(3)
+          upCall(3);
         }}
         activestate={active === 3}
         header={<h6>Wastage</h6>}
