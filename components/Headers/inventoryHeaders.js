@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import GridViewIcon from '@mui/icons-material/GridView';
 import DepartureBoardIcon from '@mui/icons-material/DepartureBoard';
-import { Analytics, ArrowDropDown, ExpandCircleDownSharp, Inventory2, Settings, UnarchiveRounded, Warehouse, WaterDamage } from '@mui/icons-material';
+import { Analytics, ArrowDropDown, ExpandCircleDownSharp, Inventory2, PushPinRounded, Settings, UnarchiveRounded, Warehouse, WaterDamage } from '@mui/icons-material';
 import Link from 'next/link';
 
 export default function InventoryHeaders({auth}) {
@@ -106,6 +106,16 @@ export default function InventoryHeaders({auth}) {
             <div className='text'>
               <Link href={'/inventory/analytics/wastage'}>
                 Wastage Analytics
+              </Link>
+            </div>
+          </li>
+          <li>
+            <div className='icons'>
+            <PushPinRounded/>
+              </div>
+            <div className='text'>
+              <Link href={'/inventory/analytics/purchasesflow'}>
+               PO to GRN
               </Link>
             </div>
           </li>

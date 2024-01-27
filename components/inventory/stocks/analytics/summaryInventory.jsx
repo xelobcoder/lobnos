@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { customFetch } from "../../../Auth/customFetch"
 import CardsRack from "../../../accessories/CardRacks"
 import Loader from "../../../accessories/Loader"
-export default function SummaryInventoryAnalytics() {
+export default function SummaryInventoryAnalytics({upCall}) {
   const [isLoading, setisLoading] = useState(true)
   const [summary, setSummary] = useState({})
   const [active, setActive] = useState(null)
