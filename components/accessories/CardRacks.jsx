@@ -12,7 +12,7 @@ export default function CardRacks({ header, activestate, body, footer, icon = nu
       <div className={`card-header fw-bold text-capitalize ${active && "rack-header-active"}`} id={`rack-header`}>
         {icon} {header}
       </div>
-      <div className="card-body br-0 p-0" id="rack-body">
+      <div className="card-body ower-borders-none br-0 p-0" id="rack-body">
         {body}
       </div>
       {footer && <div className="card-footer">{footer}</div>}

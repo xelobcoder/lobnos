@@ -1,5 +1,5 @@
-import InventoryLayout from "../../../components/inventory/InventoryLayout";
-import CardRacks from '../../../components/accessories/CardRacks';
+import InventoryLayout from "../../../../components/inventory/InventoryLayout";
+import CardRacks from '../../../../components/accessories/CardRacks';
 export default function InventoryWastages() {
    return (
       <InventoryLayout>

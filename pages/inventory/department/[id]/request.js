@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import SettingsLayout from '../../../../components/settingsComponents/SettingsLayout';
 import DepartmentLevelSidebar from '../../../../components/inventory/DepartmentLevelSidebar';
 import { customFetch } from '../../../../components/Auth/customFetch';
-import { Button } from '@mui/material';
 import { useRouter } from 'next/router';
 import Inventory from '../../../../components/Auth/inventory';
 
@@ -59,7 +58,6 @@ export default function DepartmentRequestCustom() {
       <table className='table'>
         <thead>
           <tr>
-            <th>stockid</th>
             <th>name</th>
             <th>category</th>
             <th>consumption unit</th>
@@ -71,22 +69,24 @@ export default function DepartmentRequestCustom() {
         <tbody>
           {stocks.map((stock) => (
             <tr key={stock.stockid}>
-              <td>{stock.stockid}</td>
-              <td>{stock.name}</td>
-              <td>{stock.category}</td>
+              <td >{stock.name}</td>
+              <td>{stock.categoryname}</td>
               <td>{stock.consumptionunit}</td>
-              <td>{stock.quantity}</td>
+              <td className={stock.quantity == 0 && 'text-danger'}>{stock.quantity}</td>
               <td>
                 <input
                   type="number"
+                  className='custom-input'
                   value={stock.quantityrequired}
                   onChange={(e) => handleRequiredQty(e, stock.stockid)}
                 />
               </td>
               <td>
-                <Button onClick={(e) => { inventory.departmentRequisition(e, stock.stockid, departmentId, setStocks, stocks) }} size="small" variant="contained">
-                  Order
-                </Button>
+                <button
+                  className='btn btn-primary btn-sm'
+                  onClick={(e) => { inventory.departmentRequisition(e, stock.stockid, departmentId, setStocks, stocks) }}>
+                  Push Order
+                </button >
               </td>
             </tr>
           ))}

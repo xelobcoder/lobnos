@@ -858,6 +858,7 @@ option:hover {
   width: 100%;
   border-right: 1px solid lightgray;
   height: 100vh;
+  overflow: auto;
   display: block;
   background-color: #fff;
 }

@@ -1,14 +1,14 @@
-import React, {  useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import GridViewIcon from '@mui/icons-material/GridView';
 import DepartureBoardIcon from '@mui/icons-material/DepartureBoard';
-import { AddShoppingCart, Category, ExpandCircleDownSharp, Inventory2, Settings, UnarchiveRounded, Warehouse } from '@mui/icons-material';
+import { Analytics, ArrowDropDown, ExpandCircleDownSharp, Inventory2, Settings, UnarchiveRounded, Warehouse, WaterDamage } from '@mui/icons-material';
 import Link from 'next/link';
 
 export default function InventoryHeaders({auth}) {
   const { username, role, email } = auth;
 
   return (
-    <div className='settings-sidebar'>
+    <div className='settings-sidebar pointer'>
        <div className='head'>
         <Link  href={'/'} >
             PLS
@@ -29,16 +29,6 @@ export default function InventoryHeaders({auth}) {
               </Link>
             </div>
           </li>
-          {/* <li>
-            <div className='icons'>
-              <AddShoppingCart fontSize='small' sx={{ marginRight: '10px' }} />
-            </div>
-            <div className='text'>
-              <Link href='/inventory/addstock'>
-                new stock
-              </Link>
-            </div>
-          </li> */}
           <li>
             <div className='icons'>
               <ExpandCircleDownSharp fontSize='small' sx={{ marginRight: '10px' }} />
@@ -101,11 +91,21 @@ export default function InventoryHeaders({auth}) {
           </li>
           <li>
             <div className='icons'>
-             <Warehouse/>
+            <Analytics/>
             </div>
             <div className='text'>
-              <Link href='/inventory/analytics'>
-                analytics
+              <Link href={'/inventory/analytics'}>
+               Inventory analytics
+              </Link>
+            </div>
+          </li>
+          <li>
+            <div className='icons'>
+            <WaterDamage/>
+            </div>
+            <div className='text'>
+              <Link href={'/inventory/analytics/wastage'}>
+                Wastage Analytics
               </Link>
             </div>
           </li>
