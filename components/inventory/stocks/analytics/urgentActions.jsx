@@ -28,7 +28,6 @@ export default function InventoryUrgentActionsView() {
 
   const expired = [
     { Header: "stock", accessor: "name" },
-    { Header: "material code", accessor: "materialcode" },
     {
       Header: "received date",
       accessor: "receiveddate",
@@ -43,12 +42,16 @@ export default function InventoryUrgentActionsView() {
         return <div>{new Date(row.original.expirydate).toLocaleDateString()}</div>
       },
     },
-    { Header: "alertlevel", accessor: "alertlevel" },
+    { Header: "batchnumber", accessor: "batchnumber" },
     {
       Header: "quantity received",
       accessor: "quantityReceived",
+    },
+    {
+      Header: "qty Expired",
+      accessor: "expiredqty",
       Cell: ({ row }) => {
-        return <div className="bg-warning p-1">{row.original.quantity}</div>
+        return <div className="bg-danger text-white p-1">{row.original.expiredqty}</div>
       },
     },
     {
@@ -62,25 +65,30 @@ export default function InventoryUrgentActionsView() {
 
   const nearExpiry = [
     { Header: "stock", accessor: "name" },
-    { Header: "material code", accessor: "materialcode" },
-    { Header: "consumptionunit", accessor: "consumptionunit" },
-    { Header: "alertlevel", accessor: "alertlevel" },
     {
-      Header: "quantity",
-      accessor: "quantity",
+      Header: "received date",
+      accessor: "receiveddate",
       Cell: ({ row }) => {
-        return <div className="bg-warning p-1">{row.original.quantity}</div>
+        return <div>{new Date(row.original.receiveddate).toLocaleDateString()}</div>
       },
     },
     {
-      Header: "action",
-      accessor: "",
-      Cell: () => {
-        return <button className="btn btn-primary btn-sm">order</button>
+      Header: "expiry date",
+      accessor: "expiry date",
+      Cell: ({ row }) => {
+        return <div>{new Date(row.original.expirydate).toLocaleDateString()}</div>
       },
     },
-  ]
-
+    {
+      Header: "quantity received",
+      accessor: "quantityReceived",
+    },
+    {
+      Header: "qty in stock",
+      accessor: "qty_in_stock",
+    },
+   ]
+   
   return (
     <>
       <Tabs id="controlled-tab-example" activeKey={key} onSelect={(k) => setKey(k)} className="mb-3">

@@ -54,19 +54,39 @@ export default function DepartmentalStockRequestServing({departmentid}) {
  
 
    const columns = [
-      { Header: "Name", accessor: "name"},
-      { Header: "Store qty", accessor: "quantity"},
-      { Header: "Quantity Requested", accessor: "quantity_requested" },
-      {Header: 'qty', accessor: 'quantity_approved',
-         Cell: ({row}) => { return <input className="custom-input" value={row.original.quantity_approved}  type="number" onChange={(ev) => handleQuantity(ev,row.original)} /> }},
-      {
-         Header: 'Action', accessor: '',
-         Cell: ({row}) => {
-            return <button
-               onClick={(ev) =>  {handleSupply(ev,row.original)}}
-               className="btn btn-primary btn-sm">supply</button>
-         }
-      },
+     { Header: "Name", accessor: "name" },
+     { Header: "Store qty", accessor: "quantity" },
+     { Header: "Quantity Requested", accessor: "quantity_requested" },
+     {
+       Header: "qty",
+       accessor: "quantity_approved",
+       Cell: ({ row }) => {
+         return (
+           <input
+             disabled={row.original.quantity == 0}
+             className="custom-input"
+             value={row.original.quantity_approved}
+             type="number"
+             onChange={(ev) => handleQuantity(ev, row.original)}
+           />
+         )
+       },
+     },
+     {
+       Header: "Action",
+       accessor: "",
+       Cell: ({ row }) => {
+         return (
+           <button
+             onClick={(ev) => {
+               handleSupply(ev, row.original)
+             }}
+             className="btn btn-primary btn-sm">
+             supply
+           </button>
+         )
+       },
+     },
    ]
 
    return (
