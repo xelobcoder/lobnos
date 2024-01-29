@@ -17,8 +17,7 @@
   padding: 0;
   box-sizing: border-box;
   font-family: var(--native-font-family);
-  -webkit-font-smoothing:
-   antialiased;
+  -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 

@@ -14,6 +14,7 @@ export default function ReceiveStocksDepartmentLevel() {
   const departmentId = useRouter().query.id;
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [btndisabled, setBtnDisabled] = useState(null);
   const inventory = new InventoryClass();
 
   const columns = [
@@ -88,9 +89,10 @@ export default function ReceiveStocksDepartmentLevel() {
                   Delete
                 </Button>
               ) : (
-                <div>
-                  <Button variant='contained' color='success'
-                    onClick={(e) => inventory.handleReceivedButton(e, row.original.id, departmentId, setStocks, stocks)}
+                  <div>
+                    <Button variant='contained' color='success'
+                      disabled={btndisabled === row.original.id}
+                      onClick={(e) => inventory.handleReceivedButton(e, row.original.id, departmentId, setStocks, stocks, setBtnDisabled)}
                     size='small' startIcon={<CallReceivedIcon />}>
                     Received
                   </Button>

@@ -7,6 +7,7 @@ import Inventory from '../../../../components/Auth/inventory';
 
 export default function DepartmentRequestCustom() {
   const inventory = new Inventory();
+  const [btndisabled, setBtnDisabled] = useState(0);
   const [stocks, setStocks] = useState([]);
   const [temporary, setTemp] = useState([]);
   const [filter, setFilter] = useState('');
@@ -76,6 +77,7 @@ export default function DepartmentRequestCustom() {
               <td>
                 <input
                   type="number"
+                  disabled={stock.quantity <= 0}
                   className='custom-input'
                   value={stock.quantityrequired}
                   onChange={(e) => handleRequiredQty(e, stock.stockid)}
@@ -83,8 +85,9 @@ export default function DepartmentRequestCustom() {
               </td>
               <td>
                 <button
+                  disabled={btndisabled === stock.stockid}
                   className='btn btn-primary btn-sm'
-                  onClick={(e) => { inventory.departmentRequisition(e, stock.stockid, departmentId, setStocks, stocks) }}>
+                  onClick={(e) => { inventory.departmentRequisition(e, stock.stockid, departmentId, setStocks, stocks,setBtnDisabled) }}>
                   Push Order
                 </button >
               </td>

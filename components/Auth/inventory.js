@@ -87,7 +87,7 @@ class Inventory {
     }
   }
 
-  departmentRequisition = async (e, id, departmentId, setStocks, stocks) => {
+  departmentRequisition = async (e, id, departmentId, setStocks, stocks,setBtnDisabled) => {
     const filteredStock = stocks.find((stock) => stock.stockid === id);
 
     const transformedData = {
@@ -110,6 +110,7 @@ class Inventory {
     }
 
     try {
+      setBtnDisabled(id);
       const pushResponse = await customPost(`${REQUISITIONS_URL}`, "POST", transformedData);
       const { status, statusCode, message } = pushResponse;
       if (status === "success" && statusCode === 200 && message === "Department requisition added successfully"
@@ -134,7 +135,7 @@ class Inventory {
   }
 
 
-  async handleReceivedButton(e, id, departmentid, setStocks, stocks) {
+  async handleReceivedButton(e, id, departmentid, setStocks, stocks, setBtnDisabled) {
     const filtered = stocks.filter((item) => item.id === id);
     // quantity parsed to integer
     const requested = parseInt(filtered[0].quantity_requested);
@@ -157,9 +158,10 @@ class Inventory {
         consumptionunit: filtered[0].comsumptionunit,
         employeeid: 3
       }
-
+      setBtnDisabled(id);
       // send data to the server
       try {
+        setBtnDisabled(id);
         const data = await customPost('departments/requisitions', 'PUT', transformData)
         const { status, message } = data;
         if (status === 'success') {
@@ -171,6 +173,7 @@ class Inventory {
 
         if (data.status === 'error') {
           alert(data.message);
+          setBtnDisabled(null);
         }
       } catch (error) {
         console.error(error);

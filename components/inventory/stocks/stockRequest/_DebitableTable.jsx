@@ -1,41 +1,91 @@
 import { PlayDisabledSharp } from '@mui/icons-material';
 import {Table,TableBody,TableContainer,TableHead,TableRow,Paper,TableCell} from '@mui/material';
-export default function DebitableBrandBatch({ data, disabled, stocksServed }) {
-   return (
-      <>
+import { useEffect, useState } from "react"
+import { customFetch } from "../../../Auth/customFetch"
+import Loader from "../../../accessories/Loader"
+export default function DebitableBrandBatch({ data, invsettings, disabled, getDebitable, stocksServed, departmentid, stockid }) {
+  const [brands, setBrands] = useState([])
+  const [isloading, setIsloading] = useState(true)
+
+  const autoDebit = (stockbrands) => {
+    if (invsettings && disabled) {
+      const approvedQuantity = parseInt(data.quantity_approved)
+      let remainder = approvedQuantity
+      const updatedDebitable = stockbrands.map((item) => {
+        const { storeQty } = item
+        const brandbatchqty = parseInt(storeQty)
+        const served = Math.min(remainder, brandbatchqty)
+        const deficit = brandbatchqty - served
+        remainder -= served
+        return {
+          ...item,
+          served,
+          availableQty: brandbatchqty,
+          currentQty: brandbatchqty - served,
+          deficit,
+        }
+      })
+      setBrands(updatedDebitable)
+    } else {
+      setBrands(stockbrands)
+    }
+  }
+
+  useEffect(() => {
+    if (getDebitable === true) {
+      setIsloading(true)
+      customFetch(`store/departments/requisitions/serve/supply?departmentid=${departmentid}&&stockid=${stockid}`)
+        .then((data) => {
+          setIsloading(false)
+          data?.status === "success" && autoDebit(data?.result)
+        })
+        .catch((err) => {
+          setIsloading(false)
+          setBrands([])
+        })
+    }
+  }, [departmentid, stockid, getDebitable])
+
+  const renderer = () => {
+    if (isloading) {
+      return <Loader />
+    } else {
+      return (
         <TableContainer component={Paper}>
           <Table>
-            <TableHead className='bg-warning'>
-            <TableRow>
+            <TableHead className="bg-warning">
+              <TableRow>
                 <TableCell>Brand</TableCell>
                 <TableCell>Batch Number</TableCell>
                 <TableCell>Store Qty</TableCell>
                 <TableCell>Available Qty</TableCell>
                 <TableCell>Current Qty</TableCell>
                 <TableCell>Amount served</TableCell>
-                  <TableCell>
-                    <button className='btn btn-light btn-sm' onClick={(ev) => stocksServed(data)}>
+                <TableCell>
+                  <button className="btn btn-light btn-sm" onClick={(ev) => stocksServed(data)}>
                     served
-                    </button>
+                  </button>
                 </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.map((row, index) => (
+              {brands.map((row, index) => (
                 <TableRow key={index}>
                   <TableCell>{row.brand}</TableCell>
-                    <TableCell>{row.batchnumber}</TableCell>
-                    <TableCell>{row.storeQty}</TableCell>
-                    <TableCell>{row.availableQty}</TableCell>
-                    <TableCell>{row.currentQty}</TableCell>
-                    <TableCell>
-                      <input disabled={disabled} className='custom-input' value={row.served} />
-                    </TableCell>
+                  <TableCell>{row.batchnumber}</TableCell>
+                  <TableCell>{row.storeQty}</TableCell>
+                  <TableCell>{row.availableQty}</TableCell>
+                  <TableCell>{row.currentQty}</TableCell>
+                  <TableCell>
+                    <input disabled={disabled} className="custom-input" value={row.served} />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
-      </>
-   )
+      )
+    }
+  }
+  return <>{renderer()}</>
 } 
