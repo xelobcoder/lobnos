@@ -1,35 +1,38 @@
 import { PlayDisabledSharp } from '@mui/icons-material';
 import {Table,TableBody,TableContainer,TableHead,TableRow,Paper,TableCell} from '@mui/material';
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { customFetch } from "../../../Auth/customFetch"
 import Loader from "../../../accessories/Loader"
 export default function DebitableBrandBatch({ data, invsettings, disabled, getDebitable, stocksServed, departmentid, stockid }) {
   const [brands, setBrands] = useState([])
   const [isloading, setIsloading] = useState(true)
 
-  const autoDebit = (stockbrands) => {
-    if (invsettings && disabled) {
-      const approvedQuantity = parseInt(data.quantity_approved)
-      let remainder = approvedQuantity
-      const updatedDebitable = stockbrands.map((item) => {
-        const { storeQty } = item
-        const brandbatchqty = parseInt(storeQty)
-        const served = Math.min(remainder, brandbatchqty)
-        const deficit = brandbatchqty - served
-        remainder -= served
-        return {
-          ...item,
-          served,
-          availableQty: brandbatchqty,
-          currentQty: brandbatchqty - served,
-          deficit,
-        }
-      })
-      setBrands(updatedDebitable)
-    } else {
-      setBrands(stockbrands)
-    }
-  }
+  const autoDebit = useCallback(
+    (stockbrands) => {
+      if (disabled) {
+        const approvedQuantity = parseInt(data.quantity_approved)
+        let remainder = approvedQuantity
+        const updatedDebitable = stockbrands.map((item) => {
+          const { storeQty } = item
+          const brandbatchqty = parseInt(storeQty)
+          const served = Math.min(remainder, brandbatchqty)
+          const deficit = brandbatchqty - served
+          remainder -= served
+          return {
+            ...item,
+            served,
+            availableQty: brandbatchqty,
+            currentQty: brandbatchqty - served,
+            deficit,
+          }
+        })
+        setBrands(updatedDebitable)
+      } else {
+        setBrands(stockbrands)
+      }
+    },
+    [disabled, data.quantity_approved]
+  )
 
   useEffect(() => {
     if (getDebitable === true) {
@@ -44,7 +47,7 @@ export default function DebitableBrandBatch({ data, invsettings, disabled, getDe
           setBrands([])
         })
     }
-  }, [departmentid, stockid, getDebitable])
+  }, [departmentid, stockid, getDebitable, autoDebit])
 
   const renderer = () => {
     if (isloading) {
@@ -62,7 +65,7 @@ export default function DebitableBrandBatch({ data, invsettings, disabled, getDe
                 <TableCell>Current Qty</TableCell>
                 <TableCell>Amount served</TableCell>
                 <TableCell>
-                  <button className="btn btn-light btn-sm" onClick={(ev) => stocksServed(data)}>
+                  <button className="btn btn-light btn-sm" onClick={(ev) => stocksServed(brands)}>
                     served
                   </button>
                 </TableCell>

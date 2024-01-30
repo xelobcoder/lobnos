@@ -37,7 +37,7 @@ export default function DispatchStockAccordionList({ data, departmentid,index,in
           </span>
         </div>
       </Accordion.Header>
-      <Accordion.Body className="bg-secondary">
+      <Accordion.Body className="bg-secondary bg-opacity-50">
         <DebitableBrandBatch
           invsettings={invsettings}
           departmentid={departmentid}
