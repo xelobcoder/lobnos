@@ -89,29 +89,12 @@ export default function InventoryUrgentActionsView() {
     },
   ]
 
-  const getNearExpiry = useCallback(() => {
-    customFetch(`inventory/analytics/urgentactions?action=nearexpiry`)
-      .then((data) => {
-        setStocks(data?.result)
-        setisLoading(false)
-      })
-      .catch((err) => {
-        setisLoading(false)
-        setStocks([])
-      })
-  }, [])
-
-  useEffect(() => {
-    getNearExpiry()
-  }, [getNearExpiry])
 
   return (
     <>
       <Tabs id="controlled-tab-example" activeKey={key} onSelect={(k) => setKey(k)} className="mb-3">
         <Tab eventKey="nearexpiry" title="Near Expiry">
-          {/* {key === "nearexpiry" && (
-           
-          )} */}
+        {key === "nearexpiry" && <UseUrgentActions columns={nearExpiry} endpoint={`inventory/analytics/urgentactions?action=nearexpiry`} />}
         </Tab>
         <Tab eventKey="expired" title="Expired Stocks">
           {key === "expired" && <UseUrgentActions columns={expired} endpoint={`inventory/analytics/urgentactions?action=expired`} />}
