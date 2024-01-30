@@ -1,7 +1,7 @@
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Tab, Tabs } from "react-bootstrap"
 import UseUrgentActions from "./useUrgentActions"
-
+import { customFetch } from "../../../Auth/customFetch";
 export default function InventoryUrgentActionsView() {
   const [key, setKey] = useState("null")
 
@@ -87,15 +87,31 @@ export default function InventoryUrgentActionsView() {
       Header: "qty in stock",
       accessor: "qty_in_stock",
     },
-   ]
-   
+  ]
+
+  const getNearExpiry = useCallback(() => {
+    customFetch(`inventory/analytics/urgentactions?action=nearexpiry`)
+      .then((data) => {
+        setStocks(data?.result)
+        setisLoading(false)
+      })
+      .catch((err) => {
+        setisLoading(false)
+        setStocks([])
+      })
+  }, [])
+
+  useEffect(() => {
+    getNearExpiry()
+  }, [getNearExpiry])
+
   return (
     <>
       <Tabs id="controlled-tab-example" activeKey={key} onSelect={(k) => setKey(k)} className="mb-3">
         <Tab eventKey="nearexpiry" title="Near Expiry">
-          {key === "nearexpiry" && (
-            <UseUrgentActions columns={nearExpiry} endpoint={`inventory/analytics/urgentactions?action=nearexpiry`} />
-          )}
+          {/* {key === "nearexpiry" && (
+           
+          )} */}
         </Tab>
         <Tab eventKey="expired" title="Expired Stocks">
           {key === "expired" && <UseUrgentActions columns={expired} endpoint={`inventory/analytics/urgentactions?action=expired`} />}
