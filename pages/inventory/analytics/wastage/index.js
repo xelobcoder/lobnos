@@ -5,6 +5,10 @@ import { currencyFormatter, customFetch, updatePagination } from "../../../../co
 import Loader from "../../../../components/accessories/Loader";
 import TableDisplay from "../../../../components/accessories/TableDisplay";
 import Pagination from "../../../../components/accessories/pagination";
+import dynamic from 'next/dynamic';
+
+const WastagePieChart = dynamic(() => import("../../../../components/inventory/stocks/wastages/PiechartQuarterly"));
+
 export default function InventoryWastages() {
    const [data, setData] = useState({});
    const [quarterlyData, setQuarterlyData] = useState([]);
@@ -79,6 +83,7 @@ export default function InventoryWastages() {
       updatePagination(pageValue, setQuery, query);
    }
 
+
    return (
       <InventoryLayout>
          <div className="d-flex justify-content-between">
@@ -111,6 +116,14 @@ export default function InventoryWastages() {
                }</h3>}
             />
          </div>
+         <section id="charts" className="grid-70-30">
+            <div className="quarterly-chart">
+
+            </div>
+            <div className="overchart-pie">
+               <WastagePieChart pd={data} />
+            </div>
+         </section>
          <section>
             {loadingd && <Loader />}
             {active &&
