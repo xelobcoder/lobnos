@@ -3,7 +3,7 @@ import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination } from 
 import GlobalFilter from './GlobalFilter'
 import SECOND_NO_DATA from './secondNodata'
 
-export default function TableDisplay({ column, data, styling, filtering }) {
+export default function TableDisplay({ showpage = true, column, data, styling, filtering }) {
 
   const tableInstance = useTable({
     columns: useMemo(() => column, [column]),
@@ -67,25 +67,27 @@ export default function TableDisplay({ column, data, styling, filtering }) {
                         )}
                       </tbody>
                     </table>
-                    <div className='d-flex justify-content-center '>
-                      <span className='mx-2 mt-1'>
-                        Page{' '}
-                        <strong>
-                          {pageIndex + 1} of {pageOptions.length}
-                        </strong>{' '}
-                      </span>
-                      <span>
-                        <select className='custom-input' value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
-                          {[10,20,30,40,50,60,70,80,90,100].map((pageSize,index) => (
-                            <option key={index} value={pageSize}>
-                              Show {pageSize}
-                            </option>
-                          ))}
-                        </select>
-                      </span>
-                      <button className='btn btn-primary btn-sm mx-2 py-1 pointer' onClick={() => previousPage()} disabled={!canPreviousPage} >Previous</button>
-                      <button className='btn btn-primary btn-sm py-1 pointer' onClick={() => nextPage()} disabled={!canNextPage}>Next</button>
-                    </div>
+                    {showpage && (
+                      <div className='d-flex justify-content-center '>
+                        <span className='mx-2 mt-1'>
+                          Page{' '}
+                          <strong>
+                            {pageIndex + 1} of {pageOptions.length}
+                          </strong>{' '}
+                        </span>
+                        <span>
+                          <select className='custom-input' value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
+                            {[10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((pageSize, index) => (
+                              <option key={index} value={pageSize}>
+                                Show {pageSize}
+                              </option>
+                            ))}
+                          </select>
+                        </span>
+                        <button className='btn btn-primary btn-sm mx-2 py-1 pointer' onClick={() => previousPage()} disabled={!canPreviousPage} >Previous</button>
+                        <button className='btn btn-primary btn-sm py-1 pointer' onClick={() => nextPage()} disabled={!canNextPage}>Next</button>
+                      </div>
+                    )}
                   </div>
                 </>
             }
