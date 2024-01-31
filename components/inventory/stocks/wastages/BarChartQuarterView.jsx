@@ -1,36 +1,28 @@
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, Legend } from "recharts"
-export default function BarChartQuarterView({ data, quarter }) {
-  const monthCollection = {
-    1: "January",
-    2: "February",
-    3: "March",
-    4: "April",
-    5: "May",
-    6: "June",
-    7: "July",
-    8: "August",
-    9: "September",
-    10: "October",
-    11: "November",
-    12: "December",
-  }
+import { customFetch } from "../../../Auth/customFetch"
+import Loader from "../../../accessories/Loader"
+export default function BarChartQuarterView({ quarter }) {
+  const [data, setData] = useState([])
+  const [isloading, setisloading] = useState(true)
 
-  const monthlyData = function () {
-    let flow = []
-    if (quarter == 1) {
-      flow = [1, 2, 3, 4]
-    } else if (quarter == 2) {
-      flow = [5, 6, 7, 8]
-    } else {
-      flow = [9, 10, 11, 12]
+  const monthCollection = useMemo(() => {
+    return {
+      1: "January",
+      2: "February",
+      3: "March",
+      4: "April",
+      5: "May",
+      6: "June",
+      7: "July",
+      8: "August",
+      9: "September",
+      10: "October",
+      11: "November",
+      12: "December",
     }
+  }, [])
 
-    return flow.map((a, monthIndex) => {
-      const filteredData = data.filter((item) => item.month === monthIndex + 1)
-      const totalDebitAmount = filteredData.reduce((total, item) => total + item.debitAmount, 0)
-      return { month: monthCollection[flow[monthIndex]], wastages: totalDebitAmount }
-    })
-  }
   const COLORS = [
     "#0088FE",
     "#00C49F",
@@ -46,29 +38,74 @@ export default function BarChartQuarterView({ data, quarter }) {
     "#8884d8",
   ]
 
+  const getQuarterChartSummary = useCallback(async () => {
+    const monthlyData = function (data) {
+      let flow = []
+      if (quarter == 1) {
+        flow = [1, 2, 3, 4]
+      } else if (quarter == 2) {
+        flow = [5, 6, 7, 8]
+      } else {
+        flow = [9, 10, 11, 12]
+      }
+
+      if (data.length === 0) {
+        setData([])
+      } else {
+        const nw = flow.map((a, monthIndex) => {
+          const filteredData = data.filter((item) => item.month === monthIndex + 1)
+          const totalDebitAmount = filteredData.reduce((total, item) => total + item.debitAmount, 0)
+          return { month: monthCollection[flow[monthIndex]], wastages: totalDebitAmount }
+        })
+        setData(nw)
+      }
+    }
+
+    setisloading(true)
+    customFetch(`inventory/wastages/data/quarters/summary?quarters=${quarter}`)
+      .then((data) => {
+        data?.status === "success" && monthlyData(data?.result)
+        setisloading(false)
+      })
+      .catch((err) => {
+        setisloading(false)
+        setData([])
+      })
+  }, [quarter, monthCollection])
+
+  useEffect(() => {
+    getQuarterChartSummary()
+  }, [getQuarterChartSummary])
+
   const renderer = () => {
-    if (data.length === 0) {
-      return (
-        <div className="alert alert-info mx-2">
-          <h3>No Data Available for Chart</h3>
-        </div>
-      )
+    if (isloading) {
+      return <Loader />
     } else {
-      return (
-        <BarChart width={600} height={400} data={monthlyData()}>
-          <XAxis dataKey="month" label={{ value: "Month", position: "insideBottom" }} />
-          <YAxis dataKey="wastages" label={{ value: "Losess/Wastages", angle: -90, position: "insideLeft" }} />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="wastages" barSize={50}>
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Bar>
-        </BarChart>
-      )
+      if (data.length === 0) {
+        return (
+          <div className="alert alert-info mx-2">
+            <h3>No Data Available for Chart</h3>
+          </div>
+        )
+      } else {
+        return (
+          <BarChart width={600} height={400} data={data}>
+            <XAxis dataKey="month" label={{ value: "Month", position: "insideBottom" }} />
+            <YAxis dataKey="wastages" label={{ value: "Losess/Wastages", angle: -90, position: "insideLeft" }} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="wastages" barSize={50}>
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        )
+      }
     }
   }
+
+  console.log(data.length, data)
 
   return <div>{renderer()}</div>
 }

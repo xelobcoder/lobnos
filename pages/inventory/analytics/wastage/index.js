@@ -62,6 +62,7 @@ export default function InventoryWastages() {
       }
    }, [active, loadQuarterlyData]);
 
+
    const columns = [
       { Header: 'name', accessor: 'name' },
       { Header: 'brand', accessor: 'brand' },
@@ -123,7 +124,7 @@ export default function InventoryWastages() {
             (
             <section id="charts" className="grid-70-30">
                <div className="quarterly-chart">
-                  <QuarterBarChart data={quarterlyData} quarter={active} />
+                  <QuarterBarChart  quarter={active} />
                </div>
                <div className="overchart-pie">
                   <WastagePieChart pd={data} />
