@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import InventoryLayout from "../../../../components/inventory/InventoryLayout";
 import CardRacks from '../../../../components/accessories/CardRacks';
-import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
+import { currencyFormatter, customFetch, updatePagination } from "../../../../components/Auth/customFetch";
 import Loader from "../../../../components/accessories/Loader";
 import TableDisplay from "../../../../components/accessories/TableDisplay";
 import Pagination from "../../../../components/accessories/pagination";
@@ -10,6 +10,7 @@ export default function InventoryWastages() {
    const [quarterlyData, setQuarterlyData] = useState([]);
    const [isloading, setLoading] = useState(true);
    const [active, setActive] = useState(null);
+   const [loadpage, setloadpage] = useState(false);
    const [query, setQuery] = useState({ count: 10, page: 1 });
    const [loadingd, setLoadingD] = useState(false);
 
@@ -33,10 +34,11 @@ export default function InventoryWastages() {
    }, [getWastageSummary])
 
 
-   useEffect(() => {
+
+   const loadQuarterlyData = useCallback(() => {
       const { count, page } = query;
       setLoadingD(true);
-      customFetch(`inventory/wastages/data/quarters?quarters=${active}&&count=${10}&&page=${1}`)
+      customFetch(`inventory/wastages/data/quarters?quarters=${active}&&count=${count}&&page=${page}`)
          .then((data) => {
             data?.status === "success" && setQuarterlyData(data?.result);
             setLoadingD(false);
@@ -47,6 +49,12 @@ export default function InventoryWastages() {
          });
    }, [active, query])
 
+
+   useEffect(() => {
+      if (active) {
+         loadQuarterlyData();
+      }
+   }, [active, loadQuarterlyData]);
 
    const columns = [
       { Header: 'name', accessor: 'name' },
@@ -65,9 +73,18 @@ export default function InventoryWastages() {
    ]
 
 
+
+
+   const updateQuery = (pageValue) => {
+      updatePagination(pageValue, setQuery, query);
+   }
+
    return (
       <InventoryLayout>
-         <h5 className="mx-2">Wastages Summary</h5>
+         <div className="d-flex justify-content-between">
+            <h5 className="mx-2">Genarel Store Loss (Wastages) Summary</h5>
+            <button className="btn btn-light">view chart</button>
+         </div>
          <div className="grid-30-30-30">
             <CardRacks
                header={<h6>1st Quarter</h6>}
@@ -96,10 +113,13 @@ export default function InventoryWastages() {
          </div>
          <section>
             {loadingd && <Loader />}
-            <TableDisplay showpage={false} column={columns} data={quarterlyData} />
-            <div className="d-flex justify-content-center">
-               <Pagination />
-            </div>
+            {active &&
+               <div>
+                  <TableDisplay showpage={false} column={columns} data={quarterlyData} />
+                  <div className="d-flex justify-content-center mt-3">
+                     <Pagination current={quarterlyData.length} updateFunction={updateQuery} load={setloadpage} />
+                  </div>
+               </div>}
          </section>
       </InventoryLayout>
    )

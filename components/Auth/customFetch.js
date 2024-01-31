@@ -711,3 +711,28 @@ export  const getSpecificOrder = async (id,setData,setLoading) => {
    style: 'currency',
    currency: 'GHS',
  });
+
+  /**
+    * Updates the pagination of a query based on the given page value.
+    * 
+    * @param {number|string} pageValue - The new page value to be set for the query.
+    * @param {function} setQuery - A function to update the query.
+    * @param {object} query - The current query object containing `count` and `page` properties.
+    * @returns {void}
+    */
+export const updatePagination = (pageValue, setQuery, query) => {
+   const { count, page } = query;
+   if (pageValue === page) return;
+
+   if (pageValue < 1 || pageValue > 5) return;
+
+   if (pageValue === "increment" && page > 0) {
+      setQuery({ ...query, page: page + pageValue });
+   }
+
+   if (pageValue === "decrement" && page > 0) {
+      setQuery({ ...query, page: page - 1 });
+   }
+
+   setQuery({ ...query, page: pageValue });
+}
