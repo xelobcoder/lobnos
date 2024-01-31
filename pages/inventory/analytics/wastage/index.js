@@ -9,6 +9,8 @@ import dynamic from 'next/dynamic';
 
 const WastagePieChart = dynamic(() => import("../../../../components/inventory/stocks/wastages/PiechartQuarterly"));
 
+const QuarterBarChart = dynamic(() => import("../../../../components/inventory/stocks/wastages/BarChartQuarterView"));
+
 export default function InventoryWastages() {
    const [data, setData] = useState({});
    const [quarterlyData, setQuarterlyData] = useState([]);
@@ -87,7 +89,7 @@ export default function InventoryWastages() {
    return (
       <InventoryLayout>
          <div className="d-flex justify-content-between">
-            <h5 className="mx-2">Genarel Store Loss (Wastages) Summary</h5>
+            <h5 className="mx-2">General/Main Store Losses (Wastages) Summary</h5>
             <button className="btn btn-light">view chart</button>
          </div>
          <div className="grid-30-30-30">
@@ -116,14 +118,18 @@ export default function InventoryWastages() {
                }</h3>}
             />
          </div>
-         <section id="charts" className="grid-70-30">
-            <div className="quarterly-chart">
-
-            </div>
-            <div className="overchart-pie">
-               <WastagePieChart pd={data} />
-            </div>
-         </section>
+         {active
+            &&
+            (
+            <section id="charts" className="grid-70-30">
+               <div className="quarterly-chart">
+                  <QuarterBarChart data={quarterlyData} quarter={active} />
+               </div>
+               <div className="overchart-pie">
+                  <WastagePieChart pd={data} />
+               </div>
+            </section>
+            )}
          <section>
             {loadingd && <Loader />}
             {active &&
