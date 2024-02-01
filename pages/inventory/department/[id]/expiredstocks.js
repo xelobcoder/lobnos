@@ -1,12 +1,15 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import DepartmentInventoryLayout from "../../../../components/inventory/departments/DepartmentInventoryLayout";
 import Loader from "../../../../components/accessories/Loader";
 import TableDisplay from "../../../../components/accessories/TableDisplay";
 import { useRouter } from "next/router";
 import { customFetch, customPost } from "../../../../components/Auth/customFetch";
 import { ToastContainer, toast } from "react-toastify";
+import AuthContext from "../../../../components/Auth/useAuthentification";
 
 export default function DepartmentExpiredStocks() {
+   const { auth } = useContext(AuthContext);
+   const employeeid = auth?.employeeid;
    const [isloading, setisLoading] = useState(true);
    const departmentid = useRouter().query.id;
    const [stocks, setStocks] = useState([]);
@@ -29,8 +32,9 @@ export default function DepartmentExpiredStocks() {
    }, [getData])
 
    const handleDispose = async (ev, data) => {
+      const { stockid, batchnumber, brandid } = data;
       ev.preventDefault();
-      const pushData = await customPost('inventory/consume/department/expirestock', 'POST', { ...data, departmentid });
+      const pushData = await customPost('inventory/consume/department/expirestock', 'POST', { ...data, departmentid, employeeid });
       const { status, statusCode, message } = pushData;
       if (statusCode === 200 && status === "success") {
          toast.success(message, { autoClose: 500 });

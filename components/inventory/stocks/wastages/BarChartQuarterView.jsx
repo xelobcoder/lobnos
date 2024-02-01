@@ -53,11 +53,14 @@ export default function BarChartQuarterView({ quarter, departmentid }) {
         setData([])
       } else {
         const nw = flow.map((a, monthIndex) => {
-          const filteredData = data.filter((item) => item.month === monthIndex + 1)
+          const filteredData = data.filter((item) => item.month === a)
           const totalDebitAmount = filteredData.reduce((total, item) => total + item.debitAmount, 0)
-          return { month: monthCollection[flow[monthIndex]], wastages: totalDebitAmount }
+          return { month: monthCollection[a], wastages: totalDebitAmount }
         })
-        setData(nw)
+
+        const allWastageZero = nw.some((a, index) => a.wastages != 0)
+
+        allWastageZero ? setData(nw) : setData([])
       }
     }
 
@@ -110,8 +113,6 @@ export default function BarChartQuarterView({ quarter, departmentid }) {
       }
     }
   }
-
-  console.log(data.length, data)
 
   return <div>{renderer()}</div>
 }

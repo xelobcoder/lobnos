@@ -73,7 +73,7 @@ export default function InventoryWastages({ departmentid }) {
     {
       Header: "receivedOn",
       accessor: "receiveddate",
-      Cell: ({ row }) => <div>{new Date(row.original.receiveddate).toLocaleDateString()}</div>,
+      Cell: ({ row }) => <div>{row.original.receiveddate ? new Date(row.original.receiveddate).toLocaleDateString(): '---'}</div>,
     },
     {
       Header: "expirydate",
