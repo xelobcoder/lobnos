@@ -16,8 +16,10 @@ export default function DepartmentStockLevel({ datasource, deleteStock, auth }) 
     setConsume(true);
   }
 
-  const handleLink = (id) => {
-    router.push(`/inventory/department/${departmentId}/stockusage?stockid=${id}&&departmentid=${departmentId}`);
+  const handleLink = (stockdetails) => {
+    console.log(stockdetails);
+    const { stockid, name } = stockdetails;
+    router.push(`/inventory/department/${departmentId}/stockusage?stockid=${stockid}&&departmentid=${departmentId}&&name=${name}`);
   }
 
   const columns = [
@@ -42,7 +44,7 @@ export default function DepartmentStockLevel({ datasource, deleteStock, auth }) 
               <DeleteIcon />
             </button >)
             } */}
-            <button onClick={(ev) => { handleLink(row.original.stockid) }} className='btn  btn-dark btn-sm mx-2'>
+            <button onClick={(ev) => { handleLink(row.original) }} className='btn  btn-dark btn-sm mx-2'>
               view usage
             </button>
           </div>
