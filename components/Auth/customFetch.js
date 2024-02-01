@@ -724,15 +724,14 @@ export const updatePagination = (pageValue, setQuery, query) => {
    const { count, page } = query;
    if (pageValue === page) return;
 
-   if (pageValue < 1 || pageValue > 5) return;
-
    if (pageValue === "increment" && page > 0) {
-      setQuery({ ...query, page: page + pageValue });
+      setQuery({ ...query, page: page + 1 });
    }
-
-   if (pageValue === "decrement" && page > 0) {
+   if (pageValue === "decrement" && page > 1) {
       setQuery({ ...query, page: page - 1 });
    }
 
-   setQuery({ ...query, page: pageValue });
+   if (pageValue > 0 && pageValue < 6) {
+      setQuery({ ...query, page: pageValue });
+   }
 }

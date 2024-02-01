@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { BarChart, Bar, Cell, XAxis, YAxis, Tooltip, Legend } from "recharts"
 import { customFetch } from "../../../Auth/customFetch"
 import Loader from "../../../accessories/Loader"
-export default function BarChartQuarterView({ quarter }) {
+export default function BarChartQuarterView({ quarter, departmentid }) {
   const [data, setData] = useState([])
   const [isloading, setisloading] = useState(true)
 
@@ -62,7 +62,12 @@ export default function BarChartQuarterView({ quarter }) {
     }
 
     setisloading(true)
-    customFetch(`inventory/wastages/data/quarters/summary?quarters=${quarter}`)
+    let endpoint = `inventory/wastages/data/quarters/summary?quarters=${quarter}`
+
+    if (departmentid) {
+      endpoint += `&&departmentid=${departmentid}`
+    }
+    customFetch(endpoint)
       .then((data) => {
         data?.status === "success" && monthlyData(data?.result)
         setisloading(false)
@@ -71,7 +76,8 @@ export default function BarChartQuarterView({ quarter }) {
         setisloading(false)
         setData([])
       })
-  }, [quarter, monthCollection])
+  }, [quarter, monthCollection, departmentid]);
+  
 
   useEffect(() => {
     getQuarterChartSummary()

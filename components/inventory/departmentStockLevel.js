@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
-import DeleteIcon from '@mui/icons-material/Delete';
+import { useState } from 'react'
 import TableDisplay from '../accessories/TableDisplay';
 import SECOND_NO_DATA from '../accessories/secondNodata';
 import ConsumeStocKModal from './ConsumeStocKModal';
 import { useRouter } from 'next/router';
-export default function DepartmentStockLevel({ datasource, deleteStock,auth }) {
-  const departmentId = useRouter().query.id;
+export default function DepartmentStockLevel({ datasource, deleteStock, auth }) {
+  const router = useRouter();
+  const departmentId = router.query.id;
   const [consume, setConsume] = useState(false);
   const employeeid = auth?.employeeid;
   const [consumeStock, setConsumeStock] = useState({ departmentid: departmentId, stockid: '', stockname: '', quantityAvailble: '', quantity: '' })
@@ -14,6 +14,10 @@ export default function DepartmentStockLevel({ datasource, deleteStock,auth }) {
     const { stockid, name, quantityAvailable } = item;
     setConsumeStock({ stockid, departmentid: departmentId, stockname: name, quantityAvailable: quantityAvailable });
     setConsume(true);
+  }
+
+  const handleLink = (id) => {
+    router.push(`/inventory/department/${departmentId}/stockusage?stockid=${id}&&departmentid=${departmentId}`);
   }
 
   const columns = [
@@ -38,6 +42,9 @@ export default function DepartmentStockLevel({ datasource, deleteStock,auth }) {
               <DeleteIcon />
             </button >)
             } */}
+            <button onClick={(ev) => { handleLink(row.original.stockid) }} className='btn  btn-dark btn-sm mx-2'>
+              view usage
+            </button>
           </div>
         )
       }

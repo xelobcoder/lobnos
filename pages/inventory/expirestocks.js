@@ -25,6 +25,7 @@ export default function EXPIRE_STOCKS() {
   }
 
   const columns = [
+    { Header: 'ProductOrderid', accessor: 'productordersid' },
     {
       Header: 'Name',
       accessor: 'name',

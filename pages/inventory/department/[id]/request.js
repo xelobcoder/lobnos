@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import SettingsLayout from '../../../../components/settingsComponents/SettingsLayout';
-import DepartmentLevelSidebar from '../../../../components/inventory/DepartmentLevelSidebar';
+import { useState, useEffect } from 'react';
 import { customFetch } from '../../../../components/Auth/customFetch';
 import { useRouter } from 'next/router';
 import Inventory from '../../../../components/Auth/inventory';
+import DepartmentInventoryLayout from '../../../../components/inventory/departments/DepartmentInventoryLayout';
 
 export default function DepartmentRequestCustom() {
   const inventory = new Inventory();
@@ -46,7 +45,7 @@ export default function DepartmentRequestCustom() {
   }
 
   return (
-    <SettingsLayout sidebar={<DepartmentLevelSidebar />}>
+    <DepartmentInventoryLayout>
       <div className='d-flex px-2 py-2 justify-content-between'>
         <div>
           <h4 className='text-primary'>Department Requisition</h4>
@@ -95,6 +94,6 @@ export default function DepartmentRequestCustom() {
           ))}
         </tbody>
       </table>
-    </SettingsLayout>
+    </DepartmentInventoryLayout>
   );
 }

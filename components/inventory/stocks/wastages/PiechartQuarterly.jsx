@@ -1,5 +1,5 @@
 import { PieChart, Pie, Tooltip, Cell, Label, Legend } from "recharts"
-export default function WastagesQuarterlyChartPieChart({ pd }) {
+export default function WastagesQuarterlyChartPieChart({ pd}) {
   const data = [
     { name: "First Quarter", value: pd?.firstQ },
     { name: "Second Quarter", value: pd?.secondQ },

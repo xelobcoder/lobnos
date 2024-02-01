@@ -8,7 +8,7 @@ import ADD_STOCK_INVENTORY from "../../components/inventory/addstock";
 import Pagination from "../../components/accessories/pagination";
 import StockListView from "../../components/inventory/stocks/StockListView";
 import AddStockCategory from "../../components/inventory/stocks/AddStocksCategory";
-
+import Loader from '../../components/accessories/Loader';
 
 
 export default function INVENTORY_PAGE() {
@@ -99,8 +99,7 @@ export default function INVENTORY_PAGE() {
           </div>
        </div>
         {
-          loading ?
-            <div className="loader"></div> :
+          loading ? <Loader /> :
             (
               <>
                 <div>
