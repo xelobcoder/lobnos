@@ -64,16 +64,15 @@ export default function RESULT_FOR_PRINTING() {
         <PersonalInformation data={sampling} />
         <SamplingInformationResult data={sampling} />
         {category == 'chemistry' && <ChemistryTable data={result} testname={test} />}
-        {category == 'hema' && <HemaSingle result={result || []} testname={test} />}
+        {category == 'hema' && <HemaSingle result={result || {}} testname={test} />}
         <CompanyFooter details={headers} />
-        
+      </div>
+      <div>
       </div>
       <div className='print-section'>
-        <Button 
-          sx={{ position: 'absolute', top: '10%', left: '10%' }}
-          variant='contained' size='small' color='success' onClick={() => readyToPrint(billingid, testid)}>
-          print
-        </Button>
+        <button style={{position:'absolute',top:20, left:'40px'}} className='btn btn-success btn-sm' onClick={() => readyToPrint(billingid, testid)}>
+          print result
+       </button>
       </div>
     </div>
   )

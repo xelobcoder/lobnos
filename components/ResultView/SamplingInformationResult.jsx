@@ -1,77 +1,68 @@
-import React, { useState } from 'react'
-
-export default function SamplingInformationResult({data = []}) {
+export default function SamplingInformationResult({ data = {} }) {
+  const {
+    inspectionTime,
+    processing_date,
+    collection_time,
+    processing_time,
+    ready_time,
+    ascensionid,
+    collection_date,
+    ready_date,
+    phelobotomist,
+    urgency,
+    samplingCenter,
+  } = data
   return (
     <>
-      {data.length > 0 && (
+      {
         <div>
-        <h6 className='result-section-header'>
-          Sampling Information
-        </h6>
-        <div className='sampling-result'>
-          <div className='left-panel'>
-            <div className='result-sampling-details'>
-              <div className='left'>
-                collected:
+          <h6 className="result-section-header fw-bold">Sampling Information</h6>
+          <div className="sampling-result">
+            <div className="left-panel">
+              <div className="result-sampling-details">
+                <div className="left">ascensionid:</div>
+                <div className="right">{ascensionid}</div>
               </div>
-              <div className='right'>
-                {data[0]?.collection_date.slice(0, 10)}
+              <div className="result-sampling-details">
+                <div className="left">collection:</div>
+                <div className="right">
+                  {collection_date} {collection_time}
+                </div>
               </div>
-            </div>
-            <div className='result-sampling-details'>
-              <div className='left'>
-                processed:
+              <div className="result-sampling-details">
+                <div className="left">processing:</div>
+                <div className="right">
+                  {processing_date} {processing_time}
+                </div>
               </div>
-              <div className='right'>
-                {data[0]?.processing_date.slice(0, 10)}
-              </div>
-            </div>
-            <div className='result-sampling-details'>
-              <div className='left'>
-                result ready:
-              </div>
-              <div className='right'>
-                {data[0]?.ready_date != null ? data[0]?.ready_date.slice(0, 10) : ''}
+              <div className="result-sampling-details">
+                <div className="left">result ready:</div>
+                <div className="right">
+                  {ready_date} {ready_time}
+                </div>
               </div>
             </div>
-            <div className='result-sampling-details'>
-              <div className='left'>
-                sampling center:
+            <div className="right-panel">
+              <div className="result-sampling-details">
+                <div className="left">sampling center:</div>
+                <div className="right">{samplingCenter}</div>
               </div>
-              <div className='right'>
-                {data[0]?.samplingCenter}
+              <div className="result-sampling-details">
+                <div className="left">urgency:</div>
+                <div className="right">{urgency}</div>
               </div>
-            </div>
-          </div>
-          <div className='right-panel'>
-            <div className='result-sampling-details'>
-              <div className='left'>
-                urgency:
+              <div className="result-sampling-details">
+                <div className="left">Phelobotomist:</div>
+                <div className="right">{phelobotomist != null ? phelobotomist : "N.A"}</div>
               </div>
-              <div className='right'>
-                {data[0]?.urgency}
-              </div>
-            </div>
-            <div className='result-sampling-details'>
-              <div className='left'>
-                Phelobotomist:
-              </div>
-              <div className='right'>
-                {data[0]?.Phelobotomist != null ? data[0]?.Phelobotomist : 'N.A'}
-              </div>
-            </div>
-            <div className='result-sampling-details'>
-              <div className='left'>
-                inspection Time:
-              </div>
-              <div className='right'>
-                {data[0]?.inspectionTime}
+              <div className="result-sampling-details">
+                <div className="left">inspection Time:</div>
+                <div className="right">{inspectionTime}</div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      )}
+      }
     </>
   )
 }

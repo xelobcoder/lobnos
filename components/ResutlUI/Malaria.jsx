@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function Malaria({result,testname}) {
+export default function Malaria({ result, testname }) {
   return (
       <div>
         {result.length > 0 && (
