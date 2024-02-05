@@ -39,15 +39,31 @@ export default function ReadyTestSummaryAccordion({ id, title }) {
     }
   }
 
+  const calculateTimeUsed = (data) => {
+    const collectionDate = new Date(data.collection_date)
+    const approvedDate = new Date(data.ready_date)
+    const timeDifference = approvedDate - collectionDate
+    const hours = Math.floor(timeDifference / (1000 * 60 * 60))
+    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60))
+    const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000)
+    return `${hours} h, ${minutes} min, ${seconds} s used`
+  }
+
   const ReadyComp = (item) => {
     const { ready, ready_date, processing, collection, collection_date, processing_date } = item
 
     if (ready === "true") {
       return (
-        <span>
-          <CheckRounded color="success" />
-          ready on {new Date(ready_date).toLocaleDateString()} at {new Date(ready_date).toLocaleTimeString()}
-        </span>
+        <div className="d-flex justify-content-between">
+          <span>
+            {" "}
+            <CheckRounded color="success" />
+            ready on {new Date(ready_date).toLocaleDateString()} at {new Date(ready_date).toLocaleTimeString()}
+            </span>
+            <span className="border-bottom border-2 border-dark">
+               {calculateTimeUsed(item)}
+            </span>
+        </div>
       )
     } else {
       if (processing == "true") {
@@ -103,6 +119,13 @@ export default function ReadyTestSummaryAccordion({ id, title }) {
           print count({printcount ? printcount : 0})
         </button>
         <button className="btn btn-secondary btn-sm mx-2">preview count(10)</button>
+        <button className="btn btn-sm btn-primary">
+          {/* <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          <span class="visually-hidden" role="status">
+            Loading...
+          </span> */}
+          share with provider
+        </button>
       </span>
     )
   }
