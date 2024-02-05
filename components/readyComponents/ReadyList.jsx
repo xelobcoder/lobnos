@@ -1,58 +1,74 @@
 import TableDisplay from '../accessories/TableDisplay';
 import React, { useState } from 'react';
-import { EnergySavingsLeaf } from '@mui/icons-material';
-import PrintModalReady from './PrintModalReady';
+import { EnergySavingsLeaf } from "@mui/icons-material"
 
-export default function ReadyList({ readydata }) {
-  const [active, setActive] = useState(null);
-  const [display, setDisplay] = useState(false)
-
-  const hide = (ev) =>  {setDisplay(false)}
-
-  const columns = [
-    { Header: 'billingid', accessor: 'billingid' },
-    { Header: 'fullname', accessor: 'fullname' }
-    ,
+export default function ReadyList({ readydata, showAccord, updateAccord }) {
+  let columns = [
+    { Header: "billingid", accessor: "billingid" },
+    { Header: "fullname", accessor: "fullname" },
+    { Header: "undrawn samples", accessor: "undrawnsamples" },
+    { Header: "processing", accessor: "processing" },
     {
-      Header: 'status', accessor: 'status', Cell: ({ row }) => {
+      Header: "completed", accessor: "completed", Cell: ({ row }) => {
         const item = row.original;
-        return (
-          <span
-            className={`status ${item.status === 'Ready'
-              ? "ready_status"
-              : "pending_status"
-              }`}
-          >
-            {item.status}
-          </span>
-        )
+        return (<span>
+          {item?.completed}/{item?.testcount}
+        </span>)
       }
-    }
-    , {
-      Header: 'action', accessor: 'action', Cell: ({ row }) => {
-        const item = row.original;
+    },
+    { Header: "approved", accessor: "approved",Cell: ({ row }) => {
+      const item = row.original;
+      return (<span>
+        {item?.approved}/{item?.testcount}
+      </span>)
+    } },
+    {
+      Header: "action",
+      accessor: "action",
+      Cell: ({ row }) => {
+        const item = row.original
         return (
           <span>
-            <button className='btn btn-success btn-sm' onClick={(e) => {
-              setDisplay(true)
-              setActive(item.billingid)
-            }}>
-              view
+            <button
+              className="btn btn-success btn-sm"
+              onClick={(e) => {
+                updateAccord(item)
+              }}>
+              view tests
               <EnergySavingsLeaf />
             </button>
           </span>
         )
-      }
-    }
+      },
+    },
   ]
 
+  if (showAccord.display) {
+    columns = [
+      { Header: "billingid", accessor: "billingid" },
+      { Header: "fullname", accessor: "fullname" },
+      {
+        Header: "action",
+        accessor: "action",
+        Cell: ({ row }) => {
+          const item = row.original
+          return (
+            <span>
+              <button
+                className="btn btn-success btn-sm"
+                onClick={(e) => {
+                  updateAccord(item)
+                }}
+                view
+                tests>
+                <EnergySavingsLeaf /> view Test
+              </button>
+            </span>
+          )
+        },
+      },
+    ]
+  }
 
-  return (
-    <>
-      {readydata.length > 0 && (
-        <TableDisplay filtering={true} column={columns} data={readydata} />
-      )}
-      <PrintModalReady display={display} active={active} hide={hide} />
-    </>
-  );
+  return <>{<TableDisplay filtering={!showAccord.display} column={columns} data={readydata} />}</>
 }
