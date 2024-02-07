@@ -1,7 +1,7 @@
 import { useState } from "react"
 
-export default function Pagination({ load, updateFunction }) {
-  const [active, setActive] = useState(0)
+export default function Pagination({ page, load, updateFunction }) {
+  const [active, setActive] = useState(page || 0)
   const paginate = (value) => {
     updateFunction(value)
     load(true)
@@ -9,12 +9,12 @@ export default function Pagination({ load, updateFunction }) {
   }
 
   const paginateLoop = (maximum) => {
-    if (!maximum) return;
+    if (!maximum) return
     const value = []
     let current = 1
     while (current <= maximum) {
       value.push(current)
-      current++;
+      current++
     }
 
     return value.map((item, index) => {

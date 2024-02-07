@@ -144,7 +144,7 @@ export default function Payment_Extra() {
           data={transactionData}
         />
         <div className="d-flex justify-content-center">
-          <Pagination updateFunction={updatePage} load={setLoadPage} />
+          <Pagination page={querystate.page} updateFunction={updatePage} load={setLoadPage} />
         </div>
       </div>
     )
