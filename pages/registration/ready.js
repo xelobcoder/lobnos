@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import  { useEffect, useState } from 'react'
 import { customFetch,  getDateExpression } from '../../components/Auth/customFetch';
 import ReadyList from '../../components/readyComponents/ReadyList';
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
@@ -9,11 +9,11 @@ import ReadyTestSummaryAccordion from '../../components/readyComponents/ReadyTes
 import Loader from '../../components/accessories/Loader';
 
 export default function ReadyResult() {
-  const [showsummary, setShowSummary] = useState(false);
+  const [showsummary, setShowSummary] = useState(true);
   const [query, setQuery] = useState({ querydate: getDateExpression, content: '' });
   const [ready, setReady] = useState([]);
   const [isloading, setIsLoading] = useState(true);
-  const [advanced, setAdvanced] = useState(false);
+  const [advanced, setAdvanced] = useState(true);
   const [showAccord, setShowAccord] = useState({ active: null, display: false, title: null });
 
   // data state for advanced search

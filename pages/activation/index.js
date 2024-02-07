@@ -12,16 +12,12 @@ export default function Activator() {
   const [tempStore, setStore] = useState([]);
   const [urlquery, seturlQuery] = useState(`activation?`)
   const [advancedSearch, setAdvancedSearch] = useState(false);
-  // applying filter to the advanced query search
   const [filter, setFilter] = useState({
     patientId: '', fullname: '', mobile: '', to: '', from: ''
   })
-
-
-
   const router = useRouter();
-
   const [id, setId] = useState('');
+
 
   const handleNameFilter = (e) => {
     const filtered = e.target.value;
@@ -66,7 +62,7 @@ export default function Activator() {
   const handleBilling = (item) => {
     const { PATIENTID } = item;
     if (PATIENTID) {
-      router.push(`/billing/patientid/${PATIENTID}`);
+      router.push(`/billing/patientid?patientid=${PATIENTID}`);
     } else {
       alert('Patientid not included')
     }

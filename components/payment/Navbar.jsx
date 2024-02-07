@@ -1,102 +1,77 @@
-import React from 'react';
-import { useRouter } from 'next/router';
-import { Button, TextField } from '@mui/material';
-import { Dropdown } from 'react-bootstrap';
-import styles from '../../styles/payment.module.css';
-import { Email, MonetizationOn, Print } from '@mui/icons-material';
-import { forwardEmailReceipt } from '../Auth/customFetch';
+import { useRouter } from "next/navigation"
+import { Dropdown } from "react-bootstrap"
+import { Email, MonetizationOn, Print } from "@mui/icons-material"
+import { forwardEmailReceipt } from "../Auth/customFetch"
 
-export default function Navbar({ query, updateBill, handleChange, select, runquery, selectedBilling }) {
-  const navigate = useRouter();
+export default function Navbar({ query, updateBill, handleChange, clearQuery, selectedBilling }) {
+  const navigate = useRouter()
 
   return (
-    <div className={styles.navbar}>
-      <TextField
-        type="text"
-        style={{ width: '200px' }}
-        variant="outlined"
-        label="Enter clientID here"
-        size="small"
-        value={query.patientid}
-        onChange={(e) => { handleChange(e, 'patientid'); }}
-        className={styles.navbarItem}
-      />
-      <Dropdown className={styles.navbarItem} onSelect={select}>
-        <Dropdown.Toggle
-          className={styles.dropdownToggle}
-          style={{ height: "40px" }}
-
-          id="dropdown-basic"
-        >
-          Select transaction month
-        </Dropdown.Toggle>
-
-        <Dropdown.Menu >
-          <Dropdown.Item eventKey="january"
-          >January</Dropdown.Item>
-          <Dropdown.Item eventKey="february">February</Dropdown.Item>
-          <Dropdown.Item eventKey="march">March</Dropdown.Item>
-          <Dropdown.Item eventKey="april">April</Dropdown.Item>
-          <Dropdown.Item eventKey="may">May</Dropdown.Item>
-          <Dropdown.Item eventKey="june">June</Dropdown.Item>
-          <Dropdown.Item eventKey="july">July</Dropdown.Item>
-          <Dropdown.Item eventKey="august">August</Dropdown.Item>
-          <Dropdown.Item eventKey="september">September</Dropdown.Item>
-          <Dropdown.Item eventKey="october">October</Dropdown.Item>
-          <Dropdown.Item eventKey="november">November</Dropdown.Item>
-          <Dropdown.Item eventKey="december">December</Dropdown.Item>
-        </Dropdown.Menu>
-      </Dropdown>
-      <input
-        className={`${styles.navbarItem} form-control`}
-        style={{ width: "200px" }}
-        type="date"
-        placeholder="date"
-        value={query.date}
-        onChange={(e) => { handleChange(e, 'date') }}
-      />
-      <Button type="button" variant="contained" size="small"
-        onClick={runquery} >
-        search
-      </Button>
-      <div className="d-flex" style={{ marginLeft: "30px" }}>
-        <Button variant='contained' color='primary' onClick={updateBill}>
-          update
-        </Button>
-        <Button
-          startIcon={<Print />}
-          variant="contained"
-          sx={{
-            marginLeft: "10px",
-            color: 'white',
-            width: "100px", backgroundColor: "black"
+    <div className="d-flex justify-content-between">
+      <div className="d-flex">
+        <div className="form-row d-flex col-4">
+          <label className="my-1">From</label>
+          <input
+            className="custom-input mx-2"
+            type="date"
+            placeholder="date"
+            value={query.from}
+            onChange={(e) => {
+              handleChange(e, "from")
+            }}
+          />
+        </div>
+        <div className="form-row d-flex col-4">
+          <label className="my-1">To</label>
+          <input
+            className="custom-input mx-2"
+            type="date"
+            placeholder="date"
+            value={query.to}
+            onChange={(e) => {
+              handleChange(e, "to")
+            }}
+          />
+        </div>
+        <input
+          className="custom-input col-3 mx-2"
+          value={query.patientid}
+          onChange={(e) => {
+            handleChange(e, "patientid")
           }}
-          onClick={(e) => { navigate.push(`payment/invoice/${selectedBilling}`) }}
-        >
-          invoice
-        </Button>
-        <Button
-          startIcon={<Email />}
-          variant="contained"
-          onClick={(ev) => { forwardEmailReceipt(selectedBilling) }}
-          sx={{
-            marginRight: "10px",
-            marginLeft: "10px",
-          }}
-        >
-          Email
-        </Button>
-        <Button
-          startIcon={<MonetizationOn />}
-          variant="contained"
-          sx={{
-            marginLeft: "10px",
-            backgroundColor: "#4caf50",
-          }}
-        >
-          sales summary
-        </Button>
+          placeholder="Enter clientid here"
+          type="number"
+        />
+        <button className="btn btn-danger btn-sm py-0" onClick={clearQuery}>
+          clear
+        </button>
+      </div>
+      <div>
+        <div className="d-flex" style={{ marginLeft: "30px" }}>
+          <button className="btn btn-primary btn-sm" onClick={updateBill}>
+            update
+          </button>
+          <button
+            startIcon={<Print />}
+            className="btn btn-primary btn-sm mx-1"
+            onClick={(e) => {
+              navigate.push(`payment/invoice/${selectedBilling}`)
+            }}>
+            invoice
+          </button>
+          <button
+            startIcon={<Email />}
+            className="btn btn-primary btn-sm mx-1"
+            onClick={(ev) => {
+              forwardEmailReceipt(selectedBilling)
+            }}>
+            Email
+          </button>
+          <button startIcon={<MonetizationOn />} className="btn btn-primary btn-sm mx-1">
+            sales summary
+          </button>
+        </div>
       </div>
     </div>
-  );
+  )
 }

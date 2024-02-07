@@ -1,15 +1,18 @@
-import SidebarFrontPage from "../../../../components/frontpagesidebar.js";
-import { useRouter } from "next/router.js";
-import { useCallback, useEffect, useState } from "react";
-import TESTCART from "../../../../components/registration/testCart.js";
-import { BillingClass, defaultClinician, defaultOrganization, defaultpanel } from "../../../../components/Auth/billing.js";
-import TopComponentBillingButton from "../../../../components/Billing/topComponentBillingButton.jsx";
-import SettingsLayout from "../../../../components/settingsComponents/SettingsLayout.jsx";
-import AutoCompleteObject from "../../../../components/accessories/AutoCompleteObject.jsx";
-import { validateFormData } from "../../../../components/Auth/customFetch.js";
+import SidebarFrontPage from "../../../components/frontpagesidebar.js";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useContext, useEffect, useState } from "react";
+import TESTCART from "../../../components/registration/testCart.js";
+import { BillingClass, defaultClinician, defaultOrganization, defaultpanel } from "../../../components/Auth/billing.js";
+import TopComponentBillingButton from "../../../components/Billing/topComponentBillingButton.jsx";
+import SettingsLayout from "../../../components/settingsComponents/SettingsLayout.jsx";
+import AutoCompleteObject from "../../../components/accessories/AutoCompleteObject.jsx";
+import { validateFormData } from "../../../components/Auth/customFetch.js";
 import { ToastContainer, toast } from "react-toastify";
+import AuthContext from "../../../components/Auth/useAuthentification.js";
 
 export default function Billing({ }) {
+  const { auth } = useContext(AuthContext);
+  const employeeid = auth?.employeeid;
   const [source, setSource] = useState("");
   const [totalBill, setTotalBill] = useState(0);
   const [includeTax, setIncludeTax] = useState(true);
@@ -39,7 +42,7 @@ export default function Billing({ }) {
 
 
   const [cart, setCart] = useState([]);
-  const clientid = router.query.patientid;
+  const clientid = useSearchParams().get("patientid");
 
 
   const billingClass = new BillingClass(clientid, billingdata, setBillingData, cart, setCart);
@@ -109,23 +112,24 @@ export default function Billing({ }) {
       taxValue: billingClass.totalTaxValue(billingdata.taxes),
       patientid: parseInt(clientid),
       outstanding: totalBill - parseInt(amount),
-      samplingCenter: parseInt(branch)
+      samplingCenter: parseInt(branch),
+      employeeid
     };
 
     const callbackResponse = async function (data) {
       const { status, statusCode, message, billingid } = data;
       if (status == 'success' && (statusCode == 201 || statusCode == 200)) {
         toast.success(message + '. Redirecting to receipt page', { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
-        setTimeout(() => {
-          router.replace(`http://localhost:5000/billing/receipt?billingid=${billingid}`);
-        }, 3000);
       } else {
         toast.error(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
       }
     }
-    await validateFormData(data, false,
-      ['test', 'cost', 'type', 'patientid', 'samplingCenter', 'concession', 'paid', 'paymentmode', 'status'],
-      'billing', callbackResponse);
+
+    if (data.patientid && employeeid) {
+      await validateFormData(data, false,
+        ['test', 'cost', 'type', 'patientid', 'samplingCenter', 'concession', 'paid', 'paymentmode', 'status'],
+        'billing', callbackResponse);
+    }
   }
   const handleSelectedPanel = (selected) => {
     setSelectedPanel(selected);

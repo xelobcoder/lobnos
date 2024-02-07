@@ -28,19 +28,6 @@ export default function GenerateBillingInvoice() {
 
   return (
     <>
-      <nav className='text-white p-2 m-0 d-flex' id='print-receipt-bar'>
-        <div className='lims-color' style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginRight: '10px' }}>
-          ZOOM
-        </div>
-        <div className='d-flex justify-content-between' style={{ width: "19%", marginRight: '4px' }}>
-          <button className='btn btn-outline-light btn-sm text-capitalize' onClick={() => window.print()} style={{ marginRight: '4px' }}><Print /> print</button>
-          <button className='btn btn-outline-light btn-sm text-capitalize' style={{ marginRight: '4px' }}
-            onClick={(e) => router.back()}><ArrowBackIos />back</button>
-          <button className='btn btn-outline-light btn-sm text-capitalize' style={{ marginRight: '4px' }} onClick={(e) => {
-            router.push(`/billing/updatebilling?billingid=${router.query.billingid}`)
-          }}><Edit />update test</button>
-        </div>
-      </nav>
       <div id='invoice-receipt-view'>
         <div className='company-header container'>
           <CompanyHeaders details={centerInfo} />
@@ -135,10 +122,10 @@ export default function GenerateBillingInvoice() {
 }
 
 
-GenerateBillingInvoice.getLayout = function (page) {
-  return (
-    <>
-      {page}
-    </>
-  )
-}
+// GenerateBillingInvoice.getLayout = function (page) {
+//   return (
+//     <>
+//       {page}
+//     </>
+//   )
+// }

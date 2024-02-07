@@ -458,7 +458,9 @@ export const forwardEmailReceipt = async (billingid) => {
    if (billingid) {
       const mail = await customFetch(`billing/email/receipt?billingid=${billingid}`);
       console.log(mail)
-   } else alert(`Please select a billingid to forward receipt via email `)
+   } else alert(
+      `Please select a billingid to forward receipt via email`
+   );
 }
 
 

@@ -80,10 +80,10 @@ export default function RESULT_FOR_PRINTING() {
 
 
 
-RESULT_FOR_PRINTING.getLayout = function (page) {
-  return (
-    <>
-      {page}
-    </>
-  )
-}
+// RESULT_FOR_PRINTING.getLayout = function (page) {
+//   return (
+//     <>
+//       {page}
+//     </>
+//   )
+// }

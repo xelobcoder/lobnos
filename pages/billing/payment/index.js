@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Navbar from "../../../components/payment/Navbar";
 import TableDisplay from "../../../components/accessories/TableDisplay";
-import { customFetch } from "../../../components/Auth/customFetch";
+import { customFetch, updatePagination } from "../../../components/Auth/customFetch";
 import { useRouter } from "next/router";
 import SettingsLayout from "../../../components/settingsComponents/SettingsLayout";
 import SidebarFrontPage from "../../../components/frontpagesidebar";
-
+import Loader from '../../../components/accessories/Loader';
+import Pagination from '../../../components/accessories/pagination';
 export default function Payment_Extra() {
+  const initValues = { from: "", to: "", month: "", patientid: "", count: 10, page: 1 }
   // using this state , we bind to the checkbox and can print, whatsapp or email client receipt 
-  const [querystate, setQueryState] = useState({ date: "", month: "", patientid: "" });
+  const [querystate, setQueryState] = useState(initValues);
+  const [loadPage, setLoadPage] = useState(false);
+  const [isloading, setLoading] = useState(true);
   const [selectedBilling, setBilling] = useState(null);
   // this temporarily stores the transaction data to prevent frequent backend fetching
   const [temporary, setTemporary] = useState([]);
@@ -16,64 +20,62 @@ export default function Payment_Extra() {
   const [transactionData, setTransactionsData] = useState([]);
   // create a router instance
   const router = useRouter();
-
   // definition of rows
   const columns = [
-    {
-      Header: '#', accessor: '', Cell: ({ row }) => {
-        const billing_id = row.original.billingid;
-        return (
-          <input type="checkbox" value={billing_id} onChange={(ev) => { setBilling(billing_id) }} checked={selectedBilling === billing_id} />
-        )
-      }
-    },
     { Header: "Date", accessor: "date", Cell: ({ value }) => <span>{value.slice(0, 10)}</span> },
     {
       Header: "Patient ID", accessor: "patientid",
-      Cell: ({ value }) => (
-        <div onClick={(e) => setQueryState({ ...querystate, patientid: value })}>
-          {value}
-        </div>
-      ),
-    },
-    { Header: 'Fullname', accessor: 'fullname' },
-    {
-      Header: "Billing ID",
-      accessor: "billingid",
-      Cell: ({ value }) => (
-        <span onClick={() => setBilling(value)}>{value}</span>
-      )
-    },
-    {
-      Header: "Amount Due",
-      accessor: "payable",
-      Cell: ({ value }) => <span> {value}</span>,
-    },
-    {
-      Header: "Paid Amount",
-      accessor: "paid_amount",
-    },
-    {
-      Header: "Outstanding",
-      accessor: "outstanding",
       Cell: ({ value, row }) => (
-        <div
-          className={`${value > 0 ? 'text-danger' : 'text-primary'}`}
-          {...row.getRowProps()}>
+        <div>
+          <div onClick={(e) => setQueryState({ ...querystate, patientid: value })}>
           {value}
+          </div>
+          <div>
+            {">> "}billingid({row.original.billingid})
+          </div>
         </div>
       ),
+    },
+    {
+      Header: 'Fullname', accessor: 'fullname'
+    },
+    {
+      Header: "brief details",
+      accessor: "payable",
+      Cell: ({ value, row }) => {
+        return (
+          <div>
+            <div> Amount due: {value}</div>
+            <div>Amount paid : {row.original.paid_amount}</div>
+            <div>
+              Outstanding : <span className={`${row.original.outstanding > 0 ? 'text-danger' : 'text-primary'}`}>{row.original.outstanding}</span>
+            </div>
+          </div>
+        )
+      },
     },
     {
       Header: "Action",
-      accessor: "",
-      Cell: ({ value, row }) => {
+      accessor: "outstanding",
+      Cell: ({ row }) => {
         const outstanding_bill = row.original?.outstanding;
         return (
-          <div>
-            {outstanding_bill > 0 ? <button className="btn btn-danger btn-sm">settle</button>
+          <div className="d-flex">
+            <button className="btn btn-warning btn-sm">
+              details
+            </button>
+            <button className="btn btn-warning btn-sm mx-2">
+              receipt
+            </button>
+            {outstanding_bill > 0 ?
+              <button
+                onClick={(ev) => { router.push(`/billing/payment/update/${row.original.patientid}`) }}
+                className="btn btn-danger btn-sm" style={{ marginRight: '5px' }}> {" "}settle</button>
               :
-              <button className="btn-sm btn btn-success">cleared</button>}
+              <button className="btn btn-success btn-sm" >
+                settled
+              </button>
+            }
           </div>
         )
       }
@@ -104,22 +106,49 @@ export default function Payment_Extra() {
 
   // const setBill = (event) => { const { value } = event.target; setBilling(value); };
 
-  const runQuery = async () => {
-    // get data from backend
-    let response = await customFetch(
-      `billing/payment/info/client?date=${querystate.date}&&month=${querystate.month}&&patientid=${querystate.patientid}`
-    );
-    const { status, statusCode, result } = response;
-    if (status == "success" && statusCode == 200) {
-      setTransactionsData(result);
-      setTemporary(result);
-    }
-  };
+  const runQuery = useCallback(async () => {
+    const { patientid, from, to, count, page } = querystate;
+    setLoading(true);
+    customFetch(`billing/payment/info/client?from=${from}&&to=${to}&&patientid=${patientid}&&count=${count}&&page=${page}`)
+      .then((data) => {
+        const { status, statusCode, result } = data;
+        if (status == "success" && statusCode == 200) {
+          setTransactionsData(result);
+          setTemporary(result);
+        }
+        setLoading(false);
+      }).catch((err) => {
+        setLoading(false);
+        setTransactionsData([]);
+        setTemporary([]);
+      })
 
-  useEffect(() => {
-    runQuery()
-  }, [])
+  }, [querystate])
 
+  const clearQuery = () => { setQueryState(initValues) };
+
+  useEffect(() => { runQuery() }, [runQuery])
+
+  const updatePage = (value) => {
+    updatePagination(value, setQueryState, querystate)
+  }
+
+  const render = () => {
+    if (isloading) return <Loader />
+    else return (
+      <div>
+        <TableDisplay
+          filtering={true}
+          showpage={false}
+          column={columns}
+          data={transactionData}
+        />
+        <div className="d-flex justify-content-center">
+          <Pagination updateFunction={updatePage} load={setLoadPage} />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -128,18 +157,13 @@ export default function Payment_Extra() {
           <Navbar
             handleChange={handleChange}
             query={querystate}
-            runquery={runQuery}
+            clearQuery={clearQuery}
             select={handleDropdownSelect}
             updateBill={updateBill}
             selectedBilling={selectedBilling}
           />
-          {(!querystate.date && !querystate.month && !querystate.patientid) && (<h4>Recent Transactions</h4>)}
-          <div>
-            <TableDisplay
-              column={columns}
-              data={transactionData}
-            />
-          </div>
+          <h4 className="mx-2">Transactions</h4>
+          {render()}
         </div>
       </SettingsLayout>
     </>

@@ -1,22 +1,26 @@
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Edit } from '@mui/icons-material';
 import { customFetch } from '../../components/Auth/customFetch';
+import Loader from '../../components/accessories/Loader';
 import TableDisplay from '../../components/accessories/TableDisplay';
-import { Button } from '@mui/material';
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 import SidebarFrontPage from '../../components/frontpagesidebar';
 
 export default function Billedclients() {
-  const [billedclients, setBilledclients] = React.useState([]);
+  const [isloading, setLoading] = useState(true);
+  const [billedclients, setBilledclients] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
         const { result } = await customFetch('billedclients');
         setBilledclients(result);
+        setLoading(false);
       } catch (error) {
-        console.log(error);
+        setLoading(false);
+        setBilledclients([]);
       }
     };
     fetchData();
@@ -72,13 +76,18 @@ export default function Billedclients() {
     { Header: 'action', accessor: 'ACTION', Cell: actionCellRenderer, width: 300 },
   ]
 
-  console.log(billedclients)
+
+
+  const renderer = () => {
+    if (isloading) return <Loader />
+    else return <TableDisplay data={billedclients} column={columns} filtering={true} />
+  }
 
 
   return (
     <>
       <SettingsLayout sidebar={<SidebarFrontPage />}>
-        <TableDisplay data={billedclients} column={columns} filtering={true} />
+        {renderer()}
       </SettingsLayout>
     </>
   );
