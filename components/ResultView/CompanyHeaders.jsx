@@ -9,7 +9,7 @@ export default function CompanyHeaders({ details }) {
     <div>
       <div className="company-logo">
         <div className="logo">
-          <Image src={`${process.env.BASEURL}/settings/companyprofile/images`} width={100} height={100} alt="company Logo" />
+          <Image src={`http://localhost:5000/api/v1/settings/companyprofile/images`} width={100} height={100} alt="company Logo" />
         </div>
         <div>
           <div className="company-name">{name}</div>
