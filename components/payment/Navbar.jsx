@@ -1,5 +1,4 @@
 import { useRouter } from "next/navigation"
-import { Dropdown } from "react-bootstrap"
 import { Email, MonetizationOn, Print } from "@mui/icons-material"
 import { forwardEmailReceipt } from "../Auth/customFetch"
 
@@ -7,10 +6,10 @@ export default function Navbar({ query, updateBill, handleChange, clearQuery, se
   const navigate = useRouter()
 
   return (
-    <div className="d-flex justify-content-between">
+    <div className="grid-70-30">
       <div className="d-flex">
-        <div className="form-row d-flex col-4">
-          <label className="my-1">From</label>
+        <div className="form-row d-flex col-3">
+          <label className="my-1 mx-2">From</label>
           <input
             className="custom-input mx-2"
             type="date"
@@ -21,7 +20,7 @@ export default function Navbar({ query, updateBill, handleChange, clearQuery, se
             }}
           />
         </div>
-        <div className="form-row d-flex col-4">
+        <div className="form-row d-flex col-3">
           <label className="my-1">To</label>
           <input
             className="custom-input mx-2"
@@ -43,12 +42,12 @@ export default function Navbar({ query, updateBill, handleChange, clearQuery, se
           type="number"
         />
         <button className="btn btn-danger btn-sm py-0" onClick={clearQuery}>
-          clear
+          clear fields
         </button>
       </div>
       <div>
-        <div className="d-flex" style={{ marginLeft: "30px" }}>
-          <button className="btn btn-primary btn-sm" onClick={updateBill}>
+        <div className="d-flex justify-content-end">
+          {/* <button className="btn btn-primary btn-sm" onClick={updateBill}>
             update
           </button>
           <button
@@ -58,15 +57,15 @@ export default function Navbar({ query, updateBill, handleChange, clearQuery, se
               navigate.push(`payment/invoice/${selectedBilling}`)
             }}>
             invoice
-          </button>
-          <button
+          </button> */}
+          {/* <button
             startIcon={<Email />}
             className="btn btn-primary btn-sm mx-1"
             onClick={(ev) => {
               forwardEmailReceipt(selectedBilling)
             }}>
             Email
-          </button>
+          </button> */}
           <button startIcon={<MonetizationOn />} className="btn btn-primary btn-sm mx-1">
             sales summary
           </button>

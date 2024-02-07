@@ -8,6 +8,9 @@ import OutstandingBills from '../../../../components/petientsComponent/Outstandi
 import { ToastContainer, toast } from "react-toastify";
 import Loader from '../../../../components/accessories/Loader';
 import AuthContext from '../../../../components/Auth/useAuthentification';
+
+
+
 export default function BillingUpdatelientpaymentHistory() {
   const { patientid } = useRouter().query;
   const [pyinfo, setPyinfo] = useState({ amount: 0, paymentmode: 0 })

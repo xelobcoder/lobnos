@@ -6,9 +6,10 @@ import TestProfileBilling from "../../components/Billing/testprofile";
 import SamplingInformation from "../../components/Billing/samplingInformation";
 import { customFetch } from "../../components/Auth/customFetch";
 import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
+import PreviewPatientInformation from "../../components/petientsComponent/PreviewPatientInformation";
 export default function Updatebilling() {
   const [clientDetails, setClientDetails] = useState([]);
-  const [updateViewer, setUpdateViewer] = useState(false);
+  const [updateViewer, setUpdateViewer] = useState(true);
 
   // pick infromation from the database
   const billid = useSearchParams().get('billingid');
@@ -38,7 +39,7 @@ export default function Updatebilling() {
             ? <h1>No Data available</h1> :
             (
               <>
-                <UpdatePersonal handleview={updateTestButton} clientDetails={clientDetails[0]} />
+                <UpdatePersonal clientDetails={clientDetails[0]} />
                 <SamplingInformation id={billid} source={clientDetails} />
                 {updateViewer && (<TestProfileBilling clientDetails={clientDetails[0]} />)}
               </>

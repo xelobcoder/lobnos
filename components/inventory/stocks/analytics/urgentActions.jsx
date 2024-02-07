@@ -92,7 +92,7 @@ export default function InventoryUrgentActionsView() {
 
   return (
     <>
-      <Tabs id="controlled-tab-example" activeKey={key} onSelect={(k) => setKey(k)} className="mb-3">
+      <Tabs id="inventory-brief" activeKey={key} onSelect={(k) => setKey(k)} className="mb-3">
         <Tab eventKey="nearexpiry" title="Near Expiry">
         {key === "nearexpiry" && <UseUrgentActions columns={nearExpiry} endpoint={`inventory/analytics/urgentactions?action=nearexpiry`} />}
         </Tab>

@@ -2,7 +2,6 @@ import { DeleteOutlineTwoTone } from '@mui/icons-material';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Autocomplete, TextField } from '@mui/material';
 import { customFetch, customPost } from '../Auth/customFetch';
-
 import { ToastContainer, toast } from 'react-toastify';
 
 

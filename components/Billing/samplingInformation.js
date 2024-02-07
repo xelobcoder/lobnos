@@ -6,13 +6,13 @@ export default function SamplingInformation({ id }) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState([]);
 
-  const getAscensionInformation = useCallback(async (id) => {
+  const getAscensionInformation = useCallback(async () => {
     try { getDataAndUpdateState(setData, `phelobotomy/ascension?billingid=${id}&&state='true'`); setLoading(false) } catch (err) { console.log(err) };
-  }, [])
+  }, [id])
 
   useEffect(() => {
-    if (id) { getAscensionInformation(id) }
-  }, [id])
+    getAscensionInformation()
+  }, [getAscensionInformation])
 
 
 
@@ -20,8 +20,8 @@ export default function SamplingInformation({ id }) {
     <div>
       {(loading && data.length === 0) ? <ISLOADING /> : (
         <div className='card my-3'>
-          <div className='card-header'>
-            <h4>Sampling information</h4>
+          <div className='card-header bg-secondary text-white'>
+            <h5>Sampling information</h5>
           </div>
           <div className='card-body overflow-scroll'>
             <table className='billing-cart-table'>
@@ -34,7 +34,7 @@ export default function SamplingInformation({ id }) {
                   <th>validation date</th>
                   <th>sampling message</th>
                   <th>status</th>
-                  <th>rejection msg</th>
+                  <th>rejection message</th>
                   <th>disputed</th>
                   <th>disputed on</th>
                   <th>dispute reason</th>

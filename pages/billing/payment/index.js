@@ -61,10 +61,11 @@ export default function Payment_Extra() {
         const outstanding_bill = row.original?.outstanding;
         return (
           <div className="d-flex">
-            <button className="btn btn-warning btn-sm">
+            <button className="btn btn-warning btn-sm" onClick={(ev) => { router.push(`updatebilling?billingid=${row.original.billingid}&&patientid=${row.original.patientid}`) }}>
               details
             </button>
-            <button className="btn btn-warning btn-sm mx-2">
+            <button className="btn btn-warning btn-sm mx-2"
+              onClick={(ev) => { router.push(`/billing/payment/invoice/receipt?billingid=${row.original.billingid}`) }}>
               receipt
             </button>
             {outstanding_bill > 0 ?
@@ -91,20 +92,12 @@ export default function Payment_Extra() {
     setQueryState({ ...querystate, month: eventKey });
   };
 
-  // const filterData = function (value) {
-  //   const filteredBill = transactionData.filter((item, index) => {
-  //     return item.billingid == value;
-  //   });
-  //   return filteredBill;
-  // };
-
   const updateBill = (event) => {
     if (querystate.patientid != null && querystate.patientid != '') {
       router.push(`/billing/payment/update/${querystate.patientid}`)
     }
   };
 
-  // const setBill = (event) => { const { value } = event.target; setBilling(value); };
 
   const runQuery = useCallback(async () => {
     const { patientid, from, to, count, page } = querystate;
@@ -125,13 +118,15 @@ export default function Payment_Extra() {
 
   }, [querystate])
 
-  const clearQuery = () => { setQueryState(initValues) };
+  const clearQuery = () => {
+    const { from, to, patientid } = querystate;
+    if (from == "" && to == "" && patientid == "") return;
+    setQueryState(initValues)
+  };
 
   useEffect(() => { runQuery() }, [runQuery])
 
-  const updatePage = (value) => {
-    updatePagination(value, setQueryState, querystate)
-  }
+  const updatePage = (value) => { updatePagination(value, setQueryState, querystate) }
 
   const render = () => {
     if (isloading) return <Loader />

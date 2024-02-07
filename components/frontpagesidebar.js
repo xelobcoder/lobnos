@@ -64,8 +64,8 @@ export default function SidebarFrontPage() {
                 <MonetizationOn />
               </div>
               <div className='text'>
-                <Link href="/billing/billedclients">
-                  Billed Clients
+                <Link href="/billing/salessummary">
+                  sales summary
                 </Link>
               </div>
             </li>

@@ -3063,3 +3063,18 @@ textarea:required:focus:invalid {
   margin-right: 10px;
   grid-gap: 10px;
 }
+
+#invoice-receipt-view {
+  margin: 0px 20%;
+}
+
+
+@media print {
+ #invoice-receipt-view {
+   margin: 0px !important;
+   font-size: 12px !important;
+ }
+ #receipt-buttons {
+  display:  none !important;
+} 
+}

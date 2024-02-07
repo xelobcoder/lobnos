@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import CompanyHeaders from '../../../../components/ResultView/CompanyHeaders'
-import { customFetch, getCompanyInformation } from '../../../../components/Auth/customFetch'
-import { ArrowBackIos, Edit, Print } from '@mui/icons-material';
+import { customFetch, getCompanyInformation } from '../../../../components/Auth/customFetch';
 import VersionFooter from '../../../../components/accessories/VersionFooter';
 
 
@@ -18,8 +17,7 @@ async function getInvoiceData(id, wrapper) {
 export default function GenerateBillingInvoice() {
   const [centerInfo, setCenterInfo] = useState({});
   const [invoice, setInvoice] = useState({ testInformation: [], clientInformation: {} })
-  const router = useRouter();
-  const billingid = router.query.billingid;
+  const billingid = useSearchParams().get("billingid");
 
   useEffect(() => {
     getInvoiceData(billingid, setInvoice);
@@ -28,43 +26,47 @@ export default function GenerateBillingInvoice() {
 
   return (
     <>
-      <div id='invoice-receipt-view'>
-        <div className='company-header container'>
+      <div id='receipt-buttons'>
+        <button type='button' onClick={(ev) => { window.print() }} className='btn btn-secondary btn-sm'>Print receipt</button>
+        <button className='btn btn-secondary btn-sm mx-2'>Email receipt</button>
+      </div>
+      <div id='invoice-receipt-view' >
+        <div className='company-header border-bottom  border-2 border-dark'>
           <CompanyHeaders details={centerInfo} />
         </div>
-        <hr></hr>
-        <div className='personal-information container'>
-          <div className='_item'>
+
+        <div className='personal-information  grid-50 '>
+          <div className='_item d-flex'>
             <div className='header'>Billing id: </div>
-            <div className='info'>{invoice.clientInformation?.BILLINGID} </div>
+            <div className='info mx-2 text-capitalize'>{invoice.clientInformation?.billingid} </div>
           </div>
-          <div className='_item'>
+          <div className='_item d-flex'>
             <div className='header'>Fullname: </div>
-            <div className='info'>{invoice.clientInformation?.FULLNAME} </div>
+            <div className='info mx-2 text-capitalize'>{invoice.clientInformation?.fullname} </div>
           </div>
-          <div className='_item'>
+          <div className='_item d-flex'>
             <div className='header'>Age: </div>
-            <div className='info'>{invoice.clientInformation?.AGE} {invoice.clientInformation?.AGETYPE} </div>
+            <div className='info mx-2 text-capitalize'>{invoice.clientInformation?.age} {invoice.clientInformation?.agetype} </div>
           </div>
-          <div className='_item'>
+          <div className='_item d-flex'>
             <div className='header'>Gender: </div>
-            <div className='info'> {invoice.clientInformation?.GENDER} </div>
+            <div className='info mx-2 text-capitalize'> {invoice.clientInformation?.gender} </div>
           </div>
-          <div className='_item'>
+          <div className='_item d-flex'>
             <div className='header'>Email: </div>
-            <div className='info'>{invoice.clientInformation?.EMAIL} </div>
+            <div className='info mx-2 '>{invoice.clientInformation?.email} </div>
           </div>
-          <div className='_item'>
+          <div className='_item d-flex'>
             <div className='header'>Billing Date: </div>
-            <div className='info'>{invoice.clientInformation?.DATE} </div>
+            <div className='info mx-2 text-capitalize'>{new Date(invoice.clientInformation?.date).toLocaleDateString()} </div>
           </div>
-          <div className='_item'>
+          <div className='_item d-flex'>
             <div className='header'>Contact: </div>
-            <div className='info'>{invoice.clientInformation?.MOBILE_NUMBER} </div>
+            <div className='info mx-2 text-capitalize'>{invoice.clientInformation?.mobile_number} </div>
           </div>
         </div>
-        <div className='billing-test-section container'>
-          <table className='table'>
+        <div className='billing-test-section'>
+          <table className='billing-cart-table'>
             <thead className='table-primary text-capitalize'>
               <tr>
                 <th>#</th>
@@ -77,8 +79,8 @@ export default function GenerateBillingInvoice() {
                 return (
                   <tr key={index}>
                     <td>{index + 1}</td>
-                    <td>{item.NAME}</td>
-                    <td>{item.PRICE}</td>
+                    <td>{item.name}</td>
+                    <td>{item.price}</td>
                   </tr>
                 )
               })}
@@ -87,22 +89,22 @@ export default function GenerateBillingInvoice() {
               <tr>
                 <td> {">> "}Total </td>
                 <td></td>
-                <td>{invoice.clientInformation?.PAYABLE}</td>
+                <td>{invoice.clientInformation?.payable}</td>
               </tr>
               <tr>
                 <td> {">> "}Discount </td>
                 <td></td>
-                <td>{invoice.clientInformation?.DISCOUNT}</td>
+                <td>{invoice.clientInformation?.discount}</td>
               </tr>
               <tr>
                 <td> {">> "}Amount Paid</td>
                 <td></td>
-                <td>{invoice.clientInformation?.PAID_AMOUNT}</td>
+                <td>{invoice.clientInformation?.paid_amount}</td>
               </tr>
               <tr>
                 <td> {">> "}Outstanding </td>
                 <td></td>
-                <td>{invoice.clientInformation?.OUTSTANDING}</td>
+                <td>{invoice.clientInformation?.outstanding}</td>
               </tr>
             </tfoot>
           </table>
@@ -113,19 +115,8 @@ export default function GenerateBillingInvoice() {
           </h6>
           <VersionFooter />
         </div>
-        <div className='container' id='inVoiceTitle'>
-          <h1 className='bg-light br-5 text-center text-dark p-2'>Invoice</h1>
-        </div>
       </div>
     </>
   )
 }
 
-
-// GenerateBillingInvoice.getLayout = function (page) {
-//   return (
-//     <>
-//       {page}
-//     </>
-//   )
-// }
