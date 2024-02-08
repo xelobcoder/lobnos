@@ -22,7 +22,10 @@ export default function Payment_Extra() {
   const router = useRouter();
   // definition of rows
   const columns = [
-    { Header: "Date", accessor: "date", Cell: ({ value }) => <span>{value.slice(0, 10)}</span> },
+    {
+      Header: "Date", accessor: "date",
+      Cell: ({ value }) => <span style={{ width: '90px !important' }}>{new Date(value).toLocaleDateString()}</span>
+    },
     {
       Header: "Patient ID", accessor: "patientid",
       Cell: ({ value, row }) => (
@@ -61,10 +64,10 @@ export default function Payment_Extra() {
         const outstanding_bill = row.original?.outstanding;
         return (
           <div className="d-flex">
-            <button className="btn btn-warning btn-sm" onClick={(ev) => { router.push(`updatebilling?billingid=${row.original.billingid}&&patientid=${row.original.patientid}`) }}>
+            <button className="btn btn-warning btn-sm mx-1" onClick={(ev) => { router.push(`updatebilling?billingid=${row.original.billingid}&&patientid=${row.original.patientid}`) }}>
               details
             </button>
-            <button className="btn btn-warning btn-sm mx-2"
+            <button className="btn btn-warning btn-sm mx-1"
               onClick={(ev) => { router.push(`/billing/payment/invoice/receipt?billingid=${row.original.billingid}`) }}>
               receipt
             </button>

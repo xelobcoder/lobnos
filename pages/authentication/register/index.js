@@ -32,12 +32,12 @@ export default function Authentication_index_page() {
 
   useEffect(() => {
     if (employeeid) {
-      customFetch(`logins?id=${employeeid}`)
+      customFetch(`logins/user?id=${employeeid}`)
         .then((data) => {
           const { statusCode, message, result } = data;
           if (statusCode == 200 && message == 'success' && result.length > 0) {
-            const { ROLE, USERNAME, EMAIL, EMPLOYEEID } = result[0]
-            setRegister({ name: USERNAME, email: EMAIL, role: ROLE })
+            const { role, username, email, employeeid } = result[0]
+            setRegister({ name: username, email, role })
           }
         })
         .catch((err) => console.log(err))

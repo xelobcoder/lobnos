@@ -465,11 +465,18 @@ export const forwardEmailReceipt = async (billingid) => {
 
 
 
-export const getInstitutionUsers = async (setUser) => {
-   const response = await customFetch('logins');
-   const { statusCode, message, result } = response;
-   if (statusCode === 200) {
-      setUser(result);
+export const getInstitutionUsers = async (setUser, queryendpoint, setLoading) => {
+   try {
+      if (setLoading) setLoading(true);
+      let endpoint = 'logins';
+      if (queryendpoint) endpoint = queryendpoint;
+      const response = await customFetch(endpoint);
+      const { statusCode, status, result } = response;
+      if (statusCode === 200 && status === "success") setUser(result);
+      if (setLoading) setLoading(false);
+   } catch (err) {
+      if (setLoading) setLoading(false);
+      setUser([]);
    }
 }
 

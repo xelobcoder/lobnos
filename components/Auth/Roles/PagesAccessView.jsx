@@ -3,7 +3,7 @@ import React from 'react'
 export default function PagesAccessView({data, changeEvent, target,handler,pageAcesshandler,role}) {
   return (
     <>
-      <div className='row'>
+      {/* <div className='row'>
         {
           Object.entries(data).map((item, index) => {
             const [header, value] = item;
@@ -26,7 +26,7 @@ export default function PagesAccessView({data, changeEvent, target,handler,pageA
             }
           })
         }
-      </div>
+      </div> */}
       <div className="row">
         <h5 className="mt-3 text-lead text-danger">
           Page Access

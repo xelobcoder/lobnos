@@ -59,14 +59,19 @@ export default function Add_department() {
 
   const getEmployees = async () => {
     const response = await customFetch('logins');
-    const { message, statusCode, result } = response;
-    statusCode === 200  && message == 'Success' ? setEmployeeList(result) : setEmployeeList([]);
+    const { status, statusCode, result } = response;
+    if (statusCode === 200 && status == 'success') {
+      setEmployeeList(result)
+    } else {
+      setEmployeeList([])
+    }
   }
 
 
   useEffect(() => {
     getEmployees();
   }, [])
+
 
 
 

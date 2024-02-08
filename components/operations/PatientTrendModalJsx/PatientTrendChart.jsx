@@ -1,5 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { LineChart, Bar, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, BarChart } from "recharts";
+import { useEffect, useState } from "react";
+import {
+  LineChart, Bar, Line, XAxis, YAxis, Tooltip, Legend,
+  CartesianGrid, BarChart
+} from "recharts";
 
 export default function PatientTrendChart({ data, parameters, chart }) {
   const [trenddata, setTrendData] = useState([]);
@@ -9,7 +12,7 @@ export default function PatientTrendChart({ data, parameters, chart }) {
       let chartdata = [];
       parameters.map((item, index) => {
         data.map((trend, key) => {
-          const { billingid, data, date } = trend;
+          const { data, date } = trend;
           const filteredparam = data.filter((params) => item == params?.parameter);
           // if chartdata is empty then add first data
           const dataset = { parameter: item, data: filteredparam[0]?.value, date: new Date(date).toLocaleDateString() };
@@ -50,7 +53,7 @@ export default function PatientTrendChart({ data, parameters, chart }) {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar type="monotone" dataKey="data" fill="#8884d8" />
+                      <Bar type="monotone" dataKey="data" fill="#8884d8" barSize={20}/>
                     </BarChart>
                   ) : (
                     <LineChart width={800} height={400} data={item.data} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
