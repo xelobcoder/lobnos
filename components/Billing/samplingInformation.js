@@ -28,13 +28,13 @@ export default function SamplingInformation({ id }) {
               <thead>
                 <tr>
                   <th>test</th>
-                  <th>collection</th>
-                  <th>collection date</th>
-                  <th>collection time</th>
-                  <th>validation date</th>
-                  <th>sampling message</th>
+                  <th>collected</th>
+                  <th>date</th>
+                  <th>time</th>
+                  <th>validation</th>
+                  <th>message</th>
                   <th>status</th>
-                  <th>rejection message</th>
+                  <th>rejected</th>
                   <th>disputed</th>
                   <th>disputed on</th>
                   <th>dispute reason</th>

@@ -17,8 +17,8 @@ export default function PerformanceChartGeneral({ target, upCallReceiver, type, 
           setLoading(false)
           if (result && result.length > 0) {
             setData(result)
-            upcall && upCallReceiver(result)
           } else setData([])
+          upcall && upCallReceiver(result)
         })
         .catch((err) => {
           setLoading(false)

@@ -2,9 +2,11 @@ import  { useState ,useEffect} from 'react';
 import { currencyFormatter, getBranches, monthCollection } from "../../components/Auth/customFetch"
 import PerformanceChartGeneral from "../../components/salesSummary/PerformanceChartGeneral"
 import CardRacks from "../accessories/CardRacks"
+import { useRouter } from 'next/navigation';
 
 export default function GeneralSalesChart() {
   const [branches, setBranches] = useState([])
+  const [active, setActive] = useState(null)
   const [yearly, setYear] = useState(0)
   const [week, setWeek] = useState(0)
   const [today, setToday] = useState(0)
@@ -12,6 +14,7 @@ export default function GeneralSalesChart() {
   const [selectedBranch, setSelectedBranch] = useState("all")
   const [show, setShow] = useState("salesAmount")
   const [type, setType] = useState("Bar")
+
   useEffect(() => {
     getBranches(setBranches)
   }, [])
@@ -27,7 +30,7 @@ export default function GeneralSalesChart() {
         const { salesAmount } = sales[0]
         setYear(salesAmount)
       }
-    }
+    } else setYear(0)
   }
 
   const handleMonthSummary = (data) => {
@@ -39,7 +42,7 @@ export default function GeneralSalesChart() {
         const { salesAmount } = sales[0]
         setMonth(salesAmount)
       }
-    }
+    } else setMonth(0)
   }
 
   const handleTodaySummary = (data) => {
@@ -51,6 +54,8 @@ export default function GeneralSalesChart() {
         const { salesAmount } = sales[0]
         setToday(salesAmount)
       }
+    } else {
+      setToday(0)
     }
   }
 
@@ -66,7 +71,6 @@ export default function GeneralSalesChart() {
     } else {
       week = "Fourth Week"
     }
-    console.log(data)
     if (data.length > 0 && today) {
       const sales = data.filter((item, index) => item.Week === week)
       if (sales.length <= 0) setWeek(0)
@@ -74,8 +78,20 @@ export default function GeneralSalesChart() {
         const { salesAmount } = sales[0]
         setWeek(salesAmount)
       }
+    } else {
+      setWeek(0)
     }
   }
+
+  const router = useRouter()
+  const handleClickSum = (value) => {
+    setActive(value)
+    const isViewDetails = confirm("Do you want to view details of this summary?")
+    if (isViewDetails) {
+      router.push('/billing/payment/salesdetails/today');
+    }
+  }
+
   return (
     <>
       <div className="d-flex gap-3 px-2 py-2">
@@ -109,10 +125,58 @@ export default function GeneralSalesChart() {
         </select>
       </div>
       <div className="grid-5">
-        <CardRacks body={<h4 className="mx-2 mt-2">{currencyFormatter.format(today)}</h4>} header={<h6 className="m-0">Today Sales</h6>} />
-        <CardRacks body={<h4 className="mx-2 mt-2">{currencyFormatter.format(week)}</h4>} header={<h6 className="m-0">week sales</h6>} />
-        <CardRacks body={<h4 className="mx-2 mt-2">{currencyFormatter.format(month)}</h4>} header={<h6 className="m-0">Month sales</h6>} />
-        <CardRacks body={<h4 className="mx-2 mt-2">{currencyFormatter.format(yearly)}</h4>} header={<h6 className="m-0">Year Sales</h6>} />
+        <CardRacks
+          activestate={active == 1}
+          body={
+            <h4
+              onClick={(ev) => {
+                handleClickSum(1)
+              }}
+              className="mx-2 mt-2">
+              {currencyFormatter.format(today)}
+            </h4>
+          }
+          header={<h6 className="m-0">Today Sales</h6>}
+        />
+        <CardRacks
+          activestate={active === 2}
+          body={
+            <h4
+              onClick={(ev) => {
+                handleClickSum(2)
+              }}
+              className="mx-2 mt-2">
+              {currencyFormatter.format(week)}
+            </h4>
+          }
+          header={<h6 className="m-0">week sales</h6>}
+        />
+        <CardRacks
+          activestate={active === 3}
+          body={
+            <h4
+              onClick={(ev) => {
+                handleClickSum(3)
+              }}
+              className="mx-2 mt-2">
+              {currencyFormatter.format(month)}
+            </h4>
+          }
+          header={<h6 className="m-0">Month sales</h6>}
+        />
+        <CardRacks
+          activestate={active === 4}
+          body={
+            <h4
+              onClick={(ev) => {
+                handleClickSum(4)
+              }}
+              className="mx-2 mt-2">
+              {currencyFormatter.format(yearly)}
+            </h4>
+          }
+          header={<h6 className="m-0">Year Sales</h6>}
+        />
         <CardRacks header={<h6 className="m-0">Month sales</h6>} />
       </div>
       <div className="sales_summary">

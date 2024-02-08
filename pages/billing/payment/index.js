@@ -64,8 +64,8 @@ export default function Payment_Extra() {
         const outstanding_bill = row.original?.outstanding;
         return (
           <div className="d-flex">
-            <button className="btn btn-warning btn-sm mx-1" onClick={(ev) => { router.push(`updatebilling?billingid=${row.original.billingid}&&patientid=${row.original.patientid}`) }}>
-              details
+            <button className="btn btn-primary btn-sm mx-1" onClick={(ev) => { router.push(`updatebilling?billingid=${row.original.billingid}&&patientid=${row.original.patientid}`) }}>
+              update bill
             </button>
             <button className="btn btn-warning btn-sm mx-1"
               onClick={(ev) => { router.push(`/billing/payment/invoice/receipt?billingid=${row.original.billingid}`) }}>
@@ -76,7 +76,9 @@ export default function Payment_Extra() {
                 onClick={(ev) => { router.push(`/billing/payment/update/${row.original.patientid}`) }}
                 className="btn btn-danger btn-sm" style={{ marginRight: '5px' }}> {" "}settle</button>
               :
-              <button className="btn btn-success btn-sm" >
+              <button
+              onClick={(ev) => { router.push(`/billing/payment/update/${row.original.patientid}`) }}
+                className="btn btn-success btn-sm" >
                 settled
               </button>
             }
