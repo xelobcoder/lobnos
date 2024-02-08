@@ -83,7 +83,6 @@ export default function GeneralSalesChart() {
           onChange={(ev) => {
             setSelectedBranch(ev.target.value)
           }}>
-          <option> select branch</option>
           <option value={"all"}>all</option>
           {branches.map((item, index) => {
             return (

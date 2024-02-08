@@ -9,20 +9,22 @@ export default function PerformanceChartGeneral({ target, upCallReceiver, type, 
   const [isloading, setLoading] = useState(true)
 
   const getAndTransform = useCallback(async () => {
-    setLoading(true)
-    customFetch(`sales/summary/general?target=${target}&&branch=${branchid}`)
-      .then((data) => {
-        const { result } = data
-        setLoading(false)
-        if (result && result.length > 0) {
-          setData(result)
-          upcall && upCallReceiver(result)
-        } else setData([])
-      })
-      .catch((err) => {
-        setLoading(false)
-        setData([])
-      })
+    if (branchid && target) {
+      setLoading(true)
+      customFetch(`sales/summary/general?target=${target}&&branch=${branchid}`)
+        .then((data) => {
+          const { result } = data
+          setLoading(false)
+          if (result && result.length > 0) {
+            setData(result)
+            upcall && upCallReceiver(result)
+          } else setData([])
+        })
+        .catch((err) => {
+          setLoading(false)
+          setData([])
+        })
+    }
   }, [target, branchid])
 
   useEffect(() => {
