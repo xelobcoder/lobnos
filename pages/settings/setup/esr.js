@@ -37,17 +37,17 @@ export default function ESR() {
       <CHEMISTRY_LAYOUT_SETUP>
         <ToastContainer/>
         <form>
-          <div className='mx-3 my-2' >
+          <div className='mx-2 my-2' >
             <div className='card'>
               <div className='card-header bg-secondary text-white text-capitalize'>
-              <h4>Erthyrocyte sedimentation rate</h4>
+              <h5>Erthyrocyte sedimentation rate</h5>
               </div>
               <div className='card-body'>
                 {loading && <ISLOADING />}
                 {(!loading && range.length > 0)
                   ? (
                 <>
-                  <table className='billing-cart-table'>
+                  <table className='table'>
                   <thead>
                     <tr>
                       <th>gender</th>

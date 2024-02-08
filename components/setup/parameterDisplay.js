@@ -75,16 +75,15 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
               {loading && <ISLOADING />}
               {!loading && (
                 <>
-                 <table className='billing-cart-table'>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>parameter name</th>
-                  <th>unit</th>
-                  <th>upper</th>
-                  <th>lower</th>
-                  {dataModification.length > 0 && dataModification[0]['gender'] ? <th>gender</th> : null}
-                  <th>action</th>
+                  <table className='table'>
+                    <thead>
+                      <tr>
+                        <th>parameter name</th>
+                        <th>unit</th>
+                        <th>upper</th>
+                        <th>lower</th>
+                        {dataModification.length > 0 && dataModification[0]['gender'] ? <th>gender</th> : null}
+                        <th>action</th>
                 </tr>
               </thead>
               <tbody>
@@ -92,8 +91,7 @@ function PARAMETER_DISPLAY_COMPONENT({ parameterdata, testname,gender }) {
                   dataModification.length == 0 ? null : dataModification.map((item, index) => {
                     return (
                       <tr key={index}>
-                        <td>{index + 1}</td>
-                        <td>{item.parameter}</td>
+                        <td>{index + 1}.{item.parameter}</td>
                         <td>
                           <input value={item.unit || ''}
                             className='custom-input' type='text' onChange={(e) => onChangeUnit(e, index)} />

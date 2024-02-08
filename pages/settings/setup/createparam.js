@@ -90,12 +90,12 @@ export default function CREATE_PARAMETER() {
         <ToastContainer/>
         <div className="card mx-3 my-3">
           <div className="card-header bg-secondary text-white">
-            <h4 className="card-title text-capitalize">Create Parameter for  {target || ''}</h4>
+            <h6 className="card-title text-capitalize">Create Parameter for  {target || ''}</h6>
           </div>
           <div className="card-body" >
           <form className="form-row d-flex gap-2 justify-content-between" >
           <input
-            className="form-control"
+                className="custom-input"
             value={parameterDetails.parameter}
             placeholder="parameter name"
             onChange={(e) =>
@@ -104,7 +104,7 @@ export default function CREATE_PARAMETER() {
             type="text"
           />
           <input
-            className="form-control"
+                className="custom-input"
             value={parameterDetails.unit}
             placeholder="unit"
             type="text"
@@ -113,7 +113,7 @@ export default function CREATE_PARAMETER() {
             }}
           />
           <input
-            className="form-control"
+                className="custom-input"
             value={parameterDetails.upper}
             placeholder="upper limit"
             type="number"
@@ -122,7 +122,7 @@ export default function CREATE_PARAMETER() {
             }}
           />
           <input
-            className="form-control"
+            className="custom-input"
             value={parameterDetails.lower}
             placeholder="lower limit"
             type="number"
@@ -146,7 +146,7 @@ export default function CREATE_PARAMETER() {
                 </button>
             </form>
             
-            <table className="billing-cart-table my-3">
+            <table className="table my-3">
               <thead>
                 <tr>
                   <th>parameter name</th>

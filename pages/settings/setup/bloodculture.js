@@ -65,10 +65,9 @@ export default function BloodCultureAndSensitivity() {
                 </button>
               </div>
             </div>
-            <table className="billing-cart-table my-3">
+            <table className="table billing-cart-table my-3">
               <thead>
                 <tr>
-                  <th>#</th>
                   <th>Anti microbial</th>
                   <th>remove</th>
                 </tr>
@@ -78,7 +77,6 @@ export default function BloodCultureAndSensitivity() {
                   setup.map((item, index) => {
                     return (
                       <tr key={index}>
-                        <td>{index+1}</td>
                         <td>{item?.drug}</td>
                         <td>
                           <button type="button" className="btn btn-danger btn-sm" onClick={(ev) => {removeDrug(item,index)}}>
