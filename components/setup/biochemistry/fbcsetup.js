@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import parameter from  './countparameter'
 import { customFetch, customPost } from '../../Auth/customFetch';
-import { onChangeUnit, onChangeLower, onChangeUpper } from '../../LabTestForms/utilsetup';
-import { DeleteForever } from '@mui/icons-material';
-import Loader from '../../accessories/Loader';
 import Link from 'next/link';
 import { ToastContainer, toast } from 'react-toastify';
+import FullBloodCountTable from './FullBloodCount/FbcTable';
+import Loader from '../../accessories/Loader';
 
 export default function FullBloodCountSetup() {
   const [fullcount, setFullcount] = useState(parameter)
@@ -15,16 +14,17 @@ export default function FullBloodCountSetup() {
 
 
   const setDefaultParams = () => { setFullcount(parameter) }
-  
+
 
   const getFullCountData = useCallback(async function () {
     try {
       setLoading(true);
       const response = await customFetch(`test/setup/fbc?category=${category}`);
       const { result, statusCode, status } = response;
-      if (statusCode == 200 && status == 'success') {
+      if (statusCode == 200 && status == 'success' && result.length > 0) {
         setFullcount(result);
       }
+      setFullcount([]);
       setLoading(false);
     } catch (err) {
       setLoading(false);
@@ -57,41 +57,13 @@ export default function FullBloodCountSetup() {
 
 
   const renderer = () => {
-    if (isloading) {
-      return (
-        <tbody>
-          <tr>
-            <td>Data not found</td>
-          </tr>
-        </tbody>
-      )
-    }
+    if (isloading) return <Loader />
     else {
-      return (
-        <tbody>
-          {
-            fullcount.map((item, index) => {
-              return (
-                <tr key={index}>
-                  <td>{index + 1}. {" "}{item.parameter}</td>
-                  <td>
-                    <input className='custom-input' value={item.unit} type='text' onChange={(e) => onChangeUnit(e, index, setFullcount)} />
-                  </td>
-                  <td>
-                    <input className='custom-input' value={item.upper} type='number' onChange={(e) => onChangeUpper(e, index, setFullcount)} />
-                  </td>
-                  <td>
-                    <input className='custom-input' value={item.lower} type='number' onChange={(e) => onChangeLower(e, index, setFullcount)} />
-                  </td>
-                  <td>
-                    <DeleteForever color='error' onCtdck={() => handleDelete(item)} />
-                  </td>
-                </tr>
-              )
-            })
-          }
-        </tbody>
-      )
+      if (fullcount.length == 0) {
+        return <div className='alert alert-info opacity-75'>No data found on database. Kindly create paramaters or use default paramaters</div>
+      } else {
+        return <FullBloodCountTable fullbloodcount={fullcount} setFullcount={setFullcount} />
+      }
     }
   }
   return (
@@ -101,7 +73,8 @@ export default function FullBloodCountSetup() {
         <div >
           <div className='d-flex  justify-content-between my-2'>
             <div className='col-4'>
-            <select value={category} onChange={(e) => { setCategory(e.target.value) }} className='custom-input'>
+              <select value={category}
+                onChange={(e) => { setCategory(e.target.value) }} className='custom-input'>
                 <option value=''>select category</option>
               <option value='male'>male</option>
               <option value='female'>female</option>
@@ -129,22 +102,9 @@ export default function FullBloodCountSetup() {
           </div >
             <h6 className='text-capitalize bg-secondary text-white text-sm d-flex justify-content-center align-content-center p-1'> children age range: {childrenAge}</h6>
           </div>
-        </div>
-        <div className='wrapperx'>
-          <table className='table'>
-            <thead>
-              <tr>
-                <th>parameter name</th>
-                <th>unit</th>
-                <th>upper</th>
-                <th>lower</th>
-                <th>action </th>
-              </tr>
-            </thead>
-            {renderer()}
-          </table>
-        </div>
+        </div>       
         <div >
+          {renderer()}
           <button className='btn btn-success btn-sm mt-2' onClick={saveData}>
             save data
           </button>

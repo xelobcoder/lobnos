@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { customFetch, printResultNavigator } from '../Auth/customFetch';
+import  { useContext, useEffect, useState } from 'react';
+import { customFetch } from '../Auth/customFetch';
 import Link from 'next/link';
 import { Button } from '@mui/material';
 import { ArrowForward } from '@mui/icons-material';

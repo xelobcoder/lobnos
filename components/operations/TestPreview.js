@@ -1,11 +1,8 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import  { useContext, useMemo, useState } from 'react';
 import OperationsContext from './OperationsContext';
 import { useRouter } from 'next/router';
 import { customFetch, customPost } from '../Auth/customFetch';
-import { Suspense } from 'react';
-import { Button } from '@mui/material'
-import { ArrowForward } from '@mui/icons-material';
-import Link from 'next/link';
+
 
 export default function TestPreview() {
   const { operationsKey, updateOperations } = useContext(OperationsContext);
@@ -33,20 +30,11 @@ export default function TestPreview() {
   useMemo(() => getPreview(), [operationsKey])
 
 
-  const handleClickToggle = (e) => {
-    // we want to toggle the display of the child elements ofg the parent element next sibling
-    const parent = e.target.parentElement.parentElement;
-    const sibling = parent.nextElementSibling;
-  }
-
-
   const handleProocessing = async function (testid, billingid) {
     try {
       // update the test have started process and bring back data to be replaced in the datapool
       const started = await customPost(`operations/test?testid=${testid}&billingid=${billingid}`, 'PUT', {})
-
       const { message, statusCode } = started;
-
       if (statusCode !== 200 && message == 'success') {
         alert("failed to start processing update");
       }
@@ -58,10 +46,7 @@ export default function TestPreview() {
 
 
   const handleResult = async function (testid, billingid, name) {
-    // we want to update the context to display test component so that the user can enter the result
-    // replace space in the name with underscore
     let testname = (name.replace(/\s/g, '_').toLowerCase());
-
     if (testname.includes('(') && testname.includes(")")) {
       testname = testname.slice(0, name.indexOf('('))
     }
@@ -70,7 +55,6 @@ export default function TestPreview() {
 
   return (
     <>
-      <Suspense fallback={<div>loading...................</div>}>
         <div className='text-capitalize' id='expand'>
           <input type='checkbox' onChange={() => setExpandAll(!expandAll)} checked={expandAll} />
           expand all
@@ -118,16 +102,11 @@ export default function TestPreview() {
             )) : <div className='p-2'>
               {
                 operationsKey?.billingid != undefined ? (
-                  <p className='alert alert-info'><strong>
-                    Test probable deleted or updated. kindly visit phelobotomy queue to address that
-                    <br></br>
-                    <Link href={`/phelobotomy/queue?billingid=${operationsKey?.billingid}`}>
-                      <Button variant='contained' color='success' endIcon={<ArrowForward />}>
-                        phelobotomy queue
-                      </Button>
-                    </Link>
-
-                  </strong></p>
+                  <p className='alert alert-info opacity-50'>
+                    <strong>
+                      No data Available please!!!
+                    </strong>
+                  </p>
                 ) :
                   (<div>
                     <div className='p-2 alert alert-info'>
@@ -139,8 +118,7 @@ export default function TestPreview() {
               }
             </div>
           }
-        </div>
-      </Suspense>
+      </div>
     </>
   )
 }
