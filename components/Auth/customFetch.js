@@ -420,7 +420,7 @@ export const printResultNavigator = async (navigate, billingid, item, newTab = f
 
 export const monthCollection = {
    0: 'january',
-   1: 'Febraury',
+   1: 'February',
    2: 'March',
    3: 'April',
    4: 'May',

@@ -1,34 +1,41 @@
 "use client"
 import { useEffect, useState, useCallback } from 'react'
-import { getDataAndUpdateState } from '../Auth/customFetch';
-import { BarChart, CartesianGrid, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Bar, ResponsiveContainer } from 'recharts';
-import ISLOADING from '../isLoading';
+import { customFetch } from "../Auth/customFetch"
+import { BarChart, CartesianGrid, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Bar, ResponsiveContainer } from "recharts"
+import Loader from "../accessories/Loader"
 
-
-export default function PerformanceChartGeneral({ target, type, show, title, subtarget,branchid }) {
-  const [data, setData] = useState([]);
-  const [loading,setLoading] = useState(true);
+export default function PerformanceChartGeneral({ target, upCallReceiver, type, show, title, subtarget, branchid, upcall }) {
+  const [data, setData] = useState([])
+  const [isloading, setLoading] = useState(true)
 
   const getAndTransform = useCallback(async () => {
-    let result = await getDataAndUpdateState(setData, `sales/summary/general?target=${target}&&branch=${branchid}`,true);
-    if (result.length > 0){ setLoading(false);setData(result)} else {setData([])}
-  }, [target,branchid])
+    setLoading(true)
+    customFetch(`sales/summary/general?target=${target}&&branch=${branchid}`)
+      .then((data) => {
+        const { result } = data
+        setLoading(false)
+        if (result && result.length > 0) {
+          setData(result)
+          upcall && upCallReceiver(result)
+        } else setData([])
+      })
+      .catch((err) => {
+        setLoading(false)
+        setData([])
+      })
+  }, [target, branchid])
 
   useEffect(() => {
-    getAndTransform();
-  }, [target, getAndTransform]);
+    getAndTransform()
+  }, [getAndTransform])
 
-
-
-  return (
-    <>
-      <div className="bg-white px-2">
-        {data.length == 0 && !loading && (
-          <div className="alert alert-info opacity-75 mt-2">
-            No Data Available to display chart
-          </div>
-        )}
-        {data.length > 0 && !loading && (
+  const renderer = () => {
+    if (isloading) return <Loader />
+    else {
+      if (data.length <= 0) {
+        return <div className="alert alert-info opacity-75 mt-2">No Data Available to display chart</div>
+      } else {
+        return (
           <>
             <h6 className="text-secondary">{title}</h6>
             {type === "Bar" ? (
@@ -39,36 +46,30 @@ export default function PerformanceChartGeneral({ target, type, show, title, sub
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar
-                    dataKey={show}
-                    barSize={30}
-                    fill={show == "salesAmount" ? "#198cf0" : "#82ca9d"}
-                  />
+                  <Bar dataKey={show} barSize={30} fill={show == "salesAmount" ? "#198cf0" : "#82ca9d"} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
               <ResponsiveContainer width="100%" height={400}>
-                <LineChart
-                  data={data}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
+                <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey={subtarget} />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey={show}
-                    stroke={show == "salesAmount" ? "#8884d8" : "#82ca9d"}
-                  />
+                  <Line type="monotone" dataKey={show} stroke={show == "salesAmount" ? "#8884d8" : "#82ca9d"} />
                 </LineChart>
               </ResponsiveContainer>
             )}
           </>
-        )}
-        {loading && <ISLOADING />}
-      </div>
+        )
+      }
+    }
+  }
+
+  return (
+    <>
+      <div className="bg-white px-2">{renderer()}</div>
     </>
-  );
+  )
 }
