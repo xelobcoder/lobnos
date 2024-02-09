@@ -7,6 +7,8 @@ export default function CustomFormSwitch({ title, target, update, text, value, v
     setState(ev.target.checked)
     if (variant == "number") {
       update(target, ev.target.checked == false ? 0 : 1)
+    } else if (variant == "string") {
+      update(target, ev.target.checked == false ? "No" : "Yes")
     } else {
       update(target, ev.target.checked)
     }
@@ -26,7 +28,7 @@ export default function CustomFormSwitch({ title, target, update, text, value, v
         <span>
           <Form.Check checked={state} onChange={(ev) => handleChange(ev, target)} type="switch" style={{ fontSize: "25px" }} />
         </span>
-        <h6 className="fw-bold d-flex my-2">{title}</h6>
+        <h6 className="fw-bold d-flex my-2 text-capitalize">{title}</h6>
       </div>
       <div className="switch-body  text-secondary text-sm">{text}</div>
     </div>

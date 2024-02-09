@@ -198,10 +198,10 @@ export const resultCommentHander = async function (statecallback, target, dataso
 export async function handleResponse(response,toast) {
    const { status, message, statusCode } = response;
    if (status == "success") {
-      toast ? toast.success(message,{autoClose: 5000}) : alert(message);
+      toast ? toast.success(message,{autoClose: 500}) : alert(message);
    }
    if (status == "error") {
-      toast ? toast.error(message || "something went wrong",{autoClose: 5000} ) : alert(message || "An error occured");
+      toast ? toast.error(message || "something went wrong",{autoClose: 1000} ) : alert(message || "An error occured");
    }
 }
 

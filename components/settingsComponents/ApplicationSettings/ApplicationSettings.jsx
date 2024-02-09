@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react"
-import { Table } from "react-bootstrap"
 import { customFetch, customPost } from "../../Auth/customFetch"
 import { defaultApplicationSettings, getApplicationSettings } from "../../Auth/customFetch"
 import CustomFormSwitch from "./CustomFormSwitch"
@@ -72,7 +71,6 @@ export default function ApplicationSettingsComponent() {
     }
   }
 
-  console.log(ApplicationSettings)
   return (
     <div className="mx-2 rounded">
       <div className="grid-30-30-30">
@@ -125,92 +123,7 @@ export default function ApplicationSettingsComponent() {
           text="Activate email notification for the application.Customize further at the email side"
         />
       </div>
-      <Table>
-        <tbody>
-          <tr>
-            <td className="text-capitalize">Detail registration</td>
-            <td>{ApplicationSettings?.bulkregistration == 0 ? "deactivated" : "Activated"}</td>
-            <td>
-              <button
-                className={ApplicationSettings?.bulkregistration == 0 ? "btn btn-success btn-sm p-1" : "btn btn-danger btn-sm p-1"}
-                onClick={(e) => {
-                  handleAppSettingsActivation("bulkregistration", ApplicationSettings?.bulkregistration == 0 ? 1 : 0)
-                }}>
-                {ApplicationSettings?.bulkregistration == 0 ? "activate" : "deactivate"}
-              </button>
-            </td>
-          </tr>
-          {/* deactivate after 24 hrs */}
-          <tr>
-            <td className="text-capitalize">deactivate client after 24 hrs</td>
-            <td>{ApplicationSettings?.DeactivateBilling24hrs == 0 ? "Deactivated" : "Activated"}</td>
-            <td>
-              <button
-                className={ApplicationSettings?.DeactivateBilling24hrs == 0 ? "btn btn-success btn-sm p-1" : " btn btn-danger btn-sm p-1"}
-                onClick={(e) => {
-                  handleAppSettingsActivation("DeactivateBilling24hrs", ApplicationSettings?.DeactivateBilling24hrs == 0 ? 1 : 0)
-                }}>
-                {ApplicationSettings?.DeactivateBilling24hrs == 0 ? "Activate" : " Deactivate"}
-              </button>
-            </td>
-          </tr>
-          {/* clear all bills before new transaction */}
-          <tr>
-            <td className="text-capitalize">clear all bills before new transaction</td>
-            <td>{ApplicationSettings?.PaidBillsBeforeTransaction == 0 ? "Deactivated" : "Activated"}</td>
-            <td>
-              <button
-                className={
-                  ApplicationSettings?.PaidBillsBeforeTransaction == 0 ? "btn btn-success btn-sm p-1" : "btn btn-danger btn-sm p-1"
-                }
-                onClick={(e) => {
-                  handleAppSettingsActivation("PaidBillsBeforeTransaction", ApplicationSettings?.PaidBillsBeforeTransaction == 0 ? 1 : 0)
-                }}>
-                {ApplicationSettings?.PaidBillsBeforeTransaction == 0 ? "Activate" : " Deactivate"}
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td className="text-capitalize">complete laboratory flow</td>
-            <td>{ApplicationSettings?.completeFlow == 0 ? "Deactivated" : "Activated"}</td>
-            <td>
-              <button
-                className={ApplicationSettings?.completeFlow == 0 ? "btn btn-success btn-sm p-1" : "btn btn-danger btn-sm p-1"}
-                onClick={(e) => {
-                  handleAppSettingsActivation("completeFlow", ApplicationSettings?.completeFlow == 0 ? 1 : 0)
-                }}>
-                {ApplicationSettings?.completeFlow == 0 ? "Activate" : " Deactivate"}
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td className="text-capitalize">approval before result printing</td>
-            <td>{ApplicationSettings?.approvalbeforeprinting == 0 ? "Deactivated" : "Activated"}</td>
-            <td>
-              <button
-                className={ApplicationSettings?.approvalbeforeprinting == 0 ? "btn btn-success btn-sm p-1" : "btn btn-danger btn-sm p-1"}
-                onClick={(e) => {
-                  handleAppSettingsActivation("approvalbeforeprinting", ApplicationSettings?.approvalbeforeprinting == 0 ? 1 : 0)
-                }}>
-                {ApplicationSettings?.approvalbeforeprinting == 0 ? "Activate" : " Deactivate"}
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td>Email Notifications</td>
-            <td>{ApplicationSettings?.emailNotification == 0 ? "Deactivated" : "Activated"}</td>
-            <td>
-              <button
-                className={ApplicationSettings?.emailNotification == 0 ? "btn btn-success btn-sm p-1" : "btn btn-danger btn-sm p-1"}
-                onClick={(e) => {
-                  handleAppSettingsActivation("emailNotification", ApplicationSettings?.emailNotification == 0 ? 1 : 0)
-                }}>
-                {ApplicationSettings?.emailNotification == 0 ? "Activate" : " Deactivate"}
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </Table>
+
       <div>
         <button
           className="btn btn-primary btn-sm mt-3"
