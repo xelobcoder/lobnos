@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react"
 import { Tab, Tabs } from "react-bootstrap"
 import UseUrgentActions from "./useUrgentActions"
-import { customFetch } from "../../../Auth/customFetch";
 export default function InventoryUrgentActionsView() {
   const [key, setKey] = useState("null")
 

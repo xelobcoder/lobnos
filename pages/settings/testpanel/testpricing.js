@@ -60,7 +60,7 @@ export default function TESTPRICING() {
   return (
     <MainSettingsLayoutView>
       <div className='container-fluid bg-white p-2' style={{height:'100vh',overflowY:'auto'}}>
-        <table className='billing-cart-table'>
+        <table className='table'>
           <thead>
             <tr>
               <th>NAME</th>
