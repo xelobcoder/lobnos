@@ -1,65 +1,87 @@
-import React, { useState, useEffect } from 'react';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import EditIcon from '@mui/icons-material/Edit';
+import { useState, useEffect } from 'react';
 import { getBranches, customPost } from '../../../components/Auth/customFetch';
 import TableDisplay from '../../../components/accessories/TableDisplay';
 import { useRouter } from 'next/router';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
-
+import AddBranchComponent from '../../../components/settingsComponents/AddBranchComponent';
+import { ToastContainer, toast } from "react-toastify";
+import Loader from '../../../components/accessories/Loader';
+import { Form } from 'react-bootstrap'
 
 export default function Branches() {
   const [branches, setBranches] = useState([]);
+  const [isedit, setEdit] = useState({ isediting: false, data: null })
+  const [isLoading, setLoading] = useState(true);
   const router = useRouter();
 
   // get all branches
 
 
   useEffect(() => {
-    getBranches(setBranches);
+    getBranches(setBranches, null, setLoading);
   }, [])
 
 
   const deleteData = function (e, index) {
     // get branchid 
     let confirmation = confirm('Do you want to delete branch ?. Note this will have consequence on your data integrity hence accounting section. it is much better to deactivate')
-
     if (confirmation) {
+      setLoading(true);
       const branch = branches.filter((item, i) => item.branchid == index);
       const branchid = branch[0].branchid;
       // send delete request
       const sendData = async function () {
-        const response = await customPost('branches', 'DELETE', { branchid: branchid });
-        const { status, message } = response;
-        if (status == 'success') {
-          alert(message);
-          getBranches(setBranches);
+        try { 
+          const response = await customPost('branches', 'DELETE', { branchid: branchid });
+          const { status, message } = response;
+          if (status == 'success') {
+            toast.success(message, { autoClose: 500, position: 'top-center' });
+            const nw = branches.filter((item, i) => item.branchid != index);
+            setBranches(nw);
+          } else {
+            toast.error(message, { autoClose: 1000, position: 'top-center' });
+          }
+        } catch (err) {
+          toast.error(message);
         }
       }
       sendData();
+      setLoading(false);
     }
   }
 
 
 
   const activateDeactivateBranch = async function (e, action, id) {
-    const body = { status: action == 0 ? 'activate' : 'deactivate', id };
+    const value = e === true ? 1 : 0;
+    const body = { status: value === 1 ? 'activate' : 'deactivate', id };
     const response = await customPost(`branches/activation`, 'PUT', body);
     const { status, statusCode, message } = response;
-    alert(message)
     if (statusCode == 200 && status == 'success') {
-      getBranches(setBranches);
+      const shallowBranches = [... branches]
+      const nw = shallowBranches.findIndex((item, index) => item.branchid == id);
+      shallowBranches[nw]['activation'] = value;
+      setBranches(shallowBranches);
+      toast.success(message);
+    } else {
+      toast.error(message, { autoClose: 1000, position: 'top-center' })
     }
   }
 
   const columns = [
-    { Header: '#', accessor: 'branchid' },
-    { Header: 'Name', accessor: 'name' },
     {
-      Header: 'Date Added', accessor: 'date', Cell: (rows) => {
-        const date = rows.row.original?.date.slice(0, 10);
-        return <span>{date}</span>
+      Header: 'Name', accessor: 'name', Cell: ({ row, value }) => {
+        const date = new Date(row.original?.date).toLocaleDateString()
+          || new Date().toLocaleDateString();
+        return <div>
+          <span>{value}</span>
+          <br />
+          <span>createdon: {date}</span>
+        </div>
       }
     },
+    { Header: 'address', accessor: 'address' },
+    { Header: 'contact', accessor: 'contact' },
     {
       Header: 'Status', accessor: 'activation', Cell: function ({ row }) {
         const item = row.original;
@@ -70,59 +92,75 @@ export default function Branches() {
         )
       }
     },
-    ,
-    {
-      Header: 'activate/deactivate', accessor: '', Cell: function ({ row }) {
-        const item = row.original;
-        return (
-          <span>
-            <button
-              style={{ marginRight: "10px" }}
-              className={`text-capitalize ${item.activation == 0 ? "btn btn-sm btn-success" : "btn btn-sm btn-danger"
-                }`}
-              onClick={(e) =>
-                activateDeactivateBranch(e, item.activation, item.branchid)
-              }
-            >
-              {item.activation === 0 ? "activate" : "deactivate"}
-            </button>
-          </span>
-        )
-      }
-    },
     {
       Header: 'Actions', accessor: '', Cell: function ({ row }) {
         const item = row.original;
         return (
-          <span>
+          <div className='d-flex'>
+            <Form.Check className='mx-2' checked={item.activation === 1} type='switch' style={{ fontSize: '25px' }} onChange={(e) =>
+              activateDeactivateBranch(e.target.checked, item.activation, item.branchid)
+            } />
             <button
-              className="btn btn-primary text-white p-0"
-              onClick={(e) => { router.push(`/settings/branches/${item.branchid}`) }}
+              className="btn btn-primary  btn-sm"
+              onClick={(e) => { setEdit({ isediting: true, data: row.original }) }}
             >
-              <EditIcon editset={item.branchid} />
+              Edit
             </button>
             <button
-              className="btn btn-danger btn-sm text-white p-0"
+              className="btn btn-danger btn-sm "
               style={{ marginLeft: "5px" }}
               onClick={(e) => deleteData(e, item.branchid)}
             >
-              <DeleteForeverIcon />
+              Delete
             </button>
-          </span>
+          </div>
         );
       }
     }
   ]
 
 
+  const onSave = (data, message, status, isEdit) => {
+    if (data === null && status == "error" && isEdit === false) {
+      toast.error(message, { autoClose: 1000, position: "top-center" });
+    } else if (Object.keys(data).length > 0 && isEdit === false && status == "success") {
+      setLoading(true);
+      const nw = [...branches, data];
+      setBranches(nw);
+      setLoading(false);
+      toast.success(message, { autoClose: 500, position: "top-center" });
+    } else {
+      toast.success(message);
+    }
+  }
+
+  const resetform = () => { setEdit({ isediting: false, data: null }) }
+
+
+  const renderBranches = () => {
+    if (isLoading) return <Loader />
+    else return (
+      <div className='row p-1'>
+        <TableDisplay styling={'table mt-3'} column={columns} data={branches} filtering={true} />
+      </div>
+    )
+  }
 
   return (
     <MainSettingsLayoutView>
-      <div className='container'>
-        <h4> Branches List</h4>
-        <div className='row p-1'>
-          <TableDisplay styling={'billing-cart-table mt-3'} column={columns} data={branches} filtering={true} />
+      <ToastContainer />
+      <div className='mx-2'>
+        <div className='card br-0 bg-light'>
+          <div className='card-header'>
+            <h6 className='fw-bold text-capitalize'>
+              {isedit.isediting === true ? `editing ${isedit.data?.name}` : "Add branch"}
+            </h6>
+          </div>
+          <div className='px-3 mb-2'>
+            <AddBranchComponent resetform={resetform} update={onSave} isEdit={isedit.isediting} editdata={isedit.data} />
+          </div>
         </div>
+        {renderBranches()}
       </div>
     </MainSettingsLayoutView>
   );

@@ -54,23 +54,24 @@ export default function ApplicationEmailPreference() {
   const renderer = () => {
     if (loading) return <Loader />
     else {
-      return (
-        <div className="grid-30-30-30">
-          {Object.keys(preference).map((item, index) => {
-            return (
-              <CustomFormSwitch
-                key={index + 1}
-                title={item}
-                target={item}
-                variant="string"
-                value={preference[item] === "Yes" ? true : false}
-                update={handleChangeWithState}
-                text={`Send an email notification when ${item} event occurs.This would be triggered automatically when it is activated.`}
-              />
-            )
-          })}
-        </div>
-      )
+       const keys = Object.keys(preference)
+       return (
+         <div className="grid-30-30-30">
+           {keys.map((item, index) => {
+             return (
+               <CustomFormSwitch
+                 key={index + 1}
+                 title={item}
+                 target={item}
+                 variant="string"
+                 value={preference[item] === "Yes" ? true : false}
+                 update={handleChangeWithState}
+                 text={`Send an email notification when ${item} event occurs.This would be triggered automatically when it is activated.`}
+               />
+             )
+           })}
+         </div>
+       )
     }
   }
 

@@ -505,7 +505,9 @@ export const activateInstitutionUser = async (id, previousStatus, setUser) => {
 export const getDateExpression = `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`
 
 
-export const getBranches = async function (setBranches, id) {
+export const getBranches = async function (setBranches, id, loader) {
+   try {
+      if (loader) loader(true);
    let endpoint = `branches`;
    if (id) { endpoint = endpoint + `?branchid=${id}` };
    let response = await customFetch(endpoint)
@@ -516,6 +518,11 @@ export const getBranches = async function (setBranches, id) {
       } else {
          setBranches(result)
       }
+      }
+      loader(false);
+   } catch (err) {
+      if (loader) loader(false);
+      alert("something wrong occured");
    }
 }
 
