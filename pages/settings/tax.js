@@ -11,6 +11,9 @@ export default function Application_Taxes_List() {
   const [isloading, setIsLoading] = useState(true);
   const [editing, setEditing] = useState({ isEdit: false, editdata: null })
   const [data, setData] = useState([]);
+  const defaultx = { name: '', value: '' }
+  const [tax, setTax] = useState(defaultx);
+
 
   const getdata = useCallback(() => {
     getDataAndUpdateState(setData, 'application/tax', null, setIsLoading);
@@ -19,6 +22,13 @@ export default function Application_Taxes_List() {
 
 
   useEffect(() => { getdata() }, [getdata])
+
+
+  useEffect(() => {
+    if (editing.isEdit === true) {
+      setTax({ ...editing.editdata });
+    }
+  }, [editing.isEdit, editing.editdata])
 
   const handleActivation = (id, value) => {
     if (!id || typeof value != 'boolean' ) return
@@ -101,18 +111,29 @@ export default function Application_Taxes_List() {
     }
   ]
 
-  const handleSubmit = async (tax, defaultx, setTax) => {
+  const handleSubmit = async () => {
     if (tax.name && tax.value !== null && tax.value !== "") {
       try {
         const pushResponse = await customPost('application/tax', editing.isEdit == true ? "PUT" : 'POST', tax)
-        const { status, statusCode, message } = pushResponse;
+        const { status, message } = pushResponse;
         if (status == 'success') {
           setTax(defaultx);
+          if (editing.isEdit === false) {
+            setData([...data, { ...tax, apply: 'Yes' }]);
+          } else {
+            const { id } = tax;
+            const nw = [...data];
+            const index = nw.findIndex((item, index) => item?.id === parseInt(id));
+            if (index < 0) return;
+            nw[index] = tax;
+            setData(nw);
+          }
           toast.success(message, { autoClose: 500, position: 'top-center' })
         } else {
           toast.error(message, { autoClose: 1000, position: 'top-center' })
         }
       } catch (err) {
+        console.log(err)
         toast.error("something wrong occured", { autoClose: 1000, position: 'top-center' })
       }
     } else toast.error('all fields required', { autoClose: 1000, position: 'top-center' })
@@ -131,9 +152,12 @@ export default function Application_Taxes_List() {
     <MainSettingsLayoutView>
       <ToastContainer />
       <div className='mx-2'>
-        <Application_Tax_Inclusion handleSubmit={handleSubmit}
+        <Application_Tax_Inclusion
+          handleSubmit={handleSubmit}
           stopedit={stopedit}
-          isEdit={editing.isEdit} editdata={editing.editdata} />
+          tax={tax}
+          setTax={setTax}
+        />
         {render()}
       </div>
     </MainSettingsLayoutView>

@@ -1,14 +1,6 @@
-import { useEffect, useState } from 'react'
 import { handleChangeWithState } from '../Auth/customFetch';
 
-export default function Application_Tax_Inclusion({ isEdit, editdata, handleSubmit, stopedit }) {
-  const defaultx = { name: '', value: '' }
-  const [tax, setTax] = useState(defaultx);
-
-  useEffect(() => {
-    if (isEdit === true && Object.keys(editdata).length > 0) setTax(editdata);
-  }, [isEdit, editdata]);
-
+export default function Application_Tax_Inclusion({ handleSubmit, stopedit, setTax, tax }) {
 
   return (
     <div className="card mt-2 mx-2">
@@ -44,11 +36,11 @@ export default function Application_Tax_Inclusion({ isEdit, editdata, handleSubm
             />
           </div>
           <div className="mt-1">
-            <button type="button" onClick={(ev) => { handleSubmit(tax, defaultx,setTax) }} className="btn btn-primary btn-sm mt-3">
+            <button type="button" onClick={(ev) => { handleSubmit() }} className="btn btn-primary btn-sm mt-3">
               save info
             </button>
             <button
-              onClick={(ev) => { stopedit(); setTax(defaultx) }}
+              onClick={(ev) => { stopedit(); }}
               type="button"
               className="btn mx-2 btn-danger btn-sm mt-3">
               cancel
