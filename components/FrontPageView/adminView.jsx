@@ -9,10 +9,10 @@ export default function FrontPageAdminView() {
           Registration & Billing
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/operations/laboratory">
-          Laboratory
+          Laboratory Operations
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/operations/imaging/ultrasound">
-          Imaging
+          Medical Imaging
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/phelobotomy">
           Phelobotomy
@@ -21,16 +21,16 @@ export default function FrontPageAdminView() {
           Result Approval
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/inventory">
-          Inventory
+          Inventory Mangement
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/supplier">
-          Supplies
+          Purchase Mangement
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/dashboard">
-          DashBoard
+          DashBoard 
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/settings">
-          Settings
+         Application Settings
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/instructions">
           Instructions

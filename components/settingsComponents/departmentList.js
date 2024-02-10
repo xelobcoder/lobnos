@@ -11,10 +11,6 @@ export default function DepartmentList({ data, handleDelete, handleEdit }) {
 
   const columns = [
     {
-      Header: "id",
-      accessor: "id",
-    },
-    {
       Header: "Department",
       accessor: "department",
     },

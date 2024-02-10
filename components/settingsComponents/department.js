@@ -93,15 +93,14 @@ export default function Add_department() {
   return (
     <>
       <ToastContainer/>
-      <div className="p-2">
-        <div className="card br-7">
-          <div className="card-header">
-            <h4 className="btn btn-danger">Add Department</h4>
+      <div className="card">
+          <div className="card-header bg-secondary mb-0 p-1">
+          <h6 className=" text-white mt-1 mx-2">Add Department</h6>
           </div>
-          <div className="card-body p-4">
-            <form>
+          <div className="card-body">
+          <form className='d-flex'>
               <div className="form-group">
-                <FormLabel htmlFor="department">Department</FormLabel>
+              <FormLabel className='text-primary' htmlFor="department">Department</FormLabel>
                 <input
                   type="text"
                   className="custom-input"
@@ -112,8 +111,8 @@ export default function Add_department() {
                   placeholder="Enter Department"
                 />
               </div>
-              <div className="form-group">
-                <FormLabel htmlFor="department">Department Manager</FormLabel>
+            <div className="form-group mx-3">
+              <FormLabel className='text-primary' htmlFor="department">Department Manager</FormLabel>
                 <select
                   className="custom-select"
                   id="departmentManager"
@@ -129,13 +128,12 @@ export default function Add_department() {
                   ))}
                 </select>
               </div>
-            </form>
-          </div>
-          <div className="card-footer">
-            <button className='btn btn-primary btn-sm' onClick={handleSubmit} >
-              {tab}
-            </button>
-          </div>
+            <div className='mt-4' >
+              <button className='btn btn-primary btn-sm mt-1'  onClick={handleSubmit} >
+                {tab}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </>

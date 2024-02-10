@@ -19,14 +19,11 @@ export default function Settings() {
 				<Tab eventKey="application#settings" title="Application settings">
 					{key === 'application#settings' && <ApplicationSettingsComponent />}
 				</Tab>
-				<Tab eventKey="branches" title="branches">
-
+				<Tab eventKey='email' title='email preference'>
+					{key === 'email' && <ApplicationEmailPreference />}
 				</Tab>
 				<Tab eventKey='sms settings' title='sms settings'>
 
-				</Tab>
-				<Tab eventKey='email' title='email preference'>
-					{key === 'email' && <ApplicationEmailPreference />}
 				</Tab>
 			</Tabs>
 		</MainSettingsLayoutView>

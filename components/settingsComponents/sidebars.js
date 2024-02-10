@@ -24,17 +24,17 @@ export default function SettingsSidebarLayout() {
                 <SettingsApplications />
               </div>
               <div className="text">
-                <Link href={'/settings'}> Applications settings</Link>
+                <Link href={'/settings/applicationsettings'}> Applications settings</Link>
               </div>
             </li>
-            <li>
+            {/* <li>
               <div className="icons">
                 <Add />
               </div>
               <div className="text">
                 <Link href={'/settings/branches/new'}> Add Branch</Link>
               </div>
-            </li>
+            </li> */}
             <li>
               <div className="icons">
                 <Forest />

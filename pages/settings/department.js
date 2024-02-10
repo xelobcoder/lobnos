@@ -50,20 +50,8 @@ export default function Department() {
   return (
     <MainSettingsLayoutView>
       <ToastContainer />
-      <Tabs
-        id="controlled-tab-example"
-        activeKey={key}
-        onSelect={(k) => setKey(k)}
-        className="mb-3"
-      >
-        <Tab eventKey="add_department" title="Add Department">
-          <Add_department />
-        </Tab>
-        <Tab eventKey="department_list" title="Department list">
-          <DepartmentList data={department} handleDelete={handleDelete} handleEdit={handleEdit} />
-        </Tab>
-        <Tab eventKey="" title="" disabled></Tab>
-      </Tabs>
+      <Add_department />
+      <DepartmentList data={department} handleDelete={handleDelete} handleEdit={handleEdit} />
     </MainSettingsLayoutView>
   );
 }

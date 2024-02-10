@@ -22,28 +22,24 @@ export default function Branches() {
   }, [])
 
 
-  const deleteData = function (e, index) {
-    // get branchid 
+  const deleteData = async function (e, index) {
     let confirmation = confirm('Do you want to delete branch ?. Note this will have consequence on your data integrity hence accounting section. it is much better to deactivate')
     if (confirmation) {
       setLoading(true);
       const branch = branches.filter((item, i) => item.branchid == index);
       const branchid = branch[0].branchid;
-      // send delete request
-      const sendData = async function () {
-        try { 
-          const response = await customPost('branches', 'DELETE', { branchid: branchid });
-          const { status, message } = response;
-          if (status == 'success') {
-            toast.success(message, { autoClose: 500, position: 'top-center' });
-            const nw = branches.filter((item, i) => item.branchid != index);
-            setBranches(nw);
-          } else {
-            toast.error(message, { autoClose: 1000, position: 'top-center' });
-          }
-        } catch (err) {
-          toast.error(message);
+      try {
+        const response = await customPost('branches', 'DELETE', { branchid: branchid });
+        const { status, message } = response;
+        if (status == 'success') {
+          toast.success(message, { autoClose: 500, position: 'top-center' });
+          const nw = branches.filter((item, i) => item.branchid != index);
+          setBranches(nw);
+        } else {
+          toast.error(message, { autoClose: 1000, position: 'top-center' });
         }
+      } catch (err) {
+        toast.error(message);
       }
       sendData();
       setLoading(false);
@@ -123,14 +119,22 @@ export default function Branches() {
   const onSave = (data, message, status, isEdit) => {
     if (data === null && status == "error" && isEdit === false) {
       toast.error(message, { autoClose: 1000, position: "top-center" });
-    } else if (Object.keys(data).length > 0 && isEdit === false && status == "success") {
+    } else if (data && status == "success" && isEdit === true) {
+      const { branchid } = data;
+      const shallowBranches = [...branches]
+      const nw = shallowBranches.findIndex((item, index) => item.branchid == branchid);
+      shallowBranches[nw] = data;
+      setBranches(shallowBranches);
+      toast.success(message, { autoClose: 500, position: "top-center" });
+    }
+    else if (Object.keys(data).length > 0 && isEdit === false && status == "success") {
       setLoading(true);
       const nw = [...branches, data];
       setBranches(nw);
       setLoading(false);
       toast.success(message, { autoClose: 500, position: "top-center" });
     } else {
-      toast.success(message);
+      toast.success(message, { autoClose: 500, position: "top-center" });
     }
   }
 
@@ -150,9 +154,9 @@ export default function Branches() {
     <MainSettingsLayoutView>
       <ToastContainer />
       <div className='mx-2'>
-        <div className='card br-0 bg-light'>
-          <div className='card-header'>
-            <h6 className='fw-bold text-capitalize'>
+        <div className='card'>
+          <div className='card-header bg-secondary pt-2'>
+            <h6 className='text-capitalize text-white mb-0'>
               {isedit.isediting === true ? `editing ${isedit.data?.name}` : "Add branch"}
             </h6>
           </div>

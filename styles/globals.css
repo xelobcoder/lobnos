@@ -1405,9 +1405,10 @@ option:hover {
   width: 100%;
   margin-top: 15px;
   position: relative;
+  border: 1px solid lightgray !important;
   border-collapse: collapse;
   overflow-x: auto;
-  background-color: white;
+  background-color: grey !important;
 }
 
 
@@ -1426,9 +1427,10 @@ option:hover {
 .table > thead > tr > th {
   text-align: left;
   font-weight: 400;
-  font-size: 14px;
+  font-size: 13px;
   min-width: auto !important;
   max-width: 200px !important;
+  background-color: whitesmoke !important;
   text-transform: capitalize !important;
 }
 
@@ -1448,7 +1450,7 @@ option:hover {
 .table > tbody > tr > td {
   color: #00224fcf;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   padding: 4px !important;
   min-width: auto !important;
   max-width: 200px !important;
@@ -1462,7 +1464,7 @@ option:hover {
 
 /* Add hover effect for rows */
 .table tbody tr:hover {
-  background-color: #d5dbdb;
+  background-color: whitesmoke !important;
 }
 
 @media (max-width: 768px) {

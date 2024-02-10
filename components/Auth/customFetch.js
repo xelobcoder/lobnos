@@ -505,21 +505,21 @@ export const activateInstitutionUser = async (id, previousStatus, setUser) => {
 export const getDateExpression = `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`
 
 
-export const getBranches = async function (setBranches, id, loader) {
+export const getBranches = async function (setBranches, id, loader = null) {
    try {
       if (loader) loader(true);
-   let endpoint = `branches`;
-   if (id) { endpoint = endpoint + `?branchid=${id}` };
-   let response = await customFetch(endpoint)
-   const { result, status } = response;
-   if (status == 'success') {
-      if (id && result.length > 0) {
-         setBranches(result[0])
-      } else {
-         setBranches(result)
+      let endpoint = `branches`;
+      if (id) { endpoint = endpoint + `?branchid=${id}` };
+      let response = await customFetch(endpoint)
+      const { result, status } = response;
+      if (status == 'success') {
+         if (id && result.length > 0) {
+            setBranches(result[0])
+         } else {
+            setBranches(result)
+         }
       }
-      }
-      loader(false);
+      if (loader)loader(false);
    } catch (err) {
       if (loader) loader(false);
       alert("something wrong occured");

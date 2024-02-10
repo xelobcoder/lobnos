@@ -143,7 +143,7 @@ export default function TestProfileBilling({ clientDetails }) {
           </div>
         </div>
         <div className='card-body'>
-          <table className='billing-cart-table'>
+          <table className='table'>
             <thead>
               <tr>
                 <th>Test Name</th>
@@ -158,14 +158,10 @@ export default function TestProfileBilling({ clientDetails }) {
                 workingTest.length > 0 && workingTest.map((item, index) => {
                   return (
                     <tr key={index} id='move-left-sm'>
-                      <td className='lims-text-color'>{item?.name}</td>
+                      <td className='lims-text-color'>{index + 1}.{" "}{item?.name}</td>
                       <td>{item?.price}</td>
                       <td>
-                        <button className='btn btn-sm btn-danger py-0'
-                          onClick={() => handleRemoveTest(item)}>
-                          <DeleteOutlineTwoTone />
-                          remove
-                        </button >
+                        <DeleteOutlineTwoTone onClick={() => handleRemoveTest(item)} color='error' />
                       </td>
                     </tr>
                   )
