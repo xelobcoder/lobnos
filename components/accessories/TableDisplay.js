@@ -28,7 +28,18 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
     setGlobalFilter,
   } = tableInstance
 
-  // console.log(useRowSelect)
+  const customHeaderGroup = () => {
+    return headerGroups.map((headerGroup, index) => {
+      return <tr {...headerGroup.getHeaderGroupProps()} key={index}>
+        {headerGroup.headers.map((column) => (
+          <th {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
+            {column.render('Header')}
+            <span >{column.isSorted ? (column.isSortedDesc ? '🔽' : '🔼') : ''}</span>
+          </th>
+        ))}
+      </tr>
+    })
+  }
 
   return (
     <>
@@ -43,16 +54,7 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
                   <div className='table-wrapper'>
                     <table className={styling ? styling : 'table'} {...getTableProps()} >
                       <thead>
-                        {headerGroups.map((headerGroup,index) => (
-                          <tr {...headerGroup.getHeaderGroupProps()} key={index}>
-                            {headerGroup.headers.map((column) => (
-                              <th {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
-                                {column.render('Header')}
-                                <span >{column.isSorted ? (column.isSortedDesc ? '🔽' : '🔼') : ''}</span>
-                              </th>
-                            ))}
-                          </tr>
-                        ))}
+                        {customHeaderGroup()}
                       </thead>
                       <tbody {...getTableBodyProps()}>
                         {page.map((row, index) => {

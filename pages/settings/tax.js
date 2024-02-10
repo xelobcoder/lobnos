@@ -147,7 +147,7 @@ export default function Application_Taxes_List() {
   }
 
 
-  const stopedit = () => { setEditing({ editdata: null, isEdit: false }) }
+  const stopedit = () => { setTax(defaultx); setEditing({ editdata: null, isEdit: false }) }
   return (
     <MainSettingsLayoutView>
       <ToastContainer />

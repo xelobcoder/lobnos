@@ -12,13 +12,7 @@ export default function Department() {
   const [key, setKey] = useState('department_list');
   const [department, setDepartments] = useState([]);
 
-
-  // delete department
-
-  // edit department
   const router = useRouter();
-
-
 
   useEffect(() => {
     getDepartment(setDepartments)
