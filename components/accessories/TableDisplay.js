@@ -4,11 +4,10 @@ import GlobalFilter from './GlobalFilter'
 import SECOND_NO_DATA from './secondNodata'
 
 export default function TableDisplay({ showpage = true, column, data, styling, filtering }) {
-
   const tableInstance = useTable({
     columns: useMemo(() => column, [column]),
     data: useMemo(() => data, [data]),
-    initialState: {pageSize: 10},
+    initialState: { pageSize: 10 },
   }, useFilters, useGlobalFilter, useSortBy, usePagination)
 
  
@@ -29,6 +28,8 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
     setGlobalFilter,
   } = tableInstance
 
+  // console.log(useRowSelect)
+
   return (
     <>
       {
@@ -47,17 +48,17 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
                             {headerGroup.headers.map((column) => (
                               <th {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
                                 {column.render('Header')}
-                                <span>{column.isSorted ? (column.isSortedDesc ? '🔽' : '🔼') : ''}</span>
+                                <span >{column.isSorted ? (column.isSortedDesc ? '🔽' : '🔼') : ''}</span>
                               </th>
                             ))}
                           </tr>
                         ))}
                       </thead>
                       <tbody {...getTableBodyProps()}>
-                        {page.map((row,index) => {
+                        {page.map((row, index) => {
                           prepareRow(row)
                           return (
-                            <tr {...row.getRowProps()} key={index}>
+                            <tr {...row.getRowProps()} key={index} >
                               {row.cells.map((cell) => {
                                 return <td {...cell.getCellProps()} key={cell.column.id}>{cell.render('Cell')}</td>
                               })}
@@ -77,15 +78,19 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
                         </span>
                         <span>
                           <select className='custom-input' value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
-                            {[10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((pageSize, index) => (
+                            {[5, 10, 15, 20, 25, 30, 35, 40, 45, 50].map((pageSize, index) => (
                               <option key={index} value={pageSize}>
                                 Show {pageSize}
                               </option>
                             ))}
                           </select>
                         </span>
-                        <button className='btn btn-primary btn-sm mx-2 py-1 pointer' onClick={() => previousPage()} disabled={!canPreviousPage} >Previous</button>
-                        <button className='btn btn-primary btn-sm py-1 pointer' onClick={() => nextPage()} disabled={!canNextPage}>Next</button>
+                        <button className='btn btn-primary btn-sm mx-2 py-1 pointer' onClick={() => previousPage()} disabled={!canPreviousPage} >
+                          Previous
+                        </button>
+                        <button className='btn btn-primary btn-sm py-1 pointer' onClick={() => nextPage()} disabled={!canNextPage}>
+                          Next
+                        </button>
                       </div>
                     )}
                   </div>
