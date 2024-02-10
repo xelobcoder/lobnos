@@ -5,6 +5,7 @@ import MainSettingsLayoutView from '../../../components/settingsComponents/MainS
 const ApplicationSettingsComponent = dynamic(() => import('../../../components/settingsComponents/ApplicationSettings/ApplicationSettings'));
 const ApplicationResultSettings = dynamic(() => import('../../../components/settingsComponents/ApplicationSettings/ResultSettings'));
 const ApplicationEmailPreference = dynamic(() => import('../../../components/settingsComponents/ApplicationSettings/EmailPreference'));
+const SmsApplicationPreferenece = dynamic(() => import('../../../components/settingsComponents/ApplicationSettings/SmsPreferenceSettings'))
 
 
 export default function Settings() {
@@ -22,8 +23,8 @@ export default function Settings() {
 				<Tab eventKey='email' title='email preference'>
 					{key === 'email' && <ApplicationEmailPreference />}
 				</Tab>
-				<Tab eventKey='sms settings' title='sms settings'>
-
+				<Tab eventKey='smssettings' title='sms settings'>
+				{key === "smssettings" && 	<SmsApplicationPreferenece />}
 				</Tab>
 			</Tabs>
 		</MainSettingsLayoutView>

@@ -17,6 +17,8 @@ export default function CustomFormSwitch({ title, target, update, text, value, v
   useEffect(() => {
     if (variant === "number") {
       setState(value == 1 ? true : false)
+    } else if (variant === "string") {
+      setState(value == "Yes" ? true : false)
     } else {
       setState(value)
     }

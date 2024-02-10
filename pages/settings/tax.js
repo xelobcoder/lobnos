@@ -1,66 +1,83 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import MainSettingsLayoutView from '../../components/settingsComponents/MainSettingsLayoutView'
-import { AddOutlined, DeleteForever } from '@mui/icons-material'
 import Application_Tax_Inclusion from '../../components/settingsComponents/newTaxModal'
 import { getDataAndUpdateState } from '../../components/Auth/customFetch';
+import TableDisplay from "../../components/accessories/TableDisplay";
+import { Form } from 'react-bootstrap'
+import Loader from '../../components/accessories/Loader';
 
 export default function Application_Taxes_List() {
-  const [show, setShow] = useState(false);
+  const [isloading, setIsLoading] = useState(true);
+  const [editing, setEditing] = useState({ isEdit: false, editdata: null })
   const [data, setData] = useState([]);
 
-  const getdata = useCallback(() => { getDataAndUpdateState(setData, 'application/tax') }, [])
+  const getdata = useCallback(() => {
+    getDataAndUpdateState(setData, 'application/tax', null, setIsLoading);
+  }, [])
 
-  const hide = () => { setShow(false); }
+
 
   useEffect(() => { getdata() }, [getdata])
 
+  const handleActivation = (id, value) => {
+    if (!id || !value) return
+    const nw = [...data];
+    const index = nw.findIndex((item, index) => item?.id === parseInt(id));
+    if (index < 0) return;
+    nw[index]['apply'] = value === true ? "Yes" : 'No';
+    setData(nw);
+  }
+
+
+  const columns = [
+    { Header: 'name', accessor: "name" },
+    {
+      Header: 'value', accessor: "value", Cell: ({ value }) => {
+        return <div>
+        {value}{"%"}
+      </div>
+    } },
+    { Header: 'Tax Applied', accessor: "apply" },
+    {
+      Header: "change status", accessor: '', Cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <Form.Check type='switch' style={{ fontSize: '25px' }}
+            onChange={(ev) => { handleActivation(item.id, ev.target.checked) }}
+            checked={item.apply === "Yes" ? true : false}
+          />
+        )
+      }
+    },
+    {
+      Header: "actions", accessor: "", Cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className='d-flex'>
+            <button className='btn btn-primary btn-sm' onClick={(ev) => { setEditing({ isEdit: true, editdata: item }) }}>
+              edit
+            </button>
+            <button className='btn btn-danger btn-sm mx-2'>
+              delete
+            </button>
+          </div>
+        )
+      }
+    }
+  ]
+
+  const render = () => {
+    if (isloading) return <Loader />
+    else {
+      return <TableDisplay column={columns} data={data} />
+    }
+  }
   return (
     <MainSettingsLayoutView>
-      <div className='d-flex justify-content-end mx-2 my-1'>
-        <button onClick={(ev) => { setShow(true) }} className='btn btn-secondary'><AddOutlined /> new tax</button>
-      </div>
       <div className='mx-2'>
-        <button onClick={(ev) => { getdata() }} className=' btn btn-outline-secondary btn-sm'>refresh</button>
-        <table className='table'>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>name</th>
-              <th>value</th>
-              <th>status</th>
-              <th>change status</th>
-              <th>delete</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.length === 0 ?
-              (<tr>
-                <td colSpan={5}>No data Available</td>
-              </tr>
-              )
-              :
-              (<>
-                {data.map((item, index) => {
-                  return (<tr key={index}>
-                    <td>{index + 1}</td>
-                    <td>{item.name}</td>
-                    <td>{item.value}</td>
-                    <td>{item.apply === 'Yes' ? 'Yes' : 'No'}</td>
-                    <td>
-                      <button
-                        className={`btn btn-sm ${item.apply === 'Yes' ? 'btn-danger' : 'btn-success'}`}
-                      >{item.apply === 'Yes' ? 'Deactivate' : 'Activate'}</button>
-                    </td>
-                    <td>
-                      <DeleteForever color='error' />
-                    </td>
-                  </tr>)
-                })}
-              </>)}
-          </tbody>
-        </table>
+        <Application_Tax_Inclusion isEdit={editing.isEdit} editdata={editing.editdata} />
+        {render()}
       </div>
-      <Application_Tax_Inclusion show={show} hide={hide} />
     </MainSettingsLayoutView>
   )
 }

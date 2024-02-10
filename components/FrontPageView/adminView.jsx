@@ -29,7 +29,7 @@ export default function FrontPageAdminView() {
         <Link className='bg-primary p-4  text-white text-center' href="/dashboard">
           DashBoard 
         </Link>
-        <Link className='bg-primary p-4  text-white text-center' href="/settings">
+        <Link className='bg-primary p-4  text-white text-center' href="/settings/applicationsettings">
          Application Settings
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/instructions">

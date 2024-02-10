@@ -373,8 +373,9 @@ export const deleteOrganization = async function (id, getdatafxn) {
 }
 
 
-export const getDataAndUpdateState = async function (setfxn, endpoint, returner) {
+export const getDataAndUpdateState = async function (setfxn, endpoint, returner, loader = null) {
    try {
+      if (loader) loader(true);
       const getResponse = await customFetch(endpoint);
       const { statusCode, status, result } = getResponse;
       if (statusCode == 200) {
@@ -384,8 +385,10 @@ export const getDataAndUpdateState = async function (setfxn, endpoint, returner)
             setfxn(result)
          }
       }
+      if (loader) loader(false);
    } catch (err) {
-      alert("something wrong occured");
+      loader(false);
+      alert("something went wrong");
    }
 }
 

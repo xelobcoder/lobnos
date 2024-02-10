@@ -64,7 +64,7 @@ export default function ApplicationEmailPreference() {
                  title={item}
                  target={item}
                  variant="string"
-                 value={preference[item] === "Yes" ? true : false}
+                 value={preference[item]}
                  update={handleChangeWithState}
                  text={`Send an email notification when ${item} event occurs.This would be triggered automatically when it is activated.`}
                />
