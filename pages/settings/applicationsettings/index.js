@@ -5,11 +5,11 @@ import MainSettingsLayoutView from '../../../components/settingsComponents/MainS
 const ApplicationSettingsComponent = dynamic(() => import('../../../components/settingsComponents/ApplicationSettings/ApplicationSettings'));
 const ApplicationResultSettings = dynamic(() => import('../../../components/settingsComponents/ApplicationSettings/ResultSettings'));
 const ApplicationEmailPreference = dynamic(() => import('../../../components/settingsComponents/ApplicationSettings/EmailPreference'));
-const SmsApplicationPreferenece = dynamic(() => import('../../../components/settingsComponents/ApplicationSettings/SmsPreferenceSettings'))
+const SmsApplicationPreferenece = dynamic(() => import('../../../components/settingsComponents/ApplicationSettings/SmsPreferenceSettings'));
 
 
 export default function Settings() {
-	const [key, setKey] = useState("application#settings");
+	const [key, setKey] = useState("result#settings");
 	return (
 		<MainSettingsLayoutView>
 			<h5 className='fw-bold'>Application settings</h5>

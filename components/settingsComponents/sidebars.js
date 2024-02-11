@@ -93,7 +93,7 @@ export default function SettingsSidebarLayout() {
                 <Link href={'/settings/testpanel/testpricing'}>bulk test update</Link>
               </div>
             </li>
-            <li>
+            {/* <li>
               <div className="icons">
                 <Sms />
               </div>
@@ -102,7 +102,7 @@ export default function SettingsSidebarLayout() {
                   sms settings
                 </Link>
               </div>
-            </li>
+            </li> */}
             <li>
               <div className="icons">
                 <Sms />
