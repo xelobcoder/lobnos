@@ -1,6 +1,6 @@
-import { useState,useEffect } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link'
-import { Analytics, Error, Forward, Home, RoomPreferences, SettingsApplications } from '@mui/icons-material'
+import { Analytics, Error, Forward, Home, SettingsApplications } from '@mui/icons-material'
 import { getApplicationSettings } from '../Auth/customFetch';
 import { useRouter } from 'next/navigation';
 export default function EmailSidebarJSX() {
@@ -34,14 +34,6 @@ const router = useRouter();
               </div>
               <div className="text">
                 <Link href={'/settings/emailsetting'}> Email setup</Link>
-              </div>
-            </li>
-            <li>
-              <div className="icons">
-                <RoomPreferences />
-              </div>
-              <div className="text">
-                <Link href={'/settings/emailsetting/preference'}>Email preference</Link>
               </div>
             </li>
             <li>

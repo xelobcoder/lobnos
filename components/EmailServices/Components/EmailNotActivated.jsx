@@ -1,17 +1,23 @@
 import { useRouter } from "next/navigation"
+import Authorization from "../../accessories/authorization"
 
 export default function EmailServiceNotActivated() {
-  const router = useRouter();
+  const router = useRouter()
   return (
-    <div className="bg-white mx-3 my-3 br-5 py-5 px-4">
+    <div className="d-flex justify-content-center">
       <div className="text-center">
-        <h1 className="text-2xl text-primary  font-bold">Email Service Not Activated</h1>
-        <p className="text-sm">
-          <button className="btn btn-primary" onClick={(ev) => {router.push('/settings')}}>
-             Click here to activate email service
-          </button>
-        </p>
-        </div>
+        <h5 className="border text-capitalize border-2 border-dark mt-5">
+          Email services not activated
+        </h5>
+        <Authorization />
+        <button
+          className="btn btn-dark"
+          onClick={(ev) => {
+            router.push("/settings/applicationsettings")
+          }}>
+          visit application settings page to activate
+        </button>
+      </div>
     </div>
   )
 }
