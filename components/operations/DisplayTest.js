@@ -4,7 +4,7 @@ import PatientTrendModalJsx from './PatientTrendModalJsx/PatientTrendModal.jsx';
 import { getTestComponent } from '../LabTestForms/ComponentsTestFormsList.js';
 
 export default function DisplayTest() {
-  const { operationsKey,employeeid } = useContext(OperationsContext);
+  const { operationsKey, employeeid } = useContext(OperationsContext);
   const [showtrend, setshowtrend] = useState(false);
   const closeTrend = () => { setshowtrend(false) }
 

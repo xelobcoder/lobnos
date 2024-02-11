@@ -1,10 +1,9 @@
-import React, { createContext, useContext } from 'react';
+import { createContext, useContext } from 'react';
 import { useState } from 'react';
 import AuthContext from '../../components/Auth/useAuthentification';
 import Authorization from '../accessories/authorization';
 
 const OperationsContext = createContext();
-
 const OperaProvider = OperationsContext.Provider;
 
 export const OperationsProvider = ({ children }) => {
@@ -14,16 +13,19 @@ export const OperationsProvider = ({ children }) => {
     const roles = ['admin', 'manager', 'scientist'];
 
 
+    const isAuthorized = () => {
+        if (!roles.includes(auth?.role)) return <Authorization />
+        else return (
+            <OperaProvider value={{ operationsKey, updateOperations, employeeid: auth?.employeeid }} >
+                {children}
+            </OperaProvider>
+        )
+    }
+
+
     return (
         <>
-            {
-                auth && (roles.includes(auth?.role)) ?
-                    <OperaProvider value={{ operationsKey, updateOperations,employeeid: auth?.employeeid}} >
-                        {children}
-                    </OperaProvider>
-                    :
-                <Authorization/>
-            }
+          {isAuthorized()}
         </>
     )
 }

@@ -20,7 +20,7 @@ export default function ReadyResult() {
   const [advancedQuery, setAdvancedQuery] = useState({ patientid: '', fullname: '', mobile: '', from: '', to: '' })
 
 
-  const getWaitingList = async (advancedQuery) => {
+  const getWaitingList = async () => {
     try {
       setIsLoading(true);
       let queryparams = `ready/crm/summary/advanced?`;
@@ -47,7 +47,7 @@ export default function ReadyResult() {
 
 
   useEffect(() => {
-    if (!loadpage) getWaitingList(advancedQuery);
+    if (!loadpage) getWaitingList();
   }, [])
 
 
@@ -61,7 +61,9 @@ export default function ReadyResult() {
   // submit handler for advanced search
   const handleAdvancedSubmit = async (e) => {
     e.preventDefault();
-    getWaitingList(advancedQuery);
+    const { fullname, patientid, from, to } = advancedQuery;
+    if (patientid == "" && from == "" && to == "" && fullname == "") return;
+    getWaitingList();
   }
 
 
@@ -89,6 +91,7 @@ export default function ReadyResult() {
             showAccord={showAccord}
             load={setLoadPage}
             updateAccord={updateAccord}
+            page={pages.page}
             updatePagination={updatePage}
           />
           {showAccord.display && <ReadyTestSummaryAccordion title={showAccord.title} id={showAccord.active} />}
@@ -106,6 +109,7 @@ export default function ReadyResult() {
     if (loadpage && pages.page) {
       getWaitingList(advancedQuery);
     }
+    return () => null
   }, [pages,loadpage])
 
 

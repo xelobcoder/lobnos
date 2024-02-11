@@ -2,7 +2,7 @@ import TableDisplay from '../accessories/TableDisplay';
 import { EnergySavingsLeaf } from "@mui/icons-material";
 import Pagination from '../../components/accessories/pagination';
 
-export default function ReadyList({ readydata, showAccord, updateAccord, updatePagination,load = false}) {
+export default function ReadyList({ readydata, page, showAccord, updateAccord, updatePagination, load = false }) {
   let columns = [
     { Header: "billingid", accessor: "billingid" },
     { Header: "fullname", accessor: "fullname" },
@@ -83,8 +83,8 @@ export default function ReadyList({ readydata, showAccord, updateAccord, updateP
   return (
     <div>
       <TableDisplay filtering={!showAccord.display} column={columns} data={readydata} showpage={false} />
-      <div className='d-flex justify-content-center'>
-        <Pagination updateFunction={updatePagination} load={load}/>
+      <div className="d-flex justify-content-center">
+        <Pagination page={page} updateFunction={updatePagination} load={load} />
       </div>
     </div>
   )

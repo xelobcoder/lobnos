@@ -1,33 +1,27 @@
-import React from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from "next/navigation"
 
-export default function MiniCard({ colorIndex, size, icon, text, number, link }) {
+export default function MiniCard({ colorIndex, text, number, link }) {
   const colorview = {
-    0: 'bg-primary text-white',
-    1: 'bg-warning text-white',
-    2: 'bg-success text-white',
-    3: 'bg-info text-white',
-    4: 'bg-secondary text-white',
-    5: 'bg-danger text-white',
-    6: 'bg-primary text-white',
-    7: 'bg-success text-white',
-    8: 'bg-primary text-white',
-    9: 'bg-secondary text-white'
+    0: "bg-primary text-white",
+    1: "bg-warning text-white",
+    2: "bg-success text-white",
+    3: "bg-infotext-white",
+    4: "bg-secondary text-white",
+    5: "bg-danger text-white",
+    6: "bg-primary text-white",
+    7: "bg-success text-white",
+    8: "bg-primary text-white",
+    9: "bg-secondary text-white",
   }
 
-  const router = useRouter();
+  const router = useRouter()
   return (
-    <div className={`minicard  ${colorview[colorIndex]}`} onClick={() => router.push(link)}>
-      <div className={`icon`}>
-        {icon}
+    <div className={`mx-2 border border-secondary text-capitalize`} onClick={() => router.push(link)}>
+      <div className={`${colorview[colorIndex]}  border-bottom border-secondary p-2`}>
+        <h6>{text}</h6>
       </div>
-      <div className='mini-rest'>
-        <div className='text'>
-          {text}
-        </div>
-        <div className='number'>
-          {number == 1 ? `${number} case pending ` : `${number} cases pending`}
-        </div>
+      <div className="p-3">
+        <h6>{number == 1 ? `${number} case pending ` : `${number} cases pending`}</h6>
       </div>
     </div>
   )

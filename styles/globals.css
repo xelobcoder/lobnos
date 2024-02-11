@@ -2506,12 +2506,6 @@ font-family: 'Times New Roman', Times, serif !important;
   background-color: #00224f;
 }
 
-.minicard-wrapper {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  margin: 0px 20px 0px 20px;
-  grid-gap: 20px;
-}
 
 #clinician-page-main {
   margin: 20px;
@@ -2528,42 +2522,7 @@ font-family: 'Times New Roman', Times, serif !important;
   grid-gap: 20px;
   margin: 10px 20px 0px 20px;
 }
-.minicard {
-  display: grid;
-  grid-template-columns: 20% auto;
-  height: 130px;
-  margin-top: 20px;
-  border: 1px solid lightgray;
-  border-radius: 5px;
-  cursor: pointer;
-  /* background-color: white; */
-}
 
-.minicard > .icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.minicard > .mini-rest {
-  display: grid;
-  grid-template-columns: 100%;
-  border-left: 1px solid lightgray;
-  grid-template-rows: 50% auto;
-}
-
-.minicard > .mini-rest > .text,
-.minicard > .mini-rest > .number {
-  font-size: 15px;
-  font-weight: 200 !important;
-  display: flex;
-  text-transform: uppercase;
-  justify-content: center;
-  align-items: center;
-}
-.minicard > .mini-rest > .text {
-  border-bottom: 1px solid lightgray;
-}
 #child {
   position: absolute;
   top: 100%;
@@ -2626,22 +2585,7 @@ font-family: 'Times New Roman', Times, serif !important;
     grid-template-columns: 100%;
   }
 
-  .minicard-wrapper {
-    grid-template-columns: 100%;
-    grid-gap: 10px;
-    margin: 0px 10px 0px 10px !important;
-  }
-
-  .minicard-wrapper > .minicard {
-    height: 100px;
-  }
-  .minicard-wrapper > .minicard:last-child {
-    margin-bottom: 30px;
-  }
-  .minicard-top-text {
-    grid-template-columns: 100%;
-  }
-
+ 
   #activation-advanced {
     grid-template-columns: 50% 50%;
     grid-gap: 10px;

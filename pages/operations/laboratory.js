@@ -1,19 +1,16 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react'
+import  { useState, useEffect, useCallback, useContext } from 'react'
 import MiniCard from '../../components/operations/miniCard'
-import { Bloodtype } from '@mui/icons-material';
-import { customFetch, getDepartment } from '../../components/Auth/customFetch';
+import { customFetch } from '../../components/Auth/customFetch';
 import SECOND_NO_DATA from '../../components/accessories/secondNodata';
-import DateTimer from '../../components/accessories/DateTimer';
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 import LabSideBarComponents from '../../components/operations/labSideBarComponents';
 import AuthContext from '../../components/Auth/useAuthentification';
 import Authorization from '../../components/accessories/authorization';
 
-export default function OperationsOverview({ colorIndex }) {
+export default function OperationsOverview() {
   const { auth } = useContext(AuthContext);
   const [summary, setSummary] = useState([]);
   const [noDeptTest, setNoDeptTest] = useState(false);
-  const [department, setDepartments] = useState([]);
   const [totalcount, setTotalCount] = useState(0)
 
 
@@ -23,61 +20,45 @@ export default function OperationsOverview({ colorIndex }) {
     const overview = await customFetch('operations/overview?stage=unentered');
     const { status, statusCode, result } = overview;
     if (statusCode == 200 && status == 'success') {
-      const departments = department.map((item, index) => {
-        return { department: item.department, id: item.id };
-      })
-
-      if (department.length == 0) {
+      if (result.length == 0) {
         setNoDeptTest(true)
       } else {
-        setSummary(departments.map((item, index) => {
-          const count = result.filter((e, i) => { { return e.department == item.department; } });
-          return { department: item.department, count: count.length, id: item.id }
-        }))
-        setTotalCount(result.length)
+        setSummary(result);
+        const len = result.reduce((a, b) => a + b.count, 0);
+        setTotalCount(len)
       }
     }
-  }, [department])
+  }, [])
 
 
   useEffect(() => {
-    getDepartment(setDepartments)
-    if (department.length > 0) {
-      getOperationsOverview()
-    }
-  }, [department.length])
+    getOperationsOverview()
+  }, [getOperationsOverview])
 
 
 
-
-  return (
-    <>
-     { ["scientist","admin"].includes(auth?.role) ?
-        (
-          <SettingsLayout sidebar={<LabSideBarComponents auth={auth} />}>
-        <div className="minicard-top-text">
-          <div className='head'>
-            <h5 className="text-bold text-capitalize p-2">
-              cases count awaiting result entry by department for today{" "}
-              <DateTimer />
-            </h5>
-          </div> 
-        </div>
-        <hr />
-        {noDeptTest ? (
+  const pageAuthorization = () => {
+    if (!["scientist", "admin"].includes(auth?.role)) return <Authorization />
+    else {
+      if (noDeptTest) {
+        return (
           <div className="mt-3">
             {" "}
             <SECOND_NO_DATA message={"No test added to departments"} />{" "}
           </div>
-        ) : (
-          <div className="minicard-wrapper">
+        )
+      } else {
+        return (
+          <SettingsLayout sidebar={<LabSideBarComponents auth={auth} />}>
+            <h4>{'>>> '}Pending Cases</h4>
+            <hr />
+            <div className="grid-30-30-30 pointer">
             <MiniCard
               number={totalcount}
               colorIndex={0}
               text={"all department"}
               color={"green"}
-              link={`/operations/departments/all`}
-              icon={<Bloodtype sx={{ height: "50%", width: "50%" }} />}
+                link={`/operations/departments/all`}
             />
             {summary.map((item, index) => {
               return (
@@ -88,17 +69,23 @@ export default function OperationsOverview({ colorIndex }) {
                   text={item.department}
                   color={"green"}
                   link={`/operations/departments/${item.id}`}
-                  icon={<Bloodtype sx={{ height: "50%", width: "50%" }} />}
+
                 />
               );
             })}
-          </div>
-        )}
+            </div>
           </SettingsLayout>
         )
-        :
-      (<Authorization/>)
       }
+    }
+  }
+
+
+
+
+  return (
+    <>
+      {pageAuthorization()}
     </>
   );
 }

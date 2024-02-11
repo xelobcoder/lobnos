@@ -3,7 +3,12 @@ import CustomFormSwitch from "./CustomFormSwitch"
 import { customFetch, customPost } from "../../Auth/customFetch"
 import { ToastContainer, toast } from "react-toastify"
 export default function ApplicationResultSettings() {
-  const defaultSetings = { literatureReview: 1, letterHeading: 1, passwordonResult: 1 }
+  const defaultSetings = {
+    literatureReview: 1,
+    letterHeading: 1,
+    passwordonResult: 1,
+    DepartmentEntry: 1,
+  }
   const [result, setResult] = useState(defaultSetings)
   const [isloading, setLoading] = useState(true)
 
@@ -70,6 +75,14 @@ export default function ApplicationResultSettings() {
               variant="number"
               target="passwordonResult"
               update={update}
+            />
+            <CustomFormSwitch
+              value={result.DepartmentEntry}
+              target="DepartmentEntry"
+              update={update}
+              variant="number"
+              title="Result Entry"
+              text="Ensure result entry is done according departments created. Toggle to activate it or view by patient"
             />
           </div>
           <div>
