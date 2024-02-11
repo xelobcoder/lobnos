@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { customFetch,  getDateExpression } from '../../components/Auth/customFetch';
+import { useEffect, useMemo, useState } from 'react'
+import { customFetch, updatePagination } from '../../components/Auth/customFetch';
 import ReadyList from '../../components/readyComponents/ReadyList';
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 import SidebarFrontPage from '../../components/frontpagesidebar';
@@ -8,8 +8,11 @@ import DayTestSummary from '../../components/readyComponents/DayTestSummary';
 import ReadyTestSummaryAccordion from '../../components/readyComponents/ReadyTestSummaryAccordion';
 import Loader from '../../components/accessories/Loader';
 
+
 export default function ReadyResult() {
   const [showsummary, setShowSummary] = useState(true);
+  const [loadpage, setLoadPage] = useState(false);
+  const [pages, setPages] = useState({ count: 10, page: 1 })
   const [ready, setReady] = useState([]);
   const [isloading, setIsLoading] = useState(true);
   const [advanced, setAdvanced] = useState(true);
@@ -17,15 +20,19 @@ export default function ReadyResult() {
   const [advancedQuery, setAdvancedQuery] = useState({ patientid: '', fullname: '', mobile: '', from: '', to: '' })
 
 
-  const getWaitingList = async () => {
+  const getWaitingList = async (advancedQuery) => {
     try {
       setIsLoading(true);
       let queryparams = `ready/crm/summary/advanced?`;
-      for (const key in advancedQuery) {
-        if (advancedQuery[key] !== '') {
-          queryparams += `${key}=${advancedQuery[key]}&&`
+      const insertToQuery = async function (object) {
+        for (const key in object) {
+          if (object[key] !== '') {
+            queryparams += `${key}=${object[key]}&&`
+          }
         }
       }
+      await insertToQuery(advancedQuery);
+      await insertToQuery(pages);
       const pushRequest = await customFetch(queryparams);
       const { status, statusCode, result } = pushRequest;
       if (status == 'success' && statusCode == 200) {
@@ -40,7 +47,7 @@ export default function ReadyResult() {
 
 
   useEffect(() => {
-    getWaitingList();
+    if (!loadpage) getWaitingList(advancedQuery);
   }, [])
 
 
@@ -54,7 +61,7 @@ export default function ReadyResult() {
   // submit handler for advanced search
   const handleAdvancedSubmit = async (e) => {
     e.preventDefault();
-    getWaitingList();
+    getWaitingList(advancedQuery);
   }
 
 
@@ -69,18 +76,41 @@ export default function ReadyResult() {
   }, [ready, showAccord])
 
 
+
+
   const renderer = () => {
     if (isloading) {
       return <Loader />
     } else {
       return (
         <section className={`${showAccord.display ? "grid-50" : "grid-100"} mt-2`}>
-          <ReadyList readydata={ready} showAccord={showAccord} updateAccord={updateAccord} />
+          <ReadyList
+            readydata={ready}
+            showAccord={showAccord}
+            load={setLoadPage}
+            updateAccord={updateAccord}
+            updatePagination={updatePage}
+          />
           {showAccord.display && <ReadyTestSummaryAccordion title={showAccord.title} id={showAccord.active} />}
         </section>
       )
     }
   }
+
+
+  const updatePage = async (value) => {
+    updatePagination(value, setPages, pages);
+  }
+
+  useEffect(() => {
+    if (loadpage && pages.page) {
+      getWaitingList(advancedQuery);
+    }
+  }, [pages,loadpage])
+
+
+
+
 
   return (
     <SettingsLayout sidebar={<SidebarFrontPage />}>
