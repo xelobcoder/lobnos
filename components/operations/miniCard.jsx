@@ -16,11 +16,11 @@ export default function MiniCard({ colorIndex, text, number, link }) {
 
   const router = useRouter()
   return (
-    <div className={`mx-2 border border-secondary text-capitalize`} onClick={() => router.push(link)}>
+    <div className={`mx-2 border border-secondary  text-capitalize`} onClick={() => router.push(link)}>
       <div className={`${colorview[colorIndex]}  border-bottom border-secondary p-2`}>
         <h6>{text}</h6>
       </div>
-      <div className="p-3">
+      <div className="p-3 bg-white">
         <h6>{number == 1 ? `${number} case pending ` : `${number} cases pending`}</h6>
       </div>
     </div>

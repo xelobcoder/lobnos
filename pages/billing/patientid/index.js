@@ -101,8 +101,8 @@ export default function Billing({ }) {
       organization,
       clinician,
       paymentmode,
-      paid: parseInt(amount),
-      discount: parseInt(concession) || 0,
+      paid: parseFloat(amount),
+      discount: parseFloat(concession) || 0,
       cost: billingClass.calculateCost(cart) + billingClass.totalTaxValue(billingdata.taxes),
       status: clientStatus,
       payable: totalBill,
@@ -111,7 +111,7 @@ export default function Billing({ }) {
       taxIncluded: includeTax,
       taxValue: billingClass.totalTaxValue(billingdata.taxes),
       patientid: parseInt(clientid),
-      outstanding: totalBill - parseInt(amount),
+      outstanding: totalBill - parseFloat(amount),
       samplingCenter: parseInt(branch),
       employeeid
     };
