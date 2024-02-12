@@ -1,7 +1,6 @@
 import  { useState, useEffect, useCallback, useContext } from 'react'
 import MiniCard from '../../components/operations/miniCard'
 import { customFetch } from '../../components/Auth/customFetch';
-import SECOND_NO_DATA from '../../components/accessories/secondNodata';
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
 import LabSideBarComponents from '../../components/operations/labSideBarComponents';
 import AuthContext from '../../components/Auth/useAuthentification';
@@ -11,7 +10,7 @@ export default function OperationsOverview() {
   const { auth } = useContext(AuthContext);
   const [summary, setSummary] = useState([]);
   const [noDeptTest, setNoDeptTest] = useState(false);
-  const [totalcount, setTotalCount] = useState(0)
+  const [totalcount, setTotalCount] = useState(0);
 
 
 
@@ -21,7 +20,7 @@ export default function OperationsOverview() {
     const { status, statusCode, result } = overview;
     if (statusCode == 200 && status == 'success') {
       if (result.length == 0) {
-        setNoDeptTest(true)
+        setNoDeptTest(true);
       } else {
         setSummary(result);
         const len = result.reduce((a, b) => a + b.count, 0);
@@ -36,20 +35,24 @@ export default function OperationsOverview() {
   }, [getOperationsOverview])
 
 
-
   const pageAuthorization = () => {
     if (!["scientist", "admin"].includes(auth?.role)) return <Authorization />
     else {
       if (noDeptTest) {
         return (
-          <div className="mt-3">
-            {" "}
-            <SECOND_NO_DATA message={"No test added to departments"} />{" "}
+          <div className="mt-3 pointer">
+            <MiniCard
+              number={totalcount}
+              colorIndex={0}
+              text={"all department"}
+              color={"green"}
+              link={totalcount > 0 ? `/operations/departments/all` : '/operations/laboratory'}
+            />
           </div>
         )
       } else {
         return (
-          <SettingsLayout sidebar={<LabSideBarComponents auth={auth} />}>
+          <div>
             <h4>{'>>> '}Pending Cases</h4>
             <hr />
             <div className="grid-30-30-30 pointer">
@@ -58,7 +61,7 @@ export default function OperationsOverview() {
               colorIndex={0}
               text={"all department"}
               color={"green"}
-                link={`/operations/departments/all`}
+                link={totalcount > 0 ? `/operations/departments/all` : '/operations/laboratory'}
             />
             {summary.map((item, index) => {
               return (
@@ -68,13 +71,11 @@ export default function OperationsOverview() {
                   colorIndex={1 + index}
                   text={item.department}
                   color={"green"}
-                  link={`/operations/departments/${item.id}`}
-
-                />
+                  link={item.count > 0 ? `/operations/departments/${item.departmentid}` : '/operations/laboratory'} />
               );
             })}
             </div>
-          </SettingsLayout>
+          </div>
         )
       }
     }
@@ -85,7 +86,9 @@ export default function OperationsOverview() {
 
   return (
     <>
-      {pageAuthorization()}
+      <SettingsLayout sidebar={<LabSideBarComponents auth={auth} />}>
+        {pageAuthorization()}
+      </SettingsLayout>
     </>
   );
 }

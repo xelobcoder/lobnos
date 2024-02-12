@@ -1,29 +1,25 @@
-import React, { useState, useMemo, Suspense, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useCallback } from 'react';
 import { customFetch, getDepartment } from '../Auth/customFetch';
 import OperationsContext from './OperationsContext';
 import { useRouter } from 'next/router';
-import { Button } from '@mui/material';
 import SECOND_NO_DATA from '../accessories/secondNodata';
 
 
 export default function OperationsTestCollection() {
-  const { operationsKey, updateOperations } = useContext(OperationsContext)
+  const { updateOperations } = useContext(OperationsContext)
   const [collection, setCollections] = useState([]);
   const [departments, setDepartments] = useState([])
   const [query, setQuery] = useState({ bydept: false, queryDept: 0 })
 
 
   // get department from router query
-
   const { departmentid } = useRouter().query;
 
   // intial data fetching from the server
-  const getCollection = async function () {
+  const getCollection = useCallback(async function () {
     let url = `operations/collection?category=${departmentid}`;
-
     try {
-      const response = await customFetch(url)
-
+      const response = await customFetch(url);
       if (response?.result == false) {
         setCollections([])
       } else {
@@ -31,10 +27,9 @@ export default function OperationsTestCollection() {
       }
     }
     catch (err) {
-      console.log(err)
+      setCollections([]);
     }
-  }
-
+  }, [departmentid])
 
 
 
@@ -43,13 +38,11 @@ export default function OperationsTestCollection() {
     getDepartment(setDepartments)
     setQuery({ bydept: true, queryDept: departmentid });
     getCollection()
-  }, [departmentid])
+  }, [getCollection, departmentid])
 
 
 
-  useEffect(() => {
-    getCollection();
-  }, [query.queryDept])
+
 
 
 
@@ -69,15 +62,15 @@ export default function OperationsTestCollection() {
 
 
 
-  const handleUpdate = (e, item) => { updateOperations({ billingid: item.BILLINGID, patientid: item.PATIENTID }) }
+  const handleUpdate = (e, item) => {
+    updateOperations({ billingid: item.BILLINGID, patientid: item.PATIENTID })
+  }
 
 
 
   return (
     <>
-      <Suspense fallback={<div>loading.....</div>}>
-
-        <div>
+      <div>
           <div className="p-2">
             <label>select department</label>
             <select className='form-control mb-2' value={query.queryDept} onChange={(e) => { setQuery({ queryDept: e.target.value, bydept: true }) }}
@@ -113,8 +106,7 @@ export default function OperationsTestCollection() {
               <SECOND_NO_DATA message={"No data"} />
             )}
           </ul>
-        </div>
-      </Suspense>
+      </div>
     </>
   );
 }
