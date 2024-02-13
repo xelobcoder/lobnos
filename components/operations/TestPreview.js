@@ -10,7 +10,7 @@ export default function TestPreview() {
   const [expandAll, setExpandAll] = useState(false);
   const [active, setActive] = useState(null)
 
-  // use thr billing id of operationsKey to fetch the data from the server
+  // use the billing id of operationsKey to fetch the data from the server
   // and display it in the preview section
 
   // get departmentid if present from the query of the router
@@ -18,9 +18,7 @@ export default function TestPreview() {
 
   const getPreview = async function () {
     const billingid = operationsKey?.billingid;
-    if (operationsKey == null) {
-      return
-    }
+    if (operationsKey == null) return null;
     const response = await customFetch(`operations/test?billingid=${billingid}&&departmentid=${departmentid}`)
     setDatapool(response?.result)
   }

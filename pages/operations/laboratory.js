@@ -1,18 +1,12 @@
 import  { useState, useEffect, useCallback, useContext } from 'react'
 import MiniCard from '../../components/operations/miniCard'
 import { customFetch } from '../../components/Auth/customFetch';
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
-import LabSideBarComponents from '../../components/operations/labSideBarComponents';
-import AuthContext from '../../components/Auth/useAuthentification';
-import Authorization from '../../components/accessories/authorization';
+import LaboratoryLayout from '../../components/operations/LaboratoryLayout';
 
 export default function OperationsOverview() {
-  const { auth } = useContext(AuthContext);
   const [summary, setSummary] = useState([]);
   const [noDeptTest, setNoDeptTest] = useState(false);
   const [totalcount, setTotalCount] = useState(0);
-
-
 
 
   const getOperationsOverview = useCallback(async function () {
@@ -36,8 +30,6 @@ export default function OperationsOverview() {
 
 
   const pageAuthorization = () => {
-    if (!["scientist", "admin"].includes(auth?.role)) return <Authorization />
-    else {
       if (noDeptTest) {
         return (
           <div className="mt-3 pointer">
@@ -78,17 +70,14 @@ export default function OperationsOverview() {
           </div>
         )
       }
-    }
   }
 
 
 
 
   return (
-    <>
-      <SettingsLayout sidebar={<LabSideBarComponents auth={auth} />}>
-        {pageAuthorization()}
-      </SettingsLayout>
-    </>
+    <LaboratoryLayout>
+      {pageAuthorization()}
+    </LaboratoryLayout>
   );
 }

@@ -754,3 +754,11 @@ export const updatePagination = (pageValue, setQuery, query) => {
       setQuery({ ...query, page: pageValue });
    }
 }
+
+export const formatTest = (name) => {
+   let testname = name.replace(/\s/g, "_").toLowerCase()
+   if (name.includes("(") && name.includes(")")) {
+      testname = name.slice(0, name.indexOf("("))
+   }
+   return testname;
+}

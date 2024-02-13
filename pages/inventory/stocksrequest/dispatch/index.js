@@ -64,7 +64,9 @@ export default function DispathApprovedStockToDepart() {
          )
          }
          {!selectedDept &&
-            (<h6 className="alert alert-info mt-2 bg-opacity-50 mx-2">Select a Department to continue</h6>)}
+            (<h6 className="alert alert-info mt-2 bg-opacity-50 mx-2">
+               Select a Department to continue
+            </h6>)}
      </InventoryLayout>
    )
 }

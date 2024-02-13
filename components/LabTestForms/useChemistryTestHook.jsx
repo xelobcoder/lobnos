@@ -86,7 +86,7 @@ export default function UseChemistryTestHook({ clientdata,employeeid }) {
       <div className="mx-3">
         <div className="card m-0 br-5">
           <div className="card-header modal-color text-capitalize">
-            <h5>{test.split("_").join(" ") || " "} test</h5>
+            <h5>{test.split("_").join(" ") || " "}</h5>
             <Indicator resultEntered={resultEntered} />
           </div>
           <div className="card-body ">

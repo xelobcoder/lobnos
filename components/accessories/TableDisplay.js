@@ -1,14 +1,14 @@
 import  { useMemo } from 'react'
-import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination } from 'react-table'
+import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination,useFlexLayout} from 'react-table'
 import GlobalFilter from './GlobalFilter'
-import SECOND_NO_DATA from './secondNodata'
+import SECOND_NO_DATA from './secondNodata';
 
 export default function TableDisplay({ showpage = true, column, data, styling, filtering }) {
   const tableInstance = useTable({
     columns: useMemo(() => column, [column]),
     data: useMemo(() => data, [data]),
     initialState: { pageSize: 10 },
-  }, useFilters, useGlobalFilter, useSortBy, usePagination)
+  }, useFilters, useGlobalFilter, useSortBy, usePagination, useFlexLayout)
 
  
   const {
@@ -29,28 +29,26 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
   } = tableInstance
 
   const customHeaderGroup = () => {
-    return headerGroups.map((headerGroup, index) => {
-      return <tr {...headerGroup.getHeaderGroupProps()} key={index}>
-        {headerGroup.headers.map((column) => (
-          <th {...column.getHeaderProps(column.getSortByToggleProps())} key={column.id}>
+    return headerGroups.map((headerGroup, v) => {
+      return <tr {...headerGroup.getHeaderGroupProps()} key={v}>
+        {headerGroup.headers.map((column, index) => (
+          // eslint-disable-next-line react/jsx-key
+          <th  {...column.getHeaderProps(column.getSortByToggleProps())} >
             {column.render('Header')}
-            <span >{column.isSorted ? (column.isSortedDesc ? '🔽' : '🔼') : ''}</span>
+            <span>{column.isSorted ? (column.isSortedDesc ? '🔽' : '🔼') : ''}</span>
           </th>
         ))}
       </tr>
     })
   }
 
-  return (
-    <>
-      {
-        data.length === 0 ?
-          <SECOND_NO_DATA /> :
-          <div className='p-2'>
-            {
-              data.length == 0 ? null :
-                <>
-                  {filtering == true && (<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />)}
+
+  const rendering = () => {
+    if (data.length == 0) return <SECOND_NO_DATA />
+    else {
+      return (
+        <>
+          {filtering == true && (<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />)}
                   <div className='table-wrapper'>
                     <table className={styling ? styling : 'table'} {...getTableProps()} >
                       <thead>
@@ -58,9 +56,9 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
                       </thead>
                       <tbody {...getTableBodyProps()}>
                         {page.map((row, index) => {
-                          prepareRow(row)
+                          prepareRow(row);
                           return (
-                            <tr {...row.getRowProps()} key={index} >
+                            <tr  {...row.getRowProps()} key={index} className='t' >
                               {row.cells.map((cell) => {
                                 return <td {...cell.getCellProps()} key={cell.column.id}>{cell.render('Cell')}</td>
                               })}
@@ -96,10 +94,12 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
                       </div>
                     )}
                   </div>
-                </>
-            }
-          </div>
-      }
-    </>
+        </>
+      )
+    }
+  }
+
+  return (
+    <>{rendering()}</>
   )
 }

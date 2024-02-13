@@ -21,6 +21,7 @@ import Helicobacter_Pylori from '../LabTestForms/helicobacter_pylori';
 import Syphilis from '../LabTestForms/syphilis.jsx';
 import UseChemistryTestHook from '../LabTestForms/useChemistryTestHook.jsx';
 
+
 const componentsList = {
   aids: AIDS ,
   liver_function_test: UseChemistryTestHook ,
@@ -57,7 +58,8 @@ const componentsList = {
 }
 
 
-export const getTestComponent = function (testname) {  
+export const getTestComponent = function (testname) { 
+  console.log(testname)
   if (componentsList[testname] != undefined) {
     return componentsList[testname];
   } else {

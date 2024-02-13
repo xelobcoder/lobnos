@@ -1408,7 +1408,6 @@ option:hover {
   border: 1px solid lightgray !important;
   border-collapse: collapse;
   overflow-x: auto;
-  background-color: grey !important;
 }
 
 
@@ -1428,8 +1427,6 @@ option:hover {
   text-align: left;
   font-weight: 400;
   font-size: 13px;
-  /* min-width: auto !important;
-  max-width: 200px !important; */
   background-color: whitesmoke !important;
   text-transform: capitalize !important;
 }
@@ -1452,8 +1449,6 @@ option:hover {
   cursor: pointer;
   font-size: 13px;
   padding: 4px !important;
-  /* min-width: auto !important;
-  max-width: 200px !important; */
   padding-left: 10px !important;
   padding: 10px !important;
 }

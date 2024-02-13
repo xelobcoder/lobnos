@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Accordion } from 'react-bootstrap';
 import DebitableBrandBatch from './_DebitableTable';
 import { customPost } from '../../../Auth/customFetch';
