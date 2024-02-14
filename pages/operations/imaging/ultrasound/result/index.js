@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation';
 import ScanPreview from '../../../../../components/operations/scanPreview';
 import Loader from '../../../../../components/accessories/Loader';
 import { Form } from 'react-bootstrap';
+import { ToastContainer, toast } from 'react-toastify';
 const MARKDOWN_EDITOR = dynamic(() => import('../../../../../components/accessories/markdownEditor'), { ssr: false })
 
 export default function EnterResultUltrasound() {
@@ -26,8 +27,11 @@ export default function EnterResultUltrasound() {
   const handleResult = async function () {
     const pushContent = await customPost(`test/result/enter`, 'POST', { billingid, testid, patientid, scan, testname: 'scan', content, sonographer: auth?.employeeid })
     const { status, statusCode, message } = pushContent;
-    alert(message);
-    if (status == 'success' && statusCode == 200) { setEnteredResult(true) }
+    if (status == 'success' && statusCode == 200) {
+      setEnteredResult(true); toast.success(message, { autoClose: 500 });
+    } else {
+      toast.error(message, { autoClose: 500 })
+    }
   }
 
 
@@ -73,6 +77,7 @@ export default function EnterResultUltrasound() {
   return (
     <>
       <Header />
+      <ToastContainer />
       <div className='mx-3' >
         <div>
           <div className='d-flex justify-content-between'>
