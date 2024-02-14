@@ -34,10 +34,11 @@ export default function UltrasoundWaitingList() {
 
   useEffect(() => { getWaitingList() }, [])
   return (
-    <><Header />
+    <>
+      <Header />
       <ImagingSidebar />
       <div className='container-fluid'>
-        <h1 className='text-primary'>Ultrasound Department Waiting List ({waitingList.length} -- on queue)</h1>
+        <h4 className='text-primary'>Ultrasound Department Waiting List ({waitingList.length} -- on queue)</h4>
         <TableDisplay  filtering={true} column={columns} data={waitingList} />
       </div>
     </>

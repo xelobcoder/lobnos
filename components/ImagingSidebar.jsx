@@ -1,32 +1,28 @@
-import React from 'react'
-import { useRouter } from 'next/router'
+import { useRouter } from "next/navigation"
 export default function ImagingSidebar() {
-  const router = useRouter();
+  const router = useRouter()
 
-  const handleRouter = (link) => { router.push(link) }
+  const handleRouter = (link) => {
+    router.push(link)
+  }
   return (
     <>
-      <ul className="mt-1">
+      <div className="d-flex justify-content-between mx-2 mb-1">
         <button
           onClick={() => {
-            handleRouter("/operations/imaging/ultrasound/waitinglist");
+            handleRouter("/operations/imaging/ultrasound/waitinglist")
           }}
-          className="btn btn-primary"
-          style={{ borderRadius: 0 }}
-        >
+          className="btn btn-primary btn-sm mt-1">
           client queue
         </button>
         <button
           onClick={() => {
-            handleRouter("/operations/imaging/ultrasound/processedlist");
+            handleRouter("/operations/imaging/ultrasound/processedlist")
           }}
-          className="btn btn-warning mx-1" style={{ borderRadius: 0 }}>
+          className="btn btn-warning  mt-1">
           processed scan reports
         </button>
-        <button className="btn btn-danger mx-1" style={{ borderRadius: 0 }}>
-          waitingList
-        </button>
-      </ul>
+      </div>
     </>
-  );
+  )
 }
