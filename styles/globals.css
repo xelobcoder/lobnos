@@ -2712,33 +2712,6 @@ textarea:required:focus:invalid {
   background-color: white !important;
 }
 
-.grid-view {
-  display: grid;
-  grid-template-columns: 20% auto;
-  margin: 10px;
-  grid-gap: 10px;
-}
-
-.straight-view {
-  margin: 30px;
-}
-
-.viewicon {
-  position: absolute;
-  left: 0%;
-  background-color: whitesmoke;
-  color: #00224f;
-  padding: 5px;
-}
-
-.viewicon:is(:focus, :active, :hover) {
-  transform: rotateX("45deg");
-  cursor: pointer;
-  background-color: white;
-  color: #00224f;
-  border: 2px solid #00224f;
-  transition: 50ms all cubic-bezier(0.165, 0.84, 0.44, 1);
-}
 
 #frontpagewrapper,
 #loginWrapper {

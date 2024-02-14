@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { customFetch } from '../../../../components/Auth/customFetch';
 import TableDisplay from '../../../../components/accessories/TableDisplay'
-import { Button } from '@mui/material';
-import { useRouter } from 'next/router';
 import ImagingSidebar from '../../../../components/ImagingSidebar';
+import Header from '../../../../components/header';
 
 export default function UltrasoundWaitingList() {
   const [waitingList, setWaitingList] = useState([]);
-  const router = useRouter();
 
   const getWaitingList = async function () {
     let response = await customFetch(`operations/imaging/ultrasound`);
@@ -17,27 +15,26 @@ export default function UltrasoundWaitingList() {
 
 
   const columns = [
-    { Header: 'fullname', accessor: 'FULLNAME' },
-    { Header: 'patientid', accessor: 'PATIENTID' },
-    { Header: 'billingid', accessor: 'BILLINGID' },
-    { Header: 'scan', accessor: 'NAME' },
-    {
-      Header: 'entry', Cell: function ({ row }) {
+    { Header: 'fullname', accessor: 'fullname' },
+    { Header: 'patientid', accessor: 'patientid' },
+    { Header: 'billingid', accessor: 'billingid' },
+    { Header: 'scan', accessor: 'name' },
+    { Header: 'entry', Cell: function ({ row }) {
         const source = row.original;
-        const { FULLNAME, NAME, BILLINGID, TESTID, PATIENTID } = source;
-        const link = `./result/${BILLINGID}?scan=${NAME}&&testid=${TESTID}&&fullname=${FULLNAME}&&patientid=${PATIENTID}`
+        const { fullname, name, billingid, testid, patientid } = source;
+        const link = `./result?billingid=${billingid}&&scan=${name}&&testid=${testid}&&fullname=${fullname}&&patientid=${patientid}`
         return (
-          <Button variant='contained' size='small'
-            onClick={(ev) => router.push(link)}>
+          <button className='btn btn-primary btn-sm'
+            onClick={(ev) => window.open(link)}>
             enter result
-          </Button>)
+          </button>)
       }
     }
   ]
 
   useEffect(() => { getWaitingList() }, [])
   return (
-    <>
+    <><Header />
       <ImagingSidebar />
       <div className='container-fluid'>
         <h1 className='text-primary'>Ultrasound Department Waiting List ({waitingList.length} -- on queue)</h1>

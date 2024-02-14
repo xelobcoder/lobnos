@@ -1,13 +1,14 @@
-import { AnalyticsSharp, Home, ProductionQuantityLimits, Queue } from '@mui/icons-material'
+import { AnalyticsSharp, ProductionQuantityLimits, Queue } from '@mui/icons-material'
 import Link from 'next/link'
-import React from 'react'
+import Headers from '../../../../components/header';
 
 export default function UltrasoundHomePage() {
   return (
     <div>
-      <h1 className='text-center'>{new Date().toDateString()}</h1>
-      <h2 className='text-center text-success'>---------------Ultrasound Department <Home fontSize='large' /> -----------------</h2>
-      <div className='container d-flex justify-content-between mt-5' >
+      <Headers/>
+      <h1 className='text-center'>{new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</h1>
+      <h2 className='text-center text-success'>---------------Ultrasound Department-----------------</h2>
+      <div className='container grid-30-30-30 mt-4' >
         <Link href={'./ultrasound/waitinglist'}>
           <button className='btn btn-primary p-5'>
             <Queue />

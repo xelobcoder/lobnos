@@ -35,10 +35,7 @@ export default function ResultEntryDepartmentViewTwo() {
     const gotoResultEntry = (value) => {
         const { id, name, billingid, patientid } = value;
         if (!id || !name || !employeeid || !billingid || !patientid) return;
-        let testname = name.replace(/\s/g, "_").toLowerCase()
-        if (name.includes("(") && name.includes(")")) {
-            testname = name.slice(0, name.indexOf("("))
-        }
+        let testname = formatTest(name);
         window.open(`/operations/viewtwo/resultentry?testid=${id}&&testname=${testname}&&employeeid=${employeeid}&&billingid=${billingid}&&patientid=${patientid}&&view=single`);
     }
 
