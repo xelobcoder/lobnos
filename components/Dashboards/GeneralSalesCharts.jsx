@@ -59,18 +59,35 @@ export default function GeneralSalesChart() {
     }
   }
 
-  const handleWeekSummary = (data) => {
-    const today = new Date().getDate()
-    let week = "First Week"
-    if (today < 8) {
+  const determineWeek = (value, startdate = false, enddate = false) => {
+    let week = ""
+    let start = 0
+    let end = 0
+    if (value < 8) {
       week = "First Week"
-    } else if (today >= 8 && today <= 14) {
+      end = 7
+    } else if (value >= 8 && value <= 14) {
       week = "Second Week"
-    } else if (today > 14 && today <= 21) {
+      start = 8
+      end = 14
+    } else if (value > 14 && value <= 21) {
       week = "Third Week"
+      start = 15
+      end = 21
     } else {
+      start = 16
+      end = null
       week = "Fourth Week"
     }
+    if (!startdate && !enddate) {
+      return week
+    }
+    return { start, end, week }
+  }
+
+  const handleWeekSummary = (data) => {
+    const today = new Date().getDate()
+    let week = determineWeek(today)
     if (data.length > 0 && today) {
       const sales = data.filter((item, index) => item.Week === week)
       if (sales.length <= 0) setWeek(0)
@@ -86,9 +103,37 @@ export default function GeneralSalesChart() {
   const router = useRouter()
   const handleClickSum = (value) => {
     setActive(value)
+    if (value > 3) return
     const isViewDetails = confirm("Do you want to view details of this summary?")
     if (isViewDetails) {
-      router.push('/billing/payment/salesdetails/today');
+      let today = new Date()
+        .toLocaleDateString()
+        .toString()
+        .split("/")
+        .map((item) => (item === "/" ? "-" : item))
+      if (value === 1) {
+        today = today.reverse().join("-")
+        router.push(`/billing/payment?from=${today}&&to=${today}`)
+      } else if (value === 2) {
+        const n = determineWeek(today[0], true, true)
+        let start = [...today]
+        start[0] = n["start"]
+        start = start.reverse().join("-")
+        let end = [...today]
+        end[0] = n["end"]
+        end = end.reverse().join("-")
+        router.push(`/billing/payment?from=${start}&&to=${end}`)
+      } else if (value === 3) {
+        let start = [...today]
+        start[0] = 1
+        start = start.reverse().join("-")
+        let end = [...today]
+        end[0] = 31
+        end = end.reverse().join("-")
+        router.push(`/billing/payment?from=${start}&&to=${end}`)
+      } else {
+        return
+      }
     }
   }
 

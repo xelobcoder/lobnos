@@ -7,15 +7,15 @@ import SettingsLayout from "../../../components/settingsComponents/SettingsLayou
 import SidebarFrontPage from "../../../components/frontpagesidebar";
 import Loader from '../../../components/accessories/Loader';
 import Pagination from '../../../components/accessories/pagination';
+
 export default function Payment_Extra() {
-  const initValues = { from: "", to: "", month: "", patientid: "", count: 10, page: 1 }
+  const initValues = { from: '', to: "", month: "", patientid: "", count: 10, page: 1 }
   // using this state , we bind to the checkbox and can print, whatsapp or email client receipt 
   const [querystate, setQueryState] = useState(initValues);
   const [loadPage, setLoadPage] = useState(false);
   const [isloading, setLoading] = useState(true);
   const [selectedBilling, setBilling] = useState(null);
   // this temporarily stores the transaction data to prevent frequent backend fetching
-  const [temporary, setTemporary] = useState([]);
   // store all the returned transactions data
   const [transactionData, setTransactionsData] = useState([]);
   // create a router instance
@@ -89,6 +89,8 @@ export default function Payment_Extra() {
   ];
 
 
+
+
   const handleChange = (event, direct) => {
     setQueryState({ ...querystate, [direct]: event.target.value });
   };
@@ -104,27 +106,41 @@ export default function Payment_Extra() {
   };
 
 
+
   const runQuery = useCallback(async () => {
     const { patientid, from, to, count, page } = querystate;
+    let searchFrom = null;
+    let searchTo = null;
+
+    const hasQueryKeys = Object.keys(router.query).length;
+    if (hasQueryKeys > 0) {
+      searchFrom = router.query.from;
+      searchTo = router.query.to;
+    } else {
+      searchFrom = from; searchTo = to;
+    }
+
+    if (hasQueryKeys < 0 && searchFrom == "") return;
     setLoading(true);
-    customFetch(`billing/payment/info/client?from=${from}&&to=${to}&&patientid=${patientid}&&count=${count}&&page=${page}`)
+    customFetch(`billing/payment/info/client?from=${searchFrom}&&to=${searchTo}&&patientid=${patientid}&&count=${count}&&page=${page}`)
       .then((data) => {
         const { status, statusCode, result } = data;
         if (status == "success" && statusCode == 200) {
           setTransactionsData(result);
-          setTemporary(result);
         }
         setLoading(false);
       }).catch((err) => {
         setLoading(false);
         setTransactionsData([]);
-        setTemporary([]);
       })
 
-  }, [querystate])
+  }, [querystate, router.query])
 
   const clearQuery = () => {
     const { from, to, patientid } = querystate;
+    if (Object.keys(router.query).length > 0) {
+      router.replace(router.pathname);
+    }
     if (from == "" && to == "" && patientid == "") return;
     setQueryState(initValues)
   };
@@ -144,7 +160,10 @@ export default function Payment_Extra() {
           data={transactionData}
         />
         <div className="d-flex justify-content-center">
-          <Pagination page={querystate.page} updateFunction={updatePage} load={setLoadPage} />
+          <Pagination
+            page={querystate.page}
+            updateFunction={updatePage}
+            load={setLoadPage} />
         </div>
       </div>
     )

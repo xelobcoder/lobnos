@@ -38,9 +38,9 @@ export default function ResultEntryPanelSecondView() {
       if (multipleView === false) {
         let Component = getTestComponent(testname.toLowerCase())
         return <div className="mt-2">{multipleView === false && <Component employeeid={employeeid} clientdata={clientdata} />}</div>
-      } else if (multipleView === true) {
+      } else if (multipleView === true && tests.length > 0) {
         return (
-          <div className="grid-50 mx-2 py-3 bg-secondary ">
+          <div className="grid-50 px-2 py-3 bg-secondary">
             {tests.map((item, index) => {
               const { testname, testid } = item
               let Component = getTestComponent(testname.toLowerCase())
