@@ -1,17 +1,24 @@
-import { useState, useEffect } from 'react'
-import { customFetch } from '../../../../components/Auth/customFetch';
+import { useState, useEffect, useCallback } from 'react'
+import { customFetch, updatePagination } from '../../../../components/Auth/customFetch';
 import TableDisplay from '../../../../components/accessories/TableDisplay'
 import ImagingSidebar from '../../../../components/ImagingSidebar';
 import Header from '../../../../components/header';
+import Pagination from '../../../../components/accessories/pagination';
 
 export default function UltrasoundWaitingList() {
   const [waitingList, setWaitingList] = useState([]);
+  const [paginate, setPaginate] = useState({ count: 10, page: 1 })
+  const [loadpage, setPage] = useState(false);
 
-  const getWaitingList = async function () {
-    let response = await customFetch(`operations/imaging/ultrasound`);
+  const getWaitingList = useCallback( async function () {
+    let response = await customFetch(`operations/imaging/ultrasound?count=${paginate.count}&&page=${paginate.page}`);
     response?.result ? setWaitingList(response?.result) : setWaitingList([])
-  }
+  },[paginate])
 
+
+  useEffect(() => { 
+    getWaitingList();
+  },[getWaitingList])
 
 
   const columns = [
@@ -32,14 +39,19 @@ export default function UltrasoundWaitingList() {
     }
   ]
 
-  useEffect(() => { getWaitingList() }, [])
+
+
+  const handlePagination = (value) => { updatePagination(value, setPaginate, paginate) };
   return (
     <>
       <Header />
       <ImagingSidebar />
       <div className='container-fluid'>
         <h4 className='text-primary'>Ultrasound Department Waiting List ({waitingList.length} -- on queue)</h4>
-        <TableDisplay  filtering={true} column={columns} data={waitingList} />
+        <TableDisplay filtering={true} showpage={false} column={columns} data={waitingList} />
+        <div className='d-flex justify-content-center'>
+          <Pagination updateFunction={handlePagination} load={setPage} />
+        </div>
       </div>
     </>
   )

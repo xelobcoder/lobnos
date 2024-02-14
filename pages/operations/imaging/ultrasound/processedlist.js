@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from 'react'
-import { customFetch, handleChangeWithState } from '../../../../components/Auth/customFetch';
+import { useState, useEffect } from 'react'
+import { customFetch, handleChangeWithState, updatePagination } from '../../../../components/Auth/customFetch';
 import TableDisplay from '../../../../components/accessories/TableDisplay';
 import ImagingSidebar from '../../../../components/ImagingSidebar';
 import Header from '../../../../components/header';
 import { Print } from '@mui/icons-material';
+import Pagination from '../../../../components/accessories/pagination';
 
 export default function Ulrtrasoundprocessedlist() {
   const defaultState = { from: '', to: '', search: '' }
   const [query, setQuery] = useState(defaultState);
+  const [loadPage, setLoadPage] = useState(false);
+  const [paginate, setPaginate] = useState({ count: 10, page: 1 });
   const [data, setData] = useState([]);
 
   const filter = async function () {
     const { from, to, search } = query;
-    let endpoint = `operations/imaging/ultrasound/processed?from=${from}&&to=${to}&&search=${search}`;
+    const { count, page } = paginate;
+    let endpoint = `operations/imaging/ultrasound/processed?from=${from}&&to=${to}&&search=${search}&&count=${count}&&page=${page}`;
     let response = await customFetch(endpoint);
     response?.result ? setData(response?.result) : setData([])
   }
@@ -51,9 +55,19 @@ export default function Ulrtrasoundprocessedlist() {
     }
   ]
 
+  useEffect(() => {
+    filter();
+  }, [])
+
+  useEffect(() => {
+    filter();
+  }, [paginate])
 
 
-  useEffect(() => { filter() }, [])
+
+  const updateFunction = (value) => {
+    updatePagination(value, setPaginate, paginate);
+  }
 
   return (
     <>
@@ -86,7 +100,10 @@ export default function Ulrtrasoundprocessedlist() {
             </div>
           </div>
           <h4 className='mt-2 text-success'>Processed List</h4>
-        <TableDisplay filtering={true} column={columns} data={data} />
+        <TableDisplay filtering={true} showpage={false} column={columns} data={data} />
+        <div className='d-flex justify-content-center'>
+          <Pagination updateFunction={updateFunction} load={setLoadPage} />
+        </div>
       </div>
     </>
   )
