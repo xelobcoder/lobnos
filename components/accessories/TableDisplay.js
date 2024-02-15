@@ -3,7 +3,7 @@ import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination,useFlex
 import GlobalFilter from './GlobalFilter'
 import SECOND_NO_DATA from './secondNodata';
 
-export default function TableDisplay({ showpage = true, column, data, styling, filtering }) {
+export default function TableDisplay({ showpage = true, column, data, styling, filtering, getRows }) {
   const tableInstance = useTable({
     columns: useMemo(() => column, [column]),
     data: useMemo(() => data, [data]),
@@ -58,7 +58,7 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
                         {page.map((row, index) => {
                           prepareRow(row);
                           return (
-                            <tr  {...row.getRowProps()} key={index} className='t' >
+                            <tr  {...row.getRowProps()}  key={index} className='t' >
                               {row.cells.map((cell) => {
                                 return <td {...cell.getCellProps()} key={cell.column.id}>{cell.render('Cell')}</td>
                               })}
