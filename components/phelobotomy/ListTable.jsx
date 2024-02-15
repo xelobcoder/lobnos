@@ -7,7 +7,7 @@ export default function ListTable({ data, handleCollectSample ,receive}) {
     { Header: "FULLNAME", accessor: "fullname" },
     { Header: "AGE", accessor: "age" },
     { Header: "GENDER", accessor: "gender" },
-    { Header: "URGENCY", accessor: "clientstatus" },
+    { Header: "URGENCY", accessor: "clientstatus", Cell: ({ value }) => { return value == "urgent" ? <span className="border-bottom  border-3 border-danger">{value}</span> : <div>{value}</div>}},
     { Header: "ACTION", accessor: "action",
       Cell: ({ row }) => (
         <div>
@@ -33,7 +33,7 @@ export default function ListTable({ data, handleCollectSample ,receive}) {
 
   return (
     <>
-     <TableDisplay column={columns} data={data} filtering={true} />
+     <TableDisplay column={columns} data={data} filtering={true} showpage={false} />
     </>
   );
 }

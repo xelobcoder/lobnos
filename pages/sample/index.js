@@ -40,7 +40,7 @@ export default function SAMPLE_ASSESSMENT() {
             data={data} removeClient={removeClientFromList}
           />
           <div className="d-flex justify-content-center">
-            <Pagination load={setLoad} updateFunction={updateFunction} />
+            <Pagination load={setLoad} updateFunction={updateFunction} page={paginate.page} />
           </div>
         </section>
       )
