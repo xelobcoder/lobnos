@@ -1,5 +1,5 @@
 import  { useMemo } from 'react'
-import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination,useFlexLayout} from 'react-table'
+import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination} from 'react-table'
 import GlobalFilter from './GlobalFilter'
 import SECOND_NO_DATA from './secondNodata';
 
@@ -8,7 +8,7 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
     columns: useMemo(() => column, [column]),
     data: useMemo(() => data, [data]),
     initialState: { pageSize: 10 },
-  }, useFilters, useGlobalFilter, useSortBy, usePagination, useFlexLayout)
+  }, useFilters, useGlobalFilter, useSortBy, usePagination)
 
  
   const {

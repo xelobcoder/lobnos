@@ -1,35 +1,53 @@
 import React, { useState } from 'react'
 import SampleAssessmentModal from '../accessories/SampleAssessmentModal/SampleAssessmentModal';
+import TableDisplay from "../accessories/TableDisplay"
 
+export default function PendingTableSample({ data, removeClient }) {
+  const [showAssesModal, setShowAssesModal] = useState(false)
+  const [target, setTarget] = useState(null)
 
-export default function PendingTableSample({ data,removeClient}) {
-const [showAssesModal,setShowAssesModal]= useState(false);
-const [target,setTarget]= useState(null);
+  const openModal = (ev) => {
+    setShowAssesModal(true)
+  }
+  const closeModal = (ev) => {
+    setShowAssesModal(false)
+  }
 
-
-const openModal=(ev)=>{ setShowAssesModal(true); }
-const  closeModal=(ev)=>{ setShowAssesModal(false); }
-
+  const columns = [
+    {
+      Header: "billing date",
+      accessor: "date",
+      Cell: function ({ value }) {
+        return <div>{new Date(value).toLocaleDateString()}</div>
+      },
+    },
+    { Header: "fullname", accessor: "fullname" },
+    { Header: "billingid", accessor: "billingid" },
+    {
+      Header: "action",
+      accessor: "action",
+      Cell: function ({ row }) {
+        const item = row.original
+        return (
+          <div>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={(ev) => {
+                setTarget(item?.billingid)
+                openModal()
+              }}>
+              validate sample
+            </button>
+          </div>
+        )
+      },
+    },
+  ]
 
   return (
-   <>
-    <div className="list-group p-0">
-      <div className='list-group-item list-group-item-dark text-capitalize ' style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)'}}>
-        <span className='fw-light'>billedon</span>
-        <span className='fw-light'>fullname</span>
-        <span className='fw-light'>billingid</span>
-        <span className='fw-light'>action</span>
-      </div>
-      {data.map((item, index) => {
-        return <div key={index} className="list-group-item  text-capitalize p-2" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)'}}>
-           <span >{new Date(item?.date).toLocaleDateString()}</span>
-           <span > {item?.fullname}</span>
-           <span>{item?.billingid}</span>
-           <span><button className='btn btn-outline-primary btn-sm' onClick={(ev) =>  {setTarget(item?.billingid);openModal()}}>assess</button></span>
-        </div>;
-      })}
-    </div>
-    <SampleAssessmentModal show={showAssesModal}  hide={closeModal} billingid={target} removeClient={removeClient}/>
-   </>
-  );
+    <>
+      <TableDisplay column={columns} data={data} filtering={true} showpage={false} />
+      <SampleAssessmentModal show={showAssesModal} hide={closeModal} billingid={target} removeClient={removeClient} />
+    </>
+  )
 }

@@ -6,7 +6,7 @@ export default function UltrasoundHomePage() {
   return (
     <div>
       <Headers/>
-      <h1 className='text-center'>{new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}</h1>
+      <h1 className='text-center'>{new Date().toUTCString()}</h1>
       <h2 className='text-center text-success'>---------------Ultrasound Department-----------------</h2>
       <div className='container grid-30-30-30 mt-4' >
         <Link href={'./ultrasound/waitinglist'}>

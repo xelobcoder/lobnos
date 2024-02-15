@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { customFetch, handleChangeWithState, updatePagination } from '../../../../components/Auth/customFetch';
-import TableDisplay from '../../../../components/accessories/TableDisplay';
-import ImagingSidebar from '../../../../components/ImagingSidebar';
 import Header from '../../../../components/header';
 import { Print } from '@mui/icons-material';
+import { formatTest } from '../../../../components/Auth/customFetch';
 import Pagination from '../../../../components/accessories/pagination';
+import TableDisplay from '../../../../components/accessories/TableDisplay';
+import ImagingSidebar from '../../../../components/ImagingSidebar';
 
 export default function Ulrtrasoundprocessedlist() {
   const defaultState = { from: '', to: '', search: '' }
@@ -46,7 +47,7 @@ export default function Ulrtrasoundprocessedlist() {
               onClick={(ev) => window.open(link)}>
               edit
             </button>
-            <button className='btn btn-secondary mx-1  btn-sm' >
+            <button onClick={(ev) => { window.open(`http://localhost:5000/billing/result/pdf?billingid=${billingid}&&testid=${testid}&&testname=${formatTest(name)}`) }} className='btn btn-secondary mx-1  btn-sm' >
               Print <Print/>
             </button>
           </div>

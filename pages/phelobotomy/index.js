@@ -41,12 +41,20 @@ export default function Phelobotomy() {
   const closeModal = () => { setOpenModal(false); }
   const receiveSample = () => { setOpenModal(true); }
 
+
+  const removeCollectedSample = async (billingid) => {
+    if (!billingid || isNaN(billingid)) return
+    const dataCopy = [...data];
+    const unmatched = dataCopy.filter((item, index) => item.billingid != billingid);
+    setData(unmatched);
+  }
+
   return (
     <>
       <SettingsLayout sidebar={<PhelobotomySidebar auth={auth} />}>
         {loading && <ISLOADING />}
         {!loading && <ListTable data={data} receive={receiveSample} handleCollectSample={handleCollectSample} />}
-        {showModal && <CollectionSampleModal employeeid={employeeid} collection={collection} show={showModal} hide={hideModal} />}
+        {showModal && <CollectionSampleModal removeCollectedSample={removeCollectedSample} employeeid={employeeid} collection={collection} show={showModal} hide={hideModal} />}
         {openModal && <ReceiveLabSampleModal show={openModal} hide={closeModal} />}
       </SettingsLayout>
     </>

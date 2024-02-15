@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import  { useContext } from 'react'
 import SettingsLayout from '../../components/settingsComponents/SettingsLayout'
 import PhelobotomySidebar from '../../components/PhelobotomySidebar'
 import RejectedSamplesComponent from '../../components/samples/rejectedListView'

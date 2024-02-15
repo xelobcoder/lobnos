@@ -11,9 +11,9 @@ export default function ListTable({ data, handleCollectSample ,receive}) {
     { Header: "ACTION", accessor: "action",
       Cell: ({ row }) => (
         <div>
-          <button onClick={(ev) => {receive()}} className="btn btn-primary btn-sm mx-1" color="primary">
+          {/* <button onClick={(ev) => {receive()}} className="btn btn-primary btn-sm mx-1" color="primary">
             receive
-          </button>
+          </button> */}
           <button
             className="btn btn-primary btn-sm mx-1"
             onClick={(e) => {
