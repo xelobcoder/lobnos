@@ -7,11 +7,12 @@ import { customFetch, formatTest, getDepartment, handleChangeWithState } from ".
 import { useSearchParams } from "next/navigation";
 
 export default function ResultEntryDepartmentViewTwo() {
+    const defaultFilters = { departmentid: '', status: '', test: '' }
     const urlQuery = useSearchParams();
     const status = urlQuery.get("status");
     const dept = urlQuery.get("department");
     const [department, setDepartment] = useState([]);
-    const [filter, setFilter] = useState({ departmentid: '', status: '', test: '' });
+    const [filter, setFilter] = useState(defaultFilters);
     const [endpoint, setEndpoint] = useState('operation/pendingcases/all');
     const [alltest, setAlltest] = useState([]);
     const [pendingdata, setPending] = useState([]);
@@ -155,12 +156,17 @@ export default function ResultEntryDepartmentViewTwo() {
         setEndpoint(newUrl)
     }
 
+    const clearFilters = () => {
+        setFilter({ departmentid: '', status: '', test: '' });
+        setEndpoint(`operation/pendingcases/all`)
+    }
+
     return (
         <LaboratoryLayout>
             <section className="d-flex mx-2">
                 <div>
                     <label className="text-capitalize">department</label>
-                    <select onClick={(ev) => { department.length === 0 && getDepartment(setDepartment); }} className="custom-select br-0" onChange={(ev) => handleChangeWithState(ev, 'departmentid', setFilter, filter)}>
+                    <select value={filter.departmentid} onClick={(ev) => { department.length === 0 && getDepartment(setDepartment); }} className="custom-select br-0" onChange={(ev) => handleChangeWithState(ev, 'departmentid', setFilter, filter)}>
                         <option>select a department</option>
                         <option value='all'>all</option>
                         {department.map((item, index) => <option value={item.id} key={index}>{item.department}</option>)}
@@ -168,7 +174,7 @@ export default function ResultEntryDepartmentViewTwo() {
                 </div>
                 <div className="mx-2">
                     <label className="text-capitalize">Cases</label>
-                    <select className="custom-select br-0" onChange={(ev) => { handleChangeWithState(ev, 'status', setFilter, filter) }}>
+                    <select value={filter.status} className="custom-select br-0" onChange={(ev) => { handleChangeWithState(ev, 'status', setFilter, filter) }}>
                         <option value='all'>all cases</option>
                         <option value='pending'>pending cases</option>
                         <option value='completed'>completed cases</option>
@@ -176,7 +182,7 @@ export default function ResultEntryDepartmentViewTwo() {
                 </div>
                 <div className="mx-2">
                     <label className="text-capitalize">test</label>
-                    <select onChange={(ev) => { handleChangeWithState(ev, 'test', setFilter, filter) }}
+                    <select value={filter.test} onChange={(ev) => { handleChangeWithState(ev, 'test', setFilter, filter) }}
                         onClick={(ev) => { getAllTest() }} className="custom-select br-0">
                         <option value='all'>None</option>
                         {
@@ -187,9 +193,14 @@ export default function ResultEntryDepartmentViewTwo() {
                 <div className="mx-2">
                     <label className="text-capitalize">filter</label>
                     <br />
-                    <button onClick={handleFilter} className="btn btn-primary btn-sm">
-                        search
-                    </button>
+                    <div>
+                        <button onClick={handleFilter} className="btn btn-primary btn-sm">
+                            search
+                        </button>
+                        <button onClick={clearFilters} className="btn btn-sm btn-danger mx-2" >
+                            clear filter
+                        </button>
+                    </div>
                 </div>
             </section>
             <UsePaginationTableDisplay 
