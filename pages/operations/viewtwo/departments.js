@@ -78,8 +78,17 @@ export default function ResultEntryDepartmentViewTwo() {
         {
             Header: 'age', accessor: 'age', width: 50
         },
-        { Header: 'department', accessor: 'department' },
-        { Header: 'test', accessor: "name" },
+        {
+            Header: 'test', accessor: "name", Cell: ({ row, value }) => {
+                return (
+                    <div>
+                        <span>{value}</span>
+                        <br />
+                        <span className="border-bottom border-2 border-dark ">{row.original.department}</span>
+                    </div>
+                )
+            }
+        },
         {
             Header: 'sample status', accessor: 'approvalstatus', Cell: function ({ value }) {
                 return (
@@ -99,10 +108,10 @@ export default function ResultEntryDepartmentViewTwo() {
                                 "No"
                         }</span>
                         <br />
-                        <span>Result Entered {":"} {row.original.ready == "true" ?
-                            <ProgressBar now={100} style={{ width: '100px' }} variant="success" />
+                        <span> Entered {":"} {row.original.ready == "true" ?
+                            <ProgressBar now={100} style={{ width: '50px' }} variant="success" />
                             :
-                            <ProgressBar now={100} style={{ width: '100px' }} variant="danger" />}</span>
+                            <ProgressBar now={100} style={{ width: '50px' }} variant="danger" />}</span>
                     </div>
                 )
             }
@@ -191,14 +200,22 @@ export default function ResultEntryDepartmentViewTwo() {
                     </select>
                 </div>
                 <div className="mx-2">
+                    <label className="text-capitalize">from</label>
+                    <input type="date" className="custom-input br-0" />
+                </div>
+                <div className="mx-2">
+                    <label className="text-capitalize">To</label>
+                    <input type="date" className="custom-input br-0" />
+                </div>
+                <div className="mx-2">
                     <label className="text-capitalize">filter</label>
                     <br />
-                    <div>
+                    <div className="d-flex justify-content-between">
                         <button onClick={handleFilter} className="btn btn-primary btn-sm">
-                            search
+                            Query
                         </button>
                         <button onClick={clearFilters} className="btn btn-sm btn-danger mx-2" >
-                            clear filter
+                            clear
                         </button>
                     </div>
                 </div>
