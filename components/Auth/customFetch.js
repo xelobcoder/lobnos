@@ -384,7 +384,7 @@ export const getDataAndUpdateState = async function (setfxn, endpoint, returner,
       }
       if (loader) loader(false);
    } catch (err) {
-      loader(false);
+      if (loader)loader(false);
       alert("something went wrong");
    }
 }

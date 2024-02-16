@@ -1,36 +1,37 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import LaboratoryLayout from "../../../components/operations/LaboratoryLayout";
-import { customFetch, formatTest } from "../../../components/Auth/customFetch";
-import Loader from '../../../components/accessories/Loader';
-import TableDisplay from '../../../components/accessories/TableDisplay';
 import { ProgressBar } from 'react-bootstrap'
 import AuthContext from "../../../components/Auth/useAuthentification";
-
+import UsePaginationTableDisplay from "../../../components/accessories/usePaginationTableDisplay";
+import { formatTest, getDataAndUpdateState, getDepartment } from "../../../components/Auth/customFetch";
+import { useSearchParams } from "next/navigation";
 
 export default function ResultEntryDepartmentViewTwo() {
-    const [isLoading, setLoading] = useState(true);
+    const urlQuery = useSearchParams();
+    const status = urlQuery.get("status");
+    const dept = urlQuery.get("department");
+    const [department, setDepartment] = useState([]);
+    const [endpoint, setEndpoint] = useState('operation/pendingcases/all');
+    const [alltest, setAlltest] = useState([]);
+    const [pendingdata, setPending] = useState([]);
+    const [isupdate, setUpdate] = useState(false);
     const { auth } = useContext(AuthContext);
     const employeeid = auth?.employeeid;
-    const [pendingdata, setPending] = useState([]);
+
 
     useEffect(() => {
-        customFetch('operation/pendingcases/all')
-            .then((data) => {
-                const { status, statusCode, result } = data;
-                if (statusCode == 200 && status == 'success') {
-                    setPending(result);
-                } else {
-                    setPending([]);
-                }
-                setLoading(false);
-            })
-            .catch((err) => {
-                setLoading(false);
-                setPending([])
-            })
-    }, []);
+        getDepartment(setDepartment);
+        getDataAndUpdateState(setAlltest, 'testpanel/list/bulk');
+    }, [])
 
 
+    useEffect(() => {
+        if (status && dept) {
+            setEndpoint((prev) => {
+                return `${prev}?status=${status}&&department=${dept}`
+            })
+        }
+    }, [status, dept])
 
     const gotoResultEntry = (value) => {
         const { id, name, billingid, patientid } = value;
@@ -70,27 +71,10 @@ export default function ResultEntryDepartmentViewTwo() {
             Header: 'patientid', accessor: 'patientid'
         },
         {
-            Header: 'age', accessor: 'age', Cell: function ({ row, value }) {
-                return <div>
-                    <span>{value}</span>
-                    <br />
-                    <span className="border-bottom border-2 border-secondary">{row.original.clientstatus}</span>
-                </div>
-            }
+            Header: 'age', accessor: 'age', width: 50
         },
-        {
-            Header: 'test category', accessor: "name", Cell: ({ row, value }) => {
-                return (
-                    <div>
-                        <span>{value}</span>
-                        <br />
-                        <span className="border-bottom border-2 border-secondary">
-                            {row.original.department}
-                        </span>
-                    </div>
-                )
-            }
-        },
+        { Header: 'department', accessor: 'department' },
+        { Header: 'test', accessor: "name" },
         {
             Header: 'sample status', accessor: 'approvalstatus', Cell: function ({ value }) {
                 return (
@@ -142,7 +126,7 @@ export default function ResultEntryDepartmentViewTwo() {
                             result
                         </button>
                         <button className="btn btn-primary  btn-sm mx-2"
-                            onClick={(ev) => { gotoResultEntryAll(billingid, patientid) }}>
+                            onClick={(esv) => { gotoResultEntryAll(billingid, patientid) }}>
                             result all
                         </button>
                         <button className="btn btn-primary  btn-sm mx-2">
@@ -156,36 +140,54 @@ export default function ResultEntryDepartmentViewTwo() {
 
 
 
-    const PendingList = () => {
-        if (isLoading) return <Loader />
-        else {
-            return <TableDisplay column={columns} filtering={true} data={pendingdata} showpage={false} />
-        }
-    }
+    const getdata = useCallback(async (value) => {
+        setPending(value);
+    }, [])
+
+
+    const handleDepartmentChange = async (ev) => { }
 
 
     return (
         <LaboratoryLayout>
-            <h4>Pending Cases</h4>
-            {/* <section className="d-flex mx-2">
+            <section className="d-flex mx-2">
                 <div>
                     <label className="text-capitalize">department</label>
-                    <input className="custom-input" type="text" />
+                    <select className="custom-select br-0" onChange={(ev) => handleDepartmentChange(ev)}>
+                        <option>select a department</option>
+                        <option value='all'>all</option>
+                        {department.map((item, index) => <option value={item.id} key={index}>{item.department}</option>)}
+                    </select>
                 </div>
                 <div className="mx-2">
-                    <label className="text-capitalize">department</label>
-                    <input className="custom-input" type="text" />
+                    <label className="text-capitalize">Cases</label>
+                    <select className="custom-select br-0">
+                        <option value='all'>all cases</option>
+                        <option value='pending'>pending cases</option>
+                        <option value='completed'>completed cases</option>
+                    </select>
                 </div>
                 <div className="mx-2">
-                    <label className="text-capitalize">department</label>
-                    <input className="custom-input" type="text" />
+                    <label className="text-capitalize">test</label>
+                    <select className="custom-select br-0">
+                        <option value>None</option>
+                    </select>
                 </div>
                 <div className="mx-2">
-                    <label className="text-capitalize">department</label>
-                    <input className="custom-input" type="text" />
+                    <label className="text-capitalize">filter</label>
+                    <br />
+                    <button className="btn btn-primary btn-sm">
+                        search
+                    </button>
                 </div>
-            </section> */}
-            {PendingList()}
+            </section>
+            <UsePaginationTableDisplay
+                column={columns}
+                endpoint={endpoint}
+                update={isupdate}
+                updatedata={pendingdata}
+                getdata={getdata}
+            />
         </LaboratoryLayout>
     )
 }

@@ -1,27 +1,33 @@
 import { useState, useEffect, useCallback } from "react";
 import Loader from '../../components/accessories/Loader';
-import TableDisplay from '../../components/accessories/TableDisplay'
 import { toast, ToastContainer } from 'react-toastify';
-import { customPost, getDataAndUpdateState } from "../../components/Auth/customFetch";
+import { customPost, getDataAndUpdateState, updatePagination } from "../../components/Auth/customFetch";
 import RejectionMessageModalDialogJsx from "../../components/samples/RejectionMessageModalDialogJsx/RejectionMessageModalDialogJsx";
+import Pagination from "../accessories/pagination";
+import FlexTableDisplay from "../accessories/FlexTableDisplay";
 
 export default function RejectedSamplesComponent() {
   const [data, setData] = useState([]);
   const [viewRejection, setViewRejection] = useState({ status: false, message: '', id: '' });
   const [loading, setLoading] = useState(true);
-  const fetchInitialData = useCallback(async function () {
-    getDataAndUpdateState(setData, 'rejected', false, setLoading)
-  }, [])
+  const [paginate, setPaginate] = useState({ count: 10, page: 1 })
+  const [load, setLoad] = useState(false);
 
-  useEffect(() => { fetchInitialData(); setLoading(false); }, [fetchInitialData])
+
+
+  const fetchInitialData = useCallback(async function () {
+    getDataAndUpdateState(setData, `rejected?count=${paginate.count}&&page=${paginate.page}`, false, setLoading)
+  }, [paginate])
+
+
+  useEffect(() => { fetchInitialData(); }, [fetchInitialData])
 
   const handleClose = () => { setViewRejection({ status: false, message: '', id: '' }); }
 
 
   const removeClient = (id) => {
-    setData((prev) => {
-      return prev.filter((item, index) => index !== id);
-    })
+    if (!id) return;
+    setData((prev) => { prev.filter((item, index) => index !== id); })
   }
 
   const handleDisputed = async (id, reason) => {
@@ -45,6 +51,11 @@ export default function RejectedSamplesComponent() {
   }
 
 
+  const updateFunction = (value) => {
+    updatePagination(value, setPaginate, paginate)
+  }
+
+
   const columns = [
     { Header: 'collection date', accessor: "collection_date", Cell: ({ value }) => new Date(value).toLocaleDateString() },
     { Header: 'fullname', accessor: 'fullname' },
@@ -56,8 +67,8 @@ export default function RejectedSamplesComponent() {
     },
     { Header: 'test', accessor: 'name', Cell: ({ value }) => <span className="border-bottom border-danger border-2">{value}</span> },
     { Header: 'validated On', accessor: "samplevalidatedon", Cell: ({ value }) => <div>{new Date(value).toLocaleDateString()}</div> },
-    { Header: 'validated/rejected by', accessor: 'validatedby', Cell: ({ value }) => <div>{value}</div> },
-    { Header: 'reason', accessor: 'rejectionmessage' },
+    { Header: 'validated by', accessor: 'validatedby', Cell: ({ value }) => <div>{value}</div> },
+    { Header: 'reason', accessor: 'rejectionmessage',width:200 },
     {
       Header: 'actions', accessor: '', Cell: ({ row }) => {
         const item = row.original;
@@ -79,7 +90,12 @@ export default function RejectedSamplesComponent() {
     if (loading) return <Loader />
     else {
       return (
-        <TableDisplay column={columns} data={data} filtering={true} />
+        <section>
+          <FlexTableDisplay showpage={false} column={columns} data={data} filtering={true} />
+          <div className="d-flex justify-content-center">
+            <Pagination page={paginate.page} updateFunction={updateFunction} load={setLoad} />
+          </div>
+        </section>
       )
     }
   }
