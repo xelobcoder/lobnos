@@ -3,7 +3,7 @@ import LaboratoryLayout from "../../../components/operations/LaboratoryLayout";
 import { ProgressBar } from 'react-bootstrap'
 import AuthContext from "../../../components/Auth/useAuthentification";
 import UsePaginationTableDisplay from "../../../components/accessories/usePaginationTableDisplay";
-import { formatTest, getDataAndUpdateState, getDepartment } from "../../../components/Auth/customFetch";
+import { customFetch, formatTest, getDepartment, handleChangeWithState } from "../../../components/Auth/customFetch";
 import { useSearchParams } from "next/navigation";
 
 export default function ResultEntryDepartmentViewTwo() {
@@ -11,6 +11,7 @@ export default function ResultEntryDepartmentViewTwo() {
     const status = urlQuery.get("status");
     const dept = urlQuery.get("department");
     const [department, setDepartment] = useState([]);
+    const [filter, setFilter] = useState({ departmentid: '', status: '', test: '' });
     const [endpoint, setEndpoint] = useState('operation/pendingcases/all');
     const [alltest, setAlltest] = useState([]);
     const [pendingdata, setPending] = useState([]);
@@ -19,10 +20,13 @@ export default function ResultEntryDepartmentViewTwo() {
     const employeeid = auth?.employeeid;
 
 
-    useEffect(() => {
-        getDepartment(setDepartment);
-        getDataAndUpdateState(setAlltest, 'testpanel/list/bulk');
-    }, [])
+    const getAllTest = async function () {
+        if (alltest.length === 0) {
+            customFetch('testpanel/list/bulk')
+                .then((data) => setAlltest(data?.data))
+                .catch((err) => setAlltest([]))
+        }
+    }
 
 
     useEffect(() => {
@@ -145,15 +149,18 @@ export default function ResultEntryDepartmentViewTwo() {
     }, [])
 
 
-    const handleDepartmentChange = async (ev) => { }
-
+    const handleFilter = async () => {
+        const { departmentid, status, test } = filter;
+        let newUrl = `operation/pendingcases/all?departmentid=${departmentid}&&status=${status}&&testid=${test}`;
+        setEndpoint(newUrl)
+    }
 
     return (
         <LaboratoryLayout>
             <section className="d-flex mx-2">
                 <div>
                     <label className="text-capitalize">department</label>
-                    <select className="custom-select br-0" onChange={(ev) => handleDepartmentChange(ev)}>
+                    <select onClick={(ev) => { department.length === 0 && getDepartment(setDepartment); }} className="custom-select br-0" onChange={(ev) => handleChangeWithState(ev, 'departmentid', setFilter, filter)}>
                         <option>select a department</option>
                         <option value='all'>all</option>
                         {department.map((item, index) => <option value={item.id} key={index}>{item.department}</option>)}
@@ -161,7 +168,7 @@ export default function ResultEntryDepartmentViewTwo() {
                 </div>
                 <div className="mx-2">
                     <label className="text-capitalize">Cases</label>
-                    <select className="custom-select br-0">
+                    <select className="custom-select br-0" onChange={(ev) => { handleChangeWithState(ev, 'status', setFilter, filter) }}>
                         <option value='all'>all cases</option>
                         <option value='pending'>pending cases</option>
                         <option value='completed'>completed cases</option>
@@ -169,19 +176,23 @@ export default function ResultEntryDepartmentViewTwo() {
                 </div>
                 <div className="mx-2">
                     <label className="text-capitalize">test</label>
-                    <select className="custom-select br-0">
-                        <option value>None</option>
+                    <select onChange={(ev) => { handleChangeWithState(ev, 'test', setFilter, filter) }}
+                        onClick={(ev) => { getAllTest() }} className="custom-select br-0">
+                        <option value='all'>None</option>
+                        {
+                            alltest.length > 0 && alltest.map((item, index) => { return <option key={index} value={item.id}>{item.name}</option> })
+                        }
                     </select>
                 </div>
                 <div className="mx-2">
                     <label className="text-capitalize">filter</label>
                     <br />
-                    <button className="btn btn-primary btn-sm">
+                    <button onClick={handleFilter} className="btn btn-primary btn-sm">
                         search
                     </button>
                 </div>
             </section>
-            <UsePaginationTableDisplay
+            <UsePaginationTableDisplay 
                 column={columns}
                 endpoint={endpoint}
                 update={isupdate}

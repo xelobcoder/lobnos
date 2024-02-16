@@ -1,24 +1,28 @@
-export async function customFetch(endpoint) {
-   /**
+ /**
     * Sends an HTTP request to the specified endpoint and returns the response as JSON.
     * 
     * @param {string} endpoint - The endpoint URL to send the request to.
     * @returns {Promise<object>} - The response from the server as JSON.
     */
-   let response = await fetch(`${process.env.BASEURL}/${endpoint}`, {
-      headers: {
-         Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
-         "Content-Type": "application/json",
-         mode: 'no-cors',
-      },
-   });
+export async function customFetch(endpoint) {
+   try {
+      let response = await fetch(`${process.env.BASEURL}/${endpoint}`, {
+         headers: {
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+            "Content-Type": "application/json",
+            mode: 'no-cors',
+         },
+      });
 
-   const source = await response.json();
-   const { status, message } = source
-   if (status == 401 && message == 'Unauthorized') {
-      window.location.href = '/authentication/login'
-   } else {
-      return source
+      const source = await response.json();
+      const { status, message } = source
+      if (status == 401 && message == 'Unauthorized') {
+         window.location.href = '/authentication/login'
+      } else {
+         return source
+      }
+   } catch (err) {
+      console.log(err);
    }
 }
 
