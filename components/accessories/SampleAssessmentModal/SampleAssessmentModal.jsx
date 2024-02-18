@@ -74,16 +74,14 @@ export default function SampleAssessmentModal({show,hide,billingid,removeClient}
   };
   return (
     <>
-    <ToastContainer/>
+      <ToastContainer />
       <Modal show={show} backdrop="static" size="xl" onHide={hide} scrollable>
-        <Modal.Header style={{ backgroundColor: "#e9ecef" }} closeButton>
-          <Modal.Title>Sample Assessment</Modal.Title>
+        <Modal.Header closeButton>
+          <h5>Sample Assessment And Validation</h5>
         </Modal.Header>
         <Modal.Body>
           {loading && testcollection.length == 0 && <ISLOADING />}
-          {!loading && testcollection.length == 0 && (
-            <h5>No sample to assess</h5>
-          )}
+          {!loading && testcollection.length == 0 && <h5>No sample to assess</h5>}
           {!loading && testcollection.length > 0 && (
             <table className="billing-cart-table">
               <thead>
@@ -93,9 +91,8 @@ export default function SampleAssessmentModal({show,hide,billingid,removeClient}
                   <th>sample</th>
                   <th>sample status</th>
                   <th>validation status</th>
-                  <th>accept</th>
-                  <th>reject</th>
                   <th>reason for rejection</th>
+                  <th>actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -135,24 +132,6 @@ export default function SampleAssessmentModal({show,hide,billingid,removeClient}
                         )}
                       </td>
                       <td>
-                        <button
-                          className="btn btn-primary btn-sm"
-                          onClick={(ev) => {
-                            validateSample(item?.testid, "accept")
-                          }}>
-                          accept
-                        </button>
-                      </td>
-                      <td>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={(ev) => {
-                            validateSample(item?.testid, "reject")
-                          }}>
-                          reject
-                        </button>
-                      </td>
-                      <td>
                         <textarea
                           value={item?.rejectionemessage}
                           onChange={(ev) => {
@@ -161,6 +140,24 @@ export default function SampleAssessmentModal({show,hide,billingid,removeClient}
                           disabled={item?.approvalstatus === 1}
                           className="form-control"
                           rows="2"></textarea>
+                      </td>
+                      <td>
+                        <div  className="d-flex justify-content-between">
+                          <button
+                            className="btn btn-primary btn-sm"
+                            onClick={(ev) => {
+                              validateSample(item?.testid, "accept")
+                            }}>
+                            accept
+                          </button>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={(ev) => {
+                              validateSample(item?.testid, "reject")
+                            }}>
+                            reject
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )
@@ -173,21 +170,19 @@ export default function SampleAssessmentModal({show,hide,billingid,removeClient}
           <button
             className="btn btn-primary btn-sm"
             onClick={(ev) => {
-              handleSubmit(ev);
-            }}
-          >
+              handleSubmit(ev)
+            }}>
             Save
           </button>
           <button
             className="btn btn-danger btn-sm"
             onClick={(ev) => {
-              hide();
-            }}
-          >
+              hide()
+            }}>
             Close
           </button>
         </Modal.Footer>
       </Modal>
     </>
-  );
+  )
 }

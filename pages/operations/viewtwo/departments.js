@@ -228,5 +228,5 @@ export default function ResultEntryDepartmentViewTwo() {
                 getdata={getdata}
             />
         </LaboratoryLayout>
-    )
+  )
 }

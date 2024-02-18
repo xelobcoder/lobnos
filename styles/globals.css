@@ -543,7 +543,7 @@ a {
   font-size: 14px;
   border-collapse: collapse !important;
   border: 1px solid lightgray;
-  padding: 4px;
+  padding: 10px;
 }
 
 .billing-cart-table > tbody > tr:nth-of-type(even) {
@@ -1157,9 +1157,9 @@ option:hover {
 
 .custom-input,
 .custom-select {
-  height: 30px;
+  height: 35px;
   border: 1px solid lightgray;
-  border-radius: 5px;
+  border-radius: 3px;
   font-size: 14px;
   padding-left: 10px;
   width: 100%;
@@ -1171,50 +1171,27 @@ option:hover {
 .custom-select:invalid:required {
   border: 1px solid red;
 }
+
+.custom-input:focus:required:invalid{
+  border: 2px solid red;
+}
+
+
 .h-40 {
   height: 40px !important;
 }
 .custom-input:is(:focus, :active, :hover) {
   outline: none;
-  border: 1px solid lightblue;
+  border: 2px solid var(--cds-color-blue-600);
   box-shadow: none !important;
 }
 
-.message-box-alert-success,
-.message-box-alert-danger,
-.message-box-alert-warning {
-  position: absolute;
-  top: 2px;
-  left: 60%;
-  height: 7vh;
-  right: 0px;
-  z-index: 99999;
-  padding: 10px;
-  width: 600px;
-  /* text-align: left; */
-  font: 600 1em "Open Sans", sans-serif;
-  border-radius: 0px;
-  text-transform: uppercase;
-  opacity: 0.9;
-  display: flex;
-
-  justify-content: center;
-  align-items: center;
+.custom-input::required::after{
+  content: "*" !important;
+  color: red;
 }
 
-.message-box-alert-success {
-  background-color: #4caf50;
-  color: white;
-}
-.message-box-alert-danger {
-  background-color: #f44336;
-  color: white;
-}
 
-.message-box-alert-warning {
-  background-color: #ff9800;
-  color: white;
-}
 
 #page-main-view {
   background-color: white !important;
@@ -1804,53 +1781,7 @@ option:hover {
   overflow-x: hidden !important;
 }
 
-#wrapper-login > form {
-  width: 600px;
-  margin-top: 6%;
-  height: 350px;
-  background-color: white;
-}
 
-/* add a background image */
-#login-form > div {
-  display: grid;
-  grid-template-columns: 100%;
-  grid-gap: 10px;
-  padding: 20px 20px;
-}
-
-#login-form > div > input {
-  border: 2px solid #00224f;
-  padding: 10px;
-  font-size: 14px;
-  border-radius: 5px;
-  height: 50px;
-}
-
-#login-form > div > button {
-  background-color: #00224f;
-  color: white;
-  border: none;
-  padding: 10px;
-  font-size: 14px;
-  border-radius: 5px;
-  height: 50px;
-}
-
-#login-form > label {
-  font-size: 14px;
-  color: #00224f;
-  font-weight: 600;
-}
-
-#login-form > label::before {
-  content: "* ";
-  color: red;
-}
-
-#login-form > div > #login-message {
-  color: red !important;
-}
 
 .operations-wrapper {
   display: grid;
@@ -2085,13 +2016,8 @@ input[type="email"] {
   text-transform: lowercase !important;
 }
 
-input[type="email"]:focus:invalid {
-  border: 3px solid red;
-}
 
-input:focus {
-  border: 1px solid lightskyblue;
-}
+
 
 input[type="email"]:focus:invalid .company-view-result > .wrapper {
   display: flex;
