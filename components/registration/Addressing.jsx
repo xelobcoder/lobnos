@@ -3,9 +3,12 @@ import IsRenderInput from "./CustomInput"
 import { useState } from "react"
 export default function Addressing({ defaultData, fields }) {
   const [data, setData] = useState(defaultData)
+
+  console.log(data)
+
   return (
     <>
-      <div>
+      <div className="grid-50 p-2">
         <div className="form-row">
           <IsRenderInput
             value={fields.area}
@@ -18,7 +21,7 @@ export default function Addressing({ defaultData, fields }) {
                 onChange={(e) =>
                   setData({
                     ...data,
-                    addressingInformation: { ...data, area: e.target.value },
+                    area: e.target.value,
                   })
                 }
                 placeholder="Area"
@@ -39,7 +42,7 @@ export default function Addressing({ defaultData, fields }) {
                 onChange={(e) =>
                   setData({
                     ...data,
-                    addressingInformation: { ...data, region: e.target.value },
+                    region: e.target.value,
                   })
                 }>
                 <option>select region</option>
@@ -66,7 +69,7 @@ export default function Addressing({ defaultData, fields }) {
                 onChange={(e) =>
                   setData({
                     ...data,
-                    addressingInformation: { ...data, gpsLocation: e.target.value },
+                    gpsLocation: e.target.value,
                   })
                 }
                 placeholder="GPS Location"
@@ -88,14 +91,14 @@ export default function Addressing({ defaultData, fields }) {
                 name="address"
                 value={data.address}
                 onChange={(e) => {
-                  setData({ ...data, addressingInformation: { ...data, address: e.target.value } })
+                  setData({ ...data, address: e.target.value })
                 }}
               />
             }
           />
         </div>
-        <button className="mt-2 btn btn-primary  btn-sm">save changes</button>
       </div>
+      <button className="mt-2 btn btn-primary  btn-sm mx-2">save changes</button>
     </>
   )
 }

@@ -113,7 +113,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
                   type="number"
                   name="years"
                   onBlur={(ev) => {
-                    handleAgeCalculations(data, setData, toast);
+                    handleAgeCalculations(data, setData, toast)
                   }}
                   value={data.years}
                   onChange={(e) => {
@@ -169,7 +169,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
                     onChange={(e) => {
                       setData({
                         ...data,
-                          gender: e.target.value,
+                        gender: e.target.value,
                       })
                     }}
                   />
@@ -183,7 +183,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
                     onChange={(e) => {
                       setData({
                         ...data,
-                          gender: e.target.value,
+                        gender: e.target.value,
                       })
                     }}
                   />
@@ -204,10 +204,16 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
                 minLength={10}
                 value={data.mobile}
                 name="mobilenumber"
-                className="custom-input "
+                className="custom-input"
+                onBlur={(ev) => {
+                  handleMobile(ev, toast)
+                }}
                 label="Mobile Number"
                 onChange={(e) => {
-                  handleMobile(e, setData, data, setError)
+                  setData({
+                    ...data,
+                    mobile: e.target.value,
+                  })
                 }}
               />
             }
@@ -225,9 +231,11 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
                 className="custom-input "
                 name="email"
                 onBlur={(ev) => {
-                  console.log(data)
+                  handleEmail(ev, setData, data, toast);
                 }}
-                onChange={(e) => handleEmail(e, setData, data, setError)}
+                onChange={(e) => {
+                 setData({ ...data, email: e.target.value})
+                }}
                 label="Email"
               />
             }
@@ -320,7 +328,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
             className="btn btn-primary btn-sm text-capitalize"
             tabIndex={31}
             onClick={(e) => {
-              handleSubmitRegistration(e, data,toast)
+              handleSubmitRegistration(e, data, toast)
             }}>
             save new record
           </button>

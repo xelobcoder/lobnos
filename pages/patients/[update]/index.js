@@ -45,8 +45,8 @@ export default function Update() {
               </span>
             </div>
           }
-          <PersonalInformationRegistration card={false} setError={setError} setData={setPersonalInformation}
-            data={personalInformation} />
+          {/* <PersonalInformationRegistration card={false} setError={setError} setData={setPersonalInformation} */}
+            {/* data={personalInformation} /> */}
           <div className='m-3'>
             <button className='btn btn-primary' onClick={(ev) => { submitFormData(`register/personalinformation?patientid=${patientid}`,personalInformation.personalInformation) }}>update information</button>
           </div>

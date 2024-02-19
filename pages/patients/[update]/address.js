@@ -4,7 +4,7 @@ import Addressing from '../../../components/registration/Addressing'
 import { patientRegistrationDefaultData, submitFormData } from '../../../components/Auth/registerclient'
 import { Update } from '@mui/icons-material'
 import { useRouter } from 'next/router'
-import { customPost, customFetch } from '../../../components/Auth/customFetch'
+import {  customFetch } from '../../../components/Auth/customFetch'
 
 export default function AddressPatientUpdateRecord() {
   const [data, setData] = useState(patientRegistrationDefaultData)
@@ -38,7 +38,7 @@ export default function AddressPatientUpdateRecord() {
             Update patient addressing information
           </h4>
         </div>
-        <Addressing data={data} card={false}  setData={setData}/>
+        {/* <Addressing data={data} card={false}  setData={setData}/> */}
         <div style={{ marginLeft: '20px' }}>
           <button className='btn btn-primary' type='button' onClick={(ev) => { submitFormData(`register/addressinginformation?patientid=${patientid}`, data.addressingInformation) }}>
             update addressing information

@@ -1,6 +1,5 @@
 import { useRouter } from "next/navigation"
-import { Email, MonetizationOn, Print } from "@mui/icons-material"
-import { forwardEmailReceipt } from "../Auth/customFetch"
+import {  MonetizationOn } from "@mui/icons-material"
 
 export default function Navbar({ query, updateBill, handleChange, clearQuery, selectedBilling }) {
   const navigate = useRouter()
@@ -47,25 +46,6 @@ export default function Navbar({ query, updateBill, handleChange, clearQuery, se
       </div>
       <div>
         <div className="d-flex justify-content-end">
-          {/* <button className="btn btn-primary btn-sm" onClick={updateBill}>
-            update
-          </button>
-          <button
-            startIcon={<Print />}
-            className="btn btn-primary btn-sm mx-1"
-            onClick={(e) => {
-              navigate.push(`payment/invoice/${selectedBilling}`)
-            }}>
-            invoice
-          </button> */}
-          {/* <button
-            startIcon={<Email />}
-            className="btn btn-primary btn-sm mx-1"
-            onClick={(ev) => {
-              forwardEmailReceipt(selectedBilling)
-            }}>
-            Email
-          </button> */}
           <button startIcon={<MonetizationOn />} className="btn btn-primary btn-sm mx-1">
             sales summary
           </button>

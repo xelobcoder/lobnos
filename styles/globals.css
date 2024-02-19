@@ -1172,9 +1172,13 @@ option:hover {
   border: 1px solid red;
 }
 
-.custom-input:focus:required:invalid{
+.custom-input:focus:required:invalid,
+input[type="email"]:invalid:focus{
   border: 2px solid red;
 }
+
+
+
 
 
 .h-40 {

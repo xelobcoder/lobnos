@@ -4,7 +4,7 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
   const [data, setData] = useState(defaultData)
   return (
     <>
-      <div className="border bg-white p-2 mb-2">
+      <div className="p-2 mb-2 grid-50">
         <div className="form-row">
           <IsRenderInput
             value={fields.emmergencyName}
@@ -19,10 +19,7 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
                 onChange={(e) =>
                   setData({
                     ...data,
-                    emmergencyInformation: {
-                      ...data,
-                      emergencyName: e.target.value,
-                    },
+                    emmergencyName: e.target.value,
                   })
                 }
               />
@@ -42,10 +39,7 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
                 onChange={(e) =>
                   setData({
                     ...data,
-                    emmergencyInformation: {
-                      ...data,
-                      relationship: e.target.value,
-                    },
+                    relationship: e.target.value,
                   })
                 }>
                 <option value="">Select Relationship</option>
@@ -74,10 +68,7 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
                 onChange={(e) =>
                   setData({
                     ...data,
-                    emmergencyInformation: {
-                      ...data,
-                      emergencyContactNumber: e.target.value,
-                    },
+                    emergencyContactNumber: e.target.value,
                   })
                 }
               />
@@ -98,10 +89,7 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
                 onChange={(e) =>
                   setData({
                     ...data,
-                    emmergencyInformation: {
-                      ...data,
-                      location: e.target.value,
-                    },
+                    location: e.target.value,
                   })
                 }
               />
@@ -122,10 +110,7 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
                 onChange={(e) =>
                   setData({
                     ...data,
-                    emmergencyInformation: {
-                      ...data,
-                      address: e.target.value,
-                    },
+                    address: e.target.value,
                   })
                 }
               />
@@ -146,20 +131,15 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
                 onChange={(e) =>
                   setData({
                     ...data,
-                    emmergencyInformation: {
-                      ...data,
-                      occupation: e.target.value,
-                    },
+                    occupation: e.target.value,
                   })
                 }
               />
             }
           />
         </div>
-        <button className="btn btn-primary btn-sm mt-3">
-          save changes
-        </button>
       </div>
+      <button className="btn btn-primary btn-sm mt-3">save changes</button>
     </>
   )
 }

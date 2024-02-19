@@ -3,29 +3,26 @@ import { defaultdata } from "../../pages/registration";
 import { TableRowsTwoTone } from "@mui/icons-material";
 
 // handle mobile number validation
-export const handleMobile = (e, setValue, data, setError) => {
+export const handleMobile = (e, toast) => {
   let value = e.target.value;
   let length = value.length;
-  setValue({ ...data, personalInformation: { ...data.personalInformation, mobile: value } });
   if (length > 10) {
-    setError("Maximum of 10 numbers required");
+    toast.warning("Maximum of 10 numbers required", { autoClose: 1000 })
   } else if (length < 10) {
-    setError("Minimum of 10 numbers required");
+    toast.warning("Minimum of 10 numbers required", { autoClose: 1000 });
+  } else if (!value.startsWith(0)) {
+    toast.error("Number must start with 0", { autoClose: 1000 });
   } else {
-    setError("");
-  }
-  if (!value.startsWith(0)) {
-    setError("Number must start with 0");
+    return;
   }
 };
 
-export const handleEmail = (e, setValue, data, setError) => {
+export const handleEmail = (e, setValue, data, toast) => {
   let value = e.target.value;
-  setValue({ ...data, personalInformation: { ...data.personalInformation, email: value } });
   const pattern =
     /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   if (value != "") {
-    pattern.test(value) ? setError("") : setError("invalid Email");
+    pattern.test(value) ? null : toast.error("invalid Email");
   }
 };
 
