@@ -1,22 +1,22 @@
-import { customFetch, getApplicationSettings } from "../Auth/customFetch"
+import { customFetch } from "../../Auth/customFetch"
 
 export const registration = [
    {
       title: 'personal information',
       fields: {
+         firstname: 'compulsory',
+         lastname: 'compulsory',
+         age: 'compulsory',
+         ageType: 'compulsory',
+         gender: 'compulsory',
+         middlename: 'compulsory',
          email: true,
          mobile: true,
-         age: true,
          days: true,
          months: true,
          years: true,
-         gender: true,
          maritalstatus: true,
-         ageType: true,
-         firstname: true,
-         lastname: true,
-         middlename: true,
-         patienttype: true,
+         refered: true,
          patientOrganization: true,
          occupation: true
       },
@@ -51,17 +51,16 @@ export const getRegistrationFields = async (setState, toast) => {
       const { result, status } = data;
       if (status == "success" && result.length > 0) {
          const { fields } = result[0];
-         if (fields == "{}") {
-            if (setState) {
-               setState(registration);
-            } else {
-               return registration
-            }
-         }
          if (setState) {
             setState(JSON.parse(fields));
          } else {
             return JSON.parse(fields);
+         }
+      } else {
+         if (setState) {
+            setState(registration);
+         } else {
+            return registration
          }
       }
    } catch (err) {

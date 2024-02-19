@@ -1,109 +1,164 @@
-import React from 'react';
-
-export default function EmmergencyContactInformation({ data, setData, card }) {
+import IsRenderInput from "./CustomInput"
+import { useState } from "react"
+export default function EmmergencyContactInformation({ defaultData, fields }) {
+  const [data, setData] = useState(defaultData)
   return (
     <>
-      <div className={card === true ? `card m-0 p-0` : 'none p-2'}>
-      <div className="card-header">
-          {card && (
-            <h5>
-             Emmergency Contact Information
-            </h5>
-          )}
+      <div className="border bg-white p-2 mb-2">
+        <div className="form-row">
+          <IsRenderInput
+            value={fields.emmergencyName}
+            label={"Emergency Contact Name"}
+            field={
+              <input
+                type="text"
+                className="custom-input"
+                id="emergencyName"
+                name="emergencyName"
+                value={data.emmergencyName}
+                onChange={(e) =>
+                  setData({
+                    ...data,
+                    emmergencyInformation: {
+                      ...data,
+                      emergencyName: e.target.value,
+                    },
+                  })
+                }
+              />
+            }
+          />
         </div>
-        <div className='card-body grid-2 chaplain'>
-          <div className="form-row">
-            <label htmlFor="emergencyName" className="form-label">
-              Emergency Contact Name
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="emergencyName"
-              name="emergencyName"
-              value={data.emmergencyInformation.emergencyName}
-              onChange={(e) => {
-                setData({ ...data, emmergencyInformation: { ...data.emmergencyInformation, emergencyName: e.target.value } });
-              }}
-            />
-          </div>
-          <div className="form-row">
-            <label htmlFor="relationship" className="form-label">
-              Relationship
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="relationship"
-              name="relationship"
-              value={data.emmergencyInformation.relationship}
-              onChange={(e) => setData({ ...data, emmergencyInformation: { ...data.emmergencyInformation, relationship: e.target.value } })}
-            />
-          </div>
-          <div className="form-row">
-            <label htmlFor="emergencyContactNumber" className="form-label">
-              Emergency Contact Number
-            </label>
-            <input
-              type="tel"
-              inputMode="tel"
-              className="form-control"
-              minLength={10}
-              maxLength={10}
-              id="emergencyContactNumber"
-              name="emergencyContactNumber"
-              value={data.emmergencyInformation.emergencyContactNumber}
-              onChange={(e) =>
-                setData({ ...data, emmergencyInformation: { ...data.emmergencyInformation, emergencyContactNumber: e.target.value } })
-              }
-            />
-          </div>
-          <div className="form-row">
-            <label htmlFor="location" className="form-label">
-              Location
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="location"
-              name="location"
-              value={data.emmergencyInformation.location}
-              onChange={(e) => {
-                setData({ ...data, emmergencyInformation: { ...data.emmergencyInformation, location: e.target.value } });
-              }}
-            />
-          </div>
-          <div className="form-row">
-            <label htmlFor="address" className="form-label">
-              Address
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="address"
-              name="address"
-              value={data.emmergencyInformation.address}
-              onChange={(e) => {
-                setData({ ...data, emmergencyInformation: { ...data.emmergencyInformation, address: e.target.value } });
-              }}
-            />
-          </div>
-          <div className="form-row">
-            <label htmlFor="occupation" className="form-label">
-              Occupation
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="occupation"
-              name="occupation"
-              value={data.emmergencyInformation.occupation}
-              onChange={(e) => {
-                setData({ ...data, emmergencyInformation: { ...data.emmergencyInformation, occupation: e.target.value } });
-              }}
-            />
-          </div>
+        <div className="form-row">
+          <IsRenderInput
+            value={fields.relationship}
+            label={"Relationship"}
+            field={
+              <select
+                className="custom-select"
+                id="relationship"
+                name="relationship"
+                value={data.relationship}
+                onChange={(e) =>
+                  setData({
+                    ...data,
+                    emmergencyInformation: {
+                      ...data,
+                      relationship: e.target.value,
+                    },
+                  })
+                }>
+                <option value="">Select Relationship</option>
+                <option value="Parent">Parent</option>
+                <option value="Sibling">Sibling</option>
+                <option value="Spouse">Spouse</option>
+                <option value="Friend">Friend</option>
+              </select>
+            }
+          />
         </div>
+        <div className="form-row">
+          <IsRenderInput
+            value={fields.emmergencyContactNumber}
+            label={"Emergency Contact Number"}
+            field={
+              <input
+                type="tel"
+                inputMode="tel"
+                className="custom-input"
+                minLength={10}
+                maxLength={10}
+                id="emergencyContactNumber"
+                name="emergencyContactNumber"
+                value={data.emergencyContactNumber}
+                onChange={(e) =>
+                  setData({
+                    ...data,
+                    emmergencyInformation: {
+                      ...data,
+                      emergencyContactNumber: e.target.value,
+                    },
+                  })
+                }
+              />
+            }
+          />
+        </div>
+        <div className="form-row">
+          <IsRenderInput
+            value={fields.location}
+            label={"Location"}
+            field={
+              <input
+                type="text"
+                className="custom-input"
+                id="location"
+                name="location"
+                value={data.location}
+                onChange={(e) =>
+                  setData({
+                    ...data,
+                    emmergencyInformation: {
+                      ...data,
+                      location: e.target.value,
+                    },
+                  })
+                }
+              />
+            }
+          />
+        </div>
+        <div className="form-row">
+          <IsRenderInput
+            value={fields.address}
+            label={"Address"}
+            field={
+              <input
+                type="text"
+                className="custom-input"
+                id="address"
+                name="address"
+                value={data.address}
+                onChange={(e) =>
+                  setData({
+                    ...data,
+                    emmergencyInformation: {
+                      ...data,
+                      address: e.target.value,
+                    },
+                  })
+                }
+              />
+            }
+          />
+        </div>
+        <div className="form-row">
+          <IsRenderInput
+            value={fields.occupation}
+            label={"Occupation"}
+            field={
+              <input
+                type="text"
+                className="custom-input"
+                id="occupation"
+                name="occupation"
+                value={data.occupation}
+                onChange={(e) =>
+                  setData({
+                    ...data,
+                    emmergencyInformation: {
+                      ...data,
+                      occupation: e.target.value,
+                    },
+                  })
+                }
+              />
+            }
+          />
+        </div>
+        <button className="btn btn-primary btn-sm mt-3">
+          save changes
+        </button>
       </div>
     </>
   )

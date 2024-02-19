@@ -1,272 +1,300 @@
-import React from 'react';
-import { Form } from 'react-bootstrap';
-import { handleMobile, handleEmail } from '../Auth/registerclient';
-import style from "../../styles/registration.module.css";
+import { Form } from "react-bootstrap"
+import { handleMobile, handleEmail,handleAgeCalculations,  handleSubmitRegistration } from "../Auth/registerclient"
+import IsRenderInput from "./CustomInput"
+import { useState } from "react"
 
-export default function PersonalInformationRegistration({ setData, data, setError, card, minify }) {
+export default function PersonalInformationRegistration({ defaultData, fields, toast }) {
+  const [data, setData] = useState(defaultData)
+
   return (
-    <>
-      <div className={card === true ? `card m-0 p-0` : 'none '} >
-        <div className="card-header">
-          {card === true && (
-            <h5>
-              Personal Information
-            </h5>
-          )}
-        </div>
-        <div >
-          <form className={`card-body mx-2 ${minify ? 'grid-50' : ''}`} autoComplete='no' noValidate autoCorrect='false'>
-            <div className='form-row'>
-              <label>First Name</label>
+    <section>
+      <form autoComplete="off" noValidate autoCorrect="false">
+        <div className="form-row grid-30-30-30">
+          <IsRenderInput
+            label={"first name"}
+            value={fields["firstname"]}
+            field={
               <input
                 onChange={(e) => {
-                  setData({ ...data, personalInformation: { ...data.personalInformation, firstname: e.target.value } });
+                  setData({ ...data, firstname: e.target.value })
                 }}
                 placeholder="First Name"
                 className="custom-input "
-                value={data.personalInformation.firstname}
+                value={data.firstname}
                 type="text"
-                size='small'
+                size="small"
                 required
               />
-            </div>
-            <div className='form-row'>
-              <label>Last Name</label>
+            }
+          />
+          <IsRenderInput
+            value={fields["lastname"]}
+            label={"last name"}
+            field={
               <input
                 className="custom-input "
                 type="text"
                 label="lastname"
                 placeholder="Last Name"
                 required
-                value={data.personalInformation.lastname}
+                value={data.lastname}
                 onChange={(e) => {
-                  setData({ ...data, personalInformation: { ...data.personalInformation, lastname: e.target.value } });
+                  setData({ ...data, lastname: e.target.value })
                 }}
               />
-            </div>
-            <div className='form-row'>
-              <label>Middle Name</label>
+            }
+          />
+          <IsRenderInput
+            label="middle name"
+            value={fields["middlename"]}
+            field={
               <input
                 className="custom-input "
                 placeholder="Middle Name"
                 type="text"
-                value={data.personalInformation.middlename}
+                value={data.middlename}
                 onChange={(e) => {
-                  setData({ ...data, personalInformation: { ...data.personalInformation, middlename: e.target.value } });
+                  setData({ ...data, middlename: e.target.value })
                 }}
               />
-            </div>
-            <div className='form-row'>
-              <label>Mobile Number</label>
-              <input
-                type="tel"
-                inputMode="tel"
-                maxLength={10}
-                minLength={10}
-                value={data.personalInformation.mobile}
-                name="mobilenumber"
-                className="custom-input "
-                label="Mobile Number"
-                onChange={(e) => {
-                  handleMobile(e, setData, data, setError);
-                }}
-              />
-            </div>
-            <div className='form-row'>
-              <label>Email</label>
-              <input
-                size="small"
-                type="email"
-                value={data.personalInformation.email}
-                className="custom-input "
-                name="email"
-                onBlur={(ev) =>  {console.log(data)}}
-                onChange={(e) => handleEmail(e, setData, data, setError)}
-                label="Email"
-              />
-            </div>
-            <div className='form-row'>
-              <label>Date of Birth</label>
-              <div className={style.age}>
+            }
+          />
+        </div>
+        <div className="form-row">
+          {fields["days"] && fields["years"] && fields["months"] && <label>Date of birth</label>}
+          <div className="grid-30-30-30">
+            <IsRenderInput
+              value={fields["days"]}
+              displaylabel={false}
+              field={
                 <input
                   className="custom-input "
                   min={1}
                   max={31}
                   type="number"
-                  value={data.personalInformation.days}
+                  value={data.days}
                   placeholder="Days"
                   onChange={(e) => {
-                    setData({ ...data, personalInformation: { ...data.personalInformation, days: e.target.value } });
+                    setData({ ...data, days: e.target.value })
                   }}
                   label="Day"
                 />
+              }
+            />
+            <IsRenderInput
+              value={fields["months"]}
+              displaylabel={false}
+              field={
                 <input
-                  className="custom-input "
+                  className="custom-input"
                   label="Months"
                   min={1}
                   max={12}
                   type="number"
                   placeholder="Months"
                   name="months"
-                  value={data.personalInformation.months}
+                  value={data.months}
                   onChange={(e) => {
-                    setData({ ...data, personalInformation: { ...data.personalInformation, months: e.target.value } });
+                    setData({ ...data, months: e.target.value })
                   }}
                 />
+              }
+            />
+            <IsRenderInput
+              value={fields["years"]}
+              displaylabel={false}
+              key={"years"}
+              field={
                 <input
-                  className="custom-input "
+                  className="custom-input"
                   label="Years"
                   min={1900}
                   max={new Date().getFullYear()}
                   type="number"
                   name="years"
-                  value={data.personalInformation.years}
+                  onBlur={(ev) => {
+                    handleAgeCalculations(data, setData, toast);
+                  }}
+                  value={data.years}
                   onChange={(e) => {
-                    setData({ ...data, personalInformation: { ...data.personalInformation, years: e.target.value } });
+                    setData({ ...data, years: e.target.value })
                   }}
                   placeholder="Years"
                 />
-              </div>
-            </div>
-            <div className='form-row'>
-              <label>Age</label>
+              }
+            />
+          </div>
+        </div>
+        <div className="form-row grid-30-30-30">
+          <IsRenderInput
+            value={fields["age"]}
+            label={"age"}
+            field={
               <input
-                value={data.personalInformation.age}
-                onChange={(e) => setData({ ...data, personalInformation: { ...data.personalInformation, age: e.target.value } })}
+                value={data.age}
+                onChange={(e) => setData({ ...data, age: e.target.value })}
                 type="number"
                 min={0}
                 max={150}
                 className="custom-input "
                 placeholder="Age"
               />
-            </div>
-            <div className='form-row'>
-              <label>Age Type</label>
-              <select
-                className="custom-select "
-                onChange={(e) =>
-                  setData({ ...data, personalInformation: { ...data.personalInformation, agetype: e.target.value } })
-                }
-                value={data.personalInformation.agetype}
-              >
+            }
+          />
+          <IsRenderInput
+            value={fields["ageType"]}
+            label={"age type"}
+            field={
+              <select className="custom-select " onChange={(e) => setData({ ...data, agetype: e.target.value })} value={data.ageType}>
                 <option>select an option</option>
                 <option value="years">Years</option>
                 <option value="months">Months</option>
                 <option value="days">Days</option>
               </select>
-            </div>
-            {/*  */}
-            <div className="form-row">
-              <label>Occupation</label>
+            }
+          />
+          <div className="form-row">
+            <IsRenderInput
+              value={fields["gender"]}
+              label={"gender"}
+              field={
+                <div className="d-flex mt-2 ">
+                  <Form.Check
+                    type="radio"
+                    label="Female"
+                    name="gender"
+                    style={{ marginRight: "20px", fontSize: "20px" }}
+                    value="female"
+                    checked={data.gender === "female"}
+                    onChange={(e) => {
+                      setData({
+                        ...data,
+                          gender: e.target.value,
+                      })
+                    }}
+                  />
+                  <Form.Check
+                    type="radio"
+                    label="Male"
+                    name="gender"
+                    style={{ marginRight: "20px", fontSize: "20px" }}
+                    value="male"
+                    checked={data.gender === "male"}
+                    onChange={(e) => {
+                      setData({
+                        ...data,
+                          gender: e.target.value,
+                      })
+                    }}
+                  />
+                </div>
+              }
+            />
+          </div>
+        </div>
+        <div className="form-row">
+          <IsRenderInput
+            value={fields["mobile"]}
+            label={"mobile number"}
+            field={
+              <input
+                type="tel"
+                inputMode="tel"
+                maxLength={10}
+                minLength={10}
+                value={data.mobile}
+                name="mobilenumber"
+                className="custom-input "
+                label="Mobile Number"
+                onChange={(e) => {
+                  handleMobile(e, setData, data, setError)
+                }}
+              />
+            }
+          />
+        </div>
+        <div className="form-row">
+          <IsRenderInput
+            value={fields["email"]}
+            label="email"
+            field={
+              <input
+                size="small"
+                type="email"
+                value={data.email}
+                className="custom-input "
+                name="email"
+                onBlur={(ev) => {
+                  console.log(data)
+                }}
+                onChange={(e) => handleEmail(e, setData, data, setError)}
+                label="Email"
+              />
+            }
+          />
+        </div>
+        {/*  */}
+        <div className="form-row">
+          <IsRenderInput
+            value={fields["occupation"]}
+            label="occupation"
+            field={
               <input
                 type="text"
                 placeholder="Occupation"
                 name="occupation"
                 className="custom-input "
-                value={data.personalInformation.occupation}
+                value={data.occupation}
                 onChange={(e) => {
                   setData({
                     ...data,
-                    personalInformation: {
-                      ...data.personalInformation,
-                      occupation: e.target.value,
-                    },
-                  });
+                    occupation: e.target.value,
+                  })
                 }}
               />
-            </div>
-            <div className="form-row">
-              <label>Organization</label>
+            }
+          />
+        </div>
+        <div className="form-row">
+          <IsRenderInput
+            value={fields["patientOrganization"]}
+            label={"organization"}
+            field={
               <input
                 type="text"
                 placeholder="Patient Organization"
                 name="patientOrganization"
                 className="custom-input h-40"
-                value={data.personalInformation.patientOrganization}
+                value={data.patientOrganization}
                 onChange={(e) => {
                   setData({
                     ...data,
-                    personalInformation: {
-                      ...data.personalInformation,
-                      patientOrganization: e.target.value,
-                    },
-                  });
+                    patientOrganization: e.target.value,
+                  })
                 }}
               />
-            </div>
-            <div className="form-row">
-              <label>Gender</label>
-              <div className='d-flex '>
-                <Form.Check
-                  type="radio"
-                  label="Female"
-                  name="gender"
-                  style={{ marginRight: '20px' }}
-                  value="female"
-                  checked={data.personalInformation.gender === 'female'}
-                  onChange={(e) => {
-                    setData({
-                      ...data,
-                      personalInformation: {
-                        ...data.personalInformation,
-                        gender: e.target.value,
-                      },
-                    });
-                  }}
-                />
-                <Form.Check
-                  type="radio"
-                  label="Male"
-                  name="gender"
-                  style={{ marginRight: '20px' }}
-                  value="male"
-                  checked={data.personalInformation.gender === 'male'}
-                  onChange={(e) => {
-                    setData({
-                      ...data,
-                      personalInformation: {
-                        ...data.personalInformation,
-                        gender: e.target.value,
-                      },
-                    });
-                  }}
-                />
-                <Form.Check
-                  type="radio"
-                  label="Other"
-                  name="gender"
-                  value="other"
-                  checked={data.personalInformation.gender === 'other'}
-                  onChange={(e) => {
-                    setData({
-                      ...data,
-                      personalInformation: {
-                        ...data.personalInformation,
-                        gender: e.target.value,
-                      },
-                    });
-                  }}
-                />
-              </div>
-            </div>
-            <div className="form-row">
-              <label>Marital Status</label>
-              <div className='d-flex'>
+            }
+          />
+        </div>
+
+        <div className="form-row">
+          <IsRenderInput
+            label={"marital status"}
+            value={fields["maritalstatus"]}
+            field={
+              <div className="d-flex">
                 <Form.Check
                   type="radio"
                   label="Single"
                   name="maritalstatus"
-                  style={{ marginRight: '20px' }}
+                  style={{ marginRight: "20px" }}
                   value="single"
-                  checked={data.personalInformation.maritalstatus === 'single'}
+                  checked={data.maritalstatus === "single"}
                   onChange={(e) => {
                     setData({
                       ...data,
-                      personalInformation: {
-                        ...data.personalInformation,
-                        maritalstatus: e.target.value,
-                      },
-                    });
+                      maritalstatus: e.target.value,
+                    })
                   }}
                 />
                 <Form.Check
@@ -274,25 +302,30 @@ export default function PersonalInformationRegistration({ setData, data, setErro
                   label="Married"
                   name="maritalstatus"
                   value="married"
-                  checked={data.personalInformation.maritalstatus === 'married'}
+                  checked={data.maritalstatus === "married"}
                   onChange={(e) => {
                     setData({
                       ...data,
-                      personalInformation: {
-                        ...data.personalInformation,
-                        maritalstatus: e.target.value,
-                      },
-                    });
+                      maritalstatus: e.target.value,
+                    })
                   }}
                 />
               </div>
-            </div>
-            <div>
-
-            </div>
-          </form>
+            }
+          />
         </div>
-      </div>
-    </>
-  );
+        <div>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm text-capitalize"
+            tabIndex={31}
+            onClick={(e) => {
+              handleSubmitRegistration(e, data,toast)
+            }}>
+            save new record
+          </button>
+        </div>
+      </form>
+    </section>
+  )
 }

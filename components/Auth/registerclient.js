@@ -1,5 +1,6 @@
 import { customFetch, customPost } from "./customFetch";
 import { defaultdata } from "../../pages/registration";
+import { TableRowsTwoTone } from "@mui/icons-material";
 
 // handle mobile number validation
 export const handleMobile = (e, setValue, data, setError) => {
@@ -128,15 +129,54 @@ export const handleAge = (y, m, d) => {
   }
 };
 
-export const handleSubmitRegistration = async (e,data = {},typer,callback) => {
+
+export const handleAgeCalculations = async (data, setData, toast) => {
+  const personalParams = { ...data }
+  const { years, months, days } = personalParams;
+  let agecalulation = handleAge(years, months, days);
+  // if age calculor contains values
+  if (agecalulation) {
+    const { years, months, days } = agecalulation
+    if (years == 0 && months == 0 && days == 0) {
+      if (data.days > new Date().getDate()) {
+        toast.error(`Please kindly recheck date values entered, Error at day value!!!`, { autoClose: 500 })
+        setData({ ...data, age: 0, ageType: "days" })
+      } else {
+        setError("Todays Delivering ?")
+        setData({ ...personalParams, age: days, ageType: "days" })
+      }
+    }
+    if (years != 0) {
+      setData({ ...personalParams, age: years, ageType: "years" })
+    }
+
+    if (years == 0 && months != 0) {
+      setData({ ...personalParams, age: months, ageType: "months", })
+    }
+
+    if (years == 0 && months == 0 && days > 0) {
+      setData({ ...personalParams, age: days, ageType: "days" })
+    }
+  }
+  // if invalid date is returned after analyisis,
+  // update fields to suit
+
+  if (agecalulation == "invalid Date") {
+    setError("Invalid Date entered")
+    setData({ ...personalParams, age: 0, days: 0, months: 0, years: 0, ageType: "" })
+  }
+}
+
+
+export const handleSubmitRegistration = async (e, data = {}, toast) => {
   e.preventDefault();
   // error marker , at end run if true , data is not sent to endpoint.
   var error = false;
   // fields that must have values
-  const requiredFields = ["firstname","lastname","age","agetype","maritalstatus","gender"];
+  const requiredFields = ["firstname", "lastname", "age", "agetype", "gender"];
   // function theat checks to esnsure required fields are filled
   const checkRequiredFields = (data) => { requiredFields.forEach((field) => {
-      if (data.personalInformation[field] == "") {
+    if (data[field] == "") {
         error = true;
         return;
       }
@@ -147,18 +187,16 @@ export const handleSubmitRegistration = async (e,data = {},typer,callback) => {
 
 
   if (!error) {
-    const response = await customPost("register", typer, data);
+    const response = await customPost("register", 'POST', { data });
     const { status, statusCode, message, patientid } = response;
 
-    if (statusCode == 200 && status == "SUCCESS") {
-      alert(message);
-      callback(patientRegistrationDefaultData);
-      window.location.href = `/activation?patientid=${patientid}`;
+    if (statusCode == 200 && status == "success") {
+      toast.success(message, { autoClose: 500 });
     } else {
-      alert(message);
+      toast.error(message, { autoClose: 1000 });
       return;
     }
-  } else {alert ('fill in all required fields')}
+  } else { toast.warning('Fill in all Required Fields', { autoClose: 1000 }) }
 };
 
 export async function handleActivation(e, id, status, patientid, callbackfunction) {

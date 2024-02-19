@@ -2150,7 +2150,7 @@ font-family: 'Times New Roman', Times, serif !important;
     font-size: 14px;
   }
   .grid-30-30-30 {
-    grid-template-columns: 100%;
+    grid-template-columns: 100% !important;
   }
   .grid-50-responsive,
   .grid-5 {
