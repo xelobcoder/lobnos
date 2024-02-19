@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import CustomFormSwitch from "./CustomFormSwitch"
+import CustomFormSwitch from "../../accessories/CustomFormSwitch"
 import { customFetch, customPost } from "../../Auth/customFetch"
 import { ToastContainer, toast } from "react-toastify"
 export default function ApplicationResultSettings() {

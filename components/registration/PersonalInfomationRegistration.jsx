@@ -23,7 +23,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
                   setData({ ...data, personalInformation: { ...data.personalInformation, firstname: e.target.value } });
                 }}
                 placeholder="First Name"
-                className="custom-input h-40"
+                className="custom-input "
                 value={data.personalInformation.firstname}
                 type="text"
                 size='small'
@@ -33,7 +33,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
             <div className='form-row'>
               <label>Last Name</label>
               <input
-                className="custom-input h-40"
+                className="custom-input "
                 type="text"
                 label="lastname"
                 placeholder="Last Name"
@@ -47,7 +47,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
             <div className='form-row'>
               <label>Middle Name</label>
               <input
-                className="custom-input h-40"
+                className="custom-input "
                 placeholder="Middle Name"
                 type="text"
                 value={data.personalInformation.middlename}
@@ -65,7 +65,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
                 minLength={10}
                 value={data.personalInformation.mobile}
                 name="mobilenumber"
-                className="custom-input h-40"
+                className="custom-input "
                 label="Mobile Number"
                 onChange={(e) => {
                   handleMobile(e, setData, data, setError);
@@ -78,8 +78,9 @@ export default function PersonalInformationRegistration({ setData, data, setErro
                 size="small"
                 type="email"
                 value={data.personalInformation.email}
-                className="custom-input h-40"
+                className="custom-input "
                 name="email"
+                onBlur={(ev) =>  {console.log(data)}}
                 onChange={(e) => handleEmail(e, setData, data, setError)}
                 label="Email"
               />
@@ -88,7 +89,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
               <label>Date of Birth</label>
               <div className={style.age}>
                 <input
-                  className="custom-input h-40"
+                  className="custom-input "
                   min={1}
                   max={31}
                   type="number"
@@ -100,7 +101,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
                   label="Day"
                 />
                 <input
-                  className="custom-input h-40"
+                  className="custom-input "
                   label="Months"
                   min={1}
                   max={12}
@@ -113,7 +114,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
                   }}
                 />
                 <input
-                  className="custom-input h-40"
+                  className="custom-input "
                   label="Years"
                   min={1900}
                   max={new Date().getFullYear()}
@@ -135,14 +136,14 @@ export default function PersonalInformationRegistration({ setData, data, setErro
                 type="number"
                 min={0}
                 max={150}
-                className="custom-input h-40"
+                className="custom-input "
                 placeholder="Age"
               />
             </div>
             <div className='form-row'>
               <label>Age Type</label>
               <select
-                className="custom-select h-40"
+                className="custom-select "
                 onChange={(e) =>
                   setData({ ...data, personalInformation: { ...data.personalInformation, agetype: e.target.value } })
                 }
@@ -161,7 +162,7 @@ export default function PersonalInformationRegistration({ setData, data, setErro
                 type="text"
                 placeholder="Occupation"
                 name="occupation"
-                className="custom-input h-40"
+                className="custom-input "
                 value={data.personalInformation.occupation}
                 onChange={(e) => {
                   setData({

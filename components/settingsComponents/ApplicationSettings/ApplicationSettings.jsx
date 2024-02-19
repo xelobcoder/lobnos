@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { customFetch, customPost } from "../../Auth/customFetch"
 import { defaultApplicationSettings, getApplicationSettings } from "../../Auth/customFetch"
-import CustomFormSwitch from "./CustomFormSwitch"
+import CustomFormSwitch from "../../accessories/CustomFormSwitch"
 export default function ApplicationSettingsComponent() {
   const [ApplicationSettings, setApplicationSettings] = useState(defaultApplicationSettings)
   const [branches, setBranch] = useState([])

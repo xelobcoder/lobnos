@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { customFetch, customPost, emailPreference, handleResponse } from "../../../components/Auth/customFetch"
 import Loader from "../../../components/accessories/Loader"
-import CustomFormSwitch from "../../../components/settingsComponents/ApplicationSettings/CustomFormSwitch"
+import CustomFormSwitch from "../../accessories/CustomFormSwitch"
 import { Form } from "react-bootstrap"
 import { ToastContainer, toast } from "react-toastify"
 export default function ApplicationEmailPreference() {

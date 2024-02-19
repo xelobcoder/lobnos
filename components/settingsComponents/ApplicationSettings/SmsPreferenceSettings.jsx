@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { customFetch, customPost, handleResponse, defaultSmsSettings } from "../../Auth/customFetch"
 import Loader from "../../accessories/Loader"
-import CustomFormSwitch from "./CustomFormSwitch"
+import CustomFormSwitch from "../../accessories/CustomFormSwitch"
 import { ToastContainer, toast } from "react-toastify"
 export default function SMS_SETTINGS() {
   const [data, setData] = useState({})

@@ -1,19 +1,16 @@
 import SidebarFrontPage from "../../components/frontpagesidebar";
-import Header from "../../components/header";
-import React, { useEffect, useState, useMemo } from "react";
+import  { useEffect, useState, useMemo } from "react";
 import { customFetch } from "../../components/Auth/customFetch";
 import { useRouter } from "next/router";
 import { handleAge, patientRegistrationDefaultData, handleSubmitRegistration } from "../../components/Auth/registerclient";
-import { Button, Box } from "@mui/material";
 import Addressing from "../../components/registration/Addressing";
 import PersonalInfomationRegistration from "../../components/registration/PersonalInfomationRegistration";
 import EmmergencyContactInformation from "../../components/registration/EmmergencyContactInformation";
 import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
-import styled from "@emotion/styled";
 
 
 
-export default function Registration({ organization, clinician }) {
+export default function Registration() {
   // state for handlinf whether the other informationsuch as  addressing ,emmergency contact and others are shown
   const [detailRegistration, setDetailRegistration] = useState(false);
   const [error, setError] = useState('')
@@ -156,14 +153,11 @@ export default function Registration({ organization, clinician }) {
   return (
     <>
       <SettingsLayout sidebar={<SidebarFrontPage />}>
-        <h6 className="text-capitalize  bg-warning br-5 p-2 my-2" style={{maxWidth:'max-content',marginLeft:'10px'}} >
-          register a new client
-        </h6>
         {
           error && (<div style={{maxWidth:'max-content',marginLeft:'10px'}} className="btn btn-danger">{error}</div>)
         }
-        <div className={`mx-2 my-2 bg-white p-2`} id="registration">
-          <PersonalInfomationRegistration minify={true} setData={setData} data={data} setError={setError} />
+        <div className={`mx-2 my-2 bg-white border rounded p-2`} >
+          <PersonalInfomationRegistration  setData={setData} data={data} setError={setError} />
         </div>
         {detailRegistration && (
           <>
