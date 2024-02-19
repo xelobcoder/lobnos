@@ -165,7 +165,7 @@ export const handleAgeCalculations = async (data, setData, toast) => {
 }
 
 
-export const handleSubmitRegistration = async (e, data = {}, toast) => {
+export const handleSubmitRegistration = async (e, data = {}, toast, callback) => {
   e.preventDefault();
   // error marker , at end run if true , data is not sent to endpoint.
   var error = false;
@@ -189,6 +189,7 @@ export const handleSubmitRegistration = async (e, data = {}, toast) => {
 
     if (statusCode == 200 && status == "success") {
       toast.success(message, { autoClose: 500 });
+      callback();
     } else {
       toast.error(message, { autoClose: 1000 });
       return;
@@ -278,3 +279,6 @@ export const submitFormData = async function (endpoint,target) {
     alert(message)
   }
 }
+
+
+

@@ -1,10 +1,12 @@
+import { useSearchParams,useRouter} from "next/navigation"
 import { regions } from "../Auth/customFetch"
 import IsRenderInput from "./CustomInput"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 export default function Addressing({ defaultData, fields }) {
   const [data, setData] = useState(defaultData)
+  const patientid = useSearchParams().get('patientid');
+  const router = useRouter();
 
-  console.log(data)
 
   return (
     <>

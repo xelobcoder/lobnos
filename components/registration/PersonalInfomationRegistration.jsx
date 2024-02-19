@@ -5,6 +5,11 @@ import { useState } from "react"
 
 export default function PersonalInformationRegistration({ defaultData, fields, toast }) {
   const [data, setData] = useState(defaultData)
+  const patientid = useSearchParams().get("patientid")
+
+  const clearForm = () => {
+    setData(defaultData)
+  }
 
   return (
     <section>
@@ -231,10 +236,10 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
                 className="custom-input "
                 name="email"
                 onBlur={(ev) => {
-                  handleEmail(ev, setData, data, toast);
+                  handleEmail(ev, setData, data, toast)
                 }}
                 onChange={(e) => {
-                 setData({ ...data, email: e.target.value})
+                  setData({ ...data, email: e.target.value })
                 }}
                 label="Email"
               />
@@ -328,7 +333,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
             className="btn btn-primary btn-sm text-capitalize"
             tabIndex={31}
             onClick={(e) => {
-              handleSubmitRegistration(e, data, toast)
+              handleSubmitRegistration(e, data, toast, clearForm)
             }}>
             save new record
           </button>
