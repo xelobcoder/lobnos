@@ -1,13 +1,24 @@
+import { getDataAndUpdateState } from "../Auth/customFetch"
 import IsRenderInput from "./CustomInput"
-import { useState } from "react"
-export default function EmmergencyContactInformation({ defaultData, fields }) {
+import { submitFormData } from "../Auth/registerclient"
+import { useEffect, useState } from "react"
+export default function EmmergencyContactInformation({ defaultData, fields, patientid ,expanded=true}) {
   const [data, setData] = useState(defaultData)
+  const [isloading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (patientid) {
+      getDataAndUpdateState(setData, `register/emmergencycontactinformation?patientid=${patientid}`, false, setLoading)
+    }
+  }, [patientid])
+
   return (
     <>
-      <div className="p-2 mb-2 grid-50">
+      <div className={`${expanded === true ? "" :"grid-50"}`}>
         <div className="form-row">
           <IsRenderInput
-            value={fields.emmergencyName}
+          expanded={expanded}
+            value={fields.emmergencyContactName}
             label={"Emergency Contact Name"}
             field={
               <input
@@ -15,11 +26,11 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
                 className="custom-input"
                 id="emergencyName"
                 name="emergencyName"
-                value={data.emmergencyName}
+                value={data.emmergencyContactName}
                 onChange={(e) =>
                   setData({
                     ...data,
-                    emmergencyName: e.target.value,
+                    emmergencyContactName: e.target.value,
                   })
                 }
               />
@@ -28,6 +39,7 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
         </div>
         <div className="form-row">
           <IsRenderInput
+          expanded={expanded}
             value={fields.relationship}
             label={"Relationship"}
             field={
@@ -53,6 +65,7 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
         </div>
         <div className="form-row">
           <IsRenderInput
+          expanded={expanded}
             value={fields.emmergencyContactNumber}
             label={"Emergency Contact Number"}
             field={
@@ -64,11 +77,11 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
                 maxLength={10}
                 id="emergencyContactNumber"
                 name="emergencyContactNumber"
-                value={data.emergencyContactNumber}
+                value={data.emmergencyContactNumber}
                 onChange={(e) =>
                   setData({
                     ...data,
-                    emergencyContactNumber: e.target.value,
+                    emmergencyContactNumber: e.target.value,
                   })
                 }
               />
@@ -77,27 +90,7 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
         </div>
         <div className="form-row">
           <IsRenderInput
-            value={fields.location}
-            label={"Location"}
-            field={
-              <input
-                type="text"
-                className="custom-input"
-                id="location"
-                name="location"
-                value={data.location}
-                onChange={(e) =>
-                  setData({
-                    ...data,
-                    location: e.target.value,
-                  })
-                }
-              />
-            }
-          />
-        </div>
-        <div className="form-row">
-          <IsRenderInput
+          expanded={expanded}
             value={fields.address}
             label={"Address"}
             field={
@@ -119,6 +112,7 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
         </div>
         <div className="form-row">
           <IsRenderInput
+          expanded={expanded}
             value={fields.occupation}
             label={"Occupation"}
             field={
@@ -139,7 +133,13 @@ export default function EmmergencyContactInformation({ defaultData, fields }) {
           />
         </div>
       </div>
-      <button className="btn btn-primary btn-sm mt-3">save changes</button>
+      <button
+        onClick={(ev) => {
+          submitFormData(`register/emmergencycontactinformation?patientid=${patientid}`, data)
+        }}
+        className="btn btn-primary btn-sm mt-3">
+        save changes
+      </button>
     </>
   )
 }

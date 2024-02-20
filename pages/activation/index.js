@@ -264,7 +264,7 @@ export default function Activator() {
                         ) : (
                           <button className='btn btn-primary btn-sm'
                             onClick={(e) => {
-                              router.push(`/patients/${item.PATIENTID}`)
+                              router.push(`/patients/update?patientid=${item.PATIENTID}`)
                             }}
                           >
                             update

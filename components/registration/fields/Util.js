@@ -32,7 +32,7 @@ export const registration = [
    {
       title: 'emmergency contact information',
       fields: {
-         emmergencyName: false,
+         emmergencyContactName: false,
          emmergencyContactNumber: false,
          location: true,
          address: true,

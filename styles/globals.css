@@ -16,7 +16,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: var(--native-font-family);
+  font-family: var(--zf-font-family-base);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -274,6 +274,12 @@ border-none {
   display: grid;
   grid-template-columns: 65% auto;
   grid-gap: 20px;
+}
+
+.grid-20-70{
+  display: grid;
+  grid-template-columns: 20% auto !important;
+  grid-gap: 10px 10px !important;
 }
 
 .repeat-4 {
@@ -1184,7 +1190,8 @@ input[type="email"]:invalid:focus{
 .h-40 {
   height: 40px !important;
 }
-.custom-input:is(:focus, :active, :hover) {
+.custom-input:is(:focus),
+.custom-select:is(:focus) {
   outline: none;
   border: 2px solid var(--cds-color-blue-600);
   box-shadow: none !important;

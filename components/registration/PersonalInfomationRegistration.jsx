@@ -3,19 +3,19 @@ import { handleMobile, handleEmail,handleAgeCalculations,  handleSubmitRegistrat
 import IsRenderInput from "./CustomInput"
 import { useState } from "react"
 
-export default function PersonalInformationRegistration({ defaultData, fields, toast }) {
+export default function PersonalInformationRegistration({ defaultData, fields, toast, expanded = true }) {
   const [data, setData] = useState(defaultData)
-  const patientid = useSearchParams().get("patientid")
 
   const clearForm = () => {
     setData(defaultData)
   }
 
   return (
-    <section>
-      <form autoComplete="off" noValidate autoCorrect="false">
-        <div className="form-row grid-30-30-30">
+    <section >
+      <form autoComplete="off" noValidate autoCorrect="false" className={`${expanded === true ? "mx-2" : ""}`}>
+        <div className={`form-row ${expanded === true ? "" : "grid-30-30-30"}`}>
           <IsRenderInput
+            expanded={expanded}
             label={"first name"}
             value={fields["firstname"]}
             field={
@@ -34,6 +34,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
           />
           <IsRenderInput
             value={fields["lastname"]}
+            expanded={expanded}
             label={"last name"}
             field={
               <input
@@ -52,6 +53,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
           <IsRenderInput
             label="middle name"
             value={fields["middlename"]}
+            expanded={expanded}
             field={
               <input
                 className="custom-input "
@@ -65,15 +67,16 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
             }
           />
         </div>
-        <div className="form-row">
+        <div  className={`${expanded === true ? "grid-20-70" : ""} form-row`}>
           {fields["days"] && fields["years"] && fields["months"] && <label>Date of birth</label>}
           <div className="grid-30-30-30">
             <IsRenderInput
               value={fields["days"]}
               displaylabel={false}
+              expanded={false}
               field={
                 <input
-                  className="custom-input "
+                  className="custom-input"
                   min={1}
                   max={31}
                   type="number"
@@ -89,6 +92,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
             <IsRenderInput
               value={fields["months"]}
               displaylabel={false}
+              expanded={false}
               field={
                 <input
                   className="custom-input"
@@ -107,6 +111,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
             />
             <IsRenderInput
               value={fields["years"]}
+              expanded={false}
               displaylabel={false}
               key={"years"}
               field={
@@ -130,10 +135,11 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
             />
           </div>
         </div>
-        <div className="form-row grid-30-30-30">
+        <div className={`${expanded === true ? "" : "grid-30-30-30"} form-row`}>
           <IsRenderInput
             value={fields["age"]}
             label={"age"}
+            expanded={expanded}
             field={
               <input
                 value={data.age}
@@ -149,6 +155,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
           <IsRenderInput
             value={fields["ageType"]}
             label={"age type"}
+            expanded={expanded}
             field={
               <select className="custom-select " onChange={(e) => setData({ ...data, agetype: e.target.value })} value={data.ageType}>
                 <option>select an option</option>
@@ -162,13 +169,14 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
             <IsRenderInput
               value={fields["gender"]}
               label={"gender"}
+              expanded={expanded}
               field={
                 <div className="d-flex mt-2 ">
                   <Form.Check
                     type="radio"
                     label="Female"
                     name="gender"
-                    style={{ marginRight: "20px", fontSize: "20px" }}
+                    style={{ marginRight: "20px", fontSize: "15px" }}
                     value="female"
                     checked={data.gender === "female"}
                     onChange={(e) => {
@@ -182,7 +190,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
                     type="radio"
                     label="Male"
                     name="gender"
-                    style={{ marginRight: "20px", fontSize: "20px" }}
+                    style={{ marginRight: "20px", fontSize: "15px" }}
                     value="male"
                     checked={data.gender === "male"}
                     onChange={(e) => {
@@ -201,6 +209,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
           <IsRenderInput
             value={fields["mobile"]}
             label={"mobile number"}
+            expanded={expanded}
             field={
               <input
                 type="tel"
@@ -226,6 +235,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
         </div>
         <div className="form-row">
           <IsRenderInput
+            expanded={expanded}
             value={fields["email"]}
             label="email"
             field={
@@ -250,6 +260,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
         <div className="form-row">
           <IsRenderInput
             value={fields["occupation"]}
+            expanded={expanded}
             label="occupation"
             field={
               <input
@@ -272,6 +283,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
           <IsRenderInput
             value={fields["patientOrganization"]}
             label={"organization"}
+            expanded={expanded}
             field={
               <input
                 type="text"
@@ -294,6 +306,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
           <IsRenderInput
             label={"marital status"}
             value={fields["maritalstatus"]}
+            expanded={expanded}
             field={
               <div className="d-flex">
                 <Form.Check
@@ -330,7 +343,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
         <div>
           <button
             type="button"
-            className="btn btn-primary btn-sm text-capitalize"
+            className="btn mt-3 btn-primary btn-sm text-capitalize"
             tabIndex={31}
             onClick={(e) => {
               handleSubmitRegistration(e, data, toast, clearForm)

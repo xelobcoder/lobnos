@@ -1,31 +1,75 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import PersonalInformationRegistration from '../../../components/registration/PersonalInfomationRegistration'
-import { patientRegistrationDefaultData ,submitFormData} from '../../../components/Auth/registerclient';
-import { Info } from '@mui/icons-material';
+import { patientRegistrationDefaultData } from '../../../components/Auth/registerclient';
 import PatientRecordsLayout from '../../../components/petientsComponent/PatientRecordsLayout';
-import { useRouter } from 'next/router';
-import { customFetch, customPost } from '../../../components/Auth/customFetch';
-
+import { getDataAndUpdateState } from '../../../components/Auth/customFetch';
+import { useSearchParams } from 'next/navigation';
+import { ToastContainer, toast } from 'react-toastify';
+import Loader from '../../../components/accessories/Loader';
+import { Tabs, Tab } from 'react-bootstrap'
+import { getRegistrationFields } from '../../../components/registration/fields/Util';
+import Addressing from '../../../components/registration/Addressing';
+import EmmergencyContactInformation from '../../../components/registration/EmmergencyContactInformation';
+import PatientCredentialsInformation from '../../../components/registration/fields/credentials';
+import ResultsettingsPatient from '../../../components/registration/resultsettings';
 export default function Update() {
-  const [personalInformation, setPersonalInformation] = useState(patientRegistrationDefaultData);
-  const [error, setError] = useState('');
-  const patientid = useRouter().query.update;
+  const { personalInformation, addressingInformation, emmergencyInformation } = patientRegistrationDefaultData;
+  const [data, setData] = useState(personalInformation);
+  const [fields, setFields] = useState([]);
+  const [isloading, setLoading] = useState(false);
+  const patientid = useSearchParams().get("patientid");
+  const [events, setEvents] = useState("personal")
 
-  const getPatientPersonalInformation = async function () {
-    const response = await customFetch(`register/personalinformation?patientid=${patientid}`);
-    const { statusCode, status, result } = response;
-    if (statusCode == 200 && status == 'success') {
-      setPersonalInformation({ ...personalInformation,personalInformation: result });
-    }
-  }
+
   useEffect(() => {
-    try {
-      getPatientPersonalInformation();
-    } catch (err) {
-      console.log(err)
+    getRegistrationFields(setFields, toast);
+    if (patientid != undefined) {
+      getDataAndUpdateState(
+        setData,
+        `register/personalinformation?patientid=${patientid}`,
+        false,
+        setLoading
+      );
     }
   }, [patientid])
 
+
+  const rendering = () => {
+    if (isloading) return <Loader />
+    else {
+      return (
+        <div className='container'>
+          <Tabs defaultActiveKey={events} onSelect={(key) => { setEvents(key) }}>
+            <Tab eventKey={'personal'} title='personal information'>
+              <div className='bg-white br-5 p-2'>
+                {events == "personal" && <PersonalInformationRegistration defaultData={data} fields={fields.length > 0 ? fields[0]['fields'] : {}} toast={toast} />}
+              </div>
+            </Tab>
+            <Tab eventKey={'addressing'} title='addressing information'>
+              <div className='bg-white br-5 p-2'>
+                {events == "addressing" && < Addressing patientid={patientid} defaultData={addressingInformation} fields={fields.length > 0 ? fields[1]['fields'] : {}} toast={toast} />}
+              </div>
+            </Tab>
+            <Tab eventKey={'emmergency'} title='Emmergency information'>
+              <div className='bg-white br-5 p-2' >
+                {events == "emmergency" && <EmmergencyContactInformation patientid={patientid} defaultData={emmergencyInformation} fields={fields.length > 0 ? fields[2]['fields'] : {}} toast={toast} />}
+              </div>
+            </Tab>
+            <Tab eventKey={'credentials'} title='credentials'>
+              <div className='bg-white br-5 p-2' >
+                {events == "credentials" && <PatientCredentialsInformation patientid={patientid} />}
+              </div>
+            </Tab>
+            <Tab eventKey={'result'} title={'result settings'}>
+              <div className='bg-white br-5 p-2' >
+                {events == "result" && <ResultsettingsPatient />}
+              </div>
+            </Tab>
+          </Tabs>
+        </div>
+      )
+    }
+  }
 
  
 
@@ -33,24 +77,8 @@ export default function Update() {
   return (
     <>
       <PatientRecordsLayout>
-        <div className='container'>
-          <h4 className='p-2 text-capitalize'>
-            <Info color='info' /> {" "}
-            Update client personal information</h4>
-          {
-            error &&
-            <div className='p-2 col-12'>
-              <span style={{ marginLeft: '20px' }} className='alert alert-danger col-8'>
-                {error}
-              </span>
-            </div>
-          }
-          {/* <PersonalInformationRegistration card={false} setError={setError} setData={setPersonalInformation} */}
-            {/* data={personalInformation} /> */}
-          <div className='m-3'>
-            <button className='btn btn-primary' onClick={(ev) => { submitFormData(`register/personalinformation?patientid=${patientid}`,personalInformation.personalInformation) }}>update information</button>
-          </div>
-        </div>
+        <ToastContainer />
+        {rendering()}
       </PatientRecordsLayout>
     </>
   )

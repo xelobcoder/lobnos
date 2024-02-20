@@ -262,7 +262,7 @@ export const patientRegistrationDefaultData = {
     gpsLocation: '',
   },
   emmergencyInformation: {
-    emmergencyName: "",
+    emmergencyContactName: "",
     emmergencyContactNumber: "",
     location: '',
     address: '',

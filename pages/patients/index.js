@@ -81,7 +81,7 @@ export default function PATIENTS_INDEX_PAGE() {
           </div>
           <div className='main container'>
             <ul >
-              <Link href='/patients/records' >patient records</Link>
+              <Link href={`/patients/update?patientid=${initials.query}`} >patient records</Link>
               <a onClick={(ev) => {window.open(`/patients/${initials.query}`)}} >update records</a>
               <Link href={`/patients/${initials.query}/notifications`}>Notification settings</Link>
               <Link href={`/patients/${initials.query}/resultsettings`}>Email preference</Link>

@@ -1,8 +1,8 @@
-export default function IsRenderInput({ label, value, field, displaylabel = true }) {
+export default function IsRenderInput({ label, value, field, displaylabel = true, expanded = true }) {
   const rendering = () => {
     if (value === "compulsory") {
       return (
-        <div>
+        <div className={expanded === true ? "grid-20-70 my-2" : ""}>
           {displaylabel && <label className="text-capitalize">{label}</label>}
           {field}
         </div>
@@ -11,8 +11,10 @@ export default function IsRenderInput({ label, value, field, displaylabel = true
       if (value === true) {
         return (
           <>
-            {displaylabel && <label className="text-capitalize">{label}</label>}
-            {field}
+            <div className={expanded === true ? "grid-20-70 my-2" : ""}>
+              {displaylabel && <label className="text-capitalize">{label}</label>}
+              {field}
+            </div>
           </>
         )
       }
