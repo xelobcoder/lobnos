@@ -16,7 +16,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: var(--zf-font-family-base);
+  font-family: var(--native-font-family);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
