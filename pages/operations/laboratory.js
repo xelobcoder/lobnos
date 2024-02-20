@@ -1,7 +1,7 @@
 import  { useState, useEffect, useCallback, useContext } from 'react'
 import MiniCard from '../../components/operations/miniCard'
 import { customFetch } from '../../components/Auth/customFetch';
-import LaboratoryLayout from '../../components/operations/LaboratoryLayout';
+import LaboratoryLayout from '../../components/Layout/LaboratoryLayout';
 
 export default function OperationsOverview() {
   const [summary, setSummary] = useState([]);

@@ -95,6 +95,7 @@ ul > li {
 label {
   font-size: 13px; 
   font-weight: 700;
+  text-transform: capitalize;
 }
 
 .grid-100 {

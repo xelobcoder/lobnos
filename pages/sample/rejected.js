@@ -1,13 +1,9 @@
-import React, { useContext } from 'react'
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout'
-import LabSideBarComponents from '../../components/operations/labSideBarComponents'
 import RejectedSamplesComponent from '../../components/samples/rejectedListView'
-import AuthContext from '../../components/Auth/useAuthentification'
+import LaboratoryLayout from '../../components/Layout/LaboratoryLayout'
 export default function RejectedSamplesPage() {
-  const { auth } = useContext(AuthContext);
   return (
-    <SettingsLayout sidebar={<LabSideBarComponents  auth={auth}/>}>
+    <LaboratoryLayout>
       <RejectedSamplesComponent />
-    </SettingsLayout>
+    </LaboratoryLayout>
   )
 }

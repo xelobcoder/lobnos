@@ -1,10 +1,10 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import LaboratoryLayout from "../../../components/operations/LaboratoryLayout";
 import { ProgressBar } from 'react-bootstrap'
 import AuthContext from "../../../components/Auth/useAuthentification";
 import UsePaginationTableDisplay from "../../../components/accessories/usePaginationTableDisplay";
 import { customFetch, formatTest, getDepartment, handleChangeWithState } from "../../../components/Auth/customFetch";
 import { useSearchParams } from "next/navigation";
+import LaboratoryLayout from "../../../components/Layout/LaboratoryLayout";
 
 export default function ResultEntryDepartmentViewTwo() {
     const defaultFilters = { departmentid: '', status: '', test: '' }

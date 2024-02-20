@@ -1,19 +1,19 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getDataAndUpdateState, updatePagination } from '../../components/Auth/customFetch';
 import PendingTableSample from "../../components/samples/pendingTable";
-import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
-import LabSideBarComponents from "../../components/operations/labSideBarComponents";
-import AuthContext from "../../components/Auth/useAuthentification";
 import Loader from '../../components/accessories/Loader';
 import Pagination from '../../components/accessories/pagination';
+import LaboratoryLayout from "../../components/Layout/LaboratoryLayout";
 
 export default function SAMPLE_ASSESSMENT() {
-  const { auth } = useContext(AuthContext);
   const [paginate, setPaginate] = useState({ count: 10, page: 1 });
   const [loadpage, setLoad] = useState(false);
   const [isLoading, setLoading] = useState(true);
   const [data, setData] = useState([]);
-  const fetchInitialData = useCallback(async function () {
+
+
+  const fetchInitialData = useCallback(
+    async function () {
     await getDataAndUpdateState(setData, `sample?count=${paginate.count}&&page=${paginate.page}`, false, setLoading);
   }, [paginate])
 
@@ -52,9 +52,8 @@ export default function SAMPLE_ASSESSMENT() {
   }
 
   return (
-    <>
-      <SettingsLayout sidebar={<LabSideBarComponents auth={auth}/>}>
-        <div className="mx-2">
+    <LaboratoryLayout>
+      <div className="mx-2">
           <div>
             <div className='alert alert-info p-3 alert-dismissible'>
                   <strong>Note:</strong> Please check the sample before validating. click on assess button to view the sample.
@@ -64,8 +63,7 @@ export default function SAMPLE_ASSESSMENT() {
             {renderingView()}
           </div>
         </div>
-      </SettingsLayout>
-    </>
+    </LaboratoryLayout>
   );
 }
 

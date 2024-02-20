@@ -5,7 +5,6 @@ import AuthContext from "../Auth/useAuthentification"
 import { Tooltip } from "@mui/material"
 export default function AppCustomLayout({ children, sideLinks, defaultscreen = true }) {
   const { auth } = useContext(AuthContext)
-  const [active, setActive] = useState(0)
   const [fullscreen, setFullscreen] = useState(defaultscreen)
   const { username, role } = auth
 
@@ -40,15 +39,12 @@ export default function AppCustomLayout({ children, sideLinks, defaultscreen = t
                   <Link
                     href={item.link}
                     key={index}
-                    onClick={(ev) => {
-                      setActive(index)
-                    }}
                     className={`${fullscreen ? "icons-with-text" : ""}`}>
                     <div className={`icons pointer d-flex justify-content-center ${fullscreen ? " " : "bg-secondary m-2 br-5 p-1"}`}>
                       {fullscreen ? (
                         <span title={item.title}>{item.icon}</span>
                       ) : (
-                        <Tooltip title={item.title} className={fullscreen ? "text-white" : "icons-no-text"}>
+                        <Tooltip title={item.title} placement="right" className={fullscreen ? "text-white" : "icons-no-text"}>
                           {item.icon}
                         </Tooltip>
                       )}
