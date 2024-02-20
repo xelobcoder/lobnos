@@ -3,8 +3,7 @@ import { useRouter } from 'next/router';
 import TableIsLoading from '../../components/accessories/TableIsLoading';
 import { ActivationBulk, handleActivation } from '../../components/Auth/registerclient';
 import { customFetch } from '../../components/Auth/customFetch';
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
-import SidebarFrontPage from '../../components/frontpagesidebar';
+import FrontDeskLayout from '../../components/Layout/FrontDeskLayout';
 
 export default function Activator() {
   const [loading, setLoading] = useState(true);
@@ -94,9 +93,8 @@ export default function Activator() {
 
 
   return (
-    <>
-      <SettingsLayout sidebar={<SidebarFrontPage />}>
-        {!advancedSearch && (
+    <FrontDeskLayout>
+      {!advancedSearch && (
           <div className='not-activation-advanced'>
             <div>
               <input
@@ -284,8 +282,7 @@ export default function Activator() {
               </tbody>
             </table>
           </div>
-      </SettingsLayout>
-    </>
+    </FrontDeskLayout>
   );
 }
 

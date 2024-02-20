@@ -1,12 +1,10 @@
-import React from 'react'
 import BasicInformationClinician from '../../../components/Clinicians/BasicInformationClinician'
-import SettingsLayout from '../../../components/settingsComponents/SettingsLayout'
-import SidebarFrontPage from '../../../components/frontpagesidebar'
+import FrontDeskLayout from '../../../components/Layout/FrontDeskLayout'
 export default function ClinicianUpdateForm() {
 
   return (
-    <SettingsLayout sidebar={<SidebarFrontPage />}>
-       <div className='card mx-2 my-2'>
+    <FrontDeskLayout>
+      <div className='card mx-2 my-2'>
             <div className='card-header bg-secondary text-white'>
               <h4>Update Basic information</h4>
             </div>
@@ -14,6 +12,6 @@ export default function ClinicianUpdateForm() {
             <BasicInformationClinician />
             </div>
         </div>
-    </SettingsLayout>
+    </FrontDeskLayout>
   )
 }

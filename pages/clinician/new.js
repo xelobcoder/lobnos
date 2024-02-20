@@ -1,13 +1,11 @@
-import React from 'react'
 import BasicInformationClinician from '../../components/Clinicians/BasicInformationClinician';
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
-import SidebarFrontPage from '../../components/frontpagesidebar';
+import FrontDeskLayout from '../../components/Layout/FrontDeskLayout';
 
 export default function NewClinicianPage() {
 
   return (
-    <SettingsLayout sidebar={<SidebarFrontPage />}>
-       <div className='card mx-2 my-2'>
+    <FrontDeskLayout>
+      <div className='card mx-2 my-2'>
           <div className='card-header bg-secondary text-white'>
             <h4>New clinician</h4>
           </div>
@@ -15,6 +13,6 @@ export default function NewClinicianPage() {
             <BasicInformationClinician />
           </div>
        </div>
-  </SettingsLayout>
+    </FrontDeskLayout>
   )
 }

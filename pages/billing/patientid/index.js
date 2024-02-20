@@ -1,14 +1,13 @@
-import SidebarFrontPage from "../../../components/frontpagesidebar.js";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useContext, useEffect, useState } from "react";
 import TESTCART from "../../../components/registration/testCart.js";
 import { BillingClass, defaultClinician, defaultOrganization, defaultpanel } from "../../../components/Auth/billing.js";
 import TopComponentBillingButton from "../../../components/Billing/topComponentBillingButton.jsx";
-import SettingsLayout from "../../../components/settingsComponents/SettingsLayout.jsx";
 import AutoCompleteObject from "../../../components/accessories/AutoCompleteObject.jsx";
 import { validateFormData } from "../../../components/Auth/customFetch.js";
 import { ToastContainer, toast } from "react-toastify";
 import AuthContext from "../../../components/Auth/useAuthentification.js";
+import FrontDeskLayout from "../../../components/Layout/FrontDeskLayout.jsx";
 
 export default function Billing({ }) {
   const { auth } = useContext(AuthContext);
@@ -174,9 +173,8 @@ export default function Billing({ }) {
   };
 
   return (
-    <>
-      <SettingsLayout sidebar={<SidebarFrontPage />}>
-        <ToastContainer />
+    <FrontDeskLayout>
+      <ToastContainer />
         <div className="mx-2 grid-50-responsive" >
           <div id='panel-selection' className="mx-3 my-2   d-flex justify-content-between align-content-center">
             <AutoCompleteObject options={panelsOptions} />
@@ -329,7 +327,6 @@ export default function Billing({ }) {
               </div>
             )}
         </div>
-      </SettingsLayout>
-    </>
+    </FrontDeskLayout>
   );
 }

@@ -1,11 +1,10 @@
 import GeneralSalesChart from "../../components/Dashboards/GeneralSalesCharts"
-import SidebarFrontPage from "../../components/frontpagesidebar"
-import SettingsLayout from "../../components/settingsComponents/SettingsLayout"
+import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 
 export default function SalesSummaryPage() {
   return (
-    <SettingsLayout sidebar={<SidebarFrontPage />}>
+    <FrontDeskLayout>
       <GeneralSalesChart />
-    </SettingsLayout>
+    </FrontDeskLayout>
   )
 }

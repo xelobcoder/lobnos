@@ -45,6 +45,10 @@
   grid-template-rows: 4% auto;
 }
 
+.minify-wrapper{
+  display: grid;
+  grid-template-columns: 4% auto;
+}
 .wrapper {
   display: grid;
   grid-template-columns: 15% auto;
@@ -54,6 +58,8 @@
   padding: 0px;
   position: static;
   overflow: auto;
+  max-width: 100%;
+  width: auto;
 }
 .wrapper > .main {
   padding: 3px;

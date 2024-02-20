@@ -157,7 +157,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
             label={"age type"}
             expanded={expanded}
             field={
-              <select className="custom-select " onChange={(e) => setData({ ...data, agetype: e.target.value })} value={data.ageType}>
+              <select className="custom-select " onChange={(e) => setData({ ...data, ageType: e.target.value })} value={data.ageType}>
                 <option>select an option</option>
                 <option value="years">Years</option>
                 <option value="months">Months</option>

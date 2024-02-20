@@ -1,11 +1,9 @@
-import React from 'react'
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout'
 import { Forward } from '@mui/icons-material'
-import SidebarFrontPage from '../../components/frontpagesidebar'
+import FrontDeskLayout from '../../components/Layout/FrontDeskLayout'
 
 export default function BookAppointment() {
   return (
-    <SettingsLayout sidebar={<SidebarFrontPage/>}>
+    <FrontDeskLayout>
       <div className='mx-3'>
         <h3>Booking Appointment</h3>
         <label>reason</label>
@@ -14,6 +12,6 @@ export default function BookAppointment() {
         <input className='form-control' required  type='date' placeholder='date' />
         <button className='btn btn-primary mt-2'>book Appointment <Forward /> </button>
       </div>
-    </SettingsLayout>
+    </FrontDeskLayout>
   )
 }

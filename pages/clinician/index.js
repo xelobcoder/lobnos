@@ -5,8 +5,8 @@ import {IconButton, Typography } from "@mui/material";
 import { DeleteForeverOutlined, Edit,Visibility } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from 'react-toastify';
-import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
-import SidebarFrontPage from "../../components/frontpagesidebar";
+import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
+
 
 export default function Clinicians() {
   const [ClinicianList, setClinician] = useState([]);
@@ -109,14 +109,14 @@ export default function Clinicians() {
 
 
   return (
-    <SettingsLayout sidebar={< SidebarFrontPage />}>
-      <ToastContainer/>
+    <FrontDeskLayout>
+      <ToastContainer />
       <div className="d-flex justify-content-end">
         <button type='button' onClick={ (ev) =>  {router.push('/clinician/new')}} className="btn btn-sm btn-primary fw-bold mx-2 my-1"> add clinician</button>
       </div>
       <div style={{marginTop:'-40px'}}>
       <TableDisplay data={ClinicianList} column={columns} filtering={true}/>
      </div>
-    </SettingsLayout>
+    </FrontDeskLayout>
   );
 }

@@ -1,9 +1,8 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
-import SidebarFrontPage from "../../components/frontpagesidebar";
-import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
 import ISLOADING from "../../components/isLoading";
 import { useRouter } from "next/navigation";
 import { getDataAndUpdateState } from "../../components/Auth/customFetch";
+import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 export default function Orders() {
   const navigate = useRouter();
   const getdate = new Date();
@@ -30,7 +29,7 @@ export default function Orders() {
   }
     
   return (
-    <SettingsLayout sidebar={<SidebarFrontPage/>}>
+    <FrontDeskLayout>
       {/* date */}
       <div className="mx-2 my-1 d-flex justify-content-between">
         <div className="col-4 d-flex">
@@ -80,6 +79,6 @@ export default function Orders() {
         </div>
       )}
         </Suspense>
-    </SettingsLayout>
+    </FrontDeskLayout>
   )
 }

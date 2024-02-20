@@ -1,10 +1,9 @@
-import React, { useContext, useEffect, useState } from "react";
-import { customFetch, handleDecision, handleComments, validateFormData } from "../../components/Auth/customFetch";
+import { useContext, useEffect, useState } from "react";
+import { customFetch, handleDecision } from "../../components/Auth/customFetch";
 import { IconButton } from "@mui/material";
 import { Launch } from "@mui/icons-material";
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
-import SidebarFrontPage from '../../components/frontpagesidebar';
 import AuthContext from "../../components/Auth/useAuthentification";
+import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 export default function Approval() {
   const [clients, setClients] = useState([]);
   const { auth } = useContext(AuthContext);
@@ -48,7 +47,7 @@ export default function Approval() {
   }
 
   return (
-    <SettingsLayout sidebar={<SidebarFrontPage />}>
+    <FrontDeskLayout>
       <div className="mx-3 my-2">
         <div className="card">
           <div className="card-header">
@@ -111,6 +110,6 @@ export default function Approval() {
           </div>
         </div>
       </div>
-    </SettingsLayout>
+    </FrontDeskLayout>
   );
 }

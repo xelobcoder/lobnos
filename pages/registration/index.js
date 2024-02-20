@@ -1,13 +1,12 @@
-import SidebarFrontPage from "../../components/frontpagesidebar";
 import { useEffect, useState } from "react";
 import { patientRegistrationDefaultData } from "../../components/Auth/registerclient";
 import PersonalInfomationRegistration from "../../components/registration/PersonalInfomationRegistration";
-import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
 import { getRegistrationFields } from "../../components/registration/fields/Util";
 import { ToastContainer, toast } from 'react-toastify';
 import { Settings } from "@mui/icons-material";
 import { Form } from 'react-bootstrap';
 import { useRouter } from "next/navigation";
+import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 
 
 export default function Registration() {
@@ -27,9 +26,8 @@ export default function Registration() {
 
 
   return (
-    <>
-      <SettingsLayout sidebar={<SidebarFrontPage />}>
-        <ToastContainer />
+    <FrontDeskLayout>
+      <ToastContainer />
         <div className="d-flex justify-content-between">
           <h5 className="fw-bold mt-2">Patient Registration</h5>
           <div className="d-flex justify-content-between">
@@ -43,8 +41,7 @@ export default function Registration() {
           <PersonalInfomationRegistration expanded={expanded} fields={fields.length > 0 ? fields[0]['fields'] : {}} toast={toast}
             defaultData={personalInformation} />
         </div>
-      </SettingsLayout>
-    </>
+    </FrontDeskLayout>
   );
 }
 

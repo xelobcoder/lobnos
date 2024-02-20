@@ -3,10 +3,9 @@ import Navbar from "../../../components/payment/Navbar";
 import TableDisplay from "../../../components/accessories/TableDisplay";
 import { customFetch, updatePagination } from "../../../components/Auth/customFetch";
 import { useRouter } from "next/router";
-import SettingsLayout from "../../../components/settingsComponents/SettingsLayout";
-import SidebarFrontPage from "../../../components/frontpagesidebar";
 import Loader from '../../../components/accessories/Loader';
 import Pagination from '../../../components/accessories/pagination';
+import FrontDeskLayout from "../../../components/Layout/FrontDeskLayout";
 
 export default function Payment_Extra() {
   const initValues = { from: '', to: "", month: "", patientid: "", count: 10, page: 1 }
@@ -170,9 +169,8 @@ export default function Payment_Extra() {
   }
 
   return (
-    <>
-      <SettingsLayout sidebar={<SidebarFrontPage/>}>
-        <div >
+    <FrontDeskLayout>
+      <div >
           <Navbar
             handleChange={handleChange}
             query={querystate}
@@ -184,7 +182,6 @@ export default function Payment_Extra() {
           <h4 className="mx-2">Transactions</h4>
           {render()}
         </div>
-      </SettingsLayout>
-    </>
+    </FrontDeskLayout>
   );
 }

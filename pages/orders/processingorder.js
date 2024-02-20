@@ -1,12 +1,11 @@
-import {  useCallback, useEffect, useState } from "react";
-import SidebarFrontPage from "../../components/frontpagesidebar";
+import { useCallback, useEffect, useState } from "react";
 import Sampling from "../../components/readyComponents/Sampling";
-import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
 import ISLOADING from "../../components/isLoading";
 import { ToastContainer, toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import {  customFetch, customPost, getSpecificOrder, handleChangeWithState } from "../../components/Auth/customFetch";
 import { useSearchParams } from "next/navigation";
+import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 
 export default function ProcessingOrder() {
   const router = useRouter();
@@ -105,8 +104,8 @@ export default function ProcessingOrder() {
 
 
   return (
-    <SettingsLayout sidebar={<SidebarFrontPage />}>
-      <ToastContainer/>
+    <FrontDeskLayout>
+      <ToastContainer />
       <div className="mx-2">
       {loading && <ISLOADING />}
       {!loading && (
@@ -206,6 +205,6 @@ export default function ProcessingOrder() {
         </>
       )}
      </div>
-    </SettingsLayout>
+    </FrontDeskLayout>
   )
 }

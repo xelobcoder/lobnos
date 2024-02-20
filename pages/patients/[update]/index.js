@@ -40,12 +40,12 @@ export default function Update() {
       return (
         <div className='container'>
           <Tabs defaultActiveKey={events} onSelect={(key) => { setEvents(key) }}>
-            <Tab eventKey={'personal'} title='personal information'>
+            <Tab eventKey={'personal'} title='Personal information'>
               <div className='bg-white br-5 p-2'>
                 {events == "personal" && <PersonalInformationRegistration defaultData={data} fields={fields.length > 0 ? fields[0]['fields'] : {}} toast={toast} />}
               </div>
             </Tab>
-            <Tab eventKey={'addressing'} title='addressing information'>
+            <Tab eventKey={'addressing'} title='Addressing information'>
               <div className='bg-white br-5 p-2'>
                 {events == "addressing" && < Addressing patientid={patientid} defaultData={addressingInformation} fields={fields.length > 0 ? fields[1]['fields'] : {}} toast={toast} />}
               </div>
@@ -55,12 +55,12 @@ export default function Update() {
                 {events == "emmergency" && <EmmergencyContactInformation patientid={patientid} defaultData={emmergencyInformation} fields={fields.length > 0 ? fields[2]['fields'] : {}} toast={toast} />}
               </div>
             </Tab>
-            <Tab eventKey={'credentials'} title='credentials'>
+            <Tab eventKey={'credentials'} title='Credentials'>
               <div className='bg-white br-5 p-2' >
                 {events == "credentials" && <PatientCredentialsInformation patientid={patientid} />}
               </div>
             </Tab>
-            <Tab eventKey={'result'} title={'result settings'}>
+            <Tab eventKey={'result'} title={'Result settings'}>
               <div className='bg-white br-5 p-2' >
                 {events == "result" && <ResultsettingsPatient />}
               </div>

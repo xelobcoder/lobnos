@@ -1,14 +1,10 @@
-import { useRouter } from "next/navigation"
-import {  MonetizationOn } from "@mui/icons-material"
-
-export default function Navbar({ query, updateBill, handleChange, clearQuery, selectedBilling }) {
-  const navigate = useRouter()
+export default function Navbar({ query, handleChange, clearQuery }) {
 
   return (
     <div className="grid-70-30">
       <div className="d-flex">
         <div className="form-row d-flex col-3">
-          <label className="my-1 mx-2">From</label>
+          {/* <label className="my-1 mx-2">From</label> */}
           <input
             className="custom-input mx-2"
             type="date"
@@ -20,7 +16,7 @@ export default function Navbar({ query, updateBill, handleChange, clearQuery, se
           />
         </div>
         <div className="form-row d-flex col-3">
-          <label className="my-1">To</label>
+          {/* <label className="my-1">To</label> */}
           <input
             className="custom-input mx-2"
             type="date"
@@ -40,16 +36,9 @@ export default function Navbar({ query, updateBill, handleChange, clearQuery, se
           placeholder="Enter clientid here"
           type="number"
         />
-        <button className="btn btn-danger btn-sm py-0" onClick={clearQuery}>
+        <button className="btn btn-outline-secondary btn-sm py-0" onClick={clearQuery}>
           clear fields
         </button>
-      </div>
-      <div>
-        <div className="d-flex justify-content-end">
-          <button startIcon={<MonetizationOn />} className="btn btn-primary btn-sm mx-1">
-            sales summary
-          </button>
-        </div>
       </div>
     </div>
   )

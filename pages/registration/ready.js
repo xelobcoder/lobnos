@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { customFetch, updatePagination } from '../../components/Auth/customFetch';
 import ReadyList from '../../components/readyComponents/ReadyList';
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout';
-import SidebarFrontPage from '../../components/frontpagesidebar';
 import ResultFilterAdvancedSearch from '../../components/readyComponents/ResultFilterAdvancedSearch';
 import DayTestSummary from '../../components/readyComponents/DayTestSummary';
 import ReadyTestSummaryAccordion from '../../components/readyComponents/ReadyTestSummaryAccordion';
 import Loader from '../../components/accessories/Loader';
+import FrontDeskLayout from '../../components/Layout/FrontDeskLayout';
 
 
 export default function ReadyResult() {
@@ -117,7 +116,7 @@ export default function ReadyResult() {
 
 
   return (
-    <SettingsLayout sidebar={<SidebarFrontPage />}>
+    <FrontDeskLayout>
       <div className="mx-2">
         <div className="d-flex justify-content-between mt-1">
           <div>
@@ -148,6 +147,6 @@ export default function ReadyResult() {
         )}
         {renderer()}
       </div>
-    </SettingsLayout>
+    </FrontDeskLayout>
   )
 }

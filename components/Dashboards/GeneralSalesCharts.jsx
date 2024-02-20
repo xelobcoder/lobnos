@@ -139,8 +139,9 @@ export default function GeneralSalesChart() {
 
   return (
     <>
-      <div className="d-flex gap-3 px-2 py-2">
-        <select
+      <div className="d-flex gap-3 px-2 py-2 border-bottom ">
+        <select className='custom-select'
+          style={{width:'19%'}}
           onChange={(ev) => {
             setSelectedBranch(ev.target.value)
           }}>
@@ -154,6 +155,8 @@ export default function GeneralSalesChart() {
           })}
         </select>
         <select
+          className='custom-select col-2 mx-1'
+          style={{width:'19%'}}
           onChange={(ev) => {
             setShow(ev.target.value)
           }}>
@@ -162,6 +165,8 @@ export default function GeneralSalesChart() {
           <option value="totalCases">cases count</option>
         </select>
         <select
+          className='custom-select col-2'
+          style={{width:'19%'}}
           onChange={(ev) => {
             setType(ev.target.value)
           }}>

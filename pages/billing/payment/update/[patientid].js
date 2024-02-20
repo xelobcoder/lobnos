@@ -1,13 +1,12 @@
 import { useState, useEffect, useContext } from 'react'
 import { useRouter } from 'next/router';
-import SettingsLayout from '../../../../components/settingsComponents/SettingsLayout'
 import { customData, customFetch, customPost } from '../../../../components/Auth/customFetch';
 import PreviewPatientInformation from '../../../../components/petientsComponent/PreviewPatientInformation';
-import SidebarFrontPage from '../../../../components/frontpagesidebar';
 import OutstandingBills from '../../../../components/petientsComponent/OutstandingBill';
 import { ToastContainer, toast } from "react-toastify";
 import Loader from '../../../../components/accessories/Loader';
 import AuthContext from '../../../../components/Auth/useAuthentification';
+import FrontDeskLayout from '../../../../components/Layout/FrontDeskLayout';
 
 
 
@@ -140,9 +139,8 @@ export default function BillingUpdatelientpaymentHistory() {
     }
   }
   return (
-    <>
-      <SettingsLayout sidebar={<SidebarFrontPage />}>
-        <ToastContainer />
+    <FrontDeskLayout>
+      <ToastContainer />
         <div >
           <div className='grid-70-30'>
             <PreviewPatientInformation patientid={patientid} />
@@ -150,8 +148,7 @@ export default function BillingUpdatelientpaymentHistory() {
           </div>
           {transactionRender()}
         </div>
-      </SettingsLayout>
-    </>
+    </FrontDeskLayout>
   )
 }
 

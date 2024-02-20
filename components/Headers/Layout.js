@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import  { useContext, useEffect } from 'react';
 import AuthContext from '../Auth/useAuthentification';
 import { isAuthenticated } from '../Auth/customFetch';
 import { useRouter } from 'next/navigation';

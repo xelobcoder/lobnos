@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import SidebarFrontPage from "../../components/frontpagesidebar";
 import UpdatePersonal from "../../components/Billing/updatePersonal";
 import TestProfileBilling from "../../components/Billing/testprofile";
 import SamplingInformation from "../../components/Billing/samplingInformation";
 import { customFetch } from "../../components/Auth/customFetch";
-import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
 import PreviewPatientInformation from "../../components/petientsComponent/PreviewPatientInformation";
+import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 export default function Updatebilling() {
   const [clientDetails, setClientDetails] = useState([]);
   const [updateViewer, setUpdateViewer] = useState(true);
@@ -29,10 +28,9 @@ export default function Updatebilling() {
   }, [billid]);
 
 
-  // this would change the state of the updateViewer to true if the button [update test] in the persomal details is clicked
   const updateTestButton = () => { setUpdateViewer(true);};
   return (
-    <SettingsLayout sidebar={<SidebarFrontPage/>}>
+    <FrontDeskLayout>
       <div className="update-billing-wrapper">
       <div >
           {clientDetails.length === 0
@@ -46,6 +44,6 @@ export default function Updatebilling() {
             )}
       </div>
     </div>
-    </SettingsLayout>
+    </FrontDeskLayout>
   );
 }
