@@ -93,7 +93,8 @@ ul > li {
 }
 
 label {
-  font-weight: 500;
+  font-size: 13px; 
+  font-weight: 700;
 }
 
 .grid-100 {
@@ -276,9 +277,9 @@ border-none {
   grid-gap: 20px;
 }
 
-.grid-20-70{
+.grid-reg{
   display: grid;
-  grid-template-columns: 20% auto !important;
+  grid-template-columns: 10% 90% !important;
   grid-gap: 10px 10px !important;
 }
 

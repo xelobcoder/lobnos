@@ -67,7 +67,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
             }
           />
         </div>
-        <div  className={`${expanded === true ? "grid-20-70" : ""} form-row`}>
+        <div  className={`${expanded === true ? "grid-reg mx-4" : ""} form-row`}>
           {fields["days"] && fields["years"] && fields["months"] && <label>Date of birth</label>}
           <div className="grid-30-30-30">
             <IsRenderInput
