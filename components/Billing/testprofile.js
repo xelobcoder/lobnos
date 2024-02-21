@@ -1,6 +1,6 @@
 import { DeleteOutlineTwoTone } from '@mui/icons-material';
-import React, { useState, useEffect, useCallback } from 'react';
-import { Autocomplete, TextField } from '@mui/material';
+import { useState, useEffect, useCallback } from 'react';
+import { Autocomplete } from '@mui/joy';
 import { customFetch, customPost } from '../Auth/customFetch';
 import { ToastContainer, toast } from 'react-toastify';
 
@@ -29,7 +29,9 @@ export default function TestProfileBilling({ clientDetails }) {
   }
 
 
-  useEffect(() => { getUpdateInformation() }, []);
+  useEffect(() => {
+    getUpdateInformation()
+  }, []);
 
   // this function sum up the total price of the test in the working test
 
@@ -127,8 +129,8 @@ export default function TestProfileBilling({ clientDetails }) {
               options={testportal}
               getOptionLabel={(option) => option.name}
               style={{ width: '70%' }}
-              size='small'
-              renderInput={(params) => <TextField {...params} label="Test panels" size='small' variant="outlined" />}
+              // size='small'
+              placeholder='search test'
               onChange={(value, newValue) => { setTestValueId(newValue) }}
             />
 
@@ -143,7 +145,10 @@ export default function TestProfileBilling({ clientDetails }) {
           </div>
         </div>
         <div className='card-body'>
-          <table className='table'>
+          <div className='grid-50'>
+            <div>
+              <h6>Billing Tests</h6>
+              <table className='table'>
             <thead>
               <tr>
                 <th>Test Name</th>
@@ -187,7 +192,8 @@ export default function TestProfileBilling({ clientDetails }) {
               </tr>
             </tfoot>
           </table>
-          <div className='mt-3' >
+            </div>
+            <div>
             <h5>Payment details</h5>
             <div className='lims-text-color  alert alert-info  text-sm'>
               <p>Tax Value: {taxValue}</p>
@@ -198,6 +204,7 @@ export default function TestProfileBilling({ clientDetails }) {
               <p>Discount : {discount}</p>
               <p>Outstanding:  {initoutstanding}</p>
             </div>
+          </div>
           </div>
           <div className='d-flex justify-content-end'>
             <button className='btn btn-primary btn-sm my-3' onClick={(ev) => { updateBilling() }} >
