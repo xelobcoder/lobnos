@@ -57,14 +57,16 @@
 
 
 
-.wrapper > .side {
+.wrapper > .side ,
+.minify-wrapper > .side{
   padding: 0px;
-  position: static;
+  position: static !important;
   overflow: auto;
   max-width: 100%;
   width: auto;
 }
-.wrapper > .main {
+.wrapper > .main,
+.minify-wrapper > .main {
   padding: 3px;
   overflow-y: auto;
   height: 100vh;
