@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getDepartment } from '../../../components/Auth/customFetch';
 import InventoryLayout from '../../../components/inventory/InventoryLayout';
 import { useRouter } from 'next/router';

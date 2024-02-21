@@ -1,83 +1,74 @@
-import React, { useState, useEffect } from 'react'
-import SettingsLayout from '../settingsComponents/SettingsLayout';
-import Loader from '../accessories/Loader';
-import DepartmentLevelSidebar from './DepartmentLevelSidebar';
-import { useRouter } from 'next/router';
-import { customData } from '../Auth/customFetch';
-import TableDisplay from '../accessories/TableDisplay';
-import { ProgressBar } from 'react-bootstrap';
-export default function ReceivedPending({ type = 'pending', caption }) {
-  const departmentId = useRouter().query.id;
-  const [loading, setLoading] = useState(true);
+import { useState, useEffect } from "react"
+import Loader from "../accessories/Loader"
+import { useRouter } from "next/router"
+import { customData } from "../Auth/customFetch"
+import TableDisplay from "../accessories/TableDisplay"
+import { ProgressBar } from "react-bootstrap"
+export default function ReceivedPending({ type = "pending", caption }) {
+  const departmentId = useRouter().query.id
+  const [loading, setLoading] = useState(true)
   const [stocks, setStocks] = useState([])
 
   useEffect(() => {
     if (departmentId) {
-      setLoading(true);
+      setLoading(true)
       try {
-        customData(`departments/requisitions?id=${departmentId}&&type=${type}`, setStocks);
-        setLoading(false);
+        customData(`departments/requisitions?id=${departmentId}&&type=${type}`, setStocks)
+        setLoading(false)
       } catch (err) {
-        setStocks([]);
-        setLoading(false);
+        setStocks([])
+        setLoading(false)
       }
     }
-  }, [departmentId, type]);
-
+  }, [departmentId, type])
 
   const columns = [
     {
-      Header: 'Date Requested',
-      accessor: 'date',
+      Header: "Date Requested",
+      accessor: "date",
       Cell: ({ row }) => <div>{row.original.date.slice(0, 10)}</div>,
     },
     {
-      Header: 'Name',
-      accessor: 'name',
+      Header: "Name",
+      accessor: "name",
     },
     {
-      Header: 'Status',
-      accessor: 'status',
+      Header: "Status",
+      accessor: "status",
       Cell: ({ row }) => (
         <div>
-          <ProgressBar variant={`${row.original.status === 'pending' ? 'warning' : 'primary'}`} now={row.original.status === 'pending' ? 35 : 70} />
+          <ProgressBar
+            variant={`${row.original.status === "pending" ? "warning" : "primary"}`}
+            now={row.original.status === "pending" ? 35 : 70}
+          />
         </div>
       ),
     },
     {
-      Header: 'Consumption Unit',
-      accessor: 'comsumptionunit',
+      Header: "Consumption Unit",
+      accessor: "comsumptionunit",
     },
     {
-      Header: 'Qty Requested',
-      accessor: 'quantity_requested',
+      Header: "Qty Requested",
+      accessor: "quantity_requested",
     },
     {
-      Header: 'Qty Approved',
-      accessor: 'quantity_approved',
+      Header: "Qty Approved",
+      accessor: "quantity_approved",
       Cell: ({ row }) => (
-        <>
-          {row.original.quantity_approved == null ? (
-            <div className='-lims-text-color'>Not yet</div>
-          ) : (
-            row.original.quantity_approved
-          )}
-        </>
+        <>{row.original.quantity_approved == null ? <div className="-lims-text-color">Not yet</div> : row.original.quantity_approved}</>
       ),
     },
-  ];
-
+  ]
 
   const renderer = () => {
     if (loading) return <Loader />
-    else   <TableDisplay column={columns} data={stocks} filtering={true} />
+    else <TableDisplay column={columns} data={stocks} filtering={true} />
   }
   return (
     <>
-      <SettingsLayout sidebar={<DepartmentLevelSidebar />}>
-        <h4>{caption}</h4>
-        {renderer()}
-      </SettingsLayout>
+      <h4>{caption}</h4>
+      {renderer()}
     </>
   )
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import SUPPLIERS_LIST from '../../components/suppliers/supllyList';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import SupplierLayout from '../../components/inventory/SupplierLayout';

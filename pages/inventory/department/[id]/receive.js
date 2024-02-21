@@ -1,6 +1,4 @@
-import  { useState, useEffect, useCallback } from 'react'
-import SettingsLayout from '../../../../components/settingsComponents/SettingsLayout'
-import DepartmentLevelSidebar from '../../../../components/inventory/DepartmentLevelSidebar'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import { Button } from '@mui/material'
 import CallReceivedIcon from '@mui/icons-material/CallReceived';
@@ -10,6 +8,7 @@ import TableDisplay from '../../../../components/accessories/TableDisplay'
 import InventoryClass from '../../../../components/Auth/inventory'
 import { ProgressBar } from 'react-bootstrap'
 import Loader from '../../../../components/accessories/Loader'
+import DepartmentInventoryLayout from '../../../../components/inventory/departments/DepartmentInventoryLayout';
 export default function ReceiveStocksDepartmentLevel() {
   const departmentId = useRouter().query.id;
   const [stocks, setStocks] = useState([]);
@@ -127,9 +126,9 @@ export default function ReceiveStocksDepartmentLevel() {
 
 
   return (
-    <SettingsLayout sidebar={<DepartmentLevelSidebar />}>
+    <DepartmentInventoryLayout>
       <h4>Stocks awaiting department validation</h4>
       {renderer()}
-    </SettingsLayout>
+    </DepartmentInventoryLayout>
   )
 }

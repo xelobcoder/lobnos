@@ -1,12 +1,14 @@
 import { useContext, useState } from "react"
 import Link from "next/link"
 import { Menu } from "@mui/icons-material"
+import { usePathname } from "next/navigation"
 import AuthContext from "../Auth/useAuthentification"
 import { Tooltip } from "@mui/material"
 export default function AppCustomLayout({ children, sideLinks, defaultscreen = true }) {
   const { auth } = useContext(AuthContext)
   const [fullscreen, setFullscreen] = useState(defaultscreen)
   const { username, role } = auth
+  const pathname = usePathname()
 
   const toggleSidebar = () => {
     setFullscreen(!fullscreen)
@@ -14,8 +16,8 @@ export default function AppCustomLayout({ children, sideLinks, defaultscreen = t
 
   return (
     <div className={fullscreen ? "wrapper" : "minify-wrapper"}>
-      <div className="side">
-        <div className="settings-sidebar">
+      <div className={`side`}>
+        <div className={`settings-sidebar`}>
           <div className="head">
             <Link href={"/"}>PLS</Link>
           </div>
@@ -36,15 +38,19 @@ export default function AppCustomLayout({ children, sideLinks, defaultscreen = t
             <ul>
               {sideLinks.map((item, index) => {
                 return (
-                  <Link
-                    href={item.link}
-                    key={index}
-                    className={`${fullscreen ? "icons-with-text" : ""}`}>
-                    <div className={`icons pointer d-flex justify-content-center ${fullscreen ? " " : "bg-secondary m-2 br-5 p-1"}`}>
+                  <Link href={item.link} key={index} className={`${fullscreen ? "fullscreen" : "not-fullscreen"}`}>
+                    <div
+                      className={`icons pointer d-flex justify-content-center ${!fullscreen && item.link === pathname && "bg-primary"} ${
+                        !fullscreen && pathname !== item.link ? "p-2 br-5 m-2 bg-secondary" : 'p-2 br-5 m-2'
+                      }`}>
                       {fullscreen ? (
                         <span title={item.title}>{item.icon}</span>
                       ) : (
-                        <Tooltip title={item.title} placement="right" className={fullscreen ? "text-white" : "icons-no-text"}>
+                        <Tooltip
+                          title={item.title}
+                          placement="right"
+                          className={`
+                          ${item.link === pathname ? "icons-no-text text-white" : "icons-no-text text-white"}`}>
                           {item.icon}
                         </Tooltip>
                       )}

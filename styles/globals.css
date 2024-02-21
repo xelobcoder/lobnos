@@ -863,7 +863,6 @@ option:hover {
 /* settings side bar css begins @............................................................................................... */
 
 .settings-sidebar {
-  /* width: 100%; */
   border-right: 1px solid lightgray;
   height: 100vh;
   overflow: auto;
@@ -914,23 +913,25 @@ option:hover {
   color:  #007bff;
 }
 
-.icons-with-text{
+.fullscreen{
   grid-template-columns: auto 88%;
   padding-left: 10px;
   padding: 5px;
 }
-.icons-no-text{
+
+
+.not-fullscreen{
   grid-template-columns: 100%;
-  justify-content: center;
 }
 
 .icons-no-text {
-  width: 40px !important;
-  height: 40px !important;
+  width: 30px !important;
+  height: 30px !important;
   color: white;
 }
 .icons-no-text-active{
   background-color: red;
+  color: white !important;
 }
 
 .settings-sidebar > .contents > ul > li:hover {

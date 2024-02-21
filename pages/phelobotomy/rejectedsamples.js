@@ -1,13 +1,9 @@
-import  { useContext } from 'react'
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout'
-import PhelobotomySidebar from '../../components/PhelobotomySidebar'
 import RejectedSamplesComponent from '../../components/samples/rejectedListView'
-import AuthContext from '../../components/Auth/useAuthentification'
+import PhelobotomyLayout from '../../components/Layout/PhelobotomyLayout'
 export default function ReejectedSamplesPage() {
-  const { auth } = useContext(AuthContext);
   return (
-    <SettingsLayout sidebar={<PhelobotomySidebar auth={auth} />}>
+    <PhelobotomyLayout>
       <RejectedSamplesComponent />
-    </SettingsLayout>
+    </PhelobotomyLayout>
   )
 }

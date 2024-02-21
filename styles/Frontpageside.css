@@ -49,10 +49,13 @@
   display: grid;
   grid-template-columns: 4% auto;
 }
+
 .wrapper {
   display: grid;
   grid-template-columns: 15% auto;
 }
+
+
 
 .wrapper > .side {
   padding: 0px;

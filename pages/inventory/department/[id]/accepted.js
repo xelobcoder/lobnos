@@ -1,8 +1,10 @@
-import React from 'react'
 import ReceivedPending from '../../../../components/inventory/ReceivedPending'
+import DepartmentInventoryLayout from '../../../../components/inventory/departments/DepartmentInventoryLayout'
 export default function DepartmentAcceptedCustomLevel() {
  
   return (
-    <ReceivedPending type='approved' caption={'Approved Department stock request'}/>
+    <DepartmentInventoryLayout>
+      <ReceivedPending type='approved' caption={'Approved Department stock request'} />
+    </DepartmentInventoryLayout>
   )
 }

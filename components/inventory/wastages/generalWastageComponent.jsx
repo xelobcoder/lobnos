@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react"
-import InventoryLayout from "../InventoryLayout"
 import CardRacks from "../../accessories/CardRacks"
 import { currencyFormatter, customFetch, updatePagination } from "../../Auth/customFetch"
 import Loader from "../../accessories/Loader"

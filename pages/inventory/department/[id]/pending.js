@@ -1,8 +1,10 @@
-import React from 'react'
 import ReceivedPending from '../../../../components/inventory/ReceivedPending'
+import DepartmentInventoryLayout from '../../../../components/inventory/departments/DepartmentInventoryLayout'
 export default function DepartmentPendingCustom() {
 
   return (
-    <ReceivedPending caption={'Department stock request pending approval'}/>
+    <DepartmentInventoryLayout>
+      <ReceivedPending caption={'Department stock request pending approval'} />
+    </DepartmentInventoryLayout>
   )
 }

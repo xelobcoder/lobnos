@@ -1,10 +1,11 @@
-import SettingsLayout from "../../../../components/settingsComponents/SettingsLayout"
-import DepartmentLevelSidebar from "../../../../components/inventory/DepartmentLevelSidebar"
-import InventoryWastages from "../../../../components/inventory/wastages/generalWastageComponent"
+import { useRouter } from "next/router";
+import DepartmentInventoryLayout from "../../../../components/inventory/departments/DepartmentInventoryLayout"
+import InventoryWastages from "../../../../components/inventory/wastages/generalWastageComponent";
 export default function DepartmentWastageAnalytics() {
+   const departmentId = useRouter().query.id;
    return (
-      <SettingsLayout sidebar={<DepartmentLevelSidebar />}>
-         <InventoryWastages departmentid={8}/>
-      </SettingsLayout>
+      <DepartmentInventoryLayout>
+         <InventoryWastages departmentid={departmentId} />
+      </DepartmentInventoryLayout>
    )
 }

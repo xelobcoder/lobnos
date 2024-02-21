@@ -1,13 +1,12 @@
 import { useCallback, useEffect, useState, useContext } from "react";
 import ListTable from "../../components/phelobotomy/ListTable";
-import SettingsLayout from "../../components/settingsComponents/SettingsLayout";
-import PhelobotomySidebar from "../../components/PhelobotomySidebar";
 import CollectionSampleModal from "../../components/phelobotomy/CollectionSampleModal";
-import { customFetch, getDataAndUpdateState, updatePagination } from "../../components/Auth/customFetch";
+import { getDataAndUpdateState, updatePagination } from "../../components/Auth/customFetch";
 import ReceiveLabSampleModal from "../../components/phelobotomy/ReceiveLabSampleModal/ReceiveLabSampleModal";
 import AuthContext from "../../components/Auth/useAuthentification";
 import Loader from "../../components/accessories/Loader";
 import Pagination from "../../components/accessories/pagination";
+import PhelobotomyLayout from "../../components/Layout/PhelobotomyLayout";
 
 export default function Phelobotomy() {
   const { auth } = useContext(AuthContext);
@@ -48,8 +47,9 @@ export default function Phelobotomy() {
   }
 
   const renderingView = () => {
-    if (loading) return <Loader />
-    else {
+    if (loading) {
+      return <Loader />
+    } else {
       return (
         <div>
           {<ListTable data={data} receive={receiveSample} handleCollectSample={handleCollectSample} />}
@@ -64,14 +64,14 @@ export default function Phelobotomy() {
   }
 
 
-  const updatePage = (value) => { updatePagination(value, setPaginate, paginate) }
+  const updatePage = (value) => {
+    updatePagination(value, setPaginate, paginate);
+  }
 
   return (
-    <>
-      <SettingsLayout sidebar={<PhelobotomySidebar auth={auth} />}>
-        {renderingView()}
-      </SettingsLayout>
-    </>
+    <PhelobotomyLayout>
+      {renderingView()}
+    </PhelobotomyLayout>
   );
 }
 

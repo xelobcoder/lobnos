@@ -1,11 +1,10 @@
-import React from 'react'
-import SettingsLayout from '../../../../components/settingsComponents/SettingsLayout'
-import DepartmentLevelSidebar from '../../../../components/inventory/DepartmentLevelSidebar'
+import DepartmentInventoryLayout from '../../../../components/inventory/departments/DepartmentInventoryLayout'
 
 export default function TransferStockToDepartment() {
   return (
-    <SettingsLayout sidebar={<DepartmentLevelSidebar />}>
-
-    </SettingsLayout>
+    <DepartmentInventoryLayout>
+      <h4>Stocks awaiting department validation</h4>
+      {renderer()}
+    </DepartmentInventoryLayout>
   )
 }
