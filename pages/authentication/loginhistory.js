@@ -1,12 +1,10 @@
-import React from 'react'
-import SettingsLayout from '../../components/settingsComponents/SettingsLayout'
-import AuthenticationSidebar from '../../components/settingsComponents/AuthenticationSidebar'
+import AuthenticationLayout from "../../components/Layout/AuthenticationLayout";
+
 
 export default function ApplicationLoginHistory() {
   return (
-    <>
-      <SettingsLayout sidebar={<AuthenticationSidebar />}>
-        <div className='container mt-2'>
+    <AuthenticationLayout>
+      <div className='container mt-2'>
           <h3 className='text-primary'>Login History</h3>
           <table className='table' id='custom-table'>
             <thead>
@@ -18,7 +16,6 @@ export default function ApplicationLoginHistory() {
             </thead>
           </table>
         </div>
-      </SettingsLayout>
-    </>
+    </AuthenticationLayout>
   )
 }

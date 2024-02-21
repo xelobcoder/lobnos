@@ -1,25 +1,15 @@
-import React, { useContext } from 'react'
-import SettingsLayout from '../settingsComponents/SettingsLayout'
-import DashboardSidebar from './DashboardSidebar'
-import AuthContext from '../Auth/useAuthentification'
-import Authorization from '../accessories/authorization';
+import { AssignmentInd, House } from '@mui/icons-material'
+import AppCustomLayout from '../Layout/CustomLayout'
 
 export default function DashBoardLayoutSales({ children }) {
-  const { auth } = useContext(AuthContext);
+  const sidebarLinks = [
+    { title: 'Sales', link: '/dashboard', icon: <AssignmentInd /> },
+    { title: 'Organization', link: '/dashboard/organization', icon: <House /> }
+  ];
+
   return (
-    <>
-      {["manager", "admin"].includes(auth?.role)
-        ?
-        (
-          <SettingsLayout sidebar={<DashboardSidebar auth={auth} />}>
-          <div className='px-2'>{children}</div>
-        </SettingsLayout>
-        )
-        :
-        (
-          <Authorization/>
-        )
-      }
-    </>
+    <AppCustomLayout sideLinks={sidebarLinks} defaultscreen={false}>
+      {children}
+  </AppCustomLayout>
   )
 }

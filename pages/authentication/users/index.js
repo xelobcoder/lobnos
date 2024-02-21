@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import UserList from '../../../components/Auth/Roles/userList'
 import { activateInstitutionUser, getInstitutionUsers, customPost, updatePagination } from '../../../components/Auth/customFetch'
-import SettingsLayout from '../../../components/settingsComponents/SettingsLayout';
-import AuthenticationSidebar from '../../../components/settingsComponents/AuthenticationSidebar';
 import Loader from '../../../components/accessories/Loader';
+import AuthenticationLayout from '../../../components/Layout/AuthenticationLayout';
 
 export default function ApplicationUsersPage() {
   const [users, setUser] = useState([]);
@@ -53,8 +52,8 @@ export default function ApplicationUsersPage() {
     }
   }
   return (
-    <SettingsLayout sidebar={<AuthenticationSidebar />}>
+    <AuthenticationLayout>
       {renderer()}
-    </SettingsLayout>
+    </AuthenticationLayout>
   )
 }

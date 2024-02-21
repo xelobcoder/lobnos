@@ -3,7 +3,6 @@ import Link from "next/link"
 import { Menu } from "@mui/icons-material"
 import { usePathname } from "next/navigation"
 import AuthContext from "../Auth/useAuthentification"
-import { Tooltip } from "@mui/material"
 export default function AppCustomLayout({ children, sideLinks, defaultscreen = true }) {
   const { auth } = useContext(AuthContext)
   const [fullscreen, setFullscreen] = useState(defaultscreen)
@@ -23,10 +22,11 @@ export default function AppCustomLayout({ children, sideLinks, defaultscreen = t
           </div>
           <div className="user">
             <Menu
+              sx={{fontSize:'40px'}}
               onClick={(ev) => {
                 toggleSidebar()
               }}
-              className="pointer link-offset-1-hover"
+              className="pointer"
             />{" "}
             {fullscreen && (
               <span className="mx-2 mt-1">
@@ -40,19 +40,17 @@ export default function AppCustomLayout({ children, sideLinks, defaultscreen = t
                 return (
                   <Link href={item.link} key={index} className={`${fullscreen ? "fullscreen" : "not-fullscreen"}`}>
                     <div
-                      className={`icons pointer d-flex justify-content-center ${!fullscreen && item.link === pathname && "bg-primary"} ${
-                        !fullscreen && pathname !== item.link ? "p-2 br-5 m-2 bg-secondary" : 'p-2 br-5 m-2'
-                      }`}>
+                      className={`icons pointer d-flex justify-content-center ${
+                        !fullscreen && item.link === pathname && "bg-primary p-2 br-5 m-2"
+                      } ${!fullscreen && pathname !== item.link ? "p-2 br-5 m-2 bg-secondary" : ""}`}>
                       {fullscreen ? (
                         <span title={item.title}>{item.icon}</span>
                       ) : (
-                        <Tooltip
-                          title={item.title}
-                          placement="right"
-                          className={`
+                        <span 
+                          className={`d-flex justify-content-center expanded-svg
                           ${item.link === pathname ? "icons-no-text text-white" : "icons-no-text text-white"}`}>
                           {item.icon}
-                        </Tooltip>
+                        </span>
                       )}
                     </div>
                     {fullscreen && <div className="text mt-1">{item.title}</div>}

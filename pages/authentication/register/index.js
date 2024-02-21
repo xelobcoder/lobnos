@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Add } from '@mui/icons-material';
 import { handleResponse, validateFormData, customFetch } from '../../../components/Auth/customFetch';
 import { useRouter } from 'next/router';
-import SettingsLayout from '../../../components/settingsComponents/SettingsLayout';
-import AuthenticationSidebar from '../../../components/settingsComponents/AuthenticationSidebar';
+import AuthenticationLayout from '../../../components/Layout/AuthenticationLayout';
 
 export default function Authentication_index_page() {
   const employeeid = useRouter().query.employeeid;
@@ -46,9 +45,8 @@ export default function Authentication_index_page() {
 
 
   return (
-    <>
-      <SettingsLayout sidebar={<AuthenticationSidebar />}>
-        <div className="container-fluid">
+    <AuthenticationLayout>
+      <div className="container-fluid">
           <div>
             <div className="card mt-2 p-0" style={{ borderRadius: "5px" }}>
               <div className="card-header bg-secondary text-white d-flex justify-content-between">
@@ -172,8 +170,7 @@ export default function Authentication_index_page() {
             </div>
           </div>
         </div>
-      </SettingsLayout>
-    </>
+    </AuthenticationLayout>
   );
 }
 

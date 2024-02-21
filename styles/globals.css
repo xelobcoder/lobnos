@@ -924,11 +924,12 @@ option:hover {
   grid-template-columns: 100%;
 }
 
-.icons-no-text {
-  width: 30px !important;
-  height: 30px !important;
-  color: white;
+.expanded-svg > svg{
+  height: 30px;
+  width: 30px;
 }
+
+
 .icons-no-text-active{
   background-color: red;
   color: white !important;

@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Accordion } from 'react-bootstrap';
 import { useSearchParams } from 'next/navigation';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import { customerRepresentative, scientistPermission, phelobotomy, administrator } from '../../../components/Auth/Roles/permissions';
 import Loader from '../../../components/accessories/Loader';
 import PagesAccessView from '../../../components/Auth/Roles/PagesAccessView';
-import SettingsLayout from '../../../components/settingsComponents/SettingsLayout';
-import AuthenticationSidebar from '../../../components/settingsComponents/AuthenticationSidebar';
+import AuthenticationLayout from '../../../components/Layout/AuthenticationLayout';
 export default function PermissionsOfUsers() {
   const userid = useSearchParams().get("employeeid");
   const username = useSearchParams().get("username");
@@ -125,10 +123,8 @@ export default function PermissionsOfUsers() {
   }
 
   return (
-    <>
-      <SettingsLayout sidebar={<AuthenticationSidebar />}>
+    <AuthenticationLayout>
         {renderer()}
-      </SettingsLayout>
-    </>
+    </AuthenticationLayout>
   );
 }
