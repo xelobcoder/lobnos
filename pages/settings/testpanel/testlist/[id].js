@@ -3,7 +3,6 @@ import MainSettingsLayoutView from "../../../../components/settingsComponents/Ma
 import { useRouter } from "next/router";
 import { customFetch, getDepartment, getSampleTypeList, defaultTestEditValues, handleChangeWithState, customPost } from "../../../../components/Auth/customFetch";
 import Textarea from '@mui/joy/Textarea';
-import Input from '@mui/joy/Input';
 import { Form } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import AuthContext from "../../../../components/Auth/useAuthentification";
@@ -112,35 +111,35 @@ export default function SingleTestEdit() {
                      </div>
                      <div className="form-row grid-reg mt-2">
                         <label>sample container</label>
-                        <Input
+                        <input
                            onChange={(ev) => handleChangeWithState(ev, 'sample_container', setTestData, data)} type="text" className="custom-input" value={data.sample_container} />
                      </div>
                      <div className="form-row grid-reg mt-2">
                         <label>unit</label>
-                        <Input onChange={(ev) => handleChangeWithState(ev, 'unit', setTestData, data)}
+                        <input onChange={(ev) => handleChangeWithState(ev, 'unit', setTestData, data)}
                            type="text" className="custom-input" value={data.unit} />
                      </div>
                      <div className="form-row grid-reg mt-2">
                         <label>sample qty</label>
-                        <Input onChange={(ev) => handleChangeWithState(ev, 'qty_required', setTestData, data)}
+                        <input onChange={(ev) => handleChangeWithState(ev, 'qty_required', setTestData, data)}
                            type="text" className="custom-input" value={data.qty_required} />
                      </div>
                      <div className="form-row grid-reg mt-2">
                         <label>shorttext</label>
-                        <Input type="text"
+                        <input type="text"
                            value={data.shorttext}
                            onChange={(ev) => handleChangeWithState(ev, 'shorttext', setTestData, data)}
                            className="custom-input" />
                      </div>
                      <div className="form-row grid-reg mt-2">
                         <label>cost of test</label>
-                        <Input type="number"
+                        <input type="number"
                            onChange={(ev) => handleChangeWithState(ev, 'testcost', setTestData, data)}
                            className="custom-input" value={data.testcost} />
                      </div>
                      <div className="form-row grid-reg mt-2">
                         <label>test of price</label>
-                        <Input type="number"
+                        <input type="number"
                            onChange={(ev) => handleChangeWithState(ev, 'testprice', setTestData, data)}
                            className="custom-input" value={data.testprice} />
                      </div>
@@ -182,7 +181,7 @@ export default function SingleTestEdit() {
                         (
                            <div className="form-row grid-reg mt-2">
                               <label>procedureCode</label>
-                              <Input type="text"
+                              <input type="text"
                                  onChange={(ev) => { handleChangeWithState(ev, 'procedureCode', setTestData, data) }}
                                  className="custom-input" value={data.procedureCode} />
                            </div>
@@ -191,16 +190,16 @@ export default function SingleTestEdit() {
                      <hr />
                      <h5>Tat(Turn Around Time) set up</h5>
                      <div className="form-row grid-reg d-flex justify-content-between">
-                        <Input type="number"
+                        <input type="number"
                            onChange={(ev) => handleChangeWithState(ev, 'tatCount', setTestData, data)}
                            className="custom-input" value={data.tatCount} placeholder="Count of test to use" />
-                        <Input type="number"
+                        <input type="number"
                            onChange={(ev) => handleChangeWithState(ev, 'pre_Tat', setTestData, data)}
                            className="custom-input" value={data.pre_Tat} placeholder="Pre Tat value" />
-                        <Input type="number"
+                        <input type="number"
                            onChange={(ev) => handleChangeWithState(ev, 'tat', setTestData, data)}
                            className="custom-input" value={data.tat} placeholder="Tat Value" />
-                        <Input
+                        <input
                            onChange={(ev) => handleChangeWithState(ev, 'post_Tat', setTestData, data)}
                            type="number" className="custom-input" value={data.post_Tat} placeholder="Post Tat Value" />
                      </div>

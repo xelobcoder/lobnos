@@ -20,8 +20,7 @@ export default function MainSettingsLayoutView({ children, sidebar }) {
     { title: "Departments", link: "/settings/department", icon: <TripOrigin /> },
     { title: "Taxes", link: "/settings/tax", icon: <Looks3Sharp /> },
     { title: "Test Setup", link: "/settings/setup", icon: <BloodtypeRounded /> },
-    { title: "Test Panels", link: "/settings/testpanel", icon: <TextSnippetRounded /> },
-    { title: "Bulk Test Update", link: "/settings/testpanel/testpricing", icon: <PriceChange /> },
+    { title: "Test Panels", link: "/settings/testpanel/testlist", icon: <TextSnippetRounded /> },
     { title: "Email Management", link: "/settings/emailsetting", icon: <Sms /> },
   ]
 
