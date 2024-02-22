@@ -25,5 +25,5 @@ export default function MainSettingsLayoutView({ children, sidebar }) {
     { title: "Email Management", link: "/settings/emailsetting", icon: <Sms /> },
   ]
 
-  return <AppCustomLayout sideLinks={sidebarLinks}>{children}</AppCustomLayout>
+  return <AppCustomLayout sideLinks={sidebarLinks}  defaultscreen={false}>{children}</AppCustomLayout>
 }

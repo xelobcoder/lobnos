@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getBranches, customPost } from '../../../components/Auth/customFetch';
 import TableDisplay from '../../../components/accessories/TableDisplay';
-import { useRouter } from 'next/router';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 import AddBranchComponent from '../../../components/settingsComponents/AddBranchComponent';
 import { ToastContainer, toast } from "react-toastify";
@@ -12,10 +11,6 @@ export default function Branches() {
   const [branches, setBranches] = useState([]);
   const [isedit, setEdit] = useState({ isediting: false, data: null })
   const [isLoading, setLoading] = useState(true);
-  const router = useRouter();
-
-  // get all branches
-
 
   useEffect(() => {
     getBranches(setBranches, null, setLoading);
@@ -41,7 +36,6 @@ export default function Branches() {
       } catch (err) {
         toast.error(message);
       }
-      sendData();
       setLoading(false);
     }
   }
@@ -161,7 +155,11 @@ export default function Branches() {
             </h6>
           </div>
           <div className='px-3 mb-2'>
-            <AddBranchComponent resetform={resetform} update={onSave} isEdit={isedit.isediting} editdata={isedit.data} />
+            <AddBranchComponent
+              resetform={resetform}
+              update={onSave}
+              isEdit={isedit.isediting}
+              editdata={isedit.data} />
           </div>
         </div>
         {renderBranches()}

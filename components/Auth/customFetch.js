@@ -763,3 +763,32 @@ export const formatTest = (name) => {
    }
    return testname;
 }
+
+
+
+export const defaultTestEditValues = {
+   id: "",
+   name: "",
+   category: "",
+   price: "",
+   created_on: "",
+   sample: "",
+   description: "",
+   sample_container: "",
+   unit: "",
+   qty_required: "",
+   shorttext: "",
+   testid: "",
+   testcost: "",
+   testprice: "",
+   hasManual: "",
+   procedureCode: "",
+   pre_Tat: "",
+   tat: "",
+   post_Tat: "",
+   tatCount: "",
+   updatedon: "",
+   updatedby: "",
+   showtrend: 0,
+   isoutsourced: 0
+};

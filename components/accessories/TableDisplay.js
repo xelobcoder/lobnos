@@ -3,11 +3,11 @@ import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination} from '
 import GlobalFilter from './GlobalFilter'
 import SECOND_NO_DATA from './secondNodata';
 
-export default function TableDisplay({ showpage = true, column, data, styling, filtering, getRows }) {
+export default function TableDisplay({ showpage = true, column, data, styling, filtering, getRows, initpageSize = 10 }) {
   const tableInstance = useTable({
     columns: useMemo(() => column, [column]),
     data: useMemo(() => data, [data]),
-    initialState: { pageSize: 10 },
+    initialState: { pageSize: initpageSize },
   }, useFilters, useGlobalFilter, useSortBy, usePagination)
 
  
