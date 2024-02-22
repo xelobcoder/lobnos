@@ -2,8 +2,6 @@ import { useEffect, useState, useCallback, useContext } from "react";
 import MainSettingsLayoutView from "../../../../components/settingsComponents/MainSettingsLayoutView";
 import { useRouter } from "next/router";
 import { customFetch, getDepartment, getSampleTypeList, defaultTestEditValues, handleChangeWithState, customPost } from "../../../../components/Auth/customFetch";
-import Select from '@mui/joy/Select';
-import Option from '@mui/joy/Option';
 import Textarea from '@mui/joy/Textarea';
 import Input from '@mui/joy/Input';
 import { Form } from 'react-bootstrap';
@@ -92,25 +90,25 @@ export default function SingleTestEdit() {
                      <hr />
                      <div className="form-row grid-reg mt-2">
                         <label>category</label>
-                        <Select required className="custom-select"
+                        <select required className="custom-select"
                            value={data.category}
-                           onChange={(ev, newvalue) => {
-                              setTestData({ ...data, category: parseInt(newvalue) })
+                           onChange={(ev) => {
+                              handleChangeWithState(ev, "category", setTestData, data)
                            }}>
-                           <Option value=''>select a category</Option>
-                           {category.map((a, i) => <Option key={i} value={a.id}>{a.department}</Option>)}
-                        </Select>
+                           <option value=''>select a category</option>
+                           {category.map((a, i) => <option key={i} value={a.id}>{a.department}</option>)}
+                        </select>
                      </div>
                      <div className="form-row grid-reg mt-2">
                         <label>sample type</label>
-                        <Select defaultValue={''} required className="custom-select"
+                        <select required className="custom-select"
                            value={data.sample}
-                           onChange={(ev, newvalue) => {
-                              setTestData({ ...data, sample: parseInt(newvalue) })
+                           onChange={(ev) => {
+                              handleChangeWithState(ev, "sample", setTestData, data);
                            }}>
-                           <Option value=''>select a sample type</Option>
-                           {sampleType.map((b, index) => <Option value={b.id} key={index}>{b.name}</Option>)}
-                        </Select>
+                           <option value=''>select a sample type</option>
+                           {sampleType.map((b, index) => <option value={b.id} key={index}>{b.name}</option>)}
+                        </select>
                      </div>
                      <div className="form-row grid-reg mt-2">
                         <label>sample container</label>
