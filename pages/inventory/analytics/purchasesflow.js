@@ -39,9 +39,7 @@ export default function PurchaseOrderAnalytics() {
                   label='search stocks here'
                   style={{
                     width: "30vw",
-                    maxHeight: "30vh",
-                    overflowY: "auto",
-                  }}
+                  zIndex:9999}}
                   onChange= {handleAutocompleteChange}
                 />
               <div>

@@ -40,13 +40,35 @@ export default function ReadyTestSummaryAccordion({ id, title }) {
   }
 
   const calculateTimeUsed = (data) => {
-    const collectionDate = new Date(data.collection_date)
-    const approvedDate = new Date(data.ready_date)
-    const timeDifference = approvedDate - collectionDate
-    const hours = Math.floor(timeDifference / (1000 * 60 * 60))
+    // Check if dates are valid
+    if (isNaN(new Date(data.collection_date)) || isNaN(new Date(data.ready_date))) {
+      return "Invalid date format"
+    }
+
+    // Calculate the time difference in milliseconds
+    const timeDifference = Math.abs(new Date(data.ready_date) - new Date(data.collection_date))
+
+    // Convert milliseconds to individual units
+    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
     const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60))
     const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000)
-    return `${hours} h, ${minutes} min, ${seconds} s used`
+    const milliseconds = timeDifference % 1000
+
+    // Check if any unit needs pluralization
+    const daysText = days > 1 ? `${days} days` : days === 1 ? `${days} day` : ""
+    const hoursText = hours > 1 ? `${hours} hours` : hours === 1 ? `${hours} hour` : ""
+    const minutesText = minutes > 1 ? `${minutes} minutes` : minutes === 1 ? `${minutes} minute` : ""
+    const secondsText = seconds > 1 ? `${seconds} seconds` : seconds === 1 ? `${seconds} second` : ""
+    const millisecondsText = milliseconds > 0 ? `${milliseconds} milliseconds` : ""
+
+    // Construct the final string (including milliseconds if present)
+    const timeUsedString =
+      [daysText, hoursText, minutesText, secondsText]
+        .filter((unit) => unit.length > 0) // Remove empty units
+        .join(", ") + (millisecondsText.length > 0 ? ` and ${millisecondsText}` : "")
+
+    return timeUsedString + " used"
   }
 
   const ReadyComp = (item) => {
@@ -54,7 +76,7 @@ export default function ReadyTestSummaryAccordion({ id, title }) {
 
     if (ready === "true") {
       return (
-        <div className="d-flex justify-content-between">
+        <div className="d-flex justify-content-between mb-2">
           <span>
             {" "}
             <CheckRounded color="success" />

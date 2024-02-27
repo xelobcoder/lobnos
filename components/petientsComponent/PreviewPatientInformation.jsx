@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from "react"
 import { customFetch } from "../Auth/customFetch"
 import CardRack from "../../components/accessories/CardRacks"
 import Loader from "../accessories/Loader"
@@ -31,7 +31,7 @@ export default function PreviewPatientInformation({ patientid }) {
           header={
             <h5
               onClick={(ev) => {
-                setActive(!active);
+                setActive(!active)
               }}>
               Patient Information Summary
             </h5>

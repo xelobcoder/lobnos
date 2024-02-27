@@ -142,11 +142,11 @@ export default function CustomAutocomplete(props) {
          />
          <span></span>
          {display && (
-           <div className="card mt-1" style={{ borderRadius: "4px" }}>
+           <div className="card mt-1" >
              {workingdata.map((option, index) => (
                <div
                  tabIndex={0}
-                 style={{ maxHeight: "20vh !important", overflowY: "auto", zIndex: 1000 }}
+                 style={{zIndex: 9999 }}
                  onClick={(ev) => {
                    handleItemClick(index)
                  }}
