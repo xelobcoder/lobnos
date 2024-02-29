@@ -28,8 +28,8 @@ export default function TestListDisplay() {
          accessor: 'name',
       },
       {
-         Header: 'Category',
-         accessor: 'category',
+         Header: 'shorttext',
+         accessor: 'shorttext',
       },
       {
          Header: 'Price',
@@ -42,6 +42,9 @@ export default function TestListDisplay() {
       {
          Header: 'sample qty',
          accessor: 'qty_required',
+         Cell: ({ row, value }) => {
+            return <div> {value} {row.original.unit}</div>
+         }
       },
       {
          Header: 'Action',

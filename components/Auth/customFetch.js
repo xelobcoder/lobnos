@@ -790,5 +790,6 @@ export const defaultTestEditValues = {
    updatedon: "",
    updatedby: "",
    showtrend: 0,
-   isoutsourced: 0
+   isoutsourced: 0,
+   iscustom: 0
 };
