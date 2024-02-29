@@ -2,11 +2,12 @@ import MainSettingsLayoutView from "../../../../components/settingsComponents/Ma
 import { useRouter } from "next/router";
 import TestForm from "../../../../components/settingsComponents/test/testForm";
 export default function SingleTestEdit() {
-   const testid = useRouter().query.id;
+   const router = useRouter();
+   const testid = router.query.id;
 
    return (
       <MainSettingsLayoutView>
-         <TestForm method="PUT" testid={testid} customtest={0} />
+         <TestForm method="PUT" router={router} testid={testid} customtest={0} />
       </MainSettingsLayoutView>
    )
 }

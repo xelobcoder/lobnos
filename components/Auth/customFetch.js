@@ -793,3 +793,18 @@ export const defaultTestEditValues = {
    isoutsourced: 0,
    iscustom: 0
 };
+
+
+
+export const defaultCreationRule = {
+   hasoptions: false,
+   haslimits: false,
+   name: '',
+   field: '',
+   value: '',
+   type: '',
+   options: "",
+   testid: '',
+   hasunits: false,
+   units: ''
+}

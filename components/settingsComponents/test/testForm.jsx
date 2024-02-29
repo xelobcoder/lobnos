@@ -13,7 +13,7 @@ import {
   customPost,
 } from "../../Auth/customFetch"
 
-export default function TestForm({ method, customtest, testid }) {
+export default function TestForm({ method, customtest, testid, router }) {
   const { auth } = useContext(AuthContext)
   const employeeid = auth?.employeeid
   const [sampleType, setSample] = useState([])
@@ -79,7 +79,15 @@ export default function TestForm({ method, customtest, testid }) {
         <>
           <div className="mx-2 d-flex justify-content-between">
             <h5 className="text-capitalize">{data?.name}</h5>
-            {data.iscustom && <button className="btn btn-light btn-sm mb-1">Test Fields</button>}
+            {data.iscustom && (
+              <button
+                onClick={(ev) => {
+                  router.push(`/settings/testpanel/testlist/createfields?testid=${testid}&&testname=${data.name}`)
+                }}
+                className="btn btn-light btn-sm mb-1">
+                Test Fields
+              </button>
+            )}
           </div>
 
           <div className="border bg-white border-secondary-subtle mx-2 p-2">
