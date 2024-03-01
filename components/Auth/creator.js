@@ -1,43 +1,43 @@
-export const fieldDeterminer = (item) => {
-   if (typeof item !== 'object') return false;
-   const { field, name, label, hasChildren, options, value, type, mode, upperlimit = 0, lowerlimit = 0, haslimits } = item;
+import { TextDecreaseOutlined } from "@mui/icons-material";
 
-   if (field === "input") {
-      if (haslimits && mode == 'setup') {
+export const fieldDeterminer = (item, statehandler, index) => {
+   if (typeof item !== 'object') return false;
+   const { field, name, hasoptions, options, value, type, mode, units, upperlimit = 0, lowerlimit = 0, haslimits } = item;
+
+   if (field === "input" || hasoptions == false) {
+      if (haslimits) {
          return (
-            <div>
-               <label>{label}</label>
-               <div className='d-flex'>
-                  <input name={name} className="custom-input" type={type} value={value ? value : ''} />
-                  <input
-                     placeholder="upper limit" name='uplimit' value={upperlimit} className="custom-input mx-2" type='number' />
-                  <input
-                     placeholder="lower limit" name='lwlimit' className="custom-input mx-2" value={lowerlimit} type='number' />
-               </div>
-            </div>
+            <tr>
+               <td>{name}</td>
+               <td><input placeholder={name} name={name} onChange={(ev) => { statehandler(name, ev, index) }} className="custom-input" type={type} value={value ? value : ''} /></td>
+               <td>{units}</td>
+               <td>{upperlimit}{"-"} {lowerlimit}</td>
+            </tr>
          )
       }
       return (
-         <div>
-            <label>{label}</label>
-            <input className="custom-input" type={type} value={value ? value : ''} />
-         </div>
+         <tr>
+            <td>{name}</td>
+            <td>
+               <input placeholder={name} onChange={(ev) => { statehandler(name, ev, index) }} className="custom-input" type={type} value={value ? value : ''} />
+            </td>
+         </tr>
       )
    }
 
 
-   if (field === "select") {
+   if (hasoptions == true) {
+      const children = options.split(",");
       return (
-         <div>
-            <label>{label}</label>
-            <select value={value ? value : ''} className="custom-select">
-               {hasChildren && options.length > 0
-                  && (options.map((item, index) => {
-                     return <option key={index} value={item}>{item}</option>
-                  }))
-               }
+         <tr>
+            <td>{name}</td>
+            <td>
+               <select placeholder={name} onChange={(ev) => { statehandler(name, ev, index) }} value={value ? value : ''} className="custom-select">
+                  {children.map((item, index) => <option key={index} >{item}</option>)}
             </select>
-         </div>
+            </td>
+            <td>{units}</td>
+         </tr>
       )
    }
 }

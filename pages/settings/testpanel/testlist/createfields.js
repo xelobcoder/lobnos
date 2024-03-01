@@ -21,8 +21,23 @@ export default function CreateTestFields() {
       if (field.type.toString().length == 0) {
          return setError('Data type of field required');
       }
+
+      if (field.hasoptions == true) {
+         setField({ ...field, field: 'select' })
+      } else {
+         setField({ ...field, field: 'input' })
+      }
       setData([...data, field]);
       setField(defaultCreationRule);
+   }
+
+
+   const removeField = async (item) => {
+      const { name } = item;
+      setData((prev) => {
+         const filtered = prev.filter((a, index) => a.name != name);
+         return filtered;
+      })
    }
 
 
@@ -34,8 +49,8 @@ export default function CreateTestFields() {
       { Header: 'upperlimits', accessor: 'upperlimit' },
       { Header: 'lowerlimits', accessor: 'lowerlimit' },
       {
-         Header: 'actions', accessor: '', Cell: ({ value }) => {
-            return (<button className="btn btn-danger btn-sm">delete</button>)
+         Header: 'actions', accessor: '', Cell: ({ value, row }) => {
+            return (<button onClick={(ev) => { removeField(row.original) }} className="btn btn-danger btn-sm">remove field</button>)
          }
       }
    ]

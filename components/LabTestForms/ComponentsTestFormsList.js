@@ -20,6 +20,7 @@ import Helicobacter_Pylori from '../LabTestForms/helicobacter_pylori';
 // import UseSingleHormoneHook from '../LabTestForms/useSingleHormoneHook';
 import Syphilis from '../LabTestForms/syphilis.jsx';
 import UseChemistryTestHook from '../LabTestForms/useChemistryTestHook.jsx';
+import CreateTestRule from '../../pages/settings/testpanel/testlist/testrule.js';
 
 
 const componentsList = {
@@ -54,7 +55,7 @@ const componentsList = {
   luteinizing_hormone: UseChemistryTestHook ,
   helicobacter_pylori: Helicobacter_Pylori ,
   prostate_specific_antigen_test:UseChemistryTestHook,
-  beta_thalassemia: UseChemistryTestHook ,
+  beta_thalassemia: UseChemistryTestHook,
 }
 
 
@@ -63,6 +64,6 @@ export const getTestComponent = function (testname) {
   if (componentsList[testname] != undefined) {
     return componentsList[testname];
   } else {
-    return <h1>Test Not found</h1>
+    return CreateTestRule;
    }
 }

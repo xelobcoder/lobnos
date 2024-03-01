@@ -43,7 +43,7 @@ export default function ResultEntryPanelSecondView() {
           <div className="grid-50 px-2 py-3 bg-secondary">
             {tests.map((item, index) => {
               const { testname, testid } = item
-              let Component = getTestComponent(testname.toLowerCase())
+              let Component = getTestComponent(testname.toLowerCase())  
               const clientdata = { employeeid, test: testname, testid, patientid, billingid }
               return (
                 <div key={index + 1}>
