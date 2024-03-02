@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import MainSettingsLayoutView from "../../../../components/settingsComponents/MainSettingsLayoutView";
-import { customFetch } from "../../../../components/Auth/customFetch";
+import { customFetch, customPost } from "../../../../components/Auth/customFetch";
 import { useRouter } from "next/navigation";
 import Loader from "../../../../components/accessories/Loader";
 import TableDisplay from "../../../../components/accessories/TableDisplay";
@@ -21,6 +21,26 @@ export default function TestListDisplay() {
             setData([]);
          })
    }, [])
+
+
+
+
+   const deleteCustomTest = async (item) => {
+      const { id } = item;
+      if (!id) return;
+      const confirmation = confirm(`Are you sure you want to delete this test?. This would delete all information associated with test`);
+      if (confirmation) {
+         const response = await customPost(`testpanel/list?testid=${id}`, 'DELETE', {});
+         if (response.status == "success") {
+            setLoading(true);
+            setData((prev) => {
+               const filteredResult = prev.filter((a, i) => a.id != id);
+               return filteredResult;
+            })
+            setLoading(false);
+         }
+      };
+   }
 
    const columns = [
       {
@@ -54,6 +74,9 @@ export default function TestListDisplay() {
             return (
                <div>
                   <span onClick={(ev) => { router.push(`/settings/testpanel/testlist/${id}`) }} className="border-bottom  border-primary text-primary">edit test</span><span onClick={(ev) => { router.push(`/settings/testpanel/testlist/procedure/${id}`) }} className="border-bottom  border-primary text-primary mx-2">Add Manual</span>
+                  {row.original.iscustom == 1 &&
+                     <span className='border-danger border-bottom text-danger' onClick={(ev) => { deleteCustomTest(row.original) }}>Drop Test</span>
+                  }
                </div>)
          }
       }
@@ -63,7 +86,14 @@ export default function TestListDisplay() {
       if (isloading) return <Loader />
       else {
          return (
-            <TableDisplay filtering={true} initpageSize={100} showpage={false} column={columns} data={data} />
+            <section>
+               <div className="d-flex justify-content-end mx-2">
+                  <button onClick={(ev) => { router.push("/settings/testpanel/testlist/createcustomtest") }} className="btn btn-dark btn-sm text-capitalize">new test</button>
+               </div>
+               <div style={{ marginTop: '-30px' }}>
+                  <TableDisplay filtering={true} initpageSize={100} showpage={false} column={columns} data={data} />
+               </div>
+            </section>
          )
       }
    }

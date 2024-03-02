@@ -15,6 +15,7 @@ export default function CreateCustomTestList() {
          const response = await customPost('testpanel/list/createcustom?stage=1', 'POST', data);
          if (response.status == "success") {
             toast.success("new test created successfully", { autoClose: 500 })
+            setData({ ...data, name: '' });
          } else {
             toast.error(response?.message || "test creation failed", { autoClose: 2000 });
          }
