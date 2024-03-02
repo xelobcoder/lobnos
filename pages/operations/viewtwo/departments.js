@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import LaboratoryLayout from "../../../components/Layout/LaboratoryLayout";
 
 export default function ResultEntryDepartmentViewTwo() {
-    const defaultFilters = { departmentid: '', status: '', test: '' }
+    const defaultFilters = { departmentid: '', status: '', test: '' };
     const urlQuery = useSearchParams();
     const status = urlQuery.get("status");
     const dept = urlQuery.get("department");

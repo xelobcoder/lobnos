@@ -8,8 +8,7 @@ const nextConfig = {
   },
   images: {
     domains: ['localhost',"www.synlab.com.gh"]
-  },
-  transpilePackages: ['@mui/x-charts']
+  }
 }
 
 

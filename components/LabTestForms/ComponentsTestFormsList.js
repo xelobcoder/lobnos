@@ -20,7 +20,7 @@ import Helicobacter_Pylori from '../LabTestForms/helicobacter_pylori';
 // import UseSingleHormoneHook from '../LabTestForms/useSingleHormoneHook';
 import Syphilis from '../LabTestForms/syphilis.jsx';
 import UseChemistryTestHook from '../LabTestForms/useChemistryTestHook.jsx';
-import CreateTestRule from '../../pages/settings/testpanel/testlist/testrule.js';
+import CreateTestRule from './testrule.js';
 
 
 const componentsList = {
@@ -60,7 +60,6 @@ const componentsList = {
 
 
 export const getTestComponent = function (testname) { 
-  console.log(testname)
   if (componentsList[testname] != undefined) {
     return componentsList[testname];
   } else {
