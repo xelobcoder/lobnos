@@ -2147,54 +2147,6 @@ font-family: 'Times New Roman', Times, serif !important;
   border-bottom: 1px solid lightgray;
 }
 
-.clinician-view .card .card-body {
-  margin: 0;
-  padding: 0;
-}
-
-.clinician-view .card .card-body .list-group-item {
-  display: grid;
-  grid-template-columns: 10% auto;
-  grid-gap: 20px;
-}
-
-.clinician-view .card .card-body .list-group-item > div:nth-child(1) {
-  font-weight: lighter;
-  background-color: whitesmoke;
-  padding: 10px;
-  color: #00224f;
-}
-
-.clinician-view .card .card-body .list-group-item > div:nth-child(2) {
-  padding: 10px;
-  text-transform: capitalize;
-  font-size: 14px;
-}
-.clinician-view .card {
-  margin: 20px;
-  border-radius: 5px;
-}
-@media screen and (max-width: 600px) {
-  .clinician-view .card .card-body .list-group-item > div {
-    font-size: 14px;
-  }
-  .grid-30-30-30 {
-    grid-template-columns: 100% !important;
-  }
-  .grid-50-responsive,
-  .grid-5 {
-    grid-template-columns: 100% !important;
-  }
-  .clinician-view .card .card-body .list-group-item {
-    display: grid;
-    grid-template-columns: 40% auto;
-  }
-
-  .clinician-view {
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-}
 
 .inventory_sidebar {
   display: flex;

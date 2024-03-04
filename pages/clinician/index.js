@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { customFetch, customPost, getDataAndUpdateState} from "../../components/Auth/customFetch";
+import { customFetch, customPost, getDataAndUpdateState, updatePagination } from "../../components/Auth/customFetch";
 import TableDisplay from '../../components/accessories/TableDisplay';
 import {IconButton, Typography } from "@mui/material";
 import { DeleteForeverOutlined, Edit,Visibility } from "@mui/icons-material";
@@ -12,19 +12,20 @@ import Pagination from '../../components/accessories/pagination';
 export default function Clinicians() {
   const [ClinicianList, setClinician] = useState([]);
   const [editing, setEditing] = useState({ editing: false, editid: null });
+  const [pagination, setPagination] = useState({ page: 1, count: 10, show: false });
   const [method, setMethod] = useState('POST');
+  const [load, setLoad] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     try {
-      getDataAndUpdateState(setClinician, 'clinicians')
+      getDataAndUpdateState(setClinician, `clinicians?count=${pagination.count}&&page=${pagination.page}`)
     } catch (err) {
       alert(err || 'error connecting to server');
     }
-  }, []);
+  }, [pagination.count, pagination.page]);
 
   const ForClientEdit = (originaldata) => {
-    // converting the data to lowercase
     const { id } = originaldata;
     if (!id) return;
     setEditing({ editing: true, editid: parseInt(id) });
@@ -75,7 +76,7 @@ export default function Clinicians() {
           <IconButton onClick={() => ForClientEdit(original)}>
             <Edit />
           </IconButton>
-          <IconButton size="small" onClick={(ev) => {router.push('/clinician/clinicianview')}}>
+          <IconButton size="small" onClick={(ev) => {router.push(`/clinician/clinicianview?clinicianid=${original.id}`)}}>
             <Visibility sx={{ color: 'green' }} />
           </IconButton>
           <IconButton size="small">
@@ -112,6 +113,12 @@ export default function Clinicians() {
   }
 
 
+  const reset = () => { setMethod('POST'); setEditing({ editid: null, editing: false }) };
+
+  const updatePage = (value) => {
+    updatePagination(value, setPagination, pagination);
+  }
+
   return (
     <FrontDeskLayout>
       <ToastContainer />
@@ -120,12 +127,12 @@ export default function Clinicians() {
           {editing.editing == true ? <h5>Update clinician Information</h5> : <h5>New Clinician</h5>}
         </div>
         <div className="card-body">
-          <BasicInformationClinician method={method} toast={toast} editid={editing.editid} editing={editing.editing} />
+          <BasicInformationClinician reset={reset} method={method} toast={toast} editid={editing.editid} editing={editing.editing} />
         </div>
       </div>
       <TableDisplay data={ClinicianList} showpage={false} column={columns} filtering={true} />
       <section className="d-flex justify-content-center">
-        <Pagination />
+        <Pagination page={pagination.page} load={setLoad} updateFunction={updatePage} />
       </section>
     </FrontDeskLayout>
   );

@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react"
-import { getDataAndUpdateState, handleChangeWithState, handleResponse, validateFormData } from "../../components/Auth/customFetch"
+import {
+  customPost,
+  getDataAndUpdateState,
+  handleChangeWithState,
+} from "../../components/Auth/customFetch"
 import Loader from "../accessories/Loader"
-export default function BasicInformationClinician({ method, toast, editing, editid }) {
+export default function BasicInformationClinician({ method, toast, editing, editid,reset}) {
   const [OrganizationList, setOrganization] = useState([])
   const [isloading, setLoading] = useState(false)
 
@@ -31,18 +35,20 @@ export default function BasicInformationClinician({ method, toast, editing, edit
       const { statusCode, status, message } = data
       if (statusCode == 200 && status == "success") {
         toast.success(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 })
-        setDefault()
+        setDefault();
       } else {
         toast.error(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 })
       }
     }
-    await validateFormData(data, true, [], "clinicians", handleResponse)
+    const response = await customPost("clinicians", method, data)
+    handleResponse(response);
+    reset();
   }
 
   useEffect(() => {
     if (editing == true && editid) {
-      setLoading(true);
-      getDataAndUpdateState(setData,`clinicians?id=${editid}`, true)
+      setLoading(true)
+      getDataAndUpdateState(setData, `clinicians/getclinician?id=${editid}`, true)
         .then((data) => {
           if (Array.isArray(data) && data.length > 0) {
             getClientForEdit(data[0])

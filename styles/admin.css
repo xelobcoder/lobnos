@@ -136,14 +136,3 @@
 .action-buttons button:active {
   background-color: #3e8740;
 }
-
-
-.top-clinician-view {
-  display: grid;
-  grid-template-columns: auto auto;
-  grid-gap: 10px;
-}
-
-
-
-/* clinician part ends ......................ends */
