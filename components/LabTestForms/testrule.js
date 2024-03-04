@@ -22,7 +22,10 @@ export default function CreateTestRule({ clientdata }) {
 
          customFetch(`testpanel/list/customtestrule/previous/comments?testid=${testid}&&billingid=${billingid}`)
             .then((data) => {
-               setComments({ comments: data });
+               setComments({ comments: data.comments });
+               if (data.comments != "") {
+                  setResultEntered(true);
+               }
             }).catch((err) => {
                setComments({ comments: '' })
             })
@@ -30,7 +33,7 @@ export default function CreateTestRule({ clientdata }) {
    }, [testid, test, billingid, patientid])
 
 
-   console.log(comments)
+
 
    const handlestate = async (name, ev, index) => {
       const value = ev.target.value;
@@ -40,14 +43,23 @@ export default function CreateTestRule({ clientdata }) {
    }
 
    const handleSubmit = async (ev) => {
-      const transformed = rule.map((item, index) => { return { field: item?.name, value: item?.value } })
-      const allHasValues = transformed.some((a, i) => a.value == "");
-      if (allHasValues) {
-         toast.error('some fields are empty', { autoClose: 2000 });
+      try {
+         const transformed = rule.map((item, index) => { return { field: item?.name, value: item?.value } })
+         const allHasValues = transformed.some((a, i) => a.value == "");
+         if (allHasValues) {
+            toast.error('some fields are empty', { autoClose: 2000 });
+         }
+         const data = { fields: transformed, billingid: parseInt(billingid), employeeid, patientid: parseInt(patientid), comments: comments.comments, test, testid };
+         const response = await customPost('result/entry/customtest', 'POST', data);
+         const { message, statusCode, status } = response;
+         if (status == "success" && statusCode == 200) {
+            toast.success(message, { autoClose: 500 });
+         } else {
+            toast.error(message, { autoClose: 2000 });
+         }
+      } catch (err) {
+         toast.error('something wrong occured', { autoClose: 1000 })
       }
-      const data = { fields: transformed, billingid: parseInt(billingid), employeeid, patientid: parseInt(patientid), comments: comments.comments, test, testid };
-      const response = await customPost('result/entry/customtest', resultEntered ? 'PUT' : "POST", data);
-      console.log(response);
    }
 
    return (
