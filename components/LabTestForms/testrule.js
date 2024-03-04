@@ -10,18 +10,27 @@ export default function CreateTestRule({ clientdata }) {
    const [comments, setComments] = useState({ comments: '' })
    const [resultEntered, setResultEntered] = useState(false);
    const [rule, setRule] = useState([]);
+
    useEffect(() => {
-      if (testid && test) {
+      if (testid && test && billingid && patientid) {
          customFetch(`testpanel/list/customtestrule/previous?testid=${testid}&&testname=${test}&&patientid=${patientid}&&billingid=${billingid}`)
             .then((data) => {
                setRule(data);
             }).catch((err) => {
                console.log(err);
             })
+
+         customFetch(`testpanel/list/customtestrule/previous/comments?testid=${testid}&&billingid=${billingid}`)
+            .then((data) => {
+               setComments({ comments: data });
+            }).catch((err) => {
+               setComments({ comments: '' })
+            })
       }
    }, [testid, test, billingid, patientid])
 
 
+   console.log(comments)
 
    const handlestate = async (name, ev, index) => {
       const value = ev.target.value;
@@ -67,7 +76,10 @@ export default function CreateTestRule({ clientdata }) {
                </table>
                <CommentSection datafunction={setComments} getcomment={handleComments} datasource={comments} target={'comments'} value={comments.comments} />
                <div>
-                  <button onClick={(ev) => { handleSubmit(ev) }} className="btn btn-primary btn-sm my-2 mx-1">save changes</button>
+                  <button
+                     onClick={(ev) => { handleSubmit(ev) }} className="btn btn-primary btn-sm my-2 mx-1">
+                     save changes
+                  </button>
                </div>
             </div>
          </section>
