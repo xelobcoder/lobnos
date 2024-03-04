@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { customFetch, customPost, getDataAndUpdateState} from "../../components/Auth/customFetch";
 import TableDisplay from '../../components/accessories/TableDisplay';
 import {IconButton, Typography } from "@mui/material";
@@ -6,10 +6,13 @@ import { DeleteForeverOutlined, Edit,Visibility } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from 'react-toastify';
 import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
-
+import BasicInformationClinician from "../../components/Clinicians/BasicInformationClinician";
+import Pagination from '../../components/accessories/pagination';
 
 export default function Clinicians() {
   const [ClinicianList, setClinician] = useState([]);
+  const [editing, setEditing] = useState({ editing: false, editid: null });
+  const [method, setMethod] = useState('POST');
   const router = useRouter();
 
   useEffect(() => {
@@ -24,8 +27,10 @@ export default function Clinicians() {
     // converting the data to lowercase
     const { id } = originaldata;
     if (!id) return;
-    router.push(`/clinician/update?clinicianid=${id}`)
+    setEditing({ editing: true, editid: parseInt(id) });
+    setMethod('PUT');
   }
+
   const columns = [
     {
       Header: 'Name',
@@ -84,9 +89,8 @@ export default function Clinicians() {
 
   const handleDelete = async (original) => {
     // confirm if client want to delete clinician, if yes delete ,if no  cancel and  ignore everything
-    let confirmation = confirm('Do want to delete clinician ?')
+    let confirmation = confirm('Do want to delete clinician ?');
     if (!confirmation) return;
-
     const { id } = original;
     if (!id) return;
 
@@ -111,12 +115,18 @@ export default function Clinicians() {
   return (
     <FrontDeskLayout>
       <ToastContainer />
-      <div className="d-flex justify-content-end">
-        <button type='button' onClick={ (ev) =>  {router.push('/clinician/new')}} className="btn btn-sm btn-primary fw-bold mx-2 my-1"> add clinician</button>
+      <div className="card mb-3">
+        <div className="card-header bg-secondary text-white">
+          {editing.editing == true ? <h5>Update clinician Information</h5> : <h5>New Clinician</h5>}
+        </div>
+        <div className="card-body">
+          <BasicInformationClinician method={method} toast={toast} editid={editing.editid} editing={editing.editing} />
+        </div>
       </div>
-      <div style={{marginTop:'-40px'}}>
-      <TableDisplay data={ClinicianList} column={columns} filtering={true}/>
-     </div>
+      <TableDisplay data={ClinicianList} showpage={false} column={columns} filtering={true} />
+      <section className="d-flex justify-content-center">
+        <Pagination />
+      </section>
     </FrontDeskLayout>
   );
 }
