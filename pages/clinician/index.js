@@ -30,6 +30,7 @@ export default function Clinicians() {
     if (!id) return;
     setEditing({ editing: true, editid: parseInt(id) });
     setMethod('PUT');
+    window.scrollTo(0, 0);
   }
 
   const columns = [
