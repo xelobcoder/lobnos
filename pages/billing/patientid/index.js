@@ -69,7 +69,9 @@ export default function Billing({ }) {
 
   const [cart, setCart] = useState([]);
   const clientid = useSearchParams().get("patientid");
-  const toggleTax = () => { setBillingdata({ ...billingdata, taxIncluded: !billingdata.taxIncluded }); };
+  const toggleTax = () => {
+    setBillingdata({ ...billingdata, taxIncluded: !billingdata.taxIncluded });
+  };
 
   const recalculateTotalBill = useCallback(() => {
     const { discount, paid, taxIncluded } = billingdata;
@@ -129,13 +131,9 @@ export default function Billing({ }) {
   const handleSubmit = async (ev) => {
     ev.preventDefault();
     console.log(billingdata)
-  // const test = cart.map((item) => item.id);
-  // const organization = selectedOrganization.id;
-  // const clinician = selectedClinician.id;
-  // const paymentmode = parseInt(payment.mode);
-  // const amount = payment.amount;
-  // const concession = payment.concession;
-
+    const test = cart.map((item) => item.id);
+    const samplingCenter = parseInt(branch);
+    const data = { ...billingdata, employeeid, samplingCenter, test,patientid: parseInt(clientid) };
     // const data = {
     //   test,
     //   organization,
@@ -156,20 +154,20 @@ export default function Billing({ }) {
     //   employeeid
     // };
 
-    // const callbackResponse = async function (data) {
-    //   const { status, statusCode, message, billingid } = data;
-    //   if (status == 'success' && (statusCode == 201 || statusCode == 200)) {
-    //     toast.success(message + '. Redirecting to receipt page', { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
-    //   } else {
-    //     toast.error(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
-    //   }
-    // }
+    const callbackResponse = async function (data) {
+      const { status, statusCode, message, billingid } = data;
+      if (status == 'success' && (statusCode == 201 || statusCode == 200)) {
+        toast.success(message + '. Redirecting to receipt page', { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
+      } else {
+        toast.error(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
+      }
+    }
 
-    // if (data.patientid && employeeid) {
-    //   await validateFormData(data, false,
-    //     ['test', 'cost', 'type', 'patientid', 'samplingCenter', 'concession', 'paid', 'paymentmode', 'status'],
-    //     'billing', callbackResponse);
-    // }
+    if (data.patientid && employeeid) {
+      await validateFormData(data, false,
+        ['test', 'cost', 'type', 'patientid', 'samplingCenter', 'concession', 'paid', 'paymentmode', 'status'],
+        'billing', callbackResponse);
+    }
   }
 
   return (
@@ -202,6 +200,7 @@ export default function Billing({ }) {
           <div>
             <TopComponentBillingButton
               includeTax={billingdata.taxIncluded}
+              recalculate={recalculateTotalBill}
               toggleTax={toggleTax} cart={cart.length} />
           </div>
         </section>
@@ -263,7 +262,7 @@ export default function Billing({ }) {
                 <div>
                   <label>payment mode</label>
                   <select value={payment.mode} className="custom-input" onChange={(e) =>
-                    setPayment({ ...payment, mode: e.target.value })}
+                    setBillingdata({ ...billingdata, paymentmode: e.target.value })}
                   >
                     <option>select</option>
                     {paymentmodes.map((item, index) => {
