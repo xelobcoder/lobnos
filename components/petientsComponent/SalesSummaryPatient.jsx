@@ -15,10 +15,10 @@ export default function SalesSummaryPatient({ header, data, currency }) {
   useEffect(() => {
     if (targetPatientId && runSales) {
       const getData = async function () {
-        const year = await customFetch(`sales/summary/general?target=yearly&&patientid=${targetPatientId}`);
-        const day = await customFetch(`sales/summary/general?target=daily&&patientid=${targetPatientId}`)
-        const month = await customFetch(`sales/summary/general?target=monthly&&patientid=${targetPatientId}`);
-        const week = await customFetch(`sales/summary/general?target=weekly&&patientid=${targetPatientId}`);
+        const year = await customFetch(`sales/summary/general?branch=all&&target=yearly&&patientid=${targetPatientId}`);
+        const day = await customFetch(`sales/summary/general?branch=all&&target=daily&&patientid=${targetPatientId}`)
+        const month = await customFetch(`sales/summary/general?branch=all&&target=monthly&&patientid=${targetPatientId}`);
+        const week = await customFetch(`sales/summary/general?branch=all&&target=weekly&&patientid=${targetPatientId}`);
         try {
           const [yearly, daily, monthly, weekly] = await Promise.all([year, day, month, week]);
 

@@ -47,6 +47,8 @@ export default function ApplicationSettingsComponent() {
     get_our_data()
   }, [])
 
+  console.log(ApplicationSettings)
+
   const handleAppSettingsActivation = async function (target, value) {
     setApplicationSettings({ ...ApplicationSettings, [target]: value })
   }
@@ -121,6 +123,14 @@ export default function ApplicationSettingsComponent() {
           title="Email Notification"
           variant="number"
           text="Activate email notification for the application.Customize further at the email side"
+        />
+         <CustomFormSwitch
+          update={handleAppSettingsActivation}
+          value={ApplicationSettings.includeTax == 1 ? true : false}
+          target={"includeTax"}
+          title="Include Taxes in Billing"
+          variant="number"
+          text="Activated Taxes would be include the billing of clients"
         />
       </div>
 

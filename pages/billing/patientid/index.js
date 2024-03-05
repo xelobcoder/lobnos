@@ -1,5 +1,5 @@
-import { useSearchParams } from "next/navigation";
-import { useContext, useCallback, useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useCallback, useContext, useEffect, useState } from "react";
 import TESTCART from "../../../components/registration/testCart.js";
 import TopComponentBillingButton from "../../../components/Billing/topComponentBillingButton.jsx";
 import { customFetch, validateFormData } from "../../../components/Auth/customFetch.js";
@@ -31,65 +31,94 @@ const defaultdata = {
 export default function Billing({ }) {
   const { auth } = useContext(AuthContext);
   const employeeid = auth?.employeeid;
+  const router = useRouter();
   const [billingdata, setBillingdata] = useState(defaultdata);
-  const [totalBill, setTotalBill] = useState(0);
   const [payment, setPayment] = useState({ amount: 0, mode: "", concession: '' });
   const [paymentmodes, setPaymentModes] = useState([]);
   const [organizations, setOrganizations] = useState([]);
-  const [refered, setRefered] = useState(false);
-  const [taxes, setTaxes] = useState([]);
   const [clinicians, setClincians] = useState([]);
   const [branch, setBranch] = useState(null);
   const [selected, setSelected] = useState(null);
   const [testpanels, setTestPanels] = useState([]);
+  const [cart, setCart] = useState([]);
+  const clientid = useSearchParams().get("patientid");
+  const [appsettings, setAppsettings] = useState({});
+
+
+  const getAllNecessaryData = async function () {
+    try {
+      const panels = await customFetch('testpanel/list/bulk');
+      const organization = await customFetch('organization');
+      const clinician = await customFetch('clinicians');
+      const paymentModes = await customFetch('paymentmodes');
+      const myprops = await Promise.all([panels, organization, clinician, paymentModes]);
+      setTestPanels(myprops[0]?.data);
+      setOrganizations(myprops[1]?.result);
+      setClincians(myprops[2]?.result);
+      setPaymentModes(myprops[3]?.data);
+    } catch (err) {
+      toast.error('something wrong occured', { autoClose: 3000 });
+    }
+  }
+
+
+
 
 
   useEffect(() => {
-    const getAllNecessaryData = async function () {
-      try {
-        let panels = await customFetch('testpanel/list/bulk');
-        let organization = await customFetch('organization');
-        let clinician = await customFetch('clinicians');
-        let paymentModes = await customFetch('paymentmodes');
-        let taxes = await customFetch('application/tax');
-        const myprops = await Promise.all([panels, organization, clinician, paymentModes, taxes]);
-        setTestPanels(myprops[0]?.data);
-        setOrganizations(myprops[1]?.result);
-        setClincians(myprops[2]?.result);
-        setPaymentModes(myprops[3]?.data);
-        setTaxes(myprops[4]?.result);
-      } catch (err) {
-        toast.error('something wrong occured', { autoClose: 3000 });
+    const getOustandingBill = async () => {
+      if (clientid) {
+        customFetch(`billing/client/bulk/outstanding?patientid=${clientid}`)
+          .then((data) => {
+            const outstandingDebt = data?.result[0]?.outstanding;
+            if (outstandingDebt > 0) {
+              router.push(`/billing/payment/update/${clientid}`)
+            } else {
+              getAllNecessaryData();
+            }
+          }).catch((err) => {
+            console.log(err)
+            toast.error('something wrong occured', { autoClose: 500 })
+          })
       }
     }
-    getAllNecessaryData();
-  }, [])
+
+    customFetch(`applicationsettings/billing`)
+      .then((data) => {
+        setAppsettings(data);
+        const { PaidBillsBeforeTransaction } = data;
+        if (PaidBillsBeforeTransaction === 1) {
+          getOustandingBill();
+        } else {
+          getAllNecessaryData();
+        }
+      }).catch((err) => {
+        console.log(err)
+      })
+
+  }, [clientid,router])
 
 
 
-  const [cart, setCart] = useState([]);
-  const clientid = useSearchParams().get("patientid");
-  const toggleTax = () => {
-    setBillingdata({ ...billingdata, taxIncluded: !billingdata.taxIncluded });
-  };
 
-  const recalculateTotalBill = useCallback(() => {
-    const { discount, paid, taxIncluded } = billingdata;
+
+
+  const recalculateTotalBill = function () {
+    const { discount, paid } = billingdata;
+    const { includeTax, taxValue } = appsettings;
     const totalTest = cart.length > 0 ? cart.reduce((a, b) => { return a + b.price }, 0) : 0;
-    const taxValue = taxes.length > 0 ? taxes.reduce((a, b) => { return a + b.value }, 0) : 0;
     let total = 0;
-    if (taxIncluded) {
-      total = taxValue + totalTest;
+    if (includeTax == 1) {
+      total = ((taxValue / 100) * totalTest) + totalTest;
     } else total = totalTest;
-
     const payable = total - discount;
     const outstanding = payable - paid;
     setBillingdata((prev) => {
-      const nw = { ...prev, payable: payable, outstanding, taxValue, testcost: totalTest, cost: total };
+      const nw = { ...prev, payable: payable, outstanding, taxValue, testcost: totalTest, cost: total, taxIncluded: includeTax == 1 ? true : false };
       return nw;
     });
-  }, [billingdata, cart, taxes]
-  );
+  }
+
 
 
   useEffect(() => {
@@ -109,16 +138,23 @@ export default function Billing({ }) {
   const addtoCart = async () => {
     if (!selected) return;
     const testid = selected?.id;
-    if (cart.length === 0) cart.push(selected);
+    if (cart.length === 0) {
+      setCart([...cart, selected])
+    }
     else {
       setCart((prev) => {
         const isInCart = prev.some((item, index) => parseInt(item?.id) == parseInt(testid));
         if (!isInCart) { return [...prev, selected] } else return prev;
       })
     }
-    recalculateTotalBill()
-    setSelected('');
   }
+
+
+  useEffect(() => {
+    if (cart.length >= 0) {
+      recalculateTotalBill()
+    }
+  }, [cart.length])
 
   const emptyCart = () => { setCart([]); setSelected('') };
 
@@ -130,29 +166,9 @@ export default function Billing({ }) {
   }
   const handleSubmit = async (ev) => {
     ev.preventDefault();
-    console.log(billingdata)
     const test = cart.map((item) => item.id);
     const samplingCenter = parseInt(branch);
-    const data = { ...billingdata, employeeid, samplingCenter, test,patientid: parseInt(clientid) };
-    // const data = {
-    //   test,
-    //   organization,
-    //   clinician,
-    //   paymentmode,
-    //   paid: parseFloat(amount),
-    //   discount: parseFloat(concession) || 0,
-    //   cost: billingClass.calculateCost(cart) + billingClass.totalTaxValue(billingdata.taxes),
-    //   status: clientStatus,
-    //   payable: totalBill,
-    //   testcost: billingClass.calculateCost(cart),
-    //   type: source,
-    //   taxIncluded: includeTax,
-    //   taxValue: billingClass.totalTaxValue(billingdata.taxes),
-    //   patientid: parseInt(clientid),
-    //   outstanding: totalBill - parseFloat(amount),
-    //   samplingCenter: parseInt(branch),
-    //   employeeid
-    // };
+    const data = { ...billingdata, employeeid, samplingCenter, test, patientid: parseInt(clientid) };
 
     const callbackResponse = async function (data) {
       const { status, statusCode, message, billingid } = data;
@@ -199,9 +215,8 @@ export default function Billing({ }) {
           </div>
           <div>
             <TopComponentBillingButton
-              includeTax={billingdata.taxIncluded}
-              recalculate={recalculateTotalBill}
-              toggleTax={toggleTax} cart={cart.length} />
+              cart={cart.length}
+            />
           </div>
         </section>
       </div>
@@ -318,31 +333,9 @@ export default function Billing({ }) {
             <TESTCART
               testArray={cart}
               handleRemove={removeFromCart}
+              calculate={recalculateTotalBill}
               emptytestcart={emptyCart}
             />
-            {(taxes.length > 0 && billingdata.taxIncluded) && (
-              <div className="bg-white p-2 br-5">
-                <label>Taxes Applied</label>
-                <ul className="list-group border br-5">
-                  <li className="grid-50   p-2 border-bottom text-capitalize text-primary">
-                    <span>tax</span>
-                    <span>value</span>
-                  </li>
-                  {taxes.map((item, index) => {
-                    return <li key={index} className="grid-50 fw-bolder text-sm p-2 border-bottom p-1">
-                      <span>{item.name}</span>
-                      <span>{item.value}</span>
-                    </li>
-                  }
-                  )}
-                  <li className="grid-50 p-2 text-dark  border-bottom border-top text-capitalize">
-                    <span>Total tax:</span>
-                    <span>{billingdata.taxValue}</span>
-                  </li>
-                </ul>
-              </div>
-            )
-            }
           </div>
         </div>
       )}

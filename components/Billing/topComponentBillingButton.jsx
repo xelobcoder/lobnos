@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import SnapClinicianModal from './SnapClinicianModal'
 import BasicInformationClinician from '../Clinicians/BasicInformationClinician';
 import BasicInfo from '../organization/BasicInfo';
-export default function TopComponentBillingButton({ cart,toggleTax ,includeTax,recalculate}) {
+export default function TopComponentBillingButton({ cart}) {
   const [whattoShow, setWhattoShow] = useState(null);
   const [show, setShow] = useState(false);
   const handleShow = (c) => { setShow(!show); }
@@ -13,12 +13,6 @@ export default function TopComponentBillingButton({ cart,toggleTax ,includeTax,r
     <>
       <div className='mx-1 my-1'>
         <div className='d-flex justify-content-end'>
-          <button onClick={(ev) => {
-            toggleTax();
-            recalculate();
-          }} className='btn btn-outline-secondary btn-sm mx-1'>
-          {!includeTax ? 'Tax Included' : 'Tax Excluded'}
-          </button>
           <button
             className="btn btn-outline-secondary btn-sm"
             onClick={(e) => {

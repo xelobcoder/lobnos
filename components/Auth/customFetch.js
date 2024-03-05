@@ -351,7 +351,8 @@ export const defaultApplicationSettings = {
    completeFlow: 1,
    approvalbeforeprinting: 1,
    smsSettings: defaultSmsSettings,
-   emailNotification: 0
+   emailNotification: 0,
+   includeTax: 0
 }
 
 

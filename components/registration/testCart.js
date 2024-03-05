@@ -1,6 +1,6 @@
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle'
 import AutoDeleteIcon from '@mui/icons-material/AutoDelete'
-export default function TESTCART({ testArray, emptytestcart, handleRemove, outstanding }) {
+export default function TESTCART({ testArray, emptytestcart, handleRemove, calculate }) {
   const renderer = () => {
     if (testArray.length <= 0) {
       return <h6>No data added to cart</h6>

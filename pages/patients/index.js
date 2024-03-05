@@ -5,13 +5,14 @@ import SalesSummaryPatient from '../../components/petientsComponent/SalesSummary
 export const PatientContext = createContext();
 const PatientProvider = PatientContext.Provider;
 import dynamic from 'next/dynamic';
+import Header from '../../components/header';
 import { Link } from '@mui/material';
 import PreviewPatientInformation from '../../components/petientsComponent/PreviewPatientInformation';
 import PerformanceChartGeneral from '../../components/salesSummary/PerformanceChartGeneral';
 
 export default function PATIENTS_INDEX_PAGE() {
   const initialParams = {
-    query: 2023854,
+    query: 2024220121,
     runquery: false,
     selected: false,
     selectedValue: null,
@@ -74,6 +75,7 @@ export default function PATIENTS_INDEX_PAGE() {
 
   return (
     <>
+      <Header/>
       <PatientProvider value={{ initials, updateInitials }}>
         <div className='wrapper  whitesmoke' style={{ height: '100vh' }}>
           <div className='p-2'>
