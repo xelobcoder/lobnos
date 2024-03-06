@@ -98,7 +98,7 @@ export default function ApplicationSettingsComponent() {
           value={ApplicationSettings.PaidBillsBeforeTransaction == 1 ? true : false}
           update={handleAppSettingsActivation}
           target="PaidBillsBeforeTransaction"
-          text="Clear all bills before a new billing transaction can be initiated, meaning all bills needed to be cleared."
+          text="Clear all bills before a new billing transaction can be initiated, meaning all bills needed to be cleared.Full payment must be made outright during registration before a transaction can be finalized"
         />
         <CustomFormSwitch
           title="Flow"

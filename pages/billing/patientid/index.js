@@ -164,6 +164,9 @@ export default function Billing({ }) {
       return prev.filter((item, index) => item?.id !== value?.id);
     })
   }
+
+
+
   const handleSubmit = async (ev) => {
     ev.preventDefault();
     const test = cart.map((item) => item.id);
@@ -179,6 +182,11 @@ export default function Billing({ }) {
       }
     }
 
+    const { PaidBillsBeforeTransaction } = appsettings;
+
+    if (PaidBillsBeforeTransaction == 1 && (data.payable != data.paid)) {
+      return toast.error('Full payment must be made outright please.To change this behaviour,please kindly updates the settings', { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
+    }
     if (data.patientid && employeeid) {
       await validateFormData(data, false,
         ['test', 'cost', 'type', 'patientid', 'samplingCenter', 'concession', 'paid', 'paymentmode', 'status'],
