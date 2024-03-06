@@ -136,7 +136,7 @@ export default function ApplicationSettingsComponent() {
 
       <div>
         <button
-          className="btn btn-primary btn-sm mt-3"
+          className="btn btn-primary btn-sm mt-4"
           onClick={(e) => {
             updateSettings(e)
           }}>

@@ -54,7 +54,7 @@ export default function TestProfileBilling({ clientDetails }) {
       const { includeTax, taxValue } = appsettings;
       let outstanding = 0;
       if (includeTax == 1) {
-        outstanding = ((totalPricing * (taxValue/100)) + totalPricing) - (paid_amount + discount);
+        outstanding = (((taxValue/100) * totalPricing) + totalPricing) - (paid_amount + discount);
       } else {
         outstanding = totalPricing - (paid_amount + discount);
       }
