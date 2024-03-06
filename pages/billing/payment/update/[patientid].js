@@ -49,7 +49,7 @@ export default function BillingUpdatelientpaymentHistory() {
 
   const handleSubmitInfo = async () => {
     const { amount, paymentmode } = pyinfo;
-    const amountpaid = parseInt(amount);
+    const amountpaid = parseFloat(amount);
     if (amountpaid > toTotalOutstanding() || amountpaid <= 0) {
       return toast.warning(`paid amount must be less or equal to total outstanding bill and greater than 0`, { autoClose: 2000, position: 'top-center' });
     }
