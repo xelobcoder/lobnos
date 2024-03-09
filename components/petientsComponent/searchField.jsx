@@ -1,44 +1,41 @@
-import React, { useContext, useCallback } from 'react'
-import { PatientContext } from '../../pages/patients'
-import BillingDatesView from './BillingDatesView';
-import { customFetch } from '../Auth/customFetch';
-import { Refresh } from '@mui/icons-material';
+import {useState } from "react"
+import BillingDatesView from "./BillingDatesView"
 
+export default function SearchFieldPatients({ updatesearchValue }) {
+  const [query, searchQuery] = useState("")
+  const [isSearch, setSearch] = useState(false)
 
-export default function SearchFieldPatients() {
-  const { initials, updateInitials } = useContext(PatientContext);
-
-
-  const getTransactionDates = useCallback(async function (patientid) {
-    const getTrans = await customFetch(`patients/analytics/date?patientid=${patientid}`);
-    const { statusCode, result } = getTrans;
-    updateInitials({ type: 'SEARCH_QUERY', result: statusCode == 200 ? result : []})
-    if(statusCode == 401) {
-     updateInitials({type: 'RESET_FILL_QUERY'}) 
-    }
-  }, [])
-
- 
 
 
   return (
     <div>
-      <div className='d-flex justify-content-around'>
-        <input value={initials.query} className='form-control' placeholder='Please enter Patient membership code' type='number'
-          maxLength={20} minLength={14}
-          onChange={(ev) => updateInitials({ type: 'FILL_QUERY', fieldValue: parseInt(ev.target.value) })}
+      <div className="d-flex justify-content-around">
+        <input
+          value={query}
+          className="custom-input"
+          placeholder="Please enter Patient membership code"
+          type="number"
+          maxLength={20}
+          minLength={14}
+          onChange={(ev) => {
+            searchQuery(ev.target.value)
+            updatesearchValue(ev)
+          }}
         />
-        <button className='btn btn-dark btn-sm' style={{ marginLeft: '4px' }}
-          onClick={(e) => { getTransactionDates(initials.query) }}
-        >
+        <button
+          className="btn btn-dark btn-sm"
+          style={{ marginLeft: "4px" }}
+          onClick={(e) => {
+            setSearch(true);
+            console.log(query)
+          }}>
           search
         </button>
       </div>
-      <span className='text-capitalize text-dark lead'>
-        Transaction Dates
-        <Refresh />
+      <span className="text-capitalize text-dark lead">
+        Transactions Dates
       </span>
-      <BillingDatesView source={initials.datesSource} />
+      <BillingDatesView patientid={parseInt(query)} isSearch={isSearch} />
     </div>
   )
 }

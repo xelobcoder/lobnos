@@ -1,16 +1,14 @@
-import React, { useState, createContext, useReducer } from 'react'
+import React, { useState, useReducer } from 'react'
 import SearchFieldPatients from '../../components/petientsComponent/searchField'
 import TestsTable from '../../components/petientsComponent/TestsTable';
 import SalesSummaryPatient from '../../components/petientsComponent/SalesSummaryPatient';
-export const PatientContext = createContext();
-const PatientProvider = PatientContext.Provider;
-import dynamic from 'next/dynamic';
 import Header from '../../components/header';
 import { Link } from '@mui/material';
 import PreviewPatientInformation from '../../components/petientsComponent/PreviewPatientInformation';
 import PerformanceChartGeneral from '../../components/salesSummary/PerformanceChartGeneral';
 
 export default function PATIENTS_INDEX_PAGE() {
+  const [ query, setQuery ] = useState('');
   const initialParams = {
     query: 2024220121,
     runquery: false,
@@ -73,13 +71,18 @@ export default function PATIENTS_INDEX_PAGE() {
 
 
 
+  const updatesearchValue = (ev) => {
+    setQuery(ev.target.value);
+  }
+
+
+
   return (
     <>
-      <Header/>
-      <PatientProvider value={{ initials, updateInitials }}>
-        <div className='wrapper  whitesmoke' style={{ height: '100vh' }}>
-          <div className='p-2'>
-            <SearchFieldPatients />
+      <Header />
+      <div className='d-flex justify-content-between'>
+          <div className='p-2 col-3'>
+          <SearchFieldPatients updatesearchValue={updatesearchValue} />
           </div>
           <div className='main container'>
             <ul >
@@ -99,8 +102,7 @@ export default function PATIENTS_INDEX_PAGE() {
               {initials.displayChart && <PerformanceChartGeneral subtarget={initials.chartTarge}  branchid={"all"} target={initials.chartTarget} rawData={initials.chartData?.[initials.chartTarget]} />}
             </div>
           </div>
-        </div>
-      </PatientProvider>
+      </div>
     </>
   )
 }
