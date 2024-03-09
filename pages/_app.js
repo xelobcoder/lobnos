@@ -1,7 +1,7 @@
-import '../node_modules/react-toastify/dist/ReactToastify.min.css';
 import'../styles/globals.css';
 import '../styles/Frontpageside.css';
 import '../styles/table.css';
+import '../node_modules/react-toastify/dist/ReactToastify.min.css';
 import { AuthentificationProvider } from '../components/Auth/useAuthentification';
 import MAIN_LAYOUT from '../components/Headers/Layout';
 
