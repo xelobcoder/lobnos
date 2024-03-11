@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { fieldDeterminer } from "../Auth/creator"
 import { customFetch, customPost, handleComments } from "../Auth/customFetch";
 import Indicator from "../accessories/Reports/indicator";
+import Link from 'next/link';
 import CommentSection from "./commentSection";
 import { ToastContainer, toast } from 'react-toastify';
 
@@ -73,6 +74,7 @@ export default function CreateTestRule({ clientdata }) {
                </div>
             </div>
             <div className="card-body">
+
                <table className="table">
                   <thead>
                      <tr>
@@ -87,11 +89,16 @@ export default function CreateTestRule({ clientdata }) {
                   </tbody>
                </table>
                <CommentSection datafunction={setComments} getcomment={handleComments} datasource={comments} target={'comments'} value={comments.comments} />
-               <div>
+               <div className="d-flex justify-content-between">
                   <button
                      onClick={(ev) => { handleSubmit(ev) }} className="btn btn-primary btn-sm my-2 mx-1">
                      save changes
                   </button>
+                  <Link href={`/operations/viewtwo/showtrends?billingid=${billingid}&&patientid=${patientid}&&test=${test}&&testid=${testid}`}>
+                     <button className="btn btn-dark btn-sm mx-1 my-2">
+                        show trend
+                     </button>
+                  </Link>
                </div>
             </div>
          </section>

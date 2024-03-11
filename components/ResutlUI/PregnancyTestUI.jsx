@@ -1,34 +1,21 @@
 import React from 'react'
 
 export default function PregnancyTestUI({ result, testname }) {
+  console.log(result)
   return (
-    <div>
-      <div>
-        {result.length > 0 && (
-          <>
-            <table className='table mt-2'>
-              <thead className='table-primary text-capitalize p-0'>
-                <tr>
-                  <th>test name</th>
-                  <th>sample</th>
-                  <th>result</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Pregnacy test</td>
-                  <td>{result[0]?.['METHOD']}</td>
-                  <td>{result[0]?.['VALUE']}</td>
-                </tr>
-              </tbody>
-            </table>
-            <div>
-              <h4 className='text-capitalize'>comments</h4>
-              <p>{result[0]?.['COMMENTS']}</p>
-            </div>
-          </>
-        )}
+    <section>
+      <div className="grid grid-50 text-capitalize">
+        <h6>testname</h6>
+        <h6>value</h6>
       </div>
-    </div>
+      <div className="grid grid-50 text-capitalize">
+        <p>
+          {">> "}pregnancy test({result?.["method"]})
+        </p>
+        <p>
+          {result?.["value"]} {result?.["rhesus"]}
+        </p>
+      </div>
+    </section>
   )
 }

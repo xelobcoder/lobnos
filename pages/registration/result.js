@@ -69,7 +69,8 @@ export default function RESULT_FOR_PRINTING() {
       <div>
       </div>
       <div className='print-section'>
-        <button style={{position:'absolute',top:20, left:'40px'}} className='btn btn-success btn-sm' onClick={() => readyToPrint(billingid, testid)}>
+        <button style={{ position: 'absolute', top: 20, left: '40px' }} className='btn btn-success btn-sm'
+          onClick={() => readyToPrint(billingid, testid)}>
           print result
        </button>
       </div>

@@ -17,7 +17,7 @@ export default function Approval() {
       .catch((error) => console.log(error));
   }, []);
 
-  const navigation = function (testid, billingid, test, category) {
+  const navigation = function (testid, billingid, test) {
     // replace all space with _
     let testname = test.replace(/\s/g, "_").toLowerCase();
     // format test to match pregnacy_test for pregnancy test

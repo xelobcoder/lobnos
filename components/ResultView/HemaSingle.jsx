@@ -14,7 +14,7 @@ export default function HemaSingle({ result, testname }) {
     malaria: <Malaria result={result} testname={testname} />,
     blood_grouping: <BloodGrouping result={result} testname={testname} />,
     pregnancy_test: <PregnancyTestUI result={result} testname={testname} />,
-    urinalysis: <UrinalysisUI result={result} testname={testname} />,
+    urinalysis: <UseCustomResultTemplating result={result} testname={testname} />,
     hepatitis_b_profile: <HepatitisBProfileUI result={result} testname={testname} />,
     esr: <EsrResultUI result={result} testname={testname} />,
     hepatitis_b: <HepatitisBResultUi result={result} testname={"Hepatitis B test"} />,
@@ -23,5 +23,5 @@ export default function HemaSingle({ result, testname }) {
     hepatitis_c: <HepatitisBResultUi result={result} testname={"Hepatitis C test Report "} />,
   }
 
-  return <section className="mt-2">{<UseCustomResultTemplating result={result} testname={testname} />}</section>
+  return <section className="mt-2">{testTemplates[testname] || <UseCustomResultTemplating result={result} testname={testname} />}</section>
 }
