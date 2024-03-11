@@ -1,14 +1,14 @@
-import React, { useState, useReducer } from 'react'
+import { useState, useReducer } from 'react'
 import SearchFieldPatients from '../../components/petientsComponent/searchField'
 import TestsTable from '../../components/petientsComponent/TestsTable';
 import SalesSummaryPatient from '../../components/petientsComponent/SalesSummaryPatient';
 import Header from '../../components/header';
-import { Link } from '@mui/material';
 import PreviewPatientInformation from '../../components/petientsComponent/PreviewPatientInformation';
 import PerformanceChartGeneral from '../../components/salesSummary/PerformanceChartGeneral';
 
 export default function PATIENTS_INDEX_PAGE() {
-  const [ query, setQuery ] = useState('');
+  const [query, setQuery] = useState('');
+  const [TransactionSelected, setSelected] = useState({ state: false, billingid: '', date: '' });
   const initialParams = {
     query: 2024220121,
     runquery: false,
@@ -75,28 +75,31 @@ export default function PATIENTS_INDEX_PAGE() {
     setQuery(ev.target.value);
   }
 
-
+  const updateSelection = (value) => {
+    const { TransactionId, TransactionsDate } = value;
+    setSelected({ billingid: TransactionId, state: true, date: TransactionsDate })
+  }
 
   return (
     <>
       <Header />
       <div className='d-flex justify-content-between'>
-          <div className='p-2 col-3'>
-          <SearchFieldPatients updatesearchValue={updatesearchValue} />
+        <div className='p-2 col-2' style={{ position: 'static' }}>
+          <SearchFieldPatients updatesearchValue={updatesearchValue} updateSelection={updateSelection} />
           </div>
-          <div className='main container'>
-            <ul >
-              <Link href={`/patients/update?patientid=${initials.query}`} >patient records</Link>
-              <a onClick={(ev) => {window.open(`/patients/${initials.query}`)}} >update records</a>
-              <Link href={`/patients/${initials.query}/notifications`}>Notification settings</Link>
-              <Link href={`/patients/${initials.query}/resultsettings`}>Email preference</Link>
-            </ul>
-            {
-              initials.runquery && <PreviewPatientInformation patientid={initials.query} />
-            }
+        <div className='main container'>
+          {query.length > 7 && (
+            <section>
+              <PreviewPatientInformation patientid={query} />
+              <button className='btn btn-primary btn-sm mx-2' style={{ position: 'absolute', top: '60px', left: '80%' }} onClick={(ev) => window.open(`/patients/update?patientid=${query}`)}>
+                update patient records
+              </button>
+            </section>
+          )}
+
             <SalesSummaryPatient currency={'$'} data={initials.clientSalesSummaryGeneral} header={'Financial Transaction Summary'} />
             <div>
-              <TestsTable />
+            {TransactionSelected.state === true && TransactionSelected.billingid && <TestsTable billingid={TransactionSelected.billingid} />}
             </div>
             <div className='mt-2 mb-2'>
               {initials.displayChart && <PerformanceChartGeneral subtarget={initials.chartTarge}  branchid={"all"} target={initials.chartTarget} rawData={initials.chartData?.[initials.chartTarget]} />}

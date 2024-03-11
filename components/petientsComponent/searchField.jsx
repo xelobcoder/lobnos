@@ -1,7 +1,7 @@
 import {useState } from "react"
 import BillingDatesView from "./BillingDatesView"
 
-export default function SearchFieldPatients({ updatesearchValue }) {
+export default function SearchFieldPatients({ updatesearchValue,updateSelection}) {
   const [query, searchQuery] = useState("")
   const [isSearch, setSearch] = useState(false)
 
@@ -33,9 +33,9 @@ export default function SearchFieldPatients({ updatesearchValue }) {
         </button>
       </div>
       <span className="text-capitalize text-dark lead">
-        Transactions Dates
+        Transactions 
       </span>
-      <BillingDatesView patientid={parseInt(query)} isSearch={isSearch} />
+      <BillingDatesView patientid={parseInt(query)} isSearch={isSearch} updateselection={updateSelection} />
     </div>
   )
 }

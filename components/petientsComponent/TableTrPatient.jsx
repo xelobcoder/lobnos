@@ -11,46 +11,45 @@ export default function TableTrPatient({ index, item,openModal}) {
   return (
     <>
       <tr>
-        <td>{index + 1}</td>
-        <td>{item.BILLINGID}</td>
-        <td>{item.NAME}</td>
+        <td>{item.billingid}</td>
+        <td>{item?.name}</td>
         <td className="pointer">
           <span
-            className={` text-center text-white ${item.COLLECTION == "true" ? "bg-success" : "bg-danger"
+            className={` text-center text-white ${item.collection == "true" ? "bg-success" : "bg-danger"
               }`}
           >
-            {item.COLLECTION == "true" ? "collected" : "Not Yet"}
+            {item.collection == "true" ? "collected" : "Not Yet"}
           </span>
         </td>
         <td className="pointer">
           <span
-            className={`  text-center text-white ${item.PROCESSING == "true" ? "bg-success" : "bg-danger"
+            className={`  text-center text-white ${item.processing == "true" ? "bg-success" : "bg-danger"
               }`}
           >
-            {item.PROCESSING == "true" ? "processed" : "Not Yet"}
+            {item.processing == "true" ? "processed" : "Not Yet"}
           </span>
         </td>
         <td className="pointer">
           <span
-            className={`  text-center text-white ${item.READY == "true" ? "bg-success" : "bg-danger"
+            className={`  text-center text-white ${item.ready == "true" ? "bg-success" : "bg-danger"
               }`}
           >
-            {item.READY == "true" ? "ready" : "Not Yet"}
+            {item.ready == "true" ? "ready" : "Not Yet"}
           </span>
         </td>
         <td className="pointer">
           <span
-            className={`  text-center text-white ${item.APPROVALSTATUS == 1 ? "bg-success" : "bg-danger"
+            className={`  text-center text-white ${item.approvalStatus == 1 ? "bg-success" : "bg-danger"
               }`}
           >
-            {item.APPROVALSTATUS == 1 ? "approved" : "Not Yet"}
+            {item.approvalStatus == 1 ? "approved" : "Not Yet"}
           </span>
         </td>
         <td className="pointer">
           <Menu onClick={(ev) => setMenu(!menu)} />
           {
-            (item.READY && item.APPROVALSTATUS) ? (
-              <div className={menu ? styles.ptttmenu : "d-none"}>
+            (item.ready && item.approvalStatus == 1) ? (
+              <div className={menu ? '' : "d-none"}>
                 <ul>
                   <li className='text-secondary' onClick={(e) => { printResultNavigator(navigator, item.BILLINGID, { testid: item.TESTID, name: item.NAME }, true) }}>
                     <ViewCompactAltTwoTone /> view result

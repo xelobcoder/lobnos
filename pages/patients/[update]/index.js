@@ -12,6 +12,9 @@ import Addressing from '../../../components/registration/Addressing';
 import EmmergencyContactInformation from '../../../components/registration/EmmergencyContactInformation';
 import PatientCredentialsInformation from '../../../components/registration/fields/credentials';
 import ResultsettingsPatient from '../../../components/registration/resultsettings';
+import Header from '../../../components/header';
+import Link from 'next/link';
+
 export default function Update() {
   const { personalInformation, addressingInformation, emmergencyInformation } = patientRegistrationDefaultData;
   const [data, setData] = useState(personalInformation);
@@ -75,11 +78,10 @@ export default function Update() {
 
 
   return (
-    <>
-      <PatientRecordsLayout>
-        <ToastContainer />
-        {rendering()}
-      </PatientRecordsLayout>
-    </>
+    <PatientRecordsLayout>
+    <Header />
+    <ToastContainer />
+    {rendering()}
+  </PatientRecordsLayout>
   )
 }

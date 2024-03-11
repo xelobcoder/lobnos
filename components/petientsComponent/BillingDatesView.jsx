@@ -4,6 +4,7 @@ import { customFetch } from "../Auth/customFetch"
 
 export default function BillingDatesView({ patientid, updateselection, isSearch }) {
   const [billingdates, setBillingDates] = useState([])
+  const [active, setActive] = useState(null)
   const [isLoading, setLoading] = useState(false)
 
   const getTransactionDates = useCallback(
@@ -40,12 +41,13 @@ export default function BillingDatesView({ patientid, updateselection, isSearch 
           {billingdates.map((item, index) => {
             return (
               <div
-                className="list-group-item p-1 ml-3"
+                className={`list-group-item p-1 px-3 focus-ring-danger pointer ${active == index && "text-primary"}`}
                 key={index}
                 onClick={(e) => {
-                  updateselection(e.target)
+                  updateselection(item);
+                  setActive(index)
                 }}>
-                {new Date(item.TransactionsDate).toLocaleDateString()}
+                {">>> "}{new Date(item.TransactionsDate).toLocaleDateString()}
               </div>
             )
           })}
