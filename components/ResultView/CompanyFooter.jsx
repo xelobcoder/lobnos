@@ -1,4 +1,3 @@
-import React from 'react'
 import VersionFooter from '../accessories/VersionFooter';
 export default function CompanyFooter({ details }) {
   return (

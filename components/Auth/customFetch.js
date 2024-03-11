@@ -762,6 +762,9 @@ export const formatTest = (name) => {
    if (name.includes("(") && name.includes(")")) {
       testname = name.slice(0, name.indexOf("("))
    }
+   if (testname.includes(" ")) {
+      return formatTest(testname);
+   }
    return testname;
 }
 

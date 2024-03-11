@@ -17,7 +17,6 @@ import StoolAnalysis from '../LabTestForms/stoolAnalysis';
 import BleedingNClotting from '../LabTestForms/bleedingnclotting';
 import SemenAnalysis from '../LabTestForms/SemenAnalysis';
 import Helicobacter_Pylori from '../LabTestForms/helicobacter_pylori';
-// import UseSingleHormoneHook from '../LabTestForms/useSingleHormoneHook';
 import Syphilis from '../LabTestForms/syphilis.jsx';
 import UseChemistryTestHook from '../LabTestForms/useChemistryTestHook.jsx';
 import CreateTestRule from './testrule.js';

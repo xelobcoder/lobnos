@@ -15,13 +15,17 @@ export default function ResultEntryPanelSecondView() {
 
   useEffect(() => {
     if (view == "multiple") {
-      setMultipleView(true)
-      if (testname.includes(",") && testid.includes(",")) {
-        const testids = testid.split(",").map((item, index) => parseInt(item))
-        const testCollection = testname.split(",").map((item, index) => {
-          return { testname: item, testid: testids[[index]] }
-        })
-        setTestNames(testCollection)
+      if (testid.split(",").length == 1) {
+        setMultipleView(false)
+      } else {
+        setMultipleView(true)
+        if (testname.includes(",") && testid.includes(",")) {
+          const testids = testid.split(",").map((item, index) => parseInt(item))
+          const testCollection = testname.split(",").map((item, index) => {
+            return { testname: item, testid: testids[[index]] }
+          })
+          setTestNames(testCollection)
+        }
       }
     } else if (view === "single") {
       setMultipleView(false)
@@ -29,7 +33,6 @@ export default function ResultEntryPanelSecondView() {
       setMultipleView(null)
     }
   }, [view, testid, testname])
-
 
   const rendering = () => {
     if (!testname) {
@@ -54,7 +57,7 @@ export default function ResultEntryPanelSecondView() {
           </div>
         )
       } else {
-        return <h3>Multiple View Null</h3>
+        return <h3>Test Not recognized</h3>
       }
     }
   }

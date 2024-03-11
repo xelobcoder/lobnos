@@ -71,7 +71,7 @@ export default function Approval() {
                     <tr key={index}>
                       <td>{client.billingid}</td>
                       <td>{client.fullname}</td>
-                      <td>{client.NAME}</td>
+                      <td>{client.name}</td>
                       <td>
                         <button
                           style={{ marginRight: "10px" }}
@@ -90,7 +90,7 @@ export default function Approval() {
                           component="a"
                           rel="noopener noreferrer"
                           onClick={() =>
-                            navigation(client.testid, client.billingid, client.NAME)
+                            navigation(client.testid, client.billingid, client.name)
                           }
                         >
                           <Launch />

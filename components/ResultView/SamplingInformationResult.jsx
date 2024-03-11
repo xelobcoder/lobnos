@@ -11,7 +11,8 @@ export default function SamplingInformationResult({ data = {} }) {
     phelobotomist,
     urgency,
     samplingCenter,
-  } = data
+  } = data;
+  
   return (
     <>
       {
