@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react"
-import { customFetch, customPost, defaultCreationRule, handleChangeWithState } from "../../../../components/Auth/customFetch";
+import { useCallback, useEffect, useState } from "react"
+import { customFetch, customPost, defaultCreationRule, getSingleEditTest, handleChangeWithState } from "../../../../components/Auth/customFetch";
 import { Form } from 'react-bootstrap';
 import MainSettingsLayoutView from "../../../../components/settingsComponents/MainSettingsLayoutView";
 import TableDisplay from "../../../../components/accessories/TableDisplay";
 import { useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from 'react-toastify';
 export default function CreateTestFields() {
+   const [testdata, setTestData] = useState(defaultCreationRule);
+   const [isloading, setLoading] = useState(true);
    const [data, setData] = useState([]);
    const [error, setError] = useState("");
    const testid = useSearchParams().get("testid");
@@ -32,6 +34,7 @@ export default function CreateTestFields() {
    }
 
 
+
    const removeField = async (item) => {
       const { name } = item;
       setData((prev) => {
@@ -41,13 +44,34 @@ export default function CreateTestFields() {
    }
 
 
+   const renderLimitsValue = (row, limit) => {
+      if (testdata.hasGenderVariation) {
+         return (
+            <div>
+               <span>male: {row?.male?.[limit]}</span>
+               <br/>
+               <span>female:{row?.female?.[limit]} </span>
+            </div>
+         )
+      } else {
+        return  <div>{row?.[limit]}</div>
+      }
+   }
+
+
    const columns = [
       { Header: 'name', accessor: 'name' },
       { Header: 'type', accessor: 'type' },
       { Header: 'hasoptions', accessor: 'hasoptions', Cell: ({ value }) => { return <div>{value === true ? "Yes" : 'No'}</div> } },
       { Header: "haslimits", accessor: 'haslimits', Cell: ({ value }) => { return <div>{value === true ? "Yes" : 'No'}</div> } },
-      { Header: 'upperlimits', accessor: 'upperlimit' },
-      { Header: 'lowerlimits', accessor: 'lowerlimit' },
+      {
+         Header: 'upperlimits', accessor: 'upperlimit', Cell: ({ value, row }) => {
+            return <div>{renderLimitsValue(row.original,'upperlimit')}</div>
+         }
+      },
+      { Header: 'lowerlimits', accessor: 'lowerlimit',Cell: ({ value, row }) => {
+         return <div>{renderLimitsValue(row.original,'lowerlimit')}</div>
+      }},
       {
          Header: 'actions', accessor: '', Cell: ({ value, row }) => {
             return (<button onClick={(ev) => { removeField(row.original) }} className="btn btn-danger btn-sm">remove field</button>)
@@ -55,8 +79,13 @@ export default function CreateTestFields() {
       }
    ]
 
+
+
+
+
    useEffect(() => {
       if (testid) {
+         getSingleEditTest(testid, setTestData, setLoading)
          customFetch(`testpanel/list/customtestrule?testid=${testid}`)
             .then((data) => {
                setData(data);
@@ -65,6 +94,71 @@ export default function CreateTestFields() {
             })
       }
    }, [testid])
+
+
+   const handleGenderVariationLimit = (value, limit, gender) => {
+      setField({
+         ...field,
+         hasGenderVariation: testdata.hasGenderVariation == 1,
+         [gender]: {
+            ...field[gender],
+            [limit]: value
+         }
+      })
+   }
+
+
+   console.log(data)
+
+   const createLimitFields = () => {
+      if (field.haslimits && field.type == "number" && !field.hasoptions) {
+         if (testdata.hasGenderVariation) {
+            return <div>
+               <label>limits</label>
+               {['male', 'female'].map((item, index) => {
+                  return (
+                     <div key={index}>
+                        <label>{item}</label>
+                        <div className="d-flex justify-content-between">
+                           <input
+                              placeholder="upper limit"
+                              type='number'
+                              onChange={(ev) => { handleGenderVariationLimit(ev.target.value, 'upperlimit', item) }}
+                              value={field.upperlimit} className="custom-input" />
+                           <input
+                              placeholder="lower limit"
+                              type='number'
+                              onChange={(ev) => { handleGenderVariationLimit(ev.target.value, 'lowerlimit', item) }}
+                              value={field.lowerlimit} className="custom-input mx-2" />
+                        </div>
+                     </div>
+                  )
+               })}
+            </div>
+         } else {
+            return (
+               <div>
+                  <label>limits</label>
+                  <div className="d-flex justify-content-between">
+                     <input
+                        placeholder="upper limit"
+                        type='number'
+                        onChange={(ev) => { handleChangeWithState(ev, 'upperlimit', setField, field) }}
+                        value={field.upperlimit} className="custom-input" />
+                     <input
+                        placeholder="lower limit"
+                        type='number'
+                        onChange={(ev) => { handleChangeWithState(ev, 'lowerlimit', setField, field) }}
+                        value={field.lowerlimit} className="custom-input mx-2" />
+                  </div>
+               </div>
+            )
+         }
+      }
+   }
+
+
+
 
 
    const updateFieldsRules = async () => {
@@ -135,6 +229,7 @@ export default function CreateTestFields() {
                      }}
                      type='switch' style={{ fontSize: '25px' }} checked={field.haslimits} />
                </div>
+               {createLimitFields()}
                {field.hasunits && (<div>
                   <label>field units</label>
                   <input
@@ -147,21 +242,7 @@ export default function CreateTestFields() {
                      onChange={(ev) => { handleChangeWithState(ev, 'options', setField, field) }}
                      value={field.options} multiple className="custom-input" />
                </div>)}
-               {field.haslimits && field.type == 'number' && !field.hasoptions && (<div>
-                  <label>limits</label>
-                  <div className="d-flex justify-content-between">
-                     <input
-                        placeholder="upper limit"
-                        type='number'
-                        onChange={(ev) => { handleChangeWithState(ev, 'upperlimit', setField, field) }}
-                        value={field.upperlimit} className="custom-input" />
-                     <input
-                        placeholder="lower limit"
-                        type='number'
-                        onChange={(ev) => { handleChangeWithState(ev, 'lowerlimit', setField, field) }}
-                        value={field.lowerlimit} className="custom-input mx-2" />
-                  </div>
-               </div>)}
+
                <button onClick={(ev) => { handleCreateField() }} className="btn btn-success btn-sm mt-2">create field</button>
             </div>
          </section>

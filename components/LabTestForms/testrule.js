@@ -5,15 +5,18 @@ import Indicator from "../accessories/Reports/indicator";
 import Link from 'next/link';
 import CommentSection from "./commentSection";
 import { ToastContainer, toast } from 'react-toastify';
+import Loader from "../accessories/Loader";
 
 export default function CreateTestRule({ clientdata }) {
    const { testid = null, test = null, patientid = null, billingid = null, employeeid = null } = clientdata;
    const [comments, setComments] = useState({ comments: '' })
    const [resultEntered, setResultEntered] = useState(false);
+   const [isloading, setLoading] = useState(true);
    const [rule, setRule] = useState([]);
 
    useEffect(() => {
       if (testid && test && billingid && patientid) {
+         setLoading(true);
          customFetch(`testpanel/list/customtestrule/previous?testid=${testid}&&testname=${test}&&patientid=${patientid}&&billingid=${billingid}`)
             .then((data) => {
                setRule(data);
@@ -30,6 +33,7 @@ export default function CreateTestRule({ clientdata }) {
             }).catch((err) => {
                setComments({ comments: '' })
             })
+         setLoading(false);
       }
    }, [testid, test, billingid, patientid])
 
@@ -63,18 +67,13 @@ export default function CreateTestRule({ clientdata }) {
       }
    }
 
-   return (
-      <div>
-         <ToastContainer />
-         <section className="card mx-2">
-            <div className="card-header">
-               <div className="mx-2">
-                  <h5>{test}</h5>
-                  <Indicator resultEntered={resultEntered} />
-               </div>
-            </div>
-            <div className="card-body">
 
+
+   const renderingView = () => {
+      if (isloading) return <Loader />
+      else {
+         return (
+            <section>
                <table className="table">
                   <thead>
                      <tr>
@@ -100,6 +99,23 @@ export default function CreateTestRule({ clientdata }) {
                      </button>
                   </Link>
                </div>
+            </section>
+         )
+      }
+   }
+
+   return (
+      <div>
+         <ToastContainer />
+         <section className="card mx-2">
+            <div className="card-header">
+               <div className="mx-2">
+                  <h5 className="text-capitalize">{test.split('_').join(" ")}</h5>
+                  <Indicator resultEntered={resultEntered} />
+               </div>
+            </div>
+            <div className="card-body">
+               {renderingView()}
             </div>
          </section>
       </div>

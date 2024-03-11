@@ -11,6 +11,7 @@ import {
   defaultTestEditValues,
   handleChangeWithState,
   customPost,
+  getSingleEditTest,
 } from "../../Auth/customFetch"
 
 export default function TestForm({ method, customtest, testid, router }) {
@@ -22,22 +23,15 @@ export default function TestForm({ method, customtest, testid, router }) {
   const [isLoading, setLoading] = useState(true)
 
   const getTestParams = useCallback(async () => {
-    if (testid) {
-      setLoading(true)
-      customFetch(`gettestpanel/edit?id=${testid}`)
-        .then((data) => {
-          setTestData(data)
-          setLoading(false)
-        })
-        .catch((err) => {
-          setLoading(false)
-        })
-    }
+    getSingleEditTest(testid,setTestData,setLoading)
   }, [testid])
 
   useEffect(() => {
-    getTestParams()
-  }, [getTestParams])
+    if (testid) {
+      getTestParams()
+    }
+  }, [getTestParams, testid])
+  
 
   useEffect(() => {
     getDepartment(setCategory)
@@ -213,6 +207,28 @@ export default function TestForm({ method, customtest, testid, router }) {
                     handleSwitch(ev, "showtrend")
                   }}
                   checked={data.showtrend == 1 ? true : false}
+                  type="switch"
+                  style={{ fontSize: "25px" }}
+                />
+              </div>
+              <div className="form-row grid-reg mt-2">
+                <label>has varied gender</label>
+                <Form.Switch
+                  checked={data.hasGenderVariation == 1 ? true : false}
+                  onChange={(ev) => {
+                    handleSwitch(ev, "hasGenderVariation")
+                  }}
+                  type="switch"
+                  style={{ fontSize: "25px" }}
+                />
+              </div>
+              <div className="form-row grid-reg mt-2">
+                <label>has children limit</label>
+                <Form.Switch
+                  checked={data.hasChildrenLimit == 1 ? true : false}
+                  onChange={(ev) => {
+                    handleSwitch(ev, "hasChildrenLimit")
+                  }}
                   type="switch"
                   style={{ fontSize: "25px" }}
                 />

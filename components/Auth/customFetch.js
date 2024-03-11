@@ -795,7 +795,9 @@ export const defaultTestEditValues = {
    updatedby: "",
    showtrend: 0,
    isoutsourced: 0,
-   iscustom: 0
+   iscustom: 0,
+   hasGenderVariation: 0,
+   hasChildrenLimit: 0
 };
 
 
@@ -811,4 +813,17 @@ export const defaultCreationRule = {
    testid: '',
    hasunits: false,
    units: ''
+}
+
+
+
+export const getSingleEditTest = (testid, setTestData,setLoading) => {
+   customFetch(`gettestpanel/edit?id=${testid}`)
+        .then((data) => {
+          setTestData(data)
+          setLoading(false)
+        })
+        .catch((err) => {
+          setLoading(false)
+        })
 }
