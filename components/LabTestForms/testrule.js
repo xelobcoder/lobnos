@@ -84,7 +84,7 @@ export default function CreateTestRule({ clientdata }) {
                      </tr>
                   </thead>
                   <tbody>
-                     {rule.map((item, index) => fieldDeterminer(item, handlestate, index))}
+                     {rule.length > 0 && rule.map((item, index) => fieldDeterminer(item, handlestate, index))}
                   </tbody>
                </table>
                <CommentSection datafunction={setComments} getcomment={handleComments} datasource={comments} target={'comments'} value={comments.comments} />

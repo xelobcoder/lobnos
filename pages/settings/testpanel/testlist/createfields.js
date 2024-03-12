@@ -8,6 +8,7 @@ import { ToastContainer, toast } from 'react-toastify';
 export default function CreateTestFields() {
    const [testdata, setTestData] = useState(defaultCreationRule);
    const [isloading, setLoading] = useState(true);
+   const [isNew, setisNew] = useState(false);
    const [data, setData] = useState([]);
    const [error, setError] = useState("");
    const testid = useSearchParams().get("testid");
@@ -29,7 +30,13 @@ export default function CreateTestFields() {
       } else {
          setField({ ...field, field: 'input' })
       }
-      setData([...data, field]);
+
+      if (data.length === 0) {
+         setData(field);
+      } else {
+         const dataset = [...data].filter((item, index) => item.name != field.name)
+         setData([...dataset, field]);
+      }
       setField(defaultCreationRule);
    }
 
@@ -64,17 +71,24 @@ export default function CreateTestFields() {
       { Header: 'type', accessor: 'type' },
       { Header: 'hasoptions', accessor: 'hasoptions', Cell: ({ value }) => { return <div>{value === true ? "Yes" : 'No'}</div> } },
       { Header: "haslimits", accessor: 'haslimits', Cell: ({ value }) => { return <div>{value === true ? "Yes" : 'No'}</div> } },
-      {
-         Header: 'upperlimits', accessor: 'upperlimit', Cell: ({ value, row }) => {
+      {Header: 'upperlimits', accessor: 'upperlimit', Cell: ({ value, row }) => {
             return <div>{renderLimitsValue(row.original,'upperlimit')}</div>
          }
       },
       { Header: 'lowerlimits', accessor: 'lowerlimit',Cell: ({ value, row }) => {
          return <div>{renderLimitsValue(row.original,'lowerlimit')}</div>
       }},
-      {
-         Header: 'actions', accessor: '', Cell: ({ value, row }) => {
-            return (<button onClick={(ev) => { removeField(row.original) }} className="btn btn-danger btn-sm">remove field</button>)
+      {Header: 'actions', accessor: '', Cell: ({ value, row }) => {
+            return (
+               <div>
+                  <button onClick={(ev) => {editField(row.original)}} className="btn btn-info btn-sm">
+                     Edit field
+                  </button>
+                  <button onClick={(ev) => { removeField(row.original) }} className="btn btn-danger btn-sm mx-2">
+                     Remove
+                  </button>
+               </div>
+            )
          }
       }
    ]
@@ -108,7 +122,11 @@ export default function CreateTestFields() {
    }
 
 
-   console.log(data)
+   const editField = (row) => {
+      if (data.length == 0) return
+      setField(row);
+   }
+
 
    const createLimitFields = () => {
       if (field.haslimits && field.type == "number" && !field.hasoptions) {
@@ -124,12 +142,12 @@ export default function CreateTestFields() {
                               placeholder="upper limit"
                               type='number'
                               onChange={(ev) => { handleGenderVariationLimit(ev.target.value, 'upperlimit', item) }}
-                              value={field.upperlimit} className="custom-input" />
+                              value={field[item].upperlimit} className="custom-input" />
                            <input
                               placeholder="lower limit"
                               type='number'
                               onChange={(ev) => { handleGenderVariationLimit(ev.target.value, 'lowerlimit', item) }}
-                              value={field.lowerlimit} className="custom-input mx-2" />
+                              value={field[item].lowerlimit} className="custom-input mx-2" />
                         </div>
                      </div>
                   )
@@ -170,6 +188,8 @@ export default function CreateTestFields() {
          toast.error(response?.message || 'test fields creation failed', { autoClose: 2000 })
       }
    }
+
+
    return (
       <MainSettingsLayoutView>
          <ToastContainer />
