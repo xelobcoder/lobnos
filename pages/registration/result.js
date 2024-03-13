@@ -8,6 +8,7 @@ import PersonalInformation from '../../components/ResultView/PersonalInformation
 import HemaSingle from '../../components/ResultView/HemaSingle';
 import { useSearchParams } from 'next/navigation';
 import UseCustomResultTemplating from '../../components/ResutlUI/useCustomResultTemplating';
+import UseResultCommentSingle from '../../components/ResutlUI/useResultCommentSingle';
 
 
 export default function RESULT_FOR_PRINTING() {
@@ -27,9 +28,7 @@ export default function RESULT_FOR_PRINTING() {
         await readyToPrint(billingid, testid);
       }
     };
-
     document.addEventListener('keydown', handleKeyPress);
-
     return () => {
       document.removeEventListener('keydown', handleKeyPress);
     };
@@ -45,6 +44,7 @@ export default function RESULT_FOR_PRINTING() {
         <PersonalInformation patientid={patientid} billingid={billingid} />
         <SamplingInformationResult billingid={billingid} testid={testid} />
         <UseCustomResultTemplating testid={testid} test={test} billingid={billingid} patientid={patientid} />
+        <UseResultCommentSingle billingid={billingid} testid={testid} />
         <CompanyFooter details={headers} />
       </div>
       <div>
