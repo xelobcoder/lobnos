@@ -16,7 +16,12 @@ export default function MiniCard({ colorIndex, text, number, link }) {
 
   const router = useRouter()
   return (
-    <div className={`mx-2 border border-secondary  text-capitalize`} onClick={() => router.push(link)}>
+    <div
+      className={`mx-2 border border-secondary  text-capitalize`}
+      onClick={() => {
+        if (number == 0) return
+        router.push(link)
+      }}>
       <div className={`${colorview[colorIndex]}  border-bottom border-secondary p-2`}>
         <h6>{text}</h6>
       </div>

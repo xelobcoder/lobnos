@@ -19,11 +19,13 @@ export default function OperationsTestCollection() {
   const getCollection = useCallback(async function () {
     let url = `operations/collection?category=${departmentid}`;
     try {
-      const response = await customFetch(url);
-      if (response?.result == false) {
-        setCollections([])
-      } else {
-        setCollections(response?.result)
+      if (departmentid) {
+        const response = await customFetch(url);
+        if (response?.result == false) {
+          setCollections([])
+        } else {
+          setCollections(response?.result)
+        }
       }
     }
     catch (err) {
@@ -63,7 +65,7 @@ export default function OperationsTestCollection() {
 
 
   const handleUpdate = (e, item) => {
-    updateOperations({ billingid: item.BILLINGID, patientid: item.PATIENTID })
+    updateOperations({ billingid: item.billingid, patientid: item.patientid })
   }
 
 

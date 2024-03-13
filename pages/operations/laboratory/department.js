@@ -1,7 +1,7 @@
 import  { useState, useEffect, useCallback, useContext } from 'react'
-import MiniCard from '../../components/operations/miniCard'
-import { customFetch } from '../../components/Auth/customFetch';
-import LaboratoryLayout from '../../components/Layout/LaboratoryLayout';
+import MiniCard from '../../../components/operations/miniCard'
+import { customFetch } from '../../../components/Auth/customFetch';
+import LaboratoryLayout from '../../../components/Layout/LaboratoryLayout';
 
 export default function OperationsOverview() {
   const [summary, setSummary] = useState([]);
@@ -18,7 +18,7 @@ export default function OperationsOverview() {
       } else {
         setSummary(result);
         const len = result.reduce((a, b) => a + b.count, 0);
-        setTotalCount(len)
+        setTotalCount(len);
       }
     }
   }, [])

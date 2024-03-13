@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "node server.js",
     "next": "next dev",
+    "ns":"next start",
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
     "build:css": ""
