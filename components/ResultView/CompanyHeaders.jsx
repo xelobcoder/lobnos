@@ -1,8 +1,19 @@
 import Image from 'next/image';
+import { useEffect, useState } from "react"
+import { getCompanyInformation } from "../Auth/customFetch"
 
+export default function CompanyHeaders({ billingid }) {
+  const [company, setCompany] = useState({})
+  const { email, phonenumber, website, address, name, alternativenumber } = company
 
-export default function CompanyHeaders({ details }) {
-  const { email, phonenumber, website, address, name, alternativenumber } = details
+  useEffect(() => {
+    try {
+      billingid && getCompanyInformation(setCompany)
+    } catch (err) {
+      console.log(err)
+    }
+  }, [billingid])
+
   return (
     <div>
       <div className="company-logo">

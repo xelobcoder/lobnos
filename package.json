@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node server.js",
+    "next": "next dev",
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
     "build:css": ""

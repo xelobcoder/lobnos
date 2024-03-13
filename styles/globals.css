@@ -79,6 +79,11 @@ body {
   display: grid !important;
   grid-template-columns: repeat(5, 1fr) !important;
 }
+
+.grid-4 {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+}
 .sidebarMenu {
   display: none;
 }
@@ -2125,6 +2130,10 @@ input[type="email"]:focus:invalid .company-view-result > .wrapper {
 
 .result-table-section {
   border-bottom: 1px solid black;
+}
+
+.main-result {
+  font-size: 15px !important;
 }
 
 @media print {

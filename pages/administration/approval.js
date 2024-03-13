@@ -17,7 +17,7 @@ export default function Approval() {
       .catch((error) => console.log(error));
   }, []);
 
-  const navigation = function (testid, billingid, test) {
+  const navigation = function (testid, billingid, test, patientid) {
     // replace all space with _
     let testname = test.replace(/\s/g, "_").toLowerCase();
     // format test to match pregnacy_test for pregnancy test
@@ -32,7 +32,7 @@ export default function Approval() {
       }
     };
     window.open(
-      `/registration/result?billingid=${billingid}&&testid=${testid}&&test=${formattedTestName()}`
+      `/registration/result?billingid=${billingid}&&testid=${testid}&&test=${formattedTestName()}&&patientid=${patientid}`
     );
   };
 
@@ -90,7 +90,7 @@ export default function Approval() {
                           component="a"
                           rel="noopener noreferrer"
                           onClick={() =>
-                            navigation(client.testid, client.billingid, client.name)
+                            navigation(client.testid, client.billingid, client.name,client.patientid)
                           }
                         >
                           <Launch />

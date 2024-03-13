@@ -1,4 +1,10 @@
-export default function SamplingInformationResult({ data = {} }) {
+import { useEffect, useState } from "react"
+import { customFetch } from "../Auth/customFetch"
+import Loader from "../accessories/Loader"
+
+export default function SamplingInformationResult({ billingid, testid }) {
+  const [data, setData] = useState({})
+  const [isloading, setLoading] = useState(true)
   const {
     inspectionTime,
     processing_date,
@@ -11,12 +17,27 @@ export default function SamplingInformationResult({ data = {} }) {
     phelobotomist,
     urgency,
     samplingCenter,
-  } = data;
-  
-  return (
-    <>
-      {
-        <div>
+  } = data
+
+  useEffect(() => {
+    if (billingid && testid) {
+      customFetch(`phelobotomy/ascension/getsamplinginfo?billingid=${parseInt(billingid)}}&&testid=${parseInt(testid)}`)
+        .then((data) => {
+          setData(data)
+          setLoading(false)
+        })
+        .catch((err) => {
+          setData({})
+          setLoading(false)
+        })
+    }
+  }, [billingid, testid])
+
+  const renderingView = () => {
+    if (isloading) return <Loader />
+    else {
+      return (
+        <section>
           <h6 className="result-section-header fw-bold">Sampling Information</h6>
           <div className="sampling-result">
             <div className="left-panel">
@@ -62,8 +83,10 @@ export default function SamplingInformationResult({ data = {} }) {
               </div>
             </div>
           </div>
-        </div>
-      }
-    </>
-  )
+        </section>
+      )
+    }
+  }
+
+  return <>{renderingView()}</>
 }

@@ -1,57 +1,39 @@
-import  { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
 import CompanyHeaders from '../../components/ResultView/CompanyHeaders';
 import CompanyFooter from '../../components/ResultView/CompanyFooter';
-import { customFetch, getCompanyInformation, readyToPrint } from '../../components/Auth/customFetch';
+import { readyToPrint } from '../../components/Auth/customFetch';
 import ChemistryTable from '../../components/ResultView/ChemistryTable';
 import SamplingInformationResult from '../../components/ResultView/SamplingInformationResult';
 import PersonalInformation from '../../components/ResultView/PersonalInformation';
 import HemaSingle from '../../components/ResultView/HemaSingle';
+import { useSearchParams } from 'next/navigation';
+import UseCustomResultTemplating from '../../components/ResutlUI/useCustomResultTemplating';
+
 
 export default function RESULT_FOR_PRINTING() {
   const [headers, setHeaders] = useState([]);
-  const [result, setResult] = useState([]);
-  const [sampling, setSampling] = useState([])
-  const [category, setCategory] = useState(null);
-  const { template, testid, test, billingid, preview = false } = useRouter().query;
-  const [errorInDetails, setErrorInDetails] = useState(false);
+  const testid = useSearchParams().get('testid');
+  const billingid = useSearchParams().get('billingid');
+  const test = useSearchParams().get('test');
+  const patientid = useSearchParams().get('patientid');
+
+
+
+
 
   useEffect(() => {
-    getCompanyInformation(setHeaders);
-  }, [])
-
-
-  useMemo(() => {
-    try {
-      async function getData() {
-        if (billingid && test && testid) {
-          const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}&&category=${category}`);
-          const { result, sampling, testcategory } = response;
-          setResult(result);
-          setSampling(sampling);
-          setCategory(testcategory)
-        }
+    const handleKeyPress = async function (event) {
+      if (event.ctrlKey && event.key === 'p') {
+        await readyToPrint(billingid, testid);
       }
-      getData();
-    }
-    catch (err) {
-      console.log(err)
-    }
-  }, [billingid, category, test, testid])
+    };
 
-  // useEffect(() => {
-  //   const handleKeyPress = async function (event) {
-  //     if (event.ctrlKey && event.key === 'p') {
-  //       await readyToPrint(billingid, testid);
-  //     }
-  //   };
+    document.addEventListener('keydown', handleKeyPress);
 
-  //   document.addEventListener('keydown', handleKeyPress);
-
-  //   return () => {
-  //     document.removeEventListener('keydown', handleKeyPress);
-  //   };
-  // })
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  })
 
 
 
@@ -59,11 +41,10 @@ export default function RESULT_FOR_PRINTING() {
   return (
     <div className='result_page'>
       <div className='result'>
-        <CompanyHeaders details={headers} />
-        <PersonalInformation data={sampling} />
-        <SamplingInformationResult data={sampling} />
-         {category == 'chemistry' && <ChemistryTable data={result} testname={test} />}
-         {category == 'hema' && <HemaSingle result={result || {}} testname={test} />}
+        <CompanyHeaders billingid={billingid} />
+        <PersonalInformation patientid={patientid} billingid={billingid} />
+        <SamplingInformationResult billingid={billingid} testid={testid} />
+        <UseCustomResultTemplating testid={testid} test={test} billingid={billingid} patientid={patientid} />
         <CompanyFooter details={headers} />
       </div>
       <div>

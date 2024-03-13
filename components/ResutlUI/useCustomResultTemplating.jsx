@@ -1,46 +1,89 @@
-export default function UseCustomResultTemplating({ result, testname }) {
-  const reformatTest = (result) => {
-    if (!result) return
+import { useEffect, useState } from "react"
+import { customFetch } from "../Auth/customFetch"
+import Loader from "../accessories/Loader"
 
-    let plainResult = Object.entries(result).map((item, index) => {
-      return { key: item[0], value: item[1] }
-    })
+export default function UseCustomResultTemplating({ billingid, testid, test, patientid }) {
+  const [haslimits, setHaslimits] = useState(true)
+  const [result, setResult] = useState([])
+  const [isloading, setLoading] = useState(true)
 
-    return plainResult
-  }
+  useEffect(() => {
+    try {
+      async function getData() {
+        if (billingid && test && testid) {
+          setLoading(true)
+          const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}`)
+          const { result, sampling, testcategory } = response
+          if (result.length > 0) {
+            const haslimits = result.some((item, index) => item.haslimits == true)
+            setHaslimits(haslimits)
+          } else {
+            setHaslimits(false)
+          }
+          setResult(result || [])
+          setLoading(false)
+        }
+      }
+      getData()
+    } catch (err) {
+      setResult([])
+      setLoading(false)
+    }
+  }, [billingid, test, testid, patientid])
 
   const renderingView = () => {
-    if (typeof result != "object" || Object.keys(result).length == 0) return <h4>Wrong format provided</h4>
+    if (isloading) return <Loader />
     else {
-      return (
-        <div>
-          <div style={{ display: "grid", gridTemplateColumns: "2% 40% auto" }}>
-            <div>{""}</div>
-            <div >
-              <span className="text-capitalize text-dark  fw-bold border-bottom border-secondary border-0">parameter</span>
-            </div>
-            <div >
-              <span >value</span>
-            </div>
-          </div>
-          {reformatTest(result).map((item, index) => {
-            const { key, value } = item
-            return (
-              <div key={index} style={{ display: "grid", gridTemplateColumns: "2% 40% auto" }}>
-                <div>{">>"}</div>
-                <div className="text-capitalize">{key}</div>
-                <div>{value}</div>
+      if (Array.isArray(result) === false || result.length == 0) return <h4>No data provided</h4>
+      else {
+        return (
+          <div>
+            <div className={haslimits ? "grid grid-4" : "grid grid-50"}>
+              <div>
+                <span className="text-uppercase text-dark  fw-bold border-bottom border-secondary border-0">parameter</span>
               </div>
-            )
-          })}
-        </div>
-      )
+              <div>
+                <span className="text-uppercase text-dark  fw-bold border-bottom border-secondary border-0">value</span>
+              </div>
+              {haslimits && (
+                <div>
+                  <span className="text-uppercase text-dark  fw-bold border-bottom border-secondary border-0">units</span>
+                </div>
+              )}
+              {haslimits && (
+                <div>
+                  <span className="text-uppercase text-dark  fw-bold border-bottom border-secondary border-0">reference ranges</span>
+                </div>
+              )}
+            </div>
+            {result.map((item, index) => {
+              return (
+                <div key={index} className={haslimits ? "grid grid-4" : "grid grid-50"}>
+                  <div className="text-capitalize">{item.name}</div>
+                  <div>{item.value}</div>
+                  {item.haslimits && <div>{item.units}</div>}
+                  {item.haslimits && (
+                    <div>
+                      <span>{item.upperlimit}</span>
+                      <span>{"-"}</span>
+                      <span>{item.lowerlimit}</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )
+      }
     }
   }
+
   return (
     <div>
-      <h5 className="text-uppercase text-center">{testname}</h5>
-      <section>{renderingView()}</section>
+      <h5 className="text-uppercase text-center border-bottom border-top border-2 border-secondary">
+        {test && test.includes("_") ? test.split("_").join(" ") : test}
+      </h5>
+      <section className="main-result">{renderingView()}</section>
     </div>
   )
 }
