@@ -1,6 +1,6 @@
 import { DeleteOutlineTwoTone } from '@mui/icons-material';
 import { useState, useEffect, useCallback } from 'react';
-import { Autocomplete } from '@mui/joy';
+import Autocomplete from '@mui/joy/Autocomplete';
 import { currencyFormatter, customFetch, customPost } from '../Auth/customFetch';
 import { ToastContainer, toast } from 'react-toastify';
 import Link from 'next/link';

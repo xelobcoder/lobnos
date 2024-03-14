@@ -1,5 +1,4 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { ProgressBar } from 'react-bootstrap'
 import AuthContext from "../../../components/Auth/useAuthentification";
 import UsePaginationTableDisplay from "../../../components/accessories/usePaginationTableDisplay";
 import { customFetch, formatTest, getDepartment, handleChangeWithState } from "../../../components/Auth/customFetch";
@@ -54,11 +53,10 @@ export default function ResultEntryDepartmentViewTwo() {
 
     const gotoResultEntryAll = (billingid, patientid) => {
         if (!billingid || typeof billingid != "number" || !patientid || typeof patientid != "number") return;
-
         const matcheddata = pendingdata.filter((item, index) => item.billingid === billingid && patientid === item.patientid);
 
         if (matcheddata.length == 0) return;
-
+        
         const testnames = matcheddata.map((a, i) => formatTest(a.name)).join(",");
         const testids = matcheddata.map((a, i) => a.id).join(",");
 

@@ -1,139 +1,110 @@
-import React, { useState } from 'react';
-import TableIsLoading from '../accessories/TableIsLoading';
-import SECOND_NO_DATA from '../accessories/secondNodata';
+import { useEffect, useState } from 'react';
+import Autocomplete from '@mui/joy/Autocomplete';
 
-export default function PLACE_ORDER({ source, cartHandler, suppliers }) {
-  // GET ALL DATA OF COMMODITIES FROM SERVER
-  const [datasource, setDatasource] = useState(source);
-  const [selectedproduct, setSelectedproduct] = useState({
-    quantity: '',
-    supplier: '',
-    purchaseunit: '',
-  });
-  const [purchaseunit, setPurchaseunit] = useState(['kg', 'g', 'litre','unit','Box','Bottle']);
+export default function PLACE_ORDER({ source, cartHandler, suppliers ,editdata}) {
+  const defaultdata = { name: '', purchaseunit: '', quantity: '', suppliername: '' }
+  const [field, setField] = useState({});
+  const [purchaseunit, setPurchaseunit] = useState(['kg', 'g', 'litre', 'unit', 'Box', 'Bottle']);
+  const [target, setTarget] = useState(0);
+
+
+  const handelChange = (event, value, target) => {
+    if (!value || typeof target != 'string') return;
+    if (target == 'stock') {
+      const { stockid, name } = value;
+      setField({ ...field, stockid, name });
+    };
+    if (target == 'supplier') {
+      const { supplierid, name } = value;
+      setField({ ...field, supplierid, suppliername: name });
+    }
+    if (target == 'purchaseunit') {
+      setField({ ...field, purchaseunit: value });
+    }
+    if (target == 'qty') {
+      setField({ ...field, quantity: value });
+    }
+  }
+
+
+
+  useEffect(() => {
+    if (Object.keys(editdata).length > 0) setField(editdata);
+  },[editdata])
+
+
+  const handleAddCart = (ev) => {
+    ev.preventDefault();
+    setTarget(0)
+    const { stockid, supplierid, purchaseunit, quantity } = field;
+    if (Object.keys(field).length === 0) setTarget('all');
+    const empty = [stockid, supplierid, purchaseunit, quantity].findIndex((a, i) => a == 0 || a == '' || a == undefined);
+    typeof empty == 'number' && empty > 0 && setTarget(empty + 1)
+    if (empty == -1) {
+      cartHandler(ev, field);
+      setField(defaultdata);
+    }
+  }
+
 
   return (
-    <>
-      <div id="placeorder">
-        {source.length === 0 ? (
-          <SECOND_NO_DATA/>
-        ) : (
-          <div className="card br-5">
-            <div className="card-header" id='split-8'>
-              <div>stk id</div>
-              <div>item name</div>
-              <div>category</div>
-              <div>purchase unit</div>
-              <div>supplier</div>
-              <div>qty required </div>
-              <div>action</div>
+    <section>
+      <div className='card my-2'>
+        <div className='card-header bg-secondary text-white'>
+          <h4>Stock Purchase</h4>
+        </div>
+        <div className='card-body'>
+          <form className='grid-50 grid'>
+            <div className='form-row'>
+              <Autocomplete
+                options={source}
+                disableClearable={true}
+                required
+                getOptionLabel={(option) => option.name}
+                onChange={(ev, value) => { handelChange(ev, value, 'stock') }}
+                placeholder='search stock here'
+              />
+              {(target == 'all' || target == 1) && <div className='text-danger text-capitalize text-sm mx-2'>stock is required and must be field</div>}
             </div>
-            <div className="card-body">
-                  {source.map((item, index) => {
-                    return (
-                      <div key={index} id='split-8'>
-                        <div>{item.stockid}</div>
-                        <div>{item.name}</div>
-                        <div>{item.categoryname}</div>
-                        <div>
-                          <select className="custom-select" onChange={(ev) => {
-                            setSelectedproduct({
-                              ...selectedproduct,
-                              purchaseunit: ev.target.value
-                            });
-                            }}
-                          >
-                            <option>select a unit</option>
-                            {purchaseunit.map((item, index) => {
-                              return (
-                                <option key={index} value={item}>
-                                  {item}
-                                </option>
-                              );
-                            })}
-                          </select>
-                        </div>
-                        {/* <div>{item.unitquantity}</div> */}
-                        <div>
-                          <select
-                            className="custom-select"
-                            onChange={(ev) => {
-                              setSelectedproduct({
-                                ...selectedproduct,
-                                supplier: ev.target.value,
-                              });
-                            }}
-                          >
-                            <option>select a supplier</option>
-                            {suppliers.length === 0 ? (
-                              <option>no supplier</option>
-                            ) : (
-                              suppliers.map((item, index) => {
-                                return (
-                                  <option
-                                    key={index}
-                                    dataid={item.supplierid}
-                                    value={item.supplierid}
-                                  >
-                                    {item.name}
-                                  </option>
-                                );
-                              })
-                            )}
-                          </select>
-                        </div>
-                        <div>
-                          <input
-                            onChange={(ev) => {
-                              setSelectedproduct({
-                                ...selectedproduct,
-                                quantity: ev.target.value,
-                              });
-                            }}
-                            className="custom-input"
-                            type="number"
-                          />
-                        </div>
-                        <div dataid={item.stockid}>
-                          <button
-                            dataid={item.stockid}
-                            onClick={(ev) => {
-                              if (
-                                selectedproduct.quantity === '' ||
-                                selectedproduct.supplier === ''
-                              ) {
-                                alert('please fill all fields');
-                                return;
-                              } else {
-                                const suppliedid = selectedproduct.supplier;
-                                const supplierName = suppliers.filter(
-                                  (item) =>
-                                    parseInt(item.supplierid) ===
-                                    parseInt(suppliedid)
-                                )[0].name;
-                                cartHandler(ev, {
-                                  quantity: selectedproduct.quantity,
-                                  stockid: item.stockid,
-                                  name: item.name,
-                                  purchaseunit: selectedproduct.purchaseunit,
-                                  tax: item.tax,
-                                  suppliername: supplierName,
-                                  supplierid: suppliedid,
-                                });
-                               
-                              }
-                            }}
-                            className="btn btn-sm btn-primary p-1">
-                            Add to cart
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+
+            <div className='form-row'>
+              <Autocomplete
+                options={suppliers}
+                required
+                getOptionLabel={(option) => option.name}
+                onChange={(ev, value) => { handelChange(ev, value, 'supplier') }}
+                placeholder='search supplier here'
+              />
+              {(target == 'all' || target == 2) && <div className='text-danger text-sm mx-2 text-capitalize'>supplier is required and must be field</div>}
             </div>
-          </div>
-        )}
+
+            <div className='form-row'>
+              <Autocomplete
+                options={purchaseunit}
+                required
+                getOptionLabel={(option) => option}
+                onChange={(ev, value) => { handelChange(ev, value, 'purchaseunit') }}
+                placeholder='search supplier here'
+              />
+              {(target == 'all' || target == 3) && <div className='text-danger text-sm mx-2 text-capitalize'>unit of purchase is required and must be field</div>}
+
+            </div>
+            <div className='form-row'>
+              <input className='custom-input'
+                onChange={(ev) => { handelChange(ev, ev.target.value, 'qty') }}
+                required placeholder='quantity' type='number' />
+              {(target == 'all' || target == 4) && <div className='text-danger text-sm mx-2 text-capitalize'>quantity must be field</div>}
+            </div>
+            <div>
+              <button type='button' onClick={(ev) => { handleAddCart(ev) }} className='btn btn-primary btn-sm' style={{ padding: '6px' }}>
+                Add to Cart
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </>
+    </section>
   );
 }
+
+

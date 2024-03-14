@@ -4,7 +4,7 @@ import FrontDeskLayout from '../../components/Layout/FrontDeskLayout';
 
 export default function ClinicianView() {
   const clinicianid = useSearchParams().get('clinicianid');
-
+  
   return (
     <FrontDeskLayout>
       <ClinicianGeneralSalesChart clinicianid={clinicianid} />
