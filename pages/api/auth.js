@@ -1,12 +1,11 @@
-// import { NextRequest, NextResponse } from "next/server";
-
-
-
-
-// export default async function handler(request, response) {
-//   const t = new NextResponse();
-//   if (request.method == 'GET') {
-//     console.log(t.cookies)
-//     response.json({ h: 'hhhhhhhhhhhhhhhhhhhhhhhhh' })
-//   }
-// }
+function someAsyncOperation() {
+   return { name: 'tiifu hamza', maxage: 130 }
+}
+export default async function handler(req, res) {
+   try {
+      const result = await someAsyncOperation()
+      res.status(200).json({ result })
+   } catch (err) {
+      res.status(500).json({ error: 'failed to load data' })
+   }
+}

@@ -1,4 +1,4 @@
-import FlexTableDisplay from "./FlexTableDisplay"
+import TableDisplay from '../accessories/TableDisplay'
 import Pagination from "./pagination"
 import { useCallback, useEffect, useState } from "react"
 import { getDataAndUpdateState, updatePagination } from "../Auth/customFetch"
@@ -50,8 +50,8 @@ export default function UsePaginationTableDisplay({ column, endpoint, filtering 
     if (isloading) return <Loader />
     else {
       return (
-        <div>
-          <FlexTableDisplay data={data} column={column} filtering={filtering} />
+        <div className='mt-2'>
+          <TableDisplay  data={data} column={column} showpage={false} filtering={filtering} />
           <div className="d-flex justify-content-center">
             <Pagination updateFunction={updateFunction} page={paginate.page} load={setLoad} />
           </div>

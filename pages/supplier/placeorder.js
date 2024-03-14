@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import PLACE_ORDER from '../../components/inventory/placeorder';
 import CART_DISPLAY_COMPONENT from '../../components/inventory/cartDisplay';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import SupplierLayout from '../../components/inventory/SupplierLayout';
 import { Shop, ShoppingBagOutlined } from '@mui/icons-material';
 import { Button } from '@mui/material';
+
 
 export default function PLACE_ORDER_PAGE() {
   const [source, setDatasource] = useState([]);
