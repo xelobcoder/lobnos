@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { Apps, Login, Logout } from "@mui/icons-material";
 import { useContext } from "react";
 import AuthContext from "./Auth/useAuthentification";
 import { handleLogout } from "./Auth/customFetch";
+import { useRouter } from "next/navigation";
 
 
 
 function Header() {
   const [branch, setBranch] = useState('');
   const { auth } = useContext(AuthContext);
+  const router = useRouter();
 
   useEffect(() => {
     setBranch(localStorage.getItem('deviceDefaultBranch'));
@@ -20,9 +21,7 @@ function Header() {
     <>
       <div className="software-header-nav">
         <ul>
-          <Link className="text-white" href={'/'} >
-            <span className="softfullname">Prime laboratory system(PLS)</span>
-          </Link>
+          <span onClick={(ev) => { router.push('/') }} className="softfullname text-white pointer">Prime laboratory system(PLS)</span>
           <li>
             <span> <Apps /></span>
             <span> {auth?.username ? <Logout onClick={ (ev) =>  {handleLogout(ev)}} />  : <Login/>}</span>

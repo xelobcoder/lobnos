@@ -3,7 +3,7 @@ import { handleMobile, handleEmail,handleAgeCalculations,  handleSubmitRegistrat
 import IsRenderInput from "./CustomInput"
 import { useState } from "react"
 
-export default function PersonalInformationRegistration({ defaultData, fields, toast, expanded = true }) {
+export default function PersonalInformationRegistration({ defaultData, fields, toast, expanded = true, method = "POST" }) {
   const [data, setData] = useState(defaultData)
 
   const clearForm = () => {
@@ -11,7 +11,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
   }
 
   return (
-    <section >
+    <section>
       <form autoComplete="off" noValidate autoCorrect="false" className={`${expanded === true ? "mx-2" : ""}`}>
         <div className={`form-row ${expanded === true ? "" : "grid-30-30-30"}`}>
           <IsRenderInput
@@ -67,7 +67,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
             }
           />
         </div>
-        <div  className={`${expanded === true ? "grid-reg mx-4" : ""} form-row`}>
+        <div className={`${expanded === true ? "grid-reg mx-4" : ""} form-row`}>
           {fields["days"] && fields["years"] && fields["months"] && <label>Date of birth</label>}
           <div className="grid-30-30-30">
             <IsRenderInput
@@ -346,7 +346,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
             className="btn mt-3 btn-primary btn-sm text-capitalize"
             tabIndex={31}
             onClick={(e) => {
-              handleSubmitRegistration(e, data, toast, clearForm)
+              handleSubmitRegistration(e, data, method, toast, clearForm)
             }}>
             save new record
           </button>

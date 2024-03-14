@@ -50,7 +50,7 @@ export default function UsePaginationTableDisplay({ column, endpoint, filtering 
     if (isloading) return <Loader />
     else {
       return (
-        <div className='mt-2'>
+        <div>
           <TableDisplay  data={data} column={column} showpage={false} filtering={filtering} />
           <div className="d-flex justify-content-center">
             <Pagination updateFunction={updateFunction} page={paginate.page} load={setLoad} />

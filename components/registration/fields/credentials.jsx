@@ -1,7 +1,7 @@
 import { useState } from "react"
 import PatientCredentialsUpdate from "../../petientsComponent/PatientCredentialsUpdate"
 import { customPost } from "../../Auth/customFetch"
-export default function PatientCredentialsInformation({ patientid }) {
+export default function PatientCredentialsInformation({ patientid, toast }) {
   const [credentials, setCredentials] = useState({
     username: parseInt(patientid),
     npassword: "",
@@ -28,9 +28,8 @@ export default function PatientCredentialsInformation({ patientid }) {
       customPost("patients/updatecredentials", "POST", credentials)
         .then((response) => {
           const { statusCode, status, message } = response
-          // alert(message)
           if (statusCode == 404) {
-            setError(message)
+            toast.error(message, { autoClose: 500 })
           }
         })
         .catch((err) => console.log(err))

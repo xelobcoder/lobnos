@@ -11,9 +11,8 @@ import { getRegistrationFields } from '../../../components/registration/fields/U
 import Addressing from '../../../components/registration/Addressing';
 import EmmergencyContactInformation from '../../../components/registration/EmmergencyContactInformation';
 import PatientCredentialsInformation from '../../../components/registration/fields/credentials';
-import ResultsettingsPatient from '../../../components/registration/resultsettings';
 import Header from '../../../components/header';
-import Link from 'next/link';
+import PatientResultSettings from '../../../components/petientsComponent/PatientResultSettings';
 
 export default function Update() {
   const { personalInformation, addressingInformation, emmergencyInformation } = patientRegistrationDefaultData;
@@ -45,7 +44,7 @@ export default function Update() {
           <Tabs defaultActiveKey={events} onSelect={(key) => { setEvents(key) }}>
             <Tab eventKey={'personal'} title='Personal information'>
               <div className='bg-white br-5 p-2'>
-                {events == "personal" && <PersonalInformationRegistration defaultData={data} fields={fields.length > 0 ? fields[0]['fields'] : {}} toast={toast} />}
+                {events == "personal" && <PersonalInformationRegistration method='PUT' defaultData={data} fields={fields.length > 0 ? fields[0]['fields'] : {}} toast={toast} />}
               </div>
             </Tab>
             <Tab eventKey={'addressing'} title='Addressing information'>
@@ -60,12 +59,12 @@ export default function Update() {
             </Tab>
             <Tab eventKey={'credentials'} title='Credentials'>
               <div className='bg-white br-5 p-2' >
-                {events == "credentials" && <PatientCredentialsInformation patientid={patientid} />}
+                {events == "credentials" && <PatientCredentialsInformation toast={toast} patientid={patientid} />}
               </div>
             </Tab>
             <Tab eventKey={'result'} title={'Result settings'}>
               <div className='bg-white br-5 p-2' >
-                {events == "result" && <ResultsettingsPatient />}
+                {events == "result" && <PatientResultSettings toast={toast}/>}
               </div>
             </Tab>
           </Tabs>

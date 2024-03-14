@@ -2,7 +2,7 @@ import { getDataAndUpdateState } from "../Auth/customFetch"
 import IsRenderInput from "./CustomInput"
 import { submitFormData } from "../Auth/registerclient"
 import { useEffect, useState } from "react"
-export default function EmmergencyContactInformation({ defaultData, fields, patientid ,expanded=true}) {
+export default function EmmergencyContactInformation({ defaultData, fields, patientid ,expanded=true,toast}) {
   const [data, setData] = useState(defaultData)
   const [isloading, setLoading] = useState(true)
 
@@ -135,7 +135,7 @@ export default function EmmergencyContactInformation({ defaultData, fields, pati
       </div>
       <button
         onClick={(ev) => {
-          submitFormData(`register/emmergencycontactinformation?patientid=${patientid}`, data)
+          submitFormData(`register/emmergencycontactinformation?patientid=${patientid}`, data,toast)
         }}
         className="btn btn-primary btn-sm mt-3">
         save changes

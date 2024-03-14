@@ -3,7 +3,7 @@ import IsRenderInput from "./CustomInput"
 import { useEffect, useState } from "react"
 import { submitFormData } from "../Auth/registerclient"
 import Loader from "../accessories/Loader"
-export default function Addressing({ defaultData, fields, patientid, expanded = true }) {
+export default function Addressing({ defaultData, fields, patientid, expanded = true,toast }) {
   const [data, setData] = useState(defaultData)
   const [isloading, setLoading] = useState(true)
 
@@ -114,7 +114,7 @@ export default function Addressing({ defaultData, fields, patientid, expanded = 
           </div>
           <button
             onClick={(ev) => {
-              submitFormData(`register/addressinginformation?patientid=${patientid}`, data)
+              submitFormData(`register/addressinginformation?patientid=${patientid}`, data,toast)
             }}
             className="mt-2 btn btn-primary  btn-sm mx-2">
             save changes

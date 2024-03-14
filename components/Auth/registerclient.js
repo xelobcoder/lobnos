@@ -165,7 +165,7 @@ export const handleAgeCalculations = async (data, setData, toast) => {
 }
 
 
-export const handleSubmitRegistration = async (e, data = {}, toast, callback) => {
+export const handleSubmitRegistration = async (e, data = {}, method, toast, callback) => {
   e.preventDefault();
   // error marker , at end run if true , data is not sent to endpoint.
   var error = false;
@@ -184,7 +184,8 @@ export const handleSubmitRegistration = async (e, data = {}, toast, callback) =>
 
 
   if (!error) {
-    const response = await customPost("register", 'POST', { data });
+    const endpoint = method === 'POST' ? 'register' : `register/personalinformation?patientid=${data?.patientid}`;
+    const response = await customPost(endpoint, method, { data });
     const { status, statusCode, message, patientid } = response;
 
     if (statusCode == 200 && status == "success") {
@@ -272,11 +273,15 @@ export const patientRegistrationDefaultData = {
 }
 
 
-export const submitFormData = async function (endpoint,target) {
+export const submitFormData = async function (endpoint, target, toast = null) {
   const pushResponse = await customPost(endpoint, 'PUT', target);
   const { statusCode, status, message } = pushResponse;
   if (statusCode == 200 && status == 'success') {
-    alert(message)
+    if (toast) {
+      toast.success(message, { autoClose: 500 })
+    } else {
+      alert(message)
+    }
   }
 }
 

@@ -191,16 +191,18 @@ export default function ResultEntryDepartmentViewTwo() {
                     {/* <label className="text-capitalize">filter</label> */}
                     {/* <br /> */}
                     <div className="d-flex justify-content-between">
-                        <button onClick={handleFilter} className="btn btn-primary btn-sm">
+                        <button onClick={handleFilter} className="btn btn-primary">
                           filter 
                         </button>
-                        <button onClick={clearFilters} className="btn btn-sm btn-danger mx-2" >
-                            reset 
+                        <button onClick={clearFilters} className="btn btn-sm btn-outline-secondary mx-2" >
+                            clear fields 
                         </button>
                     </div>
                 </div>
             </section>
             {/* end of advanced filter */}
+            <section className="mx-2">
+                <h4> Result Entry Records</h4>
             <UsePaginationTableDisplay 
                 column={columns}
                 endpoint={endpoint}
@@ -208,6 +210,7 @@ export default function ResultEntryDepartmentViewTwo() {
                 updatedata={pendingdata}
                 getdata={getdata}
             />
+            </section>
         </LaboratoryLayout>
   )
 }
