@@ -3,7 +3,7 @@ import PLACE_ORDER from '../../components/inventory/placeorder'
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import SupplierLayout from '../../components/inventory/SupplierLayout';
 import TableDisplay from '../../components/accessories/TableDisplay';
-
+import { ToastContainer, toast } from 'react-toastify';
 
 export default function PlaceNewOrderIndexPage() {
   const [editing, setEditing] = useState({});
@@ -33,27 +33,31 @@ export default function PlaceNewOrderIndexPage() {
 
   const cartHandler = async (e, clicked) => {
     e.preventDefault();
+    setEditing({})
     // ensure that the clicked item is not already in the cart
+    if (cart.length == 0) {
+      return setCart([clicked]);
+    }
     const isAlreadyInCart = cart.some(item => item.stockid === clicked.stockid);
     const isNotEmpty = clicked.quantity !== '' && clicked.supplier !== '';
 
     if (isAlreadyInCart) {
-      alert('item already in cart');
+      toast.error('item already in cart');
       return;
     }
 
     if (!isNotEmpty) {
-      alert('please fill all fields');
+      toast.error('please fill all fields');
       return;
     }
 
     if (clicked.quantity == 0 || clicked.quantity < 1) {
-      alert('quantity must be greater than 0');
+      toast.error('quantity must be greater than 0');
       return;
     }
 
     if (isNotEmpty && !isAlreadyInCart) {
-      setCart([...cart,clicked]);
+      setCart([...cart, clicked]);
     }
   }
 
@@ -72,18 +76,17 @@ export default function PlaceNewOrderIndexPage() {
   const placeOrderHandler = (e) => {
     e.preventDefault();
     // transform data
-    const cartdata = { stock: cart.data }
+    const cartdata = { stock: cart }
     const sendData = async function () {
       let data = await customPost('orders', 'POST', cartdata)
-      // when successfully placed removwe the item from the cart
-      if (data.status === 'success' && data.message === 'order placed successfully') {
-        // removeCartHandler(e, stockid);
+      if (data.status === 'success' && data.statusCode == 200 && data.clear == 0) {
+        toast.success(data.message, { autoClose: 500 })
+        setCart([]);
+      } else {
+        toast.error(data.message, { autoClose: 30000, position: 'top-center' });
       }
-      alert(data.message)
     }
-
     sendData()
-
   }
 
   
@@ -98,7 +101,7 @@ export default function PlaceNewOrderIndexPage() {
       Header: 'action', accessor: '', Cell: ({ row }) => {
         const stockid = row.original.stockid;
         return <div>
-          <button className='btn btn-primary btn-sm p-1'>edit field</button>
+          <button onClick={(ev) => { handleEditField(row.original) }} className='btn btn-primary btn-sm p-1'>edit field</button>
           <button onClick={(ev) => { removeCartHandler(ev, stockid) }} className='btn btn-danger btn-sm p-1 mx-1'>remove</button>
         </div>
       }
@@ -107,14 +110,25 @@ export default function PlaceNewOrderIndexPage() {
 
 
   const handleEditField = (row) => {
+    setEditing({});
     if (!row) return;
     const { stockid } = row;
-    const matched = cart.data.filter((item, index) => item.stockid == stockid);
-    if (matched.length <= 0) return;
-    setEditing(matched[0]);
-}
+    if (cart.length > 1) {
+      const matched = cart.filter((item, index) => item.stockid == stockid);
+      if (matched.length <= 0) return;
+      setEditing(matched[0]);
+      setCart((prev) => { return prev.filter((item, index) => matched[0]['stockid'] != item.stockid) });
+    } else {
+      setEditing(cart[0]);
+      setCart([])
+    }
+  }
+
+
+  console.log(cart)
   return (
     <SupplierLayout>
+      <ToastContainer theme='colored' className={'col-6'} />
       <div className='p-2'>
           <PLACE_ORDER
             source={source}
@@ -122,8 +136,13 @@ export default function PlaceNewOrderIndexPage() {
           editdata={editing}
             suppliers={suppliers}
         />
-        <TableDisplay data={cart|| []} showpage={false} filtering={true} column={columns} />
-       {cart.length != 0 &&  <button onClick={(ev) => { placeOrderHandler(ev) }} className='btn btn-primary btn-sm'>placeorder</button>}
+
+        {cart.length != 0 && (
+          <div>
+            <TableDisplay data={cart || []} showpage={false} filtering={true} column={columns} />
+            <button onClick={(ev) => { placeOrderHandler(ev) }} className='btn btn-primary btn-sm'>placeorder</button>
+          </div>
+        )}
       </div>
     </SupplierLayout>
   );

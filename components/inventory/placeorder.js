@@ -30,12 +30,14 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers, editdata }
 
   useEffect(() => {
     if (Object.keys(editdata).length > 0) setField(editdata);
-  },[editdata])
+  }, [editdata])
+  
+ 
 
 
   const handleAddCart = (ev) => {
     ev.preventDefault();
-    setTarget(0)
+    setTarget(0);
     const { stockid, supplierid, purchaseunit, quantity } = field;
     if (Object.keys(field).length === 0) setTarget('all');
     const empty = [stockid, supplierid, purchaseunit, quantity].findIndex((a, i) => a == 0 || a == '' || a == undefined);
