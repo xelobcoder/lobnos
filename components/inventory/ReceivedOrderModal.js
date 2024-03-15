@@ -1,16 +1,19 @@
-import { Delete} from "@mui/icons-material"
+import { Add, Delete } from "@mui/icons-material"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { customPost } from "../Auth/customFetch";
 import Inventory from "../Auth/inventory"
 import RackCard from '../accessories/CardRacks';
 import { ToastContainer, toast } from 'react-toastify';
+import { useRouter } from "next/navigation";
 
-export default function ReceivedOrderModal({ clearData, data, handleChange, totalprice, setupdata, setTotal}) {
+export default function ReceivedOrderTable({ clearData, data, handleChange, totalprice, setupdata, setTotal }) {
   // states for managing how is pricing should be calculated either using absolute or unit price
   const [pricing, setPricing] = useState("unit")
   const [taxIncurred, setTaxIncurred] = useState({ method: "absolute", amount: 0 })
   const [ready, setReady] = useState(true);
   const inventory =  useMemo( () => new Inventory(pricing, taxIncurred.method,toast),[taxIncurred.method,pricing]);
+  const router = useRouter();
+
 
   const addToStock = async function () {
     // ensure data is valid
@@ -98,7 +101,16 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
   */
   useEffect(() => {
     reEvaluateTotal();
-  },[reEvaluateTotal])
+  }, [reEvaluateTotal])
+
+
+
+
+
+  const navigateAddBrand = (item) => {
+    const { name, stockid } = item;
+    router.push(`/inventory/stocks/brands?stockname=${name}&&stockid=${stockid}`)
+  }
 
   return (
     <div className="mx-2 my-2">
@@ -226,16 +238,21 @@ export default function ReceivedOrderModal({ clearData, data, handleChange, tota
 
                   <td>{item.totalamount}</td>
                   <td>
+                    <div>
+                      {item.stockbrands.length == 0 && <button onClick={(ev) => { navigateAddBrand(item) }} className="btn btn-secondary btn-sm mb-1">
+                        <Add /> brand
+                      </button>}
                     <button
                       className={
                         `btn-sm ${item.balance == 0 && item.quantityReceived > 0
-                          ? "btn btn-primary"
-                          : "btn btn-warning"}`
+                            ? "btn btn-primary btn-sm"
+                            : "btn btn-warning btn-sm"}`
                       }
                       type="button"
                     >
                       {(item.balance == 0 && item.quantityReceived > 0) ? "complete" : "incomplete"}
                     </button>
+                    </div>
                   </td>
                 </tr>
               ))}

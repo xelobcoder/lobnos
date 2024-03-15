@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReceivedOrderModal from '../../../../components/inventory/ReceivedOrderModal';
+import ReceivedOrderTable from '../../../../components/inventory/ReceivedOrderModal';
 import SupplierLayout from '../../../../components/inventory/SupplierLayout';
 import { useRouter } from 'next/router';
 import Loader from '../../../../components/accessories/Loader';
@@ -64,17 +64,22 @@ export default function ReceiveOrdersPage() {
     setDatasource(datasource.map((item, index) => { return { ...item, pricing: ev.target.value } }))
   }
 
-  console.log(datasource)
+
+
+  const renderingView = () => {
+    if (loading) return <Loader />
+    else {
+      return (<ReceivedOrderTable clearData={clearData} data={datasource} changePricing={changePricing} setupdata={setDatasource} setTotal={setTotalPrice}
+        handleChange={handleChange} totalprice={totalprice} />)
+    }
+  }
+
+
 
   return (
     <SupplierLayout>
       <ToastContainer/>
-      {loading ?
-        <Loader /> 
-        :
-        ( <ReceivedOrderModal clearData={clearData} data={datasource} changePricing={changePricing} setupdata={setDatasource} setTotal={setTotalPrice}
-          handleChange={handleChange} totalprice={totalprice} />)
-      }
+      {renderingView()}
     </SupplierLayout>
   )
 }

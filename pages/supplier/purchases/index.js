@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router';
-import { customData, customFetch, customPost } from '../../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import SupplierLayout from '../../../components/inventory/SupplierLayout';
 import SECOND_NO_DATA from '../../../components/accessories/secondNodata';
 
@@ -18,13 +18,11 @@ export default function PURCHASES() {
     try {
       let response = await customPost('orders', 'DELETE', { productordersid: stockid })
       const { status, err } = response;
-
       if (status === 'success') {
         // remove the order from the list
         const newList = ordersplacedList.filter(item => item.productordersid !== stockid)
         setOrdersPlacedList(newList)
       }
-
       if (err || status == 'error') {
         alert(err?.message)
       }
@@ -68,7 +66,6 @@ export default function PURCHASES() {
                   <th>purchaseunit</th>
                   <th>order date</th>
                   <th>quantity ordered</th>
-                  <th>received</th>
                   <th>received order</th>
                   <th>cancel order</th>
                 </tr>
@@ -83,7 +80,6 @@ export default function PURCHASES() {
                       <td>{item.purchaseunit}</td>
                       <td>{item.date.slice(0, 10)}</td>
                       <td>{item.quantity}</td>
-                      <td>{item.received}</td>
                       <td>
                         <button className='btn btn-primary  p-1 btn-sm' onClick={(e) => { viewReceivedOrders(item) }}>
                           receive order
