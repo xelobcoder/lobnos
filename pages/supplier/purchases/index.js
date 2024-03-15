@@ -60,7 +60,6 @@ export default function PURCHASES() {
             <table className='table'>
               <thead>
                 <tr>
-                  <th>orderid</th>
                   <th>prod name</th>
                   <th>suppliername</th>
                   <th>purchaseunit</th>
@@ -74,7 +73,6 @@ export default function PURCHASES() {
                 {ordersplacedList.map((item, index) => {
                   return (
                     <tr key={index}>
-                      <td>{item.productordersid}</td>
                       <td>{item.name}</td>
                       <td>{item.suppliername}</td>
                       <td>{item.purchaseunit}</td>
