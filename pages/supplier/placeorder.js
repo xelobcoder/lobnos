@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import PLACE_ORDER from '../../components/inventory/placeorder';
+import PLACE_ORDER from '../../components/inventory/placeorder'
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import SupplierLayout from '../../components/inventory/SupplierLayout';
 import TableDisplay from '../../components/accessories/TableDisplay';
@@ -9,10 +9,7 @@ export default function PlaceNewOrderIndexPage() {
   const [editing, setEditing] = useState({});
   const [source, setDatasource] = useState([]);
   const [suppliers, setSuppliers] = useState([])
-  const [cart, setCart] = useState({
-    data: [],
-    display: false
-  });
+  const [cart, setCart] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,7 +34,7 @@ export default function PlaceNewOrderIndexPage() {
   const cartHandler = async (e, clicked) => {
     e.preventDefault();
     // ensure that the clicked item is not already in the cart
-    const isAlreadyInCart = cart.data.some(item => item.stockid === clicked.stockid);
+    const isAlreadyInCart = cart.some(item => item.stockid === clicked.stockid);
     const isNotEmpty = clicked.quantity !== '' && clicked.supplier !== '';
 
     if (isAlreadyInCart) {
@@ -56,10 +53,7 @@ export default function PlaceNewOrderIndexPage() {
     }
 
     if (isNotEmpty && !isAlreadyInCart) {
-      setCart({
-        data: [...cart.data, clicked],
-        display: false
-      })
+      setCart([...cart,clicked]);
     }
   }
 
@@ -69,10 +63,7 @@ export default function PlaceNewOrderIndexPage() {
   const removeCartHandler = (e, stockid) => {
     e.preventDefault();
     const newCart = cart.data.filter(item => item.stockid !== stockid);
-    setCart({
-      data: newCart,
-      display: true
-    })
+    setCart(newCart);
   }
 
   // handler for placing an order
@@ -131,8 +122,8 @@ export default function PlaceNewOrderIndexPage() {
           editdata={editing}
             suppliers={suppliers}
         />
-        <TableDisplay data={cart.data || []} showpage={false} filtering={true} column={columns} />
-       {cart.data.length != 0 &&  <button onClick={(ev) => { placeOrderHandler(ev) }} className='btn btn-primary btn-sm'>placeorder</button>}
+        <TableDisplay data={cart|| []} showpage={false} filtering={true} column={columns} />
+       {cart.length != 0 &&  <button onClick={(ev) => { placeOrderHandler(ev) }} className='btn btn-primary btn-sm'>placeorder</button>}
       </div>
     </SupplierLayout>
   );

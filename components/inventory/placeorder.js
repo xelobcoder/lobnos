@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import Autocomplete from '@mui/joy/Autocomplete';
 
-export default function PLACE_ORDER({ source, cartHandler, suppliers ,editdata}) {
-  const defaultdata = { name: '', purchaseunit: '', quantity: '', suppliername: '' }
-  const [field, setField] = useState({});
+export default function PLACE_ORDER({ source, cartHandler, suppliers, editdata }) {
   const [purchaseunit, setPurchaseunit] = useState(['kg', 'g', 'litre', 'unit', 'Box', 'Bottle']);
+  const defaultdata = { name: '', purchaseunit: '', quantity: '', suppliername: '' }
+  const [field, setField] = useState(defaultdata);
   const [target, setTarget] = useState(0);
 
 
@@ -56,8 +56,10 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers ,editdata})
         <div className='card-body'>
           <form className='grid-50 grid'>
             <div className='form-row'>
+              <label>stock</label>
               <Autocomplete
                 options={source}
+                inputValue={field.name}
                 disableClearable={true}
                 required
                 getOptionLabel={(option) => option.name}
@@ -68,8 +70,10 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers ,editdata})
             </div>
 
             <div className='form-row'>
+              <label>supplier</label>
               <Autocomplete
                 options={suppliers}
+                inputValue={field.suppliername}
                 required
                 getOptionLabel={(option) => option.name}
                 onChange={(ev, value) => { handelChange(ev, value, 'supplier') }}
@@ -79,9 +83,11 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers ,editdata})
             </div>
 
             <div className='form-row'>
+              <label>purchase unit</label>
               <Autocomplete
                 options={purchaseunit}
                 required
+                inputValue={field.purchaseunit}
                 getOptionLabel={(option) => option}
                 onChange={(ev, value) => { handelChange(ev, value, 'purchaseunit') }}
                 placeholder='search supplier here'
@@ -90,7 +96,9 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers ,editdata})
 
             </div>
             <div className='form-row'>
+              <label>quantity</label>
               <input className='custom-input'
+                value={field.quantity}
                 onChange={(ev) => { handelChange(ev, ev.target.value, 'qty') }}
                 required placeholder='quantity' type='number' />
               {(target == 'all' || target == 4) && <div className='text-danger text-sm mx-2 text-capitalize'>quantity must be field</div>}
