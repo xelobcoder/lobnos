@@ -1,8 +1,6 @@
-import React, {useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import CommoditiesList from '../../components/suppliers/CommoditiesList';
 import SupllierProfile from '../../components/suppliers/SupllierProfile';
-import ISLOADING from '../../components/isLoading';
 import dynamic from 'next/dynamic';
 import { customFetch } from '../../components/Auth/customFetch';
 import SupplierLayout from '../../components/inventory/SupplierLayout';
@@ -11,7 +9,7 @@ const EditorJS = dynamic(() => import('../../components/accessories/markdownEdit
 
 export default function SINGLE_SUPPLIER() {
   const id = useSearchParams().get("supplierid");
-  const [supplier, setSupplier] = React.useState({});
+  const [supplier, setSupplier] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,7 +42,6 @@ export default function SINGLE_SUPPLIER() {
 
   return (
     <SupplierLayout>
-      <Suspense fallback={<ISLOADING/>}>
       <div className='d-flex p-2'>
             <button type="button" style={{ marginRight: '10px' }}
               className="btn btn-primary btn-sm">
@@ -74,8 +71,7 @@ export default function SINGLE_SUPPLIER() {
             <h1>Transactions</h1>
             <div className='m-10'>
             </div>
-          </div>
-       </Suspense>
+      </div>
     </SupplierLayout>
   )
 }

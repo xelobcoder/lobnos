@@ -1,14 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
 import { regions, defaultSupplierdata,getDataAndUpdateState } from '../Auth/customFetch';
-import { ToastContainer ,toast} from "react-toastify";
-import { pushNewSupplierInformation } from './util';
-import ISLOADING from "../isLoading";
+import Loader from '../accessories/Loader';
 
-export default function ADD_NEW_SUPPLIER() {
-  const tab = useSearchParams().get("tab");
+export default function ADD_NEW_SUPPLIER({ supplierid, isEditing, handleAddNew, reset }) {
   const [loading, setLoading] = useState(false);
-  const supplierid = useSearchParams().get("supplierid");
 
   const [newsupplier, setNewSupplier] = useState(defaultSupplierdata);
   const { name, address, email, phonenumber, region, contactperson } = newsupplier;
@@ -19,43 +14,40 @@ export default function ADD_NEW_SUPPLIER() {
   }
 
 
-  const handleSubmit = async (ev) => {
-    ev.preventDefault();
-    const method = tab === 'edit' ? 'PUT' : 'POST';
-    if (tab === 'edit' && !supplierid) return false;
-    let outcome = await pushNewSupplierInformation(method, newsupplier, toast, supplierid);
-    outcome && setNewSupplier(defaultSupplierdata);
-  }
 
+
+  const getEditRecord = useCallback(async () => {
+    if (isEditing && supplierid) {
+      setLoading(true);
+      getDataAndUpdateState(setNewSupplier, `suppliers/getsupplier?supplierid=${supplierid}`, true)
+        .then((data) => { setNewSupplier(data[0]) })
+        .catch((err) => { alert("something wrong occured", { autoClose: 3000 }) });
+      setLoading(false);
+    }
+  }, [supplierid, isEditing])
 
 
 
 
   useEffect(() => {
-    if (tab === 'edit' && supplierid) {
-      setLoading(true);
-      getDataAndUpdateState(setNewSupplier, `suppliers?supplierid=${supplierid}`, true)
-        .then((data) => { setNewSupplier(data[0]) })
-        .catch((err) => { toast.error("something wrong occured", { autoClose: 3000 }) });
-      setLoading(false);
-    }
-  }, [tab, supplierid])
+    getEditRecord();
+  }, [getEditRecord])
 
-  return (
-    <>
-      <ToastContainer/>
-      <div className='p-2'>
-        {
-          loading ? 
-            <ISLOADING />
-            :
-            (
-              <div className='card bg-white br-0'>
-              <div className="card-header">
-                 <div className='fw-bold card-title'> {tab === 'edit' ? 'Update supplier information' : 'Add New supplier'}</div>
+
+
+  const renderingView = () => {
+    if (loading) return <Loader />
+    else {
+      return (
+        <div className='card bg-white'>
+          <div className="card-header bg-secondary text-white d-flex justify-content-between">
+            <h4>
+              {isEditing ? 'Update supplier information' : 'Add New supplier'}
+            </h4>
+            {isEditing && <button onClick={(ev) => { reset(); setNewSupplier(defaultSupplierdata); }} className='btn btn-danger btn-sm'>reset</button>}
               </div>
-              <div className='card-body'>
-              <form>
+          <div className='card-body'>
+            <form className='grid grid-50'>
                 <div className='form-group'>
                   <label className='my-1' htmlFor='name'>Name</label>
                   <input className='custom-input' value={name} list='customers' name='name' placeholder='supplier name'
@@ -86,8 +78,7 @@ export default function ADD_NEW_SUPPLIER() {
                   <label className='my-1' htmlFor='region'>Region</label>
                   <select className='custom-select' id='region' value={newsupplier.region} onChange={(ev) => inputhandler(ev, 'region')}>
                     <option value=''>select region</option>
-                    {
-                      regions.length > 0 && regions.map((item, index) => {
+                  {regions.length > 0 && regions.map((item, index) => {
                         return <option key={index} value={item}>{item}</option>
                       })
                     }
@@ -96,22 +87,27 @@ export default function ADD_NEW_SUPPLIER() {
                 {/* contact person */}
                 <div className='form-group'>
                   <label className='my-1' htmlFor='contactperson'>Contact Person</label>
-                  <input className='custom-input' id='contactperson' value={contactperson} placeholder='contact person'
+                <input className='custom-input' type='text' id='contactperson' value={contactperson} placeholder='contact person'
                     onChange={(ev) => inputhandler(ev, 'contactperson')} />
                 </div>
                 <div className='form-group mt-2'>
-                  <button className='btn btn-primary btn-sm' type='submit'
-                    onClick={(ev) => handleSubmit(ev, tab, newsupplier)}
+                <button className='btn btn-primary btn-sm' type='button'
+                  onClick={(ev) => handleAddNew(ev, newsupplier)}
                   >
-                    {tab === 'edit' ? 'Update supplier information' : 'Add New supplier'}
+                  {isEditing ? 'Update supplier information' : 'Add New supplier'}
                   </button>
                 </div>
     
               </form>
-             </div>
-            </div>
-            )
-      }
-      </div></>
+          </div>
+        </div>
+      )
+    }
+  }
+
+  return (
+    <div className='p-2'>
+      {renderingView()}
+    </div>
   )
 }

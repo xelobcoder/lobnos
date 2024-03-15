@@ -69,13 +69,10 @@ export default function PlaceNewOrderIndexPage() {
     const newCart = cart.data.filter(item => item.stockid !== stockid);
     setCart(newCart);
   }
-
-  // handler for placing an order
-
+  
 
   const placeOrderHandler = (e) => {
     e.preventDefault();
-    // transform data
     const cartdata = { stock: cart }
     const sendData = async function () {
       let data = await customPost('orders', 'POST', cartdata)

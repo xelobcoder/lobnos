@@ -97,7 +97,7 @@ export default function ReceivedOrderTable({ clearData, data, handleChange, tota
 
   /* 
   this is to ensure the total value comprising of the sum of individual products total
-  and tax incurred  are recalculated anytime changes are made
+  and tax incurred are recalculated anytime changes are made
   */
   useEffect(() => {
     reEvaluateTotal();

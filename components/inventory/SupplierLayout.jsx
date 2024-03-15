@@ -12,7 +12,7 @@ export default function SupplierLayout({ children }) {
   ]
 
   return (
-    <AppCustomLayout sideLinks={sidebarLinks} fullscreen={false}>
+    <AppCustomLayout sideLinks={sidebarLinks} defaultscreen={false}>
       {children}
     </AppCustomLayout>
   )
