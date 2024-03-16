@@ -14,12 +14,10 @@ export default function PURCHASES() {
 
 
   const cancelOrder = async function (stockid) {
-    // send a request to the server to cancel the order
     try {
       let response = await customPost('orders', 'DELETE', { productordersid: stockid })
       const { status, err } = response;
       if (status === 'success') {
-        // remove the order from the list
         const newList = ordersplacedList.filter(item => item.productordersid !== stockid)
         setOrdersPlacedList(newList)
       }
