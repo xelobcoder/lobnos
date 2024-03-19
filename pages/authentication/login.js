@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useContext } from 'react';
 import { useRouter } from 'next/router';
 import AuthContext from '../../components/Auth/useAuthentification';
-import { customPost, validateFormData } from '../../components/Auth/customFetch';
+import { validateFormData } from '../../components/Auth/customFetch';
 
 
 
@@ -21,13 +21,18 @@ export default function LoginCredentials() {
       const { status, message, statusCode, user, token } = data;
       if (statusCode == 200 && status == 'success') {
         setMessage({ message, status })
-        window.cookieStore.set('X-AUTH-PRIME-LAB-SYSTEMS', token);
-        let permissions = user?.permissions;
-        if (permissions && typeof permissions === 'object') {
-          permissions = JSON.parse(user?.permissions);
+        if (token) {
+          window.cookieStore.set('X-AUTH-PRIME-LAB-SYSTEMS', token,'30m');
         }
-        const { username, role, email, employeeid } = user;
-        updateAuthentication({ username, role, email, permissions });
+
+        if (user.hasOwnProperty('permission')) {
+          let permissions = user.permissions;
+          if (permissions && typeof permissions === 'object') {
+            permissions = JSON.parse(user?.permissions);
+          }
+          const { username, role, email, employeeid } = user;
+          updateAuthentication({ username, role, email, permissions });
+        }
         // got to previous history; 
         navigate.push('/')
       } else {

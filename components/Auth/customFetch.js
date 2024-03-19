@@ -28,7 +28,6 @@ export async function customFetch(endpoint) {
 
 export const Glucoseoptions = ["mg/dl", "mmol/L"];
 
-export async function customPost(endpoint, method, data) {
    /**
     * Sends a POST request to a specified endpoint with the provided data.
     * Includes necessary headers and authorization token.
@@ -41,6 +40,18 @@ export async function customPost(endpoint, method, data) {
     * @param {object} data - The data to send in the request body.
     * @returns {Promise<object>} - The parsed response from the POST request.
     */
+export async function customPost(endpoint, method, data, hash = false) {
+   if (process.env.NODE_ENV == 'oroduction' && !process.env.NEXT_PUBLIC_ACCESS_TOKEN) {
+      throw new Error('NEXT_PUBLIC_ACCESS_TOKEN MISSING');
+   }
+   var requestBody = data;
+   if (hash && hash == true) {
+      if (process.env.HASH_KEY != undefined) {
+         requestBody = {};
+      } else {
+         throw new Error('HASH_KEY not set in NODE_ENV');
+      }
+   }
    let response = await fetch(`${process.env.BASEURL}/${endpoint}`, {
       method: method,
       headers: {
@@ -48,7 +59,7 @@ export async function customPost(endpoint, method, data) {
          Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
          mode: 'no-cors',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(requestBody),
    });
    let datasource = await response.json();
    const { status, message } = datasource;
@@ -78,16 +89,7 @@ export async function CheckResultEntered(testname, billingid) {
    }
 }
 
-
-export async function validateFormData(
-   data,
-   allrequired,
-   requiredFields = [],
-   endpoint,
-   callback,
-   updateState
-) {
-   /**
+ /**
     * Validates form data before sending it to the server.
     * 
     * @param {object} data - The form data to be validated.
@@ -98,6 +100,15 @@ export async function validateFormData(
     * @param {boolean} updateState - update state function , optional
     * @returns {void}
     */
+export async function validateFormData(
+   data,
+   allrequired,
+   requiredFields = [],
+   endpoint,
+   callback,
+   updateState
+) {
+
 
    const isObject = typeof requiredFields === "object";
    const requiredLen = requiredFields.length;
