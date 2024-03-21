@@ -16,6 +16,7 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
         <div className={`form-row ${expanded === true ? "" : "grid-30-30-30"}`}>
           <IsRenderInput
             expanded={expanded}
+            tabIndex={1}
             label={"first name"}
             value={fields["firstname"]}
             field={
@@ -344,7 +345,6 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
           <button
             type="button"
             className="btn mt-3 btn-primary btn-sm text-capitalize"
-            tabIndex={31}
             onClick={(e) => {
               handleSubmitRegistration(e, data, method, toast, clearForm)
             }}>

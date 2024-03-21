@@ -2616,7 +2616,7 @@ textarea:required:focus:invalid {
 #frontpagewrapper,
 #loginWrapper {
   background: url("../public/asserts/companylogo/scale.jpg") no-repeat;
-  height: 92vh;
+  height: 100vh;
   width: 100%;
   margin: 0;
   padding: 50px;

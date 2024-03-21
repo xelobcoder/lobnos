@@ -273,6 +273,9 @@ export const patientRegistrationDefaultData = {
 }
 
 
+
+
+
 export const submitFormData = async function (endpoint, target, toast = null) {
   const pushResponse = await customPost(endpoint, 'PUT', target);
   const { statusCode, status, message } = pushResponse;

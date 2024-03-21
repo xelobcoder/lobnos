@@ -7,22 +7,39 @@ import { Settings } from "@mui/icons-material";
 import { Form } from 'react-bootstrap';
 import { useRouter } from "next/navigation";
 import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
+import Loader from '../../components/accessories/Loader';
 
 
 export default function Registration() {
   const { personalInformation } = patientRegistrationDefaultData;
-  const [fields, setFields] = useState([]);
+  const [fields, setFields] = useState();
   const [expanded, setExpaned] = useState(false);
+  const [isloading, setLoading] = useState(true);
   const router = useRouter();
 
 
+  const getFields = async () => {
+    setLoading(true);
+    await getRegistrationFields(setFields);
+    setLoading(false);
+  } 
 
   useEffect(() => {
-    getRegistrationFields(setFields);
+    getFields();
   }, [])
 
 
 
+
+  const renderingView = () => {
+    if (isloading) return <Loader />
+    else {
+      return (<div className="border bg-white p-1 mb-2">
+        <PersonalInfomationRegistration expanded={expanded} fields={fields.length > 0 ? fields[0]['fields'] : {}} toast={toast}
+          defaultData={personalInformation} />
+      </div>)
+    }
+  }
 
 
   return (
@@ -34,13 +51,10 @@ export default function Registration() {
             <Form.Switch value={expanded} type='switch' style={{ fontSize: '25px' }} onClick={(ev) => setExpaned(ev.target.checked)} />
             <button onClick={(ev) => { router.push('/registration/settings') }} className="btn btn-secondary mb-1">
               <Settings />
-            </button>
-          </div>
+          </button>
         </div>
-        <div className="border bg-white p-1 mb-2">
-          <PersonalInfomationRegistration expanded={expanded} fields={fields.length > 0 ? fields[0]['fields'] : {}} toast={toast}
-            defaultData={personalInformation} />
-        </div>
+      </div>
+      {renderingView()}
     </FrontDeskLayout>
   );
 }

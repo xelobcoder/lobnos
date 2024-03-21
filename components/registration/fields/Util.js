@@ -48,20 +48,15 @@ export const registration = [
 export const getRegistrationFields = async (setState, toast) => {
    try {
       const data = await customFetch("applicationsettings/registration/fields");
-      const { result, status } = data;
-      if (status == "success" && result.length > 0) {
-         const { fields } = result[0];
+      const len = Object.keys(data).length > 0;
+      if (len) {
          if (setState) {
-            setState(JSON.parse(fields));
-         } else {
-            return JSON.parse(fields);
+            return setState(data);
          }
+         return data;
       } else {
-         if (setState) {
-            setState(registration);
-         } else {
-            return registration
-         }
+         if (setState) return setState(data)
+         else return data;
       }
    } catch (err) {
       if (setState) setState(registration);

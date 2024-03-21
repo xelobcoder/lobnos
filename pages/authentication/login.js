@@ -6,7 +6,6 @@ import { validateFormData } from '../../components/Auth/customFetch';
 
 
 
-
 export default function LoginCredentials() {
   const { updateAuthentication } = useContext(AuthContext);
   const navigate = useRouter();
@@ -15,25 +14,29 @@ export default function LoginCredentials() {
   const [message, setMessage] = useState({ message: '', status: '' });
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // send the email and password to the server
-    // if the server responds with a 200 status code;
     const responseHandler = function (data) {
       const { status, message, statusCode, user, token } = data;
       if (statusCode == 200 && status == 'success') {
         setMessage({ message, status })
         if (token) {
-          window.cookieStore.set('X-AUTH-PRIME-LAB-SYSTEMS', token,'30m');
+          cookieStore.set({
+            name: 'X-AUTH-PRIME-LAB-SYSTEMS',
+            value: token,
+            path: '/',
+            domain: process.env.DOMAIN,
+            secure: true,
+            sameSite: 'strict',
+            expires: new Date(Date.now() + 60 * 60 * 1000),
+          });
         }
-
-        if (user.hasOwnProperty('permission')) {
+        if (user.hasOwnProperty('permissions')) {
           let permissions = user.permissions;
           if (permissions && typeof permissions === 'object') {
             permissions = JSON.parse(user?.permissions);
           }
           const { username, role, email, employeeid } = user;
-          updateAuthentication({ username, role, email, permissions });
+          updateAuthentication({ username, role, email, permissions,employeeid });
         }
-        // got to previous history; 
         navigate.push('/')
       } else {
         setMessage({ message, status })
@@ -48,7 +51,7 @@ export default function LoginCredentials() {
   return (
     <>
       <div id='loginWrapper' >
-        <div className='d-flex justify-content-center  ' >
+        <div className='d-flex justify-content-center' >
           <div className="card br-5 mt-5" style={{ width: '500px' }}>
             <div className="card-header">Please login here</div>
             <div className="card-body">
@@ -93,7 +96,7 @@ export default function LoginCredentials() {
             <div className="card-footer">
               <button
                 type="button"
-                className="btn btn-danger"
+                className="btn btn-danger btn-sm"
                 onClick={(e) => handleSubmit(e)}
               >
                 Login

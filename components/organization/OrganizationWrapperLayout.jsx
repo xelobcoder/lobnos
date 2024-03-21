@@ -11,21 +11,6 @@ export default function OrganizationWrapperLayout({ children }) {
   return (
     <FrontDeskLayout>
       <div className="mx-1">
-        <button
-          className="btn btn  btn-secondary mt-1 mx-1 "
-          onClick={(ev) => {
-            pushRouter("/organization/new")
-          }}>
-          {" "}
-          <Add /> new organization{" "}
-        </button>
-        <button
-          className="btn btn  btn-secondary mt-1 mx-1 "
-          onClick={(ev) => {
-            pushRouter("/organization")
-          }}>
-          <List /> organizations
-        </button>
         {organizationid && (
           <>
             <button

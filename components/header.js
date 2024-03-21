@@ -21,10 +21,10 @@ function Header() {
     <>
       <div className="software-header-nav">
         <ul>
-          <span onClick={(ev) => { router.push('/') }} className="softfullname text-white pointer">Prime laboratory system(PLS)</span>
+          <span onClick={(ev) => { router.push('/') }} className="softfullname text-white pointer col-4">Prime laboratory system(PLS)</span>
           <li>
             <span> <Apps /></span>
-            <span> {auth?.username ? <Logout onClick={ (ev) =>  {handleLogout(ev)}} />  : <Login/>}</span>
+            <span> {auth?.username ? <Logout onClick={(ev) => { handleLogout(ev) }} /> : <Login />}</span>
           </li>
         </ul>
       </div>

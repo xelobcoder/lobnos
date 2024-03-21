@@ -1,6 +1,6 @@
 import { useState,} from 'react';
 import { useRouter } from 'next/navigation';
-import { ActivationBulk, handleActivation } from '../../components/Auth/registerclient';
+import { handleActivation } from '../../components/Auth/registerclient';
 import { customFetch } from '../../components/Auth/customFetch';
 import FrontDeskLayout from '../../components/Layout/FrontDeskLayout';
 import Loader from '../../components/accessories/Loader';
@@ -9,12 +9,10 @@ import TableDisplay from '../../components/accessories/TableDisplay';
 export default function Activator() {
   const [loading, setLoading] = useState(false);
   const [tempStore, setStore] = useState([]);
-  const [urlquery, seturlQuery] = useState(`activation?`)
   const [filter, setFilter] = useState({
     patientId: '', fullname: '', mobile: '', to: '', from: ''
   })
   const router = useRouter();
-  const [id, setId] = useState('');
 
 
 
@@ -25,11 +23,12 @@ export default function Activator() {
     for (const [key, value] of Object.entries(filter)) {
       urlquery += `${key}=${value}&&`
     }
-    seturlQuery(urlquery);
     setLoading(true);
     customFetch(urlquery)
       .then((data) => {
-        setStore(data);
+        if (Array.isArray(data)) {
+          setStore(data || []);
+        }
         setLoading(false);
       }).catch((err) => {
         setLoading(false);
@@ -134,16 +133,6 @@ export default function Activator() {
 
   return (
     <FrontDeskLayout>
-      {/* <div>
-        <button className="btn btn-success btn-sm " onClick={(w) => { ActivationBulk(w, 'TRUE', getInitData) }}>
-          Bulk Activation
-        </button>
-      </div>
-      <div>
-        <button className="btn btn-danger mx-2 btn-sm" onClick={(e) => { ActivaBulk(e, 'FALSE', getInitData) }}>
-          Bulk Deactivation
-        </button>
-      </div> */}
       <div className='mx-2'>
         <h4>Advanced Patient search</h4>
         <div className='d-flex justify-content-between'>
@@ -198,16 +187,7 @@ export default function Activator() {
               size='small'
             >
             search 
-            </button>
-          {/* <button
-              type="button"
-              size='small'
-              className="btn btn-danger btn-sm"
-              color="error"
-              onClick={(e) => setAdvancedSearch(false)}
-            >
-              close
-            </button> */}
+          </button>
         </div>
         {renderingView()}
       </div>
