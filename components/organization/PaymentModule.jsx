@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react"
 import { customFetch, customPost, handleChangeWithState, organizationPaymentDefault } from "../Auth/customFetch"
 import { useRouter } from "next/router"
 import Loader from "../accessories/Loader"
+import { ToastContainer, toast } from "react-toastify"
 
 export default function PaymentModule() {
   const [data, setData] = useState(organizationPaymentDefault)
@@ -10,10 +11,12 @@ export default function PaymentModule() {
   const organizationid = router.query.id
 
   const getPaymentData = useCallback(async (organizationid) => {
-    const response = await customFetch(`organization/payment?id=${organizationid}`)
-    const { statusCode, status, result } = response
-    if (statusCode === 200 && status == "success" && result.length > 0) {
-      setData(result[0])
+    if (organizationid) {
+      const response = await customFetch(`organization/payment?id=${organizationid}`)
+      const { statusCode, status, result } = response
+      if (statusCode === 200 && status == "success" && result.length > 0) {
+        setData(result[0])
+      }
       setLoading(false)
     }
   }, [])
@@ -25,9 +28,13 @@ export default function PaymentModule() {
   }, [organizationid, getPaymentData])
 
   const handleSubmit = async () => {
-    let pushResponse = await customPost(`organization/update/payment`, "PUT", data)
+    let pushResponse = await customPost(`organization/update/payment`, "PUT", { organizationid, ...data })
     const { status, statusCode, message } = pushResponse
-    alert(message)
+    if (status == "success" && statusCode == 200) {
+      toast.success(message, { autoClose: 500,position:'top-center' })
+    } else {
+      toast.error(message, { autoClose: 3000,position:'top-center' })
+    }
   }
 
   const renderingPayment = () => {
@@ -166,5 +173,10 @@ export default function PaymentModule() {
     }
   }
 
-  return <>{renderingPayment()}</>
+  return (
+    <div>
+      <ToastContainer  theme="colored"/>
+      {renderingPayment()}
+    </div>
+  )
 }
