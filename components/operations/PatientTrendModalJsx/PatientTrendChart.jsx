@@ -13,7 +13,7 @@ export default function PatientTrendChart({ data, parameters, chart }) {
       {trenddata.map((item, index) => {
         return (
           <div key={index}>
-            <div className="card mt-2">
+            <div className="card mt-2 br-0">
               <div className="card-header modal-color">
                 <h5 className="text-uppercase">Field/parameter: {item?.field}</h5>
               </div>

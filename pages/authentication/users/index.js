@@ -6,6 +6,7 @@ import AuthenticationLayout from '../../../components/Layout/AuthenticationLayou
 
 export default function ApplicationUsersPage() {
   const [users, setUser] = useState([]);
+  const [advanced, setAdvanced] = useState(false);
   const [isloading, setLoading] = useState(true);
   const [load, setLoad] = useState(false);
   const [pagequery, setPageQuery] = useState({ count: 10, page: 1, load: false });
@@ -34,18 +35,71 @@ export default function ApplicationUsersPage() {
   }
 
 
+
+  const renderAdvancedForm = () => {
+    if (advanced == true) {
+      return (
+        <div>
+          <form autoComplete='off' className='d-flex mb-1'>
+            <div className='form-row col-2'>
+              <select className="custom-select" name="role" id="role">
+                <option value="">select role</option>
+                <option value="admin">admin</option>
+                <option value="customer service representative">
+                  customer service representative
+                </option>
+                <option value="scientist">scientist</option>
+                <option value="manager">manager</option>
+                <option value="clinician">clinician</option>
+                <option value="phelobotomist">phelobotomist</option>
+                <option value="sonographer">sonographer</option>
+              </select>
+            </div>
+            <div className='form-row col-3 mx-2'>
+              <input className='custom-input' type='text' placeholder='username' />
+            </div>
+            <div className='form-row col-3 mx-2'>
+              <input className='custom-input' type='text' placeholder='user email' />
+            </div>
+            <div className='form-row col-2 mx-2'>
+              <input className='custom-input' type='text' placeholder='user contact' />
+            </div>
+            <div>
+              <button type='button' className='btn btn-sm btn-secondary' style={{ marginTop: '1px' }}>
+                filter user
+              </button>
+              <button type='button' style={{ marginTop: '1px' }} onClick={(ev) => { setAdvanced(false) }} className='btn btn-danger btn-sm mx-2'>
+                close
+              </button>
+            </div>
+          </form>
+        </div>
+      )
+    }
+  }
+
   const renderer = () => {
     if (isloading) return <Loader />
     else {
       return (
         <div className='container-fluid'>
-          <h4>Employee List</h4>
+          <div className='d-flex justify-content-between'>
+            <h4>Employee List</h4>
+            {!advanced &&
+              <button onClick={(ev) => { setAdvanced(true) }} className='btn btn-secondary btn-sm'>
+                Advanced filtering
+              </button>}
+          </div>
+          {/* advanced filtering form start here  */}
+          {renderAdvancedForm()}
+          {/* advanced filtering form ends here */}
           <UserList
             users={users}
             handleDelete={handleDelete}
             activateUser={activateInstitutionUser}
             updatePage={updatePage}
             load={setLoad}
+            showfiltering={advanced}
             updateRefresh={setUser} />
       </div>
       )

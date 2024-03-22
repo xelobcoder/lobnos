@@ -66,32 +66,34 @@ export default function LoginCredentials() {
               >
                 {message.message}
               </div>
+              <form autoComplete='off' autoCapitalize='off' autoCorrect='off' autoSave='off' >
               <label htmlFor="email">Email</label>
 
-              <input
-                type="email"
-                name="email"
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                }}
-                className='form-control'
-                value={email}
-                required
-                id="email"
-              />
+                <input
+                  type="email"
+                  name="email"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                  }}
+                  className='form-control'
+                  value={email}
+                  required
+                  id="email"
+                />
 
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                required
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
-                className='form-control'
-                name="password"
-                value={password}
-                id="password"
-              />
+                <label htmlFor="password">Password</label>
+                <input
+                  type="password"
+                  required
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                  }}
+                  className='form-control'
+                  name="password"
+                  value={password}
+                  id="password"
+                />
+              </form>
             </div>
             <div className="card-footer">
               <button

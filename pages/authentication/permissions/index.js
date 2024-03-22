@@ -35,12 +35,10 @@ export default function PermissionsOfUsers() {
         const response = await customFetch(`user/permissions?permissions=${userid}`);
         const { permissions } = response;
         const keysPresent = Object.keys(permissions);
-        if (keysPresent.length > 0) {
-          setPrevious(true);
-          setClientPermissions(permissions);
-        } else {
-          updateUserInfo();
-        }
+        if (keysPresent.length = 0) updateUserInfo();
+        setPrevious(true);
+        setClientPermissions(permissions);
+        setLoading(false);
       }
     } catch (err) {
       updateUserInfo();
@@ -97,7 +95,7 @@ export default function PermissionsOfUsers() {
           </div>
           <div className='card-body'>
             <div
-              className="alert alert-info bg-opacity-50"
+              className="alert alert-secondary bg-opacity-50"
               style={{ fontSize: "14px" }}>
               Default permissions are <strong>based on the role</strong>,
               however changes can be made to suit administrative purposes
@@ -111,7 +109,7 @@ export default function PermissionsOfUsers() {
               role={role}
             />
             <div>
-              <button className='btn btn-success'
+              <button className='btn btn-success btn-sm mt-2'
                 onClick={(ev) => handleSubmitPermission(ev, clientPermissions)}>
                 update permissions
               </button>

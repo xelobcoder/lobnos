@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { customFetch } from "../../Auth/customFetch"
 import TrendSingleList from "./TrendSingleList"
+import { ToastContainer, toast } from "react-toastify"
 import Loader from "../../accessories/Loader"
 import PatientTrendChart from "./PatientTrendChart"
 export default function PatientTrendModalJsx({ data }) {
@@ -17,7 +18,13 @@ export default function PatientTrendModalJsx({ data }) {
         `result/patientrend/single?billingid=${billingid}&&patientid=${patientid}&&test=${test}&&testid=${testid}&&instances=${instances}`
       )
       const { statusCode, status, result } = response
-      setDataSet(result)
+      if (Array.isArray(result)) {
+        setDataSet(result)
+      } else if (typeof result == "string") {
+        toast.warning(result, { autoClose: 5000, position: "top-center" })
+      } else {
+        
+      }
       setLoading(false)
     }
   }, [instances, patientid, testid, test, billingid])
@@ -39,8 +46,11 @@ export default function PatientTrendModalJsx({ data }) {
 
   return (
     <div>
+      <ToastContainer theme="dark" style={{ width: "80%" }} />
       <div className="mx-2">
-        <h3>Trend Analysis ====={">>>"} PATIENTID:{patientid}</h3>
+        <h3>
+          Trend Analysis for {test.includes("_") ? test.split("_").join(" ") : test} ====={">>>"} PATIENTID:{patientid}
+        </h3>
       </div>
       <div className="d-flex">
         <div className="col-3">
@@ -53,7 +63,7 @@ export default function PatientTrendModalJsx({ data }) {
             <option>select number of instance</option>
             <option value={2}>2</option>
             <option value={5}>5</option>
-            <option value={6 }>6</option>
+            <option value={6}>6</option>
             <option value={7}>7</option>
             <option value={8}>8</option>
             <option value={9}>9</option>
@@ -66,7 +76,7 @@ export default function PatientTrendModalJsx({ data }) {
             <option value="line">Line Chart</option>
           </select>
         </div>
-      </div> 
+      </div>
       <section>
         <>
           {/* {dataSet.parameters.length > 0 && dataSet.trend.length > 0 ? (
