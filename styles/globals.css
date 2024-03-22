@@ -1811,7 +1811,6 @@ input[type="email"]:invalid:focus{
   height: 100vh;
   display: flex;
   justify-content: center;
-  background: url("https://www.labnetinternational.com/sites/www.labnetinternational.com/files/blogsies/header-images/iStock-949946968.jpg");
   overflow-x: hidden !important;
 }
 

@@ -15,9 +15,6 @@ export default function Activator() {
   const router = useRouter();
 
 
-
-
-
   const advancedSearchButton = async function () {
     let urlquery = `activation?`
     for (const [key, value] of Object.entries(filter)) {
@@ -117,7 +114,7 @@ export default function Activator() {
               ) : (
                 <button className='btn btn-primary btn-sm'
                   onClick={(e) => {
-                    router.push(`/patients/update?patientid=${item.patienid}`)
+                    router.push(`/patients/update?patientid=${item.patientid}`)
                   }}
                 >
                   update

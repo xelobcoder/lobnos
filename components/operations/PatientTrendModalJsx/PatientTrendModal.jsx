@@ -1,51 +1,51 @@
-import  { useEffect, useState } from "react";
-import { customFetch } from "../../Auth/customFetch";
-import TrendSingleList from "./TrendSingleList";
-import ISLOADING from "../../isLoading";
-import PatientTrendChart from "./PatientTrendChart";
-export default function PatientTrendModalJsx({data }) {
-  const { test, patientid, billingid, testid } = data;
-  const [instances, setInstances] = useState(5); // [5,6,7,8,9]
-  const [chartOptions, setChartOptions] = useState(''); // [5,6,7,8,9
-  const [loading, setLoading] = useState(true);
-  const [dataSet, setDataSet] = useState({
-    trend: [],
-    category: null,
-    parameters: [],
-  });
+import { useCallback, useEffect, useState } from "react"
+import { customFetch } from "../../Auth/customFetch"
+import TrendSingleList from "./TrendSingleList"
+import Loader from "../../accessories/Loader"
+import PatientTrendChart from "./PatientTrendChart"
+export default function PatientTrendModalJsx({ data }) {
+  const { test, patientid, billingid, testid } = data
+  const [instances, setInstances] = useState(5) // [5,6,7,8,9]
+  const [chartOptions, setChartOptions] = useState("bar") // [5,6,7,8,9
+  const [loading, setLoading] = useState(true)
+  const [dataSet, setDataSet] = useState([])
 
-
-  const handleTrendView = async () => {
-    const response = await customFetch(
-      `result/patientrend/single?billingid=${billingid}&&patientid=${patientid}&&test=${test}&&testid=${testid}&&instances=${instances}`
-    );
-
-    const { statusCode, status, result } = response;
-
-    if (statusCode == 200 && status == "success") {
-      const { parameters, trend, category } = result;
-      setDataSet({ parameters, trend, category });
-      setLoading(false);
-    } else {
-      setDataSet({ parameters: [], trend: [], category: null });
-      setLoading(false);
+  const handleTrendView = useCallback(async () => {
+    if (instances && patientid && testid) {
+      setLoading(true)
+      const response = await customFetch(
+        `result/patientrend/single?billingid=${billingid}&&patientid=${patientid}&&test=${test}&&testid=${testid}&&instances=${instances}`
+      )
+      const { statusCode, status, result } = response
+      setDataSet(result)
+      setLoading(false)
     }
-  };
+  }, [instances, patientid, testid, test, billingid])
 
   useEffect(() => {
-    if (patientid != null) {
-      handleTrendView();
+    handleTrendView()
+  }, [handleTrendView])
+
+  const renderingChart = () => {
+    if (loading) return <Loader />
+    else {
+      if (dataSet.length == 0) {
+        return <h5>No data found</h5>
+      } else {
+        return <PatientTrendChart chart={chartOptions} parameters={dataSet.map((item, index) => item.field)} data={dataSet} />
+      }
     }
-  }, [patientid, instances]);
-  
+  }
 
   return (
     <div>
-      <div className="d-flex justify-content-between mx-2">
-        <p className="btn btn-primary btn-sm br-0">Test Trend Analysis</p>
-        <div>
+      <div className="mx-2">
+        <h3>Trend Analysis ====={">>>"} PATIENTID:{patientid}</h3>
+      </div>
+      <div className="d-flex">
+        <div className="col-3">
           <select
-            className="custom-select mx-2"
+            className="custom-select mx-2 "
             value={instances}
             onChange={(ev) => {
               setInstances(parseInt(ev.target.value))
@@ -53,27 +53,23 @@ export default function PatientTrendModalJsx({data }) {
             <option>select number of instance</option>
             <option value={2}>2</option>
             <option value={5}>5</option>
-            <option value={6}>6</option>
+            <option value={6 }>6</option>
             <option value={7}>7</option>
             <option value={8}>8</option>
             <option value={9}>9</option>
           </select>
         </div>
-        <div className="mx-3">
+        <div className="mx-3 col-4">
           <select value={chartOptions} className="custom-select" onChange={(ev) => setChartOptions(ev.target.value)}>
             <option>select chart type</option>
             <option value="bar">Bar Chart</option>
             <option value="line">Line Chart</option>
           </select>
         </div>
-      </div>
-      <p className="mx-3">ID:{patientid}</p> <p>BILLID: {billingid}</p>
+      </div> 
       <section>
-        {loading ? (
-          <ISLOADING />
-        ) : (
-          <>
-            {dataSet.parameters.length > 0 && dataSet.trend.length > 0 ? (
+        <>
+          {/* {dataSet.parameters.length > 0 && dataSet.trend.length > 0 ? (
               <table className="d-flex billing-cart-table x-trend br-5" style={{ border: "0px !important" }}>
                 <tbody>
                   <tr className="d-flex flex-column">
@@ -93,10 +89,10 @@ export default function PatientTrendModalJsx({data }) {
               </table>
             ) : (
               <h3 className="text-center">No Data Found</h3>
-            )}
-          </>
-        )}
-        {dataSet.trend.length > 0 && <PatientTrendChart chart={chartOptions} parameters={dataSet.parameters} data={dataSet.trend} />}
+            )} */}
+        </>
+
+        {renderingChart()}
       </section>
     </div>
   )
