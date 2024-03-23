@@ -33,6 +33,7 @@ export default function UserList({ users,load, handleDelete, updatePage,showfilt
       Header: "Role",
       accessor: "role",
     },
+    { Header: 'assigned Branch', accessor: 'branchname' },
     {
       Header: "permissions",
       Cell: function ({ row }) {

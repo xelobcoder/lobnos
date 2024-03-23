@@ -61,7 +61,7 @@ export default function Authentication_index_page() {
       return (
         <section className='mx-2'>
           <form className='border border-1 border-secondary-subtle p-2 bg-white px-3' autoCapitalize="on" autoComplete="off" accessKey="E">
-            <h5> {employeeid ? 'update user information' : 'New User Registration '} </h5>
+            <h5 className='text-capitalize'> {employeeid ? 'update user information' : 'New User Registration '} </h5>
             <hr />
                   <div className="row">
                     <div className="">
@@ -162,7 +162,7 @@ export default function Authentication_index_page() {
                 <div className='form-row grid-reg mt-3 '>
                   <label className='mb-2 mt-2'> assign to branch</label>
                   <select value={register.branch} name={'branch'} onChange={(ev) => { handleChange(ev) }} className='custom-select'>
-                    <option>assign user to a branch here</option>
+                    <option value=''>assign user to a branch here</option>
                     {branches.length > 0 &&
                       branches.map((item, index) => <option value={item.branchid} key={index}>{item.name}</option>)}
                   </select>

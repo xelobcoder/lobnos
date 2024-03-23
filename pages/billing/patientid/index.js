@@ -1,5 +1,5 @@
 import { useSearchParams, useRouter } from "next/navigation";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import TESTCART from "../../../components/registration/testCart.js";
 import TopComponentBillingButton from "../../../components/Billing/topComponentBillingButton.jsx";
 import { customFetch, validateFormData } from "../../../components/Auth/customFetch.js";
@@ -31,13 +31,13 @@ const defaultdata = {
 export default function Billing({ }) {
   const { auth } = useContext(AuthContext);
   const employeeid = auth?.employeeid;
+  const branchid = auth?.branchid;
   const router = useRouter();
   const [billingdata, setBillingdata] = useState(defaultdata);
   const [payment, setPayment] = useState({ amount: 0, mode: "", concession: '' });
   const [paymentmodes, setPaymentModes] = useState([]);
   const [organizations, setOrganizations] = useState([]);
   const [clinicians, setClincians] = useState([]);
-  const [branch, setBranch] = useState(null);
   const [selected, setSelected] = useState(null);
   const [testpanels, setTestPanels] = useState([]);
   const [cart, setCart] = useState([]);
@@ -121,18 +121,6 @@ export default function Billing({ }) {
 
 
 
-  useEffect(() => {
-    const branch = localStorage.getItem('deviceDefaultBranch');
-    if (branch) {
-      setBranch(branch?.split('-')[1]);
-    } else {
-      alert('please select a branch. you will be redirected to the branch selection page');
-      setTimeout(() => {
-        window.location.href = '/settings';
-      }, 1000);
-    }
-  }, []);
-
 
 
   const addtoCart = async () => {
@@ -170,7 +158,7 @@ export default function Billing({ }) {
   const handleSubmit = async (ev) => {
     ev.preventDefault();
     const test = cart.map((item) => item.id);
-    const samplingCenter = parseInt(branch);
+    const samplingCenter = parseInt(branchid);
     const data = { ...billingdata, employeeid, samplingCenter, test, patientid: parseInt(clientid) };
 
     const callbackResponse = async function (data) {
@@ -196,7 +184,7 @@ export default function Billing({ }) {
 
   return (
     <FrontDeskLayout>
-      <ToastContainer />
+      <ToastContainer theme="colored" />
       <div id='panel-selection' className="mx-3 my-2">
         <section className="d-flex justify-content-between">
           <div className="d-flex col-6 mx-2 ">

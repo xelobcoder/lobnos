@@ -207,7 +207,9 @@ export async function handleActivation(e, id, status, patientid, callbackfunctio
     );
     if (response.message == 'success') {
       alert(`patient ${action == 'TRUE' ? 'Activated' : 'Deactivated'} successfully`);
-      callbackfunction();
+      if (callbackfunction && typeof callbackfunction == 'function') {
+        callbackfunction();
+      }
     } else {
       alert(message)
     }

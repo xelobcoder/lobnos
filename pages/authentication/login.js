@@ -34,8 +34,8 @@ export default function LoginCredentials() {
           if (permissions && typeof permissions === 'object') {
             permissions = JSON.parse(user?.permissions);
           }
-          const { username, role, email, employeeid } = user;
-          updateAuthentication({ username, role, email, permissions,employeeid });
+          const { username, role, email, employeeid, branchid } = user;
+          updateAuthentication({ username, role, email, permissions, employeeid, branchid });
         }
         if (window.history.length > 0) {
           navigate.back();

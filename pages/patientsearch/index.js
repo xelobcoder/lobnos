@@ -93,8 +93,8 @@ export default function Activator() {
                   e,
                   item.id,
                   item.activation_status,
-                  item.patienid,
-                  getInitData
+                  item.patientid,
+                  // getInitData
                 );
               }}
             >
