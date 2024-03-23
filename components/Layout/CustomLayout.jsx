@@ -3,7 +3,9 @@ import Link from "next/link"
 import { Menu } from "@mui/icons-material"
 import { usePathname } from "next/navigation"
 import AuthContext from "../Auth/useAuthentification"
-export default function AppCustomLayout({ children, sideLinks, defaultscreen = true }) {
+import Loader from "../accessories/Loader"
+
+export default function AppCustomLayout({ children, sideLinks, defaultscreen = true, target }) {
   const { auth } = useContext(AuthContext)
   const [fullscreen, setFullscreen] = useState(defaultscreen)
   const { username, role } = auth
@@ -22,7 +24,7 @@ export default function AppCustomLayout({ children, sideLinks, defaultscreen = t
           </div>
           <div className="user">
             <Menu
-              sx={{fontSize:'40px'}}
+              sx={{ fontSize: "40px" }}
               onClick={(ev) => {
                 toggleSidebar()
               }}
@@ -46,7 +48,7 @@ export default function AppCustomLayout({ children, sideLinks, defaultscreen = t
                       {fullscreen ? (
                         <span title={item.title}>{item.icon}</span>
                       ) : (
-                        <span 
+                        <span
                           className={`d-flex justify-content-center expanded-svg
                           ${item.link === pathname ? "icons-no-text text-white" : "icons-no-text text-white"}`}>
                           {item.icon}
@@ -66,3 +68,5 @@ export default function AppCustomLayout({ children, sideLinks, defaultscreen = t
     </div>
   )
 }
+
+

@@ -32,7 +32,7 @@ export default function CreateTestFields() {
       }
 
       if (data.length === 0) {
-         setData(field);
+         setData([field]);
       } else {
          const dataset = [...data].filter((item, index) => item.name != field.name)
          setData([...dataset, field]);

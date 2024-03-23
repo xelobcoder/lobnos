@@ -2,7 +2,7 @@ import TableDisplay from '../../../components/accessories/TableDisplay';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Pagination from '../../accessories/pagination';
-export default function UserList({ users,load, handleDelete, updatePage,showfiltering, activateUser, updateRefresh }) {
+export default function UserList({ users, load, handleDelete, page, updatePage, showfiltering, activateUser, updateRefresh }) {
   const navigateTo = useRouter();
 
   const columns = [
@@ -92,7 +92,7 @@ export default function UserList({ users,load, handleDelete, updatePage,showfilt
           filtering={!showfiltering}
           showpage={false} />
         <div className="d-flex justify-content-center">
-          <Pagination  load={load} updateFunction={updatePage} />
+          <Pagination load={load} updateFunction={updatePage} page={page} />
         </div>
       </div>
     </>

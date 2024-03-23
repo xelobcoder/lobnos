@@ -24,3 +24,4 @@ function MyApp({ Component, pageProps: { pageProps } }) {
 }
 
 export default MyApp
+

@@ -26,7 +26,6 @@ export default async function handler(request, response) {
       // we get the data to be cache from the backend api
       customFetch('cachedata/getSavedrecords')
          .then((data) => {
-            let receiveddata = data;
             if (typeof data != 'string')
                receiveddata = JSON.stringify(data);
             if (isDirExist) {

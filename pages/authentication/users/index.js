@@ -4,6 +4,7 @@ import { activateInstitutionUser, getInstitutionUsers, customPost, updatePaginat
 import Loader from '../../../components/accessories/Loader';
 import AuthenticationLayout from '../../../components/Layout/AuthenticationLayout';
 
+
 export default function ApplicationUsersPage() {
   const [users, setUser] = useState([]);
   const [advanced, setAdvanced] = useState(false);
@@ -124,6 +125,7 @@ export default function ApplicationUsersPage() {
             activateUser={activateInstitutionUser}
             updatePage={updatePage}
             load={setLoad}
+            page={pagequery.page}
             showfiltering={advanced}
             updateRefresh={setUser} />
       </div>
@@ -136,3 +138,5 @@ export default function ApplicationUsersPage() {
     </AuthenticationLayout>
   )
 }
+
+

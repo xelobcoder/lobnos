@@ -10,19 +10,17 @@ export async function customFetch(endpoint) {
          headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
             "Content-Type": "application/json",
-            mode: 'no-cors',
          },
-      });
-
-      const source = await response.json();
+      })
+      const source = await response.json()
       const { status, message } = source
-      if (status == 401 && message == 'Unauthorized') {
-         window.location.href = '/authentication/login'
+      if (status == 401 && message == "Unauthorized") {
+         window.location.href = "/authentication/login"
       } else {
          return source
       }
    } catch (err) {
-      console.log(err);
+      console.log(err)
    }
 }
 
@@ -603,9 +601,7 @@ export const isAuthenticated = async function (auth, navigate, updateAuthenticat
          const { statusCode, status } = authentic;
          if (statusCode == 200 && status == 'success') {
             const { username, role, email, employeeid } = authentic?.user;
-
             const permissions = JSON.parse(authentic?.user?.permissions);
-
             updateAuthentication({ username, role, email, employeeid, permissions });
          } else {
             navigate.push('/authentication/login')

@@ -7,11 +7,13 @@ import {
   Sms,
   TextSnippetRounded,
   Looks3Sharp,
-} from "@mui/icons-material";
+  VerifiedUser,
+} from "@mui/icons-material"
 
 export default function MainSettingsLayoutView({ children, sidebar }) {
   const sidebarLinks = [
     { title: "Applications Settings", link: "/settings/applicationsettings", icon: <SettingsApplications /> },
+    { title: "Users", link: "/authentication/users", icon: <VerifiedUser /> },
     { title: "Branches", link: "/settings/branches", icon: <Forest /> },
     { title: "Company Info", link: "/settings/companyprofile", icon: <CorporateFareRounded /> },
     { title: "Departments", link: "/settings/department", icon: <TripOrigin /> },
@@ -20,5 +22,9 @@ export default function MainSettingsLayoutView({ children, sidebar }) {
     { title: "Email Management", link: "/settings/emailsetting", icon: <Sms /> },
   ]
 
-  return <AppCustomLayout sideLinks={sidebarLinks}  defaultscreen={false}>{children}</AppCustomLayout>
+  return (
+    <AppCustomLayout sideLinks={sidebarLinks} defaultscreen={false}>
+      {children}
+    </AppCustomLayout>
+  )
 }
