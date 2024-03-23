@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import UserList from '../../../components/Auth/Roles/userList'
 import { activateInstitutionUser, getInstitutionUsers, customPost, updatePagination, handleChangeWithState } from '../../../components/Auth/customFetch'
 import Loader from '../../../components/accessories/Loader';
@@ -12,9 +12,17 @@ export default function ApplicationUsersPage() {
   const [filters, setFiltering] = useState({ name: '', role: '', email: "", contact: '' });
   const [pagequery, setPageQuery] = useState({ count: 10, page: 1, load: false });
 
+
+  const getUsersData = useCallback(
+    async () => {
+      getInstitutionUsers(setUser, `logins?count=${pagequery.count}&&page=${pagequery.page}&&name=${filters.name}&&email=${filters.email}&&role=${filters.role}&&contact=${filters.contact}`, setLoading)
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pagequery])
+
+
   useEffect(() => {
-    getInstitutionUsers(setUser, `logins?count=${pagequery.count}&&page=${pagequery.page}`, setLoading);
-  }, [pagequery]);
+    getUsersData();
+  }, [getUsersData]);
 
 
   const updatePage = (value) => {
@@ -42,6 +50,15 @@ export default function ApplicationUsersPage() {
     handleChangeWithState(ev, name, setFiltering, filters);
   }
 
+
+  const initFilteringUsers = (ev) => {
+    ev.preventDefault();
+    const { name, email, role, contact } = filters;
+    if (Object.values(filters).some((item, index) => { return item.toString().length > 0 })) {
+      let endpoint = `logins?count=${pagequery.count}&&page=${pagequery.page}&&name=${name}&&email=${email}&&role=${role}&&contact=${contact}`;
+      getInstitutionUsers(setUser, endpoint, setLoading);
+    }
+  }
 
 
   const renderAdvancedForm = () => {
@@ -73,10 +90,10 @@ export default function ApplicationUsersPage() {
               <input value={filters.contact} onChange={(ev) => { updateFilering(ev) }} name='contact' className='custom-input' type='text' placeholder='user contact' />
             </div>
             <div>
-              <button type='button' className='btn btn-sm btn-secondary' style={{ marginTop: '1px' }}>
+              <button onClick={(ev) => { initFilteringUsers(ev) }} type='button' className='btn btn-sm btn-secondary' style={{ marginTop: '1px' }}>
                 filter user
               </button>
-              <button type='button' style={{ marginTop: '1px' }} onClick={(ev) => { setAdvanced(false) }} className='btn btn-danger btn-sm mx-2'>
+              <button type='button' style={{ marginTop: '1px' }} onClick={(ev) => { setAdvanced(false);getUsersData() }} className='btn btn-danger btn-sm mx-2'>
                 close
               </button>
             </div>
