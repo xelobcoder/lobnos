@@ -34,6 +34,7 @@ export default function Authentication_index_page() {
 
   useEffect(() => {
     if (employeeid) {
+      setLoading(true);
       customFetch(`logins/user?id=${employeeid}`)
         .then((data) => {
           const { statusCode, message, result } = data;
@@ -41,8 +42,11 @@ export default function Authentication_index_page() {
             const { role, username, email, employeeid } = result[0]
             setRegister({ name: username, email, role })
           }
+          setLoading(false);
         })
-        .catch((err) => console.log(err))
+        .catch((err) => {
+          setLoading(false);
+        })
     }
   }, [employeeid])
 
