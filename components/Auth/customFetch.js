@@ -11,16 +11,16 @@ export async function customFetch(endpoint) {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
             "Content-Type": "application/json",
          },
-      })
-      const source = await response.json()
+      });
+      const source = await response.json();
       const { status, message } = source
-      if (status == 401 && message == "Unauthorized") {
-         window.location.href = "/authentication/login"
+      if (status == 401 && message == 'Unauthorized') {
+         window.location.href = '/authentication/login'
       } else {
          return source
       }
    } catch (err) {
-      console.log(err)
+      console.log(err);
    }
 }
 

@@ -17,7 +17,9 @@ export default function ResultEnteredSidePanel() {
     }
   }
 
-  const handleUpdate = (e, item) => { updateOperations({ billingid: item.billingid, patientid: item.patientid}) }
+  const handleUpdate = (e, item) => {
+    updateOperations({ billingid: item.billingid, patientid: item.patientid })
+  }
 
 
 
