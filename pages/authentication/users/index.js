@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import UserList from '../../../components/Auth/Roles/userList'
-import { activateInstitutionUser, getInstitutionUsers, customPost, updatePagination } from '../../../components/Auth/customFetch'
+import { activateInstitutionUser, getInstitutionUsers, customPost, updatePagination, handleChangeWithState } from '../../../components/Auth/customFetch'
 import Loader from '../../../components/accessories/Loader';
 import AuthenticationLayout from '../../../components/Layout/AuthenticationLayout';
 
@@ -9,6 +9,7 @@ export default function ApplicationUsersPage() {
   const [advanced, setAdvanced] = useState(false);
   const [isloading, setLoading] = useState(true);
   const [load, setLoad] = useState(false);
+  const [filters, setFiltering] = useState({ name: '', role: '', email: "", contact: '' });
   const [pagequery, setPageQuery] = useState({ count: 10, page: 1, load: false });
 
   useEffect(() => {
@@ -36,13 +37,20 @@ export default function ApplicationUsersPage() {
 
 
 
+  const updateFilering = (ev) => {
+    const { name } = ev.target;
+    handleChangeWithState(ev, name, setFiltering, filters);
+  }
+
+
+
   const renderAdvancedForm = () => {
     if (advanced == true) {
       return (
         <div>
           <form autoComplete='off' className='d-flex mb-1'>
             <div className='form-row col-2'>
-              <select className="custom-select" name="role" id="role">
+              <select value={filters.role} onChange={(ev) => { updateFilering(ev) }} className="custom-select" name="role" id="role">
                 <option value="">select role</option>
                 <option value="admin">admin</option>
                 <option value="customer service representative">
@@ -56,13 +64,13 @@ export default function ApplicationUsersPage() {
               </select>
             </div>
             <div className='form-row col-3 mx-2'>
-              <input className='custom-input' type='text' placeholder='username' />
+              <input value={filters.name} onChange={(ev) => { updateFilering(ev) }} name='name' className='custom-input' type='text' placeholder='username' />
             </div>
             <div className='form-row col-3 mx-2'>
-              <input className='custom-input' type='text' placeholder='user email' />
+              <input value={filters.email} onChange={(ev) => { updateFilering(ev) }} name='email' className='custom-input' type='text' placeholder='user email' />
             </div>
             <div className='form-row col-2 mx-2'>
-              <input className='custom-input' type='text' placeholder='user contact' />
+              <input value={filters.contact} onChange={(ev) => { updateFilering(ev) }} name='contact' className='custom-input' type='text' placeholder='user contact' />
             </div>
             <div>
               <button type='button' className='btn btn-sm btn-secondary' style={{ marginTop: '1px' }}>

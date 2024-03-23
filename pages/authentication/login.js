@@ -37,7 +37,11 @@ export default function LoginCredentials() {
           const { username, role, email, employeeid } = user;
           updateAuthentication({ username, role, email, permissions,employeeid });
         }
-        navigate.push('/')
+        if (window.history.length > 0) {
+          navigate.back();
+        } else {
+          navigate.push('/');
+        }
       } else {
         setMessage({ message, status })
       }
