@@ -34,11 +34,8 @@ export default function RejectedSamplesComponent() {
     // id refers to index of the data array
     // filter the data array to get the billingid
     const filtered = data[id];
-
     const { billingid, testid } = filtered;
-
     const body = { billingid, testid, disputedby: 1, disputedon: new Date(), disputereason: reason };
-
     const response = await customPost(`sample/rejection/disputed`, 'PUT', body);
     const { status, statusCode, message } = response;
     if (statusCode == 200 && status == 'success') {
@@ -104,8 +101,14 @@ export default function RejectedSamplesComponent() {
   return (
     <>
       <ToastContainer />
+      <h4>Rejected Sample List</h4>
       {renderingView()}
-      <RejectionMessageModalDialogJsx handleDisputed={handleDisputed} id={viewRejection.id} message={viewRejection.message} show={viewRejection.status} hide={handleClose} />
+      <RejectionMessageModalDialogJsx
+        handleDisputed={handleDisputed}
+        id={viewRejection.id}
+        message={viewRejection.message}
+        show={viewRejection.status}
+        hide={handleClose} />
     </>
   )
 }

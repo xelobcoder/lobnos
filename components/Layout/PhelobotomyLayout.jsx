@@ -6,5 +6,9 @@ export default function PhelobotomyLayout({ children }) {
     { title: "Rejected Samples", link: "/phelobotomy/rejectedsamples", icon: <Book /> },
     { title: "Analytics", link: "/phelobotomy/analytics", icon: <Analytics /> },
   ]
-  return <AppCustomLayout sideLinks={sidebarLinks}>{children}</AppCustomLayout>
+  return (
+    <AppCustomLayout sideLinks={sidebarLinks} defaultscreen={false}>
+      {children}
+    </AppCustomLayout>
+  )
 }

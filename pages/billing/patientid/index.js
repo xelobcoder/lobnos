@@ -63,26 +63,24 @@ export default function Billing({ }) {
 
 
 
-
-
-  useEffect(() => {
-    const getOustandingBill = async () => {
-      if (clientid) {
-        customFetch(`billing/client/bulk/outstanding?patientid=${clientid}`)
-          .then((data) => {
-            const outstandingDebt = data?.result[0]?.outstanding;
-            if (outstandingDebt > 0) {
-              router.push(`/billing/payment/update/${clientid}`)
-            } else {
-              getAllNecessaryData();
-            }
-          }).catch((err) => {
-            console.log(err)
-            toast.error('something wrong occured', { autoClose: 500 })
-          })
-      }
+  const getOustandingBill = async () => {
+    if (clientid) {
+      customFetch(`billing/client/bulk/outstanding?patientid=${clientid}`)
+        .then((data) => {
+          const outstandingDebt = data?.result[0]?.outstanding;
+          if (outstandingDebt > 0) {
+            router.push(`/billing/payment/update/${clientid}`)
+          } else {
+            getAllNecessaryData();
+          }
+        }).catch((err) => {
+          console.log(err)
+          toast.error('something wrong occured', { autoClose: 500 })
+        })
     }
+  }
 
+  function getAppSet() {
     customFetch(`applicationsettings/billing`)
       .then((data) => {
         setAppsettings(data);
@@ -95,8 +93,25 @@ export default function Billing({ }) {
       }).catch((err) => {
         console.log(err)
       })
+  }
 
-  }, [clientid,router])
+  
+  useEffect(() => {
+    if (clientid) {
+      customFetch(`billing/caninitialbill?patientid=${clientid}`)
+        .then((data) => {
+          const { canInitiateBill } = data;
+          if (canInitiateBill === false) {
+            toast.warn(`Billing cannot be initiated for client today.Kindly update previous billing`, { autoClose: 5000 });
+          } else {
+            getAppSet();
+          }
+        }).catch((err) => {
+          console.log(err)
+        })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientid])
 
 
 
@@ -145,12 +160,9 @@ export default function Billing({ }) {
   }, [cart.length])
 
   const emptyCart = () => { setCart([]); setSelected('') };
-
   const removeFromCart = (ev, value) => {
     if (!value) return;
-    setCart((prev) => {
-      return prev.filter((item, index) => item?.id !== value?.id);
-    })
+    setCart((prev) => { return prev.filter((item, index) => item?.id !== value?.id); })
   }
 
 
@@ -159,6 +171,7 @@ export default function Billing({ }) {
     ev.preventDefault();
     const test = cart.map((item) => item.id);
     const samplingCenter = parseInt(branchid);
+    console.log(samplingCenter, auth)
     const data = { ...billingdata, employeeid, samplingCenter, test, patientid: parseInt(clientid) };
 
     const callbackResponse = async function (data) {
@@ -171,7 +184,6 @@ export default function Billing({ }) {
     }
 
     const { PaidBillsBeforeTransaction } = appsettings;
-
     if (PaidBillsBeforeTransaction == 1 && (data.payable != data.paid)) {
       return toast.error('Full payment must be made outright please.To change this behaviour,please kindly updates the settings', { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
     }
@@ -210,9 +222,7 @@ export default function Billing({ }) {
             </div>
           </div>
           <div>
-            <TopComponentBillingButton
-              cart={cart.length}
-            />
+            <TopComponentBillingButton />
           </div>
         </section>
       </div>

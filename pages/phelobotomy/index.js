@@ -70,6 +70,7 @@ export default function Phelobotomy() {
 
   return (
     <PhelobotomyLayout>
+      <h5>Pending Sampling Ascension</h5>
       {renderingView()}
     </PhelobotomyLayout>
   );
