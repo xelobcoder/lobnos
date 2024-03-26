@@ -1,16 +1,12 @@
 import { useState, useEffect, useCallback, useContext } from "react";
 import Loader from '../../components/accessories/Loader';
-import { toast, ToastContainer } from 'react-toastify';
-import { customPost, getDataAndUpdateState, updatePagination } from "../../components/Auth/customFetch";
-import RejectionMessageModalDialogJsx from "../../components/samples/RejectionMessageModalDialogJsx/RejectionMessageModalDialogJsx";
+import { getDataAndUpdateState, updatePagination } from "../../components/Auth/customFetch";
+
 import Pagination from "../accessories/pagination";
 import FlexTableDisplay from "../accessories/FlexTableDisplay";
-import AuthContext from "../Auth/useAuthentification";
 
 export default function RejectedSamplesComponent() {
   const [data, setData] = useState([]);
-  const { auth } = useContext(AuthContext);
-  const [viewRejection, setViewRejection] = useState({ status: false, message: '', testid: '', billingid: '' });
   const [loading, setLoading] = useState(true);
   const [paginate, setPaginate] = useState({ count: 10, page: 1 })
   const [load, setLoad] = useState(false);
@@ -24,36 +20,7 @@ export default function RejectedSamplesComponent() {
 
   useEffect(() => { fetchInitialData(); }, [fetchInitialData])
 
-  const handleClose = () => { setViewRejection({ status: false, message: '', id: '' }); }
 
-
-  const removeClient = (id) => {
-    if (!id) return;
-    setData((prev) => { prev.filter((item, index) => index !== id); })
-  }
-
-  const handleDisputed = async (id, reason) => {
-    // id refers to index of the data array
-    // filter the data array to get the billingid
-    const filtered = data.filter((item, index) => item.testid == id);
-    if (filtered.length == 0) {
-      return null;
-    }
-    let employeeid = auth.employeeid;
-    if (!employeeid) return false;
-
-    const { ascensionid } = filtered[0]
-    const body = { ascensionid, disputedby: employeeid, disputedon: new Date(), disputereason: reason };
-    const response = await customPost(`sample/rejection/disputed`, 'PUT', body);
-    const { status, statusCode, message } = response;
-    if (statusCode == 200 && status == 'success') {
-      toast.success(message);
-      // removeClient(id);
-      // handleClose();
-    } else {
-      toast.error(message);
-    }
-  }
 
 
   const updateFunction = (value) => {
@@ -77,12 +44,10 @@ export default function RejectedSamplesComponent() {
     {
       Header: 'actions', accessor: '', Cell: ({ row }) => {
         const item = row.original;
-        console.log(item)
         return (
           <span>
             <button className="btn btn-sm btn-secondary"
               onClick={() => {
-                setViewRejection({ status: true, message: item?.rejectionmessage, id: item?.testid });
                 window.open(`/sample/rejected/history?ascensionid=${item.ascensionid}`)
               }}>
               history
@@ -112,15 +77,8 @@ export default function RejectedSamplesComponent() {
 
   return (
     <>
-      <ToastContainer />
       <h4>Rejected Sample List</h4>
       {renderingView()}
-      <RejectionMessageModalDialogJsx
-        handleDisputed={handleDisputed}
-        id={viewRejection.id}
-        message={viewRejection.message}
-        show={viewRejection.status}
-        hide={handleClose} />
     </>
   )
 }
