@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import Sampling from "../../components/readyComponents/Sampling";
 import ISLOADING from "../../components/isLoading";
 import { ToastContainer, toast } from "react-toastify";
@@ -6,8 +6,11 @@ import { useRouter } from "next/navigation";
 import {  customFetch, customPost, getSpecificOrder, handleChangeWithState } from "../../components/Auth/customFetch";
 import { useSearchParams } from "next/navigation";
 import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
+import AuthContext from "../../components/Auth/useAuthentification";
 
 export default function ProcessingOrder() {
+  const { auth } = useContext(AuthContext);
+  const employeeid = auth?.employeeid;
   const router = useRouter();
   const [data, setData] = useState({});
   const id = useSearchParams().get('orderid');
@@ -83,7 +86,8 @@ export default function ProcessingOrder() {
        _this.status = 'none';
        if (test.length > 0) {
          _this.test = test.map((item, index) => { return item?.id });
-       }
+      }
+      _this.employeeid = employeeid;
       const pushorder = await customPost("orders/processed", 'POST', _this);
       
       const { statusCode, status, message } = pushorder;
@@ -163,7 +167,7 @@ export default function ProcessingOrder() {
                     <option> select an  option here </option>
                     {
                      ( paymentmode.length >  0) && (
-                        paymentmode.map((item, index) => { return <option key={item.KeyID}>{item.PaymentMode}</option> }))
+                        paymentmode.map((item, index) => { return <option key={item.KeyID} value={item.KeyID}>{item.PaymentMode}</option> }))
                     }
                  </select>
                 </div>
