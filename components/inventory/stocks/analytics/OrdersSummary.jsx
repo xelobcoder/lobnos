@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Tabs, Tab } from "react-bootstrap"
 import UseUrgentActions from "./useUrgentActions"
 import { useRouter } from "next/navigation"
+import { currencyFormatter } from "../../../Auth/customFetch"
 
 export default function OrdersSummary() {
   const navigate = useRouter()
@@ -33,7 +34,10 @@ export default function OrdersSummary() {
     { Header: "qty Received", accessor: "quantityReceived" },
     { Header: "pricing", accessor: "pricing" },
     { Header: "price", accessor: "price" },
-    { Header: "totalamount", accessor: "totalamount" },
+    {
+      Header: "totalamount", accessor: "totalamount", Cell: ({ row, value }) => {
+        return currencyFormatter.format(value);
+    } },
     { Header: "purchase unit", accessor: "purchaseunit" },
   ]
 

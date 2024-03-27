@@ -87,7 +87,7 @@ export default function InventoryWastages({ departmentid }) {
     { Header: "pricing method", accessor: "pricing" },
     { Header: "price", accessor: "price" },
     { Header: "expired qty", accessor: "debitqty" },
-    { Header: "Amount", accessor: "debitAmount" },
+    { Header: "Amount", accessor: "debitAmount" ,Cell: ({value}) => currencyFormatter.format(value)},
   ]
 
   const updateQuery = (pageValue) => {

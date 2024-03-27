@@ -22,14 +22,16 @@ export const pushNewSupplierInformation = async (method, data, toast,supplierid)
       return;
     }
 
-    const response = await customPost(`suppliers?supplierid=${supplierid}`, method,data);
+    const enpoint = method == 'POST' ? `suppliers` : `suppliers?supplierid=${supplierid}`;
+    const response = await customPost(enpoint, method, data);
     const { statusCode, status, message } = response;
     if (statusCode === 200 && status === 'success') {
       toast.success(message, { autoclose: 500 });
       return true;
+    } else {
+      toast.error(message, { autoclose: 5000, position: 'top-center' });
     }
   } catch (err) {
-    console.log(err)
     toast.error("something wrong occured", {autoclose: 3000})
   }
 }

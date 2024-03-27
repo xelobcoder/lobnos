@@ -5,7 +5,6 @@ import {
   Inventory2,
   PushPinRounded,
   Settings,
-  UnarchiveRounded,
   Warehouse,
   WaterDamage
 } from "@mui/icons-material"
@@ -19,7 +18,6 @@ export default function InventoryLayout({ children }) {
       link: "/inventory/expirestocks",
       icon: <ExpandCircleDownSharp fontSize="small" />,
     },
-    { title: "Instocks", link: "/inventory/stocks", icon: <UnarchiveRounded fontSize="small" /> },
     {
       title: "General Store",
       link: "/inventory/stocksrequest",

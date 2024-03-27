@@ -53,10 +53,12 @@ export default function SUPPLY() {
   const handleSubmit = async (ev, newsupplier) => {
     ev.preventDefault();
     const method = isEditing === true ? 'PUT' : 'POST';
-    const isNotEmpty = (Object.values(newsupplier).some((item, index) => (item == "" || item == " " || item == 0)));
+    const isNotEmpty = (Object.values(newsupplier)
+      .some((item, index) => (item == "" || item == " " || item == 0)));
     if (isNotEmpty === false) {
       let outcome = await pushNewSupplierInformation(method, newsupplier, toast, editingid);
-      if (isEditing && outcome && editingid != null) {
+      if (!outcome) return;
+      if (isEditing && editingid != null) {
         const prev = [...rawdata]
         const indexOf = prev.findIndex((item, index) => item.supplierid == editingid);
         prev[indexOf] = newsupplier;
@@ -96,7 +98,7 @@ export default function SUPPLY() {
   return (
     <>
       <SupplierLayout>
-        <ToastContainer />
+        <ToastContainer theme='colored' style={{ width: 500 }} />
         <ADD_NEW_SUPPLIER
           reset={reset}
           supplierid={editingid}
