@@ -1,5 +1,4 @@
 import { useSearchParams } from "next/navigation";
-import StockListView from "../../../components/inventory/stocks/StockListView";
 import StockBrandList from "../../../components/inventory/stocks/StockBrandList";
 import InventoryLayout from "../../../components/inventory/InventoryLayout";
 

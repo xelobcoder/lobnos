@@ -25,7 +25,6 @@ export default function TopPerforming({ category, count, from, to }) {
         <table className='table'>
           <thead>
             <tr>
-              <th>#</th>
               <th>{category}</th>
               <th>total sales</th>
               <th>commission rate</th>
@@ -38,13 +37,13 @@ export default function TopPerforming({ category, count, from, to }) {
               data.map((item, index) => {
                 return (
                   <tr key={index}>
-                    <td>{index + 1}</td>
                     <td>{item.name}</td>
                     <td>{item.totalSales}</td>
                     <td>{item.commissionRate}</td>
                     <td>{item.commissionEarned}</td>
                     <td>
-                      <button onClick={(ev) => {router.push(`/dashboard/organization/details?id=${item.id}&&organizationame=${item.name}`)}} className='btn btn-warning btn-sm text-sm '>
+                      <button
+                        onClick={(ev) => { router.push(`/dashboard/organization/details?id=${item.id}&&organizationame=${item.name}`) }} className='btn btn-warning btn-sm text-sm '>
                         view detail
                       </button>
                     </td>

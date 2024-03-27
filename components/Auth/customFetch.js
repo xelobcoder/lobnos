@@ -1,4 +1,5 @@
- /**
+
+/**
     * Sends an HTTP request to the specified endpoint and returns the response as JSON.
     * 
     * @param {string} endpoint - The endpoint URL to send the request to.
@@ -10,6 +11,7 @@ export async function customFetch(endpoint) {
          headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
             "Content-Type": "application/json",
+            // "cache" : "no-cache,must-revalidate,no-store,max-age=0,s-maxage=0"
          },
       });
       const source = await response.json();

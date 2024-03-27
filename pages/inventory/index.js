@@ -1,14 +1,15 @@
-import  { useReducer, useState, useMemo } from "react";
-import { ListGroup, ListGroupItem } from 'react-bootstrap';
+import { useReducer, useState, useMemo } from "react";
 import { customFetch, customPost } from "../../components/Auth/customFetch";
 import InventoryLayout from "../../components/inventory/InventoryLayout";
 import { useEffect } from "react";
-import { filterStocks, getWareHouseList,updatePagination} from "../../components/inventory/Util";
+import { filterStocks, getWareHouseList, handleAssignWare, updatePagination } from "../../components/inventory/Util";
 import ADD_STOCK_INVENTORY from "../../components/inventory/addstock";
 import Pagination from "../../components/accessories/pagination";
-import StockListView from "../../components/inventory/stocks/StockListView";
 import AddStockCategory from "../../components/inventory/stocks/AddStocksCategory";
 import Loader from '../../components/accessories/Loader';
+import TableDisplay from '../../components/accessories/TableDisplay';
+import { Add } from "@mui/icons-material";
+import { useRouter } from "next/navigation";
 
 
 export default function INVENTORY_PAGE() {
@@ -21,6 +22,7 @@ export default function INVENTORY_PAGE() {
   const [selectedWarehouse, setSelectedWarehouse] = useState('all');
   const [showModal, setShowmodal] = useState(false);
   const [showCatModal, setShowCatModal] = useState(false);
+  const router = useRouter();
 
   const getData = (urlquery) => {
     setLoading(true);
@@ -73,16 +75,87 @@ export default function INVENTORY_PAGE() {
     setShowmodal(true)
   }
 
-  const MemoizedPagination = useMemo(() => <Pagination load={setLoadPaginate} updateFunction={dispatchQuery} />, [dispatchQuery]);
+  const MemoizedPagination = useMemo(
+    () => <Pagination load={setLoadPaginate} updateFunction={dispatchQuery} />,
+    [dispatchQuery]);
+
+
+
+  const columns = [
+    { Header: 'name', accessor: 'name' },
+    { Header: 'category', accessor: 'categoryname' },
+    {
+      Header: 'unit', accessor: '', Cell: ({ row }) => {
+        const { purchaseunit, consumptionunit } = row.original;
+        return (<div>
+          <span>purchase unit({purchaseunit})</span>
+          <br />
+          <span>consump. unit({consumptionunit})</span>
+        </div>)
+      }
+    },
+    { Header: 'qty Availble', accessor: 'quantity' },
+    {
+      Header: 'alert level', accessor: 'alertlevel', Cell: ({ row, value }) => {
+        if (value < row.original.quantity) return <span className="text-danger border-bottom border-2 border-danger">{value}</span>
+        else if (value == row.original.quantity) return <span className="text-danger border-bottom border-2 border-warning">{value}</span>
+        else {
+          return <span>{value}</span>
+        }
+      }
+    },
+    {
+      Header: 'action', accessor: '', Cell: ({ row, value }) => {
+        const { stockid } = row.original;
+        return (
+          <div className="d-flex">
+            <button onClick={() => handleDelete(stockid)} className='btn btn-sm  btn-danger'>
+              delete
+            </button>
+            <button onClick={() => handleEditingStock(stockid, row.original)} className='btn btn-sm btn-primary mx-2'>
+              edit
+            </button>
+            <button onClick={() => { handleAssignWare(row.original, router) }} className='btn btn-secondary btn-sm'>
+              <Add /> brands
+            </button>
+          </div>
+        )
+      }
+    }
+  ]
+
+
+
+  const renderingView = () => {
+    if (loading) return <Loader />
+    else {
+      return (
+        <section>
+          <TableDisplay column={columns} data={stocksource} showpage={false} />
+          <div className="d-flex justify-content-center mt-1">
+            {MemoizedPagination}
+          </div>
+          {showModal &&
+            (<ADD_STOCK_INVENTORY warehouseList={warehouseList} editing={editing} show={showModal} closeModal={closeModal} />)}
+          {
+            showCatModal &&
+            (
+              <AddStockCategory show={showCatModal} onHide={closeCategoryModal} />
+            )
+          }
+        </section>
+      )
+    }
+  }
 
   return (
     <>
       <InventoryLayout>
         <div className="d-flex justify-content-between">
-          <div className="d-flex">
+          <div className="d-flex col-4">
             <input
               onChange={(ev) => {filterStocks(ev.target.value,selectedWarehouse,query,setStocks)}}
-              className="custom-input col-7" type="text" placeholder="filter stock here" />
+              className="custom-input " type="text" placeholder="filter stock here" />
           </div>
           <div className="d-flex justify-content-end">
             <select className="custom-select col-3 mx-2" onChange={(ev) => {setSelectedWarehouse(ev.target.value)} }> 
@@ -98,56 +171,7 @@ export default function INVENTORY_PAGE() {
             </button>
           </div>
        </div>
-        {
-          loading ? <Loader /> :
-            (
-              <>
-                <div>
-                  <ListGroup>
-                    <ListGroupItem className="br-0 stock-grid mt-2 bg-light  text-capitalize">
-                      <span>date</span>
-                      <span>name</span>
-                      <span>category</span>
-                      <span>units</span>
-                      <span>quantity Avail.</span>
-                      <span>Alert level</span>
-                      <span>date</span>
-                    </ListGroupItem>
-                    {
-                      stocksource.length > 0 ?
-                        (
-                          stocksource.map((item, index) => (
-                            <StockListView
-                              handleDelete={handleDelete}
-                              handleEditingStock={handleEditingStock}
-                              key={index}
-                              data={item}
-                            />
-                          ))
-                        )
-                        :
-                        (
-                          <ListGroupItem>
-                            No data Available
-                          </ListGroupItem>
-                        )
-                    }
-                  </ListGroup>
-                </div>
-                <div className="d-flex justify-content-center mt-1">
-                  {MemoizedPagination}
-                </div>
-                {showModal &&
-                  (<ADD_STOCK_INVENTORY warehouseList={warehouseList} editing={editing} show={showModal} closeModal={closeModal} />)}
-                {
-                  showCatModal && 
-                  (
-                    <AddStockCategory show={showCatModal} onHide={closeCategoryModal} />
-                  )
-              }
-              </>
-            )
-        }
+        {renderingView()}
       </InventoryLayout>
     </>
   )
