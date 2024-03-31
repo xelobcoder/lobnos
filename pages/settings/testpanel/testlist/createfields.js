@@ -269,7 +269,7 @@ export default function CreateTestFields() {
          <section className="mx-2">
             {data.length > 0 && (
                <div>
-                  <TableDisplay showpage={false} column={columns} data={data} />
+                  <TableDisplay column={columns} data={data} />
                   <div>
                      <button onClick={(ev) => { updateFieldsRules() }} className="btn btn-success btn-sm mt-2">update fields</button>
                   </div>
