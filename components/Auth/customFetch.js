@@ -791,6 +791,7 @@ export const defaultTestEditValues = {
    unit: "",
    qty_required: "",
    shorttext: "",
+   useLiterature:'',
    testid: "",
    testcost: "",
    testprice: "",
@@ -821,7 +822,9 @@ export const defaultCreationRule = {
    options: "",
    testid: '',
    hasunits: false,
-   units: ''
+   units: '',
+   useplain: false,
+   plain: ''
 }
 
 

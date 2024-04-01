@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react"
-import Loader from "../accessories/Loader"
-import { customFetch } from "../Auth/customFetch"
+import { useState, useEffect } from "react";
+import Loader from "../accessories/Loader";
+import { customFetch } from "../Auth/customFetch";
 
 export default function PersonalInformation({ patientid,billingid}) {
   const [data, setData] = useState({})

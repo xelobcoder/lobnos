@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { customFetch } from "../Auth/customFetch"
 import Loader from "../accessories/Loader"
+import HasLimitReference from "./hasLimitsReference"
 
 export default function UseCustomResultTemplating({ billingid, testid, test, patientid }) {
   const [haslimits, setHaslimits] = useState(true)
@@ -36,44 +37,63 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
     else {
       if (Array.isArray(result) === false || result.length == 0) return <h4>No data provided</h4>
       else {
-        return (
-          <div>
-            <div className={haslimits ? "grid grid-4" : "grid grid-50"}>
+        const hasLimits = result.some((item, index) => item.haslimits == true)
+        const hasPlain = result.some((item, index) => item.useplain == true)
+
+        if (hasLimits) {
+          <table className="table">
+            <thead>
+              <tr>
+                <th scope="col receipt-border">Parameter</th>
+                <th scope="col receipt-border">Value</th>
+                <th scope="col receipt-border">Units</th>
+                <th scope="col receipt-border">Reference Ranges</th>
+              </tr>
+              <tbody>
+                {result.map((item, index) => {
+                  return <HasLimitReference key={index} item={item} />
+                })}
+              </tbody>
+            </thead>
+          </table>
+        } else if (hasPlain) {
+          return (
+            <table className="receipt-border" style={{width:'100%'}}>
+              <thead>
+                <tr>
+                  <th scope="col receipt-border">Parameter</th>
+                  <th scope="col receipt-border">Value</th>
+                  <th scope="col receipt-border">Units</th>
+                  <th scope="col receipt-border">Reference Ranges</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.map((item, index) => {
+                  return <HasLimitReference key={index} item={item} />
+                })}
+              </tbody>
+            </table>
+          )
+        } else {
+          return (
+            <div className={"grid grid-50"}>
               <div>
                 <span className="text-uppercase text-dark  fw-bold border-bottom border-secondary border-0">parameter</span>
               </div>
               <div>
                 <span className="text-uppercase text-dark  fw-bold border-bottom border-secondary border-0">value</span>
               </div>
-              {haslimits && (
-                <div>
-                  <span className="text-uppercase text-dark  fw-bold border-bottom border-secondary border-0">units</span>
-                </div>
-              )}
-              {haslimits && (
-                <div>
-                  <span className="text-uppercase text-dark  fw-bold border-bottom border-secondary border-0">reference ranges</span>
-                </div>
-              )}
+              {result.map((item, index) => {
+                return (
+                  <div key={index} className={haslimits ? "grid grid-4" : "grid grid-50"}>
+                    <div className="text-capitalize">{item.name}</div>
+                    <div>{item.value}</div>
+                  </div>
+                )
+              })}
             </div>
-            {result.map((item, index) => {
-              return (
-                <div key={index} className={haslimits ? "grid grid-4" : "grid grid-50"}>
-                  <div className="text-capitalize">{item.name}</div>
-                  <div>{item.value}</div>
-                  {item.haslimits && <div>{item.units}</div>}
-                  {item.haslimits && (
-                    <div>
-                      <span>{item.upperlimit}</span>
-                      <span>{"-"}</span>
-                      <span>{item.lowerlimit}</span>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )
+          )
+        }
       }
     }
   }

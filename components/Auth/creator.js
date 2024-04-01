@@ -1,9 +1,9 @@
 
 export const fieldDeterminer = (item, statehandler, index) => {
    if (typeof item !== 'object') return false;
-   const { field, name, hasoptions, options, value, type, mode, units, upperlimit = 0, lowerlimit = 0, haslimits } = item;
+   const { field, useplain, plain, name, hasoptions, options, value, type, mode, units, upperlimit = 0, lowerlimit = 0, haslimits } = item;
 
-   if (field === "input" || hasoptions == false) {
+   if (field === "input" || hasoptions == false && useplain != true) {
       if (haslimits) {
          return (
             <tr>
@@ -39,4 +39,26 @@ export const fieldDeterminer = (item, statehandler, index) => {
          </tr>
       )
    }
+
+
+   if (useplain) {
+      let plainField = plain;
+      if (plain.toString().includes(",")) {
+         plainField = plain
+            .toString()
+            .split(',')
+            .map((item, index) => { return <span key={index}> {item} <br /></span> })
+      }
+      
+      return (
+         <tr>
+            <td>{name}</td>
+            <td><input placeholder={name} name={name} onChange={(ev) => { statehandler(name, ev, index) }} className="custom-input" type={type} value={value ? value : ''} /></td>
+            <td>{units}</td>
+            <td>{plainField}</td>
+         </tr>
+      )
+   }
+
+   console.log(useplain, plain);
 }

@@ -131,7 +131,31 @@ export default function CreateTestFields() {
    const createLimitFields = () => {
       if (field.haslimits && field.type == "number" && !field.hasoptions) {
          if (testdata.hasGenderVariation) {
-            return <div>
+            if (testdata.hasGenderVariation && testdata.hasChildrenLimit) {
+               return <div>
+                  <label>limits</label>
+                  {['male', 'female', 'children'].map((item, index) => {
+                     return (
+                        <div key={index}>
+                           <label>{item}</label>
+                           <div className="d-flex justify-content-between">
+                              <input
+                                 placeholder="upper limit"
+                                 type='number'
+                                 onChange={(ev) => { handleGenderVariationLimit(ev.target.value, 'upperlimit', item) }}
+                                 value={field[item]?.upperlimit} className="custom-input" />
+                              <input
+                                 placeholder="lower limit"
+                                 type='number'
+                                 onChange={(ev) => { handleGenderVariationLimit(ev.target.value, 'lowerlimit', item) }}
+                                 value={field[item]?.lowerlimit} className="custom-input mx-2" />
+                           </div>
+                        </div>
+                     )
+                  })}
+               </div>
+            } else {
+               return <div>
                <label>limits</label>
                {['male', 'female'].map((item, index) => {
                   return (
@@ -142,17 +166,18 @@ export default function CreateTestFields() {
                               placeholder="upper limit"
                               type='number'
                               onChange={(ev) => { handleGenderVariationLimit(ev.target.value, 'upperlimit', item) }}
-                              value={field[item].upperlimit} className="custom-input" />
+                              value={field[item]?.upperlimit} className="custom-input" />
                            <input
                               placeholder="lower limit"
                               type='number'
                               onChange={(ev) => { handleGenderVariationLimit(ev.target.value, 'lowerlimit', item) }}
-                              value={field[item].lowerlimit} className="custom-input mx-2" />
+                              value={field[item]?.lowerlimit} className="custom-input mx-2" />
                         </div>
                      </div>
                   )
                })}
             </div>
+            }
          } else {
             return (
                <div>
@@ -249,6 +274,14 @@ export default function CreateTestFields() {
                      }}
                      type='switch' style={{ fontSize: '25px' }} checked={field.haslimits} />
                </div>
+               <div>
+                  <label>use Plain</label>
+                  <Form.Switch
+                     onChange={(ev) => {
+                        setField({ ...field, useplain: ev.target.checked })
+                     }}
+                     type='switch' style={{ fontSize: '25px' }} checked={field.useplain} />
+               </div>
                {createLimitFields()}
                {field.hasunits && (<div>
                   <label>field units</label>
@@ -261,6 +294,12 @@ export default function CreateTestFields() {
                   <input
                      onChange={(ev) => { handleChangeWithState(ev, 'options', setField, field) }}
                      value={field.options} multiple className="custom-input" />
+               </div>)}
+               {field.useplain && (<div>
+                  <label>Reference field</label>
+                  <textarea value={field.plain} className="form-control"
+                     onChange={(ev) => { handleChangeWithState(ev, 'plain', setField, field) }}
+                  ></textarea>
                </div>)}
 
                <button onClick={(ev) => { handleCreateField() }} className="btn btn-success btn-sm mt-2">create field</button>

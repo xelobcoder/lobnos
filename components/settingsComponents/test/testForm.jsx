@@ -73,15 +73,13 @@ export default function TestForm({ method, customtest, testid, router }) {
         <>
           <div className="mx-2 d-flex justify-content-between">
             <h5 className="text-capitalize">{data?.name}</h5>
-            {data.iscustom && (
-              <button
-                onClick={(ev) => {
-                  router.push(`/settings/testpanel/testlist/createfields?testid=${testid}&&testname=${data.name}`)
-                }}
-                className="btn btn-light btn-sm mb-1">
-                Test Fields
-              </button>
-            )}
+            <button
+              onClick={(ev) => {
+                router.push(`/settings/testpanel/testlist/createfields?testid=${testid}&&testname=${data.name}`)
+              }}
+              className="btn btn-light btn-sm mb-1">
+              Test Fields
+            </button>
           </div>
 
           <div className="border bg-white border-secondary-subtle mx-2 p-2">
@@ -239,6 +237,17 @@ export default function TestForm({ method, customtest, testid, router }) {
                   checked={data.isoutsourced == 1 ? true : false}
                   onChange={(ev) => {
                     handleSwitch(ev, "isoutsourced")
+                  }}
+                  type="switch"
+                  style={{ fontSize: "25px" }}
+                />
+              </div>
+              <div className="form-row grid-reg mt-2">
+                <label>use Literature</label>
+                <Form.Switch
+                  checked={data.useLiterature == 1 ? true : false}
+                  onChange={(ev) => {
+                    handleSwitch(ev, "useLiterature")
                   }}
                   type="switch"
                   style={{ fontSize: "25px" }}

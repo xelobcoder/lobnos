@@ -46,18 +46,11 @@ export default function TestListDisplay() {
       {
          Header: 'Name',
          accessor: 'name',
-      },
-      {
-         Header: 'shorttext',
-         accessor: 'shorttext',
+         Cell: ({ row, value }) => { return <span>{value} {row.original.shorttext ? `(${row.original.shorttext})` : ""} </span> }
       },
       {
          Header: 'Price',
          accessor: 'price',
-      },
-      {
-         Header: 'Unit',
-         accessor: 'unit',
       },
       {
          Header: 'sample qty',
@@ -73,7 +66,9 @@ export default function TestListDisplay() {
             const { id } = row.original;
             return (
                <div>
-                  <span onClick={(ev) => { router.push(`/settings/testpanel/testlist/${id}`) }} className="border-bottom  border-primary text-primary">edit test</span><span onClick={(ev) => { router.push(`/settings/testpanel/testlist/procedure/${id}`) }} className="border-bottom  border-primary text-primary mx-2">Add Manual</span>
+                  <span onClick={(ev) => { router.push(`/settings/testpanel/testlist/${id}`) }} className="border-bottom  border-primary text-primary">edit test</span>
+                  <span onClick={(ev) => { router.push(`/settings/testpanel/testlist/${id}/literature?litid=${id}&&testname=${row.original.name}`) }} className="mx-2 border-bottom  border-primary text-primary">Add Literature</span>
+                  <span onClick={(ev) => { router.push(`/settings/testpanel/testlist/procedure/${id}`) }} className="border-bottom  border-primary text-primary mx-2">Add Manual</span>
                   {row.original.iscustom == 1 &&
                      <span className='border-danger border-bottom text-danger' onClick={(ev) => { deleteCustomTest(row.original) }}>Drop Test</span>
                   }
