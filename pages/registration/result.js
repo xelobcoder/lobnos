@@ -7,7 +7,9 @@ import PersonalInformation from '../../components/ResultView/PersonalInformation
 import { useSearchParams } from 'next/navigation';
 import UseCustomResultTemplating from '../../components/ResutlUI/useCustomResultTemplating';
 import UseResultCommentSingle from '../../components/ResutlUI/useResultCommentSingle';
-
+import UseClinicalLiteratureReview from '../../components/ResutlUI/UseClinicalLiteratureReview';
+import UseResultEntryScientist from '../../components/ResutlUI/UseResultEntryFormat';
+import UseDisclaimer from '../../components/ResutlUI/useDisclaimer';
 
 export default function RESULT_FOR_PRINTING() {
   const [headers, setHeaders] = useState([]);
@@ -41,8 +43,13 @@ export default function RESULT_FOR_PRINTING() {
         <CompanyHeaders billingid={billingid} />
         <PersonalInformation patientid={patientid} billingid={billingid} />
         <SamplingInformationResult billingid={billingid} testid={testid} />
-        <UseCustomResultTemplating testid={testid} test={test} billingid={billingid} patientid={patientid} />
-        <UseResultCommentSingle billingid={billingid} testid={testid} />
+        <section>
+          <UseCustomResultTemplating testid={testid} test={test} billingid={billingid} patientid={patientid} />
+          <UseResultCommentSingle billingid={billingid} testid={testid} />
+          <UseClinicalLiteratureReview testid={testid} />
+          <UseResultEntryScientist testid={testid} billingid={billingid} />
+        </section>
+        <UseDisclaimer />
         <CompanyFooter details={headers} />
       </div>
       <div>

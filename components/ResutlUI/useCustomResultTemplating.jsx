@@ -41,13 +41,21 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
         const hasPlain = result.some((item, index) => item.useplain == true)
 
         if (hasLimits) {
-          <table className="table">
+          <table className="table table-dark stripped">
             <thead>
               <tr>
-                <th scope="col receipt-border">Parameter</th>
-                <th scope="col receipt-border">Value</th>
-                <th scope="col receipt-border">Units</th>
-                <th scope="col receipt-border">Reference Ranges</th>
+                <th className="border-receipt px-1 py-2" scope="col ">
+                  Parameter
+                </th>
+                <th className="border-receipt px-1 py-2" scope="col ">
+                  Value
+                </th>
+                <th className="border-receipt px-1 py-2" scope="col ">
+                  Units
+                </th>
+                <th className="border-receipt px-1 py-2" scope="col ">
+                  Reference Ranges
+                </th>
               </tr>
               <tbody>
                 {result.map((item, index) => {
@@ -58,13 +66,21 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
           </table>
         } else if (hasPlain) {
           return (
-            <table className="receipt-border" style={{width:'100%'}}>
+            <table className="receipt-border" style={{ width: "100%" }}>
               <thead>
                 <tr>
-                  <th scope="col receipt-border">Parameter</th>
-                  <th scope="col receipt-border">Value</th>
-                  <th scope="col receipt-border">Units</th>
-                  <th scope="col receipt-border">Reference Ranges</th>
+                  <th className="border-receipt px-1 py-2" scope="col">
+                    Parameter
+                  </th>
+                  <th className="border-receipt px-1 py-2" scope="col">
+                    Value
+                  </th>
+                  <th className="border-receipt px-1 py-2" scope="col">
+                    Units
+                  </th>
+                  <th className="border-receipt px-1 py-2" scope="col">
+                    Reference Ranges
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -94,6 +110,7 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
             </div>
           )
         }
+
       }
     }
   }

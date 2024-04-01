@@ -231,6 +231,7 @@ export const readyToPrint = async function (billingid, testid) {
       const { approved } = isApproved;
       if (approved) {
          window.print();
+         console.log(window)
       } else {
          alert("Test not approved. Printing cannot be done.");
          window.document.body.style.display = "none";
