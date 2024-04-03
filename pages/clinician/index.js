@@ -12,7 +12,7 @@ import Loader from "../../components/accessories/Loader";
 
 export default function Clinicians() {
   const [ClinicianList, setClinician] = useState([]);
-  const [editing, setEditing] = useState({ editing: false, editid: null });
+  const [editing, setEditing] = useState({ editing: false, editid: null });   
   const [pagination, setPagination] = useState({ page: 1, count: 10, show: false });
   const [method, setMethod] = useState('POST');
   const [loading, setLoading] = useState(false);

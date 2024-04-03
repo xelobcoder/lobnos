@@ -2,7 +2,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import PerformanceChartGeneral from './ClinicianGeneralPerformanceChart';
 import CardRacks from "../accessories/CardRacks"
-import { monthCollection,currencyFormatter } from "../Auth/customFetch";
+import { monthCollection, currencyFormatter } from "../Auth/customFetch";
+
 export default function ClinicianGeneralSalesChart({ clinicianid }) {
   const [active, setActive] = useState(null)
   const [yearly, setYear] = useState(0)
