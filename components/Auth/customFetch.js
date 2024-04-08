@@ -592,28 +592,24 @@ export const defaultSupplierdata = {
 }
 
 export const isAuthenticated = async function (auth, navigate, updateAuthentication) {
-   if (window.cookieStore) {
-      if (auth === null || auth === undefined || auth == '' || Object.keys(auth).length == 0) {
-         let user = await window.cookieStore.get('X-AUTH-PRIME-LAB-SYSTEMS');
-         if (user == null || user == undefined || user == '' || Object.keys(user).length == 0) {
-            if (window.location.href !== '/authentication/login') {
-               navigate.push('/authentication/login')
-            }
+   if (auth === null || auth === undefined || auth == '' || Object.keys(auth).length == 0) {
+      let user = await window.cookieStore.get('X-AUTH-PRIME-LAB-SYSTEMS');
+      if (user == null || user == undefined || user == '' || Object.keys(user).length == 0) {
+         if (window.location.href !== '/authentication/login') {
+            navigate.push('/authentication/login')
+         }
+      } else {
+         const token = user?.value;
+         const authentic = await customFetch(`authenticate/employee/token?token=${token}`);
+         const { statusCode, status } = authentic;
+         if (statusCode == 200 && status == 'success') {
+            const { username, role, email, employeeid, branchid } = authentic?.user;
+            const permissions = JSON.parse(authentic?.user?.permissions);
+            updateAuthentication({ username, role, email, employeeid, permissions,branchid });
          } else {
-            const token = user?.value;
-            const authentic = await customFetch(`authenticate/employee/token?token=${token}`);
-            const { statusCode, status } = authentic;
-            if (statusCode == 200 && status == 'success') {
-               const { username, role, email, employeeid, branchid } = authentic?.user;
-               const permissions = JSON.parse(authentic?.user?.permissions);
-               updateAuthentication({ username, role, email, employeeid, permissions, branchid });
-            } else {
-               navigate.push('/authentication/login')
-            }
+            navigate.push('/authentication/login')
          }
       }
-   } else {
-      navigate.push('/authentication/login')
    }
 }
 

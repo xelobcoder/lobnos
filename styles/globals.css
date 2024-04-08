@@ -2934,3 +2934,9 @@ margin: 0;
 .layout-grouper > .sidebar2 > ul >li:hover{
   background-color: lightslategray;
 }
+
+.expense-admin-li{
+  background-color: #00224f;
+  color: white !important;
+  cursor: pointer;
+}

@@ -55,7 +55,8 @@ export default function ExpenseList() {
                          console.log(err)
                     })
           }
-     }, [employeeid, branchid])
+     }, [employeeid, branchid]);
+     
      return (
           <ExpenseLayout>
                <section className="mb-2">

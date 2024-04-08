@@ -5,6 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import AuthContext from '../../components/Auth/useAuthentification';
 import Loader from '../../components/accessories/Loader';
+import { useSearchParams } from 'next/navigation';
 
 const defautExpense = {
      name: '',
@@ -25,6 +26,8 @@ export default function AddNewExpense() {
      const { auth } = useContext(AuthContext);
      const [paymentmode, setPaymentMode] = useState([]);
      const [isloading, setLoading] = useState(false);
+     const method = useSearchParams().get('action');
+     const editid = useSearchParams().get("id");
 
 
 
@@ -37,8 +40,13 @@ export default function AddNewExpense() {
           const { employeeid, branchid } = auth;
           if (!employeeid || !branchid)
                return window.location.reload();
-          const response = await customPost('expenses', 'POST', { ...expense, employeeid, branchid });
-          console.log(response)
+          let httpMethod = method && editid ? 'PUT' : 'POST';
+          const response = await customPost('expenses', httpMethod, { ...expense, employeeid, branchid });
+          if (response?.status == "success") {
+               toast.success('New expense generated successfully awaiting approval', { autoClose: 2000 });
+          } else {
+               toast.error("Expense generation failed", { autoClose: 5000 })
+          }
      }
 
 
@@ -58,6 +66,21 @@ export default function AddNewExpense() {
           }
           getPaymentModes();
      }, [])
+
+
+     useEffect(() => {
+          if (method && editid) {
+               setLoading(true);
+               customFetch(`expenses/record/single?expenseid=${editid}`)
+                    .then((data) => {
+                         data.length > 0 && setExpense(data[0]);
+                    })
+                    .catch((err) => setExpense(defautExpense))
+                    .finally(() => { setLoading(false) })
+          }
+     }, [editid, method])
+
+
      return (
           <ExpenseLayout>
                <ToastContainer theme='colored' />

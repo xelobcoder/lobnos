@@ -18,7 +18,7 @@ export default function LoginCredentials() {
       const { status, message, statusCode, user, token } = data;
       if (statusCode == 200 && status == 'success') {
         setMessage({ message, status })
-        if (token && window.cookiestore) {
+        if (token) {
           cookieStore.set({
             name: 'X-AUTH-PRIME-LAB-SYSTEMS',
             value: token,
