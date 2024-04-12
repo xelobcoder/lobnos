@@ -616,7 +616,8 @@ export const isAuthenticated = async function (auth, navigate, updateAuthenticat
          // console.log(response);
       }
    } catch (err) {
-      navigate.push('/authentication/login')
+      navigate.push('/authentication/login');
+      console.log('hello world');
    }
 }
 
