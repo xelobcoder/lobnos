@@ -11,7 +11,12 @@ export default function DashBoardOrganization() {
       <div className='d-flex gap-4 bg-white br-5 px-2 py-2 my-2 border border-light pointer'>
         <div className='col-1'>
           <label>show</label>
-          <input type='number' onChange={(ev) => { handleChangeWithState(ev, 'count', setQuery, query) }} value={query.count} className='custom-input' placeholder='number to show' />
+          <input
+            type='number'
+            onChange={(ev) => { handleChangeWithState(ev, 'count', setQuery, query) }}
+            value={query.count}
+            className='custom-input'
+            placeholder='number to show' />
         </div>
         <div className='col-3'>
           <label>Date picker(from)</label>

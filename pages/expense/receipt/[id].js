@@ -1,67 +1,151 @@
-import { Add } from "@mui/icons-material";
+import { Add, Delete, Folder, List } from "@mui/icons-material";
 import ExpenseLayout from "../../../components/Expense/ExpenseLayout";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { useRouter } from "next/router";
+import { customFetch, customPost } from "../../../components/Auth/customFetch";
+import Image from 'next/image';
+import Loader from "../../../components/accessories/Loader";
+import { ToastContainer, toast } from 'react-toastify';
 
 export default function ReceiptUploadForm() {
      const [files, setFiles] = useState([]);
+     const [previous, setPrevious] = useState([]);
+     const [loading, setLoading] = useState(true);
+     const [imagefull, setImageFull] = useState(false);
+     const [deleteList, setDeleteList] = useState([]);
      const expenseid = useRouter().query.id;
 
      const onDrop = useCallback((acceptedFiles) => {
-          // Do something with the files, like upload to a server or display preview
-          setFiles(
-               acceptedFiles.map((file) => {
-                    return {
-                         file,
-                         preview: URL.createObjectURL(file) // Create preview URL
-                    }
-               })
-          );
+          setFiles(acceptedFiles.map((file) => { return { file, preview: URL.createObjectURL(file) } }));
      }, []);
 
      const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
 
-     const uploadFiles = () => {
-          const formData = new FormData();
-          files.map((file, index) => {
-               file.file.originalname = `${Date.now()}-${expenseid}-${index}`;
-               return file
-          }).forEach((item, index) => {
-               formData.append("images", item.file);
-          })
-          formData.append("receiptid", expenseid);
+     const uploadFiles = async () => {
+          try {
+               if (files.length == 0) {
+                    return toast.warning('files not selected', { autoClose: 3000 });
+               }
+               const formData = new FormData();
+               files.map((file, index) => {
+                    file.file.originalname = `${Date.now()}-${expenseid}-${index}`;
+                    return file
+               }).forEach((item, index) => {
+                    formData.append("images", item.file);
+               })
+               formData.append("receiptid", expenseid);
 
-          fetch(`${process.env.BASEURL}/expenses/receipt/upload?id=${expenseid}`, {
-               method: 'POST',
-               body: formData,
-          })
-          console.log(formData)
+               const response = await fetch(`${process.env.BASEURL}/expenses/receipt/upload?id=${expenseid}`, {
+                    method: 'POST',
+                    body: formData,
+               })
+               const resbody = await response.json();
+               if (resbody?.status == 'success') {
+                    toast.success("images uploaded successfully", { autoClose: 3000, position: 'top-center' });
+                    console.log(files);
+               }
+          } catch (err) {
+               toast.error("something wrong occured", { autoClose: 3000 })
+          }
      }
+
+     useEffect(() => {
+          if (expenseid) {
+               setLoading(true);
+               customFetch(`expenses/receipt/uploaded/images/list?expenseid=${expenseid}`)
+                    .then((data) => setPrevious(data))
+                    .catch((err) => setPrevious([]))
+                    .finally(() => { setLoading(false) })
+          }
+     }, [expenseid])
+
+
+
+     const deleteReceipts = (ev) => {
+          ev.preventDefault();
+          if (deleteList.length > 0) {
+               const confirmDeletion = confirm(`Do you really want to delete receipt uploaded?`);
+               if (confirmDeletion) {
+                    customPost(`expenses/receipt/uploaded/images`, 'DELETE', { data: deleteList })
+                         .then((data) => {
+                              if (typeof data == 'object' && data.status == "success") {
+                                   for (let i = 0; i < deleteList.length; i++) {
+                                        setPrevious((prev) => {
+                                             return prev.filter((a, i) => a != deleteList[i]);
+                                        })
+                                   }
+                                   toast.success('Receipt records deleted successfully', { autoClose: 3000, position: 'top-center' });
+                                   setDeleteList([]);
+                              }
+                         }).catch((err) => {
+                              console.log(err)
+                         })
+               }
+          }
+     }
+
 
      return (
           <ExpenseLayout>
-               <div className="container mt-5 border border-primary br-5 p-5">
+               <ToastContainer />
+               <div className="mx-3 br-5 bg-white border-primary" style={{ borderStyle: 'dashed' }}>
                     <div {...getRootProps({ className: 'dropzone' })}>
                          <input {...getInputProps()} />
-                         <p className="text-center">Drag & Drop images here, or click to select files</p>
+                         <div className="d-flex justify-content-center">
+                              <Folder sx={{ color: 'gray', fontSize: '100px' }} />
+                         </div>
+                         <p className="text-center p-5">Drag & Drop images here, or click to select files</p>
                     </div>
                </div>
                {files.length > 0 && (
                     <div>
-                         <h4 className="mt-3 mx-4">Selected Files:</h4>
-                         <ul className="grid-30-30-30">
+                         <div className="d-flex justify-content-between">
+                              <h6 className="mt-3 mx-2">Selected Files:</h6>
+                              <List className="pointer" fontSize="large" style={{ fontSize: '50px' }} onClick={(ev) => { setImageFull(!imagefull) }} />
+                         </div>
+                         <ul className={`${imagefull ? "grid grid-100 container" : "grid-30-30-30"} bg-white border p-2`}>
                               {files.map((file) => (
                                    <li key={file.file.name}>
-                                        <img src={file.preview} alt={file.file.name} width={"300"} height={'300'} />
+                                        <Image style={{ width: '100%' }} src={file.preview} alt={file.file.name} width={
+                                             imagefull ? "1000" : "300"
+                                        } className='mb-4'
+                                             height={imagefull ? "600" : '300'} />
                                         {/* {file.file.name} */}
                                    </li>
                               ))}
                          </ul>
                     </div>
                )}
-               <button className="btn btn-secondary btn-sm mx-5" onClick={(ev) => { uploadFiles() }}> upload Image(s)</button>
+               <button className="btn btn-secondary btn-sm mx-3 mt-3" onClick={(ev) => { uploadFiles() }}> upload Image(s)</button>
+               <hr />
+               <div className="d-flex justify-content-between">
+                    <h6>Previously Uploaded Image</h6>
+                    <div>
+                         <button onClick={(ev) => { deleteReceipts(ev) }} className="mb-2 mx-2  btn-sm">
+                              <Delete color='error' /> delete receipts
+                         </button>
+                    </div>
+               </div>
+               <div>
+                    {loading && <Loader />}
+                    {previous.length == 0 ? <div className="alert alert-info">No Receipts Were Preveiously uploaded</div> : previous.map((item, index) => {
+                         const url = `${process.env.BASEURL}/expenses/receipt/upload/images?imageid=${item}`
+                         return (<div key={index} style={{ display: 'grid', gridTemplateColumns: '5% 95%' }} >
+                              <div>
+                                   <input checked={deleteList.includes(item) ? true : false} onClick={(ev) => { setDeleteList([...deleteList, item]) }} type="checkbox" className="custom-input" />
+                              </div>
+                              <Image alt='expense receipt'
+                                   className={'mb-3 container '}
+                                   height={600}
+                                   onClick={(ev) => { window.open(url) }}
+                                   width={1000}
+                                   src={url} />
+                         </div>)
+
+                    })}
+               </div>
           </ExpenseLayout>
      )
 }

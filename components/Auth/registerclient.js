@@ -210,6 +210,7 @@ export async function handleActivation(e, id, status, patientid, callbackfunctio
       if (callbackfunction && typeof callbackfunction == 'function') {
         callbackfunction();
       }
+      return response.message;
     } else {
       alert(message)
     }

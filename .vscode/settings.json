@@ -1,6 +1,6 @@
 {
     "workbench.editor.pinnedTabSizing":"normal",
-    "editor.tabSize": 5,
+    "editor.tabSize": 8,
     "editor.fontFamily": "'Courier',monospace",
     "editor.tabCompletion": "on",
     "editor.wordWrap": "on",

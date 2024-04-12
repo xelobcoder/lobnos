@@ -6,7 +6,7 @@ import ISLOADING from "../../../components/isLoading";
 import PerformanceOrganization from "../../../components/organization/PerformanceOrganization";
 import WeeklyPieChart from "../../../components/organization/WeeklyPieChart";
 import BarChartPerformanceComponent from "../../../components/organization/BarChartPerformance";
-import { currencyFormatter } from "../../../components/Auth/customFetch";
+
 export default function OrganizationDashboardDetails() {
   const organizationid = useSearchParams().get("id");
   const [loading, setLoading] = useState(true);
@@ -69,57 +69,6 @@ export default function OrganizationDashboardDetails() {
                 </div>
             </div>
          </div>
-          </section>
-          <section>
-            <h6>Commission Payment History</h6>
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Id</th>
-                  <th>Date</th>
-                  <th>Amount</th>
-                  <th>Mode</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>ORGNX2000</td>
-                  <td>09/01/2024</td>
-                  <td>{currencyFormatter.format(400) }</td>
-                  <td>cash</td>
-                </tr>
-                <tr>
-                  <td>ORGNX2000</td>
-                  <td>09/01/2024</td>
-                  <td>{currencyFormatter.format(400) }</td>
-                  <td>cash</td>
-                </tr>
-                <tr>
-                  <td>ORGNX2000</td>
-                  <td>09/01/2024</td>
-                  <td>{currencyFormatter.format(400) }</td>
-                  <td>cash</td>
-                </tr>
-                <tr>
-                  <td>ORGNX2000</td>
-                  <td>09/01/2024</td>
-                  <td>{currencyFormatter.format(400) }</td>
-                  <td>cash</td>
-                </tr>
-                <tr>
-                  <td>ORGNX2000</td>
-                  <td>09/01/2024</td>
-                  <td>{currencyFormatter.format(400) }</td>
-                  <td>cash</td>
-                </tr>
-                <tr>
-                  <td>ORGNX2000</td>
-                  <td>09/01/2024</td>
-                  <td>{currencyFormatter.format(400) }</td>
-                  <td>cash</td>
-                </tr>
-              </tbody>
-            </table>
           </section>
       </div>
     </main>

@@ -13,7 +13,7 @@ export default function ExpenseList() {
 
      const columns = [
           { Header: 'Expense', accessor: 'name' },
-          { Header: 'description', accessor: 'description' },
+          // { Header: 'description', accessor: 'description' },
           { Header: 'merchant', accessor: 'merchant' },
           { Header: "submitter", accessor: 'username' },
           { Header: 'expense date', accessor: 'date', Cell: ({ value }) => new Date(value).toLocaleDateString() },
@@ -56,7 +56,7 @@ export default function ExpenseList() {
                     })
           }
      }, [employeeid, branchid]);
-     
+
      return (
           <ExpenseLayout>
                <section className="mb-2">

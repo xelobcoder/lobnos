@@ -9,9 +9,7 @@ import TableDisplay from '../../components/accessories/TableDisplay';
 export default function Activator() {
   const [loading, setLoading] = useState(false);
   const [tempStore, setStore] = useState([]);
-  const [filter, setFilter] = useState({
-    patientId: '', fullname: '', mobile: '', to: '', from: ''
-  })
+  const [filter, setFilter] = useState({ patientId: '', fullname: '', mobile: '', to: '', from: '' })
   const router = useRouter();
 
 
@@ -66,6 +64,20 @@ export default function Activator() {
   }
 
 
+  const callActivation = async (a, b, c, d) => {
+    const status = await handleActivation(a, b, c, d);
+    if (status == 'success') {
+      const previous = [...tempStore];
+      const matchedIndex = previous.findIndex((item, index) => item.patientid == d);
+      if (matchedIndex >= 0) {
+        const desiredStatus = c == 'TRUE' ? 'FALSE' : 'TRUE'
+        previous[0]['activation_status'] = desiredStatus;
+      }
+      setStore(previous);
+    }
+  }
+
+
 
   const columns = [
     { Header: 'patientid', accessor: 'patientid' },
@@ -89,12 +101,11 @@ export default function Activator() {
                   : "btn btn-success btn-sm"
               }
               onClick={(e) => {
-                handleActivation(
+                callActivation(
                   e,
                   item.id,
                   item.activation_status,
                   item.patientid,
-                  // getInitData
                 );
               }}
             >

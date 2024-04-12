@@ -21,21 +21,23 @@ export default async function handler(req, res) {
             }
          })
       var cookies = {}
-      newheaders['Cookie']
-         .split(';')
-         .map((item, index) => {
-            const [key, value] = item.split('=');
-            cookies = { [key]: value, ...cookies };
-         })
+      // newheaders['Cookie']
+      //    .split(';')
+      //    .map((item, index) => {
+      //       const [key, value] = item.split('=');
+      //       cookies = { [key]: value, ...cookies };
+      //    })
 
-      const token = cookies['X-AUTH-PRIME-LAB-SYSTEMS'];
-      customFetch(`authenticate/employee/token?token=${token}`)
-         .then((data) => {
-            console.log(data)
-         })
-         .catch((err) => console.log(err))
-      res.genesis = 'tiifu hamza';
-      res.status(200).json(newheaders)
+      // const token = cookies['X-AUTH-PRIME-LAB-SYSTEMS'];
+      console.log(req.cookies)
+      // customFetch(`authenticate/employee/token?token=${token}`)
+      //    .then((data) => {
+      //       console.log(data)
+      //    })
+      //    .catch((err) => console.log(err))
+      // res.genesis = 'tiifu hamza';
+      // res.status(200).json(newheaders)
+      res.send(req.cookies)
    } catch (err) {
       res.status(500).json({ error: 'failed to load data' })
    }
