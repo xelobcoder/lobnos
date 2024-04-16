@@ -24,7 +24,7 @@ export default function Pagination({ page, load, updateFunction }) {
           onClick={(ev) => {
             paginate(item)
           }}
-          className="page-item pointer">
+          className="page-item">
           <a className={`page-link ${active === item && "bg-primary text-white"}`}>{item}</a>
         </li>
       )
@@ -32,7 +32,7 @@ export default function Pagination({ page, load, updateFunction }) {
   }
 
   return (
-    <nav aria-label="Page navigation example br-0 ">
+    <nav aria-label="pagination">
       <ul className={` pagination pointer`}>
         {paginateLoop(5)}
         <li

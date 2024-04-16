@@ -18,8 +18,8 @@ export default function FrontDeskLayout({children}) {
       { title: 'billing', link: "/billing/payment", icon: <MonetizationOn /> },
       { title: 'sales summary', link: "/billing/salessummary", icon: <MonetizationOn /> },
       { title: 'orders', link: '/orders', icon: <ShoppingBagRounded /> },
-      { title: 'Clients', link: '/patients', icon: <Person /> },
-      { title: 'Appointments', link: '/appointments', icon: <Event /> },
+      // { title: 'Clients', link: '/patients', icon: <Person /> },
+      // { title: 'Appointments', link: '/appointments', icon: <Event /> },
       { title: 'Organization', link: '/organization', icon: <Business /> },
       { title: 'Clinicians', link: '/clinician', icon: <SupervisorAccount /> },
       { title: 'Result', link: '/registration/ready', icon: <ViewArray /> }

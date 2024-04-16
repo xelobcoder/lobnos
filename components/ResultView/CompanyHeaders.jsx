@@ -18,16 +18,18 @@ export default function CompanyHeaders({ billingid }) {
     <div>
       <div className="company-logo">
         <div className="logo">
-          <Image src={`${process.env.BASEURL}/settings/companyprofile/images`} width={200} height={100} alt="company Logo" />
+          <Image src={`${process.env.BASEURL}/settings/companyprofile/images`} width={200} height={150} alt="company Logo" />
         </div>
         <div>
           <div className="company-name">{name}</div>
-          <div className='company-kids'>
-            {address} || {email} || {website}
+          <div className="company-kids text-capitalize fw-bold">Location:{address} </div>
+          <div className="company-kids text-capitalize fw-bold">Email: {email}</div>
+          <div className="company-kids text-capitalize">
+            <span className="fw-bold">
+              Contact us: 0{phonenumber} || 0{alternativenumber}
+            </span>
           </div>
-          <div className='company-kids'>
-            Contact us: 0{phonenumber} || 0{alternativenumber}
-          </div>
+          <div className="company-kids text-capitalize">Website: {website}</div>
         </div>
       </div>
     </div>

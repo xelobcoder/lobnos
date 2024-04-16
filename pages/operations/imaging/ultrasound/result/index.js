@@ -25,7 +25,14 @@ export default function EnterResultUltrasound() {
 
 
   const handleResult = async function () {
-    const pushContent = await customPost(`test/result/enter`, 'POST', { billingid, testid, patientid, scan, testname: 'scan', content, sonographer: auth?.employeeid })
+    const pushContent = await customPost(`result/entry/customtest`, 'POST', {
+      billingid: parseInt(billingid),
+      testid, patientid: parseInt(patientid),
+      test: scan,
+      fields: [{ field: 'ultrasound', value: content }],
+      employeeid: auth?.employeeid,
+      isScan: true
+    })
     const { status, statusCode, message } = pushContent;
     if (status == 'success' && statusCode == 200) {
       setEnteredResult(true); toast.success(message, { autoClose: 500 });
@@ -40,13 +47,11 @@ export default function EnterResultUltrasound() {
   useEffect(() => {
     if (billingid && testid) {
       setLoading(true);
-      customFetch(`test/result/check?billingid=${billingid}&&testname=scan&&testid=${testid}`)
+      customFetch(`testpanel/list/customtestrule/previous?billingid=${billingid}&&testname=${scan}&&testid=${testid}&&patientid=${patientid}`)
         .then((data) => {
-          const { result, statusCode, records } = data;
-          setEnteredResult(result);
-          if (result && records.length > 0 && records[0]['content']) {
-            setContent(records[0]['content'])
-          }
+          if (Object.keys(data).length > 0 && data) {
+           setContent(data.value)
+         } 
           setLoading(false);
         })
         .catch((err) => {
@@ -54,7 +59,7 @@ export default function EnterResultUltrasound() {
           setContent("");
         })
     }
-  }, [billingid, testid])
+  }, [billingid, testid, patientid, scan])
 
 
   const rendering = () => {

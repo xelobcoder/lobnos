@@ -21,9 +21,9 @@ export default function UseResultEntryScientist({ testid, billingid }) {
     else {
       return (
         <div className="grid grid-30-30-30">
-          <span className="text-capitalize">Entered By:{data?.resultentry}</span>
-          <span className="text-capitalize">Validated By: {data?.validatedBy}</span>
-          <span className="text-capitalize">Signature: ................................................</span>
+          <span className="text-capitalize"><span className="fw-bold">Entry By</span>:{data?.resultentry}</span>
+          <span className="text-capitalize"><span className="fw-bold">Validated By</span>: {data?.validatedBy}</span>
+          <span className="text-capitalize"><span className="fw-bold">Signature</span>: ................................................</span>
         </div>
       )
     }

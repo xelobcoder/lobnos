@@ -417,7 +417,7 @@ export const getDataAndUpdateState = async function (setfxn, endpoint, returner,
     * @returns {void}
     */
 export const printResultNavigator = async (navigate, billingid, item, newTab = false) => {   
-   const { testid, name } = item;
+   const { testid, name,patientid} = item;
    let nwName = name;
    if (name.split(" ").length > 1) {
       nwName = name.split(" ").join("_")
@@ -428,9 +428,9 @@ export const printResultNavigator = async (navigate, billingid, item, newTab = f
    }
 
    if (newTab) {
-      window.open(`http://localhost:5000/billing/result/pdf?billingid=${billingid}&&testid=${testid}&&testname=${nwName.toLowerCase()}`)
+      window.open(`/registration/result?billingid=${billingid}&&testid=${testid}&&test=${nwName.toLowerCase()}&&patientid=${patientid}`)
    } else {
-      navigate.push(`/registration/result?billingid=${billingid}&&testid=${testid}&&test=${nwName.toLowerCase()}`)
+      navigate.push(`registration/result?billingid=${billingid}&&testid=${testid}&&test=${nwName.toLowerCase()}&&patientid=${patientid}`)
    }
 }
 

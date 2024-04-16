@@ -67,8 +67,8 @@ export default function ReadyResult() {
 
 
   const updateAccord = (data) => {
-    const { billingid, fullname } = data;
-    setShowAccord({ display: true, active: billingid, title: `${fullname}-----${billingid}` });
+    const { billingid, fullname, patientid } = data;
+    setShowAccord({ display: true, active: billingid, title: `${fullname}-----${billingid}`, patientid });
   }
 
 
@@ -93,7 +93,7 @@ export default function ReadyResult() {
             page={pages.page}
             updatePagination={updatePage}
           />
-          {showAccord.display && <ReadyTestSummaryAccordion title={showAccord.title} id={showAccord.active} />}
+          {showAccord.display && <ReadyTestSummaryAccordion patientid={showAccord.patientid || null} title={showAccord.title} id={showAccord.active} />}
         </section>
       )
     }

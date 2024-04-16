@@ -1,13 +1,13 @@
 import { useContext, useState } from "react"
 import Link from "next/link"
-import { Logout, Menu } from "@mui/icons-material"
+import { AppBlocking, AppRegistration, Logout, Menu } from "@mui/icons-material"
 import { usePathname } from "next/navigation"
 import AuthContext from "../Auth/useAuthentification"
 
 export default function AppCustomLayout({ children, sideLinks }) {
   const { auth } = useContext(AuthContext)
-  const { username, role, branch } = auth
-  console.log(auth)
+  const { username, role, branch } = auth;
+
   const pathname = usePathname()
   const [show, setShow] = useState(false)
 
@@ -37,7 +37,12 @@ export default function AppCustomLayout({ children, sideLinks }) {
       </header>
       <div className={`prime-lab-layout`}>
         <div className="sidebarr m-0 p-0" style={{ left: show ? "0px" : "-250px" }}>
-          <ul>
+          <ul className="sidebarul">
+            <li>
+              <Link href={'/'}>
+                <AppRegistration/> Apps
+              </Link>
+            </li>
             {sideLinks.map((item, index) => {
               return (
                 <li key={item.link} className={item.link == pathname && "sidebar-active"}>

@@ -40,6 +40,7 @@ export default function RESULT_FOR_PRINTING() {
   return (
     <div className='result_page'>
       <div className='result'>
+        <div>
         <CompanyHeaders billingid={billingid} />
         <PersonalInformation patientid={patientid} billingid={billingid} />
         <SamplingInformationResult billingid={billingid} testid={testid} />
@@ -47,10 +48,13 @@ export default function RESULT_FOR_PRINTING() {
           <UseCustomResultTemplating testid={testid} test={test} billingid={billingid} patientid={patientid} />
           <UseResultCommentSingle billingid={billingid} testid={testid} />
           <UseClinicalLiteratureReview testid={testid} />
-          <UseResultEntryScientist testid={testid} billingid={billingid} />
-        </section>
-        <UseDisclaimer />
-        <CompanyFooter details={headers} />
+          </section>
+        </div>
+        <div>
+         <UseResultEntryScientist testid={testid} billingid={billingid} />
+          <UseDisclaimer patientid={patientid} />
+          <CompanyFooter details={headers} />
+        </div>
       </div>
       <div>
       </div>

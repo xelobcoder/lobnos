@@ -17,6 +17,8 @@ export default function LiteratureReviewPage() {
           setData({ ...data, literature: newValue });
      }
 
+  
+
 
      useEffect(() => {
           if (litID) {
@@ -38,7 +40,7 @@ export default function LiteratureReviewPage() {
           if (!data.literature || !data.literature.toString().length > 1) {
                return toast.error('fill in all blank fields', { autoClose: 5000 })
           }
-          customPost(`test/getLiteraturereview`, 'PUT', data)
+          customPost(`test/getLiteraturereview`, 'PUT', {...data, testid: litID})
                .then((data) => {
                     const { status } = data;
                     if (status == "success") {

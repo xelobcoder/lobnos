@@ -5,6 +5,7 @@ import Loader from "../accessories/Loader"
 export default function UseClinicalLiteratureReview({ testid }) {
   const [isloading, setLoading] = useState(true)
   const [literature, setLiterature] = useState("")
+  const [canLit, setCanLit] = useState(false)
 
   useEffect(() => {
     if (testid) {
@@ -12,6 +13,7 @@ export default function UseClinicalLiteratureReview({ testid }) {
       customFetch(`test/isLiteraturereview/getLiterature?testid=${testid}`)
         .then((data) => {
           const { can, literature } = data
+          setCanLit(can)
           setLiterature(literature)
         })
         .catch((err) => console.log(err))
@@ -22,12 +24,16 @@ export default function UseClinicalLiteratureReview({ testid }) {
   const renderingView = () => {
     if (isloading) return <Loader />
     else {
-      return (
-        <div>
-          <h6>Clinical Notes</h6>
-          {literature}
-        </div>
-      )
+      if (canLit) {
+        return (
+          <div>
+            <h6>Clinical Notes</h6>
+            <div dangerouslySetInnerHTML={{__html: literature}}/>
+          </div>
+        )
+      } else {
+        return
+      }
     }
   }
 

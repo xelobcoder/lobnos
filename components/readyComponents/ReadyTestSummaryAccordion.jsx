@@ -4,7 +4,7 @@ import { customFetch, customPost, printResultNavigator } from "../Auth/customFet
 import Loader from "../accessories/Loader"
 import { useRouter } from "next/navigation"
 import { CheckRounded, QuestionAnswer } from "@mui/icons-material"
-export default function ReadyTestSummaryAccordion({ id, title }) {
+export default function ReadyTestSummaryAccordion({ id, title, patientid }) {
   const navigate = useRouter()
   const [results, setResults] = useState([])
   const [isloading, setLoading] = useState(true)
@@ -81,10 +81,8 @@ export default function ReadyTestSummaryAccordion({ id, title }) {
             {" "}
             <CheckRounded color="success" />
             ready on {new Date(ready_date).toLocaleDateString()} at {new Date(ready_date).toLocaleTimeString()}
-            </span>
-            <span className="border-bottom border-2 border-dark">
-               {calculateTimeUsed(item)}
-            </span>
+          </span>
+          <span className="border-bottom border-2 border-dark">{calculateTimeUsed(item)}</span>
         </div>
       )
     } else {
@@ -135,7 +133,7 @@ export default function ReadyTestSummaryAccordion({ id, title }) {
         <button
           onClick={(e) => {
             updatePrintCount(item, index)
-            printResultNavigator(navigate, id, item, true)
+            printResultNavigator(navigate, id, { ...item, patientid }, true)
           }}
           className="btn btn-primary btn-sm mx-2">
           print count({printcount ? printcount : 0})
@@ -163,7 +161,7 @@ export default function ReadyTestSummaryAccordion({ id, title }) {
               {results.map((item, index) => {
                 const { ready } = item
                 return (
-                  <ul key={index} className={`m-0 p-0 ${ready === "true" && ' border-3 border-start border-success'}`}>
+                  <ul key={index} className={`m-0 p-0 ${ready === "true" && " border-3 border-start border-success"}`}>
                     <li className={`grid-100 px-3 py-2 ${index != results.length - 1 && "border-bottom"} py-2`}>
                       <div>
                         <span className="fw-bold text-capitalize">{item.name}</span>

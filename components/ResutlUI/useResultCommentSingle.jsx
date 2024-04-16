@@ -1,10 +1,9 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import { customFetch } from "../Auth/customFetch"
 import Loader from "../accessories/Loader"
 export default function UseResultCommentSingle({ testid, billingid }) {
   const [comments, setComments] = useState("")
   const [isloading, setLoading] = useState(true)
-  const commentsRef = useRef()
 
   useEffect(() => {
     if (billingid && testid) {
@@ -22,17 +21,10 @@ export default function UseResultCommentSingle({ testid, billingid }) {
     }
   }, [billingid, testid])
 
-  useEffect(() => {
-    if (commentsRef.current) {
-      console.log(commentsRef.current)
-      commentsRef.current.dangerouslySetHtml;
-    }
-  }, [comments])
-
   const renderingView = () => {
     if (isloading) return <Loader />
     else {
-      return <div ref={commentsRef}>{comments}</div>
+      return <div dangerouslySetInnerHTML={{ __html: comments }} />
     }
   }
 

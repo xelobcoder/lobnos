@@ -1433,6 +1433,7 @@ option:hover {
   border-color: inherit;
   color: black;
 }
+
 .modal-color {
   color: #333333 !important;
   background-color: #f5f5f5 !important;
@@ -1802,11 +1803,15 @@ input[type="email"]:focus:invalid .company-view-result > .wrapper {
   font-size: 16px;
 }
 .result_page {
-  /* min-height: 100vh; */
-  /* max-height: max-content; */
+height: max-content;
   padding: 1% 10% 1% 10%;
-  /* background-color: rgba(0, 0, 0, 0.516); */
+  background-color: white;
 }
+
+.result_page > .result {
+  padding: 10px;
+}
+
 
 .result-sampling-details {
   display: flex;
@@ -1860,9 +1865,14 @@ input[type="email"]:focus:invalid .company-view-result > .wrapper {
   }
 
   .result_page > .result {
-    padding: 0px !important;
+    padding: 0 !important;
+    display: grid;
+    height: 100vh;
+    margin: 0;
+    grid-template-columns: 100%;
+    grid-template-rows: 85% 15%;
   }
-
+  
  
   .print-section {
     display: none !important;
@@ -2727,7 +2737,7 @@ margin: 0;
   border-top: 1px solid rgba(255, 255, 255, .1);
 }
 
-ul li:hover a {
+.sidebarul li:hover a {
   padding-left: 50px;
   transition: 500ms cubic-bezier(0.075, 0.82, 0.165, 1)
 }
@@ -2783,3 +2793,36 @@ ul li:hover a {
  align-items: center;
 }
 
+
+.result-table{
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  height: auto;
+  border-collapse: collapse;
+  border: 1px solid black;
+}
+
+.result-table > thead,
+.result-table > tbody {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  border: 1px solid black;
+}
+
+.result-table > thead  > tr,
+.result-table > thead  > tr > th,
+.result-table > tbody  > tr > td {
+ border:1px solid black;
+}
+
+.result-table > thead  > tr > th,
+.result-table > tbody  > tr > td {
+  /* width: 25% !important; */
+  padding: 10px;
+}
+
+.result-table > tbody  > tr:nth-child(odd) {
+  background-color: rgba(128, 128, 128, 0.518);
+}
