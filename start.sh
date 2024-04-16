@@ -1,8 +1,5 @@
 #!/usr/bin/bash
-echo 'navigating to application prime lab sys dir'
 cd /f/PROJECTS/lobnos
+exec > /dev/null 2>&1
 echo '-----------------------------------------'
-echo 'initiating build'
-npm run build
-echo 'starting application'
-npm run start
+npm run start --quiet

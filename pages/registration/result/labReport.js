@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import CompanyHeaders from '../../components/ResultView/CompanyHeaders';
-import CompanyFooter from '../../components/ResultView/CompanyFooter';
-import { readyToPrint } from '../../components/Auth/customFetch';
-import SamplingInformationResult from '../../components/ResultView/SamplingInformationResult';
-import PersonalInformation from '../../components/ResultView/PersonalInformation';
+import CompanyHeaders from '../../../components/ResultView/CompanyHeaders';
+import CompanyFooter from '../../../components/ResultView/CompanyFooter';
+import { readyToPrint } from '../../../components/Auth/customFetch';
+import SamplingInformationResult from '../../../components/ResultView/SamplingInformationResult';
+import PersonalInformation from '../../../components/ResultView/PersonalInformation';
 import { useSearchParams } from 'next/navigation';
-import UseCustomResultTemplating from '../../components/ResutlUI/useCustomResultTemplating';
-import UseResultCommentSingle from '../../components/ResutlUI/useResultCommentSingle';
-import UseClinicalLiteratureReview from '../../components/ResutlUI/UseClinicalLiteratureReview';
-import UseResultEntryScientist from '../../components/ResutlUI/UseResultEntryFormat';
-import UseDisclaimer from '../../components/ResutlUI/useDisclaimer';
+import UseCustomResultTemplating from '../../../components/ResutlUI/useCustomResultTemplating';
+import UseResultCommentSingle from '../../../components/ResutlUI/useResultCommentSingle';
+import UseClinicalLiteratureReview from '../../../components/ResutlUI/UseClinicalLiteratureReview';
+import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
+import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
 
 export default function RESULT_FOR_PRINTING() {
   const [headers, setHeaders] = useState([]);
