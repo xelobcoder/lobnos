@@ -1,32 +1,41 @@
 import { useEffect, useState } from "react"
 import ExpenseLayout from "../../components/Expense/ExpenseLayout"
 import Loader from "../../components/accessories/Loader"
-import { currencyFormatter, customFetch, updatePagination } from "../../components/Auth/customFetch"
+import { currencyFormatter, customFetch, handleChangeWithState, updatePagination } from "../../components/Auth/customFetch"
 import Image from "next/image"
 import Pagination from "../../components/accessories/pagination"
 import { List } from "@mui/icons-material"
 import ExpenseRejectionModal from "./ExpenseRejectionModal"
 
+const defaultFilterState = { from: "", to: "", status: "" }
 export default function AdminExpensesList({ branchid, employeeid }) {
   const [detail, setDetails] = useState(true)
   const [selected, setSelected] = useState(null)
   const [expenses, setExpenses] = useState([])
+  const [filter, setFilter] = useState(defaultFilterState)
   const [selectedLoading, setSelectedLoading] = useState(false)
   const [imagefull, setImageFull] = useState(false)
   const [load, setLoad] = useState(false)
   const [page, setPage] = useState({ count: 10, page: 1 })
   const [showRmodal, setRmodal] = useState(false)
 
+  const getExpenseData = async () => {
+    customFetch(
+      `expenses/records?branchid=${branchid}&&employeeid=${employeeid}&&count=${page.count}&&page=${page.page}}&&from=${filter.from}&&to=${filter.to}&&status=${filter.status}`
+    )
+      .then((data) => {
+        setExpenses(data)
+      })
+      .catch((err) => {
+        setExpenses([])
+      })
+  }
+
   useEffect(() => {
     if (employeeid && branchid) {
-      customFetch(`expenses/records?branchid=${branchid}&&employeeid=${employeeid}&&count=${page.count}&&page=${page.page}`)
-        .then((data) => {
-          setExpenses(data)
-        })
-        .catch((err) => {
-          console.log(err)
-        })
+      getExpenseData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branchid, employeeid, page])
 
   const updatePage = (value) => {
@@ -54,6 +63,10 @@ export default function AdminExpensesList({ branchid, employeeid }) {
       setSelected(null)
     }
   }, [expenses.length])
+
+  const handleFilters = () => {
+    getExpenseData()
+  }
 
   const viewSelected = () => {
     if (selectedLoading) {
@@ -143,14 +156,49 @@ export default function AdminExpensesList({ branchid, employeeid }) {
         }}>
         <section style={{ borderRight: "1px solid lightgray" }}>
           <div className="d-block p-1">
-            <input type="date" className="custom-input" />
-            <input type="date" className="custom-input mt-2" />
-            <select className="custom-select mt-2">
+            <input
+              value={filter.from}
+              onChange={(ev) => {
+                handleChangeWithState(ev, "from", setFilter, filter)
+              }}
+              name="from"
+              type="date"
+              className="custom-input"
+            />
+            <input
+              value={filter.to}
+              onChange={(ev) => {
+                handleChangeWithState(ev, "to", setFilter, filter)
+              }}
+              type="date"
+              name="to"
+              className="custom-input mt-2"
+            />
+            <select
+              className="custom-select mt-2"
+              onChange={(ev) => {
+                handleChangeWithState(ev, "status", setFilter, filter)
+              }}>
+              <option value="all">all</option>
               <option value="approved">approved</option>
               <option value="rejected">rejected</option>
-              <option value="requested">requested</option>
+              <option value="pending">pending</option>
             </select>
-            <button className="btn btn-primary btn-sm mt-2">search</button>
+            <button
+              type="button"
+              onClick={(ev) => {
+                handleFilters()
+              }}
+              className="btn btn-primary btn-sm mt-2">
+              search
+            </button>
+            <button
+              onClick={(ev) => {
+                setFilter(defaultFilterState)
+              }}
+              className="btn btn-secondary btn-sm mt-2 mx-2">
+              clear
+            </button>
           </div>
           <div>
             {expenses.length == 0 ? (
