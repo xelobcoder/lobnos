@@ -4,7 +4,6 @@ import CompanyFooter from '../../../components/ResultView/CompanyFooter';
 import { readyToPrint } from '../../../components/Auth/customFetch';
 import PersonalInformation from '../../../components/ResultView/PersonalInformation';
 import { useSearchParams } from 'next/navigation';
-import UseClinicalLiteratureReview from '../../../components/ResutlUI/UseClinicalLiteratureReview';
 import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
 import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
 import UseScanResultTemplate from '../../../components/ResutlUI/useScanTemplate';
@@ -26,7 +25,6 @@ export default function UltrasoundScanReportView() {
                                         <PersonalInformation patientid={patientid} billingid={billingid} />
                                         <section>
                                                 <UseScanResultTemplate testid={testid} test={test} billingid={billingid} patientid={patientid} />
-                                                <UseClinicalLiteratureReview testid={testid} />
                                         </section>
                                 </div>
                                 <div>

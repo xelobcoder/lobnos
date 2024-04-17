@@ -1,14 +1,12 @@
 import { useContext, useState } from "react"
 import Link from "next/link"
-import { AppBlocking, AppRegistration, Logout, Menu } from "@mui/icons-material"
-import { usePathname } from "next/navigation"
+import { AppBlocking, AppRegistration, ArrowDownward, Logout, Menu } from "@mui/icons-material"
 import AuthContext from "../Auth/useAuthentification"
+import SubLinksSideBar from "./LinksDisplay"
 
 export default function AppCustomLayout({ children, sideLinks }) {
   const { auth } = useContext(AuthContext)
-  const { username, role, branch } = auth;
-
-  const pathname = usePathname()
+  const { username, role, branch } = auth
   const [show, setShow] = useState(false)
 
   return (
@@ -39,20 +37,11 @@ export default function AppCustomLayout({ children, sideLinks }) {
         <div className="sidebarr m-0 p-0" style={{ left: show ? "0px" : "-250px" }}>
           <ul className="sidebarul">
             <li>
-              <Link href={'/'}>
-                <AppRegistration/> Apps
+              <Link href={"/"}>
+                <AppRegistration /> Apps
               </Link>
             </li>
-            {sideLinks.map((item, index) => {
-              return (
-                <li key={item.link} className={item.link == pathname && "sidebar-active"}>
-                  <Link href={item.link}>
-                    {item.icon}
-                    {item.title}
-                  </Link>
-                </li>
-              )
-            })}
+            <SubLinksSideBar sideLinks={sideLinks} showaxis={true}/>
           </ul>
         </div>
         <main className={`prime-main ${show ? "prime-with-side" : "prime-full"}`}>{children}</main>

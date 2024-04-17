@@ -71,9 +71,6 @@ export default function EnterResultUltrasound() {
           <button onClick={(ev) => { handleResult() }} className='btn btn-primary btn-sm  mt-2'>
             save result
           </button>
-          <button className='btn btn-primary  btn-sm mt-2' style={{ marginLeft: '20px' }}>
-            preview result
-          </button>
         </div>
       )
     }
