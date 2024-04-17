@@ -15,6 +15,9 @@ export default function Activator() {
 
   const advancedSearchButton = async function () {
     let urlquery = `activation?`
+    if (isNaN(filter.mobile) || isNaN(filter.patientId)) {
+      return alert('10 digits required as Mobile Number And patientid must be a number');
+    }
     for (const [key, value] of Object.entries(filter)) {
       urlquery += `${key}=${value}&&`
     }
@@ -67,13 +70,13 @@ export default function Activator() {
   const callActivation = async (a, b, c, d) => {
     const status = await handleActivation(a, b, c, d);
     if (status == 'success') {
-      const previous = [...tempStore];
-      const matchedIndex = previous.findIndex((item, index) => item.patientid == d);
+      const prev = [...tempStore];
+      const matchedIndex = prev.findIndex((item, index) => item.patientid == d);
       if (matchedIndex >= 0) {
         const desiredStatus = c == 'TRUE' ? 'FALSE' : 'TRUE'
-        previous[0]['activation_status'] = desiredStatus;
+        prev[matchedIndex]['activation_status'] = desiredStatus;
       }
-      setStore(previous);
+      setStore(prev);
     }
   }
 
@@ -164,7 +167,7 @@ export default function Activator() {
               onChange={(e) => handleAdvancedQuery(e)}
               type="tell"
               maxLength={10}
-              minLength={0}
+            minLength={0}
               inputMode="numeric"
               placeholder="mobile number"
               name="mobile"

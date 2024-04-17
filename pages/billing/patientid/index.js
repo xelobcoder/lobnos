@@ -32,6 +32,7 @@ export default function Billing({ }) {
   const { auth } = useContext(AuthContext);
   const employeeid = auth?.employeeid;
   const branchid = auth?.branchid;
+  const role = auth?.role;
   const router = useRouter();
   const [billingdata, setBillingdata] = useState(defaultdata);
   const [payment, setPayment] = useState({ amount: 0, mode: "", concession: '' });
@@ -282,7 +283,7 @@ export default function Billing({ }) {
                 <h5 className="lims-text-color text-capitalize">payment information </h5>
                 <div>
                   <label>payment mode</label>
-                  <select value={payment.mode} className="custom-input" onChange={(e) =>
+                  <select  className="custom-input" onChange={(e) =>
                     setBillingdata({ ...billingdata, paymentmode: e.target.value })}
                   >
                     <option>select</option>
@@ -300,6 +301,7 @@ export default function Billing({ }) {
                   <label> concession</label>
                   <input type="number"
                     value={billingdata.discount}
+                    disabled={['manager','admin'].includes(role) ? false : true}
                     className="custom-input"
                     onChange={(e) => {
                       setBillingdata({ ...billingdata, discount: e.target.value })
