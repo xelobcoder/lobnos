@@ -1,14 +1,16 @@
 import { useContext, useEffect, useState } from "react";
-import { customFetch, handleDecision } from "../../components/Auth/customFetch";
+import { customFetch, formatTest, handleDecision, printResultNavigator } from "../../components/Auth/customFetch";
 import { IconButton } from "@mui/material";
 import { Launch } from "@mui/icons-material";
 import AuthContext from "../../components/Auth/useAuthentification";
 import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 import Loader from "../../components/accessories/Loader";
+import { useRouter } from "next/navigation";
 export default function Approval() {
   const [clients, setClients] = useState([]);
   const [isloading, setLoading] = useState(true);
   const { auth } = useContext(AuthContext);
+  const router = useRouter();
   const { employeeid } = auth;
 
 
@@ -23,22 +25,9 @@ export default function Approval() {
       });
   }, []);
 
-  const navigation = function (testid, billingid, test, patientid) {
-    // replace all space with _
-    let testname = test.replace(/\s/g, "_").toLowerCase();
-    // format test to match pregnacy_test for pregnancy test
-    const formattedTestName = function () {
-      switch (testname) {
-        case "pregnancy_test(urine)":
-          return "pregnancy_test";
-        case "estimated_sedimentation_rate_(esr)":
-          return "esr";
-        default:
-          return testname;
-      }
-    };
-    window.open(
-      `/registration/result?billingid=${billingid}&&testid=${testid}&&test=${formattedTestName()}&&patientid=${patientid}`);
+  const navigation = function (client) {
+    const { billingid } = client;
+    printResultNavigator(router, billingid, client, true);
   };
 
 
@@ -96,7 +85,7 @@ export default function Approval() {
                         component="a"
                         rel="noopener noreferrer"
                         onClick={() =>
-                          navigation(client.testid, client.billingid, client.name, client.patientid)
+                          navigation(client)
                         }
                       >
                         <Launch />

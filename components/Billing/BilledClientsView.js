@@ -62,7 +62,7 @@ export default function Payment_Extra() {
         const outstanding_bill = row.original?.outstanding;
         return (
           <div className="d-flex">
-            <button className="btn btn-primary btn-sm mx-1" onClick={(ev) => { router.push(`updatebilling?billingid=${row.original.billingid}&&patientid=${row.original.patientid}`) }}>
+            <button className="btn btn-primary btn-sm mx-1" onClick={(ev) => { router.push(`/billing/updatebilling?billingid=${row.original.billingid}&&patientid=${row.original.patientid}`) }}>
               update bill
             </button>
             <button className="btn btn-warning btn-sm mx-1"

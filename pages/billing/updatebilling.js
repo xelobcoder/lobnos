@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import UpdatePersonal from "../../../components/Billing/updatePersonal";
-import TestProfileBilling from "../../../components/Billing/testprofile";
-import SamplingInformation from "../../../components/Billing/samplingInformation";
-import { customFetch } from "../../../components/Auth/customFetch";
-import FrontDeskLayout from "../../../components/Layout/FrontDeskLayout";
+import UpdatePersonal from "../../components/Billing/updatePersonal";
+import TestProfileBilling from "../../components/Billing/testprofile";
+import SamplingInformation from "../../components/Billing/samplingInformation";
+import { customFetch } from "../../components/Auth/customFetch";
+import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 export default function Updatebilling() {
   const [clientDetails, setClientDetails] = useState([]);
   const [updateViewer, setUpdateViewer] = useState(true);
