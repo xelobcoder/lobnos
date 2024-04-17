@@ -41,30 +41,27 @@ export default function ReadyTestSummaryAccordion({ id, title, patientid }) {
   }
 
   const calculateTimeUsed = (data) => {
-    // Parse dates using moment
+
     const collectionDate = moment(data.collection_date)
     const readyDate = moment(data.ready_date)
 
-    // Check if dates are valid
+
     if (!collectionDate.isValid() || !readyDate.isValid()) {
       return "Invalid date format"
     }
 
-    // Calculate the time difference
     const duration = moment.duration(readyDate.diff(collectionDate))
 
-    // Get individual units
     const days = duration.days()
     const hours = duration.hours()
     const minutes = duration.minutes()
     const seconds = duration.seconds()
     const milliseconds = duration.milliseconds()
 
-    // Construct the final string
+
     const timeUsedString = moment.duration({ days, hours, minutes, seconds }).humanize().toUpperCase()
     const millisecondsText = milliseconds > 0 ? `${milliseconds} milliseconds` : ""
 
-    // Combine all parts
     let resultString = `${timeUsedString} used`
     if (millisecondsText) {
       resultString += ` and ${millisecondsText}`

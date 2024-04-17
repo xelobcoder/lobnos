@@ -1,6 +1,6 @@
 import { customFetch, customPost } from "./customFetch";
 import { defaultdata } from "../../pages/registration";
-import { TableRowsTwoTone } from "@mui/icons-material";
+import moment from 'moment';
 
 // handle mobile number validation
 export const handleMobile = (e, toast) => {
@@ -34,15 +34,16 @@ export const handleEmail = (e, setValue, data, toast) => {
 // if years is 0, then calculate age from months
 // if years is 0 and months is 0, then calculate age from days
 
-export const handleAge = (y, m, d) => {
-  if (y != "" && m != "" && d != "") {
-    let date = new Date(y, m, d);
-    let today = new Date();
-    let years = today.getFullYear() - y;
-    let months = today.getMonth() + 1 - m;
-    let daysdiff = today.getDate() - d;
 
-    if (years == 0 && months == 0 && daysdiff <= 0) {
+export const handleAge = (y, m, d) => {
+  if (y !== "" && m !== "" && d !== "") {
+    const birthDate = moment({ year: y, month: m - 1, day: d });
+    const today = moment();
+    const years = today.diff(birthDate, 'years');
+    const months = today.diff(birthDate, 'months') % 12;
+    const days = today.diff(birthDate, 'days') % 30; // assuming 30 days in a month for simplicity
+
+    if (years === 0 && months === 0 && days <= 0) {
       return {
         years: 0,
         months: 0,
@@ -50,81 +51,16 @@ export const handleAge = (y, m, d) => {
       };
     }
 
-    if (years == 0 && months == 0 && daysdiff > 0) {
-      return {
-        years: 0,
-        months: 0,
-        days: daysdiff,
-      };
-    }
-
-    if (years == 0 && months != 0) {
-      if (Math.sign(months) == -1) {
-        return "invalid Date";
-      } else {
-        if (daysdiff < 0) {
-          return {
-            months: months - 1,
-            days: daysdiff + 30,
-            years: 0,
-          };
-        } else {
-          return {
-            years: 0,
-            months: months,
-            days: daysdiff,
-          };
-        }
-      }
-    }
-
-    if (years != 0) {
-      if (Math.sign(years) == -1) {
-        return "invalid Date";
-      } else {
-        if (months == 0) {
-          if (daysdiff == 0) {
-            return {
-              years: years,
-              months: 0,
-              days: 0,
-            };
-          } else {
-            if (daysdiff > 0) {
-              return {
-                years,
-                months: 0,
-                days: daysdiff,
-              };
-            } else {
-              return {
-                years: years - 1,
-                months,
-                daysdiff,
-              };
-            }
-          }
-        } else {
-          if (Math.sign(months) == -1) {
-            return {
-              years: years - 1,
-              months: today.getMonth() + 1,
-              days: null,
-            };
-          } else {
-            return {
-              years: years,
-              months: months,
-              days: null,
-            };
-          }
-        }
-      }
-    }
+    return {
+      years: years,
+      months: months,
+      days: days,
+    };
   } else {
     return null;
   }
 };
+
 
 
 export const handleAgeCalculations = async (data, setData, toast) => {
