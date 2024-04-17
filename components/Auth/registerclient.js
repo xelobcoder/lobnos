@@ -139,7 +139,7 @@ export const handleAgeCalculations = async (data, setData, toast) => {
         toast.error(`Please kindly recheck date values entered, Error at day value!!!`, { autoClose: 500 })
         setData({ ...data, age: 0, ageType: "days" })
       } else {
-        setError("Todays Delivering ?")
+        toast.info("Todays Delivering ?")
         setData({ ...personalParams, age: days, ageType: "days" })
       }
     }
@@ -159,7 +159,7 @@ export const handleAgeCalculations = async (data, setData, toast) => {
   // update fields to suit
 
   if (agecalulation == "invalid Date") {
-    setError("Invalid Date entered")
+    toast.error("Invalid Date entered", { autoClose: 3000 })
     setData({ ...personalParams, age: 0, days: 0, months: 0, years: 0, ageType: "" })
   }
 }
@@ -170,10 +170,12 @@ export const handleSubmitRegistration = async (e, data = {}, method, toast, call
   // error marker , at end run if true , data is not sent to endpoint.
   var error = false;
   // fields that must have values
-  const requiredFields = ["firstname", "lastname", "age", "agetype", "gender"];
+  const requiredFields = ["firstname", "lastname", "age", "ageType", "gender"];
   // function theat checks to esnsure required fields are filled
-  const checkRequiredFields = (data) => { requiredFields.forEach((field) => {
-    if (data[field] == "") {
+  const checkRequiredFields = (data) => {
+    requiredFields.forEach((field) => {
+      console.log(data[field])
+      if (data[field].toString().length == 0) {
         error = true;
         return;
       }

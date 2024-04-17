@@ -3,6 +3,7 @@ import Accordion from "react-bootstrap/Accordion"
 import { customFetch, customPost, printResultNavigator } from "../Auth/customFetch"
 import Loader from "../accessories/Loader"
 import { useRouter } from "next/navigation"
+import moment from "moment"
 import { CheckRounded, QuestionAnswer } from "@mui/icons-material"
 export default function ReadyTestSummaryAccordion({ id, title, patientid }) {
   const navigate = useRouter()
@@ -40,35 +41,36 @@ export default function ReadyTestSummaryAccordion({ id, title, patientid }) {
   }
 
   const calculateTimeUsed = (data) => {
+    // Parse dates using moment
+    const collectionDate = moment(data.collection_date)
+    const readyDate = moment(data.ready_date)
+
     // Check if dates are valid
-    if (isNaN(new Date(data.collection_date)) || isNaN(new Date(data.ready_date))) {
+    if (!collectionDate.isValid() || !readyDate.isValid()) {
       return "Invalid date format"
     }
 
-    // Calculate the time difference in milliseconds
-    const timeDifference = Math.abs(new Date(data.ready_date) - new Date(data.collection_date))
+    // Calculate the time difference
+    const duration = moment.duration(readyDate.diff(collectionDate))
 
-    // Convert milliseconds to individual units
-    const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24))
-    const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-    const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60))
-    const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000)
-    const milliseconds = timeDifference % 1000
+    // Get individual units
+    const days = duration.days()
+    const hours = duration.hours()
+    const minutes = duration.minutes()
+    const seconds = duration.seconds()
+    const milliseconds = duration.milliseconds()
 
-    // Check if any unit needs pluralization
-    const daysText = days > 1 ? `${days} days` : days === 1 ? `${days} day` : ""
-    const hoursText = hours > 1 ? `${hours} hours` : hours === 1 ? `${hours} hour` : ""
-    const minutesText = minutes > 1 ? `${minutes} minutes` : minutes === 1 ? `${minutes} minute` : ""
-    const secondsText = seconds > 1 ? `${seconds} seconds` : seconds === 1 ? `${seconds} second` : ""
+    // Construct the final string
+    const timeUsedString = moment.duration({ days, hours, minutes, seconds }).humanize().toUpperCase()
     const millisecondsText = milliseconds > 0 ? `${milliseconds} milliseconds` : ""
 
-    // Construct the final string (including milliseconds if present)
-    const timeUsedString =
-      [daysText, hoursText, minutesText, secondsText]
-        .filter((unit) => unit.length > 0) // Remove empty units
-        .join(", ") + (millisecondsText.length > 0 ? ` and ${millisecondsText}` : "")
+    // Combine all parts
+    let resultString = `${timeUsedString} used`
+    if (millisecondsText) {
+      resultString += ` and ${millisecondsText}`
+    }
 
-    return timeUsedString + " used"
+    return resultString
   }
 
   const ReadyComp = (item) => {
