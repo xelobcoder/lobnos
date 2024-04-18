@@ -50,7 +50,7 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
         <>
           {filtering == true && (<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />)}
           <div className='table-wrapper' >
-            <table {...props} className={styling ? styling : 'ttable table'} {...getTableProps()} >
+            <table {...props} className={styling ? styling : 'table'} {...getTableProps()} >
                       <thead>
                         {customHeaderGroup()}
                       </thead>
@@ -58,7 +58,7 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
                         {page.map((row, index) => {
                           prepareRow(row);
                           return (
-                            <tr  {...row.getRowProps()}  key={index} className='t' >
+                            <tr  {...row.getRowProps()}  key={index} >
                               {row.cells.map((cell) => {
                                 return <td {...cell.getCellProps()} key={cell.column.id}>{cell.render('Cell')}</td>
                               })}

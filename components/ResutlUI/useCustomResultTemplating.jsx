@@ -95,22 +95,26 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
           )
         } else {
           return (
-            <div className={"grid grid-50"}>
-              <div>
-                <span className="text-uppercase text-dark  fw-bold border-bottom border-secondary border-0">parameter</span>
-              </div>
-              <div>
-                <span className="text-uppercase text-dark  fw-bold border-bottom border-secondary border-0">value</span>
-              </div>
-              {result.map((item, index) => {
-                return (
-                  <div key={index} className={haslimits ? "grid grid-4" : "grid grid-50"}>
-                    <div className="text-capitalize">{item.name}</div>
-                    <div>{item.value}</div>
-                  </div>
-                )
-              })}
-            </div>
+            <>
+              <table className="result-table mt-2">
+                <thead>
+                  <tr>
+                    <th className="text-capitalize">parameter</th>
+                    <th className="text-capitalize">value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.map((item, index) => {
+                    return (
+                      <tr key={index}>
+                        <td className="text-capitalize">{item.name}</td>
+                        <td>{item.value}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </>
           )
         }
 
