@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react"
 import ExpenseLayout from "../../components/Expense/ExpenseLayout"
 import Loader from "../../components/accessories/Loader"
-import { currencyFormatter, customFetch, handleChangeWithState, updatePagination } from "../../components/Auth/customFetch"
+import { currencyFormatter, customFetch, customPost, handleChangeWithState, updatePagination } from "../../components/Auth/customFetch"
 import Image from "next/image"
 import Pagination from "../../components/accessories/pagination"
 import { List } from "@mui/icons-material"
 import ExpenseRejectionModal from "./ExpenseRejectionModal"
+import { toast, ToastContainer } from "react-toastify"
 
 const defaultFilterState = { from: "", to: "", status: "" }
 export default function AdminExpensesList({ branchid, employeeid }) {
@@ -42,19 +43,23 @@ export default function AdminExpensesList({ branchid, employeeid }) {
     updatePagination(value, setPage, page)
   }
 
+  const getSingleExpenseData = (selected) => {
+    customFetch(`expenses/record/single?expenseid=${parseInt(selected)}`)
+      .then((data) => {
+        data.length > 0 && setDetails(data[0])
+      })
+      .catch((err) => {
+        setDetails(null)
+      })
+      .finally(() => {
+        setSelectedLoading(false)
+      })
+  }
+
   useEffect(() => {
     if (selected) {
       setSelectedLoading(true)
-      customFetch(`expenses/record/single?expenseid=${parseInt(selected)}`)
-        .then((data) => {
-          data.length > 0 && setDetails(data[0])
-        })
-        .catch((err) => {
-          setDetails(null)
-        })
-        .finally(() => {
-          setSelectedLoading(false)
-        })
+      getSingleExpenseData(selected)
     }
   }, [selected])
 
@@ -66,6 +71,34 @@ export default function AdminExpensesList({ branchid, employeeid }) {
 
   const handleFilters = () => {
     getExpenseData()
+  }
+
+  const handleDecision = async (estatus, information, expenseid) => {
+    try {
+      if (information.trim().length == 0 && estatus == "rejected") {
+        return alert("TextField cannot be empty")
+      }
+      if (expenseid && estatus) {
+        const responseBody = { expenseid, information, status: estatus, employeeid }
+        const response = await customPost("expense/pending/decision", "POST", responseBody)
+        const { status } = response
+        if (status == "success") {
+          toast.success(`expense ${estatus} successfully`, { autoClose: 2000, position: "top-center" })
+          getSingleExpenseData(expenseid)
+          const _expenses = [...expenses]
+          const recordIndex = _expenses.findIndex((item, index) => item.id == expenseid)
+          if (recordIndex >= 0) {
+            _expenses[recordIndex]["approved"] = estatus == "approved" ? 1 : 2
+          }
+          setExpenses(_expenses)
+        }
+      }
+    } catch (err) {
+      console.log(err)
+      toast.error("something wrong occured", { autoClose: 2000 })
+    } finally {
+      closeRmodal()
+    }
   }
 
   const viewSelected = () => {
@@ -99,6 +132,12 @@ export default function AdminExpensesList({ branchid, employeeid }) {
               <h6>Description</h6>
               <p className="bg-secondary-subtle br-5 p-3">{detail?.description}</p>
             </div>
+            {detail?.approved == 2 && (
+              <div className="mx-2 mt-21">
+                <h6>Rejection Message</h6>
+                <p className="bg-danger-subtle br-5 p-3">{detail?.rejectionmessage}</p>
+              </div>
+            )}
             <div className="mx-2">
               <div className="d-flex justify-content-between">
                 <h6>Receipts</h6>
@@ -145,7 +184,7 @@ export default function AdminExpensesList({ branchid, employeeid }) {
 
   return (
     <ExpenseLayout>
-      {/* {renderingView()} */}
+      <ToastContainer />
       <div
         style={{
           minHeight: "100vh",
@@ -245,7 +284,14 @@ export default function AdminExpensesList({ branchid, employeeid }) {
           <section className="pointer">
             {detail.approved == 0 && (
               <div className="d-flex justify-content-end border-bottom p-2">
-                <button className="btn  btn-sm btn-success">Approve</button>
+                <button
+                  type="button"
+                  onClick={(ev) => {
+                    handleDecision("approved", "", selected)
+                  }}
+                  className="btn  btn-sm btn-success">
+                  Approve
+                </button>
                 <button
                   onClick={(ev) => {
                     showRejectionModal(ev)
@@ -259,7 +305,7 @@ export default function AdminExpensesList({ branchid, employeeid }) {
           </section>
         )}
       </div>
-      {showRmodal && <ExpenseRejectionModal show={showRmodal} hide={closeRmodal} />}
+      {showRmodal && <ExpenseRejectionModal expenseid={selected} show={showRmodal} hide={closeRmodal} submit={handleDecision} />}
     </ExpenseLayout>
   )
 }

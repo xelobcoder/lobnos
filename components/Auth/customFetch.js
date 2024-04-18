@@ -45,7 +45,7 @@ export async function customPost(endpoint, method, data, hash = false) {
       throw new Error('NEXT_PUBLIC_ACCESS_TOKEN MISSING');
    }
    var requestBody = data;
-   if (hash && hash == true) {
+   if (hash && hash === true) {
       if (process.env.HASH_KEY != undefined) {
          requestBody = {};
       } else {
