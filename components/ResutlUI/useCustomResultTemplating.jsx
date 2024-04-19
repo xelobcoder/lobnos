@@ -41,63 +41,57 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
         const hasPlain = result.some((item, index) => item.useplain == true)
 
         if (hasLimits) {
-         return (
-           <table className="table table-stripped" style={{ width: "100%" }}>
-             <thead className="table-warning">
-               <tr>
-                 <th scope="col">
-                   Parameter
-                 </th>
-                 <th scope="col">
-                   Value
-                 </th>
-                 <th scope="col">
-                   Units
-                 </th>
-                 <th scope="col">
-                   Reference Ranges
-                 </th>
-                 <th>Flags</th>
-               </tr>
-             </thead>
-             <tbody>
-               {result.map((item, index) => {
-                 return <HasLimitReference key={index} item={item} />
-               })}
-             </tbody>
-           </table>
-         )
+          return (
+            <>
+              <h5 className="text-uppercase text-center border-bottom border-top border-2 border-secondary">
+                {test && test.includes("_") ? test.split("_").join(" ") : test}
+              </h5>
+              <table className="table" style={{ width: "100%" }}>
+                <thead className="table-warning">
+                  <tr>
+                    <th scope="col">Parameter</th>
+                    <th scope="col">Value</th>
+                    <th scope="col">Units</th>
+                    <th scope="col">Reference Ranges</th>
+                    <th>Flags</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.map((item, index) => {
+                    return <HasLimitReference key={index} item={item} />
+                  })}
+                </tbody>
+              </table>
+            </>
+          )
         } else if (hasPlain) {
           return (
-            <table className="result-table" style={{ width: "100%" }}>
-              <thead>
-                <tr>
-                  <th >
-                    Parameter
-                  </th>
-                  <th >
-                    Value
-                  </th>
-                  <th >
-                    Units
-                  </th>
-                  <th >
-                    Reference Ranges
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.map((item, index) => {
-                  return <HasLimitReference key={index} item={item} />
-                })}
-              </tbody>
-            </table>
+            <>
+              <h5 className="text-uppercase text-center border-bottom border-top border-2 border-secondary">
+                {test && test.includes("_") ? test.split("_").join(" ") : test}
+              </h5>
+              <table className="table" style={{ width: "100%" }}>
+                <thead className="table-warning">
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Value</th>
+                    <th>Units</th>
+                    <th>Reference Ranges</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.map((item, index) => {
+                    return <HasLimitReference key={index} item={item} />
+                  })}
+                </tbody>
+              </table>
+            </>
           )
         } else {
           return (
             <>
-              <table className="result-table mt-2">
-                <thead>
+              {/* <table className="table table-bordered  mt-2">
+                <thead className="table-warning">
                   <tr>
                     <th className="text-capitalize">parameter</th>
                     <th className="text-capitalize">value</th>
@@ -113,20 +107,31 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
                     )
                   })}
                 </tbody>
-              </table>
+              </table> */}
+              {/* <h5 className="text-capitalize  fw-bold">
+                <span className=" bg-dark text-white">{test && test.includes("_") ? test.split("_").join(" ") : test}</span>
+              </h5> */}
+              <div className="grid grid-50 text-capitalize">
+                <span className="fw-bold ">{test && test.includes("_") ? test.split("_").join(" ") : test}</span>
+                <span className="fw-bold">Result</span>
+              </div>
+              {result.map((item, index) => {
+                return (
+                  <div key={index} className="grid grid-50 p-1">
+                    <span className="text-capitalize">{item.name}</span>
+                    <span className="text-capitalize">{item.value}</span>
+                  </div>
+                )
+              })}
             </>
           )
         }
-
       }
     }
   }
 
   return (
     <div>
-      <h5 className="text-uppercase text-center border-bottom border-top border-2 border-secondary">
-        {test && test.includes("_") ? test.split("_").join(" ") : test}
-      </h5>
       <section className="main-result">{renderingView()}</section>
     </div>
   )

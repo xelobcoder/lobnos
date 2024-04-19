@@ -10,6 +10,7 @@ import UseClinicalLiteratureReview from '../../../components/ResutlUI/UseClinica
 import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
 import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
 import VersionFooter from '../../../components/accessories/VersionFooter';
+import Header from '../../../components/header';
 
 export default function RESULT_FOR_PRINTING() {
   const [resultsettings, setResultSettings] = useState(defaultResultSettings);
@@ -46,9 +47,10 @@ export default function RESULT_FOR_PRINTING() {
 
 
   return (
-    <div className='result_page'>
+    <>
+      <div className='single_result_page'>
       <div className='result'>
-        <div>
+          <div className='result-top-section'>
           {resultsettings?.letterHeading == 1 && <CompanyHeaders billingid={billingid} />}
         <PersonalInformation patientid={patientid} billingid={billingid} />
           {resultsettings?.samplingInformation == 1 && <SamplingInformationResult billingid={billingid} testid={testid} />}
@@ -58,7 +60,7 @@ export default function RESULT_FOR_PRINTING() {
           <UseClinicalLiteratureReview testid={testid} />
           </section>
         </div>
-        <div>
+          <div className='result-bottom-section'>
          <UseResultEntryScientist testid={testid} billingid={billingid} />
           <UseDisclaimer patientid={patientid} />
           <VersionFooter/>
@@ -73,5 +75,6 @@ export default function RESULT_FOR_PRINTING() {
        </button>
       </div>
     </div>
+    </>
   )
 }

@@ -6,7 +6,7 @@ export default function TESTCART({ testArray, emptytestcart, handleRemove, calcu
       return <h6>No data added to cart</h6>
     } else {
       return (
-        <table className='table' >
+        <table className='table ttable' >
           <thead className="p-0">
             <tr>
               <th>test</th>

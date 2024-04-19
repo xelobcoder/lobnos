@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { customFetch } from "../Auth/customFetch"
 import Loader from "../accessories/Loader"
-export default function UseResultCommentSingle({ testid, billingid }) {
+export default function UseResultCommentSingle({ testid, billingid ,multiple = false}) {
   const [comments, setComments] = useState("")
   const [isloading, setLoading] = useState(true)
 
@@ -24,13 +24,13 @@ export default function UseResultCommentSingle({ testid, billingid }) {
   const renderingView = () => {
     if (isloading) return <Loader />
     else {
-      return <div dangerouslySetInnerHTML={{ __html: comments }} />
+      return <div style={{fontSize:'15px'}} dangerouslySetInnerHTML={{ __html: comments }} />
     }
   }
 
   return (
     <section>
-      <h5>Comments</h5>
+     {!multiple &&  <h5>Comments</h5>}
       {renderingView()}
     </section>
   )

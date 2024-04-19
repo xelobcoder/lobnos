@@ -15,13 +15,13 @@
 .company-info-result > div > .company-kids {
   font-size: 16px;
 }
-.result_page {
+.single_result_page {
   height: max-content;
   padding: 1% 10% 1% 10%;
   background-color: white !important;
 }
 
-.result_page > .result {
+.single_result_page > .result {
   padding: 10px;
 }
 
@@ -70,19 +70,19 @@
   .result-page > .result > div > .company-info-result > .company-info-result > div > .company-name {
     font-size: 25px !important;
   }
-  .result_page {
+  .single_result_page {
     padding: 0% !important;
     margin: 0% !important;
     overflow: hidden;
   }
 
-  .result_page > .result {
+  .single_result_page > .result {
     padding: 0 !important;
-    display: grid;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
+    display: grid;
     grid-template-columns: 100%;
-    grid-template-rows: 80% 20% !important;
+    grid-template-rows: 80% 20%;
   }
 
   .print-section {
@@ -104,13 +104,13 @@
 .company-info-result > div > .company-kids {
   font-size: 16px;
 }
-.result_page {
+.single_result_page {
   height: max-content;
   padding: 1% 10% 1% 10%;
   background-color: white;
 }
 
-.result_page > .result {
+.single_result_page > .result {
   padding: 10px;
 }
 
@@ -143,6 +143,7 @@
   justify-content: center;
   text-transform: uppercase;
   font-weight: 500;
+
   font-size: 18px;
   border-bottom: 1px solid black;
 }
@@ -155,23 +156,57 @@
   font-size: 18px !important;
 }
 
+.multiple-result-out > .multiple-main {
+  padding: 10px;
+}
+
+.multiple-result-out{
+  display: grid;
+  grid-template-columns: 15% auto;
+  margin: 0;
+  background-color: white !important;
+  padding: 0;
+  min-height: 100vh;
+}
+
+
+
 @media print {
+  .multiple-result-out {
+    display: grid;
+    grid-template-columns: 100% !important;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+
+  .multiple-result-out > .multiple-main {
+    padding: 0;
+    background-color: white;
+    margin: 0;
+  }
+
+  .multiple-result-out > aside {
+    display: none;
+  }
+  .software-header-nav {
+    display: none;
+  }
   .company-info-result > .other-information > .company-name {
     font-size: 25px !important;
   }
-  .result_page {
+  .single_result_page {
     padding: 0% !important;
     margin: 0% !important;
     overflow: hidden;
   }
 
-  .result_page > .result {
+  .single_result_page > .result {
     padding: 0 !important;
     display: grid;
-    height: 100vh;
+   height: 100vh;
     margin: 0 !important;
     grid-template-columns: 100%;
-    grid-template-rows: 85% 15%;
   }
 
   .print-section {
@@ -187,6 +222,9 @@
   border-collapse: collapse;
   border: 1px solid black;
 }
+
+
+
 
 .result-table > thead,
 .result-table > tbody {
@@ -204,7 +242,6 @@
 
 .result-table > thead > tr > th,
 .result-table > tbody > tr > td {
-  /* width: 25% !important; */
   padding: 10px;
 }
 
