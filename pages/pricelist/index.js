@@ -11,7 +11,9 @@ export default function PriceListCheck() {
           customFetch('testpanel/list')
                .then((response) => {
                     const { statusCode, status, data } = response;
-                    setTestList(data)
+                    if (Array.isArray(data)) {
+                         setTestList(data)
+                    }
                     setLoading(false)
                }).catch((err) => {
                     setTestList([])

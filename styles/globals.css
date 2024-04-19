@@ -2741,3 +2741,19 @@ margin: 0;
  align-items: center;
 }
 
+.minimize-creator {
+  display: grid;
+  grid-template-columns: 30% auto;
+  height: inherit;
+  overflow: auto;
+}
+.minimize-creator > section:nth-child(1){
+  border-right: 1px solid lightgray;
+  height: 90vh;
+  overflow: hidden;
+  padding: 10px;
+}
+
+.bhead{
+  text-transform: capitalize;
+}
