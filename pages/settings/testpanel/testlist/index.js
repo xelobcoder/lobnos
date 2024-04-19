@@ -83,6 +83,9 @@ export default function TestListDisplay() {
          return (
             <section>
                <div className="d-flex justify-content-end mx-2">
+                  <button onClick={(ev) => { router.push("/settings/testpanel/testlist/fieldcreator") }} className="btn btn-secondary btn-sm mx-2">
+                     test field creator
+                  </button>
                   <button onClick={(ev) => { router.push("/settings/testpanel/testlist/createcustomtest") }} className="btn btn-dark btn-sm text-capitalize">new test</button>
                </div>
                <div style={{ marginTop: '-30px' }}>

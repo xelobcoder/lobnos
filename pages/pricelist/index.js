@@ -8,7 +8,7 @@ export default function PriceListCheck() {
      const [testlist, setTestList] = useState('');
      const [loading, setLoading] = useState(true);
      useEffect(() => {
-          customFetch('testpanel/list')
+          customFetch('testpanel/list/bulk')
                .then((response) => {
                     const { statusCode, status, data } = response;
                     if (Array.isArray(data)) {
