@@ -1,27 +1,15 @@
 import { useEffect, useState } from "react"
 import CustomFormSwitch from "../../accessories/CustomFormSwitch"
-import { customFetch, customPost } from "../../Auth/customFetch"
+import {  customPost, defaultResultSettings, getResultSettings } from "../../Auth/customFetch"
 import { ToastContainer, toast } from "react-toastify"
 export default function ApplicationResultSettings() {
-  const defaultSetings = {
-    literatureReview: 1,
-    letterHeading: 1,
-    passwordonResult: 1,
-    DepartmentEntry: 1,
-  }
-  const [result, setResult] = useState(defaultSetings)
+
+  const [result, setResult] = useState(defaultResultSettings)
   const [isloading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
-    customFetch("applicationsetting/resultsettings")
-      .then((data) => {
-        setResult(data)
-        setLoading(false)
-      })
-      .catch((err) => {
-        setLoading(false)
-      })
+    getResultSettings(setResult, setLoading);
   }, [])
 
   const handleSubmit = async () => {
@@ -83,6 +71,14 @@ export default function ApplicationResultSettings() {
               variant="number"
               title="Result Entry"
               text="Ensure result entry is done according departments created. Toggle to activate it or view by patient"
+            />
+             <CustomFormSwitch
+              value={result.samplingInformation}
+              target="samplingInformation"
+              update={update}
+              variant="number"
+              title="Sampling Information"
+              text="This include sampking information in the final result print out. Toggle to activate or deactivate setting"
             />
           </div>
           <div>

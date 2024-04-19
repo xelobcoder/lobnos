@@ -26,6 +26,26 @@ export async function customFetch(endpoint) {
    }
 }
 
+export const defaultResultSettings  = {
+   literatureReview: 1,
+   letterHeading: 1,
+   passwordonResult: 1,
+   DepartmentEntry: 1,
+   samplingInformation: 1,
+ }
+
+export async function getResultSettings(setResult,setLoading) {
+   customFetch("applicationsetting/resultsettings")
+      .then((data) => {
+         setResult(data)
+         setLoading(false)
+      })
+      .catch((err) => {
+         setLoading(false);
+      })
+}
+
+
 export const Glucoseoptions = ["mg/dl", "mmol/L"];
 
    /**

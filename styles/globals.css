@@ -1410,12 +1410,12 @@ option:hover {
 }
 /* Base styles for the table */
 
-.table-wrapper {
+.ttable-wrapper {
   max-width: 100%;
   overflow-x: auto;
 }
 
-.table {
+.ttable {
   table-layout: fixed;
   width: 100%;
   margin-top: 15px;
@@ -1427,7 +1427,7 @@ option:hover {
 
 
 
-.table > thead > tr {
+.ttable > thead > tr {
   border-bottom: 1px solid #e9ecef;
   vertical-align: inherit;
   border-color: inherit;
@@ -1439,7 +1439,7 @@ option:hover {
   background-color: #f5f5f5 !important;
   border-color: #ddd !important;
 }
-.table > thead > tr > th {
+.ttable > thead > tr > th {
   text-align: left;
   font-weight: 400;
   font-size: 13px;
@@ -1447,7 +1447,7 @@ option:hover {
   text-transform: capitalize !important;
 }
 
-.table > thead > tr > th::after {
+.ttable > thead > tr > th::after {
   position: absolute;
   content: "";
   right: 0;
@@ -1460,7 +1460,7 @@ option:hover {
   pointer-events: none;
 }
 
-.table > tbody > tr > td {
+.ttable > tbody > tr > td {
   color: #00224fcf;
   cursor: pointer;
   font-size: 13px;
@@ -1469,12 +1469,12 @@ option:hover {
   padding: 10px !important;
 }
 
-.table > tbody > tr > td::first-letter {
+.ttable > tbody > tr > td::first-letter {
   text-transform: uppercase;
 }
 
 /* Add hover effect for rows */
-.table tbody tr:hover {
+.ttable tbody tr:hover {
   background-color: whitesmoke !important;
 }
 
@@ -1788,96 +1788,8 @@ input[type="email"]:focus:invalid .company-view-result > .wrapper {
   white-space: nowrap;
 } */
 
-.company-logo {
-  display: grid;
-  grid-template-columns: 20% auto;
-  grid-gap: 5%;
-}
-
-.company-logo > div > .company-name {
-  font-size: 40px !important;
-  text-transform: uppercase;
-  text-decoration: underline;
-}
-.company-logo > div > .company-kids {
-  font-size: 16px;
-}
-.result_page {
-height: max-content;
-  padding: 1% 10% 1% 10%;
-  background-color: white;
-}
-
-.result_page > .result {
-  padding: 10px;
-}
 
 
-.result-sampling-details {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.result-sampling-details > .left {
-  margin-right: 10px;
-}
-
-.sampling-result {
-  display: grid;
-  grid-template-columns: 50% auto;
-}
-
-.result-sampling-details > .left,
-.result-sampling-details > .right {
-  text-transform: capitalize;
-  font-size: 16px;
-}
-
-.result-sampling-details > .left {
-  font-weight: 600;
-}
-
-.result-section-header {
-  display: flex;
-  justify-content: center;
-  text-transform: uppercase;
-  font-weight: 500;
-  font-size: 18px;
-  border-bottom: 1px solid black;
-}
-
-.result-table-section {
-  border-bottom: 1px solid black;
-}
-
-.main-result {
-  font-size: 18px !important;
-}
-
-@media print {
-  .company-logo > div > .company-name {
-    font-size: 35px !important;
-  }
-  .result_page {
-    padding: 0% !important;
-    margin: 0% !important;
-    overflow: hidden;
-  }
-
-  .result_page > .result {
-    padding: 0 !important;
-    display: grid;
-    height: 100vh;
-    margin: 0;
-    grid-template-columns: 100%;
-    grid-template-rows: 85% 15%;
-  }
-  
- 
-  .print-section {
-    display: none !important;
-  }
-}
 .card .list-group-item {
   border-bottom: 1px solid lightgray;
 }
@@ -2275,9 +2187,7 @@ height: max-content;
   border-radius: 10px;
 }
 
-.whitesmoke {
-  background-color: whitesmoke !important;
-}
+
 
 .pointer {
   cursor: pointer;
@@ -2831,36 +2741,3 @@ margin: 0;
  align-items: center;
 }
 
-
-.result-table{
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  height: auto;
-  border-collapse: collapse;
-  border: 1px solid black;
-}
-
-.result-table > thead,
-.result-table > tbody {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  border: 1px solid black;
-}
-
-.result-table > thead  > tr,
-.result-table > thead  > tr > th,
-.result-table > tbody  > tr > td {
- border:1px solid black;
-}
-
-.result-table > thead  > tr > th,
-.result-table > tbody  > tr > td {
-  /* width: 25% !important; */
-  padding: 10px;
-}
-
-.result-table > tbody  > tr:nth-child(odd) {
-  background-color: rgba(128, 128, 128, 0.518);
-}

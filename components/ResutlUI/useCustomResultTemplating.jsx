@@ -42,19 +42,19 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
 
         if (hasLimits) {
          return (
-           <table className="result-table" style={{ width: "100%" }}>
-             <thead>
+           <table className="table table-stripped" style={{ width: "100%" }}>
+             <thead className="table-warning">
                <tr>
-                 <th scope="col ">
+                 <th scope="col">
                    Parameter
                  </th>
-                 <th scope="col ">
+                 <th scope="col">
                    Value
                  </th>
-                 <th scope="col ">
+                 <th scope="col">
                    Units
                  </th>
-                 <th scope="col ">
+                 <th scope="col">
                    Reference Ranges
                  </th>
                  <th>Flags</th>

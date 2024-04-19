@@ -27,7 +27,7 @@ export default function PersonalInformation({ patientid,billingid}) {
     else {
       return (
         <div>
-          <h6 className="result-section-header fw-bold">Personal Information</h6>
+          <h6 className="result-section-header fw-bold mt-2 mb-1">Personal Information</h6>
           <div className="grid-50">
             <div className="left">
               <div className="result-sampling-details">

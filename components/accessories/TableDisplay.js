@@ -49,8 +49,8 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
       return (
         <>
           {filtering == true && (<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />)}
-          <div className='table-wrapper' >
-            <table {...props} className={styling ? styling : 'table'} {...getTableProps()} >
+          <div className='ttable-wrapper' >
+            <table {...props} className={styling ? styling : 'ttable table'} {...getTableProps()} >
                       <thead>
                         {customHeaderGroup()}
                       </thead>

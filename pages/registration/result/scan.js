@@ -1,15 +1,13 @@
-import { useState } from 'react';
 import CompanyHeaders from '../../../components/ResultView/CompanyHeaders';
-import CompanyFooter from '../../../components/ResultView/CompanyFooter';
 import { readyToPrint } from '../../../components/Auth/customFetch';
 import PersonalInformation from '../../../components/ResultView/PersonalInformation';
 import { useSearchParams } from 'next/navigation';
 import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
 import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
 import UseScanResultTemplate from '../../../components/ResutlUI/useScanTemplate';
+import VersionFooter from '../../../components/accessories/VersionFooter';
 
 export default function UltrasoundScanReportView() {
-        const [headers, setHeaders] = useState([]);
         const testid = useSearchParams().get('testid');
         const billingid = useSearchParams().get('billingid');
         const test = useSearchParams().get('test');
@@ -30,7 +28,7 @@ export default function UltrasoundScanReportView() {
                                 <div>
                                         <UseResultEntryScientist testid={testid} billingid={billingid} />
                                         <UseDisclaimer patientid={patientid} />
-                                        <CompanyFooter details={headers} />
+                                        <VersionFooter/>
                                 </div>
                         </div>
                         <div>

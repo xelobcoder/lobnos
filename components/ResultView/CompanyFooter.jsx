@@ -1,4 +1,3 @@
-import VersionFooter from '../accessories/VersionFooter';
 export default function CompanyFooter({ details }) {
   return (
     <>
@@ -10,7 +9,6 @@ export default function CompanyFooter({ details }) {
           <div className="line d-flex justify-content-center">{details?.motto}</div>
         </div>
       </div>
-      <VersionFooter />
     </>
   )
 }

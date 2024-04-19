@@ -74,7 +74,7 @@ export default function CreateTestRule({ clientdata }) {
       else {
          return (
             <section>
-               <table className="table">
+               <table className="ttable table">
                   <thead>
                      <tr>
                         <th>Parameter</th>

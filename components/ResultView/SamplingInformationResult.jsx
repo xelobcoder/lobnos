@@ -37,7 +37,7 @@ export default function SamplingInformationResult({ billingid, testid }) {
     if (isloading) return <Loader />
     else {
       return (
-        <section>
+        <section className="mt-2 mb-2">
           <h6 className="result-section-header fw-bold">Sampling Information</h6>
           <div className="sampling-result">
             <div className="left-panel">

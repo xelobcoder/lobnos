@@ -44,11 +44,11 @@ export default function HasLimitReference({ item }) {
 
   return (
     <tr>
-      <td className="receipt-border text-capitalize">{item.name}</td>
-      <td className="receipt-border py-3">{item.value}</td>
-      <td className="receipt-border py-3">{item.units}</td>
-      <td className="receipt-border py-3">{reference()}</td>
-      {haslimits && <td className="receipt-border py-3">{flags()}</td>}
+      <td className="text-capitalize">{item.name}</td>
+      <td>{item.value}</td>
+      <td>{item.units}</td>
+      <td>{reference()}</td>
+      {haslimits && <td>{flags()}</td>}
     </tr>
   )
 }

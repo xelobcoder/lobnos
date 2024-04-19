@@ -4,7 +4,7 @@ export default function VersionFooter() {
   return (
     <>
       <div className="d-flex justify-content-center text-primary">
-        Software by leonides intell,version 0.0.1 copyright @{new Date().getFullYear()} .{" "}Tel {">>"} 0249434803 
+        Software by leonides intell,PLS v0.0.1 copyright @{new Date().getFullYear()}.{" "}Tell: 0249434803 || 0595964565
       </div>
     </>
   )

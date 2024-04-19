@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import CompanyHeaders from '../../../components/ResultView/CompanyHeaders';
-import CompanyFooter from '../../../components/ResultView/CompanyFooter';
-import { readyToPrint } from '../../../components/Auth/customFetch';
+import { defaultResultSettings, getResultSettings, readyToPrint } from '../../../components/Auth/customFetch';
 import SamplingInformationResult from '../../../components/ResultView/SamplingInformationResult';
 import PersonalInformation from '../../../components/ResultView/PersonalInformation';
 import { useSearchParams } from 'next/navigation';
@@ -10,9 +9,11 @@ import UseResultCommentSingle from '../../../components/ResutlUI/useResultCommen
 import UseClinicalLiteratureReview from '../../../components/ResutlUI/UseClinicalLiteratureReview';
 import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
 import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
+import VersionFooter from '../../../components/accessories/VersionFooter';
 
 export default function RESULT_FOR_PRINTING() {
-  const [headers, setHeaders] = useState([]);
+  const [resultsettings, setResultSettings] = useState(defaultResultSettings);
+  const [loader, setLoader] = useState(false);
   const testid = useSearchParams().get('testid');
   const billingid = useSearchParams().get('billingid');
   const test = useSearchParams().get('test');
@@ -37,13 +38,20 @@ export default function RESULT_FOR_PRINTING() {
 
 
 
+  useEffect(() => {
+    getResultSettings(setResultSettings, setLoader);
+  }, [])
+
+
+
+
   return (
     <div className='result_page'>
       <div className='result'>
         <div>
-        <CompanyHeaders billingid={billingid} />
+          {resultsettings?.letterHeading == 1 && <CompanyHeaders billingid={billingid} />}
         <PersonalInformation patientid={patientid} billingid={billingid} />
-        <SamplingInformationResult billingid={billingid} testid={testid} />
+          {resultsettings?.samplingInformation == 1 && <SamplingInformationResult billingid={billingid} testid={testid} />}
         <section>
           <UseCustomResultTemplating testid={testid} test={test} billingid={billingid} patientid={patientid} />
           <UseResultCommentSingle billingid={billingid} testid={testid} />
@@ -53,7 +61,7 @@ export default function RESULT_FOR_PRINTING() {
         <div>
          <UseResultEntryScientist testid={testid} billingid={billingid} />
           <UseDisclaimer patientid={patientid} />
-          <CompanyFooter details={headers} />
+          <VersionFooter/>
         </div>
       </div>
       <div>

@@ -3,6 +3,7 @@ import '../styles/Frontpageside.css';
 import '../styles/table.css';
 import '../node_modules/react-toastify/dist/ReactToastify.min.css';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import '../styles/result.css';
 import { AuthentificationProvider } from '../components/Auth/useAuthentification';
 import MAIN_LAYOUT from '../components/Headers/Layout';
 
