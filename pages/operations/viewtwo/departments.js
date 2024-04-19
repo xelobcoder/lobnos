@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useState } from "react";
 import AuthContext from "../../../components/Auth/useAuthentification";
 import UsePaginationTableDisplay from "../../../components/accessories/usePaginationTableDisplay";
-import { customFetch, formatTest, getDepartment, handleChangeWithState } from "../../../components/Auth/customFetch";
+import { customFetch, formatTest, getDepartment, handleChangeWithState, printResultNavigator } from "../../../components/Auth/customFetch";
 import { useSearchParams } from "next/navigation";
 import LaboratoryLayout from "../../../components/Layout/LaboratoryLayout";
 import Dropdown from '@mui/joy/Dropdown';
@@ -64,6 +64,17 @@ export default function ResultEntryDepartmentViewTwo() {
     }
 
 
+    const openSingleResult = (ev, row) => {
+        const { billingid, name, id } = row;
+        printResultNavigator(null, billingid, { ...row, testid: id, testname: name }, true);
+    }
+
+    const openMultipleResult = (ev, row) => {
+        const { billingid, name, id ,patientid} = row;
+        window.open(`/registration/result/labReportMultiple?billingid=${billingid}&&testid=${id}&&test=${formatTest(name)}&&patientid=${patientid}`)
+    }
+
+
     const columns = [
         {
             Header: 'Client name', accessor: 'fullname'
@@ -123,7 +134,10 @@ export default function ResultEntryDepartmentViewTwo() {
                         <Menu>
                             <MenuItem className="text-primary" onClick={(ev) => { gotoResultEntry(row.original) }}> Result Entry</MenuItem>
                             <MenuItem className="text-primary" onClick={(ev) => { gotoResultEntryAll(billingid, patientid) }}>Bulk result entry</MenuItem>
-                            {row.original.ready == "true" && <MenuItem className="text-primary">preview</MenuItem>}
+                            {/* {row.original.ready == "true" && <MenuItem className="text-primary">preview</MenuItem>
+                            } */}
+                            <MenuItem onClick={(ev) => { openSingleResult(ev, row.original) }} className="text-primary" >print single</MenuItem>
+                            <MenuItem onClick={(ev) => { openMultipleResult(ev, row.original) }} className="text-primary" >Print Bulk</MenuItem>
                         </Menu>
                     </Dropdown>
                 )
