@@ -1,5 +1,4 @@
 import'../styles/globals.css';
-import '../styles/Frontpageside.css';
 import '../styles/table.css';
 import '../node_modules/react-toastify/dist/ReactToastify.min.css';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';

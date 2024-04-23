@@ -1,7 +1,16 @@
 import AuthenticationLayout from "../../components/Layout/AuthenticationLayout";
-
+import TableDisplay from '../../components/accessories/TableDisplay';
+import { customFetch } from '../../components/Auth/customFetch';
+import { useEffect } from "react";
 
 export default function ApplicationLoginHistory() {
+
+    useEffect(() => {
+        customFetch("users/logins/history")
+            .then((data) => { console.log(data) })
+            .catch((err) => { console.log(err) })
+    }, [])
+
   return (
     <AuthenticationLayout>
       <div className='mt-2'>

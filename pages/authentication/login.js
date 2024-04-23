@@ -1,60 +1,70 @@
-import React from 'react';
+import { useRef, useEffect } from 'react';
 import { useState, useContext } from 'react';
-import { useRouter } from 'next/router';
 import AuthContext from '../../components/Auth/useAuthentification';
-import { validateFormData } from '../../components/Auth/customFetch';
 
 
 
 export default function LoginCredentials() {
   const { updateAuthentication } = useContext(AuthContext);
-  const navigate = useRouter();
+  const loginRef = useRef();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState({ message: '', status: '' });
+
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const responseHandler = function (data) {
-      const { status, message, statusCode, user, token } = data;
-      if (statusCode == 200 && status == 'success') {
-        setMessage({ message, status })
-        if (token) {
-          cookieStore.set({
-            name: 'X-AUTH-PRIME-LAB-SYSTEMS',
-            value: token,
-            path: '/',
-            domain: process.env.DOMAIN,
-            secure: true,
-            sameSite: 'strict',
-            expires: new Date(Date.now() + 60 * 60 * 1000),
-          });
-        }
-        if (user.hasOwnProperty('permissions')) {
-          let permissions = user.permissions;
+    try {
+      e.preventDefault();
+      const authenticateUser = await fetch(`/api/login`, {
+        headers: {
+          'content-type': 'application/json',
+        },
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      });
+
+      const response = await authenticateUser.json();
+      const { status, data } = response;
+      if (status == true) {
+        updateAuthentication(data);
+        if (data.hasOwnProperty('permissions')) {
+          let permissions = data.permissions;
           if (permissions && typeof permissions === 'object') {
-            permissions = JSON.parse(user?.permissions);
+            permissions = JSON.parse(data?.permissions);
           }
-          const { username, role, email, employeeid, branchid,branch } = user;
-          updateAuthentication({ username, role, email, permissions, employeeid, branchid,branch });
-        }
+          updateAuthentication({ ...data, permissions });
         if (window.history.length > 0) {
-          navigate.back();
+          window.history.back();
         } else {
-          navigate.push('/');
+          window.location.href = '/';
+        }
         }
       } else {
-        setMessage({ message, status })
+        setMessage(response?.message);
       }
+    } catch (err) {
+      console.log(err);
     }
-    await validateFormData({ email, password }, true, [], 'authenticate', responseHandler)
   }
+
+
+  useEffect(() => {
+    if (loginRef.current) {
+      const isUserLoggedIn = async function () {
+        const verify = await fetch('/api/isauthenticated');
+        const response = await verify.json();
+        if (response.status == "loggedIn") window.location.href = '/';
+      }
+      isUserLoggedIn();
+    }
+  }, [])
 
 
 
 
   return (
     <>
-      <div id='loginWrapper' >
+      <div id='loginWrapper' ref={loginRef} >
         <div className='d-flex justify-content-center' >
           <div className="card br-5 mt-5" style={{ width: '500px' }}>
             <div className="card-header">Please login here</div>

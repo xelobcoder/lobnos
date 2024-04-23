@@ -99,7 +99,7 @@ export default function ResultEntryDepartmentViewTwo() {
         },
         {
             Header: 'clinician', accessor: 'clinician', Cell: function ({ value, row }) {
-                const { clinicianName, organization } = row.original;
+                const { clinicianName } = row.original;
                 return (
                     <div>
                         <span> {value == 0 ? "Self" : clinicianName}</span>
@@ -109,7 +109,7 @@ export default function ResultEntryDepartmentViewTwo() {
         },
         {
             Header: 'organization', accessor: 'organization', Cell: function ({ value, row }) {
-                const { clinicianName, organization } = row.original;
+                const { organization } = row.original;
                 return (
                     <div>
                         <span>
