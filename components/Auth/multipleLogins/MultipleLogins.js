@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { customFetch } from "../customFetch";
 import Loader from '../../../components/accessories/Loader';
 
-export default function MultipleUserLogin({ email, gotToPrevious }) {
+export default function MultipleUserLogin({ email}) {
      const [isloading, setLoading] = useState(true);
      const [data, setData] = useState([]);
 
@@ -49,7 +49,7 @@ export default function MultipleUserLogin({ email, gotToPrevious }) {
                               )
                          })}
                          <div className='mt-3 d-flex justify-content-end mb-2'>
-                              <button type="button" onClick={(ev) => { gotToPrevious() }} className='btn btn-secondary'>continue with previous session</button>
+                              <button type="button"  className='btn btn-secondary'>continue with previous session</button>
                               <button onClick={(ev) => { handleDecision(2) }} className='btn btn-primary mx-2'>login and close previous session</button>
                          </div>
                     </div>
