@@ -29,8 +29,8 @@ export default function UseResultCommentSingle({ testid, billingid ,multiple = f
   }
 
   return (
-    <section>
-     {!multiple &&  <h5>Comments</h5>}
+    <section className="mt-2">
+     {/* {!multiple &&  <h5>Comments</h5>} */}
       {renderingView()}
     </section>
   )

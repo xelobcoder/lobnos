@@ -28,14 +28,14 @@ export default function PersonalInformation({ patientid,billingid}) {
       return (
         <div>
           <h6 className="result-section-header fw-bold mt-2 mb-1">Personal Information</h6>
-          <div className="grid-50">
+          <div className="grid-50 text-uppercase">
             <div className="left">
-              <div className="result-sampling-details">
-                <div className="left">patientid: </div>
+              <div className="result-sampling-details ">
+                <div className="left">patient id: </div>
                 <div className="right">{patientid}</div>
               </div>
               <div className="result-sampling-details">
-                <div className="left">fullname: </div>
+                <div className="left">full name: </div>
                 <div className="right">{firstname}{" "}{middlename} {" "}{lastname}</div>
               </div>
               <div className="result-sampling-details">
@@ -45,7 +45,7 @@ export default function PersonalInformation({ patientid,billingid}) {
             </div>
             <div className="right">
               <div className="result-sampling-details">
-                <div className="left">billingid: </div>
+                <div className="left">billing id: </div>
                 <div className="right">{billingid}</div>
               </div>
               <div className="result-sampling-details">
@@ -53,7 +53,7 @@ export default function PersonalInformation({ patientid,billingid}) {
                 <div className="right">{age} {ageType}</div>
               </div>
               <div className="result-sampling-details">
-                <div className="left">refering clinician: </div>
+                <div className="left">referer: </div>
                 <div className="right">{clinician}</div>
               </div>
             </div>

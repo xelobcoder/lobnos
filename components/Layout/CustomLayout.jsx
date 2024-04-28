@@ -1,12 +1,13 @@
 import { useContext, useState } from "react"
 import Link from "next/link"
-import { AppBlocking, AppRegistration, ArrowDownward, Logout, Menu } from "@mui/icons-material"
+import { AppRegistration, Logout, Menu } from "@mui/icons-material"
 import AuthContext from "../Auth/useAuthentification"
 import SubLinksSideBar from "./LinksDisplay"
+import { handleLogout } from "../Auth/customFetch"
 
 export default function AppCustomLayout({ children, sideLinks }) {
   const { auth } = useContext(AuthContext)
-  const { username, role, branch } = auth
+  const { username, role, branch, employeeid } = auth
   const [show, setShow] = useState(false)
 
   return (
@@ -28,7 +29,13 @@ export default function AppCustomLayout({ children, sideLinks }) {
             <span>{branch}</span>
             <span>{username}</span>
             <span>
-              <Logout />
+              <button
+                onClick={(ev) => {
+                  handleLogout(employeeid)
+                }}
+                className="btn btn-secondary btn-sm">
+                <Logout />
+              </button>
             </span>
           </div>
         </div>
@@ -41,7 +48,7 @@ export default function AppCustomLayout({ children, sideLinks }) {
                 <AppRegistration /> Apps
               </Link>
             </li>
-            <SubLinksSideBar sideLinks={sideLinks} showaxis={true}/>
+            <SubLinksSideBar sideLinks={sideLinks} showaxis={true} />
           </ul>
         </div>
         <main className={`prime-main ${show ? "prime-with-side" : "prime-full"}`}>{children}</main>

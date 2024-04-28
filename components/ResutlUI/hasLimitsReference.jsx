@@ -16,38 +16,40 @@ export default function HasLimitReference({ item }) {
               </span>
             )
           })
+      } else {
+        return plain
       }
     } else {
       return (
         <span>
-          {item.upperlimit} {" - "} {item.lowerlimit}
+          {item.lowerlimit} {" ~ "} {item.upperlimit}
         </span>
       )
-    } 
+    }
   }
 
   const flags = () => {
     if (haslimits) {
-      const { upperlimit,value, lowerlimit } = item;
-      const upper = parseFloat(upperlimit);
-      const lower = parseFloat(lowerlimit);
-      const current = parseFloat(value);
-      if (upper > current) {
+      const { upperlimit, value, lowerlimit } = item
+      const upper = parseFloat(upperlimit)
+      const lower = parseFloat(lowerlimit)
+      const current = parseFloat(value)
+      if (current > upper) {
         return "H"
       } else if (current < lower) {
-        return 'L'
+        return "L"
       } else {
-        return "N"
+        return ""
       }
     }
   }
 
   return (
-    <tr>
-      <td className="text-capitalize">{item.name}</td>
-      <td>{item.value}</td>
-      <td>{item.units}</td>
-      <td>{reference()}</td>
+    <tr className="p-0">
+      <td colSpan={2} className="p-1 text-capitalize fw-bold">{item.name}</td>
+      <td className="p-1">{item.value}</td>
+      <td className="p-1">{item.units}</td>
+      <td className="p-1">{reference()}</td>
       {haslimits && <td>{flags()}</td>}
     </tr>
   )

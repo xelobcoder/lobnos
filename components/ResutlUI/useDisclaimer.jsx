@@ -2,13 +2,19 @@ import Barcode from "react-barcode"
 export default function UseDisclaimer({ patientid }) {
   return (
     <>
-      <div className="d-flex justify-content-end">
-        <Barcode  displayValue={false} fontSize={13} height={40} value={patientid} />
+      <div className="d-flex justify-content-between align-content-center w-100">
+        <div className="text-capitalize fw-bold mt-3">
+          <span>SIGNATURE:.............................</span>
+        </div>
+        <span>
+          <Barcode displayValue={false} fontSize={13} height={40} value={patientid} />
+        </span>
       </div>
-      <div style={{ fontFamily: "monospace", fontSize:'13px' }}>
+      <div style={{ fontFamily: "monospace", fontSize: "13px" }}>
         PLEASE NOTE:
         <br />
-        This modality has its own limitations and the impression should be considered only as a professional opinion and correlated with clinical and other relevant patient data.
+        This modality has its own limitations and the impression should be considered only as a professional opinion and correlated with
+        clinical and other relevant patient data.
       </div>
     </>
   )

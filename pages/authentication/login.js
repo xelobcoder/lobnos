@@ -30,7 +30,7 @@ export default function LoginCredentials() {
       const { status, token, message, statusCode } = response
       if (status == 'success') {
         Cookies.set('X-AUTH-PRIME-LAB-SYSTEM', token)
-        window.location.href ='/'
+        window.location.href = '/'
         // if (window.history.length > 0 ) {
         //   window.history.back()
         // } else {
@@ -52,7 +52,7 @@ export default function LoginCredentials() {
 
   return (
     <>
-      <div>
+      <div id='loginWrapper'>
         <div className="d-flex justify-content-center">
           <div className="card br-5 mt-5" style={{ width: '500px' }}>
             <div className="card-header">Please login here</div>

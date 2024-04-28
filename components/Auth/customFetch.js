@@ -651,12 +651,16 @@ export const organizationPaymentDefault = {
   momoname: "",
 }
 
-export const handleLogout = async () => {
+export const handleLogout = async function (employeeid) {
   try {
-    Cookies.remove('X-AUTH-PRIME-LAB-SYSTEM');
-    window.location.reload();
+    if (!employeeid) return;
+    const response = await customFetch(`security/user/logout?employeeid=${employeeid}`);
+    if (response?.status == true) {
+      Cookies.remove('X-AUTH-PRIME-LAB-SYSTEM');
+      window.location.href = "/authentication/login";
+    }
   } catch (err) {
-    console.log(err)
+    console.log('error connecting to server');
   }
 }
 

@@ -251,26 +251,7 @@ border-none {
   background-color: var(--secondary) !important;
 }
 
-.red-border-row {
-  border: 1px solid red;
-}
 
-
-
-.border-radius-0 {
-  border-radius: 0px;
-  margin-top: 5px;
-  -webkit-transition: 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transition: 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.login-textfield {
-  width: 100%;
-  margin-bottom: 20px;
-  border: 1px solid #00224f;
-  border-radius: 5px;
-  outline: 1px solid #00224f;
-}
 .grid-2 {
   display: -ms-grid;
   display: grid;

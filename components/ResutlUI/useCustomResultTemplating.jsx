@@ -44,15 +44,17 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
           return (
             <>
               <h5 className="text-uppercase text-center border-bottom border-top border-2 border-secondary">
+                <span className="fw-bold">
                 {test && test.includes("_") ? test.split("_").join(" ") : test}
+               </span>
               </h5>
-              <table className="table" style={{ width: "100%" }}>
-                <thead className="table-warning">
+              <table className="alpha-result-table" >
+                <thead >
                   <tr>
-                    <th scope="col">Parameter</th>
+                    <th colSpan="2">Parameter</th>
                     <th scope="col">Value</th>
                     <th scope="col">Units</th>
-                    <th scope="col">Reference Ranges</th>
+                    <th scope="col">References</th>
                     <th>Flags</th>
                   </tr>
                 </thead>
@@ -70,13 +72,13 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
               <h5 className="text-uppercase text-center border-bottom border-top border-2 border-secondary">
                 {test && test.includes("_") ? test.split("_").join(" ") : test}
               </h5>
-              <table className="table" style={{ width: "100%" }}>
-                <thead className="table-warning">
+              <table className="alpha-result-table" >
+                <thead >
                   <tr>
-                    <th>Parameter</th>
+                    <th colSpan={2}>Parameter</th>
                     <th>Value</th>
                     <th>Units</th>
-                    <th>Reference Ranges</th>
+                    <th>References</th>
                   </tr>
                 </thead>
                 <tbody>

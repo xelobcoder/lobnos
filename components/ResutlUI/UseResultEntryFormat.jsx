@@ -20,10 +20,17 @@ export default function UseResultEntryScientist({ testid, billingid }) {
     if (isloading) return <Loader />
     else {
       return (
-        <div className="grid grid-30-30-30">
-          <span className="text-capitalize"><span className="fw-bold">Entry By</span>:{data?.resultentry}</span>
-          <span className="text-capitalize"><span className="fw-bold">Validated By</span>: {data?.validatedBy}</span>
-          <span className="text-capitalize"><span className="fw-bold">Signature</span>: ................................................</span>
+        <div className="grid grid-50">
+          <span className="text-uppercase">
+            <span className="fw-bold">
+            {data.validatedBy.toString().length == 0 ? 'VALIDATED BY': 'ENTRY BY'}
+            </span>:{data?.resultentry}
+          </span>
+          {data.validatedBy.toString().length > 0 && (
+            <span className="text-uppercase">
+              <span className="fw-bold">Validated By</span>: {data?.validatedBy}
+            </span>
+          )}
         </div>
       )
     }
