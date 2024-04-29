@@ -1,4 +1,5 @@
 import Cookies from "js-cookie"
+
 /**
  * Sends an HTTP request to the specified endpoint and returns the response as JSON.
  *
@@ -169,6 +170,9 @@ export async function validateFormData(data, allrequired, requiredFields = [], e
     }
   }
 }
+
+
+
 
 export async function handleComments(e, stateVariable, target, datafunction) {
   /**
@@ -654,11 +658,12 @@ export const organizationPaymentDefault = {
 export const handleLogout = async function (employeeid) {
   try {
     if (!employeeid) return;
-    const response = await customFetch(`security/user/logout?employeeid=${employeeid}`);
-    if (response?.status == true) {
-      Cookies.remove('X-AUTH-PRIME-LAB-SYSTEM');
+     const response = await customFetch(`security/user/logout?employeeid=${employeeid}`);
+     Cookies.remove('X-AUTH-PRIME-LAB-SYSTEM');
+     if (response?.status == true) {
       window.location.href = "/authentication/login";
-    }
+     }
+     window.location.reload();
   } catch (err) {
     console.log('error connecting to server');
   }
@@ -839,7 +844,8 @@ export const defaultCreationRule = {
   hasunits: false,
   units: "",
   useplain: false,
-  plain: "",
+   plain: "",
+   ordering: ""
 }
 
 export const getSingleEditTest = (testid, setTestData, setLoading) => {

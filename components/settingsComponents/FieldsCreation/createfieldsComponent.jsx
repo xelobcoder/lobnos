@@ -10,6 +10,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
   const [data, setData] = useState([])
   const [error, setError] = useState("")
   const [field, setField] = useState(defaultCreationRule)
+  const [reorder, setReorder] = useState(true)
 
   const handleCreateField = async () => {
     setError("")
@@ -58,23 +59,18 @@ export default function CreateTestFields({ testid, testname, minimize = false })
     }
   }
 
+  const changeOrdering = (item, ev) => {
+    const { value } = ev.target
+    const { name } = item
+    const clonedData = [...data]
+    const filteredIndex = clonedData.findIndex((item, index) => item.name == name)
+    clonedData[filteredIndex]["ordering"] = value
+    setData(clonedData)
+  }
+
   const columns = [
     { Header: "name", accessor: "name" },
     { Header: "type", accessor: "type" },
-   //  {
-   //    Header: "hasoptions",
-   //    accessor: "hasoptions",
-   //    Cell: ({ value }) => {
-   //      return <div>{value === true ? "Yes" : "No"}</div>
-   //    },
-   //  },
-   //  {
-   //    Header: "haslimits",
-   //    accessor: "haslimits",
-   //    Cell: ({ value }) => {
-   //      return <div>{value === true ? "Yes" : "No"}</div>
-   //    },
-   //  },
     {
       Header: "upperlimits",
       accessor: "upperlimit",
@@ -93,20 +89,29 @@ export default function CreateTestFields({ testid, testname, minimize = false })
       Header: "actions",
       accessor: "",
       Cell: ({ value, row }) => {
+        console.log(row.original)
         return (
-          <div>
+          <div className="d-flex justify-content-between">
+            <input
+              type="number"
+              className="custom-input"
+              value={row.original?.ordering}
+              onChange={(ev) => {
+                changeOrdering(row.original, ev)
+              }}
+            />
             <button
               onClick={(ev) => {
                 editField(row.original)
               }}
-              className="btn btn-info btn-sm">
-              Edit field
+              className="btn btn-info btn-sm mx-2">
+              Edit
             </button>
             <button
               onClick={(ev) => {
                 removeField(row.original)
               }}
-              className="btn btn-danger btn-sm mx-2">
+              className="btn btn-danger btn-sm">
               Remove
             </button>
           </div>
@@ -250,7 +255,13 @@ export default function CreateTestFields({ testid, testname, minimize = false })
 
   const updateFieldsRules = async () => {
     if (data.length === 0) return
-    const response = await customPost("testpanel/list/customtestrule", "PUT", { testid, data })
+    for (let i = 0; i < data.length; i++) {
+      if (isNaN(data[i]["ordering"])) {
+        data[i]["ordering"] = i
+      }
+    }
+    let orderedData = data.sort((a, b, i) => a.ordering - b.ordering)
+    const response = await customPost("testpanel/list/customtestrule", "PUT", { testid, data: orderedData })
     if (response.status === true) {
       toast.success("test fields updated successfully", { autoClose: 500 })
     } else {
@@ -262,89 +273,93 @@ export default function CreateTestFields({ testid, testname, minimize = false })
     if (isloading) return <Loader />
     else {
       return (
-        <div className={minimize ? 'minimize-creator' : ''}>
+        <div>
           <section className="mx-2 bg-white border border-secondary-subtle p-2">
             <h5>Parameter / field Creation</h5>
             <hr />
             <div>
               <div className={error.length > 0 ? "alert alert-danger" : ""}>{error}</div>
-              <form>
-                <div className="form-row">
-                  <label>Field name</label>
-                  <input
-                    value={field?.name}
-                    placeholder="name"
-                    onChange={(ev) => {
-                      handleChangeWithState(ev, "name", setField, field)
-                    }}
-                    className="custom-input"
-                    type="text"
-                  />
-                </div>
-                <div className="form-row">
-                  <label>data type</label>
-                  <select
-                    value={field?.type}
-                    placeholder=""
-                    onChange={(ev) => {
-                      handleChangeWithState(ev, "type", setField, field)
-                    }}
-                    className="custom-select"
-                    type="text">
-                    <option value="">select data type of field</option>
-                    <option value="number">number</option>
-                    <option value="text">text</option>
-                  </select>
+              <form className="grid grid-50">
+                <div>
+                  <div className="form-row">
+                    <label>Field name</label>
+                    <input
+                      value={field?.name}
+                      placeholder="name"
+                      onChange={(ev) => {
+                        handleChangeWithState(ev, "name", setField, field)
+                      }}
+                      className="custom-input"
+                      type="text"
+                    />
+                  </div>
+                  <div className="form-row">
+                    <label>data type</label>
+                    <select
+                      value={field?.type}
+                      placeholder=""
+                      onChange={(ev) => {
+                        handleChangeWithState(ev, "type", setField, field)
+                      }}
+                      className="custom-select"
+                      type="text">
+                      <option value="">select data type of field</option>
+                      <option value="number">number</option>
+                      <option value="text">text</option>
+                    </select>
+                  </div>
                 </div>
                 <div>
-                  <label>has options</label>
-                  <Form.Switch
-                    onChange={(ev) => {
-                      const value = ev.target.checked
-                      if (value === true) {
-                        setField({ ...field, hasoptions: value, haslimits: false })
-                      } else {
-                        setField({ ...field, hasoptions: value })
-                      }
-                    }}
-                    type="switch"
-                    style={{ fontSize: "25px" }}
-                    checked={field.options}
-                  />
-                </div>
-                <div>
-                  <label>has units</label>
-                  <Form.Switch
-                    onChange={(ev) => {
-                      const value = ev.target.checked
-                      setField({ ...field, hasunits: value })
-                    }}
-                    type="switch"
-                    style={{ fontSize: "25px" }}
-                    checked={field.hasunits}
-                  />
-                </div>
-                <div>
-                  <label>has limits</label>
-                  <Form.Switch
-                    onChange={(ev) => {
-                      setField({ ...field, haslimits: ev.target.checked })
-                    }}
-                    type="switch"
-                    style={{ fontSize: "25px" }}
-                    checked={field.haslimits}
-                  />
-                </div>
-                <div>
-                  <label>use Plain</label>
-                  <Form.Switch
-                    onChange={(ev) => {
-                      setField({ ...field, useplain: ev.target.checked })
-                    }}
-                    type="switch"
-                    style={{ fontSize: "25px" }}
-                    checked={field.useplain}
-                  />
+                  <div className="d-flex justify-content-between">
+                    <label>has options</label>
+                    <Form.Switch
+                      onChange={(ev) => {
+                        const value = ev.target.checked
+                        if (value === true) {
+                          setField({ ...field, hasoptions: value, haslimits: false })
+                        } else {
+                          setField({ ...field, hasoptions: value })
+                        }
+                      }}
+                      type="switch"
+                      style={{ fontSize: "25px" }}
+                      checked={field.options}
+                    />
+                  </div>
+                  <div className="d-flex justify-content-between">
+                    <label>has units</label>
+                    <Form.Switch
+                      onChange={(ev) => {
+                        const value = ev.target.checked
+                        setField({ ...field, hasunits: value })
+                      }}
+                      type="switch"
+                      style={{ fontSize: "25px" }}
+                      checked={field.hasunits}
+                    />
+                  </div>
+                  <div className="d-flex justify-content-between">
+                    <label>has limits</label>
+                    <Form.Switch
+                      onChange={(ev) => {
+                        setField({ ...field, haslimits: ev.target.checked })
+                      }}
+                      type="switch"
+                      style={{ fontSize: "25px" }}
+                      checked={field.haslimits}
+                    />
+                  </div>
+                  <div className="d-flex justify-content-between">
+                    <label>use Plain</label>
+                    <Form.Switch
+                      onChange={(ev) => {
+                        setField({ ...field, useplain: ev.target.checked })
+                      }}
+                      type="switch"
+                      style={{ fontSize: "25px" }}
+                      checked={field.useplain}
+                    />
+                  </div>
                 </div>
               </form>
               {createLimitFields()}
@@ -396,9 +411,72 @@ export default function CreateTestFields({ testid, testname, minimize = false })
             </div>
           </section>
           <section className="mx-2">
-            {data.length > 0 && (
+            {data.length == 0 ? (
+              <h5 className="mt-4">No Fields created</h5>
+            ) : (
               <div>
-                <TableDisplay column={columns} styling={'table bhead'} data={data} />
+                <table className="ttable table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>type</th>
+                      <th>Upper limits</th>
+                      <th>Lower Limits</th>
+                      <th className="d-flex justify-content-between align-items-center">
+                        <span>Actions</span>
+                        <span>
+                          <button
+                            onClick={(ev) => {
+                              setReorder(!reorder)
+                            }}
+                            className="btn btn-secondary btn-sm">
+                            Reorder Fields
+                          </button>
+                        </span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.map((item, index) => {
+                      return (
+                        <tr key={index}>
+                          <td>{item?.name}</td>
+                          <td>{item?.type}</td>
+                          <td>{item?.upperlimit}</td>
+                          <td>{item?.lowerlimit}</td>
+                          <td>
+                            <div className="d-flex justify-content-between">
+                              <input
+                                type="number"
+                                className="custom-input"
+                                value={item?.ordering}
+                                disabled={reorder}
+                                onChange={(ev) => {
+                                  changeOrdering(item, ev)
+                                }}
+                              />
+                              <button
+                                onClick={(ev) => {
+                                  editField(item)
+                                }}
+                                className="btn btn-info btn-sm mx-2">
+                                Edit
+                              </button>
+                              <button
+                                onClick={(ev) => {
+                                  removeField(item)
+                                }}
+                                className="btn btn-danger btn-sm">
+                                Remove
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+                {/* <TableDisplay initpageSize={30} column={columns} data={data} /> */}
                 <div>
                   <button
                     onClick={(ev) => {

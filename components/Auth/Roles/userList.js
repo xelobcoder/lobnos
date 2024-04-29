@@ -2,6 +2,9 @@ import TableDisplay from '../../../components/accessories/TableDisplay';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Pagination from '../../accessories/pagination';
+
+
+
 export default function UserList({ users, load, handleDelete, page, updatePage, showfiltering, activateUser, updateRefresh }) {
   const navigateTo = useRouter();
 
@@ -45,7 +48,8 @@ export default function UserList({ users, load, handleDelete, page, updatePage, 
               href={`/authentication/permissions?employeeid=${employeeid}&&username=${username}&&role=${role}`}>
               update permissions
             </Link>
-            <div className='bg-light btn-sm mt-1'>Apply default permissions</div>
+            <br />
+            <Link href={`/authentication/loginhistory?userid=${employeeid}`} className='border-bottom border-2 border-dark'>view login history</Link >
           </div>
         );
       },
@@ -64,7 +68,7 @@ export default function UserList({ users, load, handleDelete, page, updatePage, 
               edit
             </button >
             <button
-              className='btn btn-sm btn-danger text-capitalize mx-2 '
+              className='btn btn-sm btn-danger text-capitalize mx-1'
               onClick={() => handleDelete(employeeid)}
             >
               delete
