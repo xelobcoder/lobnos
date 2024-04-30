@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { customFetch, customPost, defaultCreationRule, getSingleEditTest, handleChangeWithState } from "../../Auth/customFetch"
 import { Form } from "react-bootstrap"
-import TableDisplay from "../../accessories/TableDisplay"
 import { ToastContainer, toast } from "react-toastify"
 import Loader from "../../accessories/Loader"
 export default function CreateTestFields({ testid, testname, minimize = false }) {
@@ -68,57 +67,6 @@ export default function CreateTestFields({ testid, testname, minimize = false })
     setData(clonedData)
   }
 
-  const columns = [
-    { Header: "name", accessor: "name" },
-    { Header: "type", accessor: "type" },
-    {
-      Header: "upperlimits",
-      accessor: "upperlimit",
-      Cell: ({ value, row }) => {
-        return <div>{renderLimitsValue(row.original, "upperlimit")}</div>
-      },
-    },
-    {
-      Header: "lowerlimits",
-      accessor: "lowerlimit",
-      Cell: ({ value, row }) => {
-        return <div>{renderLimitsValue(row.original, "lowerlimit")}</div>
-      },
-    },
-    {
-      Header: "actions",
-      accessor: "",
-      Cell: ({ value, row }) => {
-        console.log(row.original)
-        return (
-          <div className="d-flex justify-content-between">
-            <input
-              type="number"
-              className="custom-input"
-              value={row.original?.ordering}
-              onChange={(ev) => {
-                changeOrdering(row.original, ev)
-              }}
-            />
-            <button
-              onClick={(ev) => {
-                editField(row.original)
-              }}
-              className="btn btn-info btn-sm mx-2">
-              Edit
-            </button>
-            <button
-              onClick={(ev) => {
-                removeField(row.original)
-              }}
-              className="btn btn-danger btn-sm">
-              Remove
-            </button>
-          </div>
-        )
-      },
-    },
-  ]
 
   const getSinglePlusRules = useCallback(() => {
     if (testid) {
@@ -476,7 +424,6 @@ export default function CreateTestFields({ testid, testname, minimize = false })
                     })}
                   </tbody>
                 </table>
-                {/* <TableDisplay initpageSize={30} column={columns} data={data} /> */}
                 <div>
                   <button
                     onClick={(ev) => {

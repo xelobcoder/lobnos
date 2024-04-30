@@ -37,7 +37,7 @@ export default function ApplicationLoginHistory() {
     { Header: "logoutTime", accessor: "logoutTime", Cell: ({ value }) => { return formatDate(value) } },
     {
       Header: 'status', accessor: '', Cell: ({ row }) => {
-        if (row.original.logoutTime > Date.now()) return <span className="bg-success br-5 text-white p-1">loggedIn
+        if (row.original.loggedout == 0) return <span className="bg-success br-5 text-white p-1">loggedIn
         </span>
         else return <span className="bg-danger br-5 text-white p-1">LoggedOut</span>;
       }

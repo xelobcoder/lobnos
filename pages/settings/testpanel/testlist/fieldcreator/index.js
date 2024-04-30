@@ -16,7 +16,7 @@ export default function MultipleTestFieldCreator() {
                .then((response) => {
                     const { statusCode, status, data } = response;
                     if (Array.isArray(data)) {
-                         setTestList(data)
+                         setTestList(data);
                          setTemp(data);
                     }
                     setLoading(false)
@@ -49,7 +49,9 @@ export default function MultipleTestFieldCreator() {
                else {
                     return (
                          <ul className="list-group mt-2 pointer">
-                              {testlist.map((item, index) => <li className={`list-group-item ${active == item?.id ? 'bg-primary text-white' : ''}`} onClick={(ev) => { setActive(item?.id) }} key={index}>{item.name}</li>)}
+                              {testlist.map((item, index) => <li className={`list-group-item ${active == item?.id ? 'bg-primary text-white' : ''}`} onClick={(ev) => { 
+                                   setActive(item?.id)
+                               }} key={index}>{item.name}</li>)}
                          </ul>
                     )
                }

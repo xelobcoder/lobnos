@@ -27,9 +27,9 @@ export default function LoginCredentials() {
         password,
         browserInformation,
       })
-      const { status, token, message, statusCode } = response
+      const { status, token, message, statusCode, sessionExpiryTime } = response
       if (status == 'success') {
-        Cookies.set('X-AUTH-PRIME-LAB-SYSTEM', token)
+        Cookies.set('X-AUTH-PRIME-LAB-SYSTEM', token, { expires: new Date(sessionExpiryTime) })
         window.location.href = '/'
         // if (window.history.length > 0 ) {
         //   window.history.back()
@@ -39,7 +39,6 @@ export default function LoginCredentials() {
       } else if (status == 'error') {
         setMessage(response?.message)
       } else if (status == 'multipleLogins') {
-        console.log(response)
         navigate.push(`/authentication/multiplelogins?email=${email}`)
       } else {
         console.log(status)

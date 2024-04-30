@@ -2,16 +2,14 @@ import { useEffect, useState } from "react"
 import { customFetch } from "../customFetch";
 import Loader from '../../../components/accessories/Loader';
 
-export default function MultipleUserLogin({ email}) {
+export default function MultipleUserLogin({ email }) {
      const [isloading, setLoading] = useState(true);
      const [data, setData] = useState([]);
 
      const handleDecision = async (value) => {
-          if (value == 2) {
-               const response = await customFetch(`security/getloggedsessions/update?keyupdate=${parseInt(value)}&&email=${email}`);
-               if (response?.status == true) {
-                    window.location.href = '/authentication/login';
-               }
+          if (value == 2 && email) {
+               await customFetch(`security/getloggedsessions/update?keyupdate=${parseInt(value)}&&email=${email}`);
+               window.location.href = '/authentication/login';
           }
      };
 
@@ -49,7 +47,7 @@ export default function MultipleUserLogin({ email}) {
                               )
                          })}
                          <div className='mt-3 d-flex justify-content-end mb-2'>
-                              <button type="button"  className='btn btn-secondary'>continue with previous session</button>
+                              <button type="button" className='btn btn-secondary'>continue with previous session</button>
                               <button onClick={(ev) => { handleDecision(2) }} className='btn btn-primary mx-2'>login and close previous session</button>
                          </div>
                     </div>
