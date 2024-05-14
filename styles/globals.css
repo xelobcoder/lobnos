@@ -24,7 +24,7 @@
 body {
   font-size: 14px  !important;
   font-weight: 400;
-  background-color: var(--bg-color) !important;
+  /* background-color: var(--bg-color) !important; */
   color: #6d737d;
   line-height: 2rem;
   overflow-x: hidden;
