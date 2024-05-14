@@ -1,16 +1,17 @@
 import AuthenticationLayout from "../../components/Layout/AuthenticationLayout";
 import TableDisplay from '../../components/accessories/TableDisplay';
 import { customFetch, updatePagination } from '../../components/Auth/customFetch';
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Pagination from '../../components/accessories/pagination';
 import Loader from "../../components/accessories/Loader";
+import AuthContext from "../../components/Auth/useAuthentification";
 
 export default function ApplicationLoginHistory() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ page: 1, count: 10 });
   const [load, setLoad] = useState(false);
-
+  const { auth } = useContext(AuthContext);
   useEffect(() => {
     setLoading(true);
     customFetch(`security/users/getlogin/history?page=${filters.page}&&count=${filters.count}`)
@@ -46,6 +47,12 @@ export default function ApplicationLoginHistory() {
       Header: 'Device', accessor: "", Cell: ({ row }) => {
         const { browserInformation } = row.original;
         return <span>{JSON.parse(browserInformation)?.userAgent}</span>
+      }
+    }, {
+      Header: 'action', accessor: '', Cell: () => {
+        return <button
+          disabled={auth?.role != "admin" && auth?.role != "manager"}
+          className="btn btn-danger btn-sm">sign out user</button>
       }
     }
   ]
