@@ -165,8 +165,22 @@ export default function ResultEntryDepartmentViewTwo() {
 
     return (
         <LaboratoryLayout>
-            <section className="d-flex mx-2">
-                <div>
+            {/* <div className="card br-0">
+                <div className="card-header bg-secondary text-white d-flex justify-content-between">
+                    <h4>Advanced Fitering </h4>
+                   <button className="btn btn-secondary"> <ArrowDownward/></button>
+                </div>
+                <div className="card-body">
+                 
+                </div>
+            </div> */}
+            <div className="">
+                <div className="mx-2 text-white p-2 bg-secondary ">
+                    <h6>Advanced Filtering</h6>
+                </div>
+                <section className=" mx-2 d-flex justify-content-between">
+                    <div className="col-4">
+                        <label>select department</label>
                     {/* <label className="text-capitalize">department</label> */}
                     <select value={filter.departmentid} onClick={(ev) => { department.length === 0 && getDepartment(setDepartment); }} className="custom-select br-0" onChange={(ev) => handleChangeWithState(ev, 'departmentid', setFilter, filter)}>
                         <option>select a department</option>
@@ -174,16 +188,16 @@ export default function ResultEntryDepartmentViewTwo() {
                         {department.map((item, index) => <option value={item.id} key={index}>{item.department}</option>)}
                     </select>
                 </div>
-                <div className="mx-2">
-                    {/* <label className="text-capitalize">Cases</label> */}
+                    <div className="mx-1 col-3">
+                        <label className="text-capitalize">Cases type</label>
                     <select value={filter.status} className="custom-select br-0" onChange={(ev) => { handleChangeWithState(ev, 'status', setFilter, filter) }}>
                         <option value='all'>all cases selected</option>
                         <option value='pending'>pending cases</option>
                         <option value='completed'>completed cases</option>
                     </select>
                 </div>
-                <div className="mx-2">
-                    {/* <label className="text-capitalize">test</label> */}
+                    <div className="col-4">
+                        <label className="text-capitalize">test list here</label>
                     <select value={filter.test} onChange={(ev) => { handleChangeWithState(ev, 'test', setFilter, filter) }}
                         onClick={(ev) => { getAllTest() }} className="custom-select br-0">
                         <option value='all'>Select a test to filter</option>
@@ -191,27 +205,33 @@ export default function ResultEntryDepartmentViewTwo() {
                         }
                     </select>
                 </div>
-                <div className="mx-2">
-                    {/* <label className="text-capitalize">from</label> */}
-                    <input type="date" className="custom-input br-0" />
-                </div>
-                <div className="mx-2">
-                    {/* <label className="text-capitalize">To</label> */}
-                    <input type="date" className="custom-input br-0" />
-                </div>
-                <div className="mx-2">
-                    {/* <label className="text-capitalize">filter</label> */}
-                    {/* <br /> */}
+                </section>
+                <section>
                     <div className="d-flex justify-content-between">
+                        <div className="mx-2 col-4">
+                            <label className="text-capitalize">from</label>
+                            <input type="date" className="custom-input br-0" />
+                        </div>
+                        <div className="mx-1 col-3">
+                            <label className="text-capitalize">To</label>
+                            <input type="date" className="custom-input br-0" />
+                        </div>
+                        <div className="col-4">
+                            <label className="text-capitalize">filter</label>
+                    {/* <br /> */}
+                            <div className="d-flex">
                         <button onClick={handleFilter} className="btn btn-primary">
-                          filter 
+                                    filter data
                         </button>
                         <button onClick={clearFilters} className="btn btn-sm btn-outline-secondary mx-2" >
                             clear fields 
                         </button>
                     </div>
                 </div>
+                    </div>
             </section>
+            </div>
+
             {/* end of advanced filter */}
             <section className="mx-2">
                 <h4> Result Entry Records</h4>

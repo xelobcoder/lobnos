@@ -1,13 +1,13 @@
 {
     "workbench.editor.pinnedTabSizing":"normal",
     "editor.tabSize": 5,
-    "editor.fontFamily": "'Courier',monospace",
+    "editor.fontFamily": "'Cascadia Code', 'Fira Code'",
     "editor.tabCompletion": "on",
     "editor.wordWrap": "on",
     "editor.wordWrapColumn": 140,
-    "editor.fontWeight": "500",
+    "editor.fontWeight": "400",
     "editor.formatOnSave": true,
-    "editor.fontSize": 17,
+    "editor.fontSize": 16,
     "editor.bracketPairColorization.enabled": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
 }

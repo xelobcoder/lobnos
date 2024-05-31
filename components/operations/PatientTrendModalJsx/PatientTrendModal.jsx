@@ -78,30 +78,6 @@ export default function PatientTrendModalJsx({ data }) {
         </div>
       </div>
       <section>
-        <>
-          {/* {dataSet.parameters.length > 0 && dataSet.trend.length > 0 ? (
-              <table className="d-flex billing-cart-table x-trend br-5" style={{ border: "0px !important" }}>
-                <tbody>
-                  <tr className="d-flex flex-column">
-                    <td>parameters</td>
-                    {dataSet.parameters.map((item, index) => {
-                      return <td key={index}>{item}</td>
-                    })}
-                  </tr>
-                </tbody>
-                {dataSet.trend.length > 0 ? (
-                  dataSet.trend.map((item, index) => {
-                    return <TrendSingleList parameters={dataSet.parameters} key={index} dataSet={item} />
-                  })
-                ) : (
-                  <h3 className="text-center">No Data Found</h3>
-                )}
-              </table>
-            ) : (
-              <h3 className="text-center">No Data Found</h3>
-            )} */}
-        </>
-
         {renderingChart()}
       </section>
     </div>

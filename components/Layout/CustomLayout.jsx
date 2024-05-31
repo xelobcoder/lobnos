@@ -48,10 +48,10 @@ export default function AppCustomLayout({ children, sideLinks }) {
                 <AppRegistration /> Apps
               </Link>
             </li>
-            <SubLinksSideBar sideLinks={sideLinks} showaxis={true} />
+            <SubLinksSideBar sideLinks={sideLinks}  />
           </ul>
         </div>
-        <main className={`prime-main ${show ? "prime-with-side" : "prime-full"}`}>{children}</main>
+        <main className={`prime-main ${show.toString() ? "prime-with-side" : "prime-full"}`}>{children}</main>
       </div>
     </div>
   )

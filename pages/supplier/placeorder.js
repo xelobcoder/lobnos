@@ -98,7 +98,7 @@ export default function PlaceNewOrderIndexPage() {
       Header: 'action', accessor: '', Cell: ({ row }) => {
         const stockid = row.original.stockid;
         return <div>
-          <button onClick={(ev) => { handleEditField(row.original) }} className='btn btn-primary btn-sm p-1'>edit field</button>
+          {/* <button onClick={(ev) => { handleEditField(row.original) }} className='btn btn-primary btn-sm p-1'>edit field</button> */}
           <button onClick={(ev) => { removeCartHandler(ev, stockid) }} className='btn btn-danger btn-sm p-1 mx-1'>remove</button>
         </div>
       }
@@ -129,11 +129,10 @@ export default function PlaceNewOrderIndexPage() {
       <div className='p-2'>
           <PLACE_ORDER
             source={source}
-          cartHandler={cartHandler}
-          editdata={editing}
+            cartHandler={cartHandler}
+            editdata={editing}
             suppliers={suppliers}
-        />
-
+          />
         {cart.length != 0 && (
           <div>
             <TableDisplay data={cart || []} showpage={false} filtering={true} column={columns} />

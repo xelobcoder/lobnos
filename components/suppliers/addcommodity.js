@@ -79,7 +79,7 @@ export default function ADD_COMMODITY_MODAL(props) {
     }
   }
   return (
-    <div id='addsupplier'>
+    <div>
       <Modal
         {...props}
         size="lg"

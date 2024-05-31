@@ -1,4 +1,4 @@
-import { useState,} from 'react';
+import { useEffect, useState, } from 'react';
 import { useRouter } from 'next/navigation';
 import { handleActivation } from '../../components/Auth/registerclient';
 import { customFetch } from '../../components/Auth/customFetch';
@@ -140,6 +140,17 @@ export default function Activator() {
       }
     }
   ]
+
+
+  useEffect(() => {
+    customFetch(`activation/registered`)
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setStore(data)
+        }
+      } )
+      .catch((err) => { console.log(err) })
+  }, [])
 
 
   return (

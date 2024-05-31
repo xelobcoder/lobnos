@@ -167,7 +167,7 @@ export default function TestProfileBilling({ clientDetails }) {
           <div className='grid-50'>
             <div>
               <h6>Billing Tests</h6>
-              <table className='table'>
+              <table className='table ttable'>
             <thead>
               <tr>
                 <th>Test Name</th>

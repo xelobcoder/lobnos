@@ -143,7 +143,7 @@ export default function ReceivedOrderTable({ clearData, data, handleChange, tota
           </select>
         </div>
       </div>
-      <table className="table">
+      <table className="ttable table">
         <thead>
           <tr>
             <th>name</th>

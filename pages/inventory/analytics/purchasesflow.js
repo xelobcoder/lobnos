@@ -57,13 +57,13 @@ export default function PurchaseOrderAnalytics() {
                 <option value={20}>Last 20 records</option>
             </select>
             <div className="d-flex my-2">
-                <div className="ptoO">
+                <div className="purchases_to_order">
                   <span>Duration between P0 to GRN</span>
                 </div>
-                <div className="ptoO mx-3">
+                <div className="purchases_to_order mx-3">
                   <span>Duration in main store</span>
                 </div>
-                <div className="ptoO">
+                <div className="purchases_to_order">
                   <span>Time to consume stock</span>
                 </div>
             </div>

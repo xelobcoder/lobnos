@@ -139,7 +139,7 @@ export default function Branches() {
     if (isLoading) return <Loader />
     else return (
       <div className='row p-1'>
-        <TableDisplay styling={'table mt-3'} column={columns} data={branches} filtering={true} />
+        <TableDisplay styling={'table ttable mt-3'} column={columns} data={branches} filtering={true} />
       </div>
     )
   }

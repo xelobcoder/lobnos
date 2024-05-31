@@ -1,4 +1,4 @@
-import { Add, Delete, Folder, List } from "@mui/icons-material";
+import { Folder, List } from "@mui/icons-material";
 import ExpenseLayout from "../../../components/Expense/ExpenseLayout";
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
@@ -123,8 +123,8 @@ export default function ReceiptUploadForm() {
                <div className="d-flex justify-content-between">
                     <h6>Previously Uploaded Image</h6>
                     <div>
-                         <button onClick={(ev) => { deleteReceipts(ev) }} className="mb-2 mx-2  btn-sm">
-                              <Delete color='error' /> delete receipts
+                         <button onClick={(ev) => { deleteReceipts(ev) }} className="mb-2 mx-2  btn-sm btn btn-danger">
+                              Delete receipts
                          </button>
                     </div>
                </div>

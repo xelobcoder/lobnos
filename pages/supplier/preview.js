@@ -56,7 +56,7 @@ export default function SINGLE_SUPPLIER() {
           commodities
         </button>
           </div>
-          <div className='supplier-information-page'>
+          <div >
             <div className='wrapper'>
               <div className='information'>
             {loading ? <Loader /> : <SupllierProfile datasource={supplier} />} 

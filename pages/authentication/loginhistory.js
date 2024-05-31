@@ -5,22 +5,27 @@ import { useContext, useEffect, useState } from "react";
 import Pagination from '../../components/accessories/pagination';
 import Loader from "../../components/accessories/Loader";
 import AuthContext from "../../components/Auth/useAuthentification";
+import { useSearchParams } from "next/navigation";
 
 export default function ApplicationLoginHistory() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ page: 1, count: 10 });
   const [load, setLoad] = useState(false);
+  const employeeid = useSearchParams().get("userid");
   const { auth } = useContext(AuthContext);
+
+
+  
   useEffect(() => {
     setLoading(true);
-    customFetch(`security/users/getlogin/history?page=${filters.page}&&count=${filters.count}`)
+    customFetch(`security/users/getlogin/history?page=${filters.page}&&count=${filters.count}&&employeeid=${employeeid}`)
       .then((data) => {
         Array.isArray(data) && setHistory(data);
       })
       .catch((err) => { setHistory([]) })
       .finally(() => { setLoading(false) })
-  }, [filters])
+  }, [filters, employeeid])
 
 
   const formatDate = (value) => {
@@ -35,7 +40,12 @@ export default function ApplicationLoginHistory() {
   const columns = [
     { Header: "employee", accessor: 'username' },
     { Header: "loginTime", accessor: 'loginTime', Cell: ({ value }) => { return formatDate(value) } },
-    { Header: "logoutTime", accessor: "logoutTime", Cell: ({ value }) => { return formatDate(value) } },
+    {
+      Header: "logged out", accessor: "actualLogout", Cell: ({ value }) => {
+        return value == 0 || value == null ? '' : formatDate(value)
+      }
+    },
+    { Header: "system timeout", accessor: 'logoutTime', Cell: ({ value }) => { return formatDate(value) } },
     {
       Header: 'status', accessor: '', Cell: ({ row }) => {
         if (row.original.loggedout == 0) return <span className="bg-success br-5 text-white p-1">loggedIn

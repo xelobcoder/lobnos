@@ -22,12 +22,6 @@ export default function TrendSingleList({ dataSet, parameters }) {
           const { upper, lower, unit, value } = item;
           return (
             <td
-              // className={
-              //   parseInt(value) > parseInt(upper) ||
-              //   parseInt(value) < parseInt(lower) 
-              //     ? "light-x-trend text-danger"
-              //     : value == 'Nil' ? '' : "light-x-trend text-success"
-              // }
               key={index} 
             >
               {value} {unit ? `(${unit})` : ''}

@@ -76,7 +76,6 @@ export default function Requisition() {
             const updatedstocks = hxData.filter((item) => item.id !== id);
             setHxData(updatedstocks);
           }
-
           if (data.status === 'error') {
             alert(data.message);
           }

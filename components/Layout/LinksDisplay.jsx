@@ -16,8 +16,8 @@ export default function SubLinksSideBar({ sideLinks, }) {
         return (
           <>
             <li
-              key={item.link}
-              className={item.link == pathname && !item?.subLinks && "sidebar-active"}
+              key={index + 1}
+              className={item.link == pathname && !item?.subLinks ? "sidebar-active" : ""}
               style={{ gridTemplateColumns: item?.subLinks ? "85% 15%" : "100%" }}>
               {item?.subLinks ? (
                 <a className="pointer">
@@ -32,28 +32,28 @@ export default function SubLinksSideBar({ sideLinks, }) {
               <div className={item.subLinks ? "dropdown-sidebar" : "d-none"}>
                 <span
                   onClick={(ev) => {
-                    toggleSubbLinks()
+                    toggleSubbLinks();
                   }}>
                   {item.subLinks && <ArrowDownward />}
                 </span>
               </div>
             </li>
-            {show && item?.subLinks && (
+            {show && item?.subLinks && Array.isArray(item.subLinks) && item?.subLinks.length > 0 && (
               <ul>
                 {item.subLinks.map((item, ind) => {
                   return (
-                    <li className={item.link == pathname && "sidebar-active"} key={ind}>
+                    <li className={item.link == pathname ? "sidebar-active" : ""} key={ind + 1}>
                       <Link href={item.link}>
                         {item.icon}
                         {item.title}
                       </Link>
                     </li>
-                  )
+                  );
                 })}
               </ul>
             )}
           </>
-        )
+        );
       })}
     </>
   )

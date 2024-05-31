@@ -55,7 +55,7 @@ export default function PURCHASES() {
       <SupplierLayout>
         {ordersplacedList.length > 0 ? (
           <div className='mx-2 my-2'>
-            <table className='table'>
+            <table className='table ttable'>
               <thead>
                 <tr>
                   <th>prod name</th>

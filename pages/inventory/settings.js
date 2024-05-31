@@ -5,8 +5,8 @@ import { useState } from "react";
 import { ToastContainer ,toast} from "react-toastify";
 export default function InventorySettings() {
    const [settings, setSettings] = useState(inventorySettings);
-
-   const updateSettings = () => updateInventorySettings(settings,toast);
+   const updateSettings = () => updateInventorySettings(settings, toast);
+   
    return (
       <InventoryLayout>
          <ToastContainer/>

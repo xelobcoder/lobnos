@@ -61,7 +61,11 @@ export default function MultipleTestFieldCreator() {
           <MainSettingsLayoutView>
                <div style={{ display: 'grid', gridTemplateColumns: '20% auto', }}>
                     <aside className="bg-secondary p-2" style={{ height: '100vh', overflow: 'auto' }}>
-                         <input onChange={(ev) => { filtertest(ev) }} type="text" className="custom-input" value={testname} />
+                         <input
+                              onChange={(ev) => { filtertest(ev) }}
+                              type="text"
+                              className="custom-input"
+                              value={testname} />
                          {testListrenderingView()}
                     </aside>
                     <main>

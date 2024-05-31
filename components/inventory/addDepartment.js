@@ -2,7 +2,7 @@ import React from 'react'
 
 export default function ADD_DEPARTMENT() {
   return (
-    <div id='addsupplier' className='addepartment'>
+    <div className='addepartment'>
       <form>
         <div className='form-group'>
           <label htmlFor='departmentname'>Department Name</label>

@@ -51,68 +51,67 @@ export default function PLACE_ORDER({ source, cartHandler, suppliers, editdata }
 
   return (
     <section>
-      <div className='card my-2'>
-        <div className='card-header bg-secondary text-white'>
-          <h4>Stock Purchase</h4>
-        </div>
-        <div className='card-body'>
-          <form className='grid-50 grid'>
-            <div className='form-row'>
-              <label>stock</label>
-              <Autocomplete
-                options={source}
-                inputValue={field.name}
-                disableClearable={true}
-                required
-                getOptionLabel={(option) => option.name}
-                onChange={(ev, value) => { handelChange(ev, value, 'stock') }}
-                placeholder='search stock here'
-              />
-              {(target == 'all' || target == 1) && <div className='text-danger text-capitalize text-sm mx-2'>stock is required and must be field</div>}
-            </div>
-
-            <div className='form-row'>
-              <label>supplier</label>
-              <Autocomplete
-                options={suppliers}
-                inputValue={field.suppliername}
-                required
-                getOptionLabel={(option) => option.name}
-                onChange={(ev, value) => { handelChange(ev, value, 'supplier') }}
-                placeholder='search supplier here'
-              />
-              {(target == 'all' || target == 2) && <div className='text-danger text-sm mx-2 text-capitalize'>supplier is required and must be field</div>}
-            </div>
-
-            <div className='form-row'>
-              <label>purchase unit</label>
-              <Autocomplete
-                options={purchaseunit}
-                required
-                inputValue={field.purchaseunit}
-                getOptionLabel={(option) => option}
-                onChange={(ev, value) => { handelChange(ev, value, 'purchaseunit') }}
-                placeholder='search supplier here'
-              />
-              {(target == 'all' || target == 3) && <div className='text-danger text-sm mx-2 text-capitalize'>unit of purchase is required and must be field</div>}
-
-            </div>
-            <div className='form-row'>
-              <label>quantity</label>
-              <input className='custom-input'
-                value={field.quantity}
-                onChange={(ev) => { handelChange(ev, ev.target.value, 'qty') }}
-                required placeholder='quantity' type='number' />
-              {(target == 'all' || target == 4) && <div className='text-danger text-sm mx-2 text-capitalize'>quantity must be field</div>}
-            </div>
-            <div>
-              <button type='button' onClick={(ev) => { handleAddCart(ev) }} className='btn btn-primary btn-sm' style={{ padding: '6px' }}>
-                Add to Cart
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+      <form>
+  <table class="form-table">
+    <tr>
+      <td class="form-row">
+        <label>Stock</label>
+        <Autocomplete
+          options={source}
+          disableClearable={true}
+          required
+          getOptionLabel={(option) => option.name}
+          onChange={(ev, value) => { handelChange(ev, value, 'stock') }}
+          placeholder='Search stock here'
+        />
+        {(target == 'all' || target == 1) && <div className='text-danger text-capitalize text-sm'>Stock is required and must be field</div>}
+      </td>
+    </tr>
+    <tr>
+      <td class="form-row">
+        <label>Supplier</label>
+        <Autocomplete
+          options={suppliers}
+          required
+          getOptionLabel={(option) => option.name}
+          onChange={(ev, value) => { handelChange(ev, value, 'supplier') }}
+          placeholder='Search supplier here'
+        />
+        {(target == 'all' || target == 2) && <div className='text-danger text-sm text-capitalize'>Supplier is required and must be field</div>}
+      </td>
+    </tr>
+    <tr>
+      <td class="form-row">
+        <label>Purchase Unit</label>
+        <Autocomplete
+          options={purchaseunit}
+          required
+          getOptionLabel={(option) => option}
+          onChange={(ev, value) => { handelChange(ev, value, 'purchaseunit') }}
+          placeholder='Search purchase unit here'
+        />
+        {(target == 'all' || target == 3) && <div className='text-danger text-sm text-capitalize'>Unit of purchase is required and must be field</div>}
+      </td>
+    </tr>
+    <tr>
+      <td class="form-row">
+        <label>Quantity</label>
+        <input className='custom-input'
+          value={field.quantity}
+          onChange={(ev) => { handelChange(ev, ev.target.value, 'qty') }}
+          required placeholder='Quantity' type='number' />
+        {(target == 'all' || target == 4) && <div className='text-danger text-sm text-capitalize'>Quantity must be field</div>}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <button type='button' onClick={(ev) => { handleAddCart(ev) }} className='btn btn-primary btn-sm btn-add-cart'>
+          Add to Cart
+        </button>
+      </td>
+    </tr>
+  </table>
+</form>
     </section>
   );
 }

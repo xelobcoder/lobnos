@@ -27,7 +27,7 @@ export default function FrontDeskLayout({children}) {
      },
      { title: 'test price list', link: '/pricelist', icon: <ShoppingBagRounded /> },
      // { title: 'Clients', link: '/patients', icon: <Person /> },
-     // { title: 'Appointments', link: '/appointments', icon: <Event /> },
+     { title: 'Appointments', link: '/appointments', icon: <Event /> },
      { title: "Organization", link: "/organization", icon: <Business /> },
      { title: "Clinicians", link: "/clinician", icon: <SupervisorAccount /> },
      { title: "Result", link: "/registration/ready", icon: <ViewArray /> },

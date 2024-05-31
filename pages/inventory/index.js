@@ -44,18 +44,18 @@ export default function INVENTORY_PAGE() {
     } else {
       getData(`stock?warehouseid=${selectedWarehouse}&&count=${10}&&page=${1}`);
     }
-  }, [selectedWarehouse,loadpaginate,query])
-    // this is ensure getwarehouse dosent load anytime , a warehouse is changed
-   useEffect( () =>  { getWareHouseList(setWareHouseList);},[])
+  }, [selectedWarehouse, loadpaginate, query])
+  // this is ensure getwarehouse dosent load anytime , a warehouse is changed
+  useEffect(() => { getWareHouseList(setWareHouseList); }, [])
 
   const closeModal = () => {
     setShowmodal(false)
     setEditing({ edit: false, stockid: null });
   }
 
-  const closeCategoryModal = () => {setShowCatModal(false)}
+  const closeCategoryModal = () => { setShowCatModal(false) }
 
-  const show = () => {setShowmodal(true)};
+  const show = () => { setShowmodal(true) };
   const handleDelete = async (id) => {
     if (!id) return false;
     try {
@@ -154,11 +154,11 @@ export default function INVENTORY_PAGE() {
         <div className="d-flex justify-content-between">
           <div className="d-flex col-4">
             <input
-              onChange={(ev) => {filterStocks(ev.target.value,selectedWarehouse,query,setStocks)}}
+              onChange={(ev) => { filterStocks(ev.target.value, selectedWarehouse, query, setStocks) }}
               className="custom-input " type="text" placeholder="filter stock here" />
           </div>
           <div className="d-flex justify-content-end">
-            <select className="custom-select col-3 mx-2" onChange={(ev) => {setSelectedWarehouse(ev.target.value)} }> 
+            <select className="custom-select col-3 mx-2" onChange={(ev) => { setSelectedWarehouse(ev.target.value) }}>
               <option>select a warehouse</option>
               <option value="all">all warehouse</option>
               {warehouseList.map((item, index) => {
@@ -170,7 +170,7 @@ export default function INVENTORY_PAGE() {
               New stock
             </button>
           </div>
-       </div>
+        </div>
         {renderingView()}
       </InventoryLayout>
     </>

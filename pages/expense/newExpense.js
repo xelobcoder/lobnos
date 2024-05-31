@@ -28,12 +28,26 @@ export default function AddNewExpense() {
      const [isloading, setLoading] = useState(false);
      const method = useSearchParams().get('action');
      const editid = useSearchParams().get("id");
+     const [category, setCategoryList] = useState([]);
+     
+     useEffect(() => {
+          setLoading(true);
+          customFetch(`expense/get/category`)
+               .then((data) => {
+                    if (Array.isArray(data)) {
+                         setCategoryList(data);
+                    }
+               })
+               .catch((err) => { })
+               .finally(() => {
+                    setLoading(false);
+               })
+     }, []);
 
 
 
      const handleSubmit = async (ev) => {
           ev.preventDefault();
-
           if (Object.values(expense).some((item, index) => item.toString().length == 0)) {
                return toast.warning('All fields must be field', { autoClose: 2000 });
           }
@@ -44,6 +58,7 @@ export default function AddNewExpense() {
           const response = await customPost('expenses', httpMethod, { ...expense, employeeid, branchid });
           if (response?.status == "success") {
                toast.success('New expense generated successfully awaiting approval', { autoClose: 2000 });
+               setExpense(defautExpense);
           } else {
                toast.error("Expense generation failed", { autoClose: 5000 })
           }
@@ -134,7 +149,9 @@ export default function AddNewExpense() {
                                         onChange={(e) => setExpense({ ...expense, category: e.target.value })}
                                    >
                                         <option value={''}>Select a category</option>
-                                        <option value="furniture">Furniture</option>
+                                        {category.map((item, index) => {
+                                             return <option key={index} value={item?.category}>{item?.category}</option>
+                                       })}
                                    </select>
                               </div>
                               <div className="form-row grid-reg px-2 py-1 mt-3">
