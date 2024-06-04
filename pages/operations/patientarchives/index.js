@@ -72,10 +72,10 @@ export default function PatientArchivesPage() {
                                                        {item.gender}
                                                   </td>
                                                   <td>
-                                                       <div className="grid-4">
+                                                       <div className="grid-5">
                                                             {
                                                                  Array.isArray(item.testMap) && item.testMap.length > 0 && (item.testMap.map((_item, index) => {
-                                                                      return <span onClick={(ev) => { renderNewTab(_item, item.patientid) }} key={index} className="text-sm text-primary mx-3">{_item.name}
+                                                                      return <span onClick={(ev) => { renderNewTab(_item, item.patientid) }} key={index} className="text-sm text-primary mx-1">{_item.name}
                                                                            <OpenInNewIcon /></span >
                                                                  }))
                                                             }
