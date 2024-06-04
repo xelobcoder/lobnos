@@ -2,7 +2,8 @@ import  { useState,useContext } from 'react';
 import OperationsContext from './OperationsContext';
 import { customFetch, handleComments} from '../Auth/customFetch'
 import SECOND_NO_DATA from '../accessories/secondNodata';
-import Accordion from 'react-bootstrap/Accordion';
+import { Info } from '@mui/icons-material';
+
 export default function ResultEnteredSidePanel() {
   const [query, setQuery] = useState({ from: '', to: '', billingid: '', patientid: '' });
   const [collection, setCollection] = useState(([]));
@@ -18,46 +19,69 @@ export default function ResultEnteredSidePanel() {
   }
 
   const handleUpdate = (e, item) => {
-    updateOperations({ billingid: item.billingid, patientid: item.patientid })
-  }
-
-
+    updateOperations({ billingid: item.billingid, patientid: item.patientid });
+  };
 
   return (
     <>
       <div>
-        <Accordion flush >
-          <Accordion.Item>
-          <Accordion.Header>
-             Filter result
-          </Accordion.Header>
-          <Accordion.Body className='p-0'>
-              <div className='bg-warning br-5 mx-2 my-2 px-2 py-1'>
-                <label> from</label>
-                <input type='date'  className='form-control' onChange={(e) => handleComments(e, query, 'from', setQuery)} />
-                <label>to</label>
-                <input type='date' className='form-control' onChange={(e) => handleComments(e, query, 'to', setQuery)} />
-                <label>billing id</label>
-                <input className='form-control' id='billingid' onChange={(e) => handleComments(e, query, 'billingid', setQuery)} />
-                <label>patientid</label>
-                <input className='form-control' id='billingid' onChange={(e) => handleComments(e, query, 'patientid', setQuery)} />
-                <button className='btn btn-success btn-sm mt-2'
-                  onClick={(e) => { submitData() }}>search</button>
-              </div>
-          </Accordion.Body>
-         </Accordion.Item>
-       </Accordion>
-        <ul>
+        <div className="bg-secondary-subtle br-5 mx-2 my-2 px-2 py-1">
+          <div>
+            <Info/> Filter
+          </div>
+          <div className="grid-3">
+            <div className="form-row">
+              <label> from</label>
+              <input type="date" className="custom-input" onChange={(e) => handleComments(e, query, "from", setQuery)} />
+            </div>
+            <div className="form-row">
+              <label>to</label>
+              <input type="date" className="custom-input" onChange={(e) => handleComments(e, query, "to", setQuery)} />
+            </div>
+            <div className="form-row">
+              <label>billing id</label>
+              <input className="custom-input" id="billingid" onChange={(e) => handleComments(e, query, "billingid", setQuery)} />
+            </div>
+            <div className="form-row">
+              <label>patientid</label>
+              <input className="custom-input" id="billingid" onChange={(e) => handleComments(e, query, "patientid", setQuery)} />
+            </div>
+            <div className="form-row">
+              <button
+                className="btn btn-success btn-sm mt-2"
+                onClick={(e) => {
+                  submitData();
+                }}>
+                search
+              </button>
+            </div>
+          </div>
+        </div>
+        <ul className="list-group br-0">
           {collection.length > 0 ? (
             collection.map((item, index) => (
               <li
-                className={item?.billingid === operationsKey?.billingid ? 'bg-primary fw-bold text-white border-primary': ''}
+                style={{ display: "grid", gridTemplateColumns: "10% 30% auto" }}
+                className={`list-group-item pointer  ${
+                  item?.billingid === operationsKey?.billingid ? "bg-primary fw-bold text-white border-primary" : ""
+                }`}
                 tabIndex={1 + index}
                 onClick={(e) => handleUpdate(e, item)}
-                key={index}
-              >
-                {/* <BloodtypeIcon /> */}
-                {item.fullname} - {item.billingid}
+                key={index}>
+                <span>
+                  <svg width="20" height="20" viewBox="0 0 20 20">
+                    <path
+                      d="M17 5H3h14zm0 5H3h14zm0 5H3h14z"
+                      stroke="currentColor"
+                      fill="none"
+                      fill-rule="evenodd"
+                      stroke-linejoin="round"></path>
+                  </svg>
+                </span>
+                <span>{item.patientid}</span>
+                <span>
+                  {item.fullname} - {item.billingid}
+                </span>
               </li>
             ))
           ) : (
@@ -66,5 +90,5 @@ export default function ResultEnteredSidePanel() {
         </ul>
       </div>
     </>
-  )
+  );
 }

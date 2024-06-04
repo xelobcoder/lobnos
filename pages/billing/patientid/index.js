@@ -5,7 +5,7 @@ import TopComponentBillingButton from "../../../components/Billing/topComponentB
 import { customFetch, validateFormData } from "../../../components/Auth/customFetch.js";
 import { ToastContainer, toast } from "react-toastify";
 import AuthContext from "../../../components/Auth/useAuthentification.js";
-import { Autocomplete } from '@mui/joy';
+import Select from 'react-select'; // Import react-select
 import FrontDeskLayout from "../../../components/Layout/FrontDeskLayout.jsx";
 
 const defaultdata = {
@@ -45,7 +45,6 @@ export default function Billing({ }) {
   const clientid = useSearchParams().get("patientid");
   const [appsettings, setAppsettings] = useState({});
 
-
   const getAllNecessaryData = async function () {
     try {
       const panels = await customFetch('testpanel/list/bulk');
@@ -61,8 +60,6 @@ export default function Billing({ }) {
       toast.error('something wrong occured', { autoClose: 3000 });
     }
   }
-
-
 
   const getOustandingBill = async () => {
     if (clientid) {
@@ -96,7 +93,6 @@ export default function Billing({ }) {
       })
   }
 
-  
   useEffect(() => {
     if (clientid) {
       customFetch(`billing/caninitialbill?patientid=${clientid}`)
@@ -114,11 +110,6 @@ export default function Billing({ }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientid])
 
-
-
-
-
-
   const recalculateTotalBill = function () {
     const { discount, paid } = billingdata;
     const { includeTax, taxValue } = appsettings;
@@ -135,10 +126,6 @@ export default function Billing({ }) {
     });
   }
 
-
-
-
-
   const addtoCart = async () => {
     if (!selected) return;
     const testid = selected?.id;
@@ -153,7 +140,6 @@ export default function Billing({ }) {
     }
   }
 
-
   useEffect(() => {
     if (cart.length >= 0) {
       recalculateTotalBill()
@@ -165,8 +151,6 @@ export default function Billing({ }) {
     if (!value) return;
     setCart((prev) => { return prev.filter((item, index) => item?.id !== value?.id); })
   }
-
-
 
   const handleSubmit = async (ev) => {
     ev.preventDefault();
@@ -201,12 +185,14 @@ export default function Billing({ }) {
       <div id='panel-selection' className="mx-3 my-2">
         <section className="d-flex justify-content-between">
           <div className="d-flex col-6 mx-2 ">
-            <Autocomplete
+            <Select
+              className="custom-autocomplete"
               options={testpanels}
               getOptionLabel={(option) => option.name}
-              style={{ width: '100%' }}
+              getOptionValue={(option) => option.id}
+              styles={{ container: (base) => ({ ...base, width: '100%' }) }}
               placeholder='search test'
-              onChange={(value, newValue) => { setSelected(newValue) }}
+              onChange={(newValue) => { setSelected(newValue) }}
             />
             <div>
               <button
@@ -261,20 +247,24 @@ export default function Billing({ }) {
               {billingdata.type === 'organization' && (
                 <div>
                   <label>organization name</label>
-                  <Autocomplete
+                  <Select
+                    className="custom-autocomplete"
                     placeholder='search organization here'
-                    onChange={(value, newValue) => { setBillingdata({ ...billingdata, organization: newValue?.id }) }}
+                    onChange={(newValue) => { setBillingdata({ ...billingdata, organization: newValue?.id }) }}
                     options={organizations}
                     getOptionLabel={(options) => options.name}
+                    getOptionValue={(option) => option.id}
                   />
                 </div>)}
               {billingdata.type === 'clinician' &&
                 (<div>
                   <label>select clinician</label>
-                  <Autocomplete
+                <Select
+                   className="custom-autocomplete"
                     placeholder='search clinician'
                     getOptionLabel={(options) => options.name}
-                    onChange={(value, newValue) => { setBillingdata({ ...billingdata, clinician: newValue?.id }) }}
+                    getOptionValue={(option) => option.id}
+                    onChange={(newValue) => { setBillingdata({ ...billingdata, clinician: newValue?.id }) }}
                     options={clinicians} />
                 </div>)}
             </section>

@@ -12,7 +12,7 @@ export async function customFetch(endpoint) {
       headers: {
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
         "Content-Type": "application/json",
-        // "cache" : "no-cache,must-revalidate,no-store,max-age=0,s-maxage=0"
+        // "cache" : "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0"
       },
     })
     const source = await response.json()
@@ -604,7 +604,7 @@ const isFalsi = (data) => {
 export const isAuthenticated = async function (auth, navigate, updateAuthentication) {
   try {
     if (isFalsi(auth)) {
-      const token = Cookies.get("X-AUTH-PRIME-LAB-SYSTEM")
+      const token = Cookies.get("X-AUTH-PRIME-LAB-SYSTEM");
       if (isFalsi(token)) {
         navigate.push("/authentication/login")
       } else {
@@ -857,4 +857,22 @@ export const getSingleEditTest = (testid, setTestData, setLoading) => {
     .catch((err) => {
       setLoading(false)
     })
+}
+
+export const getDateRange = (range) => {
+  if (Array.isArray(range) && range.length == 2) {
+    const start = new Date(range[0]);
+    const end = new Date(range[1]);
+    const startYear = start.getFullYear();
+    const startMonth = String(start.getMonth() + 1).padStart(2, '0');
+    const startDay = String(start.getDate()).padStart(2, '0');
+
+    const endYear = end.getFullYear();
+    const endMonth = String(end.getMonth() + 1).padStart(2, '0');
+    const endDay = String(end.getDate()).padStart(2, '0');
+
+    const formattedStartDate = `${startYear}-${startMonth}-${startDay}`;
+    const formattedEndDate = `${endYear}-${endMonth}-${endDay}`;
+    return [formattedStartDate, formattedEndDate];
+  }
 }

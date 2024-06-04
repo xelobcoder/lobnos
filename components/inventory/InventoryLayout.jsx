@@ -10,6 +10,7 @@ import {
 } from "@mui/icons-material"
 import GridViewIcon from "@mui/icons-material/GridView"
 import DepartureBoardIcon from "@mui/icons-material/DepartureBoard"
+
 export default function InventoryLayout({ children }) {
   const sidebarLinks = [
     { title: "Stocks", link: "/inventory", icon: <GridViewIcon fontSize="small" /> },

@@ -104,6 +104,7 @@ export default function SUPPLY() {
           supplierid={editingid}
           isEditing={isEditing}
           handleAddNew={handleSubmit} />
+        <i className="bi bi-shield-lock-fill"></i>
         {renderingView()}
       </SupplierLayout>
     </>

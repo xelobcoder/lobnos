@@ -1,11 +1,13 @@
 import React from 'react'
 import Link from 'next/link';
+import { AppRegistration } from '@mui/icons-material';
 
 export default function FrontPageAdminView() {
   return (
     <div>
-      <ul style={{ display: 'grid', gridTemplateColumns: '30% 30% 30%', gridGap: '20px' }}>
-        <Link className='bg-primary p-4  text-white text-center' href="/registration">
+      <ul  style={{ display: 'grid', gridTemplateColumns: '30% 30% 30%', gridGap: '20px' }}>
+        <Link className='border border-secondary text-white text-center' href="/registration">
+          <AppRegistration sx={{ height: 100, width: 100 }} />
           Registration & Billing
         </Link>
         <Link className='bg-primary p-4  text-white text-center' href="/operations/laboratory">
@@ -35,25 +37,24 @@ export default function FrontPageAdminView() {
         <Link aria-disabled className='bg-secondary p-4  text-white text-center' href="/upgrade">
           Inventory Mangement
         </Link>
-        <Link className='bg-secondary p-4  text-white text-center' href="/upgrade" >
+        <Link className='bg-primary p-4  text-white text-center' href="/supplier" >
           Purchase Mangement
         </Link>
-        <Link className='bg-secondary p-4  text-white text-center' href="/upgrade">
+        <Link className='bg-primary p-4  text-white text-center' href="/upgrade">
           Result Analysis
         </Link>
-        <Link className='bg-secondary p-4  text-white text-center' href="/upgrade">
+        <Link className='bg-primary p-4  text-white text-center' href="/email">
            Email Services
         </Link>
-        <Link className='bg-secondary p-4  text-white text-center' href="/upgrade">
+        <Link className='bg-primary p-4  text-white text-center' href="/doctor">
           {" Doctor's"} Portal
         </Link>
-        <Link className='bg-secondary p-4  text-white text-center' href="/upgrade">
+        <Link className='bg-primary p-4  text-white text-center' href="/clients">
           {" Patient's"} Portal
         </Link>
-
-        {/* <Link className='bg-secondary p-4  text-white text-center' href="/instructions">
+        <Link className='bg-secondary p-4  text-white text-center' href="/instructions">
           Instructions
-        </Link> */}
+        </Link>
       </ul>
     </div>
   )

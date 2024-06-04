@@ -1,23 +1,21 @@
 import { OperationsProvider } from '../../components/operations/OperationsContext';
 import OperationsLayout from '../../components/operations/OperationsLayout';
-import DisplayTest from '../../components/operations/DisplayTest';
-import Header from "../../components/header"
 import ResultEnteredSidePanel from '../../components/operations/ResultEnteredSidePanel';
 import AllresultSecondPanel from '../../components/operations/AllresultSecondPanel';
-
+import LaboratoryLayout from '../../components/Layout/LaboratoryLayout';
 
 
 export default function Enteredresult() {
   return (
-    <>
-      <Header/>
+    <LaboratoryLayout>
       <OperationsProvider>
         <OperationsLayout
           componentTwo={<AllresultSecondPanel/>}
           componentOne={<ResultEnteredSidePanel />}
-          componentThree={ <DisplayTest />}>
+          // componentThree={<DisplayTest />}
+        >
         </OperationsLayout>
       </OperationsProvider>
-    </>
+    </LaboratoryLayout>
   )
 }

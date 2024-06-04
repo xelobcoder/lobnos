@@ -1,99 +1,55 @@
-import  { useContext, useEffect, useState } from 'react';
-import { customFetch } from '../Auth/customFetch';
-import Link from 'next/link';
-import { Button } from '@mui/material';
-import { ArrowForward } from '@mui/icons-material';
-import OperationsContext from './OperationsContext';
-import Form from 'react-bootstrap/Form';
+import { useCallback, useContext, useEffect, useState } from "react";
+import { customFetch } from "../Auth/customFetch";
+import OperationsContext from "./OperationsContext";
+import Tab from "react-bootstrap/Tab";
+import Tabs from "react-bootstrap/Tabs";
+import { getTestComponent } from "../LabTestForms/ComponentsTestFormsList.js";
 
 export default function AllresultSecondPanel() {
   const { operationsKey, updateOperations } = useContext(OperationsContext);
-  const [expandAll, setExpandAll] = useState(false);
+  let Component = operationsKey?.test && getTestComponent(operationsKey?.test.toLowerCase());
   const [datapool, setDatapool] = useState([]);
   const [active, setActive] = useState(null);
 
+  const getPreview = useCallback(
+    async function () {
+      if (typeof operationsKey == "object" && operationsKey?.billingid) {
+        const billingid = operationsKey?.billingid;
+        const response = await customFetch(`operations/test/result?billingid=${billingid}`);
+        setDatapool(response?.result);
+      }
+    },
+    [operationsKey]
+  );
 
-
-  const getPreview = async function () {
-    const billingid = operationsKey?.billingid;
-    if (operationsKey == null) { return}
-    const response = await customFetch(`operations/test/result?billingid=${billingid}`)
-    setDatapool(response?.result)
-  }
-
-
-  useEffect(() => {
-    getPreview();
-  }, [operationsKey])
-
-
-  const handleResult = async function (testid, billingid, name) {
+  const handleResult = async function (index) {
+    const item = datapool[index];
+    const { testid, billingid, NAME } = item;
     // we want to update the context to display test component so that the user can enter the result
-    // replace space in the name with underscore
-    let testname = (name.replace(/\s/g, '_').toLowerCase());
-
-    if (testname.includes('(') && testname.includes(")")) {
-      testname = testname.slice(0, name.indexOf('('))
+    // replace space in theNAME with underscore
+    let testname = NAME.replace(/\s/g, "_").toLowerCase();
+    if (testname.includes("(") && testname.includes(")")) {
+      testname = testname.slice(0, NAME.indexOf("("));
     }
-    updateOperations({ ...operationsKey, testid, billingid, display: true, test: testname })
-  }
-
+    active != null && updateOperations({ ...operationsKey, testid, billingid, display: true, test: testname });
+  };
 
   return (
     <>
-      <div className='text-capitalize' id='expand'>
-        <input type='checkbox' onChange={() => setExpandAll(!expandAll)} checked={expandAll} />
-        expand all <br/>
-        <div className='d-flex justify-content-between'>
-        Patient overview <Form.Check type='switch' disabled={operationsKey?.billingid == undefined} /> 
-       </div>
-    </div>
-      <div>
-        {
-          datapool.length > 0 ? datapool.map((item, index) => (
-            <div key={index} id='operations-test-collection'>
-              <div className='firstchild'>
-                <div onClick={(e) => setActive(index)}>{item.NAME}</div>
-              </div>
-              {
-                (active == index || expandAll == true) && (
-                  <div className='px-2'>
-                    <button
-                      className={
-                        item.ready == 'true' ? 'btn btn-success btn-sm' : 'btn btn-danger btn-sm'
-                      }
-                      onClick={() => handleResult(item.testid, item.billingid, item.NAME)}>
-                      result
-                    </button >
-                  </div>
-                )
-              }
-            </div>
-          )) : <div className='p-2'>
-            {
-              operationsKey?.billingid != undefined ? (
-                <p className='alert alert-info'><strong>
-                  Test probable deleted or updated. kindly visit phelobotomy queue to address that
-                  <br></br>
-                  <Link href={`/phelobotomy/queue?billingid=${operationsKey?.billingid}`}>
-                    <Button variant='contained' color='success' endIcon={<ArrowForward />}>
-                      phelobotomy queue
-                    </Button>
-                  </Link>
-
-                </strong></p>
-              ) :
-                (<div>
-                  <div className='p-2 alert alert-info'>
-                    <strong >
-                      <h6>select a client on the left side panel to continue</h6>
-                    </strong>
-                  </div>
-                </div>)
-            }
-          </div>
-        }
-      </div>
+      <Tabs
+        onSelect={(eventKey) => {
+          setActive(eventKey);
+        }}
+        defaultActiveKey={0}
+        id="result-entry-archive-tab"
+        className="my-2 mx-2">
+        {datapool.length > 0 &&
+          datapool.map((item, index) => (
+            <Tab title={item.NAME} eventKey={index} key={index}>
+              <div>{operationsKey?.display && <Component employeeid={operationsKey?.employeeid} clientdata={operationsKey} />}</div>
+            </Tab>
+          ))}
+      </Tabs>
     </>
-  )
+  );
 }

@@ -4,12 +4,11 @@ import UsePaginationTableDisplay from "../../../components/accessories/usePagina
 import { customFetch, formatTest, getDepartment, handleChangeWithState, printResultNavigator } from "../../../components/Auth/customFetch";
 import { useSearchParams } from "next/navigation";
 import LaboratoryLayout from "../../../components/Layout/LaboratoryLayout";
-import Dropdown from '@mui/joy/Dropdown';
-import IconButton from '@mui/joy/IconButton';
-import Menu from '@mui/joy/Menu';
-import MenuButton from '@mui/joy/MenuButton';
-import MenuItem from '@mui/joy/MenuItem';
-import MoreVert from '@mui/icons-material/MoreVert';
+import Dropdown from 'react-bootstrap/Dropdown';
+import Button from 'react-bootstrap/Button';
+import { DropdownButton } from 'react-bootstrap';
+import { MenuItem } from 'react-bootstrap';
+// import { MoreVert } from 'react-bootstrap-icons';
 
 export default function ResultEntryDepartmentViewTwo() {
     const defaultFilters = { departmentid: '', status: '', test: '' };
@@ -25,7 +24,6 @@ export default function ResultEntryDepartmentViewTwo() {
     const { auth } = useContext(AuthContext);
     const employeeid = auth?.employeeid;
 
-
     const getAllTest = async function () {
         if (alltest.length === 0) {
             customFetch('testpanel/list/bulk')
@@ -33,7 +31,6 @@ export default function ResultEntryDepartmentViewTwo() {
                 .catch((err) => setAlltest([]))
         }
     }
-
 
     useEffect(() => {
         if (status && dept) {
@@ -50,7 +47,6 @@ export default function ResultEntryDepartmentViewTwo() {
         window.open(`/operations/viewtwo/resultentry?testid=${id}&&testname=${testname}&&employeeid=${employeeid}&&billingid=${billingid}&&patientid=${patientid}&&view=single`);
     }
 
-
     const gotoResultEntryAll = (billingid, patientid) => {
         if (!billingid || typeof billingid != "number" || !patientid || typeof patientid != "number") return;
         const matcheddata = pendingdata.filter((item, index) => item.billingid === billingid && patientid === item.patientid);
@@ -63,7 +59,6 @@ export default function ResultEntryDepartmentViewTwo() {
         window.open(`/operations/viewtwo/resultentry?testid=${testids}&&testname=${testnames}&&employeeid=${employeeid}&&billingid=${billingid}&&patientid=${patientid}&&view=multiple`);
     }
 
-
     const openSingleResult = (ev, row) => {
         const { billingid, name, id } = row;
         printResultNavigator(null, billingid, { ...row, testid: id, testname: name }, true);
@@ -73,7 +68,6 @@ export default function ResultEntryDepartmentViewTwo() {
         const { billingid, name, id ,patientid} = row;
         window.open(`/registration/result/labReportMultiple?billingid=${billingid}&&testid=${id}&&test=${formatTest(name)}&&patientid=${patientid}`)
     }
-
 
     const columns = [
         {
@@ -124,33 +118,26 @@ export default function ResultEntryDepartmentViewTwo() {
                 const { billingid, patientid } = row.original;
                 return (
                     <Dropdown>
-                        <MenuButton
-                            className='border-0 text-primary'
-                            slots={{ root: IconButton }}
-                            slotProps={{ root: { variant: 'outlined', color: 'neutral' } }}
-                        >
-                            <MoreVert />
-                        </MenuButton>
-                        <Menu>
-                            <MenuItem className="text-primary" onClick={(ev) => { gotoResultEntry(row.original) }}> Result Entry</MenuItem>
-                            <MenuItem className="text-primary" onClick={(ev) => { gotoResultEntryAll(billingid, patientid) }}>Bulk result entry</MenuItem>
-                            {/* {row.original.ready == "true" && <MenuItem className="text-primary">preview</MenuItem>
+                        <Dropdown.Toggle size="sm" variant="outline-primary" id="dropdown-basic">
+                            {/* <MoreVert /> */} actions
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                            <Dropdown.Item className="text-primary" onClick={(ev) => { gotoResultEntry(row.original) }}> Result Entry</Dropdown.Item>
+                            <Dropdown.Item className="text-primary" onClick={(ev) => { gotoResultEntryAll(billingid, patientid) }}>Bulk result entry</Dropdown.Item>
+                            {/* {row.original.ready == "true" && <Dropdown.Item className="text-primary">preview</Dropdown.Item>
                             } */}
-                            <MenuItem onClick={(ev) => { openSingleResult(ev, row.original) }} className="text-primary" >print single</MenuItem>
-                            <MenuItem onClick={(ev) => { openMultipleResult(ev, row.original) }} className="text-primary" >Print Bulk</MenuItem>
-                        </Menu>
+                            <Dropdown.Item onClick={(ev) => { openSingleResult(ev, row.original) }} className="text-primary" >print single</Dropdown.Item>
+                            <Dropdown.Item onClick={(ev) => { openMultipleResult(ev, row.original) }} className="text-primary" >Print Bulk</Dropdown.Item>
+                        </Dropdown.Menu>
                     </Dropdown>
                 )
             }
         }
     ]
 
-
-
     const getdata = useCallback(async (value) => {
         setPending(value);
     }, [])
-
 
     const handleFilter = async () => {
         const { departmentid, status, test } = filter;
@@ -165,15 +152,6 @@ export default function ResultEntryDepartmentViewTwo() {
 
     return (
         <LaboratoryLayout>
-            {/* <div className="card br-0">
-                <div className="card-header bg-secondary text-white d-flex justify-content-between">
-                    <h4>Advanced Fitering </h4>
-                   <button className="btn btn-secondary"> <ArrowDownward/></button>
-                </div>
-                <div className="card-body">
-                 
-                </div>
-            </div> */}
             <div className="">
                 <div className="mx-2 text-white p-2 bg-secondary ">
                     <h6>Advanced Filtering</h6>
@@ -181,30 +159,29 @@ export default function ResultEntryDepartmentViewTwo() {
                 <section className=" mx-2 d-flex justify-content-between">
                     <div className="col-4">
                         <label>select department</label>
-                    {/* <label className="text-capitalize">department</label> */}
-                    <select value={filter.departmentid} onClick={(ev) => { department.length === 0 && getDepartment(setDepartment); }} className="custom-select br-0" onChange={(ev) => handleChangeWithState(ev, 'departmentid', setFilter, filter)}>
-                        <option>select a department</option>
-                        <option value='all'>all</option>
-                        {department.map((item, index) => <option value={item.id} key={index}>{item.department}</option>)}
-                    </select>
-                </div>
+                        <select value={filter.departmentid} onClick={(ev) => { department.length === 0 && getDepartment(setDepartment); }} className="custom-select br-0" onChange={(ev) => handleChangeWithState(ev, 'departmentid', setFilter, filter)}>
+                            <option>select a department</option>
+                            <option value='all'>all</option>
+                            {department.map((item, index) => <option value={item.id} key={index}>{item.department}</option>)}
+                        </select>
+                    </div>
                     <div className="mx-1 col-3">
                         <label className="text-capitalize">Cases type</label>
-                    <select value={filter.status} className="custom-select br-0" onChange={(ev) => { handleChangeWithState(ev, 'status', setFilter, filter) }}>
-                        <option value='all'>all cases selected</option>
-                        <option value='pending'>pending cases</option>
-                        <option value='completed'>completed cases</option>
-                    </select>
-                </div>
+                        <select value={filter.status} className="custom-select br-0" onChange={(ev) => { handleChangeWithState(ev, 'status', setFilter, filter) }}>
+                            <option value='all'>all cases selected</option>
+                            <option value='pending'>pending cases</option>
+                            <option value='completed'>completed cases</option>
+                        </select>
+                    </div>
                     <div className="col-4">
                         <label className="text-capitalize">test list here</label>
-                    <select value={filter.test} onChange={(ev) => { handleChangeWithState(ev, 'test', setFilter, filter) }}
-                        onClick={(ev) => { getAllTest() }} className="custom-select br-0">
-                        <option value='all'>Select a test to filter</option>
-                        {alltest.length > 0 && alltest.map((item, index) => { return <option key={index} value={item.id}>{item.name}</option> })
-                        }
-                    </select>
-                </div>
+                        <select value={filter.test} onChange={(ev) => { handleChangeWithState(ev, 'test', setFilter, filter) }}
+                            onClick={(ev) => { getAllTest() }} className="custom-select br-0">
+                            <option value='all'>Select a test to filter</option>
+                            {alltest.length > 0 && alltest.map((item, index) => { return <option key={index} value={item.id}>{item.name}</option> })
+                            }
+                        </select>
+                    </div>
                 </section>
                 <section>
                     <div className="d-flex justify-content-between">
@@ -218,31 +195,30 @@ export default function ResultEntryDepartmentViewTwo() {
                         </div>
                         <div className="col-4">
                             <label className="text-capitalize">filter</label>
-                    {/* <br /> */}
                             <div className="d-flex">
-                        <button onClick={handleFilter} className="btn btn-primary">
+                                <Button onClick={handleFilter} variant="primary">
                                     filter data
-                        </button>
-                        <button onClick={clearFilters} className="btn btn-sm btn-outline-secondary mx-2" >
-                            clear fields 
-                        </button>
+                                </Button>
+                                <Button onClick={clearFilters} variant="outline-secondary" className="mx-2" >
+                                    clear fields 
+                                </Button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                    </div>
-            </section>
+                </section>
             </div>
 
             {/* end of advanced filter */}
             <section className="mx-2">
                 <h4> Result Entry Records</h4>
-            <UsePaginationTableDisplay 
-                column={columns}
-                endpoint={endpoint}
-                update={isupdate}
-                updatedata={pendingdata}
-                getdata={getdata}
-            />
+                <UsePaginationTableDisplay 
+                    column={columns}
+                    endpoint={endpoint}
+                    update={isupdate}
+                    updatedata={pendingdata}
+                    getdata={getdata}
+                />
             </section>
         </LaboratoryLayout>
-  )
+    )
 }

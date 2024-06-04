@@ -8,9 +8,9 @@ export default function FrontPageFrontdeskView() {
         <Link className='bg-primary p-4  text-white text-center' href="/registration">
           Registration & Billing
         </Link>
-        {/* <Link className='bg-primary p-4  text-white text-center' href="/instructions">
+        <Link className='bg-primary p-4  text-white text-center' href="/instructions">
           Instructions
-        </Link> */}
+        </Link>
       </ul>
     </div>
   )

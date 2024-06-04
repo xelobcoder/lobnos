@@ -22,7 +22,7 @@ export default function FrontDeskLayout({children}) {
        icon: <MonetizationOn />,
        subLinks: [
          { title: "Day summary", link: "/billing/salessummary/daily", icon: <MonetizationOn /> },
-         { title: "sales summary", link: "/billing/salessummary", icon: <MonetizationOn /> },
+         { title: "sales summary", link: "/billing/salessummary", icon: <MonetizationOn /> }
        ],
      },
      { title: 'test price list', link: '/pricelist', icon: <ShoppingBagRounded /> },

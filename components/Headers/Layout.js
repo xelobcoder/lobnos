@@ -12,8 +12,8 @@ export default function MAIN_LAYOUT({ children }) {
   }, [])
   
   return (
-    <>
+    <div id='root' theme='light'>
       {children}
-    </>
+    </div>
   )
 }

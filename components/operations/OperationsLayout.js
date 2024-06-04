@@ -6,14 +6,12 @@ export default function OperationsLayout({ componentOne, componentTwo, component
   return (
     <>
       <OperationsProvider >
-        <div className='operations-wrapper'>
+        <div style={{ display: 'grid', gridTemplateColumns: '30% auto' }}>
           <aside>
             {componentOne}
           </aside>
-          <main id='operation-test-collection-wrapper'>
-           {componentTwo}
-          </main>
           <main className='children'>
+            {componentTwo}
             {componentThree}
           </main>
         </div>
