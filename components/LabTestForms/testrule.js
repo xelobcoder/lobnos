@@ -74,13 +74,13 @@ export default function CreateTestRule({ clientdata }) {
       else {
          return (
             <section>
-               <table className="ttable table">
+               <table className="table border">
                   <thead>
                      <tr>
-                        <th>Parameter</th>
-                        <th>value</th>
-                        <th>unit</th>
-                        <th>reference range</th>
+                        <th className="fw-bold text-capitalize">Parameter</th>
+                        <th className="fw-bold text-capitalize">value</th>
+                        <th className="fw-bold text-capitalize">unit</th>
+                        <th className="fw-bold text-capitalize">reference range</th>
                      </tr>
                   </thead>
                   <tbody>

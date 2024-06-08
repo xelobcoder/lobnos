@@ -33,7 +33,7 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
       return <tr {...headerGroup.getHeaderGroupProps()} key={v}>
         {headerGroup.headers.map((column, index) => (
           // eslint-disable-next-line react/jsx-key
-          <th  {...column.getHeaderProps(column.getSortByToggleProps())} >
+          <th className='fw-bold text-sm text-capitalize' {...column.getHeaderProps(column.getSortByToggleProps())} >
             {column.render('Header')}
             <span>{column.isSorted ? (column.isSortedDesc ? '🔽' : '🔼') : ''}</span>
           </th>
@@ -49,8 +49,8 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
       return (
         <>
           {filtering == true && (<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />)}
-          <div className='ttable-wrapper' >
-            <table {...props} className={styling ? styling : 'ttable table'} {...getTableProps()} >
+          <div className='ttable-wrapper my-2' >
+            <table {...props} className={styling ? styling : 'table'} {...getTableProps()} >
                       <thead>
                         {customHeaderGroup()}
                       </thead>
@@ -60,7 +60,7 @@ export default function TableDisplay({ showpage = true, column, data, styling, f
                           return (
                             <tr  {...row.getRowProps()}  key={index} >
                               {row.cells.map((cell) => {
-                                return <td {...cell.getCellProps()} key={cell.column.id}>{cell.render('Cell')}</td>
+                                return <td className='text-sm' {...cell.getCellProps()} key={cell.column.id}>{cell.render('Cell')}</td>
                               })}
                             </tr>
                           )

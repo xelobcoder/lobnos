@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 
 function MyApp({ Component, pageProps: { pageProps } }) {
   useEffect(() => {
-    require("../node_modules/bootstrap/dist/js/bootstrap.min");
+    // require("../node_modules/bootstrap/dist/js/bootstrap.min");
     import ('../node_modules/react-datepicker/dist/react-datepicker.min.css')
   }, []);
 

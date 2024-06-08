@@ -1,5 +1,5 @@
 import { Button } from '@mui/material'
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState,  useMemo } from 'react';
 import { useRouter } from 'next/router';
 
 export default function USERS({ heading, button }) {

@@ -5,6 +5,8 @@
   --custom-blue: #2165e3;
   --text-color: black;
   --prime-attention: #ff6a00;
+  --prime-links-font-family: "Lexend Deca", Helvetica, Arial, sans-serif;
+  --prime-ui-font-family:  "Montserrat", sans-serif;
   --custom-orange: #feb602;
   --custom-dark_blue: #142a5e;
   --wp--preset--gradient--midnight: linear-gradient(135deg, rgb(2, 3, 129) 0%, rgb(40, 116, 252) 100%);
@@ -15,7 +17,7 @@
   --text-color:black;
 }
 [theme="dark"] {
-  --bg-color: #0000006b;
+  --bg-color: #000000;
   --text-color: white;
  }
 *{
@@ -33,7 +35,9 @@
   background-color: var(--bg-color);
   min-height: 100vh;
   color: var(--text-color);
-  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-family: var(--prime-ui-font-family);
+  font-weight: 500;
 }
 
 
@@ -1209,10 +1213,98 @@ textarea:required:focus:invalid {
   text-transform: capitalize;
 }
 
-
-/* ------------------ nav tab----------- */
-
-/* .nav-link.active {
-  background-color: gray !important;
+#archives-dropdown.dropdown-toggle::after {
+  display: none !important;
+  
+}
+#archives-dropdown.dropdown-toggle{
+  padding: 0 !important;
+  outline: none !important;
+  background-color: inherit !important;
+  border: none !important;
+}
+#archives-dropdown.dropdown-toggle:focus,
+#archives-dropdown.dropdown-toggle:hover{
+ padding: 0 !important;
+ outline: none !important;
+ background-color: inherit !important;
+ border: none !important;
+}
+.nav-item[role="presentation"] > .nav-link[aria-selected="false"]{
+  background-color: rgba(128, 128, 128, 0.589) !important;
   color: white !important;
-} */
+  margin: 0 2px;
+}
+.toggle-header-ui{
+  width: 100%;
+  display: grid;
+  grid-template-columns: 3% auto;
+}
+.toggle-header-ui > .icon >span[drop="false"]>svg{
+transform:rotate(90deg);
+font-weight: bolder;
+}
+.time-appointment-box{
+  background-color: var(--custom-blue) !important;
+  color: white !important;
+}
+.contact-card {
+  width: 300px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+}
+
+.contact-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.contact-avatar {
+  width: 50px;
+  height: 50px;
+  background-color: #ccc;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-right: 20px;
+}
+
+.contact-info h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.contact-info p {
+  margin: 2px 0;
+  color: #555;
+}
+
+.contact-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  width: auto;
+}
+
+.contact-actions button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 5px 10px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.contact-actions button:hover {
+  background-color: #0056b3;
+}
+.ui{
+  font-family: var(--prime-links-font-family) !important;
+}
