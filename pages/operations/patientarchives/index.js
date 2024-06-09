@@ -102,7 +102,7 @@ export default function PatientArchivesPage() {
                                                                  <MoreVertIcon />
                                                             </Dropdown.Toggle>
                                                             <Dropdown.Menu className="m-0 p-0">
-                                                                 <Dropdown.Item className="m-0 text-sm">
+                                                                 <Dropdown.Item href={`/appointments/book?patientid=${item.patientid}`} className="m-0 text-sm">
                                                                       <CalendarViewMonth /> Book Appointment
                                                                  </Dropdown.Item>
                                                                  <Dropdown.Item className="m-0 text-sm">

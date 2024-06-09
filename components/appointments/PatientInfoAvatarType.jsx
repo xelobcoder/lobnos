@@ -6,7 +6,7 @@ import TaskIcon from "@mui/icons-material/Task";
 import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 
-export default function PatientInfo({ patientdata }) {
+export default function PatientInfo({ patientdata = {} }) {
   const { firstname, middlename, lastname, email, gender, age, mobile_number, age_Type } = patientdata;
 
   const formatInitials = () => {
@@ -29,23 +29,23 @@ export default function PatientInfo({ patientdata }) {
         </div>
         <div className="w-100 my-1">Contact: {mobile_number}</div>
       </div>
-      <div className="contact-actions">
-        <button>
+      <div className="d-flex">
+        <button className="btn btn-outline-primary shadow border-2">
           <NoteIcon /> Note
         </button>
-        <button>
+        <button className="btn btn-outline-primary shadow mx-2 border-2">
           <EmailIcon /> Email
         </button>
-        <button>
+        <button className="btn btn-outline-primary shadow mx-2 border-2">
           <CallIcon /> Call
         </button>
-        <button>
+        <button className="btn btn-outline-primary shadow mx-2 border-2">
           <TaskIcon /> Task
         </button>
-        <button>
+        <button className="btn btn-outline-primary shadow mx-2 border-2">
           <MeetingRoomIcon /> Meeting
         </button>
-        <button>
+        <button className="btn btn-outline-primary shadow mx-2 border-2">
           <MoreHorizIcon /> More
         </button>
       </div>

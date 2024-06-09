@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AsyncSelect from "react-select/async";
 import { loadOptions } from "../../lib/appointment";
 
-export default function PatientFiltered({ getSelectedPatient }) {
+export default function PatientFiltered({ getSelectedPatient,isDisabled }) {
   const [isLoading, setLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
 
@@ -81,8 +81,10 @@ export default function PatientFiltered({ getSelectedPatient }) {
       styles={customStyles}
       isClearable={true}
       isLoading={isLoading}
+      isDisabled={isDisabled}
       loadOptions={loadClientOptions}
       defaultOptions={[]}
+      placeholder="Search patient using patient ID || email || fullname"
       onChange={handleSelectChange}
       blurInputOnSelect={true}
       value={selectedOption}

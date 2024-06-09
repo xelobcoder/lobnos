@@ -14,49 +14,63 @@ import {
   eveningSlot,
   patientData,
   durationOptions,
+  handleSubmitForm,
+  loadOptions,
 } from "../../lib/appointment";
 import { getInstitutionUsers } from "../Auth/customFetch";
 import SpinningLoading from "../accessories/UIAccessories/spinningLoading";
+import { useSearchParams } from "next/navigation";
 
-
-export default function NewAppointment({ patientid = null }) {
+export default function NewAppointment() {
   const [appointment, setAppointment] = useState(APPOINTMENT_DEFAULT_DATA);
   const [selected, setSelected] = useState(false);
   const [patient, setPatient] = useState(patientData);
   const [employees, setEmployees] = useState([]);
   const [isloadingEmployees, setLoadingEmployes] = useState(true);
+  const searchedPatientid = useSearchParams().get("patientid");
+  const [disableFilter, setDisableFilter] = useState(false);
 
   const getSelectedPatient = (value) => {
-    setPatient(value);
-    setSelected(true);
+    if (typeof value == "object" && "patientid" in value) {
+      setPatient(value);
+      setSelected(true);
+    }
   };
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    console.log("Appointment Details:", appointment);
+    handleSubmitForm({ ...appointment, patientid: patient.patientid });
   };
 
   useEffect(() => {
     getInstitutionUsers(setEmployees, "logins", setLoadingEmployes);
   }, []);
 
+  useEffect(() => {
+    if (searchedPatientid) {
+      loadOptions(searchedPatientid)
+        .then((user) => {
+          setPatient(user[0]);
+          setSelected(true);
+        })
+        .catch((err) => {
+          console.log(err, "err");
+        })
+        .finally(() => {
+          setDisableFilter(true);
+        });
+    }
+  }, [searchedPatientid]);
+
   return (
     <section>
-      <div className="d-flex justify-content-between">
-        <div className="p-2">
-          <Breadcrumb>
-            <Breadcrumb.Item className="text-sm">Calendar</Breadcrumb.Item>
-            <Breadcrumb.Item className="text-sm">Appointment List</Breadcrumb.Item>
-          </Breadcrumb>
-        </div>
+      <div className="d-flex justify-content-between my-2">
         <div className="col-6">
-          <PatientFiltering getSelectedPatient={getSelectedPatient} />
+          <PatientFiltering getSelectedPatient={getSelectedPatient} isDisabled={disableFilter} />
         </div>
       </div>
-      <div className="grid-50 mx-2">
-        <div className="appointment-sideview">
-          {selected && <PatientInfo patientdata={patient} />}
-        </div>
+      <div>
+        <div className="appointment-sideview">{selected && <PatientInfo patientdata={patient} />}</div>
         <div>
           <form>
             <div className="form-row w-100 mb-3">
@@ -128,60 +142,63 @@ export default function NewAppointment({ patientid = null }) {
                 options={inviteMethod}
               />
             </div>
-            <div className="form-row my-2">
-              <h5>Morning Slot</h5>
-              <div className="col-12">
-                {morningSlot.map((item, index) => (
-                  <div
-                    onClick={() => setAppointment({ ...appointment, appointment_time: item })}
-                    key={index}
-                    className={`shadow btn btn-outline-primary border-2 p-2 rounded mx-2 my-2 ${
-                      appointment.appointment_time === item ? "time-appointment-box" : ""
-                    }`}>
-                    {item}
-                  </div>
-                ))}
+            <div className="form-row my-2 grid-30-30-30">
+              <div>
+                <h5>Morning Slot</h5>
+                <div className="col-12">
+                  {morningSlot.map((item, index) => (
+                    <div
+                      onClick={() => setAppointment({ ...appointment, appointment_time: item })}
+                      key={index}
+                      className={`shadow btn btn-outline-primary border-2 p-2 rounded mx-2 my-2 ${
+                        appointment.appointment_time === item ? "time-appointment-box" : ""
+                      }`}>
+                      {item}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <h5>Afternoon Slot</h5>
-              <div className="col-12">
-                {afternoonSlot.map((item, index) => (
-                  <div
-                    onClick={() => setAppointment({ ...appointment, appointment_time: item })}
-                    key={index}
-                    className={`shadow btn btn-outline-primary border-2 p-2 rounded mx-2 my-2 ${
-                      appointment.appointment_time === item ? "time-appointment-box" : ""
-                    }`}>
-                    {item}
-                  </div>
-                ))}
+              <div>
+                <h5>Afternoon Slot</h5>
+                <div className="col-12">
+                  {afternoonSlot.map((item, index) => (
+                    <div
+                      onClick={() => setAppointment({ ...appointment, appointment_time: item })}
+                      key={index}
+                      className={`shadow btn btn-outline-primary border-2 p-2 rounded mx-2 my-2 ${
+                        appointment.appointment_time === item ? "time-appointment-box" : ""
+                      }`}>
+                      {item}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <h5>Evening Slot</h5>
-              <div className="col-12">
-                {eveningSlot.map((item, index) => (
-                  <div
-                    onClick={() => setAppointment({ ...appointment, appointment_time: item })}
-                    key={index}
-                    className={`shadow btn btn-outline-primary border-2 p-2 rounded mx-2 my-2 ${
-                      appointment.appointment_time === item ? "time-appointment-box" : ""
-                    }`}>
-                    {item}
-                  </div>
-                ))}
+              <div>
+                <h5>Evening Slot</h5>
+                <div className="col-12">
+                  {eveningSlot.map((item, index) => (
+                    <div
+                      onClick={() => setAppointment({ ...appointment, appointment_time: item })}
+                      key={index}
+                      className={`shadow btn btn-outline-primary border-2 p-2 rounded mx-2 my-2 ${
+                        appointment.appointment_time === item ? "time-appointment-box" : ""
+                      }`}>
+                      {item}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
             <button
               type="button"
               onClick={(ev) => {
-                handleFormSubmit();
+                handleFormSubmit(ev);
               }}
               className="btn btn-primary mt-3">
               Schedule Appointment
             </button>
           </form>
         </div>
-      </div>
-      <div className="content">
-        <p>This is the content below the dropdown.</p>
       </div>
     </section>
   );

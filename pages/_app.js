@@ -7,8 +7,10 @@ import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 import '../styles/result.css';
 import { AuthentificationProvider } from '../components/Auth/useAuthentification';
 import MAIN_LAYOUT from '../components/Headers/Layout';
-import { useEffect } from 'react';
 
+
+
+import { useEffect } from 'react';
 function MyApp({ Component, pageProps: { pageProps } }) {
   useEffect(() => {
     // require("../node_modules/bootstrap/dist/js/bootstrap.min");
