@@ -1329,3 +1329,9 @@ font-weight: bolder;
 .kanban-card p + p {
   margin-top: 5px;
 }
+
+/* -------- styles for calender adjustment */
+/* .fc-scrollgrid-sync-table tbody tr {
+  display: none !important;
+} */
+/* ---end here */

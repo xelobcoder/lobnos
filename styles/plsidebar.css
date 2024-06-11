@@ -9,7 +9,6 @@
 
 .sidebarr  {
      margin: 0;
-     /* background-color: white; */
      background-color: #042331;
      padding: 0;
      position: fixed;
@@ -77,6 +76,8 @@
      background-color: inherit;
      border-bottom: 1px solid lightgray;
 }
+
+
 /* @media  screen and (max-width: 1200px) {
      .prime-lab-layout {
           display: block;

@@ -12,8 +12,8 @@ export default function BookAppointment() {
     <FrontDeskLayout>
       <section className='container-fluid'>
         <Breadcrumb className='ui fw-bold'>
-          <Breadcrumb.Item className="text-sm">Calendar</Breadcrumb.Item>
-          <Breadcrumb.Item className="text-sm">Appointment List</Breadcrumb.Item>
+          <Breadcrumb.Item href='/appointments' className="text-sm">Calendar</Breadcrumb.Item>
+          <Breadcrumb.Item href='/appointments/tt' className="text-sm">Appointment List</Breadcrumb.Item>
           <Breadcrumb.Item href='/appointments/book' className="text-sm">New Appointment</Breadcrumb.Item>
         </Breadcrumb>
       <Tabs>

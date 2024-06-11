@@ -88,23 +88,24 @@ export default function Appointment() {
         themeSystem='ui'
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
         initialView="dayGridMonth"
+        height={"1500px"}
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
         }}
         events={events}
-        dateClick={handleDateClick}
-        eventClick={handleEventClick}
+        // dateClick={handleDateClick}
+        // eventClick={handleEventClick}
         selectable={true}
         select={handleSelect}
-        editable={true}
-        eventDrop={(info) => {
-          console.log('Event dropped:', info.event);
-        }}
-        eventResize={(info) => {
-          console.log('Event resized:', info.event);
-        }}
+        // editable={true}
+        // eventDrop={(info) => {
+        //   console.log('Event dropped:', info.event);
+        // }}
+        // eventResize={(info) => {
+        //   console.log('Event resized:', info.event);
+        // }}
         locale="en"
       />
     </FrontDeskLayout>

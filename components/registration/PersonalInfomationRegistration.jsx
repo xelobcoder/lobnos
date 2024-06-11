@@ -3,6 +3,7 @@ import { handleMobile, handleEmail,handleAgeCalculations,  handleSubmitRegistrat
 import IsRenderInput from "./CustomInput"
 import { useState } from "react"
 
+
 export default function PersonalInformationRegistration({ defaultData, fields, toast, expanded = true, method = "POST" }) {
   const [data, setData] = useState(defaultData)
 
@@ -228,6 +229,36 @@ export default function PersonalInformationRegistration({ defaultData, fields, t
                   setData({
                     ...data,
                     mobile: e.target.value,
+                  })
+                }}
+              />
+            }
+          />
+        </div>
+
+        <div className="form-row">
+          <IsRenderInput
+            value={fields["whatAppcontact"]}
+            label={` WhatApp contact`}
+            expanded={expanded}
+            field={
+              <input
+                type="tel"
+                inputMode="tel"
+                maxLength={10}
+                minLength={10}
+                value={data.whatAppcontact}
+                name="whatAppcontact"
+                className="custom-input"
+                placeholder="whatapp contact"
+                onBlur={(ev) => {
+                  handleMobile(ev, toast)
+                }}
+                label="whatApp contact"
+                onChange={(e) => {
+                  setData({
+                    ...data,
+                    whatAppcontact: e.target.value,
                   })
                 }}
               />

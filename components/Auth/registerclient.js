@@ -179,6 +179,8 @@ export async function ActivationBulk(e, action, callbackfunction) {
 }
 
 
+
+
 export const patientRegistrationDefaultData = {
   personalInformation: {
     email: "",
@@ -188,6 +190,7 @@ export const patientRegistrationDefaultData = {
     months: "",
     years: "",
     gender: "",
+    whatAppcontact: "",
     maritalstatus: "",
     ageType: "",
     firstname: "",

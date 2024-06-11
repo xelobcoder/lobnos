@@ -15,6 +15,7 @@ export const registration = [
          days: true,
          months: true,
          years: true,
+         whatAppcontact: true,
          maritalstatus: true,
          refered: true,
          patientOrganization: true,
@@ -22,10 +23,11 @@ export const registration = [
       },
    },
    {
-      title: 'address information', fields: {
+      title: 'address information',
+      fields: {
          area: false,
          region: false,
-         address: false,
+         // address: false,
          gpsLocation: true,
       }
    },
