@@ -20,10 +20,6 @@ function MyApp({ Component, pageProps: { pageProps } }) {
   }
 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> a236a112f54655a5e56c87b3b870b8ab41af3bf4
   return (
     <AuthentificationProvider>
         <MAIN_LAYOUT>

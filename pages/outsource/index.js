@@ -4,6 +4,7 @@ import ContractForm from "../../../components/outsource/contracting";
 import MainSettingsLayoutView from "../../../components/settingsComponents/MainSettingsLayoutView";
 import OrganizationImageUploader from "../../../components/outsource/outSourceOrganizationProfileImageUpload";
 import OutsourceServices from "../../../components/outsource/OutSourcingServices";
+import OutsourceBarChart from "../../components/outsource/OutSourceBarChart";
 
 export default function OutsourcingIndexPage() {
     return (
@@ -20,6 +21,9 @@ export default function OutsourcingIndexPage() {
                 </Tab>
                 <Tab title="Services" eventKey='services'>
                     <OutsourceServices/>
+                </Tab>
+                <Tab title="charts" eventKey='outsourcebarchart'>
+                    <OutsourceBarChart/>
                 </Tab>
             </Tabs>
         </MainSettingsLayoutView>
