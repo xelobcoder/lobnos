@@ -20,10 +20,10 @@ export default function OutsourcingIndexPage() {
                     <OrganizationImageUploader />
                 </Tab>
                 <Tab title="Services" eventKey='services'>
-                    <OutsourceServices/>
+                    <OutsourceServices />
                 </Tab>
                 <Tab title="charts" eventKey='outsourcebarchart'>
-                    <OutsourceBarChart/>
+                    <OutsourceBarChart />
                 </Tab>
             </Tabs>
         </MainSettingsLayoutView>
