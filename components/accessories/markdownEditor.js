@@ -1,0 +1,50 @@
+import React from 'react';
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
+
+const editorConfiguration = {
+    toolbar: [
+        'heading',
+        '|',
+        'bold',
+        'italic',
+        'link',
+        'bulletedList',
+        'numberedList',
+        '|',
+        'outdent',
+        'indent',
+        '|',
+        'imageUpload',
+        'blockQuote',
+        'insertTable',
+        'mediaEmbed',
+        'undo',
+        'redo',
+    ]
+};
+
+editorConfiguration.mediaEmbed = {
+    previewsInData: true
+};
+
+
+// support code syntax highlight
+editorConfiguration.language = 'en';
+
+
+export default function MARKDOWN_EDITOR( props ) {
+        return (
+            <CKEditor
+                height={props.height || '700px'}
+                editor={ClassicEditor}
+                config={ editorConfiguration }
+                data={ props.initialData || ''}
+                onChange={ (event, editor ) => {
+                    const data = editor.getData();
+                    props.updatedata(event,data)
+                } }
+            />
+        )
+}
+

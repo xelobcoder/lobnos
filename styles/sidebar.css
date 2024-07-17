@@ -1,0 +1,104 @@
+.sidebarr {
+     position: fixed;
+      left: 0px;
+      height: 100%;
+      z-index: 10;
+      align-self: flex-start;
+      width: 250px;
+      background-color: #042331;
+      overflow-y: auto;
+    }
+    
+    .sidebarr header{
+      font-size: 20px;
+      color: white;
+      text-align: center;
+      line-height: 20px;
+      background: #063146;
+      user-select: none;
+      text-transform: capitalize;
+    }
+    
+    .sidebarr >  ul > li  {
+      color: white;
+      display: grid;
+    }
+    
+    
+    .sidebarr ul li a,
+    .sidebarr ul li .dropdown-sidebar ,
+    .sidebarr > ul >  ul > li > a{
+      display: block;
+      height: 100%;
+      width: 100%;
+      line-height: 60px;
+      font-size: 18px;
+      color: white;
+      padding-left: 20px;
+      box-sizing: border-box;
+      text-transform: capitalize;
+      border-top: 1px solid rgba(255, 255, 255, .1);
+    }
+    
+    .sidebarr >ul >li >.dropdown-sidebar{
+      display: flex;
+      justify-content: center;
+      cursor: pointer;
+      background-color: #0056d2;
+    }
+    
+    
+    .sidebarul li:hover a {
+      transition: 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
+      background-color: #0056d2;
+      color: white;
+    }
+    
+    .sidebarul li:hover .dropdown-sidebar {
+      background-color: #00224f;
+    }
+    
+    .sidebarr > ul > ul {
+     position: relative;
+     top: 0;
+     left: 0;
+     margin: 2px;
+     height: max-content;
+     border: 2px dashed white;
+     transition: 500ms ease-in-out;
+    }
+    
+    .sidebarr > ul >  ul > li {
+      margin: 0;
+      width: 100%;
+      padding: 0;
+      color: white;
+      cursor: pointer;
+    }
+    
+    .sidebarr ul li svg {
+      margin-right: 15px;
+    }
+    .prime-lab-layout {
+     margin: 0;
+     padding: 0;
+     overflow-y: auto;
+     display: grid;
+     grid-template-columns: 20% auto;
+   }
+   
+   .prime-lab-layout > .prime-main  {
+     width: 100%;
+     margin: 0;
+     padding: 3px;
+   }
+   
+   .prime-full {
+     left: 0px;
+   }
+   
+   .prime-with-side{
+     left:250px;
+   }
+   
+   

@@ -1,0 +1,12 @@
+ ## Registrations
+
+ - client Details
+ - Test panel
+ - payment Datails
+
+   
+   client Registrations
+    ## data required 
+    - fullname
+    - age
+    - 

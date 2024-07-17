@@ -1,0 +1,91 @@
+.flair-table {
+   width: 100%;
+   height: inherit;
+   background-color: white;
+   border: 1px solid lightgray;
+   margin-top: 10px;
+   margin-bottom: 10px;
+   border-collapse: collapse;
+}
+
+.flair-table > thead,
+.flair-table > tbody,
+.flair-table > thead > tr,
+.flair-table > tbody > tr{
+   width: inherit;
+   height: auto;
+   margin: 0;
+   border-bottom: 1px solid lightgray;
+   padding: 0;
+}
+
+.flair-table > thead > tr  {
+   background-color: #007bff;
+}
+
+.flair-table > thead > tr > th {
+   color: white;
+}
+
+.flair-table > tbody > tr > td,
+.flair-table > thead > tr > th {
+   padding: 10px;
+   font-size: 14px;
+   min-width: auto !important ;
+   max-width: 200px !important;
+}
+
+.alpha-result-table {
+   table-layout: fixed;
+   width: 100%;
+   border-collapse: collapse;
+   border-bottom: 1px solid black;
+}
+
+.alpha-result-table > thead > tr,
+.alpha-result-table > tbody > tr  {
+   /* border-bottom: 1px solid black !important; */
+}
+
+.alpha-result-table > tbody > tr > td:nth-child(1)
+.alpha-result-table > thead > tr > td:nth-child(1) {
+   width: 40%;
+}
+.alpha-result-table > tbody > tr > td:nth-child(2) ,
+.alpha-result-table > tbody > tr > td:nth-child(3)   {
+   width: 10%;
+}
+.alpha-result-table > tbody > tr > td:nth-child(4){
+   width: 20%;
+}
+.alpha-result-table > tbody > tr > td:nth-child(5) {
+   width: 10%;
+}
+
+.alpha-result-table td {
+   letter-spacing: 2px;
+   padding: 5px;
+   font-size: 15px;
+}
+
+
+.alpha-result-table thead tr {
+   background-color: orange;
+}
+
+.alpha-result-table thead tr td {
+   font-weight: 400 !important;
+   padding: 10px !important;
+}
+
+@media print { 
+   .alpha-result-table {
+      --webkit-print-color-adjust: exact;
+      border-bottom: 1px solid black !important;
+   }
+
+   table {
+      border: none !important;
+   }
+     
+}

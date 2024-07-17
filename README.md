@@ -1,0 +1,2 @@
+### LOBNOS INTEGRADED LABORATORY SOFTWARE FOR SMALL TO MEDIUM CLINICAL LABORATORIES ###
+ *This is a software for small to large facillity that helps to manage laboratories bith on premises and online *
