@@ -64,7 +64,7 @@ export default function Activator() {
       } else {
         return (
           <section>
-            <TableDisplay column={columns} data={tempStore} />
+            <TableDisplay column={columns} data={tempStore}  showpage={false} exporters={false}/>
           </section>
         )
       }
@@ -101,8 +101,8 @@ export default function Activator() {
 
   const columns = [
     { Header: 'patientid', accessor: 'patientid' },
-    { Header: 'fullname', accessor: 'fullname', Cell: ({ value }) => <div className='text-capitalize'>{value}</div> },
     { Header: 'registered on', accessor: 'date', Cell: ({ value }) => { return <span>{parseDate(value)}</span> } },
+    { Header: 'fullname', accessor: 'fullname', Cell: ({ value }) => <div className='text-capitalize'>{value}</div> },
     { Header: "dob", accessor: "dob", Cell: ({ value }) => parseDate(value) },
     {
       Header: "age", accessor: "age", Cell: ({ row, value }) => {

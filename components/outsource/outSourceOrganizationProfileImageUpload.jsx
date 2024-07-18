@@ -29,7 +29,7 @@ const OrganizationImageUploader = () => {
             {
                 imageUrl
                     ? <Image src={imageUrl} alt="Uploaded Image" fluid />
-                    : <p>Drag 'n' drop an image here, or click to select a file</p>
+                    : <p>Drag and drop an image here, or click to select a file</p>
             }
         </div>
     );

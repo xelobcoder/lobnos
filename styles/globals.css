@@ -44,7 +44,7 @@ html {
   min-height: 100vh;
   color: var(--text-color);
   font-optical-sizing: auto;
-  font-family: var(--prime-ui-font-family);
+  font-family: var(--prime-links-font-family);
   font-weight: 500;
 }
 
@@ -1486,6 +1486,16 @@ body {
     text-align: left;
     background-color: #f5f7fa;
     background-color: transparent;
+}
+
+
+.front-page-ui-presentation {
+    display: grid !important;
+    grid-gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)) !important;
+      margin: 0;
+      padding: 0;
+      list-style-type: none;
 }
 
 /* -------END OF WAKPENJO--------- */

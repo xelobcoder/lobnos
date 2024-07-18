@@ -1,10 +1,10 @@
 import { Tab, Tabs } from "react-bootstrap";
-import OutSourcingOrganizationForm from "../../../components/outsource/AddNewOutsourceField";
-import ContractForm from "../../../components/outsource/contracting";
-import MainSettingsLayoutView from "../../../components/settingsComponents/MainSettingsLayoutView";
-import OrganizationImageUploader from "../../../components/outsource/outSourceOrganizationProfileImageUpload";
-import OutsourceServices from "../../../components/outsource/OutSourcingServices";
-import OutsourceBarChart from "../../components/outsource/OutSourceBarChart";
+import OutSourcingOrganizationForm from "./../../components/outsource/newOutSourceOrganization";
+import ContractForm from "./../../components/outsource/contracting";
+import MainSettingsLayoutView from "./../../components/settingsComponents/MainSettingsLayoutView";
+import OrganizationImageUploader from "./../../components/outsource/outSourceOrganizationProfileImageUpload";
+import OutsourceServices from "./../../components/outsource/OutSourcingServices";
+import OutsourceBarChart from "./../../components/outsource/OutSourceBarChart";
 
 export default function OutsourcingIndexPage() {
     return (

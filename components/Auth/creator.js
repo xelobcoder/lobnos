@@ -17,6 +17,7 @@ const determineResultEntryMode = (entrymode = "manual", value) => {
 export const fieldDeterminer = (item, statehandler, index) => {
    if (typeof item !== 'object') return false;
    const { field, useplain, plain, name, hasoptions, options, entrymode, value, type, mode, units, upperlimit = 0, lowerlimit = 0, haslimits } = item;
+   console.log(item)
 
    if (field === "input" || hasoptions == false && useplain != true) {
       if (haslimits) {

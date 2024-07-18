@@ -11,7 +11,7 @@ import { useSearchParams } from "next/navigation";
 import LaboratoryLayout from "../../../components/Layout/LaboratoryLayout";
 import Dropdown from "react-bootstrap/Dropdown";
 import Button from "react-bootstrap/Button";
-import { Clear, Close, MoreVert, Search } from "@mui/icons-material";
+import { Clear, MoreVert, Search } from "@mui/icons-material";
 import { ButtonGroup, Row } from "react-bootstrap";
 import Select from "react-select";
 
@@ -69,13 +69,22 @@ export default function ResultEntryDepartmentViewTwo() {
 
     const columns = [
       {
+        Header: "Date",
+        accessor: "billing_date",
+        Cell: ({ value }) => new Date(value).toLocaleDateString(),
+      },
+      {
         Header: "Client name",
         accessor: "fullname",
       },
-      { Header: "billing id", accessor: "billingid" },
       {
         Header: "patientid",
         accessor: "patientid",
+      },
+      { Header: "billing id", accessor: "billingid" },
+      {
+        Header: "AscensionId",
+        accessor: "ascensionid",
       },
       {
         Header: "age",

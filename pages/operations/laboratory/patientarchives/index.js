@@ -62,6 +62,7 @@ const PatientArchivesPage = () => {
          setIsLoading(true);
          getDataArchives();
        } catch (err) {
+        setIsLoading(false);
          setCollection([]);
        } finally {
          setIsLoading(false);
@@ -88,11 +89,6 @@ const PatientArchivesPage = () => {
          Cell: ({ value }) => new Date(value).toLocaleDateString(),
        },
        {
-         Header: "Billing ID",
-         accessor: "billingid",
-         Cell: ({ row }) => <div>{row.original.billingid}</div>,
-       },
-       {
          Header: "Patient ID",
          accessor: "patientid",
          Cell: ({ row }) => <div>{row.original.patientid}</div>,
@@ -105,6 +101,15 @@ const PatientArchivesPage = () => {
              <div>{row.original.fullname}</div>
            </>
          ),
+       },
+       {
+         Header: "Billing ID",
+         accessor: "billingid",
+         Cell: ({ row }) => <div>{row.original.billingid}</div>,
+       },
+       {
+         Header: "sample ascension id",
+         accessor: "ascensionid",
        },
        {
          Header: "Gender",
@@ -151,7 +156,7 @@ const PatientArchivesPage = () => {
        } else {
          return (
            <div>
-             <TableDisplay column={columns} data={collection} showpage={false} />
+             <TableDisplay column={columns} data={collection} showpage={false} exporters={false} />
              <div className="d-flex justify-content-center">
                <Pagination page={query.page} load={setLoad} updateFunction={updatePage} />
              </div>

@@ -8,6 +8,7 @@ import {
   TextSnippetRounded,
   Looks3Sharp,
   VerifiedUser,
+  Outbox,
 } from "@mui/icons-material"
 
 export default function MainSettingsLayoutView({ children, sidebar }) {
@@ -20,6 +21,7 @@ export default function MainSettingsLayoutView({ children, sidebar }) {
     { title: "Departments", link: "/settings/department", icon: <TripOrigin /> },
     { title: "Taxes", link: "/settings/tax", icon: <Looks3Sharp /> },
     { title: "Test Panels", link: "/settings/testpanel/testlist", icon: <TextSnippetRounded /> },
+    { title: "outsourcing", link: "/settings/outsource", icon: <Outbox /> },
     { title: "Email Management", link: "/settings/emailsetting", icon: <Sms /> },
   ];
 

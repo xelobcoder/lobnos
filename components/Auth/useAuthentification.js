@@ -9,7 +9,7 @@ const store = {
   username: null,
   token: null,
   role: null,
-  company: 'TOP CARE MEDICAL LABORATORY AND CENTRE',
+  company: 'VITALSCAN LABORATORY AND DIAGNOSTIC CENTRE',
   branchid: null,
   centerid: null,
   synchronize: false,
@@ -19,7 +19,7 @@ const store = {
   isConnectedInventory: null,
   isSupplierConnected: null,
   loginDuration: null,
-  daysToExpiration: 31,
+  daysToExpiration: 265,
   currency: null,
   decimalPlaces: 3,
 }

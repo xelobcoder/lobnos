@@ -6,6 +6,7 @@ import FrontPagePhelobotomyView from '../components/FrontPageView/phelobotomyVie
 import HeaderNav from "../components/Layout/HeaderNav";
 import AuthContext, { useTheme } from '../components/Auth/useAuthentification';
 import { useContext } from 'react';
+import { Container } from 'react-bootstrap';
 export default function Index() {
   const { daysToExpiration } = useTheme();
   const { auth } = useContext(AuthContext);
@@ -15,12 +16,14 @@ export default function Index() {
     <>
       <HeaderNav />
       {(daysToExpiration && daysToExpiration > 0) ? (
-        <div id="frontpagewrapper" className="bg-white">
-          {role === "customer service representative" && <FrontPageFrontdeskView />}
-          {(role === "admin" || role == "manager") && <FrontPageAdminView />}
-          {role === "scientist" && <FrontPageLabScientistView />}
-          {role === "sonographer" && <FrontPageSonographerView />}
-          {role === "phelobotomist" && <FrontPagePhelobotomyView />}
+        <div id="frontpagewrapper" className="bg-white" style={{height:'max-content'}}>
+          <Container>
+            {role === "customer service representative" && <FrontPageFrontdeskView />}
+            {(role === "admin" || role == "manager") && <FrontPageAdminView />}
+            {role === "scientist" && <FrontPageLabScientistView />}
+            {role === "sonographer" && <FrontPageSonographerView />}
+            {role === "phelobotomist" && <FrontPagePhelobotomyView />}
+          </Container>
         </div>
       ) : (
         <div className='alert alert-danger my-2 mx-3 p-3'>

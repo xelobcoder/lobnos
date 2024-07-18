@@ -143,7 +143,7 @@ const ContractForm = () => {
                         <div style={{ border: '2px dashed #007bff', padding: '20px', textAlign: 'center' }} {...getRootProps({ className: 'dropzone   p-5 ui mb-3 br-5 ' })}>
                             <input {...getInputProps()} />
                             {!formData.file ? (
-                                <p>Drag 'n' drop a PDF file here, or click to select one</p>
+                                <p>Drag  drop a PDF file here, or click to select one</p>
                             ) : (
                                 <div className="file-preview">
                                     <p>{formData.file.name}</p>

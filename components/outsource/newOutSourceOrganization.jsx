@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { Row, Col, Form, Button } from 'react-bootstrap';
 import * as Yup from 'yup';
-import MainSettingsLayoutView from '../settingsComponents/MainSettingsLayoutView';
 export default function OutSourcingOrganizationForm() {
     const [formData, setFormData] = useState({
         organizationID: '',
