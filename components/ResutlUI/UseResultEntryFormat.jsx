@@ -25,15 +25,15 @@ export default function UseResultEntryScientist({ testid, billingid }) {
         <div className="grid grid-50 ui">
           {data.resultentry && (
             <span className="text-uppercase">
-              <span className="fw-bold">{data?.validatedBy ? "VALIDATED BY" : "ENTERED BY"}</span>
+              <span className="fw-bold">{data?.validatedBy ? "VALIDATED BY: " : "VALIDATED BY: "}</span>
               {data?.resultentry}
             </span>
           )}
-          {data.validatedBy && (
+          {/* {data.validatedBy && (
             <span className="text-uppercase">
               <span className="fw-bold">Validated By</span>: {data?.validatedBy}
             </span>
-          )}
+          )} */}
         </div>
       );
     }
