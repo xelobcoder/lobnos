@@ -5,7 +5,7 @@ import Select from 'react-select';
 import { currencyFormatter, customFetch } from "../Auth/customFetch";
 
 export default function OutsourceServices() {
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [cart, setCart] = useState([]);
     const [selectedTest, setSelectedTest] = useState(null);
     const [testOptions, setTestOptions] = useState([]);
@@ -33,7 +33,6 @@ export default function OutsourceServices() {
                 setTestOptions([]);
             }
         };
-
         fetchTestOptions();
     }, []);
 
@@ -74,6 +73,8 @@ export default function OutsourceServices() {
         }
     };
 
+    if (loading) return <h6>Loading data..............</h6>;
+
     return (
         <div>
             <section className="d-flex justify-content-between my-2">
@@ -97,18 +98,6 @@ export default function OutsourceServices() {
                         </tr>
                     </thead>
                     <tbody>
-                        {cart.map((item, index) => (
-                            <tr key={index}>
-                                <td>{item.name}</td>
-                                <td>{currencyFormatter.format(item.price)} GHS</td>
-                                <td className={item.priceDifference <= 0 ? "bg-danger-subtle ui" : "bg-success-subtle ui"}>{currencyFormatter.format(item.priceDifference)}</td>
-                                <td>
-                                    <Button variant="light" className="border-secondary-subtle">
-                                        <Add />
-                                    </Button>
-                                </td>
-                            </tr>
-                        ))}
                         <tr>
                             <td>
                                 <Select
@@ -117,6 +106,7 @@ export default function OutsourceServices() {
                                     classNamePrefix="select"
                                     isClearable
                                     isSearchable
+                                    autoFocus
                                     placeholder="Select a test"
                                     options={testOptions}
                                     value={selectedTest}
@@ -143,6 +133,18 @@ export default function OutsourceServices() {
                                 </Button>
                             </td>
                         </tr>
+                        {cart.map((item, index) => (
+                            <tr key={index}>
+                                <td>{item.name}</td>
+                                <td>{currencyFormatter.format(item.price)} GHS</td>
+                                <td className={item.priceDifference <= 0 ? "bg-danger-subtle ui" : "bg-success-subtle ui"}>{currencyFormatter.format(item.priceDifference)}</td>
+                                <td>
+                                    <Button variant="light" className="border-secondary-subtle">
+                                        <Add />
+                                    </Button>
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </section>

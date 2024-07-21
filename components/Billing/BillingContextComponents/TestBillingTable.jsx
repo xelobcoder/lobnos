@@ -37,7 +37,7 @@ export default function TestBillingTable() {
   };
 
   const getOustandingBill = async () => {
-    if (clientid) {
+    if (patientid) {
       customFetch(`billing/client/bulk/outstanding?patientid=${patientid}`)
         .then((data) => {
           const outstandingDebt = data?.result[0]?.outstanding;
