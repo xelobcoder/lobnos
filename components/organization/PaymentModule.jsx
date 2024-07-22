@@ -1,182 +1,271 @@
-import { useState, useEffect, useCallback } from "react"
-import { customFetch, customPost, handleChangeWithState, organizationPaymentDefault } from "../Auth/customFetch"
-import { useRouter } from "next/router"
-import Loader from "../accessories/Loader"
-import { ToastContainer, toast } from "react-toastify"
+import React, { useCallback, useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { useRouter } from "next/router";
+import { customFetch, customPost, organizationPaymentDefault } from "../Auth/customFetch";
+import Loader from "../accessories/Loader";
+import { ToastContainer, toast } from "react-toastify";
+import { Button, Form, Card } from 'react-bootstrap';
 
-export default function PaymentModule() {
-  const [data, setData] = useState(organizationPaymentDefault)
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
-  const organizationid = router.query.id
+const schema = yup.object().shape({
+  module: yup.string().required("Payment method is required"),
+  commission: yup.number().positive("Commission must be a positive number").required("Commission is required"),
+  momo: yup.string().when("module", {
+    is: "momo",
+    then: yup.string().matches(/^[0-9]{10}$/, "MoMo number must be 10 digits").required("MoMo number is required"),
+  }),
+  momoname: yup.string().when("module", {
+    is: "momo",
+    then: yup.string().required("MoMo account name is required"),
+  }),
+  account: yup.string().when("module", {
+    is: "bank",
+    then: yup.string().required("Account number is required"),
+  }),
+  bankname: yup.string().when("module", {
+    is: "bank",
+    then: yup.string().required("Bank name is required"),
+  }),
+  branch: yup.string().when("module", {
+    is: "bank",
+    then: yup.string().required("Branch is required"),
+  }),
+  accountname: yup.string().when("module", {
+    is: "bank",
+    then: yup.string().required("Account name is required"),
+  }),
+});
+
+export default function PaymentModule({ organizationid }) {
+  const [data, setData] = useState(organizationPaymentDefault);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  const { control, handleSubmit, reset, watch, formState: { errors } } = useForm({
+    defaultValues: data,
+    resolver: yupResolver(schema),
+  });
 
   const getPaymentData = useCallback(async (organizationid) => {
     if (organizationid) {
-      const response = await customFetch(`organization/payment?id=${organizationid}`)
-      const { statusCode, status, result } = response
-      if (statusCode === 200 && status == "success" && result.length > 0) {
-        setData(result[0])
+      const response = await customFetch(`organization/payment?id=${organizationid}`);
+      const { statusCode, status, result } = response;
+      if (statusCode === 200 && status === "success" && result.length > 0) {
+        setData(result[0]);
+        reset(result[0]);
       }
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, [reset]);
 
   useEffect(() => {
     if (organizationid) {
-      getPaymentData(organizationid)
+      getPaymentData(organizationid);
     }
-  }, [organizationid, getPaymentData])
+  }, [organizationid, getPaymentData]);
 
-  const handleSubmit = async () => {
-    let pushResponse = await customPost(`organization/update/payment`, "PUT", { organizationid, ...data })
-    const { status, statusCode, message } = pushResponse
-    if (status == "success" && statusCode == 200) {
-      toast.success(message, { autoClose: 500,position:'top-center' })
+  const onSubmit = async (formData) => {
+    let pushResponse = await customPost(`organization/update/payment`, "PUT", { organizationid, ...formData });
+    const { status, statusCode, message } = pushResponse;
+    if (status === "success" && statusCode === 200) {
+      toast.success(message, { autoClose: 500, position: 'top-center' });
     } else {
-      toast.error(message, { autoClose: 3000,position:'top-center' })
+      toast.error(message, { autoClose: 3000, position: 'top-center' });
     }
-  }
+  };
+
+  const selectedModule = watch("module");
 
   const renderingPayment = () => {
-    if (loading) return <Loader />
-    else {
-      return (
-        <section>
-          <div className="card">
-            <div className="card-header bg-secondary text-white text-capitalize d-flex justify-content-between">
-              <h4>Update Payment information</h4>
-              <div>
-                {organizationid && (
-                  <>
-                    <button
-                      disabled={!organizationid}
-                      className="btn btn  btn-warning  btn-sm mx-1 "
-                      onClick={(ev) => {
-                        router.push(`/organization/${organizationid}/basicinfo`)
-                      }}>
-                      basic information
-                    </button>
-                    <button
-                      disabled={!organizationid}
-                      className="btn btn  btn-warning  btn-sm mx-1 "
-                      onClick={(ev) => {
-                        router.push(`/organization/${organizationid}/contactperson`)
-                      }}>
-                      contact person
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="card-body">
-              <form className="grid grid-50 ">
-                <div className="form-row">
-                  <label>payment method</label>
-                  <select
+    if (loading) return <Loader />;
+
+    return (
+      <Card className="bg-white p-4">
+        <Card.Body>
+          <Form onSubmit={handleSubmit(onSubmit)}>
+            <Form.Group className="grid-reg my-2" controlId="formModule">
+              <Form.Label>Payment Method</Form.Label>
+              <Controller
+                name="module"
+                control={control}
+                render={({ field }) => (
+                  <Form.Control
+                    as="select"
                     className="custom-input"
-                    value={data.module}
-                    onChange={(event) => handleChangeWithState(event, "module", setData, data)}>
-                    <option>select payment method</option>
+                    {...field}
+                    isInvalid={!!errors.module}
+                  >
+                    <option value="">Select payment method</option>
                     <option value="cash">Cash</option>
                     <option value="bank">Bank transfer</option>
                     <option value="momo">Mobile Money</option>
-                  </select>
-                </div>
+                  </Form.Control>
+                )}
+              />
+              <Form.Control.Feedback type="invalid">
+                {errors.module?.message}
+              </Form.Control.Feedback>
+            </Form.Group>
 
-                <div className="form-row">
-                  <label>
-                    commission <span className="label-helper">in percentage(eg.10%)</span>
-                  </label>
-                  <input
-                    className="custom-input"
+            <Form.Group className="grid-reg my-2" controlId="formCommission">
+              <Form.Label>
+                Commission <span className="label-helper">in percentage (e.g., 10%)</span>
+              </Form.Label>
+              <Controller
+                name="commission"
+                control={control}
+                render={({ field }) => (
+                  <Form.Control
                     type="number"
-                    value={data.commission}
-                    onChange={(event) => handleChangeWithState(event, "commission", setData, data)}
+                    className="custom-input"
+                    {...field}
+                    isInvalid={!!errors.commission}
                   />
-                </div>
-                {data.module == "momo" && (
-                  <>
-                    <div className="form-row">
-                      <label>momo account number</label>
-                      <input
-                        className="custom-input"
-                        value={data.momo}
+                )}
+              />
+              <Form.Control.Feedback type="invalid">
+                {errors.commission?.message}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            {selectedModule === "momo" && (
+              <>
+                <Form.Group className="grid-reg my-2" controlId="formMomo">
+                  <Form.Label>MoMo Account Number</Form.Label>
+                  <Controller
+                    name="momo"
+                    control={control}
+                    render={({ field }) => (
+                      <Form.Control
                         type="tel"
-                        minLength={10}
-                        maxLength={10}
-                        required
-                        inputMode="tel"
-                        onChange={(event) => handleChangeWithState(event, "momo", setData, data)}
-                      />
-                    </div>
-                    <div className="form-row">
-                      <label>momo account Name</label>
-                      <input
                         className="custom-input"
-                        value={data.momoname}
-                        type="text"
-                        required
-                        inputMode="text"
-                        onChange={(event) => handleChangeWithState(event, "momoname", setData, data)}
+                        {...field}
+                        isInvalid={!!errors.momo}
                       />
-                    </div>
-                  </>
-                )}
-                {data.module == "bank" && (
-                  <>
-                    <div className="form-row">
-                      <label>account number</label>
-                      <input
-                        type="number"
-                        className="custom-input"
-                        value={data.account}
-                        onChange={(event) => handleChangeWithState(event, "account", setData, data)}
-                      />
-                    </div>
-                    <div className="form-row">
-                      <label>Bank name</label>
-                      <input
-                        className="custom-input"
-                        value={data.bankname}
-                        onChange={(event) => handleChangeWithState(event, "bankname", setData, data)}
-                        type="text"
-                      />
-                    </div>
-                    <div className="form-row">
-                      <label>branch </label>
-                      <input
+                    )}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.momo?.message}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                <Form.Group className="grid-reg my-2" controlId="formMomoName">
+                  <Form.Label>MoMo Account Name</Form.Label>
+                  <Controller
+                    name="momoname"
+                    control={control}
+                    render={({ field }) => (
+                      <Form.Control
                         type="text"
                         className="custom-input"
-                        value={data.branch}
-                        onChange={(event) => handleChangeWithState(event, "branch", setData, data)}
+                        {...field}
+                        isInvalid={!!errors.momoname}
                       />
-                    </div>
-                    <div className="form-row">
-                      <label>account name</label>
-                      <input
+                    )}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.momoname?.message}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </>
+            )}
+
+            {selectedModule === "bank" && (
+              <>
+                <Form.Group className="grid-reg my-2" controlId="formAccount">
+                  <Form.Label>Account Number</Form.Label>
+                  <Controller
+                    name="account"
+                    control={control}
+                    render={({ field }) => (
+                      <Form.Control
                         type="text"
                         className="custom-input"
-                        value={data.accountname}
-                        onChange={(event) => handleChangeWithState(event, "accountname", setData, data)}
+                        {...field}
+                        isInvalid={!!errors.account}
                       />
-                    </div>
-                  </>
-                )}
-              </form>
-              <button type="button" className="btn btn-primary btn-sm mt-3 " onClick={handleSubmit}>
+                    )}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.account?.message}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                <Form.Group className="grid-reg my-2" controlId="formBankName">
+                  <Form.Label>Bank Name</Form.Label>
+                  <Controller
+                    name="bankname"
+                    control={control}
+                    render={({ field }) => (
+                      <Form.Control
+                        type="text"
+                        className="custom-input"
+                        {...field}
+                        isInvalid={!!errors.bankname}
+                      />
+                    )}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.bankname?.message}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                <Form.Group className="grid-reg my-2" controlId="formBranch">
+                  <Form.Label>Branch</Form.Label>
+                  <Controller
+                    name="branch"
+                    control={control}
+                    render={({ field }) => (
+                      <Form.Control
+                        type="text"
+                        className="custom-input"
+                        {...field}
+                        isInvalid={!!errors.branch}
+                      />
+                    )}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.branch?.message}
+                  </Form.Control.Feedback>
+                </Form.Group>
+
+                <Form.Group className="grid-reg my-2" controlId="formAccountName">
+                  <Form.Label>Account Name</Form.Label>
+                  <Controller
+                    name="accountname"
+                    control={control}
+                    render={({ field }) => (
+                      <Form.Control
+                        type="text"
+                        className="custom-input"
+                        {...field}
+                        isInvalid={!!errors.accountname}
+                      />
+                    )}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.accountname?.message}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </>
+            )}
+
+            <Form.Group className="d-flex justify-content-start mt-3">
+              <Button type="submit" variant="primary">
                 Submit
-              </button>
-            </div>
-          </div>
-        </section>
-      )
-    }
-  }
+              </Button>
+            </Form.Group>
+          </Form>
+        </Card.Body>
+      </Card>
+    );
+  };
 
   return (
     <div>
-      <ToastContainer  theme="colored"/>
+      <ToastContainer theme="colored" />
       {renderingPayment()}
     </div>
-  )
+  );
 }

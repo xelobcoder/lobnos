@@ -2,9 +2,10 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { regions, organizationDefaultBasicInfo, handleResponse, customFetch, customPost } from "../Auth/customFetch";
+import { regions, organizationDefaultBasicInfo, handleResponse, customFetch, customPost, validateFormData } from "../Auth/customFetch";
 import Loader from "../accessories/Loader";
 import { Button, Form, InputGroup, Card } from 'react-bootstrap';
+
 
 const schema = yup.object().shape({
     name: yup.string().required("Organization name is required"),
