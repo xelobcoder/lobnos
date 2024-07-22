@@ -1,12 +1,12 @@
 import React from 'react'
-import OrganizatioBasic from '../../components/organization/BasicInfo';
 import OrganizationWrapperLayout from '../../components/organization/OrganizationWrapperLayout';
+import OrganizationNavigationalTabs from '../../components/organization/organizationalTabs';
 
 export default function Index() {
   return (
     <>
       <OrganizationWrapperLayout>
-        <OrganizatioBasic/>
+        <OrganizationNavigationalTabs />
       </OrganizationWrapperLayout>
     </>
   );

@@ -74,10 +74,8 @@ export default function OrganizationList() {
 
   const getOrganizationData = useCallback(
     function (endpoint) {
-      let loadurl = endpoint
-        ? endpoint
-        : `organizations/details?count=${paginate.count}&&page=${paginate.page}&&contact=${filter.contact}&&email=${filter.email}&&organization=${filter.organization}`
-      setLoading(true)
+      let loadurl = endpoint ? endpoint : `organizations/details?count=${paginate.count}&&page=${paginate.page}&&contact=${filter.contact}&&email=${filter.email}&&organization=${filter.organization}`
+      setLoading(true);
       customFetch(loadurl)
         .then((response) => {
           const { statusCode, status, result } = response

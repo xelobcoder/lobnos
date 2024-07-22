@@ -473,14 +473,13 @@ i {font-size:100px;
 }
 
 
-.custom-select:invalid:required {
-  border: 1px solid red !important;
+.custom-select:required:invalid{
+  border: 2px solid red !important;
 }
 
 .custom-input:focus:required:invalid{
   border: 2px solid red !important;
 }
-
 
 
 
