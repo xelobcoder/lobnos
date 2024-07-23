@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useRouter } from "next/router";
 import { customFetch, customPost } from "../Auth/customFetch";
 import Loader from "../accessories/Loader";
 import { Button, Form, Card } from 'react-bootstrap';
+import { ToastContainer, toast } from "react-toastify";
 
 const schema = yup.object().shape({
   name: yup.string().required("Contact person name is required"),
@@ -13,9 +13,7 @@ const schema = yup.object().shape({
   mobile: yup.string().matches(/^[0-9]{10}$/, "Mobile number must be 10 digits").required("Mobile number is required"),
 });
 
-export default function ContactPerson() {
-  const router = useRouter();
-  const organizationid = router.query.id;
+export default function ContactPerson({ organizationid }) {
   const defaultData = { name: "", email: "", mobile: "" };
   const [data, setData] = useState(defaultData);
   const [loading, setLoading] = useState(true);
@@ -25,38 +23,38 @@ export default function ContactPerson() {
     resolver: yupResolver(schema),
   });
 
-  const contactDetails = useCallback(async () => {
+  const contactDetails = async () => {
     try {
       if (organizationid) {
         setLoading(true);
-        const response = await customFetch(`organization/contactperson?id=${organizationid}`);
-        const { status, statusCode, result } = response;
-        if (statusCode === 200 && status === "success" && result.length > 0) {
+        const result = await customFetch(`organization/contactperson?id=${organizationid}`);
+        if (Array.isArray(result) && result.length > 0) {
           setData(result[0]);
-          reset(result[0]);
+          reset(result[0])
         }
         setLoading(false);
       }
     } catch (err) {
       setLoading(false);
     }
-  }, [organizationid, reset]);
+  };
 
   useEffect(() => {
     contactDetails();
-  }, [organizationid, contactDetails]);
+  }, [organizationid]);
 
   const onSubmit = async (formData) => {
-    const postResponse = await customPost(`organization/update/contact`, "PUT", formData);
-    const { statusCode, status, message } = postResponse;
-    if (statusCode === 200 && status === "success") {
-      alert(message);
+    const postResponse = await customPost(`organization/update/contact`, "PUT", { organizationid, ...formData });
+    const { status, message } = postResponse;
+    if (status === true) {
+      toast.success(message);
+    } else {
+      toast.error(message);
     }
   };
 
   const renderingContact = () => {
     if (loading) return <Loader />;
-
     return (
       <Card className="bg-white p-4">
         <Card.Body>
@@ -67,18 +65,21 @@ export default function ContactPerson() {
                 name="name"
                 control={control}
                 render={({ field }) => (
-                  <Form.Control
-                    className="custom-input"
-                    type="text"
-                    placeholder="Contact Person"
-                    {...field}
-                    isInvalid={!!errors.name}
-                  />
+                  <>
+                    <Form.Control
+                      className="custom-input"
+                      type="text"
+                      value={data.name}
+                      placeholder="Contact Person"
+                      {...field}
+                      isInvalid={!!errors.name}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.name?.message}
+                    </Form.Control.Feedback>
+                  </>
                 )}
               />
-              <Form.Control.Feedback type="invalid">
-                {errors.name?.message}
-              </Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="grid-reg my-2" controlId="formEmail">
@@ -87,18 +88,21 @@ export default function ContactPerson() {
                 name="email"
                 control={control}
                 render={({ field }) => (
-                  <Form.Control
-                    className="custom-input"
-                    type="email"
-                    placeholder="Contact Email"
-                    {...field}
-                    isInvalid={!!errors.email}
-                  />
+                  <>
+                    <Form.Control
+                      className="custom-input"
+                      type="email"
+                      value={data.email}
+                      placeholder="Contact Email"
+                      {...field}
+                      isInvalid={!!errors.email}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.email?.message}
+                    </Form.Control.Feedback>
+                  </>
                 )}
               />
-              <Form.Control.Feedback type="invalid">
-                {errors.email?.message}
-              </Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="grid-reg my-2" controlId="formMobile">
@@ -107,19 +111,22 @@ export default function ContactPerson() {
                 name="mobile"
                 control={control}
                 render={({ field }) => (
-                  <Form.Control
-                    className="custom-input"
-                    type="tel"
-                    inputMode="tel"
-                    placeholder="Mobile Number"
-                    {...field}
-                    isInvalid={!!errors.mobile}
-                  />
+                  <>
+                    <Form.Control
+                      className="custom-input"
+                      type="tel"
+                      value={data.mobile}
+                      inputMode="tel"
+                      placeholder="Mobile Number"
+                      {...field}
+                      isInvalid={!!errors.mobile}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.mobile?.message}
+                    </Form.Control.Feedback>
+                  </>
                 )}
               />
-              <Form.Control.Feedback type="invalid">
-                {errors.mobile?.message}
-              </Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="d-flex justify-content-start mt-3">
@@ -133,5 +140,10 @@ export default function ContactPerson() {
     );
   };
 
-  return <section>{renderingContact()}</section>;
+  return (
+    <section>
+      <ToastContainer theme="colored" className={'text-sm'} position="top-center" autoClose={2000} />
+      {renderingContact()}
+    </section>
+  );
 }

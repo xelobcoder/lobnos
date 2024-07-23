@@ -4,8 +4,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { regions, organizationDefaultBasicInfo, handleResponse, customFetch, customPost, validateFormData } from "../Auth/customFetch";
 import Loader from "../accessories/Loader";
-import { Button, Form, InputGroup, Card } from 'react-bootstrap';
-
+import { Button, Form, InputGroup, Card, Row, Col } from 'react-bootstrap';
 
 const schema = yup.object().shape({
     name: yup.string().required("Organization name is required"),
@@ -25,6 +24,7 @@ export default function OrganizationBasicForm({ organizationid }) {
     const [data, setData] = useState(organizationDefaultBasicInfo);
     const [message, setMessage] = useState("Add new organization");
     const [isloading, setLoading] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
 
     const { control, handleSubmit, reset, formState: { errors } } = useForm({
         defaultValues: organizationDefaultBasicInfo,
@@ -56,12 +56,23 @@ export default function OrganizationBasicForm({ organizationid }) {
             });
     }, [organizationid, reset]);
 
+
+
     const onSubmit = async (formData) => {
         if (!organizationid) {
             validateFormData(formData, false, ["name", "mobile"], "new/organizations", handleResponse);
         } else {
             const updateInfo = await customPost("organization/update/basic", "PUT", formData);
             alert(updateInfo?.message);
+        }
+    };
+
+
+
+    const handleImageUpload = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            setSelectedImage(URL.createObjectURL(file));
         }
     };
 
@@ -74,174 +85,196 @@ export default function OrganizationBasicForm({ organizationid }) {
                 </Card.Header>
                 <Card.Body>
                     <Form onSubmit={handleSubmit(onSubmit)}>
-                        <Form.Group className="grid-reg my-2" controlId="formName">
-                            <Form.Label>Organization name</Form.Label>
-                            <Controller
-                                name="name"
-                                control={control}
-                                render={({ field }) => (
-                                    <InputGroup>
-                                        <Form.Control
-                                            className="custom-input"
-                                            type="text"
-                                            placeholder="Organization name"
-                                            {...field}
-                                            isInvalid={!!errors.name}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors.name?.message}
-                                        </Form.Control.Feedback>
-                                    </InputGroup>
-                                )}
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="grid-reg my-2" controlId="formLocation">
-                            <Form.Label>Location</Form.Label>
-                            <Controller
-                                name="location"
-                                control={control}
-                                render={({ field }) => (
+                        <Row>
+                            <Col md={4}>
+                                {/* Image Upload */}
+                                <Form.Group>
+                                    <Form.Label>Upload Image</Form.Label>
                                     <Form.Control
-                                        className="custom-input"
-                                        type="text"
-                                        placeholder="Location"
-                                        {...field}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
                                     />
-                                )}
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="grid-reg my-2" controlId="formStreet">
-                            <Form.Label>Street name</Form.Label>
-                            <Controller
-                                name="street"
-                                control={control}
-                                render={({ field }) => (
-                                    <Form.Control
-                                        className="custom-input"
-                                        type="text"
-                                        placeholder="Street name"
-                                        {...field}
+                                    <div style={{maxHeight:'400px !important'}}>
+                                        {selectedImage && (
+                                            <img src={selectedImage}   style={{height:'380px',width:'100%'}} alt="Preview" 
+                                            className="img-thumbnail mt-2" />
+                                        )}
+                                    </div>
+                                </Form.Group>
+                            </Col>
+                            <Col md={8}>
+                                {/* Form Fields */}
+                                <Form.Group className="grid-reg my-2" controlId="formName">
+                                    <Form.Label>Org. name</Form.Label>
+                                    <Controller
+                                        name="name"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <InputGroup>
+                                                <Form.Control
+                                                    className="custom-input"
+                                                    type="text"
+                                                    placeholder="Organization name"
+                                                    {...field}
+                                                    isInvalid={!!errors.name}
+                                                />
+                                                <Form.Control.Feedback type="invalid">
+                                                    {errors.name?.message}
+                                                </Form.Control.Feedback>
+                                            </InputGroup>
+                                        )}
                                     />
-                                )}
-                            />
-                        </Form.Group>
+                                </Form.Group>
 
-                        <Form.Group className="grid-reg my-2" controlId="formMobile">
-                            <Form.Label>Mobile number</Form.Label>
-                            <Controller
-                                name="mobile"
-                                control={control}
-                                render={({ field }) => (
-                                    <InputGroup>
-                                        <Form.Control
-                                            className="custom-input"
-                                            type="tel"
-                                            inputMode="tel"
-                                            placeholder="0595964565"
-                                            {...field}
-                                            isInvalid={!!errors.mobile}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors.mobile?.message}
-                                        </Form.Control.Feedback>
-                                    </InputGroup>
-                                )}
-                            />
-                        </Form.Group>
-
-                        <Form.Group className="grid-reg my-2" controlId="formAddress">
-                            <Form.Label>Address</Form.Label>
-                            <Controller
-                                name="address"
-                                control={control}
-                                render={({ field }) => (
-                                    <Form.Control
-                                        className="custom-input"
-                                        type="text"
-                                        placeholder="Kalpohin lowcost 30A"
-                                        {...field}
+                                <Form.Group className="grid-reg my-2" controlId="formLocation">
+                                    <Form.Label>Location</Form.Label>
+                                    <Controller
+                                        name="location"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Form.Control
+                                                className="custom-input"
+                                                type="text"
+                                                placeholder="Location"
+                                                {...field}
+                                            />
+                                        )}
                                     />
-                                )}
-                            />
-                        </Form.Group>
+                                </Form.Group>
 
-                        <Form.Group className="grid-reg my-2" controlId="formEmail">
-                            <Form.Label>Email address</Form.Label>
-                            <Controller
-                                name="email"
-                                control={control}
-                                render={({ field }) => (
-                                    <Form.Control
-                                        className="custom-input"
-                                        type="email"
-                                        placeholder="mylab@ymail.com"
-                                        {...field}
+                                <Form.Group className="grid-reg my-2" controlId="formStreet">
+                                    <Form.Label>Street name</Form.Label>
+                                    <Controller
+                                        name="street"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Form.Control
+                                                className="custom-input"
+                                                type="text"
+                                                placeholder="Street name"
+                                                {...field}
+                                            />
+                                        )}
                                     />
-                                )}
-                            />
-                        </Form.Group>
+                                </Form.Group>
 
-                        <Form.Group className="grid-reg my-2" controlId="formWebsite">
-                            <Form.Label>Website</Form.Label>
-                            <Controller
-                                name="website"
-                                control={control}
-                                render={({ field }) => (
-                                    <Form.Control
-                                        className="custom-input"
-                                        type="text"
-                                        placeholder="mylab.com"
-                                        {...field}
+                                <Form.Group className="grid-reg my-2" controlId="formMobile">
+                                    <Form.Label>Mobile number</Form.Label>
+                                    <Controller
+                                        name="mobile"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <InputGroup>
+                                                <Form.Control
+                                                    className="custom-input"
+                                                    type="tel"
+                                                    inputMode="tel"
+                                                    placeholder="0595964565"
+                                                    {...field}
+                                                    isInvalid={!!errors.mobile}
+                                                />
+                                                <Form.Control.Feedback type="invalid">
+                                                    {errors.mobile?.message}
+                                                </Form.Control.Feedback>
+                                            </InputGroup>
+                                        )}
                                     />
-                                )}
-                            />
-                        </Form.Group>
+                                </Form.Group>
 
-                        <Form.Group className="grid-reg my-2" controlId="formGpsMapping">
-                            <Form.Label>GPS Address</Form.Label>
-                            <Controller
-                                name="gpsmapping"
-                                control={control}
-                                render={({ field }) => (
-                                    <Form.Control
-                                        className="custom-input"
-                                        type="text"
-                                        placeholder="NS-1004-383"
-                                        {...field}
+                                <Form.Group className="grid-reg my-2" controlId="formAddress">
+                                    <Form.Label>Address</Form.Label>
+                                    <Controller
+                                        name="address"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Form.Control
+                                                className="custom-input"
+                                                type="text"
+                                                placeholder="Kalpohin lowcost 30A"
+                                                {...field}
+                                            />
+                                        )}
                                     />
-                                )}
-                            />
-                        </Form.Group>
+                                </Form.Group>
 
-                        <Form.Group className="grid-reg my-2" controlId="formRegion">
-                            <Form.Label>Region</Form.Label>
-                            <Controller
-                                name="region"
-                                control={control}
-                                render={({ field }) => (
-                                    <Form.Control
-                                        className="custom-input"
-                                        as="select"
-                                        {...field}
-                                    >
-                                        <option value="">Select a region</option>
-                                        {regions.map((item, index) => (
-                                            <option key={index} value={item}>
-                                                {item}
-                                            </option>
-                                        ))}
-                                    </Form.Control>
-                                )}
-                            />
-                        </Form.Group>
+                                <Form.Group className="grid-reg my-2" controlId="formEmail">
+                                    <Form.Label>Email address</Form.Label>
+                                    <Controller
+                                        name="email"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Form.Control
+                                                className="custom-input"
+                                                type="email"
+                                                placeholder="mylab@ymail.com"
+                                                {...field}
+                                            />
+                                        )}
+                                    />
+                                </Form.Group>
 
-                        <Form.Group className="d-flex justify-content-start mt-3">
-                            <Button type="submit" variant="primary">
-                                Save Organization
-                            </Button>
-                        </Form.Group>
+                                <Form.Group className="grid-reg my-2" controlId="formWebsite">
+                                    <Form.Label>Website</Form.Label>
+                                    <Controller
+                                        name="website"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Form.Control
+                                                className="custom-input"
+                                                type="text"
+                                                placeholder="mylab.com"
+                                                {...field}
+                                            />
+                                        )}
+                                    />
+                                </Form.Group>
+
+                                <Form.Group className="grid-reg my-2" controlId="formGpsMapping">
+                                    <Form.Label>GPS Address</Form.Label>
+                                    <Controller
+                                        name="gpsmapping"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Form.Control
+                                                className="custom-input"
+                                                type="text"
+                                                placeholder="NS-1004-383"
+                                                {...field}
+                                            />
+                                        )}
+                                    />
+                                </Form.Group>
+
+                                <Form.Group className="grid-reg my-2" controlId="formRegion">
+                                    <Form.Label>Region</Form.Label>
+                                    <Controller
+                                        name="region"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Form.Control
+                                                className="custom-input"
+                                                as="select"
+                                                {...field}
+                                            >
+                                                <option value="">Select a region</option>
+                                                {regions.map((item, index) => (
+                                                    <option key={index} value={item}>
+                                                        {item}
+                                                    </option>
+                                                ))}
+                                            </Form.Control>
+                                        )}
+                                    />
+                                </Form.Group>
+
+                                <Form.Group className="d-flex justify-content-start mt-3">
+                                    <Button type="submit" variant="primary">
+                                        Save Organization
+                                    </Button>
+                                </Form.Group>
+                            </Col>
+                        </Row>
                     </Form>
                 </Card.Body>
             </Card>

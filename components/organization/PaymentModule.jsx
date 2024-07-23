@@ -1,63 +1,30 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import { useRouter } from "next/router";
 import { customFetch, customPost, organizationPaymentDefault } from "../Auth/customFetch";
 import Loader from "../accessories/Loader";
 import { ToastContainer, toast } from "react-toastify";
 import { Button, Form, Card } from 'react-bootstrap';
 
-const schema = yup.object().shape({
-  module: yup.string().required("Payment method is required"),
-  commission: yup.number().positive("Commission must be a positive number").required("Commission is required"),
-  momo: yup.string().when("module", {
-    is: "momo",
-    then: yup.string().matches(/^[0-9]{10}$/, "MoMo number must be 10 digits").required("MoMo number is required"),
-  }),
-  momoname: yup.string().when("module", {
-    is: "momo",
-    then: yup.string().required("MoMo account name is required"),
-  }),
-  account: yup.string().when("module", {
-    is: "bank",
-    then: yup.string().required("Account number is required"),
-  }),
-  bankname: yup.string().when("module", {
-    is: "bank",
-    then: yup.string().required("Bank name is required"),
-  }),
-  branch: yup.string().when("module", {
-    is: "bank",
-    then: yup.string().required("Branch is required"),
-  }),
-  accountname: yup.string().when("module", {
-    is: "bank",
-    then: yup.string().required("Account name is required"),
-  }),
-});
-
 export default function PaymentModule({ organizationid }) {
   const [data, setData] = useState(organizationPaymentDefault);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const [errors, setErrors] = useState({});
+  const [formData, setFormData] = useState(organizationPaymentDefault);
 
-  const { control, handleSubmit, reset, watch, formState: { errors } } = useForm({
-    defaultValues: data,
-    resolver: yupResolver(schema),
-  });
-
+  // Fetch payment data
   const getPaymentData = useCallback(async (organizationid) => {
     if (organizationid) {
-      const response = await customFetch(`organization/payment?id=${organizationid}`);
-      const { statusCode, status, result } = response;
-      if (statusCode === 200 && status === "success" && result.length > 0) {
-        setData(result[0]);
-        reset(result[0]);
+      try {
+        const result = await customFetch(`organization/payment?id=${organizationid}`);
+        if (Array.isArray(result) && result.length > 0) {
+          setData(result[0]);
+          setFormData(result[0]);
+        }
+        setLoading(false);
+      } catch (err) {
+        setLoading(false);
       }
-      setLoading(false);
     }
-  }, [reset]);
+  }, []);
 
   useEffect(() => {
     if (organizationid) {
@@ -65,46 +32,101 @@ export default function PaymentModule({ organizationid }) {
     }
   }, [organizationid, getPaymentData]);
 
-  const onSubmit = async (formData) => {
-    let pushResponse = await customPost(`organization/update/payment`, "PUT", { organizationid, ...formData });
-    const { status, statusCode, message } = pushResponse;
-    if (status === "success" && statusCode === 200) {
-      toast.success(message, { autoClose: 500, position: 'top-center' });
-    } else {
-      toast.error(message, { autoClose: 3000, position: 'top-center' });
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
+  };
+
+
+  const validateForm = () => {
+    let formErrors = {};
+    let isValid = true;
+
+
+    if (!formData.module) {
+      formErrors.module = "Payment method is required";
+      isValid = false;
+    }
+    if (!formData.commission || isNaN(formData.commission) || formData.commission <= 0) {
+      formErrors.commission = "Commission must be a positive number";
+      isValid = false;
+    }
+
+    if (formData.module === "momo") {
+      if (!formData.momo || !/^[0-9]{10}$/.test(formData.momo)) {
+        formErrors.momo = "MoMo number must be 10 digits";
+        isValid = false;
+      }
+      if (!formData.momoname) {
+        formErrors.momoname = "MoMo account name is required";
+        isValid = false;
+      }
+    } else if (formData.module === "bank") {
+      if (!formData.account) {
+        formErrors.account = "Account number is required";
+        isValid = false;
+      }
+      if (!formData.bankname) {
+        formErrors.bankname = "Bank name is required";
+        isValid = false;
+      }
+      if (!formData.branch) {
+        formErrors.branch = "Branch is required";
+        isValid = false;
+      }
+      if (!formData.accountname) {
+        formErrors.accountname = "Account name is required";
+        isValid = false;
+      }
+    }
+
+    setErrors(formErrors);
+    return isValid;
+  };
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      try {
+        const pushResponse = await customPost(`organization/update/payment`, "PUT", { organizationid, ...formData });
+        const { status, statusCode, message } = pushResponse;
+        if (status === true) {
+          toast.success('updated successfully');
+        } else {
+          toast.error('something wrong occured');
+        }
+      } catch (err) {
+        toast.error("An error occurred");
+      }
     }
   };
 
-  const selectedModule = watch("module");
-
+  // Render form
   const renderingPayment = () => {
     if (loading) return <Loader />;
 
     return (
       <Card className="bg-white p-4">
         <Card.Body>
-          <Form onSubmit={handleSubmit(onSubmit)}>
+          <Form onSubmit={handleSubmit}>
             <Form.Group className="grid-reg my-2" controlId="formModule">
               <Form.Label>Payment Method</Form.Label>
-              <Controller
+              <Form.Control
+                as="select"
+                className="custom-input"
                 name="module"
-                control={control}
-                render={({ field }) => (
-                  <Form.Control
-                    as="select"
-                    className="custom-input"
-                    {...field}
-                    isInvalid={!!errors.module}
-                  >
-                    <option value="">Select payment method</option>
-                    <option value="cash">Cash</option>
-                    <option value="bank">Bank transfer</option>
-                    <option value="momo">Mobile Money</option>
-                  </Form.Control>
-                )}
-              />
+                value={formData.module}
+                onChange={handleInputChange}
+                isInvalid={!!errors.module}
+              >
+                <option value="">Select payment method</option>
+                <option value="cash">Cash</option>
+                <option value="bank">Bank transfer</option>
+                <option value="momo">Mobile Money</option>
+              </Form.Control>
               <Form.Control.Feedback type="invalid">
-                {errors.module?.message}
+                {errors.module}
               </Form.Control.Feedback>
             </Form.Group>
 
@@ -112,140 +134,112 @@ export default function PaymentModule({ organizationid }) {
               <Form.Label>
                 Commission <span className="label-helper">in percentage (e.g., 10%)</span>
               </Form.Label>
-              <Controller
+              <Form.Control
+                type="number"
+                className="custom-input"
                 name="commission"
-                control={control}
-                render={({ field }) => (
-                  <Form.Control
-                    type="number"
-                    className="custom-input"
-                    {...field}
-                    isInvalid={!!errors.commission}
-                  />
-                )}
+                value={formData.commission}
+                onChange={handleInputChange}
+                isInvalid={!!errors.commission}
               />
               <Form.Control.Feedback type="invalid">
-                {errors.commission?.message}
+                {errors.commission}
               </Form.Control.Feedback>
             </Form.Group>
 
-            {selectedModule === "momo" && (
+            {formData.module === "momo" && (
               <>
                 <Form.Group className="grid-reg my-2" controlId="formMomo">
                   <Form.Label>MoMo Account Number</Form.Label>
-                  <Controller
+                  <Form.Control
+                    type="tel"
+                    className="custom-input"
                     name="momo"
-                    control={control}
-                    render={({ field }) => (
-                      <Form.Control
-                        type="tel"
-                        className="custom-input"
-                        {...field}
-                        isInvalid={!!errors.momo}
-                      />
-                    )}
+                    value={formData.momo}
+                    onChange={handleInputChange}
+                    isInvalid={!!errors.momo}
                   />
                   <Form.Control.Feedback type="invalid">
-                    {errors.momo?.message}
+                    {errors.momo}
                   </Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group className="grid-reg my-2" controlId="formMomoName">
                   <Form.Label>MoMo Account Name</Form.Label>
-                  <Controller
+                  <Form.Control
+                    type="text"
+                    className="custom-input"
                     name="momoname"
-                    control={control}
-                    render={({ field }) => (
-                      <Form.Control
-                        type="text"
-                        className="custom-input"
-                        {...field}
-                        isInvalid={!!errors.momoname}
-                      />
-                    )}
+                    value={formData.momoname}
+                    onChange={handleInputChange}
+                    isInvalid={!!errors.momoname}
                   />
                   <Form.Control.Feedback type="invalid">
-                    {errors.momoname?.message}
+                    {errors.momoname}
                   </Form.Control.Feedback>
                 </Form.Group>
               </>
             )}
 
-            {selectedModule === "bank" && (
+            {formData.module === "bank" && (
               <>
                 <Form.Group className="grid-reg my-2" controlId="formAccount">
                   <Form.Label>Account Number</Form.Label>
-                  <Controller
+                  <Form.Control
+                    type="text"
+                    className="custom-input"
                     name="account"
-                    control={control}
-                    render={({ field }) => (
-                      <Form.Control
-                        type="text"
-                        className="custom-input"
-                        {...field}
-                        isInvalid={!!errors.account}
-                      />
-                    )}
+                    value={formData.account}
+                    onChange={handleInputChange}
+                    isInvalid={!!errors.account}
                   />
                   <Form.Control.Feedback type="invalid">
-                    {errors.account?.message}
+                    {errors.account}
                   </Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group className="grid-reg my-2" controlId="formBankName">
                   <Form.Label>Bank Name</Form.Label>
-                  <Controller
+                  <Form.Control
+                    type="text"
+                    className="custom-input"
                     name="bankname"
-                    control={control}
-                    render={({ field }) => (
-                      <Form.Control
-                        type="text"
-                        className="custom-input"
-                        {...field}
-                        isInvalid={!!errors.bankname}
-                      />
-                    )}
+                    value={formData.bankname}
+                    onChange={handleInputChange}
+                    isInvalid={!!errors.bankname}
                   />
                   <Form.Control.Feedback type="invalid">
-                    {errors.bankname?.message}
+                    {errors.bankname}
                   </Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group className="grid-reg my-2" controlId="formBranch">
                   <Form.Label>Branch</Form.Label>
-                  <Controller
+                  <Form.Control
+                    type="text"
+                    className="custom-input"
                     name="branch"
-                    control={control}
-                    render={({ field }) => (
-                      <Form.Control
-                        type="text"
-                        className="custom-input"
-                        {...field}
-                        isInvalid={!!errors.branch}
-                      />
-                    )}
+                    value={formData.branch}
+                    onChange={handleInputChange}
+                    isInvalid={!!errors.branch}
                   />
                   <Form.Control.Feedback type="invalid">
-                    {errors.branch?.message}
+                    {errors.branch}
                   </Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group className="grid-reg my-2" controlId="formAccountName">
                   <Form.Label>Account Name</Form.Label>
-                  <Controller
+                  <Form.Control
+                    type="text"
+                    className="custom-input"
                     name="accountname"
-                    control={control}
-                    render={({ field }) => (
-                      <Form.Control
-                        type="text"
-                        className="custom-input"
-                        {...field}
-                        isInvalid={!!errors.accountname}
-                      />
-                    )}
+                    value={formData.accountname}
+                    onChange={handleInputChange}
+                    isInvalid={!!errors.accountname}
                   />
                   <Form.Control.Feedback type="invalid">
-                    {errors.accountname?.message}
+                    {errors.accountname}
                   </Form.Control.Feedback>
                 </Form.Group>
               </>
@@ -264,7 +258,7 @@ export default function PaymentModule({ organizationid }) {
 
   return (
     <div>
-      <ToastContainer theme="colored" />
+      <ToastContainer theme="colored" className='text-sm' position="top-center" autoClose={2000} />
       {renderingPayment()}
     </div>
   );
