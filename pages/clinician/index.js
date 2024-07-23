@@ -1,4 +1,3 @@
-// components/Clinicians/ClinicianList.jsx
 import { useCallback, useEffect, useState } from "react";
 import { customPost, getDataAndUpdateState, updatePagination } from "../../components/Auth/customFetch";
 import TableDisplay from '../../components/accessories/TableDisplay';
@@ -37,9 +36,7 @@ export default function ClinicianList() {
     const ForClientEdit = (originaldata) => {
         const { id } = originaldata;
         if (!id) return;
-        setEditing({ editing: true, editid: parseInt(id) });
-        router.push('/clinician/new'); // Redirect to form page
-        window.scrollTo(0, 0);
+        router.push(`/clinician/new?clinicianid=${id}`); 
     };
 
     const columns = [
@@ -142,7 +139,7 @@ export default function ClinicianList() {
             <ToastContainer />
             <div className="d-flex justify-content-between"> 
                 <h4>Registered Clinician List</h4>
-                <Button variant='primary'>
+                <Button variant='primary' onClick={(ev) =>  {router.push("/clinician/new")}} >
                     Add new Clinician
                 </Button>
             </div>

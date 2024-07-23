@@ -1,24 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import { regions, organizationDefaultBasicInfo, handleResponse, customFetch, customPost, validateFormData } from "../Auth/customFetch";
 import Loader from "../accessories/Loader";
 import { Button, Form, InputGroup, Card, Row, Col } from 'react-bootstrap';
-
-const schema = yup.object().shape({
-    name: yup.string().required("Organization name is required"),
-    location: yup.string(),
-    street: yup.string(),
-    mobile: yup.string()
-        .matches(/^[0-9]{10}$/, "Mobile number must be 10 digits")
-        .required("Mobile number is required"),
-    address: yup.string(),
-    email: yup.string().email("Invalid email address"),
-    website: yup.string().url("Invalid URL"),
-    gpsmapping: yup.string(),
-    region: yup.string(),
-});
+import { toast, ToastContainer } from 'react-toastify';
 
 export default function OrganizationBasicForm({ organizationid }) {
     const [data, setData] = useState(organizationDefaultBasicInfo);
@@ -26,11 +10,9 @@ export default function OrganizationBasicForm({ organizationid }) {
     const [isloading, setLoading] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [dragging, setDragging] = useState(false);
-
-    const { control, handleSubmit, reset, formState: { errors } } = useForm({
-        defaultValues: organizationDefaultBasicInfo,
-        resolver: yupResolver(schema),
-    });
+    const [formValues, setFormValues] = useState(organizationDefaultBasicInfo);
+    const [formErrors, setFormErrors] = useState({});
+    const [rawfile, setRawFiles] = useState(null);
 
     useEffect(() => {
         if (organizationid) {
@@ -46,7 +28,7 @@ export default function OrganizationBasicForm({ organizationid }) {
                 const { statusCode, status, result } = response;
                 if (statusCode === 200 && status === "success") {
                     setData(result[0]);
-                    reset(result[0]);
+                    setFormValues(result[0]);
                 }
                 setLoading(false);
             })
@@ -55,28 +37,91 @@ export default function OrganizationBasicForm({ organizationid }) {
                 alert("Error getting data;");
                 setLoading(false);
             });
-    }, [organizationid, reset]);
+    }, [organizationid]);
 
-    const onSubmit = async (formData) => {
-        if (!organizationid) {
-            validateFormData(formData, false, ["name", "mobile"], "new/organizations", handleResponse);
-        } else {
-            const updateInfo = await customPost("organization/update/basic", "PUT", formData);
-            alert(updateInfo?.message);
+    const validateFields = (formData) => {
+        const errors = {};
+        if (!formData.name) {
+            errors.name = "Organization name is required";
+        }
+        if (!formData.mobile) {
+            errors.mobile = "Mobile number is required";
+        } else if (!/^[0-9]{10}$/.test(formData.mobile)) {
+            errors.mobile = "Mobile number must be 10 digits";
+        }
+        if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+            errors.email = "Invalid email address";
+        }
+        if (formData.website && !/^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/.test(formData.website)) {
+            errors.website = "Invalid URL";
+        }
+        return errors;
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormValues({
+            ...formValues,
+            [name]: value,
+        });
+    };
+
+    const onSubmit = async (e) => {
+        e.preventDefault();
+        const validationErrors = validateFields(formValues);
+        if (Object.keys(validationErrors).length) {
+            setFormErrors(validationErrors);
+            return;
+        }
+
+        try {
+            if (!organizationid) {
+                validateFormData(formValues, false, ["name", "mobile"], "new/organizations", handleResponse);
+            } else {
+                const updateInfo = await customPost("organization/update/basic", "PUT", formValues);
+                toast.success(updateInfo?.message);
+            }
+        } catch (err) {
+            toast.error('something wrong occurred');
         }
     };
 
-    const handleImageUpload = (event) => {
+
+
+    const uploadImageCall = async function () {
+        if (!selectedImage) return;
+        try {
+            const formData = new FormData();
+            formData.append('organizationImage', file);
+            const response = await fetch('/organization/profile/image', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                toast.success('Image uploaded successfully');
+            } else {
+                toast.error('Failed to upload image');
+            }
+        } catch (error) {
+            toast.error('An error occurred during image upload');
+        }
+    }
+
+    const handleImageUpload = async (event) => {
         const file = event.target.files[0];
+        setRawFiles(file);
         if (file) {
             setSelectedImage(URL.createObjectURL(file));
         }
     };
 
-    const handleDrop = (event) => {
+    const handleDrop = async (event) => {
         event.preventDefault();
         setDragging(false);
         const file = event.dataTransfer.files[0];
+        setRawFiles(file);
         if (file) {
             setSelectedImage(URL.createObjectURL(file));
         }
@@ -100,7 +145,7 @@ export default function OrganizationBasicForm({ organizationid }) {
                     <h5>{message}</h5>
                 </Card.Header>
                 <Card.Body>
-                    <Form onSubmit={handleSubmit(onSubmit)}>
+                    <Form onSubmit={onSubmit}>
                         <Row>
                             <Col md={4}>
                                 {/* Image Upload */}
@@ -141,183 +186,142 @@ export default function OrganizationBasicForm({ organizationid }) {
                                 {/* Form Fields */}
                                 <Form.Group className="grid-reg my-2" controlId="formName">
                                     <Form.Label>Org. name</Form.Label>
-                                    <Controller
-                                        name="name"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <InputGroup>
-                                                <Form.Control
-                                                    className="custom-input"
-                                                    type="text"
-                                                    placeholder="Organization name"
-                                                    {...field}
-                                                    isInvalid={!!errors.name}
-                                                />
-                                                <Form.Control.Feedback type="invalid">
-                                                    {errors.name?.message}
-                                                </Form.Control.Feedback>
-                                            </InputGroup>
-                                        )}
-                                    />
+                                    <InputGroup>
+                                        <Form.Control
+                                            className="custom-input"
+                                            type="text"
+                                            placeholder="Organization name"
+                                            name="name"
+                                            value={formValues.name}
+                                            onChange={handleChange}
+                                            isInvalid={!!formErrors.name}
+                                        />
+                                        <Form.Control.Feedback type="invalid">
+                                            {formErrors.name}
+                                        </Form.Control.Feedback>
+                                    </InputGroup>
                                 </Form.Group>
 
                                 <Form.Group className="grid-reg my-2" controlId="formLocation">
                                     <Form.Label>Location</Form.Label>
-                                    <Controller
+                                    <Form.Control
+                                        className="custom-input"
+                                        type="text"
+                                        placeholder="Location"
                                         name="location"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Form.Control
-                                                className="custom-input"
-                                                type="text"
-                                                placeholder="Location"
-                                                {...field}
-                                            />
-                                        )}
+                                        value={formValues.location}
+                                        onChange={handleChange}
                                     />
                                 </Form.Group>
 
                                 <Form.Group className="grid-reg my-2" controlId="formStreet">
                                     <Form.Label>Street name</Form.Label>
-                                    <Controller
+                                    <Form.Control
+                                        className="custom-input"
+                                        type="text"
+                                        placeholder="Street name"
                                         name="street"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Form.Control
-                                                className="custom-input"
-                                                type="text"
-                                                placeholder="Street name"
-                                                {...field}
-                                            />
-                                        )}
+                                        value={formValues.street}
+                                        onChange={handleChange}
                                     />
                                 </Form.Group>
 
                                 <Form.Group className="grid-reg my-2" controlId="formMobile">
                                     <Form.Label>Mobile number</Form.Label>
-                                    <Controller
-                                        name="mobile"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <InputGroup>
-                                                <Form.Control
-                                                    className="custom-input"
-                                                    type="tel"
-                                                    inputMode="tel"
-                                                    placeholder="0595964565"
-                                                    {...field}
-                                                    isInvalid={!!errors.mobile}
-                                                />
-                                                <Form.Control.Feedback type="invalid">
-                                                    {errors.mobile?.message}
-                                                </Form.Control.Feedback>
-                                            </InputGroup>
-                                        )}
-                                    />
+                                    <InputGroup>
+                                        <Form.Control
+                                            className="custom-input"
+                                            type="tel"
+                                            minLength={10}
+                                            maxLength={10}
+                                            inputMode="tel"
+                                            placeholder="0595964565"
+                                            name="mobile"
+                                            value={formValues.mobile}
+                                            onChange={handleChange}
+                                            isInvalid={!!formErrors.mobile}
+                                        />
+                                        <Form.Control.Feedback type="invalid">
+                                            {formErrors.mobile}
+                                        </Form.Control.Feedback>
+                                    </InputGroup>
                                 </Form.Group>
 
                                 <Form.Group className="grid-reg my-2" controlId="formAddress">
                                     <Form.Label>Address</Form.Label>
-                                    <Controller
+                                    <Form.Control
+                                        className="custom-input"
+                                        type="text"
+                                        placeholder="Kalpohin lowcost 30A"
                                         name="address"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Form.Control
-                                                className="custom-input"
-                                                type="text"
-                                                placeholder="Kalpohin lowcost 30A"
-                                                {...field}
-                                            />
-                                        )}
+                                        value={formValues.address}
+                                        onChange={handleChange}
                                     />
                                 </Form.Group>
 
                                 <Form.Group className="grid-reg my-2" controlId="formEmail">
                                     <Form.Label>Email address</Form.Label>
-                                    <Controller
+                                    <Form.Control
+                                        className="custom-input"
+                                        type="email"
+                                        placeholder="mylab@ymail.com"
                                         name="email"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Form.Control
-                                                className="custom-input"
-                                                type="email"
-                                                placeholder="mylab@ymail.com"
-                                                {...field}
-                                            />
-                                        )}
+                                        value={formValues.email}
+                                        onChange={handleChange}
                                     />
                                 </Form.Group>
 
                                 <Form.Group className="grid-reg my-2" controlId="formWebsite">
                                     <Form.Label>Website</Form.Label>
-                                    <Controller
+                                    <Form.Control
+                                        className="custom-input"
+                                        type="text"
+                                        placeholder="mylab.com"
                                         name="website"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Form.Control
-                                                className="custom-input"
-                                                type="text"
-                                                placeholder="mylab.com"
-                                                {...field}
-                                            />
-                                        )}
+                                        value={formValues.website}
+                                        onChange={handleChange}
                                     />
                                 </Form.Group>
 
                                 <Form.Group className="grid-reg my-2" controlId="formGpsMapping">
                                     <Form.Label>GPS Address</Form.Label>
-                                    <Controller
+                                    <Form.Control
+                                        className="custom-input"
+                                        type="text"
+                                        placeholder="NS-1004-383"
                                         name="gpsmapping"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Form.Control
-                                                className="custom-input"
-                                                type="text"
-                                                placeholder="NS-1004-383"
-                                                {...field}
-                                            />
-                                        )}
+                                        value={formValues.gpsmapping}
+                                        onChange={handleChange}
                                     />
                                 </Form.Group>
 
                                 <Form.Group className="grid-reg my-2" controlId="formRegion">
                                     <Form.Label>Region</Form.Label>
-                                    <Controller
+                                    <Form.Select
+                                        className="custom-input"
                                         name="region"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Form.Control
-                                                className="custom-input"
-                                                as="select"
-                                                {...field}
-                                            >
-                                                <option value="">Select a region</option>
-                                                {regions.map((item, index) => (
-                                                    <option key={index} value={item}>
-                                                        {item}
-                                                    </option>
-                                                ))}
-                                            </Form.Control>
-                                        )}
-                                    />
+                                        value={formValues.region}
+                                        onChange={handleChange}
+                                    >
+                                        {regions.map((region, index) => (
+                                            <option key={index} value={region}>
+                                                {region}
+                                            </option>
+                                        ))}
+                                    </Form.Select>
                                 </Form.Group>
 
-                                <Form.Group className="d-flex justify-content-start mt-3">
-                                    <Button type="submit" variant="primary">
-                                        Save Organization
-                                    </Button>
-                                </Form.Group>
+                                <Button variant="primary" type="submit">
+                                    {organizationid ? "Update" : "Add"}
+                                </Button>
                             </Col>
                         </Row>
                     </Form>
+                    <ToastContainer />
                 </Card.Body>
             </Card>
         );
     };
 
-    return (
-        <div className="p-3">
-            {renderingFormView()}
-        </div>
-    );
+    return <>{renderingFormView()}</>;
 }
