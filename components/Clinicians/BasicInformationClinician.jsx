@@ -1,13 +1,25 @@
-import { useState, useEffect } from "react"
-import {
-  customPost,
-  getDataAndUpdateState,
-  handleChangeWithState,
-} from "../../components/Auth/customFetch"
-import Loader from "../accessories/Loader"
-export default function BasicInformationClinician({ method, toast, editing, editid,reset,updateItem}) {
-  const [OrganizationList, setOrganization] = useState([])
-  const [isloading, setLoading] = useState(false)
+import { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { customPost, getDataAndUpdateState, handleChangeWithState } from "../../components/Auth/customFetch";
+import Loader from "../accessories/Loader";
+import { Button, Form } from 'react-bootstrap';
+
+// Define the Yup schema for validation
+const schema = yup.object().shape({
+  name: yup.string().required("Clinician name is required"),
+  phone: yup.string().matches(/^[0-9]{10}$/, "Phone number must be 10 digits").required("Phone number is required"),
+  email: yup.string().email("Invalid email address"),
+  organization: yup.number(),
+  location: yup.string(),
+  address: yup.string(),
+  occupation: yup.string()
+});
+
+export default function BasicInformationClinician({ method, toast, editing, editid, reset, updateItem }) {
+  const [OrganizationList, setOrganization] = useState([]);
+  const [isloading, setLoading] = useState(false);
 
   const defaultData = {
     id: editid,
@@ -18,185 +30,232 @@ export default function BasicInformationClinician({ method, toast, editing, edit
     location: "",
     address: "",
     occupation: "",
-  }
+  };
 
-  const [data, setData] = useState(defaultData)
+  const { control, handleSubmit, reset: resetForm, formState: { errors } } = useForm({
+    defaultValues: defaultData,
+    resolver: yupResolver(schema),
+  });
+
   const getClientForEdit = (originaldata) => {
-    setData(originaldata)
-  }
+    resetForm(originaldata);
+  };
 
   const setDefault = () => {
-    setData(defaultData)
-  }
+    resetForm(defaultData);
+  };
 
-  const handleSubmit = async () => {
+  const handleFormSubmit = async (data) => {
     const handleResponse = function (response) {
-      const { statusCode, status, message } = response
-      if (statusCode == 200 && status == "success") {
-        toast.success(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 })
-        updateItem(data,3)
+      const { statusCode, status, message } = response;
+      if (statusCode === 200 && status === "success") {
+        toast.success(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
+        updateItem(data, 3);
         setDefault();
       } else {
-        toast.error(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 })
+        toast.error(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
       }
-    }
-    const response = await customPost("clinicians", method, data)
+    };
+    const response = await customPost("clinicians", method, data);
     handleResponse(response);
     reset();
-  }
+  };
 
   useEffect(() => {
-    if (editing == true && editid) {
-      setLoading(true)
+    if (editing && editid) {
+      setLoading(true);
       getDataAndUpdateState(setData, `clinicians/getclinician?id=${editid}`, true)
         .then((data) => {
           if (Array.isArray(data) && data.length > 0) {
-            getClientForEdit(data[0])
-            setLoading(false)
+            getClientForEdit(data[0]);
+            setLoading(false);
           }
         })
         .catch((err) => {
-          setLoading(false)
-          console.log(err)
-        })
+          setLoading(false);
+          console.log(err);
+        });
     }
-  }, [editid, editing])
+  }, [editid, editing]);
 
   useEffect(() => {
-    getDataAndUpdateState(setOrganization, "organization")
-  }, [])
+    getDataAndUpdateState(setOrganization, "organization");
+  }, []);
 
   const renderingView = () => {
-    if (isloading) return <Loader />
-    else {
-      return (
-        <form autoComplete="off">
-          <div className="grid-50 grid">
-            <div>
-              <label htmlFor="name" className="form-label">
-                Clinician Name
-              </label>
-              <input
-                type="text"
-                className="custom-input"
-                id="name"
-                placeholder="Enter Clinician Name"
-                value={data.name}
-                style={{ width: "100%" }}
-                size="sm"
-                onChange={(event) => handleChangeWithState(event, "name", setData, data)}
-              />
-            </div>
-            <div>
-              <label htmlFor="phone" className="form-label">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                className="custom-input"
-                id="phone"
-                placeholder="Enter Phone Number"
-                value={data.phone}
-                onChange={(event) => handleChangeWithState(event, "phone", setData, data)}
-                maxLength={10}
-                minLength={10}
-                style={{ width: "100%" }}
-                size="sm"
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="form-label">
-                Email
-              </label>
-              <input
-                type="email"
-                className="custom-input"
-                id="email"
-                placeholder="Enter Email"
-                style={{ width: "100%" }}
-                size="sm"
-                value={data.email}
-                onChange={(event) => handleChangeWithState(event, "email", setData, data)}
-              />
-            </div>
-            <div>
-              <label htmlFor="organization" className="form-label">
-                Organization
-              </label>
-              <select
-                className="custom-select"
-                id="organization"
-                style={{ width: "100%" }}
-                onChange={(event) => {
-                  if (Array.isArray(OrganizationList) && OrganizationList.length > 0) {
-                    setData({ ...data, organization: event.target.value })
-                  }
-                }}>
-                <option value="">Organization</option>
-                {OrganizationList.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="location" className="form-label">
-                Location
-              </label>
-              <input
-                type="text"
-                className="custom-input"
-                id="location"
-                onChange={(event) => handleChangeWithState(event, "location", setData, data)}
-                placeholder="Enter Location"
-                style={{ width: "100%" }}
-                size="sm"
-                value={data.location}
-              />
-            </div>
-            <div>
-              <label htmlFor="address" className="form-label">
-                Address
-              </label>
-              <input
-                type="text"
-                className="custom-input"
-                id="address"
-                placeholder="Enter Address"
-                value={data.address}
-                onChange={(event) => handleChangeWithState(event, "address", setData, data)}
-                style={{ width: "100%" }}
-                size="sm"
-              />
-            </div>
-            <div>
-              <label htmlFor="occupation" className="form-label">
-                Occupation
-              </label>
-              <select
-                className="custom-select"
-                id="occupation"
-                style={{ width: "100%" }}
-                value={data.occupation}
-                onChange={(event) => handleChangeWithState(event, "occupation", setData, data)}
-                size="sm">
-                <option value="">Select occupation</option>
-                <option value="doctor">Doctor</option>
-                <option value="nurse">Nurse</option>
-                <option value="pharmacist">Pharmacist</option>
-                <option value="therapist">Therapist</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-          </div>
-          <button type="button" className="btn btn-primary btn-sm mt-2" onClick={handleSubmit}>
-            Submit
-          </button>
-        </form>
-      )
-    }
-  }
+    if (isloading) return <Loader />;
+    return (
+      <Form noValidate onSubmit={handleSubmit(handleFormSubmit)}>
+        <div>
+          <Form.Group className="grid-reg my-3" controlId="name">
+            <Form.Label>Clinician Name</Form.Label>
+            <Controller
+              name="name"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <Form.Control
+                    type="text"
+                    className="custom-input"
+                    placeholder="Enter Clinician Name"
+                    {...field}
+                    isInvalid={!!errors.name}
 
-  return <>{renderingView()}</>
+                  />
+
+                  <Form.Control.Feedback type="invalid">
+                    {errors.name?.message}
+                  </Form.Control.Feedback>
+
+                </div>
+              )}
+            />
+
+          </Form.Group>
+
+          <Form.Group className="grid-reg my-3" controlId="phone">
+            <Form.Label>Phone Number</Form.Label>
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <div>
+                  <Form.Control
+                    type="tel"
+                    className="custom-input"
+                    placeholder="Enter Phone Number"
+                    maxLength={10}
+                    minLength={10}
+                    {...field}
+                    isInvalid={!!errors.phone}
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {errors.phone?.message}
+                  </Form.Control.Feedback>
+                </div>
+              )}
+            />
+
+          </Form.Group>
+
+          <Form.Group className="grid-reg my-3" controlId="email">
+            <Form.Label>Email</Form.Label>
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <Form.Control
+                  type="email"
+                  className="custom-input"
+                  placeholder="Enter Email"
+                  {...field}
+                  isInvalid={!!errors.email}
+                />
+              )}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.email?.message}
+            </Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="grid-reg my-3" controlId="organization">
+            <Form.Label>Organization</Form.Label>
+            <Controller
+              name="organization"
+              control={control}
+              render={({ field }) => (
+                <Form.Control
+                  as="select"
+                  className="custom-select"
+                  {...field}
+                  isInvalid={!!errors.organization}
+                >
+                  <option value="">Select Organization</option>
+                  {OrganizationList.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.name}
+                    </option>
+                  ))}
+                </Form.Control>
+              )}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.organization?.message}
+            </Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="grid-reg my-3" controlId="location">
+            <Form.Label>Location</Form.Label>
+            <Controller
+              name="location"
+              control={control}
+              render={({ field }) => (
+                <Form.Control
+                  type="text"
+                  className="custom-input"
+                  placeholder="Enter Location"
+                  {...field}
+                  isInvalid={!!errors.location}
+                />
+              )}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.location?.message}
+            </Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="grid-reg my-3" controlId="address">
+            <Form.Label>Address</Form.Label>
+            <Controller
+              name="address"
+              control={control}
+              render={({ field }) => (
+                <Form.Control
+                  type="text"
+                  className="custom-input"
+                  placeholder="Enter Address"
+                  {...field}
+                  isInvalid={!!errors.address}
+                />
+              )}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.address?.message}
+            </Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="grid-reg my-3" controlId="occupation">
+            <Form.Label>Occupation</Form.Label>
+            <Controller
+              name="occupation"
+              control={control}
+              render={({ field }) => (
+                <Form.Control
+                  as="select"
+                  className="custom-select"
+                  {...field}
+                  isInvalid={!!errors.occupation}
+                >
+                  <option value="">Select occupation</option>
+                  <option value="doctor">Doctor</option>
+                  <option value="nurse">Nurse</option>
+                  <option value="pharmacist">Pharmacist</option>
+                  <option value="therapist">Therapist</option>
+                  <option value="other">Other</option>
+                </Form.Control>
+              )}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.occupation?.message}
+            </Form.Control.Feedback>
+          </Form.Group>
+        </div>
+        <Button type="submit" variant="primary" className="btn-sm mt-2">
+          Submit
+        </Button>
+      </Form>
+    );
+  };
+
+  return <>{renderingView()}</>;
 }

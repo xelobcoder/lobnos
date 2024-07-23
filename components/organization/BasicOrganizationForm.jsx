@@ -25,6 +25,7 @@ export default function OrganizationBasicForm({ organizationid }) {
     const [message, setMessage] = useState("Add new organization");
     const [isloading, setLoading] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
+    const [dragging, setDragging] = useState(false);
 
     const { control, handleSubmit, reset, formState: { errors } } = useForm({
         defaultValues: organizationDefaultBasicInfo,
@@ -56,8 +57,6 @@ export default function OrganizationBasicForm({ organizationid }) {
             });
     }, [organizationid, reset]);
 
-
-
     const onSubmit = async (formData) => {
         if (!organizationid) {
             validateFormData(formData, false, ["name", "mobile"], "new/organizations", handleResponse);
@@ -67,13 +66,30 @@ export default function OrganizationBasicForm({ organizationid }) {
         }
     };
 
-
-
     const handleImageUpload = (event) => {
         const file = event.target.files[0];
         if (file) {
             setSelectedImage(URL.createObjectURL(file));
         }
+    };
+
+    const handleDrop = (event) => {
+        event.preventDefault();
+        setDragging(false);
+        const file = event.dataTransfer.files[0];
+        if (file) {
+            setSelectedImage(URL.createObjectURL(file));
+        }
+    };
+
+    const handleDragOver = (event) => {
+        event.preventDefault();
+        setDragging(true);
+    };
+
+    const handleDragLeave = (event) => {
+        event.preventDefault();
+        setDragging(false);
     };
 
     const renderingFormView = () => {
@@ -90,17 +106,35 @@ export default function OrganizationBasicForm({ organizationid }) {
                                 {/* Image Upload */}
                                 <Form.Group>
                                     <Form.Label>Upload Image</Form.Label>
-                                    <Form.Control
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageUpload}
-                                    />
-                                    <div style={{maxHeight:'400px !important'}}>
-                                        {selectedImage && (
-                                            <img src={selectedImage}   style={{height:'380px',width:'100%'}} alt="Preview" 
-                                            className="img-thumbnail mt-2" />
+                                    <div
+                                        style={{
+                                            height: '300px',
+                                            width: '100%',
+                                            border: '2px dashed #ddd',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            backgroundColor: dragging ? '#f0f0f0' : '#fff',
+                                            cursor: 'pointer'
+                                        }}
+                                        onClick={() => document.getElementById('fileInput').click()}
+                                        onDrop={handleDrop}
+                                        onDragOver={handleDragOver}
+                                        onDragLeave={handleDragLeave}
+                                    >
+                                        {selectedImage ? (
+                                            <img src={selectedImage} alt="Preview" style={{ maxHeight: '100%', maxWidth: '100%' }} className="img-thumbnail" />
+                                        ) : (
+                                            <span>Drag & drop or click to select an image</span>
                                         )}
                                     </div>
+                                    <input
+                                        type="file"
+                                        id="fileInput"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        style={{ display: 'none' }}
+                                    />
                                 </Form.Group>
                             </Col>
                             <Col md={8}>
