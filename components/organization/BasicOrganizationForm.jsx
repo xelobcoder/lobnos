@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { regions, organizationDefaultBasicInfo, handleResponse, customFetch, customPost, validateFormData } from "../Auth/customFetch";
+import { regions, organizationDefaultBasicInfo, customFetch, customPost, validateFormData } from "../Auth/customFetch";
 import Loader from "../accessories/Loader";
 import { Button, Form, InputGroup, Card, Row, Col } from 'react-bootstrap';
 import { toast, ToastContainer } from 'react-toastify';
@@ -12,7 +12,6 @@ export default function OrganizationBasicForm({ organizationid }) {
     const [dragging, setDragging] = useState(false);
     const [formValues, setFormValues] = useState(organizationDefaultBasicInfo);
     const [formErrors, setFormErrors] = useState({});
-    const [rawfile, setRawFiles] = useState(null);
 
     useEffect(() => {
         if (organizationid) {
@@ -74,9 +73,14 @@ export default function OrganizationBasicForm({ organizationid }) {
             return;
         }
 
+        const handleResponseCallBack = (response) => {
+            const { status, message } = response;
+            if (status === "exist") return toast.warning(message);
+            toast.success(message)
+        }
         try {
             if (!organizationid) {
-                validateFormData(formValues, false, ["name", "mobile"], "new/organizations", handleResponse);
+                validateFormData(formValues, false, ["name", "mobile"], "new/organizations", handleResponseCallBack);
             } else {
                 const updateInfo = await customPost("organization/update/basic", "PUT", formValues);
                 toast.success(updateInfo?.message);
@@ -88,32 +92,30 @@ export default function OrganizationBasicForm({ organizationid }) {
 
 
 
-    const uploadImageCall = async function () {
-        if (!selectedImage) return;
+    const uploadImageCall = async function (file) {
+        if (!file) return;
         try {
             const formData = new FormData();
             formData.append('organizationImage', file);
-            const response = await fetch('/organization/profile/image', {
+            const response = await fetch(`${process.env.BASEURL}/organization/profile/image?id=${id}`, {
                 method: 'POST',
                 body: formData,
             });
 
             if (response.ok) {
-                const result = await response.json();
-                toast.success('Image uploaded successfully');
-            } else {
-                toast.error('Failed to upload image');
+                return await response.json();
             }
+            return null;
         } catch (error) {
-            toast.error('An error occurred during image upload');
+            return null;
         }
     }
 
     const handleImageUpload = async (event) => {
         const file = event.target.files[0];
-        setRawFiles(file);
         if (file) {
             setSelectedImage(URL.createObjectURL(file));
+            uploadImageCall(file)
         }
     };
 
@@ -121,9 +123,9 @@ export default function OrganizationBasicForm({ organizationid }) {
         event.preventDefault();
         setDragging(false);
         const file = event.dataTransfer.files[0];
-        setRawFiles(file);
         if (file) {
             setSelectedImage(URL.createObjectURL(file));
+            uploadImageCall(file)
         }
     };
 
@@ -147,7 +149,7 @@ export default function OrganizationBasicForm({ organizationid }) {
                 <Card.Body>
                     <Form onSubmit={onSubmit}>
                         <Row>
-                            <Col md={4}>
+                            {organizationid && <Col md={4}>
                                 {/* Image Upload */}
                                 <Form.Group>
                                     <Form.Label>Upload Image</Form.Label>
@@ -181,8 +183,8 @@ export default function OrganizationBasicForm({ organizationid }) {
                                         style={{ display: 'none' }}
                                     />
                                 </Form.Group>
-                            </Col>
-                            <Col md={8}>
+                            </Col>}
+                            <Col md={organizationid ? 8 : 12}>
                                 {/* Form Fields */}
                                 <Form.Group className="grid-reg my-2" controlId="formName">
                                     <Form.Label>Org. name</Form.Label>
