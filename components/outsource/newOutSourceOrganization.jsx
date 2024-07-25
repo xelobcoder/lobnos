@@ -56,7 +56,7 @@ export default function OutSourcingOrganizationForm() {
     };
 
     return (
-        <Row>
+        <Row className='card-body p-2'>
             <Col md="12">
                 <Form onSubmit={handleSubmit}>
                     <Form.Group className='grid-20-80 my-2 reg-grid' controlId="organizationName">

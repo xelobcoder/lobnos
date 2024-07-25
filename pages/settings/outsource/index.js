@@ -10,12 +10,12 @@ import OutsourceServices from "../../../components/outsource/OutSourcingServices
 export default function OutsourcingIndexPage() {
     return (
         <MainSettingsLayoutView>
-            <div className="p-3 bg-white">
+            <div className="p-3">
                 <Tabs defaultActiveKey="organization" className="" >
-                    <Tab className="bg-secondary-subtle px-4 py-3 br-5" eventKey="organization" title="Outsourcing Organization">
+                    <Tab className=" px-4 py-3 br-5" eventKey="organization" title="Outsourcing Organization">
                         <OutSourcingOrganizationForm />
                     </Tab>
-                    <Tab className="bg-secondary-subtle px-4 py-3 br-5" eventKey="contract" title="Contract Information">
+                    <Tab className=" px-4 py-3 br-5" eventKey="contract" title="Contract Information">
                         <ContractForm />
                     </Tab>
                     <Tab title="Upload Organization Image" eventKey='imageUpload'>

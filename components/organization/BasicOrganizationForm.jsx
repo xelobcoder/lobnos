@@ -17,6 +17,7 @@ export default function OrganizationBasicForm({ organizationid }) {
         if (organizationid) {
             setMessage("Update organization basic information");
             getOrganizationData();
+            loadOrganizationImage();
         }
     }, [organizationid]);
 
@@ -36,6 +37,11 @@ export default function OrganizationBasicForm({ organizationid }) {
                 alert("Error getting data;");
                 setLoading(false);
             });
+    }, [organizationid]);
+
+    const loadOrganizationImage = useCallback(() => {
+        const imageUrl = `${process.env.BASEURL}/organization/profile/image?id=${organizationid}`;
+        setSelectedImage(imageUrl);
     }, [organizationid]);
 
     const validateFields = (formData) => {
@@ -86,27 +92,32 @@ export default function OrganizationBasicForm({ organizationid }) {
                 toast.success(updateInfo?.message);
             }
         } catch (err) {
-            toast.error('something wrong occurred');
+            toast.error('Something wrong occurred');
         }
     };
 
-
-
-    const uploadImageCall = async function (file) {
+    const uploadImageCall = async (file) => {
         if (!file) return;
         try {
             const formData = new FormData();
-            formData.append('organizationImage', file);
-            const response = await fetch(`${process.env.BASEURL}/organization/profile/image?id=${id}`, {
+            formData.append('organizations', file);
+
+            console.log('Uploading image...');
+            const response = await fetch(`http://localhost:5000/api/v1/organization/profile/image?id=${organizationid}`, {
                 method: 'POST',
                 body: formData,
             });
 
             if (response.ok) {
-                return await response.json();
+                const result = await response.json();
+                console.log('Upload successful:', result);
+                return result;
+            } else {
+                console.error('Upload failed:', response.statusText);
+                return null;
             }
-            return null;
         } catch (error) {
+            console.error('Error during upload:', error);
             return null;
         }
     }
@@ -115,7 +126,7 @@ export default function OrganizationBasicForm({ organizationid }) {
         const file = event.target.files[0];
         if (file) {
             setSelectedImage(URL.createObjectURL(file));
-            uploadImageCall(file)
+            await uploadImageCall(file);
         }
     };
 
@@ -125,7 +136,7 @@ export default function OrganizationBasicForm({ organizationid }) {
         const file = event.dataTransfer.files[0];
         if (file) {
             setSelectedImage(URL.createObjectURL(file));
-            uploadImageCall(file)
+            await uploadImageCall(file);
         }
     };
 
@@ -312,6 +323,23 @@ export default function OrganizationBasicForm({ organizationid }) {
                                         ))}
                                     </Form.Select>
                                 </Form.Group>
+                                <Form.Group className='grid-reg my-2' controlId="type">
+                                    <Form.Label className='text-sm'>Type of Organization</Form.Label>
+                                    <Form.Control
+                                        as="select"
+                                        className='custom-select'
+                                        name="type"
+                                        value={formValues.type}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="">Select...</option>
+                                        <option value="hospital">Hospital</option>
+                                        <option value="clinic">Clinic</option>
+                                        <option value="research">Research Facility</option>
+                                    </Form.Control>
+                                   
+                                </Form.Group>
+
 
                                 <Button variant="primary" type="submit">
                                     {organizationid ? "Update" : "Add"}
@@ -319,7 +347,7 @@ export default function OrganizationBasicForm({ organizationid }) {
                             </Col>
                         </Row>
                     </Form>
-                    <ToastContainer />
+                    <ToastContainer theme="colored" position="top-center" className={'text-sm'} />
                 </Card.Body>
             </Card>
         );

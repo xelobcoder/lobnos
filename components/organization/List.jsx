@@ -7,6 +7,7 @@ import { useRouter } from "next/router"
 import Pagination from "../../components/accessories/pagination"
 import Loader from "../../components/accessories/Loader"
 
+
 export default function OrganizationList() {
   const [organization, setOrganization] = useState([])
   const [paginate, setPaginate] = useState({ count: 10, page: 1 })

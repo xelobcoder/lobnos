@@ -12,7 +12,7 @@ export async function customFetch(endpoint) {
       headers: {
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
         "Content-Type": "application/json",
-        "cache" : "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0"
+        "cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0"
       },
     })
     const source = await response.json()
@@ -27,7 +27,7 @@ export async function customFetch(endpoint) {
   }
 }
 
-export const generateRandomTextAndNumbers = (length = 10) =>  {
+export const generateRandomTextAndNumbers = (length = 10) => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
   const charactersLength = characters.length;
@@ -149,7 +149,7 @@ export async function validateFormData(data, allrequired, requiredFields = [], e
   // if all the fields are not required , we pass data to server
   if (!allrequired) {
     if (isObject && requiredLen > 0) {
-  // we check to ensure the required fields are not empty
+      // we check to ensure the required fields are not empty
       const passChecked = []
       // loop through the data
       for (let i = 0; i < requiredLen; i++) {
@@ -290,7 +290,7 @@ export const handleChangeWithState = (event, target, setData, data) => {
 export const getSampleTypeList = async function (setSource) {
   const getResponse = await customFetch("sampletype")
   const { result } = getResponse
-  Array.isArray(result) && result ?  setSource(result) : setSource([])
+  Array.isArray(result) && result ? setSource(result) : setSource([])
 }
 
 /**
@@ -655,6 +655,7 @@ export const organizationDefaultBasicInfo = {
   address: "",
   website: "",
   gpsmapping: "",
+  type: "",
   region: "",
 }
 
@@ -672,12 +673,12 @@ export const organizationPaymentDefault = {
 export const handleLogout = async function (employeeid) {
   try {
     if (!employeeid) return;
-     const response = await customFetch(`security/user/logout?employeeid=${employeeid}`);
-     Cookies.remove('X-AUTH-PRIME-LAB-SYSTEM');
-     if (response?.status == true) {
+    const response = await customFetch(`security/user/logout?employeeid=${employeeid}`);
+    Cookies.remove('X-AUTH-PRIME-LAB-SYSTEM');
+    if (response?.status == true) {
       window.location.href = "/authentication/login";
-     }
-     window.location.reload();
+    }
+    window.location.reload();
   } catch (err) {
     console.log('error connecting to server');
   }
@@ -707,7 +708,7 @@ export const handleDecision = async function (client, decision, setClients, clie
     const data = decision === "approve" ? { ...client, approvedby: employeeid, approvalstatus: 1 } : { ...client, approvedby: employeeid }
     const pushData = await customPost("result/approve", "POST", data)
     if (pushData?.status == "success" && decision == "approve") {
-    //  remove item ffrom clients
+      //  remove item ffrom clients
       const getClient = clients.filter((item, index) => {
         return !(item.billingid == client?.billingid && client?.testid == item?.testid)
       })
@@ -824,8 +825,8 @@ export const defaultCreationRule = {
   hasunits: false,
   units: "",
   useplain: false,
-   plain: "",
-   ordering: ""
+  plain: "",
+  ordering: ""
 }
 
 export const getSingleEditTest = (testid, setTestData, setLoading) => {
@@ -864,6 +865,6 @@ export function PrepareResultEntryHeader(data) {
   const { id, name, billingid, patientid } = data;
   if (!id || !name || !billingid || !patientid) return;
   var csvid = `${generateRandomTextAndNumbers(70)}${billingid}`.trim();
-  var ptid = `${csvid.slice(25,50)}${csvid.slice(0,25)}${patientid}`.trim();
+  var ptid = `${csvid.slice(25, 50)}${csvid.slice(0, 25)}${patientid}`.trim();
   window.open(`/operations/laboratory/resultentry?csvid=${csvid}&&ptid=${ptid}`);
 }
