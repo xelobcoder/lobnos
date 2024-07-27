@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import ContactPerson from "./ContactPerson";
 import PaymentModule from "./PaymentModule";
 import { useState } from "react";
+import OrganizationSetupSettings from "./OrganizationSettings";
 
 export default function OrganizationNavigationalTabs() {
     const [activeKey, setActiveKey] = useState('home');
@@ -25,6 +26,9 @@ export default function OrganizationNavigationalTabs() {
             </Tab>
             <Tab eventKey="payment" title="Payment Modules">
                 {activeKey === "payment" && <PaymentModule organizationid={organizationId} />}
+            </Tab>
+            <Tab eventKey="settings" title="settings">
+                {activeKey === "settings" && <OrganizationSetupSettings organizationid={organizationId} />}
             </Tab>
         </Tabs>
     );

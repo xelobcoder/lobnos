@@ -287,6 +287,10 @@ export const handleChangeWithState = (event, target, setData, data) => {
   setData({ ...data, [target]: value })
 }
 
+export const handleChangeCheck = (event, target, setData, data) => {
+  const { checked } = event.target
+  setData({ ...data, [target]: checked })
+}
 export const getSampleTypeList = async function (setSource) {
   const getResponse = await customFetch("sampletype")
   const { result } = getResponse
