@@ -1,33 +1,47 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Button, Card, Form } from "react-bootstrap";
-import { customFetch, handleChangeWithState, handleChangeCheck } from "../Auth/customFetch";
 import { organizationsettings } from "../../lib/testdata/organizationSettings";
 import Loader from "../accessories/Loader";
+import { customPost, handleChangeCheck, handleChangeWithState, loadAllTest } from "../Auth/customFetch";
+import AuthContext from "../Auth/useAuthentification";
 
 export default function OrganizationSetupSettings({ organizationid }) {
+    const { auth } = useContext(AuthContext);
+    const employeeid = auth?.employeeid;
     const [organizationSettings, setOrganizationSettings] = useState(organizationsettings);
-    const [test, setTest] = useState([]);
     const [testloading, setIsLoadingTest] = useState(false);
     const { haveDifferentPriceList, hasConcessionAppliedAcross, concessionMode, concessionValue } = organizationSettings
 
-    const loadAllTest = async (stateHolder) => {
-        try {
-            const response = await customFetch("testpanel/list/bulk");
-            const test = response?.data;
-            stateHolder(test);
-        } catch (err) {
-            stateHolder([]);
+    const loadAllTestBackend = async () => {
+        const test = await loadAllTest();
+        if (test && Array.isArray(test) && test.length > 0) {
+            let refinedTestList = test.map((item, index) => {
+                return { ...item, concessionMode: 'percentage', concessionValue: 0 };
+            })
+            setOrganizationSettings({ ...organizationSettings, testList: refinedTestList });
         }
     }
 
 
     useEffect(() => {
-        if (!hasConcessionAppliedAcross && haveDifferentPriceList) {
-            setIsLoadingTest(true);
-            loadAllTest(setTest);
-            setIsLoadingTest(false);
+        async function monitorChangesUseEffect() {
+            if (!hasConcessionAppliedAcross && haveDifferentPriceList) {
+                setIsLoadingTest(true);
+                await loadAllTestBackend();
+                setIsLoadingTest(false);
+            }
         }
-    }, [haveDifferentPriceList, hasConcessionAppliedAcross])
+        monitorChangesUseEffect()
+    }, [haveDifferentPriceList, hasConcessionAppliedAcross]);
+
+
+
+    const handleTestConcessionChange = (ev, index, field) => {
+        if (typeof index != "number" || organizationSettings.testList.length === 0) return;
+        const createClonedArray = { ...organizationSettings }
+        createClonedArray.testList[index][field] = ev.target.value;
+        setOrganizationSettings(createClonedArray);
+    }
 
 
     const DiffTestPricingCompx = () => {
@@ -37,17 +51,34 @@ export default function OrganizationSetupSettings({ organizationid }) {
                     <tr>
                         <th className="fw-bold text-capitalize">test</th>
                         <th className="fw-bold text-capitalize">price</th>
-                        <th className="fw-bold text-capitalize">field</th>
+                        <th className="fw-bold text-capitalize">calcuation mode</th>
+                        <th className="fw-bold text-capitalize">amount</th>
+                        <th className="fw-bold text-capitalize">discouted amount</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {test.map((item, index) => {
+                    {organizationSettings.testList.map((item, index) => {
                         return (
                             <tr>
                                 <td>{item.name}</td>
                                 <td>{item.price}</td>
+
                                 <td>
-                                    <input className="custom-input" type="number" />
+                                    <select className="custom-select"
+                                        value={item.concessionMode}
+                                        onChange={(ev) => { handleTestConcessionChange(ev, index, 'concessionMode') }}
+                                    >
+                                        <option>please select an option here</option>
+                                        <option value={'absolute'}>absolute</option>
+                                        <option value={'percentage'}>
+                                            percentage
+                                        </option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input
+                                        value={item.concessionValue}
+                                        onChange={(ev) => { handleTestConcessionChange(ev, index, 'concessionValue') }} className="custom-input" type="number" />
                                 </td>
                             </tr>
                         )
@@ -59,10 +90,17 @@ export default function OrganizationSetupSettings({ organizationid }) {
 
     const PercentageCutAccrossCompx = () => {
         return (
-            <div className="form-group grid-reg">
+            <div className="form-group grid-30-30-30">
                 <label>percentage to be applied across test</label>
+                <select className="custom-select">
+                    <option>please select an option here</option>
+                    <option value={'absolute'}>absolute</option>
+                    <option value={'percentage'}>
+                        percentage
+                    </option>
+                </select>
                 <input
-                    className="custom-input"
+                    className="custom-input mx-2"
                     type="number"
                     min={1}
                     max={99}
@@ -74,8 +112,23 @@ export default function OrganizationSetupSettings({ organizationid }) {
 
 
 
-    const handleSubmitChange = (value) =>  {
-        
+    const handleSubmitChange = async () => {
+        try {
+            if (!organizationid) return;
+            //    We trying to be lean as much as possible in sending data to and from , so we will filter out all test without that hasnt not be changed;
+            let changedTest = [];
+            if (organizationSettings.testList.length > 0) {
+                changedTest = organizationSettings.testList.filter((item, index) => {
+                    return (item.concessionValue && item.concessionMode)
+                })
+            };
+            const data = { ...organizationSettings, testList: changedTest, organizationid: parseInt(organizationid) };
+            console.log(data);
+            const response = await customPost('organization/billing/test', 'POST', data);
+
+        } catch (err) {
+            console.log(err);
+        }
     }
 
 
@@ -110,7 +163,12 @@ export default function OrganizationSetupSettings({ organizationid }) {
                     && PercentageCutAccrossCompx()
                 }
                 <div>
-                    <Button variant="primary" className="mt-3">
+                    <Button
+                        variant="primary"
+                        type="button"
+                        className="mt-3"
+                        onClick={(ev) => { handleSubmitChange() }}
+                    >
                         save settings
                     </Button>
                 </div>

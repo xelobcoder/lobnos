@@ -872,3 +872,15 @@ export function PrepareResultEntryHeader(data) {
   var ptid = `${csvid.slice(25, 50)}${csvid.slice(0, 25)}${patientid}`.trim();
   window.open(`/operations/laboratory/resultentry?csvid=${csvid}&&ptid=${ptid}`);
 }
+
+
+
+export const loadAllTest = async () => {
+  try {
+    const response = await customFetch("testpanel/list/bulk");
+    const test = response?.data;
+    return test;
+  } catch (err) {
+    return null;
+  }
+}
