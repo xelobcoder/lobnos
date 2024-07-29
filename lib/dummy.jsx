@@ -39,13 +39,13 @@ export default function OperationsServerRenderingSideBar() {
                         <div className="futher-refer-child bg-warning-subtle">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
+                                <span>pending count 60</span>
+                                <span>70 </span>
                             </Link>
                         </div><div className="futher-refer-child bg-warning-subtle">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
+                                <span>pending count 60</span>
                                 <span>60 </span>
                             </Link>
                         </div><div className="futher-refer-child bg-warning-subtle">

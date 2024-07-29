@@ -39,7 +39,19 @@ export default function OrganizationSetupSettings({ organizationid }) {
     const handleTestConcessionChange = (ev, index, field) => {
         if (typeof index != "number" || organizationSettings.testList.length === 0) return;
         const createClonedArray = { ...organizationSettings }
+        let discountedValue = 0;
         createClonedArray.testList[index][field] = ev.target.value;
+        if (field === "concessionValue") {
+            const { concessionMode, concessionValue, price } = createClonedArray.testList[index];
+            if (concessionMode === 'absolute' && concessionValue <= price) {
+                discountedValue = price - concessionValue;
+            } else if (concessionMode === "percentage") {
+                discountedValue = price * (concessionValue / 100);
+            } else {
+                discountedValue = 0;
+            }
+            createClonedArray.testList[index]['discountedValue'] = discountedValue;
+        }
         setOrganizationSettings(createClonedArray);
     }
 
@@ -68,7 +80,7 @@ export default function OrganizationSetupSettings({ organizationid }) {
                                         value={item.concessionMode}
                                         onChange={(ev) => { handleTestConcessionChange(ev, index, 'concessionMode') }}
                                     >
-                                        <option>please select an option here</option>
+                                        <option value={'none'}>none</option>
                                         <option value={'absolute'}>absolute</option>
                                         <option value={'percentage'}>
                                             percentage
@@ -77,9 +89,11 @@ export default function OrganizationSetupSettings({ organizationid }) {
                                 </td>
                                 <td>
                                     <input
+
                                         value={item.concessionValue}
                                         onChange={(ev) => { handleTestConcessionChange(ev, index, 'concessionValue') }} className="custom-input" type="number" />
                                 </td>
+                                <td>{item.discountedValue}</td>
                             </tr>
                         )
                     })}
@@ -92,7 +106,9 @@ export default function OrganizationSetupSettings({ organizationid }) {
         return (
             <div className="form-group grid-30-30-30">
                 <label>percentage to be applied across test</label>
-                <select className="custom-select">
+                <select onChange={(ev) => {
+                    setOrganizationSettings({ ...organizationSettings, concessionMode: ev.target.value })
+                }} className="custom-select">
                     <option>please select an option here</option>
                     <option value={'absolute'}>absolute</option>
                     <option value={'percentage'}>
@@ -114,18 +130,20 @@ export default function OrganizationSetupSettings({ organizationid }) {
 
     const handleSubmitChange = async () => {
         try {
-            if (!organizationid) return;
+            if (!organizationid || !employeeid) return;
             //    We trying to be lean as much as possible in sending data to and from , so we will filter out all test without that hasnt not be changed;
             let changedTest = [];
             if (organizationSettings.testList.length > 0) {
-                changedTest = organizationSettings.testList.filter((item, index) => {
-                    return (item.concessionValue && item.concessionMode)
-                })
-            };
-            const data = { ...organizationSettings, testList: changedTest, organizationid: parseInt(organizationid) };
-            console.log(data);
-            const response = await customPost('organization/billing/test', 'POST', data);
+                changedTest = organizationSettings.testList.filter((item, index) => item.concessionValue && item.concessionMode)
+                    .map((a, index) => {
+                        const { concessionMode, concessionValue, id, discountedValue } = a
+                        return { concessionMode, concessionValue, id, discountedValue };
+                    })
 
+            };
+            const data = { ...organizationSettings, testList: changedTest, organizationid: parseInt(organizationid), employeeid };
+            const response = await customPost('organization/billing/test', 'POST', data);
+            console.log(response);
         } catch (err) {
             console.log(err);
         }
@@ -136,8 +154,10 @@ export default function OrganizationSetupSettings({ organizationid }) {
         <Card>
             <Card.Body>
                 <Form.Group className="d-flex">
-                    <Form.Switch style={{ fontSize: '25px' }} onChange={
-                        (ev) => { handleChangeWithState(ev, 'useCustomLetterHeadings', setOrganizationSettings, organizationSettings) }} />
+                    <Form.Switch style={{ fontSize: '25px' }}
+                        checked={organizationSettings.useCustomLetterHeadings}
+                        onChange={
+                            (ev) => { handleChangeCheck(ev, 'useCustomLetterHeadings', setOrganizationSettings, organizationSettings) }} />
                     <span className="mx-2 my-2">Use Custom letter Heading in report printing</span>
                 </Form.Group>
                 <Form.Group className="d-flex">
