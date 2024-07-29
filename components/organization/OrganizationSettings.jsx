@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { Button, Card, Form } from "react-bootstrap";
 import { organizationsettings } from "../../lib/testdata/organizationSettings";
 import Loader from "../accessories/Loader";
-import { customPost, handleChangeCheck, handleChangeWithState, loadAllTest } from "../Auth/customFetch";
+import { customFetch, customPost, handleChangeCheck, handleChangeWithState, loadAllTest } from "../Auth/customFetch";
 import AuthContext from "../Auth/useAuthentification";
 
 export default function OrganizationSetupSettings({ organizationid }) {
@@ -23,9 +23,19 @@ export default function OrganizationSetupSettings({ organizationid }) {
     }
 
 
+    const organizationSettingsInformationSaved = async (organizationid) => {
+        if (organizationid) {
+            const settings = await customFetch(`organization/billing/test?organizationid=${organizationid}`);
+            if (settings && settings.testList) {
+                setOrganizationSettings(settings);
+            }
+        }
+    }
+
+
     useEffect(() => {
         async function monitorChangesUseEffect() {
-            if (!hasConcessionAppliedAcross && haveDifferentPriceList) {
+            if (!hasConcessionAppliedAcross && haveDifferentPriceList && organizationSettings.testList.length == 0) {
                 setIsLoadingTest(true);
                 await loadAllTestBackend();
                 setIsLoadingTest(false);
@@ -33,6 +43,12 @@ export default function OrganizationSetupSettings({ organizationid }) {
         }
         monitorChangesUseEffect()
     }, [haveDifferentPriceList, hasConcessionAppliedAcross]);
+
+
+
+    useEffect(() => {
+        organizationSettingsInformationSaved(organizationid);
+    }, [organizationid])
 
 
 
@@ -65,7 +81,7 @@ export default function OrganizationSetupSettings({ organizationid }) {
                         <th className="fw-bold text-capitalize">price</th>
                         <th className="fw-bold text-capitalize">calcuation mode</th>
                         <th className="fw-bold text-capitalize">amount</th>
-                        <th className="fw-bold text-capitalize">discouted amount</th>
+                        <th className="fw-bold text-capitalize">discounted amount</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -106,9 +122,11 @@ export default function OrganizationSetupSettings({ organizationid }) {
         return (
             <div className="form-group grid-30-30-30">
                 <label>percentage to be applied across test</label>
-                <select onChange={(ev) => {
-                    setOrganizationSettings({ ...organizationSettings, concessionMode: ev.target.value })
-                }} className="custom-select">
+                <select
+                    value={organizationSettings.concessionMode}
+                    onChange={(ev) => {
+                        setOrganizationSettings({ ...organizationSettings, concessionMode: ev.target.value })
+                    }} className="custom-select">
                     <option>please select an option here</option>
                     <option value={'absolute'}>absolute</option>
                     <option value={'percentage'}>
@@ -142,7 +160,7 @@ export default function OrganizationSetupSettings({ organizationid }) {
 
             };
             const data = { ...organizationSettings, testList: changedTest, organizationid: parseInt(organizationid), employeeid };
-            const response = await customPost('organization/billing/test', 'POST', data);
+            const response = await customPost(`organization/billing/test`, 'POST', data);
             console.log(response);
         } catch (err) {
             console.log(err);
@@ -170,18 +188,24 @@ export default function OrganizationSetupSettings({ organizationid }) {
                     <span className="mx-2 my-2">Apply a concession on general test</span>
                 </Form.Group>
                 <hr />
-
                 {
                     !hasConcessionAppliedAcross
                     && haveDifferentPriceList
                     && DiffTestPricingCompx()
                 }
-                {!hasConcessionAppliedAcross && haveDifferentPriceList && testloading && <Loader />}
+             
+                {!hasConcessionAppliedAcross
+                    && haveDifferentPriceList
+                    && testloading
+                    && <Loader />}
                 {
                     hasConcessionAppliedAcross
                     && haveDifferentPriceList
                     && PercentageCutAccrossCompx()
                 }
+              {/* <div className="mt-3">
+                    {organizationSettings.saved && DiffTestPricingCompx()}
+              </div> */}
                 <div>
                     <Button
                         variant="primary"

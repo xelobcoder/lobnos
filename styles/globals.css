@@ -44,7 +44,7 @@ html {
   min-height: 100vh;
   color: var(--text-color);
   font-optical-sizing: auto;
-  font-family: var(--prime-ui-font-family);
+  font-family: var(--prime-links-font-family);
   font-weight: 500;
 }
 

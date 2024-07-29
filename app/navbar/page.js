@@ -6,7 +6,6 @@ export default async function AppointmentAppRouter() {
      const response = await fetch('http://localhost:5000/api/v1/operation/pendingcases/all?status=pending&&count=10&&page=1&&employeeid=3');
      const data = await response.json();
      const result  = data?.result;
-
      if (!result) return <Loader />
 
      return (
