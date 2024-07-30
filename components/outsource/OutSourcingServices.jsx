@@ -11,7 +11,6 @@ export default function OutsourceServices() {
     const [testOptions, setTestOptions] = useState([]);
     const [inputPrice, setInputPrice] = useState('');
 
-
     useEffect(() => {
         const fetchTestOptions = async () => {
             setLoading(true);
@@ -137,7 +136,9 @@ export default function OutsourceServices() {
                             <tr key={index}>
                                 <td>{item.name}</td>
                                 <td>{currencyFormatter.format(item.price)} GHS</td>
-                                <td className={item.priceDifference <= 0 ? "bg-danger-subtle ui" : "bg-success-subtle ui"}>{currencyFormatter.format(item.priceDifference)}</td>
+                                <td className={item.priceDifference <= 0 ? "bg-danger-subtle ui" : "bg-success-subtle ui"}>
+                                    {currencyFormatter.format(item.priceDifference)}
+                                </td>
                                 <td>
                                     <Button variant="light" className="border-secondary-subtle">
                                         <Add />

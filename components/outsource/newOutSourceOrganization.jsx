@@ -1,32 +1,44 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Row, Col, Form, Button } from 'react-bootstrap';
 import * as Yup from 'yup';
+import { customFetch, customPost } from '../Auth/customFetch';
+import AuthContext from '../Auth/useAuthentification';
+import { useSearchParams } from 'next/navigation';
+
+
+const defaultData = {
+    outsourceid: '',
+    name: '',
+    contactPerson: '',
+    contactNumber: '',
+    email: '',
+    faxNumber: '',
+    address: '',
+    billingAddress: '',
+    websiteURL: '',
+    organizationType: ''
+}
+
 export default function OutSourcingOrganizationForm() {
-    const [formData, setFormData] = useState({
-        organizationID: '',
-        organizationName: '',
-        contactPerson: '',
-        phoneNumber: '',
-        email: '',
-        faxNumber: '',
-        address: '',
-        billingAddress: '',
-        websiteURL: '',
-        typeOfOrganization: ''
-    });
+    const { auth } = useContext(AuthContext);
+    const employeeid = auth?.employeeid;
+    const outsourceid = useSearchParams().get("orgid")
+    const method = outsourceid ? 'PUT' : 'POST';
+
+    const [formData, setFormData] = useState(defaultData);
 
     const [errors, setErrors] = useState({});
 
     const validationSchema = Yup.object().shape({
-        organizationName: Yup.string().required('Organization Name is required'),
+        name: Yup.string().required('Organization Name is required'),
         contactPerson: Yup.string().required('Contact Person is required'),
-        phoneNumber: Yup.string().required('Phone number is required'),
+        contactNumber: Yup.string().required('Phone number is required'),
         email: Yup.string().email('Invalid email address').required('Email is required'),
         faxNumber: Yup.string().nullable(),
         address: Yup.string().required('Address is required'),
         billingAddress: Yup.string().nullable(),
         websiteURL: Yup.string().url('Invalid URL').nullable(),
-        typeOfOrganization: Yup.string().required('Type of Organization is required')
+        organizationType: Yup.string().required('Type of Organization is required')
     });
 
     const handleChange = (e) => {
@@ -42,6 +54,13 @@ export default function OutSourcingOrganizationForm() {
         validationSchema.validate(formData, { abortEarly: false })
             .then(() => {
                 console.log(formData);
+                customPost(
+                    "outsourcing/organization", method, { ...formData, employeeid, outsourceid }
+                ).then((data) => {
+                    console.log(data);
+                }).catch((err) => {
+                    console.log(err)
+                })
                 setErrors({});
             })
             .catch((validationErrors) => {
@@ -55,22 +74,37 @@ export default function OutSourcingOrganizationForm() {
             });
     };
 
+
+
+    useEffect(() => {
+        if (outsourceid) {
+            customFetch(`outsourcing/organization?outsourceid=${outsourceid}`)
+                .then((data) => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        setFormData(data[0])
+                    }
+                }).catch((err) => {
+                    setFormData(defaultData);
+                })
+        }
+    }, [outsourceid])
+
     return (
         <Row className='card-body p-2'>
             <Col md="12">
                 <Form onSubmit={handleSubmit}>
-                    <Form.Group className='grid-20-80 my-2 reg-grid' controlId="organizationName">
+                    <Form.Group className='grid-20-80 my-2 reg-grid' controlId="name">
                         <Form.Label className='text-sm'>Organization Name</Form.Label>
                         <Form.Control
                             type="text"
                             className='custom-input r-3'
-                            name="organizationName"
-                            value={formData.organizationName}
+                            name="name"
+                            value={formData.name}
                             onChange={handleChange}
-                            isInvalid={!!errors.organizationName}
+                            isInvalid={!!errors.name}
                         />
                         <Form.Control.Feedback type="invalid">
-                            {errors.organizationName}
+                            {errors.name}
                         </Form.Control.Feedback>
                     </Form.Group>
 
@@ -89,20 +123,20 @@ export default function OutSourcingOrganizationForm() {
                         </Form.Control.Feedback>
                     </Form.Group>
 
-                    <Form.Group className='grid-20-80 my-2' controlId="phoneNumber">
+                    <Form.Group className='grid-20-80 my-2' controlId="contactNumber">
                         <Form.Label className='text-sm'>Phone Number</Form.Label>
                         <Form.Control
                             type="tell"
                             minLength={10}
                             maxLength={10}
                             className='custom-input'
-                            name="phoneNumber"
-                            value={formData.phoneNumber}
+                            name="contactNumber"
+                            value={formData.contactNumber}
                             onChange={handleChange}
-                            isInvalid={!!errors.phoneNumber}
+                            isInvalid={!!errors.contactNumber}
                         />
                         <Form.Control.Feedback type="invalid">
-                            {errors.phoneNumber}
+                            {errors.contactNumber}
                         </Form.Control.Feedback>
                     </Form.Group>
 
@@ -175,15 +209,15 @@ export default function OutSourcingOrganizationForm() {
                         </Form.Control.Feedback>
                     </Form.Group>
 
-                    <Form.Group className='grid-20-80 my-2' controlId="typeOfOrganization">
+                    <Form.Group className='grid-20-80 my-2' controlId="organizationType">
                         <Form.Label className='text-sm'>Type of Organization</Form.Label>
                         <Form.Control
                             as="select"
                             className='custom-select'
-                            name="typeOfOrganization"
-                            value={formData.typeOfOrganization}
+                            name="organizationType"
+                            value={formData.organizationType}
                             onChange={handleChange}
-                            isInvalid={!!errors.typeOfOrganization}
+                            isInvalid={!!errors.organizationType}
                         >
                             <option value="">Select...</option>
                             <option value="hospital">Hospital</option>
@@ -191,7 +225,7 @@ export default function OutSourcingOrganizationForm() {
                             <option value="research">Research Facility</option>
                         </Form.Control>
                         <Form.Control.Feedback type="invalid">
-                            {errors.typeOfOrganization}
+                            {errors.organizationType}
                         </Form.Control.Feedback>
                     </Form.Group>
 

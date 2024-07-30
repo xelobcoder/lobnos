@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { Button, Card, Form } from "react-bootstrap";
+import { Button, Card, Form, Row } from "react-bootstrap";
 import { organizationsettings } from "../../lib/testdata/organizationSettings";
 import Loader from "../accessories/Loader";
 import { customFetch, customPost, handleChangeCheck, handleChangeWithState, loadAllTest } from "../Auth/customFetch";
@@ -10,6 +10,7 @@ export default function OrganizationSetupSettings({ organizationid }) {
     const employeeid = auth?.employeeid;
     const [organizationSettings, setOrganizationSettings] = useState(organizationsettings);
     const [testloading, setIsLoadingTest] = useState(false);
+    const [previewSavedTestList, setPreviewSavedTestList] = useState(false);
     const { haveDifferentPriceList, hasConcessionAppliedAcross, concessionMode, concessionValue } = organizationSettings
 
     const loadAllTestBackend = async () => {
@@ -120,27 +121,34 @@ export default function OrganizationSetupSettings({ organizationid }) {
 
     const PercentageCutAccrossCompx = () => {
         return (
-            <div className="form-group grid-30-30-30">
-                <label>percentage to be applied across test</label>
-                <select
-                    value={organizationSettings.concessionMode}
-                    onChange={(ev) => {
-                        setOrganizationSettings({ ...organizationSettings, concessionMode: ev.target.value })
-                    }} className="custom-select">
-                    <option>please select an option here</option>
-                    <option value={'absolute'}>absolute</option>
-                    <option value={'percentage'}>
-                        percentage
-                    </option>
-                </select>
-                <input
-                    className="custom-input mx-2"
-                    type="number"
-                    min={1}
-                    max={99}
-                    value={concessionValue}
-                    onChange={(ev) => { handleChangeWithState(ev, 'concessionValue', setOrganizationSettings, organizationSettings) }} />
-            </div>
+            <Row>
+                <div className="form-group grid-30-30-30">
+                    <label>Concession to be applied across test</label>
+                    <select
+                        value={organizationSettings.concessionMode}
+                        onChange={(ev) => {
+                            setOrganizationSettings({ ...organizationSettings, concessionMode: ev.target.value })
+                        }} className="custom-select">
+                        <option>please select an option here</option>
+                        <option value={'absolute'}>absolute</option>
+                        <option value={'percentage'}>
+                            percentage
+                        </option>
+                    </select>
+                    <input
+                        className="custom-input mx-2"
+                        type="number"
+                        min={1}
+                        max={99}
+                        value={concessionValue}
+                        onChange={(ev) => { handleChangeWithState(ev, 'concessionValue', setOrganizationSettings, organizationSettings) }} />
+                </div>
+                <div>
+                    <input type="checkbox"
+                        checked={previewSavedTestList}
+                        onChange={(ev) => { setPreviewSavedTestList(!previewSavedTestList) }} /> Preview TestList
+                </div>
+            </Row>
         )
     }
 
@@ -193,7 +201,7 @@ export default function OrganizationSetupSettings({ organizationid }) {
                     && haveDifferentPriceList
                     && DiffTestPricingCompx()
                 }
-             
+
                 {!hasConcessionAppliedAcross
                     && haveDifferentPriceList
                     && testloading
@@ -203,9 +211,9 @@ export default function OrganizationSetupSettings({ organizationid }) {
                     && haveDifferentPriceList
                     && PercentageCutAccrossCompx()
                 }
-              {/* <div className="mt-3">
-                    {organizationSettings.saved && DiffTestPricingCompx()}
-              </div> */}
+                {previewSavedTestList && DiffTestPricingCompx(
+
+                )}
                 <div>
                     <Button
                         variant="primary"
