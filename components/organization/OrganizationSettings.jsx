@@ -11,7 +11,7 @@ export default function OrganizationSetupSettings({ organizationid }) {
     const [organizationSettings, setOrganizationSettings] = useState(organizationsettings);
     const [testloading, setIsLoadingTest] = useState(false);
     const [previewSavedTestList, setPreviewSavedTestList] = useState(false);
-    const { haveDifferentPriceList, hasConcessionAppliedAcross, concessionMode, concessionValue } = organizationSettings
+    const { haveDifferentPriceList, hasConcessionAppliedAcross, concessionValue } = organizationSettings
 
     const loadAllTestBackend = async () => {
         const test = await loadAllTest();
@@ -88,7 +88,7 @@ export default function OrganizationSetupSettings({ organizationid }) {
                 <tbody>
                     {organizationSettings.testList.map((item, index) => {
                         return (
-                            <tr>
+                            <tr key={index}>
                                 <td>{item.name}</td>
                                 <td>{item.price}</td>
 

@@ -4,6 +4,7 @@ import * as Yup from 'yup';
 import { customFetch, customPost } from '../Auth/customFetch';
 import AuthContext from '../Auth/useAuthentification';
 import { useSearchParams } from 'next/navigation';
+import Loader from '../accessories/Loader';
 
 
 const defaultData = {
@@ -24,10 +25,9 @@ export default function OutSourcingOrganizationForm() {
     const employeeid = auth?.employeeid;
     const outsourceid = useSearchParams().get("orgid")
     const method = outsourceid ? 'PUT' : 'POST';
-
     const [formData, setFormData] = useState(defaultData);
-
     const [errors, setErrors] = useState({});
+    const [loading, setLoading] = useState(false);
 
     const validationSchema = Yup.object().shape({
         name: Yup.string().required('Organization Name is required'),
@@ -78,6 +78,7 @@ export default function OutSourcingOrganizationForm() {
 
     useEffect(() => {
         if (outsourceid) {
+            setLoading(true)
             customFetch(`outsourcing/organization?outsourceid=${outsourceid}`)
                 .then((data) => {
                     if (Array.isArray(data) && data.length > 0) {
@@ -85,9 +86,14 @@ export default function OutSourcingOrganizationForm() {
                     }
                 }).catch((err) => {
                     setFormData(defaultData);
-                })
+                    setLoading(false);
+                }).finally
+                (() => { setLoading(false) })
         }
     }, [outsourceid])
+
+
+    if (loading) return <Loader />
 
     return (
         <Row className='card-body p-2'>

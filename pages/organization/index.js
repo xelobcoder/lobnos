@@ -8,6 +8,5 @@ export default function OrganizationMainPage() {
     <OrganizationWrapperLayout>
       <OrganizationList />
     </OrganizationWrapperLayout>
-
   )
 }

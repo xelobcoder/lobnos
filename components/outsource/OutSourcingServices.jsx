@@ -1,15 +1,24 @@
-import { Add, PlayArrowOutlined } from "@mui/icons-material";
-import { useState, useEffect } from "react";
+import { Add } from "@mui/icons-material";
+import { useSearchParams } from "next/navigation";
+import { useContext, useEffect, useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import Select from 'react-select';
-import { currencyFormatter, customFetch } from "../Auth/customFetch";
-
+import { ToastContainer, toast } from "react-toastify";
+import { currencyFormatter, customFetch, customPost } from "../Auth/customFetch";
+import AuthContext from "../Auth/useAuthentification";
 export default function OutsourceServices() {
     const [loading, setLoading] = useState(true);
     const [cart, setCart] = useState([]);
     const [selectedTest, setSelectedTest] = useState(null);
     const [testOptions, setTestOptions] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const [inputPrice, setInputPrice] = useState('');
+    const outsourceid = useSearchParams().get("orgid");
+    const { auth } = useContext(AuthContext);
+    const employeeid = auth?.employeeid;
+
+
+
 
     useEffect(() => {
         const fetchTestOptions = async () => {
@@ -21,7 +30,8 @@ export default function OutsourceServices() {
                     const options = data.map(test => ({
                         value: test.id,
                         label: test.name,
-                        price: test.price
+                        price: test.price,
+                        testid: test.id
                     }));
                     setTestOptions(options);
                 }
@@ -63,7 +73,8 @@ export default function OutsourceServices() {
             const newItem = {
                 name: selectedTest.label,
                 price: enteredPrice.toFixed(3),
-                priceDifference: priceDifference.toFixed(3)
+                priceDifference: priceDifference.toFixed(3),
+                testid: selectedTest.testid
             };
 
             setCart([...cart, newItem]);
@@ -72,18 +83,59 @@ export default function OutsourceServices() {
         }
     };
 
+
+    const submitOutsourceInformation = async () => {
+        await forwardResquestfn();
+
+        async function forwardResquestfn() {
+            if (outsourceid && employeeid) {
+                let cartFormatted = cart.map((a, i) => {
+                    const { price, testid } = a;
+                    const generalTestId = testid;
+                    const outsourcePrice = price;
+                    return { outsourcePrice, generalTestId };
+                });
+                const response = await customPost(`outsourcing/organization/services`, 'PUT', { outsourceid, employeeid, testList: cartFormatted });
+                const { status } = response;
+                if (status === true) {
+                    toast.success('services updated successfully');
+                }
+            }
+        }
+    }
+
+
+
+    useEffect(() => {
+        async function getPreviousSavedServices() {
+            setIsLoading(true)
+            try {
+                if (outsourceid) {
+                    const response = await customFetch(`outsourcing/organization/services?outsourceid=${outsourceid}`);
+                    if (Array.isArray(response)) {
+                        setCart(response);
+                    }
+                    setIsLoading(false);
+                }
+            } catch (error) {
+                setCart([]);
+                setIsLoading(false);
+            }
+        }
+        getPreviousSavedServices()
+    }, [outsourceid])
+
+
     if (loading) return <h6>Loading data..............</h6>;
+
+
 
     return (
         <div>
+            <ToastContainer theme="colored" position="top-center" className={'text-sm'} />
             <section className="d-flex justify-content-between my-2">
                 <div>
                     <h5 className="my-2">Outsource Services Provided</h5>
-                </div>
-                <div>
-                    <Button className="btn btn-primary" onClick={() => setLoading(true)}>
-                        <PlayArrowOutlined /> Load All Tests
-                    </Button>
                 </div>
             </section>
             <section>
@@ -140,7 +192,9 @@ export default function OutsourceServices() {
                                     {currencyFormatter.format(item.priceDifference)}
                                 </td>
                                 <td>
-                                    <Button variant="light" className="border-secondary-subtle">
+                                    <Button variant="light"
+
+                                        className="border-secondary-subtle">
                                         <Add />
                                     </Button>
                                 </td>
@@ -150,7 +204,8 @@ export default function OutsourceServices() {
                 </table>
             </section>
             <section>
-                <Button variant="success">
+                <Button variant="success" type="button"
+                    onClick={(ev) => { submitOutsourceInformation(ev) }} >
                     Save Test
                 </Button>
             </section>
