@@ -1,3 +1,5 @@
+import { handleChangeWithState } from "../../Auth/customFetch"
+
 export default function TrackAlertLevelValueForm({ field, setField }) {
     return (
         <div className="my-4" >
@@ -8,21 +10,23 @@ export default function TrackAlertLevelValueForm({ field, setField }) {
                 <div className="form-row grid-30-30-30">
                     <div className="form-group">
                         <label>value</label>
-                        <input type="text" className="custom-input" />
+                        <input type="text"
+                            onChange={(ev) => { handleChangeWithState(ev, 'valueAlert', setField, field) }}
+                            className="custom-input" value={field.valueAlert} />
                     </div>
                     <div className="form-group mx-2">
                         <label>constraits</label>
-                        <select className="custom-select">
+                        <select onChange={(ev) => { handleChangeWithState(ev, 'constraint', setField, field) }} value={field.constraint} className="custom-select">
                             <option value={0}>select an option here</option>
                             <option value={1}>less than value</option>
                             <option value={2}>greater than value</option>
                             <option value={3}>match value</option>
-                            <option value={4}>does not match</option>
+                            <option value={4}>does not match value</option>
                         </select>
                     </div>
                     <div className="form-group mx-2">
                         <label>value</label>
-                        <select className="custom-select">
+                        <select onChange={(ev) => { handleChangeWithState(ev, 'alert', setField, field) }} value={field.alert} className="custom-select">
                             <option>select an option below</option>
                             <option value={1}>alert</option>
                             <option value={2}>do not alert</option>

@@ -827,7 +827,9 @@ export const defaultCreationRule = {
   units: "",
   plan: "",
   plain: "",
-  valueAlert: "",
+  valueAlert: 133,
+  alert: 1,
+  constraint: 2,
   ordering: ""
 }
 

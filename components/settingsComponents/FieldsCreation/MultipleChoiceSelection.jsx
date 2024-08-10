@@ -14,6 +14,10 @@ export default function MultipleChoiceSelectiionTestPanelCreation({ defaultOptio
         }
     }, [defaultOptions]);
 
+
+
+
+
     const handleAddOption = () => {
         const trimmedEditing = editing.trim();
         if (trimmedEditing === "" || !Array.isArray(options)) return;
@@ -22,28 +26,43 @@ export default function MultipleChoiceSelectiionTestPanelCreation({ defaultOptio
             alert("Option already exists");
             return;
         }
-
+        let valueToUpdate = [];
         if (editIndex !== null) {
             const updatedOptions = options.map((option, index) =>
                 index === editIndex ? trimmedEditing : option
             );
-            setOptions(updatedOptions);
-            setEditIndex(null);
+            valueToUpdate = updatedOptions;
         } else {
-            setOptions([...options, trimmedEditing]);
+            valueToUpdate = [...options, trimmedEditing]
         }
         setEditing("");
-        setField({ ...field, options: options.join(',') })
+        updateFields(valueToUpdate);
+        setOptions(valueToUpdate);
+        setEditIndex(null);
     };
+
+
+    function updateFields(options) {
+        if (options.length === 0) return;
+        if (options.length == 1) {
+            setField({ ...field, options: options[0] })
+        } else {
+            setField({ ...field, options: options.join(',') })
+        }
+    }
+
+
 
     const handleEditOption = (index) => {
         setEditing(options[index]);
         setEditIndex(index);
+        window.scrollTo(0, 0);
     };
 
     const handleDeleteSelectedOptions = () => {
         const updatedOptions = options.filter((_, index) => !checked.includes(index));
         setOptions(updatedOptions);
+        updateFields(updatedOptions)
         setChecked([]);
     };
 
