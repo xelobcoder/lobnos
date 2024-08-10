@@ -9,7 +9,7 @@ html, body {
     background-color: #F5F7FA;
     direction: ltr;
     font-size: 0.95em;
-    font-family: var(--wakpenjo,--prime-links-font-family);
+    font-family: var(--prime-links-font-family);
     background-color: #eae7e7;
 }
 

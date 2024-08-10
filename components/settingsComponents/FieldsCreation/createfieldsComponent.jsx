@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { customFetch, customPost, defaultCreationRule, getSingleEditTest, handleChangeWithState } from "../../Auth/customFetch";
-import { Form } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import Loader from "../../accessories/Loader";
+import RenderTestCreationParameters from "./RenderTestCreationParametersTable";
+import { handleCreationMasterRUle, updateFieldsRules } from "./data/testUtil";
+
 
 export default function CreateTestFields({ testid, testname, minimize = false }) {
-  const [testdata, setTestData] = useState(defaultCreationRule);
+  const [generalTestRule, setgeneralTestRule] = useState(defaultCreationRule);
   const [isloading, setLoading] = useState(true);
   const [data, setData] = useState([]);
   const [error, setError] = useState("");
@@ -46,7 +48,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
   };
 
   const renderLimitsValue = (row, limit) => {
-    if (testdata.hasGenderVariation) {
+    if (generalTestRule.hasGenderVariation) {
       return (
         <div>
           <span>male: {row?.male?.[limit]}</span>
@@ -70,7 +72,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
 
   const getSinglePlusRules = useCallback(() => {
     if (testid) {
-      getSingleEditTest(testid, setTestData, setLoading);
+      getSingleEditTest(testid, setgeneralTestRule, setLoading);
       customFetch(`testpanel/list/customtestrule?testid=${testid}`)
         .then((data) => {
           setData(data);
@@ -88,7 +90,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
   const handleGenderVariationLimit = (value, limit, gender) => {
     setField({
       ...field,
-      hasGenderVariation: testdata.hasGenderVariation === 1,
+      hasGenderVariation: generalTestRule.hasGenderVariation === 1,
       [gender]: {
         ...field[gender],
         [limit]: value,
@@ -101,9 +103,12 @@ export default function CreateTestFields({ testid, testname, minimize = false })
     setField(row);
   };
 
+
+
+
   const createLimitFields = () => {
     if (field.haslimits && field.type === "number" && !field.hasoptions) {
-      if (testdata.hasGenderVariation && testdata.hasChildrenLimit) {
+      if (generalTestRule.hasGenderVariation && generalTestRule.hasChildrenLimit) {
         return (
           <div>
             <label>Limits</label>
@@ -118,7 +123,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
                       handleGenderVariationLimit(ev.target.value, "upperlimit", item);
                     }}
                     value={field[item]?.upperlimit}
-                    className="form-control"
+                    className="custom-input"
                   />
                   <input
                     placeholder="Lower limit"
@@ -127,14 +132,14 @@ export default function CreateTestFields({ testid, testname, minimize = false })
                       handleGenderVariationLimit(ev.target.value, "lowerlimit", item);
                     }}
                     value={field[item]?.lowerlimit}
-                    className="form-control mx-2"
+                    className="custom-input mx-2"
                   />
                 </div>
               </div>
             ))}
           </div>
         );
-      } else {
+      } else if (generalTestRule.hasGenderVariation && !generalTestRule.hasChildrenLimit) {
         return (
           <div>
             <label>Limits</label>
@@ -149,7 +154,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
                       handleGenderVariationLimit(ev.target.value, "upperlimit", item);
                     }}
                     value={field[item]?.upperlimit}
-                    className="form-control"
+                    className="custom-input"
                   />
                   <input
                     placeholder="Lower limit"
@@ -158,32 +163,43 @@ export default function CreateTestFields({ testid, testname, minimize = false })
                       handleGenderVariationLimit(ev.target.value, "lowerlimit", item);
                     }}
                     value={field[item]?.lowerlimit}
-                    className="form-control mx-2"
+                    className="custom-input mx-2"
                   />
                 </div>
               </div>
             ))}
           </div>
         );
+      } else {
+        return (
+          <div >
+            <label>Upper Limit</label>
+            <div className="d-flex justify-content-between">
+              <input
+                placeholder="Upper limit"
+                type="number"
+                onChange={(ev) => {
+                  setField({ ...field, upperlimit: ev.target.value })
+                }}
+                value={field.upperlimit}
+                className="custom-input"
+              />
+              <input
+                placeholder="Lower limit"
+                type="number"
+                onChange={(ev) => {
+                  setField({ ...field, lowerlimit: ev.target.value })
+                }}
+                value={field?.lowerlimit}
+                className="custom-input mx-2"
+              />
+            </div>
+          </div>
+        )
       }
     }
   };
 
-  const updateFieldsRules = async () => {
-    if (data.length === 0) return;
-    for (let i = 0; i < data.length; i++) {
-      if (isNaN(data[i]["ordering"])) {
-        data[i]["ordering"] = i;
-      }
-    }
-    let orderedData = data.sort((a, b) => a.ordering - b.ordering);
-    const response = await customPost("testpanel/list/customtestrule", "PUT", { testid, data: orderedData });
-    if (response.status === true) {
-      toast.success("Test fields updated successfully", { autoClose: 500 });
-    } else {
-      toast.error(response?.message || "Test fields creation failed", { autoClose: 2000 });
-    }
-  };
 
   const finalRenderingView = () => {
     if (isloading) return <Loader />;
@@ -194,32 +210,70 @@ export default function CreateTestFields({ testid, testname, minimize = false })
           <hr />
           <div>
             <div className={error.length > 0 ? "alert alert-danger" : ""}>{error}</div>
-            <form className="grid grid-50">
-              <div>
+            <form className="">
+              <div className="d-flex grid-30-30-30">
                 <div className="form-row">
                   <label>Field name</label>
                   <input
                     value={field?.name}
                     placeholder="Name"
                     onChange={(ev) => handleChangeWithState(ev, "name", setField, field)}
-                    className="form-control"
+                    className="custom-input"
                     type="text"
                   />
                 </div>
-                <div className="form-row">
-                  <label>Data type</label>
-                  <select
-                    value={field?.type}
-                    onChange={(ev) => handleChangeWithState(ev, "type", setField, field)}
-                    className="form-control"
-                    type="text">
-                    <option value="">Select data type of field</option>
-                    <option value="number">Number</option>
-                    <option value="text">Text</option>
+                
+                <div className="form-row mx-2">
+                  <label>method</label>
+                  <select onChange={(ev) => { const fields = handleCreationMasterRUle(ev, field); setField(fields) }} className="custom-select">
+                    <option >select an option</option>
+                    <option value='options'>dropdown</option>
+                    <option value='plain'>use plain text field for reference range</option>
+                    <option value='limits'>use reference ranges</option>
+                    <option value='input'>use a field input for text or numbers</option>
                   </select>
                 </div>
+                {field.hasoptions && (
+                  <div>
+                    <label>Options (separate options using a comma delimiter)</label>
+                    <input
+                      onChange={(ev) => handleChangeWithState(ev, "options", setField, field)}
+                      value={field.options}
+                      className="custom-input"
+                    />
+                  </div>
+                )}
+                {field.useplain && (
+                  <div>
+                    <label>Reference field</label>
+                    <textarea
+                      value={field.plain}
+                      className="custom-input"
+                      onChange={(ev) => handleChangeWithState(ev, "plain", setField, field)}
+                    />
+                  </div>
+                )}
+
+                <div className="form-row mx-2">
+                  <label>has units</label>
+                  <select value={`${field.hasunits}`} onChange={(ev) => { setField({ ...field, hasunits: ev.target.value === "true" ? true : false }) }} className="custom-select">
+                    <option >select an option</option>
+                    <option value='true'>Yes</option>
+                    <option value='false'>No</option>
+                  </select>
+                </div>
+                {field.hasunits && (
+                  <div>
+                    <label>Field units</label>
+                    <input
+                      onChange={(ev) => handleChangeWithState(ev, "units", setField, field)}
+                      value={field.units}
+                      className="custom-input"
+                    />
+                  </div>
+                )}
               </div>
-              <div>
+              {/* <div>
                 <div className="d-flex justify-content-between">
                   <label>Has options</label>
                   <Form.Switch
@@ -270,39 +324,11 @@ export default function CreateTestFields({ testid, testname, minimize = false })
                     checked={field.useplain}
                   />
                 </div>
-              </div>
+              </div> */}
             </form>
             {createLimitFields()}
-            {field.hasunits && (
-              <div>
-                <label>Field units</label>
-                <input
-                  onChange={(ev) => handleChangeWithState(ev, "units", setField, field)}
-                  value={field.units}
-                  className="custom-input"
-                />
-              </div>
-            )}
-            {field.hasoptions && (
-              <div>
-                <label>Options (separate options using a comma delimiter)</label>
-                <input
-                  onChange={(ev) => handleChangeWithState(ev, "options", setField, field)}
-                  value={field.options}
-                  className="custom-input"
-                />
-              </div>
-            )}
-            {field.useplain && (
-              <div>
-                <label>Reference field</label>
-                <textarea
-                  value={field.plain}
-                  className="custom-input"
-                  onChange={(ev) => handleChangeWithState(ev, "plain", setField, field)}
-                />
-              </div>
-            )}
+
+
 
             <button
               onClick={(ev) => {
@@ -318,57 +344,9 @@ export default function CreateTestFields({ testid, testname, minimize = false })
             <h5 className="mt-4">No fields created</h5>
           ) : (
             <div className="card-body">
-              <table className="table table-responsive my-2 table-striped">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Upper Limits</th>
-                    <th>Lower Limits</th>
-                    <th className="d-flex justify-content-between align-items-center">
-                      <span>Actions</span>
-                      <span>
-                        <button
-                          onClick={() => {
-                            setReorder(!reorder);
-                          }}
-                          className="btn btn-link">
-                          Reorder Fields
-                        </button>
-                      </span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.name}</td>
-                      <td>{item.type}</td>
-                      <td>{item.upperlimit}</td>
-                      <td>{item.lowerlimit}</td>
-                      <td>
-                        <div className="d-flex justify-content-between">
-                          <input
-                            type="number"
-                            className="form-control"
-                            value={item.ordering}
-                            disabled={reorder}
-                            onChange={(ev) => changeOrdering(item, ev)}
-                          />
-                          <button onClick={() => editField(item)} className="btn btn-info mx-2">
-                            Edit
-                          </button>
-                          <button onClick={() => removeField(item)} className="btn btn-danger">
-                            Remove
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <RenderTestCreationParameters data={data} reorder={reorder} setReorder={setReorder} changeOrdering={changeOrdering} editField={editField} removeField={removeField} />
               <div>
-                <button onClick={updateFieldsRules} className="btn btn-success mt-2">
+                  <button onClick={(ev) => { updateFieldsRules (data,toast)}} className="btn btn-success mt-2">
                   Update Fields
                 </button>
               </div>

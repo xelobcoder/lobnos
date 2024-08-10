@@ -3,6 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import { Col } from "react-bootstrap"
 import OperationsServerRenderingSideBar from "../../lib/dummy"
 import '../../styles/side.css'
+import "../../styles/globals.css"
 
 
 export const metadata = {

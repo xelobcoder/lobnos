@@ -9,8 +9,8 @@
   --prime-ui-font-family:  "Montserrat", sans-serif;
   --custom-orange: #feb602;
   --custom-dark_blue: #142a5e;
-      --tw-bg-opacity: 1;
-      --bg-light-gray:rgb(230 230 230 );
+  --tw-bg-opacity: 1;
+  --bg-light-gray:rgb(230 230 230 );
   --wp--preset--gradient--midnight: linear-gradient(135deg, rgb(2, 3, 129) 0%, rgb(40, 116, 252) 100%);
 }
 
@@ -44,7 +44,7 @@ html {
   min-height: 100vh;
   color: var(--text-color);
   font-optical-sizing: auto;
-  font-family: var(--prime-ui-font-family);
+  font-family: var(--prime-links-font-family);
   font-weight: 500;
 }
 
@@ -303,7 +303,7 @@ a {
 }
 
 .light-x-trend {
-  /* color: #00224f; */
+  color: #00224f;
   font-size: 20px !important;
   text-transform: lowercase !important;
 }
@@ -1328,7 +1328,7 @@ font-weight: bolder;
   background-color: #0056b3;
 }
 .ui{
-  font-family: var(--prime-links-font-family) !important;
+  /* font-family: var(--prime-links-font-family) !important; */
 }
 
 
@@ -1497,4 +1497,26 @@ body {
       list-style-type: none;
 }
 
+
+
+/* .table-column-width-reset{
+  width: 150px;
+  max-width: 300px;
+  word-break: break-all;
+} */
+
 /* -------END OF WAKPENJO--------- */
+
+/* ul.nav-tabs[role='tablist'] >li.nav-item[role='presentation']> button.nav-link 
+{
+  background-color: blue !important;
+  color: white !important;
+  border:2px solid blue !important;
+  border-radius: 5px !important;
+  padding: 5px !important;
+  margin-right: 3px;
+}
+ul.nav-tabs[role='tablist'] >li.nav-item[role='presentation']> button.nav-link.active{
+  background-color: green !important;
+    border:2px solid green !important;
+} */

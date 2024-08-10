@@ -1,18 +1,16 @@
-import { Table } from "react-bootstrap";
-import TrTable from "./TableTr";
-import { useContext, useEffect, useState } from "react";
-import { BillingContext } from "./BillingContext";
-import AuthContext from "../../Auth/useAuthentification";
-import { useSearchParams } from "next/navigation";
-import { customFetch } from "../../Auth/customFetch";
 import { Clear } from "@mui/icons-material";
+import { useSearchParams } from "next/navigation";
+import { useContext, useEffect, useState } from "react";
+import { Table } from "react-bootstrap";
+import { customFetch } from "../../Auth/customFetch";
+import AuthContext from "../../Auth/useAuthentification";
+import { BillingContext } from "./BillingContext";
+import TrTable from "./TableTr";
 
 export default function TestBillingTable() {
   const { billingdata, updateBilling } = useContext(BillingContext);
-  const { auth } = useContext(AuthContext);
-  const employeeid = auth?.employeeid;
   const [appsettings, setAppsettings] = useState({});
-  const branchid = auth?.branchid;
+
   const patientid = useSearchParams().get("patientid");
   const cart = billingdata?.cart;
 

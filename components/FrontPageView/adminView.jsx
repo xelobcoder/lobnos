@@ -77,7 +77,7 @@ export default function FrontPageAdminView() {
           </Link>
         </li>
         <li>
-          <Link className="bg-primary text-white p-4 text-center" href="/upgrade" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <Link className="bg-primary text-white p-4 text-center" href="/resultanalysis" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <Analytics sx={{ height: 100, width: 100, marginBottom: '8px' }} />
             <div>Result Analysis</div>
           </Link>

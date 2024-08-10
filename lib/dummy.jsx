@@ -24,28 +24,30 @@ export default function OperationsServerRenderingSideBar() {
                         <div className="futher-refer-child bg-warning-subtle">
                             <Link href={"/navbar/complete"}>
                                 <span><MenuOpen /></span>
-                                <span>Billing Page Pending</span>
+                                <span>pending collection</span>
                                 <span>60 </span>
 
                             </Link>
                         </div>
                         <div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
+                            <Link href={"/navbar/complete"}>
                                 <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
+                                <span>pending sample validation</span>
+                                <span>60 </span>
+
+                            </Link>
+                        </div>
+                        <div className="futher-refer-child bg-warning-subtle">
+                            <Link href={"/navbar/processing"}>
+                                <span><MenuOpen /></span>
+                                <span>processing</span>
                                 <span>60 </span>
                             </Link>
                         </div>
                         <div className="futher-refer-child bg-warning-subtle">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
-                                <span>pending count 60</span>
-                                <span>70 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>pending count 60</span>
+                                <span>pending approval</span>
                                 <span>60 </span>
                             </Link>
                         </div><div className="futher-refer-child bg-warning-subtle">

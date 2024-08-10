@@ -884,3 +884,44 @@ export const loadAllTest = async () => {
     return null;
   }
 }
+
+
+
+export const formatPlainOptionsToObject =
+  function (plaindata) {
+
+    const plainDataFormarted = plaindata.split(";");
+    const requiredHeaders = ['general', 'male', 'female', 'children'];
+    let plainObject = {};
+
+    if (plainDataFormarted.length > 0) {
+      for (let i = 0; i < plainDataFormarted.length; i++) {
+        const cleaned = plainDataFormarted[i].trim();
+        if (cleaned.includes(":") && cleaned.split(":").length > 0) {
+          const [header, referenceRange] = cleaned.split(":");
+          const cleanedReferenceRange = referenceRange.trim().split("-");
+          if (cleanedReferenceRange.length !== 0 && requiredHeaders.includes(header.toLowerCase())) {
+            let valueOne = cleanedReferenceRange[0];
+            let valueTwo = cleanedReferenceRange[1];
+            if (!isNaN(valueOne) && !isNaN(valueTwo)) {
+              let upperLimit = 0;
+              let lowerLimit = 0;
+              valueOne = parseFloat(valueOne);
+              valueTwo = parseFloat(valueTwo);
+              if (valueOne > valueTwo) {
+                upperLimit = valueOne;
+                lowerLimit = valueTwo;
+              } else {
+                upperLimit = valueTwo;
+                lowerLimit = valueOne
+              }
+              plainObject[header.toLowerCase()] = {
+                upperLimit, lowerLimit
+              }
+            }
+          }
+        }
+      }
+    }
+    return plainObject;
+  }

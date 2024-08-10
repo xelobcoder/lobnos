@@ -165,7 +165,7 @@ export default function TableDisplay({
                     toggleColumnVisibility={toggleColumnVisibility}
                   />
                 </div>
-                <table style={{ minHeight: '50vh' }} {...props} className={styling ? styling : "table table-striped table-hover"} {...getTableProps()}>
+                <table style={{minHeight:'20vh'}} {...props} className={styling ? styling : "billing-cart-table table-striped table-hover"} {...getTableProps()}>
                   <thead>{customHeaderGroup()}</thead>
                   <tbody {...getTableBodyProps()}>
                     {page.map((row, index) => {

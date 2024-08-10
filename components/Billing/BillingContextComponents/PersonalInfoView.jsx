@@ -28,15 +28,11 @@ export default function BillingPagePatientInformation() {
   return (
     <section>
       <Row>
-        <Col>
-          <h5 className="my-3 mx-2 text-capitalize">
-            {data?.firstname} {data?.lastname}
-          </h5>
-        </Col>
-      </Row>
-      <hr />
-      <Row>
         <Col className="patient-info">
+          <div className="mx-2 mb-3">
+            <label className="text-muted">Patient Name:</label>
+            <p className="text-capitalize">{data?.firstname} {data?.middlename} {data.lastname}</p>
+          </div>
           <div className="mx-2 mb-3">
             <label className="text-muted">Patient ID:</label>
             <p className="text-capitalize">{data?.patientid}</p>

@@ -16,12 +16,16 @@ const store = {
   lastSynchronizationdate: null,
   headerColor: null,
   sidearColor: null,
-  isConnectedInventory: null,
-  isSupplierConnected: null,
+  isConnectedInventory: false,
+  isSupplierConnected: false,
   loginDuration: null,
   daysToExpiration: 265,
   currency: null,
   decimalPlaces: 3,
+  fontFamily: '"Lexend Deca", Helvetica, Arial, sans-serif',
+  headerColor: 'green',
+  backgroundColor: "black",
+  textColor: 'white'
 }
 
 const ApplicationContext = createContext(store);
