@@ -1,24 +1,22 @@
-import MultipleChoiceSelectiionTestPanelCreation from "./MultipleChoiceSelection"
+import MultipleChoiceSelectiionTestPanelCreation from "./MultipleChoiceSelection";
 import ParameterGeneralLimitApplicable from "./ParameterGeneralLimitApplicable";
 import ParameterPlainOption from "./ParameterPlainOptions";
 
 export default function CustomParameterTypeSelection({ selection, field, setField }) {
-    const rendering = (selection) => {
-        if (typeof selection != "string") return;
-        if (selection === "options") { return <MultipleChoiceSelectiionTestPanelCreation /> }
-        else if (selection ===
-            "plain"
-        ) {
-            return <ParameterPlainOption  field={field} setField={setField}/>
-        } else if (selection === 'limits'){
-            return <ParameterGeneralLimitApplicable setField={setField} field={field}/>
-        } else {
-
+    const renderComponent = (selection) => {
+        switch (selection) {
+            case "options":
+                const hasChildren = field.options.includes(",");
+                const defaultOptions = hasChildren ? field.options.split(",") : [];
+                return <MultipleChoiceSelectiionTestPanelCreation defaultOptions={defaultOptions} field={field} setField={setField} />;
+            case "plain":
+                return <ParameterPlainOption field={field} setField={setField} />;
+            case "limits":
+                return <ParameterGeneralLimitApplicable setField={setField} field={field} />;
+            default:
+                return null;
         }
-    }
+    };
 
-
-    return <div>
-        {rendering(selection)}
-    </div>
+    return <div>{renderComponent(selection)}</div>;
 }

@@ -1,7 +1,7 @@
 import { Add, Delete } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 
-export default function MultipleChoiceSelectiionTestPanelCreation({ defaultOptions = [] }) {
+export default function MultipleChoiceSelectiionTestPanelCreation({ defaultOptions = [], field, setField }) {
     const [options, setOptions] = useState(defaultOptions);
     const [editing, setEditing] = useState("");
     const [editIndex, setEditIndex] = useState(null);
@@ -15,17 +15,25 @@ export default function MultipleChoiceSelectiionTestPanelCreation({ defaultOptio
     }, [defaultOptions]);
 
     const handleAddOption = () => {
-        if (editing.trim() === "") return;
+        const trimmedEditing = editing.trim();
+        if (trimmedEditing === "" || !Array.isArray(options)) return;
+        const isDuplicate = options.some(option => option.toLowerCase() === trimmedEditing.toLowerCase());
+        if (isDuplicate) {
+            alert("Option already exists");
+            return;
+        }
+
         if (editIndex !== null) {
             const updatedOptions = options.map((option, index) =>
-                index === editIndex ? editing : option
+                index === editIndex ? trimmedEditing : option
             );
             setOptions(updatedOptions);
             setEditIndex(null);
         } else {
-            setOptions([...options, editing]);
+            setOptions([...options, trimmedEditing]);
         }
         setEditing("");
+        setField({ ...field, options: options.join(',') })
     };
 
     const handleEditOption = (index) => {
@@ -52,7 +60,7 @@ export default function MultipleChoiceSelectiionTestPanelCreation({ defaultOptio
             <div className="p-2 pointer">
                 <strong className="my-3" style={{ textDecoration: "underline" }}><em>Multiple selection/dropdown</em></strong>
                 <Delete
-                    titleAccess="delete selected options"
+                    titleAccess="Delete selected options"
                     color="error"
                     onClick={handleDeleteSelectedOptions}
                 />
@@ -79,11 +87,12 @@ export default function MultipleChoiceSelectiionTestPanelCreation({ defaultOptio
                                 checked={checked.includes(index)}
                                 onChange={() => handleCheckboxChange(index)}
                             />
-                            {index + 1}.
-                            {item}
+                            {index + 1}. {item}
                         </div>
                         <div>
-                            <button onClick={() => handleEditOption(index)} className="mx-2 btn btn-info p-0 text-sm">Edit</button>
+                            <button onClick={() => handleEditOption(index)} className="mx-2 btn btn-info p-0 text-sm">
+                                Edit
+                            </button>
                         </div>
                     </div>
                 ))}

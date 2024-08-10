@@ -818,18 +818,16 @@ export const defaultTestEditValues = {
 }
 
 export const defaultCreationRule = {
-  hasoptions: false,
-  haslimits: false,
   name: "",
   field: "",
   value: "",
-  type: "",
   options: "",
   testid: "",
   hasunits: false,
   units: "",
   plan: "",
   plain: "",
+  valueAlert: "",
   ordering: ""
 }
 

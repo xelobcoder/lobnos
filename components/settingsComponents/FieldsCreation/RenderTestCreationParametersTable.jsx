@@ -16,6 +16,7 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
             <td>{item.male ? item.male.lowerlimit : ""}</td>
             <td>{item.female ? item.female.upperlimit : ""}</td>
             <td>{item.female ? item.female.lowerlimit : ""}</td>
+            <td>{item.alertValue}</td>
             <td className="table-column-width-reset">
                 {item.options ? <ReformatTestParamOptions stringdata={item.options} /> : ""}
             </td>
@@ -51,30 +52,31 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
     );
 
     return (
-        <table className="table table-bordered table-striped my-5">
-            <thead className="table-secondary">
-                <tr>
-                    <th>
-                        <button onClick={handleReorderClick} className="btn btn-link">
-                            Reorder Fields
-                        </button>
-                        <br />
-                        Parameter Name
-                    </th>
-                    <th>GUL</th>
-                    <th>GLL</th>
-                    <th>MUL</th>
-                    <th>MLL</th>
-                    <th>FUL</th>
-                    <th>FLL</th>
-                    <th>Options</th>
-                    <th>Plain</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {data.map((item, index) => renderTableData(item, index))}
-            </tbody>
-        </table>
+        <>
+            <button onClick={handleReorderClick} className="btn btn-link">
+                Reorder Fields
+            </button>
+            <table className="table table-striped-columns table-bordered">
+                <thead className="table-secondary billing-cart-table">
+                    <tr>
+                        <th>
+                            Parameter Name
+                        </th>
+                        <th>GUL</th>
+                        <th>GLL</th>
+                        <th>MUL</th>
+                        <th>MLL</th>
+                        <th>FUL</th>
+                        <th>FLL</th>
+                        <th>AlertValue</th>
+                        <th>Options</th>
+                        <th>Plain</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.map((item, index) => renderTableData(item, index))}
+                </tbody>
+            </table></>
     );
 }
