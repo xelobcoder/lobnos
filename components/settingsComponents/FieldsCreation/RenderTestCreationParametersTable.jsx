@@ -61,12 +61,12 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
                         <br />
                         Parameter Name
                     </th>
-                    <th>General <br /> Upper Limits</th>
-                    <th>General <br /> Lower Limits</th>
-                    <th>Male <br /> Upper Limits</th>
-                    <th>Male <br /> Lower Limits</th>
-                    <th>Female <br /> Upper Limits</th>
-                    <th>Female <br /> Lower Limits</th>
+                    <th>GUL</th>
+                    <th>GLL</th>
+                    <th>MUL</th>
+                    <th>MLL</th>
+                    <th>FUL</th>
+                    <th>FLL</th>
                     <th>Options</th>
                     <th>Plain</th>
                     <th>Actions</th>

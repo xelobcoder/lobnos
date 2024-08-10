@@ -828,7 +828,7 @@ export const defaultCreationRule = {
   testid: "",
   hasunits: false,
   units: "",
-  useplain: false,
+  plan: "",
   plain: "",
   ordering: ""
 }

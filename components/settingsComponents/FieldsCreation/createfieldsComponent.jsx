@@ -4,6 +4,9 @@ import { ToastContainer, toast } from "react-toastify";
 import Loader from "../../accessories/Loader";
 import RenderTestCreationParameters from "./RenderTestCreationParametersTable";
 import { handleCreationMasterRUle, updateFieldsRules } from "./data/testUtil";
+import CustomParameterTypeSelection from "./CustomParameterTypeSelection";
+import { InfoRounded } from "@mui/icons-material";
+import AlertInmportantInformation from "./AlertImportantInformation";
 
 
 export default function CreateTestFields({ testid, testname, minimize = false }) {
@@ -106,105 +109,85 @@ export default function CreateTestFields({ testid, testname, minimize = false })
 
 
 
-  const createLimitFields = () => {
-    if (field.haslimits && field.type === "number" && !field.hasoptions) {
-      if (generalTestRule.hasGenderVariation && generalTestRule.hasChildrenLimit) {
-        return (
-          <div>
-            <label>Limits</label>
-            {["male", "female", "children"].map((item, index) => (
-              <div key={index}>
-                <label>{item}</label>
-                <div className="d-flex justify-content-between">
-                  <input
-                    placeholder="Upper limit"
-                    type="number"
-                    onChange={(ev) => {
-                      handleGenderVariationLimit(ev.target.value, "upperlimit", item);
-                    }}
-                    value={field[item]?.upperlimit}
-                    className="custom-input"
-                  />
-                  <input
-                    placeholder="Lower limit"
-                    type="number"
-                    onChange={(ev) => {
-                      handleGenderVariationLimit(ev.target.value, "lowerlimit", item);
-                    }}
-                    value={field[item]?.lowerlimit}
-                    className="custom-input mx-2"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        );
-      } else if (generalTestRule.hasGenderVariation && !generalTestRule.hasChildrenLimit) {
-        return (
-          <div>
-            <label>Limits</label>
-            {["male", "female"].map((item, index) => (
-              <div key={index}>
-                <label>{item}</label>
-                <div className="d-flex justify-content-between">
-                  <input
-                    placeholder="Upper limit"
-                    type="number"
-                    onChange={(ev) => {
-                      handleGenderVariationLimit(ev.target.value, "upperlimit", item);
-                    }}
-                    value={field[item]?.upperlimit}
-                    className="custom-input"
-                  />
-                  <input
-                    placeholder="Lower limit"
-                    type="number"
-                    onChange={(ev) => {
-                      handleGenderVariationLimit(ev.target.value, "lowerlimit", item);
-                    }}
-                    value={field[item]?.lowerlimit}
-                    className="custom-input mx-2"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        );
-      } else {
-        return (
-          <div >
-            <label>Upper Limit</label>
-            <div className="d-flex justify-content-between">
-              <input
-                placeholder="Upper limit"
-                type="number"
-                onChange={(ev) => {
-                  setField({ ...field, upperlimit: ev.target.value })
-                }}
-                value={field.upperlimit}
-                className="custom-input"
-              />
-              <input
-                placeholder="Lower limit"
-                type="number"
-                onChange={(ev) => {
-                  setField({ ...field, lowerlimit: ev.target.value })
-                }}
-                value={field?.lowerlimit}
-                className="custom-input mx-2"
-              />
-            </div>
-          </div>
-        )
-      }
-    }
-  };
+  // const createLimitFields = () => {
+  //   if (field.haslimits && field.type === "number" && !field.hasoptions) {
+  //     if (generalTestRule.hasGenderVariation && generalTestRule.hasChildrenLimit) {
+  //       return (
+  //         <div>
+  //           <label>Limits</label>
+  //           {["male", "female", "children"].map((item, index) => (
+  //             <div key={index}>
+  //               <label>{item}</label>
+  //               <div className="d-flex justify-content-between">
+  //                 <input
+  //                   placeholder="Upper limit"
+  //                   type="number"
+  //                   onChange={(ev) => {
+  //                     handleGenderVariationLimit(ev.target.value, "upperlimit", item);
+  //                   }}
+  //                   value={field[item]?.upperlimit}
+  //                   className="custom-input"
+  //                 />
+  //                 <input
+  //                   placeholder="Lower limit"
+  //                   type="number"
+  //                   onChange={(ev) => {
+  //                     handleGenderVariationLimit(ev.target.value, "lowerlimit", item);
+  //                   }}
+  //                   value={field[item]?.lowerlimit}
+  //                   className="custom-input mx-2"
+  //                 />
+  //               </div>
+  //             </div>
+  //           ))}
+  //         </div>
+  //       );
+  //     } else if (generalTestRule.hasGenderVariation && !generalTestRule.hasChildrenLimit) {
+  //       return (
+  //         <div>
+  //           <label>Limits</label>
+  //           {["male", "female"].map((item, index) => (
+  //             <div key={index}>
+  //               <label>{item}</label>
+  //               <div className="d-flex justify-content-between">
+  //                 <input
+  //                   placeholder="Upper limit"
+  //                   type="number"
+  //                   onChange={(ev) => {
+  //                     handleGenderVariationLimit(ev.target.value, "upperlimit", item);
+  //                   }}
+  //                   value={field[item]?.upperlimit}
+  //                   className="custom-input"
+  //                 />
+  //                 <input
+  //                   placeholder="Lower limit"
+  //                   type="number"
+  //                   onChange={(ev) => {
+  //                     handleGenderVariationLimit(ev.target.value, "lowerlimit", item);
+  //                   }}
+  //                   value={field[item]?.lowerlimit}
+  //                   className="custom-input mx-2"
+  //                 />
+  //               </div>
+  //             </div>
+  //           ))}
+  //         </div>
+  //       );
+  //     } else {
+  //       return (
+
+  //       )
+  //     }
+  //   }
+  // };
 
 
   const finalRenderingView = () => {
     if (isloading) return <Loader />;
     return (
       <div>
+        <AlertInmportantInformation />
+
         <section className="mx-2 bg-white border border-secondary-subtle p-2">
           <h5>Parameter / Field Creation</h5>
           <hr />
@@ -222,37 +205,17 @@ export default function CreateTestFields({ testid, testname, minimize = false })
                     type="text"
                   />
                 </div>
-                
+
                 <div className="form-row mx-2">
                   <label>method</label>
-                  <select onChange={(ev) => { const fields = handleCreationMasterRUle(ev, field); setField(fields) }} className="custom-select">
+                  <select onChange={(ev) => { const fields = handleCreationMasterRUle(ev, field); setField(fields) }} className="custom-select" value={field.plan}>
                     <option >select an option</option>
                     <option value='options'>dropdown</option>
-                    <option value='plain'>use plain text field for reference range</option>
-                    <option value='limits'>use reference ranges</option>
+                    <option disabled={!generalTestRule.hasGenderVariation} value='plain'>use plain text field for reference range</option>
+                    <option disabled={generalTestRule.hasGenderVariation} value='limits'>use reference ranges</option>
                     <option value='input'>use a field input for text or numbers</option>
                   </select>
                 </div>
-                {field.hasoptions && (
-                  <div>
-                    <label>Options (separate options using a comma delimiter)</label>
-                    <input
-                      onChange={(ev) => handleChangeWithState(ev, "options", setField, field)}
-                      value={field.options}
-                      className="custom-input"
-                    />
-                  </div>
-                )}
-                {field.useplain && (
-                  <div>
-                    <label>Reference field</label>
-                    <textarea
-                      value={field.plain}
-                      className="custom-input"
-                      onChange={(ev) => handleChangeWithState(ev, "plain", setField, field)}
-                    />
-                  </div>
-                )}
 
                 <div className="form-row mx-2">
                   <label>has units</label>
@@ -326,7 +289,8 @@ export default function CreateTestFields({ testid, testname, minimize = false })
                 </div>
               </div> */}
             </form>
-            {createLimitFields()}
+            <CustomParameterTypeSelection selection={field.plan} field={field} setField={setField} />
+            {/* {createLimitFields()} */}
 
 
 
@@ -346,7 +310,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
             <div className="card-body">
               <RenderTestCreationParameters data={data} reorder={reorder} setReorder={setReorder} changeOrdering={changeOrdering} editField={editField} removeField={removeField} />
               <div>
-                  <button onClick={(ev) => { updateFieldsRules (data,toast)}} className="btn btn-success mt-2">
+                <button onClick={(ev) => { updateFieldsRules(data, toast) }} className="btn btn-success mt-2">
                   Update Fields
                 </button>
               </div>
@@ -362,6 +326,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
       <ToastContainer theme="colored" className="text-sm" position="top-center" />
       <h5 className="mx-2 text-capitalize">{testname}</h5>
       {finalRenderingView()}
+
     </>
   );
 }

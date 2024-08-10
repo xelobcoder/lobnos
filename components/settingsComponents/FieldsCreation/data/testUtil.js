@@ -2,10 +2,7 @@ import { customPost } from "../../../Auth/customFetch";
 
 export const handleCreationMasterRUle = function (ev, field) {
     const { value } = ev.target;
-    if (value === "options") { return { ...field, hasoptions: true } }
-    else if (value === "plain") { return { ...field, useplain: true } }
-    else if (value === "limits") { return { ...field, haslimits: true } }
-    else return { ...field }
+    return {...field,plan:value}
 }
 
 
