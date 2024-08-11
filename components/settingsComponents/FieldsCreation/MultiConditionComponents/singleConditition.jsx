@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Select from 'react-select';
 
 const constraintOptions = [
@@ -9,22 +9,12 @@ const constraintOptions = [
     { value: 5, label: 'In range of two values' }
 ];
 
-const allowedDelimiters = ['-'];
+
 
 export default function MultiConditionCreationFormChildren({ fields = [], conditionName = '', constraintField = [], parameters = [], addingConstraints }) {
     const [selectedParameter, setSelectedParameter] = useState(null);
     const [selectedConstraint, setSelectedConstraint] = useState(null);
     const [targetValue, setTargetValue] = useState('');
-
-    useEffect(() => {
-        if (fields.length > 0) {
-            const fieldOptions = fields.map(item => ({
-                value: item.name,
-                label: item.name
-            }));
-            setParameters(fieldOptions);
-        }
-    }, [fields]);
 
     const handleParameterChange = (option) => {
         setSelectedParameter(option);
@@ -45,8 +35,14 @@ export default function MultiConditionCreationFormChildren({ fields = [], condit
         } else if (constraintValue === 3 || constraintValue === 4) {
             return { evaluation: true }
         } else if (constraintValue === 5) {
+            if (!targetValue.includes("-")) {
+                return { evaluation: false, warning: 'Must include - delimeter' }
+            };
             const [min, max] = targetValue.split('-');
-            return { evaluation: !isNaN(min) && !isNaN(max) && targetValue.includes('-'), warning: `${targetValue} must be numbers and have a - delimeter` };
+            return {
+                evaluation: !isNaN(min) && !isNaN(max) && targetValue.includes('-'),
+                warning: `${targetValue} must be numbers and have a - delimeter`
+            };
         }
         return { evaluation: false }
     };

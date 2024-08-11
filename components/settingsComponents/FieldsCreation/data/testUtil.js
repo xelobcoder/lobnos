@@ -30,3 +30,40 @@ export const defaultConstraintsFields = {
     target: "",
     inRange: false,
 }
+
+
+export const allowedDelimiters = ['-'];
+
+export const specialCharacters = [
+    '!',  // Exclamation mark
+    '"',  // Double quote
+    '#',  // Hash
+    '$',  // Dollar sign
+    '%',  // Percent
+    '&',  // Ampersand
+    "'",  // Single quote
+    '(',  // Left parenthesis
+    ')',  // Right parenthesis
+    '*',  // Asterisk
+    '+',  // Plus sign
+    ',',  // Comma
+    '.',  // Period
+    '/',  // Slash
+    ':',  // Colon
+    ';',  // Semicolon
+    '<',  // Less-than sign
+    '=',  // Equals sign
+    '>',  // Greater-than sign
+    '?',  // Question mark
+    '@',  // At symbol
+    '[',  // Left square bracket
+    '\\', // Backslash
+    ']',  // Right square bracket
+    '^',  // Caret
+    '_',  // Underscore
+    '`',  // Grave accent
+    '{',  // Left curly brace
+    '|',  // Vertical bar
+    '}',  // Right curly brace
+    '~',  // Tilde
+];
