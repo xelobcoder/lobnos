@@ -4,6 +4,7 @@ import MultiConditionCreationFormChildren from "./MultiConditionComponents/condi
 
 export default function MultiFieldSelectConditions({ fields = [] }) {
     const [conditions, setConditions] = useState([]);
+    const [conditionError, setConditionError] = useState({ show: false, error: "" });
     const [input, setInput] = useState("");
 
 
@@ -17,6 +18,10 @@ export default function MultiFieldSelectConditions({ fields = [] }) {
     }
 
     const createCondition = function () {
+        if (input.trim().length < 3) {
+            setConditionError({ show: true, error: 'Condition name must be greater than or equal to 3 in length' })
+            return
+        };
         const condition = {};
         condition.conditionName = input;
         condition.fieldConstaints = [];
@@ -27,6 +32,9 @@ export default function MultiFieldSelectConditions({ fields = [] }) {
             setConditions([...conditions, condition]);
         }
         setInput("");
+        if (conditionError.show) {
+            setConditionError({ show: false, error: "" })
+        }
     }
 
     function updatingConstraints(constraintName) {
@@ -63,6 +71,9 @@ export default function MultiFieldSelectConditions({ fields = [] }) {
 
     return (
         <section className="_multiple-field-condition_field ">
+            <div className="text-danger">
+                {conditionError.error}
+            </div>
             <div className="col-3">
                 <div className="condition-name form-group">
                     <label>condition name</label>

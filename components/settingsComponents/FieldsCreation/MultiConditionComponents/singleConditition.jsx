@@ -9,6 +9,8 @@ const constraintOptions = [
     { value: 5, label: 'In range of two values' }
 ];
 
+const allowedDelimiters = ['-'];
+
 export default function MultiConditionCreationFormChildren({ fields = [], conditionName = '', constraintField = [], parameters = [], addingConstraints }) {
     const [selectedParameter, setSelectedParameter] = useState(null);
     const [selectedConstraint, setSelectedConstraint] = useState(null);
@@ -20,6 +22,7 @@ export default function MultiConditionCreationFormChildren({ fields = [], condit
                 value: item.name,
                 label: item.name
             }));
+            setParameters(fieldOptions);
         }
     }, [fields]);
 
@@ -35,26 +38,43 @@ export default function MultiConditionCreationFormChildren({ fields = [], condit
         setTargetValue(event.target.value);
     };
 
+    const validateTargetValue = () => {
+        const constraintValue = selectedConstraint?.value;
+        if (constraintValue === 1 || constraintValue === 2) {
+            return { evaluation: !isNaN(targetValue) && !isNaN(parseFloat(targetValue)), warning: 'Only Numbers allowed' };
+        } else if (constraintValue === 3 || constraintValue === 4) {
+            return { evaluation: true }
+        } else if (constraintValue === 5) {
+            const [min, max] = targetValue.split('-');
+            return { evaluation: !isNaN(min) && !isNaN(max) && targetValue.includes('-'), warning: `${targetValue} must be numbers and have a - delimeter` };
+        }
+        return { evaluation: false }
+    };
+
     const handleCreateValidator = () => {
-        if (!selectedParameter || !selectedConstraint || targetValue.trim() === "") {
-            alert("Please fill in all fields");
+        const status = validateTargetValue();
+        if (!selectedParameter || !selectedConstraint || !status.evaluation) {
+            alert(status.warning);
             return;
         }
+
         const newConstraint = {
             parameter: selectedParameter.label,
             condition: selectedConstraint.label,
             target: targetValue,
-            inRange: false
+            inRange: selectedConstraint.value === 5
         };
+
+        addingConstraints(conditionName, newConstraint.parameter, newConstraint.condition, newConstraint.target, newConstraint.inRange);
+
         setSelectedParameter(null);
         setSelectedConstraint(null);
         setTargetValue('');
-        const inRange = selectedConstraint === 5
-        addingConstraints(conditionName, newConstraint.parameter, newConstraint.condition, newConstraint.target,inRange);
     };
 
     const handleRemoveConstraint = (index) => {
-        setConstraintsList(prevList => prevList.filter((_, i) => i !== index));
+        const updatedConstraints = constraintField.filter((_, i) => i !== index);
+        setConstraintsList(updatedConstraints);
     };
 
     return (
