@@ -1,5 +1,6 @@
 import { useState } from "react";
 import MultiConditionCreationFormChildren from "./MultiConditionComponents/conditionCreation";
+import { defaultConstraintsFields } from "./data/testUtil";
 
 export default function MultiFieldSelectConditions({ fields = [] }) {
     const [conditions, setConditions] = useState([]);
@@ -18,7 +19,7 @@ export default function MultiFieldSelectConditions({ fields = [] }) {
     const createCondition = function () {
         const condition = {};
         condition.conditionName = input;
-        condition.fieldConstaints = [];
+        condition.fieldConstaints = [defaultConstraintsFields];
         if (conditions.length === 0) {
             setConditions([...conditions, condition])
         } else {
@@ -59,7 +60,7 @@ export default function MultiFieldSelectConditions({ fields = [] }) {
             </div>
             <hr />
             <div>
-                {conditions.length > 0 && conditions.map((item, index) => <MultiConditionCreationFormChildren conditionName={item.conditionName} constraints={item.fieldConstaints} />)}
+                {conditions.length > 0 && conditions.map((item, index) => <MultiConditionCreationFormChildren fields={fields} conditionName={item.conditionName} constraints={item.fieldConstaints} />)}
             </div>
         </section>
     );

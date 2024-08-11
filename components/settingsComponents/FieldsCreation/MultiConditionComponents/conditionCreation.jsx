@@ -20,10 +20,10 @@ export default function MultiConditionCreationFormChildren({ fields = [], condit
     return (
         <div>
             <h4>{conditionName}</h4>
-            <div>
+            <div className="alert alert-secondary">
                 {constraints.length > 0 && constraints.map((item, index) => {
                     return (
-                        <SingleMultipleCreationFormComponent parameters={parameters} constraintField={item.fieldConstaints || defaultConstraintsFields} />
+                        <SingleMultipleCreationFormComponent parameters={parameters} constraintField={item.fieldConstaints } />
                     )
                 })}
             </div>
