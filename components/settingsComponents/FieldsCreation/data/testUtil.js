@@ -27,5 +27,6 @@ export const updateFieldsRules = async (data, toast, testid) => {
 export const defaultConstraintsFields = {
     parameter: "",
     condition: "",
-    target: ""
+    target: "",
+    inRange: false,
 }

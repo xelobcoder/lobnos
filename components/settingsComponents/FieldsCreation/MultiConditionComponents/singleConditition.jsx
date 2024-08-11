@@ -5,7 +5,8 @@ const constraintOptions = [
     { value: 1, label: "Less than value" },
     { value: 2, label: "Greater than value" },
     { value: 3, label: "Match value" },
-    { value: 4, label: "Does not match value" }
+    { value: 4, label: "Does not match value" },
+    { value: 5, label: 'In range of two values' }
 ];
 
 export default function MultiConditionCreationFormChildren({ fields = [], conditionName = '', constraintField = [], parameters = [], addingConstraints }) {
@@ -36,18 +37,20 @@ export default function MultiConditionCreationFormChildren({ fields = [], condit
 
     const handleCreateValidator = () => {
         if (!selectedParameter || !selectedConstraint || targetValue.trim() === "") {
-            alert("Please fill in all fields.");
+            alert("Please fill in all fields");
             return;
         }
         const newConstraint = {
             parameter: selectedParameter.label,
             condition: selectedConstraint.label,
-            target: targetValue
+            target: targetValue,
+            inRange: false
         };
         setSelectedParameter(null);
         setSelectedConstraint(null);
         setTargetValue('');
-        addingConstraints(conditionName,newConstraint.parameter,newConstraint.condition, newConstraint.target)
+        const inRange = selectedConstraint === 5
+        addingConstraints(conditionName, newConstraint.parameter, newConstraint.condition, newConstraint.target,inRange);
     };
 
     const handleRemoveConstraint = (index) => {

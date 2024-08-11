@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import SingleMultipleCreationFormComponent from "./singleConditition";
 
-export default function MultiConditionCreationFormChildren({ fields = [], conditionName = '', constraints = [], addingConstraints }) {
+export default function MultiConditionCreationFormChildren({ fields = [], conditionName = '', constraints = [], addingConstraints, removingConstraints = { removingConstraints } }) {
     const [parameters, setParameters] = useState([]);
 
     const getParameters = function (fields) {
@@ -19,7 +19,10 @@ export default function MultiConditionCreationFormChildren({ fields = [], condit
 
     return (
         <div>
-            <h4>{conditionName}</h4>
+            <div className="d-flex justify-content-between my-2">
+                <h4>{conditionName}</h4>
+                <button onClick={(ev) => { removingConstraints(conditionName) }} className="btn btn-danger">remove condition</button>
+            </div>
             <div className="alert alert-secondary">
                 <SingleMultipleCreationFormComponent conditionName={conditionName} parameters={parameters}
                     addingConstraints={addingConstraints} constraintField={constraints} />

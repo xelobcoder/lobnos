@@ -1,6 +1,6 @@
 import { useState } from "react";
 import MultiConditionCreationFormChildren from "./MultiConditionComponents/conditionCreation";
-import { defaultConstraintsFields } from "./data/testUtil";
+
 
 export default function MultiFieldSelectConditions({ fields = [] }) {
     const [conditions, setConditions] = useState([]);
@@ -34,9 +34,9 @@ export default function MultiFieldSelectConditions({ fields = [] }) {
     }
 
 
-    function addingConstraints(constraintName, parameter, condition, target) {
+    function addingConstraints(constraintName, parameter, condition, target, inRange) {
         if (!hasMatch(constraintName)) return;
-        let singleConstraints = { parameter, condition, target };
+        let singleConstraints = { parameter, condition, target, inRange };
 
         const constaintPosition = conditions.findIndex((constaint, indexPos) => constaint.conditionName.trim() === constraintName.trim());
 
@@ -52,10 +52,12 @@ export default function MultiFieldSelectConditions({ fields = [] }) {
 
 
 
-
+    const handleRemoveConstraintItem = (index, constraintIndex) => {
+        setConstraintsList(prevList => prevList.filter((_, i) => i !== index));
+    };
 
     function removingConstraints(constraintName) {
-
+        setConditions(prevList => prevList.filter((_item, i) => _item.conditionName !== constraintName));
     }
 
 
@@ -70,7 +72,9 @@ export default function MultiFieldSelectConditions({ fields = [] }) {
             </div>
             <hr />
             <div >
-                {conditions.length > 0 && conditions.map((item, index) => <MultiConditionCreationFormChildren addingConstraints={addingConstraints} fields={fields} conditionName={item.conditionName} constraints={item.fieldConstaints} />)}
+                {conditions.length > 0 && conditions.map((item, index) => <MultiConditionCreationFormChildren
+                    removingConstraints={removingConstraints}
+                    addingConstraints={addingConstraints} fields={fields} conditionName={item.conditionName} constraints={item.fieldConstaints} />)}
             </div>
         </section>
     );
