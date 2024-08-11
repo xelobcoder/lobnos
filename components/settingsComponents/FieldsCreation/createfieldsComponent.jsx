@@ -74,20 +74,6 @@ export default function CreateTestFields({ testid, testname, minimize = false })
     } else {
       return (
         <div>
-          <div className="card my-4">
-            <div className="card-header">
-              Multiple Field Conditions
-            </div>
-            <div className="card-body">
-              <MultiFieldSelectConditions fields={data} />
-            </div>
-            <div className="card-footer">
-              <button
-                className="btn btn-success mt-2">
-                Update Fields
-              </button>
-            </div>
-          </div>
           <AlertInmportantInformation />
           <div>
             <div>
@@ -137,10 +123,22 @@ export default function CreateTestFields({ testid, testname, minimize = false })
               </button>
             </div>
           </div>
-
-
+          <div className="card my-4">
+            <div className="card-header">
+              Multiple Field Conditions
+            </div>
+            <div className="card-body">
+              <MultiFieldSelectConditions fields={data} />
+            </div>
+            <div className="card-footer">
+              <button
+                className="btn btn-success mt-2">
+                Update Fields
+              </button>
+            </div>
+          </div>
           {/* multiple field conditions */}
-         
+
         </div>
       );
     }
