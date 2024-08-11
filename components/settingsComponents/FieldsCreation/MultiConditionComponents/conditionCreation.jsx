@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import SingleMultipleCreationFormComponent from "./singleConditition";
 
-export default function MultiConditionCreationFormChildren({ fields = [], conditionName = '', constraints = [] }) {
+export default function MultiConditionCreationFormChildren({ fields = [], conditionName = '', constraints = [], addingConstraints }) {
     const [parameters, setParameters] = useState([]);
 
     const getParameters = function (fields) {
@@ -21,11 +21,8 @@ export default function MultiConditionCreationFormChildren({ fields = [], condit
         <div>
             <h4>{conditionName}</h4>
             <div className="alert alert-secondary">
-                {constraints.length > 0 && constraints.map((item, index) => {
-                    return (
-                        <SingleMultipleCreationFormComponent parameters={parameters} constraintField={item.fieldConstaints } />
-                    )
-                })}
+                <SingleMultipleCreationFormComponent conditionName={conditionName} parameters={parameters}
+                    addingConstraints={addingConstraints} constraintField={constraints} />
             </div>
         </div>
     )

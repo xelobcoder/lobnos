@@ -19,7 +19,7 @@ export default function MultiFieldSelectConditions({ fields = [] }) {
     const createCondition = function () {
         const condition = {};
         condition.conditionName = input;
-        condition.fieldConstaints = [defaultConstraintsFields];
+        condition.fieldConstaints = [];
         if (conditions.length === 0) {
             setConditions([...conditions, condition])
         } else {
@@ -38,10 +38,20 @@ export default function MultiFieldSelectConditions({ fields = [] }) {
         if (!hasMatch(constraintName)) return;
         let singleConstraints = { parameter, condition, target };
 
-        const constaintPosition = conditions.findIndex((constaint, indexPos) => constaint.name.trim() === constraintName.trim());
+        const constaintPosition = conditions.findIndex((constaint, indexPos) => constaint.conditionName.trim() === constraintName.trim());
 
-        console.log(constaintPosition)
+        const conditionConstraintField = conditions[constaintPosition]['fieldConstaints'];
+
+        if (hasConstraintFieldHasParameter(conditionConstraintField, parameter)) return;
+        const nwfieldConstaints = [...conditionConstraintField, singleConstraints];
+
+        let newConditions = [...conditions];
+        newConditions[constaintPosition]['fieldConstaints'] = nwfieldConstaints;
+        setConditions(newConditions);
     }
+
+
+
 
 
     function removingConstraints(constraintName) {
@@ -59,8 +69,8 @@ export default function MultiFieldSelectConditions({ fields = [] }) {
                 </div>
             </div>
             <hr />
-            <div>
-                {conditions.length > 0 && conditions.map((item, index) => <MultiConditionCreationFormChildren fields={fields} conditionName={item.conditionName} constraints={item.fieldConstaints} />)}
+            <div >
+                {conditions.length > 0 && conditions.map((item, index) => <MultiConditionCreationFormChildren addingConstraints={addingConstraints} fields={fields} conditionName={item.conditionName} constraints={item.fieldConstaints} />)}
             </div>
         </section>
     );
