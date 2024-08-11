@@ -7,6 +7,7 @@ import CustomParameterTypeSelection from "./CustomParameterTypeSelection";
 import RenderTestCreationParameters from "./RenderTestCreationParametersTable";
 import { updateFieldsRules } from "./data/testUtil";
 import ParamCreationGForm from "./ParamCreationForm";
+import MultiFieldSelectConditions from "./MultiFieldConditions";
 
 export default function CreateTestFields({ testid, testname, minimize = false }) {
   const [generalTestRule, setGeneralTestRule] = useState(defaultCreationRule);
@@ -117,6 +118,23 @@ export default function CreateTestFields({ testid, testname, minimize = false })
             </div>
             <div className="card-footer">
               <button onClick={() => updateFieldsRules(data, toast, testid)}
+                className="btn btn-success mt-2">
+                Update Fields
+              </button>
+            </div>
+          </div>
+
+
+          {/* multiple field conditions */}
+          <div className="card mt-3">
+            <div className="card-header">
+              Multiple Field Conditions
+            </div>
+            <div className="card-body">
+              <MultiFieldSelectConditions  fields={data}/>
+            </div>
+            <div className="card-footer">
+              <button
                 className="btn btn-success mt-2">
                 Update Fields
               </button>

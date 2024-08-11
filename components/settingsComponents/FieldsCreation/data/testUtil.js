@@ -2,7 +2,7 @@ import { customPost } from "../../../Auth/customFetch";
 
 export const handleCreationMasterRUle = function (ev, field) {
     const { value } = ev.target;
-    return {...field,plan:value}
+    return { ...field, plan: value }
 }
 
 
@@ -22,3 +22,10 @@ export const updateFieldsRules = async (data, toast, testid) => {
     }
 };
 
+
+
+export const defaultConstraintsFields = {
+    parameter: "",
+    condition: "",
+    target: ""
+}

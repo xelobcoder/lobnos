@@ -1497,7 +1497,9 @@ body {
       list-style-type: none;
 }
 
-
+._multiple-field-condition_field{
+  min-height: 300px;
+}
 
 /* .table-column-width-reset{
   width: 150px;
