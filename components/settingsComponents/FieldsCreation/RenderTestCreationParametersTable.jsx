@@ -16,13 +16,13 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
             <td>{item.male ? item.male.lowerlimit : ""}</td>
             <td>{item.female ? item.female.upperlimit : ""}</td>
             <td>{item.female ? item.female.lowerlimit : ""}</td>
-            <td>{item.alertValue}</td>
+            <td>{item.valueAlert}</td>
             <td className="table-column-width-reset">
                 {item.options ? <ReformatTestParamOptions stringdata={item.options} /> : ""}
             </td>
-            <td className="table-column-width-reset">
+            {/* <td className="table-column-width-reset">
                 {item.useplain ? <FormatPlainOptionsUsePlain plaindata={item.plain} /> : ""}
-            </td>
+            </td> */}
             <td>
                 <div className="d-flex">
                     <input
@@ -70,7 +70,7 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
                         <th>FLL</th>
                         <th>AlertValue</th>
                         <th>Options</th>
-                        <th>Plain</th>
+                        {/* <th>Plain</th> */}
                         <th>Actions</th>
                     </tr>
                 </thead>

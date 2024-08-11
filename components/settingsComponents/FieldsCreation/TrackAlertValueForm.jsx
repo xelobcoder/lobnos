@@ -2,12 +2,20 @@ import { useState } from "react"
 import { handleChangeWithState } from "../../Auth/customFetch"
 
 export default function TrackAlertLevelValueForm({ field, setField }) {
-    const [showTrack, setShowTrack] = useState(false);
+    const [showTrack, setShowTrack] = useState(field.isValueTracked === 1);
+
+    const updateFieldTrack = (ev) => {
+        const { checked } = ev.target;
+        setShowTrack(checked);
+        setField({ ...field, isValueTracked: checked === checked ? 1 : 0 })
+    }
+
+
     return (
         <div className="my-4" >
             <form id="trackalertlevelvalue">
                 <div className="form-row">
-                    <input onChange={(ev) => { ev.target.checked ? setShowTrack(true) : setShowTrack(false) }} type="checkbox" /> Track value(es) of parameter
+                    <input checked={field?.isValueTracked === 1} onChange={(ev) => { updateFieldTrack(ev) }} type="checkbox" /> Track value(es) of parameter
                 </div>
                 {showTrack && (
                     <div className="form-row grid-30-30-30">

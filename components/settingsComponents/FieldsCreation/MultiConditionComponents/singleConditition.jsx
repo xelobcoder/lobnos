@@ -41,7 +41,7 @@ export default function MultiConditionCreationFormChildren({ fields = [], condit
             const [min, max] = targetValue.split('-');
             return {
                 evaluation: !isNaN(min) && !isNaN(max) && targetValue.includes('-'),
-                warning: `${targetValue} must be numbers and have a - delimeter`
+                warning: `must be numbers and have a - delimeter`
             };
         }
         return { evaluation: false }

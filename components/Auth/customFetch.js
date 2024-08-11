@@ -817,21 +817,7 @@ export const defaultTestEditValues = {
   hasChildrenLimit: 0,
 }
 
-export const defaultCreationRule = {
-  name: "",
-  field: "",
-  value: "",
-  options: "",
-  testid: "",
-  hasunits: false,
-  units: "",
-  plan: "",
-  plain: "",
-  valueAlert: 133,
-  alert: 1,
-  constraint: 2,
-  ordering: ""
-}
+
 
 export const getSingleEditTest = (testid, setTestData, setLoading) => {
   customFetch(`gettestpanel/edit?id=${testid}`)

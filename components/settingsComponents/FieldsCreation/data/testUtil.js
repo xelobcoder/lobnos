@@ -67,3 +67,39 @@ export const specialCharacters = [
     '}',  // Right curly brace
     '~',  // Tilde
 ];
+
+export const defaultCreationRule = {
+    name: "",
+    field: "",
+    value: "",
+    options: "",
+    testid: "",
+    hasunits: false,
+    units: "",
+    plan: "",
+    plain: "",
+    valueAlert: "",
+    alert: 1,
+    constraint: 2,
+    ordering: "",
+    isValueTracked:0
+}
+
+
+
+export const parseTextToObject = function (text) {
+    const pattern = /(\w+):\s*(\d+)\s*-\s*(\d+)\s*;?/g;
+    const result = {};
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+        const category = match[1].toLowerCase().trim();
+        const lowerlimit = parseInt(match[2].trim(), 10);
+        const upperlimit = parseInt(match[3].trim(), 10);
+        result[category] = {
+            lowerlimit: lowerlimit,
+            upperlimit: upperlimit
+        };
+    }
+
+    return result;
+}

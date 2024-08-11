@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import { customFetch, defaultCreationRule, getSingleEditTest } from "../../Auth/customFetch";
+import { customFetch, getSingleEditTest } from "../../Auth/customFetch";
 import Loader from "../../accessories/Loader";
 import AlertInmportantInformation from "./AlertImportantInformation";
 import CustomParameterTypeSelection from "./CustomParameterTypeSelection";
 import RenderTestCreationParameters from "./RenderTestCreationParametersTable";
-import { updateFieldsRules } from "./data/testUtil";
+import { defaultCreationRule, parseTextToObject, updateFieldsRules } from "./data/testUtil";
 import ParamCreationGForm from "./ParamCreationForm";
 import MultiFieldSelectConditions from "./MultiFieldConditions";
 
@@ -17,19 +17,22 @@ export default function CreateTestFields({ testid, testname, minimize = false })
   const [field, setField] = useState(defaultCreationRule);
   const [reorder, setReorder] = useState(true);
 
-
   const handleCreateField = async () => {
+    let _field = {...field};
     setError("");
-    if (!field.name) {
+    if (!_field.name) {
       return setError("Parameter or field name is required");
     }
-
-
+    if (_field.plan === "plain") {
+      const formatedPlainToObject = parseTextToObject(field.plain);
+      _field = { ..._field, ...formatedPlainToObject };
+    }
+    console.log(_field)
     if (data.length === 0) {
-      setData([field]);
+      setData([_field]);
     } else {
-      const updatedData = data.filter(item => item.name !== field.name);
-      setData([...updatedData, field]);
+      const updatedData = data.filter(item => item.name !== _field.name);
+      setData([...updatedData, _field]);
     }
     setField(defaultCreationRule);
   };
