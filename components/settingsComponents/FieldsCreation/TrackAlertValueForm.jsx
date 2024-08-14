@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Add } from "@mui/icons-material";
 import SingleFieldMultipleSingleConstraintsComponent from "./MultiConditionComponents/singleFieldMultipleSingleConstraintsComponent";
 import { defaultConstaints } from './data/testUtil'
@@ -27,6 +27,10 @@ export default function TrackAlertLevelValueForm({ field, setField }) {
             return updated;
         });
     }
+
+    useEffect(() => {
+        setField({ ...field, fieldConstraints: createdConstraints })
+    }, [createdConstraints])
 
     return (
         <div className="my-4">

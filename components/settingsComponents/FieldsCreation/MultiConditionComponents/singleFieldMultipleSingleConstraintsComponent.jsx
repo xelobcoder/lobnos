@@ -1,4 +1,5 @@
 export default function SingleFieldMultipleSingleConstraintsComponent({ field, index, handleChangeWithState }) {
+    console.log(field)
     return (
         <div className="form-row grid-5 alert my-2 alert-secondary">
             <div className="form-group mx-2">
@@ -40,7 +41,7 @@ export default function SingleFieldMultipleSingleConstraintsComponent({ field, i
             </div>
 
 
-            {field?.alert === 3 && (
+            {field?.alert == 3 && (
                 <div className="form-group mx-2">
                     <label>replace with</label>
                     <input
