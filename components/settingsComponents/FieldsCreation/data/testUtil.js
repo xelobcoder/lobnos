@@ -71,8 +71,10 @@ export const specialCharacters = [
 export const defaultConstaints = {
     alert: 1,
     constraint: 2,
-    replaceValue: '',
+    replacementText: '',
     valueAlert: "",
+    prefix: '',
+    suffix: ''
 }
 
 export const defaultCreationRule = {

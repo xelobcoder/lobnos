@@ -18,7 +18,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
   const [reorder, setReorder] = useState(true);
 
   const handleCreateField = async () => {
-    let _field = {...field};
+    let _field = { ...field };
     setError("");
     if (!_field.name) {
       return setError("Parameter or field name is required");
@@ -92,6 +92,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
               </div>
               <div className="card-footer">
                 <button
+                  type="button"
                   onClick={handleCreateField}
                   className="btn btn-success mt-2"
                 >
