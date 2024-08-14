@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import SingleMultipleCreationFormComponent from "./singleConditition";
 
-export default function MultiConditionCreationFormChildren({ fields = [], conditionName = '', constraints = [], addingConstraints, removingConstraints = { removingConstraints } }) {
+export default function MultiConditionCreationFormChildren(
+    { fields = [],
+        conditionName = '',
+        constraints = [],
+        addingConstraints,
+        removingConstraints = { removingConstraints } }
+) {
     const [parameters, setParameters] = useState([]);
 
     const getParameters = function (fields) {

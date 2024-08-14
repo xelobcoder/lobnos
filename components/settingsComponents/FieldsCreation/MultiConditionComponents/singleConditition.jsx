@@ -36,7 +36,10 @@ export default function MultiConditionCreationFormChildren({ fields = [], condit
             return { evaluation: true }
         } else if (constraintValue === 5) {
             if (!targetValue.includes("-")) {
-                return { evaluation: false, warning: 'Must include - delimeter' }
+                return {
+                    evaluation: false,
+                    warning: 'Must include - delimeter'
+                }
             };
             const [min, max] = targetValue.split('-');
             return {

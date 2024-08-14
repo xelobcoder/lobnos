@@ -4,6 +4,7 @@ import { customFetch, customPost } from "../../../../components/Auth/customFetch
 import { useRouter } from "next/navigation";
 import Loader from "../../../../components/accessories/Loader";
 import TableDisplay from "../../../../components/accessories/TableDisplay";
+import Link from "next/link";
 
 export default function TestListDisplay() {
    const [data, setData] = useState([]);
@@ -81,7 +82,12 @@ export default function TestListDisplay() {
          Cell: ({ row }) => {
             const { name, id } = row.original;
             return (
-               <button type="button" onClick={(ev) => { router.push(`/settings/testpanel/testlist/createfields?testid=${id}&&testname=${name}`) }}>update fields</button>
+               <div>
+                  <button type="button" className="btn btn-secondary" onClick={(ev) => { router.push(`/settings/testpanel/testlist/createfields?testid=${id}&&testname=${name}`) }}>update fields</button>
+                  <Link href={`/settings/testpanel/testlist/createcustomtest?testid=${id}&&testname=${name}`} className="btn btn-secondary mx-1">
+                     update test
+                  </Link>
+               </div>
             )
          }
       }

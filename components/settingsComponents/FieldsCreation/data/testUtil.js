@@ -1,4 +1,4 @@
-import { customPost } from "../../../Auth/customFetch";
+import { customPost } from "../../../Auth/customPost";
 
 export const handleCreationMasterRUle = function (ev, field) {
     const { value } = ev.target;
@@ -68,6 +68,13 @@ export const specialCharacters = [
     '~',  // Tilde
 ];
 
+export const defaultConstaints = {
+    alert: 1,
+    constraint: 2,
+    replaceValue: '',
+    valueAlert: "",
+}
+
 export const defaultCreationRule = {
     name: "",
     field: "",
@@ -78,11 +85,9 @@ export const defaultCreationRule = {
     units: "",
     plan: "",
     plain: "",
-    valueAlert: "",
-    alert: 1,
-    constraint: 2,
+    fieldConstraints: [],
     ordering: "",
-    isValueTracked:0
+    isValueTracked: 0,
 }
 
 

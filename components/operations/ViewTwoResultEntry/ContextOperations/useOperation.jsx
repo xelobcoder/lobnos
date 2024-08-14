@@ -25,7 +25,6 @@ const contextInfo = {
 export const useOperation = createContext(contextInfo);
 export default function UseOperationContext({ children }) {
   const [operations, setOperations] = useState(contextInfo);
-  console.log(operations);
   const updateContext = (current) => {
     setOperations(current);
   };

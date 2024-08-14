@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { fieldDeterminer } from "../Auth/creator"
-import { customFetch, customPost, handleComments } from "../Auth/customFetch";
+import { customFetch, handleComments } from "../Auth/customFetch";
+import { customPost } from "../Auth/customPost";
 import Indicator from "../accessories/Reports/indicator";
 import Link from 'next/link';
 import CommentSection from "./commentSection";
@@ -16,75 +17,75 @@ export default function CreateTestRule({ clientdata }) {
    const [rule, setRule] = useState([]);
 
    useEffect(() => {
-     const gettingFields = async function () {
-       try {
-         const commentsFetch = customFetch(
-           `testpanel/list/customtestrule/previous/comments?testid=${testid}&&csvid=${billingid}&&ptid=${patientid}`
-         );
+      const gettingFields = async function () {
+         try {
+            const commentsFetch = customFetch(
+               `testpanel/list/customtestrule/previous/comments?testid=${testid}&&csvid=${billingid}&&ptid=${patientid}`
+            );
 
-         const testResultFetch = customFetch(
-           `testpanel/list/customtestrule/previous?testid=${testid}&&ptid=${patientid}&&csvid=${billingid}`
-         );
+            const testResultFetch = customFetch(
+               `testpanel/list/customtestrule/previous?testid=${testid}&&ptid=${patientid}&&csvid=${billingid}`
+            );
 
-         const [resultResponse, commentsResponse] = await Promise.all([testResultFetch, commentsFetch]);
+            const [resultResponse, commentsResponse] = await Promise.all([testResultFetch, commentsFetch]);
 
-         function updatesResultForm(data) {
-           const { testname, result } = data;
-           if (result && Array.isArray(result)) {
-             setRule(result);
-             if (result.length === 0) return;
-             const hasAnyValueEntered = result.some((item, index) => item?.value != "");
-             setResultEntered(hasAnyValueEntered);
-           }
-           testname && setTestname(testname);
+            function updatesResultForm(data) {
+               const { testname, result } = data;
+               if (result && Array.isArray(result)) {
+                  setRule(result);
+                  if (result.length === 0) return;
+                  const hasAnyValueEntered = result.some((item, index) => item?.value != "");
+                  setResultEntered(hasAnyValueEntered);
+               }
+               testname && setTestname(testname);
+            }
+
+            function updatesCommentsForm(data) {
+               setComments({ comments: data.comments });
+            }
+
+            updatesResultForm(resultResponse);
+            updatesCommentsForm(commentsResponse);
+            setLoading(false);
+         } catch (err) {
+            setRule([]);
+            setComments({ comments: "" });
          }
-
-         function updatesCommentsForm(data) {
-           setComments({ comments: data.comments });
-         }
-
-         updatesResultForm(resultResponse);
-         updatesCommentsForm(commentsResponse);
-         setLoading(false);
-       } catch (err) {
-         setRule([]);
-         setComments({ comments: "" });
-       }
-     };
-     if (testid && billingid && patientid && employeeid) {
-       gettingFields();
-     }
+      };
+      if (testid && billingid && patientid && employeeid) {
+         gettingFields();
+      }
    }, [testid, billingid, patientid, employeeid]);
 
    const handlestate = async (name, ev, index) => {
-     const value = ev.target.value;
-     const newRule = [...rule];
-     newRule[index]["value"] = value;
-     setRule(newRule);
+      const value = ev.target.value;
+      const newRule = [...rule];
+      newRule[index]["value"] = value;
+      setRule(newRule);
    };
 
    const handleSubmit = async (ev) => {
-     try {
-       const transformed = rule.map((item, index) => {
-         return { field: item?.name, value: item?.value };
-       });
-       const allHasValues = transformed.some((a, i) => a.value == "");
-       if (allHasValues) {
-         toast.error("some fields are empty", { autoClose: 2000 });
-       }
-       const data = { fields: transformed, csvid: billingid, employeeid, ptid: patientid, comments: comments.comments, test, testid };
-       if (data.employeeid && data.csvid && data.fields.length > 0) {
-         const response = await customPost("result/entry/customtest", "POST", data);
-         const { message, statusCode, status } = response;
-         if (status == "success" && statusCode == 200) {
-           toast.success(message, { autoClose: 500 });
-         } else {
-           toast.error(message, { autoClose: 2000 });
+      try {
+         const transformed = rule.map((item, index) => {
+            return { field: item?.name, value: item?.value };
+         });
+         const allHasValues = transformed.some((a, i) => a.value == "");
+         if (allHasValues) {
+            toast.error("some fields are empty", { autoClose: 2000 });
          }
-       }
-     } catch (err) {
-       toast.error("something wrong occured", { autoClose: 1000 });
-     }
+         const data = { fields: transformed, csvid: billingid, employeeid, ptid: patientid, comments: comments.comments, test, testid };
+         if (data.employeeid && data.csvid && data.fields.length > 0) {
+            const response = await customPost("result/entry/customtest", "POST", data);
+            const { message, statusCode, status } = response;
+            if (status == "success" && statusCode == 200) {
+               toast.success(message, { autoClose: 500 });
+            } else {
+               toast.error(message, { autoClose: 2000 });
+            }
+         }
+      } catch (err) {
+         toast.error("something wrong occured", { autoClose: 1000 });
+      }
    };
 
 
