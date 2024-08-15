@@ -9,6 +9,23 @@ const determineTableColor = (value, upperlimit, lowerlimit) => {
 }
 
 
+// export const defaultCreationRule = {
+//    name: "",
+//    field: "",
+//    value: "",
+//    options: "",
+//    testid: "",
+//    hasunits: false,
+//    units: "",
+//    plan: "",
+//    plain: "",
+//    fieldConstraints: [],
+//    ordering: "",
+//    isValueTracked: 0,
+// }
+
+
+
 const determineResultEntryMode = (entrymode = "manual", value) => {
    if (value == "" || value == 0 && !entrymode) return "None".charAt(0).toUpperCase();
    if (value && entrymode) return entrymode.charAt(0).toUpperCase();
@@ -17,6 +34,8 @@ const determineResultEntryMode = (entrymode = "manual", value) => {
 export const fieldDeterminer = (item, statehandler, index) => {
    if (typeof item !== 'object') return false;
    const { field, useplain, plain, name, hasoptions, options, entrymode, value, type, mode, units, upperlimit = 0, lowerlimit = 0, haslimits } = item;
+   
+
 
    if (field === "input" || hasoptions == false && useplain != true) {
       if (haslimits) {

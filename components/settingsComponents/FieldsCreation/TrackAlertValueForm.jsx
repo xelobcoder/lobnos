@@ -6,7 +6,7 @@ import { defaultConstaints } from './data/testUtil'
 export default function TrackAlertLevelValueForm({ field, setField }) {
     const { isValueTracked } = field;
     const showTrack = !isNaN(isValueTracked) && parseInt(isValueTracked) === 1;
-    const [createdConstraints, setCreatedConstraints] = useState([]);
+    const [createdConstraints, setCreatedConstraints] = useState(field.fieldConstraints);
 
     const updateFieldTrack = (ev) => {
         const { checked } = ev.target;
@@ -31,6 +31,8 @@ export default function TrackAlertLevelValueForm({ field, setField }) {
     useEffect(() => {
         setField({ ...field, fieldConstraints: createdConstraints })
     }, [createdConstraints])
+
+
 
     return (
         <div className="my-4">

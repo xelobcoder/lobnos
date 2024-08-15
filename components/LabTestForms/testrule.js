@@ -7,6 +7,7 @@ import Link from 'next/link';
 import CommentSection from "./commentSection";
 import { toast } from 'react-toastify';
 import Loader from "../accessories/Loader";
+import ResultEntryHtmlGenerator from "../Auth/ResultEntryHtmlGenerator";
 
 export default function CreateTestRule({ clientdata }) {
    const { testid, test, patientid, billingid, employeeid } = clientdata;
@@ -57,7 +58,7 @@ export default function CreateTestRule({ clientdata }) {
       }
    }, [testid, billingid, patientid, employeeid]);
 
-   const handlestate = async (name, ev, index) => {
+   const handlestate = async (ev, index) => {
       const value = ev.target.value;
       const newRule = [...rule];
       newRule[index]["value"] = value;
@@ -102,7 +103,7 @@ export default function CreateTestRule({ clientdata }) {
       else {
          return (
             <section>
-               <table className="table border ">
+               <table className="table border table-bordered billing-cart-table ">
                   <thead>
                      <tr>
                         <th className="fw-bold text-capitalize">Parameter</th>
@@ -110,12 +111,14 @@ export default function CreateTestRule({ clientdata }) {
                         <th className="fw-bold text-capitalize">Unit</th>
                         <th className="fw-bold text-capitalize">Reference Range</th>
                         <th className="fw-bold text-capitalize">Mode</th>
-
+                        <th className="fw-bold text-capitalize">contraints</th>
                      </tr>
                   </thead>
                   <tbody>
-
-                     {rule.length > 0 ? rule.map((item, index) => fieldDeterminer(item, handlestate, index)) : <td className="text-danger p-3" colSpan={5}>No data found.Ensure fields were created. <button onClick={(ev) => { handleCreateFields(ev) }} className="btn btn-outline-primary btn-sm border-2">create fields</button></td>}
+                     {rule.length > 0 ? rule.map((item, index) => {
+                        // fieldDeterminer(item, handlestate, index)
+                        return <ResultEntryHtmlGenerator key={index} statehandler={handlestate} index={index} item={item} />
+                     }) : <td className="text-danger p-3" colSpan={5}>No data found.Ensure fields were created. <button onClick={(ev) => { handleCreateFields(ev) }} className="btn btn-outline-primary btn-sm border-2">create fields</button></td>}
                   </tbody>
                </table>
                <CommentSection datafunction={setComments} getcomment={handleComments} datasource={comments} target={'comments'} value={comments.comments} />

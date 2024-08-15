@@ -1,3 +1,5 @@
+import { ALERT_OPTIONS, CONSTRAINTSLEVEL } from "../data/testUtil"
+
 export default function SingleFieldMultipleSingleConstraintsComponent({ field, index, handleChangeWithState }) {
     console.log(field)
     return (
@@ -9,11 +11,11 @@ export default function SingleFieldMultipleSingleConstraintsComponent({ field, i
                     value={field.constraint || ''}
                     className="custom-select"
                 >
-                    <option value={0}>select an option here</option>
-                    <option value={1}>less than value</option>
-                    <option value={2}>greater than value</option>
-                    <option value={3}>match value</option>
-                    <option value={4}>does not match value</option>
+                    {CONSTRAINTSLEVEL.map(({ value, description }) => (
+                        <option key={value} value={value}>
+                            {description}
+                        </option>
+                    ))}
                 </select>
             </div>
             <div className="form-group">
@@ -33,10 +35,11 @@ export default function SingleFieldMultipleSingleConstraintsComponent({ field, i
                     value={field.alert || ''}
                     className="custom-select"
                 >
-                    <option value={0}>select an option below</option>
-                    <option value={1}>alert</option>
-                    <option value={2}>do not alert</option>
-                    <option value={3}>replace value with custom text</option>
+                    {Object.entries(ALERT_OPTIONS).map(([value, description]) => (
+                        <option key={value} value={value}>
+                            {description}
+                        </option>
+                    ))}
                 </select>
             </div>
 

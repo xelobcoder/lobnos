@@ -85,6 +85,7 @@ export default function MultiFieldSelectConditions({ fields = [] }) {
             <div >
                 {conditions.length > 0 && conditions.map((item, index) => <MultiConditionCreationFormChildren
                     removingConstraints={removingConstraints}
+                    key={index}
                     addingConstraints={addingConstraints} fields={fields} conditionName={item.conditionName} constraints={item.fieldConstaints} />)}
             </div>
         </section>
