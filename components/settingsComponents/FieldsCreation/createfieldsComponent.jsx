@@ -27,7 +27,6 @@ export default function CreateTestFields({ testid, testname, minimize = false })
       const formatedPlainToObject = parseTextToObject(field.plain);
       _field = { ..._field, ...formatedPlainToObject };
     }
-    console.log(_field)
     if (data.length === 0) {
       setData([_field]);
     } else {

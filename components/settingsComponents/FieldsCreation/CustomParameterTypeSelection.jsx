@@ -1,6 +1,7 @@
 import MultipleChoiceSelectiionTestPanelCreation from "./MultipleChoiceSelection";
 import ParameterGeneralLimitApplicable from "./ParameterGeneralLimitApplicable";
 import ParameterPlainOption from "./ParameterPlainOptions";
+import TextRReferenceOptions from "./TextRReferenceOptions";
 
 export default function CustomParameterTypeSelection({ selection, field, setField }) {
     const renderComponent = (selection) => {
@@ -13,6 +14,8 @@ export default function CustomParameterTypeSelection({ selection, field, setFiel
                 return <ParameterPlainOption field={field} setField={setField} />;
             case "limits":
                 return <ParameterGeneralLimitApplicable setField={setField} field={field} />;
+            case "textReference":
+                return <TextRReferenceOptions setField={setField} field={field} />
             default:
                 return null;
         }

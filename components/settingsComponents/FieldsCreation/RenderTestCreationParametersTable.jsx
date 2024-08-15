@@ -1,7 +1,6 @@
-import React from 'react';
 import { Edit, Remove } from '@mui/icons-material';
+import React from 'react';
 import ReformatTestParamOptions from './FormatOptions';
-import FormatPlainOptionsUsePlain from './formatPlainOptions';
 
 
 export default function RenderTestCreationParameters({ data, reorder, setReorder, changeOrdering, editField, removeField }) {
@@ -20,9 +19,9 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
             <td className="table-column-width-reset">
                 {item.options ? <ReformatTestParamOptions stringdata={item.options} /> : ""}
             </td>
-            {/* <td className="table-column-width-reset">
-                {item.useplain ? <FormatPlainOptionsUsePlain plaindata={item.plain} /> : ""}
-            </td> */}
+            <td className="table-column-width-reset">
+                {item.textReference ? <ReformatTestParamOptions stringdata={item.textReference} /> : ""}
+            </td>
             <td>
                 <div className="d-flex">
                     <input
@@ -59,9 +58,7 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
             <table className="table table-striped-columns table-bordered">
                 <thead className="table-secondary billing-cart-table">
                     <tr>
-                        <th>
-                            Parameter Name
-                        </th>
+                        <th>Parameter Name</th>
                         <th>GUL</th>
                         <th>GLL</th>
                         <th>MUL</th>
@@ -70,7 +67,7 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
                         <th>FLL</th>
                         <th>AlertValue</th>
                         <th>Options</th>
-                        {/* <th>Plain</th> */}
+                        <th>Plain</th>
                         <th>Actions</th>
                     </tr>
                 </thead>

@@ -35,6 +35,7 @@ export default function ParamCreationGForm({ field, setField, generalTestRule })
                         Use reference ranges
                     </option>
                     <option value="input">Use a field input for text or numbers</option>
+                    <option value="textReference">Use a field input for text or numbers with reference that are text</option>
                 </select>
             </div>
 

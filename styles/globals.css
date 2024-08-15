@@ -1501,6 +1501,13 @@ body {
   min-height: 300px;
 }
 
+.ck-button {
+  border: 2px solid lightgray !important;
+  background-color: gray !important;
+  color: white !important;
+  border-radius: 5px !important;
+}
+
 /* .table-column-width-reset{
   width: 150px;
   max-width: 300px;

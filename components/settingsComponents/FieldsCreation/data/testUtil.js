@@ -91,6 +91,7 @@ export const defaultCreationRule = {
     fieldConstraints: [],
     ordering: "",
     isValueTracked: 0,
+    textReference: ""
 }
 
 
@@ -149,7 +150,7 @@ export const constraintsFormatting = (fieldConstraints) => {
 
 export const getSymbolForConstraint = (value) => {
     const constraint = CONSTRAINTSLEVEL.find(item => item.value == value);
-    return constraint ? `${constraint.description.slice(0,-5)} (${constraint.symbol }) ` : '';
+    return constraint ? `${constraint.description.slice(0, -5)} (${constraint.symbol}) ` : '';
 };
 
 export const getAlertOptionsAndDisplay = (alert) => {
