@@ -19,13 +19,14 @@ const store = {
   isConnectedInventory: false,
   isSupplierConnected: false,
   loginDuration: null,
-  daysToExpiration: 265,
+  daysToExpiration:40,
   currency: null,
   decimalPlaces: 3,
   fontFamily: '"Lexend Deca", Helvetica, Arial, sans-serif',
   headerColor: 'green',
   backgroundColor: "black",
-  textColor: 'white'
+  textColor: 'white',
+  isPinUsed: true,
 }
 
 const ApplicationContext = createContext(store);

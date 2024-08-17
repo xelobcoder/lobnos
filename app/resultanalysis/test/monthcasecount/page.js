@@ -1,23 +1,25 @@
 import { Container } from "react-bootstrap";
-import { customFetch } from "../../../components/Auth/customFetch";
-import CaseCountAreaChart from "../../../lib/resultanalaysis/MonthCaseCountChart";
+import { customFetch } from "../../../../components/Auth/customFetch";
+import CaseCountAreaChart from "../../../../lib/resultanalaysis/MonthCaseCountChart";
 
 export default async function ResultAnalysisTest(context) {
     const queryParams = context.searchParams;
     const { testid, show, duration, expandedTarget } = queryParams;
     let response = [];
     let dayHeaders = [];
-    const currentMonth = parseInt(context.searchParams.month ) || new Date().getMonth() + 1;
+    const currentMonth = parseInt(context.searchParams.month) || new Date().getMonth() + 1;
     let monthCasesShow = duration && duration === "month" && show === "allcaseCount"
+    let monthResultShow = duration && duration === "month" && show === "resultvalues";
     const currentYear = new Date().getFullYear();
 
 
     if (monthCasesShow) {
         response = await customFetch(`result/analysis/test/month?employeeid=3&&testid=${testid}&&month=${currentMonth}`);
-
         if (response && Array.isArray(response) && response.length > 0) {
             dayHeaders = response.map((item, index) => item.day);
         }
+    } else if (monthResultShow) {
+        response = await customFetch(`result/analysis/test/resultvalues?employeeid=3&&testid=${testid}&&month=${currentMonth}`);
     }
 
 

@@ -11,11 +11,11 @@ const constraintOptions = [
 
 
 
-export default function MultiConditionCreationFormChildren({ fields = [], conditionName = '', constraintField = [], parameters = [], addingConstraints }) {
+export default function MultiConditionCreationFormChildren({  conditionName = '', constraintField = [], parameters = [], addingConstraints }) {
     const [selectedParameter, setSelectedParameter] = useState(null);
     const [selectedConstraint, setSelectedConstraint] = useState(null);
     const [targetValue, setTargetValue] = useState('');
-
+    
     const handleParameterChange = (option) => {
         setSelectedParameter(option);
     };
@@ -121,9 +121,10 @@ export default function MultiConditionCreationFormChildren({ fields = [], condit
             </div>
             <div className="mt-4">
                 <h5>Added Constraints</h5>
-                <table className="table table-striped">
+                <table className="table billing-cart-table">
                     <thead>
                         <tr>
+                            <th>SR No.</th>
                             <th>Parameter</th>
                             <th>Constraint</th>
                             <th>Value to Target</th>
@@ -133,6 +134,7 @@ export default function MultiConditionCreationFormChildren({ fields = [], condit
                     <tbody>
                         {constraintField.map((constraint, index) => (
                             <tr key={index}>
+                                <td><input type='checkbox' style={{height:20,width:20}} /></td>
                                 <td>{constraint.parameter}</td>
                                 <td>{constraint.condition}</td>
                                 <td>{constraint.target}</td>

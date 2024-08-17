@@ -8,6 +8,7 @@ export default function MultiConditionCreationFormChildren(
         addingConstraints,
         removingConstraints = { removingConstraints } }
 ) {
+
     const [parameters, setParameters] = useState([]);
 
     const getParameters = function (fields) {
@@ -30,8 +31,11 @@ export default function MultiConditionCreationFormChildren(
                 <button onClick={(ev) => { removingConstraints(conditionName) }} className="btn btn-danger">remove condition</button>
             </div>
             <div className="alert alert-secondary">
-                <SingleMultipleCreationFormComponent conditionName={conditionName} parameters={parameters}
-                    addingConstraints={addingConstraints} constraintField={constraints} />
+                <SingleMultipleCreationFormComponent
+                 conditionName={conditionName} 
+                 parameters={parameters}
+                addingConstraints={addingConstraints}
+                 constraintField={constraints} />
             </div>
         </div>
     )

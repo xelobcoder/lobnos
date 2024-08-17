@@ -1,21 +1,21 @@
 import { useEffect, useState } from "react";
 import { Add } from "@mui/icons-material";
 import SingleFieldMultipleSingleConstraintsComponent from "./MultiConditionComponents/singleFieldMultipleSingleConstraintsComponent";
-import { defaultConstaints } from './data/testUtil'
+import { defaultConstaints } from './data/testUtil';
 
 export default function TrackAlertLevelValueForm({ field, setField }) {
     const { isValueTracked } = field;
     const showTrack = !isNaN(isValueTracked) && parseInt(isValueTracked) === 1;
-    const [createdConstraints, setCreatedConstraints] = useState(field.fieldConstraints);
+    const [createdConstraints, setCreatedConstraints] = useState([]);
 
     const updateFieldTrack = (ev) => {
         const { checked } = ev.target;
         setField({ ...field, isValueTracked: checked ? 1 : 0 });
-    }
+    };
 
     const createConstraints = () => {
-        setCreatedConstraints([...createdConstraints, defaultConstaints]);
-    }
+        setCreatedConstraints(prev => [...prev, defaultConstaints]);
+    };
 
     const handleChangeWithState = (index, target, event) => {
         const { value } = event.target;
@@ -26,13 +26,21 @@ export default function TrackAlertLevelValueForm({ field, setField }) {
             }
             return updated;
         });
-    }
+    };
+
+    const updateFieldConstraints = () => {
+        setField(prevField => ({ ...prevField, fieldConstraints: createdConstraints }));
+    };
 
     useEffect(() => {
-        setField({ ...field, fieldConstraints: createdConstraints })
-    }, [createdConstraints])
+        if (field.fieldConstraints && field.fieldConstraints.length > 0) {
+            setCreatedConstraints(field.fieldConstraints);
+        }
+    }, [field.fieldConstraints]);
 
-
+    useEffect(() => {
+        updateFieldConstraints();
+    }, [createdConstraints]);
 
     return (
         <div className="my-4">
@@ -41,28 +49,44 @@ export default function TrackAlertLevelValueForm({ field, setField }) {
                     <div>
                         <input
                             checked={field?.isValueTracked === 1}
-                            onChange={(ev) => updateFieldTrack(ev)}
+                            onChange={updateFieldTrack}
                             type="checkbox"
                         />
-                        Track value(es) of parameter
+                        Track value(s) of parameter
                     </div>
-                    <button
+                    {showTrack && <button
                         type="button"
-                        className="btn btn-light text-primary text-capitalize"
+                        className="btn btn-light btn-sm text-primary text-capitalize"
                         onClick={createConstraints}
                     >
                         <Add /> add new constraint
-                    </button>
+                    </button>}
                 </div>
-                {showTrack && createdConstraints.length > 0 && createdConstraints.map((item, index) =>
-                    <SingleFieldMultipleSingleConstraintsComponent
-                        key={index}
-                        index={index}
-                        field={item}
-                        handleChangeWithState={handleChangeWithState}
-                    />
+                {showTrack && createdConstraints.length > 0 && (
+                    <table className="billing-cart-table my-2">
+                        <thead>
+                            <tr>
+                                <th>constraints</th>
+                                <th>value</th>
+                                <th>action</th>
+                                <th>replacing value</th>
+                                <th>prefix</th>
+                                <th>suffix</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {createdConstraints.map((item, index) => (
+                                <SingleFieldMultipleSingleConstraintsComponent
+                                    key={index}
+                                    index={index}
+                                    field={item}
+                                    handleChangeWithState={handleChangeWithState}
+                                />
+                            ))}
+                        </tbody>
+                    </table>
                 )}
             </div>
         </div>
-    )
+    );
 }

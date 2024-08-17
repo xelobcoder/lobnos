@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
-import { fieldDeterminer } from "../Auth/creator"
 import { customFetch, handleComments } from "../Auth/customFetch";
 import { customPost } from "../Auth/customPost";
 import Indicator from "../accessories/Reports/indicator";
-import Link from 'next/link';
 import CommentSection from "./commentSection";
 import { toast } from 'react-toastify';
 import Loader from "../accessories/Loader";
 import ResultEntryHtmlGenerator from "../Auth/ResultEntryHtmlGenerator";
+import { BarChart, Dangerous, History } from "@mui/icons-material";
+import { useTheme } from "../Auth/useAuthentification";
 
 export default function CreateTestRule({ clientdata }) {
    const { testid, test, patientid, billingid, employeeid } = clientdata;
+   const { isPinUsed } = useTheme();
    const [comments, setComments] = useState({ comments: '' })
    const [testname, setTestname] = useState("")
    const [resultEntered, setResultEntered] = useState(false);
@@ -103,7 +104,7 @@ export default function CreateTestRule({ clientdata }) {
       else {
          return (
             <section>
-               <table className="table border table-bordered billing-cart-table ">
+               <table theme='dark' className="table border billing-cart-table table-bordered billing-cart-table ">
                   <thead>
                      <tr>
                         <th className="fw-bold text-capitalize">Parameter</th>
@@ -116,22 +117,23 @@ export default function CreateTestRule({ clientdata }) {
                   </thead>
                   <tbody>
                      {rule.length > 0 ? rule.map((item, index) => {
-                        // fieldDeterminer(item, handlestate, index)
                         return <ResultEntryHtmlGenerator key={index} statehandler={handlestate} index={index} item={item} />
                      }) : <td className="text-danger p-3" colSpan={5}>No data found.Ensure fields were created. <button onClick={(ev) => { handleCreateFields(ev) }} className="btn btn-outline-primary btn-sm border-2">create fields</button></td>}
                   </tbody>
                </table>
                <CommentSection datafunction={setComments} getcomment={handleComments} datasource={comments} target={'comments'} value={comments.comments} />
-               <div className="d-flex justify-content-between">
-                  <button
-                     onClick={(ev) => { handleSubmit(ev) }} className="btn btn-primary btn-sm my-2 mx-1">
-                     save changes
-                  </button>
-                  <Link href={`/operations/viewtwo/showtrends?billingid=${billingid}&&patientid=${patientid}&&test=${test}&&testid=${testid}`}>
-                     <button className="btn btn-dark btn-sm mx-1 my-2">
-                        show trend
+               <div className="d-flex justify-content-between mt-2">
+                  {isPinUsed
+                     &&
+                     (<div className="">
+                        <input className="custom-input" type="password" placeholder="Enter pin here" />
+                     </div>)}
+                  <div>
+                     <button
+                        onClick={(ev) => { handleSubmit(ev) }} className="btn btn-primary btn-sm my-2 mx-1">
+                        save changes
                      </button>
-                  </Link>
+                  </div>
                </div>
             </section>
          )
@@ -140,11 +142,18 @@ export default function CreateTestRule({ clientdata }) {
 
    return (
       <div>
-         <section className="card mx-2 ui">
-            <div className="card-header">
-               <div className="mx-2">
-                  <h5 className="text-capitalize">{testname}</h5>
+         <section className="card mx-2 my-2">
+            <div className="card-header d-flex justify-content-between">
+               <div className="d-flex">
                   <Indicator resultEntered={resultEntered} />
+                  <h5 className="text-capitalize">{testname}</h5>
+               </div>
+               <div>
+                  <button className="btn btn-light btn-sm border-secondary border-2"><History/> Audit log result entry</button>
+                  <button  type='button' className="btn btn-dark btn-sm mx-1 my-2">
+                     <BarChart /> show patient test trend
+                  </button>
+                  <button  type='button' className="btn btn-danger btn-sm"><Dangerous /> report critical values</button>
                </div>
             </div>
             <div className="card-body">

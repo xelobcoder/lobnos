@@ -8,6 +8,7 @@ import RenderTestCreationParameters from "./RenderTestCreationParametersTable";
 import { defaultCreationRule, parseTextToObject, updateFieldsRules } from "./data/testUtil";
 import ParamCreationGForm from "./ParamCreationForm";
 import MultiFieldSelectConditions from "./MultiFieldConditions";
+import TrackAlertLevelValueForm from "./TrackAlertValueForm";
 
 export default function CreateTestFields({ testid, testname, minimize = false }) {
   const [generalTestRule, setGeneralTestRule] = useState(defaultCreationRule);
@@ -76,7 +77,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
     } else {
       return (
         <div>
-          <AlertInmportantInformation />
+          {/* <AlertInmportantInformation /> */}
           <div>
             <div>
               {error && <div className="alert alert-danger">{error}</div>}
@@ -88,14 +89,22 @@ export default function CreateTestFields({ testid, testname, minimize = false })
               <div className="card-body">
                 <ParamCreationGForm field={field} setField={setField} generalTestRule={generalTestRule} />
                 <CustomParameterTypeSelection selection={field.plan} field={field} setField={setField} />
+                <TrackAlertLevelValueForm field={field} setField={setField} />
               </div>
               <div className="card-footer">
                 <button
                   type="button"
                   onClick={handleCreateField}
-                  className="btn btn-success mt-2"
+                  className="btn  btn-sm btn-success mt-2"
                 >
                   Create Field
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateField}
+                  className="btn  mx-2 btn-sm btn-danger mt-2"
+                >
+                 cancel 
                 </button>
               </div>
             </div>
@@ -135,13 +144,11 @@ export default function CreateTestFields({ testid, testname, minimize = false })
             </div>
             <div className="card-footer">
               <button
-                className="btn btn-success mt-2">
+                className="btn btn-success btn-sm mt-2">
                 Update Fields
               </button>
             </div>
           </div>
-          {/* multiple field conditions */}
-
         </div>
       );
     }

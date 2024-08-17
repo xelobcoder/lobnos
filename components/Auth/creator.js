@@ -9,6 +9,8 @@ const determineTableColor = (value, upperlimit, lowerlimit) => {
 }
 
 
+// OBSOLETE CODEBASE
+
 // export const defaultCreationRule = {
 //    name: "",
 //    field: "",

@@ -10,13 +10,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <nav className="p-3  bg-primary" >
-          <h4 className="text-white">VITALSCAN LABORATORY AND DIAGNOSTIC CENTRE
-</h4>
+        <nav style={{ backgroundColor:'rgb(11, 111, 241)',padding:'20px'}} >
+          <div className="text-white">VITALSCAN LABORATORY AND DIAGNOSTIC CENTRE
+          </div>
         </nav>
-        <div style={{ display: "grid", gridTemplateColumns: '15% auto' }}>
+        <div style={{ display: "grid", gridTemplateColumns: '15% 85%' }}>
           <aside><ResultAnalysisSideBar /></aside>
-          <main>{children}</main>
+          <main className="p-2">{children}</main>
         </div>
       </body>
     </html>

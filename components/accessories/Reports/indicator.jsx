@@ -2,7 +2,7 @@ import React from 'react'
 
 export default function Indicator({ resultEntered, ...props }) {
   return (
-    <div className='d-flex justify-content-end'>
+    <div className='d-flex justify-content-center my-2 mx-2'>
       <div
         {...props}
         title={resultEntered ? "result previously entered" : "result yet to be entered"}

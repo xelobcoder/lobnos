@@ -46,8 +46,8 @@ export default function ResultEntryPanelSecondView() {
 
   return (
     <div>
-      <Stack className={uiLayout == 3 ? "two-layer-card" : "two-layer-card "}>
-        {/* <div id="patient-data">
+      <Stack className={uiLayout == 3 ? "three-layer-card" : "two-layer-card "}>
+         <div id="patient-data">
           <PatientData />
           {!minifyClientInfo && (
             <span
@@ -60,7 +60,7 @@ export default function ResultEntryPanelSecondView() {
               </svg>
             </span>
           )}
-        </div> */}
+        </div> 
         <div>
           <div>
             <OperationsListTestCollection />

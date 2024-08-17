@@ -75,13 +75,13 @@ export default function ResultAnalysisSideBar() {
                             </div >
                             {expandTarget === item.id &&
                                 (<div className="navbar-children-expanded">
-                                    <Link href={`/resultanalysis/test?testid=${item.id}&&show=allcaseCount&&duration=month&&expandTarget=${item.id}`}>
+                                <Link href={`/resultanalysis/test/monthcasecount?testid=${item.id}&&show=allcaseCount&&duration=month&&expandTarget=${item.id}`}>
                                         <ViewAgenda fontSize="sm" /> month case count
                                     </Link>
                                     <Link href={`/resultanalysis/test?testid=${item.id}&&show=allcaseCount&&duration=year&&expandTarget=${item.id}`}>
                                         <ViewAgenda fontSize="sm" />   Year Case Count
                                     </Link>
-                                    <Link href={`/resultanalysis/test?testid=${item.id}&&show=resultvalues&&duration=month&&expandTarget=${item.id}`}>
+                                <Link href={`/resultanalysis/test/monthresultsvalues?testid=${item.id}&&show=resultvalues&&duration=month&&expandTarget=${item.id}&&isGroupedByDate=0`}>
                                         <ViewAgenda fontSize="sm" />   Month Result Values
                                     </Link>
                                 </div>)}

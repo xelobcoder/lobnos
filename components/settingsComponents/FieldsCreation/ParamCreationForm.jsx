@@ -1,11 +1,10 @@
 import { handleChangeWithState } from "../../Auth/customFetch";
 import { handleCreationMasterRUle } from "./data/testUtil";
-import TrackAlertLevelValueForm from "./TrackAlertValueForm";
 
 export default function ParamCreationGForm({ field, setField, generalTestRule }) {
     return <form >
-        <div className="d-flex grid-30-30-30">
-            <div className="form-row">
+        <div className="">
+            <div className="grid-reg">
                 <label>Field Name</label>
                 <input
                     value={field?.name}
@@ -16,7 +15,7 @@ export default function ParamCreationGForm({ field, setField, generalTestRule })
                 />
             </div>
 
-            <div className="form-row mx-2">
+            <div className="grid-reg my-2">
                 <label>Method</label>
                 <select
                     onChange={(ev) => {
@@ -39,7 +38,7 @@ export default function ParamCreationGForm({ field, setField, generalTestRule })
                 </select>
             </div>
 
-            <div className="form-row mx-2">
+            <div className="grid-reg my-2">
                 <label>Has Units</label>
                 <select
                     value={`${field.hasunits}`}
@@ -52,7 +51,7 @@ export default function ParamCreationGForm({ field, setField, generalTestRule })
                 </select>
             </div>
             {field.hasunits && (
-                <div>
+                <div className="grid-reg my-2">
                     <label>Field Units</label>
                     <input
                         onChange={(ev) => handleChangeWithState(ev, "units", setField, field)}
@@ -62,6 +61,5 @@ export default function ParamCreationGForm({ field, setField, generalTestRule })
                 </div>
             )}
         </div>
-        <TrackAlertLevelValueForm field={field} setField={setField} />
     </form>
 }

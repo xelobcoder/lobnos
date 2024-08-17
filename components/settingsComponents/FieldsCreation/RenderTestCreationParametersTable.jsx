@@ -1,4 +1,3 @@
-import { Edit, Remove } from '@mui/icons-material';
 import React from 'react';
 import ReformatTestParamOptions from './FormatOptions';
 
@@ -8,21 +7,21 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
 
     const renderTableData = (item, index) => (
         <tr key={index}>
-            <td>{item.name}</td>
-            <td>{item.upperlimit}</td>
-            <td>{item.lowerlimit}</td>
-            <td>{item.male ? item.male.upperlimit : ""}</td>
-            <td>{item.male ? item.male.lowerlimit : ""}</td>
-            <td>{item.female ? item.female.upperlimit : ""}</td>
-            <td>{item.female ? item.female.lowerlimit : ""}</td>
-            <td>{item.valueAlert}</td>
-            <td className="table-column-width-reset">
+            <td className='text-sm'>{item.name}</td>
+            <td className='text-sm'>{item.upperlimit}</td>
+            <td className='text-sm'>{item.lowerlimit}</td>
+            <td className='text-sm'>{item.male ? item.male.upperlimit : ""}</td>
+            <td className='text-sm'>{item.male ? item.male.lowerlimit : ""}</td>
+            <td className='text-sm'>{item.female ? item.female.upperlimit : ""}</td>
+            <td className='text-sm'>{item.female ? item.female.lowerlimit : ""}</td>
+            <td className='text-sm'>{item.valueAlert}</td>
+            <td  className="table-column-width-reset">
                 {item.options ? <ReformatTestParamOptions stringdata={item.options} /> : ""}
             </td>
-            <td className="table-column-width-reset">
+            <td  className="table-column-width-reset">
                 {item.textReference ? <ReformatTestParamOptions stringdata={item.textReference} /> : ""}
             </td>
-            <td>
+            <td className='text-sm'>
                 <div className="d-flex">
                     <input
                         type="number"
@@ -34,16 +33,16 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
                     <button
                         title="Edit Parameter"
                         onClick={() => editField(item)}
-                        className="btn btn-info mx-2"
+                        className="btn btn-info mx-2 btn-sm text-capitalize"
                     >
-                        <Edit />
+                        Edit
                     </button>
                     <button
                         title="Remove Parameter"
                         onClick={() => removeField(item)}
-                        className="btn btn-danger"
+                        className="btn btn-danger btn-sm text-capitalize"
                     >
-                        <Remove />
+                        delete
                     </button>
                 </div>
             </td>
@@ -55,8 +54,8 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
             <button onClick={handleReorderClick} className="btn btn-link">
                 Reorder Fields
             </button>
-            <table className="table table-striped-columns table-bordered">
-                <thead className="table-secondary billing-cart-table">
+            <table className="table billing-cart-table table-hover pointer">
+                <thead >
                     <tr>
                         <th>Parameter Name</th>
                         <th>GUL</th>

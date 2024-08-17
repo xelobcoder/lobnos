@@ -30,23 +30,14 @@ html {
  }
 *{
   line-height: 1.5;
-  -webkit-text-size-adjust: 100%;
-  -moz-tab-size: 4;
-  tab-size: 4;
-  font-feature-settings: normal;
-  font-variation-settings: normal;
-  -webkit-tap-highlight-color: transparent;
-  font-weight: 400;
-  font-style: normal;
 }
-#root {
-  background-color: var(--bg-light-gray);
+/* #root {
   min-height: 100vh;
   color: var(--text-color);
   font-optical-sizing: auto;
   font-family: var(--prime-links-font-family);
   font-weight: 500;
-}
+} */
 
 /* .card,.card-header,.card-body,tr,th,table,td {
   background-color: var(--bg-light-gray) !important;
@@ -277,6 +268,7 @@ a {
   border-collapse: collapse !important;
   overflow-y: auto;
 }
+
 
 .billing-cart-table > thead {
   margin: 0;
@@ -751,7 +743,6 @@ i {font-size:100px;
   width: 40px;
   border: 1px solid lightgray;
   height: 10px;
-  margin-top: -20px;
 }
 
 
@@ -1275,7 +1266,6 @@ font-weight: bolder;
   border: 1px solid #ddd;
   border-radius: 5px;
   padding: 20px;
-  font-family: Arial, sans-serif;
   background-color: #f9f9f9;
 }
 
@@ -1327,9 +1317,9 @@ font-weight: bolder;
 .contact-actions button:hover {
   background-color: #0056b3;
 }
-.ui{
-  /* font-family: var(--prime-links-font-family) !important; */
-}
+/* .ui{
+  font-family: var(--prime-links-font-family) !important;
+} */
 
 
 .kanban-card {
@@ -1466,15 +1456,6 @@ padding: 0;  width: auto;
   height: inherit;
 }
 
-/*  --------WAKPENJO------------ */
-html, body {
-    height: 100%;
-    background-color: #F5F7FA;
-    direction: ltr;
-    font-size: 0.95em;
-    font-family: 'Raleway', Helvetica, Arial, sans-serif !important;
-    background-color: #eae7e7;
-}
 
 
 body {
@@ -1529,3 +1510,35 @@ ul.nav-tabs[role='tablist'] >li.nav-item[role='presentation']> button.nav-link.a
   background-color: green !important;
     border:2px solid green !important;
 } */
+
+.result-entry-layout{
+  display: grid;
+  grid-template-columns: 20% 80%;
+  height: 100vh;
+  background-color: white;
+  margin: 0;
+  padding: 0;
+}
+
+.result-entry-layout,.result-entry-sidebar,.patient-filtering,.result-entry-wrapper,.result-test-collection{
+   border: 1px solid lightgray !important;
+   border-collapse: collapse;
+}
+.result-entry-sidebar{
+  display: grid;
+  grid-template-rows: 8% 20% 70%;
+}
+
+
+.result-entry-layout > .patient-data >.pt-content {
+  padding: 10px;
+}
+.patient-filtering > .pt-filtering-content {
+  display: grid;
+  grid-template-columns: 80% 20%;
+  padding: 10px;
+}
+
+.result-entry-layout > .result-entry-sidebar > .result-test-collection  {
+  overflow-y: auto;
+}

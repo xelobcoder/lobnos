@@ -5,7 +5,7 @@ export default function OperationsLayout({ componentOne, componentTwo, component
 
   return (
     <>
-      <OperationsProvider >
+      {/* <OperationsProvider >
         <div style={{ display: 'grid', gridTemplateColumns: '30% auto' }}>
           <aside>
             {componentOne}
@@ -15,7 +15,7 @@ export default function OperationsLayout({ componentOne, componentTwo, component
             {componentThree}
           </main>
         </div>
-      </OperationsProvider>
+      </OperationsProvider> */}
     </>
   )
 }

@@ -17,7 +17,7 @@ export default function SubLinksSideBar({ sideLinks, expand }) {
       <li className="bg-secondary text-white br-5 mx-2 my-2 text-dark text-sm ">
         <Link href={"/"}>
           <span className="icon">
-            <HomeIconSvg/>
+            <HomeIconSvg />
           </span>
           {expand && <span >Applications</span>}
         </Link>
@@ -26,10 +26,9 @@ export default function SubLinksSideBar({ sideLinks, expand }) {
         return (
           <>
             <li
-              key={index + 1}
-              className={` text-white br-5 mx-2 my-2 text-dark text-sm ${
-                item.link == pathname && !item?.subLinks ? "bg-success text-white" : ""
-              }`}>
+              key={index}
+              className={` text-white br-5 mx-2 my-2 text-dark text-sm ${item.link == pathname && !item?.subLinks ? "bg-success text-white" : ""
+                }`}>
               {item?.subLinks ? (
                 <a
                   className="pointer"
@@ -40,8 +39,7 @@ export default function SubLinksSideBar({ sideLinks, expand }) {
                   {expand && <span>{item.title}</span>}
                   <div className={item.subLinks ? "dropdown-sidebar" : "d-none"}>
                     <span>
-                      {item?.subLinks &&
-                        expand &&
+                      {item?.subLinks && expand &&
                         Array.isArray(item.subLinks) &&
                         (!show ? (
                           <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 -960 960 960">
@@ -66,10 +64,9 @@ export default function SubLinksSideBar({ sideLinks, expand }) {
                   return (
                     <li
                       title={item.title}
-                      className={`py-1 text-white text-sm d-flex pointer br-5 mx-2 my-1  ${
-                        item.link == pathname ? "bg-success" : " bg-secondary-subtle"
-                      }`}
-                      key={ind + 1}>
+                      className={`py-1 text-white text-sm d-flex pointer br-5 mx-2 my-1  ${item.link == pathname ? "bg-success" : " bg-secondary-subtle"
+                        }`}
+                      key={ind + 1 + index}>
                       <Link href={item.link}>
                         <span className="icon mx-1"> {item.icon}</span>
                         {expand && <span className="mx-1">{item.title}</span>}

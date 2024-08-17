@@ -73,7 +73,6 @@ a{
 .table-container {
     width: 100%;
     overflow-x: auto;
-    background-color: black;
 }
 
 .table {
@@ -85,9 +84,7 @@ a{
 .table th,
 .table td {
     text-align: left;
-    background-color: black;
-    color: white; 
-     font-weight: bold;
+     /* font-weight: bold; */
     font-family: "Lexend Deca", Helvetica, Arial, sans-serif;
 }
 

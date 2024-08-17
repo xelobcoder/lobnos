@@ -3,7 +3,7 @@ import { useOperation } from "./ContextOperations/useOperation";
 
 export default function OperationsListTestCollection() {
   const { operations, updateContext } = useContext(useOperation);
-  const { testList, testid, initDataLoading ,uiLayout,showTestCollection} = operations;
+  const { testList, testid, initDataLoading ,showTestCollection} = operations;
 
   if (testList.length == 0 && initDataLoading == false) {
     return <div className="alert alert-danger ui p-3 border-danger border-2">No test found for transaction</div>;
@@ -19,7 +19,7 @@ export default function OperationsListTestCollection() {
         return (
           <div
             key={index}
-            className={`ui d-flex bg-white justify-content-between br-5 pointer border shadow p-3 my-2 
+            className={`ui d-flex justify-content-between shadow br-5  my-2 pointer border p-3 my-2 
             ${testid == item.testid && "border-primary border-2"}`}>
             <span>{item.name}</span>
             <span>
@@ -27,9 +27,10 @@ export default function OperationsListTestCollection() {
                 type="button"
                 onClick={(ev) => {
                   updateContext({ ...operations, minifyClientInfo: true, testid: item.testid,uiLayout: 3 });
+                  window.scrollTo(0,0)
                 }}
                 className={`btn btn-sm ${testid == item.testid ? "btn-primary" : "btn-light"}`}>
-                result
+                Result
               </button>
             </span>
           </div>
