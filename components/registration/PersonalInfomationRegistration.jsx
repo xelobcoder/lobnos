@@ -15,7 +15,7 @@ export default function PersonalInformationRegistration(
   return (
     <section>
       <form autoComplete="off" noValidate autoCorrect="false" className={`${expanded === true ? "mx-2" : ""}`}>
-        <div className={`form-row ${expanded === true ? "" : "grid-30-30-30"}`}>
+        <div className={`form-row ${expanded === true ? "" : ""}`}>
           <IsRenderInput
             expanded={expanded}
             tabIndex={1}

@@ -39,7 +39,10 @@ export default function Registration() {
     if (isloading) return <Loader />
     else {
       return (<div className="border bg-white p-1 mb-2">
-        <PersonalInfomationRegistration expanded={expanded} fields={fields.length > 0 ? fields[0]['fields'] : {}} toast={toast}
+        <PersonalInfomationRegistration 
+          expanded={expanded} 
+          fields={fields.length > 0 ? fields[0]['fields'] : {}}
+          toast={toast}
           defaultData={personalInformation} />
       </div>)
     }

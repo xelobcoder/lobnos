@@ -30,6 +30,7 @@ html {
  }
 *{
   line-height: 1.5;
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }
 /* #root {
   min-height: 100vh;
@@ -1542,3 +1543,4 @@ ul.nav-tabs[role='tablist'] >li.nav-item[role='presentation']> button.nav-link.a
 .result-entry-layout > .result-entry-sidebar > .result-test-collection  {
   overflow-y: auto;
 }
+
