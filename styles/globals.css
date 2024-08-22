@@ -16,6 +16,8 @@
 
 html {
   scroll-behavior: smooth;
+  text-size-adjust: 100%;
+    line-height: 1.15;
 }
 [theme="light"] {
   --bg-color: #eef0f1;
@@ -29,8 +31,8 @@ html {
   --border:2px solid white;
  }
 *{
-  line-height: 1.5;
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+
 }
 /* #root {
   min-height: 100vh;
@@ -1544,3 +1546,12 @@ ul.nav-tabs[role='tablist'] >li.nav-item[role='presentation']> button.nav-link.a
   overflow-y: auto;
 }
 
+.pls-label {
+  font-size: 14px !important;
+  font-weight: 300 !important;
+}
+.heightedBorder{
+  border-left: 4px solid #0056b3 !important;
+  border-end-end-radius: 5px;
+  border-top-right-radius: 5px;
+}

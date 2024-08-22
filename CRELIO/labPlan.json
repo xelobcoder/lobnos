@@ -1,0 +1,499 @@
+{
+    "planList": [
+        {
+            "planId": 1,
+            "planName": "Beginners Plan Old",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 999,
+            "planType": "Recurring"
+        },
+        {
+            "planId": 4,
+            "planName": "Standard Plan - 2018",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 60000,
+            "planType": "Standard"
+        },
+        {
+            "planId": 8,
+            "planName": "Essential Plan - 2017",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 36000,
+            "planType": "Recurring"
+        },
+        {
+            "planId": 12,
+            "planName": "Advanced Plan - 12 users",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 102000,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 14,
+            "planName": "ATDC Child Center",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 1250,
+            "planType": "Recurring"
+        },
+        {
+            "planId": 15,
+            "planName": "Standard Plan - 2017 (10 Users)",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 60000,
+            "planType": "Recurring"
+        },
+        {
+            "planId": 16,
+            "planName": "Standard Plan - 2017 (10 users)",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 60000,
+            "planType": "Recurring"
+        },
+        {
+            "planId": 17,
+            "planName": "Beginners Plan - UDC Child",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 325,
+            "planType": "Recurring"
+        },
+        {
+            "planId": 19,
+            "planName": "Enterprise Plan - All Features",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 30000,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 20,
+            "planName": "Standard Plan - 2016 ",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 60000,
+            "planType": "Recurring"
+        },
+        {
+            "planId": 22,
+            "planName": "Lite",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 10200,
+            "planType": "Recurring"
+        },
+        {
+            "planId": 28,
+            "planName": "Yearly Beginners Package ( 2019 )- 1500",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 18000,
+            "planType": "Essential"
+        },
+        {
+            "planId": 29,
+            "planName": "Revenue Sharing plan (1%) - 5000 MB",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Rev Share"
+        },
+        {
+            "planId": 30,
+            "planName": "Revenue Sharing plan (1%) - MB",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 100,
+            "planType": "Rev Share"
+        },
+        {
+            "planId": 35,
+            "planName": "Standard - Ghana",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 60000,
+            "planType": "Standard"
+        },
+        {
+            "planId": 36,
+            "planName": "Advanced - Ghana",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 102000,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 37,
+            "planName": "Starter 2022",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 36000,
+            "planType": "Essential"
+        },
+        {
+            "planId": 38,
+            "planName": "Standard 2022",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 72000,
+            "planType": "Standard"
+        },
+        {
+            "planId": 39,
+            "planName": "Advanced 2022",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 120000,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 40,
+            "planName": "Subscription Plan - Multi-Centre P5 2022",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 300000,
+            "planType": "Essential"
+        },
+        {
+            "planId": 41,
+            "planName": "Inventory - Advanced Plan",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Essential"
+        },
+        {
+            "planId": 43,
+            "planName": "Advanced 2023",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 180000,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 44,
+            "planName": "Premium Plan 2023",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 300000,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 45,
+            "planName": "Starter Plan 2023",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 60000,
+            "planType": "Essential"
+        },
+        {
+            "planId": 46,
+            "planName": "Standard Plan 2023",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 96000,
+            "planType": "Standard"
+        },
+        {
+            "planId": 47,
+            "planName": "Starter Plan 2023 ROW",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Essential"
+        },
+        {
+            "planId": 48,
+            "planName": "Premium Plan ROW -2023",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 49,
+            "planName": "Standard 2023- ROW",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Standard"
+        },
+        {
+            "planId": 50,
+            "planName": "Advance 2023 - ROW",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Essential"
+        },
+        {
+            "planId": 51,
+            "planName": "Starter 2023 - ROW",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Essential"
+        },
+        {
+            "planId": 52,
+            "planName": "Standard Plan",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Standard"
+        },
+        {
+            "planId": 53,
+            "planName": "Advanced Plan",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 54,
+            "planName": "Premium Plan",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 55,
+            "planName": "Starter Plan ROW",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Essential"
+        },
+        {
+            "planId": 67,
+            "planName": "Advance Plan - ROW",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 68,
+            "planName": "Standard Plan - ROW",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Standard"
+        },
+        {
+            "planId": 69,
+            "planName": "Premium Plan - ROW",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 70,
+            "planName": "Inventory - Essential Plan",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Essential"
+        },
+        {
+            "planId": 82,
+            "planName": "Standard Plan 2024 - IND",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Standard"
+        },
+        {
+            "planId": 83,
+            "planName": "Advance Plan 2024 - IND",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 84,
+            "planName": "Premium Plan 2024 - IND",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 85,
+            "planName": "CH LIMS - Subscription Plan - Standard 2024 - ROW",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Standard"
+        },
+        {
+            "planId": 98,
+            "planName": "Standard Plan ROW 2024",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Standard"
+        },
+        {
+            "planId": 99,
+            "planName": "Advance Plan ROW 2024",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Advanced"
+        },
+        {
+            "planId": 100,
+            "planName": "Premium Plan ROW 2024",
+            "planCategory": "CrelioHealth",
+            "MonthlyPrice": 0,
+            "planType": "Advanced"
+        }
+    ],
+    "code": 200,
+    "primary_centre_obj": {},
+    "multi_centres": [],
+    "lab_meta": {
+        "labHeader": "",
+        "bankName": "",
+        "mobileHeader": "-",
+        "upiId": "",
+        "userGuideIntroFlag": 0,
+        "reportTemplatesFlag": 0,
+        "labMetaId": 9562,
+        "latency": "",
+        "orgListFlag": 0,
+        "interfacingMachinesFlag": 0,
+        "labLogo": "logos/logos_9569.jpeg",
+        "userDetailsFlag": 0,
+        "billFooter": "",
+        "accountNo": "",
+        "accountDetailsFlag": 0,
+        "labTimings": "{\"timings\": [{\"to\": \"17:30:00\", \"from\": \"8:00:00\", \"day\": \"0\"}, {\"to\": \"17:30:00\", \"from\": \"8:00:00\", \"day\": \"1\"}, {\"to\": \"17:30:00\", \"from\": \"8:00:00\", \"day\": \"2\"}, {\"to\": \"17:30:00\", \"from\": \"8:00:00\", \"day\": \"3\"}, {\"to\": \"17:30:00\", \"from\": \"8:00:00\", \"day\": \"4\"}, {\"to\": \"17:30:00\", \"from\": \"8:00:00\", \"day\": \"5\"}, {\"to\": \"17:30:00\", \"from\": \"8:00:00\", \"day\": \"6\"}]}",
+        "ifscCode": "",
+        "billHeader": "",
+        "paymentNotes": "",
+        "accountType": "",
+        "referralDetailsFlag": 0,
+        "appDownloadFlag": 0,
+        "internetSpeed": "",
+        "docSignFlag": 0,
+        "barcodePrinter": "",
+        "labFooter": "footers/footer_9569.jpeg",
+        "checkFeaturesFlag": 0,
+        "priceListFlag": 0,
+        "operatingSystem": ""
+    },
+    "planDetails": [],
+    "lab_settings": {
+        "docSignCollateFlag": 0,
+        "referralLogins": 25,
+        "countryCode": "233",
+        "reactVersionAccess": 2,
+        "corporateLogins": 0,
+        "isEnterprise": 0,
+        "serving_as_hip": null,
+        "calculateTAT": 2,
+        "senderId": "CRELIO",
+        "hide_dismissed_bills": 0,
+        "paymentPendingTrialLoginFlag": 2,
+        "currency": "₵",
+        "remotelyFetchReportFlag": 0,
+        "package_subscription_job_id": "",
+        "packages_masterid": null,
+        "communication_provider": null,
+        "labUserLogins": 2,
+        "send_login_email_notification": 0,
+        "whatsapp_credit_expiry_date": null,
+        "vendorId": null,
+        "dynamicHeaderFlag": false,
+        "id": 9292,
+        "uniqueTestCodeFlag": 0,
+        "testCodeMandatoryFlag": false,
+        "sendIndirectMessages": 0,
+        "encrypted_report": false,
+        "is_idscans_enabled": true,
+        "package_subscription_date": null,
+        "crm_settings": "",
+        "department_wise_accession": 1,
+        "loginDomain": "https://livehealth.solutions",
+        "sms_monthly_free_credits": 104,
+        "newVersionAccess": 0,
+        "default_booking_slot": null,
+        "planId": 1,
+        "dueDate": null,
+        "orgLogins": 1,
+        "centreUpdateDate": null,
+        "newAccessControl": 0,
+        "trends_report_communication": 0,
+        "historyEditConfirmFlag": 0,
+        "sms_credit_expiry_date": null,
+        "sms_purchased_credits": 0,
+        "whatsapp_credits": 0,
+        "billTestAmountEditable": 1,
+        "billOutsourceDiscount": 0,
+        "package_subscription_invoice_id": "",
+        "pendingReportSubmission": 0,
+        "accessionPatternBillingId": null,
+        "analytics_tracking_id": "",
+        "billingSMSFlag": 0,
+        "accessionAtBilling": 1,
+        "petManagement": 0,
+        "accessionNoInBilling": 1,
+        "labForId": 9569,
+        "countryIsoCode": "GH",
+        "allowConcurrentLogin": 1,
+        "defaultRegistrationPage": 3,
+        "hc_auto_assign_window": null,
+        "enableIcdSupport": 0,
+        "allowReportStatusSync": "0",
+        "whatsapp_subscription_invoice_id": "",
+        "sms_free_credits_addition_date": null,
+        "date_format": "DD/MM/YYYY",
+        "smart_report_communication": 0,
+        "floatSupportFlag": 0,
+        "is_org_signature_mandatory": 0,
+        "covid_template": "",
+        "is_using_centrifugo": 0,
+        "provider": null,
+        "isApproveAbnormal": false,
+        "id_scans_credits": 0,
+        "isLab": 0,
+        "allow_all_labs_search": false,
+        "defaultFileUploadSizeFlag": 1,
+        "whatsapp_montly_free_credits": 0,
+        "is_batch_transfer": 0,
+        "deploymentFlag": 1,
+        "defaultBillingPage": 1,
+        "newPlanId": 1,
+        "SMSCredit": 0,
+        "sms_feature_quantity": 0,
+        "centreCreateDate": "2023-04-14T06:02:58Z",
+        "billing_email_flag": 0,
+        "bannerText": ""
+    },
+    "related_centres": [
+        9569
+    ],
+    "labDetails": [
+        {
+            "expectedLiveDate": "2023-04-29T06:02:58.090113Z",
+            "nextActivityTime": "2023-04-15T06:02:58.090113Z",
+            "newOnboardingFlag": 1,
+            "trialExpiryDate": "2023-04-29T06:02:58.090113Z",
+            "onboardingStatusFlag": 0,
+            "setupStatusFlag": 0,
+            "issueFlag": 0,
+            "centreActivateTime": "2023-04-14T06:02:58.090113Z",
+            "priorityFlag": 0,
+            "is_stripe_account_onboarding_complete": false,
+            "trainingStatusFlag": 0,
+            "stageChangeTime": "2023-04-14T06:02:58.090113Z",
+            "issueType": "N",
+            "escalationReason": "Reason",
+            "account_config": "Basic Laboratory Setup with Sample Barcoding (Recommended)",
+            "labContact": "249434803",
+            "labStage": "Added Team Member",
+            "labId": 9569,
+            "centreLastActivityTime": "2024-08-22T20:02:13.442591Z",
+            "centreUpdateTime": "2023-11-27T05:08:35.764973",
+            "state": "Setup Completed",
+            "credit_days": 0,
+            "location": "18.5667904,73.7692522",
+            "labArea": "",
+            "PlanDetails": {},
+            "labEmail": "leonidesintell@gmail.com",
+            "paymentPendingTrialLogin_Flag": 0,
+            "lastState": "Account Creation",
+            "salesPersonId": {
+                "fullName": "Abhimanyu",
+                "Id": 0
+            },
+            "billing_day_of_month": 0,
+            "labAdminEmail": "",
+            "nextActivityType": "N",
+            "is_self_served": true,
+            "labName": "leonides",
+            "otherDetails": "",
+            "escalatedFlag": 0,
+            "labAdminSMS": "",
+            "newAccessControl": 0,
+            "lastStage": "Setup Pending",
+            "labCity": "Takoradi",
+            "isActive": 1,
+            "stage": "Setup Pending",
+            "accountsMgrId": {},
+            "stripe_account_id": null,
+            "isPrimaryBillingCentre": true,
+            "billing_cycle": "Quarterly",
+            "centreCreateTime": "2023-04-14T06:02:58.090113Z",
+            "inventory_settings": "{\"enableGeneralStore\": 0, \"alertAndExpiryNotification\": 0, \"nearExpiryDefaultDays\": 20, \"sampleStockConsumption\": 0}"
+        }
+    ]
+}

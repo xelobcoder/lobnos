@@ -31,7 +31,7 @@ export default function AppCustomLayout({ children, sideLinks }) {
             </div>
           </aside>
         )}
-        <main className={`mx-1 my-2 prime-main p-4`}>{children}</main>
+        <main className={`prime-main mx-2 my-2`}>{children}</main>
       </div>
     </div>
   );

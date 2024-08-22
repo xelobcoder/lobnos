@@ -9,7 +9,7 @@ const ChangeIcon = (data) => {
     return null;
 };
 
-export default function ResultAnalysisRow({ item, months, index }) {
+export default async function ResultAnalysisRow({ item, months, index }) {
 
     return (
         <tr key={index}>
