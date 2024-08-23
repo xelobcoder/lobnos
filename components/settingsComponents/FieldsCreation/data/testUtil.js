@@ -148,6 +148,25 @@ export const constraintsFormatting = (fieldConstraints) => {
 }
 
 
+export const textReferenceFormating = (textReference) => {
+    if (typeof textReference != "string") return;
+    let hasCommaDelimeter = textReference.includes(",");
+    const hasNewLineDelimeter = textReference.includes("\n");
+    let splittedReferences = null;
+    if (hasCommaDelimeter) {
+        splittedReferences = textReference.split(',')
+    } else if (hasNewLineDelimeter) {
+        splittedReferences = textReference.split('\n')
+    } else {
+        splittedReferences = []
+    }
+    if (Array.isArray(splittedReferences) && textReference.length > 0) {
+        return splittedReferences.map((item, index) => <span key={index}>{item}<br /></span>)
+    }
+    return textReference;
+}
+
+
 export const getSymbolForConstraint = (value) => {
     const constraint = CONSTRAINTSLEVEL.find(item => item.value == value);
     return constraint ? `${constraint.description.slice(0, -5)} (${constraint.symbol}) ` : '';

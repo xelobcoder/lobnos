@@ -48,32 +48,32 @@ export default function RESULT_FOR_PRINTING() {
   return (
     <>
       <div className='single_result_page ui bg-secondary'>
-      <div className='result bg-white'>
+        <div className='result bg-white'>
           <div className='result-top-section'>
-          {resultsettings?.letterHeading == 1 && <CompanyHeaders billingid={billingid} />}
-        <PersonalInformation patientid={patientid} billingid={billingid} />
-          {resultsettings?.samplingInformation == 1 && <SamplingInformationResult billingid={billingid} testid={testid} />}
-        <section>
-          <UseCustomResultTemplating testid={testid} test={test} billingid={billingid} patientid={patientid} />
-          <UseResultCommentSingle billingid={billingid} testid={testid} />
-          <UseClinicalLiteratureReview testid={testid} />
-          </section>
-        </div>
+            {resultsettings?.letterHeading == 1 && <CompanyHeaders billingid={billingid} />}
+            <PersonalInformation patientid={patientid} billingid={billingid} />
+            {resultsettings?.samplingInformation == 1 && <SamplingInformationResult billingid={billingid} testid={testid} />}
+            <section>
+              <UseCustomResultTemplating testid={testid} test={test} billingid={billingid} patientid={patientid} />
+              <UseResultCommentSingle billingid={billingid} testid={testid} />
+              <UseClinicalLiteratureReview testid={testid} />
+            </section>
+          </div>
           <div className='result-bottom-section'>
-         <UseResultEntryScientist testid={testid} billingid={billingid} />
-          <UseDisclaimer patientid={patientid} />
-          <VersionFooter/>
+            <UseResultEntryScientist testid={testid} billingid={billingid} />
+            <UseDisclaimer patientid={patientid} />
+            <VersionFooter />
+          </div>
+        </div>
+        <div>
+        </div>
+        <div className='print-section'>
+          <button style={{ position: 'absolute', top: 20, left: '40px' }} className='btn btn-success btn-sm'
+            onClick={() => readyToPrint(billingid, testid)}>
+            print result
+          </button>
         </div>
       </div>
-      <div>
-      </div>
-      <div className='print-section'>
-        <button style={{ position: 'absolute', top: 20, left: '40px' }} className='btn btn-success btn-sm'
-          onClick={() => readyToPrint(billingid, testid)}>
-          print result
-       </button>
-      </div>
-    </div>
     </>
   )
 }
