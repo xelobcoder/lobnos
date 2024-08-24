@@ -144,7 +144,7 @@ export const handleSubmitRegistration = async (e, data = {}, method, toast, call
 
 
 
-export async function handleActivation(status, patientid,toast, callbackfunction) {
+export async function handleActivation(status, patientid, toast, callbackfunction) {
   let confirmation = confirm(`Do you want to ${status == 'FALSE' ? 'Activate' : 'deactivate'} client ?`);
   if (confirmation) {
     let action = status == "TRUE" ? "FALSE" : "TRUE";
@@ -170,7 +170,7 @@ export async function handleActivation(status, patientid,toast, callbackfunction
 
 
 export async function ActivationBulk(e, action, callbackfunction) {
-  const status = action == 'TRUE' ? 'activate' :' deactivate';
+  const status = action == 'TRUE' ? 'activate' : ' deactivate';
   const confirmation = confirm(`Do you want to ${status} all clients?`);
   if (confirmation) {
     let response = await customFetch(
@@ -221,7 +221,7 @@ export const patientRegistrationDefaultData = {
     address: '',
     occupation: '',
     relationship: "",
-  }
+  },
 }
 
 

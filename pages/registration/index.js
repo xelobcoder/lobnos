@@ -4,7 +4,7 @@ import PersonalInfomationRegistration from "../../components/registration/Person
 import { getRegistrationFields } from "../../components/registration/fields/Util";
 import { ToastContainer, toast } from 'react-toastify';
 import { Settings } from "@mui/icons-material";
-import { Form } from 'react-bootstrap';
+import { Col, Container, Form, Row } from 'react-bootstrap';
 import { useRouter } from "next/navigation";
 import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 import Loader from '../../components/accessories/Loader';
@@ -25,8 +25,8 @@ export default function Registration() {
       setLoading(false);
     } catch (err) {
       setLoading(false);
-   }
-  } 
+    }
+  }
 
   useEffect(() => {
     getFields();
@@ -39,8 +39,8 @@ export default function Registration() {
     if (isloading) return <Loader />
     else {
       return (<div className="border bg-white p-1 mb-2">
-        <PersonalInfomationRegistration 
-          expanded={expanded} 
+        <PersonalInfomationRegistration
+          expanded={expanded}
           fields={fields.length > 0 ? fields[0]['fields'] : {}}
           toast={toast}
           defaultData={personalInformation} />
@@ -52,18 +52,25 @@ export default function Registration() {
   return (
     <FrontDeskLayout>
       <ToastContainer theme="colored" className="text-sm" position="top-center" />
+      {/* Patient search here */}
+      <Container>
+        <Row>
+          <Col>
+            <input className="custom-input col-2" placeholder="search patient here please" />
+          </Col>
+        </Row>
         <div className="d-flex justify-content-between">
           <h5 className="fw-bold mt-2">Patient Registration</h5>
           <div className="d-flex justify-content-between">
             <Form.Switch value={expanded} type='switch' style={{ fontSize: '25px' }} onClick={(ev) => setExpaned(ev.target.checked)} />
             <button onClick={(ev) => { router.push('/registration/settings') }} className="btn btn-secondary mb-1">
               <Settings />
-          </button>
+            </button>
+          </div>
         </div>
-      </div>
-      {renderingView()}
+        {renderingView()}
+      </Container>
     </FrontDeskLayout>
   );
 }
 
- 
