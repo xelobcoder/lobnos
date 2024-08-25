@@ -1,5 +1,5 @@
 import { customFetch, customPost } from "./customFetch";
-import { defaultdata } from "../../pages/registration";
+import { defaultdata } from "../../pages/registration/archived";
 import moment from 'moment';
 import { toast } from "react-toastify";
 
@@ -111,7 +111,6 @@ export const handleSubmitRegistration = async (e, data = {}, method, toast, call
   // function theat checks to esnsure required fields are filled
   const checkRequiredFields = (data) => {
     requiredFields.forEach((field) => {
-      console.log(data[field])
       if (data[field].toString().length == 0) {
         error = true;
         return;
@@ -128,9 +127,10 @@ export const handleSubmitRegistration = async (e, data = {}, method, toast, call
     const { status, statusCode, message, patientid } = response;
 
     if (statusCode == 200 && status == "success") {
-      toast.success(message + ". Redirectly to billing page", { autoClose: 500 });
-      callback();
+      const toastMessage = redirect ? message + ". Redirectly to billing page": message;
+      toast.success(toastMessage, { autoClose: 500 });
       if (redirect && typeof redirect == "boolean") {
+        callback();
         setTimeout(() => {
           window.location.href = `/billing/patientid?patientid=${patientid}`;
         }, 1500)

@@ -1,16 +1,28 @@
 import { Form } from "react-bootstrap"
 import { handleMobile, handleEmail, handleAgeCalculations, handleSubmitRegistration } from "../Auth/registerclient"
 import IsRenderInput from "./CustomInput"
-import { useState } from "react"
-
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation";
+import { getDataAndUpdateState } from "../Auth/customFetch";
 
 export default function PersonalInformationRegistration(
-  { defaultData, fields, toast, method = "POST", redirect = true }) {
+  { defaultData, fields, toast, redirect = true }) {
   const [data, setData] = useState(defaultData);
+  const [isloading, setLoading] = useState(true);
+  const patientid = useSearchParams().get('patientid');
 
   const clearForm = () => {
     setData(defaultData);
   };
+
+  useEffect(() => {
+    if (patientid) {
+      getDataAndUpdateState(setData, `register/personalinformation?patientid=${patientid}`, false, setLoading)
+    } else {
+      clearForm();
+    }
+  }, [patientid])
+
 
   return (
     <section>
@@ -312,7 +324,7 @@ export default function PersonalInformationRegistration(
                     type="radio"
                     label="Single"
                     name="maritalstatus"
-                    style={{ marginRight: "20px" ,fontSize:'20px'}}
+                    style={{ marginRight: "20px", fontSize: '20px' }}
                     value="single"
                     checked={data.maritalstatus === "single"}
                     onChange={(e) => {
@@ -346,9 +358,10 @@ export default function PersonalInformationRegistration(
             type="button"
             className="btn mt-3 btn-success btn-sm text-capitalize"
             onClick={(e) => {
-              handleSubmitRegistration(e, data, method, toast, clearForm, redirect);
+              const method = patientid ? 'PUT' : 'POST';
+              handleSubmitRegistration(e, data, method, toast, clearForm, redirect = patientid ? false : true);
             }}>
-          Save current progess 
+            Save current progess
           </button>
         </div>
       </form>

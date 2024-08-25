@@ -2,13 +2,22 @@ import { getDataAndUpdateState } from "../Auth/customFetch"
 import IsRenderInput from "./CustomInput"
 import { submitFormData } from "../Auth/registerclient"
 import { useEffect, useState } from "react"
-export default function EmmergencyContactInformation({ defaultData, fields, patientid, expanded = true, toast }) {
+import { useSearchParams } from "next/navigation"
+export default function EmmergencyContactInformation({ defaultData, fields,expanded = true, toast }) {
   const [data, setData] = useState(defaultData)
   const [isloading, setLoading] = useState(true)
+  const patientid = useSearchParams().get("patientid");
 
+
+  const clearForm = () => {
+    setData(defaultData);
+  };
+  
   useEffect(() => {
     if (patientid) {
       getDataAndUpdateState(setData, `register/emmergencycontactinformation?patientid=${patientid}`, false, setLoading)
+    } else {
+      clearForm();
     }
   }, [patientid])
 

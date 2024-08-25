@@ -1,19 +1,27 @@
-import { regions } from "../Auth/customFetch"
+import { getDataAndUpdateState, regions } from "../Auth/customFetch"
 import IsRenderInput from "./CustomInput"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { submitFormData } from "../Auth/registerclient"
+import { useSearchParams } from "next/navigation"
 
 
-export default function Addressing({ defaultData, fields, patientid, expanded = true, toast }) {
+export default function Addressing({ defaultData, fields, expanded = true, toast }) {
   const [data, setData] = useState(defaultData)
   const [isloading, setLoading] = useState(true)
+  const patientid = useSearchParams().get('patientid');
 
-  // useEffect(() => {
-  //   if (patientid) {
-  //     getDataAndUpdateState(setData, `register/addressingformation?patientid=${patientid}`, false, setLoading)
-  //   }
-  // }, [patientid])
 
+  const clearForm = () => {
+    setData(defaultData);
+  };
+
+  useEffect(() => {
+    if (patientid) {
+      getDataAndUpdateState(setData, `register/addressingformation?patientid=${patientid}`, false, setLoading)
+    } else {
+      clearForm()
+    }
+  }, [patientid])
 
 
   return <>
@@ -94,7 +102,7 @@ export default function Addressing({ defaultData, fields, patientid, expanded = 
             }
           />
         </div>
-        
+
         <div className="form-row">
           <IsRenderInput
             value={fields.gpsLocation}

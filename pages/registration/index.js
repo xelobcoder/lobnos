@@ -2,75 +2,80 @@ import { useEffect, useState } from "react";
 import { patientRegistrationDefaultData } from "../../components/Auth/registerclient";
 import PersonalInfomationRegistration from "../../components/registration/PersonalInfomationRegistration";
 import { getRegistrationFields } from "../../components/registration/fields/Util";
-import { ToastContainer, toast } from 'react-toastify';
-import { Settings } from "@mui/icons-material";
-import { Col, Container, Form, Row } from 'react-bootstrap';
-import { useRouter } from "next/navigation";
+import { toast, ToastContainer } from 'react-toastify';
+import { Search } from "@mui/icons-material";
 import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
-import Loader from '../../components/accessories/Loader';
+import Addressing from "../../components/registration/Addressing";
+import EmmergencyContactInformation from "../../components/registration/EmmergencyContactInformation";
 
 
-export default function Registration() {
-  const { personalInformation } = patientRegistrationDefaultData;
-  const [fields, setFields] = useState();
-  const [expanded, setExpaned] = useState(true);
-  const [isloading, setLoading] = useState(true);
-  const router = useRouter();
+export default function RegistrationForm() {
+    const { personalInformation, addressingInformation, emmergencyInformation } = patientRegistrationDefaultData;
+    const [fields, setFields] = useState(patientRegistrationDefaultData);
+    const [showSearchUser, setSearchUser] = useState(false);
+    const [isloading, setLoading] = useState(true);
 
 
-  const getFields = async () => {
-    try {
-      setLoading(true);
-      await getRegistrationFields(setFields);
-      setLoading(false);
-    } catch (err) {
-      setLoading(false);
+    const getFields = async () => {
+        try {
+            setLoading(true);
+            await getRegistrationFields(setFields);
+            setLoading(false);
+        } catch (err) {
+            setLoading(false);
+        }
     }
-  }
 
-  useEffect(() => {
-    getFields();
-  }, [])
+    useEffect(() => {
+        getFields();
+    }, [])
 
-
-
-
-  const renderingView = () => {
-    if (isloading) return <Loader />
-    else {
-      return (<div className="border bg-white p-1 mb-2">
-        <PersonalInfomationRegistration
-          expanded={expanded}
-          fields={fields.length > 0 ? fields[0]['fields'] : {}}
-          toast={toast}
-          defaultData={personalInformation} />
-      </div>)
-    }
-  }
-
-
-  return (
-    <FrontDeskLayout>
-      <ToastContainer theme="colored" className="text-sm" position="top-center" />
-      {/* Patient search here */}
-      <Container>
-        <Row>
-          <Col>
-            <input className="custom-input col-2" placeholder="search patient here please" />
-          </Col>
-        </Row>
-        <div className="d-flex justify-content-between">
-          <h5 className="fw-bold mt-2">Patient Registration</h5>
-          <div className="d-flex justify-content-between">
-            <Form.Switch value={expanded} type='switch' style={{ fontSize: '25px' }} onClick={(ev) => setExpaned(ev.target.checked)} />
-            <button onClick={(ev) => { router.push('/registration/settings') }} className="btn btn-secondary mb-1">
-              <Settings />
-            </button>
-          </div>
-        </div>
-        {renderingView()}
-      </Container>
-    </FrontDeskLayout>
-  );
+    return (
+        <FrontDeskLayout>
+            <ToastContainer theme="colored" position="top-center" className={'text-sm'} />
+            {/* Patient search here */}
+            {showSearchUser && (
+                <div className="mx-2 p-2">
+                    <div className="d-flex" >
+                        <input className="custom-input col-2" placeholder="search patient here please" />
+                        <button className="mx-2 btn btn-light">
+                            <Search />
+                        </button>
+                    </div>
+                </div>
+            )}
+            <div className="col-12">
+                <div>
+                    <div className="bg-primary text-white fw-bold text-capitalize p-2 mb-2 col-3 mt-1 pls-label">Personal Information</div>
+                    <fieldset className="  heightedBorder bg-body-secondary  p-3">
+                        <PersonalInfomationRegistration
+                            fields={fields.length > 0 ? fields[0]['fields'] : {}}
+                            toast={toast}
+                            defaultData={personalInformation} />
+                    </fieldset>
+                </div>
+                <div>
+                    <div className="bg-primary text-white fw-bold text-capitalize p-2 mb-2 col-3    mt-1 pls-label">Address Information</div>
+                    <fieldset className=" heightedBorder bg-body-secondary p-3">
+                        {/* <legend>Address Information</legend> */}
+                        <Addressing
+                            fields={fields.length > 0 ? fields[0]['fields'] : {}}
+                            toast={toast}
+                            defaultData={addressingInformation} />
+                    </fieldset>
+                </div>
+                <div>
+                    <div className="bg-primary text-white fw-bold text-capitalize p-2 mb-2 col-3 mt-1 pls-label">Emmergency Contact Information</div>
+                    <fieldset className="heightedBorder bg-body-secondary   p-3">
+                        {/* <legend>Emmergency Information</legend> */}
+                        <EmmergencyContactInformation
+                            fields={fields.length > 0 ? fields[0]['fields'] : {}}
+                            toast={toast}
+                            defaultData={emmergencyInformation} />
+                    </fieldset>
+                </div>
+            </div>
+        </FrontDeskLayout>
+    );
 }
 
