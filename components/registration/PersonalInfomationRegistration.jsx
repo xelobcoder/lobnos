@@ -1,15 +1,13 @@
-import { Form } from "react-bootstrap"
-import { handleMobile, handleEmail, handleAgeCalculations, handleSubmitRegistration } from "../Auth/registerclient"
-import IsRenderInput from "./CustomInput"
-import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation";
+import { Form } from "react-bootstrap";
+import { handleMobile, handleEmail, handleAgeCalculations, handleSubmitRegistration } from "../Auth/registerclient";
+import IsRenderInput from "./CustomInput";
+import { useState, useEffect } from "react";
 import { getDataAndUpdateState } from "../Auth/customFetch";
 
 export default function PersonalInformationRegistration(
-  { defaultData, fields, toast, redirect = true }) {
+  { defaultData, fields, toast, patientid, redirect = true }) {
   const [data, setData] = useState(defaultData);
-  const [isloading, setLoading] = useState(true);
-  const patientid = useSearchParams().get('patientid');
+  const [isloading, setLoading] = useState(false);
 
   const clearForm = () => {
     setData(defaultData);
@@ -26,6 +24,7 @@ export default function PersonalInformationRegistration(
 
   return (
     <section>
+      {isloading && <div>Loading data ............................</div>}
       <form autoComplete="off" className="grid-50" noValidate autoCorrect="false" >
         <div className="_registration_form_split">
           <div>
@@ -35,6 +34,7 @@ export default function PersonalInformationRegistration(
               value={fields["firstname"]}
               field={
                 <input
+                  disabled={isloading}
                   onChange={(e) => {
                     setData({ ...data, firstname: e.target.value });
                   }}
@@ -52,6 +52,7 @@ export default function PersonalInformationRegistration(
               label={"last name"}
               field={
                 <input
+                  disabled={isloading}
                   className="custom-input "
                   type="text"
                   label="lastname"
@@ -69,6 +70,7 @@ export default function PersonalInformationRegistration(
               value={fields["middlename"]}
               field={
                 <input
+                  disabled={isloading}
                   className="custom-input "
                   placeholder="Middle Name"
                   type="text"
@@ -83,11 +85,13 @@ export default function PersonalInformationRegistration(
           <div >
             <div >
               <IsRenderInput
+
                 value={fields["days"]}
                 label={'Date Of Birth'}
                 field={
                   <div className="d-flex">
                     <input
+                      disabled={isloading}
                       className="custom-input"
                       min={1}
                       max={31}
@@ -100,6 +104,7 @@ export default function PersonalInformationRegistration(
                       }}
                       label="Day"
                     />  <input
+                      disabled={isloading}
                       className="custom-input mx-2"
                       label="Months"
                       min={1}
@@ -112,6 +117,7 @@ export default function PersonalInformationRegistration(
                         setData({ ...data, months: e.target.value });
                       }}
                     />   <input
+                      disabled={isloading}
                       className="custom-input"
                       label="Years"
                       min={1900}
@@ -139,6 +145,7 @@ export default function PersonalInformationRegistration(
               field={
                 <div className="d-flex ">
                   <input
+                    disabled={isloading}
                     value={data.age}
                     onChange={(e) => setData({ ...data, age: e.target.value })}
                     type="number"
@@ -158,6 +165,7 @@ export default function PersonalInformationRegistration(
             />
             <div className="form-row">
               <IsRenderInput
+
                 value={fields["gender"]}
                 label={"gender"}
 
@@ -206,6 +214,7 @@ export default function PersonalInformationRegistration(
               field={
                 <div className="d-flex">
                   <input
+                    disabled={isloading}
                     type="tel"
                     inputMode="tel"
                     maxLength={10}
@@ -226,6 +235,7 @@ export default function PersonalInformationRegistration(
                     }}
                   />
                   <input
+                    disabled={isloading}
                     type="tel"
                     inputMode="tel"
                     maxLength={10}
@@ -255,6 +265,7 @@ export default function PersonalInformationRegistration(
               label="email"
               field={
                 <input
+                  disabled={isloading}
                   size="small"
                   type="email"
                   value={data.email}
@@ -277,6 +288,7 @@ export default function PersonalInformationRegistration(
               label="occupation"
               field={
                 <input
+                  disabled={isloading}
                   type="text"
                   placeholder="Occupation"
                   name="occupation"
@@ -298,6 +310,7 @@ export default function PersonalInformationRegistration(
               label={"organization"}
               field={
                 <input
+                  disabled={isloading}
                   type="text"
                   placeholder="Patient Organization"
                   name="patientOrganization"

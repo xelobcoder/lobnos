@@ -2,13 +2,12 @@ import { getDataAndUpdateState, regions } from "../Auth/customFetch"
 import IsRenderInput from "./CustomInput"
 import { useState, useEffect } from "react"
 import { submitFormData } from "../Auth/registerclient"
-import { useSearchParams } from "next/navigation"
 
 
-export default function Addressing({ defaultData, fields, expanded = true, toast }) {
+export default function Addressing({ defaultData, fields, patientid,toast }) {
   const [data, setData] = useState(defaultData)
-  const [isloading, setLoading] = useState(true)
-  const patientid = useSearchParams().get('patientid');
+  const [isloading, setLoading] = useState(false)
+
 
 
   const clearForm = () => {
@@ -26,6 +25,7 @@ export default function Addressing({ defaultData, fields, expanded = true, toast
 
   return <>
     <section className="col-6">
+      {isloading && <div>Loading data.........................</div>}
       <div>
         <div className="form-row">
           <IsRenderInput
@@ -34,6 +34,7 @@ export default function Addressing({ defaultData, fields, expanded = true, toast
             label="Region"
             field={
               <select
+                disabled={isloading}
                 className="custom-select"
                 value={data.region}
                 onChange={(e) =>
@@ -61,6 +62,7 @@ export default function Addressing({ defaultData, fields, expanded = true, toast
             label="district"
             field={
               <select
+                disabled={isloading}
                 className="custom-select"
                 value={data.region}
                 onChange={(e) =>
@@ -88,6 +90,7 @@ export default function Addressing({ defaultData, fields, expanded = true, toast
             label="Area"
             field={
               <input
+                disabled={isloading}
                 className="custom-input"
                 value={data.area}
                 onChange={(e) =>
@@ -110,6 +113,7 @@ export default function Addressing({ defaultData, fields, expanded = true, toast
             label="GPS Location or Landmark"
             field={
               <input
+                disabled={isloading}
                 className="custom-input"
                 value={data.gpsLocation}
                 onChange={(e) =>
@@ -131,6 +135,7 @@ export default function Addressing({ defaultData, fields, expanded = true, toast
             label="Address"
             field={
               <textarea
+                disabled={isloading}
                 id="address"
                 className="form-control"
                 name="address"

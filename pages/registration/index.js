@@ -7,12 +7,14 @@ import { Search } from "@mui/icons-material";
 import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 import Addressing from "../../components/registration/Addressing";
 import EmmergencyContactInformation from "../../components/registration/EmmergencyContactInformation";
+import { useSearchParams } from "next/navigation";
 
 
 export default function RegistrationForm() {
     const { personalInformation, addressingInformation, emmergencyInformation } = patientRegistrationDefaultData;
     const [fields, setFields] = useState(patientRegistrationDefaultData);
     const [showSearchUser, setSearchUser] = useState(false);
+    const patientid = useSearchParams().get('patientid')
     const [isloading, setLoading] = useState(true);
 
 
@@ -51,6 +53,7 @@ export default function RegistrationForm() {
                         <PersonalInfomationRegistration
                             fields={fields.length > 0 ? fields[0]['fields'] : {}}
                             toast={toast}
+                            patientid={patientid}
                             defaultData={personalInformation} />
                     </fieldset>
                 </div>
@@ -61,6 +64,7 @@ export default function RegistrationForm() {
                         <Addressing
                             fields={fields.length > 0 ? fields[0]['fields'] : {}}
                             toast={toast}
+                            patientid={patientid}
                             defaultData={addressingInformation} />
                     </fieldset>
                 </div>
@@ -71,6 +75,7 @@ export default function RegistrationForm() {
                         <EmmergencyContactInformation
                             fields={fields.length > 0 ? fields[0]['fields'] : {}}
                             toast={toast}
+                            patientid={patientid}
                             defaultData={emmergencyInformation} />
                     </fieldset>
                 </div>

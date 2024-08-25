@@ -2,17 +2,16 @@ import { getDataAndUpdateState } from "../Auth/customFetch"
 import IsRenderInput from "./CustomInput"
 import { submitFormData } from "../Auth/registerclient"
 import { useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
-export default function EmmergencyContactInformation({ defaultData, fields,expanded = true, toast }) {
+export default function EmmergencyContactInformation({ defaultData, fields,patientid, toast }) {
   const [data, setData] = useState(defaultData)
   const [isloading, setLoading] = useState(true)
-  const patientid = useSearchParams().get("patientid");
+
 
 
   const clearForm = () => {
     setData(defaultData);
   };
-  
+
   useEffect(() => {
     if (patientid) {
       getDataAndUpdateState(setData, `register/emmergencycontactinformation?patientid=${patientid}`, false, setLoading)
@@ -30,6 +29,7 @@ export default function EmmergencyContactInformation({ defaultData, fields,expan
             label={"Emergency Contact Name"}
             field={
               <input
+              disabled={isloading}
                 type="text"
                 className="custom-input"
                 id="emergencyName"
@@ -51,6 +51,7 @@ export default function EmmergencyContactInformation({ defaultData, fields,expan
             label={"Relationship"}
             field={
               <select
+              disabled={isloading}
                 className="custom-select"
                 id="relationship"
                 name="relationship"
@@ -76,6 +77,7 @@ export default function EmmergencyContactInformation({ defaultData, fields,expan
             label={"Emergency Contact Number"}
             field={
               <input
+              disabled={isloading}
                 type="tel"
                 inputMode="tel"
                 className="custom-input"
@@ -100,6 +102,7 @@ export default function EmmergencyContactInformation({ defaultData, fields,expan
             label={"Address"}
             field={
               <input
+              disabled={isloading}
                 type="text"
                 className="custom-input"
                 id="address"
@@ -121,6 +124,7 @@ export default function EmmergencyContactInformation({ defaultData, fields,expan
             label={"Occupation"}
             field={
               <input
+              disabled={isloading}
                 type="text"
                 className="custom-input"
                 id="occupation"
