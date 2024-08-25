@@ -14,7 +14,7 @@ export default function EmmergencyContactInformation({ defaultData, fields, pati
 
   return (
     <>
-      <div>
+      <div className="col-6">
         <div className="form-row">
           <IsRenderInput
             value={fields.emmergencyContactName}
@@ -131,8 +131,8 @@ export default function EmmergencyContactInformation({ defaultData, fields, pati
           onClick={(ev) => {
             submitFormData(`register/emmergencycontactinformation?patientid=${patientid}`, data, toast)
           }}
-          className="btn btn-primary btn-sm mt-3">
-          save changes
+          className="btn mt-3 btn-success btn-sm text-capitalize">
+          save current progress
         </button>
       </div>
     </>

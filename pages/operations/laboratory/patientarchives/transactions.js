@@ -11,7 +11,6 @@ import PreviewPatientInformation from "../../../../components/petientsComponent/
 
 export default function ResultEntryCompletedDepartmentViewTwo() {
   const [data, setData] = useState([]);
-  const [showexporters, setExporter] = useState(false);
   const ptid = useSearchParams().get("ptid");
   const [loading, setLoading] = useState(true);
   const csvid = useSearchParams().get("csvid");
@@ -145,13 +144,11 @@ export default function ResultEntryCompletedDepartmentViewTwo() {
     },
   ];
 
-  const isExporter = !showexporters
-    ? { position: "relative", bottom: "-60px", right: "20px", zIndex: 100 }
-    : { position: "relative", bottom: "0px", right: "0px", zIndex: 0 };
+
 
   const rendering = () => {
     if (loading) return <Loader />;
-    return <TableDisplay data={data} exporters={showexporters} column={columns} />;
+    return <TableDisplay data={data}  column={columns} />;
   };
   return (
     <LaboratoryLayout>
@@ -159,16 +156,6 @@ export default function ResultEntryCompletedDepartmentViewTwo() {
         {patientid && <PreviewPatientInformation patientid={patientid} />}
         <div className="d-flex justify-content-between">
           <h4>Test for Transaction with Billing Id {billingid}</h4>
-          {data.length > 0 && (
-            <Button
-              style={isExporter}
-              variant="secondary"
-              onClick={(ev) => {
-                setExporter(!showexporters);
-              }}>
-              show exports
-            </Button>
-          )}
         </div>
         {rendering()}
       </section>

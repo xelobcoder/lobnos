@@ -74,10 +74,8 @@ export default function EMAIL_LOGS() {
               <label>Subject</label>
               <input type='text' className='custom-input mb-3' placeholder='enter email subject'
                 value={title} onChange={(ev) => setTitle(ev.target.value)} />
-              <Suspense fallback={<ISLOADING />}>
-                <MARKDOWN ref={editorRef} updatedata={updateData} initialData={draft} style={{ height: '800px' }} />
-                <button onClick={saveDraft} className='btn btn-sm btn-primary mt-2' ><Drafts /> save as draft </button>
-              </Suspense>
+              {/* <MARKDOWN ref={editorRef} updatedata={updateData} initialData={draft} style={{ height: '800px' }} /> */}
+              <button onClick={saveDraft} className='btn btn-sm btn-primary mt-2' ><Drafts /> save as draft </button>
             </div>
           </div>
         </div>

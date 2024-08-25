@@ -1,71 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination } from 'react-table';
 import GlobalFilter from './GlobalFilter';
 import SECOND_NO_DATA from './secondNodata';
-import dynamic from 'next/dynamic';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 
-const ExportTable = dynamic(() => import("./ExportData"));
-
-function CustomDropdown({ columns, visibleColumns, toggleColumnVisibility }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleToggle = () => setIsOpen(prev => !prev);
-
-  const dropdownMenuStyles = {
-    display: isOpen ? 'block' : 'none',
-    position: 'absolute',
-    right: 0,
-    backgroundColor: 'white',
-    border: '1px solid #ddd',
-    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.15)',
-    zIndex: 1,
-    width: '200px', 
-    maxHeight: '20vh', 
-    overflowY: 'auto', 
-    padding: '5px 0'
-  };
-
-  const dropdownItemStyles = {
-    padding: '8px 12px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center'
-  };
-
-  const dropdownItemHoverStyles = {
-    backgroundColor: '#f1f1f1'
-  };
-
-  return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
-      <button
-        onClick={handleToggle}
-        style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
-      >
-        <MoreVertIcon />
-      </button>
-      <div style={dropdownMenuStyles}>
-        {columns.map((item, index) => (
-          <div
-            key={index}
-            style={dropdownItemStyles}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = dropdownItemHoverStyles.backgroundColor}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-          >
-            <input
-              type="checkbox"
-              checked={visibleColumns.find(col => col.id === item.accessor)?.isVisible || false}
-              onChange={() => toggleColumnVisibility(item.accessor)}
-              style={{ marginRight: '8px' }}
-            />
-            <span>{item.Header}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 export default function TableDisplay({
   exporters = true,
@@ -78,27 +15,14 @@ export default function TableDisplay({
   initpageSize = 10,
   ...props
 }) {
-  const [visibleColumns, setVisibleColumns] = useState(column.map(col => ({
-    id: col.accessor,
-    isVisible: true,
-  })));
 
-  const toggleColumnVisibility = (columnId) => {
-    setVisibleColumns(prevState =>
-      prevState.map(col =>
-        col.id === columnId ? { ...col, isVisible: !col.isVisible } : col
-      )
-    );
-  };
 
-  const filteredColumns = useMemo(
-    () => column.filter(col => visibleColumns.find(vCol => vCol.id === col.accessor && vCol.isVisible)),
-    [column, visibleColumns]
-  );
+  
+ 
 
   const tableInstance = useTable(
     {
-      columns: filteredColumns,
+      columns:column,
       data: useMemo(() => data, [data]),
       initialState: { pageSize: initpageSize },
     },
@@ -152,19 +76,11 @@ export default function TableDisplay({
           <div className="card">
             <div className="card-body">
               <div className="d-flex justify-content-between col-12">
-                {exporters && <ExportTable data={data} column={filteredColumns} />}
                 {filtering && <div className="col-6">
                   <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
                 </div>}
               </div>
-              <div className="table-responsive table">
-                <div className="d-flex justify-content-end">
-                  <CustomDropdown
-                    columns={column}
-                    visibleColumns={visibleColumns}
-                    toggleColumnVisibility={toggleColumnVisibility}
-                  />
-                </div>
+              <div className="table-responsive table my-2">
                 <table style={{minHeight:'20vh'}} {...props} className={styling ? styling : "table billing-cart-table table-striped table-hover"} {...getTableProps()}>
                   <thead>{customHeaderGroup()}</thead>
                   <tbody {...getTableBodyProps()}>

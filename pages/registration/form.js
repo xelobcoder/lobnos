@@ -2,12 +2,10 @@ import { useEffect, useState } from "react";
 import { patientRegistrationDefaultData } from "../../components/Auth/registerclient";
 import PersonalInfomationRegistration from "../../components/registration/PersonalInfomationRegistration";
 import { getRegistrationFields } from "../../components/registration/fields/Util";
-import { ToastContainer, toast } from 'react-toastify';
-import { Settings } from "@mui/icons-material";
-import { Col, Container, Form, Row } from 'react-bootstrap';
+import { toast, ToastContainer } from 'react-toastify';
+import { Search } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
-import Loader from '../../components/accessories/Loader';
 import Addressing from "../../components/registration/Addressing";
 import EmmergencyContactInformation from "../../components/registration/EmmergencyContactInformation";
 
@@ -15,7 +13,6 @@ import EmmergencyContactInformation from "../../components/registration/Emmergen
 export default function RegistrationForm() {
     const { personalInformation, addressingInformation, emmergencyInformation } = patientRegistrationDefaultData;
     const [fields, setFields] = useState(patientRegistrationDefaultData);
-    const [expanded, setExpaned] = useState(true);
     const [isloading, setLoading] = useState(true);
     const router = useRouter();
 
@@ -34,37 +31,21 @@ export default function RegistrationForm() {
         getFields();
     }, [])
 
-
-
-
-    // const renderingView = () => {
-    //     if (isloading) return <Loader />
-    //     else {
-    //         return (<div className="border bg-white p-1 mb-2 my-2">
-    //             <PersonalInfomationRegistration
-    //                 
-    //                 fields={fields.length > 0 ? fields[0]['fields'] : {}}
-    //                 toast={toast}
-    //                 defaultData={personalInformation} />
-    //         </div>)
-    //     }
-    // }
-
-
     return (
         <FrontDeskLayout>
             {/* Patient search here */}
             <div className="mx-2 p-2">
-                <Row>
-                    <Col>
-                        <input className="custom-input col-2" placeholder="search patient here please" />
-                    </Col>
-                </Row>
+                <div className="d-flex" >
+                    <input className="custom-input col-2" placeholder="search patient here please" />
+                    <button className="mx-2 btn btn-light">
+                        <Search />
+                    </button>
+                </div>
             </div>
             <div className="col-12">
                 <div>
-                    <div className="bg-primary text-white fw-bold text-capitalize p-2 mb-2 mt-1 pls-label">Personal Information</div>
-                    <fieldset className="bg-secondary-subtle br-5 p-3">
+                    <div className="border-sledge bg-primary text-white fw-bold text-capitalize p-2 mb-2 col-3 mt-1 pls-label">Personal Information</div>
+                    <fieldset className="  heightedBorder bg-body-secondary  p-3">
                         <PersonalInfomationRegistration
                             fields={fields.length > 0 ? fields[0]['fields'] : {}}
                             toast={toast}
@@ -72,8 +53,8 @@ export default function RegistrationForm() {
                     </fieldset>
                 </div>
                 <div>
-                    <div className="bg-primary text-white fw-bold text-capitalize p-2 mb-2 mt-1 pls-label">Personal Information</div>
-                    <fieldset className=" br-5 p-3">
+                    <div className="bg-primary text-white fw-bold text-capitalize p-2 mb-2 col-3    mt-1 pls-label">Address Information</div>
+                    <fieldset className=" heightedBorder bg-body-secondary p-3">
                         {/* <legend>Address Information</legend> */}
                         <Addressing
                             fields={fields.length > 0 ? fields[0]['fields'] : {}}
@@ -82,8 +63,8 @@ export default function RegistrationForm() {
                     </fieldset>
                 </div>
                 <div>
-                    <div className="bg-primary text-white fw-bold text-capitalize p-2 mb-2 mt-1 pls-label">Personal Information</div>
-                    <fieldset className=" br-5 p-3">
+                    <div className="bg-primary text-white fw-bold text-capitalize p-2 mb-2 col-3 mt-1 pls-label">Emmergency Contact Information</div>
+                    <fieldset className="heightedBorder bg-body-secondary   p-3">
                         {/* <legend>Emmergency Information</legend> */}
                         <EmmergencyContactInformation
                             fields={fields.length > 0 ? fields[0]['fields'] : {}}

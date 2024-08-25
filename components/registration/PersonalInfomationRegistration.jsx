@@ -79,6 +79,7 @@ export default function PersonalInformationRegistration(
                       className="custom-input"
                       min={1}
                       max={31}
+                      maxLength={2}
                       type="number"
                       value={data.days}
                       placeholder="Days"
@@ -154,7 +155,7 @@ export default function PersonalInformationRegistration(
                       type="radio"
                       label="Female"
                       name="gender"
-                      style={{ marginRight: "20px", fontSize: "15px" }}
+                      style={{ marginRight: "20px", fontSize: "20px" }}
                       value="female"
                       checked={data.gender === "female"}
                       onChange={(e) => {
@@ -168,7 +169,7 @@ export default function PersonalInformationRegistration(
                       type="radio"
                       label="Male"
                       name="gender"
-                      style={{ marginRight: "20px", fontSize: "15px" }}
+                      style={{ fontSize: '20px' }}
                       value="male"
                       checked={data.gender === "male"}
                       onChange={(e) => {
@@ -311,7 +312,7 @@ export default function PersonalInformationRegistration(
                     type="radio"
                     label="Single"
                     name="maritalstatus"
-                    style={{ marginRight: "20px" }}
+                    style={{ marginRight: "20px" ,fontSize:'20px'}}
                     value="single"
                     checked={data.maritalstatus === "single"}
                     onChange={(e) => {
@@ -325,6 +326,7 @@ export default function PersonalInformationRegistration(
                     type="radio"
                     label="Married"
                     name="maritalstatus"
+                    style={{ fontSize: '20px' }}
                     value="married"
                     checked={data.maritalstatus === "married"}
                     onChange={(e) => {
@@ -342,11 +344,11 @@ export default function PersonalInformationRegistration(
         <div>
           <button
             type="button"
-            className="btn mt-3 btn-primary btn-sm text-capitalize"
+            className="btn mt-3 btn-success btn-sm text-capitalize"
             onClick={(e) => {
               handleSubmitRegistration(e, data, method, toast, clearForm, redirect);
             }}>
-            save new record
+          Save current progess 
           </button>
         </div>
       </form>

@@ -17,7 +17,7 @@ export default function Addressing({ defaultData, fields, patientid, expanded = 
 
 
   return <>
-    <section>
+    <section className="col-6">
       <div>
         <div className="form-row">
           <IsRenderInput
@@ -140,8 +140,8 @@ export default function Addressing({ defaultData, fields, patientid, expanded = 
         onClick={(ev) => {
           submitFormData(`register/addressinginformation?patientid=${patientid}`, data, toast)
         }}
-        className="mt-2 btn btn-primary  btn-sm mx-2">
-        save changes
+        className="btn mt-3 btn-success btn-sm text-capitalize">
+        save current progress
       </button>
     </section>
 
