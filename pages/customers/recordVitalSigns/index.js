@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 
-export default function RecordVitalSigns(context) {
+export default function RecordVitalSigns() {
     const [queryParams, setQueryParams] = useState({})
     const urlParams = useSearchParams();
 
@@ -16,12 +16,11 @@ export default function RecordVitalSigns(context) {
         }
         setQueryParams(paramObject)
     }, [urlParams])
-
     return (
         <FrontDeskLayout>
             <div>
                 <RecordVitalSignsChartForm searchParams={queryParams} />
-                {queryParams?.patientid && <VitalSignCustomerListInformation searchParams={queryParams} />}
+                {queryParams.patientid && <VitalSignCustomerListInformation searchParams={queryParams} />}
             </div>
         </FrontDeskLayout>)
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { customFetch } from '../Auth/customFetch';
 import { getStatusClass, NORMAL_RANGES } from './dataActions/vitalsigns';
 import VitalSignLineChart from './VitalSignLineChart';
+import { Edit } from '@mui/icons-material';
 
 export default function VitalSignCustomerListInformation({ searchParams }) {
     const { patientid } = searchParams;
@@ -105,19 +106,20 @@ export default function VitalSignCustomerListInformation({ searchParams }) {
                 {Object.keys(groupedVitalSigns).map(date => (
                     <div key={date}>
                         <h5 className="my-3">Date: {date}</h5>
-                        <div className='grid-70-30'>
+                        <div>
                            <div>
                                 <table className="table table-bordered billing-cart-table">
                                     <thead>
                                         <tr>
                                             <th>SR NO</th>
-                                            <th>Date</th>
+                                            {/* <th>Date</th> */}
                                             <th>Time</th>
                                             <th>Blood Pressure</th>
                                             <th>Pulse</th>
                                             <th>SpO2</th>
                                             <th>Respiration</th>
                                             <th>Temperature</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -129,7 +131,7 @@ export default function VitalSignCustomerListInformation({ searchParams }) {
                                             return (
                                                 <tr key={vitalSign.vitalsignid}>
                                                     <td>{index + 1}</td>
-                                                    <td>{dateFormatted}</td>
+                                                    {/* <td>{dateFormatted}</td> */}
                                                     <td>{time}</td>
                                                     <td className={`${getStatusClass(systolic, NORMAL_RANGES.bloodPressure.systolic)} ${getStatusClass(diastolic, NORMAL_RANGES.bloodPressure.diastolic)}`}>
                                                         {vitalSign.bp}
@@ -146,6 +148,8 @@ export default function VitalSignCustomerListInformation({ searchParams }) {
                                                     <td className={getStatusClass(vitalSign.temperature, NORMAL_RANGES.temperature)}>
                                                         {vitalSign.temperature}
                                                     </td>
+                                                    <td><button className='btn p-0 bg-info-subtle -info-subtle'>
+                                                        <Edit /></button></td>
                                                 </tr>
                                             );
                                         })}

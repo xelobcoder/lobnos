@@ -191,6 +191,7 @@ export async function ActivationBulk(e, action, callbackfunction) {
 
 export const patientRegistrationDefaultData = {
   personalInformation: {
+    desgination: "Mr",
     email: "",
     mobile: "",
     age: "",
@@ -209,6 +210,8 @@ export const patientRegistrationDefaultData = {
     occupation: "",
   },
   addressingInformation: {
+    nationality: "",
+    district:'',
     area: "",
     region: "",
     address: "",

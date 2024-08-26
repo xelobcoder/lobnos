@@ -64,7 +64,7 @@ export default function Activator() {
       } else {
         return (
           <section>
-            <TableDisplay column={columns} data={tempStore}  showpage={false} exporters={false}/>
+            <TableDisplay column={columns} data={tempStore} showpage={false} exporters={false} />
           </section>
         )
       }
@@ -256,4 +256,5 @@ export default function Activator() {
     </FrontDeskLayout>
   );
 }
+
 
