@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { customFetch } from '../Auth/customFetch';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import { getStatusClass, NORMAL_RANGES } from './dataActions/vitalsigns';
 import VitalSignLineChart from './VitalSignLineChart';
 
@@ -15,7 +14,7 @@ export default function VitalSignCustomerListInformation({ searchParams }) {
     async function getPatientVitalSigns(patientid, fromDate, toDate) {
         if (!patientid) return;
         try {
-            let url = `customers/vitalsigns/create?patientid=${patientid}&count=10&page=1`;
+            let url = `customers/vitalsigns/create?patientid=${patientid}&count=50&page=1`;
             if (fromDate && toDate) {
                 url += `&filterFrom=${fromDate}&filterTo=${toDate}`;
             }
@@ -31,7 +30,7 @@ export default function VitalSignCustomerListInformation({ searchParams }) {
 
     useEffect(() => {
         getPatientVitalSigns(patientid, filterFrom, filterTo);
-    }, [patientid, filterFrom, filterTo]);
+    }, [patientid]);
 
     const handleFilterChange = (e) => {
         if (e.target.name === 'filterFrom') {
@@ -70,7 +69,7 @@ export default function VitalSignCustomerListInformation({ searchParams }) {
     if (error) return <p>{error}</p>;
 
     return (
-        <div className="mx-4 mt-4">
+        <div className="px-3 mt-4">
             <div className="bg-secondary-subtle p-3 rounded mb-2">
                 <form onSubmit={handleFilterSubmit}>
                     <div className="d-flex col-6">
@@ -106,80 +105,87 @@ export default function VitalSignCustomerListInformation({ searchParams }) {
                 {Object.keys(groupedVitalSigns).map(date => (
                     <div key={date}>
                         <h5 className="my-3">Date: {date}</h5>
-                        <table className="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>SR NO</th>
-                                    <th>Date</th>
-                                    <th>Time</th>
-                                    <th>Blood Pressure</th>
-                                    <th>Pulse</th>
-                                    <th>SpO2</th>
-                                    <th>Respiration</th>
-                                    <th>Temperature</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {groupedVitalSigns[date].map((vitalSign, index) => {
-                                    const [systolic, diastolic] = vitalSign.bp.split('/').map(Number);
-                                    const time = new Date(vitalSign.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                                    const dateFormatted = new Date(vitalSign.date).toLocaleDateString('en-US');
-
-                                    return (
-                                        <tr key={vitalSign.vitalsignid}>
-                                            <td>{index + 1}</td>
-                                            <td>{dateFormatted}</td>
-                                            <td>{time}</td>
-                                            <td className={`${getStatusClass(systolic, NORMAL_RANGES.bloodPressure.systolic)} ${getStatusClass(diastolic, NORMAL_RANGES.bloodPressure.diastolic)}`}>
-                                                {vitalSign.bp}
-                                            </td>
-                                            <td className={getStatusClass(vitalSign.pulse, NORMAL_RANGES.pulse)}>
-                                                {vitalSign.pulse}
-                                            </td>
-                                            <td className={getStatusClass(vitalSign.spo2, NORMAL_RANGES.spo2)}>
-                                                {vitalSign.spo2}
-                                            </td>
-                                            <td>
-                                                {vitalSign.respiration}
-                                            </td>
-                                            <td className={getStatusClass(vitalSign.temperature, NORMAL_RANGES.temperature)}>
-                                                {vitalSign.temperature}
-                                            </td>
+                        <div className='grid-70-30'>
+                           <div>
+                                <table className="table table-bordered billing-cart-table">
+                                    <thead>
+                                        <tr>
+                                            <th>SR NO</th>
+                                            <th>Date</th>
+                                            <th>Time</th>
+                                            <th>Blood Pressure</th>
+                                            <th>Pulse</th>
+                                            <th>SpO2</th>
+                                            <th>Respiration</th>
+                                            <th>Temperature</th>
                                         </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                        <VitalSignLineChart 
-                            data={generateChartData(groupedVitalSigns[date], 'temperature')}
-                            title={`Temperature Trends for ${date}`}
-                            dataKey="temperature"
-                            strokeColor="#8884d8"
-                        />
-                        <VitalSignLineChart 
-                            data={generateChartData(groupedVitalSigns[date], 'pulse')}
-                            title={`Pulse Trends for ${date}`}
-                            dataKey="pulse"
-                            strokeColor="#82ca9d"
-                        />
-                        <VitalSignLineChart 
-                            data={generateChartData(groupedVitalSigns[date], 'respiration')}
-                            title={`Respiration Trends for ${date}`}
-                            dataKey="respiration"
-                            strokeColor="#ff7300"
-                        />
-                        <VitalSignLineChart 
-                            data={generateChartData(groupedVitalSigns[date], 'spo2')}
-                            title={`SpO2 Trends for ${date}`}
-                            dataKey="spo2"
-                            strokeColor="#387908"
-                        />
-                        <VitalSignLineChart 
-                            data={generateChartData(groupedVitalSigns[date], 'bp')}
-                            title={`Blood Pressure Trends for ${date}`}
-                            dataKey="bp"
-                            strokeColor="#8884d8"
-                        />
+                                    </thead>
+                                    <tbody>
+                                        {groupedVitalSigns[date].map((vitalSign, index) => {
+                                            const [systolic, diastolic] = vitalSign.bp.split('/').map(Number);
+                                            const time = new Date(vitalSign.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                                            const dateFormatted = new Date(vitalSign.date).toLocaleDateString('en-US');
+
+                                            return (
+                                                <tr key={vitalSign.vitalsignid}>
+                                                    <td>{index + 1}</td>
+                                                    <td>{dateFormatted}</td>
+                                                    <td>{time}</td>
+                                                    <td className={`${getStatusClass(systolic, NORMAL_RANGES.bloodPressure.systolic)} ${getStatusClass(diastolic, NORMAL_RANGES.bloodPressure.diastolic)}`}>
+                                                        {vitalSign.bp}
+                                                    </td>
+                                                    <td className={getStatusClass(vitalSign.pulse, NORMAL_RANGES.pulse)}>
+                                                        {vitalSign.pulse}
+                                                    </td>
+                                                    <td className={getStatusClass(vitalSign.spo2, NORMAL_RANGES.spo2)}>
+                                                        {vitalSign.spo2}
+                                                    </td>
+                                                    <td>
+                                                        {vitalSign.respiration}
+                                                    </td>
+                                                    <td className={getStatusClass(vitalSign.temperature, NORMAL_RANGES.temperature)}>
+                                                        {vitalSign.temperature}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                           </div>
+                        
+                            <div style={{marginTop:'-26px'}}>
+                                <VitalSignLineChart
+                                    data={generateChartData(groupedVitalSigns[date], 'temperature')}
+                                    title={`Temperature Trends for ${date}`}
+                                    dataKey="temperature"
+                                    strokeColor="#8884d8"
+                                />
+                                <VitalSignLineChart
+                                    data={generateChartData(groupedVitalSigns[date], 'pulse')}
+                                    title={`Pulse Trends for ${date}`}
+                                    dataKey="pulse"
+                                    strokeColor="#82ca9d"
+                                />
+                                <VitalSignLineChart
+                                    data={generateChartData(groupedVitalSigns[date], 'respiration')}
+                                    title={`Respiration Trends for ${date}`}
+                                    dataKey="respiration"
+                                    strokeColor="#ff7300"
+                                />
+                                <VitalSignLineChart
+                                    data={generateChartData(groupedVitalSigns[date], 'spo2')}
+                                    title={`SpO2 Trends for ${date}`}
+                                    dataKey="spo2"
+                                    strokeColor="#387908"
+                                />
+                                <VitalSignLineChart
+                                    data={generateChartData(groupedVitalSigns[date], 'bp')}
+                                    title={`Blood Pressure Trends for ${date}`}
+                                    dataKey="bp"
+                                    strokeColor="#8884d8"
+                                />
+                            </div>
+                        </div>
                     </div>
                 ))}
             </div>
