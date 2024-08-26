@@ -9,14 +9,14 @@ export default function RegistrationFieldsView({ employeeid }) {
   const [fields, setFields] = useState([])
   const [isLoading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true)
-      await getRegistrationFields(setFields, toast)
-      setLoading(false)
-    }
-    loadData()
-  }, [])
+  // useEffect(() => {
+  //   async function loadData() {
+  //     setLoading(true)
+  //     await getRegistrationFields(setFields, toast)
+  //     setLoading(false)
+  //   }
+  //   loadData()
+  // }, [])
 
   const renderingView = () => {
     if (isLoading) return <Loader />

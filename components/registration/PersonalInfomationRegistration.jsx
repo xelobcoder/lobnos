@@ -1,8 +1,9 @@
 import { Form } from "react-bootstrap";
 import { handleMobile, handleEmail, handleAgeCalculations, handleSubmitRegistration } from "../Auth/registerclient";
-import IsRenderInput from "./CustomInput";
+import RenderInput from "./CustomInput";
 import { useState, useEffect } from "react";
 import { getDataAndUpdateState } from "../Auth/customFetch";
+import { designation } from "./fields/Util";
 
 export default function PersonalInformationRegistration(
   { defaultData, fields, toast, patientid, redirect = true }) {
@@ -22,13 +23,30 @@ export default function PersonalInformationRegistration(
   }, [patientid])
 
 
+
   return (
     <section>
       {isloading && <div>Loading data ............................</div>}
       <form autoComplete="off" className="grid-50" noValidate autoCorrect="false" >
         <div className="_registration_form_split">
           <div>
-            <IsRenderInput
+            <RenderInput
+              visible={fields.designation.visible}
+            label={'Designation'}
+              tabIndex={1}
+              value={fields['designation']}
+              field={
+                <select value={data.designation} className="custom-select col-3" onChange={(e) => {
+                  setData({ ...data, designation: e.target.value });
+                }}>
+                  {designation.map((item,index) => <option key={index}>{item}</option>)}
+                </select>
+              }
+            />
+          </div>
+          <div>
+            <RenderInput
+              visible={fields.firstname.visible}
               tabIndex={1}
               label={"first name"}
               value={fields["firstname"]}
@@ -47,8 +65,9 @@ export default function PersonalInformationRegistration(
                 />
               }
             />
-            <IsRenderInput
+            <RenderInput
               value={fields["lastname"]}
+              visible={fields.lastname.visible}
               label={"last name"}
               field={
                 <input
@@ -65,8 +84,9 @@ export default function PersonalInformationRegistration(
                 />
               }
             />
-            <IsRenderInput
+            <RenderInput
               label="middle name"
+              visible={fields.middlename.visible}
               value={fields["middlename"]}
               field={
                 <input
@@ -84,8 +104,8 @@ export default function PersonalInformationRegistration(
           </div>
           <div >
             <div >
-              <IsRenderInput
-
+              <RenderInput
+                visible={fields.days.visible && fields.months.visible && fields.years.visible}
                 value={fields["days"]}
                 label={'Date Of Birth'}
                 field={
@@ -139,8 +159,9 @@ export default function PersonalInformationRegistration(
             </div>
           </div>
           <div >
-            <IsRenderInput
+            <RenderInput
               value={fields["age"]}
+              visible={fields.age.visible && fields.ageType.visible}
               label={"age"}
               field={
                 <div className="d-flex ">
@@ -164,8 +185,8 @@ export default function PersonalInformationRegistration(
               }
             />
             <div className="form-row">
-              <IsRenderInput
-
+              <RenderInput
+                visible={fields.gender.visible}
                 value={fields["gender"]}
                 label={"gender"}
 
@@ -208,8 +229,9 @@ export default function PersonalInformationRegistration(
         </div>
         <div className="_registration_form_split">
           <div className="form-row">
-            <IsRenderInput
+            <RenderInput
               value={fields["mobile"]}
+              visible={fields.mobile.visible}
               label={"mobile number"}
               field={
                 <div className="d-flex">
@@ -240,10 +262,10 @@ export default function PersonalInformationRegistration(
                     inputMode="tel"
                     maxLength={10}
                     minLength={10}
-                    value={data.whatAppcontact}
+                    value={data.whatAppcontact || data.whatappcontact}
                     name="whatAppcontact"
                     className="custom-input"
-                    placeholder="whatapp contact"
+                    placeholder="whatApp contact"
                     onBlur={(ev) => {
                       handleMobile(ev, toast);
                     }}
@@ -260,8 +282,9 @@ export default function PersonalInformationRegistration(
             />
           </div>
           <div className="form-row">
-            <IsRenderInput
+            <RenderInput
               value={fields["email"]}
+              visible={fields.email.visible}
               label="email"
               field={
                 <input
@@ -283,7 +306,8 @@ export default function PersonalInformationRegistration(
             />
           </div>
           <div className="form-row">
-            <IsRenderInput
+            <RenderInput
+              visible={fields.occupation.visible}
               value={fields["occupation"]}
               label="occupation"
               field={
@@ -305,7 +329,8 @@ export default function PersonalInformationRegistration(
             />
           </div>
           <div className="form-row">
-            <IsRenderInput
+            <RenderInput
+              visible={fields.patientOrganization.visible}
               value={fields["patientOrganization"]}
               label={"organization"}
               field={
@@ -328,7 +353,8 @@ export default function PersonalInformationRegistration(
           </div>
 
           <div className="form-row">
-            <IsRenderInput
+            <RenderInput
+              visible={fields.maritalstatus.visible}
               label={"marital status"}
               value={fields["maritalstatus"]}
               field={

@@ -1,8 +1,8 @@
 import { getDataAndUpdateState } from "../Auth/customFetch"
-import IsRenderInput from "./CustomInput"
+import RenderInput from "./CustomInput"
 import { submitFormData } from "../Auth/registerclient"
 import { useEffect, useState } from "react"
-export default function EmmergencyContactInformation({ defaultData, fields,patientid, toast }) {
+export default function EmmergencyContactInformation({ defaultData, fields, patientid, toast }) {
   const [data, setData] = useState(defaultData)
   const [isloading, setLoading] = useState(true)
 
@@ -24,12 +24,13 @@ export default function EmmergencyContactInformation({ defaultData, fields,patie
     <>
       <div className="col-6">
         <div className="form-row">
-          <IsRenderInput
+          <RenderInput
+            visible={fields.emmergencyContactName.visible}
             value={fields.emmergencyContactName}
             label={"Emergency Contact Name"}
             field={
               <input
-              disabled={isloading}
+                disabled={isloading}
                 type="text"
                 className="custom-input"
                 id="emergencyName"
@@ -46,12 +47,13 @@ export default function EmmergencyContactInformation({ defaultData, fields,patie
           />
         </div>
         <div className="form-row">
-          <IsRenderInput
+          <RenderInput
+            visible={fields.relationship.visible}
             value={fields.relationship}
             label={"Relationship"}
             field={
               <select
-              disabled={isloading}
+                disabled={isloading}
                 className="custom-select"
                 id="relationship"
                 name="relationship"
@@ -72,12 +74,13 @@ export default function EmmergencyContactInformation({ defaultData, fields,patie
           />
         </div>
         <div className="form-row">
-          <IsRenderInput
+          <RenderInput
+            visible={fields.emmergencyContactNumber.visible}
             value={fields.emmergencyContactNumber}
             label={"Emergency Contact Number"}
             field={
               <input
-              disabled={isloading}
+                disabled={isloading}
                 type="tel"
                 inputMode="tel"
                 className="custom-input"
@@ -97,12 +100,13 @@ export default function EmmergencyContactInformation({ defaultData, fields,patie
           />
         </div>
         <div className="form-row">
-          <IsRenderInput
+          <RenderInput
+            visible={fields.address.visible}
             value={fields.address}
             label={"Address"}
             field={
               <input
-              disabled={isloading}
+                disabled={isloading}
                 type="text"
                 className="custom-input"
                 id="address"
@@ -119,12 +123,13 @@ export default function EmmergencyContactInformation({ defaultData, fields,patie
           />
         </div>
         <div className="form-row">
-          <IsRenderInput
+          <RenderInput
+            visible={fields.occupation.visible}
             value={fields.occupation}
             label={"Occupation"}
             field={
               <input
-              disabled={isloading}
+                disabled={isloading}
                 type="text"
                 className="custom-input"
                 id="occupation"
@@ -141,6 +146,7 @@ export default function EmmergencyContactInformation({ defaultData, fields,patie
           />
         </div>
         <button
+          disabled={!patientid}
           onClick={(ev) => {
             submitFormData(`register/emmergencycontactinformation?patientid=${patientid}`, data, toast)
           }}

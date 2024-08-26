@@ -1,35 +1,31 @@
 import { useState, useEffect } from "react";
 import Select from 'react-select';
-import { getDataAndUpdateState, submitFormData } from "../Auth/customFetch";
-import IsRenderInput from "./CustomInput";
-import { africanCountries, ghanaDistricts } from "./fields/Util";
-
-const countryOptions = Object.entries(africanCountries).map(([name, { code }]) => ({
-  value: code,
-  label: name
-}));
-
-
-const defaultCountryCode = africanCountries["Ghana"].code;
+import { getDataAndUpdateState } from "../Auth/customFetch";
+import RenderInput from "./CustomInput";
+import { ghanaDistricts } from "./fields/Util";
+import { submitFormData } from "../Auth/registerclient";
 
 export default function Addressing({ defaultData, fields, patientid, toast }) {
   const [data, setData] = useState({
     ...defaultData,
-    country: defaultCountryCode, 
+    region: '',
+    districtCode: '',
+    districtName: ''
   });
+
   const [isloading, setLoading] = useState(false);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [regionOptions, setRegionOptions] = useState([]);
-  const [countryOptionsState, setCountryOptionsState] = useState(countryOptions);
 
   const clearForm = () => {
     setData({
       ...defaultData,
-      country: defaultCountryCode, 
+      region: '',
+      districtCode: '',
+      districtName: ''
     });
     setDistrictOptions([]);
     setRegionOptions([]);
-    setCountryOptionsState(countryOptions);
   };
 
   useEffect(() => {
@@ -50,26 +46,22 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
   }, []);
 
   useEffect(() => {
-    if (data.country) {
-      if (data.country === defaultCountryCode) {
-        if (ghanaDistricts[data.region]) {
-          const districtOpts = Object.entries(ghanaDistricts[data.region]).map(([code, { name }]) => ({
-            value: code,
-            label: name
-          }));
-          setDistrictOptions(districtOpts);
-        } else {
-          setDistrictOptions([]);
-        }
-      }
+    if (data.region && ghanaDistricts[data.region]) {
+      const districtOpts = Object.entries(ghanaDistricts[data.region]).map(([code, { name }]) => ({
+        value: code,
+        label: name
+      }));
+      setDistrictOptions(districtOpts);
+    } else {
+      setDistrictOptions([]);
     }
-  }, [data.region, data.country]);
+  }, [data.region]);
 
   // Custom styles for react-select
   const customStyles = {
     control: (provided, state) => ({
       ...provided,
-      minHeight: '40px',
+      minHeight: '30px',
       height: '35px',
       borderRadius: '4px',
       border: state.isFocused ? '2px solid lightblue' : provided.border,
@@ -80,23 +72,29 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
     valueContainer: (provided) => ({
       ...provided,
       height: '40px',
+      fontSize: '14px !important'
     }),
     input: (provided) => ({
       ...provided,
       margin: '0',
+      fontSize: '14px !important'
     }),
     placeholder: (provided) => ({
       ...provided,
       margin: '0',
+      fontSize: '14px !important'
     }),
     indicatorSeparator: () => ({
       display: 'none',
     }),
     indicatorsContainer: (provided) => ({
       ...provided,
-      height: '40px',
+      height: '30px',
     }),
   };
+
+  // Find the selected district option
+  const selectedDistrict = districtOptions.find(option => option.value === data.districtCode);
 
   return (
     <>
@@ -104,45 +102,22 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
         {isloading && <div>Loading data.........................</div>}
         <div>
           <div className="form-row">
-            <IsRenderInput
-              value={fields.country}
-              displaylabel={true}
-              label="Country"
-              field={
-                <Select
-                  isDisabled={isloading}
-                  options={countryOptionsState}
-                  value={countryOptionsState.find(option => option.value === data.country)}
-                  onChange={(option) => {
-                    setData({
-                      ...data,
-                      country: option ? option.value : '',
-                      region: '', 
-                      districtCode: '', 
-                      districtName: '' 
-                    });
-                  }}
-                  styles={customStyles}
-                />
-              }
-            />
-          </div>
-          <div className="form-row">
-            <IsRenderInput
+            <RenderInput
+              visible={fields.region.visible}
               value={fields.region}
               displaylabel={true}
               label="Region"
               field={
                 <Select
-                  isDisabled={isloading || !data.country} 
+                  isDisabled={isloading}
                   options={regionOptions}
                   value={regionOptions.find(option => option.value === data.region)}
                   onChange={(option) => {
                     setData({
                       ...data,
                       region: option ? option.value : '',
-                      districtCode: '', 
-                      districtName: '' 
+                      districtCode: '',
+                      districtName: ''
                     });
                   }}
                   styles={customStyles}
@@ -151,20 +126,21 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
             />
           </div>
           <div className="form-row">
-            <IsRenderInput
+            <RenderInput
+              visible={fields.district.visible}
               value={fields.district}
               displaylabel={true}
               label="District"
               field={
                 <Select
-                  isDisabled={isloading || !data.region} 
+                  isDisabled={isloading || !data.region}
                   options={districtOptions}
-                  value={districtOptions.find(option => option.value === data.districtCode)}
+                  value={selectedDistrict}
                   onChange={(option) => {
                     setData({
                       ...data,
-                      districtCode: option ? option.value : '', 
-                      districtName: option ? option.label : '' 
+                      districtCode: option ? option.value : '',
+                      districtName: option ? option.label : ''
                     });
                   }}
                   styles={customStyles}
@@ -173,7 +149,8 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
             />
           </div>
           <div className="form-row">
-            <IsRenderInput
+            <RenderInput
+              visible={fields.area.visible}
               value={fields.area}
               displaylabel={true}
               label="Area"
@@ -196,7 +173,8 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
           </div>
 
           <div className="form-row">
-            <IsRenderInput
+            <RenderInput
+              visible={fields.gpsLocation.visible}
               value={fields.gpsLocation}
               displaylabel={true}
               label="GPS Location or Landmark"
@@ -218,7 +196,8 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
             />
           </div>
           <div className="form-row">
-            <IsRenderInput
+            <RenderInput
+              visible={fields.address.visible}
               value={fields.address}
               displaylabel={true}
               label="Address"
@@ -239,7 +218,8 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
           </div>
         </div>
         <button
-          onClick={(ev) => {
+          disabled={!patientid}
+          onClick={() => {
             submitFormData(`register/addressinginformation?patientid=${patientid}`, data, toast);
           }}
           className="btn mt-3 btn-success btn-sm text-capitalize"

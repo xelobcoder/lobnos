@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { patientRegistrationDefaultData } from "../../components/Auth/registerclient";
 import PersonalInfomationRegistration from "../../components/registration/PersonalInfomationRegistration";
-import { getRegistrationFields } from "../../components/registration/fields/Util";
+import { getRegistrationFields, registrationFields } from "../../components/registration/fields/Util";
 import { toast, ToastContainer } from 'react-toastify';
 import { Search } from "@mui/icons-material";
 import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
@@ -13,6 +13,7 @@ import { useSearchParams } from "next/navigation";
 export default function RegistrationForm() {
     const { personalInformation, addressingInformation, emmergencyInformation } = patientRegistrationDefaultData;
     const [fields, setFields] = useState(patientRegistrationDefaultData);
+    const [visibleFields, setVisibleFields] = useState(registrationFields);
     const [showSearchUser, setSearchUser] = useState(false);
     const patientid = useSearchParams().get('patientid')
     const [isloading, setLoading] = useState(true);
@@ -21,7 +22,7 @@ export default function RegistrationForm() {
     const getFields = async () => {
         try {
             setLoading(true);
-            await getRegistrationFields(setFields);
+            await getRegistrationFields(setVisibleFields);
             setLoading(false);
         } catch (err) {
             setLoading(false);
@@ -49,9 +50,9 @@ export default function RegistrationForm() {
             <div className="col-12">
                 <div>
                     <div className="bg-primary text-white fw-bold text-capitalize p-2 mb-2 col-3 mt-1 pls-label">Personal Information</div>
-                    <fieldset className="  heightedBorder bg-body-secondary  p-3">
+                    <fieldset className="  heightedBorder bg-secondary-subtle  p-3">
                         <PersonalInfomationRegistration
-                            fields={fields.length > 0 ? fields[0]['fields'] : {}}
+                            fields={visibleFields.personalInformation}
                             toast={toast}
                             patientid={patientid}
                             defaultData={personalInformation} />
@@ -59,10 +60,10 @@ export default function RegistrationForm() {
                 </div>
                 <div>
                     <div className="bg-primary text-white fw-bold text-capitalize p-2 mb-2 col-3    mt-1 pls-label">Address Information</div>
-                    <fieldset className=" heightedBorder bg-body-secondary p-3">
+                    <fieldset className=" heightedBorder bg-secondary-subtle p-3">
                         {/* <legend>Address Information</legend> */}
                         <Addressing
-                            fields={fields.length > 0 ? fields[0]['fields'] : {}}
+                            fields={visibleFields.addressingInformation}
                             toast={toast}
                             patientid={patientid}
                             defaultData={addressingInformation} />
@@ -70,10 +71,10 @@ export default function RegistrationForm() {
                 </div>
                 <div>
                     <div className="bg-primary text-white fw-bold text-capitalize p-2 mb-2 col-3 mt-1 pls-label">Emmergency Contact Information</div>
-                    <fieldset className="heightedBorder bg-body-secondary   p-3">
+                    <fieldset className="heightedBorder bg-secondary-subtle   p-3">
                         {/* <legend>Emmergency Information</legend> */}
                         <EmmergencyContactInformation
-                            fields={fields.length > 0 ? fields[0]['fields'] : {}}
+                            fields={visibleFields.emmergencyInformation}
                             toast={toast}
                             patientid={patientid}
                             defaultData={emmergencyInformation} />
