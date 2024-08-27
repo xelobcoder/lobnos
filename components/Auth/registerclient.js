@@ -101,47 +101,14 @@ export const handleAgeCalculations = async (data, setData, toast) => {
   }
 }
 
-
-export const handleSubmitRegistration = async (e, data = {}, method, toast, callback, redirect) => {
-  e.preventDefault();
-  // error marker , at end run if true , data is not sent to endpoint.
-  var error = false;
-  // fields that must have values
-  const requiredFields = ["firstname", "lastname", "age", "ageType", "gender"];
-  // function theat checks to esnsure required fields are filled
-  const checkRequiredFields = (data) => {
-    requiredFields.forEach((field) => {
-      if (data[field].toString().length == 0) {
-        error = true;
-        return;
-      }
-    });
-  };
-
-  checkRequiredFields(data);
-
-
-  if (!error) {
-    const endpoint = method === 'POST' ? 'register' : `register/personalinformation?patientid=${data?.patientid}`;
-    const response = await customPost(endpoint, method, { data });
-    const { status, statusCode, message, patientid } = response;
-
-    if (statusCode == 200 && status == "success") {
-      const toastMessage = redirect ? message + ". Redirectly to billing page": message;
-      toast.success(toastMessage, { autoClose: 500 });
-      if (redirect && typeof redirect == "boolean") {
-        callback();
-        setTimeout(() => {
-          window.location.href = `/billing/patientid?patientid=${patientid}`;
-        }, 1500)
-      }
-    } else {
-      toast.error(message, { autoClose: 1000 });
-      return;
-    }
-  } else { toast.warning('Fill in all Required Fields', { autoClose: 1000 }) }
-};
-
+export const fieldValidator = (fieldName, data, fields, value) => {
+  const visbiiltyObject = fields[fieldName];
+  if (!visbiiltyObject || typeof visbiiltyObject != "object") return;
+  const { compulsory } = visbiiltyObject;
+  const hasFieldName = data[fieldName];
+  if ((compulsory && !hasFieldName) || (compulsory && !value) || (compulsory && value.toString().length < 1)) return false;
+  return true;
+}
 
 
 export async function handleActivation(status, patientid, toast, callbackfunction) {
@@ -211,7 +178,7 @@ export const patientRegistrationDefaultData = {
   },
   addressingInformation: {
     nationality: "",
-    district:'',
+    district: '',
     area: "",
     region: "",
     address: "",

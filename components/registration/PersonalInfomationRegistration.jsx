@@ -1,9 +1,10 @@
-import { Form } from "react-bootstrap";
-import { handleMobile, handleEmail, handleAgeCalculations, handleSubmitRegistration } from "../Auth/registerclient";
+import { Button, Form } from "react-bootstrap";
+import { handleMobile, handleEmail, handleAgeCalculations, fieldValidator } from "../Auth/registerclient";
 import RenderInput from "./CustomInput";
 import { useState, useEffect } from "react";
-import { getDataAndUpdateState } from "../Auth/customFetch";
+import { customPost, getDataAndUpdateState } from "../Auth/customFetch";
 import { designation } from "./fields/Util";
+import { Money } from "@mui/icons-material";
 
 export default function PersonalInformationRegistration(
   { defaultData, fields, toast, patientid, redirect = true }) {
@@ -14,6 +15,7 @@ export default function PersonalInformationRegistration(
     setData(defaultData);
   };
 
+
   useEffect(() => {
     if (patientid) {
       getDataAndUpdateState(setData, `register/personalinformation?patientid=${patientid}`, false, setLoading)
@@ -23,23 +25,55 @@ export default function PersonalInformationRegistration(
   }, [patientid])
 
 
+ 
+
+  const handleSubmitRegistration = async (e, data = {}, method, toast, callback, redirect) => {
+    e.preventDefault()
+    const hasErrors = Object.entries(data).filter((item, index) => fieldValidator(item[0], data, fields, item[1]) == false)
+    if (Array.isArray(hasErrors) && hasErrors.length > 0) {
+      return toast.warning('FILL IN ALL REQUIRED FIELDS');
+    }
+    let errors = false;
+    if (data['mobile']) {
+
+    }
+
+    const endpoint = method === 'POST' ? 'register' : `register/personalinformation?patientid=${data?.patientid}`;
+    const response = await customPost(endpoint, method, { data });
+    const { status, statusCode, message, patientid } = response;
+
+    if (statusCode == 200 && status == "success") {
+      const toastMessage = redirect ? message + ". Redirectly to billing page" : message;
+      toast.success(toastMessage, { autoClose: 500 });
+      if (redirect && typeof redirect == "boolean") {
+        callback();
+        setTimeout(() => {
+          window.location.href = `/billing/patientid?patientid=${patientid}`;
+        }, 1500)
+      }
+    } else {
+      toast.error(message, { autoClose: 1000 });
+      return;
+    }
+  }
+
 
   return (
     <section>
       {isloading && <div>Loading data ............................</div>}
-      <form autoComplete="off" className="grid-50" noValidate autoCorrect="false" >
+      <form autoComplete="off" className="grid-50" noValidate autoCorrect="false">
         <div className="_registration_form_split">
           <div>
             <RenderInput
               visible={fields.designation.visible}
-            label={'Designation'}
+              label={'Designation'}
               tabIndex={1}
-              value={fields['designation']}
+              value={data['designation']}
               field={
                 <select value={data.designation} className="custom-select col-3" onChange={(e) => {
                   setData({ ...data, designation: e.target.value });
                 }}>
-                  {designation.map((item,index) => <option key={index}>{item}</option>)}
+                  {designation.map((item, index) => <option key={index}>{item}</option>)}
                 </select>
               }
             />
@@ -49,7 +83,7 @@ export default function PersonalInformationRegistration(
               visible={fields.firstname.visible}
               tabIndex={1}
               label={"first name"}
-              value={fields["firstname"]}
+              value={data["firstname"]}
               field={
                 <input
                   disabled={isloading}
@@ -87,7 +121,7 @@ export default function PersonalInformationRegistration(
             <RenderInput
               label="middle name"
               visible={fields.middlename.visible}
-              value={fields["middlename"]}
+              value={data["middlename"]}
               field={
                 <input
                   disabled={isloading}
@@ -187,7 +221,7 @@ export default function PersonalInformationRegistration(
             <div className="form-row">
               <RenderInput
                 visible={fields.gender.visible}
-                value={fields["gender"]}
+                value={data["gender"]}
                 label={"gender"}
 
                 field={
@@ -230,7 +264,7 @@ export default function PersonalInformationRegistration(
         <div className="_registration_form_split">
           <div className="form-row">
             <RenderInput
-              value={fields["mobile"]}
+              value={data["mobile"]}
               visible={fields.mobile.visible}
               label={"mobile number"}
               field={
@@ -283,7 +317,7 @@ export default function PersonalInformationRegistration(
           </div>
           <div className="form-row">
             <RenderInput
-              value={fields["email"]}
+              value={data["email"]}
               visible={fields.email.visible}
               label="email"
               field={
@@ -308,7 +342,7 @@ export default function PersonalInformationRegistration(
           <div className="form-row">
             <RenderInput
               visible={fields.occupation.visible}
-              value={fields["occupation"]}
+              value={data["occupation"]}
               label="occupation"
               field={
                 <input
@@ -331,7 +365,7 @@ export default function PersonalInformationRegistration(
           <div className="form-row">
             <RenderInput
               visible={fields.patientOrganization.visible}
-              value={fields["patientOrganization"]}
+              value={data["patientOrganization"]}
               label={"organization"}
               field={
                 <input
@@ -356,7 +390,7 @@ export default function PersonalInformationRegistration(
             <RenderInput
               visible={fields.maritalstatus.visible}
               label={"marital status"}
-              value={fields["maritalstatus"]}
+              value={data["maritalstatus"]}
               field={
                 <div className="d-flex">
                   <Form.Check
@@ -402,6 +436,10 @@ export default function PersonalInformationRegistration(
             }}>
             Save current progess
           </button>
+
+          <Button variant="light" className="mt-3 btn-sm mx-2">
+            <Money />     register and bill client
+          </Button>
         </div>
       </form>
     </section>

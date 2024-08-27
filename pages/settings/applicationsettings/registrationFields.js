@@ -84,6 +84,7 @@ export default function RegistrationFieldsSettings() {
                                                     onChange={() => handleFieldChange(section, field, 'compulsory')}
                                                 /> Compulsory
                                             </div>
+                                            
                                         </td>
                                     </tr>
                                 ))}

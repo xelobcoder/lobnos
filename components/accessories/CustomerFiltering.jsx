@@ -2,23 +2,30 @@ import React, { useEffect, useState } from "react";
 import AsyncSelect from "react-select/async";
 import { loadOptions } from "../../lib/appointment";
 
-export default function PatientFiltered({ getSelectedPatient,isDisabled }) {
+export default function PatientFiltered({ getSelectedPatient, isDisabled, placeholder = "Search patient using patient ID, email, fullname" }) {
   const [isLoading, setLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
 
   const customStyles = {
     control: (base) => ({
       ...base,
-      height: "auto",
-      minHeight: "40px",
+      height: "40px",
+      minHeight: "30px",
+      fontSize: '13px'
+    }),
+    input: (provided) => ({
+      ...provided,
+      height: '35px',
+      fontSize:'13px'
     }),
     menu: (base) => ({
       ...base,
-      maxHeight: "500px",
+      maxHeight: "400px",
+      fontSize:'12px'
     }),
     menuList: (base) => ({
       ...base,
-      maxHeight: "500px",
+      maxHeight: "400px",
     }),
     valueContainer: (base) => ({
       ...base,
@@ -39,12 +46,10 @@ export default function PatientFiltered({ getSelectedPatient,isDisabled }) {
       const result = await loadOptions(inputValue);
       const clients = result.map((client) => ({
         value: client.patientid,
-        fullname: `${client.firstname.charAt(0).toUpperCase()}${client.firstname.slice(1)} ${
-          client.middlename
-        } ${client.lastname.trim()} (ID: ${client.patientid})\n`,
-        label: `DOB: ${new Date(client.dob).toLocaleDateString()}, Gender: ${client.gender}, Age: ${client.age},\nContact: ${
-          client.mobile_number
-        }  Registered on: ${new Date(client.date).toLocaleDateString()}`,
+        fullname: `${client.firstname.charAt(0).toUpperCase()}${client.firstname.slice(1)} ${client.middlename
+          } ${client.lastname.trim()} (ID: ${client.patientid})\n`,
+        label: `DOB: ${new Date(client.dob).toLocaleDateString()}, Gender: ${client.gender}, Age: ${client.age} ${client.agetype},\nContact: ${client.mobile_number
+          }  Registered on: ${new Date(client.date).toLocaleDateString()}`,
         export: client,
       }));
       return clients;
@@ -84,7 +89,7 @@ export default function PatientFiltered({ getSelectedPatient,isDisabled }) {
       isDisabled={isDisabled}
       loadOptions={loadClientOptions}
       defaultOptions={[]}
-      placeholder="Search patient using patient ID || email || fullname"
+      placeholder={placeholder}
       onChange={handleSelectChange}
       blurInputOnSelect={true}
       value={selectedOption}

@@ -3,11 +3,11 @@ import { patientRegistrationDefaultData } from "../../components/Auth/registercl
 import PersonalInfomationRegistration from "../../components/registration/PersonalInfomationRegistration";
 import { getRegistrationFields, registrationFields } from "../../components/registration/fields/Util";
 import { toast, ToastContainer } from 'react-toastify';
-import { Search } from "@mui/icons-material";
 import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 import Addressing from "../../components/registration/Addressing";
 import EmmergencyContactInformation from "../../components/registration/EmmergencyContactInformation";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import PatientFiltered from "../../components/accessories/CustomerFiltering";
 
 
 export default function RegistrationForm() {
@@ -15,7 +15,8 @@ export default function RegistrationForm() {
     const [fields, setFields] = useState(patientRegistrationDefaultData);
     const [visibleFields, setVisibleFields] = useState(registrationFields);
     const [showSearchUser, setSearchUser] = useState(false);
-    const patientid = useSearchParams().get('patientid')
+    const patientid = useSearchParams().get('patientid');
+    const router = useRouter()
     const [isloading, setLoading] = useState(true);
 
 
@@ -33,20 +34,27 @@ export default function RegistrationForm() {
         getFields();
     }, [])
 
+
+    useEffect(() => {
+        if (patientid === null) {
+            setSearchUser(true)
+        };
+    }, [patientid])
+
+    const filteredPatient = (options) => {
+        const {patientid} =options;
+        if (!patientid) return;
+        router.push(`/registration?patientid=${patientid}`)
+    }
+
     return (
         <FrontDeskLayout>
             <ToastContainer theme="colored" position="top-center" className={'text-sm'} />
-            {/* Patient search here */}
-            {showSearchUser && (
-                <div className="mx-2 p-2">
-                    <div className="d-flex" >
-                        <input className="custom-input col-2" placeholder="search patient here please" />
-                        <button className="mx-2 btn btn-light">
-                            <Search />
-                        </button>
-                    </div>
+            {showSearchUser &&
+                <div className="col-5">
+                    <PatientFiltered getSelectedPatient={filteredPatient} />
                 </div>
-            )}
+            }
             <div className="col-12">
                 <div>
                     <div className="bg-primary text-white fw-bold text-capitalize p-2 mb-2 col-3 mt-1 pls-label">Personal Information</div>
@@ -55,7 +63,7 @@ export default function RegistrationForm() {
                             fields={visibleFields.personalInformation}
                             toast={toast}
                             patientid={patientid}
-                            defaultData={personalInformation} />
+                            defaultData={fields.personalInformation} />
                     </fieldset>
                 </div>
                 <div>
