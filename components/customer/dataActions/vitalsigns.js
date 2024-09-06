@@ -29,3 +29,4 @@ export const getStatusClass = (value, range) => {
     if (value < range.min || value > range.max) return 'table-danger';
     return 'table-success';
 };
+

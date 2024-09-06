@@ -1,16 +1,15 @@
 import { Clear } from "@mui/icons-material";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import { Table } from "react-bootstrap";
 import { customFetch } from "../../Auth/customFetch";
-import AuthContext from "../../Auth/useAuthentification";
 import { BillingContext } from "./BillingContext";
 import TrTable from "./TableTr";
 
 export default function TestBillingTable() {
   const { billingdata, updateBilling } = useContext(BillingContext);
   const [appsettings, setAppsettings] = useState({});
-
+  const router = useRouter();
   const patientid = useSearchParams().get("patientid");
   const cart = billingdata?.cart;
 

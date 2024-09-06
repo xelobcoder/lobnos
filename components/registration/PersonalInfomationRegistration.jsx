@@ -25,18 +25,16 @@ export default function PersonalInformationRegistration(
   }, [patientid])
 
 
- 
+
 
   const handleSubmitRegistration = async (e, data = {}, method, toast, callback, redirect) => {
     e.preventDefault()
     const hasErrors = Object.entries(data).filter((item, index) => fieldValidator(item[0], data, fields, item[1]) == false)
+
     if (Array.isArray(hasErrors) && hasErrors.length > 0) {
       return toast.warning('FILL IN ALL REQUIRED FIELDS');
     }
-    let errors = false;
-    if (data['mobile']) {
 
-    }
 
     const endpoint = method === 'POST' ? 'register' : `register/personalinformation?patientid=${data?.patientid}`;
     const response = await customPost(endpoint, method, { data });
@@ -67,12 +65,12 @@ export default function PersonalInformationRegistration(
             <RenderInput
               visible={fields.designation.visible}
               label={'Designation'}
-              tabIndex={1}
-              value={data['designation']}
+              value={fields['designation']}
               field={
                 <select value={data.designation} className="custom-select col-3" onChange={(e) => {
                   setData({ ...data, designation: e.target.value });
                 }}>
+                  <option value=''>select option</option>
                   {designation.map((item, index) => <option key={index}>{item}</option>)}
                 </select>
               }
@@ -81,9 +79,8 @@ export default function PersonalInformationRegistration(
           <div>
             <RenderInput
               visible={fields.firstname.visible}
-              tabIndex={1}
               label={"first name"}
-              value={data["firstname"]}
+              value={fields["firstname"]}
               field={
                 <input
                   disabled={isloading}
@@ -121,7 +118,7 @@ export default function PersonalInformationRegistration(
             <RenderInput
               label="middle name"
               visible={fields.middlename.visible}
-              value={data["middlename"]}
+              value={fields["middlename"]}
               field={
                 <input
                   disabled={isloading}
@@ -221,7 +218,7 @@ export default function PersonalInformationRegistration(
             <div className="form-row">
               <RenderInput
                 visible={fields.gender.visible}
-                value={data["gender"]}
+                value={fields["gender"]}
                 label={"gender"}
 
                 field={
@@ -264,7 +261,7 @@ export default function PersonalInformationRegistration(
         <div className="_registration_form_split">
           <div className="form-row">
             <RenderInput
-              value={data["mobile"]}
+              value={fields["mobile"]}
               visible={fields.mobile.visible}
               label={"mobile number"}
               field={
@@ -317,7 +314,7 @@ export default function PersonalInformationRegistration(
           </div>
           <div className="form-row">
             <RenderInput
-              value={data["email"]}
+              value={fields["email"]}
               visible={fields.email.visible}
               label="email"
               field={
@@ -342,7 +339,7 @@ export default function PersonalInformationRegistration(
           <div className="form-row">
             <RenderInput
               visible={fields.occupation.visible}
-              value={data["occupation"]}
+              value={fields["occupation"]}
               label="occupation"
               field={
                 <input
@@ -365,7 +362,7 @@ export default function PersonalInformationRegistration(
           <div className="form-row">
             <RenderInput
               visible={fields.patientOrganization.visible}
-              value={data["patientOrganization"]}
+              value={fields["patientOrganization"]}
               label={"organization"}
               field={
                 <input
@@ -390,7 +387,7 @@ export default function PersonalInformationRegistration(
             <RenderInput
               visible={fields.maritalstatus.visible}
               label={"marital status"}
-              value={data["maritalstatus"]}
+              value={fields["maritalstatus"]}
               field={
                 <div className="d-flex">
                   <Form.Check

@@ -24,6 +24,7 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
       getData()
     } catch (err) {
       setResult([])
+      
       setLoading(false)
     }
   }, [billingid, test, testid, patientid])

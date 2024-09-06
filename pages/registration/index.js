@@ -42,8 +42,9 @@ export default function RegistrationForm() {
     }, [patientid])
 
     const filteredPatient = (options) => {
-        const {patientid} =options;
-        if (!patientid) return;
+        const hasPatientid = typeof options == "object" && options.hasOwnProperty('patientid');
+        if (!hasPatientid) return;
+        const { patientid } = options;
         router.push(`/registration?patientid=${patientid}`)
     }
 

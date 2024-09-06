@@ -1,12 +1,10 @@
 "use client"
-import { AddReaction, ArrowForwardIos, MenuOpen } from "@mui/icons-material";
+import { AddReaction, ArrowForwardIos, MenuOpen, SignLanguage } from "@mui/icons-material";
 import Link from "next/link";
 import { useState } from "react";
 
 export default function OperationsServerRenderingSideBar() {
     const [target, setTarget] = useState(null);
-
-
     const handleDropElements = (value) => {
         value == target ? setTarget(0) : setTarget(value);
     }
@@ -14,73 +12,73 @@ export default function OperationsServerRenderingSideBar() {
     return (
         <div md={2} className="sidebar-macro-wrapper">
             <ul className="sidebar-macro-ui-class">
-                <li className="grouper">
-                    <div onClick={(ev) => { handleDropElements(1) }} className="link-group">
-                        <span><AddReaction /></span>
-                        <span>Billing Page Adeventure </span>
-                        <span><ArrowForwardIos /> </span>
+                <li className={`grouper `}>
+                    <div onClick={(ev) => { handleDropElements(1) }} className={`link-group ${target == 1 && 'bg-primary text-white'}`}>
+                        <span className="rxn-icon"><AddReaction /></span>
+                        <span className="text-sidebar">Billing Page Adeventure </span>
+                        <span className="drop-downicon"><ArrowForwardIos /> </span>
                     </div>
                     {target === 1 && <div className="futher-refer-mother">
-                        <div className="futher-refer-child bg-warning-subtle">
+                        <div className="futher-refer-child ">
                             <Link href={"/navbar/complete"}>
                                 <span><MenuOpen /></span>
-                                <span>pending collection</span>
+                                <span className="text-sidebar">pending collection</span>
                                 <span>60 </span>
 
                             </Link>
                         </div>
-                        <div className="futher-refer-child bg-warning-subtle">
+                        <div className="futher-refer-child ">
                             <Link href={"/navbar/complete"}>
                                 <span><MenuOpen /></span>
-                                <span>pending sample validation</span>
+                                <span className="text-sidebar">pending sample validation</span>
                                 <span>60 </span>
 
                             </Link>
                         </div>
-                        <div className="futher-refer-child bg-warning-subtle">
+                        <div className="futher-refer-child ">
                             <Link href={"/navbar/processing"}>
                                 <span><MenuOpen /></span>
-                                <span>processing</span>
+                                <span className="text-sidebar">processing</span>
                                 <span>60 </span>
                             </Link>
                         </div>
-                        <div className="futher-refer-child bg-warning-subtle">
+                        <div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
-                                <span>pending approval</span>
+                                <span className="text-sidebar">pending approval</span>
                                 <span>60 </span>
                             </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
+                                <span className="text-sidebar">Billing Page completeFlow</span>
                                 <span>60 </span>
                             </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
                                 <span>60 </span>
                             </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
                                 <span>60 </span>
                             </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
                                 <span>60 </span>
                             </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
+                        </div><div className="futher-refer-child ">
+                            <Link href={"/navbar"}>
+                                <span><MenuOpen /></span>
+                                <span>Billing Page completeFlow</span>
+                                <span>60 </span>
+                            </Link>
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
@@ -89,144 +87,75 @@ export default function OperationsServerRenderingSideBar() {
                         </div>
                     </div>}
                 </li>
-                <li className="grouper">
-                    <div onClick={(ev) => { handleDropElements(2) }} className="link-group">
-                        <span><AddReaction /></span>
-                        <span>Billing Page Adeventure </span>
-                        <span><ArrowForwardIos /> </span>
-                    </div>
-                    {target === 2 && <div className="futher-refer-mother">
-                        <div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar/complete"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page Pending</span>
-                                <span>60 </span>
 
-                            </Link>
-                        </div>
-                        <div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div>
-                        <div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div>
-                    </div>}
-                </li>
-                <li className="grouper">
-                    <div onClick={(ev) => { handleDropElements(3) }} className="link-group">
-                        <span><AddReaction /></span>
-                        <span>Billing Page Adeventure </span>
-                        <span><ArrowForwardIos /> </span>
+
+                <li className={`grouper `}>
+                    <div onClick={(ev) => { handleDropElements(3) }} className={`link-group ${target == 3 && 'bg-primary text-white'}`}>
+                        <span className="rxn-icon"><AddReaction /></span>
+                        <span className="text-sidebar">Billing Page Adeventure </span>
+                        <span className="drop-downicon"><ArrowForwardIos /> </span>
                     </div>
                     {target === 3 && <div className="futher-refer-mother">
-                        <div className="futher-refer-child bg-warning-subtle">
+                        <div className="futher-refer-child ">
                             <Link href={"/navbar/complete"}>
                                 <span><MenuOpen /></span>
-                                <span>Billing Page Pending</span>
+                                <span className="text-sidebar">pending collection</span>
                                 <span>60 </span>
 
                             </Link>
                         </div>
-                        <div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
+                        <div className="futher-refer-child ">
+                            <Link href={"/navbar/complete"}>
                                 <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
+                                <span className="text-sidebar">pending sample validation</span>
+                                <span>60 </span>
+
+                            </Link>
+                        </div>
+                        <div className="futher-refer-child ">
+                            <Link href={"/navbar/processing"}>
+                                <span><MenuOpen /></span>
+                                <span className="text-sidebar">processing</span>
                                 <span>60 </span>
                             </Link>
                         </div>
-                        <div className="futher-refer-child bg-warning-subtle">
+                        <div className="futher-refer-child ">
+                            <Link href={"/navbar"}>
+                                <span><MenuOpen /></span>
+                                <span className="text-sidebar">pending approval</span>
+                                <span>60 </span>
+                            </Link>
+                        </div><div className="futher-refer-child ">
+                            <Link href={"/navbar"}>
+                                <span><MenuOpen /></span>
+                                <span className="text-sidebar">Billing Page completeFlow</span>
+                                <span>60 </span>
+                            </Link>
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
                                 <span>60 </span>
                             </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
                                 <span>60 </span>
                             </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
                                 <span>60 </span>
                             </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
                                 <span>60 </span>
                             </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
@@ -235,71 +164,73 @@ export default function OperationsServerRenderingSideBar() {
                         </div>
                     </div>}
                 </li>
-                <li className="grouper">
-                    <div onClick={(ev) => { handleDropElements(4) }} className="link-group">
-                        <span><AddReaction /></span>
-                        <span>Billing Page Adeventure </span>
-                        <span><ArrowForwardIos /> </span>
+                <li className={`grouper `}>
+                    <div onClick={(ev) => { handleDropElements(2) }} className={`link-group ${target == 2 && 'bg-primary text-white'}`}>
+                        <span className="rxn-icon"><AddReaction /></span>
+                        <span className="text-sidebar">Billing Page Adeventure </span>
+                        <span className="drop-downicon"><ArrowForwardIos /> </span>
                     </div>
-                    {target === 4 && <div className="futher-refer-mother">
-                        <div className="futher-refer-child bg-warning-subtle">
+                    {target === 2 && <div className="futher-refer-mother">
+                        <div className="futher-refer-child ">
                             <Link href={"/navbar/complete"}>
                                 <span><MenuOpen /></span>
-                                <span>Billing Page Pending</span>
+                                <span className="text-sidebar">pending collection</span>
                                 <span>60 </span>
 
                             </Link>
                         </div>
-                        <div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
+                        <div className="futher-refer-child ">
+                            <Link href={"/navbar/complete"}>
                                 <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
+                                <span className="text-sidebar">pending sample validation</span>
+                                <span>60 </span>
+
+                            </Link>
+                        </div>
+                        <div className="futher-refer-child ">
+                            <Link href={"/navbar/processing"}>
+                                <span><MenuOpen /></span>
+                                <span className="text-sidebar">processing</span>
                                 <span>60 </span>
                             </Link>
                         </div>
-                        <div className="futher-refer-child bg-warning-subtle">
+                        <div className="futher-refer-child ">
+                            <Link href={"/navbar"}>
+                                <span><MenuOpen /></span>
+                                <span className="text-sidebar">pending approval</span>
+                                <span>60 </span>
+                            </Link>
+                        </div><div className="futher-refer-child ">
+                            <Link href={"/navbar"}>
+                                <span><MenuOpen /></span>
+                                <span className="text-sidebar">Billing Page completeFlow</span>
+                                <span>60 </span>
+                            </Link>
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
                                 <span>60 </span>
                             </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
                                 <span>60 </span>
                             </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
                                 <span>60 </span>
                             </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
                                 <span>60 </span>
                             </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
-                            <Link href={"/navbar"}>
-                                <span><MenuOpen /></span>
-                                <span>Billing Page completeFlow</span>
-                                <span>60 </span>
-                            </Link>
-                        </div><div className="futher-refer-child bg-warning-subtle">
+                        </div><div className="futher-refer-child ">
                             <Link href={"/navbar"}>
                                 <span><MenuOpen /></span>
                                 <span>Billing Page completeFlow</span>
@@ -307,69 +238,7 @@ export default function OperationsServerRenderingSideBar() {
                             </Link>
                         </div>
                     </div>}
-                </li>
-                <li>
-                    <Link href={"/navbar/complete"}>
-                        <span><AddReaction /></span>
-                        <span>Billing Page Pending</span>
-                        <span><ArrowForwardIos /> </span>
-                    </Link>
-                </li> <li  >
-                    <Link href={"/navbar"}>
-                        <span><AddReaction /></span>
-                        <span>Billing Page completeFlow</span>
-                        <span><ArrowForwardIos /> </span>
-                    </Link>
-                </li> <li>
-                    <Link href={"/navbar"}>
-                        <span><AddReaction /></span>
-                        <span>Billing Page</span>
-                        <span><ArrowForwardIos /> </span>
-                    </Link>
-                </li>
-                <li>
-                    <Link href={"/navbar"}>
-                        <span><AddReaction /></span>
-                        <span>Billing Page</span>
-                        <span><ArrowForwardIos /> </span>
-                    </Link>
-                </li> <li>
-                    <Link href={"/navbar"}>
-                        <span><AddReaction /></span>
-                        <span>Billing Page</span>
-                        <span><ArrowForwardIos /> </span>
-                    </Link>
-                </li> <li>
-                    <Link href={"/navbar"}>
-                        <span><AddReaction /></span>
-                        <span>Billing Page</span>
-                        <span><ArrowForwardIos /> </span>
-                    </Link>
-                </li> <li>
-                    <Link href={"/navbar"}>
-                        <span><AddReaction /></span>
-                        <span>Billing Page</span>
-                        <span><ArrowForwardIos /> </span>
-                    </Link>
-                </li> <li>
-                    <Link href={"/navbar"}>
-                        <span><AddReaction /></span>
-                        <span>Billing Page</span>
-                        <span><ArrowForwardIos /> </span>
-                    </Link>
-                </li> <li>
-                    <Link href={"/navbar"}>
-                        <span><AddReaction /></span>
-                        <span>Billing Page</span>
-                        <span><ArrowForwardIos /> </span>
-                    </Link>
-                </li> <li>
-                    <Link href={"/navbar"}>
-                        <span><AddReaction /></span>
-                        <span>Billing Page</span>
-                        <span><ArrowForwardIos /> </span>
-                    </Link>
-                </li>
+                </li>               
             </ul>
         </div>
     )

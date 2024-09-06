@@ -5,13 +5,16 @@
      display: grid;
      grid-template-columns: 15% auto;
      background-color: inherit;
+
    }
 
 .sidebarr  {
      margin: 0;
-     background-color: rgb(11, 111, 241);
+      background: #2c3e50; 
      padding: 0;
      position: fixed;
+            overflow: hidden;
+  transition: width 0.3s;
      left: 0;
      width: 15%;
      border-right: 1px solid lightgray;
@@ -19,7 +22,7 @@
      top: 50px;
 }
 
-.prime-lab-layout-less{
+.prime-lab-layout-less:hover{
      grid-template-columns: 5% 95% !important;
      margin: 0;
      padding: 0;

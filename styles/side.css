@@ -8,6 +8,8 @@ html, body {
     height: 100%;
     background-color: #F5F7FA;
     direction: ltr;
+    overflow-y: auto;
+    max-height: 100vh;
     font-size: 0.95em;
     font-family: var(--prime-links-font-family);
     background-color: #eae7e7;
@@ -31,9 +33,7 @@ h1:focus {
     outline: none;
 }
 
-a {
-    color: #0071c1;
-}
+
 
 navbar {
     top: 0;
@@ -50,60 +50,107 @@ navbar {
 
 
 .sidebar-macro-wrapper {
-    margin: 0;
-    padding: 0;
-    border-right: 1px solid lightgray;
-    height: 100vh;
-    position: absolute;
-    top: calc(100px -20px);
-    position: static;
-    overflow: auto;
-    background-color: whitesmoke;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 60px;
+  position: fixed;
+  list-style-type: none;
+  background: #21263c;
+  z-index:999;
+ min-height: 100vh;
+ color:#f9f9fb;
+  overflow: hidden;
+  transition: width 0.3s;
 }
-
+.sidebar-macro-wrapper:hover{
+    width: 250px;
+}
 .sidebar-macro-ui-class{
     margin-top: 0;
     margin-bottom: 20px !important;
     padding: 0;
     list-style: none;
-    background-color:  whitesmoke;
+
     list-style-type: none;
 }
 
-
-.sidebar-macro-ui-class > li > a ,
-.sidebar-macro-ui-class > li > .link-group{
-    margin: 5px;
-    display: grid;
-    grid-template-columns: 10% auto 10% ;
-    grid-gap: 10px;
-    border-radius: 5px;
-    flex-grow: 1;
-    cursor: pointer;
-    text-decoration: none;
-    font-weight: 400;
-    font-size: 15px;
-    color:#495057;
-    padding: 5px ;
+.sidebar-macro-wrapper > .sidebar-macro-ui-class > .grouper > .link-group > .text-sidebar,
+.sidebar-macro-wrapper > .sidebar-macro-ui-class > .grouper > .link-group > .drop-downicon,
+.sidebar-macro-wrapper  > .sidebar-macro-ui-class > .grouper > div.link-group >.drop-downicon,
+.sidebar-macro-wrapper  > .sidebar-macro-ui-class > .grouper > div.link-group  > .text-sidebar {
+    display: none !important;
 }
 
 
-.sidebar-macro-ui-class > .grouper > .futher-refer-mother {
+.sidebar-macro-wrapper> .sidebar-macro-ui-class > .grouper > .link-group > .drop-downicon > svg {
+    height: 40px !important;
+    width: 40px !important;
+}
+
+.sidebar-macro-wrapper:hover> .sidebar-macro-ui-class > .grouper > .link-group >.text-sidebar,
+.sidebar-macro-wrapper:hover> .sidebar-macro-ui-class > .grouper > .link-group > .drop-downicon {
+    display: block !important;
+}
+.a-active  {
+background-color: #408dfb;
+color: white;
+}
+
+
+.sidebar-macro-wrapper  > .sidebar-macro-ui-class > li > a ,
+.sidebar-macro-wrapper > .sidebar-macro-ui-class > .grouper > div.link-group ,
+.sidebar-macro-wrapper  > .sidebar-macro-ui-class > li > .link-group{
+    display: grid;
+    grid-template-columns: 10% auto 10% ;
+    grid-gap: 10px;
+    flex-grow: 1;
+     margin: 10px;
+    cursor: pointer;
+    padding: 5px;
+    text-decoration: none;
+    font-weight: 400;
+    font-family: var(--prime-links-font-family) !important;
+    font-size: 13px;
+    align-items: center;
+    color: white;
+}
+
+.sidebar-macro-ui-class:hover > li > .link-group:hover{
+    background-color: #408dfb;
+    color:#fff ;
+    border-radius: 5px;
+    transition: border 0.3s;
+    font-weight: 500;
+}
+
+.sidebar-macro-wrapper:hover> .sidebar-macro-ui-class> .grouper  > .link-group> .drop-downicon > svg {
+    height: 18px !important ;
+    width: 18px !important;
+}
+
+.sidebar-macro-ui-class > .grouper > .futher-refer-mother{
+    display: none;
+}
+.sidebar-macro-ui-class:hover > .grouper > .futher-refer-mother {
     margin-left: 10px;
     border-left: 5px solid darkblue;
     height: max-content;
     width: 100%;
     padding: 0;
+    display: block;
+    font-size: 13px;
     background-color:white;
 }
 
-.sidebar-macro-ui-class > .grouper > .futher-refer-mother > .futher-refer-child > a {
+.sidebar-macro-ui-class> .grouper > .futher-refer-mother > .futher-refer-child > a {
     display: grid;
     grid-template-columns: 15% 75% 10%;  
     border-bottom: 1px solid lightgray;
     padding: 10px;  
 }
-.sidebar-macro-ui-class > .grouper > .futher-refer-mother > .futher-refer-child > a >span
+/* .sidebar-macro-ui-class > .grouper > .futher-refer-mother > .futher-refer-child > a >span */
 
 /* .sidebar-macro-ui-class > li:active,
 .sidebar-macro-ui-class > li:focus,

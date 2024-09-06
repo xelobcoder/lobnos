@@ -20,6 +20,7 @@ const defaultdata = {
   samplingCenter: "",
   testpanels: [],
   employeeid: "",
+  billingSource: 1,
   appsettings: { taxIncluded: false, taxValue: 0 },
   cart: [],
   isFree: false,
@@ -34,9 +35,7 @@ export const BillingProvider = BillingContext.Provider;
 
 export function BillingPageContextProvider({ children }) {
   const [billingdata, setBillingdata] = useState(defaultdata);
-  const updateBilling = (value) => {
-    setBillingdata(value);
-  };
+  const updateBilling = (value) => { setBillingdata(value) };
 
   const recalculateTotalBill = function (billingdata) {
     const { discount, paid, appsettings, cart } = billingdata;
@@ -44,8 +43,8 @@ export function BillingPageContextProvider({ children }) {
     const totalTest =
       cart.length > 0
         ? cart.reduce((a, b) => {
-            return a + b.price;
-          }, 0)
+          return a + b.price;
+        }, 0)
         : 0;
     let total = 0;
     if (includeTax == 1) {

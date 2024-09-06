@@ -1,4 +1,4 @@
-import AppCustomLayout from "../Layout/CustomLayout"
+import AppCustomLayout from "../Layout/CustomLayout";
 import {
   SettingsApplications,
   Forest,
@@ -9,9 +9,11 @@ import {
   Looks3Sharp,
   VerifiedUser,
   Outbox,
-} from "@mui/icons-material"
+  OutboxSharp,
+  MedicationRounded,
+} from "@mui/icons-material";
 
-export default function MainSettingsLayoutView({ children, sidebar }) {
+export default function MainSettingsLayoutView({ children }) {
   const sidebarLinks = [
     { title: "Applications Settings", link: "/settings/applicationsettings", icon: <SettingsApplications /> },
     { title: "Users", link: "/authentication/users", icon: <VerifiedUser /> },
@@ -21,7 +23,20 @@ export default function MainSettingsLayoutView({ children, sidebar }) {
     { title: "Departments", link: "/settings/department", icon: <TripOrigin /> },
     { title: "Taxes", link: "/settings/tax", icon: <Looks3Sharp /> },
     { title: "Test Panels", link: "/settings/testpanel/testlist", icon: <TextSnippetRounded /> },
-    { title: "outsourcing", link: "/settings/outsource", icon: <Outbox /> },
+    {
+      title: "outsourcing", link: "/settings/outsource", icon: <Outbox />, subLinks: [
+        { title: 'New Organization', link: '/settings/outsource/newOutsourcing', icon: <OutboxSharp /> },
+        { title: 'Outsourcing List', link: '/settings/outsource', icon: <OutboxSharp /> }
+      ]
+    },
+    {
+      title: 'Drugs', link: '/settings/applicationsettings/drugs', icon: <MedicationRounded />, subLinks: [
+        { title: 'Drug Category', link: '/settings/applicationsettings/drugs/drugCategoryView' },
+        {
+          title: 'Drugs List', link: '/settings/applicationsettings/drugs', icon: <MedicationRounded />
+        }
+      ]
+    },
     { title: "Email Management", link: "/settings/emailsetting", icon: <Sms /> },
   ];
 

@@ -14,10 +14,14 @@
   --wp--preset--gradient--midnight: linear-gradient(135deg, rgb(2, 3, 129) 0%, rgb(40, 116, 252) 100%);
 }
 
-html {
+html,body{
   scroll-behavior: smooth;
   text-size-adjust: 100%;
     line-height: 1.15;
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-height: 100vh;
+    background-color: white;
 }
 [theme="light"] {
   --bg-color: #eef0f1;
@@ -30,8 +34,10 @@ html {
   --text-color: white;
   --border:2px solid white;
  }
+
 *{
   font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+
 }
 /* #root {
   min-height: 100vh;

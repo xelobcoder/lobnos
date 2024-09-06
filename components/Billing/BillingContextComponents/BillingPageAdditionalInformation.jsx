@@ -8,6 +8,7 @@ import AuthContext from "../../Auth/useAuthentification";
 import { useSearchParams } from "next/navigation";
 import { validateFormData } from "../../Auth/customFetch";
 import { toast } from "react-toastify";
+import { organizationOptions, urgencyOptions } from "./Lib/billingLib";
 
 export default function BillingPageAdditionalInformation() {
   const [showMoreBtn, setShowMoreBtn] = useState(false);
@@ -118,11 +119,7 @@ export default function BillingPageAdditionalInformation() {
                 <Select
                   value={{ label: billingdata.type, value: billingdata.type }}
                   onChange={(selectedOption) => updateBilling({ ...billingdata, type: selectedOption.value })}
-                  options={[
-                    { value: "self", label: "Self" },
-                    { value: "organization", label: "Organization" },
-                    { value: "clinician", label: "Clinician" },
-                  ]}
+                  options={organizationOptions}
                 />
               </div>
 
@@ -131,12 +128,7 @@ export default function BillingPageAdditionalInformation() {
                 <Select
                   value={{ label: billingdata.status, value: billingdata.status }}
                   onChange={(selectedOption) => updateBilling({ ...billingdata, status: selectedOption.value })}
-                  options={[
-                    { value: "urgent", label: "Urgent/Critical" },
-                    { value: "routine", label: "Routine" },
-                    { value: "normal", label: "Normal" },
-                    { value: "moderate", label: "Moderate" },
-                  ]}
+                  options={urgencyOptions}
                 />
               </div>
 
@@ -223,8 +215,7 @@ export default function BillingPageAdditionalInformation() {
             </button>
             <button
               onClick={(ev) => {
-                updateBilling(defaultdata);
-                setCart([]);
+                updateBilling({});
               }}
               className="btn btn-danger">
               <Clear /> Cancel

@@ -245,6 +245,17 @@ export default function TestForm({ method, customtest, testid, router }) {
                 />
               </div>
               <div className="form-row grid-reg mt-2">
+                <label>Use Drugs <br/><small className="text-sm text-danger">(For culture and sensitivity test)</small></label>
+                <Form.Switch
+                  checked={data.hasDrugs === 1}
+                  onChange={(ev) => {
+                    handleSwitch(ev, "hasDrugs");
+                  }}
+                  type="switch"
+                  style={{ fontSize: "25px" }}
+                />
+              </div>
+              <div className="form-row grid-reg mt-2">
                 <label>Use Literature</label>
                 <Form.Switch
                   checked={data.useLiterature === 1}

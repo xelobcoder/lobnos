@@ -13,6 +13,7 @@ export default function TableDisplay({
   filtering,
   getRows,
   initpageSize = 10,
+  minHeight,
   ...props
 }) {
 
@@ -80,8 +81,8 @@ export default function TableDisplay({
                   <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
                 </div>}
               </div>
-              <div className="table-responsive table my-2">
-                <table style={{minHeight:'20vh'}} {...props} className={styling ? styling : "table billing-cart-table table-striped table-hover"} {...getTableProps()}>
+              <div style={{ minHeight: minHeight || '30vh' }} className="table-responsive table my-2">
+                <table {...props} className={styling ? styling : "table table-responsive billing-cart-table table-striped table-hover"} {...getTableProps()}>
                   <thead>{customHeaderGroup()}</thead>
                   <tbody {...getTableBodyProps()}>
                     {page.map((row, index) => {
@@ -89,7 +90,7 @@ export default function TableDisplay({
                       return (
                         <tr {...row.getRowProps()} key={index}>
                           {row.cells.map((cell) => (
-                            <td className="text-sm" {...cell.getCellProps()} key={cell.column.id}>
+                            <td style={{fontSize:'13px'}} {...cell.getCellProps()} key={cell.column.id}>
                               {cell.render("Cell")}
                             </td>
                           ))}

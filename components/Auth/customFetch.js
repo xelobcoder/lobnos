@@ -795,6 +795,7 @@ export const defaultTestEditValues = {
   description: "",
   sample_container: "",
   unit: "",
+  hasDrugs: 0,
   qty_required: "",
   shorttext: "",
   useLiterature: "",

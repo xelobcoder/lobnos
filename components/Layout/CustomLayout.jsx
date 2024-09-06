@@ -3,35 +3,26 @@ import SubLinksSideBar from "./LinksDisplay";
 import ApplicationHeader from "./HeaderNav";
 
 export default function AppCustomLayout({ children, sideLinks }) {
-  const [expand, setExpand] = useState(false);
-  const [show, setShow] = useState(true);
+  const [target, setTarget] = useState(null);
+  const handleDropElements = (value) => {
+    value == target ? setTarget(0) : setTarget(value);
+  }
+
 
   return (
-    <div className="m-0 p-0">
-      <ApplicationHeader openSideBar={setShow} sidebarState={show}/>
-      <div className={`prime-lab-layout ${!expand && "prime-lab-layout-less"}`}>
-        {show && (
-          <aside>
-            <div
-              onMouseOver={(ev) => {
-                setExpand(true);
-              }}
-              onMouseOut={(ev) => {
-                if (window && window.innerWidth > 1200) {
-                  setExpand(false);
-                }
-              }}
-              className={`sidebarr ${!expand && "sidebarr-expand-less"}`}>
-              <div className="content">
-                <ul className="sidebarul">
-                  <SubLinksSideBar expand={expand} sideLinks={sideLinks} />
-                </ul>
-              </div>
-              <div className=""></div>
-            </div>
-          </aside>
-        )}
-        <main className={`prime-main mx-2 my-2`}>{children}</main>
+    <div class="body">
+      <ApplicationHeader />
+      <div style={{ display: 'grid', gridTemplateColumns: '60px auto' }}>
+        <div >
+          <div className="sidebar-macro-wrapper" >
+            <ul className="sidebar-macro-ui-class">
+              <SubLinksSideBar sideLinks={sideLinks} target={target} handleDropElements={handleDropElements} />
+            </ul>
+          </div>
+        </div>
+        <div className="p-2">
+          {children}
+        </div>
       </div>
     </div>
   );

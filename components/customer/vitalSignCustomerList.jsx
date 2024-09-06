@@ -70,13 +70,13 @@ export default function VitalSignCustomerListInformation({ searchParams }) {
     if (error) return <p>{error}</p>;
 
     return (
-        <div className="px-3 mt-4">
-            <div className="bg-secondary-subtle p-3 rounded mb-2">
+        <div className="px-3">
+            <div className="bg-secondary-subtle p-4 rounded mb-2">
                 <form onSubmit={handleFilterSubmit}>
                     <div className="d-flex col-6">
                         <div>
                             <input
-                                className="form-control"
+                                className="form-control h-100"
                                 type="date"
                                 placeholder="from"
                                 name="filterFrom"
@@ -86,7 +86,7 @@ export default function VitalSignCustomerListInformation({ searchParams }) {
                         </div>
                         <div>
                             <input
-                                className="form-control mx-2"
+                                className="form-control mx-2 h-100"
                                 type="date"
                                 placeholder="to"
                                 name="filterTo"
@@ -157,7 +157,7 @@ export default function VitalSignCustomerListInformation({ searchParams }) {
                                 </table>
                            </div>
                         
-                            <div style={{marginTop:'-26px'}}>
+                            <div >
                                 <VitalSignLineChart
                                     data={generateChartData(groupedVitalSigns[date], 'temperature')}
                                     title={`Temperature Trends for ${date}`}
