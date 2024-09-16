@@ -748,8 +748,7 @@ export const getSpecificOrder = async (id, setData, setLoading) => {
 
 export const currencyFormatter = new Intl.NumberFormat("en-GH", {
   style: "currency",
-  currency: "GHS",
-
+  currency: "GHS"
 })
 
 /**

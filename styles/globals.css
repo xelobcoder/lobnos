@@ -37,7 +37,6 @@ html,body{
 
 *{
   font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-
 }
 /* #root {
   min-height: 100vh;
@@ -446,7 +445,9 @@ i {font-size:100px;
   width: 100%;
   color: #00224f;
 }
-
+.custom-select:disabled{
+  background-color: lightgray !important;
+}
 .r-3{
   border-radius: 3px !important;
 }

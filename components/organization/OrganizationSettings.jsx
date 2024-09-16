@@ -4,6 +4,7 @@ import { organizationsettings } from "../../lib/testdata/organizationSettings";
 import Loader from "../accessories/Loader";
 import { customFetch, customPost, handleChangeCheck, handleChangeWithState, loadAllTest } from "../Auth/customFetch";
 import AuthContext from "../Auth/useAuthentification";
+import { LoadOrganizationalTest } from "../../lib/billingLib";
 
 export default function OrganizationSetupSettings({ organizationid }) {
     const { auth } = useContext(AuthContext);
@@ -26,10 +27,8 @@ export default function OrganizationSetupSettings({ organizationid }) {
 
     const organizationSettingsInformationSaved = async (organizationid) => {
         if (organizationid) {
-            const settings = await customFetch(`organization/billing/test?organizationid=${organizationid}`);
-            if (settings && settings.testList) {
-                setOrganizationSettings(settings);
-            }
+            const data = await LoadOrganizationalTest(organizationid);
+            setOrganizationSettings(data);
         }
     }
 

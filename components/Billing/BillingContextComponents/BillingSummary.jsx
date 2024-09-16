@@ -15,20 +15,32 @@ export default function BillingPageSummary() {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                       <path d="M20.0049 8V5H4.00488V8H20.0049ZM20.0049 10H4.00488V19H20.0049V10ZM3.00488 3H21.0049C21.5572 3 22.0049 3.44772 22.0049 4V20C22.0049 20.5523 21.5572 21 21.0049 21H3.00488C2.4526 21 2.00488 20.5523 2.00488 20V4C2.00488 3.44772 2.4526 3 3.00488 3ZM11.0049 14H17.0049V16H6.50488L11.0049 11.5V14Z"></path>
                     </svg>
-                    Total Cost
+                    Total Test Cost
                   </h6>
                 }
               />
 
               <CardRack
                 className="shadow"
-                body={<h3 className="d-flex justify-content-center">{currencyFormatter.format(billingdata?.taxValue || 0)} </h3>}
+                body={<h3 className="d-flex justify-content-center">{currencyFormatter.format(billingdata?.amountIncurredDueTax )} </h3>}
                 header={
                   <h6 className="">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                       <path d="M9 3V1H7V3H3C2.44772 3 2 3.44772 2 4V20C2 20.5523 2.44772 21 3 21H21C21.5523 21 22 20.5523 22 20V4C22 3.44772 21.5523 3 21 3H17V1H15V3H9ZM4 10H20V19H4V10ZM4 5H7V6H9V5H15V6H17V5H20V8H4V5ZM9.87862 10.9644L12 13.0858L14.1212 10.9644L15.5355 12.3785L13.4142 14.5001L15.5354 16.6212L14.1213 18.0354L12 15.9143L9.87855 18.0354L8.46442 16.6211L10.5857 14.5001L8.46436 12.3785L9.87862 10.9644Z"></path>
                     </svg>
                     Total Taxes
+                  </h6>
+                }
+              />
+              <CardRack
+                className="shadow"
+                body={<h3 className="d-flex justify-content-center">{currencyFormatter.format(billingdata?.cost)} </h3>}
+                header={
+                  <h6 className="">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                      <path d="M20.0049 8V5H4.00488V8H20.0049ZM20.0049 10H4.00488V19H20.0049V10ZM3.00488 3H21.0049C21.5572 3 22.0049 3.44772 22.0049 4V20C22.0049 20.5523 21.5572 21 21.0049 21H3.00488C2.4526 21 2.00488 20.5523 2.00488 20V4C2.00488 3.44772 2.4526 3 3.00488 3ZM11.0049 14H17.0049V16H6.50488L11.0049 11.5V14Z"></path>
+                    </svg>
+                    Total  Cost
                   </h6>
                 }
               />

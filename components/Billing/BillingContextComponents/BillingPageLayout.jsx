@@ -26,7 +26,7 @@ export default function BillingPageLayout() {
 
   return (
     <BillingPageContextProvider>
-      <BillingSourceDeterminer/>
+      <BillingSourceDeterminer patientid={patientid} />
       <RenderingWithPatientIdProvided />
     </BillingPageContextProvider>
   );

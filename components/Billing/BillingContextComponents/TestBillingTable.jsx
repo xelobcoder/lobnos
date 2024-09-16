@@ -1,115 +1,57 @@
-import { Clear } from "@mui/icons-material";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useContext, useEffect, useState } from "react";
+import { Clear, Delete } from "@mui/icons-material";
+import { useContext } from "react";
 import { Table } from "react-bootstrap";
-import { customFetch } from "../../Auth/customFetch";
 import { BillingContext } from "./BillingContext";
 import TrTable from "./TableTr";
+import { currencyFormatter } from "../../Auth/customFetch";
 
-export default function TestBillingTable() {
+export default function TestBillingTable({ toast}) {
   const { billingdata, updateBilling } = useContext(BillingContext);
-  const [appsettings, setAppsettings] = useState({});
-  const router = useRouter();
-  const patientid = useSearchParams().get("patientid");
   const cart = billingdata?.cart;
 
-  const getAllNecessaryData = async function () {
-    try {
-      const panels = await customFetch("testpanel/list/bulk");
-      const organization = await customFetch("organization");
-      const clinician = await customFetch("clinicians");
-      const paymentModes = await customFetch("paymentmodes");
-      const myprops = await Promise.all([panels, organization, clinician, paymentModes]);
-      updateBilling({
-        ...billingdata,
-        organizationData: myprops[1]?.result,
-        clinicianData: myprops[2]?.result,
-        paymentmodeData: myprops[3]?.data,
-        testpanels: myprops[0]?.data,
-        appsettings,
-      });
-    } catch (err) {
-      toast.error("something wrong occured", { autoClose: 3000 });
-    }
+
+  const removeFromCart = (testId) => {
+    updateBilling((prev) => {
+      const newCart = prev.cart.filter((item) => item.id !== testId);
+      return { ...prev, cart: newCart };
+    });
   };
 
-  const getOustandingBill = async () => {
-    if (patientid) {
-      customFetch(`billing/client/bulk/outstanding?patientid=${patientid}`)
-        .then((data) => {
-          const outstandingDebt = data?.result[0]?.outstanding;
-          if (outstandingDebt > 0) {
-            router.push(`/billing/payment/update/${patientid}`);
-          } else {
-            getAllNecessaryData();
-          }
-        })
-        .catch((err) => {
-          toast.error("something wrong occured", { autoClose: 500 });
-        });
-    }
-  };
-
-  function getAppSet() {
-    customFetch(`applicationsettings/billing`)
-      .then((data) => {
-        const { PaidBillsBeforeTransaction } = data;
-        setAppsettings(data);
-        if (PaidBillsBeforeTransaction === 1) {
-          getOustandingBill();
-        } else {
-          getAllNecessaryData();
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+  if (!billingdata.billingSource) {
+    return <div className="br-0 alert border-2 border-danger alert-danger alert-dismissible"> Select Billing Source to continue</div>;
   }
 
-  useEffect(() => {
-    if (patientid) {
-      customFetch(`billing/caninitialbill?patientid=${patientid}`)
-        .then((data) => {
-          const { canInitiateBill } = data;
-          if (canInitiateBill === false) {
-            toast.warn(`Billing cannot be initiated for client today.Kindly update previous billing`, { autoClose: 5000 });
-          } else {
-            getAppSet();
-          }
-          console.log("h");
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [patientid]);
-
   return (
-    <Table striped hover className="table">
+    <Table className="table-striped billing-cart-table table-hover table p-0">
       <thead className="text-capitalize">
-        <tr style={{ display: "grid", gridTemplateColumns: "40% 20% 20% 20%" }}>
-          <th>test</th>
-          <th>quantity</th>
-          <th>Price</th>
-          <th>action</th>
+        <tr>
+          <th style={{ width: '40%' }}>Test</th>
+          <th style={{ width: '10%' }}>Quantity</th>
+          <th style={{ width: '20%' }}>Outsourcing To</th>
+          <th style={{ width: '10%' }}>Price</th>
+          <th style={{ width: '20%' }}>Action</th>
         </tr>
       </thead>
       <tbody>
-        {cart.length > 0 &&
-          cart.map((item, index) => {
-            return (
-              <tr key={index} style={{ display: "grid", gridTemplateColumns: "40% 20% 20% 20%" }}>
-                <td>{item.name}</td>
-                <td>{item.quantity || 1}</td>
-                <td>{item.price}</td>
-                <td>
-                  <Clear color="error" />
-                </td>
-              </tr>
-            );
-          })}
-        <TrTable />
+        {cart.length > 0 && cart.map((item, index) => (
+          <tr className={item.isoutsourced === 1 ? 'table-danger' : ''} key={index}>
+            <td>{item.name}</td>
+            <td>{item.quantity || 1}</td>
+            <td>
+              {item.isoutsourced === 1 && item?.label}
+            </td>
+            <td>{currencyFormatter.format(item.discountedValue)}</td>
+            <td>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => removeFromCart(item.id)}
+              >
+                <Delete /> {/* Remove individual item */}
+              </button>
+            </td>
+          </tr>
+        ))}
+        <TrTable toast={toast} />
       </tbody>
     </Table>
   );

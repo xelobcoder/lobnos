@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { customFetch } from "../../Auth/customFetch";
 import { useSearchParams } from "next/navigation";
-import { Row, Col } from "react-bootstrap";
 
 export default function BillingPagePatientInformation() {
   const patientid = useSearchParams().get("patientid");
@@ -27,52 +26,24 @@ export default function BillingPagePatientInformation() {
 
   return (
     <section>
-      <Row>
-        <Col className="patient-info">
-          <div className="mx-2 mb-3">
-            <label className="text-muted">Patient Name:</label>
-            <p className="text-capitalize">{data?.firstname} {data?.middlename} {data.lastname}</p>
+      <div className="mx-2 mb-3 bg-body-secondary">
+        <div className="text-capitalize p-2">
+          <div className="d-flex justify-content-between">
+            <span>
+              FullName:{data?.firstname} {data?.middlename} {data.lastname}</span>
+            <span>PatientId:{data?.patientid} </span>
           </div>
-          <div className="mx-2 mb-3">
-            <label className="text-muted">Patient ID:</label>
-            <p className="text-capitalize">{data?.patientid}</p>
+          <div className="d-flex justify-content-between">
+            <span>Email:{data?.email}</span>
+            <span>Age:{data?.age} {data?.ageType}</span>
           </div>
-          <div className="mx-2 mb-3">
-            <label className="text-muted">Email:</label>
-            <p className="text-capitalize">{data?.email}</p>
+          <div className="d-flex justify-content-between">
+            <span>
+              Gender: {data?.gender}
+            </span>
           </div>
-          <div className="mx-2 mb-3">
-            <label className="text-muted">Mobile Number:</label>
-            <p className="text-capitalize">{data?.mobile_number}</p>
-          </div>
-          <div className="mx-2 mb-3">
-            <label className="text-muted">DOB:</label>
-            <p className="text-capitalize">{new Date(data?.dob).toLocaleDateString()}</p>
-          </div>
-          <div className="mx-2 mb-3">
-            <label className="text-muted">Gender:</label>
-            <p className="text-capitalize">{data?.gender}</p>
-          </div>
-          <div className="mx-2 mb-3">
-            <label className="text-muted">Organization:</label>
-            <p className="text-capitalize">{data?.organization}</p>
-          </div>
-          <div className="mx-2 mb-3">
-            <label className="text-muted">Status:</label>
-            <p className="text-capitalize">{data?.activation_status ? "Active" : "Inactive"}</p>
-          </div>
-          <div className="mx-2 mb-3">
-            <label className="text-muted">Age:</label>
-            <p className="text-capitalize">
-              {data?.age} {data?.ageType}
-            </p>
-          </div>
-          <div className="mx-2 mb-3">
-            <label className="text-muted">WhatsApp:</label>
-            <p className="text-capitalize">{data?.whatsapp}</p>
-          </div>
-        </Col>
-      </Row>
+        </div>
+      </div>
     </section>
   );
 }

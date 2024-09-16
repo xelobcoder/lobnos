@@ -14,6 +14,7 @@ export default function FrontDeskLayout({children}) {
    const sideLinks = [
      { title: "registration", link: "/registration", icon: <AssignmentInd /> },
      { title: "customers", link: "/customers", icon: <VerifiedUser /> },
+     { title: "Billing", link: "/billing/patientid", icon: <VerifiedUser /> },
      { title: "customers vital sign", link: "/customers/recordVitalSigns", icon: <VerifiedUser /> },
      { title: "billing", link: "/billing/payment", icon: <MonetizationOn /> },
      {

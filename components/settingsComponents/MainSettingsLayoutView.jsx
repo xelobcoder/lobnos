@@ -11,6 +11,7 @@ import {
   Outbox,
   OutboxSharp,
   MedicationRounded,
+  RoomServiceSharp,
 } from "@mui/icons-material";
 
 export default function MainSettingsLayoutView({ children }) {
@@ -23,6 +24,7 @@ export default function MainSettingsLayoutView({ children }) {
     { title: "Departments", link: "/settings/department", icon: <TripOrigin /> },
     { title: "Taxes", link: "/settings/tax", icon: <Looks3Sharp /> },
     { title: "Test Panels", link: "/settings/testpanel/testlist", icon: <TextSnippetRounded /> },
+    { title: "Services", link: "/settings/addtionalServices", icon: <RoomServiceSharp/> },
     {
       title: "outsourcing", link: "/settings/outsource", icon: <Outbox />, subLinks: [
         { title: 'New Organization', link: '/settings/outsource/newOutsourcing', icon: <OutboxSharp /> },

@@ -1,6 +1,5 @@
-import { Col, Row } from "react-bootstrap";
-import TopComponentBillingButton from "../topComponentBillingButton";
-import { Menu, MoneyRounded, Clear } from "@mui/icons-material";
+import { Row } from "react-bootstrap";
+import { MoneyRounded, Clear } from "@mui/icons-material";
 import { useContext, useState } from "react";
 import { BillingContext } from "./BillingContext";
 import Select from "react-select";
@@ -8,7 +7,7 @@ import AuthContext from "../../Auth/useAuthentification";
 import { useSearchParams } from "next/navigation";
 import { validateFormData } from "../../Auth/customFetch";
 import { toast } from "react-toastify";
-import { organizationOptions, urgencyOptions } from "./Lib/billingLib";
+import { organizationOptions, urgencyOptions } from "../../../lib/billingLib";
 
 export default function BillingPageAdditionalInformation() {
   const [showMoreBtn, setShowMoreBtn] = useState(false);
@@ -21,29 +20,31 @@ export default function BillingPageAdditionalInformation() {
   const [payment, setPayment] = useState({ amount: 0, mode: "", concession: "" });
 
   const recalculateTotalBill = function () {
-    const { discount, paid, appsettings, cart } = billingdata;
-    const { includeTax, taxValue } = appsettings;
-    const totalTest =
-      cart.length > 0
-        ? cart.reduce((a, b) => {
-            return a + b.price;
-          }, 0)
-        : 0;
+    const { discount = 0, paid = 0, appsettings, cart } = billingdata;
+    const { taxIncluded, taxValue } = appsettings;
+    const totalTest = cart.length > 0
+      ? cart.reduce((a, b) => {
+        return a + b.discountedValue;
+      }, 0)
+      : 0;
     let total = 0;
-    if (includeTax == 1) {
-      total = (taxValue / 100) * totalTest + totalTest;
+    let amountIncurredDueTax = 0;
+    if (taxIncluded == 1) {
+      amountIncurredDueTax = (taxValue / 100) * parseFloat(totalTest);
+      total = amountIncurredDueTax + parseFloat(totalTest);
     } else total = totalTest;
     const payable = total - discount;
-    const outstanding = payable - paid;
+    const outstanding = (payable - paid);
     updateBilling((prev) => {
       const nw = {
         ...prev,
         payable: payable,
         outstanding,
+        amountIncurredDueTax,
         taxValue,
         testcost: totalTest,
         cost: total,
-        taxIncluded: includeTax == 1 ? true : false,
+        taxIncluded: taxIncluded == 1 ? true : false,
       };
       return nw;
     });
@@ -59,11 +60,11 @@ export default function BillingPageAdditionalInformation() {
   };
 
   const handleSubmit = async (ev) => {
-   
+
     ev.preventDefault();
     const test = billingdata.cart.map((item) => item.id);
     const samplingCenter = parseInt(branchid);
-    const { cost, paid, discount, payable,outstanding, paymentmode, organization, testcost, appsettings, clinician ,taxIncluded,taxValue,type,status} = billingdata;
+    const { cost, paid, discount, payable, outstanding, paymentmode, organization, testcost, appsettings, clinician, taxIncluded, taxValue, type, status } = billingdata;
     const data = {
       paymentmode: parseInt(paymentmode),
       samplingCenter,
@@ -84,28 +85,23 @@ export default function BillingPageAdditionalInformation() {
       type,
     };
 
-    const callbackResponse = async function (data) {
-      const { status, statusCode, message, billingid } = data;
-      if (status == "success" && (statusCode == 201 || statusCode == 200)) {
-        toast.success(message);
-      } else {
-        toast.error(message);
-      }
-    };
+    // const callbackResponse = async function (data) {
+    //   const { status, statusCode, message, billingid } = data;
+    //   if (status == "success" && (statusCode == 201 || statusCode == 200)) {
+    //     toast.success(message);
+    //   } else {
+    //     toast.error(message);
+    //   }
+    // };
 
-    const { PaidBillsBeforeTransaction } = appsettings;
-    if (PaidBillsBeforeTransaction == 1 && data.payable != data.paid) {
-      return toast.error("Full payment must be made outright please.To change this behaviour,please kindly updates the settings");
-    }
-    if (data.patientid && employeeid) {
-      await validateFormData(
-        data,
-        false,
-        ["test", "cost", "type", "patientid", "samplingCenter", "concession", "paid", "paymentmode", "status"],
-        "billing",
-        callbackResponse
-      );
-    }
+    // const { PaidBillsBeforeTransaction } = appsettings;
+    // if (PaidBillsBeforeTransaction == 1 && data.payable != data.paid) {
+    //   return toast.error("Full payment must be made outright please.To change this behaviour,please kindly updates the settings");
+    // }
+    // if (data.patientid && employeeid) {
+    //   validateFormData(data, false, ["test", "cost", "type", "patientid", "samplingCenter", "concession", "paid", "paymentmode", "status"], "billing", callbackResponse);
+    // }
+    console.log(data, billingdata);
   };
 
   return (
@@ -117,6 +113,7 @@ export default function BillingPageAdditionalInformation() {
               <div>
                 <label>Select Patient Type</label>
                 <Select
+                  isDisabled={billingdata.billingSource == 2}
                   value={{ label: billingdata.type, value: billingdata.type }}
                   onChange={(selectedOption) => updateBilling({ ...billingdata, type: selectedOption.value })}
                   options={organizationOptions}
@@ -135,7 +132,7 @@ export default function BillingPageAdditionalInformation() {
               <div>
                 <label>Organization Name</label>
                 <Select
-                  isDisabled={billingdata.type != "organization"}
+                  isDisabled={billingdata.type != "organization" || billingdata.billingSource == 2}
                   placeholder="Search organization here"
                   onChange={(newValue) => {
                     updateBilling({ ...billingdata, organization: newValue?.id });

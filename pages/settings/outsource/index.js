@@ -1,25 +1,31 @@
 import { useEffect, useState } from "react";
 import MainSettingsLayoutView from "../../../components/settingsComponents/MainSettingsLayoutView";
-import { customFetch } from "../../../components/Auth/customFetch";
 import TableDisplay from "../../../components/accessories/TableDisplay";
 import { Dropdown } from "react-bootstrap";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import LockSvg from "../../../components/icons/LockSvg";
 import Link from "next/link";
+import { fetchOurSourcingOrganization } from "../../../lib/billingLib";
 
 
 export default function IndexPageOutsource() {
-    const [isLoading, setLoading] = useState(false);
+    const [isLoading, setLoading] = useState(true);
     const [organization, setOrganization] = useState([])
 
     useEffect(() => {
-        async function fetchOurSourcingOrganization() {
-            const response = await customFetch(`outsourcing/organization/all`);
-            if (Array.isArray(response)) {
-                setOrganization(response);
+        async function loadInitData() {
+            try {
+                setLoading(true);
+                fetchOurSourcingOrganization(setOrganization);
+            }
+            catch (err) {
+                setLoading(false);
+                alert('error getting data');
+            } finally {
+                setLoading(false);
             }
         }
-        fetchOurSourcingOrganization()
+        loadInitData()
     }, [])
 
 
@@ -93,12 +99,19 @@ export default function IndexPageOutsource() {
             }
         },
     ];
+
+
+
+    const Loading = <div className="container">Loading data.....................</div>
     return (
         <MainSettingsLayoutView>
-            <div>
-                <input type="text" className="custom-input h-40" placeholder="Filter here" />
-            </div>
-            <TableDisplay column={columns} data={organization} filtering={false} showpage={false} exporters={false} />
+            {isLoading ? Loading : (<section>
+                <div>
+                    <input type="text" className="custom-input h-40" placeholder="Filter here" />
+                </div>
+                <TableDisplay column={columns} data={organization} filtering={false} showpage={false} exporters={false} />
+            </section>)}
+
         </MainSettingsLayoutView>
     )
 }

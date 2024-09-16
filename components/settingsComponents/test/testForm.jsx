@@ -4,14 +4,14 @@ import { ToastContainer, toast } from 'react-toastify';
 import AuthContext from "../../Auth/useAuthentification";
 import Loader from "../../accessories/Loader";
 import {
-  customFetch,
   getDepartment,
   getSampleTypeList,
   defaultTestEditValues,
   handleChangeWithState,
   customPost,
-  getSingleEditTest,
+  getSingleEditTest
 } from "../../Auth/customFetch";
+import { Add } from "@mui/icons-material";
 
 export default function TestForm({ method, customtest, testid, router }) {
   const { auth } = useContext(AuthContext);
@@ -71,14 +71,24 @@ export default function TestForm({ method, customtest, testid, router }) {
         <>
           <div className="mx-2 d-flex justify-content-between">
             <h5 className="text-capitalize">{data?.name}</h5>
-            <button
-              onClick={(ev) => {
-                router.push(`/settings/testpanel/testlist/createfields?testid=${testid}&&testname=${data.name}`);
-              }}
-              className="btn btn-light btn-sm mb-1"
-            >
-              Test Fields
-            </button>
+            <div >
+              <button
+                onClick={(ev) => {
+                  router.push(`/settings/testpanel/testlist/${testid}/outsourcingList?testname=${data.name}`);
+                }}
+                className="btn btn-primary mb-1"
+              >
+               <Add/> Add outsourcing Organizations
+              </button>
+              <button
+                onClick={(ev) => {
+                  router.push(`/settings/testpanel/testlist/createfields?testid=${testid}&&testname=${data.name}`);
+                }}
+                className="btn btn-light btn-sm mb-1 mx-2"
+              >
+                Test Fields
+              </button>
+            </div>
           </div>
 
           <div className="border bg-white border-secondary-subtle mx-2 p-2">
@@ -245,7 +255,7 @@ export default function TestForm({ method, customtest, testid, router }) {
                 />
               </div>
               <div className="form-row grid-reg mt-2">
-                <label>Use Drugs <br/><small className="text-sm text-danger">(For culture and sensitivity test)</small></label>
+                <label>Use Drugs <br /><small className="text-sm text-danger">(For culture and sensitivity test)</small></label>
                 <Form.Switch
                   checked={data.hasDrugs === 1}
                   onChange={(ev) => {
