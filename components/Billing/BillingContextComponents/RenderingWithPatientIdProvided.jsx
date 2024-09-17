@@ -36,13 +36,20 @@ export default function RenderingWithPatientIdProvided() {
                                 {/* <h5>Current Billing</h5> */}
                                 {/* <hr /> */}
                                 <TestBillingTable toast={toast} />
-                                <hr />
-                                {
-                                    billingdata.billingSource && <div>
+                                <ServicesProvidedToPatientBilling />
+                                <ViewTaxesAppliedToTransaction />
+                                <div className="card mt-3">
+                                    <div className="card-header">
                                         <h6>Payment Information</h6>
-                                        <BillingPageAdditionalInformation />
                                     </div>
-                                }
+                                    <div className="card-body">
+                                        {
+                                            billingdata.billingSource && <div>
+                                                <BillingPageAdditionalInformation />
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
                             </Col>
                             <Col className="border">
                                 <BillingPageSummary />
@@ -51,8 +58,6 @@ export default function RenderingWithPatientIdProvided() {
                     </div>
                 </div>
             }
-            <ServicesProvidedToPatientBilling/>
-            <ViewTaxesAppliedToTransaction/>
         </div>
     )
 }

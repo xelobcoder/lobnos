@@ -70,6 +70,7 @@ export default function TrTable({ toast }) {
     setSelectedOutsource(null);
   };
 
+  
 
   const handleTestSelectedChangeVariable = (newValue) => {
     if (typeof newValue != "object") return;

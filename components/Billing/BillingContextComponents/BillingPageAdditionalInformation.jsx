@@ -19,36 +19,6 @@ export default function BillingPageAdditionalInformation() {
   const role = auth?.role;
   const [payment, setPayment] = useState({ amount: 0, mode: "", concession: "" });
 
-  const recalculateTotalBill = function () {
-    const { discount = 0, paid = 0, appsettings, cart } = billingdata;
-    const { taxIncluded, taxValue } = appsettings;
-    const totalTest = cart.length > 0
-      ? cart.reduce((a, b) => {
-        return a + b.discountedValue;
-      }, 0)
-      : 0;
-    let total = 0;
-    let amountIncurredDueTax = 0;
-    if (taxIncluded == 1) {
-      amountIncurredDueTax = (taxValue / 100) * parseFloat(totalTest);
-      total = amountIncurredDueTax + parseFloat(totalTest);
-    } else total = totalTest;
-    const payable = total - discount;
-    const outstanding = (payable - paid);
-    updateBilling((prev) => {
-      const nw = {
-        ...prev,
-        payable: payable,
-        outstanding,
-        amountIncurredDueTax,
-        taxValue,
-        testcost: totalTest,
-        cost: total,
-        taxIncluded: taxIncluded == 1 ? true : false,
-      };
-      return nw;
-    });
-  };
 
   const updatePaymentMode = (selectedOption) => {
     const { label, value } = selectedOption;
@@ -181,7 +151,7 @@ export default function BillingPageAdditionalInformation() {
                   onChange={(e) => {
                     updateBilling({ ...billingdata, discount: e.target.value });
                   }}
-                  onBlur={recalculateTotalBill}
+                 
                 />
               </div>
               <div>
@@ -191,7 +161,7 @@ export default function BillingPageAdditionalInformation() {
                   className="custom-input"
                   value={billingdata.paid}
                   onChange={(e) => updateBilling({ ...billingdata, paid: e.target.value })}
-                  onBlur={recalculateTotalBill}
+                 
                 />
               </div>
             </div>

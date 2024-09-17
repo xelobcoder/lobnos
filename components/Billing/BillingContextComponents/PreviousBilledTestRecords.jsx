@@ -55,7 +55,7 @@ export default function PreviousBilledTestRecords({ billingid }) {
                 </thead>
                 <tbody>
                     {previousTest.map((item, index) => {
-                        return (<tr  >
+                        return (<tr key={index} >
                             <td>{item.name}</td>
                             <td>1</td>
                             <td>{currencyFormatter.format(item.price)}</td>

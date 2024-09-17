@@ -11,7 +11,7 @@ export default function TestBillingTable({ toast}) {
 
 
   const removeFromCart = (testId) => {
-    updateBilling((prev) => {
+    updateBilling(function (prev) {
       const newCart = prev.cart.filter((item) => item.id !== testId);
       return { ...prev, cart: newCart };
     });
@@ -46,7 +46,7 @@ export default function TestBillingTable({ toast}) {
                 className="btn btn-danger btn-sm"
                 onClick={() => removeFromCart(item.id)}
               >
-                <Delete /> {/* Remove individual item */}
+                <Delete /> 
               </button>
             </td>
           </tr>

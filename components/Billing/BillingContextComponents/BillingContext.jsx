@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 
 
 const defaultdata = {
@@ -43,24 +43,20 @@ export function BillingPageContextProvider({ children }) {
   const [billingdata, setBillingdata] = useState(defaultdata);
   const updateBilling = (value) => { setBillingdata(value) };
 
+
   const recalculateTotalBill = function (billingdata) {
-    const { discount, paid, appsettings, cart, billingSource } = billingdata;
+    const { discount = 0, paid = 0, appsettings, cart, totalCostOfServices = 0 } = billingdata;
     const { taxIncluded, taxValue } = appsettings;
     if (cart.length === 0) return
-    let totalTest = 0;
-    if (billingSource == 1) {
-      totalTest = cart.reduce((a, b) => a + b.discountedValue, 0)
-    }
-
-    if (billingSource == 2 && cart.length > 0) {
-      totalTest = cart.reduce((a, b) => a + b.discountedValue, 0)
-    }
-
-    let total = 0;
+    let totalTest = parseFloat(cart.reduce((a, b) => a + b.discountedValue, 0))
+    let servicePlusTestCost = parseFloat(totalTest) + parseFloat(totalCostOfServices);
+    let total = servicePlusTestCost;
+    let amountIncurredDueTax = 0;
     if (taxIncluded == 1) {
-      total = (taxValue / 100) * totalTest + totalTest;
-    } else total = totalTest;
-    const payable = total - discount;
+      amountIncurredDueTax = (taxValue / 100) * servicePlusTestCost;
+      total = amountIncurredDueTax + servicePlusTestCost
+    }
+    const payable = total - parseFloat(discount)
     const outstanding = payable - paid;
 
     updateBilling((prev) => {
@@ -71,10 +67,15 @@ export function BillingPageContextProvider({ children }) {
         taxValue,
         testcost: totalTest,
         cost: total,
+        amountIncurredDueTax,
         taxIncluded: taxIncluded == 1 ? true : false,
       };
       return nw;
     });
   };
+
+  useEffect(() => {
+    recalculateTotalBill(billingdata);
+  }, [billingdata.cart, billingdata.discount, billingdata.servicesProvided,billingdata.paid])
   return <BillingProvider value={{ billingdata, updateBilling, recalculateTotalBill }}>{children}</BillingProvider>;
 }
