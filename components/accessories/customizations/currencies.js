@@ -1,4 +1,4 @@
-const currencies = [
+export const currencies = [
     {
         name: "United States Dollar",
         isoCode: "USD",

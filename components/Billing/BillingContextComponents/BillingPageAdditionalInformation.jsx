@@ -1,4 +1,4 @@
-import { Row } from "react-bootstrap";
+import { Row, Spinner } from "react-bootstrap";
 import { MoneyRounded, Clear } from "@mui/icons-material";
 import { useContext, useState } from "react";
 import { BillingContext } from "./BillingContext";
@@ -7,17 +7,19 @@ import AuthContext from "../../Auth/useAuthentification";
 import { useSearchParams } from "next/navigation";
 import { validateFormData } from "../../Auth/customFetch";
 import { toast } from "react-toastify";
-import { organizationOptions, urgencyOptions } from "../../../lib/billingLib";
+import { Billingdefaultdata, organizationOptions, urgencyOptions, ValidateAndSubmitBillingInformation } from "../../../lib/billingLib";
 
-export default function BillingPageAdditionalInformation() {
+export default function BillingPageAdditionalInformation({ patientid }) {
   const [showMoreBtn, setShowMoreBtn] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { billingdata, updateBilling } = useContext(BillingContext);
   const { auth } = useContext(AuthContext);
-  const patientid = useSearchParams().get("patientid");
   const employeeid = auth?.employeeid;
   const branchid = auth?.branchid;
   const role = auth?.role;
   const [payment, setPayment] = useState({ amount: 0, mode: "", concession: "" });
+
+  const isButtonDisabled = parseFloat(billingdata.paid) === 0 || parseFloat(billingdata.paid) < 0 || parseFloat(billingdata.paid) > billingdata.payable
 
 
   const updatePaymentMode = (selectedOption) => {
@@ -30,49 +32,17 @@ export default function BillingPageAdditionalInformation() {
   };
 
   const handleSubmit = async (ev) => {
-
-    ev.preventDefault();
-    const test = billingdata.cart.map((item) => item.id);
-    const samplingCenter = parseInt(branchid);
-    const { cost, paid, discount, payable, outstanding, paymentmode, organization, testcost, appsettings, clinician, taxIncluded, taxValue, type, status } = billingdata;
-    const data = {
-      paymentmode: parseInt(paymentmode),
-      samplingCenter,
-      test,
-      patientid: parseInt(patientid),
-      clinician: clinician || 0,
-      organization: organization || 0,
-      paid: parseFloat(paid),
-      payable: parseFloat(payable),
-      outstanding,
-      discount: parseFloat(discount),
-      samplingCenter,
-      taxIncluded,
-      taxValue,
-      status,
-      testcost,
-      employeeid,
-      type,
-    };
-
-    // const callbackResponse = async function (data) {
-    //   const { status, statusCode, message, billingid } = data;
-    //   if (status == "success" && (statusCode == 201 || statusCode == 200)) {
-    //     toast.success(message);
-    //   } else {
-    //     toast.error(message);
-    //   }
-    // };
-
-    // const { PaidBillsBeforeTransaction } = appsettings;
-    // if (PaidBillsBeforeTransaction == 1 && data.payable != data.paid) {
-    //   return toast.error("Full payment must be made outright please.To change this behaviour,please kindly updates the settings");
-    // }
-    // if (data.patientid && employeeid) {
-    //   validateFormData(data, false, ["test", "cost", "type", "patientid", "samplingCenter", "concession", "paid", "paymentmode", "status"], "billing", callbackResponse);
-    // }
-    console.log(data, billingdata);
+    setIsSaving(true);
+    const data = await ValidateAndSubmitBillingInformation({ ...billingdata, employeeid, branchid, patientid }, 'POST');
+    setIsSaving(false);
+    if (typeof data === "object") {
+      const { status, message } = data;
+      (status == true | status == "success") ? toast.success(message) : toast.error(message | data);
+    }
   };
+
+
+
 
   return (
     <Row>
@@ -105,7 +75,7 @@ export default function BillingPageAdditionalInformation() {
                   isDisabled={billingdata.type != "organization" || billingdata.billingSource == 2}
                   placeholder="Search organization here"
                   onChange={(newValue) => {
-                    updateBilling({ ...billingdata, organization: newValue?.id });
+                    updateBilling({ ...billingdata, organizationId: newValue?.id });
                   }}
                   options={billingdata.organizationData}
                   getOptionLabel={(option) => option.name}
@@ -122,7 +92,7 @@ export default function BillingPageAdditionalInformation() {
                   getOptionLabel={(option) => option.name}
                   getOptionValue={(option) => option.id}
                   onChange={(newValue) => {
-                    updateBilling({ ...billingdata, clinician: newValue?.id });
+                    updateBilling({ ...billingdata, clinicianId: newValue?.id });
                   }}
                   options={billingdata.clinicianData}
                 />
@@ -151,7 +121,7 @@ export default function BillingPageAdditionalInformation() {
                   onChange={(e) => {
                     updateBilling({ ...billingdata, discount: e.target.value });
                   }}
-                 
+
                 />
               </div>
               <div>
@@ -161,7 +131,7 @@ export default function BillingPageAdditionalInformation() {
                   className="custom-input"
                   value={billingdata.paid}
                   onChange={(e) => updateBilling({ ...billingdata, paid: e.target.value })}
-                 
+
                 />
               </div>
             </div>
@@ -171,18 +141,14 @@ export default function BillingPageAdditionalInformation() {
         <div className="mx-2">
           <div className="mt-2 d-flex justify-content-end">
             <button
-              disabled={
-                parseFloat(billingdata.paid) === 0 || parseFloat(billingdata.paid) < 0 || parseFloat(billingdata.paid) > billingdata.payable
-              }
+              disabled={isButtonDisabled}
               className="btn btn-success mx-2"
-              onClick={(ev) => {
-                handleSubmit(ev);
-              }}>
-              <MoneyRounded /> Bill Client{" "}
+              onClick={(ev) => { handleSubmit() }}>
+              {isSaving && <Spinner size="sm" />}<MoneyRounded /> Bill Client
             </button>
             <button
               onClick={(ev) => {
-                updateBilling({});
+                updateBilling(Billingdefaultdata);
               }}
               className="btn btn-danger">
               <Clear /> Cancel

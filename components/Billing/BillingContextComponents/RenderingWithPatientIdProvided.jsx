@@ -9,7 +9,7 @@ import BillingPageIndicatorsShow from "./Lib/BillingIndicators"
 import ServicesProvidedToPatientBilling from "./AdditionalServicesProvided"
 import ViewTaxesAppliedToTransaction from "./ViewTaxesAppliedToBillingTransaction"
 
-export default function RenderingWithPatientIdProvided() {
+export default function RenderingWithPatientIdProvided({patientid}) {
     const { billingdata } = useContext(BillingContext);
 
 
@@ -45,7 +45,7 @@ export default function RenderingWithPatientIdProvided() {
                                     <div className="card-body">
                                         {
                                             billingdata.billingSource && <div>
-                                                <BillingPageAdditionalInformation />
+                                                <BillingPageAdditionalInformation patientid={patientid}/>
                                             </div>
                                         }
                                     </div>

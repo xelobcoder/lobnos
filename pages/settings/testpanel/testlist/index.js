@@ -83,8 +83,12 @@ export default function TestListDisplay() {
             const { name, id } = row.original;
             return (
                <div>
-                  <button type="button" className="btn btn-secondary" onClick={(ev) => { router.push(`/settings/testpanel/testlist/createfields?testid=${id}&&testname=${name}`) }}>update fields</button>
-                  <Link href={`/settings/testpanel/testlist/createcustomtest?testid=${id}&&testname=${name}`} className="btn btn-secondary mx-1">
+                  <button type="button"
+                     className="btn btn-secondary mx-2"
+                     onClick={(ev) => { router.push(`/settings/testpanel/testlist/createfields?testid=${id}&&testname=${name}`) }}>
+                     update fields
+                  </button>
+                  <Link href={`/settings/testpanel/testlist/createcustomtest?testid=${id}&&testname=${name}`} className="btn btn-secondary">
                      update test
                   </Link>
                </div>

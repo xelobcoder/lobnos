@@ -21,9 +21,6 @@
     "@fullcalendar/timegrid": "^6.1.14",
     "@hookform/resolvers": "^3.6.0",
     "@mui/icons-material": "^5.15.19",
-    "ag-charts-react": "^10.0.2",
-    "ag-grid-community": "^32.0.2",
-    "ag-grid-react": "^32.0.2",
     "bootstrap": "^5.2.0",
     "dotenv": "^16.0.3",
     "dropzone": "^6.0.0-beta.2",
@@ -41,7 +38,6 @@
     "react-table": "^7.8.0",
     "react-toastify": "^9.1.3",
     "recharts": "^2.9.2",
-    "xlsx": "^0.18.5",
     "yup": "^1.4.0"
   },
   "devDependencies": {

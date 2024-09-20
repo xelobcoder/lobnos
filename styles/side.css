@@ -1,9 +1,4 @@
-:root{
-      --prime-links-font-family: "Lexend Deca", Helvetica, Arial, sans-serif, "Montserrat", sans-serif;
-      --wakpenjo:'Raleway', Helvetica, Arial, sans-serif;
-     --prime-ui-font-family:
-    --gray-900: #28272d;
-}
+
 html, body {
     height: 100%;
     background-color: #F5F7FA;
@@ -57,7 +52,8 @@ navbar {
   width: 60px;
   position: fixed;
   list-style-type: none;
-  background: #21263c;
+  /* background: #21263c; */
+  background-color: var(--prime-sidebar-deep);
   z-index:999;
  min-height: 100vh;
  color:#f9f9fb;

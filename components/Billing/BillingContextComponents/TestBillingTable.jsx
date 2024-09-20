@@ -22,7 +22,7 @@ export default function TestBillingTable({ toast}) {
   }
 
   return (
-    <Table className="table-striped billing-cart-table table-hover table p-0">
+    <Table className="table-striped  billing-cart-table table-hover table p-0">
       <thead className="text-capitalize">
         <tr>
           <th style={{ width: '40%' }}>Test</th>

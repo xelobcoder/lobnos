@@ -2,7 +2,7 @@ import { useContext, useEffect } from "react";
 import { BillingContext } from "./BillingContext";
 import { billingSource, canIgnoreDebtPaymentAndTax, getAllNecessaryData, getOustandingBill, LoadOrganizationalTest } from "../../../lib/billingLib";
 import OrganizationalBillingSourceSearch from "./BillingSourceComponents/OrganizationBillingSearch";
-import { currencyFormatter } from "../../Auth/customFetch";
+import { currencyFormatter, customFetch } from "../../Auth/customFetch";
 import Link from "next/link";
 import BillingPagePatientInformation from "./PersonalInfoView";
 
@@ -18,7 +18,7 @@ export default function BillingSourceDeterminer({ patientid }) {
                 updateBilling({
                     ...billingdata,
                     billingSourceTitle: 'General Billing',
-                    organizationid: null,
+                    organizationId: null,
                     billingSource: 1,
                     testpanels: [],
                     cart: [],
@@ -37,11 +37,14 @@ export default function BillingSourceDeterminer({ patientid }) {
         if (billingdata.billingSource && billingdata.billingSource == 2) {
             if (typeof value == "object") {
                 const { id, name, organizations } = value;
+                const paymentModes = await customFetch("paymentmodes");
+                const paymentmodeData = paymentModes?.data;
                 updateBilling({
                     ...billingdata,
-                    organizationid: id,
+                    organizationId: id,
                     cart: [],
                     type: 'organization',
+                    paymentmodeData,
                     testpanels: [],
                     organizationData: organizations,
                     billingSourceTitle: `Organizational Billing: ${name}`
@@ -52,11 +55,12 @@ export default function BillingSourceDeterminer({ patientid }) {
 
 
     const LoadOutStanding = async (patientid) => {
+        if (!patientid) return;
         const value = await getOustandingBill(patientid);
         if (value != 'ERROR') {
             const cantIgnoreDebt = await canIgnoreDebtPaymentAndTax(patientid);
             const { PaidBillsBeforeTransaction, includeTax, taxValue } = cantIgnoreDebt;
-            updateBilling({ ...billingdata, outstandingDebt: value, cantIgnoreDebt: PaidBillsBeforeTransaction == 1, appsettings: { taxIncluded: includeTax == 1, taxValue } })
+            updateBilling({ ...billingdata, outstandingDebt: value, cantIgnoreDebt: PaidBillsBeforeTransaction == 1, appsettings: { taxIncluded: includeTax == 1 || taxIncluded == "1", taxValue } })
         }
     }
 
@@ -66,8 +70,8 @@ export default function BillingSourceDeterminer({ patientid }) {
 
 
     useEffect(() => {
-        if (billingdata.organizationid) {
-            LoadOrganizationalTest(billingdata.organizationid)
+        if (billingdata.organizationId) {
+            LoadOrganizationalTest(billingdata.organizationId)
                 .then((response) => {
                     const { testList } = response;
                     if (testList && Array.isArray(testList) && testList.length > 0) {
@@ -86,9 +90,9 @@ export default function BillingSourceDeterminer({ patientid }) {
                     console.log(err)
                 })
         }
-    }, [billingdata.organizationid])
+    }, [billingdata.organizationId])
 
-
+    console.log(billingdata)
     return (
         <div>
             <section className="br-5 mb-2" style={{ display: 'grid', gridTemplateColumns: '20% 30% 35% 10%' }}>

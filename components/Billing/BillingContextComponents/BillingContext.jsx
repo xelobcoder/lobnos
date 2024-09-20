@@ -1,46 +1,13 @@
 import { createContext, useEffect, useState } from "react";
+import { Billingdefaultdata } from "../../../lib/billingLib";
 
 
-const defaultdata = {
-  test: "",
-  organization: "",
-  clinician: "",
-  paymentmode: "",
-  paid: 0,
-  discount: 0,
-  cost: "",
-  status: "normal",
-  payable: 0,
-  testcost: 0,
-  type: "",
-  previousRecords: [],
-  servicesProvided: [],
-  totalCostOfServices: 0,
-  taxAppliedRecords: [],
-  taxIncluded: true,
-  taxValue: 0,
-  patientid: "",
-  outstanding: 0,
-  samplingCenter: "",
-  testpanels: [],
-  employeeid: "",
-  billingSource: 0,
-  appsettings: { taxIncluded: false, taxValue: 0 },
-  cart: [],
-  isFree: false,
-  cantIgnoreDebt: false,
-  organizationData: [],
-  clinicianData: [],
-  amountIncurredDueTax: 0,
-  hasOutstandingDebt: false,
-  paymentmodeData: [],
-};
 
-export const BillingContext = createContext(defaultdata);
+export const BillingContext = createContext(Billingdefaultdata);
 export const BillingProvider = BillingContext.Provider;
 
 export function BillingPageContextProvider({ children }) {
-  const [billingdata, setBillingdata] = useState(defaultdata);
+  const [billingdata, setBillingdata] = useState(Billingdefaultdata);
   const updateBilling = (value) => { setBillingdata(value) };
 
 
@@ -56,8 +23,10 @@ export function BillingPageContextProvider({ children }) {
       amountIncurredDueTax = (taxValue / 100) * servicePlusTestCost;
       total = amountIncurredDueTax + servicePlusTestCost
     }
-    const payable = total - parseFloat(discount)
-    const outstanding = payable - paid;
+    let parsedDiscount = !isNaN(discount) && discount > 0 ? parseFloat(discount) : 0;
+    const parsedPaid = !isNaN(paid) && paid > 0 ? parseFloat(paid) : 0
+    const payable = total - parsedDiscount;
+    const outstanding = payable - parsedPaid;
 
     updateBilling((prev) => {
       const nw = {
@@ -65,7 +34,9 @@ export function BillingPageContextProvider({ children }) {
         payable: payable,
         outstanding,
         taxValue,
+        paid: parsedPaid,
         testcost: totalTest,
+        discount: parsedDiscount,
         cost: total,
         amountIncurredDueTax,
         taxIncluded: taxIncluded == 1 ? true : false,
@@ -76,6 +47,7 @@ export function BillingPageContextProvider({ children }) {
 
   useEffect(() => {
     recalculateTotalBill(billingdata);
-  }, [billingdata.cart, billingdata.discount, billingdata.servicesProvided,billingdata.paid])
+  }, [billingdata.cart, billingdata.discount, billingdata.servicesProvided, billingdata.paid]);
+
   return <BillingProvider value={{ billingdata, updateBilling, recalculateTotalBill }}>{children}</BillingProvider>;
 }

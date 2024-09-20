@@ -20,7 +20,7 @@ export default function AppCustomLayout({ children, sideLinks }) {
             </ul>
           </div>
         </div>
-        <div className="p-2">
+        <div className="p-2 pls-body">
           {children}
         </div>
       </div>
