@@ -1,6 +1,6 @@
 import '../styles/globals.css';
 import '../styles/plsidebar.css';
-import'../styles/content.css';
+import '../styles/content.css';
 import '../styles/table.css';
 import '../node_modules/react-toastify/dist/ReactToastify.min.css';
 import '../styles/result.css';
@@ -23,9 +23,9 @@ function MyApp({ Component, pageProps: { pageProps } }) {
 
   return (
     <AuthentificationProvider>
-        <MAIN_LAYOUT>
-          <Component {...pageProps} />
-        </MAIN_LAYOUT>
+      <MAIN_LAYOUT>
+        <Component {...pageProps} />
+      </MAIN_LAYOUT>
     </AuthentificationProvider>
   )
 }

@@ -1,3 +1,4 @@
+
 :root {
   --topband-bg: #21263c;
   --sidebar-bg: #f7f7fe;
@@ -17,6 +18,7 @@
   --wp--preset--gradient--midnight: linear-gradient(135deg, rgb(2, 3, 129) 0%, rgb(40, 116, 252) 100%);
 }
 
+
 html,body{
   scroll-behavior: smooth;
   text-size-adjust: 100%;
@@ -24,12 +26,13 @@ html,body{
     overflow-x: hidden;
     overflow-y: auto;
     min-height: 100vh;
+    background-color: #00224f0a !important;
 }
 
 
-*{
-  font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;  
 
+*{
+  font-family: 'Roboto','Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
 }
 
 
@@ -834,7 +837,9 @@ input[type="email"] {
 .br-7 {
   border-radius: 7px !important;
 }
-
+.br-0 {
+  border-radius: 0px !important;
+}
 
 
 .sales_summary {
@@ -1441,7 +1446,7 @@ padding: 0;  width: auto;
 }
 .grid-30-70{
   display: grid;
-  grid-template-columns: 30% 65%;
+  grid-template-columns: 30% 65% !important;
   grid-gap: 5%;
   height: inherit;
 }
@@ -1479,27 +1484,6 @@ body {
   border-radius: 5px !important;
 }
 
-/* .table-column-width-reset{
-  width: 150px;
-  max-width: 300px;
-  word-break: break-all;
-} */
-
-/* -------END OF WAKPENJO--------- */
-
-/* ul.nav-tabs[role='tablist'] >li.nav-item[role='presentation']> button.nav-link 
-{
-  background-color: blue !important;
-  color: white !important;
-  border:2px solid blue !important;
-  border-radius: 5px !important;
-  padding: 5px !important;
-  margin-right: 3px;
-}
-ul.nav-tabs[role='tablist'] >li.nav-item[role='presentation']> button.nav-link.active{
-  background-color: green !important;
-    border:2px solid green !important;
-} */
 
 .result-entry-layout{
   display: grid;
@@ -1541,4 +1525,24 @@ ul.nav-tabs[role='tablist'] >li.nav-item[role='presentation']> button.nav-link.a
   border-left: 4px solid #0056b3 !important;
   border-end-end-radius: 5px;
   border-top-right-radius: 5px;
+}
+
+.top-border-deep {
+  border-top: 5px solid var(--prime-sidebar-deep) !important;
+}
+.left-border-deep {
+  border-left: 5px solid red !important;
+}
+
+
+.text-dark {
+    color: #212529;
+}
+
+.text-white {
+    color: #ffffff; 
+}
+
+.column-bordered {
+  border-right: 1px solid lightgray !important;
 }

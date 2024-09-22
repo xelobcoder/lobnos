@@ -1,19 +1,25 @@
-import React  from "react";
+import React from "react";
 import TableDisplay from '../accessories/TableDisplay';
-export default function ListTable({ data, handleCollectSample ,receive}) {
+
+export default function ListTable({ data, handleCollectSample, receive }) {
   const columns = [
-    { Header: "DATE", accessor: "date",Cell:  ({value}) => {return new Date(value).toLocaleDateString()}},
-    { Header: "BILLINGID", accessor: "billingid" },
-    { Header: "FULLNAME", accessor: "fullname" },
-    { Header: "AGE", accessor: "age" },
-    { Header: "GENDER", accessor: "gender" },
-    { Header: "URGENCY", accessor: "clientstatus", Cell: ({ value }) => { return value == "urgent" ? <span className="border-bottom  border-3 border-danger">{value}</span> : <div>{value}</div>}},
-    { Header: "ACTION", accessor: "action",
+    { Header: "Date", accessor: "date", Cell: ({ value }) => { return new Date(value).toLocaleDateString() } },
+    { Header: "Fullname", accessor: "fullname" },
+    { Header: "Age", accessor: "age" },
+    { Header: "Gender", accessor: "gender" },
+    {
+      Header: "Urgency", accessor: "clientstatus",
+      Cell: ({ value }) => {
+        return value == "urgent" ? <span className="btn btn-danger btn-sm ">{value}</span> : <div>{value}</div>
+      }
+    },
+    {
+      Header: "Action", accessor: "action",
       Cell: ({ row }) => (
         <div>
-          {/* <button onClick={(ev) => {receive()}} className="btn btn-primary btn-sm mx-1" color="primary">
+          <button onClick={(ev) => { receive() }} className="btn btn-primary btn-sm mx-1" color="primary">
             receive
-          </button> */}
+          </button>
           <button
             className="btn btn-primary btn-sm mx-1"
             onClick={(e) => {
@@ -33,7 +39,7 @@ export default function ListTable({ data, handleCollectSample ,receive}) {
 
   return (
     <>
-     <TableDisplay column={columns} data={data} filtering={true} showpage={false} />
+      <TableDisplay  initpageSize={50} styling={'table shadow'} column={columns} data={data} filtering={true} showpage={false} />
     </>
   );
 }

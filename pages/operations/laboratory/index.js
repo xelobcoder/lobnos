@@ -71,10 +71,12 @@ export default function ResultEntryDepartmentViewTwo() {
       Header: "Date",
       accessor: "billing_date",
       Cell: ({ value }) => new Date(value).toLocaleDateString(),
+      width: '50px'
     },
     {
       Header: "Client name",
       accessor: "fullname",
+      width:'500px'
     },
     {
       Header: "patientid",
@@ -200,6 +202,15 @@ export default function ResultEntryDepartmentViewTwo() {
         <Row className="mx-2">
           <section className="card-body grid-30-30-30" >
             <div className="grid-30-70">
+              <label className="pls-label">fullname </label>
+              <input
+                className="custom-input"
+                onChange={(ev) => handleChangeWithState(ev, "fullname", setFilter, filter)}
+                type="text"
+                placeholder="Please type patient fullname or firstname or lastname here"
+              />
+            </div>
+            <div className="grid-30-70">
               <label className="pls-label">department</label>
               <Select
                 placeholder="select department"
@@ -215,15 +226,7 @@ export default function ResultEntryDepartmentViewTwo() {
                 }
               />
             </div>
-            <div className="grid-30-70">
-              <label className="pls-label">fullname </label>
-              <input
-                className="custom-input"
-                onChange={(ev) => handleChangeWithState(ev, "fullname", setFilter, filter)}
-                type="text"
-                placeholder="Please type patient fullname or firstname or lastname here"
-              />
-            </div>
+           
             <div className="grid-30-70">
               <label className="pls-label">test name</label>
               <Select
@@ -276,12 +279,9 @@ export default function ResultEntryDepartmentViewTwo() {
 
   return (
     <LaboratoryLayout>
-      <fieldset>
-        <legend className="bg-primary text-white col-4 px-4">Filter Here</legend>
-        {advancedFiltering(true)}
-      </fieldset>
+      {advancedFiltering(true)}
       {/* end of advanced filter */}
-      <hr/>
+      <hr />
       <section className="mx-2">
         <div className="d-flex justify-content-between">
           <h5>Pending Cases</h5>

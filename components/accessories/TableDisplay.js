@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination } from 'react-table';
+import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination, useFlexLayout } from 'react-table';
 import GlobalFilter from './GlobalFilter';
 import SECOND_NO_DATA from './secondNodata';
 
@@ -74,7 +74,7 @@ export default function TableDisplay({
     return (
       <>
         <div className="my-2">
-          <div className="card">
+          <div className="">
             <div className="card-body">
               <div className="d-flex justify-content-between col-12">
                 {filtering && <div className="col-6">

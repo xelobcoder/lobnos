@@ -10,7 +10,7 @@ export default function AppCustomLayout({ children, sideLinks }) {
 
 
   return (
-    <div class="body">
+    <div class="body inter-400 roboto-light">
       <ApplicationHeader />
       <div style={{ display: 'grid', gridTemplateColumns: '60px auto' }}>
         <div >

@@ -7,25 +7,29 @@ import AuthContext from "../../components/Auth/useAuthentification";
 import Loader from "../../components/accessories/Loader";
 import Pagination from "../../components/accessories/pagination";
 import PhelobotomyLayout from "../../components/Layout/PhelobotomyLayout";
+import PhelobotomySummaryAnalytics from "../../components/phelobotomy/PhelobotomySummaryAnalytics";
+import CustomAccordion from "../../components/phelobotomy/customAccordion";
+
+
 
 export default function Phelobotomy() {
   const { auth } = useContext(AuthContext);
   const { employeeid } = auth;
   const [data, setData] = useState([]);
-  const [paginate, setPaginate] = useState({ count: 10, page: 1 });
+  const [paginate, setPaginate] = useState({ count: 50, page: 1 });
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [load, setLoad] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [collection, setCollection] = useState({ billingid: null, patientid: null, fullname: null });
 
-  const handleCollectSample = async (id, patientid,fullname) => {
-    setCollection({billingid: id, patientid: patientid, fullname: fullname});
+  const handleCollectSample = async (id, patientid, fullname) => {
+    setCollection({ billingid: id, patientid: patientid, fullname: fullname });
     setShowModal(true);
   };
 
 
-  const hideModal = () => {setShowModal(false);}
+  const hideModal = () => { setShowModal(false); }
 
   const getPhelobotomy = useCallback(async () => {
     await getDataAndUpdateState(setData, `phelobotomy?count=${paginate.count}&&page=${paginate.page}`, false, setLoading);
@@ -52,7 +56,16 @@ export default function Phelobotomy() {
     } else {
       return (
         <div>
-          {<ListTable data={data} receive={receiveSample} handleCollectSample={handleCollectSample} />}
+          <PhelobotomySummaryAnalytics />
+          <section className="p-">
+            <div>
+              {/* <FilterPhelobotomyCases data={data} /> */}
+              {/* <div className="list-group">
+                {data.map((item, index) => <CustomAccordion key={index} item={item} />)}
+              </div> */}
+            </div>
+            {<ListTable data={data}  receive={receiveSample} handleCollectSample={handleCollectSample} />}
+          </section>
           {showModal && <CollectionSampleModal removeCollectedSample={removeCollectedSample} employeeid={employeeid} collection={collection} show={showModal} hide={hideModal} />}
           {openModal && <ReceiveLabSampleModal show={openModal} hide={closeModal} />}
           <div className="d-flex justify-content-center">
@@ -70,8 +83,9 @@ export default function Phelobotomy() {
 
   return (
     <PhelobotomyLayout>
-      <h5>Pending Sampling Ascension</h5>
-      {renderingView()}
+      <div className="p-4">
+        {renderingView()}
+      </div>
     </PhelobotomyLayout>
   );
 }
