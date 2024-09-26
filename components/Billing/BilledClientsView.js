@@ -50,11 +50,11 @@ export default function Payment_Extra() {
     },
     {
       Header: "Amount paid",
-      accessor: "paid_amount",
+      accessor: "paid",
       Cell: ({ value, row }) => {
         return (
           <div>
-            {currencyFormatter.format(row.original.paid_amount)}
+            {currencyFormatter.format(row.original.paid)}
           </div>
         )
       },

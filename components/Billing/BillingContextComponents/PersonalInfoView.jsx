@@ -26,21 +26,25 @@ export default function BillingPagePatientInformation() {
 
   return (
     <section>
-      <div className="mx-2 mb-3 bg-body-secondary">
-        <div className="text-capitalize p-2">
-          <div className="d-flex justify-content-between">
-            <span>
-              FullName:{data?.firstname} {data?.middlename} {data.lastname}</span>
-            <span>PatientId:{data?.patientid} </span>
-          </div>
-          <div className="d-flex justify-content-between">
-            <span>Email:{data?.email}</span>
-            <span>Age:{data?.age} {data?.ageType}</span>
-          </div>
-          <div className="d-flex justify-content-between">
-            <span>
-              Gender: {data?.gender}
+      <div className="mx-2 mb-3 bg-body-secondary ">
+        <div className="text-capitalize card bg-white br-0 p-2">
+          <div className="d-flex ">
+            <span className="fw-bold text-uppercase">
+              FullName:
             </span>
+            <span>
+              {data?.firstname} {data?.middlename} {data.lastname} ({data?.gender ? data?.gender.split("")[0] : ''} {data?.age || ""} {data?.ageType || ""})
+            </span>
+          </div>
+          <div>
+            <span className="fw-bold text-uppercase">PatientId:</span>
+            <span className="mx-2 ">
+              {data?.patientid}
+            </span>
+          </div>
+          <div className="d-flex ">
+            <span className="text-uppercase fw-bold">Email:</span>
+            <span className="text-lowercase mx-2">{data?.email}</span>
           </div>
         </div>
       </div>

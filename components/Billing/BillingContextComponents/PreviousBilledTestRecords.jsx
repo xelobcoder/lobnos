@@ -1,75 +1,92 @@
-import { Error } from "@mui/icons-material";
-import { useContext, useEffect, useState } from "react";
-import { Table } from "react-bootstrap";
-import { currencyFormatter, customFetch } from "../../Auth/customFetch";
-import { BillingContext } from "./BillingContext";
+import { useEffect, useState } from "react";
+import { Modal, Table } from "react-bootstrap";
+import { customFetch } from "../../Auth/customFetch";
+import RefundTestOrServiceListTr from "./BillingSourceComponents/refundTestOrServiceListTr";
+import { useSearchParams } from "next/navigation";
 
-export default function PreviousBilledTestRecords({ billingid }) {
-    const { billingdata, updateBilling } = useContext(BillingContext);
-    const [isLoading, setLoading] = useState(true);
-    const [previousTest, setPreviousTest] = useState([]);
+export default function PreviousBilledTestRecords({ show, closeModal }) {
+    const [previousRecords, setPreviousRecords] = useState([]);
+    const [isLoadingPrev, setIsLoadingPrev] = useState(false);
+    const [refundList, setRefundList] = useState([])
+    const billingid = useSearchParams().get('billingid');
 
-    const getPreviousBileTest = async function () {
+    const handleRefundList = (item) => {
+        if (refundList.includes(item)) {
+            const unMatched = refundList.filter((single, index) => single != item);
+            setRefundList(unMatched)
+        } else {
+            setRefundList([...refundList, item]);
+        }
+
+    }
+
+
+
+    const fetchPreviousBilledRecords = async function (billingid) {
         try {
-            if (billingid) {
-                setLoading(true)
-                let { result } = await customFetch(`testpanel/list/update?billingid=${billingid}`);
-                if (result && Array.isArray(result) && result.length > 0) {
-                    result = result.map((item) => { return { ...item, isPrevious: true } })
-                    setPreviousTest(result)
-                    updateBilling({ ...billingdata, previousRecords: result })
-                }
+            if (!billingid) return;
+            setIsLoadingPrev(true);
+            const { result } = await customFetch(`billing/information/single?billingid=${billingid}`);
+            if (Array.isArray(result) && result.length > 0) {
+                setPreviousRecords(result)
             }
         } catch (err) {
-            console.log(err);
+            setIsLoadingPrev([]);
+            setIsLoadingPrev(false);
+            alert('something went wrong');
         } finally {
-            setLoading(false);
+            setIsLoadingPrev(false);
         }
     }
 
+
     useEffect(() => {
-        getPreviousBileTest();
-    }, [billingid]);
+        fetchPreviousBilledRecords(billingid);
+    }, [billingid])
 
-    const canRefund = (item) => {
-        return item && typeof item === "object" && item.processing && item.processing == "false";
-    }
+    if (isLoadingPrev) return <div>Loading Previous Billing Record for this same day</div>
 
-    if (isLoading && billingid) return <div>Loading Previous Billed Test .....</div>;
-    if (previousTest.length === 0 && billingid) return <div className="text-capitalize"><Error color="error" /> No previous records found </div>
-
-
+    console.log(previousRecords)
     return (
-        <div>
-            <h5>Previous Records</h5>
-            <Table className="billing-cart-table table">
-                <thead>
-                    <tr>
-                        <th style={{ width: '40%' }}>test</th>
-                        <th style={{ width: '10%' }}>quantity</th>
-                        <th style={{ width: '10%' }}>price</th>
-                        <th style={{ width: '10%' }}>date</th>
-                        <th style={{ width: '15%' }}>time </th>
-                        <th style={{ width: '15%' }}>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {previousTest.map((item, index) => {
-                        return (<tr key={index} >
-                            <td>{item.name}</td>
-                            <td>1</td>
-                            <td>{currencyFormatter.format(item.price)}</td>
-                            {/* to be changed to billing date instead of the ascension date */}
-                            <td>{new Date(item.billedon).toLocaleDateString()}</td>
-                            <td>{new Date(item.billedon).toLocaleTimeString()}</td>
-                            <td>
-                                {canRefund(item) && <button className="btn text-capitalize btn-danger btn-sm p-1">refund</button>
-                                }
-                            </td>
-                        </tr>)
-                    })}
-                </tbody>
-            </Table>
-        </div>
+        <Modal show={show} size="fullscreen"   >
+            <Modal.Header>
+                <h5 className="fw-bold">
+                    Remove or Refund Services Or Test Billed
+                </h5>
+            </Modal.Header>
+            <Modal.Body>
+                <div>
+                    {previousRecords.length > 0 &&
+                        (
+                            <div>
+                                <h5>Previous Records</h5>
+                                <Table className="billing-cart-table table">
+                                    <thead>
+                                        <tr>
+                                            <th>type</th>
+                                            <th style={{ width: '30%' }}>name</th>
+                                            <th>outsourced</th>
+                                            <th>outsourced To</th>
+                                            <th >quantity</th>
+                                            <th >price</th>
+                                            <th style={{ width: '5%' }}>added on</th>
+                                            <th style={{ width: '20%' }}>refund</th>
+                                            {refundList.length > 0 && <th style={{ width: '20%' }}>Reason</th>}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {Array.isArray(previousRecords) && previousRecords.length > 0 && previousRecords.map((item, index) => {
+                                            return (<RefundTestOrServiceListTr refundList={refundList} key={index} index={index} item={item} handleRefundList={handleRefundList} />)
+                                        })}
+                                    </tbody>
+                                </Table>
+                            </div>
+                        )}
+                </div>
+            </Modal.Body>
+            <Modal.Footer>
+                <button onClick={(ev) =>  {closeModal()}} className="btn btn-danger">close </button>
+            </Modal.Footer>
+        </Modal>
     )
 }

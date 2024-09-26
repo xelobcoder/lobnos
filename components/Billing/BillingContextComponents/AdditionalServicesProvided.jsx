@@ -70,8 +70,8 @@ export default function ServicesProvidedToPatientBilling({ billingid, patientid 
                             </tr>
                         </thead>
                         <tbody>
-                            {Array.from(selectedServices.values()).map((service) => (
-                                <tr key={service.keyid}>
+                            {Array.from(selectedServices.values()).map((service,index) => (
+                                <tr key={index}>
                                     <td>{service.serviceName}</td>
                                     <td>{currencyFormatter.format(service.servicePrice)}</td>
                                     <td>

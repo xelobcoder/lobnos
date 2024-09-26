@@ -1,28 +1,37 @@
-import { useContext, useEffect } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { BillingContext } from "./BillingContext";
 import { billingSource, canIgnoreDebtPaymentAndTax, getAllNecessaryData, getOustandingBill, LoadOrganizationalTest } from "../../../lib/billingLib";
 import OrganizationalBillingSourceSearch from "./BillingSourceComponents/OrganizationBillingSearch";
 import { currencyFormatter, customFetch } from "../../Auth/customFetch";
 import Link from "next/link";
 import BillingPagePatientInformation from "./PersonalInfoView";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function BillingSourceDeterminer({ patientid }) {
     const { billingdata, updateBilling } = useContext(BillingContext);
+    const queryBillingid = useSearchParams().get("billingid");
+    const router = useRouter();
+
+
+    const initGeneralBillingData = useCallback(async function () {
+        if (billingdata.billingSource === 1) {
+            const initGeneralBillingData = await getAllNecessaryData();
+            updateBilling({ ...billingdata, billingSourceTitle: 'General Billing', ...initGeneralBillingData });
+        }
+    }, [billingdata.billingSource]);
+
 
     const updateBillingSourceSelected = async (ev) => {
         let { value } = ev.target;
         value = parseInt(value);
         if (typeof value == "number" && !isNaN(value)) {
             if (value == 1) {
-                const initGeneralBillingData = await getAllNecessaryData();
                 updateBilling({
                     ...billingdata,
-                    billingSourceTitle: 'General Billing',
                     organizationId: null,
                     billingSource: 1,
                     testpanels: [],
                     cart: [],
-                    ...initGeneralBillingData
                 })
             } else {
                 updateBilling({
@@ -60,13 +69,36 @@ export default function BillingSourceDeterminer({ patientid }) {
         if (value != 'ERROR') {
             const cantIgnoreDebt = await canIgnoreDebtPaymentAndTax(patientid);
             const { PaidBillsBeforeTransaction, includeTax, taxValue } = cantIgnoreDebt;
-            updateBilling({ ...billingdata, outstandingDebt: value, cantIgnoreDebt: PaidBillsBeforeTransaction == 1, appsettings: { taxIncluded: includeTax == 1 || taxIncluded == "1", taxValue } })
+            updateBilling({ ...billingdata, outstandingDebt: value, cantIgnoreDebt: PaidBillsBeforeTransaction == 1, appsettings: { taxIncluded: includeTax == 1 || includeTax == "1", taxValue } })
+        }
+
+        if (value === 0) {
+            const hasBeenPreviouslyBilledOnSameDay = await customFetch(`billing/caninitialbill?patientid=${patientid}`);
+            const { canInitiateBill, billingid } = hasBeenPreviouslyBilledOnSameDay;
+            if (!canInitiateBill && !queryBillingid && billingid) {
+                router.push(`/billing/patientid?patientid=2024972&&billingid=${billingid}`);
+            } else {
+                // if (queryBillingid && !isNaN(parseInt(queryBillingid))) {
+                //     const prevRecords = await customFetch(`billing/information/single?billingid=${queryBillingid}`);
+                //     if (prevRecords.hasOwnProperty('result')) {
+                //         const { result } = prevRecords;
+                //         updateBilling({ ...billingdata, ...result[0] });
+                //     }
+                // }
+            }
         }
     }
 
     useEffect(() => {
         LoadOutStanding(patientid);
     }, [patientid])
+
+
+    useEffect(() => {
+        initGeneralBillingData();
+    }, [billingdata.billingSource])
+
+
 
 
     useEffect(() => {
@@ -92,14 +124,15 @@ export default function BillingSourceDeterminer({ patientid }) {
         }
     }, [billingdata.organizationId])
 
-    console.log(billingdata)
+
     return (
         <div>
             <section className="br-5 mb-2" style={{ display: 'grid', gridTemplateColumns: '20% 30% 35% 10%' }}>
-                <div className="form-group">
+                <div className="form-group ">
                     <label>Billing Source</label>
                     <select
-                        disabled={billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0}
+                        value={billingdata.billingSource}
+                        disabled={billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0 || billingdata.previousRecords.length > 0}
                         onChange={(ev) => { updateBillingSourceSelected(ev) }}
                         className="custom-select">
                         <option value=''>select an option below</option>
@@ -149,6 +182,12 @@ export default function BillingSourceDeterminer({ patientid }) {
                             </button>
                         </Link>
                     </div>)
+                }
+                {queryBillingid && billingdata.outstandingDebt == 0 && <div>
+                    <button onClick={(ev) => { updateBilling({ ...billingdata, previewPrevious: true }) }} className="btn btn-danger  text-capitalize">
+                        refund or remove bill
+                    </button>
+                </div>
                 }
             </section>
         </div>

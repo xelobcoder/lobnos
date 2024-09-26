@@ -8,14 +8,19 @@ import { BillingContext } from "./BillingContext"
 import BillingPageIndicatorsShow from "./Lib/BillingIndicators"
 import ServicesProvidedToPatientBilling from "./AdditionalServicesProvided"
 import ViewTaxesAppliedToTransaction from "./ViewTaxesAppliedToBillingTransaction"
+import PreviousBilledTestRecords from "./PreviousBilledTestRecords"
 
-export default function RenderingWithPatientIdProvided({patientid}) {
-    const { billingdata } = useContext(BillingContext);
+export default function RenderingWithPatientIdProvided({ patientid }) {
+    const { billingdata, updateBilling } = useContext(BillingContext);
 
+    const closModal = () => {
+        updateBilling({ ...billingdata, previewPrevious: false });
+    }
 
     return (
         <div>
             {billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0 ? (<div className="bg-danger-subtle fw-bold br-0 p-3 heightedBorder">Settle outstanding Debt please</div>) : <div></div>}
+            {billingdata.previewPrevious && <PreviousBilledTestRecords closeModal={closModal} show={billingdata.previewPrevious} />}
             {!billingdata.billingSource ? <div></div> :
                 <div>
                     <ToastContainer theme="colored" position="top-center" className="text-sm fw-bold" autoClose={3000} />
@@ -31,10 +36,6 @@ export default function RenderingWithPatientIdProvided({patientid}) {
                                 height: "90vh"
                             }}>
                             <Col style={{ height: "inherit", overflowY: "auto", overflowX: "hidden", padding: "10px" }}>
-                                {/* {billingid && <PreviousBilledTestRecords billingid={billingid} />} */}
-                                <hr />
-                                {/* <h5>Current Billing</h5> */}
-                                {/* <hr /> */}
                                 <TestBillingTable toast={toast} />
                                 <ServicesProvidedToPatientBilling />
                                 <ViewTaxesAppliedToTransaction />
@@ -45,7 +46,7 @@ export default function RenderingWithPatientIdProvided({patientid}) {
                                     <div className="card-body">
                                         {
                                             billingdata.billingSource && <div>
-                                                <BillingPageAdditionalInformation patientid={patientid}/>
+                                                <BillingPageAdditionalInformation patientid={patientid} />
                                             </div>
                                         }
                                     </div>
