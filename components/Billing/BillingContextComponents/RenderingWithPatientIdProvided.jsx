@@ -18,23 +18,18 @@ export default function RenderingWithPatientIdProvided({ patientid }) {
     }
 
     return (
-        <div>
+        <div >
             {billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0 ? (<div className="bg-danger-subtle fw-bold br-0 p-3 heightedBorder">Settle outstanding Debt please</div>) : <div></div>}
             {billingdata.previewPrevious && <PreviousBilledTestRecords closeModal={closModal} show={billingdata.previewPrevious} />}
             {!billingdata.billingSource ? <div></div> :
                 <div>
                     <ToastContainer theme="colored" position="top-center" className="text-sm fw-bold" autoClose={3000} />
-                    <div className="card">
-                        <div className="card-header d-flex justify-content-between">
+                    <div className="">
+                        <div className="mx-3 d-flex justify-content-between">
                             <h4>{billingdata.billingSourceTitle}</h4>
                             <BillingPageIndicatorsShow />
                         </div>
-                        <div className="mx-2 card-body m-0 p-0"
-                            style={{
-                                display: "grid",
-                                gridTemplateColumns: "80% 20%",
-                                height: "90vh"
-                            }}>
+                        <div className="mx-2  m-0 p-0">
                             <Col style={{ height: "inherit", overflowY: "auto", overflowX: "hidden", padding: "10px" }}>
                                 <TestBillingTable toast={toast} />
                                 <ServicesProvidedToPatientBilling />

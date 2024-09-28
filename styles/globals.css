@@ -1157,7 +1157,7 @@ textarea:required:focus:invalid {
 
 
 .pls-header {
-  font-size: 20px;
+  /* font-size: 20px; */
   color: white;
 }
 

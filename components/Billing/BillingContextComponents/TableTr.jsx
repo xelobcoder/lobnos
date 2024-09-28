@@ -70,7 +70,12 @@ export default function TrTable({ toast }) {
     setSelectedOutsource(null);
   };
 
-  
+
+  const handleDiscount = (ev) => {
+    const { value } = ev.target;
+    setSelected({ ...selected, discount: parseFloat(value) })
+  }
+
 
   const handleTestSelectedChangeVariable = (newValue) => {
     if (typeof newValue != "object") return;
@@ -110,12 +115,12 @@ export default function TrTable({ toast }) {
     }
     else if (OutsourcingCompaniesList.length == 0 && !loadingOutsource && selected?.isoutsourced == 1 && !billingdata.cart.find((item, index) => item.id == selected?.id)) {
       return (<div>
-          {role && ['manager', 'admin'].includes(role) ?
-            <div>
-              organization not added for test <br /><Link href={`/settings/testpanel/testlist/${selected?.id}/outsourcingList?testname=R${selected?.name}`}><LinkOff /> Add Outsourcing organization</Link>
-            </div>
-            :
-            <div>Outsourcing organization not added to test</div>}
+        {role && ['manager', 'admin'].includes(role) ?
+          <div>
+            organization not added for test <br /><Link href={`/settings/testpanel/testlist/${selected?.id}/outsourcingList?testname=R${selected?.name}`}><LinkOff /> Add Outsourcing organization</Link>
+          </div>
+          :
+          <div>Outsourcing organization not added to test</div>}
       </div>)
     } else {
       return <div></div>
@@ -136,6 +141,13 @@ export default function TrTable({ toast }) {
       </td>
       <td colSpan={2}>
         {displayOutsourcingChoicingOptions()}
+      </td>
+      <td>
+        <input
+          onChange={(ev) => { handleDiscount(ev) }}
+          className="custom-input" type="number" step={0.1} max={selected != null ? selected.discountedValue : ''} />
+        <br />
+        <div className="text-sm text-danger">please provide absolute values</div>
       </td>
       <td>
         <button

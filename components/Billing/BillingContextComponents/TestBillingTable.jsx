@@ -5,7 +5,7 @@ import { BillingContext } from "./BillingContext";
 import TrTable from "./TableTr";
 import { currencyFormatter } from "../../Auth/customFetch";
 
-export default function TestBillingTable({ toast}) {
+export default function TestBillingTable({ toast }) {
   const { billingdata, updateBilling } = useContext(BillingContext);
   const cart = billingdata?.cart;
 
@@ -29,29 +29,31 @@ export default function TestBillingTable({ toast}) {
           <th style={{ width: '10%' }}>Quantity</th>
           <th style={{ width: '20%' }}>Outsourcing To</th>
           <th style={{ width: '10%' }}>Price</th>
+          <th style={{ width: '10%' }}>discount</th>
           <th style={{ width: '20%' }}>Action</th>
         </tr>
       </thead>
       <tbody>
+        <TrTable toast={toast} />
         {cart.length > 0 && cart.map((item, index) => (
-          <tr className={item.isoutsourced === 1 ? 'table-danger' : ''} key={index}>
+          <tr style={{fontSize:'12px'}} className={item.isoutsourced === 1 ? 'table-danger' : ''} key={index}>
             <td>{item.name}</td>
             <td>{item.quantity || 1}</td>
             <td>
               {item.isoutsourced === 1 && item?.label}
             </td>
             <td>{currencyFormatter.format(item.discountedValue)}</td>
+            <td>{currencyFormatter.format(item.discount || 10)}</td>
             <td>
               <button
                 className="btn btn-danger btn-sm"
                 onClick={() => removeFromCart(item.id)}
               >
-                <Delete /> 
+                <Delete />
               </button>
             </td>
           </tr>
         ))}
-        <TrTable toast={toast} />
       </tbody>
     </Table>
   );

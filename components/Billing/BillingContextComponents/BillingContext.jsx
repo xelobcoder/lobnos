@@ -12,18 +12,24 @@ export function BillingPageContextProvider({ children }) {
 
 
   const recalculateTotalBill = function (billingdata) {
-    const { discount = 0, paid = 0, appsettings, cart, totalCostOfServices = 0 } = billingdata;
+    const { paid = 0, appsettings, cart, totalCostOfServices = 0 } = billingdata;
     const { taxIncluded, taxValue } = appsettings;
     if (cart.length === 0) return
-    let totalTest = parseFloat(cart.reduce((a, b) => a + b.discountedValue, 0))
+    let totalTest = parseFloat(cart.reduce((a, b) => a + b.discountedValue, 0));
+
     let servicePlusTestCost = parseFloat(totalTest) + parseFloat(totalCostOfServices);
+
     let total = servicePlusTestCost;
     let amountIncurredDueTax = 0;
     if (taxIncluded == 1) {
       amountIncurredDueTax = (taxValue / 100) * servicePlusTestCost;
       total = amountIncurredDueTax + servicePlusTestCost
     }
+    let discount = 0;
+    discount = cart.reduce((a, b) => a + b.discount, 0);
+
     let parsedDiscount = !isNaN(discount) && discount > 0 ? parseFloat(discount) : 0;
+
     const parsedPaid = !isNaN(paid) && paid > 0 ? parseFloat(paid) : 0
     const payable = total - parsedDiscount;
     const outstanding = payable - parsedPaid;

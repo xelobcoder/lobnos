@@ -126,7 +126,7 @@ export default function BillingSourceDeterminer({ patientid }) {
 
 
     return (
-        <div>
+        <div className="">
             <section className="br-5 mb-2" style={{ display: 'grid', gridTemplateColumns: '20% 30% 35% 10%' }}>
                 <div className="form-group ">
                     <label>Billing Source</label>
