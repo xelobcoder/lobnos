@@ -43,7 +43,7 @@ export default function TestBillingTable({ toast }) {
               {item.isoutsourced === 1 && item?.label}
             </td>
             <td>{currencyFormatter.format(item.discountedValue)}</td>
-            <td>{currencyFormatter.format(item.discount || 10)}</td>
+            <td>{currencyFormatter.format(item.discount || 0)}</td>
             <td>
               <button
                 className="btn btn-danger btn-sm"

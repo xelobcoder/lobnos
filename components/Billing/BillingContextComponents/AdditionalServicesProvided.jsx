@@ -64,16 +64,20 @@ export default function ServicesProvidedToPatientBilling({ billingid, patientid 
                     <table className="table mt-3">
                         <thead>
                             <tr>
-                                <th>Service Name</th>
-                                <th>Price</th>
-                                <th>Actions</th>
+                                <th className='text-capitalize'>Service Name</th>
+                                <th className='text-capitalize'>Price</th>
+                                <th className='text-capitalize'>discount</th>
+                                <th className='text-capitalize'>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {Array.from(selectedServices.values()).map((service,index) => (
+                            {Array.from(selectedServices.values()).map((service, index) => (
                                 <tr key={index}>
                                     <td>{service.serviceName}</td>
                                     <td>{currencyFormatter.format(service.servicePrice)}</td>
+                                    <td>
+                                       {currencyFormatter.format(service.discount || 0)}
+                                    </td>
                                     <td>
                                         <button
                                             className="btn btn-danger btn-sm"
