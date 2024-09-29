@@ -55,7 +55,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                         <div className="grid-reg">
                             <label>Blood Pressure</label>
                             <div className="d-flex flex-wrap">
-                                <div className="col-12 col-sm-6 col-md-6 mb-2">
+                                <div className="col-12 col-sm-6 col-md-2 mb-2">
                                     <input
                                         value={formData.blood_pressure_upperLimit}
                                         onChange={(ev) => handleChangeWithState(ev, 'blood_pressure_upperLimit', setFormData, formData)}
@@ -65,7 +65,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                                         name="bpupperlimit"
                                     />
                                 </div>
-                                <div className="col-12 col-sm-6 col-md-6 mb-2">
+                                <div className="col-12 col-sm-6 mx-2 col-md-2 mb-2">
                                     <input
                                         value={formData.blood_pressure_lowerLimit}
                                         onChange={(ev) => handleChangeWithState(ev, 'blood_pressure_lowerLimit', setFormData, formData)}
@@ -79,7 +79,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                         </div>
                         <div className="grid-reg mt-2">
                             <label>Temperature</label>
-                            <div className="col-12 col-md-6 mb-2">
+                            <div className="col-12 col-md-2 mb-2">
                                 <input
                                     min={0}
                                     max={100}
@@ -94,7 +94,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                         </div>
                         <div className="grid-reg mt-2">
                             <label>Pulse</label>
-                            <div className="col-12 col-md-6 mb-2">
+                            <div className="col-12 col-md-2 mb-2">
                                 <input
                                     className="custom-input"
                                     value={formData.pulse}
@@ -107,7 +107,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                         </div>
                         <div className="grid-reg mt-2">
                             <label>Respiration</label>
-                            <div className="col-12 col-md-6 mb-2">
+                            <div className="col-12 col-md-2 mb-2">
                                 <input
                                     className="custom-input"
                                     placeholder="Respiration"
@@ -120,7 +120,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                         </div>
                         <div className="grid-reg mt-2">
                             <label>Spo2</label>
-                            <div className="col-12 col-md-6 mb-2">
+                            <div className="col-12 col-md-2 mb-2">
                                 <input
                                     min={0}
                                     max={100}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import SubLinksSideBar from "./LinksDisplay";
 import ApplicationHeader from "./HeaderNav";
+import { Container } from "react-bootstrap";
 
 export default function AppCustomLayout({ children, sideLinks }) {
   const [target, setTarget] = useState(null);
@@ -20,8 +21,10 @@ export default function AppCustomLayout({ children, sideLinks }) {
             </ul>
           </div>
         </div>
-        <div className="p-2 pls-body">
-          {children}
+        <div>
+          <Container fluid className="p-2" >
+            {children}
+          </Container>
         </div>
       </div>
     </div>

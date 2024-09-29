@@ -46,7 +46,7 @@ export default function PendingTableSample({ data, removeClient }) {
 
   return (
     <>
-      <TableDisplay column={columns} data={data} filtering={true} showpage={false} />
+      <TableDisplay column={columns} data={data}  filtering={true} showpage={false} />
       <SampleAssessmentModal show={showAssesModal} hide={closeModal} billingid={target} removeClient={removeClient} />
     </>
   )

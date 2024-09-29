@@ -7,10 +7,13 @@ import FlaskIconSvg from "../icons/FlaskIcon";
 import PaperProfile from "../icons/profilePaper";
 
 const sidebarLinks = [
+  { title: "Sample Validation", link: "/sample", icon: <Science /> },
   { title: "Operations", link: "/operations/laboratory", icon: <FlaskIconSvg /> },
+  { title: "Processing stage", link: "/operations/laboratory/processing", icon: <FlaskIconSvg /> },
+  { title: "Completed stage", link: "/operations/laboratory/completed", icon: <FlaskIconSvg /> },
+  { title: "Validation stage", link: "/operations/laboratory/validation", icon: <FlaskIconSvg /> },
   { title: "Archive Results", link: "/operations/laboratory/patientarchives", icon: <PaperProfile /> },
   { title: "Phelobotomy", link: "/phelobotomy", icon: <LocalHospital /> },
-  { title: "Sample Validation", link: "/sample", icon: <Science /> },
   { title: "Rejected Samples", link: "/sample/rejected", icon: <Dangerous /> },
 ];
 

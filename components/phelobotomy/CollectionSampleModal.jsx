@@ -4,7 +4,7 @@ import { customPost, getDataAndUpdateState } from "../Auth/customFetch";
 import { ToastContainer, toast } from "react-toastify";
 import Loader from "../accessories/Loader";
 import ReceivedCollectionModalTableTr from "./ReceivedCollectionModalTableTr";
-import AuthContext from "../Auth/useAuthentification";
+
 
 export default function CollectionSampleModal({
   show,

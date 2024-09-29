@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Spinner } from "react-bootstrap";
-import { customPost } from "../Auth/customFetch";
+import { calculateTimeUsed, customPost } from "../Auth/customFetch";
 import moment from "moment/moment";
 import { Start, Stop } from "@mui/icons-material";
 
@@ -27,23 +27,8 @@ export default function ReceivedCollectionModalTableTr({ item, toggleMultipleSel
         }
     };
 
-    const calculateTimeUsed = (startTime, endTime) => {
-        const start = moment(startTime);
-        const end = moment(endTime);
-        const h = end.diff(start, 'hours');
-        const m = end.diff(start, 'minutes');
-        const d = end.diff(start, 'days');
-        const s = end.diff(start, 'seconds');
-        if (d > 0) {
-            return `${d} days~ ${h} hours ~ ${m} mins`
-        } else if (h > 0) {
-            return `${h} hours ~ ${m} mins`
-        } else if (m > 0) {
-            return `${m} mins`
-        } else {
-            return `${s} seconds`
-        }
-    }
+   
+    
 
 
     const statusView = (item) => {

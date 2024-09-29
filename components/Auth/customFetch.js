@@ -1,4 +1,5 @@
 import Cookies from "js-cookie"
+import moment from "moment"
 
 /**
  * Sends an HTTP request to the specified endpoint and returns the response as JSON.
@@ -945,3 +946,22 @@ export const reactSelectCustomStyles = {
     textOverflow: "ellipsis",
   }),
 };
+
+
+export const calculateTimeUsed = (startTime, endTime) => {
+  const start = moment(startTime);
+  const end = moment(endTime);
+  const h = end.diff(start, 'hours');
+  const m = end.diff(start, 'minutes');
+  const d = end.diff(start, 'days');
+  const s = end.diff(start, 'seconds');
+  if (d > 0) {
+    return `${d} days~ ${h} hours ~ ${m} mins`
+  } else if (h > 0) {
+    return `${h} hours ~ ${m} mins`
+  } else if (m > 0) {
+    return `${m} mins`
+  } else {
+    return `${s} seconds`
+  }
+}

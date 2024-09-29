@@ -56,8 +56,7 @@ const PhelobotomyAnalyticsPage = () => {
         <MonthlyApprovalRateByMonthAndYear data={data.monthlyApprovalRate} />
         <div className='d-flex-lg'>
           <div className='col-md-12 col-lg-12 heightedBorder my-2'>
-            <ImportantAnalyticsRecorded data={data.
-              timeBetweenCollectionStartAndEnd[0]} />
+            <ImportantAnalyticsRecorded data={data.timeBetweenCollectionStartAndEnd[0]} />
           </div>
           <div className='col-md-12 col-lg-12 my-2 heightedBorder'>
             <TotalTestCollectedByYearTableView data={data.totalTestsByYear} />

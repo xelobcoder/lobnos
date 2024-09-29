@@ -44,7 +44,8 @@ body {
 *{
 
   font-family: 'Roboto','Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-      /* font-family: "Raleway",Helvetica,Arial,sans-serif; */
+  /* font-family: Outfit, Arial, Helvetica, sans-serif; */
+      /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
 }
 
 
@@ -438,7 +439,7 @@ i {font-size:100px;
   border-radius: 3px !important;
   font-size: 14px;
   padding-left: 10px;
-  width: inherit;
+  width: 100%;
   color: #00224f;
 }
 .custom-select:disabled{

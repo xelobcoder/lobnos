@@ -1,8 +1,10 @@
 import React from 'react';
 import { Edit } from '@mui/icons-material';
 import { getStatusClass, NORMAL_RANGES } from './dataActions/vitalsigns';
+import { useRouter } from 'next/navigation';
 
-export default function VitalSignTable({ groupedVitalSigns,openModal }) {
+export default function VitalSignTable({ groupedVitalSigns, openModal }) {
+	const router = useRouter();
 
 	return (
 		<div className="table-responsive">
@@ -30,7 +32,7 @@ export default function VitalSignTable({ groupedVitalSigns,openModal }) {
 						<tbody>
 							{groupedVitalSigns[date].map((vitalSign, index) => {
 								const [systolic, diastolic] = vitalSign.bp.split('/').map(Number);
-								
+
 
 								return (
 									<tr key={vitalSign.vitalsignid}>
@@ -50,7 +52,7 @@ export default function VitalSignTable({ groupedVitalSigns,openModal }) {
 											{vitalSign.temperature}
 										</td>
 										<td>
-											<button className='btn p-0 bg-info-subtle'>
+											<button onClick={(ev) => { router.push(`/customers/recordVitalSigns?iNewChart=1&&patientid=2024972&&edit=1&&vsKeyId=${vitalSign.vitalsignid}`)}} className='btn p-0 bg-info-subtle'>
 												<Edit />
 											</button>
 										</td>

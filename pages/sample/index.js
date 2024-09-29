@@ -53,8 +53,8 @@ export default function SAMPLE_ASSESSMENT() {
 
   return (
     <LaboratoryLayout>
-      <div className="mx-2 ui">
-          <div>
+      <div className="mx-2 text-sm">
+        <div className="p-3 col-3">
             <div className='alert alert-info p-3 alert-dismissible'>
                   <strong>Note:</strong> Please check the sample before validating. click on assess button to view the sample.
                 </div>
