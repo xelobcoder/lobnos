@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import { customPost, getDataAndUpdateState } from "../Auth/customFetch";
 import { ToastContainer, toast } from "react-toastify";
 import Loader from "../accessories/Loader";
 import ReceivedCollectionModalTableTr from "./ReceivedCollectionModalTableTr";
+import AuthContext from "../Auth/useAuthentification";
 
 export default function CollectionSampleModal({
   show,
@@ -19,10 +20,11 @@ export default function CollectionSampleModal({
   const [multipleSelected, setMultipleSelected] = useState([]);
   const [fullscreen, setFullscreen] = useState(false);
 
+
   const fetchClientAscension = useCallback(async (id) => {
     if (!id) return;
     await getDataAndUpdateState(setTestCollection,
-      `phelobotomy/ascension?billingid=${id}&&state=false`, false, setLoading
+      `phelobotomy/transaction/ascensions?billingid=${id}&&state=false&&employeeid=${employeeid}`, false, setLoading
     );
   }, []);
 

@@ -32,7 +32,7 @@ export default function Phelobotomy() {
   const hideModal = () => { setShowModal(false); }
 
   const getPhelobotomy = useCallback(async () => {
-    await getDataAndUpdateState(setData, `phelobotomy?count=${paginate.count}&&page=${paginate.page}`, false, setLoading);
+    await getDataAndUpdateState(setData, `test/ascension/pendingCases?count=${paginate.count}&&page=${paginate.page}`, false, setLoading);
   }, [paginate]);
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function Phelobotomy() {
                 {data.map((item, index) => <CustomAccordion key={index} item={item} />)}
               </div> */}
             </div>
-            {<ListTable data={data}  receive={receiveSample} handleCollectSample={handleCollectSample} />}
+            {<ListTable data={data} receive={receiveSample} handleCollectSample={handleCollectSample} />}
           </section>
           {showModal && <CollectionSampleModal removeCollectedSample={removeCollectedSample} employeeid={employeeid} collection={collection} show={showModal} hide={hideModal} />}
           {openModal && <ReceiveLabSampleModal show={openModal} hide={closeModal} />}

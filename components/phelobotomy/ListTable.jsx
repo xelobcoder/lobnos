@@ -39,7 +39,7 @@ export default function ListTable({ data, handleCollectSample, receive }) {
 
   return (
     <>
-      <TableDisplay  initpageSize={50} styling={'table shadow'} column={columns} data={data} filtering={true} showpage={false} />
+      <TableDisplay  initpageSize={50} styling={'table '} column={columns} data={data} filtering={true} showpage={false} />
     </>
   );
 }
