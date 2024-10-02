@@ -111,7 +111,7 @@ export default function BillingSourceDeterminer({ patientid }) {
                             payable: 0,
                             testcost: 0,
                             outstanding: 0,
-                            discount: 0
+                            discount: 0,
                         })
                     }
                 })
@@ -183,7 +183,7 @@ export default function BillingSourceDeterminer({ patientid }) {
                 </div>
 
                 {queryBillingid && billingdata.outstandingDebt == 0 && <div>
-                    <input type="checkbox" checked={billingdata.previewPrevious} onChange={(ev) => { updateBilling({ ...billingdata, previewPrevious: true }) }} />
+                    <input type="checkbox" checked={billingdata.previewPrevious} onChange={(ev) => { updateBilling({ ...billingdata, previewPrevious: !billingdata.previewPrevious }) }} />
                     Refund or preview previously billed Item
                 </div>
                 }

@@ -21,19 +21,19 @@ export default function RefundTestOrServiceListTr({ handleRefundList, item, inde
 
 
     return (<tr key={index} >
-        <td>{item.serviceCategory}</td>
+        <td>{item.serviceCategory}
+            <br/>
+            {new Date(item.serviceAddedOn).toLocaleDateString()}
+        </td>
         <td>{item.name}</td>
-        <td>{item.isoutsourced == 0 ? 'No' : 'Yes'}</td>
         <td>{item.outsourcingOrganization}</td>
-        <td>1</td>
         <td>{currencyFormatter.format(item.cost)}</td>
-        <td>{new Date(item.serviceAddedOn).toLocaleDateString()}</td>
         <td>
             <button
                 onClick={(ev) => { handleRefundItem(item) }}
                 className="btn text-capitalize btn-danger btn-sm p-1"
             >
-                {refundList.includes(item.testid) ? "refund requested" : "request for refund"}
+                {refundList.includes(item.testid) ? "refund requested" : "request"}
 
             </button>
         </td>

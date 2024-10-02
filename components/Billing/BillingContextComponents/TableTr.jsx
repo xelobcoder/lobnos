@@ -6,6 +6,7 @@ import { customFetch } from "../../Auth/customFetch";
 import Link from "next/link";
 import { LinkOff } from "@mui/icons-material";
 import AuthContext from "../../Auth/useAuthentification";
+import { hasPreviousRecords } from "../../../lib/billingLib";
 
 export default function TrTable({ toast }) {
   const { billingdata, updateBilling, recalculateTotalBill } = useContext(BillingContext);
@@ -52,7 +53,9 @@ export default function TrTable({ toast }) {
   const addtoCart = async () => {
     if (!selected || typeof selected != "object") return;
     const testid = selected?.id;
+    if (hasPreviousRecords(billingdata,selected)) return;
     const newItem = selected?.isoutsourced && selectedOutsource?.label ? { ...selected, ...selectedOutsource } : selected
+
     if (cart.length === 0) {
       updateBilling({ ...billingdata, cart: [...billingdata.cart, newItem] });
     } else {
@@ -146,7 +149,7 @@ export default function TrTable({ toast }) {
       <td>
         <input
           onChange={(ev) => { handleDiscount(ev) }}
-          disabled={!['manager','admin'].includes(role)}
+          disabled={!['manager', 'admin'].includes(role)}
           className="custom-input" type="number" step={0.1} max={selected != null ? selected.discountedValue : ''} />
       </td>
       <td>

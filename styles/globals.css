@@ -1571,7 +1571,8 @@ body {
   .billing-page-display > .billing-page-display-child:nth-child(1),
   .billing-page-display > .billing-page-display-child:nth-child(2){
      border-right: 1px solid lightgray;
-     min-height: 100vh !important;
+     max-height: 100vh !important;
+     overflow-y: auto;
   }
    .billing-page-display > .billing-page-display-child {
     padding: 5px;

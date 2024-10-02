@@ -26,13 +26,13 @@ export default function RenderingWithPatientIdProvided() {
     }
 
 
-  
-  
+
+
 
     return (
         <div className="billing-page-display-child" >
             {
-                billingdata.previewPrevious && <PreviousBilledTestRecords closeModal={closModal} previousRecords={billingdata.previousRecords} show={billingdata.previewPrevious} />
+                billingdata.previewPrevious && billingdata.previousRecords.length > 0 && <PreviousBilledTestRecords previousRecords={billingdata.previousRecords} />
             }
 
             {!billingdata.billingSource ? <div></div> :
