@@ -1,8 +1,9 @@
 import { useContext, useEffect, useState } from 'react';
 import Select from 'react-select';
 import { fetchServices } from '../../../../lib/billingLib';
-import { currencyFormatter } from '../../../Auth/customFetch';
+import { currencyFormatter, reactSelectCustomStyles } from '../../../Auth/customFetch';
 import AuthContext from '../../../Auth/useAuthentification';
+import { Add } from '@mui/icons-material';
 
 export default function ServicesSearchComponent({ updatefunction }) {
     const [servicesList, setServicesList] = useState([]);
@@ -26,8 +27,8 @@ export default function ServicesSearchComponent({ updatefunction }) {
     }, []);
 
     return (
-        <div className='d-flex'>
-            <div className='col-3'>
+        <tr>
+            <td colSpan={2}>
                 <Select
                     onChange={(newValue) => {
                         setSelectedServices(newValue);
@@ -36,15 +37,21 @@ export default function ServicesSearchComponent({ updatefunction }) {
                     getOptionLabel={(option) => option.label}
                     getOptionValue={(option) => option.keyid}
                 />
-            </div>
-            <input disabled={role != "admin"}
-                onChange={(ev) => { setSelectedServices({ ...selectedServices, discount: ev.target.value }) }}
-                className='custom-input col-2 mx-3' type='number' />
-            <button
-                onClick={(ev) => { updatefunction(selectedServices) }}
-                className='btn btn-secondary btn-sm'>
-                add service
-            </button>
-        </div>
+            </td>
+            <td>
+                <input disabled={role != "admin"}
+                    onChange={(ev) => { setSelectedServices({ ...selectedServices, discount: ev.target.value }) }}
+                    className='custom-input col-8' type='number' />
+            </td>
+            <td>
+                <button
+                    onClick={(ev) => { updatefunction(selectedServices) }}
+                    className='btn btn-secondary btn-sm'>
+                    <Add/>
+                </button>
+            </td>
+        </tr>
     );
 }
+
+

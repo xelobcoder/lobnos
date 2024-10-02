@@ -56,7 +56,7 @@ export default function RegistrationForm() {
                     <PatientFiltered getSelectedPatient={filteredPatient} />
                 </div>
             }
-            <div className="col-12">
+            <div className="col-12 ">
                 <div>
                     <div className="bg-primary text-white fw-bold text-capitalize p-2 mb-2 col-3 mt-1 pls-label">Personal Information</div>
                     <fieldset className="  heightedBorder bg-secondary-subtle  p-3">

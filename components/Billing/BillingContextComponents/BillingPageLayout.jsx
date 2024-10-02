@@ -3,6 +3,8 @@ import PatientFiltered from "../../accessories/CustomerFiltering";
 import RenderingWithPatientIdProvided from "./RenderingWithPatientIdProvided";
 import { useSearchParams, useRouter } from "next/navigation";
 import BillingSourceDeterminer from "./BillingOptionsSource";
+import BillingPagePatientInformation from "./PersonalInfoView";
+import BillingPageSummary from "./BillingSummary";
 
 
 export default function BillingPageLayout() {
@@ -24,10 +26,22 @@ export default function BillingPageLayout() {
     )
   }
 
+
   return (
     <BillingPageContextProvider>
-      <BillingSourceDeterminer patientid={patientid} />
-      <RenderingWithPatientIdProvided  patientid={patientid} />
+      <div className="">
+        <div className="card br-0 border-0">
+          <div className="card-header">
+            <BillingPagePatientInformation />
+          </div>
+          <div className="card-body p-0 billing-page-display" >
+            <BillingSourceDeterminer patientid={patientid} />
+            <RenderingWithPatientIdProvided patientid={patientid} />
+            <BillingPageSummary patientid={patientid} />
+          </div>
+        </div>
+      </div>
     </BillingPageContextProvider>
   );
 }
+

@@ -4,12 +4,10 @@ import { useContext, useState } from "react";
 import { BillingContext } from "./BillingContext";
 import Select from "react-select";
 import AuthContext from "../../Auth/useAuthentification";
-import { useSearchParams } from "next/navigation";
-import { validateFormData } from "../../Auth/customFetch";
 import { toast } from "react-toastify";
 import { Billingdefaultdata, organizationOptions, urgencyOptions, ValidateAndSubmitBillingInformation } from "../../../lib/billingLib";
 
-export default function BillingPageAdditionalInformation({ patientid }) {
+export default function BillingPageAdditionalInformation({ patientid, billingid }) {
   const [showMoreBtn, setShowMoreBtn] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { billingdata, updateBilling } = useContext(BillingContext);
@@ -32,13 +30,16 @@ export default function BillingPageAdditionalInformation({ patientid }) {
   };
 
   const handleSubmit = async (ev) => {
-    setIsSaving(true);
-    const data = await ValidateAndSubmitBillingInformation({ ...billingdata, employeeid, branchid, patientid }, 'POST');
-    setIsSaving(false);
-    if (typeof data === "object") {
-      const { status, message } = data;
-      (status == true | status == "success") ? toast.success(message) : toast.error(message | data);
-    }
+    // setIsSaving(true);
+    const dataToBeUploaded = { ...billingdata, employeeid, branchid, patientid };
+    const method = billingid ? 'PUT' : 'POST';
+    const data = await ValidateAndSubmitBillingInformation(dataToBeUploaded, method, billingid);
+
+    // setIsSaving(false);
+    // if (typeof data === "object") {
+    //   const { status, message } = data;
+    //   (status == true | status == "success") ? toast.success(message) : toast.error(message | data);
+    // }
   };
 
 
@@ -48,20 +49,22 @@ export default function BillingPageAdditionalInformation({ patientid }) {
     <Row>
       <div>
         <section>
-          <div className="p-1 grid-50">
-            <div>
+          <div className="text-sm p-2 pls-color">
+            <div >
               <div>
-                <label>Select Patient Type</label>
-                <Select
-                  isDisabled={billingdata.billingSource == 2}
-                  value={{ label: billingdata.type, value: billingdata.type }}
-                  onChange={(selectedOption) => updateBilling({ ...billingdata, type: selectedOption.value })}
-                  options={organizationOptions}
-                />
+                <label className="pls-label">Referal Type</label>
+                <div >
+                  <Select
+                    isDisabled={billingdata.billingSource == 2}
+                    value={{ label: billingdata.type, value: billingdata.type }}
+                    onChange={(selectedOption) => updateBilling({ ...billingdata, type: selectedOption.value })}
+                    options={organizationOptions}
+                  />
+                </div>
               </div>
 
               <div>
-                <label>Select Urgency</label>
+                <label className="pls-label text-sm">Select Urgency</label>
                 <Select
                   value={{ label: billingdata.status, value: billingdata.status }}
                   onChange={(selectedOption) => updateBilling({ ...billingdata, status: selectedOption.value })}
@@ -70,7 +73,7 @@ export default function BillingPageAdditionalInformation({ patientid }) {
               </div>
 
               <div>
-                <label>Organization Name</label>
+                <label className="pls-label text-sm">Organization Name</label>
                 <Select
                   isDisabled={billingdata.type != "organization" || billingdata.billingSource == 2}
                   placeholder="Search organization here"
@@ -83,9 +86,9 @@ export default function BillingPageAdditionalInformation({ patientid }) {
                 />
               </div>
             </div>
-            <div>
-              <div>
-                <label>Select Clinician</label>
+            <div >
+              <div >
+                <label className="pls-label text-sm" >Select Clinician</label>
                 <Select
                   isDisabled={billingdata.type != "clinician"}
                   placeholder="Search clinician"
@@ -98,8 +101,8 @@ export default function BillingPageAdditionalInformation({ patientid }) {
                 />
               </div>
 
-              <div>
-                <label>Payment Mode</label>
+              <div className="form-group">
+                <label className="pls-label text-sm">Payment Mode</label>
                 <Select
                   onChange={(selectedOption) => {
                     updatePaymentMode(selectedOption);
@@ -112,20 +115,7 @@ export default function BillingPageAdditionalInformation({ patientid }) {
               </div>
 
               <div>
-                <label>Concession</label>
-                <input
-                  type="number"
-                  value={billingdata.discount}
-                  disabled={["manager", "admin"].includes(role) ? false : true}
-                  className="custom-input"
-                  onChange={(e) => {
-                    updateBilling({ ...billingdata, discount: e.target.value });
-                  }}
-
-                />
-              </div>
-              <div>
-                <label className="text-primary">Advance Payment</label>
+                <label className="pls-label text-sm">Advance Payment</label>
                 <input
                   type="number"
                   className="custom-input"

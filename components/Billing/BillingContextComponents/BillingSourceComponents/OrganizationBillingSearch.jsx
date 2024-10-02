@@ -26,7 +26,7 @@ export default function OrganizationalBillingSourceSearch({ updatefunction }) {
             <label>Organization Name</label>
             <Select
                 isDisabled={organizations.length == 0}
-                placeholder={loading ? 'Loading data ...' : "Search organization here"}
+                placeholder={loading ? 'Loading data ...' : "Search  here"}
                 onChange={(newValue) => { updatefunction({...newValue,organizations}) }}
                 options={organizations}
                 getOptionLabel={(option) => option.name}

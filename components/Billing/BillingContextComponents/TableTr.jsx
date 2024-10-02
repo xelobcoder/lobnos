@@ -109,7 +109,7 @@ export default function TrTable({ toast }) {
         <Select
           options={options}
           onChange={handleSelectChange}
-          placeholder="Select outsourcing organization"
+          placeholder="Select outsouring org"
         />
       </div>)
     }
@@ -128,7 +128,7 @@ export default function TrTable({ toast }) {
   }
   return (
     <tr >
-      <td colSpan={2}>
+      <td colSpan={'sm-4'}>
         <Select
           className=""
           options={billingdata.testpanels}
@@ -139,15 +139,15 @@ export default function TrTable({ toast }) {
           onChange={(newValue) => handleTestSelectedChangeVariable(newValue)}
         />
       </td>
-      <td colSpan={2}>
+      <td colSpan={1}>
         {displayOutsourcingChoicingOptions()}
       </td>
+      <td></td>
       <td>
         <input
           onChange={(ev) => { handleDiscount(ev) }}
+          disabled={!['manager','admin'].includes(role)}
           className="custom-input" type="number" step={0.1} max={selected != null ? selected.discountedValue : ''} />
-        <br />
-        <div className="text-sm text-danger">please provide absolute values</div>
       </td>
       <td>
         <button

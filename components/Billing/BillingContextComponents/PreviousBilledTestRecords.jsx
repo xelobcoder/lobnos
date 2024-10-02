@@ -1,14 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Modal, Table } from "react-bootstrap";
-import { customFetch } from "../../Auth/customFetch";
 import RefundTestOrServiceListTr from "./BillingSourceComponents/refundTestOrServiceListTr";
-import { useSearchParams } from "next/navigation";
 
-export default function PreviousBilledTestRecords({ show, closeModal }) {
-    const [previousRecords, setPreviousRecords] = useState([]);
-    const [isLoadingPrev, setIsLoadingPrev] = useState(false);
+export default function PreviousBilledTestRecords({ show, closeModal, previousRecords = [] }) {
     const [refundList, setRefundList] = useState([])
-    const billingid = useSearchParams().get('billingid');
 
     const handleRefundList = (item) => {
         if (refundList.includes(item)) {
@@ -20,33 +15,8 @@ export default function PreviousBilledTestRecords({ show, closeModal }) {
 
     }
 
+ 
 
-
-    const fetchPreviousBilledRecords = async function (billingid) {
-        try {
-            if (!billingid) return;
-            setIsLoadingPrev(true);
-            const { result } = await customFetch(`billing/information/single?billingid=${billingid}`);
-            if (Array.isArray(result) && result.length > 0) {
-                setPreviousRecords(result)
-            }
-        } catch (err) {
-            setIsLoadingPrev([]);
-            setIsLoadingPrev(false);
-            alert('something went wrong');
-        } finally {
-            setIsLoadingPrev(false);
-        }
-    }
-
-
-    useEffect(() => {
-        fetchPreviousBilledRecords(billingid);
-    }, [billingid])
-
-    if (isLoadingPrev) return <div>Loading Previous Billing Record for this same day</div>
-
-    console.log(previousRecords)
     return (
         <Modal show={show} size="fullscreen"   >
             <Modal.Header>
@@ -60,7 +30,7 @@ export default function PreviousBilledTestRecords({ show, closeModal }) {
                         (
                             <div>
                                 <h5>Previous Records</h5>
-                                <Table className="billing-cart-table table">
+                                <Table className="table billing-cart-table pls-color text-sm">
                                     <thead>
                                         <tr>
                                             <th>type</th>
@@ -85,7 +55,7 @@ export default function PreviousBilledTestRecords({ show, closeModal }) {
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <button onClick={(ev) =>  {closeModal()}} className="btn btn-danger">close </button>
+                <button onClick={(ev) => { closeModal() }} className="btn btn-danger">close </button>
             </Modal.Footer>
         </Modal>
     )

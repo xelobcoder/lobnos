@@ -910,3 +910,38 @@ export const formatPlainOptionsToObject =
     }
     return plainObject;
   }
+
+
+
+export const reactSelectCustomStyles = {
+  control: (base) => ({
+    ...base,
+    height: "40px",
+    minHeight: "30px",
+    fontSize: '13px'
+  }),
+  input: (provided) => ({
+    ...provided,
+    height: '35px',
+    fontSize: '13px'
+  }),
+  menu: (base) => ({
+    ...base,
+    maxHeight: "400px",
+    fontSize: '12px',
+  }),
+  menuList: (base) => ({
+    ...base,
+    maxHeight: "400px",
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    overflow: "visible",
+  }),
+  singleValue: (base) => ({
+    ...base,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  }),
+};

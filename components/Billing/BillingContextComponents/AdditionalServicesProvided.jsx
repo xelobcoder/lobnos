@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect } from 'react';
-import { ViewCarouselTwoTone } from "@mui/icons-material";
+import { Delete, ViewCarouselTwoTone } from "@mui/icons-material";
 import ServicesSearchComponent from "./BillingSourceComponents/ServicesSearchComponentJsx";
 import { currencyFormatter } from '../../Auth/customFetch';
 import { BillingContext } from './BillingContext';
@@ -48,53 +48,47 @@ export default function ServicesProvidedToPatientBilling({ billingid, patientid 
 
     return (
         <div className="mt-2">
-            <div className="card">
-                <div className="card-header d-flex justify-content-between">
-                    <div className="card-title">
-                        <h4>Services Information</h4>
-                    </div>
-                    <div>
-                        <button className="btn btn-primary br-0">
-                            <ViewCarouselTwoTone /> view
-                        </button>
-                    </div>
-                </div>
-                <div className="card-body">
-                    <ServicesSearchComponent updatefunction={serviceListSelectionChangeHandler} />
-                    <table className="table mt-3">
-                        <thead>
-                            <tr>
-                                <th className='text-capitalize'>Service Name</th>
-                                <th className='text-capitalize'>Price</th>
-                                <th className='text-capitalize'>discount</th>
-                                <th className='text-capitalize'>Actions</th>
+            <hr />
+            <div className="card-title">
+                Services Information
+            </div>
+            <div>
+                <table className="table ttable billing-cart-table mt-3">
+                    <thead>
+                        <tr>
+                            <th className='text-capitalize'>Service Name</th>
+                            <th className='text-capitalize'>Price</th>
+                            <th className='text-capitalize'>discount</th>
+                            <th className='text-capitalize'>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {Array.from(selectedServices.values()).map((service, index) => (
+                            <tr key={index}>
+                                <td>{service.serviceName}</td>
+                                <td>{currencyFormatter.format(service.servicePrice)}</td>
+                                <td>
+                                    {currencyFormatter.format(service.discount || 0)}
+                                </td>
+                                <td>
+                                    <button
+                                        className="btn btn-danger btn-sm"
+                                        onClick={() => removeService(service.keyid)}
+                                    >
+                                       <Delete/>
+                                    </button>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {Array.from(selectedServices.values()).map((service, index) => (
-                                <tr key={index}>
-                                    <td>{service.serviceName}</td>
-                                    <td>{currencyFormatter.format(service.servicePrice)}</td>
-                                    <td>
-                                       {currencyFormatter.format(service.discount || 0)}
-                                    </td>
-                                    <td>
-                                        <button
-                                            className="btn btn-danger btn-sm"
-                                            onClick={() => removeService(service.keyid)}
-                                        >
-                                            Remove
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-                <div className="card-footer d-flex justify-content-between">
-                    <div>Total Services: {totalServices}</div>
-                    <div>Total Amount: {currencyFormatter.format(totalAmount)}</div>
-                </div>
+                        ))}
+                        <ServicesSearchComponent updatefunction={serviceListSelectionChangeHandler} />
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colSpan={3}>Total Services: {totalServices}</td>
+                            <td>Total Amount: {currencyFormatter.format(totalAmount)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
     );

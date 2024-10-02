@@ -55,10 +55,11 @@ export default function PersonalInformationRegistration(
     }
   }
 
+  if (isloading) <div>Loading data ............................</div>
 
   return (
     <section>
-      {isloading && <div>Loading data ............................</div>}
+
       <form autoComplete="off" className="grid-50" noValidate autoCorrect="false">
         <div className="_registration_form_split">
           <div>

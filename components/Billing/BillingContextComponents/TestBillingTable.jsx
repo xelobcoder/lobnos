@@ -22,39 +22,51 @@ export default function TestBillingTable({ toast }) {
   }
 
   return (
-    <Table className="table-striped  billing-cart-table table-hover table p-0">
-      <thead className="text-capitalize">
-        <tr>
-          <th style={{ width: '40%' }}>Test</th>
-          <th style={{ width: '10%' }}>Quantity</th>
-          <th style={{ width: '20%' }}>Outsourcing To</th>
-          <th style={{ width: '10%' }}>Price</th>
-          <th style={{ width: '10%' }}>discount</th>
-          <th style={{ width: '20%' }}>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <TrTable toast={toast} />
-        {cart.length > 0 && cart.map((item, index) => (
-          <tr style={{fontSize:'12px'}} className={item.isoutsourced === 1 ? 'table-danger' : ''} key={index}>
-            <td>{item.name}</td>
-            <td>{item.quantity || 1}</td>
+    <div className="table-responsive-sm">
+      <Table className="ttable billing-cart-table" >
+        <thead className="text-capitalize">
+          <tr>
+            <th >Test</th>
+            <th >Outsourcing To</th>
+            <th style={{ width: '10%' }}>Price</th>
+            <th style={{ width: '10%' }} >discount</th>
+            <th style={{ width: '10%' }}>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {cart.length > 0 && cart.map((item, index) => (
+            <tr style={{ fontSize: '12px' }} className={item.isoutsourced === 1 ? 'table-danger' : ''} key={index}>
+              <td>{item.name}</td>
+              <td>
+                {item.isoutsourced === 1 && item?.label}
+              </td>
+              <td>{currencyFormatter.format(item.discountedValue)}</td>
+              <td>{currencyFormatter.format(item.discount || 0)}</td>
+              <td>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => removeFromCart(item.id)}
+                >
+                  <Delete />
+                </button>
+              </td>
+            </tr>
+          ))}
+          <TrTable toast={toast} />
+        </tbody>
+        <tfoot>
+          <tr className="table-secondary">
+            <td colSpan={2}> Test Count {billingdata.cart.length}</td>
+            <td >  {currencyFormatter.format(billingdata.testcost)}</td>
+            <td > {currencyFormatter.format(billingdata.discount)}</td>
             <td>
-              {item.isoutsourced === 1 && item?.label}
-            </td>
-            <td>{currencyFormatter.format(item.discountedValue)}</td>
-            <td>{currencyFormatter.format(item.discount || 0)}</td>
-            <td>
-              <button
-                className="btn btn-danger btn-sm"
-                onClick={() => removeFromCart(item.id)}
-              >
+              <button className="btn btn-danger btn-sm">
                 <Delete />
               </button>
             </td>
           </tr>
-        ))}
-      </tbody>
-    </Table>
+        </tfoot>
+      </Table>
+    </div>
   );
 }

@@ -1,43 +1,12 @@
 import React, { useEffect, useState } from "react";
 import AsyncSelect from "react-select/async";
 import { loadOptions } from "../../lib/appointment";
+import { reactSelectCustomStyles } from "../Auth/customFetch";
 
 export default function PatientFiltered({ getSelectedPatient, isDisabled, placeholder = "Search patient using patient ID, email, fullname" }) {
   const [isLoading, setLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
 
-  const customStyles = {
-    control: (base) => ({
-      ...base,
-      height: "40px",
-      minHeight: "30px",
-      fontSize: '13px'
-    }),
-    input: (provided) => ({
-      ...provided,
-      height: '35px',
-      fontSize:'13px'
-    }),
-    menu: (base) => ({
-      ...base,
-      maxHeight: "400px",
-      fontSize:'12px'
-    }),
-    menuList: (base) => ({
-      ...base,
-      maxHeight: "400px",
-    }),
-    valueContainer: (base) => ({
-      ...base,
-      overflow: "visible",
-    }),
-    singleValue: (base) => ({
-      ...base,
-      whiteSpace: "nowrap",
-      overflow: "hidden",
-      textOverflow: "ellipsis",
-    }),
-  };
 
   const loadClientOptions = async (inputValue) => {
     setLoading(true);
@@ -83,7 +52,7 @@ export default function PatientFiltered({ getSelectedPatient, isDisabled, placeh
 
   return (
     <AsyncSelect
-      styles={customStyles}
+      styles={reactSelectCustomStyles}
       isClearable={true}
       isLoading={isLoading}
       isDisabled={isDisabled}

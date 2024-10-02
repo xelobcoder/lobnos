@@ -1,10 +1,9 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo } from "react";
 import { BillingContext } from "./BillingContext";
-import { billingSource, canIgnoreDebtPaymentAndTax, getAllNecessaryData, getOustandingBill, LoadOrganizationalTest } from "../../../lib/billingLib";
+import { billingSource, canIgnoreDebtPaymentAndTax, fetchPreviousBilledRecords, getAllNecessaryData, getOustandingBill, LoadOrganizationalTest } from "../../../lib/billingLib";
 import OrganizationalBillingSourceSearch from "./BillingSourceComponents/OrganizationBillingSearch";
 import { currencyFormatter, customFetch } from "../../Auth/customFetch";
 import Link from "next/link";
-import BillingPagePatientInformation from "./PersonalInfoView";
 import { useSearchParams, useRouter } from "next/navigation";
 
 export default function BillingSourceDeterminer({ patientid }) {
@@ -16,7 +15,11 @@ export default function BillingSourceDeterminer({ patientid }) {
     const initGeneralBillingData = useCallback(async function () {
         if (billingdata.billingSource === 1) {
             const initGeneralBillingData = await getAllNecessaryData();
-            updateBilling({ ...billingdata, billingSourceTitle: 'General Billing', ...initGeneralBillingData });
+            let previousRecords = [];
+            if (queryBillingid) {
+                previousRecords = await fetchPreviousBilledRecords(queryBillingid);
+            }
+            updateBilling({ ...billingdata, billingSourceTitle: 'General Billing', ...initGeneralBillingData, previousRecords });
         }
     }, [billingdata.billingSource]);
 
@@ -31,6 +34,7 @@ export default function BillingSourceDeterminer({ patientid }) {
                     organizationId: null,
                     billingSource: 1,
                     testpanels: [],
+                    billingid: queryBillingid,
                     cart: [],
                 })
             } else {
@@ -77,14 +81,6 @@ export default function BillingSourceDeterminer({ patientid }) {
             const { canInitiateBill, billingid } = hasBeenPreviouslyBilledOnSameDay;
             if (!canInitiateBill && !queryBillingid && billingid) {
                 router.push(`/billing/patientid?patientid=2024972&&billingid=${billingid}`);
-            } else {
-                // if (queryBillingid && !isNaN(parseInt(queryBillingid))) {
-                //     const prevRecords = await customFetch(`billing/information/single?billingid=${queryBillingid}`);
-                //     if (prevRecords.hasOwnProperty('result')) {
-                //         const { result } = prevRecords;
-                //         updateBilling({ ...billingdata, ...result[0] });
-                //     }
-                // }
             }
         }
     }
@@ -101,8 +97,9 @@ export default function BillingSourceDeterminer({ patientid }) {
 
 
 
+
     useEffect(() => {
-        if (billingdata.organizationId) {
+        if (billingdata.organizationId && billingdata.billingSource != 1) {
             LoadOrganizationalTest(billingdata.organizationId)
                 .then((response) => {
                     const { testList } = response;
@@ -125,21 +122,39 @@ export default function BillingSourceDeterminer({ patientid }) {
     }, [billingdata.organizationId])
 
 
+
+
+    if (billingdata.outstandingDebt > 0) {
+        return (<div>
+            <label className="text-danger">Please settle Outstanding Debt </label>
+            <br />
+            <Link href={`/billing/payment/update/${patientid}`}>
+                <div className="alert alert-danger">
+                    <h2>
+                        {currencyFormatter.format(billingdata.outstandingDebt)}
+                    </h2>
+                </div>
+            </Link>
+        </div>)
+    }
+
+
+
     return (
-        <div className="">
-            <section className="br-5 mb-2" style={{ display: 'grid', gridTemplateColumns: '20% 30% 35% 10%' }}>
-                <div className="form-group ">
+        <div className="billing-page-display-child text-sm">
+            <section className="br-5">
+                <div className="form-group">
                     <label>Billing Source</label>
                     <select
                         value={billingdata.billingSource}
                         disabled={billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0 || billingdata.previousRecords.length > 0}
                         onChange={(ev) => { updateBillingSourceSelected(ev) }}
                         className="custom-select">
-                        <option value=''>select an option below</option>
+                        <option value='' >select an option below</option>
                         {
                             Array.isArray(billingSource)
                             && billingSource.length > 0
-                            && billingSource.map((item) => <option key={item.value}
+                            && billingSource.map((item) => <option className=" text-sm " key={item.value}
                                 value={item.value}> {item.label}
                             </option>)}
                     </select>
@@ -147,47 +162,35 @@ export default function BillingSourceDeterminer({ patientid }) {
 
                 <div>
                     {billingdata?.billingSource === 2 &&
-                        <div className="mx-2">
+                        <div className="mb-2">
                             <OrganizationalBillingSourceSearch updatefunction={updateValuesToContext} />
                         </div>
                     }
                     {billingdata?.billingSource === 3
                         &&
-                        <div className="form-group mx-2">
+                        <div className="form-group">
                             <label>search organization here</label>
                             <input type='text' placeholder="select private Insrance Comapanies here here" className="custom-input" />
                         </div>
                     }
                     {billingdata?.billingSource === 4
                         &&
-                        <div className="form-group mx-2">
+                        <div className="form-group">
                             <label>search organization here</label>
                             <input type='text' placeholder="Get Claim Code Here" className="custom-input" />
                         </div>
                     }
                 </div>
-                <div>
-                    <BillingPagePatientInformation />
-                </div>
-                {billingdata.outstandingDebt > 0
-                    &&
-                    (<div>
-                        <label>Outstanding Debt</label>
-                        <br />
-                        <Link href={`/billing/payment/update/${patientid}`}>
-                            <button className="btn btn-danger p-2">
-                                <h4>
-                                    {currencyFormatter.format(billingdata.outstandingDebt)}
-                                </h4>
-                            </button>
-                        </Link>
-                    </div>)
-                }
+
                 {queryBillingid && billingdata.outstandingDebt == 0 && <div>
-                    <button onClick={(ev) => { updateBilling({ ...billingdata, previewPrevious: true }) }} className="btn btn-danger  text-capitalize">
-                        refund or remove bill
-                    </button>
+                    <input type="checkbox" checked={billingdata.previewPrevious} onChange={(ev) => { updateBilling({ ...billingdata, previewPrevious: true }) }} />
+                    Refund or preview previously billed Item
                 </div>
+                }
+                {
+                    billingdata.outstandingDebt == 0 && <div>
+                        <input onChange={(ev) => { updateBilling({ ...billingdata, includeServices: ev.target.checked }) }} type="checkbox" /> Include Services
+                    </div>
                 }
             </section>
         </div>

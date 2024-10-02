@@ -3,6 +3,7 @@
   --topband-bg: #21263c;
   --sidebar-bg: #f7f7fe;
   --bg-color: #eef0f1;
+  --pls-color: color: #00224fcf;
   --custom-blue: #2165e3;
   --text-color: black;
   --prime-attention: #ff6a00;
@@ -22,17 +23,28 @@
 html,body{
   scroll-behavior: smooth;
   text-size-adjust: 100%;
-    line-height: 1.15;
+    line-height: 1.45;
     overflow-x: hidden;
     overflow-y: auto;
     min-height: 100vh;
-    background-color: #00224f0a !important;
+    background-color: white;
+}
+
+body {
+      font-size: 0.95em;
+      font-weight: 400;
+}
+
+.pls-color{
+  color: var(--pls-color) !important;
 }
 
 
 
 *{
-  font-family: 'Roboto','Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif
+
+  font-family: 'Roboto','Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+      /* font-family: "Raleway",Helvetica,Arial,sans-serif; */
 }
 
 
@@ -529,6 +541,8 @@ i {font-size:100px;
   color: black;
 } 
 
+
+
 .modal-color {
   color: #333333 !important;
   background-color: #f5f5f5 !important;
@@ -542,7 +556,8 @@ i {font-size:100px;
   text-transform: capitalize !important;
 }
 
-.ttable > tbody > tr > td {
+.ttable > tbody > tr > td,
+.ttable > tfoot > tr > td {
   color: #00224fcf;
   cursor: pointer;
   font-size: 13px;
@@ -1547,3 +1562,25 @@ body {
   border-right: 1px solid lightgray !important;
 }
 
+@media screen and (min-width: 900px) {
+  .billing-page-display {
+    display: grid;
+    grid-template-columns: 20% 60% 20%;
+    height: 100vh;
+  }
+  .billing-page-display > .billing-page-display-child:nth-child(1),
+  .billing-page-display > .billing-page-display-child:nth-child(2){
+     border-right: 1px solid lightgray;
+     min-height: 100vh !important;
+  }
+   .billing-page-display > .billing-page-display-child {
+    padding: 5px;
+   }
+}
+
+@media screen and (max-width: 457px) {
+    .billing-page-display{
+      height: max-content;
+    }
+    
+}
