@@ -30,7 +30,7 @@ export default function TotalTestCollectedByYearTableView() {
                     </thead>
                     <tbody>
                         {Array.isArray(data) && data.length > 0 && data.map((item, index) => {
-                            return <tr>
+                            return <tr key={index}>
                                 <td>{item.year}</td>
                                 <td>{item.total_tests}</td>
                             </tr>

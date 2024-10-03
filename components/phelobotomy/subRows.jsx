@@ -94,10 +94,10 @@ const ListTable = ({ data }) => {
         <div className='table-responsive'>
             <table {...getTableProps()} className="table" style={{ fontSize: '14px' }}>
                 <thead>
-                    {headerGroups.map(headerGroup => (
-                        <tr {...headerGroup.getHeaderGroupProps()} >
-                            {headerGroup.headers.map(column => (
-                                <th {...column.getHeaderProps()}>
+                    {headerGroups.map((headerGroup,v) => (
+                        <tr key={v} {...headerGroup.getHeaderGroupProps()} >
+                            {headerGroup.headers.map((column,index )=> (
+                                <th key={index} {...column.getHeaderProps()}>
                                     {column.render('Header')}
                                     {/* Resizer for columns */}
                                     {column.canResize && (
@@ -118,17 +118,17 @@ const ListTable = ({ data }) => {
                         return (
                             <React.Fragment key={row.id}>
                                 <tr {...row.getRowProps({ className: `${rowClass}` })}>
-                                    {row.cells.map(cell => (
-                                        <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
+                                    {row.cells.map(cell,index => (
+                                        <td key={index} {...cell.getCellProps()}>{cell.render('Cell')}</td>
                                     ))}
                                 </tr>
                                 {row.isExpanded && row.subRows && (
-                                    row.subRows.map(subRow => {
+                                    row.subRows.map((subRow,ind) => {
                                         prepareRow(subRow);
                                         return (
-                                            <tr {...subRow.getRowProps({ className: 'column-bordered p-3' })}>
-                                                {subRow.cells.map(cell => (
-                                                    <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
+                                            <tr key={ind} {...subRow.getRowProps({ className: 'column-bordered p-3' })}>
+                                                {subRow.cells.map((cell,index )=> (
+                                                    <td key={index} {...cell.getCellProps()}>{cell.render('Cell')}</td>
                                                 ))}
                                             </tr>
                                         );

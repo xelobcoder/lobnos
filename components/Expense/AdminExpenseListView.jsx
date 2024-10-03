@@ -191,6 +191,7 @@ export default function AdminExpensesList({ branchid, employeeid }) {
           maxHeight: "max-content",
           backgroundColor: "white",
           display: "grid",
+          fontSize:'13px',
           gridTemplateColumns: `${selected ? "25% auto" : "100%"}`,
         }}>
         <section style={{ borderRight: "1px solid lightgray" }}>
