@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { customFetch } from '../Auth/customFetch';
-import { getStatusClass, NORMAL_RANGES } from './dataActions/vitalsigns';
-import VitalSignLineChart from './VitalSignLineChart';
-import { Edit } from '@mui/icons-material';
+import VitalSignChartModal from './vitalSignChartModal';
+import VitalSignTable from './VitalSignTable';
+import VitalSignFilterForm from './VitalSignFilterForm';
+
 
 export default function VitalSignCustomerListInformation({ searchParams }) {
     const { patientid } = searchParams;
@@ -11,11 +12,12 @@ export default function VitalSignCustomerListInformation({ searchParams }) {
     const [error, setError] = useState(null);
     const [filterFrom, setFilterFrom] = useState('');
     const [filterTo, setFilterTo] = useState('');
+    const [modalData, setModalData] = useState({ show: false, date: '', vitalSigns: [] });
 
     async function getPatientVitalSigns(patientid, fromDate, toDate) {
         if (!patientid) return;
         try {
-            let url = `customers/vitalsigns/create?patientid=${patientid}&count=50&page=1`;
+            let url = `customers/vitalsigns/create?patientid=${patientid}&count=10&page=1`;
             if (fromDate && toDate) {
                 url += `&filterFrom=${fromDate}&filterTo=${toDate}`;
             }
@@ -59,140 +61,52 @@ export default function VitalSignCustomerListInformation({ searchParams }) {
 
     const groupedVitalSigns = groupByDate(vitalSigns);
 
-    const generateChartData = (vitalSigns, dataKey) => {
-        return vitalSigns.map(vitalSign => ({
-            time: new Date(vitalSign.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-            [dataKey]: vitalSign[dataKey]
+    const processVitalSignData = (vitalSigns) => {
+        return vitalSigns.map(sign => ({
+            time: convertTo12HourFormat(sign.time.split('.')[0]),
+            bp: sign.bp,
+            temperature: sign.temperature,
+            pulse: sign.pulse,
+            respiration: sign.respiration,
+            spo2: sign.spo2
         }));
+    };
+
+    const convertTo12HourFormat = (time) => {
+        let [hours, minutes, seconds] = time.split(':');
+        hours = parseInt(hours, 10);
+
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12 || 12;
+        return `${hours}:${minutes}:${seconds} ${ampm}`;
+    };
+
+
+    const openModal = (date, vitalSigns) => {
+        setModalData({ show: true, date, vitalSigns });
+    };
+
+    const closeModal = () => {
+        setModalData({ show: false, date: '', vitalSigns: [] });
     };
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
 
-    return (
-        <div className="px-3">
-            <div className="bg-secondary-subtle p-4 rounded mb-2">
-                <form onSubmit={handleFilterSubmit}>
-                    <div className="d-flex col-6">
-                        <div>
-                            <input
-                                className="form-control h-100"
-                                type="date"
-                                placeholder="from"
-                                name="filterFrom"
-                                value={filterFrom}
-                                onChange={handleFilterChange}
-                            />
-                        </div>
-                        <div>
-                            <input
-                                className="form-control mx-2 h-100"
-                                type="date"
-                                placeholder="to"
-                                name="filterTo"
-                                value={filterTo}
-                                onChange={handleFilterChange}
-                            />
-                        </div>
-                        <div>
-                            <button className="btn btn-secondary mx-3" type="submit">
-                                Filter
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div className="table-responsive">
-                {Object.keys(groupedVitalSigns).map(date => (
-                    <div key={date}>
-                        <h5 className="my-3">Date: {date}</h5>
-                        <div>
-                           <div>
-                                <table className="table table-bordered billing-cart-table">
-                                    <thead>
-                                        <tr>
-                                            <th>SR NO</th>
-                                            {/* <th>Date</th> */}
-                                            <th>Time</th>
-                                            <th>Blood Pressure</th>
-                                            <th>Pulse</th>
-                                            <th>SpO2</th>
-                                            <th>Respiration</th>
-                                            <th>Temperature</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {groupedVitalSigns[date].map((vitalSign, index) => {
-                                            const [systolic, diastolic] = vitalSign.bp.split('/').map(Number);
-                                            const time = new Date(vitalSign.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                                            const dateFormatted = new Date(vitalSign.date).toLocaleDateString('en-US');
 
-                                            return (
-                                                <tr key={vitalSign.vitalsignid}>
-                                                    <td>{index + 1}</td>
-                                                    {/* <td>{dateFormatted}</td> */}
-                                                    <td>{time}</td>
-                                                    <td className={`${getStatusClass(systolic, NORMAL_RANGES.bloodPressure.systolic)} ${getStatusClass(diastolic, NORMAL_RANGES.bloodPressure.diastolic)}`}>
-                                                        {vitalSign.bp}
-                                                    </td>
-                                                    <td className={getStatusClass(vitalSign.pulse, NORMAL_RANGES.pulse)}>
-                                                        {vitalSign.pulse}
-                                                    </td>
-                                                    <td className={getStatusClass(vitalSign.spo2, NORMAL_RANGES.spo2)}>
-                                                        {vitalSign.spo2}
-                                                    </td>
-                                                    <td>
-                                                        {vitalSign.respiration}
-                                                    </td>
-                                                    <td className={getStatusClass(vitalSign.temperature, NORMAL_RANGES.temperature)}>
-                                                        {vitalSign.temperature}
-                                                    </td>
-                                                    <td><button className='btn p-0 bg-info-subtle -info-subtle'>
-                                                        <Edit /></button></td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                           </div>
-                        
-                            <div >
-                                <VitalSignLineChart
-                                    data={generateChartData(groupedVitalSigns[date], 'temperature')}
-                                    title={`Temperature Trends for ${date}`}
-                                    dataKey="temperature"
-                                    strokeColor="#8884d8"
-                                />
-                                <VitalSignLineChart
-                                    data={generateChartData(groupedVitalSigns[date], 'pulse')}
-                                    title={`Pulse Trends for ${date}`}
-                                    dataKey="pulse"
-                                    strokeColor="#82ca9d"
-                                />
-                                <VitalSignLineChart
-                                    data={generateChartData(groupedVitalSigns[date], 'respiration')}
-                                    title={`Respiration Trends for ${date}`}
-                                    dataKey="respiration"
-                                    strokeColor="#ff7300"
-                                />
-                                <VitalSignLineChart
-                                    data={generateChartData(groupedVitalSigns[date], 'spo2')}
-                                    title={`SpO2 Trends for ${date}`}
-                                    dataKey="spo2"
-                                    strokeColor="#387908"
-                                />
-                                <VitalSignLineChart
-                                    data={generateChartData(groupedVitalSigns[date], 'bp')}
-                                    title={`Blood Pressure Trends for ${date}`}
-                                    dataKey="bp"
-                                    strokeColor="#8884d8"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
+    return (
+        <div className="">
+            <VitalSignFilterForm filterFrom={filterFrom} filterTo={filterTo} handleFilterChange={handleFilterChange} handleFilterSubmit={handleFilterSubmit} />
+            
+            <VitalSignTable groupedVitalSigns={groupedVitalSigns} openModal={openModal} />
+
+            <VitalSignChartModal
+                show={modalData.show}
+                onHide={closeModal}
+                vitalSigns={modalData.vitalSigns}
+                date={modalData.date}
+                generateChartData={processVitalSignData}
+            />
         </div>
     );
 }

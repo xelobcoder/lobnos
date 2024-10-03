@@ -18,7 +18,7 @@ export default function RecordVitalSigns() {
     }, [urlParams])
     return (
         <FrontDeskLayout>
-            <div>
+            <div className="p-3">
                 <RecordVitalSignsChartForm searchParams={queryParams} />
                 {queryParams.patientid && <VitalSignCustomerListInformation searchParams={queryParams} />}
             </div>
