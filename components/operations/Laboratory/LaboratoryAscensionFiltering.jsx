@@ -1,7 +1,34 @@
+import { useEffect, useState } from "react";
 import DatePickerRange from "../../../components/accessories/DatePickerRange";
-export default function LaboratoryAscensionFiltering({ queryParams, setSearchString, searchString, getAscensionData, updateDateValues }) {
+import { useLaboratoryContext } from "./LaboratoryStagesContext";
+
+
+export default function LaboratoryAscensionFiltering({ ascension_stage }) {
+       const { queryParams, setQueryParams, _getAscensionData } = useLaboratoryContext();
+
+
+       useEffect(() => {
+              _getAscensionData(ascension_stage);
+       }, [])
+
+
+       useEffect(() => {
+              _getAscensionData(ascension_stage);
+       }, [queryParams.page,queryParams.count])
+
+
+
+       
+
+       const updateDateValues = (values) => {
+              const [start, end] = values;
+              setQueryParams(prev => ({ ...prev, _dateFrom: start, _dateEnd: end }));
+       };
+
+
+
        return (
-              <div className="container-fluid  d-lg-flex my-2">
+              <div className="container-fluid d-lg-flex my-2">
                      <div className="col-12-sm ">
                             <DatePickerRange
                                    start={queryParams._dateFrom}
@@ -9,17 +36,19 @@ export default function LaboratoryAscensionFiltering({ queryParams, setSearchStr
                                    getRange={updateDateValues}
                             />
                      </div>
-                     <div className="col-6  mx-3">
-                            <input className="form-control p-3"
-                                   value={searchString}
-                                   onChange={(ev) => { setSearchString(ev.target.value) }}
-                                   placeholder="type in your search here " />
+                     <div className="col-8 mx-3">
+                            <input
+                                   className="form-control p-3"
+                                   value={queryParams.searchString}
+                                   onChange={(ev) => { setQueryParams({ ...queryParams, searchString: ev.target.value }) }}
+                                   placeholder="type in your search here "
+                            />
                      </div>
                      <div className="mx-3 ">
-                            <button onClick={(ev) => { getAscensionData() }} className="btn btn-primary btn-sm  p-3 px-5 text-uppercase">
+                            <button onClick={(ev) => { _getAscensionData(ascension_stage) }} className="btn btn-primary btn-sm p-3 px-5 text-uppercase">
                                    {"<"}Load Data{"/>"}
                             </button>
                      </div>
               </div>
-       )
+       );
 }

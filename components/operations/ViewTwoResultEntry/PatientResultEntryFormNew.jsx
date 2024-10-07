@@ -14,28 +14,33 @@ export default function PatientResultEntryFormComponentNew({ }) {
     const billingid = useSearchParams().get("csvid");
     const unslicedPatientid = useSearchParams().get("ptid");
     const { operations, updateContext } = useContext(useOperation);
-    const { toast} = operations;
+    const { toast } = operations;
 
-    const loadInitData = useCallback(() => {
+    const loadInitData = useCallback(async () => {
         if (unslicedPatientid && billingid && employeeid) {
-            customFetch(`result/entry/record/collection?csvid=${billingid}&&ptid=${unslicedPatientid}&&target=${[70, 50].join(",")}`)
-                .then((data) => {
-                    const { personal_data, test } = data;
-                    updateContext({
-                        ...operations,
-                        patientInfo: personal_data,
-                        testList: test || [],
-                        billingid,
-                        patientid: unslicedPatientid,
-                        employeeid,
-                        initDataLoading: false,
-                    });
-                })
-                .catch((err) => {
-                    updateContext({ ...operations, initDataLoading: true });
-                    toast.error("something wrong occured please");
-                })
-                .finally(() => { });
+            try {
+                let test = await customFetch(`result/entry/record/collection?csvid=${billingid}&&ptid=${unslicedPatientid}&&target=${[70, 50].join(",")}&&branchid=${auth.branchid}`)
+                let patient_data = customFetch(`register/personalinformation?patientid=${unslicedPatientid.slice(50)}`);
+
+                const data = await Promise.all([test, patient_data]);
+                test = data[0];
+                patient_data = data[1];
+                const { test: testResult } = test;
+                const { result } = patient_data;
+
+                updateContext({
+                    ...operations,
+                    patientInfo: result,
+                    testList: testResult || [],
+                    billingid,
+                    patientid: unslicedPatientid,
+                    employeeid,
+                    initDataLoading: false,
+                });
+            } catch (err) {
+                updateContext({ ...operations, initDataLoading: true });
+                toast.error("something wrong occured please");
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [unslicedPatientid, billingid, employeeid]);
