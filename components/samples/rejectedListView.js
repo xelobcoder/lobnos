@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useContext } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Loader from '../../components/accessories/Loader';
 import { getDataAndUpdateState, parseDate, updatePagination } from "../../components/Auth/customFetch";
 import Pagination from "../accessories/pagination";
@@ -13,7 +13,7 @@ export default function RejectedSamplesComponent() {
 
 
   const fetchInitialData = useCallback(async function () {
-    getDataAndUpdateState(setData, `rejected?count=${paginate.count}&&page=${paginate.page}`, false, setLoading)
+    getDataAndUpdateState(setData, `rejected/sample/list?count=${paginate.count}&&page=${paginate.page}`, false, setLoading)
   }, [paginate])
 
 
@@ -40,7 +40,7 @@ export default function RejectedSamplesComponent() {
     { Header: 'collected on', accessor: "collection_date", Cell: ({ value }) => parseDate(value) },
     { Header: 'validated On', accessor: "samplevalidatedon", Cell: ({ value }) => <div>{new Date(value).toLocaleDateString()}</div> },
     { Header: 'last validated by', accessor: 'validatedby', Cell: ({ value }) => <div>{value}</div> },
-    { Header: 'reason', accessor: 'rejectionmessage',width:200 },
+    { Header: 'reason', accessor: 'rejectionmessage', width: 200 },
     {
       Header: 'actions', accessor: '', Cell: ({ row }) => {
         const item = row.original;
@@ -59,6 +59,9 @@ export default function RejectedSamplesComponent() {
     }
   ]
 
+  if (loading) return <div className=" text-center p-2 bg-secondary-subtle text-sm heightedBorder">Loading Data</div>
+
+  if (data.length === 0) return <div className="alert alert-info text-sm col-4">No sample Collected rejected</div>
 
   const renderingView = () => {
     if (loading) return <Loader />

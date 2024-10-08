@@ -10,7 +10,9 @@ import PreviousBilledTestRecords from "./PreviousBilledTestRecords"
 export default function RenderingWithPatientIdProvided() {
     const { billingdata, updateBilling } = useContext(BillingContext);
 
-    const closModal = () => { updateBilling({ ...billingdata, previewPrevious: false }) }
+    const closModal = () => {
+        updateBilling({ ...billingdata, previewPrevious: false })
+    }
 
 
 

@@ -36,9 +36,15 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
     const data = await ValidateAndSubmitBillingInformation(dataToBeUploaded, method, billingid);
 
     setIsSaving(false);
+
     if (typeof data === "object") {
       const { status, message } = data;
-      (status == true | status == "success") ? toast.success(message) : toast.error(message | data);
+
+      if (status == true || status == "success") {
+        toast.success(message)
+      } else {
+        toast.error(message || data)
+      }
     }
   };
 

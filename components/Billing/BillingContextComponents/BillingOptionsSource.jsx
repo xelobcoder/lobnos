@@ -9,6 +9,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 export default function BillingSourceDeterminer({ patientid }) {
     const { billingdata, updateBilling } = useContext(BillingContext);
     const queryBillingid = useSearchParams().get("billingid");
+    const isNewTransaction = useSearchParams().get("isNewTransaction");
     const router = useRouter();
 
 
@@ -67,6 +68,17 @@ export default function BillingSourceDeterminer({ patientid }) {
     }
 
 
+    const makeDecisionOnUpdateOrNewTransaction = useCallback(
+        async (canInitiateBill, billingid, patientid) => {
+            if (typeof canInitiateBill === "boolean" && !canInitiateBill && !queryBillingid) {
+                let confirmChoice = confirm('Client was billed Today. Do you want to update Transaction?');
+                if (confirmChoice) {
+                    router.push(`/billing/patientid?patientid=${patientid}&&billingid=${billingid}&&isNewTransaction=0`);
+                }
+            }
+        }, []
+    )
+
     const LoadOutStanding = async (patientid) => {
         if (!patientid) return;
         const value = await getOustandingBill(patientid);
@@ -79,9 +91,7 @@ export default function BillingSourceDeterminer({ patientid }) {
         if (value === 0) {
             const hasBeenPreviouslyBilledOnSameDay = await customFetch(`billing/caninitialbill?patientid=${patientid}`);
             const { canInitiateBill, billingid } = hasBeenPreviouslyBilledOnSameDay;
-            if (!canInitiateBill && !queryBillingid && billingid) {
-                router.push(`/billing/patientid?patientid=2024972&&billingid=${billingid}`);
-            }
+            makeDecisionOnUpdateOrNewTransaction(canInitiateBill, billingid, patientid);
         }
     }
 
