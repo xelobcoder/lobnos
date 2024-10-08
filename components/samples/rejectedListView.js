@@ -36,8 +36,9 @@ export default function RejectedSamplesComponent() {
       }
     },
 
-    { Header: 'test', accessor: 'name', Cell: ({ value }) => <span className="border-bottom border-danger border-2">{value}</span> },
-    { Header: 'collected on', accessor: "collection_date", Cell: ({ value }) => parseDate(value) },
+    { Header: 'test', accessor: 'testname', Cell: ({ value }) => <span className="border-bottom border-danger border-2">{value}</span> },
+    { Header: 'collected on', accessor: "collectionEndDate", Cell: ({ value }) => parseDate(value) },
+    { Header: 'collected by', accessor: "sampleCollectedBy"},
     { Header: 'validated On', accessor: "samplevalidatedon", Cell: ({ value }) => <div>{new Date(value).toLocaleDateString()}</div> },
     { Header: 'last validated by', accessor: 'validatedby', Cell: ({ value }) => <div>{value}</div> },
     { Header: 'reason', accessor: 'rejectionmessage', width: 200 },

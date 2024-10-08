@@ -1,32 +1,58 @@
-import { AnalyticsSharp, ProductionQuantityLimits, Queue } from '@mui/icons-material'
-import Link from 'next/link'
-import ApplicationHeader from '../../../../components/Layout/HeaderNav'
+import { useState, useEffect, useCallback } from 'react'
+import { customFetch, updatePagination } from '../../../../components/Auth/customFetch';
+import TableDisplay from '../../../../components/accessories/TableDisplay'
+import ImagingSidebar from '../../../../components/ImagingSidebar';
+import Pagination from '../../../../components/accessories/pagination';
+import ApplicationHeader from '../../../../components/Layout/HeaderNav';
+import UltrasoundLayout from '../../../../components/Layout/ImagingLayout';
 
-export default function UltrasoundHomePage() {
+export default function UltrasonograhyWaitingList() {
+  const [waitingList, setWaitingList] = useState([]);
+  const [paginate, setPaginate] = useState({ count: 10, page: 1 })
+  const [loadpage, setPage] = useState(false);
+
+  const getWaitingList = useCallback(async function () {
+    let response = await customFetch(`operations/imaging/ultrasound?count=${paginate.count}&&page=${paginate.page}`);
+    response?.result ? setWaitingList(response?.result) : setWaitingList([])
+  }, [paginate])
+
+
+  useEffect(() => {
+    getWaitingList();
+  }, [getWaitingList])
+
+
+  const columns = [
+    { Header: 'fullname', accessor: 'fullname' },
+    { Header: 'patientid', accessor: 'patientid' },
+    { Header: 'billingid', accessor: 'billingid' },
+    { Header: 'scan', accessor: 'name' },
+    {
+      Header: 'entry', Cell: function ({ row }) {
+        const source = row.original;
+        const { fullname, name, billingid, testid, patientid } = source;
+        const link = `./result?billingid=${billingid}&&scan=${name}&&testid=${testid}&&fullname=${fullname}&&patientid=${patientid}`
+        return (
+          <button className='btn btn-primary btn-sm'
+            onClick={(ev) => window.open(link)}>
+            enter result
+          </button>)
+      }
+    }
+  ]
+
+
+
+  const handlePagination = (value) => { updatePagination(value, setPaginate, paginate) };
   return (
-    <div>
-      <ApplicationHeader/>
-      <h1 className='text-center'>{new Date().toUTCString()}</h1>
-      <h2 className='text-center text-success'>---------------Ultrasound Department-----------------</h2>
-      <div className='container grid-30-30-30 mt-4' >
-        <Link href={'./ultrasound/waitinglist'}>
-          <button className='btn btn-primary p-5'>
-            <Queue />
-            <h4 className='text-capitalize'>waiting list</h4>
-          </button>
-        </Link>
-        <Link href={'./ultrasound/processedlist'}>
-          <button className='btn btn-warning p-5'>
-            <ProductionQuantityLimits />
-            <h4 className='text-capitalize'>Processed list</h4>
-          </button>
-        </Link>
-
-        <button className='btn btn-secondary p-5'>
-          <AnalyticsSharp />
-          <h4 className='text-capitalize'>Analytics || charts</h4>
-        </button>
+    <UltrasoundLayout>
+      <div className='container-fluid'>
+        <h4 className='text-primary'>Ultrasound Department Waiting List ({waitingList.length} -- on queue)</h4>
+        <TableDisplay filtering={true} showpage={false} column={columns} data={waitingList} />
+        <div className='d-flex justify-content-center'>
+          <Pagination updateFunction={handlePagination} load={setPage} />
+        </div>
       </div>
-    </div>
+    </UltrasoundLayout>
   )
 }
