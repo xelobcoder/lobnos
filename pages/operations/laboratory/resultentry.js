@@ -1,7 +1,6 @@
 import { ToastContainer } from "react-toastify";
-import ApplicationHeader from "../../../components/Layout/HeaderNav"
-import UseOperationContext from "../../../components/operations/ViewTwoResultEntry/ContextOperations/useOperation"
-import ResultEntryPanelSecondView from "../../../components/operations/ViewTwoResultEntry/ResultEntrySecondView";
+import ApplicationHeader from "../../../components/Layout/HeaderNav";
+import UseOperationContext from "../../../components/operations/ViewTwoResultEntry/ContextOperations/useOperation";
 import PatientResultEntryFormComponentNew from "../../../components/operations/ViewTwoResultEntry/PatientResultEntryFormNew";
 
 export default function ResultEntry() {

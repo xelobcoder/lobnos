@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { constraintsFormatting } from '../../settingsComponents/FieldsCreation/data/testUtil';
 
-export default function OptionsViewHtmlGenerator({ fieldItem, statehandler, index }) {
+export default function OptionsViewHtmlGenerator({ fieldItem, statehandler, isDisabled, index }) {
     const { options, name, units, fieldConstraints, entrymode, value } = fieldItem;
     const [dropdownOptions, setOptions] = useState([]);
 
@@ -15,7 +15,7 @@ export default function OptionsViewHtmlGenerator({ fieldItem, statehandler, inde
         <tr>
             <td>{name}</td>
             <td>
-                <select onChange={(ev) => { statehandler(ev, index) }} className='custom-select' value={value}>
+                <select disabled={isDisabled} onChange={(ev) => { statehandler(ev, index) }} className='custom-select' value={value}>
                     <option>select an option below</option>
                     {dropdownOptions.map((option, ind) => (
                         <option key={ind} value={option}>
@@ -26,10 +26,10 @@ export default function OptionsViewHtmlGenerator({ fieldItem, statehandler, inde
             </td>
             <td>{units}</td>
             <td></td>
-            <td>
+            <td className='pls-d-none'>
                 {entrymode}
             </td>
-            <td>
+            <td className='pls-d-none'>
                 {constraintsFormatting(fieldConstraints)}
             </td>
         </tr>

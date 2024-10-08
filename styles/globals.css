@@ -1503,6 +1503,7 @@ body {
   padding: 0;
 }
 
+
 .result-entry-layout,.result-entry-sidebar,.patient-filtering,.result-entry-wrapper,.result-test-collection{
    border: 1px solid lightgray !important;
    border-collapse: collapse;

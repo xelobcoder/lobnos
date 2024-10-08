@@ -26,7 +26,13 @@ export default function OperationsListTestCollection() {
               <button
                 type="button"
                 onClick={(ev) => {
-                  updateContext({ ...operations, minifyClientInfo: true, testid: item.testid,uiLayout: 3 });
+                  updateContext({
+                    ...operations,
+                    minifyClientInfo: true,
+                    testid: item.testid, uiLayout: 3,
+                    timerInitiated: true,
+                    initiatedFor: item.testid,
+                  });
                   window.scrollTo(0,0)
                 }}
                 className={`btn btn-sm ${testid == item.testid ? "btn-primary" : "btn-light"}`}>

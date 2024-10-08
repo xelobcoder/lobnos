@@ -23,7 +23,7 @@ export default function ApplicationHeader() {
 			<Container fluid>
 				<div className="d-flex justify-content-between">
 					<div className="d-flex align-items-center">
-						<div className="pls-header">{company}</div>
+						<div className="pls-header text-sm-start ">{company}</div>
 						{isProductExpired()}
 					</div>
 					<div className="d-md-flex d-sm-flex  d-lg-none d-xl-none ">
@@ -37,7 +37,7 @@ export default function ApplicationHeader() {
 							{username}({role})
 						</span>
 						<span>
-							<button className="btn btn-danger btn-sm br-0">
+							<button className="btn btn-danger btn-sm br-0 d-sm-none d-lg-flex d-md-none d-xl-flex">
 								<span>
 									<svg
 										onClick={(ev) => {

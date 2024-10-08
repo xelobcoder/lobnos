@@ -2,21 +2,24 @@ import { useState, useEffect } from "react";
 import { customFetch, handleComments } from "../Auth/customFetch";
 import { customPost } from "../Auth/customPost";
 import Indicator from "../accessories/Reports/indicator";
-import CommentSection from "./commentSection";
 import { toast } from 'react-toastify';
 import Loader from "../accessories/Loader";
-import ResultEntryHtmlGenerator from "../Auth/ResultEntryHtmlGenerator";
 import { BarChart, Dangerous, History } from "@mui/icons-material";
 import { useTheme } from "../Auth/useAuthentification";
+import ResultEntryMainEntryBase from "./ResultEntryMainEntryBase";
 
 export default function CreateTestRule({ clientdata }) {
-   const { testid, test, patientid, billingid, employeeid } = clientdata;
-   const { isPinUsed } = useTheme();
+   const { testid, test, patientid, billingid, employeeid,timerInitiated } = clientdata;
+   const { result } = useTheme();
    const [comments, setComments] = useState({ comments: '' })
    const [testname, setTestname] = useState("")
    const [resultEntered, setResultEntered] = useState(false);
    const [isloading, setLoading] = useState(true);
    const [rule, setRule] = useState([]);
+
+
+
+
 
    useEffect(() => {
       const gettingFields = async function () {
@@ -103,39 +106,17 @@ export default function CreateTestRule({ clientdata }) {
       if (isloading) return <Loader />
       else {
          return (
-            <section>
-               <table theme='dark' className="table border billing-cart-table table-bordered billing-cart-table ">
-                  <thead>
-                     <tr>
-                        <th className="fw-bold text-capitalize">Parameter</th>
-                        <th className="fw-bold text-capitalize" style={{ width: '250px' }}>Value</th>
-                        <th className="fw-bold text-capitalize">Unit</th>
-                        <th className="fw-bold text-capitalize">Reference Range</th>
-                        <th className="fw-bold text-capitalize">Mode</th>
-                        <th className="fw-bold text-capitalize">contraints</th>
-                     </tr>
-                  </thead>
-                  <tbody>
-                     {rule.length > 0 ? rule.map((item, index) => {
-                        return <ResultEntryHtmlGenerator key={index} statehandler={handlestate} index={index} item={item} />
-                     }) : <td className="text-danger p-3" colSpan={5}>No data found.Ensure fields were created. <button onClick={(ev) => { handleCreateFields(ev) }} className="btn btn-outline-primary btn-sm border-2">create fields</button></td>}
-                  </tbody>
-               </table>
-               <CommentSection datafunction={setComments} getcomment={handleComments} datasource={comments} target={'comments'} value={comments.comments} />
-               <div className="d-flex justify-content-between mt-2">
-                  {isPinUsed
-                     &&
-                     (<div className="">
-                        <input className="custom-input" type="password" placeholder="Enter pin here" />
-                     </div>)}
-                  <div>
-                     <button
-                        onClick={(ev) => { handleSubmit(ev) }} className="btn btn-primary btn-sm my-2 mx-1">
-                        save changes
-                     </button>
-                  </div>
-               </div>
-            </section>
+            <div>
+                  <ResultEntryMainEntryBase
+                     rule={rule}
+                     handleComments={handleComments}
+                     comments={comments}
+                     setComments={setComments}
+                     isPinUsed={result.isPinOnResultEntry}
+                     handleSubmit={handleSubmit}
+                     handleCreateFields={handleCreateFields}
+                     handlestate={handlestate} />
+            </div>
          )
       }
    }
@@ -149,11 +130,11 @@ export default function CreateTestRule({ clientdata }) {
                   <h5 className="text-capitalize">{testname}</h5>
                </div>
                <div>
-                  <button className="btn btn-light btn-sm border-secondary border-2"><History/> Audit log result entry</button>
-                  <button  type='button' className="btn btn-dark btn-sm mx-1 my-2">
-                     <BarChart /> show patient test trend
+                  <button className="btn btn-light btn-sm text-capitalize border-secondary border-2"><History /> Audit log</button>
+                  <button type='button' className="btn btn-dark btn-sm text-capitalize mx-1 ">
+                     <BarChart /> client test trend
                   </button>
-                  <button  type='button' className="btn btn-danger btn-sm"><Dangerous /> report critical values</button>
+                  <button type='button' className="btn btn-danger btn-sm text-capitalize"><Dangerous /> report critical values</button>
                </div>
             </div>
             <div className="card-body">

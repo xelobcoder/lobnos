@@ -1,7 +1,7 @@
 
 import { constraintsFormatting } from "../../settingsComponents/FieldsCreation/data/testUtil";
 
-export default function LimitViewHtmlGenerator({ fieldItem, statehandler, index }) {
+export default function LimitViewHtmlGenerator({ fieldItem, statehandler, isDisabled,index }) {
     const { name, value, upperlimit, lowerlimit, units, entrymode = 'manual', fieldConstraints } = fieldItem;
 
 
@@ -19,7 +19,7 @@ export default function LimitViewHtmlGenerator({ fieldItem, statehandler, index 
     return (<tr className={determineTableColor(value, upperlimit, lowerlimit)}>
         <td>{name}</td>
         <td>
-            <input onChange={(ev) => { statehandler(ev, index) }} className="custom-input" value={value} />
+            <input disabled={isDisabled} onChange={(ev) => { statehandler(ev, index) }} className="custom-input" value={value} />
         </td>
         <td>
             {units}
@@ -27,10 +27,10 @@ export default function LimitViewHtmlGenerator({ fieldItem, statehandler, index 
         <td>
             {lowerlimit}~{upperlimit}
         </td>
-        <td>
+        <td className="pls-d-none">
             {entrymode}
         </td>
-        <td>
+        <td className="pls-d-none">
             {constraintsFormatting(fieldConstraints)}
         </td>
     </tr>)

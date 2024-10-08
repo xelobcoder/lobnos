@@ -25,7 +25,7 @@ export default function LaboratoryLayout({ children }) {
 			return <Authorization />
 		} else {
 			return (
-				<AppCustomLayout sideLinks={sidebarLinks} defaultscreen={false}>
+				<AppCustomLayout sideLinks={sidebarLinks}>
 					{children}
 				</AppCustomLayout>
 			)

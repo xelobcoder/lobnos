@@ -58,7 +58,7 @@ export default function PatientResultEntryFormComponentNew({ }) {
     if (!showPatientData) return;
 
     return (
-        <div className="result-entry-layout">
+        <div className="result-entry-layout ">
             <div className="result-entry-sidebar bg-light">
                 <div className="patient-filtering">
                     <div className="pt-filtering-content">
@@ -72,8 +72,8 @@ export default function PatientResultEntryFormComponentNew({ }) {
                 </div>
                 <div className="patient-data">
                     <div className="pt-content p-2">
-                        <div className="bg-info-subtle br-5 p-1">
-                            <p className="text-uppercase">{firstname} {middlename} {lastname}</p>
+                        <div className="bg-info-subtle br-5 p-2">
+                            <p className="text-uppercase fw-bold">{firstname} {middlename} {lastname}</p>
                             <hr />
                             <div className="grid-50">
                                 <div>
