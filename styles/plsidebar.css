@@ -68,9 +68,7 @@
      grid-template-columns: 10% 80% 10%;
      padding: 5px;
 }
-#menubar {
-     display: none !important;
-}
+
 .sidebarr > .content > ul  > li > a > span:nth-child(2) {
     padding-left: 10px;
     text-transform: capitalize;
@@ -80,6 +78,32 @@
      border-bottom: 1px solid lightgray;
 }
 
+@media screen and (max-height: 450px) {
+  .sidebarr {padding-top: 15px;}
+  .sidebarr ul li a {font-size: 18px;}
+  .app-partitioner {
+    display: grid;
+    grid-template-columns: 100%;
+  }
+
+  .sidebar-macro-wrapper {
+    width: 100%;
+  }
+
+  .sidebar-macro-wrapper:hover{
+    width: 100%;
+}
+}
+
+
+@media  screen and (max-width: 400px) {
+  .pls-header,
+  #prime-header-branch{
+    font-size: 15px;
+    display: none;
+  }
+  .sidebarr ul li a {font-size: 15px;}
+}
 
 /* @media  screen and (max-width: 1200px) {
      .prime-lab-layout {

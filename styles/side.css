@@ -52,8 +52,7 @@ navbar {
   width: 60px;
   position: fixed;
   list-style-type: none;
-  /* background: #21263c; */
-  background-color: var(--prime-sidebar-deep);
+ background-color: rgb(11, 111, 241);;
   z-index:999;
  min-height: 100vh;
  color:#f9f9fb;

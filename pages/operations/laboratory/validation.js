@@ -6,5 +6,5 @@ import { Table } from "react-bootstrap";
 import LaboratoryAscensionStages from "../../../components/operations/Laboratory/LaboratoryAscensionStages";
 
 export default function AscensionValidationStage() {
-  return <LaboratoryAscensionStages ascension_stage={'VALIDATION'}/>
+  return <div></div>
 }

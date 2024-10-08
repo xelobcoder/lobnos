@@ -3,6 +3,8 @@ import { PrepareResultEntryHeader } from "../../Auth/customFetch";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import Pagination from "../../accessories/pagination";
 
+import { fnTiming } from "./Lib";
+
 
 export default function AscentionCompletedTable() {
 	const { isLoading, collection, queryParams, setLoadPage, setQueryParams, canloadPage, updatePageValue } = useLaboratoryContext();
@@ -63,6 +65,7 @@ export default function AscentionCompletedTable() {
 						<th>Name</th>
 						<th>Age</th>
 						<th>Test Name</th>
+						<th>Timing</th>
 						<th>Action</th>
 					</tr>
 				</thead>
@@ -82,6 +85,7 @@ export default function AscentionCompletedTable() {
 								<td className="text-uppercase fw-bold">{item.fullname}</td>
 								<td>{item.age}</td>
 								<td>{item.name}</td>
+								<td>{fnTiming(item)}</td>
 								<td>
 									<div>
 										<button

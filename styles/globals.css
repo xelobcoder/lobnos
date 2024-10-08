@@ -43,10 +43,10 @@ body {
 
 *{
 
-  /* font-family: 'Roboto','Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; */
+  font-family: 'Roboto','Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
   /* font-family: Outfit, Arial, Helvetica, sans-serif; */
       /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
-      font-family: "Lucida Sans Regular";
+      /* font-family: "Lucida Sans Regular"; */
 }
 
 
@@ -1174,7 +1174,6 @@ textarea:required:focus:invalid {
 
 
 .pls-header {
-  /* font-size: 20px; */
   color: white;
 }
 
@@ -1186,19 +1185,12 @@ textarea:required:focus:invalid {
   background-color: #04AA6D;
   color: white;
 }
-@media screen and (max-height: 450px) {
-  .sidebarr {padding-top: 15px;}
-  .sidebarr ul li a {font-size: 18px;}
+
+.app-partitioner {
+  display: grid;
+  grid-template-columns: 60px auto;
 }
 
-
-@media  screen and (max-width: 400px) {
-  .pls-header,
-  #prime-header-branch{
-    font-size: 15px;
-  }
-  .sidebarr ul li a {font-size: 15px;}
-}
 
 
 

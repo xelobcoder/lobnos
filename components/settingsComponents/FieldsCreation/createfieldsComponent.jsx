@@ -86,7 +86,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
               <div className="card-header">
                 <h5>Parameter / Field Creation</h5>
               </div>
-              <div className="card-body">
+              <div className="card-body text-sm">
                 <ParamCreationGForm field={field} setField={setField} generalTestRule={generalTestRule} />
                 <CustomParameterTypeSelection selection={field.plan} field={field} setField={setField} />
                 <TrackAlertLevelValueForm field={field} setField={setField} />

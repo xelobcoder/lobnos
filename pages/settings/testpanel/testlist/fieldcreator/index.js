@@ -59,14 +59,14 @@ export default function MultipleTestFieldCreator() {
 
   return (
     <MainSettingsLayoutView>
-      <Row className="mx-0">
+      <Row className="mx-0 text-sm">
         <Col md={3} className="border-right py-3" style={{ height: "100vh", overflowY: "auto" }}>
           <h5>Test List</h5>
           <Form.Control type="text" placeholder="Filter tests" onChange={filtertest} value={testname} className="mb-3" />
           {testListrenderingView()}
         </Col>
 
-        <Col md={9} className="py-3">
+        <Col md={9} className="py-3 text-sm">
           <h5>Create Test Fields</h5>
           {active ? <CreateTestFields testid={active} minimize={false} /> : <p>Please select a test from the list.</p>}
         </Col>

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Spinner } from "react-bootstrap";
 import { customPost } from "../../Auth/customFetch";
 
-export default function ProcessingButtons({ item, employeeid, updateTestCollectionAfterUpdate }) {
+export default function ProcessingButtons({ item, employeeid, updateTestCollectionAfterUpdate, BulkTargetTo, action }) {
        const [subStart, setSubmitStart] = useState(false);
        const [subStop, setSubmitEnd] = useState(false);
 
@@ -38,13 +38,13 @@ export default function ProcessingButtons({ item, employeeid, updateTestCollecti
                             disabled={item.processingStartDate}
                             onClick={(ev) => { handleProcessing(item, 'start') }}
                             className="btn btn-success btn-sm">
-                            {subStart && <Spinner size="sm" />}
+                            {(subStart || (BulkTargetTo == item.ascensionid && action === "start")) && <Spinner size="sm" />}
                             <Start />start </button>
                      <button
                             disabled={item.processingEndDate}
                             onClick={(ev) => { handleProcessing(item, 'stop') }}
                             className="mx-2 btn btn-danger btn-sm">
-                            {subStop && <Spinner size="sm" />} <Stop /> stop
+                            {(subStop || (BulkTargetTo == item.ascensionid && action === "stop")) && <Spinner size="sm" />} <Stop /> stop
                      </button>
               </div>
        </td>)
