@@ -7,15 +7,28 @@ import Loader from "../accessories/Loader";
 import { BarChart, Dangerous, History } from "@mui/icons-material";
 import { useTheme } from "../Auth/useAuthentification";
 import ResultEntryMainEntryBase from "./ResultEntryMainEntryBase";
+import moment from "moment";
 
 export default function CreateTestRule({ clientdata }) {
-   const { testid, test, patientid, billingid, employeeid,timerInitiated } = clientdata;
+   const { testid, test, patientid, billingid, employeeid, timerInitiated, ascensionid, resultEntryStart, resultEntryEnd } = clientdata;
+
    const { result } = useTheme();
    const [comments, setComments] = useState({ comments: '' })
    const [testname, setTestname] = useState("")
    const [resultEntered, setResultEntered] = useState(false);
    const [isloading, setLoading] = useState(true);
    const [rule, setRule] = useState([]);
+   const [editCount, setEditCount] = useState(0);
+
+
+
+   const getAscensionEditCount = async () => {
+      customFetch(`ascension/edit/count?csvid=${billingid}&&ascensionid=${ascensionid}&&testid=${testid}&&ptid=${patientid}`)
+         .then((result) => {
+            setEditCount(result?.count);
+         })
+         .catch((err) => console.log(err))
+   }
 
 
 
@@ -52,9 +65,25 @@ export default function CreateTestRule({ clientdata }) {
             updatesResultForm(resultResponse);
             updatesCommentsForm(commentsResponse);
             setLoading(false);
+            getAscensionEditCount();
          } catch (err) {
             setRule([]);
             setComments({ comments: "" });
+         } finally {
+            if (resultEntryStart) return;
+            const selectedItem = {
+               ascensionid,
+               testid,
+               value: new Date().toISOString(),
+               employeeid,
+               stage: 'resultEntryStart',
+            };
+
+            const { status } = await customPost("ascension/collection/update/stage", 'POST', selectedItem);
+
+            if (status === true) {
+               console.log('result entry logged!!!')
+            }
          }
       };
       if (testid && billingid && patientid && employeeid) {
@@ -78,7 +107,7 @@ export default function CreateTestRule({ clientdata }) {
          if (allHasValues) {
             toast.error("some fields are empty", { autoClose: 2000 });
          }
-         const data = { fields: transformed, csvid: billingid, employeeid, ptid: patientid, comments: comments.comments, test, testid };
+         const data = { fields: transformed, csvid: billingid, ascensionid, employeeid, ptid: patientid, comments: comments.comments, test, testid };
          if (data.employeeid && data.csvid && data.fields.length > 0) {
             const response = await customPost("result/entry/customtest", "POST", data);
             const { message, statusCode, status } = response;
@@ -107,15 +136,19 @@ export default function CreateTestRule({ clientdata }) {
       else {
          return (
             <div>
-                  <ResultEntryMainEntryBase
-                     rule={rule}
-                     handleComments={handleComments}
-                     comments={comments}
-                     setComments={setComments}
-                     isPinUsed={result.isPinOnResultEntry}
-                     handleSubmit={handleSubmit}
-                     handleCreateFields={handleCreateFields}
-                     handlestate={handlestate} />
+               <div className="d-flex justify-content-between">
+                  <span className=" bg-secondary-subtle p-2 heightedBorder">{resultEntryStart ? `Result Entry Started At: ${moment(resultEntryStart).format('LLLL')}` : null}</span>
+                  <span className=" bg-secondary-subtle p-2 heightedBorder">{resultEntryEnd ? `Result Concluded on: ${moment(resultEntryEnd).format('LLLL')}` : null}</span>
+               </div>
+               <ResultEntryMainEntryBase
+                  rule={rule}
+                  handleComments={handleComments}
+                  comments={comments}
+                  setComments={setComments}
+                  isPinUsed={result.isPinOnResultEntry}
+                  handleSubmit={handleSubmit}
+                  handleCreateFields={handleCreateFields}
+                  handlestate={handlestate} />
             </div>
          )
       }
@@ -125,9 +158,13 @@ export default function CreateTestRule({ clientdata }) {
       <div>
          <section className="card mx-2 my-2">
             <div className="card-header d-flex justify-content-between">
-               <div className="d-flex">
-                  <Indicator resultEntered={resultEntered} />
-                  <h5 className="text-capitalize">{testname}</h5>
+               <div className="btn-group" role="group" aria-label="result form entry label">
+                  <button className="border d-flex br-5 p-1 mx-1 pls-color text-uppercase">
+                     <h4 title={`test edited ${editCount} times`}> {editCount} </h4> <Indicator resultEntered={resultEntered} />
+                  </button>
+                  <button className="border br-5 p-1 mx-1 pls-color text-uppercase">
+                     <h5>{testname}</h5>
+                  </button>
                </div>
                <div>
                   <button className="btn btn-light btn-sm text-capitalize border-secondary border-2"><History /> Audit log</button>

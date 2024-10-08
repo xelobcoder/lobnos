@@ -3,7 +3,7 @@
   --topband-bg: #21263c;
   --sidebar-bg: #f7f7fe;
   --bg-color: #eef0f1;
-  --pls-color: color: #00224fcf;
+  --pls-color: #00224fcf;
   --custom-blue: #2165e3;
   --text-color: black;
   --prime-attention: #ff6a00;
@@ -37,6 +37,7 @@ body {
 
 .pls-color{
   color: var(--pls-color) !important;
+  font-size: 13px;
 }
 
 
@@ -443,7 +444,8 @@ i {font-size:100px;
   width: 100%;
   color: #00224f;
 }
-.custom-select:disabled{
+.custom-select:disabled,
+.custom-input:disabled{
   background-color: lightgray !important;
 }
 .r-3{

@@ -14,7 +14,7 @@ export default function SAMPLE_ASSESSMENT() {
 
   const fetchInitialData = useCallback(
     async function () {
-    await getDataAndUpdateState(setData, `sample?count=${paginate.count}&&page=${paginate.page}`, false, setLoading);
+      await getDataAndUpdateState(setData, `sample/client/list/unvalidated?count=${paginate.count}&&page=${paginate.page}`, false, setLoading);
   }, [paginate])
 
   useEffect(() => { fetchInitialData() }, [fetchInitialData])
