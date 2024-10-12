@@ -1,0 +1,208 @@
+import React, { useMemo, useState } from "react";
+import { useTable, useGroupBy, useExpanded, useSortBy, useFilters, useRowSelect, useFlexLayout } from "react-table";
+import moment from "moment";
+import { useLaboratoryContext } from "../../../components/operations/Laboratory/LaboratoryStagesContext";
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import SortAscendingIcon from '@mui/icons-material/ArrowUpward';
+import SortDescendingIcon from '@mui/icons-material/ArrowDownward';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
+import MoreVertIcon from '@mui/icons-material/MoreVert'; // Import MoreVert icon
+import CheckIcon from '@mui/icons-material/Check'; // Import Check icon for Validate action
+import VisibilityIcon from '@mui/icons-material/Visibility'; // Import Visibility icon for View Result action
+import { fnTiming } from "../../../components/operations/Laboratory/Lib";
+import 'bootstrap/dist/css/bootstrap.min.css'; // Ensure Bootstrap CSS is imported
+import { Dropdown } from 'react-bootstrap'; // Import Bootstrap Dropdown
+
+export default function ValidationAscensionTable() {
+	const {
+		isLoading,
+		collection,
+		queryParams,
+		setLoadPage,
+		canloadPage,
+		updatePageValue
+	} = useLaboratoryContext();
+
+	const columns = useMemo(() => [
+		{ Header: '#', accessor: '', Cell: ({ row }) => <input type="checkbox" {...row.getToggleRowSelectedProps()} />, width: 20, filtering: false },
+		{ Header: "Fullname", accessor: "fullname", width: 150, Cell: ({ value, row }) => <div className="text-uppercase ">{value} <br />{row.original.age}</div> },
+		{ Header: "Patient ID", accessor: "patientid", width: 100 },
+		{ Header: "Client Status", accessor: "clientstatus", width: 50 },
+		{ Header: "Test Name", accessor: "name", width: 150 },
+		{
+			Header: "Processing",
+			accessor: "processing",
+			Cell: ({ row }) => fnTiming(row.original),
+			width: 150,
+		},
+		{
+			Header: "Results",
+			accessor: "results",
+			Cell: ({ row }) => (
+				<div className="list-group p-0 bg-secondary-subtle">
+					<span className="list-group-item p-0">
+						<PlayArrowIcon color="success" fontSize="small" />
+						{moment(row.original.resultEntryStart).format("LLLL")}
+					</span>
+					<span className="list-group-item p-0">
+						<StopIcon color="error" fontSize="small" />
+						{moment(row.original.resultEntryEnd).format("LLLL")}
+					</span>
+				</div>
+			),
+			width: 150,
+		},
+		{
+			Header: 'Action',
+			accessor: "action",
+			Cell: ({ row }) => {
+				return (
+					<Dropdown>
+						<Dropdown.Toggle variant="link" size="sm" className="p-0">
+							<MoreVertIcon fontSize="small" />
+						</Dropdown.Toggle>
+						<Dropdown.Menu>
+							<Dropdown.Item onClick={() => console.log(`Validate ${row.original.patientid}`)}>
+								<CheckIcon fontSize="small" className="me-2" />Validate
+							</Dropdown.Item>
+							<Dropdown.Item onClick={() => console.log(`View result for ${row.original.patientid}`)}>
+								<VisibilityIcon fontSize="small" className="me-2" />View Result
+							</Dropdown.Item>
+						</Dropdown.Menu>
+					</Dropdown>
+				);
+			},
+			width: 50
+		}
+	], []);
+
+	const data = useMemo(() => collection, [collection]);
+
+	const tableInstance = useTable(
+		{
+			columns,
+			data,
+			initialState: { groupBy: ["billingid"] },
+		},
+		useFilters,
+		useGroupBy,
+		useSortBy,
+		useExpanded,
+		useRowSelect,
+		useFlexLayout
+	);
+
+	const {
+		getTableProps,
+		getTableBodyProps,
+		headerGroups,
+		rows,
+		prepareRow,
+		setFilter,
+		toggleAllRowsSelected,
+	} = tableInstance;
+
+	const [currentColumn, setCurrentColumn] = useState(null);
+	const [filterValue, setFilterValue] = useState('');
+
+	const handleClick = (column) => {
+		setCurrentColumn(column);
+	};
+
+	const handleFilterApply = () => {
+		if (currentColumn) {
+			setFilter(currentColumn.id, filterValue || undefined);
+		}
+		setCurrentColumn(null);
+	};
+
+	if (isLoading) return <div className="p-2 text-center heightedBorder bg-secondary-subtle">Loading .......................</div>;
+
+	if (collection.length === 0 && !isLoading && !canloadPage) {
+		return (
+			<div className="p-3 alert col-3 alert-info text-sm">
+				<span className="mx-2">
+					<Info />
+				</span>
+				<span>No Records Found</span>
+			</div>
+		);
+	}
+
+	if (collection.length === 0 && !isLoading && canloadPage) {
+		return (
+			<div className="d-flex justify-content-center">
+				<Pagination page={queryParams.page} updateFunction={updatePageValue} load={setLoadPage} />
+			</div>
+		);
+	}
+
+	return (
+		<div className="container-fluid bg-body-secondary p-2 shadow mx-2 br-5">
+			<button
+				className="btn btn-light btn-sm"
+				onClick={() => {
+					const allSelected = rows.length === Object.keys(tableInstance.state.selectedRowIds).length;
+					toggleAllRowsSelected(!allSelected);
+				}}
+			>
+				Select All
+			</button>
+			<table {...getTableProps()} className="table text-sm">
+				<thead>
+					{headerGroups.map((headerGroup) => (
+						<tr {...headerGroup.getHeaderGroupProps()} className="table-header">
+							{headerGroup.headers.map((column) => (
+								<th {...column.getHeaderProps()} className="table-cell">
+									<div className="header-content d-flex justify-content-between align-items-center">
+										<div>{column.render("Header")}</div>
+										{column.id !== 'selection' && (
+											<button onClick={() => handleClick(column)} className="btn btn-link p-0">
+												<FilterAltIcon />
+											</button>
+										)}
+									</div>
+									{currentColumn === column && (
+										<div className="dropdown-menu show">
+											<button className="dropdown-item fw-bold text-sm" onClick={() => currentColumn.toggleSortBy(true)}>
+												<SortAscendingIcon fontSize="small" /> Sort Asc
+											</button>
+											<button className="dropdown-item fw-bold text-sm" onClick={() => currentColumn.toggleSortBy(false)}>
+												<SortDescendingIcon fontSize="small" /> Sort Desc
+											</button>
+											<div className="dropdown-item fw-bold text-sm">
+												<input
+													type="text"
+													className="form-control"
+													placeholder="Filter"
+													value={filterValue}
+													onChange={(e) => setFilterValue(e.target.value)}
+												/>
+												<button className="btn btn-outline-secondary btn-sm mt-1" onClick={handleFilterApply}>
+													Apply
+												</button>
+											</div>
+										</div>
+									)}
+								</th>
+							))}
+						</tr>
+					))}
+				</thead>
+				<tbody {...getTableBodyProps()}>
+					{rows.map((row) => {
+						prepareRow(row);
+						return (
+							<tr {...row.getRowProps()} className={row.original?.clientstatus === "urgent" ? "table-danger" : ""}>
+								{row.cells.map((cell) => (
+									<td {...cell.getCellProps()} className="table-cell">{cell.render("Cell")}</td>
+								))}
+							</tr>
+						);
+					})}
+				</tbody>
+			</table>
+		</div>
+	);
+}

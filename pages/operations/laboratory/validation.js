@@ -1,10 +1,15 @@
-import { useEffect, useState } from "react"
 import LaboratoryLayout from "../../../components/Layout/LaboratoryLayout";
-import { Info } from "@mui/icons-material";
-import { customFetch } from "../../../components/Auth/customFetch";
-import { Table } from "react-bootstrap";
 import LaboratoryAscensionStages from "../../../components/operations/Laboratory/LaboratoryAscensionStages";
+import { LaboratoryStagesProvider } from "../../../components/operations/Laboratory/LaboratoryStagesContext";
+import ValidationAscensionTable from "./AsensionValidationTable";
 
 export default function AscensionValidationStage() {
-  return <div></div>
+  return (
+    <LaboratoryLayout>
+      <LaboratoryStagesProvider>
+        <LaboratoryAscensionStages ascension_stage={'VALIDATION'} />
+        <ValidationAscensionTable/>
+      </LaboratoryStagesProvider>
+    </LaboratoryLayout>
+  )
 }

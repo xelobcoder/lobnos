@@ -1587,3 +1587,27 @@ grid-template-columns: 100% !important;
 }
     
 }
+
+.container-fluid {
+    overflow-x: auto; /* Ensure horizontal scroll for small screens */
+}
+
+.table-header {
+    background-color: #f8f9fa; /* Light gray background for headers */
+}
+
+.table-cell {
+    padding: 10px; /* Consistent padding for cells */
+    text-align: left; /* Align text to the left */
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Vertically center align the contents */
+}
+
+.dropdown-menu {
+    position: absolute; /* Positioning dropdown */
+    z-index: 1000; /* Ensure dropdown appears above other content */
+}
