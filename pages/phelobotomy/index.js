@@ -57,15 +57,7 @@ export default function Phelobotomy() {
       return (
         <div>
           <PhelobotomySummaryAnalytics />
-          <section className="p-">
-            <div>
-              {/* <FilterPhelobotomyCases data={data} /> */}
-              {/* <div className="list-group">
-                {data.map((item, index) => <CustomAccordion key={index} item={item} />)}
-              </div> */}
-            </div>
-            {<ListTable data={data} receive={receiveSample} handleCollectSample={handleCollectSample} />}
-          </section>
+          {<ListTable data={data} receive={receiveSample} handleCollectSample={handleCollectSample} />}
           {showModal && <CollectionSampleModal removeCollectedSample={removeCollectedSample} employeeid={employeeid} collection={collection} show={showModal} hide={hideModal} />}
           {openModal && <ReceiveLabSampleModal show={openModal} hide={closeModal} />}
           <div className="d-flex justify-content-center">
