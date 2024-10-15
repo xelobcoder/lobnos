@@ -19,6 +19,7 @@ export default function TestForm({ method, customtest, testid, router }) {
   const [sampleType, setSample] = useState([]);
   const [category, setCategory] = useState([]);
   const [data, setTestData] = useState({ ...defaultTestEditValues, iscustom: customtest });
+  const [FieldDisabledDueNone, setFieldDisabledDueNone] = useState(false);
   const [isLoading, setLoading] = useState(true);
 
   const getTestParams = useCallback(async () => {
@@ -44,8 +45,7 @@ export default function TestForm({ method, customtest, testid, router }) {
   const handleForm = async (ev) => {
     ev.preventDefault();
     const { category, sample_container, sample, name, testprice } = data;
-
-    if (sample === "" || sample_container === "" || name === "" || category === 0 || sample === 0) {
+    if (sample === "" || (sample_container === "" && sample != 8) || name === "" || category === 0 || sample === 0) {
       toast.error("Sample type, container, and category are required", { autoClose: 2000 });
       return;
     }
@@ -55,7 +55,10 @@ export default function TestForm({ method, customtest, testid, router }) {
       return;
     }
 
+
     const response = await customPost(`testpanel/list`, method, { ...data, employeeid });
+
+
 
     if (response.status === "success") {
       toast.success("Test panel updated successfully", { autoClose: 500 });
@@ -63,6 +66,27 @@ export default function TestForm({ method, customtest, testid, router }) {
       toast.error("Test panel not updated", { autoClose: 500 });
     }
   };
+
+
+
+
+  const handleSampleTypeChange = (ev) => {
+    const { value } = ev.target;
+    if (value == 8) {
+      setTestData({ ...data, sample: value, sample_container: "", unit: "", qty_required: "" })
+      return;
+    }
+    handleChangeWithState(ev, "sample", setTestData, data);
+  }
+
+
+  useEffect(() => {
+    if (data && data.sample && data.sample == 8) {
+      setFieldDisabledDueNone(true);
+    } else {
+      setFieldDisabledDueNone(false);
+    }
+  }, [data.sample]);
 
   const renderingView = () => {
     if (isLoading) return <Loader />;
@@ -78,7 +102,7 @@ export default function TestForm({ method, customtest, testid, router }) {
                 }}
                 className="btn btn-primary mb-1"
               >
-               <Add/> Add outsourcing Organizations
+                <Add /> Add outsourcing Organizations
               </button>
               <button
                 onClick={(ev) => {
@@ -119,9 +143,7 @@ export default function TestForm({ method, customtest, testid, router }) {
                   required
                   className="custom-select"
                   value={data.sample}
-                  onChange={(ev) => {
-                    handleChangeWithState(ev, "sample", setTestData, data);
-                  }}
+                  onChange={(ev) => { handleSampleTypeChange(ev) }}
                 >
                   <option value="">Select a sample type</option>
                   {sampleType.map((b, index) => (
@@ -134,7 +156,14 @@ export default function TestForm({ method, customtest, testid, router }) {
               <div className="form-row grid-reg mt-2">
                 <label>Sample Container</label>
                 <input
-                  onChange={(ev) => handleChangeWithState(ev, "sample_container", setTestData, data)}
+                  disabled={FieldDisabledDueNone}
+                  onChange={
+
+                    (ev) => {
+
+                      handleChangeWithState(ev, "sample_container", setTestData, data)
+                    }
+                  }
                   type="text"
                   className="custom-input"
                   value={data.sample_container}
@@ -145,6 +174,7 @@ export default function TestForm({ method, customtest, testid, router }) {
                 <input
                   onChange={(ev) => handleChangeWithState(ev, "unit", setTestData, data)}
                   type="text"
+                  disabled={FieldDisabledDueNone}
                   className="custom-input"
                   value={data.unit}
                 />
@@ -152,6 +182,7 @@ export default function TestForm({ method, customtest, testid, router }) {
               <div className="form-row grid-reg mt-2">
                 <label>Sample Quantity</label>
                 <input
+                  disabled={FieldDisabledDueNone}
                   onChange={(ev) => handleChangeWithState(ev, "qty_required", setTestData, data)}
                   type="number"
                   className="custom-input"

@@ -9,6 +9,7 @@ import { defaultCreationRule, parseTextToObject, updateFieldsRules } from "./dat
 import ParamCreationGForm from "./ParamCreationForm";
 import MultiFieldSelectConditions from "./MultiFieldConditions";
 import TrackAlertLevelValueForm from "./TrackAlertValueForm";
+import UltrasoundFieldsCreation from "./UltrasoundFieldsCreation";
 
 export default function CreateTestFields({ testid, testname, minimize = false }) {
   const [generalTestRule, setGeneralTestRule] = useState(defaultCreationRule);
@@ -41,6 +42,33 @@ export default function CreateTestFields({ testid, testname, minimize = false })
     const { name } = item;
     setData(prevData => prevData.filter(a => a.name !== name));
   };
+
+
+
+  const handleUltrasoundChangeType = (ev) => {
+    const { value } = ev.target;
+    if (!value) return false;
+    if (value === "report") {
+      const fieldValue = {
+        "name": "General",
+        "field": "",
+        "value": "",
+        "options": "",
+        "testid": "",
+        "hasunits": false,
+        "units": "",
+        "plan": "ultrasoundFields",
+        "plain": "",
+        "fieldConstraints": [],
+        "ordering": "",
+        "isValueTracked": 0,
+        "textReference": ""
+      }
+      setGeneralTestRule({ ...generalTestRule, field: fieldValue, view: value })
+      return;
+    }
+    setGeneralTestRule({ ...generalTestRule, view: value })
+  }
 
 
   const changeOrdering = (item, ev) => {
@@ -82,32 +110,53 @@ export default function CreateTestFields({ testid, testname, minimize = false })
             <div>
               {error && <div className="alert alert-danger">{error}</div>}
             </div>
-            <div className="card">
-              <div className="card-header">
-                <h5>Parameter / Field Creation</h5>
+            {generalTestRule?.department.toLowerCase() == "ultrasound" && (
+              <div className="grid-reg my-2 mx-2">
+                <label className="my-2"> Result Entry Type</label>
+                <select className="custom-select" onChange={(ev) => { handleUltrasoundChangeType(ev) }}>
+                  <option value=''>Select an option below</option>
+                  <option value='parameter'>By Parameter</option>
+                  <option value='report'>
+                    Full Report View
+                  </option>
+                </select>
               </div>
-              <div className="card-body text-sm">
-                <ParamCreationGForm field={field} setField={setField} generalTestRule={generalTestRule} />
-                <CustomParameterTypeSelection selection={field.plan} field={field} setField={setField} />
-                <TrackAlertLevelValueForm field={field} setField={setField} />
-              </div>
-              <div className="card-footer">
-                <button
-                  type="button"
-                  onClick={handleCreateField}
-                  className="btn  btn-sm btn-success mt-2"
-                >
-                  Create Field
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateField}
-                  className="btn  mx-2 btn-sm btn-danger mt-2"
-                >
-                 cancel 
-                </button>
-              </div>
-            </div>
+            )}
+
+            {(generalTestRule.department.toLowerCase() == "ultrasound") && <UltrasoundFieldsCreation  generalTestRule={generalTestRule} handleCreateField={handleCreateField} field={field} setField={setField} />}
+           
+            {(generalTestRule.department.toLowerCase() != "ultrasound")
+              &&
+             ( <div className="card">
+                <div className="card-header">
+                  <h5>Parameter / Field Creation</h5>
+                </div>
+                <div className="card-body text-sm">
+                  <ParamCreationGForm field={field} setField={setField} generalTestRule={generalTestRule} />
+                  <CustomParameterTypeSelection selection={field.plan} field={field} setField={setField} />
+                  <TrackAlertLevelValueForm field={field} setField={setField} />
+                </div>
+
+                <div className="card-footer">
+                  <button
+                    type="button"
+                    onClick={handleCreateField}
+                    className="btn  btn-sm btn-success mt-2"
+                  >
+                    Create Field
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCreateField}
+                    className="btn  mx-2 btn-sm btn-danger mt-2"
+                  >
+                    cancel
+                  </button>
+                </div>
+              </div>)
+            }
+
+      
           </div>
 
           {/* fields card */}

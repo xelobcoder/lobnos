@@ -21,6 +21,9 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
             <td  className="table-column-width-reset">
                 {item.textReference ? <ReformatTestParamOptions stringdata={item.textReference} /> : ""}
             </td>
+            <td>
+                {item.options === "ultrasoundFields" ?  'Yes' : 'No'} 
+            </td>
             <td className='text-sm'>
                 <div className="d-flex">
                     <input
@@ -67,6 +70,7 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
                         <th>AlertValue</th>
                         <th>Options</th>
                         <th>Plain</th>
+                        <th>Ultrasound Type</th>
                         <th>Actions</th>
                     </tr>
                 </thead>

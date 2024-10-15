@@ -18,30 +18,15 @@ import CloseIcon from '@mui/icons-material/Close';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import SortAscendingIcon from '@mui/icons-material/ArrowUpward';
 import SortDescendingIcon from '@mui/icons-material/ArrowDownward';
+import ShowTableCount from "./ShowCountTable";
 
 export default function AscentionCompletedTable() {
 	const { isLoading, collection, queryParams, setLoadPage, setQueryParams, canloadPage, updatePageValue } = useLaboratoryContext();
 
-	if (isLoading) return <div>Loading .......................</div>;
 
-	if (collection.length === 0 && !isLoading && !canloadPage) {
-		return (
-			<div className="p-3 alert col-3 alert-info text-sm">
-				<span className="mx-2">
-					<Info />
-				</span>
-				<span>No Records Found</span>
-			</div>
-		);
-	}
+	const noRecordsFound = !isLoading && collection.length === 0 && !canloadPage;
 
-	if (collection.length === 0 && !isLoading && canloadPage) {
-		return (
-			<div className="d-flex justify-content-center">
-				<Pagination page={queryParams.page} updateFunction={updatePageValue} load={setLoadPage} />
-			</div>
-		);
-	}
+	const canLoadMoreRecords = !isLoading && collection.length === 0 && canloadPage;
 
 	const columns = useMemo(() => [
 		{
@@ -108,6 +93,7 @@ export default function AscentionCompletedTable() {
 		},
 	], []);
 
+	// Call useMemo for data and useTable outside the conditional returns
 	const data = useMemo(() => collection, [collection]);
 
 	const tableInstance = useTable(
@@ -144,27 +130,30 @@ export default function AscentionCompletedTable() {
 		setCurrentColumn(null);
 	};
 
-	return (
-		<div className="container-fluid bg-body-secondary p-2 shadow mx-2 br-5">
-			<div className="my-1">
-				<select
-					value={queryParams.count}
-					onChange={(ev) => setQueryParams({ ...queryParams, count: ev.target.value })}
-					className="custom-select col-1"
-				>
-					<option value={5}>5</option>
-					<option value={10}>10</option>
-					<option value={15}>15</option>
-					<option value={20}>20</option>
-					<option value={25}>25</option>
-					<option value={30}>30</option>
-					<option value={35}>35</option>
-					<option value={40}>40</option>
-					<option value={45}>45</option>
-					<option value={50}>50</option>
-				</select>
-			</div>
+	if (isLoading) return <div className="text-center heightedBorder p-2 bg-secondary-subtle">Loading .......................</div>;
 
+	if (noRecordsFound) {
+		return (
+			<div className="p-3 alert col-3 alert-info text-sm">
+				<span className="mx-2">
+					<Info />
+				</span>
+				<span>No Records Found</span>
+			</div>
+		);
+	}
+
+	if (canLoadMoreRecords) {
+		return (
+			<div className="d-flex justify-content-center">
+				<Pagination page={queryParams.page} updateFunction={updatePageValue} load={setLoadPage} />
+			</div>
+		);
+	}
+
+	return (
+		<div className="bg-body-secondary p-2 shadow mx-2 br-5">
+			<ShowTableCount queryParams={queryParams} setQueryParams={setQueryParams} />
 			<button
 				className="btn btn-light btn-sm mb-2"
 				onClick={() => {
@@ -178,9 +167,9 @@ export default function AscentionCompletedTable() {
 			<table {...getTableProps()} className="table text-sm">
 				<thead>
 					{headerGroups.map(headerGroup => (
-						<tr {...headerGroup.getHeaderGroupProps()} className="table-header">
+						<tr {...headerGroup.getHeaderGroupProps()} className="table-header" key={headerGroup.id}>
 							{headerGroup.headers.map(column => (
-								<th {...column.getHeaderProps()} className="table-cell">
+								<th {...column.getHeaderProps()} className="table-cell" key={column.id}>
 									<div className="header-content d-flex justify-content-between align-items-center">
 										<div>{column.render("Header")}</div>
 										{column.id !== 'selection' && (
@@ -220,9 +209,11 @@ export default function AscentionCompletedTable() {
 					{rows.map(row => {
 						prepareRow(row);
 						return (
-							<tr {...row.getRowProps()} className={`${row.original.clientstatus === "urgent" ? "table-danger" : "table-white"}`}>
+							<tr {...row.getRowProps()} className={`${row.original.clientstatus === "urgent" ? "table-danger" : "table-white"}`} key={row.id}>
 								{row.cells.map(cell => (
-									<td {...cell.getCellProps()} className="table-cell">{cell.render("Cell")}</td>
+									<td {...cell.getCellProps()} className="table-cell" key={cell.column.id}>
+										{cell.render("Cell")}
+									</td>
 								))}
 							</tr>
 						);

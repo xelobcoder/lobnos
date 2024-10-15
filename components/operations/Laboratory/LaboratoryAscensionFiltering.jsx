@@ -4,21 +4,25 @@ import { useLaboratoryContext } from "./LaboratoryStagesContext";
 
 
 export default function LaboratoryAscensionFiltering({ ascension_stage }) {
-       const { queryParams, setQueryParams, _getAscensionData } = useLaboratoryContext();
+       const { queryParams, setQueryParams, _getAscensionData, canLoadPage, loadCounter, setLoadCounter, } = useLaboratoryContext();
 
 
        useEffect(() => {
               _getAscensionData(ascension_stage);
+              setLoadCounter(loadCounter + 1);
        }, [])
 
+   
 
        useEffect(() => {
-              _getAscensionData(ascension_stage);
-       }, [queryParams.page,queryParams.count])
+              if (loadCounter > 0) {
+                     _getAscensionData(ascension_stage)
+              }
+       }, [queryParams.page, queryParams.count])
 
 
 
-       
+
 
        const updateDateValues = (values) => {
               const [start, end] = values;

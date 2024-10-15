@@ -11,10 +11,7 @@ export default function ListTable({ data, handleCollectSample, receive }) {
       accessor: "date",
       Cell: ({ value }) => new Date(value).toLocaleDateString(),
     },
-    {
-      Header: "Fullname", accessor: "fullname",
-      Cell: ({ value }) => <div className="text-uppercase"> {value}</div>
-    },
+    { Header: "Fullname", accessor: "fullname" },
     { Header: "Age", accessor: "age" },
     { Header: "Gender", accessor: "gender" },
     {
@@ -60,7 +57,7 @@ export default function ListTable({ data, handleCollectSample, receive }) {
     },
     useFilters,
     useSortBy,
-    useRowSelect
+    useRowSelect // Include row selection if desired
   );
 
   const {
@@ -88,8 +85,8 @@ export default function ListTable({ data, handleCollectSample, receive }) {
   };
 
   return (
-    <div className="container-fluid bg-body-secondary p-2 mx-2 my-2">
-      {/* <div className="d-flex justify-content-start mb-2">
+    <div className="container-fluid bg-body-secondary p-2 mx-2">
+      <div className="d-flex justify-content-start mb-2">
         <label className="form-check-label" htmlFor="selectAll">
           <input
             type="checkbox"
@@ -99,13 +96,13 @@ export default function ListTable({ data, handleCollectSample, receive }) {
           />
           Select All
         </label>
-      </div> */}
+      </div>
       <table {...getTableProps()} className="table text-sm">
         <thead>
           {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()} className="table-header">
+            <tr {...headerGroup.getHeaderGroupProps()} className="table-header" key={headerGroup.id}>
               {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()} className="table-cell">
+                <th {...column.getHeaderProps()} className="table-cell" key={column.id}>
                   <div className="header-content d-flex justify-content-between align-items-center">
                     <div>{column.render("Header")}</div>
                     {column.id !== 'selection' && (
@@ -145,9 +142,9 @@ export default function ListTable({ data, handleCollectSample, receive }) {
           {rows.map((row) => {
             prepareRow(row);
             return (
-              <tr {...row.getRowProps()} className={row.original?.clientstatus === "urgent" ? "table-danger" : ""}>
+              <tr {...row.getRowProps()} className={row.original?.clientstatus === "urgent" ? "table-danger" : ""} key={row.id}>
                 {row.cells.map((cell) => (
-                  <td {...cell.getCellProps()} className="table-cell">{cell.render("Cell")}</td>
+                  <td {...cell.getCellProps()} className="table-cell" key={cell.column.id}>{cell.render("Cell")}</td>
                 ))}
               </tr>
             );

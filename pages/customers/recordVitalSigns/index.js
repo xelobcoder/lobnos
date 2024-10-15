@@ -15,7 +15,8 @@ export default function RecordVitalSigns() {
             paramObject[item] = value;
         }
         setQueryParams(paramObject)
-    }, [urlParams])
+    }, [urlParams]);
+    
     return (
         <FrontDeskLayout>
             <div className="p-3">

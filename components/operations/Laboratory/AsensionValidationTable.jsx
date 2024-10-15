@@ -1,34 +1,48 @@
 import React, { useMemo, useState } from "react";
 import { useTable, useGroupBy, useExpanded, useSortBy, useFilters, useRowSelect, useFlexLayout } from "react-table";
 import moment from "moment";
-import { useLaboratoryContext } from "../../../components/operations/Laboratory/LaboratoryStagesContext";
+import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import SortAscendingIcon from '@mui/icons-material/ArrowUpward';
 import SortDescendingIcon from '@mui/icons-material/ArrowDownward';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
-import MoreVertIcon from '@mui/icons-material/MoreVert'; // Import MoreVert icon
-import CheckIcon from '@mui/icons-material/Check'; // Import Check icon for Validate action
-import VisibilityIcon from '@mui/icons-material/Visibility'; // Import Visibility icon for View Result action
-import { fnTiming } from "../../../components/operations/Laboratory/Lib";
-import 'bootstrap/dist/css/bootstrap.min.css'; // Ensure Bootstrap CSS is imported
-import { Dropdown } from 'react-bootstrap'; // Import Bootstrap Dropdown
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import CheckIcon from '@mui/icons-material/Check';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { fnTiming } from "./Lib";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Dropdown } from 'react-bootstrap';
+import Pagination from "../../accessories/pagination";
+import ShowTableCount from "./ShowCountTable";
 
 export default function ValidationAscensionTable() {
 	const {
 		isLoading,
 		collection,
 		queryParams,
+		setQueryParams,
 		setLoadPage,
 		canloadPage,
 		updatePageValue
 	} = useLaboratoryContext();
 
 	const columns = useMemo(() => [
-		{ Header: '#', accessor: '', Cell: ({ row }) => <input type="checkbox" {...row.getToggleRowSelectedProps()} />, width: 20, filtering: false },
-		{ Header: "Fullname", accessor: "fullname", width: 150, Cell: ({ value, row }) => <div className="text-uppercase ">{value} <br />{row.original.age}</div> },
-		{ Header: "Patient ID", accessor: "patientid", width: 100 },
-		{ Header: "Client Status", accessor: "clientstatus", width: 50 },
+		{
+			Header: '#',
+			accessor: '',
+			Cell: ({ row }) => <input type="checkbox" {...row.getToggleRowSelectedProps()} />,
+			width: 20,
+			filtering: false
+		},
+		{
+			Header: "Fullname",
+			accessor: "fullname",
+			width: 150,
+			Cell: ({ value, row }) => <div className="text-uppercase">{value}<br />{row.original.age}</div>
+		},
+		{ Header: "Patient ID", accessor: "patientid", width: 60 },
+		{ Header: "Client Status", accessor: "clientstatus", width: 70 },
 		{ Header: "Test Name", accessor: "name", width: 150 },
 		{
 			Header: "Processing",
@@ -41,11 +55,11 @@ export default function ValidationAscensionTable() {
 			accessor: "results",
 			Cell: ({ row }) => (
 				<div className="list-group p-0 bg-secondary-subtle">
-					<span className="list-group-item p-0">
+					<span className="list-group-item p-0" key={`start-${row.original.patientid}`}>
 						<PlayArrowIcon color="success" fontSize="small" />
 						{moment(row.original.resultEntryStart).format("LLLL")}
 					</span>
-					<span className="list-group-item p-0">
+					<span className="list-group-item p-0" key={`end-${row.original.patientid}`}>
 						<StopIcon color="error" fontSize="small" />
 						{moment(row.original.resultEntryEnd).format("LLLL")}
 					</span>
@@ -59,7 +73,7 @@ export default function ValidationAscensionTable() {
 			Cell: ({ row }) => {
 				return (
 					<Dropdown>
-						<Dropdown.Toggle variant="link" size="sm" className="p-0">
+						<Dropdown.Toggle variant="link" size="sm" className="p-0" key={`action-${row.original.patientid}`}>
 							<MoreVertIcon fontSize="small" />
 						</Dropdown.Toggle>
 						<Dropdown.Menu>
@@ -117,44 +131,55 @@ export default function ValidationAscensionTable() {
 		setCurrentColumn(null);
 	};
 
-	if (isLoading) return <div className="p-2 text-center heightedBorder bg-secondary-subtle">Loading .......................</div>;
-
-	if (collection.length === 0 && !isLoading && !canloadPage) {
+	if (isLoading) {
 		return (
-			<div className="p-3 alert col-3 alert-info text-sm">
-				<span className="mx-2">
-					<Info />
-				</span>
-				<span>No Records Found</span>
+			<div className="p-2 text-center heightedBorder bg-secondary-subtle">
+				Loading...
 			</div>
 		);
 	}
 
-	if (collection.length === 0 && !isLoading && canloadPage) {
-		return (
-			<div className="d-flex justify-content-center">
-				<Pagination page={queryParams.page} updateFunction={updatePageValue} load={setLoadPage} />
-			</div>
-		);
+	if (collection.length === 0) {
+		if (!canloadPage) {
+			return (
+				<div className="p-3 alert col-3 alert-info text-sm">
+					<span>No Records Found</span>
+				</div>
+			);
+		} else {
+			return (
+				<div className="d-flex justify-content-center">
+					<Pagination page={queryParams.page} updateFunction={updatePageValue} load={setLoadPage} />
+				</div>
+			);
+		}
 	}
+
+
 
 	return (
-		<div className="container-fluid bg-body-secondary p-2 shadow mx-2 br-5">
-			<button
-				className="btn btn-light btn-sm"
-				onClick={() => {
-					const allSelected = rows.length === Object.keys(tableInstance.state.selectedRowIds).length;
-					toggleAllRowsSelected(!allSelected);
-				}}
-			>
-				Select All
-			</button>
+		<div className="bg-body-secondary p-2 shadow mx-2 br-5">
+			<div className="d-flex justify-content-between">
+				<div className="col-10">
+					<ShowTableCount queryParams={queryParams} setQueryParams={setQueryParams} />
+				</div>
+				<button
+					className="btn btn-light btn-sm"
+					onClick={() => {
+						const allSelected = rows.length === Object.keys(tableInstance.state.selectedRowIds).length;
+						toggleAllRowsSelected(!allSelected);
+					}}
+					disabled={collection.length === 0}
+				>
+					Select All
+				</button>
+			</div>
 			<table {...getTableProps()} className="table text-sm">
 				<thead>
 					{headerGroups.map((headerGroup) => (
-						<tr {...headerGroup.getHeaderGroupProps()} className="table-header">
+						<tr {...headerGroup.getHeaderGroupProps()} className="table-header" key={headerGroup.id}>
 							{headerGroup.headers.map((column) => (
-								<th {...column.getHeaderProps()} className="table-cell">
+								<th {...column.getHeaderProps()} className="table-cell" key={column.id}>
 									<div className="header-content d-flex justify-content-between align-items-center">
 										<div>{column.render("Header")}</div>
 										{column.id !== 'selection' && (
@@ -194,15 +219,20 @@ export default function ValidationAscensionTable() {
 					{rows.map((row) => {
 						prepareRow(row);
 						return (
-							<tr {...row.getRowProps()} className={row.original?.clientstatus === "urgent" ? "table-danger" : ""}>
+							<tr {...row.getRowProps()} className={row.original?.clientstatus === "urgent" ? "table-danger" : ""} key={row.id}>
 								{row.cells.map((cell) => (
-									<td {...cell.getCellProps()} className="table-cell">{cell.render("Cell")}</td>
+									<td {...cell.getCellProps()} className="table-cell" key={cell.column.id}>
+										{cell.render("Cell")}
+									</td>
 								))}
 							</tr>
 						);
 					})}
 				</tbody>
 			</table>
+			<div className="d-flex justify-content-center">
+				<Pagination updateFunction={updatePageValue} page={queryParams.page} load={setLoadPage} />
+			</div>
 		</div>
 	);
 }

@@ -1,12 +1,13 @@
-import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 import { updatePagination } from "../../Auth/customFetch";
 import { getAscensionData } from "./Lib";
 import { ToastContainer, toast } from "react-toastify";
-const LaboratoryContext = createContext();
+const LaboratoryContext = createContext({ isLoading: true, collection: [] });
 
 
 export function LaboratoryStagesProvider({ children }) {
        const [collection, setCollection] = useState([]);
+       const [loadCounter, setLoadCounter] = useState(0);
        const [isLoading, setLoading] = useState(true);
        const [canloadPage, setLoadPage] = useState(false);
        const [queryParams, setQueryParams] = useState({
@@ -18,6 +19,7 @@ export function LaboratoryStagesProvider({ children }) {
        });
 
        const updatePageValue = (value) => {
+              setLoadPage(true);
               updatePagination(value, setQueryParams, queryParams);
        };
 
@@ -28,7 +30,8 @@ export function LaboratoryStagesProvider({ children }) {
        return (
               <LaboratoryContext.Provider value={{
                      collection, setCollection, isLoading, setLoading, queryParams, _getAscensionData, toast,
-                     setQueryParams, updatePageValue, canloadPage, setLoadPage
+                     loadCounter, setLoadCounter,
+                            setQueryParams, updatePageValue, canloadPage, setLoadPage
               }}>
                      <ToastContainer theme="colored" position="top-right" className={'text-sm'} />
                      {children}
