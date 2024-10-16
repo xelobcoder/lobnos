@@ -8,7 +8,7 @@ const formatDate = (date) => {
 
 export async function getAscensionData(ascension_stage, setCollection, queryParams, setLoading) {
        try {
-              const { _dateFrom, _dateEnd } = queryParams;
+              const { _dateFrom, _dateEnd, isUltrasound } = queryParams;
 
               const parsedFrom = _dateFrom ? formatDate(_dateFrom) : _dateFrom;
               const parsedEnd = _dateEnd ? formatDate(_dateEnd) : _dateEnd;
@@ -21,7 +21,8 @@ export async function getAscensionData(ascension_stage, setCollection, queryPara
                      `&&dateEnd=${parsedEnd}` +
                      `&&searchString=${queryParams.searchString}` +
                      `&&page=${queryParams.page}` +
-                     `&&count=${queryParams.count}`
+                     `&&count=${queryParams.count}` +
+                     `&&isUltrasound=${isUltrasound}`
               );
               setCollection(result);
        } catch (err) {

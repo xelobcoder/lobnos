@@ -10,14 +10,19 @@ export default function CriticalValuesAlert() {
 
 
 	const getCriticaValues = async () => {
+		setLoading(true);
 		customFetch(`result/criticalvalues/unseen?count=${loadQuery.count}&&page=${loadQuery.page}`)
 			.then((criticalValues) => { setCriticalValues(criticalValues) })
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				setLoading(false);
+				alert("something wrong occured loading data");
+			})
+			.finally(() => setLoading(false))
 	}
 
 	useEffect(() => {
 		getCriticaValues();
-	}, [loadQuery])
+	}, [loadQuery.count,loadQuery.page])
 
 
 
@@ -71,7 +76,10 @@ export default function CriticalValuesAlert() {
 	if (criticalValues.length === 0) {
 		return (
 			<LaboratoryLayout>
-				<div className=" heightedBorder fw-bold bg-body-secondary pls-color d-flex justify-content-centerp-2">{"<"}No data Available {">"}</div>
+				<div className=" heightedBorder fw-bold bg-body-secondary pls-color d-flex justify-content-center p-2">{"<"}No data Available {">"}</div>
+				{load && <div className="d-flex justify-content-center my-2">
+					<Pagination page={loadQuery.page} load={setLoad} updateFunction={updatePagination} />
+				</div>}
 			</LaboratoryLayout>
 		)
 	}
@@ -81,7 +89,7 @@ export default function CriticalValuesAlert() {
 
 
 			<div className="col-1 my-2">
-				<select className="custom-select" value={loadQuery.count}>
+				<select onChange={(ev) => {setLoadQuery({...loadQuery,count:ev.target.value})}} className="custom-select" value={loadQuery.count}>
 					<option>select opt</option>
 					{[10, 20, 30, 40, 50].map((m, i) => <option value={m}>{m}</option>)}
 				</select>

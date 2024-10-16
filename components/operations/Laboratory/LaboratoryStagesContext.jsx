@@ -15,7 +15,8 @@ export function LaboratoryStagesProvider({ children }) {
               _dateEnd: null,
               searchString: '',
               page: 1,
-              count: 10
+              count: 10,
+              isUltrasound:false
        });
 
        const updatePageValue = (value) => {

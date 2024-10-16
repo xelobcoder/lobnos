@@ -5,6 +5,10 @@ import ImagingSidebar from '../../../../components/ImagingSidebar';
 import Pagination from '../../../../components/accessories/pagination';
 import ApplicationHeader from '../../../../components/Layout/HeaderNav';
 import UltrasoundLayout from '../../../../components/Layout/ImagingLayout';
+import { UltrasoundStagesProvider } from '../../../../components/operations/Ultrasound/UltrasoundContext';
+import LaboratoryAscensionFiltering from '../../../../components/operations/Laboratory/LaboratoryAscensionFiltering';
+import UltrasoundAscensionFiltering from '../../../../components/operations/Ultrasound/UtrasoundFiltering';
+import AscentionUltrasoundUnCompletedTable from '../../../../components/operations/Ultrasound/UncompletedUltrasoundWaitingListTable';
 
 export default function UltrasonograhyWaitingList() {
   const [waitingList, setWaitingList] = useState([]);
@@ -46,13 +50,17 @@ export default function UltrasonograhyWaitingList() {
   const handlePagination = (value) => { updatePagination(value, setPaginate, paginate) };
   return (
     <UltrasoundLayout>
-      <div className='container-fluid'>
-        <h4 className='text-primary'>Ultrasound Department Waiting List ({waitingList.length} -- on queue)</h4>
-        <TableDisplay filtering={true} showpage={false} column={columns} data={waitingList} />
-        <div className='d-flex justify-content-center'>
-          <Pagination updateFunction={handlePagination} load={setPage} />
-        </div>
-      </div>
+      <UltrasoundStagesProvider>
+        <UltrasoundAscensionFiltering ascension_stage={'ULTRASOUND_UNCOMPLETED'} />
+        <AscentionUltrasoundUnCompletedTable/>
+        {/* <div className='container-fluid'>
+          <h4 className='text-primary'>Ultrasound Department Waiting List ({waitingList.length} -- on queue)</h4>
+          <TableDisplay filtering={true} showpage={false} column={columns} data={waitingList} />
+          <div className='d-flex justify-content-center'>
+            <Pagination updateFunction={handlePagination} load={setPage} />
+          </div>
+        </div> */}
+      </UltrasoundStagesProvider>
     </UltrasoundLayout>
   )
 }
