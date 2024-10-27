@@ -21,66 +21,29 @@ export default function PreviewPatientInformation({ patientid }) {
       })
   }, [patientid])
 
+
+  if (isloading) return (<div className=" heightedBorder p-2 bg-secondary-subtle d-flex justify-content-center"> {"<"}Loading Patient Information please ....... {">"}</div>)
+
   return (
     <>
-      {isloading ? (
-        <Loader />
-      ) : (
-        <CardRack
-          activestate={active}
-          header={
-            <h5
-              onClick={(ev) => {
-                setActive(!active)
-              }}>
-              Patient Information Summary
-            </h5>
-          }
-          body={
-            <>
-              <div className="grid-50 m-0" style={{ gridGap: "0px" }}>
-                <ul className="d-flex justify-content m-0">
-                  <li className="text-capitalize">fullname: </li>
-                  <li className="text-capitalize mx-2">
-                    {" "}
-                    {data?.firstname} {data?.middlename} {data?.lastname}
-                  </li>
-                </ul>
-                <ul className="d-flex m-0">
-                  <li className="text-capitalize">Email:</li>
-                  <li className="mx-2">{data?.email}</li>
-                </ul>
-                <ul className="d-flex m-0">
-                  <li className="text-capitalize">date of birth: </li>
-                  <li className="mx-2">{new Date(data?.dob).toLocaleDateString()}</li>
-                </ul>
-                <ul className="d-flex m-0">
-                  <li className="text-capitalize">age: </li>
-                  <li className="mx-2">
-                    {data?.age} {data?.agetype}
-                  </li>
-                </ul>
-                <ul className="d-flex m-0">
-                  <li className="text-capitalize">mobile number: </li>
-                  <li className="mx-2">0{data?.mobile}</li>
-                </ul>
-                <ul className="d-flex m-0">
-                  <li className="text-capitalize">gender:</li>
-                  <li className="mx-2">{data?.gender}</li>
-                </ul>
-                <ul className="d-flex m-0">
-                  <li className="text-capitalize">marital status:</li>
-                  <li className="mx-2">{data?.maritalstatus}</li>
-                </ul>
-                <ul className="d-flex m-0">
-                  <li className="text-capitalize">Registration Date:</li>
-                  <li className="mx-2">{new Date(data?.date).toLocaleDateString()}</li>
-                </ul>
-              </div>
-            </>
-          }
-        />
-      )}
+      <div >
+        <ul className="pls-color text-sm m-0 list-group m-0 heightedBorder br-0">
+          <li className="list-group-item text-capitalize bg-secondary-subtle fw-bold">fullname:  {data?.firstname} {data?.middlename} {data?.lastname}</li>
+          <li className="list-group-item text-capitalize">Email: {data?.email}</li>
+          <div className="list-group-item" style={{ display: 'grid', gridTemplateColumns: '50% auto' }}>
+            <span className=" text-capitalize">date of birth:{new Date(data?.dob).toLocaleDateString()} </span>
+            <span className=" text-capitalize">age: {data?.age} {data?.ageType} </span>
+          </div>
+          <div className="list-group-item" style={{ display: 'grid', gridTemplateColumns: '50% auto' }}>
+            <span className="text-capitalize ">mobile number: 0{data?.mobile} </span>
+            <span className="text-capitalize ">gender:{data?.gender}</span>
+          </div>
+          <div className="list-group-item" style={{ display: 'grid', gridTemplateColumns: '50% auto' }}>
+            <span className="text-capitalize">marital status:{data?.maritalstatus}</span>
+            <span className="text-capitalize">Registration Date: {new Date(data?.date).toLocaleDateString()}</span>
+          </div>
+        </ul>
+      </div>
     </>
   )
 }

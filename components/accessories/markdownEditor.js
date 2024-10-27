@@ -33,18 +33,18 @@ editorConfiguration.mediaEmbed = {
 editorConfiguration.language = 'en';
 
 
-export default function MARKDOWN_EDITOR( props ) {
-        return (
-            <CKEditor
-                height={props.height || '700px'}
-                editor={ClassicEditor}
-                config={ editorConfiguration }
-                data={ props.initialData || ''}
-                onChange={ (event, editor ) => {
-                    const data = editor.getData();
-                    props.updatedata(event,data)
-                } }
-            />
-        )
+export default function MARKDOWN_EDITOR(props) {
+    return (
+        <CKEditor
+            height={props.height || 700}
+            editor={ClassicEditor}
+            config={editorConfiguration}
+            data={props.initialData || ''}
+            onChange={(event, editor) => {
+                const data = editor.getData();
+                props.updatedata(event, data)
+            }}
+        />
+    )
 }
 

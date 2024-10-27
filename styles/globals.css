@@ -1537,6 +1537,7 @@ body {
   border-left: 4px solid #0056b3 !important;
   border-end-end-radius: 5px;
   border-top-right-radius: 5px;
+  height: auto;
 }
 
 .top-border-deep {

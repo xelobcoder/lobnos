@@ -1,28 +1,12 @@
-import { useState } from "react"
-import CardRacks from "../accessories/CardRacks"
 import { currencyFormatter } from "../Auth/customFetch"
-export default function OutstandingBills({ total,count }) {
-  const [active, setActive] = useState(false)
+export default function OutstandingBills({ total, count }) {
   return (
-    <CardRacks
-      activestate={active}
-      header={
-        <h5
-          onClick={(ev) => {
-            setActive(!active)
-          }}>
-          Total Outstanding Bill
-        </h5>
-      }
-      body={
-        <>
-          <div className="text-danger d-flex justify-content-center ">
-            <h1 className="p-3">
-              { currencyFormatter.format(total) || 'loading'}
-            </h1>
-          </div>
-        </>
-      }
-    />
+    <div className="list-group  br-0 pls-color heightedBorder">
+      <div className="list-group-item bg-secondary-subtle fw-bold">Total Outstanding Debt</div>
+      <div className="list-group-item text-danger p-4 d-flex justify-content-center ">
+        <h1> {currencyFormatter.format(total) || 'loading'}</h1>
+      </div>
+    </div>
+
   )
 }
