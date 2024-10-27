@@ -4,40 +4,52 @@ import Indicator from '../../../../../components/accessories/Reports/indicator';
 import dynamic from 'next/dynamic';
 import AuthContext from '../../../../../components/Auth/useAuthentification';
 import { useSearchParams } from 'next/navigation';
-import ScanPreview from '../../../../../components/operations/scanPreview';
 import Loader from '../../../../../components/accessories/Loader';
-import { Form } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
-import ApplicationHeader from '../../../../../components/Layout/HeaderNav';
 import UltrasoundLayout from '../../../../../components/Layout/ImagingLayout';
 import PreviewPatientInformation from '../../../../../components/petientsComponent/PreviewPatientInformation';
 const MARKDOWN_EDITOR = dynamic(() => import('../../../../../components/accessories/markdownEditor'), { ssr: false })
 
 export default function EnterResultUltrasound() {
   const { auth } = useContext(AuthContext);
-  const [content, setContent] = useState('<h5>Type something here </h5>');
+  const employeeid = auth?.employeeid;
+  const [fields, setFields] = useState([]);
+  const [impression, setImpression] = useState("");
+  const [testname, setTestName] = useState("");
   const scan = useSearchParams().get("scan");
-  const fullname = useSearchParams().get("fullname");
   const testid = useSearchParams().get("testid");
-  let patientid = useSearchParams().get("ptid");
-  patientid = patientid ? patientid.slice(50) : patientid
-  let billingid = useSearchParams().get("csvid");
-  billingid = billingid ? billingid.slice(70) : billingid;
+  let urlpatientid = useSearchParams().get("ptid");
+  const patientid = urlpatientid ? urlpatientid.slice(50) : urlpatientid
+  let urlbillingid = useSearchParams().get("csvid");
+  const billingid = urlbillingid ? urlbillingid.slice(70) : urlbillingid;
   const [isLoading, setLoading] = useState(true);
+  const ascensionid = useSearchParams().get("ascensionid");
   const [entered, setEnteredResult] = useState(false);
-  const [previewReport, setPreview] = useState(false);
+  const [count, setEditCount] = useState(0);
 
 
+
+  const getAscensionEditCount = async () => {
+    customFetch(`ascension/edit/count?csvid=${urlbillingid}&&ascensionid=${ascensionid}&&testid=${testid}&&ptid=${urlpatientid}`)
+      .then((result) => {
+        setEditCount(result?.count);
+      })
+      .catch((err) => console.log(err))
+  }
 
 
   const handleResult = async function () {
+    const myFields = fields.map((item, index) => { return { field: item.name, value: item.value } })
     const pushContent = await customPost(`result/entry/customtest`, 'POST', {
-      billingid: parseInt(billingid),
+      csvid: urlbillingid,
       testid, patientid: parseInt(patientid),
       test: scan,
-      fields: [{ field: 'ultrasound', value: content }],
+      ptid: urlpatientid,
+      comments: impression,
+      fields: myFields,
       employeeid: auth?.employeeid,
-      isScan: true
+      isScan: true,
+      target: "70,50"
     })
     const { status, statusCode, message } = pushContent;
     if (status == 'success' && statusCode == 200) {
@@ -48,62 +60,101 @@ export default function EnterResultUltrasound() {
   }
 
 
-  const handlePreview = (value) => { setPreview(value) }
-
   useEffect(() => {
     setLoading(true);
-    customFetch(`testpanel/list/customtestrule/previous?billingid=${billingid}&&testname=${scan}&&patientid=${patientid}&&target=70,50`)
-      .then((data) => {
-        if (Object.keys(data).length > 0 && data) {
-          setContent(data.value)
+    const gettingFields = async function () {
+      try {
+        const commentsFetch = customFetch(
+          `testpanel/list/customtestrule/previous/comments?testid=${testid}&&csvid=${urlbillingid}&&ptid=${urlpatientid}`
+        );
+
+        const testResultFetch = customFetch(
+          `testpanel/list/customtestrule/previous?testid=${testid}&&ptid=${urlpatientid}&&csvid=${urlbillingid}`
+        );
+
+        const [resultResponse, commentsResponse] = await Promise.all([testResultFetch, commentsFetch]);
+
+        function updatesResultForm(data) {
+          const { testname, result } = data;
+          if (result && Array.isArray(result)) {
+            setFields(result);
+            const hasAnyValueEntered = result.some((item, index) => item?.value != "");
+            setEnteredResult(hasAnyValueEntered);
+          }
+          testname && setTestName(testname);
         }
+
+        function updatesCommentsForm(data) {
+          setImpression(data.comments);
+        }
+
+        updatesResultForm(resultResponse);
+        updatesCommentsForm(commentsResponse);
         setLoading(false);
-      })
-      .catch((err) => {
-        setLoading(false);
-        setContent("");
-      })
-  }, [billingid, patientid, scan])
+        getAscensionEditCount();
+      } catch (err) {
+        console.log(err)
+        setFields([]);
+        setImpression("");
+      }
+      finally {
+        const selectedItem = {
+          ascensionid:parseInt(ascensionid),
+          testid,
+          value: new Date().toISOString(),
+          employeeid,
+          stage: 'resultEntryStart',
+        };
+
+        const { status } = await customPost("ascension/collection/update/stage", 'POST', selectedItem);
+
+        if (status === true) {
+          console.log('result entry logged!!!')
+        }
+      }
+    };
+    if (urlbillingid && urlpatientid && ascensionid) gettingFields();
+  }, [urlbillingid, urlpatientid,ascensionid, scan])
 
 
-  const rendering = () => {
-    if (isLoading) return <Loader />
-    else {
-      return (
-        <div className='mt-3'>
-          <MARKDOWN_EDITOR updatedata={(ev, data) => { setContent(data) }} initialData={content} />
-          <button onClick={(ev) => { handleResult() }} className='btn btn-primary btn-sm  mt-2'>
-            save result
-          </button>
-        </div>
-      )
-    }
+
+  const handleFieldChange = (data, index) => {
+    const previous = [...fields];
+    previous[index]['value'] = data;
+    setFields(previous);
   }
 
 
-  if (isLoading) return <UltrasoundLayout><Loader /></UltrasoundLayout>
+  if (isLoading) return <UltrasoundLayout><Loader /></UltrasoundLayout>;
+
   return (
-    <>
-      <ToastContainer />
-      <UltrasoundLayout>
-        <PreviewPatientInformation patientid={patientid}/>
-        <div className='mx-3' >
+    <UltrasoundLayout>
+      <ToastContainer theme='colored' className={'text-sm'} position='top-center' />
+      <PreviewPatientInformation patientid={patientid} />
+      <div className='mx-3' >
+        <div className='mt-4 d-flex justify-content-between'>
+          <h4 className='text-uppercase'>{scan}</h4>
+          <Indicator style={{ marginTop: '15px' }} resultEntered={entered} />
+        </div>
+        <div >
+          <h4 className='d-flex justify-content-center text-uppercase'>{testname}</h4>
           <div>
-            <div className='mt-4 d-flex justify-content-between'>
-              <h4 className='text-uppercase'>{scan}</h4>
-              <Indicator style={{ marginTop: '15px' }} resultEntered={entered} />
-            </div>
-            <div className={!previewReport ? '' : 'grid-50'}>
-              <div>
-                {rendering()}
-              </div>
-              <div>
-                {content && previewReport && <ScanPreview content={content} />}
-              </div>
-            </div>
+            {Array.isArray(fields) && fields.length > 0 && fields.map((item, index) => {
+              return (
+                <div className='my-3' key={index}>
+                  <div>{item.name}</div>
+                  <MARKDOWN_EDITOR updatedata={(ev, data) => { handleFieldChange(data, index) }} initialData={item.value} />
+                </div>
+              )
+            })}
+            <h5>Impression</h5>
+            <MARKDOWN_EDITOR updatedata={(ev, data) => { setImpression(data) }} initialData={impression || "Impression Here"} />
+            <button onClick={(ev) => { handleResult() }} className='btn btn-primary btn-sm  mt-2'>
+              save result
+            </button>
           </div>
         </div>
-      </UltrasoundLayout>
-    </>
+      </div>
+    </UltrasoundLayout>
   )
 }

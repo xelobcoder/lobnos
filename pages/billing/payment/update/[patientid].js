@@ -85,6 +85,9 @@ export default function BillingUpdateClientPaymentHistory() {
   const renderTransactionHistory = () => {
     if (isLoading) return <Loader />;
 
+    const totalOutstanding = calculateTotalOutstanding();
+    const isFreeSelected = paymentInfo.paymentMode.toLowerCase() === 'free';
+
     return (
       <section>
         <h2 className="mx-1 mt-2 pls-color header-content justify-content-center d-flex p-2 bg-body-secondary fw-bold">
@@ -126,11 +129,11 @@ export default function BillingUpdateClientPaymentHistory() {
           <tfoot>
             <tr>
               <td colSpan="5" className="text-end fw-bold">Total Outstanding:</td>
-              <td >{calculateTotalOutstanding()}</td>
+              <td>{totalOutstanding}</td>
             </tr>
             <tr>
               <td colSpan="5" className="text-end">Payment Amount:</td>
-              <td >
+              <td>
                 <input
                   type="number"
                   className="custom-input"
@@ -143,7 +146,7 @@ export default function BillingUpdateClientPaymentHistory() {
               </td>
             </tr>
             <tr>
-              <td colSpan={5} className="text-end">Payment   Mode:</td>
+              <td colSpan="5" className="text-end">Payment Mode:</td>
               <td>
                 <select
                   className="custom-input"
@@ -154,7 +157,7 @@ export default function BillingUpdateClientPaymentHistory() {
                 >
                   <option value="">Select a payment option</option>
                   {billingOptions.map((option, index) => (
-                    <option key={index} value={option.KeyID}>
+                    <option key={index} value={option.PaymentMode}>
                       {option.PaymentMode}
                     </option>
                   ))}
@@ -166,6 +169,7 @@ export default function BillingUpdateClientPaymentHistory() {
                 <button
                   className="btn btn-primary btn-sm"
                   onClick={handlePaymentSubmission}
+                  disabled={isFreeSelected && totalOutstanding > 0}
                 >
                   Update Payment
                 </button>

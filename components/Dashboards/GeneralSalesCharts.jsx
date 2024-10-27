@@ -174,62 +174,69 @@ export default function GeneralSalesChart() {
           <option value="Line">Line Chart</option>
         </select>
       </div>
-      <div className="grid-5">
-        <CardRacks
-          activestate={active == 1}
-          body={
-            <h4
-              onClick={(ev) => {
-                handleClickSum(1)
-              }}
-              className="mx-2 mt-2">
-              {currencyFormatter.format(today)}
-            </h4>
-          }
-          header={<h6 className="m-0">Today Sales</h6>}
-        />
-        <CardRacks
-          activestate={active === 2}
-          body={
-            <h4
-              onClick={(ev) => {
-                handleClickSum(2)
-              }}
-              className="mx-2 mt-2">
-              {currencyFormatter.format(week)}
-            </h4>
-          }
-          header={<h6 className="m-0">week sales</h6>}
-        />
-        <CardRacks
-          activestate={active === 3}
-          body={
-            <h4
-              onClick={(ev) => {
-                handleClickSum(3)
-              }}
-              className="mx-2 mt-2">
-              {currencyFormatter.format(month)}
-            </h4>
-          }
-          header={<h6 className="m-0">Month sales</h6>}
-        />
-        <CardRacks
-          activestate={active === 4}
-          body={
-            <h4
-              onClick={(ev) => {
-                handleClickSum(4)
-              }}
-              className="mx-2 mt-2">
-              {currencyFormatter.format(yearly)}
-            </h4>
-          }
-          header={<h6 className="m-0">Year Sales</h6>}
-        />
-        <CardRacks header={<h6 className="m-0">Month sales</h6>} />
+      <div className="row my-2">
+        <div className="col-12 col-sm-6 col-md-3 mb-4">
+          <CardRacks
+            activestate={active === 1}
+            body={
+              <h4
+                onClick={() => handleClickSum(1)}
+                className="mx-2 mt-2"
+              >
+                {currencyFormatter.format(today)}
+              </h4>
+            }
+            header={<h6 className="m-0">Today Sales</h6>}
+          />
+        </div>
+
+        <div className="col-12 col-sm-6 col-md-3 mb-4">
+          <CardRacks
+            activestate={active === 2}
+            body={
+              <h4
+                onClick={() => handleClickSum(2)}
+                className="mx-2 mt-2"
+              >
+                {currencyFormatter.format(week)}
+              </h4>
+            }
+            header={<h6 className="m-0">Week Sales</h6>}
+          />
+        </div>
+
+        <div className="col-12 col-sm-6 col-md-3 mb-4">
+          <CardRacks
+            activestate={active === 3}
+            body={
+              <h4
+                onClick={() => handleClickSum(3)}
+                className="mx-2 mt-2"
+              >
+                {currencyFormatter.format(month)}
+              </h4>
+            }
+            header={<h6 className="m-0">Month Sales</h6>}
+          />
+        </div>
+
+        <div className="col-12 col-sm-6 col-md-3 mb-4">
+          <CardRacks
+            activestate={active === 4}
+            body={
+              <h4
+                onClick={() => handleClickSum(4)}
+                className="mx-2 mt-2"
+              >
+                {currencyFormatter.format(yearly)}
+              </h4>
+            }
+            header={<h6 className="m-0">Year Sales</h6>}
+          />
+        </div>
       </div>
-      <div className="sales_summary">
+
+      <div className="mx-2">
         <PerformanceChartGeneral
           type={type}
           branchid={selectedBranch}

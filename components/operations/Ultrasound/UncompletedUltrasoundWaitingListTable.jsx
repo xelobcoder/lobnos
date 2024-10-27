@@ -75,7 +75,7 @@ export default function AscentionUltrasoundUnCompletedTable() {
 						<MoreHorizIcon />
 					</Dropdown.Toggle>
 					<Dropdown.Menu>
-						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original,true)}>
+						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original, true)}>
 							<CheckIcon fontSize="small" /> Enter result
 						</Dropdown.Item>
 						<Dropdown.Item onClick={() => console.log(`Enter All related for ${row.original.patientid}`)}>
