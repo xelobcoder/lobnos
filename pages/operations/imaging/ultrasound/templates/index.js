@@ -1,11 +1,11 @@
 import { Container } from "react-bootstrap";
-import UltrasoundLayout from "../../../../components/Layout/ImagingLayout";
+import UltrasoundLayout from "../../../../../components/Layout/ImagingLayout";
 import { useContext, useEffect, useState } from "react";
-import { customFetch, customPost } from "../../../../components/Auth/customFetch";
-import RulesLoadingTempleteCreation from "../../../../components/operations/Ultrasound/RulesLoadingTempleteCreation";
-import AuthContext from "../../../../components/Auth/useAuthentification";
+import { customFetch, customPost } from "../../../../../components/Auth/customFetch";
+import RulesLoadingTempleteCreation from "../../../../../components/operations/Ultrasound/RulesLoadingTempleteCreation";
+import AuthContext from "../../../../../components/Auth/useAuthentification";
 import { useSearchParams } from "next/navigation";
-
+import { ToastContainer, toast } from "react-toastify";
 
 export default function CreateUltrasonographyTemplates() {
 	const { auth } = useContext(AuthContext);
@@ -61,6 +61,8 @@ export default function CreateUltrasonographyTemplates() {
 			setVisible(visibletoAll);
 			setBodyPart(associatedbodypart);
 			setRulesLoading(false);
+			const impression = fields.find((item, index) => item.field === "impression");
+			setImpression(impression?.value || "")
 		} catch (err) {
 			alert('Something wrong happened');
 			setRule([]);
@@ -101,13 +103,16 @@ export default function CreateUltrasonographyTemplates() {
 			testid: parseInt(selectedTest),
 			associatedbodypart,
 			visibleToAll: Visible,
-			fields: rule,
+			fields: [...rule, { [templateid ? "field" : "name"]: "impression", value: impression }],
+			keyid: templateid ? parseInt(templateid) : null,
 			name
 		}
 
-		const response = await customPost(`result/entry/ultrasound/templates/creation`, (templateid && isEdit ?  'PUT' :'POST'), templateDetails);
+		const response = await customPost(`result/entry/ultrasound/templates/creation`, (templateid && isEdit ? 'PUT' : 'POST'), templateDetails);
 
-		console.log(response,templateDetails);
+		const { status } = response;
+
+		toast[status == true ? "success" : "error"](status ? `Template ${templateid ? "updated" : "created"} successfully` : `Template ${templateid ? "update" : "creation"} failed`)
 
 	}
 
@@ -121,6 +126,7 @@ export default function CreateUltrasonographyTemplates() {
 	return (
 		<UltrasoundLayout>
 			<Container fluid>
+				<ToastContainer  theme='colored' position="top-center" className="text-sm" />
 				<div className="p-2">
 					<div className="p-2 bg-secondary-subtle heightedBorder my-2 br-0">Creating Ultrasound Impression Templates</div >
 					<form className="my-2 heightedBorder text-sm bg-body-secondary p-3 br-0">
