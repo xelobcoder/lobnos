@@ -54,11 +54,11 @@ export default function CreateUltrasonographyTemplates() {
 		try {
 			setRulesLoading(true);
 			const response = await customFetch(`testpanel/list/ultrasound/get/template?templateid=${templateid}`);
-			const { fields, name, visibleToAll, associatedbodypart, testid } = response;
+			const { fields, name, visibletoAll, associatedbodypart, testid } = response;
 			setRule(fields);
 			setName(name);
 			setSelectedList(testid);
-			setVisible(visibleToAll);
+			setVisible(visibletoAll);
 			setBodyPart(associatedbodypart);
 			setRulesLoading(false);
 		} catch (err) {
@@ -105,9 +105,9 @@ export default function CreateUltrasonographyTemplates() {
 			name
 		}
 
-		const response = await customPost(`result/entry/ultrasound/templates/creation`, 'POST', templateDetails);
+		const response = await customPost(`result/entry/ultrasound/templates/creation`, (templateid && isEdit ?  'PUT' :'POST'), templateDetails);
 
-		console.log(response);
+		console.log(response,templateDetails);
 
 	}
 
