@@ -47,6 +47,7 @@ export default function EnterResultUltrasound() {
       ptid: urlpatientid,
       comments: impression,
       fields: myFields,
+      ascensionid,
       employeeid: auth?.employeeid,
       isScan: true,
       target: "70,50"
@@ -99,7 +100,7 @@ export default function EnterResultUltrasound() {
       }
       finally {
         const selectedItem = {
-          ascensionid:parseInt(ascensionid),
+          ascensionid: parseInt(ascensionid),
           testid,
           value: new Date().toISOString(),
           employeeid,
@@ -114,7 +115,7 @@ export default function EnterResultUltrasound() {
       }
     };
     if (urlbillingid && urlpatientid && ascensionid) gettingFields();
-  }, [urlbillingid, urlpatientid,ascensionid, scan])
+  }, [urlbillingid, urlpatientid, ascensionid, scan])
 
 
 
@@ -141,14 +142,21 @@ export default function EnterResultUltrasound() {
           <div>
             {Array.isArray(fields) && fields.length > 0 && fields.map((item, index) => {
               return (
-                <div className='my-3' key={index}>
-                  <div>{item.name}</div>
-                  <MARKDOWN_EDITOR updatedata={(ev, data) => { handleFieldChange(data, index) }} initialData={item.value} />
+                <div className='my-3 list-group' key={index}>
+                  <div className="fw-bold pls-color list-group-item bg-secondary-subtle">{item.name}</div>
+                  <div className="list-group-item">
+                    <MARKDOWN_EDITOR updatedata={(ev, data) => { handleFieldChange(data, index) }} initialData={item.value} />
+                  </div>
                 </div>
               )
             })}
-            <h5>Impression</h5>
-            <MARKDOWN_EDITOR updatedata={(ev, data) => { setImpression(data) }} initialData={impression || "Impression Here"} />
+
+            <div className='list-group heightedBorder br-0'>
+              <div className='list-group-item fw-bold text-uppercase bg-body-secondary pls-color'>Impression</div>
+              <div className='list-group-item'>
+                <MARKDOWN_EDITOR updatedata={(ev, data) => { setImpression(data) }} initialData={impression || "Impression Here"} />
+              </div>
+            </div>
             <button onClick={(ev) => { handleResult() }} className='btn btn-primary btn-sm  mt-2'>
               save result
             </button>
