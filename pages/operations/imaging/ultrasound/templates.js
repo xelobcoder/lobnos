@@ -1,17 +1,27 @@
 import { Container } from "react-bootstrap";
 import UltrasoundLayout from "../../../../components/Layout/ImagingLayout";
-import { useEffect, useState } from "react";
-import { customFetch } from "../../../../components/Auth/customFetch";
+import { useContext, useEffect, useState } from "react";
+import { customFetch, customPost } from "../../../../components/Auth/customFetch";
 import RulesLoadingTempleteCreation from "../../../../components/operations/Ultrasound/RulesLoadingTempleteCreation";
+import AuthContext from "../../../../components/Auth/useAuthentification";
+import { useSearchParams } from "next/navigation";
 
 
 export default function CreateUltrasonographyTemplates() {
+	const { auth } = useContext(AuthContext);
+	const employeeid = auth?.employeeid;
 	const [ultrasoundList, setUltrasoundList] = useState([]);
+	const [name, setName] = useState('');
+	const [associatedbodypart, setBodyPart] = useState('');
+	const [Visible, setVisible] = useState(1);
 	const [isLoading, setLoading] = useState(true);
 	const [rulesLoading, setRulesLoading] = useState(true);
 	const [rule, setRule] = useState([]);
 	const [impression, setImpression] = useState('');
 	const [selectedTest, setSelectedList] = useState(null);
+
+	const isEdit = useSearchParams().get("isEdit");
+	const templateid = useSearchParams().get("templateid");
 
 	const fetchdata = async function () {
 		try {
@@ -39,12 +49,41 @@ export default function CreateUltrasonographyTemplates() {
 
 	}
 
-	useEffect(() => { fetchdata() }, []);
+
+	const getTemplateDetails = async () => {
+		try {
+			setRulesLoading(true);
+			const response = await customFetch(`testpanel/list/ultrasound/get/template?templateid=${templateid}`);
+			const { fields, name, visibleToAll, associatedbodypart, testid } = response;
+			setRule(fields);
+			setName(name);
+			setSelectedList(testid);
+			setVisible(visibleToAll);
+			setBodyPart(associatedbodypart);
+			setRulesLoading(false);
+		} catch (err) {
+			alert('Something wrong happened');
+			setRule([]);
+			setRulesLoading(false);
+		}
+
+	}
+
+	useEffect(() => {
+		fetchdata();
+	}, []);
 
 
 	useEffect(() => {
-		if (selectedTest) getCreationRule();
+		if (selectedTest && (!templateid || !isEdit)) getCreationRule();
 	}, [selectedTest])
+
+	useEffect(() => {
+		if (isEdit && templateid) getTemplateDetails();
+	}, [isEdit, templateid])
+
+
+
 
 
 
@@ -52,6 +91,24 @@ export default function CreateUltrasonographyTemplates() {
 		const previous = [...rule];
 		previous[index]['value'] = data;
 		setRule(previous);
+	}
+
+
+	const createTemplateHandler = async () => {
+
+		const templateDetails = {
+			employeeid,
+			testid: parseInt(selectedTest),
+			associatedbodypart,
+			visibleToAll: Visible,
+			fields: rule,
+			name
+		}
+
+		const response = await customPost(`result/entry/ultrasound/templates/creation`, 'POST', templateDetails);
+
+		console.log(response);
+
 	}
 
 
@@ -69,18 +126,21 @@ export default function CreateUltrasonographyTemplates() {
 					<form className="my-2 heightedBorder text-sm bg-body-secondary p-3 br-0">
 						<div className="grid-reg my-2">
 							<label>Name of Template</label>
-							<input className="custom-input pls-color text-sm " name="" type="text" placeholder="Please type name of pathology or template here" />
+							<input value={name} onChange={(ev) => { setName(ev.target.value) }} className="custom-input pls-color text-sm " name="" type="text" placeholder="Please type name of pathology or template here" />
 						</div>
 						<div className="grid-reg">
 							<label>Ultrasound Scan</label>
-							<select className="custom-select pls-color text-sm text-capitalize" onChange={(ev) => { setSelectedList(ev.target.value) }} >
+							<select className="custom-select pls-color text-sm text-capitalize"
+								value={selectedTest}
+								disabled={templateid}
+								onChange={(ev) => { setSelectedList(ev.target.value) }} >
 								<option value={''}>Select an option here</option>
 								{ultrasoundList.map((item, index) => <option value={item.id}>{item.name}</option>)}
 							</select>
 						</div>
 						<div className="grid-reg my-2">
 							<label>Associated Body Part</label>
-							<select className="custom-select text-capitalize pls-color text-sm">
+							<select value={associatedbodypart} onChange={(ev) => { setBodyPart(ev.target.value) }} className="custom-select text-capitalize pls-color text-sm">
 								<option value=''>select body part</option>
 								<option value={'Kidney'}>Kidney</option>
 								<option value={'Uterus'}>Uterus</option>
@@ -88,15 +148,24 @@ export default function CreateUltrasonographyTemplates() {
 						</div>
 						<div className="grid-reg my-2">
 							<label>Visible to all Sonographers</label>
-							<select className="custom-select pls-color text-sm text-capitalize">
+							<select value={Visible} onChange={(ev) => { setVisible(ev.target.value) }} className="custom-select pls-color text-sm text-capitalize">
 								<option value={1}>Yes</option>
 								<option value={0}>No</option>
 							</select>
 						</div>
 					</form>
-					<RulesLoadingTempleteCreation rule={rule} impression={impression} setImpression={setImpression}
+					<RulesLoadingTempleteCreation
+						rule={rule}
+						impression={impression}
+						setImpression={setImpression}
 						selected={selectedTest}
-						handleFieldChange={handleFieldChange} rulesLoading={rulesLoading} />
+						handleFieldChange={handleFieldChange}
+						rulesLoading={rulesLoading}
+					/>
+
+					{rule.length > 0 && <button className="btn btn-primary btn-primary btn-sm" onClick={createTemplateHandler}>
+						Save Template Information
+					</button>}
 				</div>
 			</Container>
 		</UltrasoundLayout>

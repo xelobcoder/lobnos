@@ -12,7 +12,7 @@ export default function RulesLoadingTempleteCreation({ rule, setImpression, impr
                             {Array.isArray(rule) && rule.length > 0 && rule.map((item, index) => {
                                    return (
                                           <div className='my-3 list-group' key={index}>
-                                                 <div className="fw-bold pls-color list-group-item bg-secondary-subtle">{item.name}</div>
+                                                 <div className="fw-bold pls-color list-group-item bg-secondary-subtle">{item.name || item.field}</div>
                                                  <div className="list-group-item">
                                                         <MARKDOWN_EDITOR updatedata={(ev, data) => { handleFieldChange(data, index) }} initialData={item.value} />
                                                  </div>
@@ -27,9 +27,6 @@ export default function RulesLoadingTempleteCreation({ rule, setImpression, impr
                                           <MARKDOWN_EDITOR updatedata={(ev, data) => { setImpression(data) }} initialData={impression || "Impression Here"} />
                                    </div>
                             </div>
-                            {rule.length > 0 && <button className="btn btn-primary btn-primary btn-sm">
-                                   Save Template Information
-                            </button>}
                      </section>
               </div>
 
