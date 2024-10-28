@@ -1,7 +1,9 @@
 import dynamic from "next/dynamic"
 const MARKDOWN_EDITOR = dynamic(() => import('../../accessories/markdownEditor'), { ssr: false })
 
-export default function RulesLoadingTempleteCreation({ rule, setImpression, impression, handleFieldChange, rulesLoading }) {
+export default function RulesLoadingTempleteCreation({ rule, setImpression, impression, handleFieldChange, rulesLoading, selected }) {
+
+       if (!selected) return null
 
        if (rulesLoading) return <div className="p-2 text-center bg-secondary-subtle  heightedBorder pls-color">Please wait Loading Template...</div>
        return (

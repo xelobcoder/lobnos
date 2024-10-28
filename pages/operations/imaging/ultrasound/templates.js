@@ -2,10 +2,7 @@ import { Container } from "react-bootstrap";
 import UltrasoundLayout from "../../../../components/Layout/ImagingLayout";
 import { useEffect, useState } from "react";
 import { customFetch } from "../../../../components/Auth/customFetch";
-import dynamic from "next/dynamic";
 import RulesLoadingTempleteCreation from "../../../../components/operations/Ultrasound/RulesLoadingTempleteCreation";
-const MARKDOWN_EDITOR = dynamic(() => import('../../../../components/accessories/markdownEditor'), { ssr: false })
-
 
 
 export default function CreateUltrasonographyTemplates() {
@@ -39,7 +36,7 @@ export default function CreateUltrasonographyTemplates() {
 			setRule([]);
 			setRulesLoading(false);
 		}
-	
+
 	}
 
 	useEffect(() => { fetchdata() }, []);
@@ -72,13 +69,21 @@ export default function CreateUltrasonographyTemplates() {
 					<form className="my-2 heightedBorder text-sm bg-body-secondary p-3 br-0">
 						<div className="grid-reg my-2">
 							<label>Name of Template</label>
-							<input className="custom-input pls-color text-sm " name="" type="text" />
+							<input className="custom-input pls-color text-sm " name="" type="text" placeholder="Please type name of pathology or template here" />
 						</div>
 						<div className="grid-reg">
 							<label>Ultrasound Scan</label>
 							<select className="custom-select pls-color text-sm text-capitalize" onChange={(ev) => { setSelectedList(ev.target.value) }} >
 								<option value={''}>Select an option here</option>
 								{ultrasoundList.map((item, index) => <option value={item.id}>{item.name}</option>)}
+							</select>
+						</div>
+						<div className="grid-reg my-2">
+							<label>Associated Body Part</label>
+							<select className="custom-select text-capitalize pls-color text-sm">
+								<option value=''>select body part</option>
+								<option value={'Kidney'}>Kidney</option>
+								<option value={'Uterus'}>Uterus</option>
 							</select>
 						</div>
 						<div className="grid-reg my-2">
@@ -89,7 +94,9 @@ export default function CreateUltrasonographyTemplates() {
 							</select>
 						</div>
 					</form>
-					<RulesLoadingTempleteCreation rule={rule} impression={impression} setImpression={setImpression} handleFieldChange={handleFieldChange} rulesLoading={rulesLoading} />
+					<RulesLoadingTempleteCreation rule={rule} impression={impression} setImpression={setImpression}
+						selected={selectedTest}
+						handleFieldChange={handleFieldChange} rulesLoading={rulesLoading} />
 				</div>
 			</Container>
 		</UltrasoundLayout>
