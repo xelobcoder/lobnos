@@ -152,6 +152,8 @@ export default function CreateTestRule({ clientdata }) {
 						comments={comments}
 						setComments={setComments}
 						hasDrugs={hasDrugs}
+						testid={testid}
+						ascensionid={ascensionid}
 						setModifiedDrugs={setModifiedDrugs}
 						isPinUsed={result.isPinOnResultEntry}
 						handleSubmit={handleSubmit}

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { customFetch } from "../Auth/customFetch";
 
-export default function ResultEntryDrugsForm({ setModifiedDrugs }) {
+export default function ResultEntryDrugsForm({ setModifiedDrugs, ascensionid, testid }) {
 	const [data, setData] = useState([]);
 	const [isLoading, setLoading] = useState(true);
 
 	const loadDrugsIfHasDrugs = async () => {
-		const result = await customFetch(`drugs`);
+		const result = await customFetch(`result/entry/customtest/drugs?ascensionid=${ascensionid}&&testid=${testid}`);
 		return result;
 	};
 
@@ -23,7 +23,7 @@ export default function ResultEntryDrugsForm({ setModifiedDrugs }) {
 			}
 		};
 		fetchData();
-	}, []);
+	}, [ascensionid]);
 
 	const handleSensitivityChange = (id, value) => {
 		setData((prevData) =>
@@ -36,7 +36,7 @@ export default function ResultEntryDrugsForm({ setModifiedDrugs }) {
 
 	useEffect(() => {
 		setModifiedDrugs(data)
-	},[data])
+	}, [data])
 
 
 
@@ -60,7 +60,7 @@ export default function ResultEntryDrugsForm({ setModifiedDrugs }) {
 							<td>{item.drug}</td>
 							<td>
 								<select
-									className="form-select form-select-sm"
+									className="form-select form-select-sm "
 									value={item.sensitivity || ""}
 									onChange={(e) =>
 										handleSensitivityChange(
