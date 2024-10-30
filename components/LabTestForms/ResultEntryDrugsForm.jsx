@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { customFetch } from "../Auth/customFetch";
 
-export default function ResultEntryDrugsForm() {
+export default function ResultEntryDrugsForm({ setModifiedDrugs }) {
 	const [data, setData] = useState([]);
 	const [isLoading, setLoading] = useState(true);
 
-	const loadDrugsIfHasDrugs = async (testid) => {
-		if (!testid) return [];
+	const loadDrugsIfHasDrugs = async () => {
 		const result = await customFetch(`drugs`);
 		return result;
 	};
@@ -15,7 +14,7 @@ export default function ResultEntryDrugsForm() {
 		const fetchData = async () => {
 			try {
 				setLoading(true);
-				const drugs = await loadDrugsIfHasDrugs(1);
+				const drugs = await loadDrugsIfHasDrugs();
 				setData(drugs);
 			} catch (error) {
 				console.error("Error fetching drugs:", error);
@@ -33,6 +32,13 @@ export default function ResultEntryDrugsForm() {
 			)
 		);
 	};
+
+
+	useEffect(() => {
+		setModifiedDrugs(data)
+	},[data])
+
+
 
 	if (isLoading) {
 		return <div className="text-center p-3">Loading Data...</div>;
