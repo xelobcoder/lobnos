@@ -72,7 +72,7 @@ export default function DrugsListPLSMASTER({ resetEditDrug, handleEditDrug, }) {
                     <Refresh />
                 </button>
             </div>
-            <Table className='billing-cart-table' striped bordered hover responsive>
+            <Table className='ttable' >
                 <thead>
                     <tr>
                         <th>Drug Name</th>

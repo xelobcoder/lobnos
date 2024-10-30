@@ -79,7 +79,7 @@ export default function INVENTORY_PAGE() {
   }
 
   const MemoizedPagination = useMemo(
-    () => <Pagination load={setLoadPaginate} updateFunction={dispatchQuery} />,
+    () => <Pagination load={setLoadPaginate}  updateFunction={dispatchQuery} />,
     [dispatchQuery]);
 
 
@@ -144,7 +144,7 @@ export default function INVENTORY_PAGE() {
     else {
       return (
         <section>
-          <TableDisplay column={columns} data={stocksource} showpage={false} />
+          <TableDisplay column={columns} data={stocksource} styling={'ttable table'} showpage={false} />
           <div className="d-flex justify-content-center mt-1">
             {MemoizedPagination}
           </div>

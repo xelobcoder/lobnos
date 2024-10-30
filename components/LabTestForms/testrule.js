@@ -8,6 +8,7 @@ import { BarChart, Dangerous, History } from "@mui/icons-material";
 import { useTheme } from "../Auth/useAuthentification";
 import ResultEntryMainEntryBase from "./ResultEntryMainEntryBase";
 import moment from "moment";
+import ResultEntryDrugsForm from "./ResultEntryDrugsForm";
 
 export default function CreateTestRule({ clientdata }) {
    const { testid, test, patientid, billingid, employeeid, timerInitiated, ascensionid, resultEntryStart, resultEntryEnd } = clientdata;
@@ -19,6 +20,7 @@ export default function CreateTestRule({ clientdata }) {
    const [isloading, setLoading] = useState(true);
    const [rule, setRule] = useState([]);
    const [editCount, setEditCount] = useState(0);
+   const [hasDrugs, setHasDrugs] = useState(false);
 
 
 
@@ -32,6 +34,7 @@ export default function CreateTestRule({ clientdata }) {
 
 
 
+   
 
 
    useEffect(() => {
@@ -48,7 +51,7 @@ export default function CreateTestRule({ clientdata }) {
             const [resultResponse, commentsResponse] = await Promise.all([testResultFetch, commentsFetch]);
 
             function updatesResultForm(data) {
-               const { testname, result } = data;
+               const { testname, result, hasDrugs } = data;
                if (result && Array.isArray(result)) {
                   setRule(result);
                   if (result.length === 0) return;
@@ -56,6 +59,7 @@ export default function CreateTestRule({ clientdata }) {
                   setResultEntered(hasAnyValueEntered);
                }
                testname && setTestname(testname);
+               setHasDrugs(hasDrugs);
             }
 
             function updatesCommentsForm(data) {
@@ -145,6 +149,7 @@ export default function CreateTestRule({ clientdata }) {
                   handleComments={handleComments}
                   comments={comments}
                   setComments={setComments}
+                  hasDrugs={hasDrugs}
                   isPinUsed={result.isPinOnResultEntry}
                   handleSubmit={handleSubmit}
                   handleCreateFields={handleCreateFields}

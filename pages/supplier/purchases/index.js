@@ -67,7 +67,8 @@ export default function PURCHASES() {
     {
       Header: "#", accessor: "productordersid", Cell: ({ value }) => {
         return <Form.Check checked={selected.includes(value)} onChange={(ev) => { pushSelected(value) }} />
-      }
+      },
+      width: 50
     },
     {
       Header: 'Prod Name',
@@ -122,7 +123,7 @@ export default function PURCHASES() {
               receive selected
             </button>
           </Col>
-          <TableDisplay column={columns} data={ordersplacedList} />
+          <TableDisplay column={columns} data={ordersplacedList} showpage={false} styling={"table ttable"} />
         </Row>
       </SupplierLayout>
     </>

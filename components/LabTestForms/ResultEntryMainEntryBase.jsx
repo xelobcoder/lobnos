@@ -1,10 +1,11 @@
 import ResultEntryHtmlGenerator from "../Auth/ResultEntryHtmlGenerator";
 import CommentSection from "./commentSection";
+import ResultEntryDrugsForm from "./ResultEntryDrugsForm";
 
-export default function ResultEntryMainEntryBase({ handlestate, handleCreateFields, rule = [], handleSubmit, setComments, comments, handleComments, isPinUsed }) {
+export default function ResultEntryMainEntryBase({ handlestate, handleCreateFields, rule = [], handleSubmit, setComments, comments, handleComments, isPinUsed, hasDrugs }) {
        return (
               <section>
-                    
+
                      <table theme='dark' className="table billing-cart-table ttable table-bordered ">
                             <thead>
                                    <tr>
@@ -23,6 +24,7 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
                                    }) : <td className="text-danger p-3" colSpan={5}>No data found.Ensure fields were created. <button onClick={(ev) => { handleCreateFields(ev) }} className="btn btn-outline-primary btn-sm border-2">create fields</button></td>}
                             </tbody>
                      </table>
+                     {hasDrugs && <ResultEntryDrugsForm />}
                      <CommentSection datafunction={setComments} getcomment={handleComments} datasource={comments} target={'comments'} value={comments.comments} />
                      <div className="d-flex justify-content-between mt-2">
                             {isPinUsed

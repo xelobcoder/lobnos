@@ -147,7 +147,7 @@ export default function AscentionUltrasoundUnCompletedTable() {
 	}
 
 	return (
-		<div className="bg-body-secondary p-2 shadow mx-2 br-5">
+		<div className="bg-body-secondary p-2  mx-2 br-5">
 			<ShowTableCount queryParams={queryParams} setQueryParams={setQueryParams} />
 			<button
 				className="btn btn-light btn-sm mb-2"

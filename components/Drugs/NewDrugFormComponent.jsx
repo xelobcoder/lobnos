@@ -73,15 +73,15 @@ export default function AddNewDrugFormPLSMASTER({ editing }) {
     }, [editing]);
 
     return (
-        <div className="p-3 col-6">
+        <div className="p-3  bg-secondary-subtle heightedBorder">
             <ToastContainer position="top-center" theme='colored' className={'text-sm'} />
-            <Form noValidate validated={validated} onSubmit={handleSubmit}>
-                <Form.Group controlId="formDrugName" className='grid-reg'>
+            <Form noValidate validated={validated} onSubmit={handleSubmit} className='text-sm text-capitalize'>
+                <Form.Group controlId="formDrugName " className='grid-reg'>
                     <Form.Label>Drug Name</Form.Label>
                     <InputGroup>
                         <Form.Control
                             type="text"
-                            className='custom-input'
+                            className='custom-input text-sm  pls-color'
                             placeholder="Enter drug name"
                             value={drugName}
                             onChange={(e) => setDrugName(e.target.value)}
@@ -96,13 +96,15 @@ export default function AddNewDrugFormPLSMASTER({ editing }) {
                     <Form.Label>Category</Form.Label>
                     <Form.Control
                         as="select"
+
+                        className='text-sm  pls-color custom-select'
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
                         required
                     >
                         <option value="">Select category</option>
                         {categories.map((cat) => (
-                            <option key={cat.id} value={cat.id}>
+                            <option className='pls-color' key={cat.id} value={cat.id}>
                                 {cat.categoryName}
                             </option>
                         ))}

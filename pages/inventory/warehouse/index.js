@@ -71,10 +71,10 @@ export default function WareHouse() {
           <button onClick={displayShelf} className="btn btn-sm btn-primary mx-2">New Rack/shelf</button>
         </div> 
       </div>
-        <section className="grid-50">
+        <section className="grid-50 p-2">
           <div>
             <h5>WareHouse</h5>
-            <table className="table" >
+            <table className="table  billing-cart-table" >
             <thead>
               <tr>
                 <th>Warehouse</th>
@@ -114,7 +114,7 @@ export default function WareHouse() {
             <h5>Shelves</h5>
             {shelfLoading ? <ISLOADING /> : 
               (
-                <table className="table">
+                <table className="table billing-cart-table">
                 <thead>
                   <tr>
                     <th>name</th>

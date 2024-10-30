@@ -59,18 +59,12 @@ export default function DrugCategoryTable({ handleEditCategory, refreshList }) {
     }
 
     return (
-        <div className='p-2'>
-            <div className='heightedBorder p-2 d-flex justify-content-between bg-body-secondary'>
+        <div >
+            <div className='heightedBorder my-3 p-2 d-flex justify-content-between bg-body-secondary'>
                 <h5>Drug Categories</h5>
-                <button
-                    type='button'
-                    onClick={fetchDrugCategories}
-                    className='btn btn-outline-light bg-white text-primary border-2'
-                >
-                    <Refresh />
-                </button>
+                <Refresh onClick={fetchDrugCategories} />
             </div>
-            <Table className='billing-cart-table table-responsive' striped bordered hover>
+            <Table className='ttable' >
                 <thead>
                     <tr>
                         <th style={{ width: '5%' }}>#</th>

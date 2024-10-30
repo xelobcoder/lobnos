@@ -52,32 +52,32 @@ export default function DrugCategoryForm({ edit, reset }) {
 
 
     return (
-        <Form className='p-2' onSubmit={handleSubmit}>
+        <Form className='p-3 br-0 heightedBorder bg-secondary-subtle' onSubmit={handleSubmit}>
             <ToastContainer position="top-center" theme='colored' className={'text-sm'} />
-            <Row className="mb-3 col-6">
+            <Row className="mb-3 col-12">
                 <Form.Group className='grid-reg' controlId="formCategoryName">
                     <Form.Label>Category Name</Form.Label>
                     <Form.Control
                         type="text"
-                        className='custom-input'
+                        className='custom-input pls-color text-sm'
                         placeholder="Enter category name"
                         value={categoryName}
                         onChange={(e) => setCategoryName(e.target.value)}
                         required
                     />
                 </Form.Group>
-                <Form.Group className='grid-reg' controlId="formDescription">
+                <Form.Group className='grid-reg my-2' controlId="formDescription">
                     <Form.Label>Description</Form.Label>
                     <Form.Control
                         type="text"
-                        className='custom-input'
+                        className='custom-input pls-color text-sm'
                         placeholder="Enter description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
                 </Form.Group>
             </Row>
-            <Button variant="primary" style={{ marginLeft: '5.5%' }} className='btn-sm' type="submit">
+            <Button variant="primary" style={{ marginLeft: '10.5%' }} className='btn-sm' type="submit">
                 {buttonNote}
             </Button>
         </Form>

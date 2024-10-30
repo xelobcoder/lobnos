@@ -111,7 +111,7 @@ export default function SupplysTransactions() {
 
                     </Row>
                     <Row className="mx-1">
-                              <TableDisplay showpage={false} filtering={true} column={columns} data={data} />
+                              <TableDisplay showpage={false} filtering={true} styling={'table ttable'} column={columns} data={data} />
                     </Row>
                     <Row className="mx-1">
 

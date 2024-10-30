@@ -59,7 +59,7 @@ export default function SUPPLIERS_LIST({ rawdata, deleteController, editControll
 
   return (
     <>
-      <TableDisplay data={rawdata} column={columns} filtering={true} showpage={false} />
+      <TableDisplay data={rawdata} column={columns} styling={"ttable  table"} filtering={true} showpage={false} />
     </>
   );
 }
