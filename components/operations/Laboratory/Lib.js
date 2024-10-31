@@ -6,9 +6,9 @@ const formatDate = (date) => {
        return new Date(date).toISOString().split('T')[0];
 };
 
-export async function getAscensionData(ascension_stage, setCollection, queryParams, setLoading) {
+export async function getAscensionData(ascension_stage, setCollection, queryParams, setLoading, toast) {
        try {
-              const { _dateFrom, _dateEnd, isUltrasound } = queryParams;
+              const { _dateFrom, _dateEnd, isUltrasound, employeeid } = queryParams;
 
               const parsedFrom = _dateFrom ? formatDate(_dateFrom) : _dateFrom;
               const parsedEnd = _dateEnd ? formatDate(_dateEnd) : _dateEnd;
@@ -22,9 +22,18 @@ export async function getAscensionData(ascension_stage, setCollection, queryPara
                      `&&searchString=${queryParams.searchString}` +
                      `&&page=${queryParams.page}` +
                      `&&count=${queryParams.count}` +
-                     `&&isUltrasound=${isUltrasound}`
+                     `&&isUltrasound=${isUltrasound}` +
+                     `&&employeeid=${employeeid}`
               );
-              setCollection(result);
+              if (Array.isArray(result)) {
+                     setLoading(false)
+                     setCollection(result);
+              } else {
+                     const { status, message } = result;
+                     setLoading(false)
+                     alert(message || "Permission Denied");
+                     setCollection([]);
+              }
        } catch (err) {
               setCollection([]);
               console.log(err)

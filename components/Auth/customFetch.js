@@ -967,28 +967,29 @@ export const calculateTimeUsed = (startTime, endTime) => {
   }
 }
 
+export const ResultEntrydefaultData = {
+  resultLockAfter24Hours: 0,
+  isPinOnResultEntry: 0,
+  isPinOnResultViewAfter24Hours: 0,
+  maximumResultValidation: 0,
+  minimumResultValidation: 0,
+  showPastTestResult: 0,
+  allowScientistViewAudit: 0,
+  showTaTAnalysis: 0,
+  encryptResultAfter24Hours: 0,
+  sendLoginEmailNotificationAfterResultEdit: 0,
+  monitorForCriticalValues: 0,
+  notifyClientOnResultReady: 0,
+  notificationType: 'Email'
+}
 
 export const getResultEntrySettings = async (employeeid) => {
-  const defaultData = {
-    resultLockAfter24Hours: 0,
-    isPinOnResultEntry: 0,
-    isPinOnResultViewAfter24Hours: 0,
-    maximumResultValidation: 0,
-    minimumResultValidation: 0,
-    showPastTestResult: 0,
-    allowScientistViewAudit: 0,
-    showTaTAnalysis: 0,
-    encryptResultAfter24Hours: 0,
-    sendLoginEmailNotificationAfterResultEdit: 0,
-    monitorForCriticalValues: 0,
-    notifyClientOnResultReady: 0,
-    notificationType: 'Email'
-  }
-  if(!employeeid) return defaultData
+
+  if (!employeeid) return ResultEntrydefaultData;
   try {
     const response = await customFetch(`applicationsetting/resultsettings/resultentrysettings?employeeid=${employeeid}`);
     return response?.result;
   } catch (err) {
-    return defaultData;
+    return ResultEntrydefaultData
   }
 }
