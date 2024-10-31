@@ -15,6 +15,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Dropdown } from 'react-bootstrap';
 import Pagination from "../../accessories/pagination";
 import ShowTableCount from "./ShowCountTable";
+import { printResultNavigator } from "../../Auth/customFetch";
+import { useRouter } from "next/navigation";
+
 
 export default function ValidationAscensionTable() {
 	const {
@@ -26,6 +29,12 @@ export default function ValidationAscensionTable() {
 		canloadPage,
 		updatePageValue
 	} = useLaboratoryContext();
+
+	const router = useRouter();
+
+	const viewResultHandler = (item) => {
+		printResultNavigator(router, item.billingid, {...item,testid:item.id}, true);
+	}
 
 	const columns = useMemo(() => [
 		{
@@ -77,10 +86,10 @@ export default function ValidationAscensionTable() {
 							<MoreVertIcon fontSize="small" />
 						</Dropdown.Toggle>
 						<Dropdown.Menu>
-							<Dropdown.Item onClick={() => console.log(`Validate ${row.original.patientid}`)}>
+							<Dropdown.Item >
 								<CheckIcon fontSize="small" className="me-2" />Validate
 							</Dropdown.Item>
-							<Dropdown.Item onClick={() => console.log(`View result for ${row.original.patientid}`)}>
+							<Dropdown.Item onClick={() => { viewResultHandler(row.original) }}>
 								<VisibilityIcon fontSize="small" className="me-2" />View Result
 							</Dropdown.Item>
 						</Dropdown.Menu>

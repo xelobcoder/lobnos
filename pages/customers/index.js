@@ -64,7 +64,7 @@ export default function Activator() {
       } else {
         return (
           <section>
-            <TableDisplay column={columns} data={tempStore} showpage={false} exporters={false} />
+            <TableDisplay styling={'ttable table'} column={columns} data={tempStore} showpage={false} exporters={false} />
           </section>
         )
       }

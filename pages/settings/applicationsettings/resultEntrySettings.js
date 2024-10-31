@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Form, Button, Col, InputGroup, Container, Table } from 'react-bootstrap';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
+import { customPost, getInstitutionUsers, getResultEntrySettings } from '../../../components/Auth/customFetch';
+import AuthContext from '../../../components/Auth/useAuthentification';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Make sure this is included
 
-const store = {
-    result: {
+const ResultSettingsForm = () => {
+    const { auth } = useContext(AuthContext);
+    const [formData, setFormData] = useState({
         resultLockAfter24Hours: 0,
         isPinOnResultEntry: 0,
         isPinOnResultViewAfter24Hours: 0,
         maximumResultValidation: 0,
         minimumResultValidation: 0,
-        staffQualifiedToValidationResult: [],
         showPastTestResult: 0,
         allowScientistViewAudit: 0,
         showTaTAnalysis: 0,
@@ -18,30 +22,12 @@ const store = {
         monitorForCriticalValues: 0,
         notifyClientOnResultReady: 0,
         notificationType: 'Email'
-    }
-};
-
-const ResultSettingsForm = () => {
-    const [formData, setFormData] = useState({
-        resultLockAfter24Hours: store?.result?.resultLockAfter24Hours || 0,
-        isPinOnResultEntry: store?.result?.isPinOnResultEntry || 0,
-        isPinOnResultViewAfter24Hours: store?.result?.isPinOnResultViewAfter24Hours || 0,
-        maximumResultValidation: store?.result?.maximumResultValidation || 0,
-        minimumResultValidation: store?.result?.minimumResultValidation || 0,
-        staffQualifiedToValidationResult: store?.result?.staffQualifiedToValidationResult || [],
-        showPastTestResult: store?.result?.showPastTestResult || 0,
-        allowScientistViewAudit: store?.result?.allowScientistViewAudit || 0,
-        showTaTAnalysis: store?.result?.showTaTAnalysis || 0,
-        encryptResultAfter24Hours: store?.result?.encryptResultAfter24Hours || 0,
-        sendLoginEmailNotificationAfterResultEdit: store?.result?.sendLoginEmailNotificationAfterResultEdit || 0,
-        monitorForCriticalValues: store?.result?.monitorForCriticalValues || 0,
-        notifyClientOnResultReady: store?.result?.notifyClientOnResultReady || 0,
-        notificationType: store?.result?.notificationType || 'Email'
     });
 
-    useEffect(() => {
-     
-    }, []);
+    const [scientists, setUsers] = useState([]);
+    const [selectedScientists, setSelectedScientists] = useState([]);
+    const [currentSelection, setCurrentSelection] = useState('');
+    const [loadingUsers, setLoadingUsers] = useState(true);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -51,39 +37,105 @@ const ResultSettingsForm = () => {
         }));
     };
 
-    const handleArrayChange = (index, value) => {
-        const newArray = [...formData.staffQualifiedToValidationResult];
-        newArray[index] = parseInt(value, 10);
-        setFormData(prevData => ({
-            ...prevData,
-            staffQualifiedToValidationResult: newArray,
-        }));
-    };
-
     const addStaffIDField = () => {
-        setFormData(prevData => ({
-            ...prevData,
-            staffQualifiedToValidationResult: [...prevData.staffQualifiedToValidationResult, prevData.staffQualifiedToValidationResult.length + 1],
-        }));
+        if (formData.minimumResultValidation <= 0 || formData.maximumResultValidation <= 0 || !formData.maximumResultValidation || !formData.minimumResultValidation) {
+            toast.error("Please set both minimum and maximum result validation values.");
+            return;
+        }
+
+        if (!currentSelection || selectedScientists.some(s => s.employeeid === currentSelection)) {
+            toast.error("Please select a valid scientist or avoid duplicates.");
+            return;
+        }
+
+        if (selectedScientists.length >= formData.maximumResultValidation) {
+            toast.error(`Cannot add more than ${formData.maximumResultValidation} scientists.`);
+            return;
+        }
+
+
+        const inSelection = selectedScientists.findIndex((a, i) => a.employeeid == currentSelection);
+
+        if (inSelection >= 0) return toast.error(`Cannot add a scientists twice`);
+
+        const scientistToAdd = scientists.find(s => {
+            return s.employeeid == currentSelection
+        });
+
+
+        if (scientistToAdd) {
+            setSelectedScientists(prev => [...prev, scientistToAdd]);
+            setCurrentSelection('');
+        }
     };
 
     const removeStaffIDField = (index) => {
-        setFormData(prevData => {
-            const newArray = prevData.staffQualifiedToValidationResult.filter((_, i) => i !== index);
-            return { ...prevData, staffQualifiedToValidationResult: newArray };
-        });
+        setSelectedScientists(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        alert(JSON.stringify(formData))
+    const getInitData = async () => {
+        await getInstitutionUsers(setUsers, 'logins', setLoadingUsers);
+        const init = await getResultEntrySettings(auth.employeeid);
+        const { staffQualifiedToValidationResult } = init;
+        setFormData(init);
+        if (staffQualifiedToValidationResult && staffQualifiedToValidationResult.length > 0) {
+            let QualifiedRefined = [];
+            if (scientists.length > 0) {
+                for (const item of staffQualifiedToValidationResult)
+                {
+                    const findIndex = scientists.findIndex((_employee, index) => _employee?.employeeid == item);
+
+                    if (findIndex > 0) {
+                        QualifiedRefined.push(scientists[findIndex]);
+                    }
+                }
+            }
+            setSelectedScientists(QualifiedRefined);
+        }
     };
+
+    useEffect(() => {
+        getInitData();
+    }, [auth.employeeid]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (selectedScientists.length < formData.minimumResultValidation) {
+            return toast.error("Number of selected scientists is less than the minimum required.");
+        }
+        if (selectedScientists.length > formData.maximumResultValidation) {
+            return toast.error("Number of selected scientists exceeds the maximum allowed.");
+        }
+
+        try {
+            const response = await customPost(`applicationsetting/resultsettings/resultentrysettings?employeeid=${auth?.employeeid}`, 'PUT', {
+                ...formData,
+                staffQualifiedToValidationResult: selectedScientists.map(s => s.employeeid)
+            });
+            const { status } = response;
+            if (status) return toast.success("Settings updated successfully");
+            return toast.error("Update failed");
+        } catch (err) {
+            toast.error("Something went wrong");
+        }
+    };
+
+
+
 
     return (
         <MainSettingsLayoutView>
+            <ToastContainer
+                theme='colored'
+                position="top-center"
+                className={'text-sm'} />
             <Container>
+                <div className="heightedBorder p-2 my-2 pls-color text-uppercase bg-secondary-subtle fw-bold">
+                    Result Entry Settings
+                </div>
                 <Form onSubmit={handleSubmit}>
-                    <Table striped bordered hover>
+                    <Table className='ttable'>
                         <thead>
                             <tr>
                                 <th>Setting</th>
@@ -108,7 +160,7 @@ const ResultSettingsForm = () => {
                                     <td className='p-3'>
                                         <Form.Check
                                             type="switch"
-                                            style={{fontSize:'24px'}}
+                                            style={{ fontSize: '24px' }}
                                             id={`${id}Switch`}
                                             name={id}
                                             checked={formData[id] === 1}
@@ -119,7 +171,9 @@ const ResultSettingsForm = () => {
                             ))}
                         </tbody>
                     </Table>
-
+                    <div className="heightedBorder p-2 my-2 pls-color text-uppercase bg-secondary-subtle fw-bold">
+                       Result Validators
+                    </div>
                     <Form.Group controlId="maximumResultValidation">
                         <Form.Label className='pls-label' column sm={4}>Maximum Result Validation</Form.Label>
                         <Col sm={8}>
@@ -147,37 +201,45 @@ const ResultSettingsForm = () => {
                     <Form.Group controlId="staffQualifiedToValidationResult">
                         <Form.Label className='pls-label' column sm={4}>Staff Qualified for Validation Result</Form.Label>
                         <Col sm={8}>
-                            {formData.staffQualifiedToValidationResult.map((id, index) => (
-                                <InputGroup className="mb-2" key={index}>
-                                    <Form.Control
-                                        className='custom-input'
-                                        type="number"
-                                        value={id}
-                                        onChange={(e) => handleArrayChange(index, e.target.value)}
-                                        placeholder={`Staff ID ${index + 1}`} />
-                                    <Button variant="outline-danger" className='btn-sm border-2' onClick={() => removeStaffIDField(index)}>Remove</Button>
-                                </InputGroup>
-                            ))}
-                            <Button variant="link" className='btn-sm' onClick={addStaffIDField}>
-                                Add Staff ID
-                            </Button>
+                            {Array.isArray(scientists) && scientists.length > 0 && (
+                                <div>
+                                    <select
+                                        disabled={formData.maximumResultValidation == 0 || !formData.maximumResultValidation || !formData.minimumResultValidation || formData.minimumResultValidation == 0 || formData.minimumResultValidation == formData.maximumResultValidation}
+                                        className='custom-select'
+                                        value={currentSelection}
+                                        onChange={(ev) => { setCurrentSelection(ev.target.value) }}>
+                                        <option value="">Select Scientist</option>
+                                        {scientists.map((item) => (
+                                            <option key={item.employeeid} value={item.employeeid}>
+                                                {item.username}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <Button variant="outline-success my-2 " className='btn-sm' onClick={(ev) => { addStaffIDField() }}>Add scientist</Button>
+                                </div>
+                            )}
                         </Col>
                     </Form.Group>
-
-                    <Form.Group controlId="notificationType">
-                        <Form.Label className='pls-label' column sm={4}>Notification Type</Form.Label>
-                        <Col sm={8}>
-                            <Form.Control
-                                as="select"
-                                name="notificationType"
-                                value={formData.notificationType}
-                                onChange={handleChange}
-                            >
-                                <option value="Email">Email</option>
-                                <option value="SMS">SMS</option>
-                            </Form.Control>
-                        </Col>
-                    </Form.Group>
+                    <div className='col-8'>
+                        <Table className="mt-2 table ttable">
+                            <thead>
+                                <tr>
+                                    <th>Selected Scientists</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {selectedScientists.map((scientist, index) => (
+                                    <tr key={index}>
+                                        <td>{scientist.username}</td>
+                                        <td>
+                                            <Button variant="outline-danger" size="sm" onClick={() => removeStaffIDField(index)}>Remove</Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    </div>
 
                     <Button variant="primary" className='mt-2 btn-sm' type="submit">
                         Save Settings

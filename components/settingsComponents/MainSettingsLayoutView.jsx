@@ -12,11 +12,16 @@ import {
   OutboxSharp,
   MedicationRounded,
   RoomServiceSharp,
+  AppRegistration,
+  ResetTvOutlined,
+  FileDownload,
 } from "@mui/icons-material";
 
 export default function MainSettingsLayoutView({ children }) {
   const sidebarLinks = [
     { title: "Applications Settings", link: "/settings/applicationsettings", icon: <SettingsApplications /> },
+    { title: "Registration Fields", link: "/settings/applicationsettings/registrationFields", icon: <FileDownload/> },
+    { title: "Result Entry Settings", link: "/settings/applicationsettings/resultEntrySettings", icon: <ResetTvOutlined/> },
     { title: "Users", link: "/authentication/users", icon: <VerifiedUser /> },
     { title: "Branches", link: "/settings/branches", icon: <Forest /> },
     { title: "sample types", link: "/settings/testpanel/sampletypes", icon: <Forest /> },

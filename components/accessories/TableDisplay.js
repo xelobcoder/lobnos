@@ -81,7 +81,7 @@ export default function TableDisplay({
                   <GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
                 </div>}
               </div>
-              <div style={{ minHeight: minHeight || '30vh' }} className="table-responsive my-2">
+              <div style={{ minHeight: minHeight || '40vh',overflowX:'auto' ,minWidth:'500px'}} >
                 <table {...props} className={styling ? styling : " table-striped table table-stripped "} {...getTableProps()}>
                   <thead>{customHeaderGroup()}</thead>
                   <tbody {...getTableBodyProps()}>

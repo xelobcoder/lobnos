@@ -852,7 +852,7 @@ export const getDateRange = (range) => {
 
 export function PrepareResultEntryHeader(data, isUltrasound = false) {
   if (typeof data != "object") return;
-  const { id, name, billingid, patientid ,ascensionid} = data;
+  const { id, name, billingid, patientid, ascensionid } = data;
   if (!id || !name || !billingid || !patientid) return;
   var csvid = `${generateRandomTextAndNumbers(70)}${billingid}`.trim();
   var ptid = `${csvid.slice(25, 50)}${csvid.slice(0, 25)}${patientid}`.trim();
@@ -964,5 +964,31 @@ export const calculateTimeUsed = (startTime, endTime) => {
     return `${m} mins`
   } else {
     return `${s} seconds`
+  }
+}
+
+
+export const getResultEntrySettings = async (employeeid) => {
+  const defaultData = {
+    resultLockAfter24Hours: 0,
+    isPinOnResultEntry: 0,
+    isPinOnResultViewAfter24Hours: 0,
+    maximumResultValidation: 0,
+    minimumResultValidation: 0,
+    showPastTestResult: 0,
+    allowScientistViewAudit: 0,
+    showTaTAnalysis: 0,
+    encryptResultAfter24Hours: 0,
+    sendLoginEmailNotificationAfterResultEdit: 0,
+    monitorForCriticalValues: 0,
+    notifyClientOnResultReady: 0,
+    notificationType: 'Email'
+  }
+  if(!employeeid) return defaultData
+  try {
+    const response = await customFetch(`applicationsetting/resultsettings/resultentrysettings?employeeid=${employeeid}`);
+    return response?.result;
+  } catch (err) {
+    return defaultData;
   }
 }
