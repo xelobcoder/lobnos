@@ -3,12 +3,12 @@ import DatePickerRange from "../../../components/accessories/DatePickerRange";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 
 
-export default function LaboratoryAscensionFiltering({ ascension_stage }) {
-       const { queryParams, setQueryParams, _getAscensionData, canLoadPage, loadCounter, setLoadCounter, } = useLaboratoryContext();
+export default function LaboratoryAscensionFiltering({ ascension_stage,employeeid }) {
+       const { queryParams, setQueryParams, _getAscensionData, canLoadPage, loadCounter, setLoadCounter } = useLaboratoryContext();
 
 
        useEffect(() => {
-              _getAscensionData(ascension_stage);
+              _getAscensionData(ascension_stage,employeeid);
               setLoadCounter(loadCounter + 1);
        }, [])
 
@@ -16,7 +16,7 @@ export default function LaboratoryAscensionFiltering({ ascension_stage }) {
 
        useEffect(() => {
               if (loadCounter > 0) {
-                     _getAscensionData(ascension_stage)
+                     _getAscensionData(ascension_stage,employeeid)
               }
        }, [queryParams.page, queryParams.count])
 

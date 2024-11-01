@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  {  useState } from "react";
 import AsyncSelect from "react-select/async";
 import { loadOptions } from "../../lib/appointment";
 import { reactSelectCustomStyles } from "../Auth/customFetch";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Form, Button, Col,Container, Table } from 'react-bootstrap';
+import { Form, Button, Col, Container, Table } from 'react-bootstrap';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
-import { customPost, getInstitutionUsers, getResultEntrySettings, ResultEntrydefaultData } from '../../../components/Auth/customFetch';
+import { customFetch, customPost, getInstitutionUsers, getResultEntrySettings, ResultEntrydefaultData } from '../../../components/Auth/customFetch';
 import AuthContext from '../../../components/Auth/useAuthentification';
 import { toast, ToastContainer } from 'react-toastify';
 
@@ -60,26 +60,38 @@ const ResultSettingsForm = () => {
 	};
 
 	const getInitData = async () => {
-		await getInstitutionUsers(setUsers, 'logins', setLoadingUsers);
-		const init = await getResultEntrySettings(auth.employeeid);
-		if (typeof init === "object") {
-			const { staffQualifiedToValidationResult } = init;
-			setFormData(init);
-			if (staffQualifiedToValidationResult && Array.isArray(staffQualifiedToValidationResult) && staffQualifiedToValidationResult.length > 0) {
-				let QualifiedRefined = [];
-				if (scientists.length > 0) {
-					for (const item of staffQualifiedToValidationResult) {
-						const findIndex = scientists.findIndex((_employee, index) => _employee?.employeeid == item);
+		try {
+			setLoadingUsers(true);
+			const { result } = await customFetch("logins");
+			setUsers(result);
+			const init = await getResultEntrySettings(auth.employeeid);
+			if (typeof init === "object") {
+				const { staffQualifiedToValidationResult } = init;
+				setFormData(init);
 
-						if (findIndex > 0) {
-							QualifiedRefined.push(scientists[findIndex]);
+				const isValidToUpdate = staffQualifiedToValidationResult && Array.isArray(staffQualifiedToValidationResult) && staffQualifiedToValidationResult.length > 0;
+
+				if (isValidToUpdate) {
+					let QualifiedRefined = [];
+					if (result.length > 0) {
+						for (const item of staffQualifiedToValidationResult) {
+							const findIndex = result.findIndex((_employee, index) => _employee?.employeeid == item);
+
+							if (findIndex > 0) {
+								QualifiedRefined.push(result[findIndex]);
+							}
 						}
 					}
+					setSelectedScientists(QualifiedRefined);
 				}
-				setSelectedScientists(QualifiedRefined);
-			}
-		} else if (typeof init === "string") return toast.error(init);
-		else setFormData(ResultEntrydefaultData);
+			} else if (typeof init === "string") return toast.error(init);
+			else setFormData(ResultEntrydefaultData);
+			setLoadingUsers(false);
+		} catch (err) {
+			setSelectedScientists([])
+			setUsers([]);
+			setLoadingUsers(false);
+		}
 	};
 
 	useEffect(() => {
@@ -217,7 +229,7 @@ const ResultSettingsForm = () => {
 								</tr>
 							</thead>
 							<tbody>
-								{selectedScientists.map((scientist, index) => (
+								{Array.isArray(selectedScientists) && selectedScientists.length > 0 && selectedScientists.map((scientist, index) => (
 									<tr key={index}>
 										<td>{scientist.username}</td>
 										<td>

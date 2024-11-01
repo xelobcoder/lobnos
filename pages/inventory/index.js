@@ -8,7 +8,6 @@ import Pagination from "../../components/accessories/pagination";
 import AddStockCategory from "../../components/inventory/stocks/AddStocksCategory";
 import Loader from '../../components/accessories/Loader';
 import TableDisplay from '../../components/accessories/TableDisplay';
-import { Add } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { Dropdown } from "react-bootstrap";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -56,7 +55,7 @@ export default function INVENTORY_PAGE() {
     setEditing({ edit: false, stockid: null });
   }
 
-  const closeCategoryModal = () => { setShowCatModal(false) }
+  const closeCabtegoryModal = () => { setShowCatModal(false) }
 
   const show = () => { setShowmodal(true) };
   const handleDelete = async (id) => {
@@ -127,6 +126,7 @@ export default function INVENTORY_PAGE() {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M5 18.89H6.41421L15.7279 9.57627L14.3137 8.16206L5 17.4758V18.89ZM21 20.89H3V16.6473L16.435 3.21231C16.8256 2.82179 17.4587 2.82179 17.8492 3.21231L20.6777 6.04074C21.0682 6.43126 21.0682 7.06443 20.6777 7.45495L9.24264 18.89H21V20.89ZM15.7279 6.74785L17.1421 8.16206L18.5563 6.74785L17.1421 5.33363L15.7279 6.74785Z"></path></svg>
                 <span className='mx-2 mt-1'> Edit stock </span>
               </Dropdown.Item>
+              
               <Dropdown.Item onClick={() => handleAssignWare(row.original, router)}>
                 <PlusBookShelf /> <span className="mx-2 mt-1">Add brands</span>
               </Dropdown.Item>

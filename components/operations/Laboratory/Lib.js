@@ -6,33 +6,34 @@ const formatDate = (date) => {
        return new Date(date).toISOString().split('T')[0];
 };
 
-export async function getAscensionData(ascension_stage, setCollection, queryParams, setLoading, toast) {
+export async function getAscensionData(ascension_stage, setCollection, queryParams, setLoading,employeeid) {
        try {
-              const { _dateFrom, _dateEnd, isUltrasound, employeeid } = queryParams;
+              const { _dateFrom, _dateEnd, isUltrasound } = queryParams;
 
               const parsedFrom = _dateFrom ? formatDate(_dateFrom) : _dateFrom;
               const parsedEnd = _dateEnd ? formatDate(_dateEnd) : _dateEnd;
 
-              setLoading(true);
-
-              const result = await customFetch(
-                     `operations/ascension/staging?operationsStaging=${ascension_stage}` +
-                     `&&dateFrom=${parsedFrom}` +
-                     `&&dateEnd=${parsedEnd}` +
-                     `&&searchString=${queryParams.searchString}` +
-                     `&&page=${queryParams.page}` +
-                     `&&count=${queryParams.count}` +
-                     `&&isUltrasound=${isUltrasound}` +
-                     `&&employeeid=${employeeid}`
-              );
-              if (Array.isArray(result)) {
-                     setLoading(false)
-                     setCollection(result);
-              } else {
-                     const { status, message } = result;
-                     setLoading(false)
-                     alert(message || "Permission Denied");
-                     setCollection([]);
+              if (employeeid) {
+                     setLoading(true);
+                     const result = await customFetch(
+                            `operations/ascension/staging?operationsStaging=${ascension_stage}` +
+                            `&&dateFrom=${parsedFrom}` +
+                            `&&dateEnd=${parsedEnd}` +
+                            `&&searchString=${queryParams.searchString}` +
+                            `&&page=${queryParams.page}` +
+                            `&&count=${queryParams.count}` +
+                            `&&isUltrasound=${isUltrasound}` +
+                            `&&employeeid=${employeeid}`
+                     );
+                     if (Array.isArray(result)) {
+                            setLoading(false)
+                            setCollection(result);
+                     } else {
+                            const { status, message } = result;
+                            setLoading(false)
+                            alert(message || "Permission Denied");
+                            setCollection([]);
+                     }
               }
        } catch (err) {
               setCollection([]);

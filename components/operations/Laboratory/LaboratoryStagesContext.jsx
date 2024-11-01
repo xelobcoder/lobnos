@@ -18,7 +18,6 @@ export function LaboratoryStagesProvider({ children }) {
               searchString: '',
               page: 1,
               count: 10,
-              employeeid: auth?.employeeid,
               isUltrasound:false
        });
 
@@ -27,8 +26,8 @@ export function LaboratoryStagesProvider({ children }) {
               updatePagination(value, setQueryParams, queryParams);
        };
 
-       const _getAscensionData = async function (ascension_stage) {
-              await getAscensionData(ascension_stage, setCollection, queryParams, setLoading);
+       const _getAscensionData = async function (ascension_stage,employeeid) {
+              await getAscensionData(ascension_stage, setCollection, queryParams, setLoading,employeeid);
        }
 
        return (

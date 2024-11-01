@@ -63,12 +63,14 @@ export default function ReceivedPending({ type = "pending", caption }) {
 
   const renderer = () => {
     if (loading) return <Loader />;
-    else <TableDisplay column={columns} data={stocks} filtering={true} />;
+    else return <div   className="bg-white p-2"> <TableDisplay column={columns} data={stocks} showpage={false}  filtering={true} /></div>;
   };
   return (
     <>
-      <h4>{caption}</h4>
-      {renderer()}
+      <div className=" bg-light p-2 ">
+        <h4>{caption}</h4>
+        {renderer()}
+     </div>
     </>
   );
 }

@@ -55,7 +55,7 @@ export default function DepartmentRequestCustom() {
         </div>
       </div>
 
-      <table className='table'>
+      <table className='table ttable'>
         <thead>
           <tr>
             <th>name</th>

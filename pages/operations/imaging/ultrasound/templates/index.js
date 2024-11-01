@@ -141,7 +141,7 @@ export default function CreateUltrasonographyTemplates() {
 								disabled={templateid}
 								onChange={(ev) => { setSelectedList(ev.target.value) }} >
 								<option value={''}>Select an option here</option>
-								{ultrasoundList.map((item, index) => <option value={item.id}>{item.name}</option>)}
+								{ultrasoundList.map((item, index) => <option key={index} value={item.id}>{item.name}</option>)}
 							</select>
 						</div>
 						<div className="grid-reg my-2">

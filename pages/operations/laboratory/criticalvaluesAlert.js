@@ -45,7 +45,7 @@ export default function CriticalValuesAlert() {
 						<tbody >
 							{data.map((tr, index) => {
 								return (
-									<tr>
+									<tr key={index}>
 										<td>
 											{new Date(date).toLocaleDateString()}
 										</td>
@@ -86,12 +86,10 @@ export default function CriticalValuesAlert() {
 
 	return (
 		<LaboratoryLayout>
-
-
 			<div className="col-1 my-2">
 				<select onChange={(ev) => {setLoadQuery({...loadQuery,count:ev.target.value})}} className="custom-select" value={loadQuery.count}>
 					<option>select opt</option>
-					{[10, 20, 30, 40, 50].map((m, i) => <option value={m}>{m}</option>)}
+					{[10, 20, 30, 40, 50].map((m, i) => <option key={i} value={m}>{m}</option>)}
 				</select>
 			</div>
 			<div>

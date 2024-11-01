@@ -3,12 +3,12 @@ import DatePickerRange from "../../../components/accessories/DatePickerRange";
 import { useUltrasoundContext } from "./UltrasoundContext";
 
 
-export default function UltrasoundAscensionFiltering({ ascension_stage }) {
-       const { queryParams, setQueryParams, _getAscensionData, canLoadPage, loadCounter, setLoadCounter, } = useUltrasoundContext();
+export default function UltrasoundAscensionFiltering({ ascension_stage, employeeid }) {
+       const { queryParams, setQueryParams, _getAscensionData, canLoadPage, loadCounter, setLoadCounter } = useUltrasoundContext();
 
 
        useEffect(() => {
-              _getAscensionData(ascension_stage);
+              _getAscensionData(ascension_stage, employeeid);
               setLoadCounter(loadCounter + 1);
        }, [])
 
@@ -16,7 +16,7 @@ export default function UltrasoundAscensionFiltering({ ascension_stage }) {
 
        useEffect(() => {
               if (loadCounter > 0) {
-                     _getAscensionData(ascension_stage)
+                     _getAscensionData(ascension_stage, employeeid)
               }
        }, [queryParams.page, queryParams.count])
 

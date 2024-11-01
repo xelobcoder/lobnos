@@ -11,6 +11,7 @@ export function UltrasoundStagesProvider({ children }) {
        const [loadCounter, setLoadCounter] = useState(0);
        const [isLoading, setLoading] = useState(true);
        const [canloadPage, setLoadPage] = useState(false);
+       
        const [queryParams, setQueryParams] = useState({
               _dateFrom: null,
               _dateEnd: null,
@@ -25,8 +26,8 @@ export function UltrasoundStagesProvider({ children }) {
               updatePagination(value, setQueryParams, queryParams);
        };
 
-       const _getAscensionData = async function (ascension_stage) {
-              await getAscensionData(ascension_stage, setCollection, queryParams, setLoading);
+       const _getAscensionData = async function (ascension_stage,employeeid) {
+              await getAscensionData(ascension_stage, setCollection, queryParams, setLoading,employeeid);
        }
 
        return (

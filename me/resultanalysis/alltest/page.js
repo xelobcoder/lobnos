@@ -2,6 +2,7 @@ import { Container } from "react-bootstrap";
 import { customFetch } from "../../../components/Auth/customFetch";
 import ResultAnalysisRow from "../../../lib/resultanalaysis/RowAnalysis";
 
+
 export default async function ResultAnalysisAllTestView() {
     const response = await customFetch(`result/analysis/test/alltest/yearlycount?employeeid=3`);
 
@@ -16,7 +17,7 @@ export default async function ResultAnalysisAllTestView() {
     return (
         <Container>
             <div className="table-container">
-                <table className="table">
+                <table className="table ttable billing-cart-table">
                     <thead>
                         <tr>
                             <th>Test ID</th>
