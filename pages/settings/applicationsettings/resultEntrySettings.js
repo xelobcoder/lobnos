@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Form, Button, Col, InputGroup, Container, Table } from 'react-bootstrap';
+import { Form, Button, Col,Container, Table } from 'react-bootstrap';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 import { customPost, getInstitutionUsers, getResultEntrySettings, ResultEntrydefaultData } from '../../../components/Auth/customFetch';
 import AuthContext from '../../../components/Auth/useAuthentification';
