@@ -43,7 +43,7 @@ const StockQuantityAdder = ({ selectedStock, onAddStock }) => {
                     <div className="col-12 col-md-5 d-flex justify-content-md-start btn-sm pls-color justify-content-end">
                         <button
                             onClick={handleAddStock}
-                            className="btn btn-primary w-sm-100 w-md-auto"
+                            className="btn btn-primary btn-sm text-sm  w-sm-100 w-md-auto"
                         >
                             Add Quantity
                         </button>

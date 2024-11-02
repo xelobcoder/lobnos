@@ -27,10 +27,10 @@ const TemplateLimsCreationTableDisplay = ({ tableData, handleEditStock, handleDe
                 accessor: "actions",
                 Cell: ({ row: { index } }) => (
                     <>
-                        <Button variant="primary" size="sm" onClick={() => handleEditStock(index)}>
+                        <Button className="p-1" variant="primary" size="sm" onClick={() => handleEditStock(index)}>
                             <EditIcon />
                         </Button>
-                        <Button variant="danger" size="sm" onClick={() => handleDeleteStock(index)}>
+                        <Button className="mx-2 p-1" variant="danger" size="sm" onClick={() => handleDeleteStock(index)}>
                             <DeleteIcon />
                         </Button>
                     </>
@@ -59,16 +59,16 @@ const TemplateLimsCreationTableDisplay = ({ tableData, handleEditStock, handleDe
                                 </div>
                             </div>
                             <div className="list-group-item">
-                                <div className="d-flex justify-content-end">
+                                <div className="d-flex pointer justify-content-end">
                                     <span
-                                        className="cursor-pointer me-2"
+                                        className=""
                                         onClick={() => handleEditStock(index)}
                                         aria-label="Edit"
                                     >
                                         <EditIcon />
                                     </span>
                                     <span
-                                        className="cursor-pointer"
+                                      
                                         onClick={() => handleDeleteStock(index)}
                                         aria-label="Delete"
                                     >
