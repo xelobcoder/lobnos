@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getSingleEditTest } from "../../Auth/customFetch";
+import { currencyFormatter, getSingleEditTest } from "../../Auth/customFetch";
 
 export default function PreviewTestInformation({ testId }) {
     const [testInformation, setTestInformation] = useState(null);
@@ -29,13 +29,13 @@ export default function PreviewTestInformation({ testId }) {
                 <div className="list-group-item">
                     <div className="d-flex flex-column flex-md-row justify-content-between">
                         <span>Department: {testInformation?.department}</span>
-                        <span>Price: ${testInformation?.price}</span>
+                        <span>Price: {currencyFormatter.format(testInformation?.price)}</span>
                     </div>
                 </div>
 
                 <div className="list-group-item">
                     <div className="d-flex flex-column flex-md-row justify-content-between">
-                        <span>Test Cost: ${testInformation?.testcost}</span>
+                        <span>Test Cost: {currencyFormatter.format(testInformation?.testcost)}</span>
                         <span>Sample Quantity: {testInformation?.qty_required} {testInformation?.unit}</span>
                     </div>
                 </div>
