@@ -1,13 +1,14 @@
-import React, { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { Form, Button, Col, Container, Table } from 'react-bootstrap';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 import { customFetch, customPost, getInstitutionUsers, getResultEntrySettings, ResultEntrydefaultData } from '../../../components/Auth/customFetch';
-import AuthContext from '../../../components/Auth/useAuthentification';
 import { toast, ToastContainer } from 'react-toastify';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 
 
 const ResultSettingsForm = () => {
-	const { auth } = useContext(AuthContext);
+	const { user } = useApplicationSettings().applicationsettings;
+	const employeeid = user.employeeid
 	const [formData, setFormData] = useState(ResultEntrydefaultData);
 
 	const [scientists, setUsers] = useState([]);
@@ -64,7 +65,7 @@ const ResultSettingsForm = () => {
 			setLoadingUsers(true);
 			const { result } = await customFetch("logins");
 			setUsers(result);
-			const init = await getResultEntrySettings(auth.employeeid);
+			const init = await getResultEntrySettings(employeeid);
 			if (typeof init === "object") {
 				const { staffQualifiedToValidationResult } = init;
 				setFormData(init);
@@ -96,7 +97,7 @@ const ResultSettingsForm = () => {
 
 	useEffect(() => {
 		getInitData();
-	}, [auth.employeeid]);
+	}, [user.employeeid]);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -220,8 +221,8 @@ const ResultSettingsForm = () => {
 							)}
 						</Col>
 					</Form.Group>
-					<div className='col-8'>
-						<Table className="mt-2 table ttable">
+					<div className='col-lg-8 col-sm-12'>
+						<Table className="mt-2 table ttable ">
 							<thead>
 								<tr>
 									<th>Selected Scientists</th>
@@ -241,7 +242,7 @@ const ResultSettingsForm = () => {
 						</Table>
 					</div>
 
-					<Button variant="primary" className='mt-2 btn-sm' type="submit">
+					<Button variant="primary" className='mt-2 btn-sm   ' type="submit">
 						Save Settings
 					</Button>
 				</Form>

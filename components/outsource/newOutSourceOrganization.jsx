@@ -1,10 +1,10 @@
-import React, { useContext, useEffect, useState } from 'react';
+import{ useEffect, useState } from 'react';
 import { Row, Col, Form, Button } from 'react-bootstrap';
 import * as Yup from 'yup';
 import { customFetch, customPost } from '../Auth/customFetch';
-import AuthContext from '../Auth/useAuthentification';
 import { useSearchParams } from 'next/navigation';
 import Loader from '../accessories/Loader';
+import { useApplicationSettings } from '../Auth/useApplicationContext';
 
 
 const defaultData = {
@@ -21,8 +21,8 @@ const defaultData = {
 }
 
 export default function OutSourcingOrganizationForm() {
-    const { auth } = useContext(AuthContext);
-    const employeeid = auth?.employeeid;
+    const { applicationsettings } = useApplicationSettings();
+    const employeeid = applicationsettings.user.employeeid;
     const outsourceid = useSearchParams().get("orgid")
     const method = outsourceid ? 'PUT' : 'POST';
     const [formData, setFormData] = useState(defaultData);

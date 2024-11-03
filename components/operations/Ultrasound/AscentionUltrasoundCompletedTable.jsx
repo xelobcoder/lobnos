@@ -18,6 +18,7 @@ import { useUltrasoundContext } from "./UltrasoundContext";
 import Pagination from "../../accessories/pagination";
 import { PrepareResultEntryHeader } from "../../Auth/customFetch";
 import ShowTableCount from "../Laboratory/ShowCountTable";
+import FilterIcon from "../Laboratory/FilterIcon";
 
 
 export default function AscentionUltrasoundCompletedTable() {
@@ -169,7 +170,7 @@ export default function AscentionUltrasoundCompletedTable() {
 										<div>{column.render("Header")}</div>
 										{column.id !== 'selection' && (
 											<button onClick={() => handleClick(column)} className="btn btn-link p-0">
-												<FilterAltIcon />
+												<FilterIcon />
 											</button>
 										)}
 									</div>

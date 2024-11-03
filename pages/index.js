@@ -15,7 +15,7 @@ export default function Index() {
     <>
       <HeaderNav />
       {(daysToExpiration && daysToExpiration > 0) ? (
-        <div id="frontpagewrapper" className="bg-secondary-subtle" style={{ height: '90vh' }}>
+        <div id="frontpagewrapper" className="bg-secondary-subtle" >
           <Container>
             {role === "customer service representative" && <FrontPageFrontdeskView />}
             {(role === "admin" || role == "manager") && <FrontPageAdminView />}

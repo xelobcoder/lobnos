@@ -1,5 +1,5 @@
-import { AnalyticsSharp, ProductionQuantityLimits, Queue } from '@mui/icons-material'
-import AppCustomLayout from './CustomLayout'
+import MainLayout from "./MainLayout"
+
 
 
 const ImagingApplicationLinks = [
@@ -14,8 +14,8 @@ const ImagingApplicationLinks = [
 
 export default function UltrasoundLayout({ children }) {
        return (
-              <AppCustomLayout sideLinks={ImagingApplicationLinks}>
+              <MainLayout sideLinks={ImagingApplicationLinks}>
                      {children}
-              </AppCustomLayout>
+              </MainLayout>
        )
 }

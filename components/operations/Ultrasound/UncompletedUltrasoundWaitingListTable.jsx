@@ -11,13 +11,13 @@ import { Dropdown } from 'react-bootstrap';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import SortAscendingIcon from '@mui/icons-material/ArrowUpward';
 import SortDescendingIcon from '@mui/icons-material/ArrowDownward';
 import { useUltrasoundContext } from "./UltrasoundContext";
 import Pagination from "../../accessories/pagination";
 import { PrepareResultEntryHeader } from "../../Auth/customFetch";
 import ShowTableCount from "../Laboratory/ShowCountTable";
+import FilterIcon from "../Laboratory/FilterIcon";
 
 
 export default function AscentionUltrasoundUnCompletedTable() {
@@ -169,7 +169,7 @@ export default function AscentionUltrasoundUnCompletedTable() {
 										<div>{column.render("Header")}</div>
 										{column.id !== 'selection' && (
 											<button onClick={() => handleClick(column)} className="btn btn-link p-0">
-												<FilterAltIcon />
+												<FilterIcon/>
 											</button>
 										)}
 									</div>
@@ -206,7 +206,7 @@ export default function AscentionUltrasoundUnCompletedTable() {
 						return (
 							<tr {...row.getRowProps()} className={`${row.original.clientstatus === "urgent" ? "table-danger" : "table-white"}`} key={row.id}>
 								{row.cells.map(cell => (
-									<td {...cell.getCellProps()} className="table-cell" key={cell.column.id}>
+									<td {...cell.getCellProps()} className="table-cell text-capitalize " key={cell.column.id}>
 										{cell.render("Cell")}
 									</td>
 								))}

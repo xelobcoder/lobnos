@@ -1,22 +1,24 @@
 import AuthenticationLayout from "../../components/Layout/AuthenticationLayout";
 import TableDisplay from '../../components/accessories/TableDisplay';
 import { customFetch, updatePagination } from '../../components/Auth/customFetch';
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Pagination from '../../components/accessories/pagination';
 import Loader from "../../components/accessories/Loader";
-import AuthContext from "../../components/Auth/useAuthentification";
-import { useSearchParams } from "next/navigation";
+import { useApplicationSettings } from "../../components/Auth/useApplicationContext";
 
 export default function ApplicationLoginHistory() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ page: 1, count: 10 });
   const [load, setLoad] = useState(false);
-  const employeeid = useSearchParams().get("userid");
-  const { auth } = useContext(AuthContext);
+  const { applicationsettings } = useApplicationSettings();
+  const { user: auth } = applicationsettings;
+  const employeeid = auth?.employeeid;
 
 
-  
+
+
+
   useEffect(() => {
     setLoading(true);
     customFetch(`security/users/getlogin/history?page=${filters.page}&&count=${filters.count}&&employeeid=${employeeid}`)
@@ -80,7 +82,7 @@ export default function ApplicationLoginHistory() {
               page={filters.page}
               updateFunction={paginationUpdateFunction}
               count={filters.count} />
-        </div>
+          </div>
         </div>
       )
     }

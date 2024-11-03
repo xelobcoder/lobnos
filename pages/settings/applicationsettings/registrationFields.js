@@ -1,15 +1,16 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
 import MainSettingsLayoutView from "../../../components/settingsComponents/MainSettingsLayoutView";
 import { customPost, customFetch } from "../../../components/Auth/customFetch";
 import { Button, Container, } from "react-bootstrap";
 import { registrationFields } from "../../../components/registration/fields/Util";
-import AuthContext from "../../../components/Auth/useAuthentification";
+
 import { ToastContainer, toast } from "react-toastify";
+import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
 
 
 export default function RegistrationFieldsSettings() {
-	const { auth } = useContext(AuthContext);
-	const employeeid = auth?.employeeid;
+	const { applicationsettings } = useApplicationSettings();
+	const employeeid = applicationsettings.user.employeeid;
 	const [fields, setFields] = useState(registrationFields);
 	const [isErrorLoadingFields, setIsErrorLoadingFields] = useState(false);
 

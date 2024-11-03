@@ -1,11 +1,12 @@
 import { Add } from "@mui/icons-material";
 import { useSearchParams } from "next/navigation";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import Select from 'react-select';
 import { ToastContainer, toast } from "react-toastify";
 import { currencyFormatter, customFetch, customPost } from "../Auth/customFetch";
-import AuthContext from "../Auth/useAuthentification";
+import { useApplicationSettings } from "../Auth/useApplicationContext";
+
 export default function OutsourceServices() {
     const [loading, setLoading] = useState(true);
     const [cart, setCart] = useState([]);
@@ -14,8 +15,8 @@ export default function OutsourceServices() {
     const [isLoading, setIsLoading] = useState(false);
     const [inputPrice, setInputPrice] = useState('');
     const outsourceid = useSearchParams().get("orgid");
-    const { auth } = useContext(AuthContext);
-    const employeeid = auth?.employeeid;
+    const { applicationsettings } = useApplicationSettings();
+    const employeeid = applicationsettings.user.employeeid;
 
 
 

@@ -27,6 +27,7 @@ html,body{
     overflow-x: hidden;
     overflow-y: auto;
     min-height: 100vh;
+  font-family: 'Roboto','Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
     background-color: white;
 }
 
@@ -43,16 +44,19 @@ body {
 
 
 *{
-
-  font-family: 'Roboto','Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+/* 
+  font-family: 'Roboto','Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; */
   /* font-family: Outfit, Arial, Helvetica, sans-serif; */
   /* font-family: var(--prime-links-font-family); */
       /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
       /* font-family: "Lucida Sans Regular"; */
-      /* font-family: "Barlow", sans-serif; */
+      font-family: "Barlow", sans-serif;
 }
 
 
+.bawlor {
+        font-family: "Barlow", sans-serif !important;
+}
 
 
 
@@ -1033,10 +1037,11 @@ textarea:required:focus:invalid {
 #frontpagewrapper,
 #loginWrapper {
   background-color: hsl(from green 56 55 67);
-  height: 100vh;
+  min-height: 100vh;
+  max-height: max-content;
   width: 100%;
+      background: url('../public/scale.jpg');
   margin: 0;
-  padding: 50px;
 }
 
 #frontpagecards {
@@ -1448,34 +1453,70 @@ body {
     background-color: transparent;
 }
 
-
 .front-page-ui-presentation {
     display: grid !important;
     grid-gap: 20px;
-      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)) !important;
-      margin: 0;
-      padding: 0;
-      list-style-type: none;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)) !important;
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+.front-page-ui-presentation > ._pre_app {
+    height: 27vh;
+    background-color: white;
+    display: grid;
+    grid-template-rows: 45% 30% 30%;
+    width: 90%;
+    border-radius: 5px;
+}
+
+.front-page-ui-presentation > ._pre_app > .icon > span {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    background-color: 
+#0a152f7e;
+    margin-top: 10px;
 }
 
 
 
-.front-page-ui-presentation >  ._pre_app  {
-  height: 25vh;
-  background-color: white;
-  display: grid;
-  grid-template-rows: 50% 30% 30%;
-  width: 90%;
-  border-radius: 5px;
+.front-page-ui-presentation > ._pre_app > .text-pre {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+}
+.front-page-ui-presentation > ._pre_app > .text-pre > span:nth-child(1){
+  font-weight: bold;
+  font-size: 20px;
+}
+.front-page-ui-presentation > ._pre_app > .text-pre > span:nth-child(2) {
+  font-size: 12px;
+  border-bottom: 1px solid lightgray;
+  margin-top: 10px;
+  color: gray;
 }
 
-
-.front-page-ui-presentation >  ._pre_app > .icon > span {
-   border-radius: 50%;
-   width: 50px;
-   height: 50px;
-background: linear-gradient(90deg, rgba(42,168,246,1) 4%, rgba(32,11,129,1) 81%);
-   margin-top:20px;
+._pre_app {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.icon span {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 
 ._multiple-field-condition_field{
