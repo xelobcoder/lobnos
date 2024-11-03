@@ -11,7 +11,7 @@ import { printResultNavigator } from "../../Auth/customFetch";
 import { useRouter } from "next/navigation";
 import { fnTiming } from "./Lib";
 import ActionDropdown from "./ActionAscensionTables";
-
+import FilterIcon from "./FilterIcon";
 
 export default function ValidationAscensionTable() {
 	const {
@@ -73,15 +73,8 @@ export default function ValidationAscensionTable() {
 			accessor: "action",
 			Cell: ({ row }) => (
 				<ActionDropdown
-					onValidate={() => {/* Implement validation logic */ }}
+					onValidate={() => { }}
 					onViewResult={() => viewResultHandler(row.original)}
-					onEdit={() => {/* Implement edit logic */ }}
-					onDelete={() => {/* Implement delete logic */ }}
-					onFilterChange={(filterType, value) => {
-						// Implement filtering logic based on filterType and value
-						console.log(`Filter Type: ${filterType}, Value: ${value}`);
-						// Call setFilter or your filtering logic here
-					}}
 				/>
 			),
 			width: 50
@@ -128,6 +121,14 @@ export default function ValidationAscensionTable() {
 		setCurrentColumn(null);
 	};
 
+	const handleFilterRemove = () => {
+		if (currentColumn) {
+			setFilter(currentColumn.id, undefined);
+		}
+		setCurrentColumn(null);
+		setFilterValue('');
+	};
+
 	if (isLoading) {
 		return (
 			<div className="p-2 text-center heightedBorder bg-secondary-subtle">
@@ -153,7 +154,7 @@ export default function ValidationAscensionTable() {
 	}
 
 	return (
-		<div className="bg-body-secondary p-2  mx-2 ">
+		<div className="bg-body-secondary p-2 shadow mx-2 br-5" style={{overflowX:'auto'}}>
 			<div className="d-flex justify-content-between">
 				<div className="col-10">
 					<ShowTableCount queryParams={queryParams} setQueryParams={setQueryParams} />
@@ -179,7 +180,7 @@ export default function ValidationAscensionTable() {
 										<div>{column.render("Header")}</div>
 										{column.id !== 'selection' && (
 											<button onClick={() => handleClick(column)} className="btn btn-link p-0">
-												<FilterAltIcon />
+												<FilterIcon />
 											</button>
 										)}
 									</div>
@@ -201,6 +202,9 @@ export default function ValidationAscensionTable() {
 												/>
 												<button className="btn btn-outline-secondary btn-sm mt-1" onClick={handleFilterApply}>
 													Apply
+												</button>
+												<button className="btn btn-outline-danger btn-sm mt-1" onClick={handleFilterRemove}>
+													Remove Filter
 												</button>
 											</div>
 										</div>

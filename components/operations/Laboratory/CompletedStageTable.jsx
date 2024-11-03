@@ -15,17 +15,23 @@ import { Dropdown } from 'react-bootstrap';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import SortAscendingIcon from '@mui/icons-material/ArrowUpward';
 import SortDescendingIcon from '@mui/icons-material/ArrowDownward';
 import ShowTableCount from "./ShowCountTable";
+import FilterIcon from "./FilterIcon";
 
 export default function AscentionCompletedTable() {
-	const { isLoading, collection, queryParams, setLoadPage, setQueryParams, canloadPage, updatePageValue } = useLaboratoryContext();
-
+	const {
+		isLoading,
+		collection,
+		queryParams,
+		setLoadPage,
+		setQueryParams,
+		canloadPage,
+		updatePageValue,
+	} = useLaboratoryContext();
 
 	const noRecordsFound = !isLoading && collection.length === 0 && !canloadPage;
-
 	const canLoadMoreRecords = !isLoading && collection.length === 0 && canloadPage;
 
 	const columns = useMemo(() => [
@@ -93,14 +99,10 @@ export default function AscentionCompletedTable() {
 		},
 	], []);
 
-	// Call useMemo for data and useTable outside the conditional returns
 	const data = useMemo(() => collection, [collection]);
 
 	const tableInstance = useTable(
-		{
-			columns,
-			data,
-		},
+		{ columns, data },
 		useFilters,
 		useSortBy,
 		useRowSelect,
@@ -119,10 +121,7 @@ export default function AscentionCompletedTable() {
 	const [currentColumn, setCurrentColumn] = useState(null);
 	const [filterValue, setFilterValue] = useState('');
 
-	const handleClick = (column) => {
-		setCurrentColumn(column);
-	};
-
+	const handleClick = (column) => setCurrentColumn(column);
 	const handleFilterApply = () => {
 		if (currentColumn) {
 			tableInstance.setFilter(currentColumn.id, filterValue || undefined);
@@ -130,7 +129,9 @@ export default function AscentionCompletedTable() {
 		setCurrentColumn(null);
 	};
 
-	if (isLoading) return <div className="text-center heightedBorder p-2 bg-secondary-subtle">Loading .......................</div>;
+	if (isLoading) {
+		return <div className="text-center heightedBorder p-2 bg-secondary-subtle">Loading .......................</div>;
+	}
 
 	if (noRecordsFound) {
 		return (
@@ -174,7 +175,7 @@ export default function AscentionCompletedTable() {
 										<div>{column.render("Header")}</div>
 										{column.id !== 'selection' && (
 											<button onClick={() => handleClick(column)} className="btn btn-link p-0">
-												<FilterAltIcon />
+												<FilterIcon/>
 											</button>
 										)}
 									</div>
@@ -209,7 +210,7 @@ export default function AscentionCompletedTable() {
 					{rows.map(row => {
 						prepareRow(row);
 						return (
-							<tr {...row.getRowProps()} className={`${row.original.clientstatus === "urgent" ? "table-danger" : "table-white"}`} key={row.id}>
+							<tr {...row.getRowProps()} className={row.original.clientstatus === "urgent" ? "table-danger" : "table-white"} key={row.id}>
 								{row.cells.map(cell => (
 									<td {...cell.getCellProps()} className="table-cell" key={cell.column.id}>
 										{cell.render("Cell")}
