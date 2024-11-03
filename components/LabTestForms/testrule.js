@@ -9,46 +9,32 @@ import ResultEntryMainEntryBase from "./ResultEntryMainEntryBase";
 import moment from "moment";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 
-
 export default function CreateTestRule({ clientdata }) {
 	const { testid, test, patientid, billingid, employeeid, timerInitiated, ascensionid, resultEntryStart, resultEntryEnd } = clientdata;
 
-	const { result } = useApplicationSettings();
-	const [comments, setComments] = useState({ comments: '' })
-	const [testname, setTestname] = useState("")
+	const { result } = useApplicationSettings().applicationsettings;
+	const [comments, setComments] = useState({ comments: '' });
+	const [testname, setTestname] = useState("");
 	const [resultEntered, setResultEntered] = useState(false);
 	const [isloading, setLoading] = useState(true);
 	const [rule, setRule] = useState([]);
 	const [editCount, setEditCount] = useState(0);
 	const [hasDrugs, setHasDrugs] = useState(false);
-	const [modifiedDrugs, setModifiedDrugs] = useState
-		([]);
-
-
+	const [modifiedDrugs, setModifiedDrugs] = useState([]);
 
 	const getAscensionEditCount = async () => {
 		customFetch(`ascension/edit/count?csvid=${billingid}&&ascensionid=${ascensionid}&&testid=${testid}&&ptid=${patientid}`)
 			.then((result) => {
 				setEditCount(result?.count);
 			})
-			.catch((err) => console.log(err))
+			.catch((err) => console.log(err));
 	}
-
-
-
-
-
 
 	useEffect(() => {
 		const gettingFields = async function () {
 			try {
-				const commentsFetch = customFetch(
-					`testpanel/list/customtestrule/previous/comments?testid=${testid}&&csvid=${billingid}&&ptid=${patientid}`
-				);
-
-				const testResultFetch = customFetch(
-					`testpanel/list/customtestrule/previous?testid=${testid}&&ptid=${patientid}&&csvid=${billingid}`
-				);
+				const commentsFetch = customFetch(`testpanel/list/customtestrule/previous/comments?testid=${testid}&&csvid=${billingid}&&ptid=${patientid}`);
+				const testResultFetch = customFetch(`testpanel/list/customtestrule/previous?testid=${testid}&&ptid=${patientid}&&csvid=${billingid}`);
 
 				const [resultResponse, commentsResponse] = await Promise.all([testResultFetch, commentsFetch]);
 
@@ -57,7 +43,7 @@ export default function CreateTestRule({ clientdata }) {
 					if (result && Array.isArray(result)) {
 						setRule(result);
 						if (result.length === 0) return;
-						const hasAnyValueEntered = result.some((item, index) => item?.value != "");
+						const hasAnyValueEntered = result.some((item) => item?.value != "");
 						setResultEntered(hasAnyValueEntered);
 					}
 					testname && setTestname(testname);
@@ -88,7 +74,7 @@ export default function CreateTestRule({ clientdata }) {
 				const { status } = await customPost("ascension/collection/update/stage", 'POST', selectedItem);
 
 				if (status === true) {
-					console.log('result entry logged!!!')
+					console.log('result entry logged!!!');
 				}
 			}
 		};
@@ -106,45 +92,53 @@ export default function CreateTestRule({ clientdata }) {
 
 	const handleSubmit = async (ev) => {
 		try {
-			const transformed = rule.map((item, index) => {
+			const transformed = rule.map((item) => {
 				return { field: item?.name, value: item?.value };
 			});
-			const allHasValues = transformed.some((a, i) => a.value == "");
+			const allHasValues = transformed.some((a) => a.value == "");
 			if (allHasValues) {
-				toast.error("some fields are empty", { autoClose: 2000 });
+				toast.error("Some fields are empty", { autoClose: 2000 });
 			}
-			const data = { fields: transformed, csvid: billingid, ascensionid, employeeid, ptid: patientid, comments: comments.comments, test, testid, hasDrugs, drugs: hasDrugs ? modifiedDrugs : [] };
+			const data = {
+				fields: transformed,
+				csvid: billingid,
+				ascensionid,
+				employeeid,
+				ptid: patientid,
+				comments: comments.comments,
+				test,
+				testid,
+				hasDrugs,
+				drugs: hasDrugs ? modifiedDrugs : [],
+			};
 			if (data.employeeid && data.csvid && data.fields.length > 0) {
 				const response = await customPost("result/entry/customtest", "POST", data);
 				const { message, statusCode, status } = response;
-				if (status == "success" && statusCode == 200) {
+				if (status === "success" && statusCode === 200) {
 					toast.success(message, { autoClose: 500 });
 				} else {
 					toast.error(message, { autoClose: 2000 });
 				}
 			}
 		} catch (err) {
-			toast.error("something wrong occured", { autoClose: 1000 });
+			toast.error("Something went wrong", { autoClose: 1000 });
 		}
 	};
 
-
 	const handleCreateFields = (ev) => {
 		if (testid) {
-			window.open(`/settings/testpanel/testlist/createfields?testid=${testid}&&testname=${testname}`)
+			window.open(`/settings/testpanel/testlist/createfields?testid=${testid}&&testname=${testname}`);
 		}
-	}
-
-
+	};
 
 	const renderingView = () => {
-		if (isloading) return <Loader />
+		if (isloading) return <Loader />;
 		else {
 			return (
 				<div>
-					<div className="d-flex justify-content-between">
-						<span className=" bg-secondary-subtle p-2 heightedBorder">{resultEntryStart ? `Result Entry Started At: ${moment(resultEntryStart).format('LLLL')}` : null}</span>
-						<span className=" bg-secondary-subtle p-2 heightedBorder">{resultEntryEnd ? `Result Concluded on: ${moment(resultEntryEnd).format('LLLL')}` : null}</span>
+					<div className="d-flex flex-column flex-sm-row justify-content-between">
+						<span className="bg-secondary-subtle p-2 heightedBorder mb-2 mb-sm-0">{resultEntryStart ? `Result Entry Started At: ${moment(resultEntryStart).format('LLLL')}` : null}</span>
+						<span className="bg-secondary-subtle p-2 heightedBorder">{resultEntryEnd ? `Result Concluded on: ${moment(resultEntryEnd).format('LLLL')}` : null}</span>
 					</div>
 					<ResultEntryMainEntryBase
 						rule={rule}
@@ -162,13 +156,13 @@ export default function CreateTestRule({ clientdata }) {
 				</div>
 			)
 		}
-	}
+	};
 
 	return (
 		<div>
 			<section className="card mx-2 my-2">
-				<div className="card-header d-flex justify-content-between">
-					<div className="btn-group" role="group" aria-label="result form entry label">
+				<div className="card-header d-flex flex-column flex-md-row justify-content-between">
+					<div className="btn-group mb-2 mb-md-0" role="group" aria-label="result form entry label">
 						<button className="border d-flex br-5 p-1 mx-1 pls-color text-uppercase">
 							<h4 title={`test edited ${editCount} times`}> {editCount} </h4> <Indicator resultEntered={resultEntered} />
 						</button>
@@ -177,11 +171,11 @@ export default function CreateTestRule({ clientdata }) {
 						</button>
 					</div>
 					<div>
-						<button className="btn btn-light btn-sm text-capitalize border-secondary border-2"><History /> Audit log</button>
+						<button className="btn btn-light btn-sm text-capitalize border-secondary border-2 mb-2 mb-md-0"><History /> Audit log</button>
 						<button type='button' className="btn btn-dark btn-sm text-capitalize mx-1 ">
-							<BarChart /> client test trend
+							<BarChart /> Client test trend
 						</button>
-						<button type='button' className="btn btn-danger btn-sm text-capitalize"><Dangerous /> report critical values</button>
+						<button type='button' className="btn btn-danger btn-sm text-capitalize"><Dangerous /> Report critical values</button>
 					</div>
 				</div>
 				<div className="card-body">
@@ -189,5 +183,5 @@ export default function CreateTestRule({ clientdata }) {
 				</div>
 			</section>
 		</div>
-	)
+	);
 }

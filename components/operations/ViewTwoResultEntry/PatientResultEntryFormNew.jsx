@@ -8,7 +8,7 @@ import { customFetch } from "../../Auth/customFetch";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 
 export default function PatientResultEntryFormComponentNew({ }) {
-    const { user } = useApplicationSettings();
+    const { user ,branchid} = useApplicationSettings().applicationsettings;
     const employeeid = user?.employeeid;
     const billingid = useSearchParams().get("csvid");
     const unslicedPatientid = useSearchParams().get("ptid");
@@ -18,7 +18,7 @@ export default function PatientResultEntryFormComponentNew({ }) {
     const loadInitData = useCallback(async () => {
         if (unslicedPatientid && billingid && employeeid) {
             try {
-                let test = await customFetch(`result/entry/record/collection?csvid=${billingid}&&ptid=${unslicedPatientid}&&target=${[70, 50].join(",")}&&branchid=${auth.branchid}`)
+                let test = await customFetch(`result/entry/record/collection?csvid=${billingid}&&ptid=${unslicedPatientid}&&target=${[70, 50].join(",")}&&branchid=${branchid}`)
                 let patient_data = customFetch(`register/personalinformation?patientid=${unslicedPatientid.slice(50)}`);
 
                 const data = await Promise.all([test, patient_data]);

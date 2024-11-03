@@ -36,7 +36,7 @@ export default function OperationsListTestCollection() {
         return (
           <div
             key={index}
-            className={`ui d-flex pls-color text-uppercase justify-content-between shadow br-5  my-2 pointer border p-3 my-2 
+            className={`ui d-flex pls-color text-uppercase  my-sm-3 justify-content-between shadow br-5  my-2 pointer border p-3 my-2 
             ${testid == item.testid && "border-primary border-2"}`}>
             <span>{item.name}</span>
             <span>

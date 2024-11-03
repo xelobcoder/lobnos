@@ -100,11 +100,13 @@ export default function UltrasoundTemplatesList() {
 	return (
 		<UltrasoundLayout>
 			<div className="">
-				<h5 className=" heightedBorder p-2 bg-body-secondary">Ultrasound Templates</h5 >
+				<h5 className=" heightedBorder p-2 my-2 bg-body-secondary">Ultrasound Templates</h5 >
 				<ShowTableCount queryParams={query} setQueryParams={setQuery} />
-				<TableDisplay column={columns} data={templateList}
-					showpage={false}
-					styling='ttable table' />
+				<div style={{ overflowX: 'auto' }}>
+					<TableDisplay column={columns} data={templateList}
+						showpage={false}
+						styling='ttable table' />
+				</div>
 				<div className="d-flex justify-content-center">
 					<Pagination
 						load={setLoad} page={query.page}

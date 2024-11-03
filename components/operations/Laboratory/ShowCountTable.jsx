@@ -1,10 +1,10 @@
 export default function ShowTableCount({ queryParams, setQueryParams }) {
        return (
-              <div className="my-1">
+              <div className="my-1 col-12 col-sm-6 col-md-4 col-lg-3">
                      <select
                             value={queryParams.count}
                             onChange={(ev) => setQueryParams({ ...queryParams, count: ev.target.value })}
-                            className="custom-select col-1"
+                            className="custom-select"
                      >
                             <option value={5}>5</option>
                             <option value={10}>10</option>
@@ -18,6 +18,5 @@ export default function ShowTableCount({ queryParams, setQueryParams }) {
                             <option value={50}>50</option>
                      </select>
               </div>
-
-       )
+       );
 }
