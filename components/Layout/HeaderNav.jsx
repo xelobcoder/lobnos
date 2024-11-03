@@ -1,12 +1,12 @@
-import { Menu } from "@mui/icons-material";
-import AuthContext, { useTheme } from "../Auth/useAuthentification";
-import { useContext } from "react";
+
 import { handleLogout } from "../Auth/customFetch";
 import { Container } from "react-bootstrap";
+import { useApplicationSettings } from "../Auth/useApplicationContext";
 export default function ApplicationHeader() {
-	const { auth } = useContext(AuthContext);
-	const { username, role, branch, employeeid } = auth;
-	const { company, daysToExpiration } = useTheme();
+	const { applicationsettings } = useApplicationSettings();
+	const { user,company, daysToExpiration } = applicationsettings;
+	const { username, role, branch, employeeid } = user;
+
 
 	const isProductExpired = () => {
 		if (daysToExpiration === 0 || daysToExpiration < 0) {
@@ -37,7 +37,7 @@ export default function ApplicationHeader() {
 							{username}({role})
 						</span>
 						<span>
-							<button className="btn btn-danger btn-sm br-0 d-sm-none d-lg-flex d-md-none d-xl-flex">
+							<button className="btn btn-light btn-sm d-sm-none d-lg-flex d-md-none d-xl-flex">
 								<span>
 									<svg
 										onClick={(ev) => {
@@ -48,12 +48,9 @@ export default function ApplicationHeader() {
 										width="24"
 										height="24"
 										className="fw-bold"
-										fill="white">
+										fill="red">
 										<path d="M6.26489 3.80698L7.41191 5.44558C5.34875 6.89247 4 9.28873 4 12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12C20 9.28873 18.6512 6.89247 16.5881 5.44558L17.7351 3.80698C20.3141 5.61559 22 8.61091 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 8.61091 3.68594 5.61559 6.26489 3.80698ZM11 12V2H13V12H11Z"></path>
 									</svg>
-								</span>
-								<span>
-									LOGOUT
 								</span>
 							</button>
 						</span>

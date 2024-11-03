@@ -5,13 +5,13 @@ import PreviewPatientInformation from '../../../../components/petientsComponent/
 import OutstandingBills from '../../../../components/petientsComponent/OutstandingBill';
 import { ToastContainer, toast } from 'react-toastify';
 import Loader from '../../../../components/accessories/Loader';
-import AuthContext from '../../../../components/Auth/useAuthentification';
 import FrontDeskLayout from '../../../../components/Layout/FrontDeskLayout';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 
 export default function BillingUpdateClientPaymentHistory() {
   const { patientid } = useRouter().query;
-  const { auth } = useContext(AuthContext);
-  const employeeId = parseInt(auth?.employeeid);
+  const { user } = useApplicationSettings().applicationsettings;
+  const employeeId = parseInt(user?.employeeid);
 
   const [paymentInfo, setPaymentInfo] = useState({ amount: 0, paymentMode: '' });
   const [outstandingBills, setOutstandingBills] = useState([]);

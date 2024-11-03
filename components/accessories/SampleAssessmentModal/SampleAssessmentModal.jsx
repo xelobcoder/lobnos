@@ -1,15 +1,17 @@
-import React, { useState, useCallback, useEffect, useContext } from "react"
+import React, { useState, useCallback, useEffect} from "react"
 import { Modal } from "react-bootstrap"
 import { customFetch, customPost } from "../../Auth/customFetch"
 import { ToastContainer, toast } from "react-toastify"
-import AuthContext from "../../Auth/useAuthentification"
 import AssessmentRenderingView from "./AssessmentViewSampleValidation"
+import { useApplicationSettings } from "../../Auth/useApplicationContext"
 
 export default function SampleAssessmentModal({ show, hide, billingid, removeClient }) {
   const [loading, setLoading] = useState(true)
   const [testcollection, setTestCollection] = useState([])
-  const { auth } = useContext(AuthContext)
-  const employeeid = auth?.employeeid
+  const { applicationsettings } = useApplicationSettings();
+  const { user } = applicationsettings;
+  const employeeid = user?.employeeid;
+
 
   const getClientAscention = useCallback(async (id) => {
     if (id) {

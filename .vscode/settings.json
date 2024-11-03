@@ -1,0 +1,7 @@
+{
+	"editor.tabSize": 5,
+	"files.autoSave": "afterDelay",
+	"workbench.colorTheme": "Solarized Dark",
+	"workbench.editor.pinnedTabSizing": "shrink",
+	"workbench.sideBar.location": "left",
+}

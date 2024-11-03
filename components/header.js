@@ -1,6 +1,6 @@
 import { Apps, Login, Logout } from "@mui/icons-material";
 import { useContext } from "react";
-import AuthContext from "./Auth/useAuthentification";
+import AuthContext from "./Auth/useApplicationContext";
 import { useRouter } from "next/navigation";
 import { handleLogout } from "./Auth/customFetch";
 
@@ -20,7 +20,8 @@ function Header() {
             Prime laboratory system(PLS)</span>
           <li>
             <span> <Apps /></span>
-            <span> {auth?.username ? <Logout onClick={(ev) => { handleLogout(employeeid)}} /> : <Login />}</span>
+            <button className='btn btn-light btn-sm'>logout</button>
+            <span> {auth?.username ? <Logout onClick={(ev) => { handleLogout(employeeid) }} /> : <Login />}</span>
           </li>
         </ul>
       </div>

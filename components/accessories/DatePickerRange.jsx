@@ -20,7 +20,7 @@ export default function
       isClearable
       withPortal
       endDate={endDate}
-      className="form-control p-3 col-sm-12"
+      className="custom-input  col-sm-12"
       showIcon={true}
       placeholderText="Please Pick A Date Range Here"
       onChange={(update) => {

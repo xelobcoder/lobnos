@@ -3,18 +3,17 @@ import ListTable from "../../components/phelobotomy/ListTable";
 import CollectionSampleModal from "../../components/phelobotomy/CollectionSampleModal";
 import { getDataAndUpdateState, updatePagination } from "../../components/Auth/customFetch";
 import ReceiveLabSampleModal from "../../components/phelobotomy/ReceiveLabSampleModal/ReceiveLabSampleModal";
-import AuthContext from "../../components/Auth/useAuthentification";
 import Loader from "../../components/accessories/Loader";
 import Pagination from "../../components/accessories/pagination";
 import PhelobotomyLayout from "../../components/Layout/PhelobotomyLayout";
 import PhelobotomySummaryAnalytics from "../../components/phelobotomy/PhelobotomySummaryAnalytics";
-import CustomAccordion from "../../components/phelobotomy/customAccordion";
+import { useApplicationSettings } from "../../components/Auth/useApplicationContext";
 
 
 
 export default function Phelobotomy() {
-  const { auth } = useContext(AuthContext);
-  const { employeeid } = auth;
+  const { applicationsettings } = useApplicationSettings();
+  const employeeid = applicationsettings?.user?.employeeid;
   const [data, setData] = useState([]);
   const [paginate, setPaginate] = useState({ count: 50, page: 1 });
   const [showModal, setShowModal] = useState(false);
@@ -27,6 +26,7 @@ export default function Phelobotomy() {
     setCollection({ billingid: id, patientid: patientid, fullname: fullname });
     setShowModal(true);
   };
+
 
 
   const hideModal = () => { setShowModal(false); }

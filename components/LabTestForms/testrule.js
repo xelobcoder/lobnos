@@ -5,15 +5,15 @@ import Indicator from "../accessories/Reports/indicator";
 import { toast } from 'react-toastify';
 import Loader from "../accessories/Loader";
 import { BarChart, Dangerous, History } from "@mui/icons-material";
-import { useTheme } from "../Auth/useAuthentification";
 import ResultEntryMainEntryBase from "./ResultEntryMainEntryBase";
 import moment from "moment";
+import { useApplicationSettings } from "../Auth/useApplicationContext";
 
 
 export default function CreateTestRule({ clientdata }) {
 	const { testid, test, patientid, billingid, employeeid, timerInitiated, ascensionid, resultEntryStart, resultEntryEnd } = clientdata;
 
-	const { result } = useTheme();
+	const { result } = useApplicationSettings();
 	const [comments, setComments] = useState({ comments: '' })
 	const [testname, setTestname] = useState("")
 	const [resultEntered, setResultEntered] = useState(false);

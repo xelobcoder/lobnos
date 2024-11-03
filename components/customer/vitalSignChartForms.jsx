@@ -1,18 +1,19 @@
-import { Add } from "@mui/icons-material";
+import Add from "@mui/icons-material/Add";
 import Link from "next/link";
-import { useContext, useState } from "react";
-import AuthContext from "../Auth/useAuthentification";
+import {  useState } from "react";
 import { handleChangeWithState } from "../Auth/customFetch";
 import { uploadVitalSign } from "./dataActions/vitalsigns";
 import PatientFiltered from "../accessories/CustomerFiltering";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
+import { useApplicationSettings } from "../Auth/useApplicationContext";
 
 export default function RecordVitalSignsChartForm({ searchParams }) {
     const { patientid, iNewChart } = searchParams;
-    const { auth } = useContext(AuthContext);
-    const employeeid = auth.employeeid;
+    const { applicationsettings } = useApplicationSettings();
+    const { employeeid } = applicationsettings.user;
 
+    
     const [formData, setFormData] = useState({
         blood_pressure_lowerLimit: "",
         blood_pressure_upperLimit: "",

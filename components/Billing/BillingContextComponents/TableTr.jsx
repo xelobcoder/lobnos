@@ -5,13 +5,14 @@ import { BillingContext } from "./BillingContext";
 import { customFetch } from "../../Auth/customFetch";
 import Link from "next/link";
 import { LinkOff } from "@mui/icons-material";
-import AuthContext from "../../Auth/useAuthentification";
 import { hasPreviousRecords } from "../../../lib/billingLib";
+import { useApplicationSettings } from "../../Auth/useApplicationContext";
 
 export default function TrTable({ toast }) {
   const { billingdata, updateBilling, recalculateTotalBill } = useContext(BillingContext);
-  const { auth } = useContext(AuthContext);
-  const role = auth?.role;
+  const { applicationsettings } = useApplicationSettings();
+  const { user } = applicationsettings;
+  const role = user?.role;
   const [loadingOutsource, setLoadingOutsource] = useState(false);
   const [selected, setSelected] = useState(null);
   const [selectedOutsource, setSelectedOutsource] = useState(null);

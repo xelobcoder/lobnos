@@ -228,7 +228,7 @@ export default function Payment_Extra() {
           filtering={true}
           showpage={false}
           column={columns}
-          styling={"ttable"}
+          styling={"ttable table"}
           data={transactionData}
         />
         <div className="d-flex justify-content-center">

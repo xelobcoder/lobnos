@@ -2,18 +2,19 @@ import UltrasoundLayout from '../../../../components/Layout/ImagingLayout';
 import { UltrasoundStagesProvider } from '../../../../components/operations/Ultrasound/UltrasoundContext';
 import UltrasoundAscensionFiltering from '../../../../components/operations/Ultrasound/UtrasoundFiltering';
 import AscentionUltrasoundUnCompletedTable from '../../../../components/operations/Ultrasound/UncompletedUltrasoundWaitingListTable';
-import { useContext } from 'react';
-import AuthContext from '../../../../components/Auth/useAuthentification';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+
 
 export default function UltrasonograhyWaitingList() {
-  const { auth } = useContext(AuthContext);
+  const { applicationsettings } = useApplicationSettings();
+  const { employeeid, username, role } = applicationsettings.user;
 
-  if (!auth?.employeeid) return null
+  if (!employeeid) return null
 
   return (
     <UltrasoundLayout>
       <UltrasoundStagesProvider>
-        <UltrasoundAscensionFiltering ascension_stage={'ULTRASOUND_UNCOMPLETED'} employeeid={auth.employeeid} />
+        <UltrasoundAscensionFiltering ascension_stage={'ULTRASOUND_UNCOMPLETED'} employeeid={employeeid} />
         <AscentionUltrasoundUnCompletedTable />
       </UltrasoundStagesProvider>
     </UltrasoundLayout>

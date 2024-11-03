@@ -1,12 +1,13 @@
-import { useContext, useState } from "react";
+import {  useState } from "react";
 import { currencyFormatter, customPost } from "../../../Auth/customFetch";
-import AuthContext from "../../../Auth/useAuthentification";
 import { Spinner } from "react-bootstrap";
+import { useApplicationSettings } from "../../../Auth/useApplicationContext";
 
 export default function RefundTestOrServiceListTr({ handleRefundList, item, index, refundList }) {
     const [isRequesting, setRequesting] = useState(false);
-    const { auth } = useContext(AuthContext);
-    const employeeid = auth?.employeeid;
+    const { applicationsettings } = useApplicationSettings();
+    const { user } = applicationsettings;
+    const employeeid = user?.employeeid;
     const [refundMessage, setRefundMessage] = useState('');
 
 
@@ -22,7 +23,7 @@ export default function RefundTestOrServiceListTr({ handleRefundList, item, inde
 
     return (<tr key={index} >
         <td>{item.serviceCategory}
-            <br/>
+            <br />
             {new Date(item.serviceAddedOn).toLocaleDateString()}
         </td>
         <td>{item.name}</td>

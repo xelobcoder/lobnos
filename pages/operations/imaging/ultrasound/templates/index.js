@@ -3,13 +3,13 @@ import UltrasoundLayout from "../../../../../components/Layout/ImagingLayout";
 import { useContext, useEffect, useState } from "react";
 import { customFetch, customPost } from "../../../../../components/Auth/customFetch";
 import RulesLoadingTempleteCreation from "../../../../../components/operations/Ultrasound/RulesLoadingTempleteCreation";
-import AuthContext from "../../../../../components/Auth/useAuthentification";
 import { useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
+import { useApplicationSettings } from "../../../../../components/Auth/useApplicationContext";
 
 export default function CreateUltrasonographyTemplates() {
-	const { auth } = useContext(AuthContext);
-	const employeeid = auth?.employeeid;
+	const { user } = useApplicationSettings();
+	const employeeid = user?.employeeid;
 	const [ultrasoundList, setUltrasoundList] = useState([]);
 	const [name, setName] = useState('');
 	const [associatedbodypart, setBodyPart] = useState('');

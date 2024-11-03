@@ -1,12 +1,12 @@
 import FrontDeskLayout from "../../../components/Layout/FrontDeskLayout";
 import CardRack from '../../../components/accessories/CardRacks';
 import { customFetch, currencyFormatter } from '../../../components/Auth/customFetch';
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Loader from '../../../components/accessories/Loader';
 import { toast, ToastContainer } from "react-toastify";
 import Payment_Extra from "../../../components/Billing/BilledClientsView";
-import AuthContext from "../../../components/Auth/useAuthentification";
 import Authorization from "../../../components/accessories/authorization";
+import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
 
 const _default = {
         registeredClient: 0,
@@ -18,12 +18,14 @@ const _default = {
         totalAmountReceived: 0,
 }
 
+
 export default function DailSalesViewCustomerRepresentative() {
         const [summary, setSummary] = useState(_default);
-        const { auth } = useContext(AuthContext);
+        const { applicationsettings } = useApplicationSettings();
+        const { user } = applicationsettings;
         const [loading, setLoading] = useState(false);
         const [active, setActive] = useState(0)
-        const { branchid, role, employeeid } = auth;
+        const { branchid, role, employeeid } = user
 
         useEffect(() => {
                 if (branchid) {
@@ -52,7 +54,7 @@ export default function DailSalesViewCustomerRepresentative() {
 
                         return (
                                 <>
-                                        <section className="grid grid-5 ui">
+                                        <section className="grid grid-5 ui my-3">
                                                 <CardRack onClick={(ev) => { setActive(1) }} activestate={active == 1} header={<h6 >Registered Client</h6>} body={<h5 className="d-flex justify-content-center mt-2">{summary.registeredClient}</h5>} />
                                                 <CardRack onClick={(ev) => { setActive(2) }} activestate={active == 2} header={<h6 >Billed  Client</h6>} body={<h5 className="d-flex justify-content-center mt-2">{summary.billedClients}</h5>} />
                                                 <CardRack onClick={(ev) => { setActive(3) }} activestate={active == 3} header={<h6 >Total sales</h6>} body={<h5 className="d-flex justify-content-center mt-2">{currencyFormatter.format(summary.salesAmount)}</h5>} />
@@ -95,7 +97,7 @@ export default function DailSalesViewCustomerRepresentative() {
 
 
         const authoriteView = () => {
-                if (auth && role) {
+                if (user && role) {
                         if (['manager', 'admin', 'customer service representative'.trim()].includes(role)) {
                                 return (
                                         <>

@@ -3,18 +3,16 @@ import { MoneyRounded, Clear } from "@mui/icons-material";
 import { useContext, useState } from "react";
 import { BillingContext } from "./BillingContext";
 import Select from "react-select";
-import AuthContext from "../../Auth/useAuthentification";
 import { toast } from "react-toastify";
 import { Billingdefaultdata, organizationOptions, urgencyOptions, ValidateAndSubmitBillingInformation } from "../../../lib/billingLib";
+import { useApplicationSettings } from "../../Auth/useApplicationContext";
 
 export default function BillingPageAdditionalInformation({ patientid, billingid }) {
   const [showMoreBtn, setShowMoreBtn] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { billingdata, updateBilling } = useContext(BillingContext);
-  const { auth } = useContext(AuthContext);
-  const employeeid = auth?.employeeid;
-  const branchid = auth?.branchid;
-  const role = auth?.role;
+  const { applicationsettings } = useApplicationSettings();
+  const { employeeid, username, role } = applicationsettings.user;
   const [payment, setPayment] = useState({ amount: 0, mode: "", concession: "" });
 
   const isButtonDisabled = parseFloat(billingdata.paid) === 0 || parseFloat(billingdata.paid) < 0 || parseFloat(billingdata.paid) > billingdata.payable

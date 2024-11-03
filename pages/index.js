@@ -4,19 +4,18 @@ import FrontPageLabScientistView from '../components/FrontPageView/labScientistV
 import FrontPageSonographerView from '../components/FrontPageView/sonographerView';
 import FrontPagePhelobotomyView from '../components/FrontPageView/phelobotomyView';
 import HeaderNav from "../components/Layout/HeaderNav";
-import AuthContext, { useTheme } from '../components/Auth/useAuthentification';
-import { useContext } from 'react';
 import { Container } from 'react-bootstrap';
+import { useApplicationSettings } from '../components/Auth/useApplicationContext';
 export default function Index() {
-  const { daysToExpiration } = useTheme();
-  const { auth } = useContext(AuthContext);
-  const role = auth?.role;
+  const { applicationsettings } = useApplicationSettings();
+  const { user, daysToExpiration } = applicationsettings;
+  const role = user.role;
 
   return (
     <>
       <HeaderNav />
       {(daysToExpiration && daysToExpiration > 0) ? (
-        <div id="frontpagewrapper" className="bg-white" style={{height:'max-content'}}>
+        <div id="frontpagewrapper" className="bg-secondary-subtle" style={{ height: '90vh' }}>
           <Container>
             {role === "customer service representative" && <FrontPageFrontdeskView />}
             {(role === "admin" || role == "manager") && <FrontPageAdminView />}

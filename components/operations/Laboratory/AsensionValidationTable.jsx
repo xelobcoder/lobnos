@@ -5,18 +5,12 @@ import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import SortAscendingIcon from '@mui/icons-material/ArrowUpward';
 import SortDescendingIcon from '@mui/icons-material/ArrowDownward';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import StopIcon from '@mui/icons-material/Stop';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import CheckIcon from '@mui/icons-material/Check';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import { fnTiming } from "./Lib";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { Dropdown } from 'react-bootstrap';
 import Pagination from "../../accessories/pagination";
 import ShowTableCount from "./ShowCountTable";
 import { printResultNavigator } from "../../Auth/customFetch";
 import { useRouter } from "next/navigation";
+import { fnTiming } from "./Lib";
+import ActionDropdown from "./ActionAscensionTables";
 
 
 export default function ValidationAscensionTable() {
@@ -27,14 +21,14 @@ export default function ValidationAscensionTable() {
 		setQueryParams,
 		setLoadPage,
 		canloadPage,
-		updatePageValue
+		updatePageValue,
 	} = useLaboratoryContext();
 
 	const router = useRouter();
 
 	const viewResultHandler = (item) => {
-		printResultNavigator(router, item.billingid, {...item,testid:item.id}, true);
-	}
+		printResultNavigator(router, item.billingid, { ...item, testid: item.id }, true);
+	};
 
 	const columns = useMemo(() => [
 		{
@@ -65,11 +59,9 @@ export default function ValidationAscensionTable() {
 			Cell: ({ row }) => (
 				<div className="list-group p-0 bg-secondary-subtle">
 					<span className="list-group-item p-0" key={`start-${row.original.patientid}`}>
-						<PlayArrowIcon color="success" fontSize="small" />
 						{moment(row.original.resultEntryStart).format("LLLL")}
 					</span>
 					<span className="list-group-item p-0" key={`end-${row.original.patientid}`}>
-						<StopIcon color="error" fontSize="small" />
 						{moment(row.original.resultEntryEnd).format("LLLL")}
 					</span>
 				</div>
@@ -79,23 +71,19 @@ export default function ValidationAscensionTable() {
 		{
 			Header: 'Action',
 			accessor: "action",
-			Cell: ({ row }) => {
-				return (
-					<Dropdown>
-						<Dropdown.Toggle variant="link" size="sm" className="p-0" key={`action-${row.original.patientid}`}>
-							<MoreVertIcon fontSize="small" />
-						</Dropdown.Toggle>
-						<Dropdown.Menu>
-							<Dropdown.Item >
-								<CheckIcon fontSize="small" className="me-2" />Validate
-							</Dropdown.Item>
-							<Dropdown.Item onClick={() => { viewResultHandler(row.original) }}>
-								<VisibilityIcon fontSize="small" className="me-2" />View Result
-							</Dropdown.Item>
-						</Dropdown.Menu>
-					</Dropdown>
-				);
-			},
+			Cell: ({ row }) => (
+				<ActionDropdown
+					onValidate={() => {/* Implement validation logic */ }}
+					onViewResult={() => viewResultHandler(row.original)}
+					onEdit={() => {/* Implement edit logic */ }}
+					onDelete={() => {/* Implement delete logic */ }}
+					onFilterChange={(filterType, value) => {
+						// Implement filtering logic based on filterType and value
+						console.log(`Filter Type: ${filterType}, Value: ${value}`);
+						// Call setFilter or your filtering logic here
+					}}
+				/>
+			),
 			width: 50
 		}
 	], []);
@@ -164,10 +152,8 @@ export default function ValidationAscensionTable() {
 		}
 	}
 
-
-
 	return (
-		<div className="bg-body-secondary p-2 shadow mx-2 br-5">
+		<div className="bg-body-secondary p-2  mx-2 ">
 			<div className="d-flex justify-content-between">
 				<div className="col-10">
 					<ShowTableCount queryParams={queryParams} setQueryParams={setQueryParams} />

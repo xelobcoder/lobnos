@@ -1,7 +1,6 @@
-import { useEffect, useState, useCallback, useContext } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Form } from "react-bootstrap";
 import { ToastContainer, toast } from 'react-toastify';
-import AuthContext from "../../Auth/useAuthentification";
 import Loader from "../../accessories/Loader";
 import {
   getDepartment,
@@ -12,10 +11,10 @@ import {
   getSingleEditTest
 } from "../../Auth/customFetch";
 import { Add } from "@mui/icons-material";
+import { useApplicationSettings } from "../../Auth/useApplicationContext";
 
 export default function TestForm({ method, customtest, testid, router }) {
-  const { auth } = useContext(AuthContext);
-  const employeeid = auth?.employeeid;
+  const { employeeid } = useApplicationSettings().applicationsettings.user;
   const [sampleType, setSample] = useState([]);
   const [category, setCategory] = useState([]);
   const [data, setTestData] = useState({ ...defaultTestEditValues, iscustom: customtest });

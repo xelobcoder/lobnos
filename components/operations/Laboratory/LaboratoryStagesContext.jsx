@@ -2,7 +2,6 @@ import { createContext, useContext, useState } from "react";
 import { updatePagination } from "../../Auth/customFetch";
 import { getAscensionData } from "./Lib";
 import { ToastContainer, toast } from "react-toastify";
-import AuthContext from "../../Auth/useAuthentification";
 const LaboratoryContext = createContext({ isLoading: true, collection: [] });
 
 
@@ -11,7 +10,8 @@ export function LaboratoryStagesProvider({ children }) {
        const [loadCounter, setLoadCounter] = useState(0);
        const [isLoading, setLoading] = useState(true);
        const [canloadPage, setLoadPage] = useState(false);
-       const { auth } = useContext(AuthContext);
+      
+       
        const [queryParams, setQueryParams] = useState({
               _dateFrom: null,
               _dateEnd: null,

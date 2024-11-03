@@ -1,16 +1,21 @@
 import Authorization from '../../components/accessories/authorization';
-import AuthContext from '../../components/Auth/useAuthentification';
+import { useApplicationSettings } from '../../components/Auth/useApplicationContext';
 import AdminExpensesList from '../../components/Expense/AdminExpenseListView';
-import { useContext } from 'react';
+
 
 export default function ExpenseListAdmin() {
-     const { auth } = useContext(AuthContext);
-     const { branchid, employeeid } = auth;
+     const { applicationsettings } = useApplicationSettings();
+     const { user, branchid } = applicationsettings;
+     const { employeeid, username, role } = user;
+
+     if (!employeeid) return null
+
+
 
      const renderingView = () => {
-          if (!auth.role) {
+          if (!role) {
                return <div className='mt-3 text-center'>Please Wait. Loading.........</div>
-          } else if (auth.role && !['admin', 'manager'].includes(auth.role)) {
+          } else if (role && !['admin', 'manager'].includes(role)) {
                return <Authorization />
           } else {
                return <AdminExpensesList branchid={branchid} employeeid={employeeid} />

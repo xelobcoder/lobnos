@@ -3,14 +3,13 @@ import OperationsListTestCollection from "./OperationsListTestCollection";
 import ResultEntryComponent from "./ResultEntryComponent";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useContext, useEffect } from "react";
-import AuthContext from "../../Auth/useAuthentification";
 import { useOperation } from "./ContextOperations/useOperation";
 import { customFetch } from "../../Auth/customFetch";
+import { useApplicationSettings } from "../../Auth/useApplicationContext";
 
 export default function PatientResultEntryFormComponentNew({ }) {
-
-    const { auth } = useContext(AuthContext);
-    const employeeid = auth?.employeeid;
+    const { user } = useApplicationSettings();
+    const employeeid = user?.employeeid;
     const billingid = useSearchParams().get("csvid");
     const unslicedPatientid = useSearchParams().get("ptid");
     const { operations, updateContext } = useContext(useOperation);

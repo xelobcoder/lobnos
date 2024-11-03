@@ -1,19 +1,21 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import UltrasoundLayout from "../../../../../components/Layout/ImagingLayout";
 import { customFetch } from "../../../../../components/Auth/customFetch";
 import Link from "next/link";
-import AuthContext from "../../../../../components/Auth/useAuthentification";
 import TableDisplay from '../../../../../components/accessories/TableDisplay';
 import { updatePagination } from "../../../../../components/Auth/customFetch";
 import Pagination from '../../../../../components/accessories/pagination';
 import ShowTableCount from "../../../../../components/operations/Laboratory/ShowCountTable";
+import { useApplicationSettings } from "../../../../../components/Auth/useApplicationContext";
 
 export default function UltrasoundTemplatesList() {
-	const { auth } = useContext(AuthContext);
-	const { employeeid } = auth;
+	const { applicationsettings } = useApplicationSettings();
+	const { employeeid, } = applicationsettings.user;
+
+	if (!employeeid) return null
 	const [isLoading, setLoading] = useState(true);
 	const [templateList, setTemplateList] = useState([]);
-	const [query, setQuery] = useState({ count: 10, page: 1});
+	const [query, setQuery] = useState({ count: 10, page: 1 });
 	const [load, setLoad] = useState(false);
 
 	const fetchData = async () => {

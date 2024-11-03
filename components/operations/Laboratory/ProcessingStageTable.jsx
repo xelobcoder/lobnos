@@ -1,19 +1,22 @@
 import { Info, SelectAll, Start, Stop } from "@mui/icons-material";
 import { useContext, useState } from "react";
-import AuthContext from "../../Auth/useAuthentification";
 import ProcessingButtons from "./ProcessingButtons";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { fnTiming } from "./Lib";
 import { customPost } from "../../Auth/customFetch";
 import Pagination from "../../accessories/pagination";
+import { useApplicationSettings } from "../../Auth/useApplicationContext";
 
 export default function AscensionProcessingTable({ }) {
 	const { isLoading, collection, queryParams, setLoadPage, toast, setQueryParams, canloadPage, updatePageValue, setCollection } = useLaboratoryContext();
 	const [bulkselection, setBulkSelection] = useState([]);
 	const [selectstatus, setSelectStatus] = useState(false);
 	const [currentBulkStatus, setCurrentBulkStatus] = useState({ action: null, target: null });
-	const { auth } = useContext(AuthContext);
-	const employeeid = auth?.employeeid;
+	const { applicationsettings } = useApplicationSettings();
+	const { user } = applicationsettings;
+	const employeeid = user?.employeeid;
+
+
 
 	if (isLoading) return <div>Loading .......................</div>;
 

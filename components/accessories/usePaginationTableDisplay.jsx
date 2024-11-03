@@ -3,15 +3,17 @@ import Pagination from "./pagination"
 import { useCallback, useEffect, useState, useContext } from "react";
 import { getDataAndUpdateState, updatePagination } from "../Auth/customFetch";
 import Loader from "./Loader";
-import AuthContext from "../Auth/useAuthentification";
+import { useApplicationSettings } from '../Auth/useApplicationContext';
+
 
 export default function UsePaginationTableDisplay({ exporters = false, column, endpoint, filtering = false, getdata, update, updatedata }) {
   const [paginate, setPaginate] = useState({ count: 10, page: 1 });
   const [load, setLoad] = useState(false);
   const [data, setData] = useState([]);
   const [isloading, setisLoading] = useState(true);
-  const { auth } = useContext(AuthContext);
-  const employeeid = auth?.employeeid;
+  const { applicationsettings } = useApplicationSettings();
+  const { user } = applicationsettings;
+  const employeeid = user?.employeeid;
 
   const updateFunction = (value) => {
     updatePagination(value, setPaginate, paginate);

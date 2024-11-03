@@ -1,17 +1,18 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ExpenseLayout from "../../components/Expense/ExpenseLayout";
-import AuthContext from "../../components/Auth/useAuthentification";
 import { currencyFormatter, customFetch, updatePagination } from "../../components/Auth/customFetch";
 import TableDisplay from '../../components/accessories/TableDisplay';
 import Link from 'next/link';
 import Pagination from "../../components/accessories/pagination";
+import { useApplicationSettings } from "../../components/Auth/useApplicationContext";
 
 export default function ExpenseList() {
      const [expenses, setExpenses] = useState([]);
      const [filter, setFiltering] = useState({ page: 1, count: 10 });
      const [shoudload, setLoad] = useState(false);
-     const { auth } = useContext(AuthContext);
-     const { branchid, employeeid } = auth;
+     const { applicationsettings } = useApplicationSettings();
+     const { employeeid, username, role } = applicationsettings.user;
+     const branchid = applicationsettings.branchid;
 
 
      const columns = [
@@ -57,7 +58,7 @@ export default function ExpenseList() {
                          console.log(err)
                     })
           }
-     }, [employeeid, branchid,filter]);
+     }, [employeeid, branchid, filter]);
 
 
 

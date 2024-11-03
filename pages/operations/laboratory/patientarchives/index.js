@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import LaboratoryLayout from "../../../../components/Layout/LaboratoryLayout";
 import DatePickerRange from "../../../../components/accessories/DatePickerRange";
 import {
@@ -8,12 +8,12 @@ import {
   generateRandomTextAndNumbers,
   updatePagination,
 } from "../../../../components/Auth/customFetch";
-import AuthContext from "../../../../components/Auth/useAuthentification";
 import { Clear, Search } from "@mui/icons-material";
 import TableDisplay from "../../../../components/accessories/TableDisplay";
 import Pagination from "../../../../components/accessories/pagination";
 import { useRouter } from "next/navigation";
 import Loader from "../../../../components/accessories/Loader";
+import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 
 const DEFAULTVALUES = {
   billingid: "",
@@ -32,8 +32,8 @@ const PatientArchivesPage = () => {
   const [load, setLoad] = useState(false);
   const router = useRouter();
 
-  const { auth } = useContext(AuthContext);
-  const employeeid = auth?.employeeid;
+  const { user } = useApplicationSettings().applicationsettings;
+   const employeeid =  user?.employeeid;
   const hasNotFiltered = !query.billingid && !query.patientid && !query.fullname && !query.from && !query.to;
 
   const getRange = (value) => {
