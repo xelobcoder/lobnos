@@ -22,7 +22,7 @@ export default function EmmergencyContactInformation({ defaultData, fields, pati
 
   return (
     <>
-      <div className="col-6">
+      <div className="col-sm-12 col-md-12 col-lg-6 col-xl-6">
         <div className="form-row">
           <RenderInput
             visible={fields.emmergencyContactName.visible}

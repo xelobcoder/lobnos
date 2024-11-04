@@ -7,65 +7,55 @@ import LaboratoryLayout from "../../components/Layout/LaboratoryLayout";
 
 export default function SAMPLE_ASSESSMENT() {
   const [paginate, setPaginate] = useState({ count: 10, page: 1 });
-  const [loadpage, setLoad] = useState(false);
   const [isLoading, setLoading] = useState(true);
   const [data, setData] = useState([]);
 
+  const fetchInitialData = useCallback(async () => {
+    await getDataAndUpdateState(setData, `sample/client/list/unvalidated?count=${paginate.count}&page=${paginate.page}`, false, setLoading);
+  }, [paginate]);
 
-  const fetchInitialData = useCallback(
-    async function () {
-      await getDataAndUpdateState(setData, `sample/client/list/unvalidated?count=${paginate.count}&&page=${paginate.page}`, false, setLoading);
-  }, [paginate])
-
-  useEffect(() => { fetchInitialData() }, [fetchInitialData])
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
 
   const removeClientFromList = (id) => {
     if (!id) return;
     setLoading(true);
-    setData((prev)=>{
-      return prev.filter((item)=>item.billingid !== id)
-    })
+    setData((prev) => prev.filter((item) => item.billingid !== id));
     setLoading(false);
-  }
-
-
-
-  const renderingView = () => {
-    if (isLoading) {
-      return <Loader />
-    } else {
-      return (
-        <section>
-          <PendingTableSample
-            data={data} removeClient={removeClientFromList}
-          />
-          <div className="d-flex justify-content-center">
-            <Pagination load={setLoad} updateFunction={updateFunction} page={paginate.page} />
-          </div>
-        </section>
-      )
-    }
-  }
+  };
 
   const updateFunction = (value) => {
     updatePagination(value, setPaginate, paginate);
-  }
+  };
+
+  const renderingView = () => {
+    if (isLoading) {
+      return <Loader />;
+    }
+
+    return (
+      <section>
+        <PendingTableSample data={data} removeClient={removeClientFromList} />
+        <div className="d-flex justify-content-center">
+          <Pagination load={setLoading} updateFunction={updateFunction} page={paginate.page} />
+        </div>
+      </section>
+    );
+  };
 
   return (
     <LaboratoryLayout>
-      <div className="mx-2 text-sm">
-        <div className="p-3 col-3">
-            <div className='alert alert-info p-3 alert-dismissible'>
-                  <strong>Note:</strong> Please check the sample before validating. click on assess button to view the sample.
-                </div>
-          </div>
-          <div>
-            {renderingView()}
-          </div>
+      <div className="container mx-2 text-sm">
+        <div className="col-sm-12 col-md-6 col-lg-4 col-xl-3">
+          {data.length > 0 && <div className="alert alert-info p-3 my-2">
+            <strong>Note:</strong> Please check the sample before validating. Click on the assess button to view the sample.
+          </div>}
         </div>
+        <div className="my-2">
+          {renderingView()}
+        </div>
+      </div>
     </LaboratoryLayout>
   );
 }
-
-
-

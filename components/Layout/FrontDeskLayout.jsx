@@ -3,7 +3,7 @@ import {
   ViewArray,
   ShoppingBagRounded
 } from '@mui/icons-material';
-import AppCustomLayout from './CustomLayout';
+import MainLayout from './MainLayout';
 
 export default function FrontDeskLayout({ children }) {
   const sideLinks = [
@@ -29,8 +29,8 @@ export default function FrontDeskLayout({ children }) {
     { title: "Result", link: "/registration/ready", icon: <ViewArray /> },
   ]
   return (
-    <AppCustomLayout sideLinks={sideLinks} defaultscreen={false}>
+    <MainLayout sideLinks={sideLinks} defaultscreen={false}>
       {children}
-    </AppCustomLayout>
+    </MainLayout>
   )
 }

@@ -1,13 +1,13 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Table, Alert, Spinner, Button } from 'react-bootstrap';
 import { customFetch, customPost } from '../Auth/customFetch';
 import { toast } from 'react-toastify';
-import AuthContext from '../Auth/useAuthentification';
 import { Refresh } from '@mui/icons-material';
+import { useApplicationSettings } from '../Auth/useApplicationContext';
 
 export default function DrugsListPLSMASTER({ resetEditDrug, handleEditDrug, }) {
-    const { auth } = useContext(AuthContext);
-    const employeeid = auth?.employeeid;
+    const { applicationsettings } = useApplicationSettings();
+    const { employeeid } = applicationsettings.user;
     const [drugs, setDrugs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');

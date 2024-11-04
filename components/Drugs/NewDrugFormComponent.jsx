@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { Form, Button, InputGroup } from 'react-bootstrap';
 import { customFetch, customPost } from '../Auth/customFetch';
-import AuthContext from '../Auth/useAuthentification';
 import { ToastContainer, toast } from 'react-toastify';
+import { useApplicationSettings } from '../Auth/useApplicationContext';
 
 export default function AddNewDrugFormPLSMASTER({ editing }) {
-    const { auth } = useContext(AuthContext);
-    const employeeid = auth?.employeeid;
+    const { applicationsettings } = useApplicationSettings();
+    const { employeeid, username, role } = applicationsettings.user;
     const [drugName, setDrugName] = useState('');
     const [category, setCategory] = useState('');
     const [categories, setCategories] = useState([]);

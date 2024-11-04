@@ -1,6 +1,6 @@
 import Add from "@mui/icons-material/Add";
 import Link from "next/link";
-import {  useState } from "react";
+import { useState } from "react";
 import { handleChangeWithState } from "../Auth/customFetch";
 import { uploadVitalSign } from "./dataActions/vitalsigns";
 import PatientFiltered from "../accessories/CustomerFiltering";
@@ -13,7 +13,6 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
     const { applicationsettings } = useApplicationSettings();
     const { employeeid } = applicationsettings.user;
 
-    
     const [formData, setFormData] = useState({
         blood_pressure_lowerLimit: "",
         blood_pressure_upperLimit: "",
@@ -26,7 +25,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
     const router = useRouter();
 
     const getFilteredPatient = function (options) {
-        const hasPatientid = typeof options == "object" && options.hasOwnProperty('patientid');
+        const hasPatientid = typeof options === "object" && options.hasOwnProperty('patientid');
         if (!hasPatientid) return;
         const { patientid } = options;
         router.push(`/customers/recordVitalSigns?patientid=${patientid}&&iNewChart=0`);
@@ -39,8 +38,8 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                 <div className="col-12 col-md-6 mb-2">
                     <PatientFiltered getSelectedPatient={getFilteredPatient} />
                 </div>
-                {patientid && (
-                    <div>
+                {patientid && iNewChart != 1 && (
+                    <div className="mb-2">
                         <Link href={`/customers/recordVitalSigns?iNewChart=1&&patientid=${patientid}`}>
                             <button className="btn btn-primary btn-sm">
                                 <Add /> Add new vitals
@@ -52,26 +51,26 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
             {patientid && iNewChart == 1 && (
                 <div className="my-2">
                     <h5>Vital Signs Measurement</h5>
-                    <form method="POST" className="p-3 bg-light heightedBorder br-0">
+                    <form method="POST" className="p-3 bg-light br-0 heightedBorder">
                         <div className="grid-reg">
                             <label>Blood Pressure</label>
                             <div className="d-flex flex-wrap">
-                                <div className="col-12 col-sm-6 col-md-2 mb-2">
+                                <div className="col-12 col-md-6 mb-2">
                                     <input
                                         value={formData.blood_pressure_upperLimit}
                                         onChange={(ev) => handleChangeWithState(ev, 'blood_pressure_upperLimit', setFormData, formData)}
-                                        className="custom-input"
-                                        placeholder="upper limit"
+                                        className="custom-input w-100"
+                                        placeholder="Upper limit"
                                         type="number"
                                         name="bpupperlimit"
                                     />
                                 </div>
-                                <div className="col-12 col-sm-6 mx-2 col-md-2 mb-2">
+                                <div className="col-12 col-md-6 mb-2 ">
                                     <input
                                         value={formData.blood_pressure_lowerLimit}
                                         onChange={(ev) => handleChangeWithState(ev, 'blood_pressure_lowerLimit', setFormData, formData)}
-                                        className="custom-input"
-                                        placeholder="lower limit"
+                                        className="custom-input w-100"
+                                        placeholder="Lower limit"
                                         type="number"
                                         name="bplowerlimit"
                                     />
@@ -86,7 +85,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                                     max={100}
                                     value={formData.temperature}
                                     onChange={(ev) => handleChangeWithState(ev, 'temperature', setFormData, formData)}
-                                    className="custom-input"
+                                    className="custom-input w-100"
                                     placeholder="Temperature"
                                     type="number"
                                     name="vtlSigntemperature"
@@ -97,7 +96,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                             <label>Pulse</label>
                             <div className="col-12 col-md-2 mb-2">
                                 <input
-                                    className="custom-input"
+                                    className="custom-input w-100"
                                     value={formData.pulse}
                                     onChange={(ev) => handleChangeWithState(ev, 'pulse', setFormData, formData)}
                                     placeholder="Pulse"
@@ -110,7 +109,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                             <label>Respiration</label>
                             <div className="col-12 col-md-2 mb-2">
                                 <input
-                                    className="custom-input"
+                                    className="custom-input w-100"
                                     placeholder="Respiration"
                                     value={formData.respiration}
                                     onChange={(ev) => handleChangeWithState(ev, 'respiration', setFormData, formData)}
@@ -128,7 +127,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                                     minLength={3}
                                     value={formData.spo2}
                                     onChange={(ev) => handleChangeWithState(ev, 'spo2', setFormData, formData)}
-                                    className="custom-input"
+                                    className="custom-input w-100"
                                     placeholder="Spo2"
                                     type="number"
                                     name="vtlSignspo2"

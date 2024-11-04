@@ -98,7 +98,7 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
 
   return (
     <>
-      <section className="col-6">
+      <section className="col-sm-12 col-md-12 col-lg-6 col-xl-6">
         {isloading && <div>Loading data.........................</div>}
         <div>
           <div className="form-row">

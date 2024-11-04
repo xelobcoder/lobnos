@@ -20,7 +20,7 @@ export default function BillingPageLayout() {
 
   if (!patientid) {
     return (
-      <div className="col-3 my-3 mx-2">
+      <div className="col-sm-12 col-md-6 col-l-4 col-xl-3 my-3 mx-2 mx-sm-0" style={{height:'50vh'}}>
         <PatientFiltered getSelectedPatient={filteredPatient} />
       </div>
     )

@@ -58,17 +58,16 @@ export default function PersonalInformationRegistration(
   if (isloading) <div>Loading data ............................</div>
 
   return (
-    <section>
-
-      <form autoComplete="off" className="grid-50" noValidate autoCorrect="false">
-        <div className="_registration_form_split">
+    <section className='col-lg-6 col-sm-12'>
+      <form autoComplete="off" noValidate autoCorrect="false">
+        <div className="">
           <div>
             <RenderInput
               visible={fields.designation.visible}
               label={'Designation'}
               value={fields['designation']}
               field={
-                <select value={data.designation} className="custom-select col-3" onChange={(e) => {
+                <select value={data.designation} className="custom-select col-sm-12 col-lg-3 col-md-6" onChange={(e) => {
                   setData({ ...data, designation: e.target.value });
                 }}>
                   <option value=''>select option</option>
@@ -207,7 +206,7 @@ export default function PersonalInformationRegistration(
                     className="custom-input "
                     placeholder="Age"
                   />
-                  <select className="custom-select" onChange={(e) => setData({ ...data, ageType: e.target.value })} value={data.ageType}>
+                  <select className="custom-select mx-2" onChange={(e) => setData({ ...data, ageType: e.target.value })} value={data.ageType}>
                     <option>select an option</option>
                     <option value="years">Years</option>
                     <option value="months">Months</option>
@@ -259,7 +258,7 @@ export default function PersonalInformationRegistration(
           </div>
 
         </div>
-        <div className="_registration_form_split">
+        <div >
           <div className="form-row">
             <RenderInput
               value={fields["mobile"]}
@@ -296,7 +295,7 @@ export default function PersonalInformationRegistration(
                     minLength={10}
                     value={data.whatAppcontact || data.whatappcontact}
                     name="whatAppcontact"
-                    className="custom-input"
+                    className="custom-input mx-2"
                     placeholder="whatApp contact"
                     onBlur={(ev) => {
                       handleMobile(ev, toast);

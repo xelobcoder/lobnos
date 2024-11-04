@@ -7,10 +7,11 @@ export default function CompanyHeaders({ billingid }) {
   const { email, phonenumber, address, name, alternativenumber } = company
 
   useEffect(() => {
-    try {
-      billingid && getCompanyInformation(setCompany)
-    } catch (err) {
-      console.log('something wrong occured')
+    if (billingid) {
+      getCompanyInformation(setCompany)
+    }
+    return () => {
+      
     }
   }, [billingid])
 

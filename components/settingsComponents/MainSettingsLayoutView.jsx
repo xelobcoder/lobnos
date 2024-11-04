@@ -1,4 +1,3 @@
-import AppCustomLayout from "../Layout/CustomLayout";
 import {
   SettingsApplications,
   Forest,
@@ -16,6 +15,7 @@ import {
   ResetTvOutlined,
   FileDownload,
 } from "@mui/icons-material";
+import MainLayout from "../Layout/MainLayout";
 
 export default function MainSettingsLayoutView({ children }) {
   const sidebarLinks = [
@@ -48,8 +48,8 @@ export default function MainSettingsLayoutView({ children }) {
   ];
 
   return (
-    <AppCustomLayout sideLinks={sidebarLinks} defaultscreen={false}>
+    <MainLayout sideLinks={sidebarLinks} defaultscreen={false}>
       {children}
-    </AppCustomLayout>
+    </MainLayout>
   )
 }

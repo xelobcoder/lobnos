@@ -169,8 +169,8 @@ export default function AscentionCompletedTable() {
 				<thead>
 					{headerGroups.map(headerGroup => (
 						<tr {...headerGroup.getHeaderGroupProps()} className="table-header" key={headerGroup.id}>
-							{headerGroup.headers.map(column => (
-								<th {...column.getHeaderProps()} className="table-cell" key={column.id}>
+							{headerGroup.headers.map((column,columnIndex) => (
+								<th  {...column.getHeaderProps()} className="table-cell" key={columnIndex}>
 									<div className="header-content d-flex justify-content-between align-items-center">
 										<div>{column.render("Header")}</div>
 										{column.id !== 'selection' && (

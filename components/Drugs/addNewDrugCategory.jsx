@@ -1,13 +1,13 @@
-import React, { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Form, Button, Col, Row } from 'react-bootstrap';
 import { customPost } from '../Auth/customFetch';
-import AuthContext from '../Auth/useAuthentification';
 import { toast, ToastContainer } from 'react-toastify';
+import { useApplicationSettings } from '../Auth/useApplicationContext';
 
 
 export default function DrugCategoryForm({ edit, reset }) {
-    const { auth } = useContext(AuthContext);
-    const employeeid = auth?.employeeid;
+    const { applicationsettings } = useApplicationSettings();
+    const { employeeid} = applicationsettings.user;
     const [categoryName, setCategoryName] = useState('');
     const [description, setDescription] = useState('');
     const [buttonNote, setButtonNote] = useState('Add Category');
@@ -52,7 +52,7 @@ export default function DrugCategoryForm({ edit, reset }) {
 
 
     return (
-        <Form className='p-3 br-0 heightedBorder bg-secondary-subtle' onSubmit={handleSubmit}>
+        <Form className='p-3 br-0 heightedBorder bg-secondary-subtle my-2' onSubmit={handleSubmit}>
             <ToastContainer position="top-center" theme='colored' className={'text-sm'} />
             <Row className="mb-3 col-12">
                 <Form.Group className='grid-reg' controlId="formCategoryName">

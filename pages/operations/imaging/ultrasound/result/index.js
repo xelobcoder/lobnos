@@ -2,17 +2,17 @@ import { useContext, useEffect, useState } from 'react';
 import { customPost, customFetch } from '../../../../../components/Auth/customFetch';
 import Indicator from '../../../../../components/accessories/Reports/indicator';
 import dynamic from 'next/dynamic';
-import AuthContext from '../../../../../components/Auth/useAuthentification';
 import { useSearchParams } from 'next/navigation';
 import Loader from '../../../../../components/accessories/Loader';
 import { ToastContainer, toast } from 'react-toastify';
 import UltrasoundLayout from '../../../../../components/Layout/ImagingLayout';
 import PreviewPatientInformation from '../../../../../components/petientsComponent/PreviewPatientInformation';
+import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
 const MARKDOWN_EDITOR = dynamic(() => import('../../../../../components/accessories/markdownEditor'), { ssr: false })
 
 export default function EnterResultUltrasound() {
-  const { auth } = useContext(AuthContext);
-  const employeeid = auth?.employeeid;
+  const { user } = useApplicationSettings().applicationsettings;
+  const employeeid = user?.employeeid;
   const [fields, setFields] = useState([]);
   const [impression, setImpression] = useState("");
   const [testname, setTestName] = useState("");
@@ -131,7 +131,9 @@ export default function EnterResultUltrasound() {
   return (
     <UltrasoundLayout>
       <ToastContainer theme='colored' className={'text-sm'} position='top-center' />
-      <PreviewPatientInformation patientid={patientid} />
+      <div className='mt-2'>
+        <PreviewPatientInformation patientid={patientid} />
+      </div>
       <div className='mx-3' >
         <div className='mt-4 d-flex justify-content-between'>
           <h4 className='text-uppercase'>{scan}</h4>

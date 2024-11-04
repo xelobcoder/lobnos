@@ -1,14 +1,14 @@
 import { currencyFormatter, customPost, customFetch } from "../../components/Auth/customFetch";
-import AuthContext from "../../components/Auth/useAuthentification";
 import MainSettingsLayoutView from "../../components/settingsComponents/MainSettingsLayoutView";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchServices } from "../../lib/billingLib";
 import TableDisplay from "../../components/accessories/TableDisplay";
+import { useApplicationSettings } from "../../components/Auth/useApplicationContext";
 
 export default function AdditionalServicesPage() {
     const [servicesList, setServicesList] = useState([]);
-    const { auth } = useContext(AuthContext);
-    const employeeid = auth?.employeeid;
+    const { applicationsettings } = useApplicationSettings();
+    const { employeeid } = applicationsettings.user;
     const [service, setService] = useState({
         name: "",
         price: ""
@@ -103,8 +103,8 @@ export default function AdditionalServicesPage() {
 
     return (
         <MainSettingsLayoutView>
-            <div className="mx-2 col-6">
-                <form onSubmit={handleSubmit}>
+            <div className="p-2">
+                <form onSubmit={handleSubmit} className="col-sm-12 col-md-6 col-lg-4">
                     <div className="grid-reg">
                         <label>Service Name</label>
                         <input
@@ -132,13 +132,16 @@ export default function AdditionalServicesPage() {
                         />
                     </div>
 
-                    <button type="submit" style={{ marginLeft: '80px' }} className="btn btn-sm btn-primary mt-3">
-                        {isEditing ? "Update Service" : "Add Service"}
-                    </button>
+                    <div className=" mx-lg-5 mx-xl-5 mx-md-5 mx-sm-0">
+                        <button type="submit" className="btn btn-sm btn-primary mt-3 mx-lg-3 mx-xl-3 mx-md-2 mx-sm-0">
+                            {isEditing ? "Update Service" : "Add Service"}
+                        </button>
+                    </div>
                 </form>
+                <div style={{overflowX:'auto'}}>
+                    <TableDisplay column={columns} data={servicesList} showpage={false} filtering={true} />
+                </div>
             </div>
-
-            <TableDisplay column={columns} data={servicesList} showpage={false} filtering={true} />
         </MainSettingsLayoutView>
     );
 }

@@ -1,4 +1,4 @@
-import  {  useState } from "react";
+import { useState } from "react";
 import AsyncSelect from "react-select/async";
 import { loadOptions } from "../../lib/appointment";
 import { reactSelectCustomStyles } from "../Auth/customFetch";
@@ -51,18 +51,21 @@ export default function PatientFiltered({ getSelectedPatient, isDisabled, placeh
   };
 
   return (
-    <AsyncSelect
-      styles={reactSelectCustomStyles}
-      isClearable={true}
-      isLoading={isLoading}
-      isDisabled={isDisabled}
-      loadOptions={loadClientOptions}
-      defaultOptions={[]}
-      placeholder={placeholder}
-      onChange={handleSelectChange}
-      blurInputOnSelect={true}
-      value={selectedOption}
-      formatOptionLabel={formatOptionLabel}
-    />
-  );
+    <div style={{ width: '100%' }}>
+      <AsyncSelect
+        styles={reactSelectCustomStyles}
+        isClearable={true}
+        isLoading={isLoading}
+        isDisabled={isDisabled}
+        loadOptions={loadClientOptions}
+        defaultOptions={[]}
+        placeholder={placeholder}
+        onChange={handleSelectChange}
+        blurInputOnSelect={true}
+        value={selectedOption}
+        formatOptionLabel={formatOptionLabel}
+      />
+
+    </div>
+  )
 }

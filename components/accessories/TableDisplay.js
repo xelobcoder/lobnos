@@ -6,7 +6,7 @@ import SECOND_NO_DATA from './secondNodata';
 
 export default function TableDisplay({
 	exporters = true,
-	showpage = true,
+	showpage = false,
 	column,
 	data,
 	styling,
@@ -76,8 +76,8 @@ export default function TableDisplay({
 				<div className="my-2">
 					<div className="">
 						<div className="card-body">
-							<div className="d-flex justify-content-between col-12">
-								{filtering && <div className="col-6">
+							<div >
+								{filtering && <div >
 									<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
 								</div>}
 							</div>
