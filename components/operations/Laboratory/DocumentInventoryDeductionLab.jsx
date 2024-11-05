@@ -32,7 +32,7 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                const stockExists = templates.some(template => template.stockid === value.value);
 
                if (!stockExists) {
-                    const newTemplate = [...templates, { ...value,stockid:value.value, quantity: 0 }]; 
+                    const newTemplate = [...templates, { ...value, stockid: value.value, quantity: 0 }];
                     setTemplates(newTemplate);
                } else {
                     console.warn("This stock is already in the template list.");
@@ -54,13 +54,10 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
           console.log("Save action triggered", templates);
      };
 
-
-
-
      return (
-          <Modal show={showModal} onHide={handleCloseModal} size="lg">
-               <Modal.Header closeButton className="fw-bold bg-secondary-subtle" >
-                    <Modal.Title >{selectedDoc.fullname}({selectedDoc.patientid})[AscensionId: {selectedDoc.ascensionid}]</Modal.Title>
+          <Modal show={showModal} onHide={handleCloseModal} size="lg" backdrop={false}>
+               <Modal.Header closeButton className="fw-bold bg-secondary-subtle">
+                    <Modal.Title>{selectedDoc.fullname} ({selectedDoc.patientid}) [AscensionId: {selectedDoc.ascensionid}]</Modal.Title>
                </Modal.Header>
                <Modal.Body>
                     <PreviewTestInformation testId={selectedDoc.id} />
@@ -70,6 +67,7 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                               selectedWarehouse={'all'}
                               page={1}
                               count={100}
+                              isDisabled={templates.length === 0}
                               onSelectStock={handleSelectedStock}
                          />
                     </div>
@@ -85,16 +83,17 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                                    <span>Quantity</span>
                                    <span>Action</span>
                               </ListGroup.Item>
-                              {templates.map((item) => (
+                              {templates.map((item, index) => (
                                    <ListGroup.Item key={item.stockid}>
                                         <div className="grid-30-30-30 pls-color">
                                              <span>{item.label}</span>
                                              <span>
                                                   <input
                                                        type="number"
-                                                       className="custom-input col-lg-3 col-sm-12 col-md-6"
+                                                       className="custom-input col-lg-6 col-sm-12 col-md-6"
                                                        value={item.quantity || 1}
                                                        onChange={(e) => handleQuantityChange(item.stockid, e.target.value)}
+                                                       tabIndex={index + 1} // Set sequential tabIndex for each input
                                                   />
                                              </span>
                                              <span>
@@ -112,10 +111,20 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                     )}
                </Modal.Body>
                <Modal.Footer>
-                    <Button className="btn-sm" variant="primary" onClick={handleSave}>
+                    <Button
+                         className="btn-sm"
+                         variant="primary"
+                         onClick={handleSave}
+                         tabIndex={templates.length + 1} // Set tabIndex after the last input
+                    >
                          Save Data
                     </Button>
-                    <Button className="btn-sm" variant="secondary" onClick={handleCloseModal}>
+                    <Button
+                         className="btn-sm"
+                         variant="secondary"
+                         onClick={handleCloseModal}
+                         tabIndex={templates.length + 2} // Next in line after "Save Data"
+                    >
                          Close
                     </Button>
                </Modal.Footer>

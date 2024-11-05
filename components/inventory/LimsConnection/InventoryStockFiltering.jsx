@@ -2,7 +2,7 @@ import React from "react";
 import AsyncSelect from "react-select/async";
 import { customFetch } from "../../Auth/customFetch";
 
-const InventoryStockFiltering = ({ selectedWarehouse, count, page, onSelectStock }) => {
+const InventoryStockFiltering = ({ selectedWarehouse, count, page, onSelectStock ,isDisabled=false}) => {
     const fetchStockData = async (inputValue) => {
         if (inputValue.length < 3) return [];
         try {
@@ -33,6 +33,7 @@ const InventoryStockFiltering = ({ selectedWarehouse, count, page, onSelectStock
             placeholder="Search and select a stock item..."
             isMulti={false}
             isClearable
+            isDisabled={isDisabled}
         />
     );
 };

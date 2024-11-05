@@ -1,94 +1,49 @@
 import React, { useMemo, useState } from "react";
 import { useTable, useGroupBy, useExpanded, useSortBy, useFilters, useRowSelect, useFlexLayout } from "react-table";
-import moment from "moment";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
-import SortAscendingIcon from '@mui/icons-material/ArrowUpward';
-import SortDescendingIcon from '@mui/icons-material/ArrowDownward';
 import Pagination from "../../accessories/pagination";
 import ShowTableCount from "./ShowCountTable";
 import { printResultNavigator } from "../../Auth/customFetch";
 import { useRouter } from "next/navigation";
-import { fnTiming } from "./Lib";
 import ActionDropdown from "./ActionAscensionTables";
 import FilterIcon from "./FilterIcon";
+import { useMediaQuery } from 'react-responsive';
+import { SelectAll } from "@mui/icons-material";
+import ValidationModal from "./ValidationModal"; // Make sure this path is correct
+import { getValidationColumns } from "./validationColumns";
+import ValidationMobile from "./validationMobile";
 
 export default function ValidationAscensionTable() {
-	const {
-		isLoading,
-		collection,
-		queryParams,
-		setQueryParams,
-		setLoadPage,
-		canloadPage,
-		updatePageValue,
-	} = useLaboratoryContext();
-
+	const { isLoading, collection, queryParams, setQueryParams, setLoadPage, canloadPage, updatePageValue } = useLaboratoryContext();
 	const router = useRouter();
+	const isMobile = useMediaQuery({ maxWidth: 768 });
+
+	const [isValidationModalOpened, setIsValidationModalOpened] = useState(false);
+	const [selectedAscension, setSelectedAscension] = useState(null);
+
+	const [visibleTimelines, setVisibleTimelines] = useState({});
+	const [currentColumn, setCurrentColumn] = useState(null);
+	const [filterValue, setFilterValue] = useState('');
 
 	const viewResultHandler = (item) => {
 		printResultNavigator(router, item.billingid, { ...item, testid: item.id }, true);
 	};
 
-	const columns = useMemo(() => [
-		{
-			Header: '#',
-			accessor: '',
-			Cell: ({ row }) => <input type="checkbox" {...row.getToggleRowSelectedProps()} />,
-			width: 20,
-			filtering: false
-		},
-		{
-			Header: "Fullname",
-			accessor: "fullname",
-			width: 150,
-			Cell: ({ value, row }) => <div className="text-uppercase">{value}<br />{row.original.age}</div>
-		},
-		{ Header: "Patient ID", accessor: "patientid", width: 60 },
-		{ Header: "Client Status", accessor: "clientstatus", width: 70 },
-		{ Header: "Test Name", accessor: "name", width: 150 },
-		{
-			Header: "Processing",
-			accessor: "processing",
-			Cell: ({ row }) => fnTiming(row.original),
-			width: 150,
-		},
-		{
-			Header: "Results",
-			accessor: "results",
-			Cell: ({ row }) => (
-				<div className="list-group p-0 bg-secondary-subtle">
-					<span className="list-group-item p-0" key={`start-${row.original.patientid}`}>
-						{moment(row.original.resultEntryStart).format("LLLL")}
-					</span>
-					<span className="list-group-item p-0" key={`end-${row.original.patientid}`}>
-						{moment(row.original.resultEntryEnd).format("LLLL")}
-					</span>
-				</div>
-			),
-			width: 150,
-		},
-		{
-			Header: 'Action',
-			accessor: "action",
-			Cell: ({ row }) => (
-				<ActionDropdown
-					onValidate={() => { }}
-					onViewResult={() => viewResultHandler(row.original)}
-				/>
-			),
-			width: 50
-		}
-	], []);
+	const handleActionClick = (doc) => {
+		setSelectedAscension(doc);
+		setIsValidationModalOpened(true);
+	};
 
+	const handleCloseModal = () => {
+		setIsValidationModalOpened(false);
+		setSelectedAscension(null);
+	};
+
+	const columns = useMemo(() => getValidationColumns(viewResultHandler, ActionDropdown, handleActionClick), []);
 	const data = useMemo(() => collection, [collection]);
 
 	const tableInstance = useTable(
-		{
-			columns,
-			data,
-			initialState: { groupBy: ["billingid"] },
-		},
+		{ columns, data, initialState: { groupBy: ["billingid"] } },
 		useFilters,
 		useGroupBy,
 		useSortBy,
@@ -97,18 +52,7 @@ export default function ValidationAscensionTable() {
 		useFlexLayout
 	);
 
-	const {
-		getTableProps,
-		getTableBodyProps,
-		headerGroups,
-		rows,
-		prepareRow,
-		setFilter,
-		toggleAllRowsSelected,
-	} = tableInstance;
-
-	const [currentColumn, setCurrentColumn] = useState(null);
-	const [filterValue, setFilterValue] = useState('');
+	const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow, setFilter } = tableInstance;
 
 	const handleClick = (column) => {
 		setCurrentColumn(column);
@@ -129,32 +73,26 @@ export default function ValidationAscensionTable() {
 		setFilterValue('');
 	};
 
+	const toggleTimeline = (rowId) => {
+		setVisibleTimelines((prev) => ({ ...prev, [rowId]: !prev[rowId] }));
+	};
+
 	if (isLoading) {
-		return (
-			<div className="p-2 text-center heightedBorder bg-secondary-subtle">
-				Loading...
+		return <div className="p-2 text-center heightedBorder bg-secondary-subtle">Loading...</div>;
+	}
+
+	if (collection.length === 0) {
+		return !canloadPage ? (
+			<div className="p-3 alert col-3 alert-info text-sm">No Records Found</div>
+		) : (
+			<div className="d-flex justify-content-center">
+				<Pagination page={queryParams.page} updateFunction={updatePageValue} load={setLoadPage} />
 			</div>
 		);
 	}
 
-	if (collection.length === 0) {
-		if (!canloadPage) {
-			return (
-				<div className="p-3 alert col-3 alert-info text-sm">
-					<span>No Records Found</span>
-				</div>
-			);
-		} else {
-			return (
-				<div className="d-flex justify-content-center">
-					<Pagination page={queryParams.page} updateFunction={updatePageValue} load={setLoadPage} />
-				</div>
-			);
-		}
-	}
-
 	return (
-		<div className="bg-body-secondary p-2 shadow mx-2 br-5" style={{overflowX:'auto'}}>
+		<div className="mx-2 br-5" style={{ overflowX: 'auto' }}>
 			<div className="d-flex justify-content-between">
 				<div className="col-10">
 					<ShowTableCount queryParams={queryParams} setQueryParams={setQueryParams} />
@@ -163,74 +101,82 @@ export default function ValidationAscensionTable() {
 					className="btn btn-light btn-sm"
 					onClick={() => {
 						const allSelected = rows.length === Object.keys(tableInstance.state.selectedRowIds).length;
-						toggleAllRowsSelected(!allSelected);
+						tableInstance.toggleAllRowsSelected(!allSelected);
 					}}
 					disabled={collection.length === 0}
 				>
-					Select All
+					{isMobile ? <SelectAll titleAccess="select and unselect all ascensions" /> : "Select All"}
 				</button>
 			</div>
-			<table {...getTableProps()} className="table text-sm">
-				<thead>
-					{headerGroups.map((headerGroup) => (
-						<tr {...headerGroup.getHeaderGroupProps()} className="table-header" key={headerGroup.id}>
-							{headerGroup.headers.map((column) => (
-								<th {...column.getHeaderProps()} className="table-cell" key={column.id}>
-									<div className="header-content d-flex justify-content-between align-items-center">
-										<div>{column.render("Header")}</div>
-										{column.id !== 'selection' && (
-											<button onClick={() => handleClick(column)} className="btn btn-link p-0">
-												<FilterIcon />
-											</button>
-										)}
-									</div>
-									{currentColumn === column && (
-										<div className="dropdown-menu show">
-											<button className="dropdown-item fw-bold text-sm" onClick={() => currentColumn.toggleSortBy(true)}>
-												<SortAscendingIcon fontSize="small" /> Sort Asc
-											</button>
-											<button className="dropdown-item fw-bold text-sm" onClick={() => currentColumn.toggleSortBy(false)}>
-												<SortDescendingIcon fontSize="small" /> Sort Desc
-											</button>
-											<div className="dropdown-item fw-bold text-sm">
-												<input
-													type="text"
-													className="form-control"
-													placeholder="Filter"
-													value={filterValue}
-													onChange={(e) => setFilterValue(e.target.value)}
-												/>
-												<button className="btn btn-outline-secondary btn-sm mt-1" onClick={handleFilterApply}>
-													Apply
-												</button>
-												<button className="btn btn-outline-danger btn-sm mt-1" onClick={handleFilterRemove}>
-													Remove Filter
-												</button>
+
+			{isMobile ? (
+				<ValidationMobile
+					rows={rows}
+					visibleTimelines={visibleTimelines}
+					viewResultHandler={viewResultHandler}
+					ActionDropdown={ActionDropdown}
+					prepareRow={prepareRow}
+					openModal={handleActionClick}
+					toggleTimeline={toggleTimeline}
+				/>
+			) : (
+				<div className="bg-body-secondary shadow">
+					<table {...getTableProps()} className="table text-sm">
+						<thead>
+							{headerGroups.map((headerGroup) => (
+								<tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.getHeaderGroupProps().key}>
+									{headerGroup.headers.map((column) => (
+										<th  {...column.getHeaderProps()} key={column.getHeaderProps().key}>
+											<div className="header-content d-flex justify-content-between   align-items-center">
+												{column.render("Header")}
+												{column.id !== 'selection' && (
+													<button onClick={() => handleClick(column)} className="btn btn-link p-0">
+														<FilterIcon />
+													</button>
+												)}
 											</div>
-										</div>
-									)}
-								</th>
+											{currentColumn === column && (
+												<div className="dropdown-menu show">
+													<button className="dropdown-item fw-bold text-sm" onClick={() => column.toggleSortBy(true)}>Sort Asc</button>
+													<button className="dropdown-item fw-bold text-sm" onClick={() => column.toggleSortBy(false)}>Sort Desc</button>
+													<div className="dropdown-item fw-bold text-sm">
+														<input
+															type="text"
+															value={filterValue}
+															onChange={(e) => setFilterValue(e.target.value)}
+															placeholder="Type to filter..."
+														/>
+													</div>
+													<button className="dropdown-item" onClick={handleFilterApply}>Apply</button>
+													<button className="dropdown-item" onClick={handleFilterRemove}>Remove Filter</button>
+												</div>
+											)}
+										</th>
+									))}
+								</tr>
 							))}
-						</tr>
-					))}
-				</thead>
-				<tbody {...getTableBodyProps()}>
-					{rows.map((row) => {
-						prepareRow(row);
-						return (
-							<tr {...row.getRowProps()} className={row.original?.clientstatus === "urgent" ? "table-danger" : ""} key={row.id}>
-								{row.cells.map((cell) => (
-									<td {...cell.getCellProps()} className="table-cell" key={cell.column.id}>
-										{cell.render("Cell")}
-									</td>
-								))}
-							</tr>
-						);
-					})}
-				</tbody>
-			</table>
+
+						</thead>
+						<tbody {...getTableBodyProps()}>
+							{rows.map((row) => {
+								prepareRow(row);
+								return (
+									<tr {...row.getRowProps()} key={row.getRowProps().key}>
+										{row.cells.map(cell => (
+											<td {...cell.getCellProps()} key={cell.getCellProps().key}>{cell.render("Cell")}</td>
+										))}
+									</tr>
+								);
+							})}
+						</tbody>
+					</table>
+				</div>
+			)}
+			{isValidationModalOpened && (
+				<ValidationModal show={isValidationModalOpened} onClose={handleCloseModal} selectedAscension={selectedAscension} />
+			)}
 			<div className="d-flex justify-content-center">
-				<Pagination updateFunction={updatePageValue} page={queryParams.page} load={setLoadPage} />
+				<Pagination page={queryParams.page} updateFunction={updatePageValue} load={setLoadPage} />
 			</div>
 		</div>
 	);

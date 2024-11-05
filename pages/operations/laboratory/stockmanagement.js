@@ -102,7 +102,7 @@ export default function StockManagement() {
                     selectedDoc={selectedDoc}
                     showModal={showModal}
                     handleCloseModal={handleCloseModal}
-               />} 
+               />}
           </LaboratoryLayout>
      );
 }
