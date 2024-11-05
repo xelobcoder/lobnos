@@ -3,29 +3,21 @@ import TemplateLimsCreationTableDisplay from "./TemplateLimsCreationTableDisplay
 import AutoDeductionTemplateStockFilter from "./AutoDeductionTemplateStockFilter";
 import { customFetch, customPost } from "../../Auth/customFetch";
 import { ToastContainer, toast } from "react-toastify";
+import { fetchTestTemplate } from "./lib";
 
 export default function InventoryStockFilteringWrapper({ selectedWarehouse = 'all', count = 50, page = 1, testId, employeeid }) {
     const [tableData, setTableData] = useState([]);
 
     useEffect(() => {
         const fetchTemplateData = async () => {
-            try {
-                const data = await customFetch(`lims/inventory/connection/template/fetch?testid=${testId}`);
-
-                // Accessing the template data from the result object
-                if (data.result && Array.isArray(data.result.template) && data.result.template.length > 0) {
-                    const formattedData = data.result.template.map(item => ({
-                        quantity: item.quantity,
-                        consumptionunit: item.consumptionunit,
-                        value: item.stockid,
-                        label: item.label, // Add the label field here
-                    }));
-                    setTableData(formattedData);
-                }
-            } catch (error) {
-                toast.error('Failed to fetch template data');
-                console.error('Fetch error:', error);
-            }
+            const data = await fetchTestTemplate(testId);
+            const formattedData = data.template.map(item => ({
+                quantity: item.quantity,
+                consumptionunit: item.consumptionunit,
+                value: item.stockid,
+                label: item.label,
+            }));
+            setTableData(formattedData);
         };
 
         if (testId) {
