@@ -23,7 +23,7 @@ export default function TableDisplay({
 
 	const tableInstance = useTable(
 		{
-			columns: column,
+			columns: useMemo(() => column, [column]),
 			data: useMemo(() => data, [data]),
 			initialState: { pageSize: initpageSize },
 		},
@@ -100,7 +100,7 @@ export default function TableDisplay({
 									</tbody>
 								</table>
 							</div>
-							{showpage && (
+							{/* {showpage && (
 								<div className="d-flex justify-content-between align-items-center mt-2">
 									<span className="mx-2 mt-1">
 										Page{" "}
@@ -126,7 +126,7 @@ export default function TableDisplay({
 										</button>
 									</div>
 								</div>
-							)}
+							)} */}
 						</div>
 					</div>
 				</div>

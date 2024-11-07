@@ -43,7 +43,11 @@ export default function ValidationAscensionTable() {
 	const data = useMemo(() => collection, [collection]);
 
 	const tableInstance = useTable(
-		{ columns, data, initialState: { groupBy: ["billingid"] } },
+		{
+			columns: useMemo(() => columns, [columns]),
+			data: useMemo(() => data, [data]),
+			initialState: { groupBy: ["billingid"] }
+		},
 		useFilters,
 		useGroupBy,
 		useSortBy,
@@ -123,10 +127,10 @@ export default function ValidationAscensionTable() {
 				<div className="bg-body-secondary shadow">
 					<table {...getTableProps()} className="table text-sm">
 						<thead>
-							{headerGroups.map((headerGroup) => (
-								<tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.getHeaderGroupProps().key}>
-									{headerGroup.headers.map((column) => (
-										<th  {...column.getHeaderProps()} key={column.getHeaderProps().key}>
+							{headerGroups.map((headerGroup, v) => (
+								<tr {...headerGroup.getHeaderGroupProps()} key={v}>
+									{headerGroup.headers.map((column,headerIndex) => (
+										<th  {...column.getHeaderProps()} key={headerIndex}>
 											<div className="header-content d-flex justify-content-between   align-items-center">
 												{column.render("Header")}
 												{column.id !== 'selection' && (
@@ -175,6 +179,7 @@ export default function ValidationAscensionTable() {
 			{isValidationModalOpened && (
 				<ValidationModal show={isValidationModalOpened} onClose={handleCloseModal} selectedAscension={selectedAscension} />
 			)}
+
 			<div className="d-flex justify-content-center">
 				<Pagination page={queryParams.page} updateFunction={updatePageValue} load={setLoadPage} />
 			</div>

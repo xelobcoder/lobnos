@@ -58,3 +58,12 @@ export const fnTiming = (item) => {
               </div>
        )
 } 
+
+
+
+
+export const getAscensionStaffApproved= async (ascensionId,employeeid) =>{
+       const { staff } = await customFetch(`test/approval/get/staffQualifiedToValidationResult?employeeid=${employeeid}&&ascensionid=${ascensionId}`);
+
+       return staff;
+}

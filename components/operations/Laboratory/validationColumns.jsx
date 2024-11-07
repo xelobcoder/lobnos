@@ -52,7 +52,7 @@ export const getValidationColumns = (handleViewResult, ActionDropdown,openModal)
           width: 50,
           Cell: ({ row }) => (
                <ActionDropdown
-                    onValidate={() => { openModal()}}
+                    onValidate={() => { openModal(row.original)}}
                     onViewResult={() => handleViewResult(row.original)}
                />
           ),

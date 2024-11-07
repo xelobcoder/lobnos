@@ -4,7 +4,7 @@ import Loader from "../accessories/Loader"
 import HasLimitReference from "./hasLimitsReference"
 import ResultViewHtmlGenerator from "../Auth/ResultViewHtmlGenerator";
 
-export default function UseCustomResultTemplating({ billingid, testid, test, patientid }) {
+export default function UseCustomResultTemplating({ billingid, testid, test, patientid, isResultView = true }) {
   const [testname, setTestname] = useState('');
   const [result, setResult] = useState([])
   const [isloading, setLoading] = useState(true)
@@ -12,7 +12,7 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
   useEffect(() => {
     try {
       async function getData() {
-        if (billingid && test && testid) {
+        if (billingid && testid) {
           setLoading(true)
           const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}`)
           const { result } = response;
@@ -24,7 +24,7 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
       getData()
     } catch (err) {
       setResult([])
-      
+
       setLoading(false)
     }
   }, [billingid, test, testid, patientid])
@@ -41,17 +41,17 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
                 {test && test.includes("_") ? test.split("_").join(" ") : test}
               </span>
             </h5>
-            <table className="alpha-result-table ui" >
-              <thead >
+            <table className={isResultView ? "alpha-result-table ui" : "table billing-cart-table"} >
+              <thead className={isResultView ? "" : "table-secondary"}>
                 <tr>
-                  <th scope="col">Parameter</th>
+                  <th scope="col" >Parameter</th>
                   <th scope="col">Value</th>
                   <th scope="col">Units</th>
                   <th scope="col">References</th>
                   <th>Flags</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody >
                 {result.map((item, index) => {
                   return <ResultViewHtmlGenerator index={index} field={item} key={index} />
                 })}

@@ -24,7 +24,7 @@ export default function ValidationMobile({ rows, ActionDropdown, visibleTimeline
                                         {row.original.fullname} ({row.original.patientid})
                                    </div>
                                    <div>
-                                        <ActionDropdown onValidate={() => { openModal() }} onViewResult={() => viewResultHandler(row.original)} />
+                                        <ActionDropdown onValidate={() => { openModal(row.original) }} onViewResult={() => viewResultHandler(row.original)} />
                                    </div>
                               </div>
                               <div className={`list-group-item`}>
