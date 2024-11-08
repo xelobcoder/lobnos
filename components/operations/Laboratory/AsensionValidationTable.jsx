@@ -9,12 +9,12 @@ import ActionDropdown from "./ActionAscensionTables";
 import FilterIcon from "./FilterIcon";
 import { useMediaQuery } from 'react-responsive';
 import { SelectAll } from "@mui/icons-material";
-import ValidationModal from "./ValidationModal"; // Make sure this path is correct
+import ValidationModal from "./ValidationModal";
 import { getValidationColumns } from "./validationColumns";
 import ValidationMobile from "./validationMobile";
 
 export default function ValidationAscensionTable() {
-	const { isLoading, collection, queryParams, setQueryParams, setLoadPage, canloadPage, updatePageValue } = useLaboratoryContext();
+	const { isLoading, collection, queryParams, setQueryParams, setLoadPage, canloadPage, updatePageValue, setCollection } = useLaboratoryContext();
 	const router = useRouter();
 	const isMobile = useMediaQuery({ maxWidth: 768 });
 
@@ -34,9 +34,13 @@ export default function ValidationAscensionTable() {
 		setIsValidationModalOpened(true);
 	};
 
-	const handleCloseModal = () => {
+	const handleCloseModal = (ascensionid) => {
 		setIsValidationModalOpened(false);
 		setSelectedAscension(null);
+		if (ascensionid) {
+			const prev = collection.filter((item, index) => item.ascensionid != ascensionid)
+			setCollection(prev);
+		}
 	};
 
 	const columns = useMemo(() => getValidationColumns(viewResultHandler, ActionDropdown, handleActionClick), []);
@@ -129,7 +133,7 @@ export default function ValidationAscensionTable() {
 						<thead>
 							{headerGroups.map((headerGroup, v) => (
 								<tr {...headerGroup.getHeaderGroupProps()} key={v}>
-									{headerGroup.headers.map((column,headerIndex) => (
+									{headerGroup.headers.map((column, headerIndex) => (
 										<th  {...column.getHeaderProps()} key={headerIndex}>
 											<div className="header-content d-flex justify-content-between   align-items-center">
 												{column.render("Header")}

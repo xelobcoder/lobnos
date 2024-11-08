@@ -8,10 +8,11 @@ import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import { getAscensionStaffApproved } from "./Lib";
 
 const ValidationModal = ({ show, onClose, selectedAscension }) => {
-     const employeeid = useApplicationSettings().applicationsettings.user.employeeid;
+     const { employeeid, role } = useApplicationSettings().applicationsettings.user;
      const [resultSettings, setResultSettings] = useState(ResultEntrydefaultData);
      const [staff, setStaff] = useState([]);
      const [pinValue, setPin] = useState('');
+     const [sucessfulValidation, setSuccessfulValidation] = useState(null); 
      const [isApproved, setIsApproved] = useState(false);
      const [isMobile, setIsMobile] = useState(window.innerWidth > 768);
      const [showToast, setShowToast] = useState(false);
@@ -71,11 +72,13 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
                     if (status === true) {
                          setToastMessage('Validation successful');
                          setToastColor("success")
+                         setSuccessfulValidation(selectedAscension.ascensionid);
                          setShowToast(true);
                     } else {
                          setToastMessage(sendReponse?.message);
                          setToastColor('danger');
                          setShowToast(true);
+                         setSuccessfulValidation(null);
                     }
                }
           }
@@ -137,16 +140,16 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
                          <ListGroup className="my-3">
                               <ListGroup.Item className="bg-secondary-subtle fw-bold">Approved By this Staffs</ListGroup.Item>
                               {staff.map((item, index) => (
-                                   <ListGroup.Item key={index} className="text-capitalize d-flex justify-content-between">
+                                   <ListGroup.Item key={index} className="text-capitalize pls-color d-flex justify-content-between">
                                         <span>{item.username}</span>
-                                        <span><button className="btn  btn-outline-danger btn-sm">Remove Validation</button></span>
+                                        {role == "admin" && <span><button className="btn  btn-outline-danger btn-sm" disabled>Remove Validation</button></span>}
                                    </ListGroup.Item>
                               ))}
                          </ListGroup>
                     )}
                </Modal.Body>
                <Modal.Footer>
-                    <Button variant="secondary" onClick={onClose}>Close</Button>
+                    <Button variant="secondary" onClick={(ev) => { onClose(sucessfulValidation)}}>Close</Button>
                     <Button variant="primary" onClick={handleSaveValue}>Validate</Button>
                </Modal.Footer>
                <ToastContainer position="bottom-center" className="p-3">

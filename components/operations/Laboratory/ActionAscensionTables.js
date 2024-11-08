@@ -20,9 +20,9 @@ const ActionDropdown = ({
                     <Dropdown.Item onClick={onValidate}>
                          <CheckIcon fontSize="small" className="me-2" /> Validate
                     </Dropdown.Item>
-                    <Dropdown.Item onClick={onViewResult}>
+                    {/* <Dropdown.Item onClick={onViewResult}>
                          <VisibilityIcon fontSize="small" className="me-2" /> View Result
-                    </Dropdown.Item>
+                    </Dropdown.Item> */}
                </Dropdown.Menu>
           </Dropdown>
      );
