@@ -435,7 +435,7 @@ export const getDataAndUpdateState = async function (setfxn, endpoint, returner,
  * @returns {void}
  */
 export const printResultNavigator = async (navigate, billingid, item, newTab = false) => {
-  const { testid, name, patientid, department } = item
+  const { testid, name, patientid, department ,ascensionid} = item
   let nwName = name
   if (name.split(" ").length > 1) {
     nwName = name.split(" ").join("_")
@@ -448,15 +448,15 @@ export const printResultNavigator = async (navigate, billingid, item, newTab = f
   if (newTab) {
     if (department === "ultrasound") {
       window.open(
-        `/registration/result/scan?billingid=${billingid}&&testid=${testid}&&test=${nwName.toLowerCase()}&&patientid=${patientid}`
+        `/registration/result/scan?billingid=${billingid}&&testid=${testid}&&test=${nwName.toLowerCase()}&&patientid=${patientid}&&ascensionid=${ascensionid}`
       )
     } else {
       window.open(
-        `/registration/result/labReport?billingid=${billingid}&&testid=${testid}&&test=${nwName.toLowerCase()}&&patientid=${patientid}`
+        `/registration/result/labReport?billingid=${billingid}&&testid=${testid}&&test=${nwName.toLowerCase()}&&patientid=${patientid}&&ascensionid=${ascensionid}`
       )
     }
   } else {
-    navigate.push(`registration/result?billingid=${billingid}&&testid=${testid}&&test=${nwName.toLowerCase()}&&patientid=${patientid}`)
+    navigate.push(`registration/result?billingid=${billingid}&&testid=${testid}&&test=${nwName.toLowerCase()}&&patientid=${patientid}&&ascensionid=${ascensionid}`)
   }
 }
 

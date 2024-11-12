@@ -4,4 +4,6 @@
 	"workbench.colorTheme": "Solarized Dark",
 	"workbench.editor.pinnedTabSizing": "shrink",
 	"workbench.sideBar.location": "left",
+	"terminal.integrated.splitCwd": "workspaceRoot",
+	"terminal.integrated.shellIntegration.enabled": true
 }

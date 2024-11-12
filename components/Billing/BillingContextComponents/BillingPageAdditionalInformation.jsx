@@ -12,6 +12,7 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
   const [isSaving, setIsSaving] = useState(false);
   const { billingdata, updateBilling } = useContext(BillingContext);
   const { applicationsettings } = useApplicationSettings();
+  const branchid = applicationsettings.branchid;
   const { employeeid, username, role } = applicationsettings.user;
   const [payment, setPayment] = useState({ amount: 0, mode: "", concession: "" });
 

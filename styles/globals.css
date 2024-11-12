@@ -19,6 +19,10 @@
   --wp--preset--gradient--midnight: linear-gradient(135deg, rgb(2, 3, 129) 0%, rgb(40, 116, 252) 100%);
 }
 
+* {
+     font-family: "Barlow", sans-serif !important;
+}
+
 
 html,body{
   scroll-behavior: smooth;
@@ -27,13 +31,14 @@ html,body{
     overflow-x: hidden;
     overflow-y: auto;
     min-height: 100vh;
-  font-family: 'Roboto','Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-family: "Barlow", sans-serif !important;
     background-color: white;
 }
 
 body {
       font-size: 0.95em;
       font-weight: 400;
+            font-family: "Barlow", sans-serif;
 }
 
 .pls-color{
@@ -42,15 +47,8 @@ body {
 }
 
 
-
-*{
-
-  /* font-family: 'Roboto','Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;  */
-  /* font-family: Outfit, Arial, Helvetica, sans-serif; */
-  /* font-family: var(--prime-links-font-family); */
-      /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
-      /* font-family: "Lucida Sans Regular"; */
-      font-family: "Barlow", sans-serif;
+.ui {
+  font-family: var(--prime-links-font-family);
 }
 
 

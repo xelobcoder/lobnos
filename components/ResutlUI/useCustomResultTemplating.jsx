@@ -29,44 +29,34 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
     }
   }, [billingid, test, testid, patientid])
 
-  const renderingView = () => {
-    if (isloading) return <Loader />
-    else {
-      if (Array.isArray(result) === false || result.length == 0) return <h4>No data provided</h4>
-      else {
-        return (
-          <>
-            <h5 className="text-uppercase ui text-center border-bottom  border-2 border-secondary">
-              <span className="fw-bold">
-                {test && test.includes("_") ? test.split("_").join(" ") : test}
-              </span>
-            </h5>
-            <table className={isResultView ? "alpha-result-table ui" : "table billing-cart-table"} >
-              <thead className={isResultView ? "" : "table-secondary"}>
-                <tr>
-                  <th scope="col" >Parameter</th>
-                  <th scope="col">Value</th>
-                  <th scope="col">Units</th>
-                  <th scope="col">References</th>
-                  <th>Flags</th>
-                </tr>
-              </thead>
-              <tbody >
-                {result.map((item, index) => {
-                  return <ResultViewHtmlGenerator index={index} field={item} key={index} />
-                })}
-              </tbody>
-            </table>
-          </>
-        )
-      }
-    }
-  }
+  if (isloading) return <Loader />;
+
+  if (Array.isArray(result) === false || result.length == 0) return <h4>No data provided</h4>
 
 
   return (
-    <div>
-      <section className="main-result">{renderingView()}</section>
-    </div>
+    <section className="main-result">
+      <h5 className="text-uppercase ui text-center border-bottom  border-2 border-secondary">
+        <span className="fw-bold">
+          {test && test.includes("_") ? test.split("_").join(" ") : test}
+        </span>
+      </h5>
+      <table className={isResultView ? "alpha-result-table" : "table billing-cart-table"} >
+        <thead className={isResultView ? "table-warning" : "table-secondary"} >
+          <tr>
+            <th scope="col" >Parameter</th>
+            <th scope="col">Value</th>
+            <th scope="col">Units</th>
+            <th scope="col">References</th>
+            <th>Flags</th>
+          </tr>
+        </thead>
+        <tbody >
+          {result.map((item, index) => {
+            return <ResultViewHtmlGenerator index={index} field={item} key={index} />
+          })}
+        </tbody>
+      </table>
+    </section>
   )
 }

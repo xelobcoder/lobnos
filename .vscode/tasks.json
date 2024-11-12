@@ -2,11 +2,13 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "npm",
-			"script": "dev",
+			"label": "Open Split Terminals",
+			"type": "shell",
+			"command": "npm run dev",
 			"problemMatcher": [],
-			"label": "npm: dev",
-			"detail": "node server.js"
+			"runOptions": {
+				"runOn": "folderOpen"
+			},
 		}
 	]
 }

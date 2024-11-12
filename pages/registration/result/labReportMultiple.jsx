@@ -14,16 +14,20 @@ import Header from "../../../components/header"
 import { Print } from "@mui/icons-material"
 import Form from "react-bootstrap/Form"
 import Loader from "../../../components/accessories/Loader"
+import App from "next/app"
+import ApplicationHeader from "../../../components/Layout/HeaderNav"
 
 export default function LabReportPrintingMultiple() {
   const [resultsettings, setResultSettings] = useState(defaultResultSettings)
   const [testList, settestList] = useState([])
   const [loader, setLoader] = useState(false)
   const [toprintList, setPrintList] = useState([])
-  const testid = useSearchParams().get("testid")
-  const billingid = useSearchParams().get("billingid")
-  const test = useSearchParams().get("test")
-  const patientid = useSearchParams().get("patientid")
+  const searchParams = useSearchParams();
+  const testid = searchParams.get("testid")
+  const billingid = searchParams.get("billingid")
+  const test = searchParams.get("test")
+  const patientid = searchParams.get("patientid")
+  const ascensionId = searchParams.get('patientid');
 
   useEffect(() => {
     const handleKeyPress = async function (event) {
@@ -37,18 +41,18 @@ export default function LabReportPrintingMultiple() {
     }
   })
 
-  useEffect(() => {
-    if (billingid) {
-      getResultSettings(setResultSettings, setLoader)
-      customFetch(`result/printout/approved/test?billingid=${billingid}`)
-        .then((data) => {
-          settestList(data)
-        })
-        .catch((err) => {
-          settestList([])
-        })
-    }
-  }, [billingid])
+  // useEffect(() => {
+  //   if (billingid) {
+  //     getResultSettings(setResultSettings, setLoader)
+  //     customFetch(`result/printout/approved/test?billingid=${billingid}`)
+  //       .then((data) => {
+  //         settestList(data)
+  //       })
+  //       .catch((err) => {
+  //         settestList([])
+  //       })
+  //   }
+  // }, [billingid])
 
   const handleCheck = (ev, item) => {
     const checked = ev.target.checked
@@ -61,9 +65,9 @@ export default function LabReportPrintingMultiple() {
   }
   return (
     <>
-      <Header />
-      <div className="multiple-result-out">
-        <aside className="bg-dark">
+      <ApplicationHeader/>
+      <div className="multiple-result-out d-flex vh-100 justify-content-between">
+        <aside className="bg-dark col-2">
           <div className="p-2">
             <button onClick={() => readyToPrint(billingid, testid)} className="btn btn-secondary w-100">
               <Print style={{ height: "100px", width: "100px" }} />
@@ -92,17 +96,17 @@ export default function LabReportPrintingMultiple() {
             )}
           </div>
         </aside>
-        <main className="multiple-main">
+        <main className="multiple-main col-10 p-2">
           <div className="result_page">
             <div className="result">
               <div className="result-top-section">
                 {resultsettings?.letterHeading == 1 && <CompanyHeaders billingid={billingid} />}
                 <PersonalInformation patientid={patientid} billingid={billingid} />
-                {resultsettings?.samplingInformation == 1 && <SamplingInformationResult billingid={billingid} testid={testid} />}
+                {/* {resultsettings?.samplingInformation == 1 && <SamplingInformationResult billingid={billingid} testid={testid} />} */}
                 <section style={{ borderTop: "1px solid black" }}>
                   <div style={{ borderBottom: "1px solid black" }}>
                     {toprintList.length === 0 ? (
-                      <h4 className="alert alert-info">Check test to select</h4>
+                      <h4 className="alert alert-info my-2 text-sm pls-color">Check test to select</h4>
                     ) : (
                       toprintList.map((item, index) => {
                         return (
@@ -127,7 +131,7 @@ export default function LabReportPrintingMultiple() {
                 </section>
               </div>
               <div className="result-bottom-section">
-                <UseResultEntryScientist testid={testid} billingid={billingid} />
+                <UseResultEntryScientist ascensionId={ascensionId} testid={testid} billingid={billingid} />
                 <UseDisclaimer patientid={patientid} />
                 <VersionFooter />
               </div>

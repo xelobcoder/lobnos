@@ -1,200 +1,242 @@
-import { useState, useEffect } from 'react'
-import { Add } from '@mui/icons-material';
+import { useState, useEffect } from 'react';
 import { handleResponse, validateFormData, customFetch, getBranches } from '../../../components/Auth/customFetch';
 import { useRouter } from 'next/router';
 import AuthenticationLayout from '../../../components/Layout/AuthenticationLayout';
 import Loader from '../../../components/accessories/Loader';
 
-export default function Authentication_index_page() {
-  const employeeid = useRouter().query.employeeid;
-  const defaultData = { name: '', email: '', password: '', cpassword: '', role: '', branch: '' }
-  const [register, setRegister] = useState(defaultData);
-  const [isloading, setLoading] = useState(false);
-  const [branches, setBranches] = useState([]);
+export default function AuthenticationIndexPage() {
+	const router = useRouter();
+	const employeeid = router.query.employeeid;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setRegister({ ...register, [name]: value });
-  }
+	const defaultData = {
+		name: '', email: '', password: '', cpassword: '',
+		role: '', branch: '', mobile: '', altMobile: '',
+		address: '', dob: '', startDate: '', accessLevel: '',
+		department: '', employeeId: ''
+	};
 
-  const handleSubmit = async (e) => {
-    const { name, email, password, cpassword, role } = register
-    if (name && email && password && cpassword && role) {
-      if (password !== cpassword) {
-        alert('password does not match');
-        return;
-      } else {
-        await validateFormData(employeeid ? { ...register, employeeid } : register
-          , true, [], employeeid ? 'logins/update' : 'logins', handleResponse);
-      }
-    } else alert('Fill in all field')
-  }
+	const [register, setRegister] = useState(defaultData);
+	const [isLoading, setLoading] = useState(false);
+	const [branches, setBranches] = useState([]);
 
+	const handleChange = (e) => {
+		const { name, value } = e.target;
+		setRegister({ ...register, [name]: value });
+	};
 
+	const validateForm = () => {
+		const { name, email, password, cpassword, role, mobile } = register;
+		if (!name || !email || !password || !cpassword || !role || !mobile) {
+			alert('Please fill in all required fields');
+			return false;
+		}
+		if (password !== cpassword) {
+			alert('Passwords do not match');
+			return false;
+		}
+		return true;
+	};
 
-  useEffect(() => {
-    if (employeeid) {
-      setLoading(true);
-      customFetch(`logins/user?id=${employeeid}`)
-        .then((data) => {
-          const { statusCode, message, result } = data;
-          if (statusCode == 200 && message == 'success' && result.length > 0) {
-            const { role, username, email, employeeid } = result[0]
-            setRegister({ name: username, email, role })
-          }
-          setLoading(false);
-        })
-        .catch((err) => {
-          setLoading(false);
-        })
-    }
-  }, [employeeid])
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		if (validateForm()) {
+			setLoading(true);
+			try {
+				await validateFormData(
+					employeeid ? { ...register, employeeid } : register,false,
+					 ["name","email","password","cpassword","role","mobile"], employeeid ? 'logins/update' : 'logins',
+					handleResponse
+				);
+			} catch (error) {
+				console.error('Error submitting form', error);
+			} finally {
+				setLoading(false);
+			}
+		}
+	};
 
+	useEffect(() => {
+		if (employeeid) {
+			setLoading(true);
+			customFetch(`logins/user?id=${employeeid}`)
+				.then((data) => {
+					const { statusCode, message, result } = data;
+					if (statusCode === 200 && message === 'success' && result.length > 0) {
+						const { role, username, email } = result[0];
+						setRegister({ name: username, email, role });
+					}
+					setLoading(false);
+				})
+				.catch(() => setLoading(false));
+		}
+	}, [employeeid]);
 
-  useEffect(() => { getBranches(setBranches, false, false) }, [])
+	useEffect(() => { getBranches(setBranches, false, false) }, []);
 
+	const renderingView = () => {
+		if (isLoading) return <Loader />;
+		else {
+			return (
+				<section className="mx-2">
+					<form
+						className="border border-1 border-secondary-subtle p-2 bg-white px-3"
+						autoCapitalize="on"
+						autoComplete="off"
+						accessKey="E"
+						onSubmit={handleSubmit}
+					>
+						<h5 className="text-capitalize">{employeeid ? 'Update Employee Information' : 'New Employee Registration'}</h5>
+						<hr />
+						<div className="row">
+							<div className="form-row grid-reg mt-3">
+								<label className="mt-1 mb-1" htmlFor="name">Username</label>
+								<input
+									type="text"
+									className="custom-input"
+									required
+									id="name"
+									onChange={handleChange}
+									value={register.name}
+									name="name"
+									placeholder="Name"
+								/>
+							</div>
+							<div className="form-row grid-reg mt-3">
+								<label className="mt-1 mb-1" htmlFor="email">Email</label>
+								<input
+									type="email"
+									name="email"
+									onChange={handleChange}
+									value={register.email}
+									className="custom-input"
+									required
+									id="email"
+									placeholder="Email"
+								/>
+							</div>
+							<div className="form-row grid-reg mt-3">
+								<label className="mt-1 mb-1" htmlFor="mobile">Mobile Number</label>
+								<input
+									type="tel"
+									maxLength={10}
+									minLength={10}
+									name="mobile"
+									onChange={handleChange}
+									value={register.mobile}
+									className="custom-input"
+									required
+									id="mobile"
+									placeholder="Mobile Number"
+								/>
+							</div>
+							<div className="form-row grid-reg mt-3">
+								<label className="mt-1 mb-1" htmlFor="altMobile">Alternative Contact Number</label>
+								<input
+									type="tel"
+									maxLength={10}
+									minLength={10}
+									name="altMobile"
+									onChange={handleChange}
+									value={register.altMobile}
+									className="custom-input"
+									id="altMobile"
+									placeholder="Alternative Contact Number"
+								/>
+							</div>
+							<div className="form-row grid-reg mt-3">
+								<label className="mt-1 mb-1" htmlFor="dob">Date of Birth</label>
+								<input
+									type="date"
+									name="dob"
+									onChange={handleChange}
+									value={register.dob}
+									className="custom-input"
+									required
+									id="dob"
+								/>
+							</div>
+							<div className="form-row grid-reg mt-3">
+								<label className="mt-1 mb-1" htmlFor="password">Password</label>
+								<input
+									type="password"
+									onChange={handleChange}
+									value={register.password}
+									name="password"
+									className="custom-input"
+									required
+									id="password"
+									placeholder="Password"
+								/>
+							</div>
+							<div className="form-row grid-reg mt-3">
+								<label className="mt-1 mb-1" htmlFor="cpassword">Confirm Password</label>
+								<input
+									type="password"
+									className="custom-input"
+									required
+									id="cpassword"
+									onChange={handleChange}
+									value={register.cpassword}
+									name="cpassword"
+									placeholder="Confirm Password"
+								/>
+							</div>
+							<div className="form-row grid-reg mt-3">
+								<label className="mt-1 mb-1" htmlFor="role">Role</label>
+								<select
+									className="custom-select"
+									onChange={handleChange}
+									value={register.role}
+									name="role"
+									required
+									id="role"
+								>
+									<option value="">Select Role</option>
+									<option value="admin">Admin</option>
+									<option value="scientist">Scientist</option>
+									<option value="customer service representative">Customer Service Representative</option>
+									<option value="manager">Manager</option>
+									<option value="clinician">Clinician</option>
+									<option value="phlebotomist">Phlebotomist</option>
+									<option value="sonographer">Sonographer</option>
+								</select>
+							</div>
+							<div className="form-row grid-reg mt-3">
+								<label className="mb-2 mt-2">Assign to Branch</label>
+								<select
+									value={register.branch}
+									name="branch"
+									onChange={handleChange}
+									className="custom-select"
+								>
+									<option value="">Assign user to a branch here</option>
+									{branches.length > 0 &&
+										branches.map((item, index) => (
+											<option value={item.branchid} key={index}>
+												{item.name}
+											</option>
+										))}
+								</select>
+							</div>
+							<div className="form-group mt-4">
+								<button
+									type="submit"
+									className="btn btn-primary btn-sm"
+									style={{ borderRadius: "5px" }}
+								>
+									Save Information
+								</button>
+							</div>
+						</div>
+					</form>
+				</section>
+			);
+		}
+	};
 
-
-  const renderingView = () => {
-    if (isloading) return <Loader />
-    else {
-      return (
-        <section className='mx-2'>
-          <form className='border border-1 border-secondary-subtle p-2 bg-white px-3' autoCapitalize="on" autoComplete="off" accessKey="E">
-            <h5 className='text-capitalize'> {employeeid ? 'update user information' : 'New User Registration '} </h5>
-            <hr />
-                  <div className="row">
-                    <div className="">
-                <div className="form-row grid-reg mt-3">
-                  <label className='mt-1 mb-1' style={{ fontSize: "14px" }} htmlFor="name">
-                          username
-                        </label>
-                        <input
-                          type="text"
-                    className="custom-input"
-                          required
-                          id="name"
-                          onChange={handleChange}
-                          value={register.name}
-                          name="name"
-                          placeholder="name"
-                        />
-                      </div>
-                    </div>
-                    <div className="">
-                <div className="form-row grid-reg mt-3">
-                  <label className='mt-1 mb-1' style={{ fontSize: "14px" }} htmlFor="email">
-                          email
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          onChange={handleChange}
-                          value={register.email}
-                    className="custom-input"
-                          required
-                          id="email"
-                          placeholder="email"
-                        />
-                      </div>
-                    </div>
-                    <div className="">
-                <div className="form-row grid-reg mt-3">
-                  <label className='mt-1 mb-1' style={{ fontSize: "14px" }} htmlFor="password">
-                          password
-                        </label>
-                        <input
-                          type="password"
-                          onChange={handleChange}
-                          value={register.password}
-                          name="password"
-                    className="custom-input"
-                          required
-                          id="password"
-                          placeholder="password"
-                        />
-                      </div>
-                    </div>
-                    <div className="">
-                <div className="form-row grid-reg mt-3">
-                  <label className='mt-1 mb-1' style={{ fontSize: "14px" }} htmlFor="cpassword">
-                          confirm password
-                        </label>
-                        <input
-                          type="password"
-                    className="custom-input"
-                          required
-                          id="cpassword"
-                          onChange={handleChange}
-                          value={register.cpassword}
-                          name="cpassword"
-                          placeholder="confirm password"
-                        />
-                      </div>
-                    </div>
-                    <div className="">
-                <div className="form-row grid-reg mt-3 ">
-                  <label className='mt-1 mb-1' style={{ fontSize: "14px" }} htmlFor="role">
-                          role
-                        </label>
-                        <select
-                    className="custom-select"
-                          onChange={handleChange}
-                          value={register.role}
-                          name="role"
-                          required
-                          id="role"
-                        >
-                          <option value="">select role</option>
-                          <option value="admin">admin</option>
-                          <option value="customer service representative">
-                            customer service representative
-                          </option>
-                          <option value="scientist">scientist</option>
-                          <option value="manager">manager</option>
-                          <option value="clinician">clinician</option>
-                          <option value="phelobotomist">phelobotomist</option>
-                          <option value="sonographer">sonographer</option>
-                        </select>
-                      </div>
-              </div>
-              <div>
-                <div className='form-row grid-reg mt-3 '>
-                  <label className='mb-2 mt-2'> assign to branch</label>
-                  <select value={register.branch} name={'branch'} onChange={(ev) => { handleChange(ev) }} className='custom-select'>
-                    <option value=''>assign user to a branch here</option>
-                    {branches.length > 0 &&
-                      branches.map((item, index) => <option value={item.branchid} key={index}>{item.name}</option>)}
-                  </select>
-                </div>
-              </div>
-                    <div className=" mt-2 mt-4">
-                      <div className="form-group">
-                        <button
-                          type="button"
-                    className="btn btn-primary btn-sm"
-                          onClick={handleSubmit}
-                          style={{ borderRadius: "5px" }}
-                        >
-                          save information
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-          </form>
-        </section>
-      )
-    }
-  }
-
-
-  return (
-    <AuthenticationLayout>
-      {renderingView()}
-    </AuthenticationLayout>
-  );
+	return (
+		<AuthenticationLayout>
+			{renderingView()}
+		</AuthenticationLayout>
+	);
 }
-
-
-
-

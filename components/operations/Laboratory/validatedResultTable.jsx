@@ -6,6 +6,8 @@ import ShowTableCount from './ShowCountTable';
 import Pagination from '../../accessories/pagination';
 import { useMediaQuery } from 'react-responsive';
 import Loader from '../../accessories/Loader';
+import { useRouter } from 'next/router';
+import { printResultNavigator } from '../../Auth/customFetch';
 
 const Print = (
      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
@@ -14,7 +16,8 @@ const Print = (
      </svg>
 );
 
-const MobileDataDisplay = ({ data }) => {
+const MobileDataDisplay = ({ data,handleResult }) => {
+
      return (
           <React.Fragment>
                {data.map((item, index) => (
@@ -30,7 +33,7 @@ const MobileDataDisplay = ({ data }) => {
                                    <span>{item.fullname} ({item.patientid})</span>
                               </div>
                               <div>
-                                   <button className='btn btn-light shadow'>
+                                   <button className='btn btn-light shadow' onClick={(ev) =>  {handleResult(item)}}>
                                         {Print}
                                    </button>
                               </div>
@@ -56,8 +59,14 @@ const MobileDataDisplay = ({ data }) => {
 export default function ValidatedResultTable() {
      const { isLoading, collection, queryParams, setQueryParams, setLoadPage, canloadPage, updatePageValue, setCollection } = useLaboratoryContext();
      const [isClient, setIsClient] = useState(false);
+     const router = useRouter()
+          ;
+     const viewResultHandler = (item) => {
+          printResultNavigator(router, item.billingid, item, true);
+     };
 
-     // Set the client flag to true after the component mounts
+   
+
      useEffect(() => {
           setIsClient(true);
      }, []);
@@ -111,8 +120,8 @@ export default function ValidatedResultTable() {
           {
                Header: 'Action',
                accessor: '',
-               Cell: () => (
-                    <button className="btn btn-outline-secondary btn-sm br-0">
+               Cell: ({row}) => (
+                    <button onClick={(ev) =>  {viewResultHandler(row.original)}} className="btn btn-outline-secondary btn-sm br-0">
                          {Print} Print Result
                     </button>
                )
@@ -127,7 +136,7 @@ export default function ValidatedResultTable() {
           <div>
                <ShowTableCount queryParams={queryParams} setQueryParams={setQueryParams} />
                {isClient && (isMobile ? (
-                    <MobileDataDisplay data={collection} />
+                    <MobileDataDisplay data={collection} handleResult={viewResultHandler} />
                ) : (
                     <TableDisplay column={columns} data={collection} />
                ))}
