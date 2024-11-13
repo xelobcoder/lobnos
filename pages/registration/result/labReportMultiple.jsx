@@ -41,18 +41,18 @@ export default function LabReportPrintingMultiple() {
     }
   })
 
-  // useEffect(() => {
-  //   if (billingid) {
-  //     getResultSettings(setResultSettings, setLoader)
-  //     customFetch(`result/printout/approved/test?billingid=${billingid}`)
-  //       .then((data) => {
-  //         settestList(data)
-  //       })
-  //       .catch((err) => {
-  //         settestList([])
-  //       })
-  //   }
-  // }, [billingid])
+  useEffect(() => {
+    if (billingid) {
+      getResultSettings(setResultSettings, setLoader)
+      customFetch(`result/printout/approved/test?billingid=${billingid}`)
+        .then((data) => {
+          settestList(data)
+        })
+        .catch((err) => {
+          settestList([])
+        })
+    }
+  }, [billingid])
 
   const handleCheck = (ev, item) => {
     const checked = ev.target.checked

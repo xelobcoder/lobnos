@@ -6,6 +6,7 @@
 .single_result_page > ._sresult {
 	background-color: #fff;
      margin: 0% 10%;
+	min-height: 100vh;
 }
 
 .result-sampling-details {
@@ -41,11 +42,13 @@
 	.single_result_page {
 		background-color: white;
 		margin: 0px !important;
-        padding: 0px !important;
+		overflow-y: hidden !important;
+          padding: 0px !important;
 	}
 	.single_result_page > ._sresult  {
-		margin: 0 !important;
-		padding: 0 !important;
+		margin:0px !important;
+		padding:0px !important;
+		overflow-y: hidden !important;
 	}
 
 	.company-info-result > .other-information  > .company-name {
@@ -53,7 +56,13 @@
 		word-wrap: nowrap;
 	}
 
+	html,body {
+		height: 100vh;
+		line-height: 0.9px;
+		margin: 0;
+		padding: 0;
 	
+	}
 	
 }
 

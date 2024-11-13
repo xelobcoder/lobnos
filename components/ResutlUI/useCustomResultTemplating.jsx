@@ -5,58 +5,58 @@ import HasLimitReference from "./hasLimitsReference"
 import ResultViewHtmlGenerator from "../Auth/ResultViewHtmlGenerator";
 
 export default function UseCustomResultTemplating({ billingid, testid, test, patientid, isResultView = true }) {
-  const [testname, setTestname] = useState('');
-  const [result, setResult] = useState([])
-  const [isloading, setLoading] = useState(true)
+	const [testname, setTestname] = useState('');
+	const [result, setResult] = useState([])
+	const [isloading, setLoading] = useState(true)
 
-  useEffect(() => {
-    try {
-      async function getData() {
-        if (billingid && testid) {
-          setLoading(true)
-          const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}`)
-          const { result } = response;
-          result?.result && setResult(result?.result || [])
-          result?.testname && setTestname(testname);
-          setLoading(false)
-        }
-      }
-      getData()
-    } catch (err) {
-      setResult([])
+	useEffect(() => {
+		try {
+			async function getData() {
+				if (billingid && testid) {
+					setLoading(true)
+					const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}`)
+					const { result } = response;
+					result?.result && setResult(result?.result || [])
+					result?.testname && setTestname(testname);
+					setLoading(false)
+				}
+			}
+			getData()
+		} catch (err) {
+			setResult([])
 
-      setLoading(false)
-    }
-  }, [billingid, test, testid, patientid])
+			setLoading(false)
+		}
+	}, [billingid, test, testid, patientid])
 
-  if (isloading) return <Loader />;
+	if (isloading) return <Loader />;
 
-  if (Array.isArray(result) === false || result.length == 0) return <h4>No data provided</h4>
+	if (Array.isArray(result) === false || result.length == 0) return <h4>No data provided</h4>
 
 
-  return (
-    <section className="main-result">
-      <h5 className="text-uppercase ui text-center border-bottom  border-2 border-secondary">
-        <span className="fw-bold">
-          {test && test.includes("_") ? test.split("_").join(" ") : test}
-        </span>
-      </h5>
-      <table className={isResultView ? "alpha-result-table" : "table billing-cart-table"} >
-        <thead className={isResultView ? "table-warning" : "table-secondary"} >
-          <tr>
-            <th scope="col" >Parameter</th>
-            <th scope="col">Value</th>
-            <th scope="col">Units</th>
-            <th scope="col">References</th>
-            <th>Flags</th>
-          </tr>
-        </thead>
-        <tbody >
-          {result.map((item, index) => {
-            return <ResultViewHtmlGenerator index={index} field={item} key={index} />
-          })}
-        </tbody>
-      </table>
-    </section>
-  )
+	return (
+		<div >
+			<h5 className="text-uppercase ui text-center border-bottom  border-2 border-secondary">
+				<span className="fw-bold">
+					{test && test.includes("_") ? test.split("_").join(" ") : test}
+				</span>
+			</h5>
+			<table className={isResultView ? "alpha-result-table" : "table billing-cart-table"} >
+				<thead className={isResultView ? "table-warning" : "table-secondary"} >
+					<tr>
+						<th scope="col" >Parameter</th>
+						<th scope="col">Value</th>
+						<th scope="col">Units</th>
+						<th scope="col">References</th>
+						<th>Flags</th>
+					</tr>
+				</thead>
+				<tbody >
+					{result.map((item, index) => {
+						return <ResultViewHtmlGenerator index={index} field={item} key={index} />
+					})}
+				</tbody>
+			</table>
+		</div>
+	)
 }
