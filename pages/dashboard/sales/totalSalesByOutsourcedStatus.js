@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import DashBoardLayoutSales from "../../components/salesSummary/DashBoardLayout";
-import { currencyFormatter, customFetch } from "../../components/Auth/customFetch";
+import DashBoardLayoutSales from "../../../components/salesSummary/DashBoardLayout";
+import { currencyFormatter, customFetch } from "../../../components/Auth/customFetch";
 import {
      ResponsiveContainer,
      PieChart,

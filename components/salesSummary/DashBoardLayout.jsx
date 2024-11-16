@@ -10,28 +10,31 @@ export default function DashBoardLayoutSales({ children }) {
 	const [activeKey, setActiveKey] = useState(null);
 
 	const sidebarLinks = [
-		{ title: "Sales", link: "/dashboard", icon: <AssignmentInd /> },
+		{
+			title: "Sales", link: "/dashboard", icon: <AssignmentInd />, subLinks: [
+				...FinancialDataKeys.map((item, index) => {
+					return {
+						title: item.label.toUpperCase(),
+						link: `/dashboard/sales/${item.key}`,
+						icon: <Payment />,
+					};
+				}),
+			],
+		},
 		{ title: "Organization", link: "/dashboard/organization", icon: <House /> },
 		{ title: "Expense", link: "/expense/expenseslist", icon: <Payment /> },
 	];
 
 	return (
 		<MainLayout sideLinks={sidebarLinks}>
-			<div
-				style={{
-					display: 'grid',
-					gridTemplateColumns: '20% 75%',
-					gridGap: '10px',
-					padding: '10px',
-				}}
-			>
-				<div>
+			<div className="d-flex flex-column flex-lg-row p-2">
+				<div className="d-none d-lg-flex col-lg-2 col-xl-2">
 					<ListGroup>
 						{FinancialDataKeys.map((item, index) => (
 							<ListGroup.Item
 								onClick={(ev) => {
 									setActiveKey(item.key);
-									router.push(`/dashboard/${item.key}`);
+									router.push(`/dashboard/sales/${item.key}`);
 								}}
 								className={`text-capitalize pointer ${activeKey === item.key ? "active" : ""} text-sm`}
 								key={index}
@@ -41,7 +44,7 @@ export default function DashBoardLayoutSales({ children }) {
 						))}
 					</ListGroup>
 				</div>
-				<div>
+				<div className="col-12 col-lg-10 mx-3">
 					{children}
 				</div>
 			</div>

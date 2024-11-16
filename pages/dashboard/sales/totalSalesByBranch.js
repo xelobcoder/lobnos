@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import DashBoardLayoutSales from "../../components/salesSummary/DashBoardLayout";
-import { currencyFormatter, customFetch } from "../../components/Auth/customFetch";
+import DashBoardLayoutSales from "../../../components/salesSummary/DashBoardLayout";
+import { currencyFormatter, customFetch } from "../../../components/Auth/customFetch";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 
 export default function TotalSalesByBranch() {
@@ -44,25 +44,37 @@ export default function TotalSalesByBranch() {
           <DashBoardLayoutSales>
                <h3>Total Sales by Branch</h3>
 
-               <div className="d-flex col-12 mb-3">
-                    <label className="mt-2 mx-2">Start</label>
-                    <input
-                         type="date"
-                         className="custom-input col-4"
-                         value={startDate}
-                         onChange={handleStartDateChange}
-                    />
-                    <label className="mt-2 mx-2">End</label>
-                    <input
-                         type="date"
-                         className="custom-input col-4"
-                         value={endDate}
-                         onChange={handleEndDateChange}
-                    />
-                    <button onClick={handleToggleView} className="btn btn-light mx-3 border-primary border-2">
-                         Switch to {view === "pie" ? "Bar Chart" : view === "bar" ? "Table" : "Pie Chart"}
-                    </button>
+               <div className="d-flex flex-column flex-md-row col-12 mb-3">
+                    <div className="d-flex align-items-center mb-3 col-12 col-md-3">
+                         <label className="mt-2 mx-2">Start</label>
+                         <input
+                              type="date"
+                              className="custom-input form-control"
+                              value={startDate}
+                              onChange={handleStartDateChange}
+                         />
+                    </div>
+
+                    <div className="d-flex align-items-center mb-3 col-12 col-md-3">
+                         <label className="mt-2 mx-2">End</label>
+                         <input
+                              type="date"
+                              className="custom-input form-control"
+                              value={endDate}
+                              onChange={handleEndDateChange}
+                         />
+                    </div>
+
+                    <div className="d-flex align-items-center mb-3 col-12 col-md-3">
+                         <button
+                              onClick={handleToggleView}
+                              className="btn btn-light mx-3 border-primary border-2 w-100 w-md-auto"
+                         >
+                              Switch to {view === "pie" ? "Bar Chart" : view === "bar" ? "Table" : "Pie Chart"}
+                         </button>
+                    </div>
                </div>
+
 
                {loading ? (
                     <p className="heightedBorder p-2 pls-color d-flex justify-content-center bg-s">
