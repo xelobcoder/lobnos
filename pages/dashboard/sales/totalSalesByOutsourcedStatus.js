@@ -78,61 +78,41 @@ export default function TotalSalesByOutsourcedStatus() {
                                    </PieChart>
                               </ResponsiveContainer>
                          </div>
+                              <div className="d-flex flex-column flex-md-row justify-content-center align-items-center mt-3">
+                                   <div
+                                        className="bg-light p-3 m-2 rounded text-center"
+                                        style={{
+                                             width: "100%",
+                                             maxWidth: "300px",
+                                        }}
+                                   >
+                                        <h3><strong>Outsourced:</strong></h3>
+                                        <h2>{currencyFormatter.format(data[1]?.totalSales)}</h2>
+                                   </div>
 
-                         {/* Cards with the "vs" in the middle */}
-                         <div
-                              style={{
-                                   display: "flex",
-                                   flexDirection: "row",
-                                   justifyContent: "center",
-                                   marginTop: "20px",
-                                   flexWrap: "wrap",
-                              }}
-                         >
-                              <div
-                                   style={{
-                                        backgroundColor: "#f0f0f0",
-                                        padding: "20px",
-                                        margin: "10px",
-                                        borderRadius: "8px",
-                                        textAlign: "center",
-                                        width: "35%",
-                                   }}
-                              >
-                                   <h3><strong>Outsourced:</strong></h3>
-                                   <h2>{currencyFormatter.format(data[1]?.totalSales)}</h2>
+                                   <div
+                                        className="d-flex align-items-center justify-content-center bg-secondary text-white rounded-circle mb-3 mb-md-0"
+                                        style={{
+                                             width: "80px",
+                                             height: "80px",
+                                             fontSize: "20px",
+                                        }}
+                                   >
+                                        <strong>VS</strong>
+                                   </div>
+
+                                   <div
+                                        className="bg-light p-3 m-2 rounded text-center"
+                                        style={{
+                                             width: "100%",
+                                             maxWidth: "300px",
+                                        }}
+                                   >
+                                        <h3><strong>Not Outsourced:</strong></h3>
+                                        <h2>{currencyFormatter.format(data[0]?.totalSales)}</h2>
+                                   </div>
                               </div>
 
-                              <div
-                                   style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        width: "100px",
-                                        height: "100px",
-                                        backgroundColor: "#e0e0e0",
-                                        borderRadius: "50%",
-                                        margin: "10px",
-                                        fontSize: "24px",
-                                   }}
-                              >
-                                   <strong>VS</strong>
-                              </div>
-
-                              <div
-                                   style={{
-                                        backgroundColor: "#f0f0f0",
-                                        padding: "20px",
-                                        margin: "10px",
-                                        borderRadius: "8px",
-                                        textAlign: "center",
-                                        width: "35%",
-                                   }}
-                              >
-                                   <h3><strong>Not Outsourced:</strong></h3>
-                                   <h2>{currencyFormatter.format(data[0]?.totalSales)}</h2>
-                              </div>
-                         </div>
                     </>
                ) : (
                     <p className="heightedBorder p-2 pls-color d-flex justify-content-center bg-s">
