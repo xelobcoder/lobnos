@@ -1126,17 +1126,6 @@ textarea:required:focus:invalid {
 }
 
 
-@media print {
- #invoice-receipt-view {
-   margin: 0px !important;
-   font-size: 12px !important;
- }
- #receipt-buttons {
-  display:  none !important;
-} 
-}
-
-
 .expense-admin-li{
   background-color: #00224f;
   color: white !important;

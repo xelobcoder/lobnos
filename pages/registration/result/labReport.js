@@ -12,16 +12,18 @@ import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
 import VersionFooter from '../../../components/accessories/VersionFooter';
 import ApplicationHeader from '../../../components/Layout/HeaderNav';
 import { Print } from '@mui/icons-material';
+import { PrintOutDummyData } from './_dummydata';
+import UseCustomResultTemplatingPrintOut from './UseCustomResultTemplatingPrintOut';
+import UseCustomResultCommentsTemplatingPrintOut from './useCustomResultCommentsTemplatingPrintOut';
 
 export default function RESULT_FOR_PRINTING() {
-	const [resultsettings, setResultSettings] = useState(defaultResultSettings);
 	const [loader, setLoader] = useState(false);
-	const testid = useSearchParams().get('testid');
-	const billingid = useSearchParams().get('billingid');
-	const ascensionid = useSearchParams().get('ascensionid');
-	const test = useSearchParams().get('test');
-	const patientid = useSearchParams().get('patientid');
-
+	const serachParams = useSearchParams();
+	const testid = serachParams.get('testid');
+	const billingid = serachParams.get('billingid');
+	const ascensionid = serachParams.get('ascensionid');
+	const test = serachParams.get('test');
+	const patientid = serachParams.get('patientid');
 
 
 
@@ -31,9 +33,13 @@ export default function RESULT_FOR_PRINTING() {
 
 
 	useEffect(() => {
-		getResultSettings(setResultSettings, setLoader);
-	}, [])
+		const hasRequiredValues = ascensionid && testid && billingid && patientid;
 
+		if (hasRequiredValues) 
+		{
+			const url_destination_endpoint = `printout/ascension/getResult?ascensionid=${ascensionid}&&testid=${testid}`
+		}
+	}, [patientid,testid,ascensionid,billingid])
 
 
 
@@ -42,13 +48,13 @@ export default function RESULT_FOR_PRINTING() {
 			<ApplicationHeader />
 			<div className='single_result_page'>
 				<div className='_sresult bg-white p-3'>
-					{resultsettings?.letterHeading == 1 && <CompanyHeaders billingid={billingid} />}
-					<PersonalInformation patientid={patientid} billingid={billingid} />
-					<UseCustomResultTemplating testid={testid} test={test} billingid={billingid} patientid={patientid} />
-					<UseResultCommentSingle billingid={billingid} testid={testid} />
-					<UseClinicalLiteratureReview testid={testid} />
-					<UseResultEntryScientist ascensionId={ascensionid} testid={testid} billingid={billingid} />
-					<UseDisclaimer patientid={patientid} />
+					{PrintOutDummyData.resultsettings.letterHeading == 1 && <CompanyHeaders companyInfo={PrintOutDummyData.companyInfo} />}
+					<PersonalInformation PersonalInformation={PrintOutDummyData.patientInformation} billingid={billingid} />
+					<UseCustomResultTemplatingPrintOut result={PrintOutDummyData.records} testname={PrintOutDummyData.testname} />
+					<UseCustomResultCommentsTemplatingPrintOut comments={PrintOutDummyData.comments} />
+					<UseClinicalLiteratureReview literature={PrintOutDummyData.literatureReview} />
+					<UseResultEntryScientist validators={PrintOutDummyData.validators} enteredOn={PrintOutDummyData.enteredOn} lastupdatedon={PrintOutDummyData.lastupdatedon} resultentry={PrintOutDummyData.resultentry} />
+					<UseDisclaimer patientid={PrintOutDummyData.patientInformation.patientid} />
 					<VersionFooter />
 				</div>
 			</div>

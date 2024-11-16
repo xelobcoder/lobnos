@@ -1,19 +1,6 @@
-import Image from 'next/image';
-import { useEffect, useState } from "react"
-import { getCompanyInformation } from "../Auth/customFetch"
 
-export default function CompanyHeaders({ billingid }) {
-  const [company, setCompany] = useState({})
-  const { email, phonenumber, address, name, alternativenumber } = company
-
-  useEffect(() => {
-    if (billingid) {
-      getCompanyInformation(setCompany)
-    }
-    return () => {
-      
-    }
-  }, [billingid])
+export default function CompanyHeaders({ companyInfo }) {
+  const { email, phonenumber, address, name, alternativenumber } = companyInfo
 
   return (
     <div className="company-info-result">
