@@ -4,7 +4,7 @@ import { customFetch } from "../../../../components/Auth/customFetch";
 import CaseCountAreaChart from "../../../../lib/resultanalaysis/MonthCaseCountChart";
 import ResultAnalysisDasboardLayout from "../../../../components/salesSummary/ResultAnalysisDasboard";
 
-export default function ResultAnalysisTest() {
+export default function ResultAnalysisTestMonthlyCasesCount() {
     const [response, setResponse] = useState([]);
     const [dayHeaders, setDayHeaders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -55,29 +55,6 @@ export default function ResultAnalysisTest() {
                     <>
                         {monthCasesShow && (
                             <div>
-                                <h5 className="text-center">{currentMonth}/{currentYear}</h5>
-                                <hr />
-                                <table className="table ttable">
-                                    <thead>
-                                        <tr>
-                                            <th>Day</th>
-                                            {dayHeaders.map((item, index) => (
-                                                <th key={index}>{item}</th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Case Count</td>
-                                            {dayHeaders.map((item, index) => {
-                                                const matched = response.find((it) => it.day === item);
-                                                return matched ? <td key={index}>{matched.caseCount}</td> : <td key={index}>-</td>;
-                                            })}
-                                        </tr>
-                                    </tbody>
-                                </table>
-
-                                <h5 className="text-center">Chart</h5>
                                 <CaseCountAreaChart data={response} />
                             </div>
                         )}

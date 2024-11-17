@@ -46,7 +46,6 @@ export default function ResultValuesAnalysisTest() {
 
     if (isGroupedByDate === 1) {
         const uniqueDates = new Set(response.map((item) => new Date(item.created_on).toLocaleDateString()));
-        console.log(uniqueDates.size);
     }
 
     return (

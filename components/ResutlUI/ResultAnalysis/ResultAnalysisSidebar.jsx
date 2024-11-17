@@ -168,7 +168,7 @@ export default function ResultAnalysisSideBar() {
         <div
             style={{
                 width: "280px",
-                height: "100vh",
+                // height: "100vh",
                 backgroundColor: "#1e1f23",
                 color: "#d1d5db",
                 padding: "10px",
