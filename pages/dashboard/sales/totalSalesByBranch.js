@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import DashBoardLayoutSales from "../../../components/salesSummary/DashBoardLayout";
 import { currencyFormatter, customFetch } from "../../../components/Auth/customFetch";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { ArrowDownward, Menu } from "@mui/icons-material";
 
 export default function TotalSalesByBranch() {
      const [data, setData] = useState([]);
@@ -122,11 +123,50 @@ export default function TotalSalesByBranch() {
                               </BarChart>
                          </ResponsiveContainer>
                     ) : (
-                         <table className="table table-bordered">
+                         <table className="table table-bordered ttable">
                               <thead>
                                    <tr>
-                                        <th>Branch Name</th>
+                                        <th className="d-flex justify-content-between">
+                                             <div>
+                                                  Branch Name
+                                             </div>
+                                             <div className="d-flex justify-content-around">
+                                                  <span className="btn btn-light p-1 text-sm"><Menu fontSize="10px" /></span>
+                                                                 <span className="btn btn-light mx-1 p-1 text-sm"><ArrowDownward fontSize="10px" /></span>
+                                             </div>
+                                        </th>
                                         <th>Total Sales</th>
+                                        <th>Branch Name</th>
+                                        <th>Total Sales</th> <th>Branch Name</th>
+                                        <th>Total Sales</th> <th>Branch Name</th>
+
+                                   </tr>
+                              </thead>
+                              <thead>
+                                   <tr>
+                                        <th>
+                                             <input className="custom-input" />
+                                        </th>
+                                        <th>
+                                             <input className="custom-input" />
+                                        </th>
+                                        <th>
+                                             <input className="custom-input" />
+                                        </th>
+                                        <th>
+                                             <input className="custom-input" />
+                                        </th>  <th>
+                                             <input className="custom-input" />
+                                        </th>
+                                        <th>
+                                             <input className="custom-input" />
+                                        </th>  <th>
+                                             <input className="custom-input" />
+                                        </th>
+                                        <th>
+                                             <input className="custom-input" />
+                                        </th>
+
                                    </tr>
                               </thead>
                               <tbody>
@@ -134,6 +174,10 @@ export default function TotalSalesByBranch() {
                                         <tr key={index}>
                                              <td>{entry.name}</td>
                                              <td>{currencyFormatter.format(entry.totalSales)}</td>
+                                             <td>{entry.name}</td>
+                                             <td>{currencyFormatter.format(entry.totalSales)}</td>  <td>{entry.name}</td>
+                                             <td>{currencyFormatter.format(entry.totalSales)}</td>  <td>{entry.name}</td>
+
                                         </tr>
                                    ))}
                               </tbody>

@@ -65,17 +65,29 @@ export default function Activator() {
 
 
 	const columns = [
-		{ Header: 'patientid', accessor: 'patientid' },
+		{ Header: 'patientid', accessor: 'patientid', },
 		{ Header: 'registered on', accessor: 'date', Cell: ({ value }) => { return <span>{parseDate(value)}</span> } },
-		{ Header: 'fullname', accessor: 'fullname', Cell: ({ value }) => <div className='text-capitalize'>{value}</div> },
-		{ Header: "dob", accessor: "dob", Cell: ({ value }) => parseDate(value) },
+		{
+			Header: 'fullname', accessor: 'fullname', Cell: ({ value }) => <div className='text-capitalize'>{value}</div>,
+			customFilterable: true,
+			filteringMode: 'text'
+		},
+		{
+			Header: "dob", accessor: "dob", Cell: ({ value }) => parseDate(value),
+			customFilterable: true,
+			filteringMode: 'date'
+		},
 		{
 			Header: "age", accessor: "age", Cell: ({ row, value }) => {
 				return <span>{value} {row.original.agetype}</span>
 			}
 		},
 		{ Header: "gender", accessor: "gender" },
-		{ Header: 'contact', accessor: 'contact' },
+		{
+			Header: 'contact', accessor: 'contact',
+			customFilterable: true,
+			filteringMode: 'number'
+		},
 		{
 			Header: 'activation status', accessor: 'activation_status', Cell: ({ value }) => {
 				return <div className={`btn btn-sm border-2 p-1 ${value === "TRUE" ? "border-success" : "border-danger"}`}>
@@ -130,11 +142,11 @@ export default function Activator() {
 				<PatientFiltered getSelectedPatient={filteredPatient} />
 			</div>
 			<div >
-				{Array.isArray(tempStore) && tempStore.length > 0 && <TableDisplay  styling={'ttable table'} minHeight={'50vh'} column={columns} data={tempStore} showpage={false} exporters={false} />}
+				{Array.isArray(tempStore) && tempStore.length > 0 && <TableDisplay filtering={true} minHeight={'50vh'} column={columns} data={tempStore} showpage={false} exporters={false} />}
 			</div>
-			<div className=' d-lg-flex  justify-content-lg-center d-sm-block'>
-				<Pagination/>
-			</div>
+			{/* <div className=' d-lg-flex  justify-content-lg-center d-sm-block'>
+				<Pagination />
+			</div> */}
 		</FrontDeskLayout>
 	);
 }

@@ -10,8 +10,7 @@ import {
      Legend,
 } from "recharts";
 
-const COLORS = ['#0088FE', '#FF8042']; // Blue for not outsourced, Orange for outsourced
-
+const COLORS = ['#0088FE', '#FF8042']; 
 export default function TotalSalesByOutsourcedStatus() {
      const [data, setData] = useState([]);
      const [loading, setLoading] = useState(true);

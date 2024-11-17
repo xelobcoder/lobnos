@@ -30,7 +30,9 @@ export default function FrontDeskLayout({ children }) {
   ]
   return (
     <MainLayout sideLinks={sideLinks} defaultscreen={false}>
-      {children}
+      <div className='p-2'>
+        {children}
+      </div>
     </MainLayout>
   )
 }

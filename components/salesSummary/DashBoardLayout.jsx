@@ -1,13 +1,17 @@
 import { AssignmentInd, House, Payment } from "@mui/icons-material";
 import MainLayout from "../Layout/MainLayout";
 import { ListGroup } from "react-bootstrap";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FinancialDataKeys } from "./FinancialSummaryKeys";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function DashBoardLayoutSales({ children }) {
 	const router = useRouter();
+	const targetKey = useSearchParams().get("targetKey");
 	const [activeKey, setActiveKey] = useState(null);
+
+	useEffect( () => {setActiveKey(targetKey)},[targetKey])
 
 	const sidebarLinks = [
 		{
@@ -23,28 +27,29 @@ export default function DashBoardLayoutSales({ children }) {
 		},
 		{ title: "Organization", link: "/dashboard/organization", icon: <House /> },
 		{ title: "Expense", link: "/expense/expenseslist", icon: <Payment /> },
+		{ title: "Result Analysis", link: "/dashboard/resultanalysis", icon: <Payment /> },
 	];
+
 
 	return (
 		<MainLayout sideLinks={sidebarLinks}>
-			<div className="d-flex flex-column flex-lg-row p-2">
-				<div className="d-none d-lg-flex col-lg-2 col-xl-2">
-					<ListGroup>
+			<div className="d-flex flex-column flex-lg-row">
+				<div className="d-none  d-lg-flex col-lg-2 col-xl-2">
+					<ListGroup className="br-0 ">
 						{FinancialDataKeys.map((item, index) => (
-							<ListGroup.Item
-								onClick={(ev) => {
-									setActiveKey(item.key);
-									router.push(`/dashboard/sales/${item.key}`);
-								}}
-								className={`text-capitalize pointer ${activeKey === item.key ? "active" : ""} text-sm`}
-								key={index}
-							>
-								{item.label}
+							<ListGroup.Item className={`text-uppercase pointer pls-color  overflow-grow whitespace-nowrap  ${activeKey == index ? "active text-white" : ""} text-sm`}>
+								<Link 
+									className={activeKey == index ? "text-white" : ""}
+									key={index}
+									href={`/dashboard/sales/${item.key}?targetKey=${index}`}>
+									
+									{item.label}
+								</Link>
 							</ListGroup.Item>
 						))}
 					</ListGroup>
 				</div>
-				<div className="col-12 col-lg-10 mx-3">
+				<div className="col-12 col-lg-10 p-2">
 					{children}
 				</div>
 			</div>

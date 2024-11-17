@@ -1,18 +1,18 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect } from 'react'
 import PLACE_ORDER from '../../components/inventory/placeorder'
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import SupplierLayout from '../../components/inventory/SupplierLayout';
 import TableDisplay from '../../components/accessories/TableDisplay';
 import { ToastContainer, toast } from 'react-toastify';
-import AuthContext from '../../components/Auth/useAuthentification';
+import { useApplicationSettings } from '../../components/Auth/useApplicationContext';
 
 export default function PlaceNewOrderIndexPage() {
   const [editing, setEditing] = useState({});
   const [source, setDatasource] = useState([]);
   const [suppliers, setSuppliers] = useState([])
   const [cart, setCart] = useState([]);
-  const { auth } = useContext(AuthContext);
-  const employeeid = auth?.employeeid;
+  const { user } = useApplicationSettings().applicationsettings
+  const employeeid = user?.employeeid;
 
   useEffect(() => {
     const fetchData = async () => {
