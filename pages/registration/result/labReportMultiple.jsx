@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react"
 import CompanyHeaders from "../../../components/ResultView/CompanyHeaders"
 import { customFetch, defaultResultSettings, formatTest, getResultSettings, readyToPrint } from "../../../components/Auth/customFetch"
-import SamplingInformationResult from "../../../components/ResultView/SamplingInformationResult"
 import PersonalInformation from "../../../components/ResultView/PersonalInformation"
 import { useSearchParams } from "next/navigation"
 import UseCustomResultTemplating from "../../../components/ResutlUI/useCustomResultTemplating"
@@ -10,11 +9,9 @@ import UseClinicalLiteratureReview from "../../../components/ResutlUI/UseClinica
 import UseResultEntryScientist from "../../../components/ResutlUI/UseResultEntryFormat"
 import UseDisclaimer from "../../../components/ResutlUI/useDisclaimer"
 import VersionFooter from "../../../components/accessories/VersionFooter"
-import Header from "../../../components/header"
 import { Print } from "@mui/icons-material"
 import Form from "react-bootstrap/Form"
 import Loader from "../../../components/accessories/Loader"
-import App from "next/app"
 import ApplicationHeader from "../../../components/Layout/HeaderNav"
 
 export default function LabReportPrintingMultiple() {
@@ -65,7 +62,7 @@ export default function LabReportPrintingMultiple() {
   }
   return (
     <>
-      <ApplicationHeader/>
+      {/* <ApplicationHeader/>
       <div className="multiple-result-out d-flex vh-100 justify-content-between">
         <aside className="bg-dark col-2">
           <div className="p-2">
@@ -102,7 +99,7 @@ export default function LabReportPrintingMultiple() {
               <div className="result-top-section">
                 {resultsettings?.letterHeading == 1 && <CompanyHeaders billingid={billingid} />}
                 <PersonalInformation patientid={patientid} billingid={billingid} />
-                {/* {resultsettings?.samplingInformation == 1 && <SamplingInformationResult billingid={billingid} testid={testid} />} */}
+          
                 <section style={{ borderTop: "1px solid black" }}>
                   <div style={{ borderBottom: "1px solid black" }}>
                     {toprintList.length === 0 ? (
@@ -139,7 +136,7 @@ export default function LabReportPrintingMultiple() {
             <div></div>
           </div>
         </main>
-      </div>
+      </div> */}
     </>
   )
 }

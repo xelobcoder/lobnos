@@ -1,18 +1,18 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import LaboratoryLayout from "../../../components/Layout/LaboratoryLayout";
 import { useSearchParams } from "next/navigation";
-import AuthContext from "../../../components/Auth/useAuthentification";
 import { customFetch, customPost } from "../../../components/Auth/customFetch";
 import Loader from "../../../components/accessories/Loader";
 import { ToastContainer, toast } from 'react-toastify';
+import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
 
 export default function RejectedSampleHistory() {
      const [isLoading, setLoading] = useState(false);
      const [dispute, setDispute] = useState('');
      const [logs, setLogs] = useState([]);
      const ascensionid = useSearchParams().get('ascensionid');
-     const { auth } = useContext(AuthContext);
-     const employeeid = auth?.employeeid;
+     const { user } = useApplicationSettings().applicationsettings;
+     const employeeid = user?.employeeid;
 
      useEffect(() => {
           async function getLogs() {

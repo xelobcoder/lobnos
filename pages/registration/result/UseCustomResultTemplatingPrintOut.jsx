@@ -1,7 +1,7 @@
 import ResultViewHtmlGenerator from "../../../components/Auth/ResultViewHtmlGenerator"
 
-export default function UseCustomResultTemplatingPrintOut({result,testname}) {
-   
+export default function UseCustomResultTemplatingPrintOut({ result, testname }) {
+
 
      return (
           <div >
@@ -10,8 +10,8 @@ export default function UseCustomResultTemplatingPrintOut({result,testname}) {
                          {testname && testname.includes("_") ? testname.split("_").join(" ") : testname}
                     </span>
                </h5>
-               <table className={"alpha-result-table" } >
-                    <thead className={"table-warning" } >
+               <table className={"alpha-result-table"} >
+                    <thead className={"table-warning"} >
                          <tr>
                               <th scope="col" >Parameter</th>
                               <th scope="col">Value</th>
@@ -21,7 +21,7 @@ export default function UseCustomResultTemplatingPrintOut({result,testname}) {
                          </tr>
                     </thead>
                     <tbody >
-                         {result.map((item, index) => {
+                         {Array.isArray(result) && result.map((item, index) => {
                               return <ResultViewHtmlGenerator index={index} field={item} key={index} />
                          })}
                     </tbody>

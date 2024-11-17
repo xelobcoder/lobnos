@@ -1,4 +1,4 @@
-import React, { Suspense, useContext, useEffect, useState, useRef, useCallback } from 'react';
+import React, { Suspense,  useEffect, useState, useRef, useCallback } from 'react';
 import EmailSidebarJSX from '../../../components/settingsComponents/EmailSidebar';
 const MARKDOWN = React.lazy(() => import('../../../components/accessories/markdownEditor'));
 import ISLOADING from '../../../components/isLoading';
@@ -6,13 +6,14 @@ import { Drafts, Subject } from '@mui/icons-material';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
 import { ToastContainer, toast } from 'react-toastify';
-import AuthContext from '../../../components/Auth/useAuthentification';
 import { useSearchParams } from 'next/navigation';
 import { getEmailUsingid } from '../../../components/EmailServices/util';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
+
 export default function EMAIL_LOGS() {
-  const { auth } = useContext(AuthContext);
+  const { user } = useApplicationSettings().applicationsettings;
+  const employeeid = user?.employeeid;
   const [title, setTitle] = useState('');
-  const employeeid = auth?.employeeid;
   const [draft, setDraft] = useState("<h1>hello world</h1>");
   const params = useSearchParams();
   const emailid = params.get("id");

@@ -1,9 +1,9 @@
-import DashBoardLayoutSales from "../../../components/salesSummary/DashBoardLayout";
+import ResultAnalysisDasboardLayout from "../../../components/salesSummary/ResultAnalysisDasboard";
 
 export default function ResultAnalysisDashboardSide() {
      return (
-          <DashBoardLayoutSales>
+          <ResultAnalysisDasboardLayout>
                <h1>Result Analysis</h1>
-          </DashBoardLayoutSales>
+          </ResultAnalysisDasboardLayout>
      )
 }

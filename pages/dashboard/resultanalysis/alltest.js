@@ -1,10 +1,18 @@
-import { Container } from "react-bootstrap";
 import { customFetch } from "../../../components/Auth/customFetch";
 import ResultAnalysisRow from "../../../lib/resultanalaysis/RowAnalysis";
+import { useEffect, useState } from "react";
+import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
+import ResultAnalysisDasboardLayout from "../../../components/salesSummary/ResultAnalysisDasboard";
 
 
-export default async function ResultAnalysisAllTestView() {
-    const response = await customFetch(`result/analysis/test/alltest/yearlycount?employeeid=3`);
+export default function ResultAnalysisAllTestView() {
+    const [resultData, setResultData] = useState([]);
+    const{ employeeid} = useApplicationSettings().applicationsettings.user;
+
+    const getData = async function () {
+        const response = await customFetch(`result/analysis/test/alltest/yearlycount?employeeid=${employeeid}`);
+        setResultData(response);
+    }
 
 
     const months = [
@@ -14,9 +22,14 @@ export default async function ResultAnalysisAllTestView() {
     ];
 
 
+    useEffect(() => {
+        if (employeeid) getData()
+    }, [employeeid])
+
+
     return (
-        <Container>
-            <div className="table-container">
+        <ResultAnalysisDasboardLayout>
+            <div className="table-container" style={{maxHeight:'100vh',msOverflowY:'auto'}}>
                 <table className="table ttable billing-cart-table">
                     <thead>
                         <tr>
@@ -28,12 +41,12 @@ export default async function ResultAnalysisAllTestView() {
                         </tr>
                     </thead>
                     <tbody>
-                        {Array.isArray(response) && response.length > 0 && response.map((item, index) => (
+                        {Array.isArray(resultData) && resultData.length > 0 && resultData.map((item, index) => (
                             <ResultAnalysisRow key={index} index={index} months={months} item={item} />
                         ))}
                     </tbody>
                 </table>
             </div>
-        </Container>
+        </ResultAnalysisDasboardLayout>
     );
 }

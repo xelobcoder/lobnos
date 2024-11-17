@@ -3,25 +3,31 @@ import SupplierLayout from "../../../components/inventory/SupplierLayout";
 import { customFetch } from "../../../components/Auth/customFetch";
 import { useRouter } from "next/router";
 import TableDisplay from "../../../components/accessories/TableDisplay";
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz'; // Ensure you have this icon from Material-UI
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import Loader from "../../../components/accessories/Loader";
 
 export default function ViewTransactionsDetailPage() {
+       const [isLoading, setLoading] = useState(false);
        const transactionid = useRouter().query.transactionid;
        const [data, setData] = useState([]);
        const [hoveredRow, setHoveredRow] = useState(null);
 
        useEffect(() => {
               if (transactionid) {
+                     setLoading(true);
                      customFetch(`orders?orderTransactionid=${transactionid}`)
                             .then((data) => {
                                    const { result } = data;
                                    Array.isArray(result.products) && setData(result.products);
+                                   setLoading(false);
                             })
                             .catch((err) => {
+                                   setLoading(false);
                                    console.log(err);
                             });
               }
        }, [transactionid]);
+       
 
        const importantColumns = [
               {
@@ -99,6 +105,14 @@ export default function ViewTransactionsDetailPage() {
               }
        ];
 
+
+       if (isLoading) {
+              return (
+                     <SupplierLayout>
+                            <Loader/>
+                     </SupplierLayout>
+              )
+       }
        return (
               <SupplierLayout>
                      <h6>Transaction Details</h6>
@@ -106,6 +120,7 @@ export default function ViewTransactionsDetailPage() {
                             styling={'table  ttable'}
                             column={importantColumns}
                             data={data}
+                            filtering={true}
                             showpage={false}
                      />
               </SupplierLayout>

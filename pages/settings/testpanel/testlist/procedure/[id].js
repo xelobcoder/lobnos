@@ -1,16 +1,17 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import MainSettingsLayoutView from "../../../../../components/settingsComponents/MainSettingsLayoutView";
 import dynamic from 'next/dynamic';
 import { useRouter } from "next/router";
 import { customFetch, customPost } from "../../../../../components/Auth/customFetch";
 import Loader from "../../../../../components/accessories/Loader";
-import AuthContext from "../../../../../components/Auth/useAuthentification";
 import { ToastContainer, toast } from 'react-toastify';
+import { useApplicationSettings } from "../../../../../components/Auth/useApplicationContext";
 
 const MARKDOWN_EDITOR = dynamic(() => import('../../../../../components/accessories/markdownEditor'), { ssr: false })
+
 export default function Procedure() {
-   const { auth } = useContext(AuthContext);
-   const employeeid = auth?.employeeid;
+   const { user } = useApplicationSettings().applicationsettings;
+   const employeeid = user?.employeeid;
    const defaultdata = { testid: "", createdby: employeeid, proceduremanual: "", title: "" };
    const [data, setData] = useState(defaultdata);
    const [isloading, setLoading] = useState(true);

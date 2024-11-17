@@ -1,5 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css"
-import ResultAnalysisSideBar from "../../lib/resultanalaysis/sidebar";
+import ResultAnalysisSideBar from "../../components/ResutlUI/ResultAnalysis/ResultAnalysisSidebar";
 import '../../lib/resultanalaysis/resultanalysis.css'
 export const metadata = {
   title: 'Result Analysis',
@@ -10,7 +10,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <nav style={{ backgroundColor:'rgb(11, 111, 241)',padding:'20px'}} >
+        <nav style={{ backgroundColor: 'rgb(11, 111, 241)', padding: '20px' }} >
           <div className="text-white">VITALSCAN LABORATORY AND DIAGNOSTIC CENTRE
           </div>
         </nav>

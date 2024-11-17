@@ -18,7 +18,7 @@ export default function UltrasoundScanReportView() {
         return (
                 <div className='result_page'>
                         <div className='result'>
-                                <div>
+                                {/* <div>
                                         <CompanyHeaders billingid={billingid} />
                                         <PersonalInformation patientid={patientid} billingid={billingid} />
                                         <section>
@@ -29,7 +29,7 @@ export default function UltrasoundScanReportView() {
                                         <UseResultEntryScientist testid={testid} billingid={billingid} />
                                         <UseDisclaimer patientid={patientid} />
                                         <VersionFooter/>
-                                </div>
+                                </div> */}
                         </div>
                         <div>
                         </div>

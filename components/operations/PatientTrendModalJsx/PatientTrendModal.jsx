@@ -48,9 +48,7 @@ export default function PatientTrendModalJsx({ data }) {
     <div>
       <ToastContainer theme="dark" style={{ width: "80%" }} />
       <div className="mx-2">
-        <h3>
-          Trend Analysis for {test.includes("_") ? test.split("_").join(" ") : test} ====={">>>"} PATIENTID:{patientid}
-        </h3>
+       
       </div>
       <div className="d-flex">
         <div className="col-3">

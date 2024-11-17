@@ -2,7 +2,7 @@ import { useState } from "react";
 import NavbarComponent from './NavBarComponent'
 import SidebarComponent from './SideBarComponent'
 import { useApplicationSettings } from "../Auth/useApplicationContext";
-
+import Authorization from "../accessories/authorization";
 export default function MainLayout({ children, sideLinks }) {
 	const { applicationsettings } = useApplicationSettings();
 	const { user, company, daysToExpiration } = applicationsettings;

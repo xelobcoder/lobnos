@@ -37,7 +37,7 @@ export default function DashBoardLayoutSales({ children }) {
 				<div className="d-none  d-lg-flex col-lg-2 col-xl-2">
 					<ListGroup className="br-0 ">
 						{FinancialDataKeys.map((item, index) => (
-							<ListGroup.Item className={`text-uppercase pointer pls-color  overflow-grow whitespace-nowrap  ${activeKey == index ? "active text-white" : ""} text-sm`}>
+							<ListGroup.Item key={index}  className={`text-uppercase pointer pls-color  overflow-grow whitespace-nowrap  ${activeKey == index ? "active text-white" : ""} text-sm`}>
 								<Link 
 									className={activeKey == index ? "text-white" : ""}
 									key={index}

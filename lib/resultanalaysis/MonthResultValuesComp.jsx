@@ -3,7 +3,7 @@ import TableDisplay from '../../components/accessories/TableDisplay'
 const MonthResultValuesComponent = ({ data }) => {
     const columns = [
         { Header: 'date', accessor: 'created_on', Cell: ({ value }) => new Date(value).toLocaleDateString() },
-        { Header: 'field', accessor: 'field' },
+        { Header: 'field', accessor: 'field', isMenu:true },
         { Header: 'value', accessor: 'value' },
         { Header: 'resultby', accessor: 'username' },
     ]

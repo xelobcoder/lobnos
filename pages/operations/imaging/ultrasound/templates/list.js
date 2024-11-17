@@ -10,42 +10,35 @@ import { useApplicationSettings } from "../../../../../components/Auth/useApplic
 
 export default function UltrasoundTemplatesList() {
 	const { applicationsettings } = useApplicationSettings();
-	const { employeeid, } = applicationsettings.user;
+	const { employeeid } = applicationsettings.user;
 
-	if (!employeeid) return null
 	const [isLoading, setLoading] = useState(true);
 	const [templateList, setTemplateList] = useState([]);
 	const [query, setQuery] = useState({ count: 10, page: 1 });
-	const [load, setLoad] = useState(false);
+	const [error, setError] = useState(null);
 
-	const fetchData = async () => {
+	useEffect(() => {
 		if (employeeid) {
-			try {
-				setLoading(true);
-				const data = await customFetch(
-					`result/entry/ultrasound/templates/list?page=${query.page}&count=${query.count}&&employeeid=${employeeid}`
-				);
-				if (Array.isArray(data)) {
-					setTemplateList(data);
+			const fetchData = async () => {
+				try {
+					setLoading(true);
+					const data = await customFetch(
+						`result/entry/ultrasound/templates/list?page=${query.page}&count=${query.count}&employeeid=${employeeid}`
+					);
+					if (Array.isArray(data)) {
+						setTemplateList(data);
+					}
+				} catch (err) {
+					console.error("Error fetching data:", err);
+					setError("Failed to load data.");
+					setTemplateList([]);
+				} finally {
+					setLoading(false);
 				}
-			} catch (err) {
-				console.error("Error fetching data:", err);
-				setTemplateList([]);
-			} finally {
-				setLoading(false);
-			}
+			};
+			fetchData();
 		}
-	};
-
-	useEffect(() => {
-		fetchData();
-	}, [employeeid]);
-
-	useEffect(() => {
-		fetchData()
-	}, [query])
-
-
+	}, [employeeid, query]);
 
 	const columns = [
 		{
@@ -81,11 +74,11 @@ export default function UltrasoundTemplatesList() {
 		},
 	];
 
-	const updateFunction = (value) => { updatePagination(value, setQuery, query) };
+	const updateFunction = (value) => {
+		updatePagination(value, setQuery, query);
+	};
 
-
-
-
+	if (!employeeid) return null;
 
 	if (isLoading) {
 		return (
@@ -97,19 +90,26 @@ export default function UltrasoundTemplatesList() {
 		);
 	}
 
+	if (error) {
+		return <div>Error: {error}</div>;
+	}
+
 	return (
 		<UltrasoundLayout>
-			<div className="">
-				<h5 className=" heightedBorder p-2 my-2 bg-body-secondary">Ultrasound Templates</h5 >
+			<div>
+				<h5 className="heightedBorder p-2 my-2 bg-body-secondary">Ultrasound Templates</h5>
 				<ShowTableCount queryParams={query} setQueryParams={setQuery} />
-				<div style={{ overflowX: 'auto' }}>
-					<TableDisplay column={columns} data={templateList}
+				<div className="table-container">
+					<TableDisplay
+						column={columns}
+						data={templateList}
 						showpage={false}
-						styling='ttable table' />
+						styling="ttable table"
+					/>
 				</div>
 				<div className="d-flex justify-content-center">
 					<Pagination
-						load={setLoad} page={query.page}
+						load={setLoading} page={query.page}
 						updateFunction={updateFunction}
 					/>
 				</div>

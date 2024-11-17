@@ -548,7 +548,6 @@ i {font-size:100px;
 .ttable {
   /* table-layout: fixed; */
   width: 100%;
-  margin-top: 15px;
   border: 1px solid lightgray !important;
   border-collapse: collapse;
   overflow-x: auto;

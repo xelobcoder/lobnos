@@ -9,7 +9,7 @@ const ChangeIcon = (data) => {
     return null;
 };
 
-export default async function ResultAnalysisRow({ item, months, index }) {
+export default  function ResultAnalysisRow({ item, months, index }) {
 
     return (
         <tr key={index}>
@@ -19,7 +19,7 @@ export default async function ResultAnalysisRow({ item, months, index }) {
                 const data = item.data[monthIndex];
                 return (
                     <td key={month}>
-                        <Link href={`/resultanalysis/test/monthcasecount?testid=${item.testid}&&show=allcaseCount&&month=${monthIndex+1}&&duration=month&&expandTarget=${item.testid}`}>
+                        <Link href={`/dashboard/resultanalysis/monthcasecount?testid=${item.testid}&&show=allcaseCount&&month=${monthIndex+1}&&duration=month&&expandTarget=${item.testid}`}>
                             <div className="data-item d-flex justify-content-between text-sm">
                                 <span>{data ? data.casesCount : 0}</span>
                                 <span className={data.state === "positive" ? "text-success" : "text-danger"}>

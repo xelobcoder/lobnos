@@ -1,11 +1,11 @@
-import { useContext, useEffect, useState } from 'react';
+import {  useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import ExpenseLayout from '../../components/Expense/ExpenseLayout';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
-import AuthContext from '../../components/Auth/useAuthentification';
 import Loader from '../../components/accessories/Loader';
 import { useSearchParams } from 'next/navigation';
+import { useApplicationSettings } from '../../components/Auth/useApplicationContext';
 
 const defautExpense = {
   name: '',
@@ -19,7 +19,8 @@ const defautExpense = {
 
 export default function AddNewExpense() {
   const [expense, setExpense] = useState(defautExpense);
-  const { auth } = useContext(AuthContext);
+  const { user } = useApplicationSettings().applicationsettings;
+  const employeeid = user?.employeeid;
   const [paymentmode, setPaymentMode] = useState([]);
   const [isLoading, setLoading] = useState(false);
   const method = useSearchParams().get('action');

@@ -7,6 +7,7 @@ import { customFetch, handleChangeWithState } from "../../../components/Auth/cus
 import TableDisplay from "../../../components/accessories/TableDisplay";
 import Pagination from "../../../components/accessories/pagination";
 import { useRouter } from "next/navigation";
+import Loader from "../../../components/accessories/Loader";
 
 const filterDefault = { page: 1, count: 10 };
 const endpointDefault = `orders/transactions?count=10&&page=1&&paginate=true`;
@@ -28,51 +29,51 @@ export default function SupplysTransactions() {
         setDate({ from: null, end: null });
     }
 
-          const getRange = (values) => {
-              setDate({ from: values[0], end: values[1] })
-          }
+    const getRange = (values) => {
+        setDate({ from: values[0], end: values[1] })
+    }
 
 
 
     useEffect(() => {
         setLoading(true);
-              customFetch(endpoint)
-                              .then((data) => {
-                                        Array.isArray(data) && setData(data);
-                              })
-                              .catch((err) => {
-                                  setData([])
-                                  setLoading(false);
-                              }).finally(() => { setLoading(false) })
-          }, [endpoint])
+        customFetch(endpoint)
+            .then((data) => {
+                Array.isArray(data) && setData(data);
+            })
+            .catch((err) => {
+                setData([])
+                setLoading(false);
+            }).finally(() => { setLoading(false) })
+    }, [endpoint])
 
 
 
-          const columns = [
-                    {
-                              Header: 'Requested By',
-                              accessor: 'requestedby'
-                    },
-                    {
-                              Header: 'Received By',
-                              accessor: 'receivedby'
-                    },
-                    {
-                              Header: 'Order Transaction ID',
-                              accessor: 'orderTransactionid'
-                    },
-                    {
-                              Header: 'Order Date',
-                              accessor: 'orderdate',
-                              Cell: ({ value }) => value ? new Date(value).toLocaleString() : ''
-                    }, {
-                              Header: "details",
-                              accessor: "",
-                              Cell: ({ row }) => <Button
-                                        onClick={(ev) => { router.push(`/supplier/transactions/${row.original.orderTransactionid}`) }}
-                                        variant="primary" className="btn-sm">view details</Button>
-                    }
-          ];
+    const columns = [
+        {
+            Header: 'Requested By',
+            accessor: 'requestedby'
+        },
+        {
+            Header: 'Received By',
+            accessor: 'receivedby'
+        },
+        {
+            Header: 'Order Transaction ID',
+            accessor: 'orderTransactionid'
+        },
+        {
+            Header: 'Order Date',
+            accessor: 'orderdate',
+            Cell: ({ value }) => value ? new Date(value).toLocaleString() : ''
+        }, {
+            Header: "details",
+            accessor: "",
+            Cell: ({ row }) => <Button
+                onClick={(ev) => { router.push(`/supplier/transactions/${row.original.orderTransactionid}`) }}
+                variant="primary" className="btn-sm">view details</Button>
+        }
+    ];
 
 
 
@@ -83,41 +84,43 @@ export default function SupplysTransactions() {
         }
     }
 
-          return <SupplierLayout>
 
+    if (loading) {
+        return (<SupplierLayout><Loader /></SupplierLayout>)
+    }
 
+    return (<SupplierLayout>
+        <Row >
+            <Col className="d-flex col-2">
+                <DateRange /> <DatePickerRange placeholder="select date here" getRange={getRange} start={date.from} end={date.end} />
+            </Col>
+            <Col>
 
-              <Row className="mx-1">
-                              <Col className="d-flex col-2">
-                      <DateRange /> <DatePickerRange placeholder="select date here" getRange={getRange} start={date.from} end={date.end} />
-                              </Col>
-                  <Col>
+                <ButtonGroup>
+                    <Button onClick={filterTransactions} variant="secondary" size="sm">
+                        <Search /> Filter Transactions
+                    </Button>
+                    <Button onClick={clearFilterTransactions} variant="danger" size="sm" >
+                        <Clear /> Clear Filter
+                    </Button>
+                </ButtonGroup>
+            </Col>
+        </Row>
+        <Row className="d-flex justify-content-between mx-1 col-12">
+            <Col>
+                <h6>Transactions</h6>
 
-                      <ButtonGroup>
-                          <Button onClick={filterTransactions} variant="secondary" size="sm">
-                              <Search /> Filter Transactions
-                          </Button>
-                          <Button onClick={clearFilterTransactions} variant="danger" size="sm" >
-                              <Clear /> Clear Filter
-                          </Button>
-                      </ButtonGroup>
-                  </Col>
-                    </Row>
-                    <Row className="d-flex justify-content-between mx-1 col-12">
-                              <Col>
-                                        <h6>Transactions</h6>
+            </Col>
 
-                              </Col>
+        </Row>
+        <Row >
+            <TableDisplay showpage={false} filtering={true} styling={'table ttable'} column={columns} data={data} />
+        </Row>
+        <Row >
 
-                    </Row>
-                    <Row className="mx-1">
-                              <TableDisplay showpage={false} filtering={true} styling={'table ttable'} column={columns} data={data} />
-                    </Row>
-                    <Row className="mx-1">
+            <Col className="col-12 d-flex justify-content-center">
 
-                              <Col className="col-12 d-flex justify-content-center">
-
-                                        <Pagination /></Col>
-                    </Row>
-          </SupplierLayout>
+                <Pagination /></Col>
+        </Row>
+    </SupplierLayout>)
 }

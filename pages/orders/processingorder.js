@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Sampling from "../../components/readyComponents/Sampling";
 import ISLOADING from "../../components/isLoading";
 import { ToastContainer, toast } from "react-toastify";
@@ -6,11 +6,11 @@ import { useRouter } from "next/navigation";
 import {  customFetch, customPost, getSpecificOrder, handleChangeWithState } from "../../components/Auth/customFetch";
 import { useSearchParams } from "next/navigation";
 import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
-import AuthContext from "../../components/Auth/useAuthentification";
+import { useApplicationSettings } from "../../components/Auth/useApplicationContext";
 
 export default function ProcessingOrder() {
-  const { auth } = useContext(AuthContext);
-  const employeeid = auth?.employeeid;
+  const { user } = useApplicationSettings().applicationsettings;
+  const employeeid = user?.employeeid;
   const router = useRouter();
   const [data, setData] = useState({});
   const id = useSearchParams().get('orderid');

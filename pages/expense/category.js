@@ -1,10 +1,10 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ExpenseLayout from "../../components/Expense/ExpenseLayout";
 import { customFetch, customPost } from "../../components/Auth/customFetch";
 import Loader from '../../components/accessories/Loader';
 import { DeleteOutlineRounded } from "@mui/icons-material";
-import AuthContext from "../../components/Auth/useAuthentification";
 import { ToastContainer, toast } from "react-toastify";
+import { useApplicationSettings } from "../../components/Auth/useApplicationContext";
 
 
 export default function ExpenseCategoryCreation() {
@@ -13,8 +13,8 @@ export default function ExpenseCategoryCreation() {
      const [newCategory, setNewCategory] = useState("");
      const [editing, setEditing] = useState(false);
      const [editid, setEditId] = useState(null);
-     const { auth } = useContext(AuthContext);
-     const employeeid = auth?.employeeid;
+     const { user } = useApplicationSettings().applicationsettings;
+     const employeeid = user?.employeeid;
 
 
      useEffect(() => {

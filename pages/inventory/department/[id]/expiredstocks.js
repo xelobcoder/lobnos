@@ -1,15 +1,16 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DepartmentInventoryLayout from "../../../../components/inventory/departments/DepartmentInventoryLayout";
 import Loader from "../../../../components/accessories/Loader";
 import TableDisplay from "../../../../components/accessories/TableDisplay";
 import { useRouter } from "next/router";
 import { customFetch, customPost } from "../../../../components/Auth/customFetch";
 import { ToastContainer, toast } from "react-toastify";
-import AuthContext from "../../../../components/Auth/useAuthentification";
+import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
+
 
 export default function DepartmentExpiredStocks() {
-   const { auth } = useContext(AuthContext);
-   const employeeid = auth?.employeeid;
+   const { user } = useApplicationSettings().applicationsettings;
+   const employeeid = user?.employeeid;
    const [isloading, setisLoading] = useState(true);
    const departmentid = useRouter().query.id;
    const [stocks, setStocks] = useState([]);

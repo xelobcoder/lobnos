@@ -1,22 +1,23 @@
-import { createContext, useContext } from 'react';
+import { createContext} from 'react';
 import { useState } from 'react';
-import AuthContext from '../../components/Auth/useAuthentification';
 import Authorization from '../accessories/authorization';
+import { useApplicationSettings } from '../Auth/useApplicationContext';
 
 const OperationsContext = createContext();
 const OperaProvider = OperationsContext.Provider;
 
 export const OperationsProvider = ({ children }) => {
-    const { auth } = useContext(AuthContext);
+    const { user } = useApplicationSettings().applicationsettings;
+    const employeeid = user?.employeeid;
     const [operationsKey, setOperationsKey] = useState(null);
     const updateOperations = (key) => { setOperationsKey(key); }
     const roles = ['admin', 'manager', 'scientist'];
 
 
     const isAuthorized = () => {
-        if (!roles.includes(auth?.role)) return <Authorization />
+        if (!roles.includes(user?.role)) return <Authorization />
         else return (
-            <OperaProvider value={{ operationsKey, updateOperations, employeeid: auth?.employeeid }} >
+            <OperaProvider value={{ operationsKey, updateOperations, employeeid: employeeid }} >
                 {children}
             </OperaProvider>
         )

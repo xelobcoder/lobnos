@@ -6,6 +6,7 @@ import TableDisplay from "../../../components/accessories/TableDisplay";
 import DocumentModal from "../../../components/operations/Laboratory/DocumentInventoryDeductionLab";
 import { Button } from "react-bootstrap";
 import StockManagementSmallerScreen from "../../../components/operations/Laboratory/stockMangementSmallerScreen";
+import Loader from "../../../components/accessories/Loader";
 
 
 export default function StockManagement() {
@@ -25,9 +26,9 @@ export default function StockManagement() {
      const [selectedDoc, setSelectedDoc] = useState(null);
 
      const columns = [
-          { Header: 'Full Name', accessor: 'fullname' },
+          { Header: 'Full Name', accessor: 'fullname', isMenu: true,   },
           { Header: 'Age', accessor: 'age' },
-          { Header: 'Patient ID', accessor: 'patientid' },
+          { Header: 'Patient ID', accessor: 'patientid', isMenu: true },
           { Header: 'Billing ID', accessor: 'billingid' },
           { Header: 'Billing Date', accessor: 'billing_date', Cell: ({ value }) => (value ? new Date(value).toLocaleString() : 'N/A') },
           { Header: 'Department', accessor: 'department' },
@@ -36,7 +37,7 @@ export default function StockManagement() {
                Header: 'Ascension Date', accessor: 'ascension_date',
                Cell: ({ value }) => (value ? new Date(value).toLocaleString() : 'N/A')
           },
-          { Header: 'Test Name', accessor: 'name' },
+          { Header: 'Test Name', accessor: 'name', isMenu: true,   },
           { Header: 'Approval Status', accessor: 'approvalstatus', Cell: ({ value }) => (value === 1 ? 'Approved' : 'Pending') },
           {
                Header: 'Action',
@@ -64,6 +65,8 @@ export default function StockManagement() {
           getAscensionData('COMPLETED', setAscensionList, queryParams, setIsLoading, employeeid);
      }, []);
 
+
+     if (isLoading) return <Loader />
      return (
           <LaboratoryLayout>
                <h4>Stocks Management</h4>

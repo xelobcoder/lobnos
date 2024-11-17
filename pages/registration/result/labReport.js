@@ -1,20 +1,16 @@
 import { useState, useEffect } from 'react';
 import CompanyHeaders from '../../../components/ResultView/CompanyHeaders';
-import { defaultResultSettings, getResultSettings, readyToPrint } from '../../../components/Auth/customFetch';
-import SamplingInformationResult from '../../../components/ResultView/SamplingInformationResult';
 import PersonalInformation from '../../../components/ResultView/PersonalInformation';
 import { useSearchParams } from 'next/navigation';
-import UseCustomResultTemplating from '../../../components/ResutlUI/useCustomResultTemplating';
-import UseResultCommentSingle from '../../../components/ResutlUI/useResultCommentSingle';
 import UseClinicalLiteratureReview from '../../../components/ResutlUI/UseClinicalLiteratureReview';
 import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
 import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
 import VersionFooter from '../../../components/accessories/VersionFooter';
 import ApplicationHeader from '../../../components/Layout/HeaderNav';
 import { Print } from '@mui/icons-material';
-import { PrintOutDummyData } from './_dummydata';
 import UseCustomResultTemplatingPrintOut from './UseCustomResultTemplatingPrintOut';
 import UseCustomResultCommentsTemplatingPrintOut from './useCustomResultCommentsTemplatingPrintOut';
+import { PrintOutDummyData } from '../../../components/ResultView/_dummydata';
 
 export default function RESULT_FOR_PRINTING() {
 	const [loader, setLoader] = useState(false);

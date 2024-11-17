@@ -1,14 +1,14 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Card, Form, Row } from "react-bootstrap";
 import { organizationsettings } from "../../lib/testdata/organizationSettings";
 import Loader from "../accessories/Loader";
-import { customFetch, customPost, handleChangeCheck, handleChangeWithState, loadAllTest } from "../Auth/customFetch";
-import AuthContext from "../Auth/useAuthentification";
+import { customPost, handleChangeCheck, handleChangeWithState, loadAllTest } from "../Auth/customFetch";
 import { LoadOrganizationalTest } from "../../lib/billingLib";
+import { useApplicationSettings } from "../Auth/useApplicationContext";
 
 export default function OrganizationSetupSettings({ organizationid }) {
-    const { auth } = useContext(AuthContext);
-    const employeeid = auth?.employeeid;
+    const { user } = useApplicationSettings().applicationsettings;
+    const employeeid = user?.employeeid;
     const [organizationSettings, setOrganizationSettings] = useState(organizationsettings);
     const [testloading, setIsLoadingTest] = useState(false);
     const [previewSavedTestList, setPreviewSavedTestList] = useState(false);
