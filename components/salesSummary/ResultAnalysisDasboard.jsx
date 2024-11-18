@@ -8,6 +8,7 @@ import Link from "next/link";
 import ResultAnalysisSideBar from "../ResutlUI/ResultAnalysis/ResultAnalysisSidebar";
 
 export default function ResultAnalysisDasboardLayout({ children }) {
+     const [testList, setTestList] = useState([]);
      const router = useRouter();
      const targetKey = useSearchParams().get("targetKey");
      const [activeKey, setActiveKey] = useState(null);
@@ -32,6 +33,18 @@ export default function ResultAnalysisDasboardLayout({ children }) {
      ];
 
 
+     async function fetchTestData() {
+          try {
+               const response = await customFetch("testpanel/list");
+               setTestList(response?.data || []);
+          } catch {
+               setTestList([]);
+          }
+     }
+
+     useEffect(() => { fetchTestData(); }, [])
+
+
      return (
           <MainLayout sideLinks={sidebarLinks}>
                <div className="d-flex flex-column flex-lg-row">
@@ -49,7 +62,7 @@ export default function ResultAnalysisDasboardLayout({ children }) {
                                    </ListGroup.Item>
                               ))}
                          </ListGroup> */}
-                         <ResultAnalysisSideBar />
+                         <ResultAnalysisSideBar data={testList} />
                     </div>
                     <div className="col-12 col-lg-10 p-2" >
                          {children}

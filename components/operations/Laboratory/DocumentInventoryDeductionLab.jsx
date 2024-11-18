@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, ListGroup } from "react-bootstrap";
-import PreviewTestInformation from "../../inventory/LimsConnection/PreviewTestInformation";
 import { fetchTestTemplate } from "../../inventory/LimsConnection/lib";
 import InventoryStockFiltering from "../../inventory/LimsConnection/InventoryStockFiltering";
 import { Add } from "@mui/icons-material";
+import PreviewTestInformation from "./PreviewTestInformation";
 
 const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
      const [templates, setTemplates] = useState([]);

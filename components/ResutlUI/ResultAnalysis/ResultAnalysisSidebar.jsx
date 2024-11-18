@@ -170,6 +170,7 @@ export default function ResultAnalysisSideBar() {
                 width: "280px",
                 // height: "100vh",
                 backgroundColor: "#1e1f23",
+                // backgroundColor: "#0d6efd",
                 color: "#d1d5db",
                 padding: "10px",
                 borderRight: "1px solid #2c2f33",

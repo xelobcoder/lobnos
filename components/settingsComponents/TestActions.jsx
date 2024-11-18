@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { generateRandomTextAndNumbers } from "../Auth/customFetch";
+import { useApplicationSettings } from "../Auth/useApplicationContext";
+
 
 const TestActions = ({ id, row, deleteCustomTest }) => {
+    const { services } = useApplicationSettings().applicationsettings;
     const { name } = row.original;
     const randomText = generateRandomTextAndNumbers(70);
+
     return (
         <div className="pointer">
             <Link href={`/settings/testpanel/testlist/${id}`} className="border-bottom border-primary text-primary">
@@ -15,9 +19,11 @@ const TestActions = ({ id, row, deleteCustomTest }) => {
             <Link href={`/settings/testpanel/testlist/procedure/${id}`} className="border-bottom border-primary text-primary mx-2">
                 Add Manual
             </Link>
-            <Link href={`/inventory/autoLaboratorydeductions?testid=${randomText}${row.original.id}`} className="border-bottom mx-2 border-primary text-primary">
-                Inventory Template
-            </Link>
+            {services.
+                isConnectedInventory == 1 &&
+                <Link href={`/inventory/autoLaboratorydeductions?testid=${randomText}${row.original.id}`} className="border-bottom mx-2 border-primary text-primary">
+                    Inventory Template
+                </Link>}
             <span className='border-danger border-bottom text-danger' onClick={() => deleteCustomTest(row.original)}>
                 Drop Test
             </span>

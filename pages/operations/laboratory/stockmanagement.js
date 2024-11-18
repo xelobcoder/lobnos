@@ -4,13 +4,27 @@ import { getAscensionData } from "../../../components/operations/Laboratory/Lib"
 import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
 import TableDisplay from "../../../components/accessories/TableDisplay";
 import DocumentModal from "../../../components/operations/Laboratory/DocumentInventoryDeductionLab";
-import { Button } from "react-bootstrap";
+import { Alert, Button } from "react-bootstrap";
 import StockManagementSmallerScreen from "../../../components/operations/Laboratory/stockMangementSmallerScreen";
 import Loader from "../../../components/accessories/Loader";
 
 
 export default function StockManagement() {
-     const employeeid = useApplicationSettings().applicationsettings.user.employeeid;
+     const { user, services } = useApplicationSettings().applicationsettings;
+     const employeeid = user.employeeid;
+
+     if (services.isConnectedInventory === 0) {
+          return (
+               <LaboratoryLayout>
+                    <Alert className="m-2 p-2 pls-color" dismissible>
+                         <Alert.Heading className="text-capitalize text-sm pls-color">
+                              Inventory services feature not activated
+                         </Alert.Heading>
+                         <hr />
+                    </Alert>
+               </LaboratoryLayout>)
+     }
+
      const [ascensionList, setAscensionList] = useState([]);
      const [isLoading, setIsLoading] = useState(true);
      const [queryParams, setQueryParams] = useState({
@@ -26,7 +40,7 @@ export default function StockManagement() {
      const [selectedDoc, setSelectedDoc] = useState(null);
 
      const columns = [
-          { Header: 'Full Name', accessor: 'fullname', isMenu: true,   },
+          { Header: 'Full Name', accessor: 'fullname', isMenu: true, },
           { Header: 'Age', accessor: 'age' },
           { Header: 'Patient ID', accessor: 'patientid', isMenu: true },
           { Header: 'Billing ID', accessor: 'billingid' },
@@ -37,7 +51,7 @@ export default function StockManagement() {
                Header: 'Ascension Date', accessor: 'ascension_date',
                Cell: ({ value }) => (value ? new Date(value).toLocaleString() : 'N/A')
           },
-          { Header: 'Test Name', accessor: 'name', isMenu: true,   },
+          { Header: 'Test Name', accessor: 'name', isMenu: true, },
           { Header: 'Approval Status', accessor: 'approvalstatus', Cell: ({ value }) => (value === 1 ? 'Approved' : 'Pending') },
           {
                Header: 'Action',
