@@ -540,7 +540,7 @@ i {font-size:100px;
 
 /* Base styles for the table */
 
- .ttable-wrapper {
+ able-wrapper {
   max-width: 50%;
   overflow-x: auto;
 }
@@ -556,7 +556,7 @@ i {font-size:100px;
 
 
 
-.ttable > thead > tr {
+.ttabl.tte > thead > tr {
   border-bottom: 1px solid #e9ecef;
   vertical-align: inherit;
   border-color: inherit;

@@ -13,17 +13,6 @@ export default function StockManagement() {
      const { user, services } = useApplicationSettings().applicationsettings;
      const employeeid = user.employeeid;
 
-     if (services.isConnectedInventory === 0) {
-          return (
-               <LaboratoryLayout>
-                    <Alert className="m-2 p-2 pls-color" dismissible>
-                         <Alert.Heading className="text-capitalize text-sm pls-color">
-                              Inventory services feature not activated
-                         </Alert.Heading>
-                         <hr />
-                    </Alert>
-               </LaboratoryLayout>)
-     }
 
      const [ascensionList, setAscensionList] = useState([]);
      const [isLoading, setIsLoading] = useState(true);
@@ -81,6 +70,17 @@ export default function StockManagement() {
 
 
      if (isLoading) return <Loader />
+     if (services.isConnectedInventory === 0) {
+          return (
+               <LaboratoryLayout>
+                    <Alert className="m-2 p-2 pls-color" dismissible>
+                         <Alert.Heading className="text-capitalize text-sm pls-color">
+                              Inventory services feature not activated
+                         </Alert.Heading>
+                         <hr />
+                    </Alert>
+               </LaboratoryLayout>)
+     }
      return (
           <LaboratoryLayout>
                <h4>Stocks Management</h4>

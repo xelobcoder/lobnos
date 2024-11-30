@@ -7,7 +7,7 @@
     "next": "next dev",
     "start": "next start",
     "build": "next build",
-    "ns": "NODE_ENV=production node server.js",
+    "ns": "next build && node --env-file=.env server.js",
     "build:css": ""
   },
   "dependencies": {
