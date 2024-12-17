@@ -4,6 +4,7 @@ import '../styles/content.css';
 import '../styles/table.css';
 import '../styles/result.css';
 import '../styles/side.css';
+import '../styles/prime-table.css'
 import '../styles/mediaqueries.css'
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 import { ApplicationProvider } from '../components/Auth/useApplicationContext';

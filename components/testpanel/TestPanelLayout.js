@@ -1,9 +1,7 @@
-import React, { useContext, useState } from "react";
-import TestContext from "../../components/testpanel/contextTest";
-import { TestPanelProvider } from "../../components/testpanel/contextTest";
+import React, { useState } from "react";
 import Link from "next/link";
 
-import { AdUnits, AddCardSharp, Bloodtype, Category, DepartureBoard, Forward, PriceChange, Update, UpdateOutlined } from "@mui/icons-material";
+import { AddCardSharp, Bloodtype, DepartureBoard, PriceChange } from "@mui/icons-material";
 
 export default function TestPanelLayout({ children }) {
   const [collapse, setCollapse] = useState(true);

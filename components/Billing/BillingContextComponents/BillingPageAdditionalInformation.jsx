@@ -60,6 +60,8 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
                 <label className="pls-label">Referal Type</label>
                 <div >
                   <Select
+                    className="react-select-container"
+                    classNamePrefix="react-select"
                     isDisabled={billingdata.billingSource == 2}
                     value={{ label: billingdata.type, value: billingdata.type }}
                     onChange={(selectedOption) => updateBilling({ ...billingdata, type: selectedOption.value })}
@@ -71,6 +73,8 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
               <div>
                 <label className="pls-label text-sm">Select Urgency</label>
                 <Select
+                  className="react-select-container"
+                  classNamePrefix="react-select"
                   value={{ label: billingdata.status, value: billingdata.status }}
                   onChange={(selectedOption) => updateBilling({ ...billingdata, status: selectedOption.value })}
                   options={urgencyOptions}
@@ -80,6 +84,8 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
               <div>
                 <label className="pls-label text-sm">Organization Name</label>
                 <Select
+                  className="react-select-container"
+                  classNamePrefix="react-select"
                   isDisabled={billingdata.type != "organization" || billingdata.billingSource == 2}
                   placeholder="Search organization here"
                   onChange={(newValue) => {
@@ -95,6 +101,8 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
               <div >
                 <label className="pls-label text-sm" >Select Clinician</label>
                 <Select
+                  className="react-select-container"
+                  classNamePrefix="react-select"
                   isDisabled={billingdata.type != "clinician"}
                   placeholder="Search clinician"
                   getOptionLabel={(option) => option.name}
@@ -109,6 +117,8 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
               <div className="form-group">
                 <label className="pls-label text-sm">Payment Mode</label>
                 <Select
+                  className="react-select-container"
+                  classNamePrefix="react-select"
                   onChange={(selectedOption) => {
                     updatePaymentMode(selectedOption);
                   }}

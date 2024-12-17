@@ -53,7 +53,9 @@ export default function PatientFiltered({ getSelectedPatient, isDisabled, placeh
   return (
     <div style={{ width: '100%' }}>
       <AsyncSelect
-        styles={reactSelectCustomStyles}
+        // styles={reactSelectCustomStyles}
+        className="react-select-container"
+        classNamePrefix="react-select"
         isClearable={true}
         isLoading={isLoading}
         isDisabled={isDisabled}

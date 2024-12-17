@@ -4,8 +4,8 @@ import VitalSignLineChart from './VitalSignLineChart';
 
 const VitalSignChartModal = ({ show, onHide, vitalSigns, date, generateChartData }) => {
 	return (
-		<Modal show={show} onHide={onHide} size="xl" >
-			<Modal.Header closeButton className=' bg-secondary-subtle fw-bold br-0'>
+		<Modal show={show} onHide={onHide} size="fullscreen" >
+			<Modal.Header closeButton className=' bg-body-secondary fw-bold br-0'>
 				<Modal.Title>Vital Sign Charts for {date}</Modal.Title>
 			</Modal.Header>
 			<Modal.Body>

@@ -103,13 +103,14 @@ export default function IndexPageOutsource() {
 
 
     const Loading = <div className="container">Loading data.....................</div>
+
     return (
         <MainSettingsLayoutView>
             {isLoading ? Loading : (<section>
-                <div>
+                <div className=" col-lg-3">
                     <input type="text" className="custom-input h-40" placeholder="Filter here" />
                 </div>
-                <TableDisplay column={columns} data={organization} filtering={false} showpage={false} exporters={false} />
+                {organization.length > 0 && <TableDisplay column={columns} data={organization} filtering={false} showpage={false} exporters={false} />}
             </section>)}
 
         </MainSettingsLayoutView>

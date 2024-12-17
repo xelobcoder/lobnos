@@ -51,9 +51,9 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
             {patientid && iNewChart == 1 && (
                 <div className="my-2">
                     <h5>Vital Signs Measurement</h5>
-                    <form method="POST" className="p-3 bg-light br-0 heightedBorder">
+                    <form method="POST" className="p-3 bg-body-secondary br-0 heightedBorder">
                         <div className="grid-reg">
-                            <label>Blood Pressure</label>
+                            <label className="pls-label">Blood Pressure</label>
                             <div className="d-flex flex-wrap">
                                 <div className="col-12 col-md-6 mb-2">
                                     <input
@@ -78,7 +78,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                             </div>
                         </div>
                         <div className="grid-reg mt-2">
-                            <label>Temperature</label>
+                            <label className="pls-label">Temperature</label>
                             <div className="col-12 col-md-2 mb-2">
                                 <input
                                     min={0}
@@ -93,7 +93,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                             </div>
                         </div>
                         <div className="grid-reg mt-2">
-                            <label>Pulse</label>
+                            <label className="pls-label">Pulse</label>
                             <div className="col-12 col-md-2 mb-2">
                                 <input
                                     className="custom-input w-100"
@@ -106,7 +106,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                             </div>
                         </div>
                         <div className="grid-reg mt-2">
-                            <label>Respiration</label>
+                            <label className="pls-label">Respiration</label>
                             <div className="col-12 col-md-2 mb-2">
                                 <input
                                     className="custom-input w-100"
@@ -119,7 +119,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                             </div>
                         </div>
                         <div className="grid-reg mt-2">
-                            <label>Spo2</label>
+                            <label className="pls-label">Spo2</label>
                             <div className="col-12 col-md-2 mb-2">
                                 <input
                                     min={0}

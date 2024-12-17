@@ -111,6 +111,8 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
                 <Select
                   isDisabled={isloading}
                   options={regionOptions}
+                  className="react-select-container"
+                  classNamePrefix="react-select"
                   value={regionOptions.find(option => option.value === data.region)}
                   onChange={(option) => {
                     setData({
@@ -120,7 +122,7 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
                       districtName: ''
                     });
                   }}
-                  styles={customStyles}
+                  // styles={customStyles}
                 />
               }
             />
@@ -135,6 +137,8 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
                 <Select
                   isDisabled={isloading || !data.region}
                   options={districtOptions}
+                  className="react-select-container"
+                  classNamePrefix="react-select"
                   value={selectedDistrict}
                   onChange={(option) => {
                     setData({
@@ -143,7 +147,7 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
                       districtName: option ? option.label : ''
                     });
                   }}
-                  styles={customStyles}
+                  // styles={customStyles}
                 />
               }
             />

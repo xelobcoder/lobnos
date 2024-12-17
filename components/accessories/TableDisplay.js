@@ -6,6 +6,7 @@ import { ViewColumn } from '@mui/icons-material';
 import ExcelFilteringLike from './ExcelFilteringLike';
 import ShowTableCount from '../operations/Laboratory/ShowCountTable';
 
+
 export default function TableDisplay({
 	exporters = true,
 	showpage = false,
@@ -253,8 +254,8 @@ console.log(hiddenColumns)
 					</div>
 				</div>
 			)}
-			<div className="card-body p-0 m-0" style={{ overflowX: 'auto' }}>
-				<table {...props} {...getTableProps()} className='table '>
+			<div className="bt-wrapper card-body p-0 m-0" style={{ overflowX: 'auto' }}>
+				<table {...props} {...getTableProps()} className='table bt'>
 					<thead className='table-secondary'>{customHeaderGroup()}</thead >
 					{hasColumnFiltering && <thead>{additionalTableHeader(column)}</thead>}
 					<tbody {...getTableBodyProps()}>

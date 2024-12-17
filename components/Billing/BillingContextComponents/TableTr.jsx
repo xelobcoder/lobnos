@@ -111,8 +111,11 @@ export default function TrTable({ toast }) {
     else if (OutsourcingCompaniesList.length > 0 && !loadingOutsource && selected?.isoutsourced == 1) {
       return (<div >
         <Select
+          className="react-select-container"
+          classNamePrefix="react-select"
           options={options}
           onChange={handleSelectChange}
+          
           placeholder="Select outsouring org"
         />
       </div>)
@@ -134,8 +137,9 @@ export default function TrTable({ toast }) {
     <tr >
       <td colSpan={'sm-4'}>
         <Select
-          className=""
           options={billingdata.testpanels}
+          className="react-select-container"
+          classNamePrefix="react-select"
           getOptionLabel={(option) => option.name}
           getOptionValue={(option) => option.id}
           styles={{ container: (base) => ({ ...base, width: "100%" }) }}

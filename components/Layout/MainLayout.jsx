@@ -57,7 +57,7 @@ export default function MainLayout({ children, sideLinks }) {
 				toggleSubLinks={toggleSubLinks}
 			/>
 			<main>
-				<div className="bg-white ">
+				<div className="p-3">
 					{children}
 				</div>
 			</main>

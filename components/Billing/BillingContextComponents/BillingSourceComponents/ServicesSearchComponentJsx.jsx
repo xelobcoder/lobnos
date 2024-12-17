@@ -35,6 +35,8 @@ export default function ServicesSearchComponent({ updatefunction }) {
                     onChange={(newValue) => {
                         setSelectedServices(newValue);
                     }}
+                    className="react-select-container"
+                    classNamePrefix="react-select"
                     options={servicesList}
                     getOptionLabel={(option) => option.label}
                     getOptionValue={(option) => option.keyid}

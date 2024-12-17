@@ -42,7 +42,6 @@ export default function AdditionalServicesPage() {
                 setEditServiceId(null);
             } else {
                 const response = await customPost("billing/services", 'POST', { ...service, employeeid });
-                console.log(response);
                 fetchServices(setServicesList);
             }
         } else {
@@ -64,7 +63,6 @@ export default function AdditionalServicesPage() {
         if (response.status) {
             setServicesList((prevList) => prevList.filter((item) => item.keyid !== serviceId));
         }
-        console.log(response);
     };
 
     const columns = [
@@ -101,6 +99,7 @@ export default function AdditionalServicesPage() {
         fetchServices(setServicesList);
     }, []);
 
+    console.log(servicesList)
     return (
         <MainSettingsLayoutView>
             <div className="p-2">
@@ -139,7 +138,7 @@ export default function AdditionalServicesPage() {
                     </div>
                 </form>
                 <div style={{overflowX:'auto'}}>
-                    <TableDisplay column={columns} data={servicesList} showpage={false} filtering={true} />
+                    {servicesList.length > 0 && <TableDisplay column={columns} data={servicesList} showpage={false} filtering={true} />}
                 </div>
             </div>
         </MainSettingsLayoutView>

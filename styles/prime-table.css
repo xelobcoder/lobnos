@@ -1,0 +1,183 @@
+.bt-wrapper {
+  border-radius: 8px;
+  background-color: #FFFFFF;
+  overflow-x: auto;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body[data-bs-theme="dark"] .bt-wrapper {
+  background-color: #1E1E2E;
+}
+
+.bt-wrapper .bt {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #FFFFFF;
+  border-radius: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #D7E2E6;
+  overflow: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  margin: 0;
+  padding: 0;
+}
+
+body[data-bs-theme="dark"] .bt-wrapper .bt {
+  background-color: #2B2B3A;
+  border: 1px solid #3E3E4E;
+  box-shadow: none;
+}
+
+.bt-wrapper .bt th, .bt-wrapper .bt td {
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 13px;
+  vertical-align: middle;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  white-space: nowrap;
+}
+
+.bt-wrapper .bt th {
+  background-color: #F7F8FB;
+  color: #2C3E50;
+  font-weight: 600;
+  border-bottom: 2px solid #D7E2E6;
+  animation: headerAnimation 0.5s ease-in-out;
+}
+
+body[data-bs-theme="dark"] .bt-wrapper .bt th {
+  background-color: #3B3B4F;
+  color: #E1E1FF;
+  border-bottom: 2px solid #4E4E6A;
+}
+
+.bt-wrapper .bt td {
+  border-bottom: 1px solid #D7E2E6;
+  color: #242930;
+}
+
+body[data-bs-theme="dark"] .bt-wrapper .bt td {
+  border-bottom: 1px solid #3E3E4E;
+  color: #C9C9DD;
+}
+
+.bt-wrapper .bt tbody tr:nth-child(even) {
+  background-color: #F9FAFB;
+}
+
+body[data-bs-theme="dark"] .bt-wrapper .bt tbody tr:nth-child(even) {
+  background-color: #29293B;
+}
+
+.bt-wrapper .bt tbody tr:nth-child(odd) {
+  background-color: #FFFFFF;
+}
+
+body[data-bs-theme="dark"] .bt-wrapper .bt tbody tr:nth-child(odd) {
+  background-color: #2B2B3A;
+}
+
+.bt-wrapper .bt tbody tr:hover {
+  background-color: #D1E8FF;
+}
+
+body[data-bs-theme="dark"] .bt-wrapper .bt tbody tr:hover {
+  background-color: #4A4A69;
+}
+
+.bt-wrapper .bt .status-positive {
+  color: #28A745;
+  background-color: #DFF2D8;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+body[data-bs-theme="dark"] .bt-wrapper .bt .status-positive {
+  color: #81D49D;
+  background-color: #1A3B2A;
+}
+
+.bt-wrapper .bt .status-negative {
+  color: #E53E3E;
+  background-color: #F9D7D7;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+body[data-bs-theme="dark"] .bt-wrapper .bt .status-negative {
+  color: #F28C8C;
+  background-color: #3B2323;
+}
+
+.bt-wrapper .bt .status-neutral {
+  color: #FFC107;
+  background-color: #FFF9D7;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+body[data-bs-theme="dark"] .bt-wrapper .bt .status-neutral {
+  color: #E7C77E;
+  background-color: #3E3B27;
+}
+
+.bt-wrapper th.pointer {
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+body[data-bs-theme="dark"] .bt-wrapper th.pointer {
+  background-color: #3B3B4F;
+}
+
+.bt-wrapper th.pointer.sorted-asc,
+.bt-wrapper th.pointer.sorted-desc {
+  background-color: #D1E8FF;
+}
+
+body[data-bs-theme="dark"] .bt-wrapper th.pointer.sorted-asc,
+body[data-bs-theme="dark"] .bt-wrapper th.pointer.sorted-desc {
+  background-color: #4A4A69;
+}
+
+.bt-wrapper tbody tr {
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.bt-wrapper tbody tr.sorting {
+  background-color: #D1E8FF;
+  transform: scale(1.02);
+}
+
+body[data-bs-theme="dark"] .bt-wrapper tbody tr.sorting {
+  background-color: #4A4A69;
+}
+
+.bt-wrapper tbody table.bt tbody td:focus,
+.bt-wrapper table.bt tbody td:active,
+.bt-wrapper table.bt tbody td:hover {
+  border: 2px solid #087AD1;
+  background-color: #D1E8FF;
+}
+
+body[data-bs-theme="dark"] .bt-wrapper tbody table.bt tbody td:focus,
+body[data-bs-theme="dark"] .bt-wrapper table.bt tbody td:active,
+body[data-bs-theme="dark"] .bt-wrapper table.bt tbody td:hover {
+  border: 2px solid #6A86C6;
+  background-color: #4A4A69;
+}
+
+@media (max-width: 768px) {
+  .bt-wrapper .bt {
+    table-layout: auto;
+  }
+  .bt-wrapper {
+    border: 1px solid lightgray;
+  }
+
+  body[data-bs-theme="dark"] .bt-wrapper {
+    border: 1px solid #4E4E6A;
+  }
+}

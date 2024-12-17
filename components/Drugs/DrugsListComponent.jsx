@@ -72,31 +72,33 @@ export default function DrugsListPLSMASTER({ resetEditDrug, handleEditDrug, }) {
                     <Refresh />
                 </button>
             </div>
-            <Table className='ttable' >
-                <thead>
-                    <tr>
-                        <th>Drug Name</th>
-                        <th>Category</th>
-                        <th>Created By</th>
-                        <th>Added On</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {Array.isArray(drugs) && drugs.length > 0 && drugs.map((drug, index) => (
-                        <tr key={index}>
-                            <td style={{fontSize:'13px'}} >{drug.drug}</td>
-                            <td style={{fontSize:'13px'}} >{drug.categoryName}</td>
-                            <td style={{fontSize:'13px'}} >{drug.createdBy}</td>
-                            <td style={{fontSize:'13px'}} >{formatDate(drug.addedOn)}</td>
-                            <td style={{fontSize:'13px'}} >
-                                <Button variant="warning" size="sm" onClick={() => handleEditDrug(drug)}>Edit</Button>{' '}
-                                <Button variant="danger" size="sm" onClick={() => handleDelete(drug.id)}>Delete</Button>
-                            </td>
+            <div className='bt-wrapper'>
+                <Table className=' bt' >
+                    <thead>
+                        <tr>
+                            <th>Drug Name</th>
+                            <th>Category</th>
+                            <th>Created By</th>
+                            <th>Added On</th>
+                            <th>Actions</th>
                         </tr>
-                    ))}
-                </tbody>
-            </Table>
+                    </thead>
+                    <tbody>
+                        {Array.isArray(drugs) && drugs.length > 0 && drugs.map((drug, index) => (
+                            <tr key={index}>
+                                <td style={{ fontSize: '13px' }} >{drug.drug}</td>
+                                <td style={{ fontSize: '13px' }} >{drug.categoryName}</td>
+                                <td style={{ fontSize: '13px' }} >{drug.createdBy}</td>
+                                <td style={{ fontSize: '13px' }} >{formatDate(drug.addedOn)}</td>
+                                <td style={{ fontSize: '13px' }} >
+                                    <Button variant="warning" size="sm" onClick={() => handleEditDrug(drug)}>Edit</Button>{' '}
+                                    <Button variant="danger" size="sm" onClick={() => handleDelete(drug.id)}>Delete</Button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </Table>
+            </div>
         </div>
     );
 }
