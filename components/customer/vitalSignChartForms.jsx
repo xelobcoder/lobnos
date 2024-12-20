@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { handleChangeWithState } from "../Auth/customFetch";
 import { uploadVitalSign } from "./dataActions/vitalsigns";
-import PatientFiltered from "../accessories/CustomerFiltering";
+import PatientFiltered from "../accessories/SectorFileringComponents/CustomerFiltering";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import { useApplicationSettings } from "../Auth/useApplicationContext";

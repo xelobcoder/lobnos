@@ -1,5 +1,5 @@
 import { BillingPageContextProvider } from "./BillingContext";
-import PatientFiltered from "../../accessories/CustomerFiltering";
+import PatientFiltered from "../../accessories/SectorFileringComponents/CustomerFiltering";
 import RenderingWithPatientIdProvided from "./RenderingWithPatientIdProvided";
 import { useSearchParams, useRouter } from "next/navigation";
 import BillingSourceDeterminer from "./BillingOptionsSource";

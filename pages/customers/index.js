@@ -4,13 +4,10 @@ import { handleActivation } from '../../components/Auth/registerclient';
 import { customFetch, generateRandomTextAndNumbers, parseDate } from '../../components/Auth/customFetch';
 import FrontDeskLayout from '../../components/Layout/FrontDeskLayout';
 import Loader from '../../components/accessories/Loader';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import TableDisplay from '../../components/accessories/TableDisplay';
 import { ToastContainer, toast } from 'react-toastify';
-import { Dropdown } from 'react-bootstrap';
-import PatientFiltered from '../../components/accessories/CustomerFiltering';
+import PatientFiltered from '../../components/accessories/SectorFileringComponents/CustomerFiltering';
 import CustomersActions from '../../components/customer/CustomersActionDropDown';
-import Pagination from '../../components/accessories/pagination';
 
 
 

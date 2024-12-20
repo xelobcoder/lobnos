@@ -7,26 +7,27 @@ const ApplicationResultSettings = dynamic(() => import('../../../components/sett
 const ApplicationEmailPreference = dynamic(() => import('../../../components/settingsComponents/ApplicationSettings/EmailPreference'));
 const SmsApplicationPreferenece = dynamic(() => import('../../../components/settingsComponents/ApplicationSettings/SmsPreferenceSettings'));
 
-
 export default function Settings() {
 	const [key, setKey] = useState("result#settings");
 	return (
 		<MainSettingsLayoutView>
-			<h5 className='fw-bold'>Application settings</h5>
-			<Tabs id='applicationsettings' onSelect={(k) => { setKey(k) }} activeKey={key} >
-				<Tab eventKey="result#settings" title="Result settings">
-					{key === 'result#settings' && <ApplicationResultSettings />}
-				</Tab>
-				<Tab eventKey="application#settings" title="Application settings">
-					{key === 'application#settings' && <ApplicationSettingsComponent />}
-				</Tab>
-				<Tab eventKey='email' title='email preference'>
-					{key === 'email' && <ApplicationEmailPreference />}
-				</Tab>
-				<Tab eventKey='smssettings' title='sms settings'>
-				{key === "smssettings" && 	<SmsApplicationPreferenece />}
-				</Tab>
-			</Tabs>
+			<h5 className='fw-bold mx-2 bg-secondary-subtle p-3 my-3'>Application settings</h5>
+			<div className='mx-2'>
+				<Tabs id='applicationsettings' onSelect={(k) => { setKey(k) }} activeKey={key} >
+					<Tab eventKey="result#settings" title="Result settings">
+						{key === 'result#settings' && <ApplicationResultSettings />}
+					</Tab>
+					<Tab eventKey="application#settings" title="Application settings">
+						{key === 'application#settings' && <ApplicationSettingsComponent />}
+					</Tab>
+					<Tab eventKey='email' title='Email preference'>
+						{key === 'email' && <ApplicationEmailPreference />}
+					</Tab>
+					<Tab eventKey='smssettings' title='SMS Settings'>
+						{key === "smssettings" && <SmsApplicationPreferenece />}
+					</Tab>
+				</Tabs>
+			</div>
 		</MainSettingsLayoutView>
 	);
 }

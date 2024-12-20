@@ -1,10 +1,8 @@
 import { AssignmentInd, House, Payment } from "@mui/icons-material";
 import MainLayout from "../Layout/MainLayout";
-import { ListGroup } from "react-bootstrap";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FinancialDataKeys } from "./FinancialSummaryKeys";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import ResultAnalysisSideBar from "../ResutlUI/ResultAnalysis/ResultAnalysisSidebar";
 
 export default function ResultAnalysisDasboardLayout({ children }) {

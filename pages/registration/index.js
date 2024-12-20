@@ -7,8 +7,7 @@ import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 import Addressing from "../../components/registration/Addressing";
 import EmmergencyContactInformation from "../../components/registration/EmmergencyContactInformation";
 import { useRouter, useSearchParams } from "next/navigation";
-import PatientFiltered from "../../components/accessories/CustomerFiltering";
-
+import PatientFiltered from '../../components/accessories/SectorFileringComponents/CustomerFiltering'
 export default function RegistrationForm() {
     const { personalInformation, addressingInformation, emmergencyInformation } = patientRegistrationDefaultData;
     const [fields, setFields] = useState(patientRegistrationDefaultData);
