@@ -9,7 +9,7 @@ import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { ToastContainer, toast } from 'react-toastify';
 
 
-const initialState: SmsTemplateFormState = {
+export const initialState: SmsTemplateFormState = {
      templateName: "",
      smscontent: "",
      placeholders: [],

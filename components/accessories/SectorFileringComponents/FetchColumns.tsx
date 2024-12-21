@@ -24,7 +24,6 @@ export default function ColumnPlaceHolder({ category, isSMS, onSelect }: { categ
                          } else {
                               setColumns([])
                          }
-                         console.log(data)
                     } catch (err) {
                          setError("Failed to fetch columns");
                     } finally {

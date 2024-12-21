@@ -15,6 +15,7 @@ export async function customFetch(endpoint) {
 				"Content-Type": "application/json",
 				"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0"
 			},
+			cache: 'no-store'
 		})
 		const source = await response.json()
 		const { status, message } = source

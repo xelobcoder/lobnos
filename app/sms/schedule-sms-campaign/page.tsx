@@ -1,115 +1,159 @@
-"use client"
-import React, { useState } from 'react';
-import { Dropdown, DropdownButton } from 'react-bootstrap';
-import PatientFiltered from '../../../components/accessories/SectorFileringComponents/CustomerFiltering';
-import { Container } from 'react-bootstrap';
-import { SmsCategoryType, SmsSmsCategoryData } from '../../../components/sms/SmsInterfaces';
+"use client";
+import { Container } from "react-bootstrap";
+import { useSmsHandlers } from "../../../components/sms/ScheduleSMSCampaign";
+import { SmsSmsCategoryData } from "../../../components/sms/SmsInterfaces";
+import Select, { GroupBase } from 'react-select';
+import { reactSelectCustomStyles } from "../../../components/Auth/customFetch";
+import TemplateFiltering from "../../../components/accessories/SectorFileringComponents/TemplateFiltering";
+import SmsCategoryFiltering from "../../../components/accessories/SectorFileringComponents/SmsCategoryFiltering";
 
-
-
-type Recipient = {
+export type Recipient = {
      mobile_number: string;
      firstname: string;
      middlename?: string;
      lastname: string;
 };
 
+export type frequencyOptionsTypes = {
+     label: string;
+     value: string;
+};
+
+const frequencyOptions: frequencyOptionsTypes[] = [
+     { label: 'One-time', value: 'one-time' },
+     { label: 'Daily', value: 'daily' },
+     { label: 'Weekly', value: 'weekly' },
+     { label: 'Monthly', value: 'monthly' },
+];
 
 export default function ScheduleSmsCampaign() {
-     const [message, setMessage] = useState<string>('');
-     const [selectedRecipients, setSelectedRecipients] = useState<Recipient[]>([]);
-     const [recipients, setRecipients] = useState<string>('');
-     const [sender, setSender] = useState<string>('');
-     const [scheduledDate, setScheduledDate] = useState<string>('');
-     const [scheduledTime, setScheduledTime] = useState<string>('');
-     const [useCase, setUseCase] = useState<string>('transactional');
-     const [selectedCategory, setSelectedCategory] = useState<SmsCategoryType | undefined>(SmsSmsCategoryData.find((c) => c.value === 'clients'));
+     const {
+          message,
+          setMessage,
+          selectedRecipients,
+          recipients,
+          setRecipients,
+          sender,
+          setSender,
+          scheduledDate,
+          setScheduledDate,
+          scheduledTime,
+          setScheduledTime,
+          useCase,
+          setUseCase,
+          selectedCategory,
+          setSelectedCategory,
+          handleSubmit,
+          clearRecipients,
+          frequency,
+          setFrequency,
+          setMessageFormat,
+          handleMessageFormat,
+          endDate,
+          messageFormat,
+          handleSelectedTemplateToUse,
+          setEndDate,
+          isClient
+     } = useSmsHandlers();
 
-     const handleSubmit = (e: React.FormEvent) => {
-          e.preventDefault();
 
-          const now = new Date();
-          const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
-
-          if (scheduledDateTime <= now) {
-               alert('Scheduled date and time must be in the future.');
-               return;
-          }
-
-          const data = {
-               message,
-               recipients: recipients.split(',').map((r) => r.trim()),
-               sender,
-               scheduled_date: `${scheduledDate} ${scheduledTime}`,
-               use_case: useCase,
-               category: selectedCategory ? selectedCategory.value : null,
-          };
-
-          console.log('SMS Campaign Scheduled:', data);
-     };
-
-     const handleFilteredClient = (value: Recipient) => {
-          if (value && !selectedRecipients.some((recipient) => recipient.mobile_number === value.mobile_number)) {
-               setSelectedRecipients([...selectedRecipients, value]);
-          }
-     };
-
-     const clearRecipients = () => {
-          setSelectedRecipients([]);
-     };
-
+     console.log(messageFormat)
      return (
           <Container fluid>
-               <h3 className="text-decoration-underline border-1">Schedule SMS Campaign</h3>
+               <div className="d-flex justify-content-between my-2">
+                    <h5 className="text-decoration-underline border-1">Schedule SMS Campaign</h5>
+                    <div>
+                         <span className="rounded bg-success-subtle p-2">
+                              {messageFormat.isTemplate ? 'using sms template' : "create a message"}
+                         </span>
+                    </div>
+               </div>
                <div className="d-flex justify-content-lg-between">
                     <div className="col-9">
                          <form onSubmit={handleSubmit} className="col-11">
-                              <div className="grid-reg my-3 d-flex">
-                                   <div>
-                                        <label htmlFor="category" className="form-label">
-                                             Recipients Category
-                                        </label>
-                                   </div>
-                                   <div className="d-flex col-10">
-                                        <div className="col-4">
-                                             <DropdownButton
-                                                  id="category-dropdown"
-                                                  variant="light"
-                                                  title={selectedCategory ? selectedCategory.label : "Select Category"}
-                                                  onSelect={(key) => {
-                                                       const category = SmsSmsCategoryData.find((cat) => cat.value === key);
-                                                       setSelectedCategory(category);
-                                                  }}
-                                             >
-                                                  {SmsSmsCategoryData.map((category) => (
-                                                       <Dropdown.Item key={category.value} eventKey={category.value}>
-                                                            {category.label}
-                                                       </Dropdown.Item>
-                                                  ))}
-                                             </DropdownButton>
-                                        </div>
-                                        <div className="mx-2 col-8">
-                                             <PatientFiltered
-                                                  getSelectedPatient={handleFilteredClient}
-                                                  isDisabled={selectedCategory?.isBulk || false}
-                                             />
-                                        </div>
-                                   </div>
+                              <div className="grid-reg my-3">
+                                   <label htmlFor="category" className="form-label">
+                                        Recipients Category
+                                   </label>
+                                   {
+                                        !isClient ? <div>loading....</div> : <Select
+                                             id="category-dropdown"
+                                             options={SmsSmsCategoryData}
+                                             value={selectedCategory}
+                                             styles={reactSelectCustomStyles}
+                                             onChange={(category) => setSelectedCategory(category as any)}
+                                             getOptionLabel={(category) => category.label}
+                                             getOptionValue={(category) => category.value}
+                                             placeholder="Select Category"
+                                             required={true}
+                                        />
+                                   }
                               </div>
 
+                              <div className="grid-reg my-3">
+                                   <label htmlFor="frequency" className="form-label">
+                                        Frequency
+                                   </label>
+                                   {
+                                        !isClient ? <div>loading....</div> : <Select
+                                             styles={reactSelectCustomStyles}
+                                             id="frequency-dropdown"
+                                             options={frequencyOptions}
+                                             value={frequencyOptions.find(option => option.value === frequency)}
+                                             onChange={(selectedOption) => setFrequency((selectedOption as frequencyOptionsTypes).value)}
+                                             getOptionLabel={(option) => option.label}
+                                             getOptionValue={(option) => option.value}
+                                             placeholder="Select Frequency"
+                                             required={true}
+                                        />
+                                   }
+                              </div>
+                              <div className="grid-reg my-3">
+                                   <label>PlaceHolders</label>
+                                   <select className="custom-select" onChange={(ev) => { handleMessageFormat(ev.target.value) }}>
+                                        <option>select any</option>
+                                        <option value={'template'}>Use template created</option>
+                                        <option value={'custom'}>
+                                             Normal Message or custom template
+                                        </option>
+                                   </select>
+                              </div>
+                              {
+                                   messageFormat.isTemplate && <div className="grid-reg my-3">
+                                        <label className="form-label ">
+                                             select template
+                                        </label>
+                                        <div>
+                                             <TemplateFiltering onSelect={handleSelectedTemplateToUse} />
+                                        </div>
+                                   </div>
+                              }
                               <div className="grid-reg my-3">
                                    <label htmlFor="message" className="form-label">
                                         Message
                                    </label>
-                                   <textarea
-                                        className="form-control"
-                                        id="message"
-                                        rows={4}
-                                        value={message}
-                                        onChange={(e) => setMessage(e.target.value)}
-                                        placeholder="Enter SMS message"
-                                        maxLength={160}
-                                   />
+                                   {
+                                        messageFormat.isTemplate ?
+
+                                             (<div className="alert alert-light pls-color">
+                                                  {messageFormat.content}
+                                             </div>)
+                                             :
+                                             <textarea
+                                                  className="form-control pls-color"
+                                                  id="message"
+                                                  rows={4}
+                                                  disabled={messageFormat.isTemplate}
+                                                  value={message}
+                                                  onChange={(e) => {
+                                                       setMessageFormat({ ...messageFormat, content: e.target.value, isTemplate: false })
+                                                  }}
+                                                  placeholder="Enter SMS message"
+                                                  maxLength={160}
+                                                  required
+                                             />
+                                   }
+
                               </div>
 
                               <div className="grid-reg my-3">
@@ -122,6 +166,7 @@ export default function ScheduleSmsCampaign() {
                                         id="scheduledDate"
                                         value={scheduledDate}
                                         onChange={(e) => setScheduledDate(e.target.value)}
+                                        required
                                    />
                               </div>
 
@@ -135,6 +180,21 @@ export default function ScheduleSmsCampaign() {
                                         id="scheduledTime"
                                         value={scheduledTime}
                                         onChange={(e) => setScheduledTime(e.target.value)}
+                                        required
+                                   />
+                              </div>
+
+                              <div className="grid-reg my-3">
+                                   <label htmlFor="endDate" className="form-label">
+                                        End Date
+                                   </label>
+                                   <input
+                                        type="date"
+                                        className="custom-input"
+                                        id="endDate"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        required
                                    />
                               </div>
 
@@ -147,6 +207,7 @@ export default function ScheduleSmsCampaign() {
                                         className="custom-input"
                                         value={useCase}
                                         onChange={(e) => setUseCase(e.target.value)}
+                                        required
                                    >
                                         <option value="transactional">Transactional</option>
                                         <option value="marketing">Marketing</option>
@@ -154,12 +215,16 @@ export default function ScheduleSmsCampaign() {
                                    </select>
                               </div>
 
-                              <button type="submit" className="btn btn-primary">
+                              <button type="submit" className="btn btn-primary btn-sm">
                                    Schedule SMS
                               </button>
                          </form>
                     </div>
                     <div className="col-3">
+                         {selectedCategory?.value && isClient && <div className="my-2">
+                              <SmsCategoryFiltering category={selectedCategory?.value} />
+                         </div>
+                         }
                          <div className="card">
                               <div className="d-flex justify-content-between card-header text-muted">
                                    <span>Recipients</span>
@@ -177,7 +242,7 @@ export default function ScheduleSmsCampaign() {
                                                        <span className="mx-2 col-6">
                                                             <input
                                                                  type="checkbox"
-                                                                 style={{ height: '13px' }}
+                                                                 style={{ height: "13px" }}
                                                                  id={`recipient-${index}`}
                                                             />
                                                             <label htmlFor={`recipient-${index}`}>
