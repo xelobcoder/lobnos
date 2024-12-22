@@ -45,7 +45,7 @@ export default function OrganizationFiltering({ onSelect }: OrganizationFilterin
      };
 
      const handleSelectChange = (selectedOption: OrganizationOption) => {
-          onSelect(selectedOption);
+          onSelect(selectedOption?.content);
      };
 
      useEffect(() => {

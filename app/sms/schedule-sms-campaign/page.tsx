@@ -6,12 +6,13 @@ import Select, { GroupBase } from 'react-select';
 import { reactSelectCustomStyles } from "../../../components/Auth/customFetch";
 import TemplateFiltering from "../../../components/accessories/SectorFileringComponents/TemplateFiltering";
 import SmsCategoryFiltering from "../../../components/accessories/SectorFileringComponents/SmsCategoryFiltering";
+import { ToastContainer } from "react-toastify";
+import ScheduledSmsInputs from "../../../components/sms/ScheduledSmsInputs";
 
 export type Recipient = {
-     mobile_number: string;
-     firstname: string;
-     middlename?: string;
-     lastname: string;
+     mobile: string;
+     name: string;
+     id: number;
 };
 
 export type frequencyOptionsTypes = {
@@ -36,6 +37,7 @@ export default function ScheduleSmsCampaign() {
           sender,
           setSender,
           scheduledDate,
+          handleSelectedRecipient,
           setScheduledDate,
           scheduledTime,
           setScheduledTime,
@@ -53,13 +55,16 @@ export default function ScheduleSmsCampaign() {
           messageFormat,
           handleSelectedTemplateToUse,
           setEndDate,
+          isScheduled,
+          setIscheduled,
           isClient
      } = useSmsHandlers();
 
 
-     console.log(messageFormat)
+
      return (
           <Container fluid>
+               <ToastContainer theme="colored" closeButton={true} position="top-center" className={'text-sm'} />
                <div className="d-flex justify-content-between my-2">
                     <h5 className="text-decoration-underline border-1">Schedule SMS Campaign</h5>
                     <div>
@@ -144,7 +149,7 @@ export default function ScheduleSmsCampaign() {
                                                   id="message"
                                                   rows={4}
                                                   disabled={messageFormat.isTemplate}
-                                                  value={message}
+                                                  value={messageFormat.content}
                                                   onChange={(e) => {
                                                        setMessageFormat({ ...messageFormat, content: e.target.value, isTemplate: false })
                                                   }}
@@ -155,49 +160,20 @@ export default function ScheduleSmsCampaign() {
                                    }
 
                               </div>
-
-                              <div className="grid-reg my-3">
-                                   <label htmlFor="scheduledDate" className="form-label">
-                                        Scheduled Date
+                              <div className="grid-reg">
+                                   <label>
+                                        Schedule SMS
                                    </label>
-                                   <input
-                                        type="date"
-                                        className="custom-input"
-                                        id="scheduledDate"
-                                        value={scheduledDate}
-                                        onChange={(e) => setScheduledDate(e.target.value)}
-                                        required
-                                   />
+                                   <input type="checkbox" checked={isScheduled} onChange={(ev) => { setIscheduled(ev.target.checked) }} />
                               </div>
-
-                              <div className="grid-reg my-3">
-                                   <label htmlFor="scheduledTime" className="form-label">
-                                        Scheduled Time
-                                   </label>
-                                   <input
-                                        type="time"
-                                        className="custom-input"
-                                        id="scheduledTime"
-                                        value={scheduledTime}
-                                        onChange={(e) => setScheduledTime(e.target.value)}
-                                        required
-                                   />
-                              </div>
-
-                              <div className="grid-reg my-3">
-                                   <label htmlFor="endDate" className="form-label">
-                                        End Date
-                                   </label>
-                                   <input
-                                        type="date"
-                                        className="custom-input"
-                                        id="endDate"
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                        required
-                                   />
-                              </div>
-
+                              {isScheduled &&
+                                   <ScheduledSmsInputs
+                                        scheduledDate={scheduledDate}
+                                        scheduledTime={scheduledTime}
+                                        setScheduledDate={setScheduledDate} setScheduledTime={setScheduledTime}
+                                        endDate={endDate}
+                                        setEndDate={setEndDate}
+                                   />}
                               <div className="grid-reg my-3">
                                    <label htmlFor="useCase" className="form-label">
                                         Use Case
@@ -222,7 +198,7 @@ export default function ScheduleSmsCampaign() {
                     </div>
                     <div className="col-3">
                          {selectedCategory?.value && isClient && <div className="my-2">
-                              <SmsCategoryFiltering category={selectedCategory?.value} />
+                              <SmsCategoryFiltering onSelect={handleSelectedRecipient} category={selectedCategory?.value} />
                          </div>
                          }
                          <div className="card">
@@ -246,10 +222,10 @@ export default function ScheduleSmsCampaign() {
                                                                  id={`recipient-${index}`}
                                                             />
                                                             <label htmlFor={`recipient-${index}`}>
-                                                                 {item.firstname} {item.middlename} {item.lastname}
+                                                                 {item.name}
                                                             </label>
                                                        </span>
-                                                       <span>{item.mobile_number}</span>
+                                                       <span>{item.mobile}</span>
                                                   </div>
                                              </div>
                                         ))

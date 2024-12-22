@@ -1,5 +1,5 @@
 "use server"
-import { customFetch } from "../Auth/customFetch"
+import { customFetch, customPost } from "../Auth/customFetch"
 export async function filteringDatabaseTables(target: string, filtering: string, column: string, limit: number) {
      try {
           const response = await customFetch(`application/filtering/table/${target}?value=${filtering}&&original=${column}&&limit=${limit}`);
@@ -8,3 +8,11 @@ export async function filteringDatabaseTables(target: string, filtering: string,
           return []
      }
 } 
+
+
+
+
+export async function pushDatabaseResponseForSavingScheduleMessage(data) {
+     const response = await customPost(`sms/schedule/message`, 'POST', data);
+     return response;
+}

@@ -17,8 +17,10 @@ export default function ColumnPlaceHolder({ category, isSMS, onSelect }: { categ
                     setLoading(true);
                     setError(null);
                     const _category = category.toLowerCase().trim()
+                   
                     try {
                          const data = isSMS ? await fetchTableSmsColumns(_category) : await fetchTableColumns(_category);
+                         console.log(category,data)
                          if (Array.isArray(data) && data.length > 0) {
                               setColumns(data);
                          } else {

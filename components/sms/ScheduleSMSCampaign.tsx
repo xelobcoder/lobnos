@@ -2,8 +2,10 @@
 import { useEffect, useState } from "react";
 import { Recipient } from "../../app/sms/schedule-sms-campaign/page";
 import { SmsCategoryType, SmsSmsCategoryData } from "./SmsInterfaces";
+import { toast } from "react-toastify";
+import { pushDatabaseResponseForSavingScheduleMessage } from "../serverActions/ActionFiltering";
 
-const frequencyOptions = ['one-time', 'daily', 'weekly', 'monthly'];
+
 
 export function useSmsHandlers() {
      const [message, setMessage] = useState<string>("");
@@ -20,8 +22,9 @@ export function useSmsHandlers() {
      const [endDate, setEndDate] = useState<string>("");
      const [messageFormat, setMessageFormat] = useState({ isTemplate: false, templateid: null, content: '' });
      const [isClient, setIsClient] = useState(false);
+     const [isScheduled, setIscheduled] = useState(true);
 
-     const handleSubmit = (e: React.FormEvent) => {
+     const handleSubmit = async (e: React.FormEvent) => {
           e.preventDefault();
           const now = new Date();
           const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
@@ -29,21 +32,46 @@ export function useSmsHandlers() {
                alert("Scheduled date and time must be in the future.");
                return;
           }
+
           const data = {
-               message,
-               recipients: recipients.split(",").map((r) => r.trim()),
-               sender,
-               scheduled_date: `${scheduledDate} ${scheduledTime}`,
-               use_case: useCase,
-               category: selectedCategory ? selectedCategory.value : null,
+               isTemplateused: messageFormat.isTemplate,
+               isBulk: selectedCategory?.isBulk === true ? 1 : 0,
+               scheduledDate,
+               scheduledTime,
+               isScheduled,
+               endDate,
+               usecase: useCase,
+               templateid: messageFormat.templateid,
+               templateCategory: selectedCategory?.categorization,
+               receipients: selectedRecipients,
                frequency,
-               end_date: endDate,
-          };
-          console.log("SMS Campaign Scheduled:", data);
+               message: messageFormat.content,
+               isSent: 0,
+          }
+
+          if (data.isTemplateused && (!data.templateid || data.templateid < 0)) {
+               return toast.error(`A template is being used for the message , however the templateid is missing`);
+          }
+
+
+          if (data.isScheduled && (!data.scheduledDate || !data.scheduledTime)) {
+               return toast.error('A date not provided  for a scheduled message');
+          }
+
+          if (data.isBulk == 0 && (
+               Array.isArray(data.receipients) == false || data.receipients.length == 0)
+          ) {
+               return toast.error(`Receipients not added`);
+          }
+
+          const response = await pushDatabaseResponseForSavingScheduleMessage(data);
+
+          console.log(response);
+
      };
 
      const handleFilteredClient = (value: Recipient) => {
-          if (value && !selectedRecipients.some((recipient) => recipient.mobile_number === value.mobile_number)) {
+          if (value && !selectedRecipients.some((recipient) => recipient.mobile === value.mobile)) {
                setSelectedRecipients([...selectedRecipients, value]);
           }
      };
@@ -54,24 +82,25 @@ export function useSmsHandlers() {
 
      const handleSelectedTemplateToUse = (selectedOption: any) => {
           const { content } = selectedOption;
-          if (content && Object.keys(content).length > 0) {
-               setMessageFormat({ templateid: content.templateid, content: content.smscontent, isTemplate: true });
-          }
           let placeholderCategoryArray = content.smscontent.toString().split("{@");
 
           if (Array.isArray(placeholderCategoryArray) && placeholderCategoryArray.length > 0) {
                placeholderCategoryArray = placeholderCategoryArray.filter((item) => item.trim() !== "");
+
                if (placeholderCategoryArray.length > 0) {
                     let placeholder = placeholderCategoryArray[0];
                     placeholder = placeholder.toString().includes(".") ? placeholder.split(".") : "";
                     if (Array.isArray(placeholder) && placeholder.length > 0) {
                          placeholder = placeholder[0];
                     }
-                    console.log(placeholder,selectedCategory);
+                    if (placeholder.trim().toLowerCase() === selectedCategory?.value) {
+                         setMessageFormat({ templateid: content.tempateid, content: content.smscontent, isTemplate: true });
+                    } else {
+                         toast.warning("Template do not match selected category")
+                    }
                }
 
           }
-          console.log(placeholderCategoryArray);
      };
 
      const handleMessageFormat = (value: string) => {
@@ -80,9 +109,50 @@ export function useSmsHandlers() {
           } else {
                setMessageFormat({ templateid: null, content: '', isTemplate: false });
           }
-     };
+     }
 
-     useEffect(() => { setIsClient(true); }, []);
+     const handleSelectedRecipient = (value: any) => {
+          let mobile: string = ''
+          let name: string = ''
+          let id: number = 0;
+
+          if (selectedCategory?.value == "organization") {
+               mobile = value?.mobile;
+               name = value?.name;
+               id = value?.id
+          } else if (selectedCategory?.value == "outsourcing") {
+               mobile = value?.contactNumber;
+               name = value?.name;
+               id = value?.id
+          } else if (selectedCategory?.value === "clients") {
+               mobile = value?.mobile_number;
+               id = value?.patientid;
+               const { firstname, middlename, lastname } = value;
+               name = `${firstname} ${middlename} ${lastname}`
+          } else if (selectedCategory?.value == "clinician") {
+               name = value?.name;
+               mobile = value?.phone
+               id = value?.id
+          } else {
+
+          }
+
+          setSelectedRecipients([...selectedRecipients, { mobile, name,id }])
+     }
+
+
+     useEffect(() => {
+          setIsClient(true);
+     }, []);
+
+
+     const handleMessageSubmission = async () => {
+          // const { frequency, message, isTemplateused, templateid, isScheduled, sheduledDate, scheduledTime, endDate, usecase, isSent, templateCategory, isBulk, receipients } = data;
+
+
+          // console.log(data);
+     }
+
 
      return {
           message,
@@ -90,6 +160,7 @@ export function useSmsHandlers() {
           selectedRecipients,
           setSelectedRecipients,
           recipients,
+          handleSelectedRecipient,
           isClient,
           setRecipients,
           sender,
@@ -110,6 +181,8 @@ export function useSmsHandlers() {
           setEndDate,
           handleSubmit,
           handleFilteredClient,
+          isScheduled,
+          setIscheduled,
           clearRecipients,
           messageFormat,
           handleSelectedTemplateToUse,

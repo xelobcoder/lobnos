@@ -41,7 +41,7 @@ export default function OutsourceOrganizationFiltering({ onSelect }: OutsourceOr
      };
 
      const handleSelectChange = (selectedOption: OutsourceOrganizationOption) => {
-          onSelect(selectedOption);
+          onSelect(selectedOption?.content);
      };
 
      useEffect(() => {

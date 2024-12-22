@@ -6,7 +6,7 @@ export type SmsCategoryType = {
 };
 
 export const SmsSmsCategoryData: SmsCategoryType[] = [
-     { isBulk: true, value: 'organizations', label: 'Organizations', categorization: "organization" },
+     { isBulk: true, value: 'organization', label: 'Organizations', categorization: "organization" },
      { isBulk: false, value: 'outsourcing', label: 'Outsourcing organization', categorization: "outsourcing" },
      { isBulk: true, value: 'clinicians', label: 'Clinicians or Health Practitioners', categorization: "clinicians" },
      { isBulk: false, value: 'clients', label: 'Clients', categorization: 'clients' },
@@ -19,10 +19,10 @@ export const SmsSmsCategoryData: SmsCategoryType[] = [
 ];
 
 export const SmsPlaceHolderCategory: Omit<SmsCategoryType, 'isBulk' | "categorization">[] = [
-     { value: 'organizations', label: 'Organizations' },
+     { value: 'organization', label: 'Organizations' },
      { value: 'clinicians', label: 'Clinicians or Health Practitioners' },
      { value: 'staffs', label: 'Staffs' },
-     { value: 'Outsourcing', label: 'Outsourcing organizations' },
+     { value: 'Outsourcing', label: 'Outsourcing organizations'},
      { value: 'Clients', label: 'Clients' },
 ];
 
