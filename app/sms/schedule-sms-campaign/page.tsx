@@ -1,5 +1,5 @@
 "use client";
-import { Container } from "react-bootstrap";
+import { Container, Spinner } from "react-bootstrap";
 import { useSmsHandlers } from "../../../components/sms/ScheduleSMSCampaign";
 import { SmsSmsCategoryData } from "../../../components/sms/SmsInterfaces";
 import Select, { GroupBase } from 'react-select';
@@ -44,7 +44,7 @@ export default function ScheduleSmsCampaign() {
           useCase,
           setUseCase,
           selectedCategory,
-          setSelectedCategory,
+          handleSelectedCategory,
           handleSubmit,
           clearRecipients,
           frequency,
@@ -57,6 +57,7 @@ export default function ScheduleSmsCampaign() {
           setEndDate,
           isScheduled,
           setIscheduled,
+          savingMessage,
           isClient
      } = useSmsHandlers();
 
@@ -86,7 +87,7 @@ export default function ScheduleSmsCampaign() {
                                              options={SmsSmsCategoryData}
                                              value={selectedCategory}
                                              styles={reactSelectCustomStyles}
-                                             onChange={(category) => setSelectedCategory(category as any)}
+                                             onChange={(category) => handleSelectedCategory(category as any)}
                                              getOptionLabel={(category) => category.label}
                                              getOptionValue={(category) => category.value}
                                              placeholder="Select Category"
@@ -191,7 +192,10 @@ export default function ScheduleSmsCampaign() {
                                    </select>
                               </div>
 
-                              <button type="submit" className="btn btn-primary btn-sm">
+                              <button
+                                   disabled={savingMessage}
+                                   type="submit" className="btn btn-primary btn-sm">
+                                   {savingMessage && <Spinner size="sm" />}
                                    Schedule SMS
                               </button>
                          </form>
@@ -205,7 +209,9 @@ export default function ScheduleSmsCampaign() {
                               <div className="d-flex justify-content-between card-header text-muted">
                                    <span>Recipients</span>
                                    <span>
-                                        <button className="btn btn-dark btn-sm" onClick={clearRecipients}>
+                                        <button
+
+                                             className="btn btn-dark btn-sm" onClick={clearRecipients}>
                                              Remove All
                                         </button>
                                    </span>

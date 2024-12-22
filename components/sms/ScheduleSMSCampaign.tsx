@@ -23,8 +23,27 @@ export function useSmsHandlers() {
      const [messageFormat, setMessageFormat] = useState({ isTemplate: false, templateid: null, content: '' });
      const [isClient, setIsClient] = useState(false);
      const [isScheduled, setIscheduled] = useState(true);
+     const [savingMessage, setSavingMessage] = useState<boolean>(false);
+
+
+     const resetForm = () => {
+          setSelectedRecipients([]);
+          setIscheduled(false);
+          setScheduledDate('');
+          setScheduledTime('');
+          setEndDate('');
+          setMessageFormat({ isTemplate: false, templateid: null, content: '' })
+          setFrequency('')
+          setUseCase('')
+     }
+
+     const handleSelectedCategory = (category: SmsCategoryType) => {
+          setSelectedCategory(category);
+          resetForm();
+     }
 
      const handleSubmit = async (e: React.FormEvent) => {
+          setSavingMessage(true);
           e.preventDefault();
           const now = new Date();
           const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
@@ -50,23 +69,36 @@ export function useSmsHandlers() {
           }
 
           if (data.isTemplateused && (!data.templateid || data.templateid < 0)) {
+
+               setSavingMessage(false);
                return toast.error(`A template is being used for the message , however the templateid is missing`);
+
           }
 
 
           if (data.isScheduled && (!data.scheduledDate || !data.scheduledTime)) {
+               setSavingMessage(false);
                return toast.error('A date not provided  for a scheduled message');
+
           }
 
           if (data.isBulk == 0 && (
                Array.isArray(data.receipients) == false || data.receipients.length == 0)
           ) {
+               setSavingMessage(false);
                return toast.error(`Receipients not added`);
+
           }
 
           const response = await pushDatabaseResponseForSavingScheduleMessage(data);
+          setSavingMessage(false);
+          const { status } = response;
 
-          console.log(response);
+          if (status && status == true) {
+               toast.success("Message scheduled successfully");
+          } else {
+               toast.error("Message scheduling failed");
+          }
 
      };
 
@@ -115,7 +147,7 @@ export function useSmsHandlers() {
           let mobile: string = ''
           let name: string = ''
           let id: number = 0;
-
+          console.log(value)
           if (selectedCategory?.value == "organization") {
                mobile = value?.mobile;
                name = value?.name;
@@ -123,13 +155,13 @@ export function useSmsHandlers() {
           } else if (selectedCategory?.value == "outsourcing") {
                mobile = value?.contactNumber;
                name = value?.name;
-               id = value?.id
+               id = value?.outsourceid;
           } else if (selectedCategory?.value === "clients") {
                mobile = value?.mobile_number;
                id = value?.patientid;
                const { firstname, middlename, lastname } = value;
                name = `${firstname} ${middlename} ${lastname}`
-          } else if (selectedCategory?.value == "clinician") {
+          } else if (selectedCategory?.value == "clinicians") {
                name = value?.name;
                mobile = value?.phone
                id = value?.id
@@ -137,7 +169,7 @@ export function useSmsHandlers() {
 
           }
 
-          setSelectedRecipients([...selectedRecipients, { mobile, name,id }])
+          setSelectedRecipients([...selectedRecipients, { mobile, name, id }])
      }
 
 
@@ -180,7 +212,9 @@ export function useSmsHandlers() {
           endDate,
           setEndDate,
           handleSubmit,
+          savingMessage,
           handleFilteredClient,
+          handleSelectedCategory,
           isScheduled,
           setIscheduled,
           clearRecipients,
