@@ -1,4 +1,4 @@
-import PatientFiltering from "../../components/accessories/CustomerFiltering";
+import PatientFiltering from "../../components/accessories/SectorFileringComponents/CustomerFiltering";
 import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import Autocomplete from "react-select";

@@ -16,7 +16,6 @@ export default function PreviousBilledTestRecords({ previousRecords = [] }) {
     }
 
 
-
     return (
         <div>
             {previousRecords.length > 0 &&
@@ -30,8 +29,11 @@ export default function PreviousBilledTestRecords({ previousRecords = [] }) {
                                     <th style={{ width: '30%' }}>name</th>
                                     <th>outsourced To</th>
                                     <th >price</th>
+                                    <th>Refund Witnesses</th>
                                     <th style={{ width: '10%' }}>refund</th>
                                     {refundList.length > 0 && <th style={{ width: '20%' }}>Reason</th>}
+                                    <td>Approved</td>
+                                    <th>Refunded</th>
                                 </tr>
                             </thead>
                             <tbody>

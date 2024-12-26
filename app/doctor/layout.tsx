@@ -15,7 +15,7 @@ export default function SMSLayout({
 
   return (
     <html lang="en">
-      <body>
+      <body data-bs-theme='dark'>
         <Suspense>
           <ApplicationProvider>
             <SmsLayout>

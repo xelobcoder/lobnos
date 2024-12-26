@@ -27,7 +27,6 @@ export default function TestAscensionLineChart() {
 
     const handleCheckboxChange = (key) => {
         if (key === 'all') {
-            // If 'All' is checked, deselect others
             setSelectedDataKey(selectedDataKey === 'all' ? '' : 'all');
         } else {
             setSelectedDataKey(selectedDataKey === key ? '' : key);
@@ -44,6 +43,7 @@ export default function TestAscensionLineChart() {
                     testCount: item.test_count,
                     approvalCount: item.approval_count,
                     rejectionSampleCount: item.rejections_sample_count,
+                    date: item.ascension_date,
                 }));
                 setData(formattedData);
             } catch (error) {
@@ -56,8 +56,13 @@ export default function TestAscensionLineChart() {
         fetchData();
     }, [year]);
 
+    const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString();
+    };
+
     return (
-        <Card className="br-0 heightedBorder" style={{ border: 'none' }}>
+        <Card className="br-5 bg-body-secondary my-3" style={{ border: 'none' }}>
             <Card.Header>
                 <h5>Test Ascension Line Chart</h5>
                 <div className="d-flex justify-content-between mt-3">
@@ -65,7 +70,7 @@ export default function TestAscensionLineChart() {
                         <Select
                             id="year-select"
                             options={years}
-                            defaultValue={years[0]} // Default to the current year
+                            defaultValue={years[0]}
                             onChange={handleYearChange}
                             placeholder="Select Year"
                         />
@@ -108,16 +113,42 @@ export default function TestAscensionLineChart() {
                         <LineChart data={data}>
                             <XAxis dataKey="day" />
                             <YAxis />
-                            <Tooltip />
+                            <Tooltip
+                                content={({ payload }) => {
+                                    if (!payload || payload.length === 0) return null;
+                                    const { day, testCount, approvalCount, rejectionSampleCount, date } = payload[0].payload;
+                                    return (
+                                        <div className="list-group br-5  p-2">
+                                            <div className='list-group-item bg-secondary-subtle'>
+                                                <strong>Date:</strong> {formatDate(date)}
+                                            </div>
+                                            <div className='list-group-item'>
+                                                <div>
+                                                    <strong>Day:</strong> {day}
+                                                </div>
+                                                <div>
+                                                    <strong>Test Count:</strong> {testCount}
+                                                </div>
+                                                <div>
+                                                    <strong>Approval Count:</strong> {approvalCount}
+                                                </div>
+                                                <div>
+                                                    <strong>Rejection Sample Count:</strong> {rejectionSampleCount}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                }}
+                            />
                             <Legend />
                             {selectedDataKey === 'all' || selectedDataKey === 'testCount' ? (
-                                <Line type="monotone" dataKey="testCount" stroke="#f70776" />
+                                <Line type="monotone" dataKey="testCount" stroke="#99BFFF" />
                             ) : null}
                             {selectedDataKey === 'all' || selectedDataKey === 'approvalCount' ? (
-                                <Line type="monotone" dataKey="approvalCount" stroke="#c3195d" />
+                                <Line type="monotone" dataKey="approvalCount" stroke="#0F47FF" />
                             ) : null}
                             {selectedDataKey === 'all' || selectedDataKey === 'rejectionSampleCount' ? (
-                                <Line type="monotone" dataKey="rejectionSampleCount" stroke="#680747" />
+                                <Line type="monotone" dataKey="rejectionSampleCount" stroke="#83FF9A" />
                             ) : null}
                         </LineChart>
                     </ResponsiveContainer>

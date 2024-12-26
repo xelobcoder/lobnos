@@ -9,6 +9,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 export default function BillingSourceDeterminer({ patientid }) {
     const { billingdata, updateBilling } = useContext(BillingContext);
     const queryBillingid = useSearchParams().get("billingid");
+    const isServiceOnly = useSearchParams().get("isServiceOnly");
     const isNewTransaction = useSearchParams().get("isNewTransaction");
     const router = useRouter();
 
@@ -20,7 +21,7 @@ export default function BillingSourceDeterminer({ patientid }) {
             if (queryBillingid) {
                 previousRecords = await fetchPreviousBilledRecords(queryBillingid);
             }
-            updateBilling({ ...billingdata, billingSourceTitle: 'General Billing', ...initGeneralBillingData, previousRecords });
+            updateBilling({ ...billingdata, isServiceOnly, billingSourceTitle: 'General Billing', ...initGeneralBillingData, previousRecords });
         }
     }, [billingdata.billingSource]);
 
@@ -34,13 +35,16 @@ export default function BillingSourceDeterminer({ patientid }) {
                     ...billingdata,
                     organizationId: null,
                     billingSource: 1,
+                    isServiceOnly,
                     testpanels: [],
                     billingid: queryBillingid,
                     cart: [],
                 })
             } else {
                 updateBilling({
-                    ...billingdata, billingSource: value, testpanels: [],
+                    ...billingdata, billingSource: value,
+                    isServiceOnly,
+                    testpanels: [],
                     cart: [],
                 });
             }
@@ -59,6 +63,7 @@ export default function BillingSourceDeterminer({ patientid }) {
                     cart: [],
                     type: 'organization',
                     paymentmodeData,
+                    isServiceOnly,
                     testpanels: [],
                     organizationData: organizations,
                     billingSourceTitle: `Organizational Billing: ${name}`
@@ -85,7 +90,11 @@ export default function BillingSourceDeterminer({ patientid }) {
         if (value != 'ERROR') {
             const cantIgnoreDebt = await canIgnoreDebtPaymentAndTax(patientid);
             const { PaidBillsBeforeTransaction, includeTax, taxValue } = cantIgnoreDebt;
-            updateBilling({ ...billingdata, outstandingDebt: value, cantIgnoreDebt: PaidBillsBeforeTransaction == 1, appsettings: { taxIncluded: includeTax == 1 || includeTax == "1", taxValue } })
+            updateBilling({
+                ...billingdata, outstandingDebt: value,
+                isServiceOnly,
+                cantIgnoreDebt: PaidBillsBeforeTransaction == 1, appsettings: { taxIncluded: includeTax == 1 || includeTax == "1", taxValue }
+            })
         }
 
         if (value === 0) {
@@ -192,13 +201,13 @@ export default function BillingSourceDeterminer({ patientid }) {
                     }
                 </div>
 
-                {queryBillingid && billingdata.outstandingDebt == 0 && <div>
+                {queryBillingid && billingdata.outstandingDebt == 0 && <div className="my-2">
                     <input type="checkbox" checked={billingdata.previewPrevious} onChange={(ev) => { updateBilling({ ...billingdata, previewPrevious: !billingdata.previewPrevious }) }} />
                     Refund or preview previously billed Item
                 </div>
                 }
                 {
-                    billingdata.outstandingDebt == 0 && <div>
+                    billingdata.outstandingDebt == 0 && <div className="my-2">
                         <input onChange={(ev) => { updateBilling({ ...billingdata, includeServices: ev.target.checked }) }} type="checkbox" /> Include Services
                     </div>
                 }

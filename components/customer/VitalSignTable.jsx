@@ -2,12 +2,13 @@ import React from 'react';
 import { Edit } from '@mui/icons-material';
 import { getStatusClass, NORMAL_RANGES } from './dataActions/vitalsigns';
 import { useRouter } from 'next/navigation';
+import style from '../../styles/SmsTemplateList.module.css'
 
 export default function VitalSignTable({ groupedVitalSigns, openModal }) {
 	const router = useRouter();
 
 	return (
-		<div className="table-responsive">
+		<div className={style.tableWrapper}>
 			{Object.keys(groupedVitalSigns).map(date => (
 				<div key={date}>
 					<div className='d-flex justify-content-between'>
@@ -16,7 +17,7 @@ export default function VitalSignTable({ groupedVitalSigns, openModal }) {
 							View Chart
 						</button>
 					</div>
-					<table className="table table-bordered billing-cart-table ttable">
+					<table className={`${style.table} table`}>
 						<thead>
 							<tr>
 								<th>SR NO</th>

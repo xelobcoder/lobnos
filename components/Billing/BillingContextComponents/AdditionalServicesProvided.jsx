@@ -1,81 +1,73 @@
 import { useContext, useState, useEffect } from 'react';
-import { Delete, ViewCarouselTwoTone } from "@mui/icons-material";
+import { Delete } from "@mui/icons-material";
 import ServicesSearchComponent from "./BillingSourceComponents/ServicesSearchComponentJsx";
 import { currencyFormatter } from '../../Auth/customFetch';
 import { BillingContext } from './BillingContext';
 
-export default function ServicesProvidedToPatientBilling({ billingid, patientid }) {
-    const { billingdata, updateBilling } = useContext(BillingContext);
-    const [selectedServices, setSelectedServices] = useState(new Map());
+export default function ServicesProvidedToPatientBilling() {
+    const { billingdata, updateBilling, recalculateTotalBill } = useContext(BillingContext);
+    const [selectedServices, setSelectedServices] = useState([]);
 
     const updateServicesProvided = (services) => {
         const totalCost = services.reduce((sum, service) => sum + service.servicePrice, 0);
-        updateBilling({
+        const data = {
             ...billingdata,
             servicesProvided: services,
             totalCostOfServices: totalCost,
-        });
+        };
+        recalculateTotalBill(data);
     };
-
-    useEffect(() => {
-        const initialServices = new Map(billingdata.servicesProvided.map(service => [service.keyid, service]));
-        setSelectedServices(initialServices);
-    }, [billingdata.servicesProvided])
 
 
     const serviceListSelectionChangeHandler = (newService) => {
-        setSelectedServices(prevServices => {
-            const updatedServices = new Map(prevServices);
-            if (!updatedServices.has(newService.keyid)) {
-                updatedServices.set(newService.keyid, newService);
-                updateServicesProvided(Array.from(updatedServices.values()));
+        setSelectedServices((prevServices) => {
+            const isExisting = prevServices.some((service) => service.keyid === newService.keyid);
+            if (!isExisting) {
+                const updatedServices = [...prevServices, newService];
+                updateServicesProvided(updatedServices);
+                return updatedServices;
             }
-            return updatedServices;
+            return prevServices;
         });
     };
 
     const removeService = (serviceId) => {
-        setSelectedServices(prevServices => {
-            const updatedServices = new Map(prevServices);
-            updatedServices.delete(serviceId);
-            updateServicesProvided(Array.from(updatedServices.values()));
+        setSelectedServices((prevServices) => {
+            const updatedServices = prevServices.filter((service) => service.keyid !== serviceId);
+            updateServicesProvided(updatedServices);
             return updatedServices;
         });
     };
 
-    const totalServices = selectedServices.size;
-    const totalAmount = Array.from(selectedServices.values()).reduce((sum, service) => sum + service.servicePrice, 0);
+    const totalServices = selectedServices.length;
+    const totalAmount = selectedServices.reduce((sum, service) => sum + service.servicePrice, 0);
 
     return (
         <div className="mt-2">
             <hr />
-            <div className="card-title">
-                Services Information
-            </div>
+            <div className="card-title">Services Information</div>
             <div>
                 <table className="table ttable billing-cart-table mt-3">
                     <thead>
                         <tr>
-                            <th className='text-capitalize'>Service Name</th>
-                            <th className='text-capitalize'>Price</th>
-                            <th className='text-capitalize'>discount</th>
-                            <th className='text-capitalize'>Actions</th>
+                            <th className="text-capitalize">Service Name</th>
+                            <th className="text-capitalize">Price</th>
+                            <th className="text-capitalize">Discount</th>
+                            <th className="text-capitalize">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {Array.from(selectedServices.values()).map((service, index) => (
+                        {selectedServices.map((service, index) => (
                             <tr key={index}>
                                 <td>{service.serviceName}</td>
                                 <td>{currencyFormatter.format(service.servicePrice)}</td>
-                                <td>
-                                    {currencyFormatter.format(service.discount || 0)}
-                                </td>
+                                <td>{currencyFormatter.format(service.discount || 0)}</td>
                                 <td>
                                     <button
                                         className="btn btn-danger btn-sm"
                                         onClick={() => removeService(service.keyid)}
                                     >
-                                       <Delete/>
+                                        <Delete />
                                     </button>
                                 </td>
                             </tr>

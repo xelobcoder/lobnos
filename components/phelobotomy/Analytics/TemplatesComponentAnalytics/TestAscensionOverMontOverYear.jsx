@@ -9,9 +9,25 @@ import {
     Tooltip,
     Legend,
     ResponsiveContainer,
-    LabelList,
 } from 'recharts';
 import { customFetch } from '../../../Auth/customFetch';
+
+const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+        const { day, testCount, approvalCount, rejectionSampleCount } = payload[0].payload;
+        return (
+            <div className="list-group br-5">
+                <div className='bg-secondary-subtle list-group-item text-sm'>Day of the month:{day}</div>
+                <div className=' list-group-item pls-color'>
+                    <p>Test Count:{testCount}</p>
+                    <p>Approval Count:{approvalCount}</p>
+                    <p>Rejection Sample Count: {rejectionSampleCount}</p>
+                </div>
+            </div>
+        );
+    }
+    return null;
+};
 
 export default function TestAscensionOverMonthOverYear() {
     const [month, setMonth] = useState(9);
@@ -64,13 +80,13 @@ export default function TestAscensionOverMonthOverYear() {
     }, [month, year]);
 
     return (
-        <Card className="br-0 heightedBorder" style={{ border: 'none' }}>
+        <Card className="br-5 bg-body-secondary my-3" style={{ border: 'none' }}>
             <Card.Header className='d-flex p-1'>
-                <div className='mt-4 mx-3'>
+                <div className='mx-3 col-3'>
                     Test Ascension Over Month and Year
                 </div>
                 <div className="d-flex justify-content-between mt-3 col-7">
-                    <div className='col-6 mx-1'>
+                    <div className='col-5 mx-1'>
                         <Select
                             id="month-select"
                             options={monthOptions}
@@ -94,30 +110,17 @@ export default function TestAscensionOverMonthOverYear() {
                 {loading ? (
                     <div>Loading...</div>
                 ) : (
-                    <div>
-                        <div>
-                            <ResponsiveContainer width="100%" height={400}>
-                                <BarChart data={data}>
-                                    <XAxis dataKey={'day'} />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Bar dataKey="testCount" stackId="a" fill="#f70776">
-                                        {/* <LabelList dataKey="testCount" position="top" /> */}
-                                    </Bar>
-                                    <Bar dataKey="approvalCount" stackId="a" fill="#c3195d">
-                                        {/* <LabelList dataKey="approvalCount" position="top" /> */}
-                                    </Bar>
-                                    <Bar dataKey="rejectionSampleCount" stackId="a" fill="#680747">
-                                        {/* <LabelList dataKey="rejectionSampleCount" position="top" /> */}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                        <div>
-
-                        </div>
-                    </div>
+                    <ResponsiveContainer width="100%" height={400}>
+                        <BarChart data={data}>
+                            <XAxis dataKey={'day'} />
+                            <YAxis />
+                            <Tooltip content={<CustomTooltip />} />
+                            <Legend />
+                            <Bar dataKey="testCount" stackId="a" fill="#99BFFF" />
+                            <Bar dataKey="approvalCount" stackId="a" fill="#0F47FF" />
+                            <Bar dataKey="rejectionSampleCount" stackId="a" fill="#83FF9A" />
+                        </BarChart>
+                    </ResponsiveContainer>
                 )}
             </Card.Body>
         </Card>

@@ -1,10 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTable, useGlobalFilter, useFilters, useSortBy, usePagination } from 'react-table';
 import GlobalFilter from './GlobalFilter';
-import Pagination from './pagination';
-import { ViewColumn } from '@mui/icons-material';
 import ExcelFilteringLike from './ExcelFilteringLike';
 import ShowTableCount from '../operations/Laboratory/ShowCountTable';
+
 
 
 export default function TableDisplay({
@@ -36,6 +35,14 @@ export default function TableDisplay({
 			setOpenFilter(false);
 		}
 	};
+
+	useEffect(() => {
+		console.warn('Rendering Table client Side.Please wait ');
+		setFilteredData(data);
+	}, [data]);
+
+	
+
 
 	let debounceTimeout;
 	const debounce = (func, delay) => {
@@ -149,7 +156,7 @@ export default function TableDisplay({
 				</tr>
 			);
 		});
-console.log(hiddenColumns)
+
 
 	const handleFilteringColumn = debounce((ev, column) => {
 		const { filteringMode, accessor } = column;
@@ -274,9 +281,6 @@ console.log(hiddenColumns)
 					</tbody>
 				</table>
 			</div>
-			{/* <div className="card-footer d-flex py-2 justify-content-center">
-				<Pagination />
-			</div> */}
 		</div>
 	);
 }

@@ -12,7 +12,6 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
     const { patientid, iNewChart } = searchParams;
     const { applicationsettings } = useApplicationSettings();
     const { employeeid } = applicationsettings.user;
-
     const [formData, setFormData] = useState({
         blood_pressure_lowerLimit: "",
         blood_pressure_upperLimit: "",
@@ -21,19 +20,26 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
         respiration: "",
         spo2: ""
     });
-
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
 
-    const getFilteredPatient = function (options) {
-        const hasPatientid = typeof options === "object" && options.hasOwnProperty('patientid');
-        if (!hasPatientid) return;
-        const { patientid } = options;
-        router.push(`/customers/recordVitalSigns?patientid=${patientid}&&iNewChart=0`);
+    const getFilteredPatient = (options) => {
+        if (typeof options === "object" && options.hasOwnProperty("patientid")) {
+            const { patientid } = options;
+            router.push(`/customers/recordVitalSigns?patientid=${patientid}&&iNewChart=0`);
+        }
+    };
+
+    const handleSubmit = async (ev) => {
+        ev.preventDefault();
+        setIsSubmitting(true);
+        await uploadVitalSign({ ...formData, patientid, employeeid }, "POST", toast);
+        setIsSubmitting(false);
     };
 
     return (
         <div className="my-2">
-            <ToastContainer position="top-center" className={'text-sm'} theme="colored" />
+            <ToastContainer position="top-center" className="text-sm" theme="colored" />
             <div className="d-flex justify-content-between flex-wrap">
                 <div className="col-12 col-md-6 mb-2">
                     <PatientFiltered getSelectedPatient={getFilteredPatient} />
@@ -51,28 +57,32 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
             {patientid && iNewChart == 1 && (
                 <div className="my-2">
                     <h5>Vital Signs Measurement</h5>
-                    <form method="POST" className="p-3 bg-body-secondary br-0 heightedBorder">
+                    <form method="POST" className="p-3 bg-body-secondary br-0 heightedBorder" onSubmit={handleSubmit}>
                         <div className="grid-reg">
                             <label className="pls-label">Blood Pressure</label>
                             <div className="d-flex flex-wrap">
                                 <div className="col-12 col-md-6 mb-2">
                                     <input
                                         value={formData.blood_pressure_upperLimit}
-                                        onChange={(ev) => handleChangeWithState(ev, 'blood_pressure_upperLimit', setFormData, formData)}
+                                        onChange={(ev) =>
+                                            handleChangeWithState(ev, "blood_pressure_upperLimit", setFormData, formData)
+                                        }
                                         className="custom-input w-100"
                                         placeholder="Upper limit"
                                         type="number"
-                                        name="bpupperlimit"
+                                        required
                                     />
                                 </div>
-                                <div className="col-12 col-md-6 mb-2 ">
+                                <div className="col-12 col-md-6 mb-2">
                                     <input
                                         value={formData.blood_pressure_lowerLimit}
-                                        onChange={(ev) => handleChangeWithState(ev, 'blood_pressure_lowerLimit', setFormData, formData)}
+                                        onChange={(ev) =>
+                                            handleChangeWithState(ev, "blood_pressure_lowerLimit", setFormData, formData)
+                                        }
                                         className="custom-input w-100"
                                         placeholder="Lower limit"
                                         type="number"
-                                        name="bplowerlimit"
+                                        required
                                     />
                                 </div>
                             </div>
@@ -84,11 +94,13 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                                     min={0}
                                     max={100}
                                     value={formData.temperature}
-                                    onChange={(ev) => handleChangeWithState(ev, 'temperature', setFormData, formData)}
+                                    onChange={(ev) =>
+                                        handleChangeWithState(ev, "temperature", setFormData, formData)
+                                    }
                                     className="custom-input w-100"
                                     placeholder="Temperature"
                                     type="number"
-                                    name="vtlSigntemperature"
+                                    required
                                 />
                             </div>
                         </div>
@@ -98,10 +110,12 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                                 <input
                                     className="custom-input w-100"
                                     value={formData.pulse}
-                                    onChange={(ev) => handleChangeWithState(ev, 'pulse', setFormData, formData)}
+                                    onChange={(ev) =>
+                                        handleChangeWithState(ev, "pulse", setFormData, formData)
+                                    }
                                     placeholder="Pulse"
                                     type="number"
-                                    name="vtlSignpulse"
+                                    required
                                 />
                             </div>
                         </div>
@@ -112,9 +126,11 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                                     className="custom-input w-100"
                                     placeholder="Respiration"
                                     value={formData.respiration}
-                                    onChange={(ev) => handleChangeWithState(ev, 'respiration', setFormData, formData)}
+                                    onChange={(ev) =>
+                                        handleChangeWithState(ev, "respiration", setFormData, formData)
+                                    }
                                     type="number"
-                                    name="vtlSignrespiration"
+                                    required
                                 />
                             </div>
                         </div>
@@ -124,23 +140,24 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                                 <input
                                     min={0}
                                     max={100}
-                                    minLength={3}
                                     value={formData.spo2}
-                                    onChange={(ev) => handleChangeWithState(ev, 'spo2', setFormData, formData)}
+                                    onChange={(ev) =>
+                                        handleChangeWithState(ev, "spo2", setFormData, formData)
+                                    }
                                     className="custom-input w-100"
                                     placeholder="Spo2"
                                     type="number"
-                                    name="vtlSignspo2"
+                                    required
                                 />
                             </div>
                         </div>
                         <div>
                             <button
-                                type="button"
-                                onClick={(ev) => uploadVitalSign({ ...formData, patientid, employeeid }, 'POST', toast)}
+                                type="submit"
                                 className="btn btn-primary btn-sm"
+                                disabled={isSubmitting}
                             >
-                                Save Vital Sign
+                                {isSubmitting ? "Submitting..." : "Save Vital Sign"}
                             </button>
                         </div>
                     </form>

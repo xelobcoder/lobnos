@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { DirectFetchResponse } from "../Lib";
+import style from '../../../../styles/SmsTemplateList.module.css'
 
 export default function TotalTestCollectedByYearTableView() {
     const [data, setData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-
-
-
 
     useEffect(() => {
         DirectFetchResponse(setData, 'ascension/analytics/getTotalTestByYears', setIsLoading);
@@ -14,30 +12,25 @@ export default function TotalTestCollectedByYearTableView() {
 
     if (isLoading) return <div>Please Wait!!!. Loading Data.........</div>
 
-
     return (
-        <div className="card bg-white br-0 p-0 border-0">
-            <div className="card-header bg-secondary-subtle  br-0 fw-bold">
-                <h5>Test Count By Year</h5>
-            </div>
-            <div className="card-body p-0">
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th>Year</th>
-                            <th>Test Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {Array.isArray(data) && data.length > 0 && data.map((item, index) => {
-                            return <tr key={index}>
-                                <td>{item.year}</td>
-                                <td>{item.total_tests}</td>
-                            </tr>
-                        })
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>)
+        <>
+            <h5 className="fw-bold br-5  bg-secondary-subtle p-3 mb-0 mt-2">Test Count By Year</h5><div className={style.tablewrapper}>
+            <table className={style.table}>
+                <thead>
+                    <tr>
+                        <th>Year</th>
+                        <th>Test Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {Array.isArray(data) && data.length > 0 && data.map((item, index) => {
+                        return <tr key={index}>
+                            <td>{item.year}</td>
+                            <td>{item.total_tests}</td>
+                        </tr>;
+                    })}
+                </tbody>
+            </table>
+        </div></>
+    )
 }

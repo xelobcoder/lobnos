@@ -5,6 +5,7 @@ import VitalSignTable from './VitalSignTable';
 import VitalSignFilterForm from './VitalSignFilterForm';
 
 
+
 export default function VitalSignCustomerListInformation({ searchParams }) {
     const { patientid } = searchParams;
     const [vitalSigns, setVitalSigns] = useState([]);

@@ -127,7 +127,7 @@ const ConsulationPanel = () => {
 							))}
 						</Row>
 
-						<Button type="submit" className="mt-3 btn-sm" variant="primary">
+						<Button type="submit" className="my-3 btn-sm" variant="primary">
 							Submit
 						</Button>
 					</Form>

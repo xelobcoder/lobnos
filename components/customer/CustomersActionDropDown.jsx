@@ -5,7 +5,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, handleBilling }) => {
      return (
           <Dropdown>
-               <Dropdown.Toggle variant="light" id="archives-dropdown">
+               <Dropdown.Toggle variant="light"  id="archives-dropdown" style={{zIndex:9999,height:'auto'}}>
                     <MoreVertIcon />
                </Dropdown.Toggle>
                <Dropdown.Menu className="m-0 p-0 bg-white">

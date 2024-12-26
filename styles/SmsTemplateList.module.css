@@ -12,11 +12,11 @@
     margin-bottom: 20px;
 }
 
-.table-wrapper {
+.tablewrapper {
     overflow-x: auto;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
     border-radius: 8px;
-    border: 1px solid #e0e0e0;
+    /* border: 1px solid #e0e0e0; */
     background-color: #fff;
     margin-top: 20px;
 }
@@ -33,13 +33,19 @@
     text-align: left;
     font-weight: 600;
     background-color: #f7fafc;
-    color: #444;
+    color: black;
+    max-width: 400px;
+    word-wrap: break-word;
 }
 
 .table td {
     padding: 12px 16px;
     border-top: 1px solid #e0e0e0;
+    color: black;
+    max-width: 400px;
+    word-wrap: break-word;
 }
+
 
 .pagination {
     display: flex;
@@ -79,4 +85,63 @@
     font-size: 1.2rem;
     color: #888;
     margin-top: 20px;
+}
+
+[data-bs-theme="dark"] .container {
+    background-color: #181818;
+    color: #e0e0e0;
+}
+
+[data-bs-theme="dark"] .header {
+    color: #e0e0e0;
+}
+
+[data-bs-theme="dark"] .tablewrapper {
+    background-color: #222;
+    border: 1px solid #555;
+}
+
+[data-bs-theme="dark"] .table {
+    color: #e0e0e0;
+    background-color: #000;
+}
+
+[data-bs-theme="dark"] .table th {
+    background-color: #333;
+    color: #fff;
+}
+
+[data-bs-theme="dark"] .table td {
+    background-color: #222;
+    color: #fff;
+}
+
+[data-bs-theme="dark"] .paginationBtn {
+    background-color: #007bff;
+    color: #fff;
+}
+
+[data-bs-theme="dark"] .pagination-btn:hover {
+    background-color: #0056b3;
+}
+
+[data-bs-theme="dark"] .no-data {
+    background-color: #222;
+    color: #aaa;
+}
+
+[data-bs-theme="dark"] .checkbox {
+    background-color: #555;
+}
+
+[data-bs-theme="dark"] .custom-tooltip {
+    background-color: #333;
+    color: #fff;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+[data-bs-theme="dark"] .paginationBtn {
+    background-color: #4caf50;
+    color: white;
 }

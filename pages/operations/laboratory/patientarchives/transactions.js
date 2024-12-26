@@ -35,9 +35,8 @@ export default function ResultEntryCompletedDepartmentViewTwo() {
 				setLoading(false);
 			}
 		};
-		if (billingid) {
-			getData();
-		}
+		getData();
+
 	}, [billingid]);
 
 	const openSingleResult = (ev, row) => {
@@ -144,15 +143,16 @@ export default function ResultEntryCompletedDepartmentViewTwo() {
 		},
 	];
 
+	if (!patientid) return null;
 
 	if (loading) {
 		return <LaboratoryLayout><Loader /></LaboratoryLayout>
 	}
-	
+
 
 	return (
 		<LaboratoryLayout>
-			<section className="mx-2">
+			<section className="mx-2 p-2">
 				{patientid && <PreviewPatientInformation patientid={patientid} />}
 				<div className="d-flex justify-content-between">
 					<h4>Test for Transaction with Billing Id {billingid}</h4>

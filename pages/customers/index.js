@@ -8,6 +8,7 @@ import TableDisplay from '../../components/accessories/TableDisplay';
 import { ToastContainer, toast } from 'react-toastify';
 import PatientFiltered from '../../components/accessories/SectorFileringComponents/CustomerFiltering';
 import CustomersActions from '../../components/customer/CustomersActionDropDown';
+import PrimeTable from '../../components/accessories/Datatables/PrimeTable';
 
 
 
@@ -48,8 +49,7 @@ export default function Activator() {
 	}
 
 
-	const gotoPrevTrans = (item) => {
-		let { patientid } = item;
+	const gotoPrevTrans = (patientid) => {
 		if (patientid) {
 			patientid = `${generateRandomTextAndNumbers(50)}${patientid}`;
 		}
@@ -66,12 +66,10 @@ export default function Activator() {
 		{ Header: 'registered on', accessor: 'date', Cell: ({ value }) => { return <span>{parseDate(value)}</span> } },
 		{
 			Header: 'fullname', accessor: 'fullname', Cell: ({ value }) => <div className='text-capitalize'>{value}</div>,
-			customFilterable: true,
 			filteringMode: 'text'
 		},
 		{
 			Header: "dob", accessor: "dob", Cell: ({ value }) => parseDate(value),
-			customFilterable: true,
 			filteringMode: 'date'
 		},
 		{
@@ -82,7 +80,6 @@ export default function Activator() {
 		{ Header: "gender", accessor: "gender" },
 		{
 			Header: 'contact', accessor: 'contact',
-			customFilterable: true,
 			filteringMode: 'number'
 		},
 		{
@@ -139,7 +136,10 @@ export default function Activator() {
 				<PatientFiltered getSelectedPatient={filteredPatient} />
 			</div>
 			<div >
-				{Array.isArray(tempStore) && tempStore.length > 0 && <TableDisplay filtering={true} minHeight={'50vh'} column={columns} data={tempStore} showpage={false} exporters={false} />}
+				{Array.isArray(tempStore) && tempStore.length > 0 && <PrimeTable column={columns}
+					data={tempStore}
+					serverSideFiltering={true}
+				/>}
 			</div>
 			{/* <div className=' d-lg-flex  justify-content-lg-center d-sm-block'>
 				<Pagination />

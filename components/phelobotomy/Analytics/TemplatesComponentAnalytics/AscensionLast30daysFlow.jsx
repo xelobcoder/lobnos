@@ -15,6 +15,24 @@ import {
 import { Card } from 'react-bootstrap';
 import { customFetch } from '../../../Auth/customFetch';
 
+const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+        const { day, approval_count, test_count, resolved_disputed_cases_count, rejections_sample_count } = payload[0].payload;
+        return (
+            <div className="custom-tooltip pls-color list-group br-5" >
+                <div className='list-group-item  bg-secondary-subtle'>Date {day}</div>
+                <div className='list-group-item text-sm'>
+                    <p>Approval Count {approval_count}</p>
+                    <p>Test Count {test_count}</p>
+                    <p>Resolved Disputed Cases {resolved_disputed_cases_count}</p>
+                    <p>Rejection Samples {rejections_sample_count}</p>
+                </div>
+            </div>
+        );
+    }
+    return null;
+};
+
 export default function TestAscensionOverLast30DaysCard() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -25,6 +43,7 @@ export default function TestAscensionOverLast30DaysCard() {
             try {
                 const result = await customFetch('ascension/analytics/getCollectionToDisputeToApprovedToRedrawnLast30days');
                 setData(result);
+                console.log(result);
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
@@ -36,7 +55,7 @@ export default function TestAscensionOverLast30DaysCard() {
     }, []);
 
     return (
-        <Card className="br-0 heightedBorder " style={{ border: 'none' }}>
+        <Card className="br-5 bg-body-secondary my-3" style={{ border: 'none' }}>
             <Card.Header className="p-3">
                 <h5>Test Ascension Over Last 30 Days</h5>
             </Card.Header>
@@ -57,12 +76,12 @@ export default function TestAscensionOverLast30DaysCard() {
                             <CartesianGrid stroke="#f5f5f5" />
                             <XAxis dataKey="day" />
                             <YAxis />
-                            <Tooltip />
+                            <Tooltip content={<CustomTooltip />} />
                             <Legend />
-                            <Area type="monotone" dataKey="approval_count" fill="#8884d8" stroke="#8884d8" name="Approval Count" />
-                            <Bar dataKey="test_count" barSize={20} fill="#413ea0" name="Test Count" />
-                            <Line type="monotone" dataKey="resolved_disputed_cases_count" stroke="#ff7300" name="Resolved Disputed Cases" />
-                            <Scatter dataKey="rejections_sample_count" fill="red" name="Rejection Samples" />
+                            <Area type="monotone" dataKey="approval_count" fill="#99BFFF" stroke="#99BFFF" name="Approval Count" />
+                            <Bar dataKey="test_count" barSize={50} fill="#0F47FF" name="Test Count" />
+                            <Line type="monotone" dataKey="resolved_disputed_cases_count" stroke="#83FF9A" name="Resolved Disputed Cases" />
+                            <Scatter dataKey="rejections_sample_count" fill="#ff0000" name="Rejection Samples" />
                         </ComposedChart>
                     </ResponsiveContainer>
                 )}

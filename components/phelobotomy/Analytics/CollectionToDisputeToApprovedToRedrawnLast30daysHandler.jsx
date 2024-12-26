@@ -6,13 +6,13 @@ export default function CollectionToDisputeToApprovedToRedrawnHandler() {
     return (
         <div className="container-fluid">
             <div className="row">
-                <div className="col-12 col-sm-6 col-md-4 col-lg-12 mt-3">
+                <div className="col-12 col-sm-6 col-md-4 col-lg-4 mt-3">
                     <TestAscensionOverMontOverYear />
                 </div>
-                <div className="col-12 col-sm-6 col-md-4 col-lg-12 mt-3">
+                <div className="col-12 col-sm-6 col-md-4 col-lg-4 mt-3">
                     <TestAscensionOverLast30DaysCard />
                 </div>
-                <div className="col-12 col-sm-6 col-md-4 col-lg-12 mt-3">
+                <div className="col-12 col-sm-6 col-md-4 col-lg-4 mt-3">
                     <AscensionOverSpecifiedYear />
                 </div>
             </div>
