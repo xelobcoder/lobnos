@@ -15,9 +15,10 @@ import SortAscendingIcon from '@mui/icons-material/ArrowUpward';
 import SortDescendingIcon from '@mui/icons-material/ArrowDownward';
 import { useUltrasoundContext } from "./UltrasoundContext";
 import Pagination from "../../accessories/pagination";
-import { PrepareResultEntryHeader } from "../../Auth/customFetch";
+import { generateRandomTextAndNumbers, PrepareResultEntryHeader, printResultNavigator } from "../../Auth/customFetch";
 import ShowTableCount from "../Laboratory/ShowCountTable";
 import FilterIcon from "../Laboratory/FilterIcon";
+import { useRouter } from "next/navigation";
 
 
 export default function AscentionUltrasoundUnCompletedTable() {
@@ -27,6 +28,14 @@ export default function AscentionUltrasoundUnCompletedTable() {
 	const noRecordsFound = !isLoading && collection.length === 0 && !canloadPage;
 
 	const canLoadMoreRecords = !isLoading && collection.length === 0 && canloadPage;
+	const router = useRouter();
+
+	const handlePrintResult = (row) => {
+		let { billingid, name, id, patientid, ascensionid } = row
+		billingid = `${generateRandomTextAndNumbers(70)}${billingid}`;
+		patientid = `${generateRandomTextAndNumbers(50)}${patientid}`;
+		window.open(`/registration/result/labReport?csvid=${billingid}&&ptid=${patientid}&&target=70,50&&ascensionId=${ascensionid}&&testname=${name}&&testid=${id}`, "_blank");
+	}
 
 	const columns = useMemo(() => [
 		{
@@ -78,8 +87,9 @@ export default function AscentionUltrasoundUnCompletedTable() {
 						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original, true)}>
 							<CheckIcon fontSize="small" /> Enter result
 						</Dropdown.Item>
-						<Dropdown.Item onClick={() => console.log(`Enter All related for ${row.original.patientid}`)}>
-							<CloseIcon fontSize="small" /> Enter All related
+						<Dropdown.Item onClick={(ev) => { handlePrintResult(row.original) }} >
+							<CloseIcon fontSize="small" />
+							Print Result
 						</Dropdown.Item>
 					</Dropdown.Menu>
 				</Dropdown>
@@ -169,7 +179,7 @@ export default function AscentionUltrasoundUnCompletedTable() {
 										<div>{column.render("Header")}</div>
 										{column.id !== 'selection' && (
 											<button onClick={() => handleClick(column)} className="btn btn-link p-0">
-												<FilterIcon/>
+												<FilterIcon />
 											</button>
 										)}
 									</div>

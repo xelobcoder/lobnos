@@ -8,7 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { useApplicationSettings } from "../../../../../components/Auth/useApplicationContext";
 
 export default function CreateUltrasonographyTemplates() {
-	const { user } = useApplicationSettings();
+	const { user } = useApplicationSettings().applicationsettings;
 	const employeeid = user?.employeeid;
 	const [ultrasoundList, setUltrasoundList] = useState([]);
 	const [name, setName] = useState('');
@@ -97,7 +97,6 @@ export default function CreateUltrasonographyTemplates() {
 
 
 	const createTemplateHandler = async () => {
-
 		const templateDetails = {
 			employeeid,
 			testid: parseInt(selectedTest),
@@ -120,7 +119,6 @@ export default function CreateUltrasonographyTemplates() {
 	if (isLoading) {
 		return (<UltrasoundLayout> <div className="text-center heightedBorder p-2 bg-secondary-subtle">Loading Data.......................</div></UltrasoundLayout>)
 	};
-
 
 
 	return (

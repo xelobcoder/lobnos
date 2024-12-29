@@ -21,7 +21,15 @@ export default function BillingSourceDeterminer({ patientid }) {
 
     const initGeneralBillingData = useCallback(async function () {
         if (billingdata.billingSource === 1) {
-            let previousRecordData = {};
+            let previousRecordData = {
+                previousOutstanding: 0,
+                previousTotalCost: 0,
+                previousPaid: 0,
+                previousRefunded: 0,
+                previousBalance: 0,
+                previousAmountIncurredDueTax: 0,
+                previousPayable: 0,
+            };
             const initGeneralBillingData = await getAllNecessaryData();
             let previousRecords = [];
             if (queryBillingid) {
@@ -29,19 +37,16 @@ export default function BillingSourceDeterminer({ patientid }) {
             }
 
             if (queryBillingid && isNewTransaction == 0) {
-                const {result: previousTransactionSummary} = await getTransactionPreviousBillingRecords(queryBillingid);
+                const { result: previousTransactionSummary } = await getTransactionPreviousBillingRecords(queryBillingid);
                 if (Array.isArray(previousTransactionSummary) && previousTransactionSummary.length > 0) {
                     const { totalcost, paid, amountIncurredDueTax, totalrefunded, outstanding, balance, payable } = previousTransactionSummary[0];
-
-                    previousRecordData = {
-                        previousOutstanding: outstanding,
-                        previousTotalCost: totalcost,
-                        previousPaid: paid,
-                        previousRefunded: totalrefunded,
-                        previousBalance: balance,
-                        previousAmountIncurredDueTax: amountIncurredDueTax,
-                        previousPayable: payable
-                    }
+                    previousRecordData['previousTotalCost'] = totalcost;
+                    previousRecordData['previousPaid'] = paid;
+                    previousRecordData['previousRefunded'] = totalrefunded;
+                    previousRecordData['previousOutstanding'] = outstanding;
+                    previousRecordData['previousBalance'] = balance;
+                    previousRecordData['previousAmountIncurredDueTax'] = amountIncurredDueTax;
+                    previousRecordData['previousPayable'] = payable;
                 }
             }
             updateBilling({

@@ -46,6 +46,10 @@ export default function UltrasoundTemplatesList() {
 			accessor: 'name',
 		},
 		{
+			Header: "Ultrasound Name",
+			accessor: 'ultrasoundname'
+		},
+		{
 			Header: 'Body Part',
 			accessor: 'associatedbodypart',
 		},

@@ -1,4 +1,4 @@
-import ResultViewHtmlGenerator from "../../../components/Auth/ResultViewHtmlGenerator"
+import ResultViewHtmlGenerator from "../../Auth/ResultViewHtmlGenerator"
 
 export default function UseCustomResultTemplatingPrintOut({ result, testname }) {
 

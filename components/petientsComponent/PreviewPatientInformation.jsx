@@ -30,7 +30,7 @@ export default function PreviewPatientInformation({ patientid }) {
 
 	return (
 		<div className="">
-			<ul className="pls-color list-group m-0 heightedBorder br-0">
+			<ul className="pls-color list-group m-0  br-5">
 				<li className="list-group-item text-capitalize bg-secondary-subtle fw-bold">
 					Full Name: {data?.firstname} {data?.middlename} {data?.lastname}
 				</li>

@@ -8,58 +8,74 @@ import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
 import VersionFooter from '../../../components/accessories/VersionFooter';
 import ApplicationHeader from '../../../components/Layout/HeaderNav';
 import { Print } from '@mui/icons-material';
-import UseCustomResultTemplatingPrintOut from './UseCustomResultTemplatingPrintOut';
-import UseCustomResultCommentsTemplatingPrintOut from './useCustomResultCommentsTemplatingPrintOut';
-import { PrintOutDummyData } from '../../../components/ResultView/_dummydata';
+import UseCustomResultTemplatingPrintOut from '../../../components/ResutlUI/ResultPrintOut/UseCustomResultTemplatingPrintOut';
+import UseCustomResultCommentsTemplatingPrintOut from '../../../components/ResutlUI/ResultPrintOut/useCustomResultCommentsTemplatingPrintOut';
+import { customFetch } from '../../../components/Auth/customFetch';
 
 export default function RESULT_FOR_PRINTING() {
-	const [loader, setLoader] = useState(false);
-	const serachParams = useSearchParams();
-	const testid = serachParams.get('testid');
-	const billingid = serachParams.get('billingid');
-	const ascensionid = serachParams.get('ascensionid');
-	const test = serachParams.get('test');
-	const patientid = serachParams.get('patientid');
-
-
-
-
-
-
-
+	const [loader, setLoader] = useState(true);
+	const [resultData, setResultData] = useState(null);
+	const searchParams = useSearchParams();
+	const testid = searchParams.get('testid');
+	const billingid = searchParams.get('csvid');
+	const ascensionid = searchParams.get('ascensionId');
+	const test = searchParams.get('testname');
+	const patientid = searchParams.get('ptid');
 
 	useEffect(() => {
-		const hasRequiredValues = ascensionid && testid && billingid && patientid;
+		const fetchResultData = async () => {
+			if (ascensionid && testid && billingid && patientid) {
+				const url_destination_endpoint = `result/printout/ascension/getResult?csvid=${billingid}&&ptid=${patientid}&&target=70,50&&ascensionId=${ascensionid}&&testname=${test}&&testid=${testid}`;
+				try {
+					const response = await customFetch(url_destination_endpoint);
+					if (response) {
+						setResultData(response);
+					}
+				} catch (error) {
+					console.error('Error fetching result data:', error);
+				} finally {
+					setLoader(false);
+				}
+			}
+		};
 
-		if (hasRequiredValues) 
-		{
-			const url_destination_endpoint = `printout/ascension/getResult?ascensionid=${ascensionid}&&testid=${testid}`
-		}
-	}, [patientid,testid,ascensionid,billingid])
+		fetchResultData();
+	}, [ascensionid, testid, billingid, patientid, test]);
 
+	if (loader) {
+		return <div>Loading...</div>;
+	}
 
+	const data = resultData || {};
 
 	return (
 		<>
 			<ApplicationHeader />
 			<div className='single_result_page'>
 				<div className='_sresult bg-white p-3'>
-					{PrintOutDummyData.resultsettings.letterHeading == 1 && <CompanyHeaders companyInfo={PrintOutDummyData.companyInfo} />}
-					<PersonalInformation PersonalInformation={PrintOutDummyData.patientInformation} billingid={billingid} />
-					<UseCustomResultTemplatingPrintOut result={PrintOutDummyData.records} testname={PrintOutDummyData.testname} />
-					<UseCustomResultCommentsTemplatingPrintOut comments={PrintOutDummyData.comments} />
-					<UseClinicalLiteratureReview literature={PrintOutDummyData.literatureReview} />
-					<UseResultEntryScientist validators={PrintOutDummyData.validators} enteredOn={PrintOutDummyData.enteredOn} lastupdatedon={PrintOutDummyData.lastupdatedon} resultentry={PrintOutDummyData.resultentry} />
-					<UseDisclaimer patientid={PrintOutDummyData.patientInformation.patientid} />
+					{data?.resultsettings?.letterHeading == 1 && <CompanyHeaders companyInfo={data.companyInfo} />}
+					<PersonalInformation PersonalInformation={data.patientInformation} billingid={billingid} />
+					<UseCustomResultTemplatingPrintOut result={data.records} testname={data.testname} />
+					<UseCustomResultCommentsTemplatingPrintOut comments={data.comments} />
+					<UseClinicalLiteratureReview literature={data.literatureReview} />
+					<UseResultEntryScientist
+						validators={data.validators}
+						enteredOn={data.enteredOn}
+						lastupdatedon={data.lastupdatedon}
+						resultentry={data.resultentry}
+					/>
+					<UseDisclaimer patientid={data.patientInformation?.patientid} />
 					<VersionFooter />
 				</div>
 			</div>
-			<div className='print-section my-2' >
-				<button style={{ position: 'absolute', top: '10vh', left: '90vw' }} className='btn  btn-secondary p-2'
+			<div className='print-section my-2'>
+				<button
+					style={{ position: 'absolute', top: '10vh', left: '90vw' }}
+					className='btn btn-secondary p-2'
 					onClick={() => { window.print() }}>
-					<Print />  print result
+					<Print /> Print result
 				</button>
 			</div>
 		</>
-	)
+	);
 }

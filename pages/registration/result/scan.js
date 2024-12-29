@@ -1,44 +1,82 @@
+import { useState, useEffect } from 'react';
 import CompanyHeaders from '../../../components/ResultView/CompanyHeaders';
-import { readyToPrint } from '../../../components/Auth/customFetch';
 import PersonalInformation from '../../../components/ResultView/PersonalInformation';
 import { useSearchParams } from 'next/navigation';
+import UseClinicalLiteratureReview from '../../../components/ResutlUI/UseClinicalLiteratureReview';
 import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
 import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
-import UseScanResultTemplate from '../../../components/ResutlUI/useScanTemplate';
 import VersionFooter from '../../../components/accessories/VersionFooter';
+import ApplicationHeader from '../../../components/Layout/HeaderNav';
+import { Print } from '@mui/icons-material';
+import UseCustomResultTemplatingPrintOut from '../../../components/ResutlUI/ResultPrintOut/UseCustomResultTemplatingPrintOut';
+import UseCustomResultCommentsTemplatingPrintOut from '../../../components/ResutlUI/ResultPrintOut/useCustomResultCommentsTemplatingPrintOut';
+import { customFetch } from '../../../components/Auth/customFetch';
+import UseCustomResultTemplateUltrasound from '../../../components/ResutlUI/ResultPrintOut/UseCustomResultTemplateUltrasound';
 
-export default function UltrasoundScanReportView() {
-        const testid = useSearchParams().get('testid');
-        const billingid = useSearchParams().get('billingid');
-        const test = useSearchParams().get('test');
-        const patientid = useSearchParams().get('patientid');
+export default function RESULT_FOR_PRINTING() {
+        const [loader, setLoader] = useState(true);
+        const [resultData, setResultData] = useState(null);
+        const searchParams = useSearchParams();
+        const testid = searchParams.get('testid');
+        const billingid = searchParams.get('csvid');
+        const ascensionid = searchParams.get('ascensionId');
+        const test = searchParams.get('testname');
+        const patientid = searchParams.get('ptid');
 
+        useEffect(() => {
+                const fetchResultData = async () => {
+                        if (ascensionid && testid && billingid && patientid) {
+                                const url_destination_endpoint = `result/printout/ascension/getResult?csvid=${billingid}&&ptid=${patientid}&&target=70,50&&ascensionId=${ascensionid}&&testname=${test}&&testid=${testid}`;
+                                try {
+                                        const response = await customFetch(url_destination_endpoint);
+                                        if (response) {
+                                                setResultData(response);
+                                        }
+                                } catch (error) {
+                                        console.error('Error fetching result data:', error);
+                                } finally {
+                                        setLoader(false);
+                                }
+                        }
+                };
 
+                fetchResultData();
+        }, [ascensionid, testid, billingid, patientid, test]);
+
+        if (loader) {
+                return <div>Loading...</div>;
+        }
+
+        const data = resultData || {};
 
         return (
-                <div className='result_page'>
-                        <div className='result'>
-                                {/* <div>
-                                        <CompanyHeaders billingid={billingid} />
-                                        <PersonalInformation patientid={patientid} billingid={billingid} />
-                                        <section>
-                                                <UseScanResultTemplate testid={testid} test={test} billingid={billingid} patientid={patientid} />
-                                        </section>
+                <>
+                        <ApplicationHeader />
+                        <div className='single_result_page'>
+                                <div className='_sresult bg-white p-3'>
+                                        {data?.resultsettings?.letterHeading == 1 && <CompanyHeaders companyInfo={data.companyInfo} />}
+                                        <PersonalInformation PersonalInformation={data.patientInformation} billingid={billingid} />
+                                        <UseCustomResultTemplateUltrasound result={data.records} testname={data.testname} />
+                                        <UseCustomResultCommentsTemplatingPrintOut comments={data.comments} />
+                                        <UseClinicalLiteratureReview literature={data.literatureReview} />
+                                        <UseResultEntryScientist
+                                                validators={data.validators}
+                                                enteredOn={data.enteredOn}
+                                                lastupdatedon={data.lastupdatedon}
+                                                resultentry={data.resultentry}
+                                        />
+                                        <UseDisclaimer patientid={data.patientInformation?.patientid} />
+                                        <VersionFooter />
                                 </div>
-                                <div>
-                                        <UseResultEntryScientist testid={testid} billingid={billingid} />
-                                        <UseDisclaimer patientid={patientid} />
-                                        <VersionFooter/>
-                                </div> */}
                         </div>
-                        <div>
-                        </div>
-                        <div className='print-section'>
-                                <button style={{ position: 'absolute', top: 20, left: '40px' }} className='btn btn-success btn-sm'
-                                        onClick={() => readyToPrint(billingid, testid)}>
-                                        print result
+                        <div className='print-section my-2'>
+                                <button
+                                        style={{ position: 'absolute', top: '10vh', left: '90vw' }}
+                                        className='btn btn-secondary p-2'
+                                        onClick={() => { window.print() }}>
+                                        <Print /> Print result
                                 </button>
                         </div>
-                </div>
-        )
+                </>
+        );
 }
