@@ -14,7 +14,7 @@ function calculateServicePlusTestCost(totalTest, totalCostOfServices) {
 }
 
 function calculateTax(servicePlusTestCost, taxIncluded, taxValue) {
-     if (taxIncluded === 1 || taxIncluded ===  true) {
+     if (taxIncluded === 1 || taxIncluded === true) {
           return (taxValue / 100) * servicePlusTestCost;
      }
      return 0;
@@ -23,8 +23,10 @@ function calculateTax(servicePlusTestCost, taxIncluded, taxValue) {
 function calculateDiscount(cart) {
      if (Array.isArray(cart)) {
           if (cart.length === 0) return 0;
-          const discount = cart.reduce((sum, item) => sum + item.discount, 0);
-          return !isNaN(discount) && discount > 0 ? parseFloat(discount) : 0;
+          const discount = cart.reduce((sum, item) => {
+               return sum + parseFloat(item.discount.toString())
+          }, 0);
+          return discount;
      }
      return 0;
 }
@@ -41,18 +43,21 @@ export function BillingPageContextProvider({ children }) {
      };
 
      const recalculateTotalBill = (billingdata) => {
-          const { paid = 0, appsettings, cart, totalCostOfServices = 0 } = billingdata;
+
+          const { paid = 0, appsettings, cart, totalCostOfServices = 0, servicesProvided } = billingdata;
+
           const { taxIncluded, taxValue } = appsettings;
 
           let totalTest = 0;
           if (cart.length > 0) {
                totalTest = calculateTotalTestCost(cart);
           }
+          console.log(billingdata)
           const servicePlusTestCost = calculateServicePlusTestCost(totalTest, totalCostOfServices);
           const amountIncurredDueTax = calculateTax(servicePlusTestCost, taxIncluded, taxValue);
           const total = servicePlusTestCost + amountIncurredDueTax;
-
-          const discount = calculateDiscount(cart);
+        
+          const discount = calculateDiscount(cart) + calculateDiscount(servicesProvided)
           const parsedPaid = parsePaidAmount(paid);
 
           const payable = total - discount;

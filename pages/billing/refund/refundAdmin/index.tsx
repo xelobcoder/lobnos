@@ -46,9 +46,9 @@ export default function BillingRefundPage() {
 		setStatus(e.target.value);
 	};
 
-	const handleApprove = async (item: RefundAdminViewType) => {
+	const handleApprove = async (item: RefundAdminViewType, isApprove = 0) => {
 		const { serviceid } = item;
-		const requestData = { serviceid, employeeid, isApprove: 1 };
+		const requestData = { serviceid, employeeid, isApprove };
 		try {
 			const response = await customPost(
 				`billing/previous/refund/update/approve`,
@@ -57,7 +57,7 @@ export default function BillingRefundPage() {
 			);
 			const { status: success, message } = response;
 			if (success) {
-				toast.success("Refund Approved successfully");
+				toast.success(isApprove == 1 ? "Refund Approved successfully" : "Refund Revoked successfully");
 				setData((prev) => prev.filter((entry) => entry !== item));
 			} else {
 				toast.error(message || "Action failed");
@@ -144,13 +144,15 @@ export default function BillingRefundPage() {
 					<button
 						disabled={row.original.isRefundApproved}
 						className="btn btn-sm btn-primary"
-						onClick={() => handleApprove(row.original)}
+						onClick={() => handleApprove(row.original, 1)}
 					>
 						Approve
 					</button>
 					{
-						row.original.isRefundCompleted == 0 &&
-						<button className="btn btn-danger btn-sm">Revoke </button>
+						(row.original.isRefundCompleted == 0 && row.original.isRefundApproved == 1) &&
+						<button
+							onClick={(ev) => { handleApprove(row.original, 0) }}
+							className="btn btn-danger btn-sm">Revoke </button>
 					}
 				</div>
 			),

@@ -49,7 +49,12 @@ export default function ServicesSearchComponent({ updatefunction }) {
             </td>
             <td>
                 <button
-                    onClick={(ev) => { updatefunction(selectedServices) }}
+                    onClick={(ev) => {
+                        updatefunction(selectedServices?.discount ? selectedServices : {
+                            ...selectedServices,
+                            discount: 0
+                        })
+                    }}
                     className='btn btn-secondary btn-sm'>
                     <Add />
                 </button>

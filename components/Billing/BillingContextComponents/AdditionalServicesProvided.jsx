@@ -10,9 +10,15 @@ export default function ServicesProvidedToPatientBilling() {
 
     const updateServicesProvided = (services) => {
         const totalCost = services.reduce((sum, service) => sum + service.servicePrice, 0);
+        
+        const updatedServices = services.map((item) => {
+            const discountedValue = item.servicePrice
+            return { ...item, discountedValue };
+        });
+
         const data = {
             ...billingdata,
-            servicesProvided: services,
+            servicesProvided: updatedServices,
             totalCostOfServices: totalCost,
         };
         recalculateTotalBill(data);

@@ -35,6 +35,7 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 		const method = billingid ? 'PUT' : 'POST';
 		const data = await ValidateAndSubmitBillingInformation(dataToBeUploaded, method, billingid, isServiceOnly);
 		setIsSaving(false);
+		console.log(data)
 
 		if (typeof data === "object") {
 			const { status, message } = data;

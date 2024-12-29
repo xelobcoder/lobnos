@@ -6,6 +6,11 @@ import { currencyFormatter, customFetch } from "../../Auth/customFetch";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 
+const getTransactionPreviousBillingRecords = async (billingid) => {
+    const response = await customFetch(`billing/previous/transaction/data?billingid=${billingid}`);
+    return response;
+}
+
 export default function BillingSourceDeterminer({ patientid }) {
     const { billingdata, updateBilling } = useContext(BillingContext);
     const queryBillingid = useSearchParams().get("billingid");
@@ -16,14 +21,40 @@ export default function BillingSourceDeterminer({ patientid }) {
 
     const initGeneralBillingData = useCallback(async function () {
         if (billingdata.billingSource === 1) {
+            let previousRecordData = {};
             const initGeneralBillingData = await getAllNecessaryData();
             let previousRecords = [];
             if (queryBillingid) {
                 previousRecords = await fetchPreviousBilledRecords(queryBillingid);
             }
-            updateBilling({ ...billingdata, isServiceOnly, billingSourceTitle: 'General Billing', ...initGeneralBillingData, previousRecords });
+
+            if (queryBillingid && isNewTransaction == 0) {
+                const {result: previousTransactionSummary} = await getTransactionPreviousBillingRecords(queryBillingid);
+                if (Array.isArray(previousTransactionSummary) && previousTransactionSummary.length > 0) {
+                    const { totalcost, paid, amountIncurredDueTax, totalrefunded, outstanding, balance, payable } = previousTransactionSummary[0];
+
+                    previousRecordData = {
+                        previousOutstanding: outstanding,
+                        previousTotalCost: totalcost,
+                        previousPaid: paid,
+                        previousRefunded: totalrefunded,
+                        previousBalance: balance,
+                        previousAmountIncurredDueTax: amountIncurredDueTax,
+                        previousPayable: payable
+                    }
+                }
+            }
+            updateBilling({
+                ...billingdata,
+                isServiceOnly,
+                billingSourceTitle: 'General Billing',
+                ...initGeneralBillingData,
+                previousRecords,
+                ...previousRecordData
+            });
         }
     }, [billingdata.billingSource]);
+
 
 
     const updateBillingSourceSelected = async (ev) => {
@@ -93,7 +124,10 @@ export default function BillingSourceDeterminer({ patientid }) {
             updateBilling({
                 ...billingdata, outstandingDebt: value,
                 isServiceOnly,
-                cantIgnoreDebt: PaidBillsBeforeTransaction == 1, appsettings: { taxIncluded: includeTax == 1 || includeTax == "1", taxValue }
+                cantIgnoreDebt: PaidBillsBeforeTransaction == 1,
+                appsettings: {
+                    taxIncluded: includeTax == 1 || includeTax == "1", taxValue
+                }
             })
         }
 

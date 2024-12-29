@@ -51,22 +51,29 @@ export default function TrTable({ toast }) {
 		setSelectedOutsource(selectedOption)
 	};
 
+	console.log(selected)
+
 	const addtoCart = async () => {
 		if (!selected || typeof selected != "object") return;
 		const testid = selected?.id;
 		if (hasPreviousRecords(billingdata, selected)) return;
-		const newItem = selected?.isoutsourced && selectedOutsource?.label ? { ...selected, ...selectedOutsource } : selected
+		const newItem = selected?.isoutsourced && selectedOutsource?.label ?
+			{
+				...selected,
+				...selectedOutsource,
+				discount: selected.discount ? selected.discount : 0
+			}
+			: {
+				...selected, discount: selected.discount ? selected.discount : 0
+			}
 
 		if (cart.length === 0) {
-			updateBilling({ ...billingdata, cart: [...billingdata.cart, newItem] });
+			recalculateTotalBill({ ...billingdata, cart: [...billingdata.cart, newItem] })
 		} else {
-			updateBilling((prev) => {
-				const { cart } = prev;
-				const isInCart = cart.some((item, index) => parseInt(item?.id) == parseInt(testid));
-				if (!isInCart) {
-					return { ...prev, cart: [...cart, newItem] };
-				} else return prev;
-			});
+			const isInCart = cart.some((item, index) => parseInt(item?.id) == parseInt(testid));
+			const newCart = (!isInCart) ? [...cart, newItem] : cart
+
+			recalculateTotalBill({ ...billingdata, cart: newCart })
 		}
 		setOutSourcedCompanies([]);
 		setLoadingOutsource(false);
@@ -79,6 +86,8 @@ export default function TrTable({ toast }) {
 		const { value } = ev.target;
 		setSelected({ ...selected, discount: parseFloat(value) })
 	}
+
+
 
 
 	const handleTestSelectedChangeVariable = (newValue) => {
@@ -96,12 +105,12 @@ export default function TrTable({ toast }) {
 		setSelected(newValue);
 	}
 
-	useEffect(() => {
-		if (cart.length >= 0) {
-			recalculateTotalBill(billingdata);
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [cart.length]);
+	// useEffect(() => {
+	// 	if (cart.length >= 0) {
+	// 		recalculateTotalBill(billingdata);
+	// 	}
+	// 	// eslint-disable-next-line react-hooks/exhaustive-deps
+	// }, [cart.length]);
 
 
 

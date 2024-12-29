@@ -27,7 +27,7 @@ export default function BillingPagePatientInformation() {
 	return (
 		<section>
 			<div>
-				<div className="text-capitalize text-sm d-lg-flex d-xxl-flex d-sm-block" >
+				<div className="text-capitalize text-sm d-lg-flex d-xxl-flex d-sm-block " >
 					<div className="d-flex">
 						<span className="fw-bold text-uppercase ">
 							FullName:

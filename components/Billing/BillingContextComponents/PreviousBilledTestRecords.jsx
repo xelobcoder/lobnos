@@ -20,19 +20,19 @@ export default function PreviousBilledTestRecords({ previousRecords = [] }) {
         <div>
             {previousRecords.length > 0 &&
                 (
-                    <div>
+                    <div className="tablewrapper">
                         <h6 className="mx-2">Previous Records</h6>
-                        <Table className="table ttable billing-cart-table pls-color text-sm">
+                        <Table className={'table  ttable  billing-cart-table pls-color text-sm'}>
                             <thead>
                                 <tr>
                                     <th>type</th>
-                                    <th style={{ width: '30%' }}>name</th>
+                                    <th>name</th>
                                     <th>outsourced To</th>
-                                    <th >price</th>
+                                    <th >service cost</th>
+                                    <th style={{ width: '8%' }}>refund</th>
                                     <th>Refund Witnesses</th>
-                                    <th style={{ width: '10%' }}>refund</th>
-                                    {refundList.length > 0 && <th style={{ width: '20%' }}>Reason</th>}
-                                    <td>Approved</td>
+                                    <th>Reason</th>
+                                    <th style={{ width: '10%' }}>Approved</th>
                                     <th>Refunded</th>
                                 </tr>
                             </thead>
