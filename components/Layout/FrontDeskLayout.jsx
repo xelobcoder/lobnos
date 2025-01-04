@@ -31,7 +31,7 @@ export default function FrontDeskLayout({ children }) {
   ]
   return (
     <MainLayout sideLinks={sideLinks} defaultscreen={false}>
-      <div className='p-2'>
+      <div className='bg-body-secondary'>
         {children}
       </div>
     </MainLayout>

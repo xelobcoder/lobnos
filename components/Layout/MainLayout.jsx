@@ -56,10 +56,8 @@ export default function MainLayout({ children, sideLinks }) {
 				expandedLinks={expandedLinks}
 				toggleSubLinks={toggleSubLinks}
 			/>
-			<main>
-				<div>
-					{children}
-				</div>
+			<main className="p-4" style={{backgroundColor: "#f5f5f5"}}>
+				{children}
 			</main>
 		</>
 	);

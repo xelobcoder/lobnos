@@ -29,6 +29,28 @@ export async function customFetch(endpoint) {
 	}
 }
 
+export async function InventoryFetch(endpoint) {
+	try {
+		let response = await fetch(`${process.env.PSL_INVEN_ROUTE}/${endpoint}`, {
+			headers: {
+				Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+				"Content-Type": "application/json",
+				"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0"
+			},
+			cache: 'no-store'
+		})
+		const source = await response.json()
+		const { status, message } = source
+		if (status == 401 && message == "Unauthorized") {
+			window.location.href = "/authentication/login"
+		} else {
+			return source
+		}
+	} catch (err) {
+		console.log(err)
+	}
+}
+
 export const generateRandomTextAndNumbers = (length = 10) => {
 	const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 	let result = '';

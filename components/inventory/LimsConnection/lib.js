@@ -1,8 +1,8 @@
-import { customFetch } from "../../Auth/customFetch";
+import { InventoryFetch } from "../../Auth/customFetch";
 
 export const fetchTestTemplate = async function (testId) {
      try {
-          const data = await customFetch(`lims/inventory/connection/template/fetch?testid=${testId}`);
+          const data = await InventoryFetch(`lims/inventory/connection/template/fetch?testid=${testId}`);
 
           if (data.result && Array.isArray(data.result.template) && data.result.template.length > 0) {
                return data.result;

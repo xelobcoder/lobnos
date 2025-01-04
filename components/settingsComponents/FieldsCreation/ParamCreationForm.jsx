@@ -5,7 +5,7 @@ export default function ParamCreationGForm({ field, setField, generalTestRule })
 	return <form >
 		<div className="text-sm">
 			<div className="grid-reg">
-				<label>Field Name</label>
+				<label className="pls-label pls-color">Field Name</label>
 				<input
 					value={field?.name}
 					placeholder="Name"
@@ -15,8 +15,8 @@ export default function ParamCreationGForm({ field, setField, generalTestRule })
 				/>
 			</div>
 
-			<div className="grid-reg my-2">
-				<label>Method</label>
+			<div className="grid-reg  my-2">
+				<label className="pls-label pls-color">Method</label>
 				<select
 					onChange={(ev) => {
 						const updatedField = handleCreationMasterRUle(ev, field);
@@ -42,7 +42,7 @@ export default function ParamCreationGForm({ field, setField, generalTestRule })
 			</div>
 
 			<div className="grid-reg my-2">
-				<label>Has Units</label>
+				<label className="pls-label pls-color">Has Units</label>
 				<select
 
 					value={`${field.hasunits}`}
@@ -57,7 +57,7 @@ export default function ParamCreationGForm({ field, setField, generalTestRule })
 
 			{field.hasunits && (
 				<div className="grid-reg my-2">
-					<label>Field Units</label>
+					<label className="pls-label pls-color">Field Units</label>
 					<input
 						onChange={(ev) => handleChangeWithState(ev, "units", setField, field)}
 						value={field.units}

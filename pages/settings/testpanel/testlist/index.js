@@ -4,11 +4,13 @@ import { customFetch, customPost } from "../../../../components/Auth/customFetch
 import Loader from "../../../../components/accessories/Loader";
 import TableDisplay from "../../../../components/accessories/TableDisplay";
 import TestActions from "../../../../components/settingsComponents/TestActions";
+import { useRouter } from "next/navigation";
 
 export default function TestListDisplay() {
 	const [data, setData] = useState([]);
 	const [selectedRows, setSelectedRows] = useState([]);
 	const [isLoading, setLoading] = useState(true);
+	const router =useRouter()
 
 	useEffect(() => {
 		customFetch('testpanel/list/bulk')

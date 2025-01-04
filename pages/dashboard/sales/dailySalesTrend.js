@@ -15,6 +15,7 @@ import {
      AreaChart,
      Area,
 } from "recharts";
+import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
 
 const BAR_COLORS = ['#5D8FB1', '#9D6D7B', '#FF8A5C', '#F2A900'];
 
@@ -23,11 +24,12 @@ export default function DailySalesTrend() {
      const [loading, setLoading] = useState(true);
      const [view, setView] = useState("bar");
      const [startDate, setStartDate] = useState("");
+     const { branchid } = useApplicationSettings().applicationsettings;
      const [endDate, setEndDate] = useState("");
 
      useEffect(() => {
           const fetchData = async () => {
-               const url = `financials/billing/summary?key=dailySalesTrend&startDate=${startDate}&endDate=${endDate}`;
+               const url = `financials/billing/summary?key=dailySalesTrend&startDate=${startDate}&endDate=${endDate}&&branchid=${branchid}`;
                customFetch(url)
                     .then((fetchedData) => {
                          setData(fetchedData);
