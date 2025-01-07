@@ -2,7 +2,7 @@
 import { Container, Spinner } from "react-bootstrap";
 import { useSmsHandlers } from "../../../components/sms/ScheduleSMSCampaign";
 import { SmsSmsCategoryData } from "../../../components/sms/SmsInterfaces";
-import Select, { GroupBase } from 'react-select';
+import Select from 'react-select';
 import { reactSelectCustomStyles } from "../../../components/Auth/customFetch";
 import TemplateFiltering from "../../../components/accessories/SectorFileringComponents/TemplateFiltering";
 import SmsCategoryFiltering from "../../../components/accessories/SectorFileringComponents/SmsCategoryFiltering";
@@ -202,7 +202,7 @@ export default function ScheduleSmsCampaign() {
                     </div>
                     <div className="col-3">
                          {selectedCategory?.value && isClient && <div className="my-2">
-                              <SmsCategoryFiltering onSelect={handleSelectedRecipient} category={selectedCategory?.value} />
+                              <SmsCategoryFiltering onSelect={handleSelectedRecipient} selectedCategory={selectedCategory} />
                          </div>
                          }
                          <div className="card">

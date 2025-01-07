@@ -114,26 +114,29 @@ export function useSmsHandlers() {
 
      const handleSelectedTemplateToUse = (selectedOption: any) => {
           const { content } = selectedOption;
-          let placeholderCategoryArray = content.smscontent.toString().split("{@");
+          const regex = /\{@(\w+)\.\w+\}/g;
+          const matches = content.smscontent.match(regex);
 
-          if (Array.isArray(placeholderCategoryArray) && placeholderCategoryArray.length > 0) {
-               placeholderCategoryArray = placeholderCategoryArray.filter((item) => item.trim() !== "");
-
-               if (placeholderCategoryArray.length > 0) {
-                    let placeholder = placeholderCategoryArray[0];
-                    placeholder = placeholder.toString().includes(".") ? placeholder.split(".") : "";
-                    if (Array.isArray(placeholder) && placeholder.length > 0) {
-                         placeholder = placeholder[0];
-                    }
-                    if (placeholder.trim().toLowerCase() === selectedCategory?.value) {
-                         setMessageFormat({ templateid: content.tempateid, content: content.smscontent, isTemplate: true });
-                    } else {
-                         toast.warning("Template do not match selected category")
-                    }
+          if (Array.isArray(matches) && matches.length > 0) {
+               const placeholderCategories = matches.map((match) => {
+                    const stringifyMatch = `${match}`.toLowerCase();
+                    return stringifyMatch.match(/\{@(\w+)\./)?.[1]
+               })
+               
+               if (placeholderCategories.includes(selectedCategory?.value?.toLowerCase())) {
+                    setMessageFormat({
+                         templateid: content.tempateid,
+                         content: content.smscontent,
+                         isTemplate: true,
+                    });
+               } else {
+                    toast.warning("Template does not match selected category");
                }
-
+          } else {
+               toast.warning("No placeholders found in the template");
           }
      };
+
 
      const handleMessageFormat = (value: string) => {
           if (value === "template") {
@@ -147,7 +150,7 @@ export function useSmsHandlers() {
           let mobile: string = ''
           let name: string = ''
           let id: number = 0;
-          console.log(value)
+
           if (selectedCategory?.value == "organization") {
                mobile = value?.mobile;
                name = value?.name;
@@ -165,11 +168,26 @@ export function useSmsHandlers() {
                name = value?.name;
                mobile = value?.phone
                id = value?.id
-          } else {
-
+          } else if (selectedCategory?.value === "staffs") {
+               name = value?.username;
+               mobile = value?.mobile;
+               id = value?.employeeid
           }
 
-          setSelectedRecipients([...selectedRecipients, { mobile, name, id }])
+          if (selectedRecipients.length === 0) {
+               setSelectedRecipients([{ mobile, name, id }])
+          } else {
+
+
+               setSelectedRecipients((prev) => {
+                    const hasMatch = prev.filter((item, index) => item.id === id);
+
+                    if (hasMatch.length > 0) {
+                         return prev
+                    }
+                    return [...prev, { mobile, name, id }]
+               })
+          }
      }
 
 

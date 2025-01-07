@@ -4,23 +4,24 @@ import OutsourceOrganizationFiltering from './OutsourceOrganizationFiltering';
 import OrganizationFiltering from './OrganizationFiltering';
 import ClinicianFiltering from './ClinicianFiltering';
 import StaffsFiltering from './StaffFiltering';
+import { SmsCategoryType } from '../../sms/SmsInterfaces';
 
-export default function SmsCategoryFiltering({ category, onSelect }: {
-     category: string,
+export default function SmsCategoryFiltering({ selectedCategory, onSelect }: {
+     selectedCategory: SmsCategoryType,
      onSelect: (value: any) => void
 }) {
      const rendering = () => {
-          if (category == "clients") return <PatientFiltered getSelectedPatient={onSelect} isDisabled={false} />
-          else if (category === "outsourcing") return <OutsourceOrganizationFiltering onSelect={onSelect} />
-          else if (category == "organization") return <OrganizationFiltering onSelect={onSelect} />
-          else if (category == "clinicians") return <ClinicianFiltering onSelect={onSelect} />
-          else if (category == "staffs") return <StaffsFiltering onSelect={onSelect} />
+          const { categorization, isBulk, value } = selectedCategory;
+          if (isBulk) return null;
+          if (value == "clients") return <PatientFiltered getSelectedPatient={onSelect} isDisabled={false} />
+          else if (value === "outsourcing") return <OutsourceOrganizationFiltering onSelect={onSelect} />
+          else if (value == "organization") return <OrganizationFiltering onSelect={onSelect} />
+          else if (value == "clinicians") return <ClinicianFiltering onSelect={onSelect} />
+          else if (value == "staffs") return <StaffsFiltering onSelect={onSelect} />
           else {
                return null;
           }
      }
-
-     console.log(category)
      return (
           <div>
                {rendering()}
