@@ -2,6 +2,7 @@ import React from 'react'
 import { customFetch } from '../../../../components/Auth/customFetch';
 import Link from 'next/link';
 import styles from '../../../../styles/SmsTemplateList.module.css';
+import { Button, ButtonGroup } from 'react-bootstrap';
 
 export default async function UnresolvedMessages({ searchParams }: {
      searchParams: { count: number, page: number }
@@ -19,6 +20,11 @@ export default async function UnresolvedMessages({ searchParams }: {
      } catch (err) {
           console.error("Error fetching recipients:", err);
      }
+
+
+     const linksValuePrev = page != 0 ? `/sms/smsmessages/unresolved?page=${parseInt(page.toString()) - 1}&&count=15` : `/sms/smsmessages/unresolved?page=1&&count=15`
+
+     const linksValueNext = page > 0 ? `/sms/smsmessages/unresolved?page=${parseInt(page.toString()) + 1}&&count=15` : `/sms/smsmessages/unresolved?page=1&&count=15`
 
      return (
           <React.Fragment>
@@ -51,6 +57,16 @@ export default async function UnresolvedMessages({ searchParams }: {
                          ))}
                     </tbody>
                </table>
+               <div className='d-flex  justify-content-center'>
+                    <ButtonGroup>
+                         <Link href={linksValuePrev}>
+                              <Button size='sm' className='mx-2' variant='secondary'>Prev</Button>
+                         </Link>
+                         <Link href={linksValueNext}>
+                              <Button size='sm' variant='secondary'>Next</Button>
+                         </Link>
+                    </ButtonGroup>
+               </div>
           </React.Fragment>
      )
 }
