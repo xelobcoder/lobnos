@@ -42,62 +42,63 @@ export function BillingPageContextProvider({ children }) {
           setBillingdata(value);
      };
 
-   const recalculateTotalBill = (billingdata) => {
-    const {
-        paid = 0,
-        appsettings,
-        cart,
-        totalCostOfServices = 0,
-        servicesProvided,
-        previousAmountIncurredDueTax = 0,
-        previousBalance = 0,
-        previousPayable = 0,
-        previousPaid = 0,
-        previousOutstanding = 0,
-        previousRefunded = 0,
-    } = billingdata;
+     const recalculateTotalBill = (billingdata) => {
+          const {
+               paid = 0,
+               appsettings,
+               cart,
+               totalCostOfServices = 0,
+               servicesProvided,
+               previousAmountIncurredDueTax = 0,
+               previousBalance = 0,
+               previousPayable = 0,
+               previousPaid = 0,
+               previousOutstanding = 0,
+               previousRefunded = 0,
+          } = billingdata;
 
-    const { taxIncluded, taxValue } = appsettings;
+          const { taxIncluded, taxValue } = appsettings;
 
-    const totalTest = cart.length > 0 ? calculateTotalTestCost(cart) : 0;
+          const totalTest = cart.length > 0 ? calculateTotalTestCost(cart) : 0;
 
-    const servicePlusTestCost = calculateServicePlusTestCost(totalTest, totalCostOfServices);
+          const servicePlusTestCost = calculateServicePlusTestCost(totalTest, totalCostOfServices);
 
-    const amountIncurredDueTax = parseFloat(
-        (calculateTax(servicePlusTestCost, taxIncluded, taxValue) + previousAmountIncurredDueTax).toFixed(2)
-    );
+          const amountIncurredDueTax = parseFloat(
+               (calculateTax(servicePlusTestCost, taxIncluded, taxValue) + previousAmountIncurredDueTax).toFixed(2)
+          );
 
-    const total = parseFloat((servicePlusTestCost + amountIncurredDueTax +previousOutstanding).toFixed(2));
+          const total = parseFloat((servicePlusTestCost + amountIncurredDueTax + previousOutstanding).toFixed(2));
 
-    const discount = parseFloat(
-        (calculateDiscount(cart) + calculateDiscount(servicesProvided)).toFixed(2)
-    );
+          const discount = parseFloat(
+               (calculateDiscount(cart) + calculateDiscount(servicesProvided)).toFixed(2)
+          );
 
-    const parsedPaid = parseFloat(
-        (parsePaidAmount(paid) ).toFixed(2)
-        );
+          const parsedPaid = parseFloat(
+               (parsePaidAmount(paid)).toFixed(2) + parseFloat(previousPaid)
+          );
 
-    const payable = parseFloat(
-        ((total - discount) + previousPayable).toFixed(2)
-    );
+          const payable = parseFloat(
+               ((total - discount) + previousOutstanding).toFixed(2)
+          );
 
-    const outstanding = parseFloat(
-        ((payable - parsedPaid) - previousOutstanding).toFixed(2)
-    );
+          let outstanding = parseFloat(
+               ((payable - parsedPaid) - previousOutstanding)
+          )
+          outstanding = outstanding.toFixed(2);
 
-    updateBilling({
-        ...billingdata,
-        payable,
-        outstanding,
-        taxValue,
-        paid: parsedPaid,
-        testcost: totalTest,
-        discount,
-        cost: total,
-        amountIncurredDueTax,
-        taxIncluded: taxIncluded === 1,
-    });
-};
+          updateBilling({
+               ...billingdata,
+               payable,
+               outstanding,
+               taxValue,
+               paid: parsedPaid,
+               testcost: totalTest,
+               discount,
+               cost: total,
+               amountIncurredDueTax,
+               taxIncluded: taxIncluded === 1,
+          });
+     };
 
      // useEffect(() => {
      //      recalculateTotalBill(billingdata);

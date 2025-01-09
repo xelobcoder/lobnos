@@ -1,16 +1,18 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState } from 'react';
 import { Delete } from "@mui/icons-material";
 import ServicesSearchComponent from "./BillingSourceComponents/ServicesSearchComponentJsx";
 import { currencyFormatter } from '../../Auth/customFetch';
 import { BillingContext } from './BillingContext';
 
 export default function ServicesProvidedToPatientBilling() {
-    const { billingdata, updateBilling, recalculateTotalBill } = useContext(BillingContext);
+    const { billingdata, recalculateTotalBill } = useContext(BillingContext);
     const [selectedServices, setSelectedServices] = useState([]);
+    const { previousRecords } = billingdata;
+
 
     const updateServicesProvided = (services) => {
         const totalCost = services.reduce((sum, service) => sum + service.servicePrice, 0);
-        
+
         const updatedServices = services.map((item) => {
             const discountedValue = item.servicePrice
             return { ...item, discountedValue };
@@ -26,8 +28,16 @@ export default function ServicesProvidedToPatientBilling() {
 
 
     const serviceListSelectionChangeHandler = (newService) => {
+
+        if (previousRecords.length > 0) {
+            const hasPreviouslyBeenBilled = previousRecords.find((item, index) => item.categoryTrackId
+                == 5 && item.trackId == newService.keyid);
+            if (hasPreviouslyBeenBilled) return;
+        };
+
         setSelectedServices((prevServices) => {
-            const isExisting = prevServices.some((service) => service.keyid === newService.keyid);
+            const isExisting = prevServices.some((service) => service.keyid === newService.keyid)
+
             if (!isExisting) {
                 const updatedServices = [...prevServices, newService];
                 updateServicesProvided(updatedServices);
@@ -47,6 +57,8 @@ export default function ServicesProvidedToPatientBilling() {
 
     const totalServices = selectedServices.length;
     const totalAmount = selectedServices.reduce((sum, service) => sum + service.servicePrice, 0);
+
+
 
     return (
         <div className="mt-2">
