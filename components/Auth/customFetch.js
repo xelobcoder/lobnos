@@ -574,12 +574,10 @@ export const getBranches = async function (setBranches, id, loader = null) {
 		}
 		let response = await customFetch(endpoint)
 		const { result, status } = response
-		if (status == "success") {
-			if (id && result.length > 0) {
-				setBranches(result[0])
-			} else {
-				setBranches(result)
-			}
+		if (id && result.length > 0) {
+			setBranches(result[0])
+		} else {
+			setBranches(result)
 		}
 		if (loader) loader(false)
 	} catch (err) {

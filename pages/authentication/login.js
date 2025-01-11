@@ -27,7 +27,7 @@ export default function LoginCredentials() {
 			const { status, token, message, statusCode, sessionExpiryTime } = response
 			if (status == 'success') {
 				Cookies.set('X-AUTH-PRIME-LAB-SYSTEM', token, { expires: new Date(sessionExpiryTime) })
-				window.location.href = '/'
+				// window.location.href = '/'
 				// if (window.history.length > 0 ) {
 				//   window.history.back()
 				// } else {
@@ -45,7 +45,7 @@ export default function LoginCredentials() {
 		}
 	}
 
-	console.log(message)
+
 	return (
 		<>
 			<div id="login" className='min-vh-100'>

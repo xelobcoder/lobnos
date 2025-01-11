@@ -43,8 +43,8 @@ export default function AuthenticationIndexPage() {
 			setLoading(true);
 			try {
 				await validateFormData(
-					employeeid ? { ...register, employeeid } : register,false,
-					 ["name","email","password","cpassword","role","mobile"], employeeid ? 'logins/update' : 'logins',
+					employeeid ? { ...register, employeeid } : register, false,
+					["name", "email", "password", "cpassword", "role", "mobile"], employeeid ? 'logins/update' : 'logins',
 					handleResponse
 				);
 			} catch (error) {

@@ -8,22 +8,22 @@ import SmsLayout from "../../components/Layout/SmsLayout";
 
 
 export default function SMSLayout({
-  children,
+	children,
 }: {
-  children: React.ReactNode;
+	children: React.ReactNode;
 }) {
 
-  return (
-    <html lang="en">
-      <body data-bs-theme='dark'>
-        <Suspense>
-          <ApplicationProvider>
-            <SmsLayout>
-              {children}
-            </SmsLayout>
-          </ApplicationProvider>
-        </Suspense>
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en">
+			<body >
+				<Suspense>
+					<ApplicationProvider>
+						<SmsLayout>
+							{children}
+						</SmsLayout>
+					</ApplicationProvider>
+				</Suspense>
+			</body>
+		</html>
+	);
 }

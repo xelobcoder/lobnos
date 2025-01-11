@@ -8,7 +8,7 @@ import { customFetch } from "../../Auth/customFetch";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 
 export default function PatientResultEntryFormComponentNew({ }) {
-    const { user ,branchid} = useApplicationSettings().applicationsettings;
+    const { user, branchid } = useApplicationSettings().applicationsettings;
     const employeeid = user?.employeeid;
     const billingid = useSearchParams().get("csvid");
     const unslicedPatientid = useSearchParams().get("ptid");
@@ -59,7 +59,7 @@ export default function PatientResultEntryFormComponentNew({ }) {
     return (
         <div className="result-entry-layout ">
             <div className="result-entry-sidebar bg-light">
-                <div className="patient-filtering">
+                {/* <div className="patient-filtering">
                     <div className="pt-filtering-content">
                         <div>
                             <input className="custom-input" type="text" placeholder="enter patientid billingid here" />
@@ -68,7 +68,7 @@ export default function PatientResultEntryFormComponentNew({ }) {
                             <Search />
                         </button>
                     </div>
-                </div>
+                </div> */}
                 <div className="patient-data">
                     <div className="pt-content p-2">
                         <div className="bg-info-subtle br-5 p-2">
