@@ -7,7 +7,7 @@ import { Button, ButtonGroup } from 'react-bootstrap';
 export default async function UnresolvedMessages({ searchParams }: {
      searchParams: { count: number, page: number }
 }) {
-     const { count, page } = await searchParams;
+     const { count=1, page=10 } = await searchParams;
      let data: any[] = [];
      let totalUnsentMessageCount = 0;
      try {

@@ -6,7 +6,7 @@ import VitalSignFilterForm from './VitalSignFilterForm';
 
 
 
-export default function VitalSignCustomerListInformation({ searchParams }) {
+export default function VitalSignCustomerListInformation({ searchParams,size="fullscreen" }) {
     const { patientid } = searchParams;
     const [vitalSigns, setVitalSigns] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -104,6 +104,7 @@ export default function VitalSignCustomerListInformation({ searchParams }) {
             <VitalSignChartModal
                 show={modalData.show}
                 onHide={closeModal}
+                size={size}
                 vitalSigns={modalData.vitalSigns}
                 date={modalData.date}
                 generateChartData={processVitalSignData}

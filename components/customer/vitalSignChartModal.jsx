@@ -2,9 +2,9 @@ import React from 'react';
 import { Modal } from 'react-bootstrap';
 import VitalSignLineChart from './VitalSignLineChart';
 
-const VitalSignChartModal = ({ show, onHide, vitalSigns, date, generateChartData }) => {
+const VitalSignChartModal = ({ show, onHide, vitalSigns, date, generateChartData ,size}) => {
 	return (
-		<Modal show={show} onHide={onHide} size="fullscreen" >
+		<Modal show={show} onHide={onHide} size={size} >
 			<Modal.Header closeButton className=' bg-body-secondary fw-bold br-0'>
 				<Modal.Title>Vital Sign Charts for {date}</Modal.Title>
 			</Modal.Header>

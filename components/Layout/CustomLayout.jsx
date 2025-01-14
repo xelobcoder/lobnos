@@ -42,7 +42,7 @@ export default function AppCustomLayout({ children, sideLinks }) {
 					</div>
 				</div>
 				<div>
-					<Container fluid className="p-2" >
+					<Container >
 						{children}
 					</Container>
 				</div>
