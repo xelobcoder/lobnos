@@ -40,7 +40,11 @@ export default function PreviousConsulation({ patientid }: { patientid: number }
                                         Edit
                                    </Link>
                               </span>
-                              <span>View Report</span>
+                              <span>
+                                   <Link href={'http://localhost:8000/consultation/report/pdf?consultationid=1'}>
+                                        View Report
+                                   </Link>
+                              </span>
                          </li>
                     ))}
                </ul>

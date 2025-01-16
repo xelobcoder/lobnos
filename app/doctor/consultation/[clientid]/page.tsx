@@ -175,7 +175,7 @@ const ConsulationPanel = () => {
 														<Form.Control
 															as="textarea"
 															rows={5}
-															className="border-0 border-none form pls-color"
+															className="border-0 border-none form"
 															value={formData[field as keyof FormData]}
 															onChange={(e) => handleInputChange(field as keyof FormData, e.target.value)}
 															style={{ resize: "none" }}
@@ -270,7 +270,7 @@ const ConsulationPanel = () => {
 			</Modal>
 
 			{
-				openVitalSign && <Modal  show={openVitalSign} onHide={handleCloseVitalsingModal} size="xl" backdrop='static'>
+				openVitalSign && <Modal show={openVitalSign} onHide={handleCloseVitalsingModal} size="xl" backdrop='static'>
 					<Modal.Header className="bg-secondary-subtle" closeButton>
 						<Modal.Title>Vital Sign Chart</Modal.Title>
 					</Modal.Header>

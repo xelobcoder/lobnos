@@ -2,314 +2,278 @@ import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { customPost, getDataAndUpdateState } from "../../components/Auth/customFetch";
+import { customFetch, customPost } from "../../components/Auth/customFetch";
 import Loader from "../accessories/Loader";
-import { Button, Form, InputGroup, Card, Row, Col } from 'react-bootstrap';
+import { Button, Form, Col, Row } from "react-bootstrap";
+import { useSearchParams } from "next/navigation";
+import { ToastContainer, toast } from "react-toastify";
 
 const schema = yup.object().shape({
-  name: yup.string().required("Clinician name is required"),
-  phone: yup.string()
-    .matches(/^[0-9]{10}$/, "Phone number must be 10 digits")
-    .required("Phone number is required"),
-  email: yup.string().email("Invalid email address"),
-  organization: yup.number().required("Organization is required"),
-  location: yup.string(),
-  address: yup.string(),
-  occupation: yup.string(),
-  image: yup.mixed().required("Image is required").test("fileSize", "Image size is too large", value => !value || value.size <= 5 * 1024 * 1024) // 5MB limit
+	name: yup.string().required("Clinician name is required"),
+	phone: yup
+		.string()
+		.matches(/^[0-9]{10}$/, "Phone number must be 10 digits")
+		.required("Phone number is required"),
+	email: yup.string().email("Invalid email address").notRequired(),
+	organization: yup.number().notRequired(),
+	location: yup.string().notRequired(),
+	address: yup.string().notRequired(),
+	occupation: yup.string().notRequired(),
 });
 
-export default function BasicInformationClinician({ method, toast, editing, editid, reset, updateItem }) {
-  const [OrganizationList, setOrganization] = useState([]);
-  const [isloading, setLoading] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [dragging, setDragging] = useState(false);
+export default function BasicInformationClinician() {
+	const [OrganizationList, setOrganization] = useState([]);
+	const [isloading, setLoading] = useState(false);
+	const clinicianId = useSearchParams().get("clinicianid");
 
-  const defaultData = {
-    id: editid,
-    name: "",
-    phone: "",
-    email: "",
-    organization: 0,
-    location: "",
-    address: "",
-    occupation: "",
-    image: null,
-  };
 
-  const { control, handleSubmit, reset: resetForm, formState: { errors }, setValue } = useForm({
-    defaultValues: defaultData,
-    resolver: yupResolver(schema),
-  });
+	const defaultData = {
+		id: clinicianId,
+		name: "",
+		phone: "",
+		email: "",
+		organization: 0,
+		location: "",
+		address: "",
+		occupation: "",
+	};
 
-  useEffect(() => {
-    if (editing && editid) {
-      setLoading(true);
-      getDataAndUpdateState(setData, `clinicians/getclinician?id=${editid}`, true)
-        .then((data) => {
-          if (Array.isArray(data) && data.length > 0) {
-            resetForm(data[0]);
-          }
-          setLoading(false);
-        })
-        .catch(() => {
-          setLoading(false);
-          toast.error("Error getting data;");
-        });
-    }
-  }, [editid, editing, resetForm, toast]);
+	const { control, handleSubmit, reset: resetForm, formState: { errors } } = useForm({
+		defaultValues: defaultData,
+		resolver: yupResolver(schema),
+	});
 
-  useEffect(() => {
-    getDataAndUpdateState(setOrganization, "organization");
-  }, []);
 
-  const onSubmit = async (formData) => {
-    const submitData = new FormData();
-    Object.keys(formData).forEach(key => {
-      submitData.append(key, formData[key]);
-    });
+	const fetchPreviousData = async (clinicianId) => {
 
-    try {
-      const response = await customPost("clinicians", method, submitData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+		if (clinicianId && typeof clinicianId === "number") {
+			try {
+				setLoading(true);
+				const response = await customFetch(`clinicians/getclinician?id=${clinicianId}`);
 
-      const { statusCode, status, message } = response;
-      if (statusCode === 200 && status === "success") {
-        toast.success(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
-        updateItem(formData, 3);
-        reset();
-      } else {
-        toast.error(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
-      }
-    } catch (error) {
-      toast.error("Submission failed, please try again.", { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
-    }
-  };
+				const { result } = response
+				if (Array.isArray(result) && result.length > 0) {
+					resetForm(result[0])
+					setLoading(false);
+				}
+			} catch (err) {
+				setLoading(false);
+			}
+		}
+	}
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setSelectedImage(URL.createObjectURL(file));
-      setValue("image", file);
-    }
-  };
+	useEffect(() => {
+		fetchPreviousData(parseInt(clinicianId))
+	}, [clinicianId]);
 
-  const handleDrop = (event) => {
-    event.preventDefault();
-    setDragging(false);
-    const file = event.dataTransfer.files[0];
-    if (file) {
-      setSelectedImage(URL.createObjectURL(file));
-      setValue("image", file);
-    }
-  };
+	useEffect(() => {
+		setLoading(true);
+		customFetch("organization")
+			.then((dataList) => {
+				const { organizations } = dataList;
+				setOrganization(organizations);
+			}).catch((err) => {
+				setLoading(false);
+				toast.error(err?.message || "something wrong occured");
+			})
+			.finally(() => { setLoading(false) })
+	}, []);
 
-  const handleDragOver = (event) => {
-    event.preventDefault();
-    setDragging(true);
-  };
+	const onSubmit = async (formData) => {
+		try {
+			const method = clinicianId ? 'PUT' : 'POST';
 
-  const handleDragLeave = (event) => {
-    event.preventDefault();
-    setDragging(false);
-  };
+			const response = await customPost("clinicians", method, formData);
+			const { statusCode, status, message } = response;
 
-  const renderingFormView = () => {
-    if (isloading) return <Loader />;
-    return (
-      <Card.Body>
-        <Form onSubmit={handleSubmit(onSubmit)}>
-          <Row>
-            <Col md={4}>
-              {/* Image Upload */}
-              <Form.Group>
-                <Form.Label>Upload Image</Form.Label>
-                <div
-                  style={{
-                    height: '300px',
-                    width: '100%',
-                    border: '2px dashed #ddd',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: dragging ? '#f0f0f0' : '#fff',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => document.getElementById('fileInput').click()}
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                >
-                  {selectedImage ? (
-                    <img src={selectedImage} alt="Preview" style={{ maxHeight: '100%', maxWidth: '100%' }} className="img-thumbnail" />
-                  ) : (
-                    <span>Drag & drop or click to select an image</span>
-                  )}
-                </div>
-                <input
-                  type="file"
-                  id="fileInput"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  style={{ display: 'none' }}
-                />
-                {errors.image && <Form.Text className="text-danger">{errors.image.message}</Form.Text>}
-              </Form.Group>
-            </Col>
-            <Col md={8}>
-              {/* Form Fields */}
-              <Form.Group className="grid-reg my-2" controlId="formName">
-                <Form.Label>Clinician Name</Form.Label>
-                <Controller
-                  name="name"
-                  control={control}
-                  render={({ field }) => (
-                    <InputGroup>
-                      <Form.Control
-                        className="custom-input"
-                        type="text"
-                        placeholder="Enter Clinician Name"
-                        {...field}
-                        isInvalid={!!errors.name}
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {errors.name?.message}
-                      </Form.Control.Feedback>
-                    </InputGroup>
-                  )}
-                />
-              </Form.Group>
+			if (statusCode === 200 && status === "success") {
+				toast.success(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
+				reset();
+			} else {
+				toast.error(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
+			}
+		} catch (error) {
+			console.log(error)
+			toast.error("Submission failed, please try again.", { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
+		}
+	};
 
-              <Form.Group className="grid-reg my-2" controlId="formPhone">
-                <Form.Label>Phone Number</Form.Label>
-                <Controller
-                  name="phone"
-                  control={control}
-                  render={({ field }) => (
-                    <InputGroup>
-                      <Form.Control
-                        className="custom-input"
-                        type="tel"
-                        placeholder="Enter Phone Number"
-                        {...field}
-                        isInvalid={!!errors.phone}
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        {errors.phone?.message}
-                      </Form.Control.Feedback>
-                    </InputGroup>
-                  )}
-                />
-              </Form.Group>
+	const renderingFormView = () => {
+		if (isloading) return <Loader />;
 
-              <Form.Group className="grid-reg my-2" controlId="formEmail">
-                <Form.Label>Email</Form.Label>
-                <Controller
-                  name="email"
-                  control={control}
-                  render={({ field }) => (
-                    <Form.Control
-                      className="custom-input"
-                      type="email"
-                      placeholder="Enter Email"
-                      {...field}
-                    />
-                  )}
-                />
-              </Form.Group>
+		return (
+			<Form onSubmit={handleSubmit(onSubmit)}>
+				<Row>
+					<Col md={8}>
+						<Form.Group className="grid-reg my-2" controlId="formName">
+							<Form.Label className="pls-label pls-color">Clinician Name</Form.Label>
+							<Controller
+								name="name"
+								control={control}
+								render={({ field }) => (
+									<Form.Control
+										className="custom-input"
+										type="text"
+										placeholder="Enter Clinician Name"
+										{...field}
+										maxLength={50}
+										isInvalid={!!errors.name}
+									/>
+								)}
+							/>
+							<Form.Control.Feedback type="invalid">
+								{errors.name?.message}
+							</Form.Control.Feedback>
+						</Form.Group>
 
-              <Form.Group className="grid-reg my-2" controlId="formOrganization">
-                <Form.Label>Organization</Form.Label>
-                <Controller
-                  name="organization"
-                  control={control}
-                  render={({ field }) => (
-                    <Form.Control
-                      className="custom-select"
-                      as="select"
-                      {...field}
-                      isInvalid={!!errors.organization}
-                    >
-                      <option value="">Select Organization</option>
-                      {OrganizationList.map((org) => (
-                        <option key={org.id} value={org.id}>
-                          {org.name}
-                        </option>
-                      ))}
-                    </Form.Control>
-                  )}
-                />
-                <Form.Control.Feedback type="invalid">
-                  {errors.organization?.message}
-                </Form.Control.Feedback>
-              </Form.Group>
+						<Form.Group className="grid-reg my-2" controlId="formPhone">
+							<Form.Label className="pls-label pls-color">Phone Number</Form.Label>
+							<Controller
+								name="phone"
+								control={control}
+								render={({ field }) => (
+									<Form.Control
+										className="custom-input"
+										type="tel"
+										placeholder="Enter Phone Number"
+										{...field}
+										maxLength={10}
+										minLength={10}
+										isInvalid={!!errors.phone}
+									/>
+								)}
+							/>
+							<Form.Control.Feedback type="invalid">
+								{errors.phone?.message}
+							</Form.Control.Feedback>
+						</Form.Group>
 
-              <Form.Group className="grid-reg my-2" controlId="formLocation">
-                <Form.Label>Location</Form.Label>
-                <Controller
-                  name="location"
-                  control={control}
-                  render={({ field }) => (
-                    <Form.Control
-                      className="custom-input"
-                      type="text"
-                      placeholder="Enter Location"
-                      {...field}
-                    />
-                  )}
-                />
-              </Form.Group>
+						<Form.Group className="grid-reg my-2" controlId="formEmail">
+							<Form.Label className="pls-label pls-color">Email</Form.Label>
+							<Controller
+								name="email"
+								control={control}
+								render={({ field }) => (
+									<Form.Control
+										className="custom-input"
+										type="email"
+										placeholder="Enter Email"
+										{...field}
+										isInvalid={!!errors.email}
+									/>
+								)}
+							/>
+							<Form.Control.Feedback type="invalid">
+								{errors.email?.message}
+							</Form.Control.Feedback>
+						</Form.Group>
 
-              <Form.Group className="grid-reg my-2" controlId="formAddress">
-                <Form.Label>Address</Form.Label>
-                <Controller
-                  name="address"
-                  control={control}
-                  render={({ field }) => (
-                    <Form.Control
-                      className="custom-input"
-                      type="text"
-                      placeholder="Enter Address"
-                      {...field}
-                    />
-                  )}
-                />
-              </Form.Group>
+						<Form.Group className="grid-reg my-2" controlId="formLocation">
+							<Form.Label className="pls-label pls-color">Location</Form.Label>
+							<Controller
+								name="location"
+								control={control}
+								render={({ field }) => (
+									<Form.Control
+										className="custom-input"
+										type="text"
+										placeholder="Enter Location"
+										{...field}
+										maxLength={100}
+										isInvalid={!!errors.location}
+									/>
+								)}
+							/>
+							<Form.Control.Feedback type="invalid">
+								{errors.location?.message}
+							</Form.Control.Feedback>
+						</Form.Group>
 
-              <Form.Group className="grid-reg my-2" controlId="formOccupation">
-                <Form.Label>Occupation</Form.Label>
-                <Controller
-                  name="occupation"
-                  control={control}
-                  render={({ field }) => (
-                    <Form.Control
-                      className="custom-input"
-                      type="text"
-                      placeholder="Enter Occupation"
-                      {...field}
-                    />
-                  )}
-                />
-              </Form.Group>
+						<Form.Group className="grid-reg my-2" controlId="formAddress">
+							<Form.Label className="pls-label pls-color">Address</Form.Label>
+							<Controller
+								name="address"
+								control={control}
+								render={({ field }) => (
+									<Form.Control
+										className="custom-input"
+										type="text"
+										placeholder="Enter Address"
+										{...field}
+										maxLength={200}
+										isInvalid={!!errors.address}
+									/>
+								)}
+							/>
+							<Form.Control.Feedback type="invalid">
+								{errors.address?.message}
+							</Form.Control.Feedback>
+						</Form.Group>
 
-              <Form.Group className="d-flex justify-content-start mt-3">
-                <Button type="submit" variant="primary">
-                  Save Clinician
-                </Button>
-              </Form.Group>
-            </Col>
-          </Row>
-        </Form>
-      </Card.Body>
-    );
-  };
+						<Form.Group className="grid-reg my-2" controlId="formOccupation">
+							<Form.Label className="pls-label pls-color">Occupation</Form.Label>
+							<Controller
+								name="occupation"
+								control={control}
+								render={({ field }) => (
+									<Form.Control
+										className="custom-input"
+										type="text"
+										placeholder="Enter Occupation"
+										{...field}
+										maxLength={50}
+										isInvalid={!!errors.occupation}
+									/>
+								)}
+							/>
+							<Form.Control.Feedback type="invalid">
+								{errors.occupation?.message}
+							</Form.Control.Feedback>
+						</Form.Group>
 
-  return (
-    <div className="p-3">
-      {renderingFormView()}
-    </div>
-  );
+						<Form.Group className="grid-reg my-2" controlId="formOrganization">
+							<Form.Label className="pls-label pls-color">Organization</Form.Label>
+							<Controller
+								name="organization"
+								control={control}
+								render={({ field }) => (
+									<Form.Control
+										className="custom-select"
+										as="select"
+										{...field}
+										isInvalid={!!errors.organization}
+									>
+										<option value="">Select Organization</option>
+										{OrganizationList.map((org) => (
+											<option key={org.id} value={org.id}>
+												{org.name}
+											</option>
+										))}
+									</Form.Control>
+								)}
+							/>
+							<Form.Control.Feedback type="invalid">
+								{errors.organization?.message}
+							</Form.Control.Feedback>
+						</Form.Group>
+
+						<Form.Group className="d-flex justify-content-start mt-3">
+							<Button type="submit" variant="primary">
+								Save Clinician
+							</Button>
+						</Form.Group>
+					</Col>
+				</Row>
+			</Form>
+		);
+	};
+
+
+	return (
+		<React.Fragment>
+			<ToastContainer position="top-center" className={'text-sm'} theme="colored" />
+			{clinicianId ? <h5>Update clinician Information</h5> : <h5>New Clinician</h5>}
+			<div className="p-3">{renderingFormView()}</div>
+		</React.Fragment>
+	)
 }

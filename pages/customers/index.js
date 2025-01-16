@@ -4,7 +4,6 @@ import { handleActivation } from '../../components/Auth/registerclient';
 import { customFetch, generateRandomTextAndNumbers, parseDate } from '../../components/Auth/customFetch';
 import FrontDeskLayout from '../../components/Layout/FrontDeskLayout';
 import Loader from '../../components/accessories/Loader';
-import TableDisplay from '../../components/accessories/TableDisplay';
 import { ToastContainer, toast } from 'react-toastify';
 import PatientFiltered from '../../components/accessories/SectorFileringComponents/CustomerFiltering';
 import CustomersActions from '../../components/customer/CustomersActionDropDown';
@@ -129,6 +128,22 @@ export default function Activator() {
 
 
 
+	const handleSeverSideProcessing = async (values) => {
+		try {
+			const { page, count } = values;
+			const response = await customFetch(`customers?page=${page}&&count=${count}`);
+			if (Array.isArray(response)) {
+				return { result: response, error: false }
+			}
+		} catch (err) {
+			return {
+				result: [], error: err
+			}
+		}
+	}
+
+
+
 	return (
 		<FrontDeskLayout>
 			<ToastContainer theme='colored' position='top-center' className="text-sm" />
@@ -136,10 +151,13 @@ export default function Activator() {
 				<PatientFiltered getSelectedPatient={filteredPatient} />
 			</div>
 			<div >
-				{Array.isArray(tempStore) && tempStore.length > 0 && <PrimeTable column={columns}
-					data={tempStore}
-					serverSideFiltering={true}
-				/>}
+				{Array.isArray(tempStore)
+					&& tempStore.length > 0
+					&& <PrimeTable column={columns}
+						data={tempStore}
+						handleSeverSideProcessing={handleSeverSideProcessing}
+						serverSideFiltering={true}
+					/>}
 			</div>
 			{/* <div className=' d-lg-flex  justify-content-lg-center d-sm-block'>
 				<Pagination />

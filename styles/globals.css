@@ -44,14 +44,8 @@ html,body{
     overflow-y: auto;
     /* min-height: 100vh; */
     font-family: "Barlow", sans-serif !important;
-    background-color: white;
 }
 
-body {
-      font-size: 0.95em;
-      font-weight: 400;
-            font-family: "Barlow", sans-serif;
-}
 
 .pls-color{
   color: var(--pls-color) !important;
@@ -1631,4 +1625,11 @@ grid-template-columns: 100% !important;
 .dropdown-menu {
     position: absolute; /* Positioning dropdown */
     z-index: 1000; /* Ensure dropdown appears above other content */
+}
+.nav.nav-tabs > .nav-item {
+    font-size: 12px !important;
+    font-weight: 300 !important;
+    color: black;
+    background-color: whitesmoke;
+    text-transform: capitalize !important;
 }

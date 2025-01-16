@@ -3,7 +3,7 @@ import React from 'react'
 import PatientFiltered from '../../../components/accessories/SectorFileringComponents/CustomerFiltering'
 import { useRouter } from 'next/navigation'
 
-export default function page() {
+export default function ConsultationgloFieldSettingsPage() {
      const router = useRouter();
      const handleSelectedPatient = (selected: any) => {
           const { patientid } = selected;

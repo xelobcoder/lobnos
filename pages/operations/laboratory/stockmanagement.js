@@ -4,10 +4,10 @@ import { getAscensionData } from "../../../components/operations/Laboratory/Lib"
 import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
 import TableDisplay from "../../../components/accessories/TableDisplay";
 import DocumentModal from "../../../components/operations/Laboratory/DocumentInventoryDeductionLab";
-import { Alert, Button } from "react-bootstrap";
+import { Alert, Button, Pagination } from "react-bootstrap";
 import StockManagementSmallerScreen from "../../../components/operations/Laboratory/stockMangementSmallerScreen";
 import Loader from "../../../components/accessories/Loader";
-
+import PrimeTable from '../../../components/accessories/Datatables/PrimeTable'
 
 export default function StockManagement() {
      const { user, services } = useApplicationSettings().applicationsettings;
@@ -69,34 +69,43 @@ export default function StockManagement() {
      }, []);
 
 
+     const handleSeverSideProcessing = (pagination) => {
+          const { page, count } = pagination;
+          if (page && count) {
+
+          }
+     }
+
+
      if (isLoading) return <Loader />
-     // if (services.isConnectedInventory === 0) {
-     //      return (
-     //           <LaboratoryLayout>
-     //                <Alert className="m-2 p-2 pls-color" dismissible>
-     //                     <Alert.Heading className="text-capitalize text-sm pls-color">
-     //                          Inventory services feature not activated
-     //                     </Alert.Heading>
-     //                     <hr />
-     //                </Alert>
-     //           </LaboratoryLayout>)
-     // }
+     if (services.isConnectedInventory === 0) {
+          return (
+               <LaboratoryLayout>
+                    <Alert className="m-2 p-2 pls-color col-3">
+                         <Alert.Heading style={{ fontSize: '14px' }} className="text-capitalize text-sm pls-color fw-bold">
+                              Inventory services feature not activated
+                         </Alert.Heading>
+                         <hr />
+                    </Alert>
+               </LaboratoryLayout>)
+     }
      return (
           <LaboratoryLayout>
-               <h4>Stocks Management</h4>
-
-               {/* Table view for larger screens */}
+               <h4 className="p-2 bg-secondary-subtle br-5 ">Stocks Management</h4>
                <div className="d-none d-md-block">
                     <section style={{ overflowX: 'auto' }}>
-                         <TableDisplay filtering={true} data={ascensionList} column={columns} />
-
+                         <PrimeTable
+                              serverSideFiltering={true}
+                              handleSeverSideProcessing={null}
+                              column={columns} data={ascensionList} />
                     </section>
                </div>
 
                {/* List view for smaller screens */}
                <div className="d-block d-md-none">
                     <ul className="list-group m-0">
-                         {ascensionList.map((item, index) => <StockManagementSmallerScreen key={index} item={item} handleActionClick={handleActionClick} />)}
+                         {ascensionList.map((item, index) => <StockManagementSmallerScreen
+                              key={index} item={item} handleActionClick={handleActionClick} />)}
                     </ul>
                </div>
 
