@@ -40,6 +40,7 @@ html,body{
   scroll-behavior: smooth;
   text-size-adjust: 100%;
     line-height: 1.0;
+    height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
     /* min-height: 100vh; */

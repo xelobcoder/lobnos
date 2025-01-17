@@ -139,10 +139,6 @@ export default function ClinicianList() {
 					serverSideFiltering={true}
 					handleSeverSideProcessing={updatePage}
 				/>
-				{/* <TableDisplay data={ClinicianList} exporters={false} showpage={false} column={columns} filtering={true} />
-				<section className="d-flex justify-content-center">
-					<Pagination page={pagination.page} load={setLoad} updateFunction={updatePage} />
-				</section> */}
 			</div>
 		);
 	};

@@ -56,7 +56,7 @@ export default function MainLayout({ children, sideLinks }) {
 				expandedLinks={expandedLinks}
 				toggleSubLinks={toggleSubLinks}
 			/>
-			<main className="p-3">
+			<main className="p-3" >
 				{children}
 			</main>
 		</>
