@@ -36,6 +36,7 @@ input[type='checkbox'] {
 }
 
 
+
 html,body{
   scroll-behavior: smooth;
   text-size-adjust: 100%;
@@ -43,7 +44,6 @@ html,body{
     height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
-    /* min-height: 100vh; */
     font-family: "Barlow", sans-serif !important;
 }
 

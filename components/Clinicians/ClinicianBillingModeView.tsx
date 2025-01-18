@@ -1,12 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Form } from "react-bootstrap";
+import { Form, Spinner } from "react-bootstrap";
 import ClinicianIndividualBillingConcession from "./ClinicianIndividualBillingConcession";
 import OrganizationFiltering from "../accessories/SectorFileringComponents/OrganizationFiltering";
 import { Delete } from "@mui/icons-material";
 import { customPost } from "../Auth/customFetch";
 import { PreviousClinicianBillingRecord } from "./dev.type";
-
+import { ToastContainer, toast } from "react-toastify";
 interface SelectedTest {
 	testName: string;
 	originalPrice: number;
@@ -33,11 +33,14 @@ interface Organization {
 
 export default function ClinicianBillingModeView({ clinicianid, previousRecords }: { clinicianid: number, previousRecords: PreviousClinicianBillingRecord | null }) {
 	const [selectionMode, setSelectionMode] = useState<"absolute" | "percentage">("absolute");
+	const [lastupdated, setLastupdated] = useState<string | null>(null);
 	const [concessionAmount, setConcessionAmount] = useState<string>("0");
 	const [selectedTests, setSelectedTests] = useState<SelectedTest[]>([]);
 	const [isAllTestsConcessionVisible, setIsAllTestsConcessionVisible] = useState(true);
 	const [applyToAllOrganizations, setApplyToAllOrganizations] = useState(true);
 	const [selectedOrganizations, setSelectedOrganizations] = useState<Organization[]>([]);
+	const [selectedTestIds, setSelectedTestIds] = useState<number[]>([]);
+	const [submitting, setSubmitting] = useState<boolean>(false);
 
 	const handleOrganizationSelection = (organization) => {
 		setSelectedOrganizations((prevSelected) => {
@@ -50,6 +53,7 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords 
 
 	const handleBillingStrategyFormSubmission = async () => {
 		try {
+			setSubmitting(true);
 			const billingData = {
 				concessionMode: selectionMode,
 				concessionAmount: parseFloat(concessionAmount),
@@ -61,15 +65,37 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords 
 
 			const response = await customPost(`clinicians/billing/strategies`, 'POST', billingData);
 
-			console.log(response);
+			const { status, message, strategyId } = response;
+			if (status == true || strategyId == -1 || strategyId > 0) {
+				toast.success(message);
+			} else {
+				toast.error(message);
+			}
+			setSubmitting(false);
 		} catch (err) {
+			setSubmitting(false);
 			console.log(err);
 		}
 	};
 
+	const handleRemoveSelectedTests = () => {
+		setSelectedTests((prevSelectedTests) =>
+			prevSelectedTests.filter((test) => !selectedTestIds.includes(test.testid))
+		);
+		setSelectedTestIds([]);
+	};
+
+	const handleTestSelectionToggle = (testid: number) => {
+		setSelectedTestIds((prevSelectedIds) =>
+			prevSelectedIds.includes(testid)
+				? prevSelectedIds.filter((id) => id !== testid)
+				: [...prevSelectedIds, testid]
+		);
+	};
+
 	useEffect(() => {
 		if (previousRecords) {
-			const { concessionAmount, concessionMode, allconcessionApplied, applicableOrganization, applicableTest } = previousRecords;
+			const { concessionAmount, concessionMode, allconcessionApplied, applicableOrganization, applicableTest, updatedon } = previousRecords;
 
 			setIsAllTestsConcessionVisible(allconcessionApplied === 0 ? false : true);
 			setConcessionAmount(concessionAmount || "0");
@@ -85,13 +111,23 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords 
 			if (Array.isArray(applicableTest) && applicableTest.length > 0) {
 				setSelectedTests(applicableTest);
 			}
+
+			setLastupdated(updatedon)
 		}
 	}, [previousRecords]);
 
 	return (
 		<div className="container">
-			<div className="col-3">
-				<h6 className="p-2 bg-secondary-subtle br-5">Clinician Billing</h6>
+			<ToastContainer position="top-center" className="text-sm" theme="colored" />
+			<div className=" d-flex justify-content-between">
+				<h6 className="p-2 bg-secondary-subtle br-5">
+					Clinician Billing
+				</h6>
+				{
+					lastupdated && <div className=" text-decoration-underline p-0 br-5 d-flex justify-content-center align-center text-capitalize">
+						last updated on: {new Date(lastupdated).toLocaleDateString()} {new Date(lastupdated).toLocaleTimeString()}
+					</div>
+				}
 			</div>
 			<hr />
 			<div>
@@ -222,26 +258,68 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords 
 					)}
 
 					{selectedTests.length > 0 && (
-						<div className="list-group-item">
-							<h6 className="bg-light p-2">Selected Tests</h6>
-							<table className="table ttable">
+						<div className="list-group-item my-1">
+							<div className="d-flex justify-content-between">
+								<span className="bg-light ">
+									Selected Tests
+								</span>
+								<button className="btn btn-danger btn-sm mx-5" onClick={handleRemoveSelectedTests}>
+									<Delete fontSize="small" />
+								</button>
+							</div>
+							<table className="table ttable mt-1">
 								<thead>
 									<tr>
+										<th>
+											<input
+												type="checkbox"
+												onChange={(e) => {
+													setSelectedTestIds(
+														e.target.checked
+															? selectedTests.map((test) => test.testid)
+															: []
+													);
+												}}
+												checked={selectedTestIds.length === selectedTests.length}
+											/>
+										</th>
 										<th>Test Name</th>
 										<th>Original Price</th>
+										<th>Concession Mode</th>
 										<th>Concession Amount</th>
 										<th>Discounted Amount</th>
 										<th>Actual Price</th>
+										<th>Action</th>
 									</tr>
 								</thead>
 								<tbody>
-									{selectedTests.map((test, index) => (
-										<tr key={index}>
+									{selectedTests.map((test) => (
+										<tr key={test.testid}>
+											<td>
+												<input
+													type="checkbox"
+													checked={selectedTestIds.includes(test.testid)}
+													onChange={() => handleTestSelectionToggle(test.testid)}
+												/>
+											</td>
 											<td>{test.testName}</td>
 											<td>{test.originalPrice.toFixed(2)}</td>
+											<td>{test.concessionMode}</td>
 											<td>{test.concessionAmount.toFixed(2)}</td>
 											<td>{test.discountedAmount.toFixed(2)}</td>
 											<td>{test.actualPrice.toFixed(2)}</td>
+											<td>
+												<button
+													className="btn btn-danger btn-sm"
+													onClick={() => {
+														setSelectedTests(
+															selectedTests.filter((t) => t.testid !== test.testid)
+														);
+													}}
+												>
+													<Delete fontSize="small" />
+												</button>
+											</td>
 										</tr>
 									))}
 								</tbody>
@@ -249,9 +327,15 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords 
 						</div>
 					)}
 				</div>
-				<button className="btn btn-primary btn-sm mt-2" type="button" onClick={handleBillingStrategyFormSubmission}>
-					Submit Billing Information
-				</button>
+
+				<div className="form-row mt-3">
+					<button
+						className="btn btn-primary btn-sm"
+						onClick={handleBillingStrategyFormSubmission}
+					>
+						{submitting && <Spinner size="sm" />}	{submitting ? 'submitting' : 'Save Billing Information'}
+					</button>
+				</div>
 			</div>
 		</div>
 	);

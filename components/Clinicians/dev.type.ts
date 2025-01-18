@@ -15,5 +15,5 @@ export interface PreviousClinicianBillingRecord {
     }>;
     concessionAmount: string;
     createdOn: string;
-    updatedOn: string | null;
+    updatedon: string | null;
 }

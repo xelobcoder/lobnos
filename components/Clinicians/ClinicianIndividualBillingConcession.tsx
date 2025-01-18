@@ -44,7 +44,8 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
             concessionAmount: concessionValue,
             discountedAmount: discountedAmount,
             actualPrice: actualPrice,
-            testid: currentTest.id
+            testid: currentTest.id,
+            concessionMode: selectionMode
         };
 
         setSelectedTests((prevSelectedTests) => {
