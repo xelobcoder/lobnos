@@ -334,7 +334,7 @@ export default function
                     </div>
                </div>
                <div className={style.tablewrapper} style={{minHeight:'50vh'}}>
-                    <table className={`${style.table}`} {...getTableProps()}>
+                    <table className={`${style.table}`} style={{fontSize:'12px'}} {...getTableProps()}>
                          <thead >{customHeaderGroup()}</thead >
                          {hasColumnFiltering && <thead>{additionalTableHeader(column)}</thead>}
                          <RenderingTable getTableBodyProps={getTableBodyProps} />

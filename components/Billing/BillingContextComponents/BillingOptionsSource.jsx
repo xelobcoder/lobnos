@@ -4,6 +4,7 @@ import { billingSource, canIgnoreDebtPaymentAndTax, fetchPreviousBilledRecords, 
 import OrganizationalBillingSourceSearch from "./BillingSourceComponents/OrganizationBillingSearch";
 import { currencyFormatter, customFetch } from "../../Auth/customFetch";
 import Link from "next/link";
+import InsuranceOrganizationFiltering from '../../accessories/SectorFileringComponents/InsuranceOrganizationFiltering'
 import { useSearchParams, useRouter } from "next/navigation";
 
 const getTransactionPreviousBillingRecords = async (billingid) => {
@@ -154,6 +155,9 @@ export default function BillingSourceDeterminer({ patientid }) {
 
 
 
+    const handleInsuranceSelection = (value) => {
+        console.log(value)
+    }
 
 
     useEffect(() => {
@@ -228,7 +232,7 @@ export default function BillingSourceDeterminer({ patientid }) {
                         &&
                         <div className="form-group">
                             <label>search organization here</label>
-                            <input type='text' placeholder="select private Insrance Comapanies here here" className="custom-input" />
+                            <InsuranceOrganizationFiltering onSelect={handleInsuranceSelection} />
                         </div>
                     }
                     {billingdata?.billingSource === 4

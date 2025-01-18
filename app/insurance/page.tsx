@@ -1,17 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button, Modal, Spinner } from 'react-bootstrap';
+import { Button, Modal, Spinner, Dropdown } from 'react-bootstrap';
 import NewInsuranceCompanyForm from '../../components/insurance/NewInsuranceCompanyForm';
-import { Add } from '@mui/icons-material';
+import { Add, MoreHoriz } from '@mui/icons-material';
 import PrimeTable from '../../components/accessories/Datatables/PrimeTable';
 import { customFetch } from '../../components/Auth/customFetch';
-import Loader from '../../components/accessories/Loader'
+import Loader from '../../components/accessories/Loader';
 
 const InsurancePage: React.FC = () => {
     const [showModal, setShowModal] = useState(false);
     const [insurances, setInsurances] = useState<any[]>([]);
     const [reload, setReload] = useState(false);
+    const [clinicianid, setClinicianid] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedInsurances, setSelectedInsurances] = useState<Set<number>>(new Set());
 
@@ -34,7 +35,10 @@ const InsurancePage: React.FC = () => {
         fetchInsurances({ count: 10, page: 1 });
     }, []);
 
-    const handleShow = () => setShowModal(true);
+    const handleShow = () => {
+        setShowModal(true);
+        setClinicianid(null);
+    }
     const handleClose = () => setShowModal(false);
 
     const handleAddInsurance = (data: any) => {
@@ -81,10 +85,10 @@ const InsurancePage: React.FC = () => {
                 />
             ),
         },
-        { Header: 'Insurance Name', accessor: 'insuranceName' },
-        { Header: 'Insurance Code', accessor: 'insuranceCode' },
-        { Header: 'Insurance Type', accessor: 'insuranceType' },
-        { Header: 'Search Code', accessor: 'searchCode' },
+        { Header: 'Name', accessor: 'insuranceName' },
+        { Header: 'Code', accessor: 'insuranceCode' },
+        { Header: 'Type', accessor: 'insuranceType' },
+        { Header: 'Code', accessor: 'searchCode' },
         { Header: 'Network', accessor: 'network' },
         { Header: 'Tags', accessor: 'tags' },
         { Header: 'Mailing Address', accessor: 'mailingAddress' },
@@ -93,30 +97,48 @@ const InsurancePage: React.FC = () => {
         { Header: 'County', accessor: 'county' },
         { Header: 'Zip Code', accessor: 'zipCode' },
         { Header: 'Comments', accessor: 'comments' },
+        {
+            Header: 'Actions',
+            id: 'actions',
+            Cell: ({ row }: any) => (
+                <Dropdown >
+                    <Dropdown.Toggle id="archives-dropdown" variant="light" >
+                        <MoreHoriz />
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                        <Dropdown.Item onClick={() => handleEditInsurance(row.original)}>Edit</Dropdown.Item>
+                        <Dropdown.Item onClick={() => handleDisableInsurance(row.index)}>Disable</Dropdown.Item>
+                    </Dropdown.Menu>
+                </Dropdown>
+            ),
+        },
     ];
 
     const handleSeverSideProcessing = async (pagination) => {
         const { page = 1, count = 10 } = pagination;
-        setIsLoading(true);
         try {
             const response = await customFetch(`insurances?page=${page}&&count=${count}`);
-            setIsLoading(false)
             if (response && Array.isArray(response) && response.length > 0) {
                 return { result: response, error: false };
             } else {
                 return { result: [], error: false };
             }
         } catch (error) {
-            console.error('Error fetching insurances:', error);
-            setIsLoading(false)
             return { result: [], error: false };
         } finally {
-            setIsLoading(false);
         }
     };
 
+    const handleEditInsurance = (row) => {
+        setClinicianid(row.id || null);
+        setShowModal(true);
+    };
 
-    if (isLoading) <Loader w={20} h={20} />
+    const handleDisableInsurance = (index: number) => {
+        console.log('Disable insurance at index', index);
+    };
+
+    if (isLoading) return <Loader w={20} h={20} />;
 
     return (
         <div>
@@ -139,7 +161,7 @@ const InsurancePage: React.FC = () => {
                     <h5>Add New Insurance</h5>
                 </Modal.Header>
                 <Modal.Body>
-                    <NewInsuranceCompanyForm onSubmit={handleAddInsurance} />
+                    <NewInsuranceCompanyForm onSubmit={handleAddInsurance} clinicianid={clinicianid} />
                 </Modal.Body>
             </Modal>
         </div>

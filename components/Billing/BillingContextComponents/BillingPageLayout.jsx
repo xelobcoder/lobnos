@@ -1,3 +1,4 @@
+"use client"
 import { BillingPageContextProvider } from "./BillingContext";
 import PatientFiltered from "../../accessories/SectorFileringComponents/CustomerFiltering";
 import RenderingWithPatientIdProvided from "./RenderingWithPatientIdProvided";

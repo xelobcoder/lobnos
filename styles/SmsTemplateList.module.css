@@ -35,6 +35,12 @@
     background-color: #f7fafc;
     color: black;
     max-width: 400px;
+    cursor: pointer;
+    box-sizing: border-box;
+    outline: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     word-wrap: break-word;
 }
 

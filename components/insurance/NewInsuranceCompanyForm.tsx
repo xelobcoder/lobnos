@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Button, Form, Col, Row } from 'react-bootstrap';
+import { Button, Form, Col, Row, Spinner } from 'react-bootstrap';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast, ToastContainer } from 'react-toastify';
-import { customPost } from '../Auth/customFetch';
+import { customFetch, customPost } from '../Auth/customFetch';
 
 interface FormData {
     insuranceName: string;
@@ -41,30 +41,49 @@ const schema = yup.object().shape({
     comments: yup.string().nullable(),
 });
 
-const NewInsuranceCompanyForm: React.FC<{ onSubmit: (data: FormData) => void }> = ({
+const NewInsuranceCompanyForm: React.FC<{ onSubmit: (data: FormData) => void, clinicianid: number }> = ({
     onSubmit,
+    clinicianid
 }) => {
     const {
         register,
         handleSubmit,
+        reset,
         formState: { errors },
     } = useForm<FormData>({
         resolver: yupResolver(schema),
     });
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const submitForm = async (data: FormData) => {
+        setIsLoading(true);
         try {
-            const response = await customPost(`insurances`, 'POST', data);
+            const method = clinicianid ? 'PUT' : 'POST';
+            const url = clinicianid ? `insurances/${clinicianid}` : `insurances`;
+            const response = await customPost(url, method, data);
             const { error, message } = response;
             if (error) {
                 toast.error(message || error);
             } else {
-                toast.success(message)
+                toast.success(message);
             }
         } catch (error) {
             toast.error('Error sending data to the server');
+        } finally {
+            setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (clinicianid) {
+            customFetch(`insurances/${clinicianid}`)
+                .then((data) => {
+                    if (data?.message) return;
+                    reset(data);
+                }).catch((err) => { console.log(err) });
+        }
+    }, [clinicianid, reset]);
 
     return (
         <>
@@ -238,8 +257,9 @@ const NewInsuranceCompanyForm: React.FC<{ onSubmit: (data: FormData) => void }> 
                     </Col>
                 </Row>
 
-                <Button type="submit" variant="primary" className='mt-2'>
-                    Submit
+                <Button type="submit" variant="primary" className='mt-2' disabled={isLoading}>
+                    {isLoading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : null}
+                    {isLoading ? 'Submitting...' : 'Submit'}
                 </Button>
             </Form>
         </>

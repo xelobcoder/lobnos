@@ -159,9 +159,6 @@ export default function Activator() {
 						serverSideFiltering={true}
 					/>}
 			</div>
-			{/* <div className=' d-lg-flex  justify-content-lg-center d-sm-block'>
-				<Pagination />
-			</div> */}
 		</FrontDeskLayout>
 	);
 }
