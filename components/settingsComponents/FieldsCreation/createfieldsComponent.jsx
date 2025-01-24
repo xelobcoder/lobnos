@@ -57,7 +57,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
 				"testid": "",
 				"hasunits": false,
 				"units": "",
-				"plan": "ultrasoundFields",
+				"plan": "ultrasound",
 				"plain": "",
 				"fieldConstraints": [],
 				"ordering": "",
@@ -67,8 +67,10 @@ export default function CreateTestFields({ testid, testname, minimize = false })
 			setGeneralTestRule({ ...generalTestRule, field: fieldValue, view: value })
 			return;
 		}
-		setGeneralTestRule({ ...generalTestRule, view: value })
+		setGeneralTestRule({ ...generalTestRule, plan: "ultrasound", view: value })
 	}
+
+
 
 
 	const changeOrdering = (item, ev) => {

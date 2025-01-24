@@ -1,3 +1,4 @@
+"use client"
 import Authorization from "../accessories/authorization";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import MainLayout from "./MainLayout"; 

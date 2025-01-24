@@ -41,7 +41,7 @@ const schema = yup.object().shape({
     comments: yup.string().nullable(),
 });
 
-const NewInsuranceCompanyForm: React.FC<{ onSubmit: (data: FormData) => void, clinicianid: number }> = ({
+const NewInsuranceCompanyForm: React.FC<{ onSubmit: (data: FormData) => void, clinicianid: number | null }> = ({
     onSubmit,
     clinicianid
 }) => {

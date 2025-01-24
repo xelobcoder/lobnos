@@ -142,7 +142,8 @@ const InsurancePage: React.FC = () => {
 
     return (
         <div>
-            <div className='d-flex justify-content-end'>
+            <div className='d-flex  justify-content-between'>
+                <h4>  Insurance Master</h4>
                 <Button variant="primary" className='btn-sm' onClick={handleShow}>
                     <Add /> Add Insurance
                 </Button>

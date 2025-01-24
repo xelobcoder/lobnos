@@ -6,14 +6,14 @@ export interface PreviousClinicianBillingRecord {
     applicableOrganization: string | null;
     applicableTest: Array<{
         actualPrice: number;
-        concessionAmount: number;
-        discountedAmount: number;
+        concessionValue: number;
+        discountedValue: number;
         originalPrice: number;
         testName: string;
         testid: number;
         concessionMode: 'absolute' | 'percentage'
     }>;
-    concessionAmount: string;
+    concessionValue: string;
     createdOn: string;
     updatedon: string | null;
 }

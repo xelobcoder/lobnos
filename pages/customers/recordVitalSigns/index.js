@@ -3,6 +3,7 @@ import RecordVitalSignsChartForm from "../../../components/customer/vitalSignCha
 import FrontDeskLayout from "../../../components/Layout/FrontDeskLayout";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import PrimeLayout from "../../../components/Layout/PrimeLayout";
 
 
 export default function RecordVitalSigns() {
@@ -16,13 +17,14 @@ export default function RecordVitalSigns() {
         }
         setQueryParams(paramObject)
     }, [urlParams]);
-    
+
     return (
-        <FrontDeskLayout>
+        <PrimeLayout>
             <div className="p-3">
                 <RecordVitalSignsChartForm searchParams={queryParams} />
                 {queryParams.patientid && <VitalSignCustomerListInformation searchParams={queryParams} />}
             </div>
-        </FrontDeskLayout>)
+        </PrimeLayout>
+    )
 }
 

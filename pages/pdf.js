@@ -40,9 +40,9 @@ const PrintOutComponent = () => {
      const sendData = async (resultdata) => {
           const data = {
                ...resultdata,
-               is_password_encrypted: true,
+               is_password_encrypted: false,
                is_pdf: true,
-               is_ultrasound: true,
+               is_ultrasound: false,
                password: '',
                logourl: 'https://th.bing.com/th/id/OIP.pzQ2E2KxjUjzhh9YMn7ZrAHaD3?rs=1&pid=ImgDetMain',
           };
@@ -51,14 +51,15 @@ const PrintOutComponent = () => {
           setError(null);
 
           try {
-               const res = await fetch(`http://localhost:8000/result/printout`, {
+               const res = await fetch(`${process.env.PLS_PDF_GENERATOR}result/printout`, {
                     headers: {
                          'Content-Type': 'application/json',
-                         'Access-Control-Allow-Origin': '*',
                     },
                     method: 'POST',
                     body: JSON.stringify(data),
                });
+
+               console.log(res)
 
                if (res.ok) {
                     const blob = await res.blob();

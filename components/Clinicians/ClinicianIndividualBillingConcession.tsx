@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { Form } from "react-bootstrap";
 import TestFiltering, { TestDetails } from "../accessories/SectorFileringComponents/TestFiltering";
 
 interface SelectedTest {
     testName: string;
     originalPrice: number;
-    concessionAmount: number;
-    discountedAmount: number;
+    concessionValue: number;
+    discountedValue: number;
     actualPrice: number;
 }
 
@@ -20,7 +19,7 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
     setSelectedTests,
 }) => {
     const [selectionMode, setSelectionMode] = useState<"absolute" | "percentage">("absolute");
-    const [concessionAmount, setConcessionAmount] = useState<string>("");
+    const [concessionValueInput, setConcessionValueInput] = useState<string>("");
     const [currentTest, setCurrentTest] = useState<TestDetails | null>(null);
     const [isTestSelected, setIsTestSelected] = useState(false);
 
@@ -30,22 +29,31 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
     };
 
     const handleConcessionDetails = () => {
-        if (!currentTest || concessionAmount === "") return;
+        if (!currentTest || concessionValueInput === "") return;
 
-        const concessionValue = parseFloat(concessionAmount);
-        const discountedAmount =
-            selectionMode === "absolute" ? concessionValue : (concessionValue / 100) * currentTest.price;
+        if (currentTest.price === 0) {
+            setIsTestSelected(false);
+            setConcessionValueInput("");
+            setCurrentTest(null);
+            return;
+        }
 
-        const actualPrice = currentTest.price - discountedAmount;
+        const concessionValue = parseFloat(concessionValueInput);
+        const discountedValue =
+            selectionMode === "absolute"
+                ? concessionValue
+                : (concessionValue / 100) * currentTest.price;
+
+        const actualPrice = currentTest.price - discountedValue;
 
         const newTest = {
             testName: currentTest.name,
             originalPrice: currentTest.price,
-            concessionAmount: concessionValue,
-            discountedAmount: discountedAmount,
-            actualPrice: actualPrice,
+            concessionValue,
+            discountedValue,
+            actualPrice,
             testid: currentTest.id,
-            concessionMode: selectionMode
+            concessionMode: selectionMode,
         };
 
         setSelectedTests((prevSelectedTests) => {
@@ -56,11 +64,9 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
         });
 
         setIsTestSelected(false);
-        setConcessionAmount("");
+        setConcessionValueInput("");
         setCurrentTest(null);
     };
-
-
 
     return (
         <div className="list-group-item">
@@ -96,8 +102,8 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
                         <input
                             type="number"
                             className="custom-input col-3"
-                            value={concessionAmount}
-                            onChange={(e) => setConcessionAmount(e.target.value)}
+                            value={concessionValueInput}
+                            onChange={(e) => setConcessionValueInput(e.target.value)}
                             placeholder="Enter amount"
                         />
                     </div>

@@ -3,11 +3,12 @@ import { patientRegistrationDefaultData } from "../../components/Auth/registercl
 import PersonalInfomationRegistration from "../../components/registration/PersonalInfomationRegistration";
 import { getRegistrationFields, registrationFields } from "../../components/registration/fields/Util";
 import { toast, ToastContainer } from 'react-toastify';
-import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 import Addressing from "../../components/registration/Addressing";
 import EmmergencyContactInformation from "../../components/registration/EmmergencyContactInformation";
 import { useRouter, useSearchParams } from "next/navigation";
 import PatientFiltered from '../../components/accessories/SectorFileringComponents/CustomerFiltering'
+import PrimeLayout from '../../components/Layout/PrimeLayout'
+
 export default function RegistrationForm() {
     const { personalInformation, addressingInformation, emmergencyInformation } = patientRegistrationDefaultData;
     const [fields, setFields] = useState(patientRegistrationDefaultData);
@@ -46,7 +47,7 @@ export default function RegistrationForm() {
     };
 
     return (
-        <FrontDeskLayout>
+        <PrimeLayout>
             <ToastContainer theme="colored" position="top-center" className={'text-sm'} />
             {showSearchUser && (
                 <div className="col-md-8 col-sm-12 col-lg-4 my-2">
@@ -88,6 +89,6 @@ export default function RegistrationForm() {
                     </div>
                 </div>
             </div>
-        </FrontDeskLayout>
+        </PrimeLayout>
     );
 }

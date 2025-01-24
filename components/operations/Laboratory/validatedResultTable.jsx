@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import TableDisplay from "../../accessories/TableDisplay";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { ListGroup } from 'react-bootstrap';
-import ShowTableCount from './ShowCountTable';
 import Pagination from '../../accessories/pagination';
 import { useMediaQuery } from 'react-responsive';
 import Loader from '../../accessories/Loader';
-import { useRouter } from 'next/router';
-import { printResultNavigator } from '../../Auth/customFetch';
+import { useRouter } from 'next/navigation';
+import { generateRandomTextAndNumbers } from '../../Auth/customFetch';
+import PrimeTable from '../../accessories/Datatables/PrimeTable';
 
 const Print = (
      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
@@ -16,7 +15,7 @@ const Print = (
      </svg>
 );
 
-const MobileDataDisplay = ({ data,handleResult }) => {
+const MobileDataDisplay = ({ data, handleResult }) => {
 
      return (
           <React.Fragment>
@@ -33,7 +32,7 @@ const MobileDataDisplay = ({ data,handleResult }) => {
                                    <span>{item.fullname} ({item.patientid})</span>
                               </div>
                               <div>
-                                   <button className='btn btn-light shadow' onClick={(ev) =>  {handleResult(item)}}>
+                                   <button className='btn btn-light shadow' onClick={(ev) => { handleResult(item) }}>
                                         {Print}
                                    </button>
                               </div>
@@ -61,11 +60,16 @@ export default function ValidatedResultTable() {
      const [isClient, setIsClient] = useState(false);
      const router = useRouter()
           ;
-     const viewResultHandler = (item) => {
-          printResultNavigator(router, item.billingid, item, true);
+     const viewResultHandler = (item, multiple = false) => {
+
+          const { testid, name, patientid, department, ascensionid, billingid } = item
+          const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
+          const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
+
+          window.open(`${process.env.PLS_PDF_GENERATOR}result/pdf/generate?csvid=${csvid}&&testid=${testid}&&testname=${name.toLowerCase()}&&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=${multiple}&&isUltrasound=false`)
      };
 
-   
+
 
      useEffect(() => {
           setIsClient(true);
@@ -108,7 +112,7 @@ export default function ValidatedResultTable() {
                accessor: "validators",
                Cell: ({ row }) => {
                     const validators = row.original.validators;
-                    return Array.isArray(validators) ? (
+                    return Array.isArray(validators) && validators.length > 0 ? (
                          <div className="list-group">
                               {validators.map((item, index) => (
                                    <span key={index} className="list-group-item text-sm py-0">{item.username}</span>
@@ -120,10 +124,22 @@ export default function ValidatedResultTable() {
           {
                Header: 'Action',
                accessor: '',
-               Cell: ({row}) => (
-                    <button onClick={(ev) =>  {viewResultHandler(row.original)}} className="btn btn-outline-secondary btn-sm br-0">
-                         {Print} Print Result
-                    </button>
+               Cell: ({ row }) => (
+                    <div className="btn-group" role="group" aria-label="Button group">
+                         <button
+                              onClick={(ev) => { viewResultHandler(row.original) }}
+                              className="btn btn-outline-secondary btn-sm"
+                         >
+                              Print Result
+                         </button>
+                         <button
+                              onClick={() => { viewResultHandler(row.original, true) }}
+                              className="btn btn-outline-secondary text-capitalize btn-sm"
+                         >
+                              print multiple result
+                         </button>
+                    </div>
+
                )
           },
      ];
@@ -131,14 +147,13 @@ export default function ValidatedResultTable() {
      const updateValue = (value) => setQueryParams({ ...queryParams, page: value });
 
 
-     if(isLoading) return <Loader/>
+     if (isLoading) return <Loader />
      return (
           <div>
-               <ShowTableCount queryParams={queryParams} setQueryParams={setQueryParams} />
                {isClient && (isMobile ? (
                     <MobileDataDisplay data={collection} handleResult={viewResultHandler} />
                ) : (
-                    <TableDisplay column={columns} data={collection} />
+                    <PrimeTable column={columns} data={collection} />
                ))}
                <div className='d-flex justify-content-center'>
                     <Pagination page={queryParams.page} load={setLoadPage} updateFunction={updateValue} />

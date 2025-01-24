@@ -63,29 +63,36 @@ export function BillingPageContextProvider({ children }) {
 
           const servicePlusTestCost = calculateServicePlusTestCost(totalTest, totalCostOfServices);
 
-          const amountIncurredDueTax = parseFloat(
-               (calculateTax(servicePlusTestCost, taxIncluded, taxValue) + previousAmountIncurredDueTax).toFixed(2)
+          let amountIncurredDueTax = (calculateTax(servicePlusTestCost, taxIncluded, taxValue) + previousAmountIncurredDueTax)
+
+          amountIncurredDueTax = parseFloat(
+               amountIncurredDueTax.toFixed(2)
           );
 
-          const total = parseFloat((servicePlusTestCost + amountIncurredDueTax + previousOutstanding).toFixed(2));
+          let total = parseFloat((servicePlusTestCost + amountIncurredDueTax + previousOutstanding));
+
+          total = parseFloat(total.toFixed(2))
 
           const discount = parseFloat(
                (calculateDiscount(cart) + calculateDiscount(servicesProvided)).toFixed(2)
           );
 
-          const parsedPaid = parseFloat(
-               (parsePaidAmount(paid)).toFixed(2) + parseFloat(previousPaid)
+          let parsedPaid = parseFloat(
+               (parsePaidAmount(paid)) + parseFloat(previousPaid)
           );
+
+          parsedPaid = parsedPaid.toFixed(2);
 
           const payable = parseFloat(
-               ((total - discount) + previousOutstanding).toFixed(2)
-          );
+               ((total - discount) + previousOutstanding)
+          ).toFixed(2)
 
           let outstanding = parseFloat(
-               ((payable - parsedPaid) - previousOutstanding)
+               ((payable - parsedPaid) + previousOutstanding)
           )
-          outstanding = outstanding.toFixed(2);
 
+          outstanding = outstanding.toFixed(2);
+console.log(outstanding)
           updateBilling({
                ...billingdata,
                payable,
@@ -99,11 +106,6 @@ export function BillingPageContextProvider({ children }) {
                taxIncluded: taxIncluded === 1,
           });
      };
-
-     // useEffect(() => {
-     //      recalculateTotalBill(billingdata);
-     // }, [billingdata.cart, billingdata.discount, billingdata.servicesProvided, billingdata.paid]);
-
      return (
           <BillingProvider value={{ billingdata, updateBilling, recalculateTotalBill }}>
                {children}

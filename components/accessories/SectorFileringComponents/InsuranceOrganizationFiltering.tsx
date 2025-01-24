@@ -27,13 +27,7 @@ export default function InsuranceOrganizationFiltering({ onSelect }: InsuranceOr
                 return response.map((item: any) => ({
                     label: (
                         <div>
-                            <strong>{item.name}</strong>
-                            <br />
-                            <span>{item.address}</span>
-                            <br />
-                            <span>{item.contact}</span>
-                            <br />
-                            <span>{item.location}</span>
+                            <strong>{item.insuranceName}</strong>
                         </div>
                     ),
                     value: item.id,
@@ -57,13 +51,13 @@ export default function InsuranceOrganizationFiltering({ onSelect }: InsuranceOr
             {isClient && (
                 <AsyncSelect
                     cacheOptions
-                    styles={reactSelectCustomStyles}
+                    // styles={reactSelectCustomStyles}
                     loadOptions={loadOptions}
                     id="template-filtering"
                     defaultOptions={false}
                     placeholder="Type at least 4 characters to search"
                     onChange={handleSelectChange}
-                    formatOptionLabel={(data:InsuranceOrganization) => data.label}
+                    formatOptionLabel={(data: InsuranceOrganization) => data.label}
                 />
             )}
         </div>

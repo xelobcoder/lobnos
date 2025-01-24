@@ -11,10 +11,12 @@ interface SelectedTest {
 	testName: string;
 	originalPrice: number;
 	testid: number;
-	concessionAmount: number;
-	discountedAmount: number;
+	concessionValue: number;
+	discountedValue: number;
 	actualPrice: number;
 	concessionMode: "absolute" | "percentage";
+
+	isoutsourced: boolean
 }
 
 interface Organization {
@@ -31,10 +33,10 @@ interface Organization {
 	type: string;
 }
 
-export default function ClinicianBillingModeView({ clinicianid, previousRecords }: { clinicianid: number, previousRecords: PreviousClinicianBillingRecord | null }) {
+export default function ClinicianBillingModeView({ clinicianid, previousRecords, strategy }: { clinicianid: number, previousRecords: PreviousClinicianBillingRecord | null, strategy: string }) {
 	const [selectionMode, setSelectionMode] = useState<"absolute" | "percentage">("absolute");
 	const [lastupdated, setLastupdated] = useState<string | null>(null);
-	const [concessionAmount, setConcessionAmount] = useState<string>("0");
+	const [concessionValue, setconcessionValue] = useState<string>("0");
 	const [selectedTests, setSelectedTests] = useState<SelectedTest[]>([]);
 	const [isAllTestsConcessionVisible, setIsAllTestsConcessionVisible] = useState(true);
 	const [applyToAllOrganizations, setApplyToAllOrganizations] = useState(true);
@@ -54,24 +56,33 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords 
 	const handleBillingStrategyFormSubmission = async () => {
 		try {
 			setSubmitting(true);
+
 			const billingData = {
 				concessionMode: selectionMode,
-				concessionAmount: parseFloat(concessionAmount),
+				concessionValue: parseFloat(concessionValue),
 				applicableTest: selectedTests,
 				allconcessionApplied: isAllTestsConcessionVisible,
 				applicableOrganization: selectedOrganizations,
-				clinicianid
+				associatedid: clinicianid,
+				isInsurance: strategy === "phis" ? 1 : 0,
+				isClinician: strategy === "clinicians" ? 1 : 0,
+				category: strategy
 			};
 
-			const response = await customPost(`clinicians/billing/strategies`, 'POST', billingData);
 
-			const { status, message, strategyId } = response;
-			if (status == true || strategyId == -1 || strategyId > 0) {
-				toast.success(message);
+			if (billingData.category && billingData.associatedid) {
+				const response = await customPost(`billing-strategies/billing/strategies`, 'POST', billingData);
+
+				const { status, message, strategyId } = response;
+				if (status == true || strategyId == -1 || strategyId > 0) {
+					toast.success(message);
+				} else {
+					toast.error(message);
+				}
+				setSubmitting(false);
 			} else {
-				toast.error(message);
+				toast.warn(`valid useful information required`);
 			}
-			setSubmitting(false);
 		} catch (err) {
 			setSubmitting(false);
 			console.log(err);
@@ -95,10 +106,10 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords 
 
 	useEffect(() => {
 		if (previousRecords) {
-			const { concessionAmount, concessionMode, allconcessionApplied, applicableOrganization, applicableTest, updatedon } = previousRecords;
+			const { concessionValue, concessionMode, allconcessionApplied, applicableOrganization, applicableTest, updatedon } = previousRecords;
 
 			setIsAllTestsConcessionVisible(allconcessionApplied === 0 ? false : true);
-			setConcessionAmount(concessionAmount || "0");
+			setconcessionValue(concessionValue || "0");
 			setSelectionMode(concessionMode);
 
 			if (Array.isArray(applicableOrganization) && applicableOrganization.length > 0) {
@@ -109,7 +120,7 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords 
 			}
 
 			if (Array.isArray(applicableTest) && applicableTest.length > 0) {
-				setSelectedTests(applicableTest);
+				setSelectedTests(applicableTest as any);
 			}
 
 			setLastupdated(updatedon)
@@ -125,7 +136,8 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords 
 				</h6>
 				{
 					lastupdated && <div className=" text-decoration-underline p-0 br-5 d-flex justify-content-center align-center text-capitalize">
-						last updated on: {new Date(lastupdated).toLocaleDateString()} {new Date(lastupdated).toLocaleTimeString()}
+						last updated on: {new Date(lastupdated).toLocaleDateString()}
+						{new Date(lastupdated).toLocaleTimeString()}
 					</div>
 				}
 			</div>
@@ -166,14 +178,16 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords 
 								</div>
 
 								<div className="form-row mt-3">
-									<label htmlFor="concessionAmount">Concession Amount</label>
+									<label htmlFor="concessionValue">Concession Amount</label>
 									<br />
 									<input
-										id="concessionAmount"
+										id="concessionValue"
 										type="number"
 										className="custom-input col-3"
-										value={concessionAmount}
-										onChange={(e) => setConcessionAmount(e.target.value)}
+										value={concessionValue}
+										onChange={(e) => {
+											setconcessionValue(e.target.value)
+										}}
 										placeholder="Enter amount"
 										maxLength={6}
 										minLength={1}
@@ -286,7 +300,7 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords 
 										<th>Test Name</th>
 										<th>Original Price</th>
 										<th>Concession Mode</th>
-										<th>Concession Amount</th>
+										{/* <th>Concession Value</th> */}
 										<th>Discounted Amount</th>
 										<th>Actual Price</th>
 										<th>Action</th>
@@ -305,8 +319,8 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords 
 											<td>{test.testName}</td>
 											<td>{test.originalPrice.toFixed(2)}</td>
 											<td>{test.concessionMode}</td>
-											<td>{test.concessionAmount.toFixed(2)}</td>
-											<td>{test.discountedAmount.toFixed(2)}</td>
+											{/* <td>{test.concessionValue}</td> */}
+											<td>{test.discountedValue}</td>
 											<td>{test.actualPrice.toFixed(2)}</td>
 											<td>
 												<button

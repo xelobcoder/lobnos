@@ -20,18 +20,7 @@ export default function AscensionProcessingTable({ }) {
 
 	if (isLoading) return <div>Loading .......................</div>;
 
-	if (collection.length === 0 && !isLoading) {
-		return (
-			<div className="p-3 alert col-3 alert-info text-sm">
-				<span className="mx-2">
-					<Info />
-				</span>
-				<span>
-					No test found in processing Stage.
-				</span>
-			</div>
-		);
-	}
+	
 
 	const updateTestCollectionAfterUpdate = (ascensionid, updateItem) => {
 		const prev = [...collection];

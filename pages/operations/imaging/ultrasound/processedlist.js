@@ -3,6 +3,8 @@ import { UltrasoundStagesProvider } from '../../../../components/operations/Ultr
 import UltrasoundAscensionFiltering from '../../../../components/operations/Ultrasound/UtrasoundFiltering';
 import AscentionUltrasoundUnCompletedTable from '../../../../components/operations/Ultrasound/UncompletedUltrasoundWaitingListTable';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+import PrimeLayout from '../../../../components/Layout/PrimeLayout';
+import Authorization from '../../../../components/accessories/authorization';
 
 
 export default function UltrasonograhyCompletedList() {
@@ -11,13 +13,16 @@ export default function UltrasonograhyCompletedList() {
 
   if (!employeeid) return null
 
+  if (employeeid && ['admin', 'sonographer'].includes(role) === false) {
+    return <Authorization />
+  }
+
   return (
-    <UltrasoundLayout>
+    <PrimeLayout>
       <UltrasoundStagesProvider>
-        <UltrasoundAscensionFiltering  employeeid={employeeid} ascension_stage={'ULTRASOUND_COMPLETED'} />
+        <UltrasoundAscensionFiltering employeeid={employeeid} ascension_stage={'ULTRASOUND_COMPLETED'} />
         <AscentionUltrasoundUnCompletedTable />
-      
       </UltrasoundStagesProvider>
-    </UltrasoundLayout>
+    </PrimeLayout>
   )
 }

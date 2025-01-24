@@ -1,177 +1,181 @@
-// components/Sidebar.js
-import { useRouter } from 'next/router';
-import Link from 'next/link';
-import Image from 'next/image';
+import React, { useState } from "react";
+import {
+  Dashboard as DashboardIcon,
+  Person as PersonIcon,
+  BarChart as BarChartIcon,
+  Settings as SettingsIcon,
+  Folder as FolderIcon,
+  Mail as MailIcon,
+  Notifications as NotificationsIcon,
+  Task as TaskIcon,
+  Info as InfoIcon,
+  ExitToApp as ExitToAppIcon,
+} from "@mui/icons-material";
 
-const Sidebar = () => {
-  const { pathname } = useRouter();
+const App = () => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState({});
 
-  // Helper function to determine if the link is active
-  const isActive = (path) => pathname === path ? 'active' : '';
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+    if (!isCollapsed) {
+      setExpandedMenus({}); // Collapse all menus when the sidebar is collapsed
+    }
+  };
+
+  const toggleMenu = (index) => {
+    setExpandedMenus((prevState) => ({
+      ...prevState,
+      [index]: !prevState[index],
+    }));
+  };
+
+  const styles = {
+    page: {
+      display: "flex",
+      height: "100vh",
+      fontFamily: "Arial, sans-serif",
+    },
+    sidebar: {
+      width: isCollapsed ? "80px" : "250px",
+      backgroundColor: "#0d6efd",
+      color: "#fff",
+      height: "100%",
+      transition: "width 0.3s",
+      display: "flex",
+      flexDirection: "column",
+      padding: "10px",
+      overflowY: "auto",
+    },
+    toggleButton: {
+      background: "none",
+      border: "none",
+      color: "#fff",
+      fontSize: "18px",
+      cursor: "pointer",
+      marginBottom: "20px",
+      alignSelf: isCollapsed ? "center" : "flex-end",
+    },
+    menu: {
+      display: "flex",
+      flexDirection: "column",
+    },
+    menuItem: {
+      display: "flex",
+      alignItems: "center",
+      padding: "8px 10px", // Reduced padding for a more professional look
+      borderRadius: "6px",
+      cursor: "pointer",
+      justifyContent: "space-between",
+    },
+    menuLabel: {
+      display: "flex",
+      alignItems: "center",
+    },
+    menuIcon: {
+      fontSize: "24px",
+      marginRight: isCollapsed ? "0" : "10px",
+    },
+    subMenu: {
+      display: "flex",
+      flexDirection: "column",
+      marginLeft: isCollapsed ? "0" : "20px",
+      marginTop: "5px",
+    },
+    subMenuItem: {
+      padding: "5px 10px",
+      borderRadius: "5px",
+      cursor: "pointer",
+      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      margin: "2px 0",
+    },
+    content: {
+      flex: 1,
+      padding: "20px",
+      backgroundColor: "#f8f9fa",
+    },
+  };
+
+  const links = [
+    {
+      icon: <DashboardIcon />, label: "Dashboard", subLinks: ["Overview", "Analytics", "Performance"]
+    },
+    {
+      icon: <PersonIcon />, label: "Profile", subLinks: ["View Profile", "Edit Profile", "Settings"]
+    },
+    {
+      icon: <BarChartIcon />, label: "Reports", subLinks: ["Daily Reports", "Monthly Reports", "Annual Reports"]
+    },
+    {
+      icon: <SettingsIcon />, label: "Settings", subLinks: ["Account Settings", "Privacy Settings", "Notifications"]
+    },
+    {
+      icon: <FolderIcon />, label: "Projects", subLinks: ["Ongoing", "Completed", "Archived"]
+    },
+    {
+      icon: <MailIcon />, label: "Messages", subLinks: ["Inbox", "Sent", "Drafts"]
+    },
+    {
+      icon: <NotificationsIcon />, label: "Notifications", subLinks: ["System Alerts", "User Notifications", "Logs"]
+    },
+    {
+      icon: <TaskIcon />, label: "Tasks", subLinks: ["Pending", "Completed", "All Tasks"]
+    },
+    {
+      icon: <InfoIcon />, label: "About", subLinks: ["Company Info", "Contact Us", "FAQ"]
+    },
+    {
+      icon: <ExitToAppIcon />, label: "Logout", subLinks: []
+    },
+  ];
 
   return (
-    <div className="sidebar sidebar-dark sidebar-main sidebar-expand-md">
-      {/* Sidebar mobile toggler */}
-      <div className="sidebar-mobile-toggler text-center">
-        <Link href="#">
-          <i className="icon-arrow-left8"></i>
-          <span>Navigation</span>
-          <i className="icon-screen-full"></i>
-          <i className="icon-screen-normal"></i>
-        </Link>
-      </div>
-      {/* /sidebar mobile toggler */}
-
-      {/* Sidebar content */}
-      <div className="sidebar-content">
-        {/* User menu */}
-        <div className="sidebar-user">
-          <div className="card-body">
-            <div className="media">
-              <div className="mr-3">
-                <Link href="/my_account">
-                  <Image
-                    src="/path/to/photo.jpg" // Replace with dynamic user photo URL
-                    width={38}
-                    height={38}
-                    className="rounded-circle"
-                    alt="User Photo"
-                  />
-                </Link>
-              </div>
-              <div className="media-body">
-                <div className="media-title font-weight-semibold">John Doe</div>
-                <div className="font-size-xs opacity-50">
-                  <i className="icon-user font-size-sm"></i> &nbsp;Admin
+    <div style={styles.page}>
+      <div style={styles.sidebar}>
+        <button style={styles.toggleButton} onClick={toggleSidebar}>
+          {isCollapsed ? ">" : "<"}
+        </button>
+        <div style={styles.menu}>
+          {links.map((link, index) => (
+            <div key={index}>
+              <div
+                style={{
+                  ...styles.menuItem,
+                  ...(expandedMenus[index] ? { backgroundColor: "rgba(255, 255, 255, 0.2)" } : {}),
+                }}
+                onClick={() => toggleMenu(index)}
+              >
+                <div style={styles.menuLabel}>
+                  <span style={styles.menuIcon}>{link.icon}</span>
+                  {!isCollapsed && <span>{link.label}</span>}
                 </div>
+                {!isCollapsed && link.subLinks.length > 0 && <span>{expandedMenus[index] ? "-" : "+"}</span>}
               </div>
-              <div className="ml-3 align-self-center">
-                <Link href="/my_account">
-                  <i className="icon-cog3 text-white"></i>
-                </Link>
-              </div>
+
+              {expandedMenus[index] && link.subLinks.length > 0 && (
+                <div style={styles.subMenu}>
+                  {link.subLinks.map((subLink, subIndex) => (
+                    <div
+                      key={subIndex}
+                      style={styles.subMenuItem}
+                      onClick={() => alert(`${subLink} clicked!`)}
+                    >
+                      {subLink}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
+          ))}
         </div>
-        {/* /user menu */}
+      </div>
 
-        {/* Main navigation */}
-        <div className="card card-sidebar-mobile">
-          <ul className="nav nav-sidebar" data-nav-type="accordion">
-            {/* Dashboard */}
-            <li className="nav-item">
-              <Link href="/dashboard">
-                <div className={`nav-link ${isActive('/dashboard')}`}>
-                  <i className="icon-home4"></i>
-                  <span>Dashboard</span>
-                </div>
-              </Link>
-            </li>
-
-            {/* Academics */}
-            <li className="nav-item nav-item-submenu">
-              <Link href="#">
-                <div className="nav-link">
-                  <i className="icon-graduation2"></i> <span>Academics</span>
-                </div>
-              </Link>
-              <ul className="nav nav-group-sub" data-submenu-title="Manage Academics">
-                <li className="nav-item">
-                  <Link href="/tt/index">
-                    <div className={`nav-link ${isActive('/tt/index')}`}>Timetables</div>
-                  </Link>
-                </li>
-              </ul>
-            </li>
-
-            {/* Administrative */}
-            <li className="nav-item nav-item-submenu">
-              <Link href="#">
-                <div className="nav-link">
-                  <i className="icon-office"></i> <span>Administrative</span>
-                </div>
-              </Link>
-              <ul className="nav nav-group-sub" data-submenu-title="Administrative">
-                <li className="nav-item nav-item-submenu">
-                  <Link href="#">
-                    <div className={`nav-link ${['/payments/index', '/payments/create', '/payments/edit', '/payments/manage', '/payments/show', '/payments/invoice'].includes(pathname) ? 'active' : ''}`}>
-                      Payments
-                    </div>
-                  </Link>
-                  <ul className="nav nav-group-sub">
-                    <li className="nav-item">
-                      <Link href="/payments/create">
-                        <div className={`nav-link ${isActive('/payments/create')}`}>Create Payment</div>
-                      </Link>
-                    </li>
-                    <li className="nav-item">
-                      <Link href="/payments/index">
-                        <div className={`nav-link ${isActive('/payments/index')}`}>Manage Payments</div>
-                      </Link>
-                    </li>
-                    <li className="nav-item">
-                      <Link href="/payments/manage">
-                        <div className={`nav-link ${isActive('/payments/manage')}`}>Student Payments</div>
-                      </Link>
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </li>
-
-            {/* Manage Students */}
-            <li className="nav-item nav-item-submenu">
-              <Link href="#">
-                <div className="nav-link">
-                  <i className="icon-users"></i> <span>Students</span>
-                </div>
-              </Link>
-              <ul className="nav nav-group-sub" data-submenu-title="Manage Students">
-                <li className="nav-item">
-                  <Link href="/students/create">
-                    <div className={`nav-link ${isActive('/students/create')}`}>Admit Student</div>
-                  </Link>
-                </li>
-                <li className="nav-item nav-item-submenu">
-                  <Link href="#">
-                    <div className={`nav-link ${['/students/list', '/students/edit', '/students/show'].includes(pathname) ? 'active' : ''}`}>
-                      Student Information
-                    </div>
-                  </Link>
-                  <ul className="nav nav-group-sub">
-                    <li className="nav-item">
-                      <Link href="/students/list/class-1">
-                        <div className={`nav-link ${isActive('/students/list/class-1')}`}>Class 1</div>
-                      </Link>
-                    </li>
-                    <li className="nav-item">
-                      <Link href="/students/list/class-2">
-                        <div className={`nav-link ${isActive('/students/list/class-2')}`}>Class 2</div>
-                      </Link>
-                    </li>
-                  </ul>
-                </li>
-                <li className="nav-item">
-                  <Link href="/students/graduated">
-                    <div className={`nav-link ${isActive('/students/graduated')}`}>Students Graduated</div>
-                  </Link>
-                </li>
-              </ul>
-            </li>
-
-            {/* Manage Account */}
-            <li className="nav-item">
-              <Link href="/my_account">
-                <div className={`nav-link ${isActive('/my_account')}`}>
-                  <i className="icon-user"></i> <span>My Account</span>
-                </div>
-              </Link>
-            </li>
-          </ul>
-        </div>
+      <div style={styles.content}>
+        <h1>Welcome to the Dashboard</h1>
+        <p>This is the main content area of the page.</p>
       </div>
     </div>
   );
 };
 
-export default Sidebar;
+export default App;

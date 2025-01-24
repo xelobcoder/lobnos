@@ -28,7 +28,11 @@ export default function OrganizationSetupSettings({ organizationid }) {
     const organizationSettingsInformationSaved = async (organizationid) => {
         if (organizationid) {
             const data = await LoadOrganizationalTest(organizationid);
-            setOrganizationSettings(data);
+            if (Array.isArray(data)) {
+                setOrganizationSettings(organizationsettings)
+            } else {
+                setOrganizationSettings(data)
+            }
         }
     }
 
@@ -50,12 +54,14 @@ export default function OrganizationSetupSettings({ organizationid }) {
         organizationSettingsInformationSaved(organizationid);
     }, [organizationid])
 
-
+    console.log(organizationSettings)
 
     const handleTestConcessionChange = (ev, index, field) => {
         if (typeof index != "number" || organizationSettings.testList.length === 0) return;
+
         const createClonedArray = { ...organizationSettings }
         let discountedValue = 0;
+
         createClonedArray.testList[index][field] = ev.target.value;
         if (field === "concessionValue") {
             const { concessionMode, concessionValue, price } = createClonedArray.testList[index];
@@ -156,17 +162,20 @@ export default function OrganizationSetupSettings({ organizationid }) {
     const handleSubmitChange = async () => {
         try {
             if (!organizationid || !employeeid) return;
-            //    We trying to be lean as much as possible in sending data to and from , so we will filter out all test without that hasnt not be changed;
             let changedTest = [];
             if (organizationSettings.testList.length > 0) {
                 changedTest = organizationSettings.testList.filter((item, index) => item.concessionValue && item.concessionMode)
                     .map((a, index) => {
-                        const { concessionMode, concessionValue, id, discountedValue } = a
-                        return { concessionMode, concessionValue, id, discountedValue };
+                        const { concessionMode, concessionValue, testid, discountedValue } = a
+                        return { concessionMode, concessionValue, id: testid, discountedValue };
                     })
-
             };
-            const data = { ...organizationSettings, testList: changedTest, organizationid: parseInt(organizationid), employeeid };
+            const data = {
+                ...organizationSettings,
+                testList: changedTest,
+                organizationid: parseInt(organizationid),
+                employeeid
+            };
             const response = await customPost(`organization/billing/test`, 'POST', data);
             console.log(response);
         } catch (err) {

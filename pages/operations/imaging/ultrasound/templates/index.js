@@ -6,6 +6,7 @@ import RulesLoadingTempleteCreation from "../../../../../components/operations/U
 import { useSearchParams } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import { useApplicationSettings } from "../../../../../components/Auth/useApplicationContext";
+import PrimeLayout from "../../../../../components/Layout/PrimeLayout";
 
 export default function CreateUltrasonographyTemplates() {
 	const { user } = useApplicationSettings().applicationsettings;
@@ -122,9 +123,9 @@ export default function CreateUltrasonographyTemplates() {
 
 
 	return (
-		<UltrasoundLayout>
+		<PrimeLayout>
 			<Container fluid>
-				<ToastContainer  theme='colored' position="top-center" className="text-sm" />
+				<ToastContainer theme='colored' position="top-center" className="text-sm" />
 				<div className="p-2">
 					<div className="p-2 bg-secondary-subtle heightedBorder my-2 br-0">Creating Ultrasound Impression Templates</div >
 					<form className="my-2 heightedBorder text-sm bg-body-secondary p-3 br-0">
@@ -172,6 +173,6 @@ export default function CreateUltrasonographyTemplates() {
 					</button>}
 				</div>
 			</Container>
-		</UltrasoundLayout>
+		</PrimeLayout>
 	)
 }

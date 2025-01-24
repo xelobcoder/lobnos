@@ -13,7 +13,8 @@ export default function UltrasoundFieldsCreation({ setField, field, handleCreate
                                           onChange={(ev) => {
                                                  setField({
                                                         ...field,
-                                                        'name': ev.target.value
+                                                        'name': ev.target.value,
+                                                        plan:"ultrasound"
                                                  })
                                           }}
                                    />

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import MainSettingsLayoutView from "../../../components/settingsComponents/MainSettingsLayoutView";
-import TableDisplay from "../../../components/accessories/TableDisplay";
+import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 import { Dropdown } from "react-bootstrap";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import LockSvg from "../../../components/icons/LockSvg";
@@ -110,7 +110,8 @@ export default function IndexPageOutsource() {
                 <div className=" col-lg-3">
                     <input type="text" className="custom-input h-40" placeholder="Filter here" />
                 </div>
-                {organization.length > 0 && <TableDisplay column={columns} data={organization} filtering={false} showpage={false} exporters={false} />}
+                {organization.length > 0 &&
+                    <PrimeTable column={columns} data={organization} filtering={false} />}
             </section>)}
 
         </MainSettingsLayoutView>

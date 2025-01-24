@@ -41,6 +41,7 @@ export default function BillingSourceDeterminer({ patientid }) {
                 const { result: previousTransactionSummary } = await getTransactionPreviousBillingRecords(queryBillingid);
                 if (Array.isArray(previousTransactionSummary) && previousTransactionSummary.length > 0) {
                     const { totalcost, paid, amountIncurredDueTax, totalrefunded, outstanding, balance, payable } = previousTransactionSummary[0];
+
                     previousRecordData['previousTotalCost'] = totalcost;
                     previousRecordData['previousPaid'] = paid;
                     previousRecordData['previousRefunded'] = totalrefunded;

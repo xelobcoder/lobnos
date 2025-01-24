@@ -29,22 +29,25 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 	};
 
 	const handleSubmit = async (ev) => {
-		setIsSaving(true);
-		const dataToBeUploaded = { ...billingdata, employeeid, branchid, patientid };
-		const isServiceOnly = parseInt(billingdata.isServiceOnly) === 1 ? true : false;
-		const method = billingid ? 'PUT' : 'POST';
-		const data = await ValidateAndSubmitBillingInformation(dataToBeUploaded, method, billingid, isServiceOnly);
-		setIsSaving(false);
-		console.log(data)
+		try {
+			setIsSaving(true);
+			const dataToBeUploaded = { ...billingdata, employeeid, branchid, patientid };
+			const isServiceOnly = parseInt(billingdata.isServiceOnly) === 1 ? true : false;
+			const method = billingid ? 'PUT' : 'POST';
+			const data = await ValidateAndSubmitBillingInformation(dataToBeUploaded, method, billingid, isServiceOnly);
+			setIsSaving(false);
 
-		if (typeof data === "object") {
-			const { status, message } = data;
-
-			if (status == true || status == "success") {
-				toast.success(message)
-			} else {
-				toast.error(message || data)
+			if (typeof data === "object") {
+				const { status, message } = data;
+				if (status == true || status == "success") {
+					toast.success(message || "Billing  successful")
+				} else {
+					toast.error(message || status)
+				}
 			}
+		} catch (err) {
+			setIsSaving(false);
+			toast.error(err || "something wrong occured");
 		}
 	};
 

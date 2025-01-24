@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import UltrasoundLayout from "../../../../../components/Layout/ImagingLayout";
 import { customFetch } from "../../../../../components/Auth/customFetch";
 import Link from "next/link";
-import TableDisplay from '../../../../../components/accessories/TableDisplay';
 import { updatePagination } from "../../../../../components/Auth/customFetch";
 import Pagination from '../../../../../components/accessories/pagination';
 import ShowTableCount from "../../../../../components/operations/Laboratory/ShowCountTable";
 import { useApplicationSettings } from "../../../../../components/Auth/useApplicationContext";
+import PrimeLayout from "../../../../../components/Layout/PrimeLayout";
+import PrimeTable from "../../../../../components/accessories/Datatables/PrimeTable";
 
 export default function UltrasoundTemplatesList() {
 	const { applicationsettings } = useApplicationSettings();
@@ -99,16 +100,14 @@ export default function UltrasoundTemplatesList() {
 	}
 
 	return (
-		<UltrasoundLayout>
+		<PrimeLayout>
 			<div>
 				<h5 className="heightedBorder p-2 my-2 bg-body-secondary">Ultrasound Templates</h5>
 				<ShowTableCount queryParams={query} setQueryParams={setQuery} />
 				<div className="table-container">
-					<TableDisplay
+					<PrimeTable
 						column={columns}
 						data={templateList}
-						showpage={false}
-						styling="ttable table"
 					/>
 				</div>
 				<div className="d-flex justify-content-center">
@@ -118,6 +117,6 @@ export default function UltrasoundTemplatesList() {
 					/>
 				</div>
 			</div>
-		</UltrasoundLayout>
+		</PrimeLayout>
 	);
 }

@@ -1,6 +1,6 @@
 import Select from "react-select";
 import Add from "../../icons/PlusOutlineSvg";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { BillingContext } from "./BillingContext";
 import { customFetch } from "../../Auth/customFetch";
 import Link from "next/link";
@@ -51,9 +51,10 @@ export default function TrTable({ toast }) {
 		setSelectedOutsource(selectedOption)
 	};
 
-	console.log(selected)
+
 
 	const addtoCart = async () => {
+		console.log(selected)
 		if (!selected || typeof selected != "object") return;
 		const testid = selected?.id;
 		if (hasPreviousRecords(billingdata, selected)) return;
@@ -66,7 +67,7 @@ export default function TrTable({ toast }) {
 			: {
 				...selected, discount: selected.discount ? selected.discount : 0
 			}
-
+        console.log(newItem)
 		if (cart.length === 0) {
 			recalculateTotalBill({ ...billingdata, cart: [...billingdata.cart, newItem] })
 		} else {

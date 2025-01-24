@@ -3,6 +3,7 @@ import { UltrasoundStagesProvider } from '../../../../components/operations/Ultr
 import UltrasoundAscensionFiltering from '../../../../components/operations/Ultrasound/UtrasoundFiltering';
 import AscentionUltrasoundUnCompletedTable from '../../../../components/operations/Ultrasound/UncompletedUltrasoundWaitingListTable';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+import PrimeLayout from '../../../../components/Layout/PrimeLayout';
 
 
 export default function UltrasonograhyWaitingList() {
@@ -12,11 +13,11 @@ export default function UltrasonograhyWaitingList() {
   if (!employeeid) return null
 
   return (
-    <UltrasoundLayout>
+    <PrimeLayout>
       <UltrasoundStagesProvider>
         <UltrasoundAscensionFiltering ascension_stage={'ULTRASOUND_UNCOMPLETED'} employeeid={employeeid} />
         <AscentionUltrasoundUnCompletedTable />
       </UltrasoundStagesProvider>
-    </UltrasoundLayout>
+    </PrimeLayout>
   )
 }
