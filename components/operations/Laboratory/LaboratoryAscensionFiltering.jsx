@@ -3,22 +3,28 @@ import DatePickerRange from "../../../components/accessories/DatePickerRange";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 
 export default function LaboratoryAscensionFiltering({ ascension_stage, employeeid }) {
-       const { queryParams, setQueryParams, _getAscensionData, loadCounter, setLoadCounter } = useLaboratoryContext();
+       const {
+              queryParams,
+              setQueryParams,
+              _getAscensionData,
+              loadCounter,
+              setLoadCounter,
+       } = useLaboratoryContext();
 
        useEffect(() => {
               _getAscensionData(ascension_stage, employeeid);
-              setLoadCounter(loadCounter + 1);
-       }, []);
+              setLoadCounter((prev) => prev + 1);
+       }, [ascension_stage, employeeid]);
 
        useEffect(() => {
               if (loadCounter > 0) {
                      _getAscensionData(ascension_stage, employeeid);
               }
-       }, [queryParams.page, queryParams.count]);
+       }, [queryParams.page, queryParams.count, ascension_stage, employeeid]);
 
        const updateDateValues = (values) => {
               const [start, end] = values;
-              setQueryParams(prev => ({ ...prev, _dateFrom: start, _dateEnd: end }));
+              setQueryParams((prev) => ({ ...prev, _dateFrom: start, _dateEnd: end }));
        };
 
        return (
@@ -34,13 +40,18 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
                             <input
                                    className="custom-input p-3"
                                    value={queryParams.searchString}
-                                   onChange={(ev) => { setQueryParams({ ...queryParams, searchString: ev.target.value }) }}
+                                   onChange={(ev) =>
+                                          setQueryParams((prev) => ({
+                                                 ...prev,
+                                                 searchString: ev.target.value,
+                                          }))
+                                   }
                                    placeholder="Type in your search here"
                             />
                      </div>
                      <div className="col-12 mx-lg-2 col-lg-2 d-flex justify-content-center justify-content-lg-start">
                             <button
-                                   onClick={() => { _getAscensionData(ascension_stage) }}
+                                   onClick={() => _getAscensionData(ascension_stage, employeeid)}
                                    className="btn btn-primary btn-sm p-2 px-5 text-uppercase"
                             >
                                    {"<"} Load Data {"/>"}

@@ -1,9 +1,43 @@
-"use client"
+'use client';
 import React, { useState } from "react";
 import { links } from "./PrimeLinks";
 import Link from "next/link";
 
-const PrimeLayout = ({ children }) => {
+
+interface SubLink {
+    title: string;
+    link: string;
+}
+
+interface LinkItem {
+    title: string;
+    link: string;
+    icon: React.ReactNode;
+    subLinks: SubLink[];
+}
+
+interface PrimeLayoutProps {
+    children: React.ReactNode;
+}
+
+// Define types for the inline styles
+interface Styles {
+    page: React.CSSProperties;
+    sidebar: React.CSSProperties;
+    companyName: React.CSSProperties;
+    toggleButton: React.CSSProperties;
+    menu: React.CSSProperties;
+    menuItem: React.CSSProperties;
+    menuLabel: React.CSSProperties;
+    menuIcon: React.CSSProperties;
+    subMenu: React.CSSProperties;
+    subMenuItem: React.CSSProperties;
+    content: React.CSSProperties;
+    footer: React.CSSProperties;
+    link: React.CSSProperties;
+}
+
+const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
     const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
     const [expandedMenus, setExpandedMenus] = useState<Record<number, boolean>>({});
 
@@ -21,7 +55,7 @@ const PrimeLayout = ({ children }) => {
         }));
     };
 
-    const styles = {
+    const styles: Styles = {
         page: {
             display: "flex",
             flexDirection: "row",
@@ -30,7 +64,7 @@ const PrimeLayout = ({ children }) => {
         },
         sidebar: {
             width: isCollapsed ? "80px" : "250px",
-            backgroundColor: "#0d6efd",
+            backgroundColor: "rgb(17, 51, 85)",
             color: "#fff",
             height: "100vh",
             transition: "width 0.3s",
@@ -91,7 +125,7 @@ const PrimeLayout = ({ children }) => {
             color: 'white',
             backgroundColor: "rgba(255, 255, 255, 0.1)",
             margin: "2px 0",
-            fontSize:'15px !important'
+            fontSize: '15px !important'
         },
         content: {
             marginLeft: isCollapsed ? "80px" : "250px",
@@ -138,10 +172,10 @@ const PrimeLayout = ({ children }) => {
                                 }}
                             >
                                 <div style={styles.menuLabel}>
-                                    <span style={styles.menuIcon}>{link.icon}</span >
-                                    {!isCollapsed && <span style={{fontSize:'14px'}}>{link.title}</span>}
+                                    <span style={styles.menuIcon}>{link.icon}</span>
+                                    {!isCollapsed && <span style={{ fontSize: '14px' }}>{link.title}</span>}
                                 </div>
-                                {!isCollapsed && link.subLinks.length > 0 && <span >{expandedMenus[index] ? "-" : "+"}</span>}
+                                {!isCollapsed && link.subLinks.length > 0 && <span>{expandedMenus[index] ? "-" : "+"}</span>}
                             </div>
 
                             {expandedMenus[index] && link.subLinks.length > 0 && (

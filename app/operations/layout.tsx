@@ -4,6 +4,7 @@ import "../../styles/globals.css";
 import '../../node_modules/react-toastify/dist/ReactToastify.min.css';
 import { ApplicationProvider } from "../../components/Auth/useApplicationContext";
 import LaboratoryLayout from "../../components/Layout/LaboratoryLayout";
+import PrimeLayout from "../../components/Layout/PrimeLayout";
 
 
 
@@ -18,9 +19,9 @@ export default function SMSLayout({
                <body >
                     <Suspense>
                          <ApplicationProvider>
-						<LaboratoryLayout>
-							{children}
-					   </LaboratoryLayout>
+                              <PrimeLayout>
+                                   {children}
+                              </PrimeLayout>
                          </ApplicationProvider>
                     </Suspense>
                </body>

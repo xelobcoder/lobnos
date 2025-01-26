@@ -103,7 +103,14 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
                             type="number"
                             className="custom-input col-3"
                             value={concessionValueInput}
-                            onChange={(e) => setConcessionValueInput(e.target.value)}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                if (selectionMode === "percentage" && parseInt(value) > 100) {
+                                    setConcessionValueInput("99")
+                                } else {
+                                    setConcessionValueInput(value);
+                                }
+                            }}
                             placeholder="Enter amount"
                         />
                     </div>

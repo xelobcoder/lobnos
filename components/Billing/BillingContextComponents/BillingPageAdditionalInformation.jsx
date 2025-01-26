@@ -66,7 +66,7 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 									<Select
 										className="react-select-container"
 										classNamePrefix="react-select"
-										isDisabled={billingdata.billingSource == 2}
+										isDisabled={[2,3,5].includes(billingdata.billingSource)}
 										value={{ label: billingdata.type, value: billingdata.type }}
 										onChange={(selectedOption) => updateBilling({ ...billingdata, type: selectedOption.value })}
 										options={organizationOptions}
@@ -90,7 +90,7 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 								<Select
 									className="react-select-container"
 									classNamePrefix="react-select"
-									isDisabled={billingdata.type != "organization" || billingdata.billingSource == 2}
+									isDisabled={billingdata.type != "organization" || billingdata.billingSource == 2 || billingdata.billingSource === 5}
 									placeholder="Search organization here"
 									onChange={(newValue) => {
 										updateBilling({ ...billingdata, organizationId: newValue?.id });
@@ -107,7 +107,7 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 								<Select
 									className="react-select-container"
 									classNamePrefix="react-select"
-									isDisabled={billingdata.type != "clinician"}
+									isDisabled={billingdata.type != "clinician" ||[2,5].includes(billingdata.billingSource)}
 									placeholder="Search clinician"
 									getOptionLabel={(option) => option.name}
 									getOptionValue={(option) => option.id}

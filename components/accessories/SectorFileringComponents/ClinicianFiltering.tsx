@@ -6,13 +6,13 @@ import { filteringDatabaseTables } from "../../serverActions/ActionFiltering";
 import { reactSelectCustomStyles } from "../../Auth/customFetch";
 
 interface ClinicianFilteringOption {
-     label: JSX.Element;
+     label: React.ReactNode;
      value: number;
      content: any;
 }
 
 interface ClinicianFilteringFilteringProps {
-     onSelect: (value: ClinicianFilteringOption) => void;
+     onSelect: (value: any) => void;
 }
 
 export default function ClinicianFiltering({ onSelect }: ClinicianFilteringFilteringProps) {
@@ -28,8 +28,6 @@ export default function ClinicianFiltering({ onSelect }: ClinicianFilteringFilte
                          label: (
                               <div>
                                    <strong>{item.name}</strong>
-                                   <br />
-                                   <span>{item.email}</span>
                               </div>
                          ),
                          value: item.outsourceid,
@@ -40,8 +38,10 @@ export default function ClinicianFiltering({ onSelect }: ClinicianFilteringFilte
           return [];
      };
 
-     const handleSelectChange = (selectedOption: ClinicianFilteringOption) => {
-          onSelect(selectedOption?.content);
+     const handleSelectChange = (selectedOption: any) => {
+          if (selectedOption) {
+               onSelect(selectedOption.content);
+          }
      };
 
      useEffect(() => {
@@ -57,7 +57,7 @@ export default function ClinicianFiltering({ onSelect }: ClinicianFilteringFilte
                          loadOptions={loadOptions}
                          id="template-filtering"
                          defaultOptions={false}
-                         placeholder="Filter clinician and Health Practioners Here"
+                         placeholder="Filter clinician and Health Pract..."
                          onChange={handleSelectChange}
                          formatOptionLabel={(data: ClinicianFilteringOption) => data.label}
                     />

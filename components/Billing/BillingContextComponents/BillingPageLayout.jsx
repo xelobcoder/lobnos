@@ -6,9 +6,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import BillingSourceDeterminer from "./BillingOptionsSource";
 import BillingPagePatientInformation from "./PersonalInfoView";
 import BillingPageSummary from "./BillingSummary";
+import { useState } from "react";
+
 
 
 export default function BillingPageLayout() {
+	const [laodingData, setLoadingData] = useState(false);
 	const patientid = useSearchParams().get('patientid');
 	const router = useRouter();
 
@@ -36,9 +39,14 @@ export default function BillingPageLayout() {
 						<BillingPagePatientInformation />
 					</div>
 					<div className="card-body p-0 billing-page-display" >
-						<BillingSourceDeterminer patientid={patientid} />
-						<RenderingWithPatientIdProvided patientid={patientid} />
-						<BillingPageSummary patientid={patientid} />
+						<BillingSourceDeterminer patientid={patientid} onLoadingData={setLoadingData} />
+						{
+							laodingData
+								?
+								<div className="p-2 m-3 bg-secondary-subtle d-flex justify-content-center">Loading Data.................</div>
+								:
+								<><RenderingWithPatientIdProvided patientid={patientid} /><BillingPageSummary patientid={patientid} /></>
+						}
 					</div>
 				</div>
 			</div>

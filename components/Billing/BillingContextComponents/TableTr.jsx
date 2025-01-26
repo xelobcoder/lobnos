@@ -67,7 +67,7 @@ export default function TrTable({ toast }) {
 			: {
 				...selected, discount: selected.discount ? selected.discount : 0
 			}
-        console.log(newItem)
+		console.log(newItem)
 		if (cart.length === 0) {
 			recalculateTotalBill({ ...billingdata, cart: [...billingdata.cart, newItem] })
 		} else {
@@ -150,9 +150,10 @@ export default function TrTable({ toast }) {
 					className="react-select-container"
 					classNamePrefix="react-select"
 					getOptionLabel={(option) => option.name}
+					isDisabled={!Array.isArray(billingdata.testpanels) || billingdata.testpanels.length == 0}
 					getOptionValue={(option) => option.id}
 					styles={{ container: (base) => ({ ...base, width: "100%" }) }}
-					placeholder="search test here please"
+					placeholder={(!Array.isArray(billingdata.testpanels) || billingdata.testpanels.length == 0) ? "search test here please" : "No test panel Available "}
 					onChange={(newValue) => handleTestSelectedChangeVariable(newValue)}
 				/>
 			</td>

@@ -10,12 +10,6 @@ import PreviousBilledTestRecords from "./PreviousBilledTestRecords"
 export default function RenderingWithPatientIdProvided() {
     const { billingdata, updateBilling } = useContext(BillingContext);
 
-    const closModal = () => {
-        updateBilling({ ...billingdata, previewPrevious: false })
-    }
-
-
-
     if (billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0) return null;
 
 
@@ -26,6 +20,9 @@ export default function RenderingWithPatientIdProvided() {
             </div>
         )
     }
+
+
+
 
 
 
@@ -54,5 +51,6 @@ export default function RenderingWithPatientIdProvided() {
         </div>
     )
 }
+
 
 

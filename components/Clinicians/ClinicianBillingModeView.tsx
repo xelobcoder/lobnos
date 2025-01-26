@@ -58,7 +58,7 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords,
 			setSubmitting(true);
 
 			const billingData = {
-				concessionMode: selectionMode,
+				concessionMode: selectionMode || "absolute",
 				concessionValue: parseFloat(concessionValue),
 				applicableTest: selectedTests,
 				allconcessionApplied: isAllTestsConcessionVisible,
@@ -132,7 +132,7 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords,
 			<ToastContainer position="top-center" className="text-sm" theme="colored" />
 			<div className=" d-flex justify-content-between">
 				<h6 className="p-2 bg-secondary-subtle br-5">
-					Clinician Billing
+					{strategy === "clincians" ? strategy :  "Private Health Insurance Organization"}
 				</h6>
 				{
 					lastupdated && <div className=" text-decoration-underline p-0 br-5 d-flex justify-content-center align-center text-capitalize">

@@ -3,7 +3,7 @@ import BillingPageLayout from "../../../components/Billing/BillingContextCompone
 
 
 export default function Billing() {
-  return (
-    <BillingPageLayout />
-  );
+	return (
+		<BillingPageLayout />
+	);
 }

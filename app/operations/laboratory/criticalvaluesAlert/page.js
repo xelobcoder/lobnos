@@ -1,7 +1,7 @@
+'use client'
 import { useEffect, useState } from "react";
-import LaboratoryLayout from "../../../components/Layout/LaboratoryLayout";
-import { customFetch } from "../../../components/Auth/customFetch";
-import Pagination from '../../../components/accessories/pagination'
+import Pagination from '../../../../components/accessories/pagination'
+import { customFetch } from "../../../../components/Auth/customFetch";
 export default function CriticalValuesAlert() {
 	const [criticalValues, setCriticalValues] = useState([]);
 	const [isLoading, setLoading] = useState(true);
@@ -22,7 +22,7 @@ export default function CriticalValuesAlert() {
 
 	useEffect(() => {
 		getCriticaValues();
-	}, [loadQuery.count,loadQuery.page])
+	}, [loadQuery.count, loadQuery.page])
 
 
 
@@ -67,32 +67,28 @@ export default function CriticalValuesAlert() {
 
 	if (isLoading) {
 		return (
-			<LaboratoryLayout>
-				<div className=" heightedBorder fw-bold bg-body-secondary pls-color d-flex justify-content-center p-2">{"<"}Loading data {">"}</div>
-			</LaboratoryLayout>
+			<div className=" heightedBorder fw-bold bg-body-secondary pls-color d-flex justify-content-center p-2">{"<"}Loading data {">"}</div>
 		)
 	}
 
 	if (criticalValues.length === 0) {
 		return (
-			<LaboratoryLayout>
+			<div>
 				<div className=" heightedBorder fw-bold bg-body-secondary pls-color d-flex justify-content-center p-2">{"<"}No data Available {">"}</div>
 				{load && <div className="d-flex justify-content-center my-2">
 					<Pagination page={loadQuery.page} load={setLoad} updateFunction={updatePagination} />
 				</div>}
-			</LaboratoryLayout>
+			</div>
 		)
 	}
 
 	return (
-		<LaboratoryLayout>
-			<div className="col-1 my-2">
-				<select onChange={(ev) => {setLoadQuery({...loadQuery,count:ev.target.value})}} className="custom-select" value={loadQuery.count}>
-					<option>select opt</option>
-					{[10, 20, 30, 40, 50].map((m, i) => <option key={i} value={m}>{m}</option>)}
-				</select>
-			</div>
-			<div>
+		<><div className="col-1 my-2">
+			<select onChange={(ev) => { setLoadQuery({ ...loadQuery, count: ev.target.value }); }} className="custom-select" value={loadQuery.count}>
+				<option>select opt</option>
+				{[10, 20, 30, 40, 50].map((m, i) => <option key={i} value={m}>{m}</option>)}
+			</select>
+		</div><div>
 				{criticalValues.map((item, index) => {
 					const { fullname, constraints, createdon, billingid } = item;
 					return CriticalTable(constraints, createdon, fullname, billingid);
@@ -100,8 +96,7 @@ export default function CriticalValuesAlert() {
 				<div className="d-flex justify-content-center">
 					<Pagination page={loadQuery.page} load={setLoad} updateFunction={updatePagination} />
 				</div>
-			</div>
-		</LaboratoryLayout>
+			</div></>
 	)
 }
 

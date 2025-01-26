@@ -1,56 +1,68 @@
-import { useCallback, useContext, useEffect, useMemo } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { BillingContext } from "./BillingContext";
 import { billingSource, canIgnoreDebtPaymentAndTax, fetchPreviousBilledRecords, getAllNecessaryData, getOustandingBill, LoadOrganizationalTest } from "../../../lib/billingLib";
-import OrganizationalBillingSourceSearch from "./BillingSourceComponents/OrganizationBillingSearch";
 import { currencyFormatter, customFetch } from "../../Auth/customFetch";
 import Link from "next/link";
-import InsuranceOrganizationFiltering from '../../accessories/SectorFileringComponents/InsuranceOrganizationFiltering'
 import { useSearchParams, useRouter } from "next/navigation";
+import RenderingBillingSourceLayout from "./Lib/RenderingSelectedBillingSourecAccessories";
+import { toast } from "react-toastify";
 
 const getTransactionPreviousBillingRecords = async (billingid) => {
-    const response = await customFetch(`billing/previous/transaction/data?billingid=${billingid}`);
-    return response;
+    try {
+        const response = await customFetch(`billing/previous/transaction/data?billingid=${billingid}`);
+        return response;
+    } catch (err) {
+        toast.error('Error Loading Previous Transactions')
+        return []
+    }
 }
 
-export default function BillingSourceDeterminer({ patientid }) {
+export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
     const { billingdata, updateBilling } = useContext(BillingContext);
     const queryBillingid = useSearchParams().get("billingid");
+    const [loading, setLoading] = useState(false);
     const isServiceOnly = useSearchParams().get("isServiceOnly");
     const isNewTransaction = useSearchParams().get("isNewTransaction");
     const router = useRouter();
 
 
+    const initializedPreviousTransactionWithSummary = async () => {
+        let previousRecordData = {
+            previousOutstanding: 0,
+            previousTotalCost: 0,
+            previousPaid: 0,
+            previousRefunded: 0,
+            previousBalance: 0,
+            previousAmountIncurredDueTax: 0,
+            previousPayable: 0,
+        };
+        let previousRecords = [];
+        if (queryBillingid) {
+            previousRecords = await fetchPreviousBilledRecords(queryBillingid);
+        }
+
+        if (queryBillingid && isNewTransaction == 0) {
+            const { result: previousTransactionSummary } = await getTransactionPreviousBillingRecords(queryBillingid);
+            if (Array.isArray(previousTransactionSummary) && previousTransactionSummary.length > 0) {
+                const { totalcost, paid, amountIncurredDueTax, totalrefunded, outstanding, balance, payable } = previousTransactionSummary[0];
+
+                previousRecordData['previousTotalCost'] = totalcost;
+                previousRecordData['previousPaid'] = paid;
+                previousRecordData['previousRefunded'] = totalrefunded;
+                previousRecordData['previousOutstanding'] = outstanding;
+                previousRecordData['previousBalance'] = balance;
+                previousRecordData['previousAmountIncurredDueTax'] = amountIncurredDueTax;
+                previousRecordData['previousPayable'] = payable;
+            }
+        }
+
+        return { previousRecordData, previousRecords }
+    }
+
     const initGeneralBillingData = useCallback(async function () {
         if (billingdata.billingSource === 1) {
-            let previousRecordData = {
-                previousOutstanding: 0,
-                previousTotalCost: 0,
-                previousPaid: 0,
-                previousRefunded: 0,
-                previousBalance: 0,
-                previousAmountIncurredDueTax: 0,
-                previousPayable: 0,
-            };
             const initGeneralBillingData = await getAllNecessaryData();
-            let previousRecords = [];
-            if (queryBillingid) {
-                previousRecords = await fetchPreviousBilledRecords(queryBillingid);
-            }
-
-            if (queryBillingid && isNewTransaction == 0) {
-                const { result: previousTransactionSummary } = await getTransactionPreviousBillingRecords(queryBillingid);
-                if (Array.isArray(previousTransactionSummary) && previousTransactionSummary.length > 0) {
-                    const { totalcost, paid, amountIncurredDueTax, totalrefunded, outstanding, balance, payable } = previousTransactionSummary[0];
-
-                    previousRecordData['previousTotalCost'] = totalcost;
-                    previousRecordData['previousPaid'] = paid;
-                    previousRecordData['previousRefunded'] = totalrefunded;
-                    previousRecordData['previousOutstanding'] = outstanding;
-                    previousRecordData['previousBalance'] = balance;
-                    previousRecordData['previousAmountIncurredDueTax'] = amountIncurredDueTax;
-                    previousRecordData['previousPayable'] = payable;
-                }
-            }
+            const { previousRecordData, previousRecords } = await initializedPreviousTransactionWithSummary();
             updateBilling({
                 ...billingdata,
                 isServiceOnly,
@@ -80,7 +92,8 @@ export default function BillingSourceDeterminer({ patientid }) {
                 })
             } else {
                 updateBilling({
-                    ...billingdata, billingSource: value,
+                    ...billingdata,
+                    billingSource: value,
                     isServiceOnly,
                     testpanels: [],
                     cart: [],
@@ -123,25 +136,34 @@ export default function BillingSourceDeterminer({ patientid }) {
     )
 
     const LoadOutStanding = async (patientid) => {
-        if (!patientid) return;
-        const value = await getOustandingBill(patientid);
-        if (value != 'ERROR') {
-            const cantIgnoreDebt = await canIgnoreDebtPaymentAndTax(patientid);
-            const { PaidBillsBeforeTransaction, includeTax, taxValue } = cantIgnoreDebt;
-            updateBilling({
-                ...billingdata, outstandingDebt: value,
-                isServiceOnly,
-                cantIgnoreDebt: PaidBillsBeforeTransaction == 1,
-                appsettings: {
-                    taxIncluded: includeTax == 1 || includeTax == "1", taxValue
-                }
-            })
-        }
+        try {
+            if (!patientid) return;
+            setLoading(true);
+            const value = await getOustandingBill(patientid);
+            if (value != 'ERROR') {
+                const cantIgnoreDebt = await canIgnoreDebtPaymentAndTax(patientid);
+                const { PaidBillsBeforeTransaction, includeTax, taxValue } = cantIgnoreDebt;
+                updateBilling({
+                    ...billingdata,
+                    outstandingDebt: value,
+                    isServiceOnly,
+                    cantIgnoreDebt: PaidBillsBeforeTransaction == 1,
+                    appsettings: {
+                        taxIncluded: includeTax == 1 || includeTax == "1", taxValue
+                    }
+                })
+            }
 
-        if (value === 0) {
-            const hasBeenPreviouslyBilledOnSameDay = await customFetch(`billing/caninitialbill?patientid=${patientid}`);
-            const { canInitiateBill, billingid } = hasBeenPreviouslyBilledOnSameDay;
-            makeDecisionOnUpdateOrNewTransaction(canInitiateBill, billingid, patientid);
+            if (value === 0) {
+                setLoading(true);
+                const hasBeenPreviouslyBilledOnSameDay = await customFetch(`billing/caninitialbill?patientid=${patientid}`);
+                const { canInitiateBill, billingid } = hasBeenPreviouslyBilledOnSameDay;
+                makeDecisionOnUpdateOrNewTransaction(canInitiateBill, billingid, patientid);
+            }
+
+            setLoading(false);
+        } catch (err) {
+            setLoading(false);
         }
     }
 
@@ -155,10 +177,55 @@ export default function BillingSourceDeterminer({ patientid }) {
     }, [billingdata.billingSource])
 
 
+    const handleLoadBillingClincianAndInsurance = async (target, uniqueid) => {
+        try {
+            onLoadingData(true);
+            let paymentModalities = billingdata?.paymentmodeData;
 
-    const handleInsuranceSelection = (value) => {
-        console.log(value)
+            const [response, previousData] = await Promise.all([
+                customFetch(`clinicians/billing/strategies/get/testpanels/${uniqueid}/${target}`),
+                initializedPreviousTransactionWithSummary()
+            ]);
+
+            if (paymentModalities && Array.isArray(paymentModalities) && paymentModalities.length === 0) {
+                const paymentModes = await customFetch("paymentmodes");
+                paymentModalities = paymentModes?.data;
+            }
+
+            if (response && Array.isArray(response)) {
+                const { previousRecordData, previousRecords } = previousData;
+                updateBilling({
+                    ...billingdata,
+                    testpanels: response,
+                    paymentmodeData: paymentModalities,
+                    [target]: uniqueid,
+                    previousRecords,
+                    ...previousRecordData,
+                    type: target
+                });
+            }
+
+            onLoadingData(false);
+        } catch (err) {
+            onLoadingData(false);
+            alert(`Something went wrong loading ${target} data`);
+        }
+    };
+
+
+    const handleInsuranceSelection = async (value) => {
+        const id = value?.id;
+        if (!id) return;
+        await handleLoadBillingClincianAndInsurance('phis', id);
     }
+
+    const handleClinicianSelection = async (value) => {
+        const id = value?.id;
+        if (!id) return;
+        await handleLoadBillingClincianAndInsurance('clinicians', id);
+    }
+
+
 
 
     useEffect(() => {
@@ -201,7 +268,7 @@ export default function BillingSourceDeterminer({ patientid }) {
         </div>)
     }
 
-
+    if (loading) return <div className="p-2 bg-body-secondary ">Loading.................</div>
 
     return (
         <div className="billing-page-display-child text-sm">
@@ -210,7 +277,7 @@ export default function BillingSourceDeterminer({ patientid }) {
                     <label>Billing Source</label>
                     <select
                         value={billingdata.billingSource}
-                        disabled={billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0 || billingdata.previousRecords.length > 0}
+                        disabled={billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0}
                         onChange={(ev) => { updateBillingSourceSelected(ev) }}
                         className="custom-select">
                         <option value='' >select an option below</option>
@@ -222,38 +289,21 @@ export default function BillingSourceDeterminer({ patientid }) {
                             </option>)}
                     </select>
                 </div>
-
-                <div>
-                    {billingdata?.billingSource === 2 &&
-                        <div className="mb-2">
-                            <OrganizationalBillingSourceSearch updatefunction={updateValuesToContext} />
-                        </div>
-                    }
-                    {billingdata?.billingSource === 3
-                        &&
-                        <div className="form-group">
-                            <label>search organization here</label>
-                            <InsuranceOrganizationFiltering onSelect={handleInsuranceSelection} />
-                        </div>
-                    }
-                    {billingdata?.billingSource === 4
-                        &&
-                        <div className="form-group">
-                            <label>search organization here</label>
-                            <input type='text' placeholder="Get Claim Code Here" className="custom-input" />
-                        </div>
-                    }
-                </div>
+                <RenderingBillingSourceLayout
+                    billingdata={billingdata}
+                    handleClinicianSelection={handleClinicianSelection}
+                    handleInsuranceSelection={handleInsuranceSelection}
+                    updateValuesToContext={updateValuesToContext}
+                />
 
                 {queryBillingid && billingdata.outstandingDebt == 0 && <div className="my-2">
                     <input type="checkbox" checked={billingdata.previewPrevious} onChange={(ev) => { updateBilling({ ...billingdata, previewPrevious: !billingdata.previewPrevious }) }} />
                     Refund or preview previously billed Item
                 </div>
                 }
-                {
-                    billingdata.outstandingDebt == 0 && <div className="my-2">
-                        <input onChange={(ev) => { updateBilling({ ...billingdata, includeServices: ev.target.checked }) }} type="checkbox" /> Include Services
-                    </div>
+                {billingdata.outstandingDebt == 0 && <div className="my-2">
+                    <input onChange={(ev) => { updateBilling({ ...billingdata, includeServices: ev.target.checked }) }} type="checkbox" /> Include Services
+                </div>
                 }
             </section>
         </div>
