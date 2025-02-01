@@ -27,10 +27,10 @@ export default function PhelobotomySummaryAnalytics() {
 
     return (
         <div className="container-fluid">
-            <section className="row g-3">
+            <section className="row">
                 <div className="col-12 col-md-6 col-lg-3">
-                    <div className="card alert alert-warning text-dark card-small">
-                        <span className="card-header text-uppercase fw-bold">
+                    <div className="card  text-dark card-small">
+                        <span className="card-header text-uppercase fw-bold  pls-color">
                             Pending  Cases {"<"} 24 hours {">"}
                         </span>
                         <div className="card-body p-0">
@@ -39,8 +39,8 @@ export default function PhelobotomySummaryAnalytics() {
                     </div>
                 </div>
                 <div className="col-12 col-md-6 col-lg-3">
-                    <div className="card alert alert-success card-small">
-                        <span className="card-header text-uppercase fw-bold">
+                    <div className="card  card-small">
+                        <span className="card-header text-uppercase fw-bold  pls-color">
                             Collected cases {"<"} 24 hours {">"}
                         </span>
                         <div className="card-body p-0">
@@ -49,8 +49,8 @@ export default function PhelobotomySummaryAnalytics() {
                     </div>
                 </div>
                 <div className="col-12 col-md-6 col-lg-3">
-                    <div className="card alert alert-danger card-small">
-                        <span className="card-header text-uppercase fw-bold">
+                    <div className="card  card-small">
+                        <span className="card-header text-uppercase fw-bold  pls-color">
                             Rejected Cases {"<"} 24 hours {">"}
                         </span>
                         <div className="card-body p-0">
@@ -59,8 +59,8 @@ export default function PhelobotomySummaryAnalytics() {
                     </div>
                 </div>
                 <div className="col-12 col-md-6 col-lg-3">
-                    <div className="card alert alert-info text-dark card-small">
-                        <span className="card-header text-uppercase fw-bold">
+                    <div className="card  text-dark card-small">
+                        <span className="card-header text-uppercase fw-bold pls-color">
                             Redrawn Completed {"<"} 24 hours {">"}
                         </span>
                         <div className="card-body p-0">

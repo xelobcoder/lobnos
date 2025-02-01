@@ -6,6 +6,8 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import LockSvg from "../../../components/icons/LockSvg";
 import Link from "next/link";
 import { fetchOurSourcingOrganization } from "../../../lib/billingLib";
+import PrimeLayout from "../../../components/Layout/PrimeLayout";
+import { Add } from "@mui/icons-material";
 
 
 export default function IndexPageOutsource() {
@@ -105,15 +107,17 @@ export default function IndexPageOutsource() {
     const Loading = <div className="container">Loading data.....................</div>
 
     return (
-        <MainSettingsLayoutView>
-            {isLoading ? Loading : (<section>
-                <div className=" col-lg-3">
-                    <input type="text" className="custom-input h-40" placeholder="Filter here" />
-                </div>
-                {organization.length > 0 &&
-                    <PrimeTable column={columns} data={organization} filtering={false} />}
-            </section>)}
-
-        </MainSettingsLayoutView>
+        <PrimeLayout>
+            <div className="d-flex justify-content-between">
+                <h5 className=" text-decoration-underline">Outsourcing Organizations</h5>
+                <button className="btn btn-primary btn-sm">
+                    <Add />  Add Organization
+                </button>
+            </div>
+            <PrimeTable
+                column={columns}
+                data={organization}
+                filtering={false} />
+        </PrimeLayout>
     )
 }

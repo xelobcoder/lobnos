@@ -25,7 +25,7 @@ const BillingSourceComponent = ({ billingSource, updateValuesToContext, handleIn
                     <input type='text' placeholder="Get Claim Code Here" className="custom-input" />
                 </div>
             );
-        case 5:
+        case 6:
             return (
                 <div className="form-group">
                     <label>search clinician here</label>

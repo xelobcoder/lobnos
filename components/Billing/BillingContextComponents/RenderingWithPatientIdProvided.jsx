@@ -10,7 +10,9 @@ import PreviousBilledTestRecords from "./PreviousBilledTestRecords"
 export default function RenderingWithPatientIdProvided() {
     const { billingdata, updateBilling } = useContext(BillingContext);
 
-    if (billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0) return null;
+    if (billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0) {
+        return null;
+    }
 
 
     if (!billingdata.billingSource) {

@@ -7,11 +7,13 @@ import { useApplicationSettings } from "../../components/Auth/useApplicationCont
 import { toast, ToastContainer } from "react-toastify";
 import { Spinner } from 'react-bootstrap';
 import PrimeTable from "../../components/accessories/Datatables/PrimeTable";
+import PrimeLayout from "../../components/Layout/PrimeLayout";
 
 const defaultValues = {
 	name: "",
 	price: ""
-}
+};
+
 export default function AdditionalServicesPage() {
 	const [servicesList, setServicesList] = useState([]);
 	const [loading, setLoading] = useState(false);
@@ -63,7 +65,6 @@ export default function AdditionalServicesPage() {
 		}
 	};
 
-
 	const handleEdit = (service) => {
 		setIsEditing(true);
 		setEditServiceId(service.keyid);
@@ -75,9 +76,9 @@ export default function AdditionalServicesPage() {
 
 	const handleDelete = async (serviceId) => {
 		if (!role || role !== "admin") {
-			return toast.warning('Authorization to delete Denied!!!!!!')
+			return toast.warning('Authorization to delete Denied!!!!!!');
 		}
-		const confirmation = confirm('Do you want to delete service ?. it might be associated with transactions and cause errors or inconsistencies in your journal.')
+		const confirmation = confirm('Do you want to delete service? It might be associated with transactions and cause errors or inconsistencies in your journal.');
 
 		if (confirmation) {
 			const prompt_answer = prompt('Enter your password to confirm');
@@ -85,7 +86,7 @@ export default function AdditionalServicesPage() {
 				const response = await customPost(`billing/services?serviceid=${serviceId}`, 'DELETE');
 				if (response.status) {
 					setServicesList((prevList) => prevList.filter((item) => item.keyid !== serviceId));
-					toast.success('Service Deleted successfully')
+					toast.success('Service Deleted successfully');
 				}
 			}
 		}
@@ -132,14 +133,13 @@ export default function AdditionalServicesPage() {
 	}, []);
 
 	return (
-		<MainSettingsLayoutView>
+		<PrimeLayout>
 			<ToastContainer position="top-center" className={'text-sm'} theme="colored" />
 			<div className="p-2">
-				<form onSubmit={handleSubmit} className="col-sm-12 col-md-6 col-lg-4">
-					<div className="grid-reg">
-						<label>Service Name</label>
+				<form onSubmit={handleSubmit} className="d-flex ">
+					<div className="form-group col-4">
 						<input
-							className="custom-input"
+							className="custom-input "
 							name="name"
 							value={service.name}
 							onChange={handleInputChange}
@@ -148,8 +148,7 @@ export default function AdditionalServicesPage() {
 						/>
 					</div>
 
-					<div className="grid-reg mt-2">
-						<label>Price</label>
+					<div className="form-group mx-2 col-4">
 						<input
 							className="custom-input"
 							name="price"
@@ -163,8 +162,8 @@ export default function AdditionalServicesPage() {
 						/>
 					</div>
 
-					<div className="mx-lg-5 mx-xl-5 mx-md-5 mx-sm-0">
-						<button type="submit" className="btn btn-sm btn-primary mt-3 mx-lg-3 mx-xl-3 mx-md-2 mx-sm-0">
+					<div className="form-group">
+						<button type="submit" className="btn btn-sm btn-primary">
 							{submitting ? (
 								<Spinner animation="border" size="sm" />
 							) : (
@@ -176,8 +175,7 @@ export default function AdditionalServicesPage() {
 				<div style={{ overflowX: 'auto' }}>
 					{loading ? <Spinner animation="border" /> : (servicesList.length > 0 && <PrimeTable column={columns} data={servicesList} serverSideFiltering={false} handleSeverSideProcessing={false} />)}
 				</div>
-
 			</div>
-		</MainSettingsLayoutView>
+		</PrimeLayout>
 	);
 }

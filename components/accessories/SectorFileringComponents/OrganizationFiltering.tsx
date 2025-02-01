@@ -12,10 +12,11 @@ interface OrganizationOption {
 }
 
 interface OrganizationFilteringProps {
-     onSelect: (value: OrganizationOption) => void;
+     onSelect: (value: any) => void;
+     showbulk: boolean
 }
 
-export default function OrganizationFiltering({ onSelect }: OrganizationFilteringProps) {
+export default function OrganizationFiltering({ onSelect, showbulk = true }: OrganizationFilteringProps) {
      const [filteredResult, setFilteredResult] = useState<any[]>([]);
      const [isClient, setIsClient] = useState(false);
 
@@ -28,12 +29,11 @@ export default function OrganizationFiltering({ onSelect }: OrganizationFilterin
                          label: (
                               <div>
                                    <strong>{item.name}</strong>
-                                   <br />
-                                   <span>{item.address}</span>
-                                   <br />
-                                   <span>{item.contact}</span>
-                                   <br />
-                                   <span>{item.location}</span>
+                                   {
+                                        showbulk && (
+                                             <><br /><span>{item.address}</span><br /><span>{item.contact}</span><br /><span>{item.location}</span></>
+                                        )
+                                   }
                               </div>
                          ),
                          value: item.id,

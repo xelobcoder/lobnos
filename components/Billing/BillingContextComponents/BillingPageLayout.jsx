@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import { BillingPageContextProvider } from "./BillingContext";
 import PatientFiltered from "../../accessories/SectorFileringComponents/CustomerFiltering";
 import RenderingWithPatientIdProvided from "./RenderingWithPatientIdProvided";
@@ -6,30 +7,30 @@ import { useSearchParams, useRouter } from "next/navigation";
 import BillingSourceDeterminer from "./BillingOptionsSource";
 import BillingPagePatientInformation from "./PersonalInfoView";
 import BillingPageSummary from "./BillingSummary";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
-
+function NoPatientSelected({ onSelectPatient }) {
+	return (
+		<div className="col-sm-12 col-md-6 col-l-4 col-xl-3 my-3 mx-2 mx-sm-0" style={{ height: "50vh" }}>
+			<PatientFiltered getSelectedPatient={onSelectPatient} />
+		</div>
+	);
+}
 
 export default function BillingPageLayout() {
-	const [laodingData, setLoadingData] = useState(false);
-	const patientid = useSearchParams().get('patientid');
+	const [loadingData, setLoadingData] = useState(false);
+	const patientid = useSearchParams().get("patientid")?.trim();
 	const router = useRouter();
 
-	const filteredPatient = (options) => {
-		const hasPatientid = typeof options == "object" && options.hasOwnProperty('patientid');
-		if (!hasPatientid) return;
+	const filteredPatient = useCallback((options) => {
+		if (!options || typeof options !== "object" || !options.hasOwnProperty("patientid")) return;
 		const { patientid } = options;
-		router.push(`/billing/patientid?patientid=${patientid}`)
-	}
+		router.push(`/billing/patientid?patientid=${patientid}`);
+	}, [router]);
 
 	if (!patientid) {
-		return (
-			<div className="col-sm-12 col-md-6 col-l-4 col-xl-3 my-3 mx-2 mx-sm-0" style={{ height: '50vh' }}>
-				<PatientFiltered getSelectedPatient={filteredPatient} />
-			</div>
-		)
+		return <NoPatientSelected onSelectPatient={filteredPatient} />;
 	}
-
 
 	return (
 		<BillingPageContextProvider>
@@ -38,19 +39,21 @@ export default function BillingPageLayout() {
 					<div className="card-header">
 						<BillingPagePatientInformation />
 					</div>
-					<div className="card-body p-0 billing-page-display" >
+					<div className="card-body p-0 billing-page-display">
 						<BillingSourceDeterminer patientid={patientid} onLoadingData={setLoadingData} />
-						{
-							laodingData
-								?
-								<div className="p-2 m-3 bg-secondary-subtle d-flex justify-content-center">Loading Data.................</div>
-								:
-								<><RenderingWithPatientIdProvided patientid={patientid} /><BillingPageSummary patientid={patientid} /></>
-						}
+						{loadingData ? (
+							<div className="p-2 m-3 bg-secondary-subtle d-flex justify-content-center">
+								Loading Data.............
+							</div>
+						) : (
+							<>
+								<RenderingWithPatientIdProvided patientid={patientid} />
+								<BillingPageSummary patientid={patientid} />
+							</>
+						)}
 					</div>
 				</div>
 			</div>
 		</BillingPageContextProvider>
 	);
 }
-

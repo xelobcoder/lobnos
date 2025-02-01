@@ -1,11 +1,12 @@
-export default function AssessmentRenderingView({ loading, testcollection = [],handleDeclineMessage,validateSample }) {
+import styles from '../../../styles/SmsTemplateList.module.css'
+export default function AssessmentRenderingView({ loading, testcollection = [], handleDeclineMessage, validateSample }) {
     if (loading) return <div>Loading ....</div>
 
 
     if (testcollection.length == 0) return <h5>No Sample Available for Asssement</h5>
 
     return (
-        <table className="table text-sm border column-bordered billing-cart-table ">
+        <table className={`${styles.table} pls-color `} style={{fontSize:'13px'}}>
             <thead className="column-bordered">
                 <tr>
                     <th className="text-capitalize column-bordered">ascension No.</th>

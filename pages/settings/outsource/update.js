@@ -1,17 +1,16 @@
 import { Tab, Tabs } from "react-bootstrap";
 import ContractForm from "../../../components/outsource/contracting";
-import MainSettingsLayoutView from "../../../components/settingsComponents/MainSettingsLayoutView";
 import OrganizationImageUploader from "../../../components/outsource/outSourceOrganizationProfileImageUpload";
-import OutsourceBarChart from "../../../components/outsource/OutSourceBarChart";
 import OutSourcingOrganizationForm from "../../../components/outsource/newOutSourceOrganization";
 import OutsourceServices from "../../../components/outsource/OutSourcingServices";
 import { useState } from "react";
+import PrimeLayout from "../../../components/Layout/PrimeLayout";
 
 export default function OutsourcingIndexPage() {
     const [eventKey, setEventKey] = useState("organization");
 
     return (
-        <MainSettingsLayoutView>
+        <PrimeLayout>
             <div className="p-3">
                 <Tabs
                     defaultActiveKey="organization"
@@ -43,14 +42,8 @@ export default function OutsourcingIndexPage() {
                     >
                         {eventKey === "services" && <OutsourceServices />}
                     </Tab>
-                    <Tab
-                        title="Charts"
-                        eventKey="outsourcecharts"
-                    >
-                        {eventKey === "outsourcecharts" && <OutsourceBarChart />}
-                    </Tab>
                 </Tabs>
             </div>
-        </MainSettingsLayoutView>
+        </PrimeLayout>
     );
 }

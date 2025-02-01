@@ -53,7 +53,7 @@ export default function PhelobotomistSummaryTable() {
                                 <td>{item.approved_tests}</td>
                                 <td>{item.unapproved_tests}</td>
                                 <td>{item.rejected_tests}</td>
-                                <td>{item.approval_rate.toFixed(2)}</td>
+                                <td>{item.approval_rate}</td>
                             </tr>
                         ))}
                     </tbody>

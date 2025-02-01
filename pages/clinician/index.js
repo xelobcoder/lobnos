@@ -1,20 +1,132 @@
 import { useCallback, useEffect, useState } from "react";
 import { customFetch, customPost, getDataAndUpdateState } from "../../components/Auth/customFetch";
-import { IconButton, Typography } from "@mui/material";
-import { DeleteForeverOutlined, Edit, Visibility } from "@mui/icons-material";
+import { IconButton, Typography, Menu, MenuItem } from "@mui/material";
+import { DeleteForeverOutlined, Edit, Visibility, MoreVert, Add } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { ToastContainer, toast } from 'react-toastify';
-import FrontDeskLayout from "../../components/Layout/FrontDeskLayout";
 import Loader from "../../components/accessories/Loader";
 import { Button } from "react-bootstrap";
 import PrimeTable from "../../components/accessories/Datatables/PrimeTable";
+import PrimeLayout from '../../components/Layout/PrimeLayout';
+import Link from "next/link";
+
+const ActionButtons = ({ original, onEdit, onView, onDelete }) => {
+	const [anchorEl, setAnchorEl] = useState(null);
+	const open = Boolean(anchorEl);
+
+	const handleClick = (event) => {
+		setAnchorEl(event.currentTarget);
+	};
+
+	const handleClose = () => {
+		setAnchorEl(null);
+	};
+
+	return (
+		<div>
+			<IconButton onClick={handleClick} sx={{ padding: '8px' }}>
+				<MoreVert sx={{ color: '#666' }} />
+			</IconButton>
+			<Menu
+				anchorEl={anchorEl}
+				open={open}
+				onClose={handleClose}
+				PaperProps={{
+					elevation: 3,
+					sx: {
+						borderRadius: '8px',
+						minWidth: '200px',
+						boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+					},
+				}}
+				transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+				anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+			>
+				<MenuItem
+					onClick={() => { onEdit(original); handleClose(); }}
+					sx={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: '8px',
+						padding: '8px 16px',
+						'&:hover': {
+							backgroundColor: '#f5f5f5',
+						},
+					}}
+				>
+					<Edit sx={{ fontSize: '18px', color: '#2196F3' }} />
+					<Typography variant="body2" sx={{ color: '#333' }}>Edit</Typography>
+				</MenuItem>
+				<MenuItem
+					onClick={() => { onView(original); handleClose(); }}
+					sx={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: '8px',
+						padding: '8px 16px',
+						'&:hover': {
+							backgroundColor: '#f5f5f5',
+						},
+					}}
+				>
+					<Visibility sx={{ fontSize: '18px', color: '#4CAF50' }} />
+					<Typography variant="body2" sx={{ color: '#333' }}>View</Typography>
+				</MenuItem>
+				<MenuItem
+					onClick={() => { onDelete(original); handleClose(); }}
+					sx={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: '8px',
+						padding: '8px 16px',
+						'&:hover': {
+							backgroundColor: '#f5f5f5',
+						},
+					}}
+				>
+					<DeleteForeverOutlined sx={{ fontSize: '18px', color: '#F44336' }} />
+					<Typography variant="body2" sx={{ color: '#333' }}>Delete</Typography>
+				</MenuItem>
+				<MenuItem
+					onClick={() => { handleClose(); }}
+					sx={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: '8px',
+						padding: '8px 16px',
+						'&:hover': {
+							backgroundColor: '#f5f5f5',
+						},
+					}}
+				>
+					<Add />
+					<Link href={`/clinicians/billing-strategy/${original.id}?strategy=clinicians`}>
+						<Typography variant="body2" sx={{ color: '#333' }}>Create Special Billing</Typography>
+					</Link>
+				</MenuItem>
+				<MenuItem
+					onClick={() => { handleClose(); }}
+					sx={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: '8px',
+						padding: '8px 16px',
+						'&:hover': {
+							backgroundColor: '#f5f5f5',
+						},
+					}}
+				>
+					<Typography variant="body2" sx={{ color: '#333' }}>Additional Action 2</Typography>
+				</MenuItem>
+			</Menu>
+		</div>
+	);
+};
 
 export default function ClinicianList() {
 	const [ClinicianList, setClinician] = useState([]);
-	const [editing, setEditing] = useState({ editing: false, editid: null });
 	const [pagination, setPagination] = useState({ page: 1, count: 10, show: false });
 	const [loading, setLoading] = useState(false);
-	const [load, setLoad] = useState(false);
 	const router = useRouter();
 
 	const getClinicianData = useCallback(async () => {
@@ -24,7 +136,7 @@ export default function ClinicianList() {
 			setLoading(false);
 		} catch (err) {
 			setLoading(false);
-			alert(err || 'error connecting to server');
+			alert(err || 'Error connecting to server');
 		}
 	}, [pagination.count, pagination.page]);
 
@@ -32,76 +144,29 @@ export default function ClinicianList() {
 		getClinicianData();
 	}, [getClinicianData]);
 
-	const ForClientEdit = (originaldata) => {
-		const { id } = originaldata;
+	const handleEdit = (original) => {
+		const { id } = original;
 		if (!id) return;
 		router.push(`/clinician/new?clinicianid=${id}`);
 	};
 
-	const columns = [
-		{
-			Header: 'Name',
-			accessor: 'name'
-		},
-		{
-			Header: 'Email',
-			accessor: 'email'
-		},
-		{
-			Header: 'Location',
-			accessor: 'location'
-		},
-		{
-			Header: 'Commission rate',
-			accessor: 'commission',
-			Cell: ({ row }) => {
-				const { original } = row;
-				return <Typography variant="body2">{original?.commission}%</Typography>;
-			}
-		},
-		{
-			Header: 'Phone',
-			accessor: 'phone'
-		},
-		{
-			Header: 'Occupation',
-			accessor: 'occupation'
-		},
-		{
-			Header: 'Address',
-			accessor: 'address'
-		},
-		{
-			Header: 'Actions',
-			accessor: '',
-			Cell: ({ row }) => {
-				const { original } = row;
-				return (
-					<div>
-						<IconButton onClick={() => ForClientEdit(original)}>
-							<Edit />
-						</IconButton>
-						<IconButton size="small" onClick={() => router.push(`/clinician/clinicianview?clinicianid=${original.id}`)}>
-							<Visibility sx={{ color: 'green' }} />
-						</IconButton>
-						<IconButton size="small" onClick={() => handleDelete(original)}>
-							<DeleteForeverOutlined sx={{ color: 'red' }} />
-						</IconButton>
-					</div>
-				);
-			}
-		}
-	];
+	const handleView = (original) => {
+		const { id } = original;
+		if (!id) return;
+		router.push(`/clinician/clinicianview?clinicianid=${id}`);
+	};
 
 	const handleDelete = async (original) => {
-		let confirmation = confirm('Do you want to delete the clinician?');
+		const confirmation = confirm('Do you want to delete the clinician?');
 		if (!confirmation) return;
+
 		const { id } = original;
 		if (!id) return;
 
 		try {
-			let deletepush = await customPost('clinicians', 'DELETE', { id });
-			const { statusCode, status, message } = deletepush;
+			const deleteResponse = await customPost('clinicians', 'DELETE', { id });
+			const { statusCode, status, message } = deleteResponse;
+
 			if (statusCode === 200 && status === 'success') {
 				toast.success(message, { position: 'top-right', autoClose: 1000 });
 				setClinician((prev) => prev.filter((item) => item.id !== id));
@@ -109,33 +174,60 @@ export default function ClinicianList() {
 				toast.error(message, { position: 'top-right', autoClose: 1000 });
 			}
 		} catch (err) {
-			toast.error(err.message || 'error connecting to server', { position: 'top-right', autoClose: 1000 });
+			toast.error(err.message || 'Error connecting to server', { position: 'top-right', autoClose: 1000 });
 		}
-	};
-
-	const reset = () => {
-		setEditing({ editid: null, editing: false });
 	};
 
 	const updatePage = async (pagination) => {
 		const { count, page } = pagination;
 		if (!count || !page) return;
+
 		try {
 			const response = await customFetch(`clinicians?count=${count}&&page=${page}`);
 			const { result } = response;
+
 			if (result && Array.isArray(result)) {
-				return { result, error: false }
+				return { result, error: false };
 			}
 		} catch (err) {
-			return { result: [], error: err }
+			return { result: [], error: err };
 		}
 	};
 
+	const columns = [
+		{ Header: 'Name', accessor: 'name' },
+		{ Header: 'Email', accessor: 'email' },
+		{ Header: 'Location', accessor: 'location' },
+		{
+			Header: 'Commission rate',
+			accessor: 'commission',
+			Cell: ({ row }) => <Typography variant="body2">{row.original?.commission}%</Typography>,
+		},
+		{ Header: 'Phone', accessor: 'phone' },
+		{ Header: 'Occupation', accessor: 'occupation' },
+		{ Header: 'Address', accessor: 'address' },
+		{
+			Header: 'Actions',
+			accessor: '',
+			Cell: ({ row }) => (
+				<ActionButtons
+					original={row.original}
+					onEdit={handleEdit}
+					onView={handleView}
+					onDelete={handleDelete}
+				/>
+			),
+		},
+	];
+
 	const renderingView = () => {
 		if (loading) return <Loader />;
+
 		return (
 			<div>
-				<PrimeTable column={columns} data={ClinicianList}
+				<PrimeTable
+					column={columns}
+					data={ClinicianList}
 					serverSideFiltering={true}
 					handleSeverSideProcessing={updatePage}
 				/>
@@ -144,17 +236,17 @@ export default function ClinicianList() {
 	};
 
 	return (
-		<FrontDeskLayout>
+		<PrimeLayout>
 			<ToastContainer />
 			<div className="d-flex justify-content-between">
-				<h4>Registered Clinician List</h4>
-				<Button variant='primary' onClick={(ev) => { router.push("/clinician/new") }} >
-					Add new Clinician
+				<h5>Registered Clinician List</h5>
+				<Button variant="primary" className="btn btn-sm" onClick={() => router.push("/clinician/new")}>
+					Add New Clinician
 				</Button>
 			</div>
 			<div className="card-body">
 				{renderingView()}
 			</div>
-		</FrontDeskLayout>
+		</PrimeLayout>
 	);
 }

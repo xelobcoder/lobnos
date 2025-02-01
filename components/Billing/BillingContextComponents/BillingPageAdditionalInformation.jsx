@@ -16,7 +16,27 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 	const { employeeid, username, role } = applicationsettings.user;
 	const [payment, setPayment] = useState({ amount: 0, mode: "", concession: "" });
 
-	const isButtonDisabled = parseFloat(billingdata.paid) <= 0 || (parseFloat(billingdata.paid) > billingdata.payable)
+	const checkButtonDisabled = (billingdata) => {
+		const amountPaid = parseFloat(billingdata.paid);
+		const amountPayable = parseFloat(billingdata.payable || 0);
+
+		if (amountPayable === 0 && amountPaid > 0) {
+			return true;
+		}
+
+		if (amountPayable === 0 && amountPaid === 0) {
+			console.log('Hit');
+			return false;
+		}
+
+		if (amountPaid > amountPayable && amountPayable !== 0) {
+			return true;
+		}
+
+		return amountPaid <= 0 || amountPaid > amountPayable ? true : false;
+	};
+
+
 
 
 	const updatePaymentMode = (selectedOption) => {
@@ -66,7 +86,7 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 									<Select
 										className="react-select-container"
 										classNamePrefix="react-select"
-										isDisabled={[2,3,5].includes(billingdata.billingSource)}
+										isDisabled={[2, 3, 5].includes(billingdata.billingSource)}
 										value={{ label: billingdata.type, value: billingdata.type }}
 										onChange={(selectedOption) => updateBilling({ ...billingdata, type: selectedOption.value })}
 										options={organizationOptions}
@@ -90,7 +110,7 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 								<Select
 									className="react-select-container"
 									classNamePrefix="react-select"
-									isDisabled={billingdata.type != "organization" || billingdata.billingSource == 2 || billingdata.billingSource === 5}
+									isDisabled={billingdata.type != "organization" || [2, 6].includes(billingdata.billingSource)}
 									placeholder="Search organization here"
 									onChange={(newValue) => {
 										updateBilling({ ...billingdata, organizationId: newValue?.id });
@@ -107,7 +127,7 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 								<Select
 									className="react-select-container"
 									classNamePrefix="react-select"
-									isDisabled={billingdata.type != "clinician" ||[2,5].includes(billingdata.billingSource)}
+									isDisabled={billingdata.type != "clinician" || [2, 6].includes(billingdata.billingSource)}
 									placeholder="Search clinician"
 									getOptionLabel={(option) => option.name}
 									getOptionValue={(option) => option.id}
@@ -150,7 +170,7 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 				<div className="mx-2">
 					<div className="mt-2 d-flex justify-content-end">
 						<button
-							disabled={isButtonDisabled}
+							disabled={checkButtonDisabled(billingdata)}
 							className="btn btn-success mx-2"
 							onClick={(ev) => { handleSubmit() }}>
 							{isSaving && <Spinner size="sm" />}<MoneyRounded /> Bill Client

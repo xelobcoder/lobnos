@@ -1,12 +1,14 @@
+"use client"
 import React, { useEffect, useState } from 'react';
-import { customFetch } from '../../components/Auth/customFetch';
-import PhelobotomyLayout from '../../components/Layout/PhelobotomyLayout';
-import CollectionToDisputeToApprovedToRedrawnLast30daysHandler from '../../components/phelobotomy/Analytics/CollectionToDisputeToApprovedToRedrawnLast30daysHandler';
-import PhelobotomistSummaryTable from '../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/PhelobotomistSummayTable';
-import TestsCompletedVsInitiatedVrsUninitiated from '../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/TestsCompletedVsInitiatedVrsUninitiated';
-import MonthlyApprovalRateByMonthAndYear from '../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/monthlyApprovalRateByMonthAndYear';
-import ImportantAnalyticsRecorded from '../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/importantAnalyticsRecorded';
-import TotalTestCollectedByYearTableView from '../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/TotalTestCollectedByYearTableView';
+import { customFetch } from '../../../../../components/Auth/customFetch';
+import PhelobotomyLayout from '../../../../../components/Layout/PhelobotomyLayout';
+import CollectionToDisputeToApprovedToRedrawnLast30daysHandler from '../../../../../components/phelobotomy/Analytics/CollectionToDisputeToApprovedToRedrawnLast30daysHandler';
+import PhelobotomistSummaryTable from '../../../../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/PhelobotomistSummayTable';
+import TestsCompletedVsInitiatedVrsUninitiated from '../../../../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/TestsCompletedVsInitiatedVrsUninitiated';
+import MonthlyApprovalRateByMonthAndYear from '../../../../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/monthlyApprovalRateByMonthAndYear';
+import ImportantAnalyticsRecorded from '../../../../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/importantAnalyticsRecorded';
+import TotalTestCollectedByYearTableView from '../../../../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/TotalTestCollectedByYearTableView';
+import PrimeLayout from '../../../../../components/Layout/PrimeLayout';
 
 
 const PhelobotomyAnalyticsPage = () => {
@@ -36,9 +38,9 @@ const PhelobotomyAnalyticsPage = () => {
 		return <div className="text-center">No data available.</div>;
 	}
 
-console.log(data.monthlyApprovalRate)
+	console.log(data.monthlyApprovalRate)
 	return (
-		<PhelobotomyLayout>
+		<div>
 			<section className=''>
 				<CollectionToDisputeToApprovedToRedrawnLast30daysHandler />
 			</section>
@@ -51,9 +53,9 @@ console.log(data.monthlyApprovalRate)
 					<input type='number' className='custom-input my-2' placeholder='year' />
 					</div>
           </section> */}
-			<div className='mx-4 my-3'>
+			<div>
 				<PhelobotomistSummaryTable />
-				{/* <TestsCompletedVsInitiatedVrsUninitiated value={data.testsCompletedVsInitiatedVrsUninitiated} /> */}
+				<TestsCompletedVsInitiatedVrsUninitiated value={data.testsCompletedVsInitiatedVrsUninitiated} />
 				{/* <MonthlyApprovalRateByMonthAndYear data={data.monthlyApprovalRate} /> */}
 				<div className='d-flex-lg'>
 					<div className='col-md-12 col-lg-12 my-2'>
@@ -64,7 +66,7 @@ console.log(data.monthlyApprovalRate)
 					</div>
 				</div>
 			</div>
-		</PhelobotomyLayout>
+		</div>
 	);
 };
 

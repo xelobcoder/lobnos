@@ -1,88 +1,65 @@
-import { useState, useEffect, useCallback } from "react";
-import Loader from '../../components/accessories/Loader';
-import { getDataAndUpdateState, parseDate, updatePagination } from "../../components/Auth/customFetch";
-import Pagination from "../accessories/pagination";
-import TableDisplay from "../accessories/TableDisplay";
+"use client"
+import { customFetch, parseDate } from "../../components/Auth/customFetch";
+import PrimeTable from "../accessories/Datatables/PrimeTable";
 
-export default function RejectedSamplesComponent() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [paginate, setPaginate] = useState({ count: 10, page: 1 })
-  const [load, setLoad] = useState(false);
+export default function RejectedSamplesComponent({ data }) {
 
+	const handleSeverSideProcessing = async (pagination) => {
+		try {
+			const { page, count } = pagination;
+			const response = await customFetch(`rejected/sample/list?count=${count}&&page=${page}`);
+			const { result } = response;
 
-
-  const fetchInitialData = useCallback(async function () {
-    getDataAndUpdateState(setData, `rejected/sample/list?count=${paginate.count}&&page=${paginate.page}`, false, setLoading)
-  }, [paginate])
-
-
-  useEffect(() => { fetchInitialData(); }, [fetchInitialData])
-
-
+			if (result && Array.isArray(result)) {
+				return { result, err: false }
+			}
+			return { result: [], err: false }
+		} catch (err) {
+			return { result: false, err: true }
+		}
+	}
 
 
-  const updateFunction = (value) => {
-    updatePagination(value, setPaginate, paginate)
-  }
+	const columns = [
+		{ Header: 'fullname', accessor: 'fullname', Cell: ({ value }) => <div className="text-capitalize">{value}</div> },
+		{
+			Header: 'details', accessor: 'age', Cell: ({ value, row }) => {
+				const { gender, mobilenumber } = row.original;
+				return (<div>{value}{" || "}{gender}{" || "}{mobilenumber}</div>)
+			}
+		},
+
+		{ Header: 'test', accessor: 'testname', Cell: ({ value }) => <span className="border-bottom border-danger border-2">{value}</span> },
+		{ Header: 'collected on', accessor: "collectionEndDate", Cell: ({ value }) => parseDate(value) },
+		{ Header: 'collected by', accessor: "sampleCollectedBy" },
+		{ Header: 'validated On', accessor: "samplevalidatedon", Cell: ({ value }) => <div>{new Date(value).toLocaleDateString()}</div> },
+		{ Header: 'last validated by', accessor: 'validatedby', Cell: ({ value }) => <div>{value}</div> },
+		{ Header: 'reason', accessor: 'rejectionmessage', width: 200 },
+		{
+			Header: 'actions', accessor: '', Cell: ({ row }) => {
+				const item = row.original;
+				return (
+					<span>
+						<button className="btn btn-sm btn-secondary"
+							onClick={() => {
+								window.open(`/sample/rejected/history?ascensionid=${item.ascensionid}`)
+							}}>
+							history
+						</button>
+						<button className="btn btn-sm btn-warning mx-1">redraw</button>
+					</span>
+				)
+			}
+		}
+	]
 
 
-  const columns = [
-    { Header: 'fullname', accessor: 'fullname', Cell: ({ value }) => <div className="text-capitalize">{value}</div> },
-    {
-      Header: 'details', accessor: 'age', Cell: ({ value, row }) => {
-        const { gender, mobilenumber } = row.original;
-        return (<div>{value}{" || "}{gender}{" || "}{mobilenumber}</div>)
-      }
-    },
-
-    { Header: 'test', accessor: 'testname', Cell: ({ value }) => <span className="border-bottom border-danger border-2">{value}</span> },
-    { Header: 'collected on', accessor: "collectionEndDate", Cell: ({ value }) => parseDate(value) },
-    { Header: 'collected by', accessor: "sampleCollectedBy"},
-    { Header: 'validated On', accessor: "samplevalidatedon", Cell: ({ value }) => <div>{new Date(value).toLocaleDateString()}</div> },
-    { Header: 'last validated by', accessor: 'validatedby', Cell: ({ value }) => <div>{value}</div> },
-    { Header: 'reason', accessor: 'rejectionmessage', width: 200 },
-    {
-      Header: 'actions', accessor: '', Cell: ({ row }) => {
-        const item = row.original;
-        return (
-          <span>
-            <button className="btn btn-sm btn-secondary"
-              onClick={() => {
-                window.open(`/sample/rejected/history?ascensionid=${item.ascensionid}`)
-              }}>
-              history
-            </button>
-            <button className="btn btn-sm btn-warning mx-1">redraw</button>
-          </span>
-        )
-      }
-    }
-  ]
-
-  if (loading) return <div className=" text-center p-2 bg-secondary-subtle text-sm heightedBorder">Loading Data</div>
-
-  if (data.length === 0) return <div className="alert alert-info text-sm col-4">No sample Collected rejected</div>
-
-  const renderingView = () => {
-    if (loading) return <Loader />
-    else {
-      return (
-        <section className="ui">
-          <TableDisplay showpage={false} column={columns} data={data} filtering={true} />
-          <div className="d-flex justify-content-center">
-            <Pagination page={paginate.page} updateFunction={updateFunction} load={setLoad} />
-          </div>
-        </section>
-      )
-    }
-  }
-
-
-  return (
-    <>
-      <h4>Rejected Sample List</h4>
-      {renderingView()}
-    </>
-  )
+	return (
+		<>
+			<h6>Rejected Sample List</h6>
+			<section className="ui">
+				<PrimeTable column={columns} data={data} filtering={false} serverSideFiltering={true} handleSeverSideProcessing={handleSeverSideProcessing}/>
+			</section>
+		</>
+	)
 }

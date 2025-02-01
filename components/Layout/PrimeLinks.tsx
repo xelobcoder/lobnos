@@ -145,11 +145,11 @@ export const links: Link = [
     {
         title: "Phelobotomy",
         icon: Icon,
-        link: '/phelobotomy',
+        link: '/operations/laboratory/phelobotomy',
         subLinks: [
-            { title: "Phlebotomy", link: "/phelobotomy" },
-            { title: "Rejected Samples", link: "/phelobotomy/rejectedsamples" },
-            { title: "Analytics", link: "/phelobotomy/analytics" },
+            { title: "Phlebotomy", link: "/operations/laboratory/phelobotomy" },
+            { title: "Rejected Samples", link: "/operations/laboratory/phelobotomy/rejectedsamples" },
+            { title: "Analytics", link: "/operations/laboratory/phelobotomy/analytics" },
         ]
     },
     {
@@ -171,7 +171,7 @@ export const links: Link = [
         subLinks: [
             {
                 title: "Sample Validation",
-                link: "/sample"
+                link: "/operations/laboratory/sample/validation"
             },
             {
                 title: "Operations",
@@ -260,7 +260,13 @@ export const links: Link = [
         title: "Doctors Portal",
         icon: Icon,
         link: "/doctor/consultation",
-        subLinks: []
+        subLinks: [
+            { title: 'Consulations', link: '/doctor/consultation/allconsultations' },
+            { title: "Consult", link: '/doctor/consultation' },
+            {
+                title: 'Pending Consultations', link: "/doctor/consultation/clients/pending"
+            }
+        ]
     },
     {
         title: "Clinicians",

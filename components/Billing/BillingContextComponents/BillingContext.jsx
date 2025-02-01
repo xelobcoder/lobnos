@@ -24,7 +24,7 @@ function calculateDiscount(cart) {
      if (Array.isArray(cart)) {
           if (cart.length === 0) return 0;
           const discount = cart.reduce((sum, item) => {
-               return sum + parseFloat(item.discount.toString())
+               return sum + parseFloat(item.discount.toString());
           }, 0);
           return discount;
      }
@@ -48,13 +48,6 @@ export function BillingPageContextProvider({ children }) {
                appsettings,
                cart,
                totalCostOfServices = 0,
-               servicesProvided,
-               previousAmountIncurredDueTax = 0,
-               previousBalance = 0,
-               previousPayable = 0,
-               previousPaid = 0,
-               previousOutstanding = 0,
-               previousRefunded = 0,
           } = billingdata;
 
           const { taxIncluded, taxValue } = appsettings;
@@ -63,36 +56,20 @@ export function BillingPageContextProvider({ children }) {
 
           const servicePlusTestCost = calculateServicePlusTestCost(totalTest, totalCostOfServices);
 
-          let amountIncurredDueTax = (calculateTax(servicePlusTestCost, taxIncluded, taxValue) + previousAmountIncurredDueTax)
-
-          amountIncurredDueTax = parseFloat(
-               amountIncurredDueTax.toFixed(2)
+          let amountIncurredDueTax = parseFloat(
+               calculateTax(servicePlusTestCost, taxIncluded, taxValue).toFixed(2)
           );
 
-          let total = parseFloat((servicePlusTestCost + amountIncurredDueTax + previousOutstanding));
+          let total = parseFloat((servicePlusTestCost + (servicePlusTestCost > 0 ? amountIncurredDueTax : 0)).toFixed(2));
 
-          total = parseFloat(total.toFixed(2))
+          const discount = parseFloat(calculateDiscount(cart).toFixed(2));
 
-          const discount = parseFloat(
-               (calculateDiscount(cart) + calculateDiscount(servicesProvided)).toFixed(2)
-          );
+          let parsedPaid = parseFloat(parsePaidAmount(paid).toFixed(2));
 
-          let parsedPaid = parseFloat(
-               (parsePaidAmount(paid)) + parseFloat(previousPaid)
-          );
+          const payable = parseFloat((total - discount).toFixed(2));
 
-          parsedPaid = parsedPaid.toFixed(2);
+          let outstanding = parseFloat((payable - parsedPaid).toFixed(2));
 
-          const payable = parseFloat(
-               ((total - discount) + previousOutstanding)
-          ).toFixed(2)
-
-          let outstanding = parseFloat(
-               ((payable - parsedPaid) + previousOutstanding)
-          )
-
-          outstanding = outstanding.toFixed(2);
-console.log(outstanding)
           updateBilling({
                ...billingdata,
                payable,
@@ -106,6 +83,7 @@ console.log(outstanding)
                taxIncluded: taxIncluded === 1,
           });
      };
+
      return (
           <BillingProvider value={{ billingdata, updateBilling, recalculateTotalBill }}>
                {children}

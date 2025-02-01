@@ -146,18 +146,20 @@ export default function Activator() {
 
 	return (
 		<FrontDeskLayout>
-			<ToastContainer theme='colored' position='top-center' className="text-sm" />
-			<div className="col-md-8 col-sm-12 col-lg-4 my-2 d-lg-flex justify-content-end">
-				<PatientFiltered getSelectedPatient={filteredPatient} />
-			</div>
-			<div >
-				{Array.isArray(tempStore)
-					&& tempStore.length > 0
-					&& <PrimeTable column={columns}
-						data={tempStore}
-						handleSeverSideProcessing={handleSeverSideProcessing}
-						serverSideFiltering={true}
-					/>}
+			<div className='p-2'>
+				<ToastContainer theme='colored' position='top-center' className="text-sm" />
+				<div className="col-md-8 col-sm-12 col-lg-4 my-2 d-lg-flex justify-content-end">
+					<PatientFiltered getSelectedPatient={filteredPatient} />
+				</div>
+				<div >
+					{Array.isArray(tempStore)
+						&& tempStore.length > 0
+						&& <PrimeTable column={columns}
+							data={tempStore}
+							handleSeverSideProcessing={handleSeverSideProcessing}
+							serverSideFiltering={true}
+						/>}
+				</div>
 			</div>
 		</FrontDeskLayout>
 	);

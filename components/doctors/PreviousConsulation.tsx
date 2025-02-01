@@ -41,7 +41,7 @@ export default function PreviousConsulation({ patientid }: { patientid: number }
                                    </Link>
                               </span>
                               <span>
-                                   <Link href={`${process.env.PLS_PDF_GENERATOR}/consultation/report/pdf?consultationid=1`}>
+                                   <Link href={`${process.env.PLS_PDF_GENERATOR}consultation/report/pdf?consultationid=1`}>
                                         View Report
                                    </Link>
                               </span>

@@ -18,6 +18,7 @@ export default async function ClinicianBillingStrategyPage({
 		if (!associatedid || !strategy) {
 			return <h1>Invalid request.</h1>;
 		}
+		
 
 		const checkingResponses = await customFetch(`clinicians/billing/${associatedid}/has-strategy`);
 
@@ -48,7 +49,6 @@ export default async function ClinicianBillingStrategyPage({
 			</div>
 		);
 	} catch (error) {
-		console.error(error);
 		return <h1>Error loading clinician billing strategy.</h1>;
 	}
 }

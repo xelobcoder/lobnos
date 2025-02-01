@@ -1,11 +1,10 @@
-import{ useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Row, Col, Form, Button } from 'react-bootstrap';
 import * as Yup from 'yup';
 import { customFetch, customPost } from '../Auth/customFetch';
 import { useSearchParams } from 'next/navigation';
 import Loader from '../accessories/Loader';
 import { useApplicationSettings } from '../Auth/useApplicationContext';
-
 
 const defaultData = {
     outsourceid: '',
@@ -18,82 +17,85 @@ const defaultData = {
     billingAddress: '',
     websiteURL: '',
     organizationType: ''
-}
+};
+
+const validationSchema = Yup.object().shape({
+    name: Yup.string().required('Organization Name is required'),
+    contactPerson: Yup.string().required('Contact Person is required'),
+    contactNumber: Yup.string()
+        .required('Phone number is required')
+        .matches(/^\d{10}$/, 'Phone number must be 10 digits'),
+    email: Yup.string().email('Invalid email address').required('Email is required'),
+    faxNumber: Yup.string().nullable(),
+    address: Yup.string().required('Address is required'),
+    billingAddress: Yup.string().nullable(),
+    websiteURL: Yup.string().url('Invalid URL').nullable(),
+    organizationType: Yup.string().required('Type of Organization is required')
+});
 
 export default function OutSourcingOrganizationForm() {
     const { applicationsettings } = useApplicationSettings();
     const employeeid = applicationsettings.user.employeeid;
-    const outsourceid = useSearchParams().get("orgid")
+    const outsourceid = useSearchParams().get("orgid");
     const method = outsourceid ? 'PUT' : 'POST';
     const [formData, setFormData] = useState(defaultData);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
 
-    const validationSchema = Yup.object().shape({
-        name: Yup.string().required('Organization Name is required'),
-        contactPerson: Yup.string().required('Contact Person is required'),
-        contactNumber: Yup.string().required('Phone number is required'),
-        email: Yup.string().email('Invalid email address').required('Email is required'),
-        faxNumber: Yup.string().nullable(),
-        address: Yup.string().required('Address is required'),
-        billingAddress: Yup.string().nullable(),
-        websiteURL: Yup.string().url('Invalid URL').nullable(),
-        organizationType: Yup.string().required('Type of Organization is required')
-    });
-
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
+        setFormData((prevData) => ({
+            ...prevData,
             [name]: value
-        });
+        }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        validationSchema.validate(formData, { abortEarly: false })
-            .then(() => {
-                console.log(formData);
-                customPost(
-                    "outsourcing/organization", method, { ...formData, employeeid, outsourceid }
-                ).then((data) => {
-                    console.log(data);
-                }).catch((err) => {
-                    console.log(err)
-                })
-                setErrors({});
-            })
-            .catch((validationErrors) => {
-                const errors = validationErrors.inner.reduce((allErrors, currentError) => {
-                    return {
-                        ...allErrors,
-                        [currentError.path]: currentError.message,
-                    };
+        setLoading(true);
+
+        try {
+            await validationSchema.validate(formData, { abortEarly: false });
+            const response = await customPost(
+                "outsourcing/organization",
+                method,
+                { ...formData, employeeid, outsourceid }
+            );
+            console.log('Submission successful:', response);
+            setErrors({});
+        } catch (validationErrors) {
+            if (validationErrors.inner) {
+                const formattedErrors = validationErrors.inner.reduce((acc, error) => {
+                    acc[error.path] = error.message;
+                    return acc;
                 }, {});
-                setErrors(errors);
-            });
+                setErrors(formattedErrors);
+            } else {
+                console.error('Submission error:', validationErrors);
+            }
+        } finally {
+            setLoading(false);
+        }
     };
-
-
 
     useEffect(() => {
         if (outsourceid) {
-            setLoading(true)
+            setLoading(true);
             customFetch(`outsourcing/organization?outsourceid=${outsourceid}`)
                 .then((data) => {
                     if (Array.isArray(data) && data.length > 0) {
-                        setFormData(data[0])
+                        setFormData(data[0]);
                     }
-                }).catch((err) => {
+                })
+                .catch((err) => {
+                    console.error('Error fetching organization data:', err);
                     setFormData(defaultData);
-                    setLoading(false);
-                }).finally
-                (() => { setLoading(false) })
+                })
+                .finally(() => setLoading(false));
         }
-    }, [outsourceid])
+    }, [outsourceid]);
 
-
-    if (loading) return <Loader />
+    if (loading) return <Loader />;
 
     return (
         <Row className='card-body p-2'>
@@ -132,7 +134,7 @@ export default function OutSourcingOrganizationForm() {
                     <Form.Group className='grid-20-80 my-2' controlId="contactNumber">
                         <Form.Label className='text-sm'>Phone Number</Form.Label>
                         <Form.Control
-                            type="tell"
+                            type="tel"
                             minLength={10}
                             maxLength={10}
                             className='custom-input'
@@ -235,13 +237,11 @@ export default function OutSourcingOrganizationForm() {
                         </Form.Control.Feedback>
                     </Form.Group>
 
-                    <Button variant="primary" type="submit">
-                        Submit information
+                    <Button variant="primary" type="submit" disabled={loading}>
+                        {loading ? 'Submitting...' : 'Submit Information'}
                     </Button>
                 </Form>
             </Col>
         </Row>
     );
-};
-
-
+}

@@ -7,6 +7,7 @@ import listPlugin from '@fullcalendar/list';
 import FrontDeskLayout from '../../components/Layout/FrontDeskLayout';
 import Loader from '../../components/accessories/Loader';
 import { customFetch } from '../../components/Auth/customFetch';
+import PrimeLayout from '../../components/Layout/PrimeLayout';
 
 
 // Function to convert appointment data to FullCalendar event format
@@ -78,7 +79,7 @@ export default function Appointment() {
 
 
 	return (
-		<FrontDeskLayout>
+		<PrimeLayout>
 			<section className='d-flex justify-content-between my-1 ui'>
 				<h4>Appointments</h4>
 				<div>
@@ -110,6 +111,6 @@ export default function Appointment() {
 				// }}
 				locale="en"
 			/>
-		</FrontDeskLayout>
+		</PrimeLayout>
 	);
 }
