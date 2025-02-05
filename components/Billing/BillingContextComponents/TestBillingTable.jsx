@@ -1,6 +1,6 @@
 import { Clear, Delete, Edit } from "@mui/icons-material";
 import { useContext, useState } from "react";
-import { Table } from "react-bootstrap";
+import { Table, Spinner } from "react-bootstrap";
 import Select from "react-select";
 import { BillingContext } from "./BillingContext";
 import TrTable from "./TableTr";
@@ -12,6 +12,7 @@ export default function TestBillingTable({ toast }) {
 
 	const [editingItem, setEditingItem] = useState(null);
 	const [organizations, setOrganizations] = useState([]);
+	const [loading, setLoading] = useState(false);
 
 	const removeFromCart = (testId) => {
 		const filteredCart = cart.filter((item) => item.id !== testId);
@@ -20,16 +21,21 @@ export default function TestBillingTable({ toast }) {
 
 	const handleEditTest = async (item) => {
 		setEditingItem(item);
+		setLoading(true);
 		try {
 			const storedOrgs = await customFetch(`outsourcing/organization/testpanel/outsourceinfo?testid=${item.id}`);
 			const orgOptions = storedOrgs.map(org => ({
 				value: org.outsourceid,
-				label: org.name,
-				organizationType: org.organizationType
+				label: `${org.name}  ${org.organizationType}`,  // Combining name and organization type for display
+				organizationType: org.organizationType,
+				outsourceid: org.outsourceid,
+				name: org.name
 			}));
 			setOrganizations(orgOptions);
 		} catch (error) {
 			toast.error(`Error fetching organizations: ${error}`);
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -39,12 +45,14 @@ export default function TestBillingTable({ toast }) {
 				item.id === editingItem.id
 					? {
 						...item,
-						outsourcingOrg: selectedOption.label,
-						outsourceid: selectedOption.value,
-						organization: {
-							name: selectedOption.label,
-							outsourceid: selectedOption?.value, organizationType: selectedOption.organizationType
-						}
+						outsourcingOrg: selectedOption.label,  // Store the label
+						outsourceid: selectedOption.value,    // Store the value
+						organization: {  // Store the full organization details
+							name: selectedOption.name,
+							organizationType: selectedOption.organizationType,
+							outsourceid: selectedOption.outsourceid
+						},
+						label: selectedOption.label  // Add the label as a separate field
 					}
 					: item
 			);
@@ -75,16 +83,21 @@ export default function TestBillingTable({ toast }) {
 							<td>{item.name}</td>
 							<td>
 								{editingItem?.id === item.id ? (
-									<Select
-										options={organizations}
-										onChange={handleOrganizationChange}
-										defaultValue={organizations.find(org => org.value === item.outsourceid)}
-										placeholder="Select Organization"
-									/>
+									loading ? (
+										<Spinner animation="border" size="sm" />
+									) : (
+										<Select
+											options={organizations}
+											onChange={handleOrganizationChange}
+											defaultValue={organizations.find(org => org.value === item.outsourceid)}
+											placeholder="Select Organization"
+										/>
+									)
 								) : (
-									item.outsourcingOrg || "-"
+									item.organization?.name|| "-"
 								)}
 							</td>
+
 							<td>{currencyFormatter.format(item.discountedValue)}</td>
 							<td>{currencyFormatter.format(item.discount || 0)}</td>
 							<td>

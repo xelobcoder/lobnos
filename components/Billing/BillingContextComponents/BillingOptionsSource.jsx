@@ -196,6 +196,7 @@ export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
         if (value?.id) await handleLoadBillingClincianAndInsurance('clinicians', value.id);
     };
 
+    
     useEffect(() => {
         LoadOutStanding(patientid);
     }, [patientid]);
@@ -203,6 +204,8 @@ export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
     useEffect(() => {
         initGeneralBillingData();
     }, [billingdata.billingSource]);
+
+
 
     useEffect(() => {
         if (billingdata.organizationId && billingdata.billingSource !== 1) {

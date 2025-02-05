@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useState } from "react";
 import { Billingdefaultdata } from "../../../lib/billingLib";
 
 export const BillingContext = createContext(Billingdefaultdata);
@@ -35,6 +35,26 @@ function parsePaidAmount(paid) {
      return !isNaN(paid) && paid > 0 ? parseFloat(paid) : 0;
 }
 
+function applyNightAdjustment(cart, nightAdjustmentMode, nightAdjustmentValue) {
+     return cart.map(item => {
+          item.originalValue = item.discountedValue
+          item.nightAdjustmentMode = nightAdjustmentMode
+          item.nightAdjustmentValue = nightAdjustmentValue
+          let adjustmentDetails = {
+               adjustedValue: item.discountedValue
+          }
+
+          if (nightAdjustmentMode === "absolute") {
+               adjustmentDetails.adjustedValue += nightAdjustmentValue;
+          } else if (nightAdjustmentMode === "percentage") {
+               adjustmentDetails.adjustedValue += (nightAdjustmentValue / 100) * item.discountedValue;
+          }
+
+          item.discountedValue = adjustmentDetails.adjustedValue;
+          return item;
+     });
+}
+
 export function BillingPageContextProvider({ children }) {
      const [billingdata, setBillingdata] = useState(Billingdefaultdata);
 
@@ -43,16 +63,30 @@ export function BillingPageContextProvider({ children }) {
      };
 
      const recalculateTotalBill = (billingdata) => {
+          const currentDate = new Date();
+          const currentHour = currentDate.getHours();
+
           const {
                paid = 0,
                appsettings,
                cart,
+               nightAdjustmentValue,
+               nightAdjustmentMode,
+               nightStart,
+               nightEnd,
+               hasNightAdjustment,
                totalCostOfServices = 0,
           } = billingdata;
 
           const { taxIncluded, taxValue } = appsettings;
 
-          const totalTest = cart.length > 0 ? calculateTotalTestCost(cart) : 0;
+          const isNightTime = currentHour >= nightStart || currentHour < nightEnd;
+
+          if (hasNightAdjustment && isNightTime) {
+               billingdata.cart = applyNightAdjustment(cart, nightAdjustmentMode, nightAdjustmentValue);
+          }
+
+          const totalTest = cart.length > 0 ? calculateTotalTestCost(billingdata.cart) : 0;
 
           const servicePlusTestCost = calculateServicePlusTestCost(totalTest, totalCostOfServices);
 
@@ -62,7 +96,7 @@ export function BillingPageContextProvider({ children }) {
 
           let total = parseFloat((servicePlusTestCost + (servicePlusTestCost > 0 ? amountIncurredDueTax : 0)).toFixed(2));
 
-          const discount = parseFloat(calculateDiscount(cart).toFixed(2));
+          const discount = parseFloat(calculateDiscount(billingdata.cart).toFixed(2));
 
           let parsedPaid = parseFloat(parsePaidAmount(paid).toFixed(2));
 
@@ -83,6 +117,9 @@ export function BillingPageContextProvider({ children }) {
                taxIncluded: taxIncluded === 1,
           });
      };
+
+
+     console.log(billingdata.cart)
 
      return (
           <BillingProvider value={{ billingdata, updateBilling, recalculateTotalBill }}>

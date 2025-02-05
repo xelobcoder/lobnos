@@ -106,7 +106,7 @@ export default function SelectPackages({ billingdata, onSelect }) {
         <div className="my-2">
             <input
                 checked={checked}
-                disabled={(billingSource === 6 && !clinicianId) || (billingSource === 2 && !organizationId)}
+                disabled={(billingSource === 6 && !clinicianId) || (billingSource === 2 && !organizationId) || [1, 2, 6].includes(billingdata.billingSource) == false}
                 onChange={(ev) => setChecked(ev.target.checked)}
                 type="checkbox"
             />
