@@ -88,7 +88,7 @@ export default function BasicInformationClinician() {
 
 			if (statusCode === 200 && status === "success") {
 				toast.success(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
-				reset();
+				resetForm();
 			} else {
 				toast.error(message, { position: toast.POSITION.TOP_CENTER, autoClose: 2000 });
 			}

@@ -8,6 +8,8 @@ import Dropdown from "react-bootstrap/Dropdown";
 import { Modal, Button } from "react-bootstrap";
 import ApplicableTestComponent from "./ApplicableTest";
 import ApplicableOrganization from './ApplicableOrganization';
+import ApplicableClinicians from "./ApplicableClinicians";
+// import ApplicableClinicians from './ApplicableClinicians';
 
 interface Package {
     id: number;
@@ -23,10 +25,10 @@ const PackagesTable: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [showTestModal, setShowTestModal] = useState<boolean>(false);
-    const [showOrgModal, setShowOrgModal] = useState<boolean>(false); // Separate state for the organization modal
+    const [showOrgModal, setShowOrgModal] = useState<boolean>(false);
+    const [showClinicianModal, setShowClinicianModal] = useState<boolean>(false);
     const [selectedPackageId, setSelectedPackageId] = useState<number | null>(null);
 
-    // Fetch packages from the API
     const fetchPackages = async () => {
         setLoading(true);
         setError(null);
@@ -53,37 +55,33 @@ const PackagesTable: React.FC = () => {
         fetchPackages();
     }, []);
 
-    // Open the test modal
     const handleShowTestModal = (packageId: number) => {
         setSelectedPackageId(packageId);
         setShowTestModal(true);
     };
 
-    // Open the organization modal
     const handleOpenOrgModal = (packageId: number) => {
         setSelectedPackageId(packageId);
         setShowOrgModal(true);
     };
 
-    // Close the test modal
+    const handleShowClinicianModal = (packageId: number) => {
+        setSelectedPackageId(packageId);
+        setShowClinicianModal(true);
+    };
+
     const handleCloseTestModal = () => {
         setShowTestModal(false);
     };
 
-    // Close the organization modal
     const handleCloseOrgModal = () => {
         setShowOrgModal(false);
     };
 
-    // Handle adding a test (placeholder logic)
-    const handleAddTest = () => {
-        if (selectedPackageId) {
-            console.log("Adding test to package", selectedPackageId);
-            setShowTestModal(false);
-        }
+    const handleCloseClinicianModal = () => {
+        setShowClinicianModal(false);
     };
 
-    // Table columns configuration
     const columns = [
         { Header: "ID", accessor: "id" },
         { Header: "Package Name", accessor: "package_name" },
@@ -108,6 +106,9 @@ const PackagesTable: React.FC = () => {
                         <Dropdown.Item onClick={() => handleShowTestModal(row.original.id)}>
                             Add Package Test
                         </Dropdown.Item>
+                        <Dropdown.Item onClick={() => handleShowClinicianModal(row.original.id)}>
+                            Add Applicable clinician
+                        </Dropdown.Item>
                         <Dropdown.Item onClick={() => handleOpenOrgModal(row.original.id)}>
                             Add Applicable Organization
                         </Dropdown.Item>
@@ -128,7 +129,6 @@ const PackagesTable: React.FC = () => {
                 </button>
             </div>
 
- 
             <PrimeTable
                 column={columns}
                 data={packages}
@@ -156,10 +156,24 @@ const PackagesTable: React.FC = () => {
                     <h5>Add Applicable Organizations</h5>
                 </Modal.Header>
                 <Modal.Body>
-                <ApplicableOrganization  packageid={selectedPackageId || 0} />
+                    <ApplicableOrganization packageid={selectedPackageId || 0} />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button className="btn btn-sm" variant="secondary" onClick={handleCloseOrgModal}>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            <Modal show={showClinicianModal} size="xl" onHide={handleCloseClinicianModal} backdrop="static">
+                <Modal.Header className="bg-secondary-subtle" closeButton>
+                    <h5>Add Applicable Clinicians</h5>
+                </Modal.Header>
+                <Modal.Body>
+                    <ApplicableClinicians packageid={selectedPackageId || 0} />
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button className="btn btn-sm" variant="secondary" onClick={handleCloseClinicianModal}>
                         Close
                     </Button>
                 </Modal.Footer>

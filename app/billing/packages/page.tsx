@@ -50,14 +50,14 @@ export default function ClinicianBillingModeView({ clinicianid, strategy }: { cl
             }
 
             const billingData = {
-                packageName, 
+                packageName,
                 applicableTest: selectedTests,
                 applicableOrganization: selectedOrganizations,
                 packagesid: clinicianid,
                 category: strategy,
             };
-
-            console.log(billingData); // Replace with your API call
+            console.log(billingData);
+            // Replace with your API call
             // Example API call:
             // const response = await customPost(`billing-strategies/billing/strategies`, 'POST', billingData);
             // if (response.status) {
@@ -121,7 +121,6 @@ export default function ClinicianBillingModeView({ clinicianid, strategy }: { cl
                         setSelectedTests={setSelectedTests}
                     />
 
-                    {/* Organization Filtering */}
                     <div className="d-flex list-group-item fw-bold bg-secondary-subtle align-items-center">
                         <span className="d-flex align-items-center">
                             <Form.Switch
@@ -132,7 +131,7 @@ export default function ClinicianBillingModeView({ clinicianid, strategy }: { cl
                     </div>
 
                     <div className="list-group-item">
-                        <OrganizationFiltering onSelect={handleOrganizationSelection} />
+                        <OrganizationFiltering showbulk={false} onSelect={handleOrganizationSelection} />
                     </div>
 
                     {selectedOrganizations.length > 0 && (

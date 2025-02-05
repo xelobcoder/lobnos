@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import RenderingBillingSourceLayout from "./Lib/RenderingSelectedBillingSourecAccessories";
 import { toast } from "react-toastify";
 import Select from 'react-select';
+import SelectPackages from "./Lib/packages/SelectPackages";
 
 const getTransactionPreviousBillingRecords = async (billingid) => {
     try {
@@ -19,7 +20,7 @@ const getTransactionPreviousBillingRecords = async (billingid) => {
 };
 
 export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
-    const { billingdata, updateBilling } = useContext(BillingContext);
+    const { billingdata, updateBilling, recalculateTotalBill } = useContext(BillingContext);
     const queryBillingid = useSearchParams().get("billingid");
     const [loading, setLoading] = useState(false);
     const isServiceOnly = useSearchParams().get("isServiceOnly");
@@ -225,6 +226,28 @@ export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
         }
     }, [billingdata.organizationId]);
 
+
+    const handleSelectedPackagePanels = (panels) => {
+        if (panels && Array.isArray(panels)) {
+            const { previousRecords } = billingdata;
+
+            if (previousRecords && Array.isArray(previousRecords) && previousRecords.length > 0) {
+                let unique = [];
+                for (const panel of panels) {
+                    const isIn = previousRecords.filter((item) => item.trackId == panel.testid);
+                    if (isIn.length == 0) {
+                        unique.push(panel);
+                    }
+                }
+                recalculateTotalBill({ ...billingdata, cart: panels, isPackageUsed: true })
+
+            } else {
+                recalculateTotalBill
+                    ({ ...billingdata, cart: panels, isPackageUsed: true })
+            }
+        }
+    }
+
     if (billingdata.outstandingDebt > 0) {
         return (
             <div>
@@ -267,16 +290,17 @@ export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
                             checked={billingdata.previewPrevious}
                             onChange={() => updateBilling({ ...billingdata, previewPrevious: !billingdata.previewPrevious })}
                         />
-                        Refund or preview previously billed Item
+                        <span className="mx-3"> Refund or preview previously billed Item</span>
                     </div>
                 )}
+                <SelectPackages billingdata={billingdata} onSelect={handleSelectedPackagePanels} />
                 {billingdata.outstandingDebt === 0 && (
                     <div className="my-2">
                         <input
                             type="checkbox"
                             onChange={(ev) => updateBilling({ ...billingdata, includeServices: ev.target.checked })}
                         />
-                        Include Services
+                        <span className="mx-1">  Include Services</span>
                     </div>
                 )}
             </section>

@@ -9,7 +9,7 @@ import { hasPreviousRecords } from "../../../lib/billingLib";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 
 export default function TrTable({ toast }) {
-	const { billingdata, updateBilling, recalculateTotalBill } = useContext(BillingContext);
+	const { billingdata, recalculateTotalBill } = useContext(BillingContext);
 	const { applicationsettings } = useApplicationSettings();
 	const { user } = applicationsettings;
 	const role = user?.role;
@@ -54,7 +54,7 @@ export default function TrTable({ toast }) {
 
 
 	const addtoCart = async () => {
-		console.log(selected)
+
 		if (!selected || typeof selected != "object") return;
 		const testid = selected?.id;
 		if (hasPreviousRecords(billingdata, selected)) return;
@@ -67,9 +67,9 @@ export default function TrTable({ toast }) {
 			: {
 				...selected, discount: selected.discount ? selected.discount : 0
 			}
-		console.log(newItem)
+
 		if (cart.length === 0) {
-			recalculateTotalBill({ ...billingdata, cart: [...billingdata.cart, newItem] })
+			recalculateTotalBill({ ...billingdata, cart: [newItem] })
 		} else {
 			const isInCart = cart.some((item, index) => parseInt(item?.id) == parseInt(testid));
 			const newCart = (!isInCart) ? [...cart, newItem] : cart
@@ -106,13 +106,6 @@ export default function TrTable({ toast }) {
 		setSelected(newValue);
 	}
 
-	// useEffect(() => {
-	// 	if (cart.length >= 0) {
-	// 		recalculateTotalBill(billingdata);
-	// 	}
-	// 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	// }, [cart.length]);
-
 
 
 	const displayOutsourcingChoicingOptions = () => {
@@ -142,6 +135,9 @@ export default function TrTable({ toast }) {
 			return <div></div>
 		}
 	}
+
+
+	if (billingdata.isPackageUsed) return null;
 	return (
 		<tr >
 			<td colSpan={'sm-4'}>
