@@ -26,7 +26,7 @@ export default function TestBillingTable({ toast }) {
 			const storedOrgs = await customFetch(`outsourcing/organization/testpanel/outsourceinfo?testid=${item.id}`);
 			const orgOptions = storedOrgs.map(org => ({
 				value: org.outsourceid,
-				label: `${org.name}  ${org.organizationType}`,  // Combining name and organization type for display
+				label: `${org.name}  ${org.organizationType}`,
 				organizationType: org.organizationType,
 				outsourceid: org.outsourceid,
 				name: org.name
@@ -45,14 +45,14 @@ export default function TestBillingTable({ toast }) {
 				item.id === editingItem.id
 					? {
 						...item,
-						outsourcingOrg: selectedOption.label,  // Store the label
-						outsourceid: selectedOption.value,    // Store the value
-						organization: {  // Store the full organization details
+						outsourcingOrg: selectedOption.label,
+						outsourceid: selectedOption.value,
+						organization: {
 							name: selectedOption.name,
 							organizationType: selectedOption.organizationType,
 							outsourceid: selectedOption.outsourceid
 						},
-						label: selectedOption.label  // Add the label as a separate field
+						label: selectedOption.label
 					}
 					: item
 			);
@@ -94,7 +94,7 @@ export default function TestBillingTable({ toast }) {
 										/>
 									)
 								) : (
-									item.organization?.name|| "-"
+									item.organization?.name || "-"
 								)}
 							</td>
 
