@@ -22,6 +22,7 @@ const getTransactionPreviousBillingRecords = async (billingid) => {
 export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
     const { billingdata, updateBilling, recalculateTotalBill } = useContext(BillingContext);
     const queryBillingid = useSearchParams().get("billingid");
+    const [isClient, setIsClient] = useState(false);
     const [loading, setLoading] = useState(false);
     const isServiceOnly = useSearchParams().get("isServiceOnly");
     const isNewTransaction = useSearchParams().get("isNewTransaction");
@@ -128,10 +129,29 @@ export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
             const value = await getOustandingBill(patientid);
             if (value !== 'ERROR') {
                 const { PaidBillsBeforeTransaction, includeTax, taxValue } = await canIgnoreDebtPaymentAndTax(patientid);
+
+                const billingNightAdjustmentSettings = await customFetch(`applicationsettings/billingsettings`);
+
+                let hasNightAdjustment = false;
+                let nightAdjustmentMode = 'absolute';
+                let nightAdjustmentValue = 0;
+
+
+                const { billingsettings } = billingNightAdjustmentSettings;
+
+                if (billingsettings) {
+                    hasNightAdjustment = billingsettings.hasNightAdjustment;
+                    nightAdjustmentMode = billingsettings.nightAdjustmentMode;
+                    nightAdjustmentValue = billingsettings.nightAdjustmentValue
+                }
+
                 updateBilling({
                     ...billingdata,
                     outstandingDebt: value,
                     isServiceOnly,
+                    nightAdjustmentMode,
+                    hasNightAdjustment,
+                    nightAdjustmentValue,
                     cantIgnoreDebt: PaidBillsBeforeTransaction == 1,
                     appsettings: {
                         taxIncluded: includeTax == 1 || includeTax == "1",
@@ -196,9 +216,10 @@ export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
         if (value?.id) await handleLoadBillingClincianAndInsurance('clinicians', value.id);
     };
 
-    
+
     useEffect(() => {
         LoadOutStanding(patientid);
+        setIsClient(true);
     }, [patientid]);
 
     useEffect(() => {
@@ -272,15 +293,18 @@ export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
             <section className="br-5">
                 <div className="form-group">
                     <label>Billing Source</label>
-                    <Select
-                        options={billingSource}
-                        value={billingSource.find(option => option.value === billingdata.billingSource)}
-                        onChange={updateBillingSourceSelected}
-                        isDisabled={billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0}
-                        placeholder="Select an option below"
-                    />
+                    {
+                        isClient && <Select
+                            options={billingSource}
+                            value={billingSource.find(option => option.value === billingdata.billingSource)}
+                            onChange={updateBillingSourceSelected}
+                            isDisabled={billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0}
+                            placeholder="Select an option below"
+                        />
+                   }
                 </div>
                 <RenderingBillingSourceLayout
+                    isClient={isClient}
                     billingdata={billingdata}
                     handleClinicianSelection={handleClinicianSelection}
                     handleInsuranceSelection={handleInsuranceSelection}

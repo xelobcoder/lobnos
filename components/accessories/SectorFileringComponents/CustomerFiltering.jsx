@@ -1,4 +1,5 @@
-import { useState } from "react";
+"use client"
+import { useEffect, useState } from "react";
 import AsyncSelect from "react-select/async";
 import { loadOptions } from "../../../lib/appointment";
 import { reactSelectCustomStyles } from "../../Auth/customFetch";
@@ -6,6 +7,7 @@ import { reactSelectCustomStyles } from "../../Auth/customFetch";
 export default function PatientFiltered({ getSelectedPatient, isDisabled, placeholder = "Search patient using patient ID, email, fullname" }) {
 	const [isLoading, setLoading] = useState(false);
 	const [selectedOption, setSelectedOption] = useState(null);
+	const [isClient, setIsClient] = useState(false);
 
 
 	const loadClientOptions = async (inputValue) => {
@@ -50,24 +52,27 @@ export default function PatientFiltered({ getSelectedPatient, isDisabled, placeh
 		);
 	};
 
+	useEffect(() => { setIsClient(true) }, [])
 	return (
 		<div style={{ width: '100%' }}>
-			<AsyncSelect
-				styles={reactSelectCustomStyles}
-				className="react-select-container"
-				classNamePrefix="react-select"
-				isClearable={true}
-				isLoading={isLoading}
-				isDisabled={isDisabled}
-				loadOptions={loadClientOptions}
-				defaultOptions={[]}
-				placeholder={placeholder}
-				onChange={handleSelectChange}
-				blurInputOnSelect={true}
-				value={selectedOption}
-				formatOptionLabel={formatOptionLabel}
-			/>
+			{
+				isClient && <AsyncSelect
+					styles={reactSelectCustomStyles}
+					className="react-select-container"
+					classNamePrefix="react-select"
+					isClearable={true}
+					isLoading={isLoading}
+					isDisabled={isDisabled}
+					loadOptions={loadClientOptions}
+					defaultOptions={[]}
+					placeholder={placeholder}
+					onChange={handleSelectChange}
+					blurInputOnSelect={true}
+					value={selectedOption}
+					formatOptionLabel={formatOptionLabel}
+				/>
 
+			}
 		</div>
 	)
 }

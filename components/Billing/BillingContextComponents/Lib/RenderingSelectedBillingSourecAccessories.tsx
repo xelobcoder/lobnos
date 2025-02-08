@@ -3,7 +3,7 @@ import ClinicianFiltering from '../../../accessories/SectorFileringComponents/Cl
 import InsuranceOrganizationFiltering from '../../../accessories/SectorFileringComponents/InsuranceOrganizationFiltering';
 import OrganizationalBillingSourceSearch from '../BillingSourceComponents/OrganizationBillingSearch';
 
-const BillingSourceComponent = ({ billingSource, updateValuesToContext, handleInsuranceSelection, handleClinicianSelection }) => {
+const BillingSourceComponent = ({ billingSource, updateValuesToContext, handleInsuranceSelection, handleClinicianSelection, isClient }) => {
     switch (billingSource) {
         case 2:
             return (
@@ -15,7 +15,7 @@ const BillingSourceComponent = ({ billingSource, updateValuesToContext, handleIn
             return (
                 <div className="form-group">
                     <label>search organization here</label>
-                    <InsuranceOrganizationFiltering onSelect={handleInsuranceSelection} />
+                    {isClient && < InsuranceOrganizationFiltering onSelect={handleInsuranceSelection} />}
                 </div>
             );
         case 4:
@@ -37,10 +37,11 @@ const BillingSourceComponent = ({ billingSource, updateValuesToContext, handleIn
     }
 };
 
-const RenderingBillingSourceLayout = ({ billingdata, updateValuesToContext, handleInsuranceSelection, handleClinicianSelection }) => {
+const RenderingBillingSourceLayout = ({ billingdata, updateValuesToContext, handleInsuranceSelection, handleClinicianSelection, isClient }) => {
     return (
         <div>
             <BillingSourceComponent
+                isClient={isClient}
                 billingSource={billingdata?.billingSource}
                 updateValuesToContext={updateValuesToContext}
                 handleInsuranceSelection={handleInsuranceSelection}

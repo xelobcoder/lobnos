@@ -8,7 +8,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import PatientFiltered from '../../components/accessories/SectorFileringComponents/CustomerFiltering';
 import CustomersActions from '../../components/customer/CustomersActionDropDown';
 import PrimeTable from '../../components/accessories/Datatables/PrimeTable';
-
+import PrimeLayout from '../../components/Layout/PrimeLayout'
 
 
 export default function Activator() {
@@ -145,7 +145,7 @@ export default function Activator() {
 
 
 	return (
-		<FrontDeskLayout>
+		<PrimeLayout>
 			<div className='p-2'>
 				<ToastContainer theme='colored' position='top-center' className="text-sm" />
 				<div className="col-md-8 col-sm-12 col-lg-4 my-2 d-lg-flex justify-content-end">
@@ -161,7 +161,7 @@ export default function Activator() {
 						/>}
 				</div>
 			</div>
-		</FrontDeskLayout>
+		</PrimeLayout>
 	);
 }
 

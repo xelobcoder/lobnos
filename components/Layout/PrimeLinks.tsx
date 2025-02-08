@@ -1,3 +1,6 @@
+import { link } from "fs";
+import { title } from "process";
+
 interface Link {
     icon: HTMLElement
     title: string;
@@ -141,6 +144,13 @@ export const FinancialDataKeys = [
 ];
 
 export const links: Link = [
+    {
+        title: 'Analytics',
+        icon: Icon,
+        subLinks: [
+            { title: 'Patient Analytics', link: '/dashboard/analytics/patients' }
+        ]
+    },
     ...FinancialDataKeys,
     {
         title: "Phelobotomy",
@@ -242,7 +252,9 @@ export const links: Link = [
         title: "Billing",
         icon: Icon,
         link: "/billing/patientid",
-        subLinks: []
+        subLinks: [
+            { title: 'Filter Client ', link: '/billing/patientid' },
+            { title: 'packages', link: '/billing/packages/create-new-package' }, { title: 'Bill settings Night Adjustment', link: '/billing/settings/night-adjustments' }]
     },
     {
         title: "Sales",
@@ -307,5 +319,5 @@ export const links: Link = [
             },
             { title: "Email Management", link: "/settings/emailsetting" },
         ]
-    }
+    },
 ];

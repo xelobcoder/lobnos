@@ -64,42 +64,42 @@ export const handleAge = (y, m, d) => {
 
 
 
-export const handleAgeCalculations = async (data, setData, toast) => {
-  const personalParams = { ...data }
+export const handleAgeCalculations = async (data, setValue) => {
+  const personalParams = { ...data };
   const { years, months, days } = personalParams;
-  let agecalulation = handleAge(years, months, days);
-  // if age calculor contains values
-  if (agecalulation) {
-    const { years, months, days } = agecalulation
-    if (years == 0 && months == 0 && days == 0) {
-      if (data.days > new Date().getDate()) {
-        toast.error(`Please kindly recheck date values entered, Error at day value!!!`, { autoClose: 500 })
-        setData({ ...data, age: 0, ageType: "days" })
+  let ageCalculation = handleAge(years, months, days);
+
+  if (ageCalculation && ageCalculation !== "invalid Date") {
+    const { years: calcYears, months: calcMonths, days: calcDays } = ageCalculation;
+
+    if (calcYears == 0 && calcMonths == 0 && calcDays == 0) {
+      if (Number(data.days) > new Date().getDate()) {
+        setValue("age", 0);
+        setValue("ageType", "days");
       } else {
-        toast.info("Todays Delivering ?")
-        setData({ ...personalParams, age: days, ageType: "days" })
+        setValue("age", calcDays);
+        setValue("ageType", "days");
       }
-    }
-    if (years != 0) {
-      setData({ ...personalParams, age: years, ageType: "years" })
-    }
-
-    if (years == 0 && months != 0) {
-      setData({ ...personalParams, age: months, ageType: "months", })
-    }
-
-    if (years == 0 && months == 0 && days > 0) {
-      setData({ ...personalParams, age: days, ageType: "days" })
+    } else if (calcYears !== 0) {
+      setValue("age", calcYears);
+      setValue("ageType", "years");
+    } else if (calcYears == 0 && calcMonths !== 0) {
+      setValue("age", calcMonths);
+      setValue("ageType", "months");
+    } else if (calcYears == 0 && calcMonths == 0 && calcDays > 0) {
+      setValue("age", calcDays);
+      setValue("ageType", "days");
     }
   }
-  // if invalid date is returned after analyisis,
-  // update fields to suit
 
-  if (agecalulation == "invalid Date") {
-    toast.error("Invalid Date entered", { autoClose: 3000 })
-    setData({ ...personalParams, age: 0, days: 0, months: 0, years: 0, ageType: "" })
+  if (ageCalculation === "invalid Date") {
+    setValue("age", 0);
+    setValue("days", 0);
+    setValue("months", 0);
+    setValue("years", 0);
+    setValue("ageType", "");
   }
-}
+};
 
 export const fieldValidator = (fieldName, data, fields, value) => {
   const visbiiltyObject = fields[fieldName];

@@ -41,7 +41,7 @@ function applyNightAdjustment(cart, nightAdjustmentMode, nightAdjustmentValue) {
           item.nightAdjustmentMode = nightAdjustmentMode
           item.nightAdjustmentValue = nightAdjustmentValue
           let adjustmentDetails = {
-               adjustedValue: item.discountedValue
+               adjustedValue: item.price
           }
 
           if (nightAdjustmentMode === "absolute") {
@@ -117,9 +117,6 @@ export function BillingPageContextProvider({ children }) {
                taxIncluded: taxIncluded === 1,
           });
      };
-
-
-     console.log(billingdata.cart)
 
      return (
           <BillingProvider value={{ billingdata, updateBilling, recalculateTotalBill }}>

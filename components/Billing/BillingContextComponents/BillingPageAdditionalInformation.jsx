@@ -10,7 +10,7 @@ import { useApplicationSettings } from "../../Auth/useApplicationContext";
 export default function BillingPageAdditionalInformation({ patientid, billingid }) {
 	const [showMoreBtn, setShowMoreBtn] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
-	const { billingdata, updateBilling } = useContext(BillingContext);
+	const { billingdata, updateBilling, recalculateTotalBill } = useContext(BillingContext);
 	const { applicationsettings } = useApplicationSettings();
 	const branchid = applicationsettings.branchid;
 	const { employeeid, username, role } = applicationsettings.user;
@@ -56,7 +56,7 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 			const method = billingid ? 'PUT' : 'POST';
 			const data = await ValidateAndSubmitBillingInformation(dataToBeUploaded, method, billingid, isServiceOnly);
 			setIsSaving(false);
-
+			console.log(data)
 			if (typeof data === "object") {
 				const { status, message } = data;
 				if (status == true || status == "success") {
@@ -72,6 +72,7 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 	};
 
 
+	console.log(billingdata)
 
 
 	return (
@@ -159,7 +160,9 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 									type="number"
 									className="custom-input"
 									value={billingdata.paid}
-									onChange={(e) => updateBilling({ ...billingdata, paid: e.target.value })}
+									onChange={(e) => {
+										recalculateTotalBill({ ...billingdata, paid: e.target.value })
+									}}
 
 								/>
 							</div>
