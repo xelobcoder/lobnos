@@ -114,7 +114,7 @@ export default function TestBillingTable({ toast }) {
 					<tr className="table-secondary">
 						<td colSpan={2}>Test Count {billingdata.cart.length}</td>
 						<td>{currencyFormatter.format(billingdata.testcost)}</td>
-						<td>{currencyFormatter.format(billingdata.discount)}</td>
+						<td>{currencyFormatter.format(billingdata.totalTestDiscount)}</td>
 						<td>
 							<button className="btn btn-danger btn-sm">
 								<Delete />

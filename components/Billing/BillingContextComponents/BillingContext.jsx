@@ -37,20 +37,25 @@ function parsePaidAmount(paid) {
 
 function applyNightAdjustment(cart, nightAdjustmentMode, nightAdjustmentValue) {
      return cart.map(item => {
-          item.originalValue = item.discountedValue
+          let adjustedValue = 0;
+          if (!item.originalValue) {
+               item.originalValue = item.discountedValue
+               adjustedValue = item.discountedValue;
+          } else {
+               adjustedValue = item.originalValue;
+          }
+
           item.nightAdjustmentMode = nightAdjustmentMode
           item.nightAdjustmentValue = nightAdjustmentValue
-          let adjustmentDetails = {
-               adjustedValue: item.price
-          }
 
           if (nightAdjustmentMode === "absolute") {
-               adjustmentDetails.adjustedValue += nightAdjustmentValue;
+               adjustedValue += nightAdjustmentValue;
           } else if (nightAdjustmentMode === "percentage") {
-               adjustmentDetails.adjustedValue += (nightAdjustmentValue / 100) * item.discountedValue;
+               adjustedValue += (nightAdjustmentValue / 100) * item.originalValue;
           }
 
-          item.discountedValue = adjustmentDetails.adjustedValue;
+          item.discountedValue = adjustedValue;
+          item.hasNightAdjustment = true;
           return item;
      });
 }
@@ -74,16 +79,22 @@ export function BillingPageContextProvider({ children }) {
                nightAdjustmentMode,
                nightStart,
                nightEnd,
+               totalServiceDiscount,
                hasNightAdjustment,
                totalCostOfServices = 0,
           } = billingdata;
 
           const { taxIncluded, taxValue } = appsettings;
 
-          const isNightTime = currentHour >= nightStart || currentHour < nightEnd;
+          const isNightTime = currentHour >= nightStart && currentHour <= nightEnd;
 
           if (hasNightAdjustment && isNightTime) {
                billingdata.cart = applyNightAdjustment(cart, nightAdjustmentMode, nightAdjustmentValue);
+
+          } else {
+               billingdata.cart = billingdata.cart.map((item, index) => {
+                    return { ...item, hasNightAdjustment: false, nightAdjustmentMode: 'none', nightAdjustmentValue: 0 }
+               })
           }
 
           const totalTest = cart.length > 0 ? calculateTotalTestCost(billingdata.cart) : 0;
@@ -96,7 +107,9 @@ export function BillingPageContextProvider({ children }) {
 
           let total = parseFloat((servicePlusTestCost + (servicePlusTestCost > 0 ? amountIncurredDueTax : 0)).toFixed(2));
 
-          const discount = parseFloat(calculateDiscount(billingdata.cart).toFixed(2));
+          const totalTestDiscount = parseFloat(calculateDiscount(billingdata.cart).toFixed(2))
+
+          const discount = parseFloat(totalServiceDiscount || 0) + parseFloat(totalTestDiscount || 0)
 
           let parsedPaid = parseFloat(parsePaidAmount(paid).toFixed(2));
 
@@ -111,6 +124,7 @@ export function BillingPageContextProvider({ children }) {
                taxValue,
                paid: parsedPaid,
                testcost: totalTest,
+               totalTestDiscount,
                discount,
                cost: total,
                amountIncurredDueTax,

@@ -130,20 +130,35 @@ export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
             if (value !== 'ERROR') {
                 const { PaidBillsBeforeTransaction, includeTax, taxValue } = await canIgnoreDebtPaymentAndTax(patientid);
 
-                const billingNightAdjustmentSettings = await customFetch(`applicationsettings/billingsettings`);
+                const billingNightAdjustmentSettings = await customFetch(`applicationsettings/target/billingsettings`);
 
                 let hasNightAdjustment = false;
                 let nightAdjustmentMode = 'absolute';
                 let nightAdjustmentValue = 0;
+                let nightStart = billingdata.nightStart;
+                let nightEnd = billingdata.nightEnd
+
+
+                const parsedTimeValue = function (value) {
+                    return (value && typeof value == "string" && value.includes(":")) ? parseInt(value.split(":")[0])
+                        : null;
+                }
 
 
                 const { billingsettings } = billingNightAdjustmentSettings;
 
                 if (billingsettings) {
                     hasNightAdjustment = billingsettings.hasNightAdjustment;
-                    nightAdjustmentMode = billingsettings.nightAdjustmentMode;
-                    nightAdjustmentValue = billingsettings.nightAdjustmentValue
+                    if (hasNightAdjustment) {
+                        nightAdjustmentMode = billingsettings.nightAdjustmentMode;
+                        nightAdjustmentValue = parseFloat(billingsettings.nightAdjustmentValue);
+                        const { endTime, startTime } = billingsettings;
+                        nightStart = startTime ? parsedTimeValue(startTime) : billingdata.startTime;
+                        nightEnd = endTime ? parsedTimeValue(endTime) : billingdata.endTime;
+                    }
+
                 }
+
 
                 updateBilling({
                     ...billingdata,
@@ -152,6 +167,8 @@ export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
                     nightAdjustmentMode,
                     hasNightAdjustment,
                     nightAdjustmentValue,
+                    nightEnd,
+                    nightStart,
                     cantIgnoreDebt: PaidBillsBeforeTransaction == 1,
                     appsettings: {
                         taxIncluded: includeTax == 1 || includeTax == "1",
@@ -165,6 +182,7 @@ export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
                 makeDecisionOnUpdateOrNewTransaction(canInitiateBill, billingid, patientid);
             }
         } catch (err) {
+            console.log(err)
             toast.error('Error loading outstanding debt');
         } finally {
             setLoading(false);
@@ -272,6 +290,8 @@ export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
         }
     }
 
+    console.log(billingdata)
+
     if (billingdata.outstandingDebt > 0) {
         return (
             <div>
@@ -301,7 +321,7 @@ export default function BillingSourceDeterminer({ patientid, onLoadingData }) {
                             isDisabled={billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0}
                             placeholder="Select an option below"
                         />
-                   }
+                    }
                 </div>
                 <RenderingBillingSourceLayout
                     isClient={isClient}

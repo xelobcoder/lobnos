@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { Delete } from "@mui/icons-material";
 import ServicesSearchComponent from "./BillingSourceComponents/ServicesSearchComponentJsx";
 import { currencyFormatter } from '../../Auth/customFetch';
@@ -6,59 +6,70 @@ import { BillingContext } from './BillingContext';
 
 export default function ServicesProvidedToPatientBilling() {
     const { billingdata, recalculateTotalBill } = useContext(BillingContext);
-    const [selectedServices, setSelectedServices] = useState([]);
-    const { previousRecords } = billingdata;
+    const { previousRecords, hasNightAdjustment, nightAdjustmentMode, nightAdjustmentValue, servicesProvided, totalCostOfServices, totalServiceDiscount } = billingdata;
 
+    const applyNightAdjustmentToService = (service) => {
+        let adjustedValue = service.discountedValue ?? service.servicePrice;
+
+        if (!service.originalValue) {
+            service.originalValue = service.servicePrice;
+        }
+
+        if (hasNightAdjustment && nightAdjustmentMode && nightAdjustmentValue) {
+            if (nightAdjustmentMode === "absolute") {
+                adjustedValue += nightAdjustmentValue;
+            } else if (nightAdjustmentMode === "percentage") {
+                adjustedValue += (nightAdjustmentValue / 100) * service.originalValue;
+            }
+        }
+
+        return {
+            ...service,
+            discountedValue: adjustedValue,
+            originalValue: service.servicePrice,
+            hasNightAdjustment,
+            nightAdjustmentMode,
+            nightAdjustmentValue
+        };
+    };
 
     const updateServicesProvided = (services) => {
-        const totalCost = services.reduce((sum, service) => sum + service.servicePrice, 0);
+        const updatedServices = services.map(service => applyNightAdjustmentToService(service));
+        const totalCost = updatedServices.reduce((sum, service) => sum + service.discountedValue, 0);
+        let totalServiceDiscount = updatedServices.reduce((sum, service) => sum + (parseFloat(service.discount || 0) || 0), 0);
+        totalServiceDiscount = parseFloat(totalServiceDiscount).toFixed(2)
 
-        const updatedServices = services.map((item) => {
-            const discountedValue = item.servicePrice
-            return { ...item, discountedValue };
-        });
 
         const data = {
             ...billingdata,
             servicesProvided: updatedServices,
             totalCostOfServices: totalCost,
+            totalServiceDiscount
         };
         recalculateTotalBill(data);
     };
 
-
     const serviceListSelectionChangeHandler = (newService) => {
-
         if (previousRecords.length > 0) {
-            const hasPreviouslyBeenBilled = previousRecords.find((item, index) => item.categoryTrackId
-                == 5 && item.trackId == newService.keyid);
+            const hasPreviouslyBeenBilled = previousRecords.some(
+                (item) => item.categoryTrackId === 5 && item.trackId === newService.keyid
+            );
             if (hasPreviouslyBeenBilled) return;
-        };
+        }
 
-        setSelectedServices((prevServices) => {
-            const isExisting = prevServices.some((service) => service.keyid === newService.keyid)
-
-            if (!isExisting) {
-                const updatedServices = [...prevServices, newService];
-                updateServicesProvided(updatedServices);
-                return updatedServices;
-            }
-            return prevServices;
-        });
+        const isExisting = servicesProvided.some((service) => service.keyid === newService.keyid);
+        if (!isExisting) {
+            const updatedServices = [...servicesProvided, newService];
+            updateServicesProvided(updatedServices);
+        }
     };
 
     const removeService = (serviceId) => {
-        setSelectedServices((prevServices) => {
-            const updatedServices = prevServices.filter((service) => service.keyid !== serviceId);
-            updateServicesProvided(updatedServices);
-            return updatedServices;
-        });
+        const updatedServices = servicesProvided.filter((service) => service.keyid !== serviceId);
+        updateServicesProvided(updatedServices);
     };
 
-    const totalServices = selectedServices.length;
-    const totalAmount = selectedServices.reduce((sum, service) => sum + service.servicePrice, 0);
-
-
+    const totalServices = servicesProvided.length;
 
     return (
         <div className="mt-2">
@@ -75,10 +86,10 @@ export default function ServicesProvidedToPatientBilling() {
                         </tr>
                     </thead>
                     <tbody>
-                        {selectedServices.map((service, index) => (
+                        {servicesProvided.map((service, index) => (
                             <tr key={index}>
                                 <td>{service.serviceName}</td>
-                                <td>{currencyFormatter.format(service.servicePrice)}</td>
+                                <td>{currencyFormatter.format(service.discountedValue)}</td>
                                 <td>{currencyFormatter.format(service.discount || 0)}</td>
                                 <td>
                                     <button
@@ -94,8 +105,9 @@ export default function ServicesProvidedToPatientBilling() {
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colSpan={3}>Total Services: {totalServices}</td>
-                            <td>Total Amount: {currencyFormatter.format(totalAmount)}</td>
+                            <td >Total Services: {totalServices}</td>
+                            <td >Total  Cost: {currencyFormatter.format(totalCostOfServices)}</td>
+                            <td>Total Discount: {currencyFormatter.format(totalServiceDiscount)}</td>
                         </tr>
                     </tfoot>
                 </table>
