@@ -28,7 +28,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-, "components/accessories/SectorFileringComponents/FetchColumns.tsx"  ],
+, "components/accessories/SectorFileringComponents/FetchColumns.tsx", "components/Billing/UpdatingOutstandingDebt/UpdatOutstandingDebt.tsx"  ],
   "exclude": [
     "node_modules"
   ]

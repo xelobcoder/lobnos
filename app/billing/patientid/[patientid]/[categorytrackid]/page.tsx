@@ -1,15 +1,16 @@
 import React from 'react'
 
 interface params {
-    categoryTrack: number
+    categorytrackid: number,
+    patientid: number
 }
 export default async function CategoricalBillingPage({ params }: {
     params: params
 }) {
-    const { categoryTrack } = await params
+    const { categorytrackid, patientid } = await params
     return (
         <div>
-            <h1>{categoryTrack}</h1>
+            <h1>{categorytrackid} {patientid}</h1>
         </div>
     )
 }

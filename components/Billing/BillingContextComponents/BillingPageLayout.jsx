@@ -8,6 +8,7 @@ import BillingSourceDeterminer from "./BillingOptionsSource";
 import BillingPagePatientInformation from "./PersonalInfoView";
 import BillingPageSummary from "./BillingSummary";
 import { useState, useCallback } from "react";
+import { plsEncryption } from "../../../lib/encryption";
 
 function NoPatientSelected({ onSelectPatient }) {
 	return (
@@ -25,7 +26,11 @@ export default function BillingPageLayout() {
 	const filteredPatient = useCallback((options) => {
 		if (!options || typeof options !== "object" || !options.hasOwnProperty("patientid")) return;
 		const { patientid } = options;
-		router.push(`/billing/patientid?patientid=${patientid}`);
+		const encryptedPatientId = plsEncryption(patientid.toString());
+		if (patientid && encryptedPatientId) {
+			router.push(`/billing/patientid/${encryptedPatientId}`);
+		}
+
 	}, [router]);
 
 	if (!patientid) {
