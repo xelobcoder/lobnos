@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useContext } from 'react';
 import { BillingContext } from '../BillingContext';
 import { Modal, Button, Alert } from 'react-bootstrap';
@@ -12,13 +12,17 @@ import {
     RotateCcwIcon,
     AlertCircleIcon,
     InfoIcon,
+    HistoryIcon,
     RefreshCwIcon,
     EditIcon,
     SettingsIcon,
 } from './Icons';
+import Link from 'next/link';
 
-export default function PreviousTransactionSummaryModal({ showPrevious, setShowPrevious }) {
+
+export default function PreviousTransactionSummaryModal({patientid}) {
     const { billingdata } = useContext(BillingContext);
+    const [showPrevious, setShowPrevious] = useState(false);
     const { previousRecords } = billingdata;
 
     const handleRefundAll = () => {
@@ -33,12 +37,24 @@ export default function PreviousTransactionSummaryModal({ showPrevious, setShowP
         alert('Other Action clicked');
     };
 
+  
     return (
         <div>
+            <div className='d-flex justify-content-between'>
+                {billingdata.billingid && <Link className=' btn-sm pls-color btn' href={`/billing/patientid/${patientid}`}>New Transaction</Link>}
+                <button
+                    disabled={!billingdata.billingSource}
+                    onClick={(ev) => { setShowPrevious(!showPrevious) }}
+                    className="btn pls-color btn-link d-flex align-items-center"
+                >
+                    <HistoryIcon className="me-2" />
+                    Actions/View Previous Billing Information
+                </button>
+            </div>
             <Modal
                 show={showPrevious}
                 onHide={() => setShowPrevious(false)}
-                size="xl"
+                size="fullscreen"
                 backdrop="static"
             >
                 <Modal.Header closeButton className="bg-secondary-subtle fw-bold">
@@ -98,7 +114,7 @@ export default function PreviousTransactionSummaryModal({ showPrevious, setShowP
                             Transaction Detail
                         </h5>
                         {Array.isArray(previousRecords) && previousRecords.length > 0 ? (
-                            <div style={{ overflowX: 'auto' }}> {/* Add horizontal scroll */}
+                            <div style={{ overflowX: 'auto' }}>
                                 <table className="table table-bordered table-striped table-hover pls-color" style={{ width: '100%', whiteSpace: 'nowrap' }}>
                                     <thead>
                                         <tr>

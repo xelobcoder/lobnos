@@ -1,36 +1,11 @@
-import { useEffect, useState } from "react";
-import { customFetch } from "../../Auth/customFetch";
-import { useSearchParams } from "next/navigation";
-import PreviousTransactionSummaryOffCanvasShow from './Lib/PreviousTransactionSummaryOffCanvasShow';
 import {
 	UserIcon,
 	IdCardIcon,
 	EmailIcon,
-	HistoryIcon,
 } from './Lib/Icons'
 
-export default function BillingPagePatientInformation() {
-	const patientid = useSearchParams().get("patientid");
-	const [data, setData] = useState({});
-	const [showPrevious, setShowPrevious] = useState(false);
-	const [loading, setLoading] = useState(false);
+export default async function BillingPagePatientInformation({data }) {
 
-	useEffect(() => {
-		if (patientid) {
-			setLoading(true);
-			customFetch(`register/personalinformation?patientid=${patientid}`)
-				.then((data) => {
-					setData(data?.result);
-					setLoading(false);
-				})
-				.catch((err) => {
-					setLoading(false);
-					setData({});
-				});
-		}
-	}, [patientid]);
-
-	if (loading) return <h5>Loading ...</h5>;
 
 	return (
 		<section>
@@ -40,7 +15,7 @@ export default function BillingPagePatientInformation() {
 						<UserIcon className="me-2" /> {/* Use imported icon */}
 						<span className="fw-bold text-uppercase">FullName:</span>
 						<span className="ms-2">
-							{data?.firstname} {data?.middlename} {data.lastname} ({data?.gender ? data?.gender.split("")[0] : ''} {data?.age || ""} {data?.ageType || ""})
+							{data?.firstname} {data?.middlename} {data?.lastname} ({data?.gender ? data?.gender.split("")[0] : ''} {data?.age || ""} {data?.ageType || ""})
 						</span>
 					</div>
 					<div className="mx-lg-2 mx-xl-2 d-flex align-items-center">
@@ -54,17 +29,8 @@ export default function BillingPagePatientInformation() {
 						<span className="text-lowercase mx-2">{data?.email}</span>
 					</div>
 				</div>
-				<div>
-					<button
-						onClick={(ev) => { setShowPrevious(!showPrevious) }}
-						className="btn pls-color btn-link d-flex align-items-center"
-					>
-						<HistoryIcon className="me-2" /> {/* Use imported icon */}
-						Actions/View Previous Billing Information
-					</button>
-				</div>
 			</div>
-			<PreviousTransactionSummaryOffCanvasShow showPrevious={showPrevious} setShowPrevious={setShowPrevious} />
+
 		</section>
 	);
 }

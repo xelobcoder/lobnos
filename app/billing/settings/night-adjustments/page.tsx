@@ -70,7 +70,7 @@ export default function NightAdjustment() {
     };
 
     useEffect(() => {
-        customFetch(`applicationsettings/billingsettings`)
+        customFetch(`applicationsettings/target/billingsettings`)
             .then((response) => {
                 const { billingsettings } = response;
                 if (!billingsettings) return;

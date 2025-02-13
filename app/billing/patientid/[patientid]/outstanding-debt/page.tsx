@@ -4,6 +4,7 @@ import { plsDecryption } from '../../../../../lib/encryption';
 import { getOustandingBill } from '../../../../../lib/billingLib';
 import BillingUpdateClientPaymentHistoryComponent from '../../../../../components/Billing/UpdatingOutstandingDebt/UpdatOutstandingDebt';
 import RSCPreviewPatientInformation from '../../../../../components/petientsComponent/RSCPreviewPatientInformation';
+import PrimeBreadcrumb from '../../../../../components/accessories/PrimeBreadCrumb';
 
 interface Params {
     patientid: string;
@@ -46,14 +47,19 @@ export default async function PatientBillingOutstandingDebt({ params }: { params
 
     await fetchBillingData();
 
+    const linksBread = [
+        { href: `/billing/patientid/${patientid}`, label: 'Back to billing page' }
+    ]
+
     return (
         <div className="mx-2">
+            <PrimeBreadcrumb links={linksBread} />
             <h4 className="p-3 br-5 bg-secondary-subtle text-center text-md-start">
                 Outstanding Debt
             </h4>
             <div className="row">
                 <div className="col-12 col-md-6 mb-3 mb-md-0 col-sm-12">
-                    <RSCPreviewPatientInformation patientid={patientIdDecrypted}/>
+                    <RSCPreviewPatientInformation patientid={patientIdDecrypted} />
                 </div>
                 <div className="col-12 col-md-6 col-sm-12">
                     <div className="alert alert-danger pls-color d-flex align-items-center gap-2 justify-content-center justify-content-md-start">

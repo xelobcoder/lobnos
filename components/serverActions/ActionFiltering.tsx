@@ -1,4 +1,5 @@
 "use server"
+import { loadOptions } from "../../lib/appointment";
 import { customFetch, customPost } from "../Auth/customFetch"
 export async function filteringDatabaseTables(target: string, filtering: string, column: string, limit: number) {
      try {
@@ -7,7 +8,7 @@ export async function filteringDatabaseTables(target: string, filtering: string,
      } catch (err) {
           return []
      }
-} 
+}
 
 
 
@@ -24,4 +25,7 @@ export async function loadClinicianPackage(packageid: number) {
 }
 
 
-               
+export async function AsyncPatientFilteringloadOptions
+     (input = "") {
+     return await loadOptions(input);
+}

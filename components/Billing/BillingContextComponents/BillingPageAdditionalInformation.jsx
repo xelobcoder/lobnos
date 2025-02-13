@@ -6,6 +6,7 @@ import Select from "react-select";
 import { toast } from "react-toastify";
 import { Billingdefaultdata, organizationOptions, urgencyOptions, ValidateAndSubmitBillingInformation } from "../../../lib/billingLib";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
+import ReceiptOptionsModal from "../ReceiptOptionsModal";
 
 export default function BillingPageAdditionalInformation({ patientid, billingid }) {
 	const [showMoreBtn, setShowMoreBtn] = useState(false);
@@ -15,6 +16,9 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 	const branchid = applicationsettings.branchid;
 	const { employeeid, username, role } = applicationsettings.user;
 	const [payment, setPayment] = useState({ amount: 0, mode: "", concession: "" });
+	const [showReceiptOptionsModal, setShowReceiptptionsModal] = useState(false);
+
+	const closeReceiptModal = () => setShowReceiptptionsModal(false);
 
 	const checkButtonDisabled = (billingdata) => {
 		const amountPaid = parseFloat(billingdata.paid);
@@ -60,7 +64,8 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 			if (typeof data === "object") {
 				const { status, message } = data;
 				if (status == true || status == "success") {
-					toast.success(message || "Billing  successful")
+					toast.success(message || "Billing  successful");
+					setShowReceiptptionsModal(true)
 				} else {
 					toast.error(message || status)
 				}
@@ -72,7 +77,7 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 	};
 
 
-	console.log(billingdata)
+
 
 
 	return (
@@ -188,7 +193,8 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 					</div>
 				</div>
 			</div>
-			<section className="d-flex justify-content-end"></section>
+
+			{showReceiptOptionsModal && <ReceiptOptionsModal open={showReceiptOptionsModal} close={closeReceiptModal} />}
 		</Row>
 	);
 }
