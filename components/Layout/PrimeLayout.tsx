@@ -156,7 +156,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
                     {isCollapsed ? ">" : "<"}
                 </button>
                 <div style={styles.menu}>
-                    {links.map((link, index) => (
+                    {Array.isArray(links) && links.map((link, index) => (
                         <div key={index}>
                             <div
                                 style={{

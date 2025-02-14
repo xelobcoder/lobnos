@@ -22,7 +22,7 @@ export type TestDetails = {
 };
 
 interface TestPanelOption {
-    label: JSX.Element;
+    label: any
     value: number;
     content: TestDetails;
 }

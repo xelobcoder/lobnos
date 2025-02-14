@@ -51,7 +51,7 @@ const NewInsuranceCompanyForm: React.FC<{ onSubmit: (data: FormData) => void, cl
         reset,
         formState: { errors },
     } = useForm<FormData>({
-        resolver: yupResolver(schema),
+        resolver: yupResolver(schema) as any,
     });
 
     const [isLoading, setIsLoading] = useState(false);
