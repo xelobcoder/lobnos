@@ -15,7 +15,7 @@ export default function SmsCategoryFiltering({ selectedCategory, onSelect }: {
           if (isBulk) return null;
           if (value == "clients") return <PatientFiltered getSelectedPatient={onSelect} isDisabled={false} />
           else if (value === "outsourcing") return <OutsourceOrganizationFiltering onSelect={onSelect} />
-          else if (value == "organization") return <OrganizationFiltering onSelect={onSelect} />
+          else if (value == "organization") return <OrganizationFiltering onSelect={onSelect} showbulk={false} />
           else if (value == "clinicians") return <ClinicianFiltering onSelect={onSelect} />
           else if (value == "staffs") return <StaffsFiltering onSelect={onSelect} />
           else {

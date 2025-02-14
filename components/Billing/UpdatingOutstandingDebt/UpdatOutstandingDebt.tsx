@@ -3,7 +3,6 @@ import { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { currencyFormatter, customPost } from "../../Auth/customFetch";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
-import styles from '../../../styles/SmsTemplateList.module.css';
 
 interface BillingUpdateClientPaymentHistoryProps {
     patientid: number;
@@ -40,7 +39,6 @@ export default function BillingUpdateClientPaymentHistoryComponent({
 
     const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({ amount: 0, paymentMode: null });
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-
 
     const parsedOutstandingData = outstandingData.map(bill => ({
         ...bill,
@@ -85,7 +83,7 @@ export default function BillingUpdateClientPaymentHistoryComponent({
 
                 if (statusCode == 200 && status == 'success') {
                     toast.success(message);
-                    window.location.reload()
+                    window.location.reload();
                 } else {
                     toast.error(message);
                 }
@@ -108,7 +106,7 @@ export default function BillingUpdateClientPaymentHistoryComponent({
 
                 <div className="alert alert-info mb-4">
                     <p className="mb-0 pls-color">
-                        This section displays the detailed breakdown of the patient's outstanding bills.
+                        This section displays the detailed breakdown of the patient&apos;s outstanding bills.
                         You can review the transactions, update the payment amount, and select a payment mode
                         to clear the outstanding debt. Ensure the payment amount is valid and does not exceed
                         the total outstanding balance.

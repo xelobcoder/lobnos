@@ -53,7 +53,8 @@ export interface ClientInformation {
     marital_status: string;
     mobile_number: string;
     agetype: string;
-    occupation: string;
+
+    totalpayable: number; occupation: string;
     date: string;
     activation_status: string;
     lastname: string;

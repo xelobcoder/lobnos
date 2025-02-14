@@ -72,7 +72,7 @@ export default function StageOutsourcedTable({ data, stage }: {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <p className="text-muted small mb-0">
-                    This table displays the list of outsourced tests. You can resolve tests by clicking the "Resolve Test" button.
+                    This table displays the list of outsourced tests. You can resolve tests by clicking the &quot;Resolve Test&quot; button.
                 </p>
             </div>
 

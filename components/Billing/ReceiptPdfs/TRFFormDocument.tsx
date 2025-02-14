@@ -238,7 +238,7 @@ export default function TRFFormDocument() {
                         <Text style={styles.sectionHeader}>Patient Information</Text>
                         {isRelevant(patientInfo.id) && (
                             <View style={styles.row}>
-                                <Text style={styles.label}>Patient's ID:</Text>
+                                <Text style={styles.label}>Patient&apos;s ID:</Text>
                                 <Text style={styles.value}>{patientInfo.id}</Text>
                             </View>
                         )}
@@ -562,9 +562,9 @@ export default function TRFFormDocument() {
                     <Text style={styles.sectionHeader}>Please Note</Text>
                     <Text style={styles.note}>
                         After completion of the ordered tests, the remaining sample may be stored and used for research in medical sciences.
-                        "I / We consent to receive information or be contacted through mail, telecommunication, electronic & personal means from leonides, time to time.”
+                        &quot;I / We consent to receive information or be contacted through mail, telecommunication, electronic &amp; personal means from leonides, time to time.&quot;
                     </Text>
-                    <Text style={styles.note}>[ ] I don't agree</Text>
+                    <Text style={styles.note}>[ ] I don&apos;t agree</Text>
                 </View>
 
                 {/* Signature Section */}

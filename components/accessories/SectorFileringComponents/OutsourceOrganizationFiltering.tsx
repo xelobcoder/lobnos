@@ -6,7 +6,7 @@ import { filteringDatabaseTables } from "../../serverActions/ActionFiltering";
 import { reactSelectCustomStyles } from "../../Auth/customFetch";
 
 interface OutsourceOrganizationOption {
-     label: JSX.Element;
+     label: any
      value: number;
      content: any;
 }

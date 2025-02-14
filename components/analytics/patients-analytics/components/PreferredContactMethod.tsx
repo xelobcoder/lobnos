@@ -98,7 +98,7 @@ const PreferredContactMethod: React.FC = () => {
 					</ResponsiveContainer>
 					<div style={{ marginTop: "1rem", padding: "0 1rem", fontSize: "14px", color: "#555" }}>
 						<p className='pls-color  br-5 p-3 alert alert-info'>
-							<strong>Note:</strong> "Self" indicates that the client is the primary contact (shown in Google Blue), while "Relative" means that the contact belongs to a relative (shown in Google Red). "Unknown" is used when no contact method was provided.
+							<strong>Note:</strong> &quot;Self&quot; indicates that the client is the primary contact (shown in Google Blue), while &quot;Relative&quot; means that the contact belongs to a relative (shown in Google Red). &quot;Unknown&quot; is used when no contact method was provided.
 						</p>
 					</div>
 				</>

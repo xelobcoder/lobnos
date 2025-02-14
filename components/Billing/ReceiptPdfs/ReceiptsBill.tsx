@@ -80,7 +80,7 @@ const ReceiptBillPdf = ({ invoiceData }) => {
         minute: "2-digit",
     };
     const billedDate = client.billedon
-        ? new Date(client.billedon).toLocaleDateString("en-AU", options)
+        ? new Date(client.billedon).toLocaleDateString("en-AU", options as any)
         : "";
     const barcodeUrl = client.patientid
         ? `https://barcode.tec-it.com/barcode.ashx?data=${client.patientid}&code=Code128&dpi=96`
