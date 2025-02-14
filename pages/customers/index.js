@@ -120,9 +120,7 @@ export default function Activator() {
 
 	if (loading) {
 		return (
-			<FrontDeskLayout>
-				<Loader />
-			</FrontDeskLayout>
+			<Loader />
 		)
 	}
 

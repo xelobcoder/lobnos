@@ -57,7 +57,7 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
             <button onClick={handleReorderClick} className="btn btn-link">
                 Reorder Fields
             </button>
-            <table className="table billing-cart-table table-hover pointer">
+            <table className="table pls-color  table-hover pointer">
                 <thead >
                     <tr>
                         <th>Parameter Name</th>

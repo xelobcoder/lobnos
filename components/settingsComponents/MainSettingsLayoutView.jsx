@@ -15,6 +15,7 @@ import {
   ResetTvOutlined,
   FileDownload,
 } from "@mui/icons-material";
+import PrimeLayout from '../../components/Layout/PrimeLayout'
 import MainLayout from "../Layout/MainLayout";
 
 export default function MainSettingsLayoutView({ children }) {
@@ -48,8 +49,8 @@ export default function MainSettingsLayoutView({ children }) {
   ];
 
   return (
-    <MainLayout sideLinks={sidebarLinks} defaultscreen={false}>
+    <PrimeLayout>
       {children}
-    </MainLayout>
+    </PrimeLayout>
   )
 }

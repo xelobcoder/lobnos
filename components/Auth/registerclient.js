@@ -1,7 +1,5 @@
 import { customFetch, customPost } from "./customFetch";
-import { defaultdata } from "../../pages/registration/archived";
 import moment from 'moment';
-import { toast } from "react-toastify";
 
 // handle mobile number validation
 export const handleMobile = (e, toast) => {

@@ -9,6 +9,7 @@ import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import IconButton from "@mui/material/IconButton";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import PrimeLayout from "../../../../components/Layout/PrimeLayout";
 
 interface Witness {
 	witness: string;
@@ -68,6 +69,7 @@ export default function BillingRefundPage() {
 	};
 
 	const columns = [
+		{ Header: 'serviceid', accessor: 'serviceid' },
 		{
 			Header: "Category",
 			accessor: "serviceCategory",
@@ -182,7 +184,7 @@ export default function BillingRefundPage() {
 	};
 
 	return (
-		<FrontDeskLayout>
+		<PrimeLayout>
 			<ToastContainer position="top-center" className="text-sm" theme="colored" />
 			<section className="d-flex justify-content-between mb-3">
 				<div className="col-2">
@@ -224,6 +226,6 @@ export default function BillingRefundPage() {
 					</Button>
 				</Modal.Footer>
 			</Modal>
-		</FrontDeskLayout>
+		</PrimeLayout>
 	);
 }

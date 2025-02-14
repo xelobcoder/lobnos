@@ -3,7 +3,7 @@ import LaboratoryLayout from '../../../components/Layout/LaboratoryLayout'
 export default function RejectedSamplesPage() {
   return (
     <LaboratoryLayout>
-      <RejectedSamplesComponent />
+      {/* <RejectedSamplesComponent /> */}
     </LaboratoryLayout>
   )
 }

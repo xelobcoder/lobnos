@@ -1,11 +1,10 @@
-import { link } from "fs";
-import { title } from "process";
+
 
 interface Link {
-    icon: HTMLElement
+    icon: any
     title: string;
     link: string
-    subLinks: { title: string, link: string }[];
+    subLinks: { title: string, link: string }[]
 }
 
 const Icon = (
@@ -15,7 +14,9 @@ const Icon = (
 );
 
 
-export const FinancialDataKeys = [
+
+
+export const links: Link[] = [
     {
         title: "Sales Overview",
         icon: Icon,
@@ -140,18 +141,15 @@ export const FinancialDataKeys = [
                 link: "/sales/totalSalesAndTransactionsByDate?targetKey=43"
             }
         ]
-    }
-];
-
-export const links: Link = [
+    },
     {
         title: 'Analytics',
+        link: '/analytics',
         icon: Icon,
         subLinks: [
             { title: 'Patient Analytics', link: '/dashboard/analytics/patients' }
         ]
     },
-    ...FinancialDataKeys,
     {
         title: "Phelobotomy",
         icon: Icon,
@@ -214,12 +212,12 @@ export const links: Link = [
             {
                 title: "Stock Management",
                 link: "/operations/laboratory/stockmanagement",
-                subLinks: [
-                    {
-                        title: "Ascension Stock Deduction",
-                        link: "/operations/laboratory/stockmanagement"
-                    }
-                ]
+                // subLinks: [
+                //     {
+                //         title: "Ascension Stock Deduction",
+                //         link: "/operations/laboratory/stockmanagement"
+                //     }
+                // ]
             }
         ]
     },
@@ -254,7 +252,9 @@ export const links: Link = [
         link: "/billing/patientid",
         subLinks: [
             { title: 'Filter Client ', link: '/billing/patientid' },
-            { title: 'packages', link: '/billing/packages/create-new-package' }, { title: 'Bill settings Night Adjustment', link: '/billing/settings/night-adjustments' }]
+            { title: 'packages', link: '/billing/packages/create-new-package' }, { title: 'Bill settings Night Adjustment', link: '/billing/settings/night-adjustments' },
+            { title: 'Daily Transactions', link: '/billing/sales/branches' }
+        ]
     },
     {
         title: "Sales",
@@ -305,19 +305,23 @@ export const links: Link = [
             { title: "Taxes", link: "/settings/tax" },
             { title: "Test Panels", link: "/settings/testpanel/testlist" },
             { title: "Services", link: "/settings/additionalservices" },
-            {
-                title: "Outsourcing", link: "/settings/outsource", subLinks: [
-                    { title: 'New Organization', link: '/settings/outsource/newOutsourcing' },
-                    { title: 'Outsourcing List', link: '/settings/outsource' }
-                ]
-            },
-            {
-                title: "Drugs", link: "/settings/applicationsettings/drugs", subLinks: [
-                    { title: 'Drug Category', link: '/settings/applicationsettings/drugs/drugCategoryView' },
-                    { title: 'Drugs List', link: '/settings/applicationsettings/drugs' }
-                ]
-            },
+
+
             { title: "Email Management", link: "/settings/emailsetting" },
+
+        ]
+    },
+    {
+        title: "Drugs", link: "/settings/applicationsettings/drugs", icon: Icon, subLinks: [
+            { title: 'Drug Category', link: '/settings/applicationsettings/drugs/drugCategoryView' },
+            { title: 'Drugs List', link: '/settings/applicationsettings/drugs' }
+        ]
+    },
+    {
+        title: "Outsourcing", link: "/settings/outsource", icon: Icon,
+        subLinks: [
+            { title: 'New Organization', link: '/settings/outsource/newOutsourcing' },
+            { title: 'Outsourcing List', link: '/settings/outsource' }
         ]
     },
 ];

@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+ import { useCallback, useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { customFetch, getSingleEditTest } from "../../Auth/customFetch";
 import Loader from "../../accessories/Loader";
-import AlertInmportantInformation from "./AlertImportantInformation";
 import CustomParameterTypeSelection from "./CustomParameterTypeSelection";
 import RenderTestCreationParameters from "./RenderTestCreationParametersTable";
 import { defaultCreationRule, parseTextToObject, updateFieldsRules } from "./data/testUtil";
@@ -110,7 +109,7 @@ export default function CreateTestFields({ testid, testname, minimize = false })
 					{/* <AlertInmportantInformation /> */}
 					<div>
 						<div>
-							{error && <div className="alert alert-danger">{error}</div>}
+							{error && <div className="alert alert-danger pls-color">{error}</div>}
 						</div>
 						{generalTestRule?.department.toLowerCase() == "ultrasound" && (
 							<div className="grid-reg my-2 mx-2">

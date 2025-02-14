@@ -1,13 +1,14 @@
+"use client"
 import { useEffect, useState } from "react";
-import { patientRegistrationDefaultData } from "../../components/Auth/registerclient";
-import PersonalInfomationRegistration from "../../components/registration/PersonalInfomationRegistration";
-import { getRegistrationFields, registrationFields } from "../../components/registration/fields/Util";
+import { patientRegistrationDefaultData } from "../components/Auth/registerclient";
+import PersonalInfomationRegistration from "../components/registration/PersonalInfomationRegistration";
+import { getRegistrationFields, registrationFields } from "../components/registration/fields/Util";
 import { toast, ToastContainer } from 'react-toastify';
-import Addressing from "../../components/registration/Addressing";
-import EmmergencyContactInformation from "../../components/registration/EmmergencyContactInformation";
+import Addressing from "../components/registration/Addressing";
+import EmmergencyContactInformation from "../components/registration/EmmergencyContactInformation";
 import { useRouter, useSearchParams } from "next/navigation";
-import PatientFiltered from '../../components/accessories/SectorFileringComponents/CustomerFiltering'
-import PrimeLayout from '../../components/Layout/PrimeLayout'
+import PatientFiltered from '../components/accessories/SectorFileringComponents/CustomerFiltering'
+import PrimeLayout from '../components/Layout/PrimeLayout'
 
 export default function RegistrationForm() {
     const { personalInformation, addressingInformation, emmergencyInformation } = patientRegistrationDefaultData;

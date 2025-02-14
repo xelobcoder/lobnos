@@ -6,6 +6,7 @@ import FrontDeskLayout from "../../../components/Layout/FrontDeskLayout";
 import WitnessModalComp from "../../../components/Billing/Refund/WitnessModalComp";
 import { Button } from "react-bootstrap";
 import { toast, ToastContainer } from "react-toastify";
+import PrimeLayout from "../../../components/Layout/PrimeLayout";
 
 type Witness = {
 	witness: string;
@@ -203,7 +204,7 @@ export default function RefundPageAllView() {
 	};
 
 	return (
-		<FrontDeskLayout>
+		<PrimeLayout>
 			<ToastContainer position="top-center" className={'text-sm'} theme="colored" />
 			<section className="d-flex justify-content-between mb-3">
 				<div className="col-2">
@@ -249,6 +250,6 @@ export default function RefundPageAllView() {
 				handleSubmitWitness={handleSubmitWitness}
 				setShowModal={setShowModal}
 			/>
-		</FrontDeskLayout>
+		</PrimeLayout>
 	);
 }
