@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from "react";
-import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
-import { customFetch, currencyFormatter, customPost } from "../../../components/Auth/customFetch";
-import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
-import FrontDeskLayout from "../../../components/Layout/FrontDeskLayout";
-import WitnessModalComp from "../../../components/Billing/Refund/WitnessModalComp";
+"use client"
+import React, { useState } from "react";
+import PrimeTable from "../../accessories/Datatables/PrimeTable";
+import { customFetch, currencyFormatter, customPost } from "../../Auth/customFetch";
+import { useApplicationSettings } from "../../Auth/useApplicationContext";
+import WitnessModalComp from "./WitnessModalComp";
 import { Button } from "react-bootstrap";
 import { toast, ToastContainer } from "react-toastify";
-import PrimeLayout from "../../../components/Layout/PrimeLayout";
+import { Search } from "@mui/icons-material";
+import { filteringRefundsUsingServiceId, handleRefundServerSideProcessing } from "../../serverActions/ActionFiltering";
 
 type Witness = {
 	witness: string;
@@ -27,37 +28,17 @@ type RefundItem = {
 	serviceid: number;
 };
 
-export default function RefundPageAllView() {
+export default function RefundPageAllView({ initData, employeeid }) {
+	const [search, setSearch] = useState<string>("");
 	const [status, setStatus] = useState<string>("pending");
-	const [data, setData] = useState<RefundItem[] | []>([]);
-	const [loading, setLoading] = useState<boolean>(true);
+	const [data, setData] = useState<RefundItem[] | []>(initData);
+	const [loading, setLoading] = useState<boolean>(false)
 	const [error, setError] = useState<string | null>(null);
 	const [showModal, setShowModal] = useState<boolean>(false);
 	const [currentRefund, setCurrentRefund] = useState<null | Partial<RefundItem>>(null);
 	const [witnessMessage, setWitnessMessage] = useState<string>("");
 	const [modalTitleHeader, setModalTitleHeader] = useState<string>("");
 
-	const employeeid = useApplicationSettings().applicationsettings.user.employeeid;
-
-	useEffect(() => {
-		const fetchData = async () => {
-			if (status && employeeid) {
-				try {
-					setLoading(true);
-					const response = await customFetch(
-						`billing/refund/details/status?status=${status}&&employeeid=${employeeid}&&page=1&&count=10`
-					);
-					setData(response?.result || []);
-					setLoading(false);
-				} catch (err) {
-					setError("Error fetching data");
-					setLoading(false);
-				}
-			}
-		};
-
-		fetchData();
-	}, [status]);
 
 	const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		setStatus(e.target.value);
@@ -202,26 +183,27 @@ export default function RefundPageAllView() {
 			return { error: "Something went wrong loading page data" };
 		}
 	};
+	const handleGetRefundServiceWithId = async (value: number | string) => {
+		const result = await filteringRefundsUsingServiceId(value, employeeid);
+		setData(result)
+	}
+
 
 	return (
-		<PrimeLayout>
+		<div>
 			<ToastContainer position="top-center" className={'text-sm'} theme="colored" />
 			<section className="d-flex justify-content-between mb-3">
 				<div className="col-2">
-					<select
-						className="custom-select"
-						value={status}
-						onChange={handleStatusChange}
-					>
+					<select className="custom-select" value={status} onChange={handleStatusChange}>
 						<option value="pending">Pending Refund</option>
 						<option value="completed">Completed Refund</option>
 					</select>
 				</div>
-				<div className="col-3">
-					<input
-						className="custom-input"
-						placeholder="Select a billing section here"
-					/>
+				<div className="col-1 d-flex">
+					<input className="custom-input" type="number" onChange={(ev) => { setSearch(ev.target.value) }} placeholder="serviceid" />
+					<button type="button" onClick={(ev) => { handleGetRefundServiceWithId(search) }} className="btn btn-secondary-outline btn-sm">
+						<Search />
+					</button>
 				</div>
 			</section>
 
@@ -234,9 +216,9 @@ export default function RefundPageAllView() {
 							column={columns}
 							data={data}
 							filtering={false}
+							urlparams={{ employeeid, status }}
 							serverSideFiltering={true}
-							urlparams={`billing/refund/details/status?status=${status}&&employeeid=${employeeid}`}
-							handleSeverSideProcessing={handleServerSideProcessing}
+							handleSeverSideProcessing={handleRefundServerSideProcessing}
 						/>
 					)}
 				</div>
@@ -250,6 +232,6 @@ export default function RefundPageAllView() {
 				handleSubmitWitness={handleSubmitWitness}
 				setShowModal={setShowModal}
 			/>
-		</PrimeLayout>
+		</div>
 	);
 }

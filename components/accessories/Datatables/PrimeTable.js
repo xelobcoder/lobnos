@@ -240,7 +240,6 @@ export default function
 
                if (processedResponse) {
                     const { result, error } = processedResponse;
-                    console.log(result)
                     setTimeout(() => {
                          if (result) {
                               setFilteredData(result);

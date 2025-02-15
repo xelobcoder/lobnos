@@ -253,7 +253,9 @@ export const links: Link[] = [
         subLinks: [
             { title: 'Filter Client ', link: '/billing/patientid' },
             { title: 'packages', link: '/billing/packages/create-new-package' }, { title: 'Bill settings Night Adjustment', link: '/billing/settings/night-adjustments' },
-            { title: 'Daily Transactions', link: '/billing/sales/branches' }
+            { title: 'Daily Transactions', link: '/billing/sales/branches' },
+            { title: "Refund Admin", link: "/billing/refund/refundAdmin" },
+            { title: "Refund FrontDesk Representative", link: "/billing/refund" }
         ]
     },
     {

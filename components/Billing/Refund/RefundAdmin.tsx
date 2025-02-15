@@ -1,15 +1,16 @@
+"use client"
 import React, { useState, useEffect } from "react";
-import FrontDeskLayout from "../../../../components/Layout/FrontDeskLayout";
-import { currencyFormatter, customFetch, customPost } from "../../../../components/Auth/customFetch";
-import { RefundAdminViewType } from "../../../../components/sms/type";
-import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
-import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
+import { currencyFormatter, customFetch, customPost } from "../../Auth/customFetch";
+import { RefundAdminViewType } from "../../sms/type";
+import PrimeTable from '../../accessories/Datatables/PrimeTable';
+import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import { toast, ToastContainer } from "react-toastify";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import IconButton from "@mui/material/IconButton";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import PrimeLayout from "../../../../components/Layout/PrimeLayout";
+import { Search } from "@mui/icons-material";
+import { filteringRefundsUsingServiceId, handleRefundServerSideProcessing, loadRefundData } from "../../serverActions/ActionFiltering";
 
 interface Witness {
 	witness: string;
@@ -17,34 +18,18 @@ interface Witness {
 	message: string;
 }
 
-export default function BillingRefundPage() {
-	const [status, setStatus] = useState<string>("pending");
-	const [data, setData] = useState<RefundAdminViewType[]>([]);
-	const [loading, setLoading] = useState<boolean>(true);
+export default function RefundAdmin({ initData = [] ,employeeid}) {
+	const [status, setStatus] = useState<"pending" | "completed">("pending");
+	const [data, setData] = useState<RefundAdminViewType[]>(initData);
+	const [search, setSearch] = useState<string>("");
+	const [loading, setLoading] = useState<boolean>(false);
 	const [modalShow, setModalShow] = useState<boolean>(false);
 	const [selectedMessage, setSelectedMessage] = useState<string>("");
-	const employeeid = useApplicationSettings().applicationsettings.user.employeeid;
 
-	useEffect(() => {
-		const fetchData = async () => {
-			try {
-				setLoading(true);
-				const response = await customFetch(
-					`billing/refund/details/status?status=${status}&&employeeid=${employeeid}&&page=1&&count=10`
-				);
-				setData(response?.result || []);
-			} catch (err) {
-				toast.error("Error fetching data");
-			} finally {
-				setLoading(false);
-			}
-		};
 
-		fetchData();
-	}, [status, employeeid]);
 
 	const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		setStatus(e.target.value);
+		setStatus(e.target.value as any);
 	};
 
 	const handleApprove = async (item: RefundAdminViewType, isApprove = 0) => {
@@ -161,18 +146,7 @@ export default function BillingRefundPage() {
 		},
 	];
 
-	const handleServerSideProcessing = async (values: { count: number; page: number }) => {
-		const { count, page } = values;
-		try {
-			const data = await customFetch(
-				`billing/refund/details/status?status=${status}&&employeeid=${employeeid}&&page=${page}&&count=${count}`
-			);
-			return { result: data.result };
-		} catch {
-			toast.error("Error loading page data");
-			return { error: "Error loading page data" };
-		}
-	};
+	
 
 	const handleViewMessage = (message: string) => {
 		setSelectedMessage(message);
@@ -183,8 +157,14 @@ export default function BillingRefundPage() {
 		setModalShow(false);
 	};
 
+
+	const handleGetRefundServiceWithId = async (value: number | string) => {
+		const result = await filteringRefundsUsingServiceId(value, employeeid);
+		setData(result)
+	}
+
 	return (
-		<PrimeLayout>
+		<div>
 			<ToastContainer position="top-center" className="text-sm" theme="colored" />
 			<section className="d-flex justify-content-between mb-3">
 				<div className="col-2">
@@ -193,8 +173,11 @@ export default function BillingRefundPage() {
 						<option value="completed">Completed Refund</option>
 					</select>
 				</div>
-				<div className="col-3">
-					<input className="custom-input" placeholder="Select a billing section here" />
+				<div className="col-1 d-flex">
+					<input className="custom-input" type="number" onChange={(ev) => { setSearch(ev.target.value) }} placeholder="serviceid" />
+					<button type="button" onClick={(ev) => { handleGetRefundServiceWithId(search) }} className="btn btn-secondary-outline btn-sm">
+						<Search />
+					</button>
 				</div>
 			</section>
 
@@ -206,19 +189,21 @@ export default function BillingRefundPage() {
 						column={columns}
 						data={data}
 						filtering={false}
+						urlparams={{employeeid,status}}
 						serverSideFiltering={true}
-						urlparams={`billing/refund/details/status?status=${status}&&employeeid=${employeeid}`}
-						handleSeverSideProcessing={handleServerSideProcessing}
+						handleSeverSideProcessing={handleRefundServerSideProcessing}
 					/>
 				)}
 			</section>
 
-			<Modal show={modalShow} onHide={handleCloseModal} backdrop='static'>
-				<Modal.Header className=" bg-secondary-subtle" closeButton>
+			<Modal show={modalShow} onHide={handleCloseModal} backdrop="static" size="lg">
+				<Modal.Header className="bg-secondary-subtle" closeButton>
 					<Modal.Title>Full Message</Modal.Title>
 				</Modal.Header>
-				<Modal.Body>
-					<p>{selectedMessage}</p>
+				<Modal.Body style={{ maxHeight: "70vh", overflowY: "auto" }}>
+					<div className="p-3 text-sm" style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", lineHeight: "2 rem" }}>
+						{selectedMessage}
+					</div>
 				</Modal.Body>
 				<Modal.Footer>
 					<Button variant="secondary" onClick={handleCloseModal}>
@@ -226,6 +211,6 @@ export default function BillingRefundPage() {
 					</Button>
 				</Modal.Footer>
 			</Modal>
-		</PrimeLayout>
+		</div>
 	);
 }

@@ -1,7 +1,7 @@
 import { Table } from 'react-bootstrap';
 import { currencyFormatter } from '../Auth/customFetch';
 
-export default function TransactionServicesList({ previousTransactions = [], handleTransactionCheckboxChange, selectedTransactions }) {
+export default function TransactionServicesList({ previousTransactions = [], handleTransactionCheckboxChange, selectedTransactions ,employeeid}) {
     return (
         <Table className="table table-sm pls-color" striped bordered hover responsive>
             <thead>
@@ -36,9 +36,10 @@ export default function TransactionServicesList({ previousTransactions = [], han
                     <tr key={transaction.serviceid}>
                         <td>
                             <input
+                                disabled={transaction.witnesses && Array.isArray(transaction.witnesses) && transaction.witnesses.length > 0 && transaction.witnesses.some( (item) => item.employeeid == employeeid)}
                                 type="checkbox"
                                 checked={selectedTransactions.includes(transaction.serviceid)}
-                                onChange={() => handleTransactionCheckboxChange(transaction.serviceid,transaction)}
+                                onChange={() => handleTransactionCheckboxChange(transaction.serviceid, transaction)}
                             />
                         </td>
                         <td>{transaction.name}</td>
@@ -66,7 +67,7 @@ export default function TransactionServicesList({ previousTransactions = [], han
                             {transaction.witnesses && transaction.witnesses.length > 0 ? (
                                 <ul>
                                     {transaction.witnesses.map((witness, index) => (
-                                        <li key={index}>{witness}</li>
+                                        <li key={index}>{witness.username}</li>
                                     ))}
                                 </ul>
                             ) : (

@@ -1,23 +1,22 @@
 "use client";
-import { Dropdown, Modal, Table, Button, Form } from "react-bootstrap";
+import { Dropdown, Table, Button } from "react-bootstrap";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import PrimeTable from "../accessories/Datatables/PrimeTable";
-import { currencyFormatter, customPost } from "../Auth/customFetch";
+import { currencyFormatter } from "../Auth/customFetch";
 import { plsEncryption } from "../../lib/encryption";
 import { useState } from "react";
 import { Search } from "@mui/icons-material";
 import { handleDatePicker, handleSeverSideProcessing } from "../serverActions/ActionFiltering";
 import { fetchPreviousBilledRecords } from "../../lib/billingLib";
-import TransactionServicesList from './TransactionServicesList'
-import { toast } from "react-toastify";
+import TransactionDetailsModal from './TransactionDetailsModal';
+import { useApplicationSettings } from "../Auth/useApplicationContext";
 
 export default function BilledClientsView({ data = [], branchid }) {
 	const [datequery, setDatequery] = useState({ from: '', to: '' });
 	const [showModal, setShowModal] = useState(false);
 	const [previousTransactions, setPreviousTransactions] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const [selectedTransactions, setSelectedTransactions] = useState([]);
-	const [refundReasons, setRefundReasons] = useState({});
+	const { employeeid } = useApplicationSettings().applicationsettings.user;
 
 	const handleViewTransactionDetails = async (billingid) => {
 		setIsLoading(true);
@@ -30,52 +29,6 @@ export default function BilledClientsView({ data = [], branchid }) {
 		} finally {
 			setIsLoading(false);
 		}
-	};
-
-	const handleTransactionCheckboxChange = async (transactionId, item) => {
-		const stage = await handleRequestForRefund(item)
-		if (!stage) {
-			return toast.warning("Determination of test status failed");
-		}
-
-		if (stage === "UNINITIATED" || stage.toString().trim() === "billing done") {
-			const selectedIndex = selectedTransactions.indexOf(transactionId);
-			let newSelected = [];
-
-			if (selectedIndex === -1) {
-				newSelected = newSelected.concat(selectedTransactions, transactionId);
-			} else if (selectedIndex === 0) {
-				newSelected = newSelected.concat(selectedTransactions.slice(1));
-			} else if (selectedIndex === selectedTransactions.length - 1) {
-				newSelected = newSelected.concat(selectedTransactions.slice(0, -1));
-			} else if (selectedIndex > 0) {
-				newSelected = newSelected.concat(
-					selectedTransactions.slice(0, selectedIndex),
-					selectedTransactions.slice(selectedIndex + 1)
-				);
-			}
-
-			setSelectedTransactions(newSelected);
-		}
-
-	};
-
-	const handleRefundReasonChange = (transactionId, reason) => {
-		setRefundReasons((prev) => ({
-			...prev,
-			[transactionId]: reason,
-		}));
-	};
-
-	const handleRefundSubmit = () => {
-		const refundData = selectedTransactions.map((transactionId) => ({
-			transactionId,
-			refundReason: refundReasons[transactionId] || "",
-		}));
-		console.log("Refund Data:", refundData);
-		alert("Refund requests submitted successfully!");
-		setSelectedTransactions([]);
-		setRefundReasons({});
 	};
 
 	const columns = [
@@ -156,15 +109,6 @@ export default function BilledClientsView({ data = [], branchid }) {
 		},
 	];
 
-
-
-	const handleRequestForRefund = async (serviceItem) => {
-		const endpoint = `billing/previous/request/refund`;
-		const { billingid, categoryTrackId, employeeid, serviceCategory, serviceid } = serviceItem
-		const requestResponse = await customPost(endpoint, 'POST', { billingid, categoryTrackId, employeeid, serviceCategory, serviceid })
-		return requestResponse?.stage || null
-	}
-
 	return (
 		<div>
 			<div className="d-flex justify-content-end col-12 my-2">
@@ -191,52 +135,12 @@ export default function BilledClientsView({ data = [], branchid }) {
 				handleSeverSideProcessing={handleSeverSideProcessing}
 			/>
 
-			<Modal show={showModal} backdrop="static" onHide={() => setShowModal(false)} size="xl">
-				<Modal.Header closeButton>
-					<div className="d-flex justify-content-between col-10">
-						<Modal.Title>Transaction Details</Modal.Title>
-						<Button
-							size="sm"
-							variant="primary"
-							onClick={handleRefundSubmit}
-							disabled={selectedTransactions.length === 0}
-						>
-							Submit Refund
-						</Button>
-					</div>
-				</Modal.Header>
-				<Modal.Body>
-					{isLoading ? (
-						<div className="text-center">Loading...</div>
-					) : (
-
-						previousTransactions.length > 0 ? (
-
-							<>
-								<TransactionServicesList previousTransactions={previousTransactions} selectedTransactions={selectedTransactions} handleTransactionCheckboxChange={handleTransactionCheckboxChange} />
-								{selectedTransactions.length > 0 && (
-									<div className="mt-3">
-										{selectedTransactions.map((transactionId) => (
-											<Form.Group key={transactionId} className="mb-3">
-												<Form.Label>Refund Reason for Transaction {transactionId}</Form.Label>
-												<Form.Control
-													as="textarea"
-													rows={3}
-													placeholder="Enter refund reason"
-													value={refundReasons[transactionId] || ""}
-													onChange={(e) => handleRefundReasonChange(transactionId, e.target.value)}
-												/>
-											</Form.Group>
-										))}
-									</div>
-								)}
-							</>
-						) : (
-							<div className="text-center">No previous transactions found.</div>
-						)
-					)}
-				</Modal.Body>
-			</Modal>
+			<TransactionDetailsModal
+				showModal={showModal}
+				setShowModal={setShowModal}
+				previousTransactions={previousTransactions}
+				employeeid={employeeid}
+			/>
 		</div>
 	);
 }
