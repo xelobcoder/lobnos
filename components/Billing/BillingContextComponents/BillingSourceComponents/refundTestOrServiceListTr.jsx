@@ -25,6 +25,9 @@ export default function RefundTestOrServiceListTr({ handleRefundList, item, inde
         const refundbodyData = { serviceCategory, serviceid, trackId, categoryTrackId, billingid, employeeid };
         const response = await customPost(`billing/previous/request/refund`, 'POST', refundbodyData);
         const { stage } = response;
+        if (stage == null || stage == undefined) {
+            return toast.error("Srvice not found for refunding!!!!")
+        }
         if (stage === "UNINITIATED" || stage.toString().trim() === "billing done") {
             handleRefundList(item.trackId);
         } else {

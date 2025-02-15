@@ -3,36 +3,43 @@ import BilledClientsView from '../../../../../components/Billing/BilledClientsVi
 import { plsDecryption } from "../../../../../lib/encryption";
 import { customFetch } from "../../../../../components/Auth/customFetch";
 
-
 export default async function DailySalesViewCustomerRepresentative({ params, searchParams }: {
 	params: {
 		branchid: string
 	},
 	searchParams: {
-		from: string,
-		to: string
+		from?: string,
+		to?: string
 	}
 }) {
-
 	let { branchid } = await params;
 	const { from, to } = await searchParams;
 	let transactions = [];
+
 	if (branchid) {
-		branchid = plsDecryption(branchid.toString())
+		branchid = plsDecryption(branchid.toString());
 	}
 
 	try {
-		const data = await customFetch(
-			`billing/payment/info/client?from=${from}&&to=${to}`
-		);
+		let endpoint = "billing/payment/info/client";
+		if (from && to) {
+			endpoint += `?from=${from}&to=${to}`;
+		} else if (from) {
+			endpoint += `?from=${from}`;
+		} else if (to) {
+			endpoint += `?to=${to}`;
+		}
+
+		const data = await customFetch(endpoint);
+
+
 		if (data.status === "success" && data.statusCode === 200) {
-			transactions = data.result
+			transactions = data.result;
 		}
 	} catch (error) {
-		transactions = []
+		console.error("Error fetching transactions:", error);
+		transactions = [];
 	}
-
-
 
 	return (
 		<div>

@@ -236,7 +236,7 @@ export default function
      async function RunServerAction(currentPage, currentCount) {
           if (typeof handleSeverSideProcessing === "function" && serverSideFiltering) {
                setIsLoading(true);
-               const processedResponse = await handleSeverSideProcessing({ page: currentPage, count: currentCount });
+               const processedResponse = await handleSeverSideProcessing({ page: currentPage, count: currentCount,...urlparams });
 
                if (processedResponse) {
                     const { result, error } = processedResponse;
