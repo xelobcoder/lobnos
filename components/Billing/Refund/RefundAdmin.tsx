@@ -1,16 +1,15 @@
 "use client"
-import React, { useState, useEffect } from "react";
-import { currencyFormatter, customFetch, customPost } from "../../Auth/customFetch";
+import React, { useState } from "react";
+import { currencyFormatter, customPost } from "../../Auth/customFetch";
 import { RefundAdminViewType } from "../../sms/type";
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
-import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import { toast, ToastContainer } from "react-toastify";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import IconButton from "@mui/material/IconButton";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { Search } from "@mui/icons-material";
-import { filteringRefundsUsingServiceId, handleRefundServerSideProcessing, loadRefundData } from "../../serverActions/ActionFiltering";
+import { filteringRefundsUsingServiceId, handleRefundServerSideProcessing } from "../../serverActions/ActionFiltering";
 
 interface Witness {
 	witness: string;

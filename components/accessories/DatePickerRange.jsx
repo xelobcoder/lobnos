@@ -21,7 +21,7 @@ export default function
       withPortal
       endDate={endDate}
       className="custom-input  col-sm-12"
-      showIcon={true}
+      showIcon={false}
       placeholderText="Please Pick A Date Range Here"
       onChange={(update) => {
         setDateRange(update);

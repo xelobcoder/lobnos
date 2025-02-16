@@ -1,12 +1,8 @@
 "use client"
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import ListTable from "../ListTable";
 import CollectionSampleModal from "../CollectionSampleModal";
-import { customFetch, getDataAndUpdateState, updatePagination } from "../../Auth/customFetch";
 import ReceiveLabSampleModal from "./ReceiveLabSampleModal";
-import Loader from "../../accessories/Loader";
-import Pagination from "../../accessories/pagination";
-import PhelobotomySummaryAnalytics from "../PhelobotomySummaryAnalytics";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 
 
@@ -49,7 +45,6 @@ export default function PhelobotomyMainPageClientModule({ data }) {
 	return (
 		<div className="p-1">
 			<div>
-				<PhelobotomySummaryAnalytics />
 				{<ListTable data={data} receive={receiveSample} handleCollectSample={handleCollectSample} />}
 				{showModal && <CollectionSampleModal removeCollectedSample={removeCollectedSample} employeeid={employeeid} collection={collection} show={showModal} hide={hideModal} />}
 				{openModal && <ReceiveLabSampleModal show={openModal} hide={closeModal} />}

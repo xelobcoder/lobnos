@@ -1,29 +1,21 @@
-import { useEffect, useState } from "react";
 import { customFetch } from "../Auth/customFetch";
 
 const defaultValues = { rejected: null, orders: null, completed: null, pending: null };
 
-export default function PhelobotomySummaryAnalytics() {
-    const [data, setData] = useState(defaultValues);
-    const [isLoading, setIsLoading] = useState(false);
+export default async function PhelobotomySummaryAnalytics() {
+    let data ={} 
 
     const fetchSummary = async function () {
         try {
-            setIsLoading(true);
             const response = await customFetch(`ascension/phelobotomistAnalyticsSummary`);
-            setData(response);
+            data = response
         } catch (err) {
-            setData(defaultValues);
-        } finally {
-            setIsLoading(false);
-        }
+            data= defaultValues
+        } 
     };
 
-    useEffect(() => {
-        fetchSummary();
-    }, []);
+    await fetchSummary()
 
-    if (isLoading) return <div className="text-italic">Loading Data ......................</div>;
 
     return (
         <div className="container-fluid">

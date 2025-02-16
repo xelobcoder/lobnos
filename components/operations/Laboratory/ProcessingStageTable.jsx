@@ -1,14 +1,15 @@
-import { Info, SelectAll, Start, Stop } from "@mui/icons-material";
-import { useContext, useState } from "react";
-import ProcessingButtons from "./ProcessingButtons";
+import { SelectAll, Start, Stop } from "@mui/icons-material";
+import { useState } from "react";
+import { customPost } from "../../Auth/customFetch";
+import { useApplicationSettings } from "../../Auth/useApplicationContext";
+import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { fnTiming } from "./Lib";
-import { customPost } from "../../Auth/customFetch";
-import Pagination from "../../accessories/pagination";
-import { useApplicationSettings } from "../../Auth/useApplicationContext";
+import ProcessingButtons from "./ProcessingButtons";
+import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
 
 export default function AscensionProcessingTable({ }) {
-	const { isLoading, collection, queryParams, setLoadPage, toast, setQueryParams, canloadPage, updatePageValue, setCollection } = useLaboratoryContext();
+	const { isLoading, collection, queryParams,toast,  setCollection } = useLaboratoryContext();
 	const [bulkselection, setBulkSelection] = useState([]);
 	const [selectstatus, setSelectStatus] = useState(false);
 	const [currentBulkStatus, setCurrentBulkStatus] = useState({ action: null, target: null });
@@ -16,11 +17,35 @@ export default function AscensionProcessingTable({ }) {
 	const { user } = applicationsettings;
 	const employeeid = user?.employeeid;
 
-
-
-	if (isLoading) return <div>Loading .......................</div>;
-
 	
+	// Function to toggle selection of a single row
+	const toggleRowSelected = (ascensionid) => {
+		const isSelected = bulkselection.some(item => item.ascensionid === ascensionid);
+		if (isSelected) {
+			// If already selected, remove it from the bulk selection
+			setBulkSelection(bulkselection.filter(item => item.ascensionid !== ascensionid));
+		} else {
+			// If not selected, add it to the bulk selection
+			const itemToAdd = collection.find(item => item.ascensionid === ascensionid);
+			if (itemToAdd) {
+				setBulkSelection([...bulkselection, itemToAdd]);
+			}
+		}
+	};
+
+	// Function to select or unselect all rows
+	const selectAllAscension = () => {
+		if (selectstatus === false) {
+			const updatedCollection = collection.map(item => ({ ...item, isSelected: true }));
+			setBulkSelection(updatedCollection);
+			setSelectStatus(true);
+		} else {
+			const updatedCollection = collection.map(item => ({ ...item, isSelected: false }));
+			setBulkSelection([]);
+			setSelectStatus(false);
+		}
+	};
+
 
 	const updateTestCollectionAfterUpdate = (ascensionid, updateItem) => {
 		const prev = [...collection];
@@ -33,46 +58,31 @@ export default function AscensionProcessingTable({ }) {
 		setCollection(prev);
 	};
 
-	const addToBulkSelection = (item) => {
-		const { ascensionid } = item;
-
-		const isAlreadySelected = bulkselection.some(selectedItem => selectedItem.ascensionid === ascensionid);
-
-		if (isAlreadySelected) return;
-		setBulkSelection([...bulkselection, item]);
-	};
-
-	const selectAllAscension = () => {
-		if (selectstatus === false) {
-			setBulkSelection(collection);
-			setSelectStatus(true);
-		} else {
-			setBulkSelection([]);
-			setSelectStatus(false);
-		}
-	};
-
+	// Function to handle bulk processing (start/stop)
 	const bulkProcessingUpdate = async (action) => {
 		if (bulkselection.length === 0) {
 			toast.warning(`Please Select One or More Tests`);
 			return;
 		}
 
-		let successAscensions = [];
 		const value = new Date().toISOString();
 		const stage = action === "start" ? "processingStartDate" : "processingEndDate";
-		
-		const handleProcessing = async (item, action) => {
+		const successAscensions = [];
+
+		const handleProcessing = async (item) => {
 			const { ascensionid, testid, processingStartDate, processingEndDate } = item;
 
-			if (action === "start" && processingStartDate) return;
-			if (action === "stop" && processingEndDate) return;
-
+			if ((action === "start" && processingStartDate) || (action === "stop" && processingEndDate)) return;
 
 			const selectedItem = { ascensionid, testid, value, employeeid, stage };
 			setCurrentBulkStatus({ action, target: ascensionid });
 
-			const { status } = await customPost("ascension/collection/update/stage", 'POST', selectedItem);
+			const { status, error } = await customPost("ascension/collection/update/stage", 'POST', selectedItem);
+
+			if (error) {
+				toast.error(`Error updating test: ${error.message}`);
+				return;
+			}
 
 			if (status === true) {
 				successAscensions.push(ascensionid);
@@ -81,23 +91,17 @@ export default function AscensionProcessingTable({ }) {
 			setCurrentBulkStatus({ action: null, target: null });
 		};
 
-		for (const item of bulkselection) {
-			await handleProcessing(item, action);
-		}
+		await Promise.all(bulkselection.map(item => handleProcessing(item)));
 
 		if (successAscensions.length > 0) {
-			const prev = collection;
+			const updatedCollection = collection.map(item => {
+				if (successAscensions.includes(item.ascensionid)) {
+					return { ...item, [stage]: value };
+				}
+				return item;
+			});
 
-			successAscensions.map((ascensionid, index) => {
-				const indexOfAscensionId = prev.findIndex((single) => single.ascensionid === ascensionid);
-
-				if (!indexOfAscensionId) return ascensionid;
-
-				prev[indexOfAscensionId][stage] = value;
-
-			})
-
-			setCollection(prev);
+			setCollection(updatedCollection);
 			setBulkSelection([]);
 			setSelectStatus(false);
 			toast.success(`Successfully updated ${successAscensions.length} tests.`);
@@ -106,86 +110,98 @@ export default function AscensionProcessingTable({ }) {
 		}
 	};
 
+	
+	const columns = [
+		{
+			Header: '#',
+			accessor: 'checkbox',
+			Cell: ({ row }) => (
+				<input
+					type="checkbox"
+					checked={bulkselection.some(item => item.ascensionid === row.original.ascensionid)}
+					onChange={() => toggleRowSelected(row.original.ascensionid)}
+				/>
+			),
+			width: '2%',
+			style: { fontSize: '15px' },
+		},
+		{
+			Header: 'Ascension Date',
+			accessor: 'ascension_date',
+			Cell: ({ value }) => new Date(value).toLocaleDateString(),
+		},
+		{
+			Header: 'CustomerId',
+			accessor: 'fullpatientid',
+		},
+		{
+			Header: 'BillID',
+			accessor: 'billingid',
+		},
+		{
+			Header: 'Name',
+			accessor: 'fullname',
+			Cell: ({ value }) => <span className="text-uppercase fw-bold">{value}</span>,
+		},
+		{
+			Header: 'Age',
+			accessor: 'age',
+		},
+		{
+			Header: 'Test Name',
+			accessor: 'name',
+		},
+		{
+			Header: 'Timing',
+			accessor: 'timing',
+			Cell: ({ row }) => fnTiming(row.original),
+		},
+		{
+			Header: 'Action',
+			accessor: 'actions',
+			Cell: ({ row }) => (
+				<ProcessingButtons
+					BulkTargetTo={currentBulkStatus.target}
+					action={currentBulkStatus.action}
+					item={row.original}
+					updateTestCollectionAfterUpdate={updateTestCollectionAfterUpdate}
+					employeeid={employeeid}
+				/>
+			),
+		},
+	];
+
+
+	if (isLoading) return <div>Loading .......................</div>;
+
 	return (
-		<div className="container-fluid bg-body-secondary p-2 shadow mx-2 br-5">
+		<div className="">
 			<div className="my-1 d-flex justify-content-between">
-				<select
-					value={queryParams.count}
-					onChange={(ev) => { setQueryParams({ ...queryParams, count: ev.target.value }) }}
-					className="custom-select col-1"
-				>
-					<option value={5}>5</option>
-					<option value={10}>10</option>
-					<option value={15}>15</option>
-					<option value={20}>20</option>
-					<option value={25}>25</option>
-					<option value={30}>30</option>
-					<option value={35}>35</option>
-					<option value={40}>40</option>
-					<option value={45}>45</option>
-					<option value={50}>50</option>
-				</select>
 				<div>
-					<button onClick={() => { selectAllAscension() }} className="btn btn-light btn-sm">
+					<button onClick={() => { selectAllAscension() }} className="btn btn-light btn-sm" aria-label={selectstatus ? 'Unselect all' : 'Select all'}>
 						<SelectAll /> {selectstatus ? 'Unselect all' : 'Select all'}
 					</button>
-					<button onClick={() => { bulkProcessingUpdate('start') }} className="btn btn-light btn-sm mx-2">
+					<button onClick={() => { bulkProcessingUpdate('start') }} className="btn btn-light btn-sm mx-2" aria-label="Start selected">
 						<Start /> Start selected
 					</button>
-					<button onClick={() => { bulkProcessingUpdate('stop') }}  className="btn btn-light btn-sm mx-2">
+					<button onClick={() => { bulkProcessingUpdate('stop') }} className="btn btn-light btn-sm mx-2" aria-label="Stop selected">
 						<Stop /> Stop selected
 					</button>
 				</div>
 			</div>
-			<table className="table text-sm">
-				<thead>
-					<tr>
-						<th style={{ width: '2%', fontSize: '15px' }} className="">#</th>
-						<th>Ascension Date</th>
-						<th>CustomerId</th>
-						<th>BillID</th>
-						<th>Name</th>
-						<th>Age</th>
-						<th>Test Name</th>
-						<th>Timing</th>
-						<th>Action</th>
-					</tr>
-				</thead>
-				<tbody className="table-sm">
-					{
-						collection.map((item) => (
-							<tr key={item.ascensionid}
-								className={`${item.clientstatus === "urgent" ? "table-danger" : 'table-white'}`}>
-								<td>
-									<input
-										checked={bulkselection.some(selectedItem => selectedItem.ascensionid === item.ascensionid)}
-										onChange={() => addToBulkSelection(item)}
-										type="checkbox"
-									/>
-								</td>
-								<td>{new Date(item.ascension_date).toLocaleDateString()}</td>
-								<td>{item.patientid}</td>
-								<td>{item.billingid}</td>
-								<td className="text-uppercase fw-bold">{item.fullname}</td>
-								<td>{item.age}</td>
-								<td>{item.name}</td>
-								<td>{fnTiming(item)}</td>
-								<ProcessingButtons
-									BulkTargetTo={currentBulkStatus.target}
-									action={currentBulkStatus.action}
-									item={item}
-									updateTestCollectionAfterUpdate={updateTestCollectionAfterUpdate}
-									employeeid={employeeid}
-								/>
-							</tr>
-						))
-					}
-				</tbody>
-			</table>
-			<div className="d-flex justify-content-center">
-				<Pagination page={queryParams.page} updateFunction={updatePageValue} load={setLoadPage} />
-			</div>
+			<PrimeTable
+				column={columns}
+				data={collection}
+				filtering={false}
+				urlparams={{
+					_dateFrom: queryParams._dateFrom,
+					searchString: queryParams.searchString,
+					_dateEnd: queryParams._dateEnd,
+					isUltrasound: queryParams.isUltrasound,
+					 employeeid, ascension_stage: 'PROCESSING'
+				}}
+				handleSeverSideProcessing={handleServerSideProcessingAscensionData}
+				serverSideFiltering={true} />
 		</div>
 	);
 }
-

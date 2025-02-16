@@ -11,7 +11,7 @@ export default function ValidatedResult() {
           <div className="p-2 container-fluid">
                <LaboratoryStagesProvider>
                     <LaboratoryAscensionStages employeeid={user?.employeeid} ascension_stage={'VALIDATED'} />
-                    <ValidatedResultTable />
+                    <ValidatedResultTable  employeeid={user?.employeeid}/>
                </LaboratoryStagesProvider>
           </div>
      )

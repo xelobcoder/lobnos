@@ -2,7 +2,7 @@ import moment from "moment";
 import { customFetch } from "../../Auth/customFetch";
 import { Start, Stop } from "@mui/icons-material";
 
-const formatDate = (date) => {
+export const formatDate = (date) => {
        return new Date(date).toISOString().split('T')[0];
 };
 

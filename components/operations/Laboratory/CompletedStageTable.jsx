@@ -1,45 +1,20 @@
-import React, { useMemo, useState } from "react";
-import { Info } from "@mui/icons-material";
 import { PrepareResultEntryHeader } from "../../Auth/customFetch";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
-import Pagination from "../../accessories/pagination";
 import { fnTiming } from "./Lib";
-import {
-	useTable,
-	useSortBy,
-	useFilters,
-	useRowSelect,
-	useFlexLayout,
-} from "react-table";
 import { Dropdown } from 'react-bootstrap';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import SortAscendingIcon from '@mui/icons-material/ArrowUpward';
-import SortDescendingIcon from '@mui/icons-material/ArrowDownward';
-import ShowTableCount from "./ShowCountTable";
-import FilterIcon from "./FilterIcon";
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
 
 export default function AscentionCompletedTable() {
 	const {
 		isLoading,
 		collection,
-		// queryParams,
-		// setLoadPage,
-		// setQueryParams,
-		// canloadPage,
-		// updatePageValue,
 	} = useLaboratoryContext();
 
 
 	const columns = [
-		{
-			Header: '#',
-			accessor: '',
-			Cell: ({ row }) => <input type="checkbox"  />,
-			width: 20,
-		},
 		{
 			Header: 'Ascension Date',
 			accessor: 'ascension_date',
@@ -108,17 +83,10 @@ export default function AscentionCompletedTable() {
 
 	return (
 		<div className="container-fluid p-2">
-			<button
-				className="btn btn-light btn-sm mb-2"
-				onClick={() => {
-					const allSelected = rows.length === Object.keys(tableInstance.state.selectedRowIds).length;
-					toggleAllRowsSelected(!allSelected);
-				}}
-			>
-				Select All
-			</button>
-
-			<PrimeTable column={columns} data={collection} serverSideFiltering={true} />
+			<PrimeTable column={columns}
+				data={collection}
+				handleSeverSideProcessing={null}
+				serverSideFiltering={true} />
 		</div>
 	);
 }

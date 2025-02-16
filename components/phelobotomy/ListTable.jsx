@@ -1,21 +1,11 @@
 import React from "react";
 import PrimeTable from "../accessories/Datatables/PrimeTable";
-import { customFetch } from "../Auth/customFetch";
+import { handleSeverSideProcessingPhelobotomy } from "../serverActions/ActionFiltering";
+
 
 export default function ListTable({ data, handleCollectSample, receive }) {
 
-	const getPhelobotomy = async (page, count) => {
-		try {
-			const result = await customFetch(`test/ascension/pendingCases?count=${count}&&page=${page}`);
-			if (Array.isArray(result)) {
-				return { result, err: false };
-			}
-			return { result: [], err: false };
-		} catch (error) {
-			console.error(error);
-			return { result: [], err: true };
-		}
-	};
+	
 
 	const columns = [
 		{
@@ -63,15 +53,12 @@ export default function ListTable({ data, handleCollectSample, receive }) {
 	]
 
 
-	const handleSeverSideProcessing = async (pagination) => {
-		const { count, page } = pagination;
-		return await getPhelobotomy(page, count);
-}
+	
 
 	return (
 		<div>
 			<PrimeTable column={columns}
-				handleSeverSideProcessing={handleSeverSideProcessing}
+				handleSeverSideProcessing={handleSeverSideProcessingPhelobotomy}
 				data={data} filtering={false} serverSideFiltering={true} />
 		</div>
 	);

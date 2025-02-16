@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { ListGroup } from 'react-bootstrap';
-import Pagination from '../../accessories/pagination';
 import { useMediaQuery } from 'react-responsive';
 import Loader from '../../accessories/Loader';
-import { useRouter } from 'next/navigation';
 import { generateRandomTextAndNumbers } from '../../Auth/customFetch';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
+import { handleServerSideProcessingAscensionData } from '../../serverActions/ActionFiltering';
 
 const Print = (
      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
@@ -55,14 +54,13 @@ const MobileDataDisplay = ({ data, handleResult }) => {
      );
 };
 
-export default function ValidatedResultTable() {
-     const { isLoading, collection, queryParams, setQueryParams, setLoadPage, canloadPage, updatePageValue, setCollection } = useLaboratoryContext();
+export default function ValidatedResultTable({ employeeid }) {
+     const { isLoading, collection, queryParams, setQueryParams } = useLaboratoryContext();
      const [isClient, setIsClient] = useState(false);
-     const router = useRouter()
-          ;
+
      const viewResultHandler = (item, multiple = false) => {
 
-          const { testid, name, patientid, department, ascensionid, billingid } = item
+          const { testid, name, patientid, ascensionid, billingid } = item
           const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
           const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
 
@@ -80,7 +78,7 @@ export default function ValidatedResultTable() {
      const columns = [
           {
                Header: 'Patient ID',
-               accessor: 'patientid'
+               accessor: 'fullpatientid'
           },
           {
                Header: 'Full Name',
@@ -153,11 +151,18 @@ export default function ValidatedResultTable() {
                {isClient && (isMobile ? (
                     <MobileDataDisplay data={collection} handleResult={viewResultHandler} />
                ) : (
-                    <PrimeTable column={columns} data={collection} />
+                    <PrimeTable column={columns} data={collection}
+                         urlparams={{
+                              _dateFrom: queryParams._dateFrom,
+                              searchString: queryParams.searchString,
+                              _dateEnd: queryParams._dateEnd,
+                              isUltrasound: queryParams.isUltrasound,
+                              employeeid, ascension_stage: 'VALIDATED'
+                         }}
+                         serverSideFiltering={true}
+                         handleSeverSideProcessing={handleServerSideProcessingAscensionData}
+                    />
                ))}
-               <div className='d-flex justify-content-center'>
-                    <Pagination page={queryParams.page} load={setLoadPage} updateFunction={updateValue} />
-               </div>
           </div>
      );
 }

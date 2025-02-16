@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import { links } from "./PrimeLinks";
 import Link from "next/link";
+import { useApplicationSettings } from "../Auth/useApplicationContext";
+
 
 
 interface SubLink {
@@ -40,6 +42,7 @@ interface Styles {
 const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
     const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
     const [expandedMenus, setExpandedMenus] = useState<Record<number, boolean>>({});
+    const { company } = useApplicationSettings().applicationsettings;
 
     const toggleSidebar = () => {
         setIsCollapsed(!isCollapsed);
@@ -54,6 +57,18 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
             [index]: !prevState[index],
         }));
     };
+
+
+    const abbraviatedName = (name: string) => {
+        if (!name) return;
+        return name.split(" ").map((a, i) => a.split("")[0]).join(".")
+    }
+
+
+
+
+
+
 
     const styles: Styles = {
         page: {
@@ -79,6 +94,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
         companyName: {
             textAlign: "center",
             fontWeight: "bold",
+            borderRadius: '5px',
             marginBottom: "10px",
             fontSize: isCollapsed ? "20px" : "auto",
         },
@@ -150,13 +166,13 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
         <div style={styles.page}>
             <div style={styles.sidebar}>
                 <div style={styles.companyName}>
-                    {isCollapsed ? "C.N." : "Company Name"}
+                    {isCollapsed ? abbraviatedName(company) : company}
                 </div>
                 <button style={styles.toggleButton} onClick={toggleSidebar}>
                     {isCollapsed ? ">" : "<"}
                 </button>
                 <div style={styles.menu}>
-                    {Array.isArray(links) &&links.map((link, index) => (
+                    {Array.isArray(links) && links.map((link, index) => (
                         <div key={index}>
                             <div
                                 style={{

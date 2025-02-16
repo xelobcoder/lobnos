@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import SampleAssessmentModal from '../accessories/SampleAssessmentModal/SampleAssessmentModal';
 import PrimeTable from '../accessories/Datatables/PrimeTable';
+import { handleServerSideProcessingSampleValidation } from '../serverActions/ActionFiltering';
 
 export default function SampleValidationComponent({ data: initialData }) {
 	const [data, setData] = useState(initialData);
@@ -57,7 +58,7 @@ export default function SampleValidationComponent({ data: initialData }) {
 	];
 
 	return (
-		<div className="container mx-2 text-sm">
+		<div className="pls-color text-sm">
 			<h6 className='p-3 bg-secondary-subtle br-5'>Sample Validation</h6>
 			<div className="col-sm-12 col-md-6 col-lg-4 col-xl-3">
 				{data.length > 0 && (
@@ -68,7 +69,9 @@ export default function SampleValidationComponent({ data: initialData }) {
 			</div>
 			<div className="my-2">
 				<section>
-					<PrimeTable column={columns} data={data} filtering={false} serverSideFiltering={true} />
+					<PrimeTable column={columns}
+						handleSeverSideProcessing={handleServerSideProcessingSampleValidation}
+						data={data} filtering={false} serverSideFiltering={true} />
 				</section>
 			</div>
 			<SampleAssessmentModal

@@ -1,24 +1,10 @@
 "use client"
-import { customFetch, parseDate } from "../../components/Auth/customFetch";
+import { parseDate } from "../../components/Auth/customFetch";
+import { plsEncryption } from "../../lib/encryption";
 import PrimeTable from "../accessories/Datatables/PrimeTable";
+import { handleSeverSideProcessingRejectedSample } from "../serverActions/ActionFiltering";
 
 export default function RejectedSamplesComponent({ data }) {
-
-	const handleSeverSideProcessing = async (pagination) => {
-		try {
-			const { page, count } = pagination;
-			const response = await customFetch(`rejected/sample/list?count=${count}&&page=${page}`);
-			const { result } = response;
-
-			if (result && Array.isArray(result)) {
-				return { result, err: false }
-			}
-			return { result: [], err: false }
-		} catch (err) {
-			return { result: false, err: true }
-		}
-	}
-
 
 	const columns = [
 		{ Header: 'fullname', accessor: 'fullname', Cell: ({ value }) => <div className="text-capitalize">{value}</div> },
@@ -39,15 +25,15 @@ export default function RejectedSamplesComponent({ data }) {
 			Header: 'actions', accessor: '', Cell: ({ row }) => {
 				const item = row.original;
 				return (
-					<span>
-						<button className="btn btn-sm btn-secondary"
+					<div className="d-flex justify-content-between pls-color">
+						<button className="btn btn-sm btn-secondary pls-color"
 							onClick={() => {
-								window.open(`/sample/rejected/history?ascensionid=${item.ascensionid}`)
+								window.open(`/operations/laboratory/sample/rejected/history?ascensionid=${plsEncryption(item.ascensionid.toString())}`)
 							}}>
 							history
 						</button>
-						<button className="btn btn-sm btn-warning mx-1">redraw</button>
-					</span>
+						<button className="btn btn-sm btn-warning mx-1 pls-color">redraw</button>
+					</div>
 				)
 			}
 		}
@@ -58,7 +44,7 @@ export default function RejectedSamplesComponent({ data }) {
 		<>
 			<h6>Rejected Sample List</h6>
 			<section className="ui">
-				<PrimeTable column={columns} data={data} filtering={false} serverSideFiltering={true} handleSeverSideProcessing={handleSeverSideProcessing}/>
+				<PrimeTable column={columns} data={data} filtering={false} serverSideFiltering={true} handleSeverSideProcessing={handleSeverSideProcessingRejectedSample}/>
 			</section>
 		</>
 	)

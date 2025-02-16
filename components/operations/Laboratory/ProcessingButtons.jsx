@@ -32,7 +32,7 @@ export default function ProcessingButtons({ item, employeeid, updateTestCollecti
 
        }
 
-       return (<td>
+       return (
               <div >
                      <button
                             disabled={item.processingStartDate}
@@ -47,5 +47,5 @@ export default function ProcessingButtons({ item, employeeid, updateTestCollecti
                             {(subStop || (BulkTargetTo == item.ascensionid && action === "stop")) && <Spinner size="sm" />} <Stop /> stop
                      </button>
               </div>
-       </td>)
+       )
 }
