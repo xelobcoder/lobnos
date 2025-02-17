@@ -1,20 +1,17 @@
-import React, { useMemo, useState } from "react";
-import { useTable, useGroupBy, useExpanded, useSortBy, useFilters, useRowSelect, useFlexLayout } from "react-table";
+import React, { useState } from "react";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
-import Pagination from "../../accessories/pagination";
-import ShowTableCount from "./ShowCountTable";
 import { printResultNavigator } from "../../Auth/customFetch";
 import { useRouter } from "next/navigation";
 import ActionDropdown from "./ActionAscensionTables";
-import FilterIcon from "./FilterIcon";
 import { useMediaQuery } from 'react-responsive';
 import { SelectAll } from "@mui/icons-material";
 import ValidationModal from "./ValidationModal";
-import { getValidationColumns } from "./validationColumns";
-import ValidationMobile from "./validationMobile";
+import PrimeTable from "../../accessories/Datatables/PrimeTable";
+import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
+import moment from "moment";
 
-export default function ValidationAscensionTable() {
-	const { isLoading, collection, queryParams, setQueryParams, setLoadPage, canloadPage, updatePageValue, setCollection } = useLaboratoryContext();
+export default function ValidationAscensionTable({ employeeid }) {
+	const { isLoading, collection, queryParams, setCollection } = useLaboratoryContext();
 	const router = useRouter();
 	const isMobile = useMediaQuery({ maxWidth: 768 });
 
@@ -22,8 +19,7 @@ export default function ValidationAscensionTable() {
 	const [selectedAscension, setSelectedAscension] = useState(null);
 
 	const [visibleTimelines, setVisibleTimelines] = useState({});
-	const [currentColumn, setCurrentColumn] = useState(null);
-	const [filterValue, setFilterValue] = useState('');
+
 
 	const viewResultHandler = (item) => {
 		printResultNavigator(router, item.billingid, { ...item, testid: item.id }, true);
@@ -43,43 +39,40 @@ export default function ValidationAscensionTable() {
 		}
 	};
 
-	const columns = useMemo(() => getValidationColumns(viewResultHandler, ActionDropdown, handleActionClick), []);
-	const data = useMemo(() => collection, [collection]);
-
-	const tableInstance = useTable(
+	const columns = [
+		{ Header: "Fullname", accessor: "fullname", width: 150, Cell: ({ value, row }) => <div className="text-uppercase">{value}<br />{row.original.age}</div> },
+		{ Header: "Patient ID", accessor: "fullpatientid", width: 60 },
+		{ Header: "Test Name", accessor: "name", width: 150 },
+		{ Header: "Processing", accessor: "processing", width: 150 },
 		{
-			columns: useMemo(() => columns, [columns]),
-			data: useMemo(() => data, [data]),
-			initialState: { groupBy: ["billingid"] }
+			Header: "Results",
+			accessor: "results",
+			width: 150,
+			Cell: ({ row }) => (
+				<div className="list-group p-0 bg-secondary-subtle">
+					<span className="list-group-item p-0" key={`start-${row.original.patientid}`}>
+						{moment(row.original.resultEntryStart).format("LLLL")}
+					</span>
+					<span className="list-group-item p-0" key={`end-${row.original.patientid}`}>
+						{moment(row.original.resultEntryEnd).format("LLLL")}
+					</span>
+				</div>
+			),
 		},
-		useFilters,
-		useGroupBy,
-		useSortBy,
-		useExpanded,
-		useRowSelect,
-		useFlexLayout
-	);
-
-	const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow, setFilter } = tableInstance;
-
-	const handleClick = (column) => {
-		setCurrentColumn(column);
-	};
-
-	const handleFilterApply = () => {
-		if (currentColumn) {
-			setFilter(currentColumn.id, filterValue || undefined);
+		{
+			Header: "Action",
+			accessor: "action",
+			width: 50,
+			Cell: ({ row }) => (
+				<ActionDropdown
+					onValidate={() => handleActionClick(row.original)}
+					onViewResult={() => viewResultHandler(row.original)}
+				/>
+			),
 		}
-		setCurrentColumn(null);
-	};
+	];
 
-	const handleFilterRemove = () => {
-		if (currentColumn) {
-			setFilter(currentColumn.id, undefined);
-		}
-		setCurrentColumn(null);
-		setFilterValue('');
-	};
+
 
 	const toggleTimeline = (rowId) => {
 		setVisibleTimelines((prev) => ({ ...prev, [rowId]: !prev[rowId] }));
@@ -89,22 +82,11 @@ export default function ValidationAscensionTable() {
 		return <div className="p-2 text-center heightedBorder bg-secondary-subtle">Loading...</div>;
 	}
 
-	if (collection.length === 0) {
-		return !canloadPage ? (
-			<div className="p-3 alert col-3 alert-info text-sm">No Records Found</div>
-		) : (
-			<div className="d-flex justify-content-center">
-				<Pagination page={queryParams.page} updateFunction={updatePageValue} load={setLoadPage} />
-			</div>
-		);
-	}
+
 
 	return (
-		<div className="mx-2 br-5" style={{ overflowX: 'auto' }}>
+		<div >
 			<div className="d-flex justify-content-between">
-				<div className="col-10">
-					<ShowTableCount queryParams={queryParams} setQueryParams={setQueryParams} />
-				</div>
 				<button
 					className="btn btn-light btn-sm"
 					onClick={() => {
@@ -116,77 +98,20 @@ export default function ValidationAscensionTable() {
 					{isMobile ? <SelectAll titleAccess="select and unselect all ascensions" /> : "Select All"}
 				</button>
 			</div>
-
-			{isMobile ? (
-				<ValidationMobile
-					rows={rows}
-					visibleTimelines={visibleTimelines}
-					viewResultHandler={viewResultHandler}
-					ActionDropdown={ActionDropdown}
-					prepareRow={prepareRow}
-					openModal={handleActionClick}
-					toggleTimeline={toggleTimeline}
-				/>
-			) : (
-				<div className="bg-body-secondary shadow">
-					<table {...getTableProps()} className="table text-sm">
-						<thead>
-							{headerGroups.map((headerGroup, v) => (
-								<tr {...headerGroup.getHeaderGroupProps()} key={v}>
-									{headerGroup.headers.map((column, headerIndex) => (
-										<th  {...column.getHeaderProps()} key={headerIndex}>
-											<div className="header-content d-flex justify-content-between   align-items-center">
-												{column.render("Header")}
-												{column.id !== 'selection' && (
-													<button onClick={() => handleClick(column)} className="btn btn-link p-0">
-														<FilterIcon />
-													</button>
-												)}
-											</div>
-											{currentColumn === column && (
-												<div className="dropdown-menu show">
-													<button className="dropdown-item fw-bold text-sm" onClick={() => column.toggleSortBy(true)}>Sort Asc</button>
-													<button className="dropdown-item fw-bold text-sm" onClick={() => column.toggleSortBy(false)}>Sort Desc</button>
-													<div className="dropdown-item fw-bold text-sm">
-														<input
-															type="text"
-															value={filterValue}
-															onChange={(e) => setFilterValue(e.target.value)}
-															placeholder="Type to filter..."
-														/>
-													</div>
-													<button className="dropdown-item" onClick={handleFilterApply}>Apply</button>
-													<button className="dropdown-item" onClick={handleFilterRemove}>Remove Filter</button>
-												</div>
-											)}
-										</th>
-									))}
-								</tr>
-							))}
-
-						</thead>
-						<tbody {...getTableBodyProps()}>
-							{rows.map((row) => {
-								prepareRow(row);
-								return (
-									<tr {...row.getRowProps()} key={row.getRowProps().key}>
-										{row.cells.map(cell => (
-											<td {...cell.getCellProps()} key={cell.getCellProps().key}>{cell.render("Cell")}</td>
-										))}
-									</tr>
-								);
-							})}
-						</tbody>
-					</table>
-				</div>
-			)}
+			<PrimeTable column={columns} data={collection}
+				urlparams={{
+					_dateFrom: queryParams._dateFrom,
+					searchString: queryParams.searchString,
+					_dateEnd: queryParams._dateEnd,
+					isUltrasound: queryParams.isUltrasound,
+					employeeid, ascension_stage: 'VALIDATION'
+				}}
+				serverSideFiltering={true}
+				handleSeverSideProcessing={handleServerSideProcessingAscensionData}
+			/>
 			{isValidationModalOpened && (
 				<ValidationModal show={isValidationModalOpened} onClose={handleCloseModal} selectedAscension={selectedAscension} />
 			)}
-
-			<div className="d-flex justify-content-center">
-				<Pagination page={queryParams.page} updateFunction={updatePageValue} load={setLoadPage} />
-			</div>
 		</div>
 	);
 }

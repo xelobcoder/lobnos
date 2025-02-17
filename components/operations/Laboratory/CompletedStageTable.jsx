@@ -6,11 +6,13 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
+import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
 
-export default function AscentionCompletedTable() {
+export default function AscentionCompletedTable({employeeid}) {
 	const {
 		isLoading,
 		collection,
+		queryParams
 	} = useLaboratoryContext();
 
 
@@ -36,7 +38,7 @@ export default function AscentionCompletedTable() {
 			accessor: 'patientid',
 			Cell: ({ row }) => (
 				<div>
-					{row.original.patientid} <br />
+					{row.original.fullpatientid} <br />
 					{row.original.billingid}
 				</div>
 			),
@@ -85,7 +87,14 @@ export default function AscentionCompletedTable() {
 		<div className="container-fluid p-2">
 			<PrimeTable column={columns}
 				data={collection}
-				handleSeverSideProcessing={null}
+				urlparams={{
+					_dateFrom: queryParams._dateFrom,
+					searchString: queryParams.searchString,
+					_dateEnd: queryParams._dateEnd,
+					isUltrasound: queryParams.isUltrasound,
+					employeeid, ascension_stage: 'COMPLETED'
+				}}
+				handleSeverSideProcessing={handleServerSideProcessingAscensionData}
 				serverSideFiltering={true} />
 		</div>
 	);

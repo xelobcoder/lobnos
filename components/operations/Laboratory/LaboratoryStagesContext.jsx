@@ -17,7 +17,7 @@ export function LaboratoryStagesProvider({ children }) {
               _dateEnd: null,
               searchString: '',
               page: 1,
-              count: 100,
+              count: 10,
               isUltrasound:false
        });
 

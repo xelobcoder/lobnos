@@ -194,3 +194,21 @@ export const handleServerSideProcessingSampleValidation = async ({ page, count }
 		return { result: false, err: true }
 	}
 }
+
+
+
+
+export const handlePaginationServerRejectedHistory = async (pagination) => {
+	const { count, page, branchid, ascensionid } = pagination
+	try {
+		const { data } = await customFetch(`sample/disputed/log/single?ascensionid=${ascensionid}&&branch=${branchid}&&page=${page}&&count=${count}`);
+		if (Array.isArray(data)) {
+			return { result: data, error: false }
+		}
+		return { result: [], error: false }
+	} catch (err) {
+		return { result: [], error: true }
+	}
+
+
+}

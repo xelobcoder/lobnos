@@ -1,0 +1,17 @@
+"use client"
+import LaboratoryAscensionStages from "../../../../components/operations/Laboratory/LaboratoryAscensionStages";
+import { LaboratoryStagesProvider } from "../../../../components/operations/Laboratory/LaboratoryStagesContext";
+import ValidationAscensionTable from "../../../../components/operations/Laboratory/AsensionValidationTable";
+import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
+
+export default function AscensionValidationStage() {
+	const { applicationsettings } = useApplicationSettings();
+	const { user } = applicationsettings
+
+	return (
+		<LaboratoryStagesProvider>
+			<LaboratoryAscensionStages employeeid={user?.employeeid} ascension_stage={'VALIDATION'} />
+			<ValidationAscensionTable employeeid={user?.employeeid} />
+		</LaboratoryStagesProvider>
+	)
+}
