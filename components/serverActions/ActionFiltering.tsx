@@ -4,6 +4,7 @@ import { loadOptions } from "../../lib/appointment";
 import { customFetch, customPost } from "../Auth/customFetch"
 import { plsEncryption } from "../../lib/encryption";
 import { formatDate } from "../operations/Laboratory/Lib";
+import Page from "../../app/operations/laboratory/sample/validation/page";
 export async function filteringDatabaseTables(target: string, filtering: string, column: string, limit: number) {
 	try {
 		const response = await customFetch(`application/filtering/table/${target}?value=${filtering}&&original=${column}&&limit=${limit}`);
@@ -209,6 +210,118 @@ export const handlePaginationServerRejectedHistory = async (pagination) => {
 	} catch (err) {
 		return { result: [], error: true }
 	}
+}
 
 
+export const handleServerTurnAroundTime = async (paginate) => {
+	try {
+		const { page, count } = paginate
+		const response = await customFetch(`testascension/tat-data?page=${page}&&count=${count}`);
+		if (response?.data && Array.isArray(response?.data)) {
+			return { result: response?.data, error: false }
+		}
+		return { result: [], error: true }
+	} catch (err) {
+		return { result: [], error: true }
+	}
+}
+
+
+
+
+interface FetchParams {
+	testid: string;
+	billingid: string;
+	patientid: string;
+}
+
+
+export const getResultEntryDataServerSide = async ({
+	testid,
+	billingid,
+	patientid,
+}: FetchParams): Promise<[resultResponse: any, commentsResponse: any]> => {
+	const commentsUrl = `testpanel/list/customtestrule/previous/comments?testid=${testid}&csvid=${billingid}&ptid=${patientid}`;
+	const testResultUrl = `testpanel/list/customtestrule/previous?testid=${testid}&ptid=${patientid}&csvid=${billingid}`;
+
+	const [commentsResponse, resultResponse] = await Promise.all([
+		customFetch(commentsUrl),
+		customFetch(testResultUrl),
+	]);
+
+	return [resultResponse, commentsResponse];
+};
+
+
+
+
+interface FetchParams {
+	billingid: string;
+	ascensionid: string;
+	testid: string;
+	patientid: string;
+}
+
+export const getAscensionEditCountServerideS = async ({
+	billingid,
+	ascensionid,
+	testid,
+	patientid,
+}: FetchParams): Promise<number | undefined> => {
+	try {
+		const result = await customFetch(
+			`ascension/edit/count?csvid=${billingid}&ascensionid=${ascensionid}&testid=${testid}&ptid=${patientid}`
+		);
+		return result?.count;
+	} catch (err) {
+		console.error(err);
+		throw err;
+	}
+};
+
+
+
+
+
+
+export const buildLoginQueryServerSide = async (
+	query: QueryParams
+): Promise<FetchResult> => {
+	try {
+
+		const queryParams = new URLSearchParams({
+			count: String(query.count),
+			page: String(query.page),
+			name: query.name,
+			email: query.email,
+			role: query.role,
+			contact: query.contact,
+		});
+
+
+		const { result } = await customFetch(`logins?${queryParams.toString()}`);
+
+		if (Array.isArray(result)) {
+			return { result, error: false };
+		}
+		return { result: [], error: false };
+	} catch (err) {
+		return { result: [], error: true };
+	}
+};
+
+
+
+
+export const handleLoginHistoryServerProcessing = async (pagination: { count: number, page: number, employeeid: number }) => {
+	try {
+		const { count, page, employeeid } = pagination;
+		const data = await customFetch(`security/users/getlogin/history?page=${page}&&count=${count}&&employeeid=${employeeid}`);
+		if (Array.isArray(data)) {
+			return { result: data, error: false };
+		}
+		return { result: [], error: false };
+	} catch (err) {
+		return { result: [], error: true };
+	}
 }

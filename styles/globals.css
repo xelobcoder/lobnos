@@ -24,6 +24,37 @@
 }
 
 
+
+.timeline {
+    position: relative;
+    padding-left: 20px;
+    list-style: none;
+}
+
+.timeline-event {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-event::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #007bff;
+}
+
+.timeline-content {
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+
 input[type='checkbox'] {
     /* appearance: none; */
   width:18px;
@@ -1510,39 +1541,6 @@ body {
 
 
 
-
-.result-entry-layout{
-  display: grid;
-  grid-template-columns: 20% 80%;
-  height: 100vh;
-  background-color: white;
-  margin: 0;
-  padding: 0;
-}
-
-
-.result-entry-layout,.result-entry-sidebar,.patient-filtering,.result-entry-wrapper,.result-test-collection{
-   border: 1px solid lightgray !important;
-   border-collapse: collapse;
-}
-.result-entry-sidebar{
-  display: grid;
-  grid-template-rows: 20% 80%;
-}
-
-
-.result-entry-layout > .patient-data >.pt-content {
-  padding: 10px;
-}
-.patient-filtering > .pt-filtering-content {
-  display: grid;
-  grid-template-columns: 80% 20%;
-  padding: 10px;
-}
-
-.result-entry-layout > .result-entry-sidebar > .result-test-collection  {
-  overflow-y: auto;
-}
 
 .pls-label {
   font-size: 14px !important;

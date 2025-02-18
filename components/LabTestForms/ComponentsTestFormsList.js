@@ -1,4 +1,4 @@
-import CreateTestRule from './testrule.js';
+import CreateTestRule from './testrule';
 
 export const getTestComponent = function () { 
   return CreateTestRule;

@@ -6,15 +6,15 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 	return (
 		<section>
 			<div className="table-responsive my-2">
-				<table theme='dark' className="table billing-cart-table table-bordered">
-					<thead>
+				<table theme='dark' className="table billing-cart-table table-bordered table-sm ">
+					<thead className="text-sm">
 						<tr>
-							<th className="fw-bold text-capitalize">Parameter</th>
-							<th className="fw-bold text-capitalize">Value</th>
-							<th className="fw-bold text-capitalize">Unit</th>
-							<th className="fw-bold text-capitalize">Reference Range</th>
-							<th className="fw-bold text-capitalize d-none d-md-table-cell">Mode</th>
-							<th className="fw-bold text-capitalize d-none d-md-table-cell">Constraints</th>
+							<th className="fw-bold text-capitalize text-sm">Parameter</th>
+							<th className="fw-bold text-capitalize text-sm">Value</th>
+							<th className="fw-bold text-capitalize text-sm">Unit</th>
+							<th className="fw-bold text-capitalize text-sm">Reference Range</th>
+							<th className="fw-bold text-capitalize text-sm d-none d-md-table-cell">Mode</th>
+							<th className="fw-bold text-capitalize text-sm d-none d-md-table-cell">Constraints</th>
 						</tr>
 					</thead>
 					<tbody>
