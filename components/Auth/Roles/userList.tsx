@@ -2,10 +2,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import { plsEncryption } from '../../../lib/encryption';
+import { buildLoginQueryServerSide } from '../../serverActions/ActionFiltering';
 
 
 
-export default function UserList({ users, handleDelete, activateUser, updateRefresh }) {
+export default function UserList({ users, handleDelete, activateUser, updateRefresh, filters }) {
 	const navigateTo = useRouter();
 
 	const columns = [
@@ -89,7 +90,10 @@ export default function UserList({ users, handleDelete, activateUser, updateRefr
 
 	return (
 		<div>
-			<PrimeTable column={columns} data={users} serverSideFiltering={true} filtering={false} handleSeverSideProcessing={null} />
+			<PrimeTable column={columns} data={users}
+				serverSideFiltering={true}
+				urlparams={filters}
+				filtering={false} handleSeverSideProcessing={buildLoginQueryServerSide} />
 		</div>
 	)
 }

@@ -47,8 +47,8 @@ export default function ApplicationUsersPage({ users }) {
 
 	return (
 		<div className='container-fluid'>
-			<div className='d-flex justify-content-between'>
-				<h4>Employee List</h4>
+			<div className='d-flex justify-content-between pls-label'>
+				<h4 className=' bg-secondary-subtle p-2 br-5 pls-label'>Employee List</h4>
 				{!advanced &&
 					<button onClick={(ev) => { setAdvanced(true) }} className='btn btn-secondary btn-sm'>
 						Advanced filtering
@@ -97,6 +97,7 @@ export default function ApplicationUsersPage({ users }) {
 				handleDelete={handleDelete}
 				activateUser={activateInstitutionUser}
 				updatePage={updatePage}
+				filters={filters}
 				showfiltering={advanced}/>
 		</div>
 	)
