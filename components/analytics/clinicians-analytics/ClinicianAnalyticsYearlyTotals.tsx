@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { currencyFormatter, customFetch } from '../../Auth/customFetch';
+import { currencyFormatter, customFetch, reactSelectCustomStyles } from '../../Auth/customFetch';
 import { useRouter } from 'next/navigation';
 import Select from 'react-select';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
@@ -137,6 +137,7 @@ const ClinicianAnalyticsYearlyComparison: React.FC<ClinicianAnalyticsYearlyCompa
                         options={metricOptions}
                         value={selectedMetric}
                         onChange={(option) => setSelectedMetric(option as MetricOption)}
+                        styles={reactSelectCustomStyles}
                         isSearchable={false}
                         className="react-select-container"
                         classNamePrefix="react-select"

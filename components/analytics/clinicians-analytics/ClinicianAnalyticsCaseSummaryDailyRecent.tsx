@@ -1,9 +1,10 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { customFetch } from '../../Auth/customFetch';
+import { customFetch, reactSelectCustomStyles } from '../../Auth/customFetch';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Select from 'react-select';
 import { format } from 'date-fns';
+import { ClinicianAnalyticsCaseSummaryDailyServerSide } from '../../serverActions/ActionFiltering';
 
 interface DailyCaseSummary {
     date: string;
@@ -35,28 +36,35 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
     }));
 
     useEffect(() => {
-        const fetchDailyData = async () => {
-            setLoading(true);
-            try {
-                const response = await customFetch(
-                    `clinician/anal/case-summary/daily/${clinicianId}?year=${selectedYear.value}`
-                );
-                if (response?.success) {
-                    const sortedData = response.data.sort((a: DailyCaseSummary, b: DailyCaseSummary) =>
-                        new Date(a.date).getTime() - new Date(b.date).getTime()
-                    );
-                    setDailyData(sortedData);
-                } else {
-                    setError('Failed to fetch data');
-                }
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'An unknown error occurred');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchDailyData();
+        // const fetchDailyData = async () => {
+        //     setLoading(true);
+        //     try {
+        //         const response = await customFetch(
+        //             `clinician/anal/case-summary/daily/${clinicianId}?year=${selectedYear.value}`
+        //         );
+        //         if (response?.success) {
+        //             const sortedData = response.data.sort((a: DailyCaseSummary, b: DailyCaseSummary) =>
+        //                 new Date(a.date).getTime() - new Date(b.date).getTime()
+        //             );
+        //             setDailyData(sortedData);
+        //         } else {
+        //             setError('Failed to fetch data');
+        //         }
+        //     } catch (err) {
+        //         setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        //     } finally {
+        //         setLoading(false);
+        //     }
+        // };
+        setLoading(true)
+        ClinicianAnalyticsCaseSummaryDailyServerSide(clinicianId, selectedYear.value)
+            .then((data) => {
+                setDailyData(data)
+                setLoading(false)
+            }).catch((err) => {
+                setDailyData([])
+                setLoading(false)
+            })
     }, [clinicianId, selectedYear.value]);
 
     if (loading) return (
@@ -149,6 +157,7 @@ const ClinicianAnalyticsCaseSummaryDaily: React.FC<ClinicianAnalyticsCaseSummary
                         value={selectedYear}
                         onChange={(option) => setSelectedYear(option as { value: number; label: string })}
                         isSearchable={false}
+                        styles={reactSelectCustomStyles}
                         className="react-select-container"
                         classNamePrefix="react-select"
                     />

@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { currencyFormatter, customFetch } from '../../Auth/customFetch';
+import { currencyFormatter, customFetch, reactSelectCustomStyles } from '../../Auth/customFetch';
 import { useRouter } from 'next/navigation';
 import {
     BarChart,
@@ -136,6 +136,7 @@ const ClinicianAnalyticsMonthlyTotals: React.FC<ClinicianAnalyticsMonthlyTotalsP
                         value={selectedYear}
                         onChange={(option) => setSelectedYear(option as { value: number; label: string })}
                         isSearchable={false}
+                          styles={reactSelectCustomStyles}
                         className="react-select-container"
                         classNamePrefix="react-select"
                     />

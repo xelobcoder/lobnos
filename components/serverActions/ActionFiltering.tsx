@@ -325,3 +325,26 @@ export const handleLoginHistoryServerProcessing = async (pagination: { count: nu
 		return { result: [], error: true };
 	}
 }
+
+
+
+export const ClinicianAnalyticsCaseSummaryDailyServerSide = async (clinicianId: number, year: number) => {
+	try {
+		const response = await customFetch(
+			`clinician/anal/case-summary/daily/${clinicianId}?year=${year}`
+		);
+		if (response?.success) {
+			if (response?.data && Array.isArray(response?.data)) {
+				const sortedData = response.data.sort((a, b) =>
+					new Date(a.date).getTime() - new Date(b.date).getTime()
+				);
+				return sortedData
+			}
+			return []
+		} else {
+			return []
+		}
+	} catch (err) {
+		return []
+	}
+};
