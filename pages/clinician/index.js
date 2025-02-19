@@ -43,80 +43,37 @@ const ActionButtons = ({ original, onEdit, onView, onDelete }) => {
 				anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
 			>
 				<MenuItem
+					className=" pls-label"
 					onClick={() => { onEdit(original); handleClose(); }}
-					sx={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '8px',
-						padding: '8px 16px',
-						'&:hover': {
-							backgroundColor: '#f5f5f5',
-						},
-					}}
 				>
 					<Edit sx={{ fontSize: '18px', color: '#2196F3' }} />
 					<Typography variant="body2" sx={{ color: '#333' }}>Edit</Typography>
 				</MenuItem>
 				<MenuItem
+					className=" pls-label"
 					onClick={() => { onView(original); handleClose(); }}
-					sx={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '8px',
-						padding: '8px 16px',
-						'&:hover': {
-							backgroundColor: '#f5f5f5',
-						},
-					}}
+					
 				>
 					<Visibility sx={{ fontSize: '18px', color: '#4CAF50' }} />
 					<Typography variant="body2" sx={{ color: '#333' }}>View</Typography>
 				</MenuItem>
 				<MenuItem
+					className=" pls-label"
 					onClick={() => { onDelete(original); handleClose(); }}
-					sx={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '8px',
-						padding: '8px 16px',
-						'&:hover': {
-							backgroundColor: '#f5f5f5',
-						},
-					}}
+					
 				>
 					<DeleteForeverOutlined sx={{ fontSize: '18px', color: '#F44336' }} />
 					<Typography variant="body2" sx={{ color: '#333' }}>Delete</Typography>
 				</MenuItem>
 				<MenuItem
+					className=" pls-label"
 					onClick={() => { handleClose(); }}
-					sx={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '8px',
-						padding: '8px 16px',
-						'&:hover': {
-							backgroundColor: '#f5f5f5',
-						},
-					}}
+					
 				>
 					<Add />
 					<Link href={`/clinicians/billing-strategy/${original.id}?strategy=clinicians`}>
 						<Typography variant="body2" sx={{ color: '#333' }}>Create Special Billing</Typography>
 					</Link>
-				</MenuItem>
-				<MenuItem
-					onClick={() => { handleClose(); }}
-					sx={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '8px',
-						padding: '8px 16px',
-						'&:hover': {
-							backgroundColor: '#f5f5f5',
-						},
-					}}
-				>
-					<Typography variant="body2" sx={{ color: '#333' }}>Additional Action 2</Typography>
 				</MenuItem>
 			</Menu>
 		</div>
