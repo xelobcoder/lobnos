@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Spinner, Card } from 'react-bootstrap';
+import { Spinner } from 'react-bootstrap';
 import { customFetch } from '../../../Auth/customFetch';
-import style from '../../../../styles/SmsTemplateList.module.css'
+import style from '../../../../styles/SmsTemplateList.module.css';
 
 export default function PhelobotomistSummaryTable() {
     const [data, setData] = useState([]);
@@ -23,17 +23,19 @@ export default function PhelobotomistSummaryTable() {
     }, []);
 
     if (loading) {
-        return <div className="text-center">
-            <Spinner animation="border" />
-        </div>
+        return (
+            <div className="text-center">
+                <Spinner animation="border" />
+            </div>
+        );
     }
 
     return (
-        <Card className="my-2" style={{ border: 'none' }}>
-            <Card.Header className='card-header bg-secondary-subtle br-0 bg-light fw-bold'>
-                <h5 className="mb-0">Phlebotomist Summary</h5>
-            </Card.Header>
-            <Card.Body>
+        <div className="my-3" style={{ border: 'none' }}>
+            <div className=" bg-secondary-subtle br-0 p-2  pls-label bg-light =">
+                <h5 className="mb-0 pls-label">Phlebotomist Summary</h5>
+            </div>
+            <div className="card-body text-sm">
                 <table className={style.table}>
                     <thead>
                         <tr>
@@ -58,7 +60,7 @@ export default function PhelobotomistSummaryTable() {
                         ))}
                     </tbody>
                 </table>
-            </Card.Body>
-        </Card>
+            </div>
+        </div>
     );
 }

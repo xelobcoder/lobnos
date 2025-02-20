@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import {
     ComposedChart,
@@ -12,20 +13,50 @@ import {
     Legend,
     ResponsiveContainer,
 } from 'recharts';
-import { Card } from 'react-bootstrap';
 import { customFetch } from '../../../Auth/customFetch';
+import moment from 'moment';
+
+const COLORS = ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF'];
 
 const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
-        const { day, approval_count, test_count, resolved_disputed_cases_count, rejections_sample_count } = payload[0].payload;
+        const {
+            day,
+            approval_count,
+            test_count,
+            resolved_disputed_cases_count,
+            rejections_sample_count
+        } = payload[0].payload;
+
+        const formattedDate = moment(day).format('MMM D, YYYY');
+
         return (
-            <div className="custom-tooltip pls-color list-group br-5" >
-                <div className='list-group-item  bg-secondary-subtle'>Date {day}</div>
-                <div className='list-group-item text-sm'>
-                    <p>Approval Count {approval_count}</p>
-                    <p>Test Count {test_count}</p>
-                    <p>Resolved Disputed Cases {resolved_disputed_cases_count}</p>
-                    <p>Rejection Samples {rejections_sample_count}</p>
+            <div style={{
+                minWidth: '200px',
+                padding: '8px',
+                borderRadius: '8px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+                <div className=' bg-secondary-subtle' style={{
+                    padding: '6px',
+                    borderTopLeftRadius: '8px',
+                    borderTopRightRadius: '8px'
+                }}>
+                    Date: {formattedDate}
+                </div>
+                <div style={{ padding: '6px', backgroundColor: 'white' }}>
+                    <p style={{ margin: '4px 0', fontWeight: '600', color: COLORS[2] }}>
+                        Approval Count: {approval_count}
+                    </p>
+                    <p style={{ margin: '4px 0', fontWeight: '600', color: COLORS[3] }}>
+                        Test Count: {test_count}
+                    </p>
+                    <p style={{ margin: '4px 0', fontWeight: '600', color: COLORS[0] }}>
+                        Resolved Disputed Cases: {resolved_disputed_cases_count}
+                    </p>
+                    <p style={{ margin: 0, fontWeight: '600', color: COLORS[1] }}>
+                        Rejection Samples: {rejections_sample_count}
+                    </p>
                 </div>
             </div>
         );
@@ -33,7 +64,7 @@ const CustomTooltip = ({ active, payload }) => {
     return null;
 };
 
-export default function TestAscensionOverLast30DaysCard() {
+export default function AscensionLast30daysFlow() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -42,8 +73,11 @@ export default function TestAscensionOverLast30DaysCard() {
             setLoading(true);
             try {
                 const result = await customFetch('ascension/analytics/getCollectionToDisputeToApprovedToRedrawnLast30days');
-                setData(result);
-                console.log(result);
+                const formattedData = result.map(item => ({
+                    ...item,
+                    day: moment(item.ascension_date).format('MMM D, YYYY'), 
+                })).sort((a, b) => moment(a.ascension_date).diff(moment(b.ascension_date)));
+                setData(formattedData);
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
@@ -55,37 +89,54 @@ export default function TestAscensionOverLast30DaysCard() {
     }, []);
 
     return (
-        <Card className="br-5 bg-body-secondary my-3" style={{ border: 'none' }}>
-            <Card.Header className="p-3">
-                <h5>Test Ascension Over Last 30 Days</h5>
-            </Card.Header>
-            <Card.Body>
-                {loading ? (
-                    <div>Loading...</div>
-                ) : (
-                    <ResponsiveContainer width="100%" height={400}>
-                        <ComposedChart
-                            data={data}
-                            margin={{
-                                top: 20,
-                                right: 20,
-                                bottom: 20,
-                                left: 20,
-                            }}
-                        >
-                            <CartesianGrid stroke="#f5f5f5" />
-                            <XAxis dataKey="day" />
-                            <YAxis />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Legend />
-                            <Area type="monotone" dataKey="approval_count" fill="#99BFFF" stroke="#99BFFF" name="Approval Count" />
-                            <Bar dataKey="test_count" barSize={50} fill="#0F47FF" name="Test Count" />
-                            <Line type="monotone" dataKey="resolved_disputed_cases_count" stroke="#83FF9A" name="Resolved Disputed Cases" />
-                            <Scatter dataKey="rejections_sample_count" fill="#ff0000" name="Rejection Samples" />
-                        </ComposedChart>
-                    </ResponsiveContainer>
-                )}
-            </Card.Body>
-        </Card>
+        <div className="my-3 p-3 pls-color text-capitalize" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+            <h5 className="mb-3 pls-label" >Test Ascension Over Last 30 Days</h5>
+            {loading ? (
+                <div className="text-center py-5">Loading...</div>
+            ) : (
+                <ResponsiveContainer width="100%" height={400}>
+                    <ComposedChart
+                        data={data}
+                        margin={{
+                            top: 20,
+                            right: 20,
+                            bottom: 20,
+                            left: 20,
+                        }}
+                    >
+                        <CartesianGrid stroke="#f5f5f5" strokeDasharray="3 3" />
+                        <XAxis dataKey="day" />
+                        <YAxis />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend />
+                        <Area
+                            type="monotone"
+                            dataKey="approval_count"
+                            fill={COLORS[2]}
+                            stroke={COLORS[2]}
+                            name="Approval Count"
+                        />
+                        <Bar
+                            dataKey="test_count"
+                            barSize={30}
+                            fill={COLORS[0]}
+                            name="Test Count"
+                            radius={[10, 10, 0, 0]}
+                        />
+                        <Line
+                            type="monotone"
+                            dataKey="resolved_disputed_cases_count"
+                            stroke={COLORS[3]}
+                            name="Resolved Disputed Cases"
+                        />
+                        <Scatter
+                            dataKey="rejections_sample_count"
+                            fill={COLORS[1]}
+                            name="Rejection Samples"
+                        />
+                    </ComposedChart>
+                </ResponsiveContainer>
+            )}
+        </div>
     );
 }

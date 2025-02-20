@@ -147,7 +147,13 @@ export const links: Link[] = [
         link: '/analytics',
         icon: Icon,
         subLinks: [
-            { title: 'Patient Analytics', link: '/dashboard/analytics/patients' }
+            { title: 'Patient Analytics', link: '/dashboard/analytics/patients' },
+            {
+                title: 'Clinicians Analytics', link: "/dashboard/analytics/clinicians"
+            },
+            {
+                title: 'Phelobotomy Analytics', link: "/operations/laboratory/phelobotomy/analytics"
+            }
         ]
     },
     {

@@ -1,6 +1,6 @@
+"use client";
 import { useState, useEffect } from 'react';
 import Select from 'react-select';
-import { Card } from 'react-bootstrap';
 import {
     LineChart,
     Line,
@@ -10,16 +10,19 @@ import {
     Legend,
     ResponsiveContainer,
 } from 'recharts';
-import { customFetch } from '../../../Auth/customFetch';
+import moment from 'moment';
+import { customFetch, reactSelectCustomStyles } from '../../../Auth/customFetch';
+
+const COLORS = ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF'];
 
 export default function TestAscensionLineChart() {
     const [year, setYear] = useState(new Date().getFullYear());
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedDataKey, setSelectedDataKey] = useState('all');
+    const [selectedDataKeys, setSelectedDataKeys] = useState(['all']);
 
     const years = Array.from({ length: 20 }, (_, i) => new Date().getFullYear() - i)
-        .map(year => ({ value: year, label: year.toString() }));
+        .map(yr => ({ value: yr, label: yr.toString() }));
 
     const handleYearChange = (selectedOption) => {
         setYear(selectedOption?.value || new Date().getFullYear());
@@ -27,9 +30,11 @@ export default function TestAscensionLineChart() {
 
     const handleCheckboxChange = (key) => {
         if (key === 'all') {
-            setSelectedDataKey(selectedDataKey === 'all' ? '' : 'all');
+            setSelectedDataKeys(selectedDataKeys.includes('all') ? [] : ['all']);
         } else {
-            setSelectedDataKey(selectedDataKey === key ? '' : key);
+            setSelectedDataKeys(prevKeys =>
+                prevKeys.includes(key) ? prevKeys.filter(k => k !== key) : [...prevKeys, key]
+            );
         }
     };
 
@@ -38,13 +43,16 @@ export default function TestAscensionLineChart() {
             setLoading(true);
             try {
                 const result = await customFetch(`ascension/analytics/getCollectionToDisputeToApprovedToRedrawnLastOverParticularYearHandler?year=${year}`);
-                const formattedData = result.map(item => ({
-                    day: item.day,
-                    testCount: item.test_count,
-                    approvalCount: item.approval_count,
-                    rejectionSampleCount: item.rejections_sample_count,
-                    date: item.ascension_date,
-                }));
+                const formattedData = result
+                    .map(item => ({
+                        ...item,
+                        day: item.day,
+                        testCount: item.test_count,
+                        approvalCount: item.approval_count,
+                        rejectionSampleCount: item.rejections_sample_count,
+                        date: moment(item.ascension_date).format('MMM D, YYYY'),
+                    }))
+                    .sort((a, b) => moment(a.ascension_date).diff(moment(b.ascension_date)));
                 setData(formattedData);
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -52,108 +60,107 @@ export default function TestAscensionLineChart() {
                 setLoading(false);
             }
         };
-
         fetchData();
     }, [year]);
 
-    const formatDate = (dateStr) => {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString();
-    };
-
     return (
-        <Card className="br-5 bg-body-secondary my-3" style={{ border: 'none' }}>
-            <Card.Header>
-                <h5>Test Ascension Line Chart</h5>
-                <div className="d-flex justify-content-between mt-3">
-                    <div className='col-2'>
+        <div className="my-3 p-3 text-capitalize pls-color" style={{ backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+            <div style={{ marginBottom: '1rem' }}>
+                <h5 className=' pls-label'>Test Ascension Line Chart</h5>
+                <div className="d-flex justify-content-between align-items-center mt-3">
+                    <div style={{ width: '150px' }}>
                         <Select
                             id="year-select"
                             options={years}
                             defaultValue={years[0]}
                             onChange={handleYearChange}
+                            styles={reactSelectCustomStyles}
                             placeholder="Select Year"
                         />
                     </div>
-                    <div className='col-10 mx-2 mt-2 text-primary'>
-                        <div className='d-flex'>
+                    <div className="d-flex align-items-center" style={{ gap: '1rem', flexWrap: 'wrap' }}>
+                        <label>
                             <input
                                 type="checkbox"
-                                className='mx-1'
-                                checked={selectedDataKey === 'all'}
+                                checked={selectedDataKeys.includes('all')}
                                 onChange={() => handleCheckboxChange('all')}
                             /> Show All
+                        </label>
+                        <label>
                             <input
                                 type="checkbox"
-                                className='mx-1'
-                                checked={selectedDataKey === 'testCount'}
+                                checked={selectedDataKeys.includes('testCount')}
                                 onChange={() => handleCheckboxChange('testCount')}
                             /> Test Count
+                        </label>
+                        <label>
                             <input
                                 type="checkbox"
-                                className='mx-1'
-                                checked={selectedDataKey === 'approvalCount'}
+                                checked={selectedDataKeys.includes('approvalCount')}
                                 onChange={() => handleCheckboxChange('approvalCount')}
                             /> Approval Count
+                        </label>
+                        <label>
                             <input
                                 type="checkbox"
-                                className='mx-1'
-                                checked={selectedDataKey === 'rejectionSampleCount'}
+                                checked={selectedDataKeys.includes('rejectionSampleCount')}
                                 onChange={() => handleCheckboxChange('rejectionSampleCount')}
                             /> Rejection Sample Count
-                        </div>
+                        </label>
                     </div>
                 </div>
-            </Card.Header>
-            <Card.Body>
+            </div>
+            <div>
                 {loading ? (
-                    <div>Loading...</div>
+                    <div style={{ textAlign: 'center', padding: '20px' }}>Loading...</div>
                 ) : (
                     <ResponsiveContainer width="100%" height={400}>
                         <LineChart data={data}>
-                            <XAxis dataKey="day" />
+                            <XAxis dataKey="date" />
                             <YAxis />
                             <Tooltip
                                 content={({ payload }) => {
                                     if (!payload || payload.length === 0) return null;
-                                    const { day, testCount, approvalCount, rejectionSampleCount, date } = payload[0].payload;
+                                    const { date, testCount, approvalCount, rejectionSampleCount } = payload[0].payload;
                                     return (
-                                        <div className="list-group br-5  p-2">
-                                            <div className='list-group-item bg-secondary-subtle'>
-                                                <strong>Date:</strong> {formatDate(date)}
+                                        <div style={{
+                                            background: 'white',
+                                            padding: '8px',
+                                            border: `1px solid ${COLORS[4]}`,
+                                            borderRadius: '8px',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                        }}>
+                                            <div style={{
+                                                background: '#e9ecef',
+                                                padding: '6px',
+                                                borderTopLeftRadius: '8px',
+                                                borderTopRightRadius: '8px'
+                                            }}>
+                                                <strong>Date:</strong> {date}
                                             </div>
-                                            <div className='list-group-item'>
-                                                <div>
-                                                    <strong>Day:</strong> {day}
-                                                </div>
-                                                <div>
-                                                    <strong>Test Count:</strong> {testCount}
-                                                </div>
-                                                <div>
-                                                    <strong>Approval Count:</strong> {approvalCount}
-                                                </div>
-                                                <div>
-                                                    <strong>Rejection Sample Count:</strong> {rejectionSampleCount}
-                                                </div>
+                                            <div style={{ padding: '6px' }}>
+                                                <p style={{ margin: '4px 0' }}><strong>Test Count:</strong> {testCount}</p>
+                                                <p style={{ margin: '4px 0' }}><strong>Approval Count:</strong> {approvalCount}</p>
+                                                <p style={{ margin: 0 }}><strong>Rejection Sample Count:</strong> {rejectionSampleCount}</p>
                                             </div>
                                         </div>
                                     );
                                 }}
                             />
                             <Legend />
-                            {selectedDataKey === 'all' || selectedDataKey === 'testCount' ? (
-                                <Line type="monotone" dataKey="testCount" stroke="#99BFFF" />
-                            ) : null}
-                            {selectedDataKey === 'all' || selectedDataKey === 'approvalCount' ? (
-                                <Line type="monotone" dataKey="approvalCount" stroke="#0F47FF" />
-                            ) : null}
-                            {selectedDataKey === 'all' || selectedDataKey === 'rejectionSampleCount' ? (
-                                <Line type="monotone" dataKey="rejectionSampleCount" stroke="#83FF9A" />
-                            ) : null}
+                            {(selectedDataKeys.includes('all') || selectedDataKeys.includes('testCount')) && (
+                                <Line type="monotone" dataKey="testCount" stroke={COLORS[0]} name="Test Count" strokeWidth={2} />
+                            )}
+                            {(selectedDataKeys.includes('all') || selectedDataKeys.includes('approvalCount')) && (
+                                <Line type="monotone" dataKey="approvalCount" stroke={COLORS[1]} name="Approval Count" strokeWidth={2} />
+                            )}
+                            {(selectedDataKeys.includes('all') || selectedDataKeys.includes('rejectionSampleCount')) && (
+                                <Line type="monotone" dataKey="rejectionSampleCount" stroke={COLORS[2]} name="Rejection Sample Count" strokeWidth={2} />
+                            )}
                         </LineChart>
                     </ResponsiveContainer>
                 )}
-            </Card.Body>
-        </Card>
+            </div>
+        </div>
     );
 }

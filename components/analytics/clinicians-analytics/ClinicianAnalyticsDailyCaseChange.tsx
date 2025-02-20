@@ -1,4 +1,4 @@
-"use client"; // Ensure this is a client-side component
+"use client"; 
 
 import React, { useEffect, useState } from 'react';
 import { customFetch } from '../../Auth/customFetch';
@@ -16,7 +16,7 @@ interface DailyCaseChange {
 }
 
 interface MonthlyCaseChange {
-	month: string; // e.g., "2023-01"
+	month: string; 
 	clinician_cases: number;
 	previous_month_cases: number | null;
 	percentage_change: string;
@@ -75,7 +75,7 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 		count: 10
 	});
 	const [totalPages, setTotalPages] = useState(1);
-	const [timePeriod, setTimePeriod] = useState<TimePeriod>('daily'); // Default to daily
+	const [timePeriod, setTimePeriod] = useState<TimePeriod>('daily'); 
 
 	const fetchData = async (pagination: PaginationParams, period: TimePeriod) => {
 		setLoading(true);
@@ -85,17 +85,17 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 			if (response?.success) {
 				let sortedData;
 				if (period === 'yearly') {
-					// Handle yearly data structure
+					
 					sortedData = response.data.sort((a: YearlyCaseChange, b: YearlyCaseChange) =>
 						a.year - b.year
 					);
 				} else if (period === 'monthly') {
-					// Handle monthly data structure
+					
 					sortedData = response.data.sort((a: MonthlyCaseChange, b: MonthlyCaseChange) =>
 						moment(a.month).valueOf() - moment(b.month).valueOf()
 					);
 				} else {
-					// Handle daily data structure
+					
 					sortedData = response.data.sort((a: DailyCaseChange, b: DailyCaseChange) =>
 						moment(a.date).valueOf() - moment(b.date).valueOf()
 					);
@@ -239,7 +239,6 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 							</Card>
 						</div>
 
-						{/* Table Column */}
 						<div className="col-12 col-xl-6">
 							<Card className="border-0 h-100">
 								<Card.Body className="p-4 d-flex flex-column">

@@ -88,7 +88,7 @@ export default function CreateTestRule({ clientdata }) {
 		setRule(newRule);
 	};
 
-	const handleSubmit = async (ev) => {
+	const handleSubmit = async () => {
 		try {
 			const transformed = rule.map((item) => {
 				return { field: item?.name, value: item?.value };
@@ -123,7 +123,7 @@ export default function CreateTestRule({ clientdata }) {
 		}
 	};
 
-	const handleCreateFields = (ev) => {
+	const handleCreateFields = () => {
 		if (testid) {
 			window.open(`/settings/testpanel/testlist/createfields?testid=${testid}&&testname=${testname}`);
 		}

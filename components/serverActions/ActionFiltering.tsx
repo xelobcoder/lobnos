@@ -4,7 +4,7 @@ import { loadOptions } from "../../lib/appointment";
 import { customFetch, customPost } from "../Auth/customFetch"
 import { plsEncryption } from "../../lib/encryption";
 import { formatDate } from "../operations/Laboratory/Lib";
-import Page from "../../app/operations/laboratory/sample/validation/page";
+
 export async function filteringDatabaseTables(target: string, filtering: string, column: string, limit: number) {
 	try {
 		const response = await customFetch(`application/filtering/table/${target}?value=${filtering}&&original=${column}&&limit=${limit}`);
@@ -348,3 +348,10 @@ export const ClinicianAnalyticsCaseSummaryDailyServerSide = async (clinicianId: 
 		return []
 	}
 };
+
+
+
+export const handleSelectionClinicianAnalytics = async (value: any) => {
+	if (!value || !value?.id) return
+	redirect(`/dashboard/analytics/clinicians/${value?.id}`)
+}

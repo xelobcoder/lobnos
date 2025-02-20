@@ -38,12 +38,13 @@ const PhelobotomyAnalyticsPage = () => {
 		return <div className="text-center">No data available.</div>;
 	}
 
-	console.log(data.monthlyApprovalRate)
 	return (
 		<div>
+			<TestsCompletedVsInitiatedVrsUninitiated value={data.testsCompletedVsInitiatedVrsUninitiated} />
 			<section className=''>
 				<CollectionToDisputeToApprovedToRedrawnLast30daysHandler />
 			</section>
+			<MonthlyApprovalRateByMonthAndYear data={data.monthlyApprovalRate} />
 			{/* <section className='mx-4 d-flex col-12 my-5 bg-white heightedBorder p-2'>
 					<div className='d-flex col-5 justify-content-between p-2'>
 					<input type='date' className="custom-input" />
@@ -55,8 +56,7 @@ const PhelobotomyAnalyticsPage = () => {
           </section> */}
 			<div>
 				<PhelobotomistSummaryTable />
-				<TestsCompletedVsInitiatedVrsUninitiated value={data.testsCompletedVsInitiatedVrsUninitiated} />
-				{/* <MonthlyApprovalRateByMonthAndYear data={data.monthlyApprovalRate} /> */}
+		
 				<div className='d-flex-lg'>
 					<div className='col-md-12 col-lg-12 my-2'>
 						<ImportantAnalyticsRecorded data={data.timeBetweenCollectionStartAndEnd[0]} />

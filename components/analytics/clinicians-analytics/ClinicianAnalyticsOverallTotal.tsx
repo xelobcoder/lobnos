@@ -56,7 +56,7 @@ const ClinicianOverallAnalytics: React.FC<ClinicianOverallAnalyticsProps> = ({ c
                 background: bgColor,
                 borderRadius: '12px',
                 transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                height: '89px', // Reduced by 1/3 from 133px
+                height: '89px',
             }}
             onMouseEnter={e => {
                 e.currentTarget.style.transform = 'translateY(-3px)'; // Reduced from 5px

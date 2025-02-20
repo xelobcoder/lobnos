@@ -3,22 +3,35 @@ import { customFetch } from '../../../../components/Auth/customFetch';
 import Link from 'next/link';
 import { plsEncryption } from '../../../../lib/encryption';
 
+interface Branch {
+    name: string;
+    branchid: number;
+}
 
 export default async function BillingBranchesPage() {
-    const branches = await customFetch(`branches`);
+    try {
+        const branches = await customFetch(`branches`);
 
-    return (
-        <div >
-            <h5 className="text-2xl font-bold mb-4">Branches</h5>
-            <div className='list-group pls-color'>
-                {branches.result.map((branch: { name: string, branchid: number }) => (
-                    <div key={branch.branchid} className="text-capitalize  p-3 bg-secondary-subtle my-2 br-5 ">
-                        <Link href={`/billing/sales/branches/${plsEncryption(branch.branchid.toString())}`}>
-                            {branch.name}
-                        </Link>
-                    </div>
-                ))}
+        if (!branches || !branches.result) {
+            throw new Error('No branches found');
+        }
+
+        return (
+            <div>
+                <h5 className="text-2xl font-bold mb-4">Branches</h5>
+                <div className='list-group pls-color'>
+                    {branches.result.map((branch: Branch) => (
+                        <div key={branch.branchid} className="text-capitalize p-3 bg-secondary-subtle my-2 br-5">
+                            <Link href={`/billing/sales/branches/${plsEncryption(branch.branchid.toString())}`}>
+                                {branch.name}
+                            </Link>
+                        </div>
+                    ))}
+                </div>
             </div>
-        </div>
-    );
+        );
+    } catch (error) {
+        console.error('Error fetching branches:', error);
+        return <div>Error loading branches. Please try again later.</div>;
+    }
 }
