@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import MainSettingsLayoutView from "../../../../components/settingsComponents/MainSettingsLayoutView";
 import { customFetch, customPost } from "../../../../components/Auth/customFetch";
 import Loader from "../../../../components/accessories/Loader";
-import TableDisplay from "../../../../components/accessories/TableDisplay";
+import PrimeTable from "../../../../components/accessories/Datatables/PrimeTable";
 import TestActions from "../../../../components/settingsComponents/TestActions";
 import { useRouter } from "next/navigation";
 
@@ -116,7 +116,9 @@ export default function TestListDisplay() {
 					</button>
 				</div>
 				<div>
-					<TableDisplay styling={'ttable table billing-cart-table'} filtering={true} initpageSize={100} showpage={false} column={columns} data={data} />
+					<PrimeTable
+						serverSideFiltering={true}
+						filtering={false} initpageSize={100} showpage={false} column={columns} data={data} />
 				</div>
 			</section>
 		);

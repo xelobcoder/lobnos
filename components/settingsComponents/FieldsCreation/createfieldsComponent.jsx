@@ -185,25 +185,13 @@ export default function CreateTestFields({ testid, testname, minimize = false })
 							</button>
 						</div>
 					</div>
-					<div className="list-group my-4">
-						<div className="list-group-item bg-secondary-subtle fw-bold">
-							Multiple Field Conditions
-						</div>
-						<div className="list-group-item">
-							<MultiFieldSelectConditions fields={data} />
-						</div>
-						<div className="list-group-item">
-							<button
-								className="btn btn-success btn-sm mt-2">
-								Update Fields
-							</button>
-						</div>
-					</div>
+
 				</div>
 			);
 		}
 
 	};
+
 
 	return (
 		<>

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import Select from 'react-select';
+import { reactSelectCustomStyles } from '../../../Auth/customFetch';
+import styles from '../../../../styles/SmsTemplateList.module.css'
 
 const constraintOptions = [
     { value: 1, label: "Less than value" },
@@ -11,11 +13,11 @@ const constraintOptions = [
 
 
 
-export default function MultiConditionCreationFormChildren({  conditionName = '', constraintField = [], parameters = [], addingConstraints }) {
+export default function MultiConditionCreationFormChildren({ conditionName, constraintField = [], parameters = [], addingConstraints, removingConstraints, conditionIndex }) {
     const [selectedParameter, setSelectedParameter] = useState(null);
     const [selectedConstraint, setSelectedConstraint] = useState(null);
     const [targetValue, setTargetValue] = useState('');
-    
+
     const handleParameterChange = (option) => {
         setSelectedParameter(option);
     };
@@ -59,32 +61,35 @@ export default function MultiConditionCreationFormChildren({  conditionName = ''
 
         const newConstraint = {
             parameter: selectedParameter.label,
-            condition: selectedConstraint.label,
+            conditionConstraint: selectedConstraint.label,
             target: targetValue,
             inRange: selectedConstraint.value === 5
         };
 
-        addingConstraints(conditionName, newConstraint.parameter, newConstraint.condition, newConstraint.target, newConstraint.inRange);
+        addingConstraints(conditionName, newConstraint.parameter, newConstraint.conditionConstraint, newConstraint.target, newConstraint.inRange);
 
         setSelectedParameter(null);
         setSelectedConstraint(null);
         setTargetValue('');
     };
 
-    const handleRemoveConstraint = (index) => {
-        const updatedConstraints = constraintField.filter((_, i) => i !== index);
-        setConstraintsList(updatedConstraints);
+    const handleRemoveConstraint = (constraintIndex) => {
+        removingConstraints(constraintIndex, conditionIndex)
     };
+
+
+
 
     return (
         <div>
             <div className='grid-4'>
                 <div className="form-row">
-                    <label>Parameter selection</label>
+                    <label className=' pls-label'>Parameter selection</label>
                     <Select
                         options={parameters}
                         value={selectedParameter}
                         onChange={handleParameterChange}
+                        styles={reactSelectCustomStyles}
                         placeholder="Select a field..."
                         isClearable
                     />
@@ -94,6 +99,7 @@ export default function MultiConditionCreationFormChildren({  conditionName = ''
                     <Select
                         options={constraintOptions}
                         value={selectedConstraint}
+                        styles={reactSelectCustomStyles}
                         onChange={handleConstraintChange}
                         placeholder="Select a constraint..."
                         isClearable
@@ -112,7 +118,7 @@ export default function MultiConditionCreationFormChildren({  conditionName = ''
                     <label>Action</label>
                     <br />
                     <button
-                        className='btn btn-primary'
+                        className='btn btn-primary btn-sm'
                         onClick={handleCreateValidator}
                     >
                         Create a Validator
@@ -120,23 +126,23 @@ export default function MultiConditionCreationFormChildren({  conditionName = ''
                 </div>
             </div>
             <div className="mt-4">
-                <h5>Added Constraints</h5>
-                <table className="table billing-cart-table">
+                <h5 className=' pls-label bg-secondary-subtle p-2 br-5 col-2'>Added Constraints</h5>
+                <table className={`${styles.table} table-sm pls-label`}>
                     <thead>
                         <tr>
-                            <th>SR No.</th>
-                            <th>Parameter</th>
-                            <th>Constraint</th>
-                            <th>Value to Target</th>
-                            <th>Action</th>
+                            <th className=' pls-label'>SR No.</th>
+                            <th className='  pls-label'>Parameter</th>
+                            <th className='  pls-label'>Constraint</th>
+                            <th className='  pls-label'>Value to Target</th>
+                            <th className='  pls-label'>Action</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className='text-sm'>
                         {constraintField.map((constraint, index) => (
                             <tr key={index}>
-                                <td><input type='checkbox' style={{height:20,width:20}} /></td>
+                                <td><input type='checkbox' style={{ height: 20, width: 20 }} /></td>
                                 <td>{constraint.parameter}</td>
-                                <td>{constraint.condition}</td>
+                                <td>{constraint.conditionConstraint}</td>
                                 <td>{constraint.target}</td>
                                 <td>
                                     <button

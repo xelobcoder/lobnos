@@ -355,3 +355,29 @@ export const handleSelectionClinicianAnalytics = async (value: any) => {
 	if (!value || !value?.id) return
 	redirect(`/dashboard/analytics/clinicians/${value?.id}`)
 }
+
+
+
+export async function createConditionAction(conditionName: FormDataEntryValue, testid: number) {
+	if (!conditionName || !testid) {
+		return false;
+	}
+	const response = await customPost('multi/definition', 'POST', { conditionName, testid });
+	if (!response) {
+		throw new Error("No response from the server.");
+	}
+	return response
+}
+
+
+
+
+export async function LoadTestConditionsDefinition(testid: number) {
+	try {
+		const response = await customFetch(`multi/definition/test/${testid}`);
+		return response
+	} catch (error) {
+		console.error('Failed to fetch conditions:', error);
+		return []
+	}
+}

@@ -5,8 +5,10 @@ export default function MultiConditionCreationFormChildren(
     { fields = [],
         conditionName = '',
         constraints = [],
+        conditionIndex,
         addingConstraints,
-        removingConstraints = { removingConstraints } }
+        removingConstraints
+    }
 ) {
 
     const [parameters, setParameters] = useState([]);
@@ -23,19 +25,21 @@ export default function MultiConditionCreationFormChildren(
         getParameters(fields);
     }, [fields]);
 
+    
 
     return (
         <div>
             <div className="d-flex justify-content-between my-2">
-                <h4>{conditionName}</h4>
-                <button onClick={(ev) => { removingConstraints(conditionName) }} className="btn btn-danger">remove condition</button>
+                <h4 className=" pls-label bg-secondary-subtle p-2 br-5 text-capitalize ">{conditionName}</h4>
             </div>
-            <div className="alert alert-secondary">
+            <div>
                 <SingleMultipleCreationFormComponent
-                 conditionName={conditionName} 
-                 parameters={parameters}
-                addingConstraints={addingConstraints}
-                 constraintField={constraints} />
+                    conditionName={conditionName}
+                    removingConstraints={removingConstraints}
+                    parameters={parameters}
+                    conditionIndex={conditionIndex}
+                    addingConstraints={addingConstraints}
+                    constraintField={constraints} />
             </div>
         </div>
     )

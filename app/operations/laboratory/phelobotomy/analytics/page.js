@@ -1,14 +1,12 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import { customFetch } from '../../../../../components/Auth/customFetch';
-import PhelobotomyLayout from '../../../../../components/Layout/PhelobotomyLayout';
 import CollectionToDisputeToApprovedToRedrawnLast30daysHandler from '../../../../../components/phelobotomy/Analytics/CollectionToDisputeToApprovedToRedrawnLast30daysHandler';
 import PhelobotomistSummaryTable from '../../../../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/PhelobotomistSummayTable';
 import TestsCompletedVsInitiatedVrsUninitiated from '../../../../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/TestsCompletedVsInitiatedVrsUninitiated';
 import MonthlyApprovalRateByMonthAndYear from '../../../../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/monthlyApprovalRateByMonthAndYear';
 import ImportantAnalyticsRecorded from '../../../../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/importantAnalyticsRecorded';
 import TotalTestCollectedByYearTableView from '../../../../../components/phelobotomy/Analytics/TemplatesComponentAnalytics/TotalTestCollectedByYearTableView';
-import PrimeLayout from '../../../../../components/Layout/PrimeLayout';
 
 
 const PhelobotomyAnalyticsPage = () => {
