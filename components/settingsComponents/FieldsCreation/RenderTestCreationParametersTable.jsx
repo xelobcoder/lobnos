@@ -1,5 +1,6 @@
 import React from 'react';
 import ReformatTestParamOptions from './FormatOptions';
+import styles from '../../../styles/SmsTemplateList.module.css'
 
 
 export default function RenderTestCreationParameters({ data, reorder, setReorder, changeOrdering, editField, removeField }) {
@@ -15,20 +16,20 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
             <td className='text-sm'>{item.female ? item.female.upperlimit : ""}</td>
             <td className='text-sm'>{item.female ? item.female.lowerlimit : ""}</td>
             <td className='text-sm'>{item.valueAlert}</td>
-            <td  className="table-column-width-reset">
+            <td className="table-column-width-reset">
                 {item.options ? <ReformatTestParamOptions stringdata={item.options} /> : ""}
             </td>
-            <td  className="table-column-width-reset">
+            <td className="table-column-width-reset">
                 {item.textReference ? <ReformatTestParamOptions stringdata={item.textReference} /> : ""}
             </td>
             <td>
-                {item.options === "ultrasoundFields" ?  'Yes' : 'No'} 
+                {item.options === "ultrasoundFields" ? 'Yes' : 'No'}
             </td>
             <td className='text-sm'>
                 <div className="d-flex">
                     <input
                         type="number"
-                        className="custom-input col-2"
+                        className="custom-input "
                         value={item.ordering}
                         disabled={reorder}
                         onChange={(ev) => changeOrdering(item, ev)}
@@ -53,30 +54,33 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
     );
 
     return (
-        <>
-            <button onClick={handleReorderClick} className="btn btn-link">
-                Reorder Fields
-            </button>
-            <table className="table pls-color  table-hover pointer">
+        <div>
+            <div className='d-flex justify-content-end'>
+                <button onClick={handleReorderClick} className="btn btn-link pls-label ">
+                    Reorder Fields
+                </button>
+            </div>
+            <table className={`${styles.table} text-sm `}>
                 <thead >
-                    <tr>
-                        <th>Parameter Name</th>
-                        <th>GUL</th>
-                        <th>GLL</th>
-                        <th>MUL</th>
-                        <th>MLL</th>
-                        <th>FUL</th>
-                        <th>FLL</th>
-                        <th>AlertValue</th>
-                        <th>Options</th>
-                        <th>Plain</th>
-                        <th>Ultrasound Type</th>
-                        <th>Actions</th>
+                    <tr className='pls-label text-sm'>
+                        <th className='pls-label  bg-secondary-subtle'>Parameter Name</th>
+                        <th className='pls-label  bg-secondary-subtle'>GUL</th>
+                        <th className='pls-label  bg-secondary-subtle'>GLL</th>
+                        <th className='pls-label  bg-secondary-subtle'>MUL</th>
+                        <th className='pls-label  bg-secondary-subtle'>MLL</th>
+                        <th className='pls-label  bg-secondary-subtle'>FUL</th>
+                        <th className='pls-label  bg-secondary-subtle'>FLL</th>
+                        <th className='pls-label  bg-secondary-subtle'>AlertValue</th>
+                        <th className='pls-label  bg-secondary-subtle'>Options</th>
+                        <th className='pls-label  bg-secondary-subtle'>Plain</th>
+                        <th className='pls-label  bg-secondary-subtle'>Ultrasound Type</th>
+                        <th className='pls-label  bg-secondary-subtle'>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {data.map((item, index) => renderTableData(item, index))}
+                    {Array.isArray(data) && data.length > 0 && data.map((item, index) => renderTableData(item, index))}
                 </tbody>
-            </table></>
+            </table>
+        </div>
     );
 }

@@ -84,6 +84,8 @@ export const defaultCreationRule = {
 	value: "",
 	options: "",
 	testid: "",
+	category: "",
+	undercategory: 0,
 	hasunits: false,
 	units: "",
 	plan: "",

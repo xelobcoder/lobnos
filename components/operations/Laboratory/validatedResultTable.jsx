@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
-import { ListGroup } from 'react-bootstrap';
+import { ListGroup, Dropdown } from 'react-bootstrap';
 import { useMediaQuery } from 'react-responsive';
 import Loader from '../../accessories/Loader';
-import { generateRandomTextAndNumbers } from '../../Auth/customFetch';
+import { customFetch, generateRandomTextAndNumbers } from '../../Auth/customFetch';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import { handleServerSideProcessingAscensionData } from '../../serverActions/ActionFiltering';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 const Print = (
      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
@@ -75,6 +76,32 @@ export default function ValidatedResultTable({ employeeid }) {
 
      const isMobile = useMediaQuery({ maxWidth: 768 });
 
+
+
+     const sendEmailHandler = async (data) => {
+
+          const { testid, name, patientid, ascensionid, billingid } = data
+          const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
+          const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
+
+          const response = await customFetch(`result/printout/ascension/multiple/getResult/channel/email?csvid=${csvid}&&testid=${testid}&&testname=${name.toLowerCase()}&&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=true&&isUltrasound=false&&target=70,50`)
+
+          console.log(response);
+     };
+
+     const downloadSingleReportHandler = (data) => {
+          console.log('Downloading single report:', data);
+     };
+
+     const downloadMultipleReportsHandler = (data) => {
+          console.log('Downloading multiple reports:', data);
+     };
+
+     const downloadSvg = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M13 12H16L12 16L8 12H11V8H13V12ZM15 4H5V20H19V8H15V4ZM3 2.9918C3 2.44405 3.44749 2 3.9985 2H16L20.9997 7L21 20.9925C21 21.5489 20.5551 22 20.0066 22H3.9934C3.44476 22 3 21.5447 3 21.0082V2.9918Z"></path></svg>
+
+
+     const EmailSvg = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path fill="none" d="M0 0h24v24H0z"></path><path d="M3 3H21C21.5523 3 22 3.44772 22 4V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V4C2 3.44772 2.44772 3 3 3ZM20 7.23792L12.0718 14.338L4 7.21594V19H20V7.23792ZM4.51146 5L12.0619 11.662L19.501 5H4.51146Z"></path></svg>
+
      const columns = [
           {
                Header: 'Patient ID',
@@ -123,20 +150,31 @@ export default function ValidatedResultTable({ employeeid }) {
                Header: 'Action',
                accessor: '',
                Cell: ({ row }) => (
-                    <div className="btn-group" role="group" aria-label="Button group">
-                         <button
-                              onClick={(ev) => { viewResultHandler(row.original) }}
-                              className="btn btn-outline-secondary btn-sm"
-                         >
-                              Print Result
-                         </button>
-                         <button
-                              onClick={() => { viewResultHandler(row.original, true) }}
-                              className="btn btn-outline-secondary text-capitalize btn-sm"
-                         >
-                              print multiple result
-                         </button>
-                    </div>
+                    <Dropdown>
+                         <Dropdown.Toggle
+                              variant='link'
+                              size="sm">
+                              <MoreVertIcon fontSize="small" />
+                         </Dropdown.Toggle>
+
+                         <Dropdown.Menu>
+                              <Dropdown.Item className='pls-label' onClick={() => viewResultHandler(row.original)}>
+                                   {downloadSvg} Print Result
+                              </Dropdown.Item>
+                              <Dropdown.Item className='pls-label' onClick={() => viewResultHandler(row.original, true)}>
+                                   {downloadSvg}  Print Multiple Results
+                              </Dropdown.Item>
+                              <Dropdown.Item className='pls-label' onClick={() => sendEmailHandler(row.original)}>
+                                   {EmailSvg} Send Report via Email
+                              </Dropdown.Item>
+                              {/* <Dropdown.Item className='pls-label' onClick={() => downloadSingleReportHandler(row.original)}>
+                                   {downloadSvg} Download Single Report
+                              </Dropdown.Item>
+                              <Dropdown.Item className='pls-label' onClick={() => downloadMultipleReportsHandler(row.original)}>
+                                   {downloadSvg}  Download Multiple Reports
+                              </Dropdown.Item> */}
+                         </Dropdown.Menu>
+                    </Dropdown>
 
                )
           },
