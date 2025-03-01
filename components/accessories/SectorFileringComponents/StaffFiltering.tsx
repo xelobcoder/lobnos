@@ -29,8 +29,8 @@ export default function EmployeeFiltering({ onSelect }: EmployeeFilteringProps) 
                          label: (
                               <div>
                                    <strong>{employee.username.toLowerCase()}</strong>
-                                   <br />
-                                   <span>{employee.role.toLowerCase()} {employee.mobile || "N/A"}{employee.email.toLowerCase()}</span>
+                                   ||  
+                                   <span> {employee.role.toLowerCase()} {employee.mobile || "N/A"}{employee.email.toLowerCase()}</span>
                                    <br />
                               </div>
                          ),

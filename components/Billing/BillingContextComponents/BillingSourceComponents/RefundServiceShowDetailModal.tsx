@@ -30,6 +30,7 @@ type ModalComponentProps = {
 		billingid: number;
 	};
 	cashIssuedOut: boolean;
+	setRefundableAmount: (value: number) => {}
 };
 
 export default function RefundServiceShowDetailModal({
@@ -38,6 +39,7 @@ export default function RefundServiceShowDetailModal({
 	onConfirm,
 	refundAmount,
 	setRefundAmount,
+	setRefundableAmount,
 	paymentModes,
 	selectedPaymentMode,
 	setSelectedPaymentMode,
@@ -64,7 +66,8 @@ export default function RefundServiceShowDetailModal({
 			customFetch(`billing/previous/refund/update/verification/cashout?billingid=${billingid}&&serviceid=${serviceid}`).then((response) => {
 				const { refundableAmount, message } = response;
 				let _refundableAmount = parseFloat(refundableAmount);
-				setRefundInformation({ refundableAmount: parseFloat(refundableAmount), message });
+				setRefundInformation({ refundableAmount: _refundableAmount, message });
+				setRefundableAmount(_refundableAmount);
 				_refundableAmount > 0 ? setIsDisabled(false) : setIsDisabled(true);
 				setLoading(false);
 			}).catch((error) => {
@@ -73,6 +76,10 @@ export default function RefundServiceShowDetailModal({
 			});
 		}
 	}, [billingid, serviceid]);
+
+
+
+
 
 	return (
 		<Modal show={show} backdrop='static' onHide={onClose}>
@@ -96,7 +103,7 @@ export default function RefundServiceShowDetailModal({
 							</ListGroup.Item>
 						</ListGroup>
 						{refundInformation.message && <Alert dismissible variant="danger" className=" my-2 pls-color ">{refundInformation.message}</Alert>}
-						<p>Amount to Refund: {currencyFormatter.format(item.cost + item.amountIncurredDueTax - item.discount)}</p>
+						<p>Amount to Refund: {currencyFormatter.format(refundInformation.refundableAmount)}</p>
 						<select
 							className="custom-select"
 							disabled={isDisabled || loading}

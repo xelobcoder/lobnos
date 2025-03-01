@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useContext } from 'react';
 import { BillingContext } from '../BillingContext';
-import { Modal, Button, Alert } from 'react-bootstrap';
-import { currencyFormatter } from '../../../Auth/customFetch';
+import { Modal, Button, Alert, Spinner } from 'react-bootstrap';
+import { currencyFormatter, customFetch } from '../../../Auth/customFetch';
 import {
     FileTextIcon,
     ListIcon,
@@ -18,15 +18,30 @@ import {
     SettingsIcon,
 } from './Icons';
 import Link from 'next/link';
+import { toast } from 'react-toastify';
 
 
-export default function PreviousTransactionSummaryModal({patientid}) {
+export default function PreviousTransactionSummaryModal({ patientid, employeeid }) {
     const { billingdata } = useContext(BillingContext);
+    const [submitting, setSubmitting] = useState(false);
+    const [PaymentMode, setPaymentMode] = useState('');
     const [showPrevious, setShowPrevious] = useState(false);
     const { previousRecords } = billingdata;
 
-    const handleRefundAll = () => {
-        alert('Refund All clicked');
+    const handleRefundAll = async () => {
+        if (PaymentMode && !isNaN(PaymentMode) && employeeid && billingdata.billingid) {
+            try {
+                setSubmitting(true)
+                const endpoint = `billing/previous/refund/all/${billingdata.billingid}/${employeeid}/${PaymentMode}`;
+                const response = await customFetch(endpoint);
+                const { status, message } = response;
+                setSubmitting(false);
+                status ? toast.success(message) : toast.error(response?.message || "Refunding all failed")
+            } catch (err) {
+                setSubmitting(false);
+                toast.error("Something wrong occured")
+            }
+        }
     };
 
     const handleWriteOff = () => {
@@ -37,7 +52,8 @@ export default function PreviousTransactionSummaryModal({patientid}) {
         alert('Other Action clicked');
     };
 
-  
+
+
     return (
         <div>
             <div className='d-flex justify-content-between'>
@@ -64,6 +80,14 @@ export default function PreviousTransactionSummaryModal({patientid}) {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
+                    <div className='d-flex my-3 col-4 bg-secondary-subtle br-5  p-3'>
+                        <label className='pls-label pls-color'>Select Refund Payment Mode</label>
+                        <select value={PaymentMode} onChange={(ev) => { setPaymentMode(ev.target.value) }} className='custom-select'>
+                            <option value={''}>select payment mode for refund</option>{
+                                Array.isArray(billingdata.paymentmodeData) && billingdata.paymentmodeData.map((item, index) => <option value={item.KeyID}>{item.PaymentMode}</option>)
+                            }
+                        </select>
+                    </div>
                     <div className="mx-2 text-sm my-2">
                         <div className="pls-color d-flex align-items-center">
                             <ListIcon />
@@ -180,15 +204,15 @@ export default function PreviousTransactionSummaryModal({patientid}) {
                 </Modal.Body>
                 <Modal.Footer>
                     <div className="d-flex justify-content-end gap-2">
-                        <Button variant="danger" onClick={handleRefundAll}>
-                            <RefreshCwIcon /> {" "}
-                            Refund All
+                        <Button size='sm' variant="danger" onClick={handleRefundAll}>
+                            {submitting && <Spinner size='sm' />}  <RefreshCwIcon /> {" "}
+                            {submitting ? "refunding" : " Refund All"}
                         </Button>
-                        <Button variant="warning" onClick={handleWriteOff}>
+                        <Button size='sm' variant="warning" onClick={handleWriteOff}>
                             <EditIcon />  {" "}
                             Write Off
                         </Button>
-                        <Button variant="primary" onClick={handleOtherAction}>
+                        <Button size='sm' variant="primary" onClick={handleOtherAction}>
                             <SettingsIcon />  {" "}
                             Other Action
                         </Button>

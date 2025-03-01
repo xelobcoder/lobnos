@@ -41,6 +41,7 @@ export default async function DailySalesViewCustomerRepresentative({ params, sea
 		transactions = [];
 	}
 
+
 	return (
 		<div>
 			{branchid && <BilledSummary branchid={branchid} />}

@@ -54,6 +54,7 @@ export default function BilledClientsView({ data = [], branchid }) {
 			Cell: ({ row }) => <div>{currencyFormatter.format(row.original.paid)}</div>,
 		},
 		{ Header: 'Discount', accessor: 'discount', Cell: ({ row }) => <div>{currencyFormatter.format(row.original.discount)}</div> },
+		{ Header: 'Amt Refunded', accessor: 'totalRefunded', Cell: ({ row }) => <div>{currencyFormatter.format(row.original.totalRefunded)}</div> },
 		{
 			Header: "Outstanding",
 			accessor: "outstanding",
@@ -83,10 +84,16 @@ export default function BilledClientsView({ data = [], branchid }) {
 								Update Transaction
 							</Dropdown.Item>
 							<Dropdown.Item
-								href={`/billing/print-receipt/${row.original.billingid}`}
+								href={`${process.env.PLS_PDF_GENERATOR}generate/receipt/invoice?billingid=${row.original.billingid}&&is_pos=false`}
 								className="m-0 p-2 border-top text-sm border-top-1"
 							>
-								Print Receipt
+								Print Receipt A4 format
+							</Dropdown.Item>
+							<Dropdown.Item
+								href={`${process.env.PLS_PDF_GENERATOR}generate/receipt/invoice?billingid=${row.original.billingid}&&is_pos=true`}
+								className="m-0 p-2 border-top text-sm border-top-1"
+							>
+								Print Receipt POS format
 							</Dropdown.Item>
 							<Dropdown.Item
 								className="m-0 p-2 border-top text-sm border-top-1"

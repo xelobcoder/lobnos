@@ -10,6 +10,7 @@ export default function RefundTestOrServiceListTr({ handleRefundList, item, inde
     const [isRequesting, setRequesting] = useState(false);
     const { applicationsettings } = useApplicationSettings();
     const [cashIssuedOut, setCashIssuedOut] = useState(false);
+    const [refundableAmount, setRefundableAmount] = useState(0);
     const { billingdata } = useContext(BillingContext);
     const { paymentmodeData } = billingdata;
     const { user } = applicationsettings;
@@ -70,9 +71,8 @@ export default function RefundTestOrServiceListTr({ handleRefundList, item, inde
                 toast.error('Please select a refund mode.');
                 return;
             }
-            const amountDued = parseFloat((item.cost + item.amountIncurredDueTax) - item.discount).toFixed(2);
 
-            if (parseFloat(refundAmount) != amountDued) {
+            if (parseFloat(refundAmount) != refundableAmount) {
                 toast.error('Please Enter value equal to the refundable Amount');
                 return;
             }
@@ -109,6 +109,7 @@ export default function RefundTestOrServiceListTr({ handleRefundList, item, inde
             setCashIssuedOut(false);
             setShowCashOutModal(false);
         } catch (err) {
+            console.log(err)
             toast.error('An error occurred while processing the cash-out');
             setCashIssuedOut(false);
             setShowCashOutModal(false);
@@ -176,6 +177,7 @@ export default function RefundTestOrServiceListTr({ handleRefundList, item, inde
                         refundAmount={refundAmount}
                         setRefundAmount={setRefundAmount}
                         paymentModes={paymentmodeData}
+                        setRefundableAmount={setRefundableAmount}
                         selectedPaymentMode={selectedPaymentMode}
                         setSelectedPaymentMode={setSelectedPaymentMode}
                         item={item}
@@ -186,3 +188,49 @@ export default function RefundTestOrServiceListTr({ handleRefundList, item, inde
         </>
     );
 }
+
+
+
+
+
+// BEGIN
+//     DECLARE billingid INT;
+//     DECLARE serviceamountIncurredDueTax DECIMAL(6, 2);
+//     DECLARE servicetotalcost DECIMAL(6, 2);
+//     DECLARE servicetotalpayable DECIMAL(6, 2);
+//     DECLARE servicediscount DECIMAL(6, 2);
+//     DECLARE current_paid DECIMAL(6, 2);
+//     DECLARE current_payable DECIMAL(6, 2);
+//     DECLARE outstanding DECIMAL(6, 2);
+
+//     SELECT billingid, amountIncurredDueTax, totalpayable, totalcost, discount
+//     INTO billingid, serviceamountIncurredDueTax, servicetotalpayable, servicetotalcost, servicediscount
+//     FROM dboservices
+//     WHERE serviceid = OLD.serviceid;
+
+//     SELECT paid, payable INTO current_paid, current_payable
+//     FROM billing
+//     WHERE billingid = billingid;
+
+//     IF current_paid > current_payable THEN
+//         SET outstanding = current_payable - current_paid;
+// ELSE
+//         SET outstanding = current_paid - current_payable;
+//     END IF;
+
+// IF(NEW.isRefundCompleted = 1 OR OLD.isRefundCompleted = 1)
+//        AND OLD.isRefundInitiated = 1
+//        AND OLD.isRefundApproved = 1
+// AND(NEW.amountRefunded != 0 OR OLD.amountRefunded != 0) THEN
+//         UPDATE billing
+// SET
+// paid = paid - NEW.amountRefunded,
+//     payable = payable - servicetotalpayable,
+//     totalcost = totalcost - servicetotalcost,
+//     discount = discount - servicediscount,
+//     amountIncurredDueTax = amountIncurredDueTax - serviceamountIncurredDueTax,
+//     totalRefunded = totalRefunded + NEW.amountRefunded,
+//     outstanding = outstanding
+//         WHERE billingid = billingid;
+//     END IF;
+// END

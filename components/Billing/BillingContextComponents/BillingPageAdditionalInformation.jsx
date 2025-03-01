@@ -14,10 +14,9 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 	const { billingdata, updateBilling, recalculateTotalBill } = useContext(BillingContext);
 	const { applicationsettings } = useApplicationSettings();
 	const branchid = applicationsettings.branchid;
-	const { employeeid, username, role } = applicationsettings.user;
-	const [payment, setPayment] = useState({ amount: 0, mode: "", concession: "" });
+	const { employeeid } = applicationsettings.user;
 	const [showReceiptOptionsModal, setShowReceiptptionsModal] = useState(false);
-
+	const [generatedBillingid, setGeneratedBillingid] = useState(billingdata.billingid);
 	const closeReceiptModal = () => setShowReceiptptionsModal(false);
 
 	const checkButtonDisabled = (billingdata) => {
@@ -60,11 +59,11 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 			const method = billingid ? 'PUT' : 'POST';
 			const data = await ValidateAndSubmitBillingInformation(dataToBeUploaded, method, billingid, isServiceOnly);
 			setIsSaving(false);
-			console.log(data)
 			if (typeof data === "object") {
-				const { status, message } = data;
+				const { status, message,billingid } = data;
 				if (status == true || status == "success") {
-					toast.success(message || "Billing  successful");
+					toast.success(message || "Billing  successful",{position:'top-right'});
+					setGeneratedBillingid(billingid)
 					setShowReceiptptionsModal(true)
 				} else {
 					toast.error(message || status)
@@ -75,6 +74,7 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 			toast.error(err || "something wrong occured");
 		}
 	};
+
 
 
 
@@ -194,7 +194,9 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 				</div>
 			</div>
 
-			{showReceiptOptionsModal && <ReceiptOptionsModal open={showReceiptOptionsModal} close={closeReceiptModal} />}
+			{showReceiptOptionsModal && <ReceiptOptionsModal open={showReceiptOptionsModal} close={closeReceiptModal}
+				patientid= {patientid}
+				billingid={generatedBillingid} />}
 		</Row>
 	);
 }

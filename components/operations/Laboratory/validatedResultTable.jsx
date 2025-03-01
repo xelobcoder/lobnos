@@ -65,7 +65,7 @@ export default function ValidatedResultTable({ employeeid }) {
           const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
           const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
 
-          window.open(`${process.env.PLS_PDF_GENERATOR}result/pdf/generate?csvid=${csvid}&&testid=${testid}&&testname=${name.toLowerCase()}&&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=${multiple}&&isUltrasound=false`)
+          window.open(`${process.env.PLS_PDF_GENERATOR}result/pdf/generate?csvid=${csvid}&&testid=${testid}&&testname=${name.toLowerCase()}&&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=${multiple}&&isUltrasound=false&&is_password_encrypted=false&&password=`)
      };
 
 
@@ -167,12 +167,12 @@ export default function ValidatedResultTable({ employeeid }) {
                               <Dropdown.Item className='pls-label' onClick={() => sendEmailHandler(row.original)}>
                                    {EmailSvg} Send Report via Email
                               </Dropdown.Item>
-                              {/* <Dropdown.Item className='pls-label' onClick={() => downloadSingleReportHandler(row.original)}>
-                                   {downloadSvg} Download Single Report
+                              <Dropdown.Item className='pls-label' onClick={() => downloadSingleReportHandler(row.original)}>
+                                   {downloadSvg} Download Password Protected Report
                               </Dropdown.Item>
                               <Dropdown.Item className='pls-label' onClick={() => downloadMultipleReportsHandler(row.original)}>
                                    {downloadSvg}  Download Multiple Reports
-                              </Dropdown.Item> */}
+                              </Dropdown.Item>
                          </Dropdown.Menu>
                     </Dropdown>
 

@@ -268,13 +268,18 @@ export const links: Link[] = [
         title: "Sales",
         icon: Icon,
         link: "/billing/salessummary",
-        subLinks: []
+        subLinks: [
+
+        ]
     },
     {
         title: "Appointments",
         icon: Icon,
         link: "/appointments",
-        subLinks: []
+        subLinks: [
+            {title: 'Appointments Calender', link: '/appointments'},
+            { title: 'Create Tasks', link: '/appointments/tasks/create-new-tasks' }
+        ]
     },
     {
         title: "Doctors Portal",

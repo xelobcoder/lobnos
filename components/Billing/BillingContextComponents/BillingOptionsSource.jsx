@@ -34,7 +34,7 @@ export default function BillingSourceDeterminer({ initdata }) {
 
     };
 
-    console.log(billingdata.testpanels,'T')
+  
     const updateValuesToContext = async (value) => {
         if (billingdata.billingSource === 2 && typeof value === "object") {
             const { id, name } = value;
