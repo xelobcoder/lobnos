@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { fetchTableColumns, fetchTableSmsColumns } from "../../serverActions/SmsServerActions";
 import Select from "react-select";
 import { PlaceholderColumnSelectionType, TableColumn } from "../../sms/type";
+import { reactSelectCustomStyles } from "../../Auth/customFetch";
 
 
 export default function ColumnPlaceHolder({ category, isSMS, onSelect }: { category: string | null, isSMS: boolean, onSelect: (value: PlaceholderColumnSelectionType) => any }) {
@@ -17,10 +18,10 @@ export default function ColumnPlaceHolder({ category, isSMS, onSelect }: { categ
                     setLoading(true);
                     setError(null);
                     const _category = category.toLowerCase().trim()
-                   
+
                     try {
                          const data = isSMS ? await fetchTableSmsColumns(_category) : await fetchTableColumns(_category);
-                         console.log(category,data)
+                         console.log(category, data)
                          if (Array.isArray(data) && data.length > 0) {
                               setColumns(data);
                          } else {
@@ -38,17 +39,7 @@ export default function ColumnPlaceHolder({ category, isSMS, onSelect }: { categ
      }, [category]);
 
 
-     const customStyles = {
-          menuPortal: (base: any) => ({
-               ...base,
-               zIndex: 9999,
-          }),
-          menu: (base: any) => ({
-               ...base,
-               maxHeight: '300px',
-               overflowY: 'auto',
-          }),
-     };
+
 
      if (loading) {
           return <div>Loading...</div>;
@@ -68,7 +59,7 @@ export default function ColumnPlaceHolder({ category, isSMS, onSelect }: { categ
                          isDisabled={columns.length == 0}
                          id="selectedColumns"
                          onChange={(option) => { onSelect({ ...option, category } as PlaceholderColumnSelectionType) }}
-                         styles={customStyles}
+                         styles={reactSelectCustomStyles}
                          name="selectedColumns"
                          placeholder='select placeholder'
                          menuPortalTarget={document.body}

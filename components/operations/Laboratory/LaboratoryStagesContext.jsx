@@ -18,7 +18,8 @@ export function LaboratoryStagesProvider({ children }) {
               searchString: '',
               page: 1,
               count: 10,
-              isUltrasound:false
+              isUltrasound: false,
+              branchid:null
        });
 
        const updatePageValue = (value) => {
@@ -26,8 +27,8 @@ export function LaboratoryStagesProvider({ children }) {
               updatePagination(value, setQueryParams, queryParams);
        };
 
-       const _getAscensionData = async function (ascension_stage,employeeid) {
-              await getAscensionData(ascension_stage, setCollection, queryParams, setLoading,employeeid);
+       const _getAscensionData = async function (ascension_stage,employeeid,branchid) {
+              await getAscensionData(ascension_stage, setCollection, queryParams, setLoading,employeeid,branchid);
        }
 
        return (

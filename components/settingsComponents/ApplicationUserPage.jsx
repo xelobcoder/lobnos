@@ -49,56 +49,15 @@ export default function ApplicationUsersPage({ users }) {
 		<div className='container-fluid'>
 			<div className='d-flex justify-content-between pls-label'>
 				<h4 className=' bg-secondary-subtle p-2 br-5 pls-label'>Employee List</h4>
-				{!advanced &&
-					<button onClick={(ev) => { setAdvanced(true) }} className='btn btn-secondary btn-sm'>
-						Advanced filtering
-					</button>}
 			</div>
-			{advanced == true
-				&&
-				<div>
-					<form autoComplete='off' className='d-flex mb-1'>
-						<div className='form-row col-2'>
-							<select value={filters.role} onChange={(ev) => { updateFilering(ev) }} className="custom-select" name="role" id="role">
-								<option value="">select role</option>
-								<option value="admin">admin</option>
-								<option value="customer service representative">
-									customer service representative
-								</option>
-								<option value="scientist">scientist</option>
-								<option value="manager">manager</option>
-								<option value="clinician">clinician</option>
-								<option value="phelobotomist">phelobotomist</option>
-								<option value="sonographer">sonographer</option>
-							</select>
-						</div>
-						<div className='form-row col-3 mx-2'>
-							<input value={filters.name} onChange={(ev) => { updateFilering(ev) }} name='name' className='custom-input' type='text' placeholder='username' />
-						</div>
-						<div className='form-row col-3 mx-2'>
-							<input value={filters.email} onChange={(ev) => { updateFilering(ev) }} name='email' className='custom-input' type='text' placeholder='user email' />
-						</div>
-						<div className='form-row col-2 mx-2'>
-							<input value={filters.contact} onChange={(ev) => { updateFilering(ev) }} name='contact' className='custom-input' type='text' placeholder='user contact' />
-						</div>
-						<div>
-							<button onClick={(ev) => { initFilteringUsers(ev) }} type='button' className='btn btn-sm btn-secondary' style={{ marginTop: '1px' }}>
-								filter user
-							</button>
-							<button type='button' style={{ marginTop: '1px' }} onClick={(ev) => { setAdvanced(false); getUsersData() }} className='btn btn-danger btn-sm mx-2'>
-								close
-							</button>
-						</div>
-					</form>
-				</div>
-			}
+
 			<UserList
 				users={users}
 				handleDelete={handleDelete}
 				activateUser={activateInstitutionUser}
 				updatePage={updatePage}
 				filters={filters}
-				showfiltering={advanced}/>
+				showfiltering={advanced} />
 		</div>
 	)
 }

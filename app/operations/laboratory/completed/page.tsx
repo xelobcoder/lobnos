@@ -1,18 +1,19 @@
 "use client"
-import LaboratoryAscensionStages from "../../../../components/operations/Laboratory/LaboratoryAscensionStages";
-import AscentionCompletedTable from "../../../../components/operations/Laboratory/CompletedStageTable";
-import { LaboratoryStagesProvider } from "../../../../components/operations/Laboratory/LaboratoryStagesContext";
+
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
+import LaboratoryAscensionStages from "../../../../components/operations/Laboratory/LaboratoryAscensionStages";
+import { LaboratoryStagesProvider } from "../../../../components/operations/Laboratory/LaboratoryStagesContext"
+import AscentionCompletedTable  from '../../../../components/operations/Laboratory/CompletedStageTable'
 
 
 export default function AscensionCompletedStage() {
 	const { applicationsettings } = useApplicationSettings();
-	const { user } = applicationsettings;
+	const { user, branchid } = applicationsettings;
 
 	return (
 		<LaboratoryStagesProvider>
-			<LaboratoryAscensionStages employeeid={user?.employeeid} ascension_stage={'COMPLETED'} />
-			<AscentionCompletedTable employeeid={user?.employeeid} />
+			<LaboratoryAscensionStages employeeid={user?.employeeid} ascension_stage={'COMPLETED'} branchid={branchid} />
+			<AscentionCompletedTable employeeid={user?.employeeid} branchid={branchid} />
 		</LaboratoryStagesProvider>
 	);
 }

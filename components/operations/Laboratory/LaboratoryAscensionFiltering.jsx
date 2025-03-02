@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import DatePickerRange from "../../../components/accessories/DatePickerRange";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 
-export default function LaboratoryAscensionFiltering({ ascension_stage, employeeid }) {
+export default function LaboratoryAscensionFiltering({ ascension_stage, employeeid,branchid }) {
        const {
               queryParams,
               setQueryParams,
@@ -12,7 +12,7 @@ export default function LaboratoryAscensionFiltering({ ascension_stage, employee
        } = useLaboratoryContext();
 
        useEffect(() => {
-              _getAscensionData(ascension_stage, employeeid);
+              _getAscensionData(ascension_stage, employeeid,branchid);
               setLoadCounter((prev) => prev + 1);
        }, [ascension_stage, employeeid]);
 

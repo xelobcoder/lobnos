@@ -6,7 +6,7 @@ import AttendanceListTab from "../../../../../components/appointments/scheduling
 import CalendarTab from "../../../../../components/appointments/scheduling/CalendarTabComponent";
 import ScheduleTab from "../../../../../components/appointments/scheduling/ScheduleTabComponent";
 import { plsDecryption } from "../../../../../lib/encryption";
-import { customFetch, reactSelectCustomStyles } from "../../../../../components/Auth/customFetch";
+import { customFetch, customPost, reactSelectCustomStyles } from "../../../../../components/Auth/customFetch";
 
 interface Employee {
     employeeid: number;
@@ -54,6 +54,18 @@ interface SummaryResponse {
     summary: Employee[];
     shifts: Shift[];
     cycleInfo: CycleInfo;
+}
+
+interface SavedAttendanceRecord {
+    id: number;
+    employeeid: number;
+    shiftid: number;
+    date: string;
+    cycleid: number;
+    employee_name: string;
+    shift_name: string;
+    starttime: string;
+    endtime: string;
 }
 
 const AttendanceScheduler = ({ params }: { params: { cycleid: string } }) => {
@@ -107,6 +119,39 @@ const AttendanceScheduler = ({ params }: { params: { cycleid: string } }) => {
         };
         fetchData();
     }, [decryptedCycleId]);
+
+    useEffect(() => {
+        const fetchSavedAttendance = async () => {
+            try {
+                const response = await customFetch(`attendance/timetable/cycle/${decryptedCycleId}`);
+                const savedAttendance: SavedAttendanceRecord[] = response;
+                const transformedAttendance = savedAttendance.map(record => {
+                    const employee = employees.find(emp => emp.employeeid === record.employeeid);
+                    const shift = shifts.find(s => s.id === record.shiftid);
+                    if (!employee || !shift) {
+                        throw new Error("Invalid employee or shift data");
+                    }
+                    return {
+                        employee,
+                        shift,
+                        date: new Date(record.date).toISOString().split('T')[0],
+                        day: new Date(record.date).toLocaleDateString("en-US", { weekday: "long" }),
+                        month: new Date(record.date).toLocaleDateString("en-US", { month: "long" }),
+                        cycleStart: shiftCycleStart,
+                        cycleEnd: shiftCycleEnd,
+                        status: "scheduled" as const,
+                    };
+                });
+                setAttendance(transformedAttendance);
+            } catch (err) {
+                console.error("Failed to fetch saved attendance records:", err);
+            }
+        };
+
+        if (employees.length > 0 && shifts.length > 0 && shiftCycleStart && shiftCycleEnd) {
+            fetchSavedAttendance();
+        }
+    }, [decryptedCycleId, employees, shifts, shiftCycleStart, shiftCycleEnd]);
 
     useEffect(() => {
         if (shiftCycleStart && shiftCycleEnd) {
@@ -401,6 +446,44 @@ const AttendanceScheduler = ({ params }: { params: { cycleid: string } }) => {
         }
     };
 
+    const transformAttendanceData = (attendance: AttendanceRecord[], cycleid: string) => {
+        return attendance.map(entry => {
+            return {
+                employeeid: entry.employee.employeeid.toString(),
+                shiftid: entry.shift.id.toString(),
+                date: entry.date,
+                cycleid: cycleid,
+            }
+        });
+    };
+
+    const saveAttendanceToBackend = async (attendanceData: any[]) => {
+        try {
+            const response = await customPost("attendance/timetable", "POST", attendanceData)
+            console.log(response)
+        } catch (err) {
+            console.error("Error saving attendance data:", err);
+            throw err;
+        }
+    };
+
+    const handleSaveAttendance = async () => {
+        if (attendance.length === 0) {
+            setErrorMsg("No attendance records to save");
+            return;
+        }
+
+        try {
+            const transformedData = transformAttendanceData(attendance, decryptedCycleId);
+            await saveAttendanceToBackend(transformedData);
+            setSuccessMsg("Attendance data saved successfully!");
+            setTimeout(() => setSuccessMsg(""), 3000);
+        } catch (err) {
+            setErrorMsg("Failed to save attendance data");
+            console.error(err);
+        }
+    };
+
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
 
@@ -448,10 +531,8 @@ const AttendanceScheduler = ({ params }: { params: { cycleid: string } }) => {
                         setSelectedDate={setSelectedDate}
                         employees={employees}
                         shifts={shifts}
-                        errorMsg={errorMsg}
-                        successMsg={successMsg}
-                        addAttendance={addAttendance}
-                        resetForm={resetForm}
+                        success={successMsg}
+                        error={errorMsg}
                         isReadOnly={isReadOnly}
                         setShowModal={setShowModal}
                         currentEditIndex={currentEditIndex}
@@ -549,6 +630,12 @@ const AttendanceScheduler = ({ params }: { params: { cycleid: string } }) => {
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+            <div className="mt-3">
+                <Button variant="primary" size="sm" onClick={handleSaveAttendance} disabled={isReadOnly || attendance.length === 0}>
+                    Save Attendance
+                </Button>
+            </div>
         </div>
     );
 };

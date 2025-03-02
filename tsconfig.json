@@ -27,8 +27,14 @@
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx"
-, "components/accessories/SectorFileringComponents/FetchColumns.tsx", "components/Billing/UpdatingOutstandingDebt/UpdatOutstandingDebt.tsx", "components/Billing/TransactionDetailsModal.jsx", "app/operations/laboratory/sample/rejected/history/page.jsx", "components/LabTestForms/testrule.jsx", "components/phelobotomy/Analytics/TemplatesComponentAnalytics/TestAscensionOverMontOverYear.jsx"  ],
+    "**/*.tsx",
+    "components/accessories/SectorFileringComponents/FetchColumns.tsx",
+    "components/Billing/UpdatingOutstandingDebt/UpdatOutstandingDebt.tsx",
+    "components/Billing/TransactionDetailsModal.jsx",
+    "app/operations/laboratory/sample/rejected/history/page.jsx",
+    "components/LabTestForms/testrule.jsx",
+    "components/phelobotomy/Analytics/TemplatesComponentAnalytics/TestAscensionOverMontOverYear.jsx"
+  ],
   "exclude": [
     "node_modules"
   ]

@@ -49,6 +49,7 @@ export function useSmsHandlers() {
           const scheduledDateTime = new Date(`${scheduledDate}T${scheduledTime}`);
           if (scheduledDateTime <= now) {
                alert("Scheduled date and time must be in the future.");
+               setSavingMessage(false)
                return;
           }
 

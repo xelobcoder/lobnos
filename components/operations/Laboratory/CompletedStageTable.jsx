@@ -8,7 +8,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
 
-export default function AscentionCompletedTable({employeeid}) {
+export default function AscentionCompletedTable({ employeeid, branchid }) {
 	const {
 		isLoading,
 		collection,
@@ -62,7 +62,7 @@ export default function AscentionCompletedTable({employeeid}) {
 						<MoreHorizIcon />
 					</Dropdown.Toggle>
 					<Dropdown.Menu>
-						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original)}>
+						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original,false,branchid)}>
 							<CheckIcon fontSize="small" /> Enter result
 						</Dropdown.Item>
 						<Dropdown.Item onClick={() => console.log(`Enter All related for ${row.original.patientid}`)}>

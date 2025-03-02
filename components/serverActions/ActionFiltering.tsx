@@ -381,3 +381,27 @@ export async function LoadTestConditionsDefinition(testid: number) {
 		return []
 	}
 }
+
+
+
+export async function loadTaskDefinition(pagination) {
+	try {
+		const { page, count } = pagination;
+		const data = await customFetch(`primelims/tasks?page=${page}&&count=${count}`);
+		if (Array.isArray(data) && data.length > 0) {
+			const mappedTasks = data.map(task => ({
+				id: task.id,
+				title: task.name,
+				description: task.description,
+				status: task.completed === 0 ? 'Todo' : task.completed === 1 ? 'In Progress' : 'Done',
+				priority: task.priority.charAt(0).toUpperCase() + task.priority.slice(1),
+				dueDate: new Date(task.endDate).toISOString().split('T')[0],
+				assignee: task.username || 'Unassigned',
+			}));
+			return { result: mappedTasks, error: false };
+		}
+		return { result: [], error: false };
+	} catch (err) {
+		return { result: [], error: false }
+	}
+}

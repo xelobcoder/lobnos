@@ -1,8 +1,10 @@
 'use client';
 import React, { useState } from "react";
-import { links } from "./PrimeLinks";
+import { Mylinks } from "./PrimeLinks";
 import Link from "next/link";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
+
+
 
 
 
@@ -42,7 +44,9 @@ interface Styles {
 const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
     const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
     const [expandedMenus, setExpandedMenus] = useState<Record<number, boolean>>({});
-    const { company } = useApplicationSettings().applicationsettings;
+    const { company,branchid } = useApplicationSettings().applicationsettings;
+
+    const links = Mylinks(branchid);
 
     const toggleSidebar = () => {
         setIsCollapsed(!isCollapsed);

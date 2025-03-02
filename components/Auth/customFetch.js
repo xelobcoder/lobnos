@@ -874,14 +874,14 @@ export const getDateRange = (range) => {
 
 
 
-export function PrepareResultEntryHeader(data, isUltrasound = false) {
+export function PrepareResultEntryHeader(data, isUltrasound = false,branchid) {
 	if (typeof data != "object") return;
 	const { id, name, billingid, patientid, ascensionid } = data;
 	if (!id || !name || !billingid || !patientid) return;
 	var csvid = `${generateRandomTextAndNumbers(70)}${billingid}`.trim();
 	var ptid = `${csvid.slice(25, 50)}${csvid.slice(0, 25)}${patientid}`.trim();
-	if (!isUltrasound) return window.open(`/operations/laboratory/resultentry?csvid=${csvid}&&ptid=${ptid}`);
-	return window.open(`/operations/imaging/ultrasound/result?csvid=${csvid}&&ptid=${ptid}&&testid=${id}&&ascensionid=${ascensionid}`);
+	if (!isUltrasound) return window.open(`/operations/laboratory/resultentry/${branchid}?csvid=${csvid}&&ptid=${ptid}`);
+	return window.open(`/operations/imaging/ultrasound/result/${branchid}?csvid=${csvid}&&ptid=${ptid}&&testid=${id}&&ascensionid=${ascensionid}`);
 }
 
 

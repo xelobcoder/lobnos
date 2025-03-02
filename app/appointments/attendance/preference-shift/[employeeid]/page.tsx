@@ -4,6 +4,7 @@ import { Form, Button, Spinner, Row, Col } from "react-bootstrap";
 import { customFetch, customPost } from "../../../../../components/Auth/customFetch";
 import { toast } from "react-toastify";
 import PrimeToast from "../../../../../components/accessories/PrimeToast";
+import { plsDecryption } from "../../../../../lib/encryption";
 
 
 interface Shift {
@@ -15,11 +16,12 @@ interface Shift {
 }
 
 interface EmployeePreferencesShiftPageProps {
-    params: { employeeid: number };
+    params: { employeeid: number|string };
 }
 
 export default function EmployeePreferencesShiftPage({ params }: EmployeePreferencesShiftPageProps) {
-    const { employeeid } = params;
+    let { employeeid } = params;
+    employeeid = parseInt(plsDecryption(employeeid.toString()))
     const [shifts, setShifts] = useState<Shift[]>([]);
     const [selectedPreferences, setSelectedPreferences] = useState<number[]>([]);
     const [unavailableDays, setUnavailableDays] = useState<string[]>([]);

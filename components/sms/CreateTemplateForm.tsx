@@ -7,6 +7,7 @@ import ColumnPlaceHolder from "../accessories/SectorFileringComponents/FetchColu
 import { PlaceholderColumnSelectionType, SmsTemplateFormState } from "./type";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { ToastContainer, toast } from 'react-toastify';
+import { reactSelectCustomStyles } from "../Auth/customFetch";
 
 
 export const initialState: SmsTemplateFormState = {
@@ -102,12 +103,13 @@ export default function CreateTemplateForm() {
                                    id="selectedCategory"
                                    name="selectedCategory"
                                    options={SmsPlaceHolderCategory}
+
                                    value={state.selectedCategory}
                                    onChange={handleCategoryChange}
                                    getOptionLabel={(e) => e.label}
                                    getOptionValue={(e) => e.value}
                                    placeholder="Select category"
-                                   styles={customStyles}
+                                   styles={reactSelectCustomStyles}
                                    menuPortalTarget={document.body}
                               />
                          )}

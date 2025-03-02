@@ -11,10 +11,10 @@ interface Branch {
 export default async function BillingBranchesPage() {
     try {
         const branches = await customFetch(`branches`);
-
         if (!branches || !branches.result) {
             throw new Error('No branches found');
         }
+        
 
         return (
             <div>
