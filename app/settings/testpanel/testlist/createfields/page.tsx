@@ -13,6 +13,8 @@ export default async function CreateSingleFieldPage({ searchParams }: { searchPa
       customFetch(`testpanel/list/customtestrule?testid=${testid}`)
    ]);
 
+   console.log(testdata, fieldConstraintsCategorization, testRules)
+
    return (
       <div>
          <CreateTestFields

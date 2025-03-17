@@ -202,7 +202,10 @@ const AttendanceScheduler = ({ params }: { params: { cycleid: string } }) => {
 
         const isPreferredShift = employeeData.preferredShifts.some(ps => ps.id === parseInt(shiftId));
         if (!isPreferredShift) {
-            return { valid: true, warning: `This shift is not in ${employeeData.username}'s preferences` };
+            return {
+                valid: true,
+                warning: `This shift is not in ${employeeData.username}'s preferences`
+            };
         }
 
         const hasConflict = attendance.some((entry) =>
@@ -212,7 +215,10 @@ const AttendanceScheduler = ({ params }: { params: { cycleid: string } }) => {
         );
 
         if (hasConflict) {
-            return { valid: false, message: `${employeeData.username} is already scheduled for this shift on ${date}` };
+            return {
+                valid: false,
+                message: `${employeeData.username} is already scheduled for this shift on ${date}`
+            };
         }
 
         return { valid: true };

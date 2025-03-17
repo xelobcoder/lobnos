@@ -14,6 +14,7 @@ export default async function RegistrationPage({ searchParams }: { searchParams:
 
     let fields = patientRegistrationDefaultData
     const data = await customFetch("applicationsettings/registration/fields")
+    console.log(data)
     if (Object.keys(data).length > 0) {
         fields = data
     }
@@ -32,6 +33,7 @@ export default async function RegistrationPage({ searchParams }: { searchParams:
             customFetch(`register/addressingformation?patientid=${patientid}`),
             customFetch(`register/personalinformation?patientid=${patientid}`)
         ])
+
 
         if (emmergencyRes?.result) {
             emmergencyInformation = emmergencyRes?.result

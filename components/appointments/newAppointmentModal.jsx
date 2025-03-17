@@ -17,7 +17,7 @@ import {
 	loadOptions,
 	onChangePractioner,
 } from "../../lib/appointment";
-import { getInstitutionUsers } from "../Auth/customFetch";
+import { getInstitutionUsers, reactSelectCustomStyles } from "../Auth/customFetch";
 import SpinningLoading from "../accessories/UIAccessories/spinningLoading";
 import { useSearchParams } from "next/navigation";
 import AppointmentSlots from "./DisplayAppointmentSlot";
@@ -98,6 +98,7 @@ export default function NewAppointment() {
 							<label>Consulting Healthcare Practitioner</label>
 							<div>
 								<Autocomplete
+									styles={reactSelectCustomStyles}
 									value={appointment.practioner}
 									onChange={(value) => {
 										onChangePractioner(value, setAppointment, appointment, setMorning, setAfternoon, setEvening);
@@ -127,6 +128,7 @@ export default function NewAppointment() {
 						<div className="form-row">
 							<label>Duration (minutes)</label>
 							<Autocomplete
+								styles={reactSelectCustomStyles}
 								getOptionLabel={(option) => option.label}
 								value={appointment.duration}
 								onChange={(value) => setAppointment({ ...appointment, duration: value })}
@@ -138,13 +140,16 @@ export default function NewAppointment() {
 							<label>Preference</label>
 							<Autocomplete
 								value={appointment.preference}
+								styles={reactSelectCustomStyles}
 								getOptionLabel={(options) => options.label}
 								onChange={(value) => setAppointment({ ...appointment, preference: value })}
 								options={preferenceOptions} />
+							
 						</div>
 						<div className="form-row">
 							<label>Invite Method</label>
 							<Autocomplete
+								styles={reactSelectCustomStyles}
 								value={appointment.inviteMethod}
 								getOptionLabel={(options) => options.label}
 								onChange={(value) => setAppointment({ ...appointment, inviteMethod: value })}

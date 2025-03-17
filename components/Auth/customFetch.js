@@ -9,23 +9,25 @@ import moment from "moment"
  */
 export async function customFetch(endpoint) {
 	try {
-		let response = await fetch(`${process.env.BASEURL}/${endpoint}`, {
+		const url = new URL(`/api/v1/${endpoint}`, process.env.BASEURL);
+		url.searchParams.append("tenantId", "3");
+		const response = await fetch(url.toString(), {
 			headers: {
 				Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
 				"Content-Type": "application/json",
 				"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0"
 			},
-			cache: 'no-store'
-		})
-		const source = await response.json()
-		const { status, message } = source
+			cache: "no-store"
+		});
+		const source = await response.json();
+		const { status, message } = source;
 		if (status == 401 && message == "Unauthorized") {
-			window.location.href = "/authentication/login"
+			window.location.href = "/authentication/login";
 		} else {
-			return source
+			return source;
 		}
 	} catch (err) {
-		console.log(err)
+		console.log(err);
 	}
 }
 
@@ -113,7 +115,10 @@ export async function customPost(endpoint, method, data, hash = false) {
 			throw new Error("HASH_KEY not set in NODE_ENV")
 		}
 	}
-	let response = await fetch(`${process.env.BASEURL}/${endpoint}`, {
+
+	const url = new URL(`${endpoint}`, process.env.BASEURL);
+	url.searchParams.append("tenantId", "3");
+	let response = await fetch(url.href, {
 		method: method,
 		headers: {
 			"content-type": "application/json",

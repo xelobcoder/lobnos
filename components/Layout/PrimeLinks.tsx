@@ -273,6 +273,7 @@ export const Mylinks = function (branchid: number): Link[] {
             link: "/appointments",
             subLinks: [
                 { title: 'Appointments Calender', link: '/appointments' },
+                { title: 'Bok Appointment', link:'/appointments/book'},
                 { title: 'Create Tasks', link: '/appointments/tasks/create-new-tasks' },
                 { title: 'Create Attendance', link: '/appointments/attendance/create-attendance' },
                 {

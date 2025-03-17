@@ -4,6 +4,10 @@ import { loadOptions } from "../../lib/appointment";
 import { customFetch, customPost } from "../Auth/customFetch"
 import { plsEncryption } from "../../lib/encryption";
 import { formatDate } from "../operations/Laboratory/Lib";
+import { cookies } from "next/headers";
+
+
+console.log(cookies)
 
 export async function filteringDatabaseTables(target: string, filtering: string, column: string, limit: number) {
 	try {

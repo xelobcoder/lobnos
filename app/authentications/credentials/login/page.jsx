@@ -1,9 +1,10 @@
+'use client';
 import React, { useState } from 'react';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import LockIcon from '@mui/icons-material/Lock';
-import styles from '../styles/loginPage.module.css';
+import styles from '../../../../styles/loginPage.module.css';
 
 const LoginPage = () => {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -12,12 +13,14 @@ const LoginPage = () => {
         password: ''
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleSubmit = (e) => {
         e.preventDefault();
         setIsLoading(true);
         setTimeout(() => {
             setIsLoading(false);
+            alert('Login successful!');
         }, 2000);
     };
 
@@ -37,7 +40,7 @@ const LoginPage = () => {
                     <p>Secure access to your portal</p>
                 </div>
 
-                <form onSubmit={handleSubmit} autoComplete='off'  autoSave='off'>
+                <form onSubmit={handleSubmit} autoComplete='off' autoSave='off'>
                     <div className={styles['form-group']}>
                         <label htmlFor="username">Username</label>
                         <div className={styles['input-wrapper']}>

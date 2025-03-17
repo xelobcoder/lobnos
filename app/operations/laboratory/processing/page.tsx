@@ -9,13 +9,13 @@ import AscensionProcessingTable from "../../../../components/operations/Laborato
 
 export default function AscensionCompletedStage() {
 	const { applicationsettings } = useApplicationSettings();
-	const { user } = applicationsettings;
+	const { user ,branchid} = applicationsettings;
 
 
 	return (
 		<LaboratoryStagesProvider>
-			<LaboratoryAscensionStages employeeid={user?.employeeid} ascension_stage={'PROCESSING'} />
-			<AscensionProcessingTable />
+			<LaboratoryAscensionStages employeeid={user?.employeeid} ascension_stage={'PROCESSING'} branchid={branchid} />
+			<AscensionProcessingTable  />
 		</LaboratoryStagesProvider>
 	);
 }

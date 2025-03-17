@@ -84,7 +84,7 @@ export default function PreviousTransactionSummaryModal({ patientid, employeeid 
                         <label className='pls-label pls-color'>Select Refund Payment Mode</label>
                         <select value={PaymentMode} onChange={(ev) => { setPaymentMode(ev.target.value) }} className='custom-select'>
                             <option value={''}>select payment mode for refund</option>{
-                                Array.isArray(billingdata.paymentmodeData) && billingdata.paymentmodeData.map((item, index) => <option value={item.KeyID}>{item.PaymentMode}</option>)
+                                Array.isArray(billingdata.paymentmodeData) && billingdata.paymentmodeData.map((item, index) => <option value={item.KeyID} key={index}>{item.PaymentMode}</option>)
                             }
                         </select>
                     </div>

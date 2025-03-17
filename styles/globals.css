@@ -23,6 +23,16 @@
      font-family: "Barlow", sans-serif !important;
 }
 
+.day-cell {
+  transition: all 0.2s ease-in-out;
+}
+
+@media (max-width: 768px) {
+  .day-cell {
+    height: 80px; 
+    font-size: 0.85rem;
+  }
+}
 
 
 .timeline {
