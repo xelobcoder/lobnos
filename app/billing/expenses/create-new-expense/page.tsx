@@ -30,20 +30,20 @@ interface PaymentMode {
 
 interface Category {
     category: string;
+    categoryid: number;
 }
 
 interface SelectOption {
     value: string;
     label: string;
 }
-
 const expenseSchema = z.object({
     name: z.string().min(1, "Expense name is required"),
     date: z.string().min(1, "Date is required"),
     merchant: z.string().min(1, "Merchant name is required"),
     amount: z.string().min(1, "Amount is required"),
     category: z.string().min(1, "Category is required"),
-    mode: z.string().min(1, "Payment mode is required"),
+    mode: z.string().min(1, "Payment mode is required"),  
     description: z.string().min(1, "Description is required"),
     receipt: z.any().optional(),
     invoiceNumber: z.string().optional(),
@@ -74,41 +74,25 @@ export default function AddNewExpense() {
     const [paymentmode, setPaymentMode] = useState<PaymentMode[]>([]);
     const [category, setCategoryList] = useState<Category[]>([]);
     
-    const { user } = useApplicationSettings().applicationsettings;
+    const { user,branchid } = useApplicationSettings().applicationsettings;
     const employeeid = user?.employeeid;
     const searchParams = useSearchParams();
     const method = searchParams?.get('action');
     const editid = searchParams?.get("id");
 
     const onSubmit = async (data: ExpenseFormData) => {
-        if (!employeeid || !user?.branchid) {
-            return window.location.reload();
-        }
+        // if (!employeeid || !branchid) {
+        //     return window.location.reload();
+        // }
+ 
 
         const httpMethod = method && editid ? 'PUT' : 'POST';
         try {
-            const formData = new FormData();
-            
-            // Append file if exists
-            if (data.receipt && data.receipt[0]) {
-                formData.append('receipt', data.receipt[0]);
-            }
-
-            // Append other form data
-            Object.keys(data).forEach(key => {
-                if (key !== 'receipt') {
-                    formData.append(key, data[key]);
-                }
-            });
-
-            formData.append('employeeid', employeeid);
-            formData.append('branchid', user.branchid);
-
+            const formData = {...data, branchid,employeeid}
             const response = await customPost('expenses', httpMethod, formData);
-
-            if (response?.status === "success") {
+            if (response?.status == true) {
                 toast.success('New expense generated successfully awaiting approval', { autoClose: 2000 });
-                reset(defautExpense);
+  
             } else {
                 toast.error("Expense generation failed", { autoClose: 5000 });
             }
@@ -221,9 +205,10 @@ export default function AddNewExpense() {
                         <div className="col-md-12 ">
                             <div className="col-md-12">
                                 <label className="form-label pls-label">Category</label>
+                                // Update the Category Select component
                                 <Select
                                     options={category.map(item => ({
-                                        value: item.category,
+                                        value: String(item.categoryid || ''),
                                         label: item.category
                                     }))}
                                     styles={reactSelectCustomStyles}
@@ -238,9 +223,10 @@ export default function AddNewExpense() {
                           
                             <div className="col-md-12">
                                 <label className="form-label pls-label">Payment Method</label>
+          
                                 <Select
                                     options={paymentmode.map(item => ({
-                                        value: item.KeyID,
+                                        value: item.KeyID.toString(), 
                                         label: item.PaymentMode
                                     }))}
                                     placeholder="Select payment method"
