@@ -8,6 +8,7 @@ import Loader from "../../components/accessories/Loader";
 import { Button } from "react-bootstrap";
 import PrimeTable from "../../components/accessories/Datatables/PrimeTable";
 import PrimeLayout from '../../components/Layout/PrimeLayout';
+import PrimeToast from '../../components/accessories/PrimeToast';
 import Link from "next/link";
 
 const ActionButtons = ({ original, onEdit, onView, onDelete }) => {
@@ -194,7 +195,7 @@ export default function ClinicianList() {
 
 	return (
 		<PrimeLayout>
-			<ToastContainer />
+			<PrimeToast/>
 			<div className="d-flex justify-content-between">
 				<h5>Registered Clinician List</h5>
 				<Button variant="primary" className="btn btn-sm" onClick={() => router.push("/clinician/new")}>

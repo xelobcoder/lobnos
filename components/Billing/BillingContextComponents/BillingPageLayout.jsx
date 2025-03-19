@@ -2,7 +2,6 @@
 import { BillingPageContextProvider } from "./BillingContext";
 import RenderingWithPatientIdProvided from "./RenderingWithPatientIdProvided";
 import BillingSourceDeterminer from "./BillingOptionsSource";
-import BillingPagePatientInformation from "./PersonalInfoView";
 import PreviousTransactionSummaryOffCanvasShow from './Lib/PreviousTransactionSummaryOffCanvasShow'
 import BillingPageSummary from "./BillingSummary";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";

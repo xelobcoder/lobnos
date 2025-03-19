@@ -89,6 +89,8 @@ export default async function PatientBillingPageIndex({
 			customFetch('paymentmodes'),
 		]);
 
+		
+
 		if (billingid) {
 			previousRecords = await fetchPreviousBilledRecords(billingid);
 			billingdata.previousRecords = previousRecords

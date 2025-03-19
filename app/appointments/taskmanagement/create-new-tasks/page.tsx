@@ -71,9 +71,9 @@ const CreateTask = () => {
                     const task = await customFetch(`primelims/tasks/${tasktoEdit}`);
                     setTaskName(task.name);
                     setTaskDescription(task.description);
-                    setStartDate(new Date(task.startDate).toISOString().split('T')[0]); // Format as YYYY-MM-DD
+                    setStartDate(new Date(task.startDate).toISOString().split('T')[0]);
                     sertAssignedName(task.username);
-                    setEndDate(new Date(task.endDate).toISOString().split('T')[0]); // Format as YYYY-MM-DD
+                    setEndDate(new Date(task.endDate).toISOString().split('T')[0]);
                     setPriority(priorityOptions.find(option => option.value === task.priority) || priorityOptions[1]);
                     setFrequency(frequencyOptions.find(option => option.value === task.frequency) || frequencyOptions[0]);
                     setAssignTo(task.assignedTo === "all" ? "all" : "single");

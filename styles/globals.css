@@ -15,6 +15,12 @@
   --tw-bg-opacity: 1;
   --prime-text-color-off:
 #0d333f;
+--input-border: #cdd5de;
+--input-focus-border: #0073bb;
+--input-focus-shadow: rgba(0, 115, 187, 0.2);
+--input-disabled-bg: #f1f4f7;
+--input-disabled-color: #5f6b7a;
+--input-placeholder: #8996a5;
   --bg-light-gray:rgb(230 230 230 );
   --wp--preset--gradient--midnight: linear-gradient(135deg, rgb(2, 3, 129) 0%, rgb(40, 116, 252) 100%);
 }
@@ -468,19 +474,70 @@ i {font-size:100px;
   height: 30px !important;
 }
 
+
+
 .custom-input,
+input.form-control,
 .custom-select {
-  height: 35px;
-  border: 1px solid lightgray !important;
-  border-radius: 3px !important;
+  height: 38px;
+  background-color: #ffffff;
+  border: 1px solid var(--input-border);
+  border-radius: 3px;
   font-size: 14px;
-  padding-left: 10px;
+  padding: 8px 12px;
   width: 100%;
-  color: #00224f;
+  color: #1a2433;
+  transition: all 0.15s ease;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
 }
-.custom-select:disabled,
-.custom-input:disabled{
-  background-color: lightgray !important;
+
+.custom-input:hover,
+input.form-control:hover,
+.custom-select:hover {
+  border-color: var(--input-focus-border);
+  background-color: #fafbfc;
+}
+
+.custom-input:focus,
+input.form-control:focus,
+.custom-select:focus {
+  outline: none;
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow);
+  background-color: #ffffff;
+}
+
+.custom-input:disabled,
+input.form-control:disabled,
+.custom-select:disabled {
+  background-color: var(--input-disabled-bg);
+  border-color: var(--input-border);
+  color: var(--input-disabled-color);
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.custom-input::placeholder,
+input.form-control::placeholder,
+.custom-select::placeholder {
+  color: var(--input-placeholder);
+  opacity: 1;
+}
+
+/* Add validation states */
+.custom-input:required:invalid,
+input.form-control:required:invalid,
+.custom-select:required:invalid {
+  border-color: #d92d20;
+  box-shadow: none;
+}
+
+.custom-input:required:invalid:focus,
+input.form-control:required:invalid:focus,
+.custom-select:required:invalid:focus {
+  box-shadow: 0 0 0 3px rgba(217, 45, 32, 0.2);
 }
 .r-3{
   border-radius: 3px !important;

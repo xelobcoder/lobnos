@@ -4,6 +4,7 @@ import { customFetch, customPost } from '../Auth/customFetch';
 import { toast } from 'react-toastify';
 import { Refresh } from '@mui/icons-material';
 import { useApplicationSettings } from '../Auth/useApplicationContext';
+import PrimeTable from '../accessories/Datatables/PrimeTable';
 
 export default function DrugsListPLSMASTER({ resetEditDrug, handleEditDrug, }) {
     const { applicationsettings } = useApplicationSettings();
@@ -49,6 +50,38 @@ export default function DrugsListPLSMASTER({ resetEditDrug, handleEditDrug, }) {
         return new Date(dateString).toDateString()
     };
 
+    const columns = [{
+        Header: 'Drug Name',
+        accessor: 'drug',
+    },
+    {
+        Header: 'Category',
+        accessor: 'categoryName',
+    },
+    {
+        Header: 'Created By',
+        accessor: 'createdBy',
+    },
+    {
+        Header: 'Added On',
+        accessor: 'addedOn',
+        Cell: ({ value }) => new Date(value).toDateString(),
+    },
+    {
+        Header: 'Actions',
+        accessor: 'id',
+        Cell: ({ row }) => (
+            <>
+                <Button variant="warning" size="sm" onClick={() => handleEditDrug(row.original)}>
+                    Edit
+                </Button>{' '}
+                <Button variant="danger" size="sm" onClick={() => handleDelete(row.original.id)}>
+                    Delete
+                </Button>
+            </>
+        ),
+    },]
+
     if (loading) {
         return (
             <div className="d-flex justify-content-center">
@@ -72,33 +105,7 @@ export default function DrugsListPLSMASTER({ resetEditDrug, handleEditDrug, }) {
                     <Refresh />
                 </button>
             </div>
-            <div className='bt-wrapper'>
-                <Table className=' bt' >
-                    <thead>
-                        <tr>
-                            <th>Drug Name</th>
-                            <th>Category</th>
-                            <th>Created By</th>
-                            <th>Added On</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {Array.isArray(drugs) && drugs.length > 0 && drugs.map((drug, index) => (
-                            <tr key={index}>
-                                <td style={{ fontSize: '13px' }} >{drug.drug}</td>
-                                <td style={{ fontSize: '13px' }} >{drug.categoryName}</td>
-                                <td style={{ fontSize: '13px' }} >{drug.createdBy}</td>
-                                <td style={{ fontSize: '13px' }} >{formatDate(drug.addedOn)}</td>
-                                <td style={{ fontSize: '13px' }} >
-                                    <Button variant="warning" size="sm" onClick={() => handleEditDrug(drug)}>Edit</Button>{' '}
-                                    <Button variant="danger" size="sm" onClick={() => handleDelete(drug.id)}>Delete</Button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </Table>
-            </div>
+            <PrimeTable column={columns} data={drugs} serverSideFiltering={false} handleSeverSideProcessing={null} />
         </div>
     );
 }

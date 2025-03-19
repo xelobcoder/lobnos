@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
-import ExpenseLayout from "../../components/Expense/ExpenseLayout";
-import { currencyFormatter, customFetch, updatePagination } from "../../components/Auth/customFetch";
-import TableDisplay from '../../components/accessories/TableDisplay';
-import Link from 'next/link';
-import Pagination from "../../components/accessories/pagination";
-import { useApplicationSettings } from "../../components/Auth/useApplicationContext";
+"use client"
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { Pagination } from "react-bootstrap";
+import { currencyFormatter, customFetch, updatePagination } from "../../../components/Auth/customFetch";
+import { useApplicationSettings } from "../../../components/Auth/useApplicationContext";
+import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
+
 
 export default function ExpenseList() {
      const [expenses, setExpenses] = useState([]);
@@ -67,10 +68,7 @@ export default function ExpenseList() {
      }
 
      return (
-          <ExpenseLayout>
-               <div className="bg-secondary p-2 text-white">
-                    Advanced Filtering
-               </div>
+         <div>
                <section className="mb-4 my-2">
                     <div className="d-flex">
                          <input type="date" className="custom-input" />
@@ -85,13 +83,11 @@ export default function ExpenseList() {
                          </button>
                     </div>
                </section>
-               <div className="bg-secondary p-2 text-white my-2">
+               <div className=" bg-secondary-subtle p-2 br-5 pls-color col-4">
                     User Requested Expenses
                </div>
-               <TableDisplay column={columns} data={expenses} showpage={false} />
-               <section className="d-flex justify-content-center">
-                    <Pagination page={filter.page} load={setLoad} updateFunction={updatePage} />
-               </section>
-          </ExpenseLayout>
+                <PrimeTable handleSeverSideProcessing={null}
+               column={columns} data={expenses || []} serverSideFiltering={true} filtering={false} />
+         </div>
      )
 }

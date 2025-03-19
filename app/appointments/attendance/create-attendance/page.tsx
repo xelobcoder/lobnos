@@ -47,7 +47,6 @@ const ScheduleGenerator: React.FC = () => {
                 const createResponse = await customPost(`attendance/cycles`, "POST", data);
                 if (createResponse.success) {
                     toast.success(createResponse?.data?.message || "Cycle created successfully");
-                    // Reload cycles after successful creation
                     loadCycles();
                 } else {
                     toast.error("Failed to create cycle.");
@@ -74,7 +73,7 @@ const ScheduleGenerator: React.FC = () => {
 
     const router = useRouter()
 
-    const handleViewAttendance = (item) => {
+    const handleViewAttendance = (item: any) => {
         router.push(`/appointments/attendance/create-attendance/${plsEncryption(item.id.toString())}`)
     }
 
@@ -111,7 +110,7 @@ const ScheduleGenerator: React.FC = () => {
                                 <td>{new Date(cycle.cycleend).toLocaleDateString()}</td>
                                 <td>{cycle.description || "-"}</td>
                                 <td>
-                                    <button  className="btn btn-primary btn-sm mx-2" onClick={(ev) => { handleViewAttendance(cycle) }}>
+                                    <button className="btn btn-primary btn-sm mx-2" onClick={(ev) => { handleViewAttendance(cycle) }}>
                                         create/view attendance
                                     </button>
                                     <button
