@@ -205,7 +205,6 @@ export default function AddNewExpense() {
                         <div className="col-md-12 ">
                             <div className="col-md-12">
                                 <label className="form-label pls-label">Category</label>
-                                // Update the Category Select component
                                 <Select
                                     options={category.map(item => ({
                                         value: String(item.categoryid || ''),
