@@ -121,14 +121,7 @@ export const Mylinks = function (branchid: number): Link[] {
                 {
                     title: "Cost Breakdown by Clinician",
                     link: "/sales/costBreakdownByClinician?targetKey=39"
-                }
-            ]
-        },
-        {
-            title: "Transaction Overview",
-            icon: Icon,
-            link: "/sales/transactions-overview",
-            subLinks: [
+                },
                 {
                     title: "Number of Transactions by Branch",
                     link: "/sales/numberOfTransactionsByBranch?targetKey=40"
