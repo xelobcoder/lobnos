@@ -1,6 +1,7 @@
 import React from "react";
 import PrimeTable from "../accessories/Datatables/PrimeTable";
 import { handleSeverSideProcessingPhelobotomy } from "../serverActions/ActionFiltering";
+import { RiInboxLine, RiTestTubeLine } from '@remixicon/react';
 
 
 export default function ListTable({ data, handleCollectSample, receive }) {
@@ -31,12 +32,16 @@ export default function ListTable({ data, handleCollectSample, receive }) {
 			Header: "Action",
 			accessor: "action",
 			Cell: ({ row }) => (
-				<div>
-					<button onClick={receive} className="btn btn-primary btn-sm mx-1">
-						Receive
+				<div className="d-flex gap-1">
+					<button 
+						onClick={receive} 
+						className="btn btn-outline-primary btn-sm d-flex align-items-center gap-1"
+					>
+						<RiInboxLine size={16} />
+						<span>Receive</span>
 					</button>
 					<button
-						className="btn btn-primary btn-sm mx-1"
+						className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
 						onClick={() => {
 							handleCollectSample(
 								row.original.billingid,
@@ -45,7 +50,8 @@ export default function ListTable({ data, handleCollectSample, receive }) {
 							);
 						}}
 					>
-						Pull Sample
+						<RiTestTubeLine size={16} />
+						<span>Pull Sample</span>
 					</button>
 				</div>
 			),

@@ -1,8 +1,8 @@
 import { customFetch } from "../Auth/customFetch";
-import AccessTimeIcon from '@mui/icons-material/AccessTime'; // Pending Cases
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'; // Collected Cases
-import CancelIcon from '@mui/icons-material/Cancel'; // Rejected Cases
-import AutorenewIcon from '@mui/icons-material/Autorenew'; // Redrawn Completed
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
 
 const defaultValues = { rejected: null, orders: null, completed: null, pending: null };
 
@@ -21,140 +21,68 @@ export default async function PhelobotomySummaryAnalytics() {
     await fetchSummary();
 
     return (
-        <div className="">
-            <div className="d-flex flex-column flex-md-row gap-1">
-                {/* Pending Cases Card */}
-                <div
-                    className="card border-0 shadow rounded"
-                    style={{
-                        background: '#ECF2FF',
-                        borderRadius: '12px',
-                        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                        height: '89px',
-                        flex: '1 1 auto',
-                        margin: '0 8px',
-                    }}
-                >
-                    <div className="card-body">
-                        <div className="d-flex justify-content-between align-items-center mb-1">
-                            <div
-                                className="d-flex align-items-center justify-content-center"
-                                style={{
-                                    backgroundColor: '#3B82F6',
-                                    padding: '6px',
-                                    borderRadius: '6px',
-                                }}
-                            >
-                                <AccessTimeIcon style={{ fontSize: '1rem', color: 'white' }} />
+        <div className="px-2">
+            <div className="row g-2">
+                <div className="col-12 col-md-6 col-lg-3">
+                    <div className="card h-100 border-0 bg-white shadow-sm hover-shadow">
+                        <div className="card-body p-2">
+                            <div className="d-flex justify-content-between align-items-center gap-2">
+                                <div className="bg-primary bg-opacity-10 p-2 rounded-2">
+                                    <AccessTimeIcon className="text-primary" style={{ fontSize: '1.25rem' }} />
+                                </div>
+                                <span className="text-muted small text-end">Pending Cases (24h)</span>
                             </div>
-                            <h6 className="mb-0 text-muted" style={{ fontSize: '0.875rem' }}>
-                                Pending Cases {"<"} 24 hours {">"}
-                            </h6>
-                        </div>
-                        <div className="fw-bold" style={{ fontSize: '1rem' }}>
-                            {data.pending}
+                            <div className="mt-2">
+                                <h3 className="h3 mb-0 fw-bold">{data.pending || 0}</h3>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Collected Cases Card */}
-                <div
-                    className="card border-0 shadow rounded"
-                    style={{
-                        background: '#E8FDF5',
-                        borderRadius: '12px',
-                        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                        height: '89px',
-                        flex: '1 1 auto',
-                        margin: '0 8px',
-                    }}
-                >
-                    <div className="card-body">
-                        <div className="d-flex justify-content-between align-items-center mb-1">
-                            <div
-                                className="d-flex align-items-center justify-content-center"
-                                style={{
-                                    backgroundColor: '#10B981',
-                                    padding: '6px',
-                                    borderRadius: '6px',
-                                }}
-                            >
-                                <CheckCircleIcon style={{ fontSize: '1rem', color: 'white' }} />
+                <div className="col-12 col-md-6 col-lg-3">
+                    <div className="card h-100 border-0 bg-white shadow-sm hover-shadow">
+                        <div className="card-body p-2">
+                            <div className="d-flex justify-content-between align-items-center gap-2">
+                                <div className="bg-success bg-opacity-10 p-2 rounded-2">
+                                    <CheckCircleIcon className="text-success" style={{ fontSize: '1.25rem' }} />
+                                </div>
+                                <span className="text-muted small text-end">Collected Cases (24h)</span>
                             </div>
-                            <h6 className="mb-0 text-muted" style={{ fontSize: '0.875rem' }}>
-                                Collected Cases {"<"} 24 hours {">"}
-                            </h6>
-                        </div>
-                        <div className="fw-bold" style={{ fontSize: '1rem' }}>
-                            {data.completed}
+                            <div className="mt-2">
+                                <h3 className="h3 mb-0 fw-bold">{data.completed || 0}</h3>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Rejected Cases Card */}
-                <div
-                    className="card border-0 shadow rounded"
-                    style={{
-                        background: '#FEE2E2',
-                        borderRadius: '12px',
-                        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                        height: '89px',
-                        flex: '1 1 auto',
-                        margin: '0 8px',
-                    }}
-                >
-                    <div className="card-body">
-                        <div className="d-flex justify-content-between align-items-center mb-1">
-                            <div
-                                className="d-flex align-items-center justify-content-center"
-                                style={{
-                                    backgroundColor: '#EF4444',
-                                    padding: '6px',
-                                    borderRadius: '6px',
-                                }}
-                            >
-                                <CancelIcon style={{ fontSize: '1rem', color: 'white' }} />
+                <div className="col-12 col-md-6 col-lg-3">
+                    <div className="card h-100 border-0 bg-white shadow-sm hover-shadow">
+                        <div className="card-body p-2">
+                            <div className="d-flex justify-content-between align-items-center gap-2">
+                                <div className="bg-danger bg-opacity-10 p-2 rounded-2">
+                                    <CancelIcon className="text-danger" style={{ fontSize: '1.25rem' }} />
+                                </div>
+                                <span className="text-muted small text-end">Rejected Cases (24h)</span>
                             </div>
-                            <h6 className="mb-0 text-muted" style={{ fontSize: '0.875rem' }}>
-                                Rejected Cases {"<"} 24 hours {">"}
-                            </h6>
-                        </div>
-                        <div className="fw-bold" style={{ fontSize: '1rem' }}>
-                            {data.rejected}
+                            <div className="mt-2">
+                                <h3 className="h3 mb-0 fw-bold">{data.rejected || 0}</h3>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Redrawn Completed Card */}
-                <div
-                    className="card border-0 shadow rounded"
-                    style={{
-                        background: '#F3E8FF',
-                        borderRadius: '12px',
-                        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                        height: '89px',
-                        flex: '1 1 auto',
-                        margin: '0 8px',
-                    }}
-                >
-                    <div className="card-body">
-                        <div className="d-flex justify-content-between align-items-center mb-1">
-                            <div
-                                className="d-flex align-items-center justify-content-center"
-                                style={{
-                                    backgroundColor: '#E11D48',
-                                    padding: '6px',
-                                    borderRadius: '6px',
-                                }}
-                            >
-                                <AutorenewIcon style={{ fontSize: '1rem', color: 'white' }} />
+                <div className="col-12 col-md-6 col-lg-3">
+                    <div className="card h-100 border-0 bg-white shadow-sm hover-shadow">
+                        <div className="card-body p-2">
+                            <div className="d-flex justify-content-between align-items-center gap-2">
+                                <div className="bg-info bg-opacity-10 p-2 rounded-2">
+                                    <AutorenewIcon className="text-info" style={{ fontSize: '1.25rem' }} />
+                                </div>
+                                <span className="text-muted small text-end">Redrawn Completed (24h)</span>
                             </div>
-                            <h6 className="mb-0 text-muted" style={{ fontSize: '0.875rem' }}>
-                                Redrawn Completed {"<"} 24 hours {">"}
-                            </h6>
-                        </div>
-                        <div className="fw-bold" style={{ fontSize: '1rem' }}>
-                            {data.completed}
+                            <div className="mt-2">
+                                <h3 className="h3 mb-0 fw-bold">{data.completed || 0}</h3>
+                            </div>
                         </div>
                     </div>
                 </div>

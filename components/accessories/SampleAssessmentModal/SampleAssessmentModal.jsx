@@ -143,7 +143,7 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
 			<ToastContainer theme="colored" position="top-center" className={'text-sm'} />
 			<Modal show={show} backdrop="static" size="xl" onHide={hide} scrollable>
 				<Modal.Header closeButton className="bg-light">
-					<div className="d-flex justify-content-between align-items-center w-100">
+					<div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center w-100 gap-2">
 						<h5 className="mb-0 d-flex align-items-center">
 							<RiInformationLine className="me-2" />
 							Sample Assessment And Validation
@@ -164,9 +164,9 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
 				</Modal.Header>
 				<Modal.Body className="p-4">
 					{testcollection.length > 0 && showInstructions && (
-					    <div className="alert alert-light mb-3 border pls-color">
+					    <div className="alert alert-light mb-3 border pls-color p-2 p-md-3">
 					        <h6 className="mb-2">Instructions:</h6>
-					        <ol className="mb-0">
+					        <ol className="mb-0 small">
 					            <li>Review each test result carefully before validation</li>
 					            <li>Use the checkbox to select individual tests or "Select All" for bulk actions</li>
 					            <li>Click "Accept" to approve or "Reject" to decline a test</li>
@@ -176,7 +176,7 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
 					    </div>
 					)}
 
-					<div className="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+					<div className="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center mb-3 p-2 p-md-3 bg-light rounded gap-2">
 						<div onClick={handleSelectAll} className="d-flex align-items-center cursor-pointer">
 							{selectedTests.length === testcollection.length ? 
 								<RiCheckboxMultipleLine className="text-primary" /> : 
@@ -184,18 +184,18 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
 							}
 							<span className="ml-2 font-weight-medium">Select All</span>
 						</div>
-						<div className="d-flex">
+						<div className="d-flex gap-2">
 							<button 
 								className="btn btn-success btn-sm mr-2 d-flex align-items-center"
 								onClick={() => handleBulkAction('accept')}>
 								<RiCheckboxLine className="me-1" />
-								Accept All
+								<span className="d-none d-md-inline">Accept All</span>
 							</button>
 							<button 
 								className="btn btn-danger btn-sm d-flex align-items-center"
 								onClick={() => handleBulkAction('reject')}>
 								<RiCloseLine className="me-1" />
-								Reject All
+								<span className="d-none d-md-inline">Reject All</span>
 							</button>
 						</div>
 					</div>
