@@ -8,8 +8,8 @@ import moment from "moment"
  */
 export async function customFetch(endpoint) {
 	try {
-		const url = new URL(`/api/v1/${endpoint}`, process.env.BASEURL);
-		url.searchParams.append("tenantId", "3");
+		const baseUrl = process.env.BASEURL || 'http://localhost:5000/api/v1/';
+		const url = `${baseUrl}${endpoint}?tenantId=3`;
 		const response = await fetch(url.toString(), {
 			headers: {
 				Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
@@ -26,7 +26,8 @@ export async function customFetch(endpoint) {
 			return source;
 		}
 	} catch (err) {
-		console.log(err);
+		console.error('Fetch error:', err);
+		throw err;
 	}
 }
 
@@ -115,9 +116,9 @@ export async function customPost(endpoint, method, data, hash = false) {
 		}
 	}
 
-	const url = new URL(`${endpoint}`, process.env.BASEURL);
-	url.searchParams.append("tenantId", "3");
-	let response = await fetch(url.href, {
+	const baseUrl = process.env.BASEURL || 'http://localhost:5000/api/v1/';
+	const url = `${baseUrl}${endpoint}?tenantId=3`;
+	let response = await fetch(url, {
 		method: method,
 		headers: {
 			"content-type": "application/json",
