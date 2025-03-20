@@ -4,6 +4,9 @@ import React, { useState } from 'react';
 import SampleAssessmentModal from '../accessories/SampleAssessmentModal/SampleAssessmentModal';
 import PrimeTable from '../accessories/Datatables/PrimeTable';
 import { handleServerSideProcessingSampleValidation } from '../serverActions/ActionFiltering';
+import { RiInformationLine, RiCheckboxCircleLine } from '@remixicon/react';
+
+
 
 export default function SampleValidationComponent({ data: initialData }) {
 	const [data, setData] = useState(initialData);
@@ -28,28 +31,41 @@ export default function SampleValidationComponent({ data: initialData }) {
 
 	const columns = [
 		{
-			Header: "billing date",
+			Header: "Billing Date",
 			accessor: "date",
 			Cell: function ({ value }) {
-				return <div>{new Date(value).toLocaleDateString()}</div>;
+				return <div className="text-nowrap">{new Date(value).toLocaleDateString()}</div>;
 			},
 		},
-		{ Header: "fullname", accessor: "fullname" },
-		{ Header: "billingid", accessor: "billingid" },
+		{ 
+			Header: "Full Name", 
+			accessor: "fullname",
+			Cell: function ({ value }) {
+				return <div className="font-weight-medium">{value}</div>;
+			}
+		},
+		{ 
+			Header: "Billing ID", 
+			accessor: "billingid",
+			Cell: function ({ value }) {
+				return <div className="text-monospace">{value}</div>;
+			}
+		},
 		{
-			Header: "action",
+			Header: "Action",
 			accessor: "action",
 			Cell: function ({ row }) {
 				const item = row.original;
 				return (
-					<div>
+					<div className="d-flex justify-content-end">
 						<button
-							className="btn btn-primary btn-sm"
+							className="btn btn-primary btn-sm d-flex align-items-center"
 							onClick={(ev) => {
 								setTarget(item?.billingid);
 								openModal();
 							}}>
-							validate sample
+							<RiCheckboxCircleLine className="me-1" />
+							Validate Sample
 						</button>
 					</div>
 				);
@@ -59,21 +75,37 @@ export default function SampleValidationComponent({ data: initialData }) {
 
 	return (
 		<div className="pls-color text-sm">
-			<h6 className='p-3 bg-secondary-subtle br-5'>Sample Validation</h6>
-			<div className="col-sm-12 col-md-6 col-lg-4 col-xl-3">
-				{data.length > 0 && (
-					<div className="alert alert-info p-3 my-2">
+			<div className='d-flex justify-content-between'>
+			<div className="d-flex align-items-center">
+				<h6 className="p-3 bg-light rounded-3 d-flex align-items-center">
+					<RiInformationLine className="me-2" />
+					Sample Validation
+				</h6>
+			</div>
+			
+			{data.length > 0 && (
+				<div className="alert alert-info p-2 my-2 d-flex align-items-center">
+					<RiInformationLine className="me-2" />
+					<div>
 						<strong>Note:</strong> Please check the sample before validating. Click on the assess button to view the sample.
 					</div>
-				)}
+				</div>
+			)}
 			</div>
+
 			<div className="my-2">
-				<section>
-					<PrimeTable column={columns}
+				<section className="bg-white rounded-3 shadow-sm p-3">
+					<PrimeTable 
+						column={columns}
 						handleSeverSideProcessing={handleServerSideProcessingSampleValidation}
-						data={data} filtering={false} serverSideFiltering={true} />
+						data={data} 
+						filtering={false} 
+						serverSideFiltering={true}
+						className="table-striped table-hover"
+					/>
 				</section>
 			</div>
+
 			<SampleAssessmentModal
 				show={showAssesModal}
 				hide={closeModal}

@@ -1,0 +1,174 @@
+.pageContainer {
+    display: flex;
+    min-height: 100vh;
+}
+
+.lightMode {
+    background-color: white;
+    color: #333;
+}
+
+.darkMode {
+    background-color: #1f2937;
+    color: #f3f4f6;
+}
+
+.iconSidebar {
+    width: 72px;
+    background-color: inherit;
+    color: inherit;
+    padding: 1rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    z-index: 20;
+    border-right: 1px solid #e5e7eb;
+}
+
+.iconHeader {
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.companyIcon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f3f4f6;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.toggleButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+}
+
+.iconNav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.iconItem {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: inherit;
+}
+
+.iconItem:hover {
+    background-color: #f3f4f6;
+}
+
+.iconItem.active {
+    background-color: #e5e7eb;
+    color: #1f2937;
+}
+
+.linksSidebar {
+    width: 0;
+    background-color: inherit;
+    position: fixed;
+    height: 100vh;
+    left: 72px;
+    overflow: hidden;
+    transition: width 0.3s;
+    z-index: 10;
+    border-right: 1px solid #e5e7eb;
+}
+
+.linksSidebar.expanded {
+    width: 250px;
+}
+
+.linksSidebar.collapsed {
+    width: 0;
+}
+
+.linksContainer {
+    padding: 1.5rem;
+    color: inherit;
+    width: 250px;
+}
+
+.linkGroupTitle {
+    color: inherit;
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+}
+
+.linkItem {
+    color: inherit;
+    text-decoration: none;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s;
+    display: block;
+    font-size: 0.75rem;
+}
+
+.linkItem:hover {
+    background-color: #f3f4f6;
+    color: #1f2937;
+}
+
+.searchContainer {
+    margin: 1rem 0;
+    padding: 0 0.5rem;
+    position: relative;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    width: 20px;
+    height: 20px;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    outline: none;
+    font-size: 0.875rem;
+}
+
+.searchInput:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.mainContent {
+    flex: 1;
+    margin-left: 72px;
+    padding: 1rem;
+    transition: margin-left 0.3s;
+}
+
+.mainContent.sidebarExpanded {
+    margin-left: 322px;
+}
+
+.mainContent.sidebarCollapsed {
+    margin-left: 72px;
+}

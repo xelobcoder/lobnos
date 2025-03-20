@@ -1,91 +1,99 @@
 import styles from '../../../styles/SmsTemplateList.module.css'
-export default function AssessmentRenderingView({ loading, testcollection = [], handleDeclineMessage, validateSample }) {
-    if (loading) return <div>Loading ....</div>
+import { RiCheckboxLine, RiCheckboxBlankLine, RiCheckDoubleLine, RiCloseCircleLine } from '@remixicon/react'
 
-
-    if (testcollection.length == 0) return <h5>No Sample Available for Asssement</h5>
+export default function AssessmentRenderingView({ 
+    loading, 
+    testcollection = [], 
+    handleDeclineMessage, 
+    validateSample,
+    selectedTests,
+    handleCheckboxChange 
+}) {
+    if (loading) return <div>Loading ....</div>;
+    if (testcollection.length == 0) return <h5>No Sample Available for Assessment</h5>;
 
     return (
-        <table className={`${styles.table} pls-color `} style={{fontSize:'13px'}}>
-            <thead className="column-bordered">
-                <tr>
-                    <th className="text-capitalize column-bordered">ascension No.</th>
-                    <th className="text-capitalize column-bordered">test</th>
-                    <th className="text-capitalize column-bordered">sample</th>
-                    <th className="text-capitalize column-bordered">sample status</th>
-                    <th className="text-capitalize column-bordered">validation status</th>
-                    <th className="text-capitalize column-bordered">reason for rejection</th>
-                    <th className="text-capitalize column-bordered">actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {testcollection.map((item, index) => {
-                    return (
-                        <tr key={index}>
+        <div className="table-responsive">
+            <table className={`${styles.table} pls-color table-hover`} style={{fontSize:'13px'}}>
+                <thead className="column-bordered bg-light">
+                    <tr>
+                        <th className="text-capitalize column-bordered"></th>
+                        <th className="text-capitalize column-bordered">Ascension No.</th>
+                        <th className="text-capitalize column-bordered">Test</th>
+                        <th className="text-capitalize column-bordered">Sample</th>
+                        <th className="text-capitalize column-bordered">Sample Status</th>
+                        <th className="text-capitalize column-bordered">Validation Status</th>
+                        <th className="text-capitalize column-bordered">Reason for Rejection</th>
+                        <th className="text-capitalize column-bordered">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {testcollection.map((item, index) => (
+                        <tr key={index} className={selectedTests.includes(item.testid) ? 'table-active' : ''}>
+                            <td className="column-bordered">
+                                <div onClick={() => handleCheckboxChange(item.testid)} className="cursor-pointer">
+                                    {selectedTests.includes(item.testid) ? 
+                                        <RiCheckboxLine className="text-primary" /> : 
+                                        <RiCheckboxBlankLine className="text-muted" />
+                                    }
+                                </div>
+                            </td>
                             <td className="column-bordered">ASCID{item?.id}</td>
                             <td className="column-bordered">
                                 <span>{item.name}</span>
-                                <span>
+                                <span className="ms-2">
                                     {item.approvalstatus == 1 ? (
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="20"
-                                            height="20"
-                                            fill="green"
-                                            class="bi bi-check-lg"
-                                            viewBox="0 0 16 16">
-                                            <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z" />
-                                        </svg>
+                                        <RiCheckDoubleLine className="text-success" size={18} />
                                     ) : (
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="bi bi-x" viewBox="0 0 16 16">
-                                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
-                                        </svg>
+                                        <RiCloseCircleLine className="text-danger" size={18} />
                                     )}
                                 </span>
                             </td>
                             <td className="column-bordered">{item.sample}</td>
-                            <td className="column-bordered">{item.collection == "true" ? "collected" : "N/A"}</td>
-                            <td className="column-bordered">
+                            <td className="column-bordered text-capitalize">
+                                {item.collection == "true" ? "Collected" : "N/A"}
+                            </td>
+                            <td className="column-bordered text-capitalize">
                                 {item.approvalstatus == 1 ? (
-                                    <span className="text-success">accepted</span>
+                                    <span className="badge bg-success">Accepted</span>
                                 ) : item.approvalstatus == 0 ? (
-                                    <span className="text-danger">rejected</span>
+                                    <span className="badge bg-danger">Rejected</span>
                                 ) : (
-                                    <span>N/A</span>
+                                    <span className="badge bg-secondary">N/A</span>
                                 )}
                             </td>
                             <td className="column-bordered">
                                 <textarea
                                     value={item?.rejectionemessage}
-                                    onChange={(ev) => {
-                                        handleDeclineMessage(ev, item?.testid)
-                                    }}
+                                    onChange={(ev) => handleDeclineMessage(ev, item?.testid)}
                                     disabled={item?.approvalstatus === 1}
-                                    className="form-control"
-                                    rows="2"></textarea>
+                                    className="form-control form-control-sm"
+                                    rows="2"
+                                    placeholder="Enter rejection reason..."
+                                />
                             </td>
                             <td className="column-bordered">
-                                <div className="d-flex justify-content-between">
+                                <div className="d-flex gap-2">
                                     <button
-                                        className="btn btn-primary btn-sm"
-                                        onClick={(ev) => {
-                                            validateSample(item?.testid, "accept")
-                                        }}>
-                                        accept
+                                        className="btn btn-success btn-sm d-flex align-items-center"
+                                        onClick={() => validateSample(item?.testid, "accept")}
+                                        disabled={item?.approvalstatus === 1}>
+                                        <RiCheckDoubleLine className="me-1" size={14} />
+                                        Accept
                                     </button>
                                     <button
-                                        className="btn btn-danger btn-sm"
-                                        onClick={(ev) => {
-                                            validateSample(item?.testid, "reject")
-                                        }}>
-                                        reject
+                                        className="btn btn-danger btn-sm d-flex align-items-center"
+                                        onClick={() => validateSample(item?.testid, "reject")}
+                                        disabled={item?.approvalstatus === 0}>
+                                        <RiCloseCircleLine className="me-1" size={14} />
+                                        Reject
                                     </button>
                                 </div>
                             </td>
                         </tr>
-                    )
-                })}
-            </tbody>
-        </table>
-    )
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
 }

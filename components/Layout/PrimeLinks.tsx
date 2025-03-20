@@ -1,5 +1,5 @@
 import { plsEncryption } from "../../lib/encryption";
-
+import { RiBarChartLine, RiShoppingCartLine, RiCustomerService2Line, RiMoneyDollarCircleLine, RiSettings3Line, RiStethoscopeLine, RiCalendarLine, RiUserHeartLine, RiHospitalLine, RiMailLine, RiFileListLine, RiMedicineBottleLine, RiExternalLinkLine } from '@remixicon/react';
 
 interface Link {
     icon: any
@@ -24,7 +24,7 @@ export const Mylinks = function (branchid: number): Link[] {
     return [
         {
             title: "Sales Overview",
-            icon: Icon,
+            icon: <RiBarChartLine />,
             link: "/sales/overview",
             subLinks: [
                 {
@@ -34,6 +34,26 @@ export const Mylinks = function (branchid: number): Link[] {
                 {
                     title: "Average Cost per Service",
                     link: "/sales/averageCostPerService?targetKey=1"
+                },
+                {
+                    title: "Total Tax by Service Category",
+                    link: "/sales/totalTaxByServiceCategory?targetKey=15"
+                },
+                {
+                    title: "Sales with Highest Tax Included",
+                    link: "/sales/salesWithHighestTaxIncluded?targetKey=18"
+                },
+                {
+                    title: "Total Discount by Branch",
+                    link: "/sales/totalDiscountByBranch?targetKey=20"
+                },
+                {
+                    title: "Average Discount per Service",
+                    link: "/sales/averageDiscountPerService?targetKey=21"
+                },
+                {
+                    title: "Total Discount by Clinician",
+                    link: "/sales/totalDiscountByClinician?targetKey=22"
                 },
                 {
                     title: "Total Sales by Branch",
@@ -54,35 +74,8 @@ export const Mylinks = function (branchid: number): Link[] {
             ]
         },
         {
-            title: "Tax and Discount Overview",
-            icon: Icon,
-            link: "/sales/tax-discount-overview",
-            subLinks: [
-                {
-                    title: "Total Tax by Service Category",
-                    link: "/sales/totalTaxByServiceCategory?targetKey=15"
-                },
-                {
-                    title: "Sales with Highest Tax Included",
-                    link: "/sales/salesWithHighestTaxIncluded?targetKey=18"
-                },
-                {
-                    title: "Total Discount by Branch",
-                    link: "/sales/totalDiscountByBranch?targetKey=20"
-                },
-                {
-                    title: "Average Discount per Service",
-                    link: "/sales/averageDiscountPerService?targetKey=21"
-                },
-                {
-                    title: "Total Discount by Clinician",
-                    link: "/sales/totalDiscountByClinician?targetKey=22"
-                }
-            ]
-        },
-        {
             title: "Outsourced Services",
-            icon: Icon,
+            icon: <RiExternalLinkLine />,
             link: "/sales/outsourced-services",
             subLinks: [
                 {
@@ -102,12 +95,12 @@ export const Mylinks = function (branchid: number): Link[] {
         {
             title: 'Customers Vital signs',
             link: "/customers/recordVitalSigns",
-            icon: Icon,
+            icon: <RiUserHeartLine />,
             subLinks: []
         },
         {
             title: "Service Costs",
-            icon: Icon,
+            icon: <RiMoneyDollarCircleLine />,
             link: "/sales/service-costs",
             subLinks: [
                 {
@@ -143,7 +136,7 @@ export const Mylinks = function (branchid: number): Link[] {
         {
             title: 'Analytics',
             link: '/analytics',
-            icon: Icon,
+            icon: <RiBarChartLine />,
             subLinks: [
                 { title: 'Patient Analytics', link: '/dashboard/analytics/patients' },
                 {
@@ -156,7 +149,7 @@ export const Mylinks = function (branchid: number): Link[] {
         },
         {
             title: "Phelobotomy",
-            icon: Icon,
+            icon: <RiStethoscopeLine />,
             link: '/operations/laboratory/phelobotomy',
             subLinks: [
                 { title: "Phlebotomy", link: "/operations/laboratory/phelobotomy" },
@@ -166,7 +159,7 @@ export const Mylinks = function (branchid: number): Link[] {
         },
         {
             title: "Ultrasound Operations",
-            icon: Icon,
+            icon: <RiHospitalLine />,
             link: '/operations/imaging/ultrasound',
             subLinks: [
                 { title: 'Waiting List', link: '/operations/imaging/ultrasound' },
@@ -178,7 +171,7 @@ export const Mylinks = function (branchid: number): Link[] {
         },
         {
             title: 'Laboratory Operations',
-            icon: Icon,
+            icon: <RiMedicineBottleLine />,
             link: '${/operations/laboratory/validated',
             subLinks: [
                 {
@@ -217,7 +210,7 @@ export const Mylinks = function (branchid: number): Link[] {
         },
         {
             title: "SMS",
-            icon: Icon,
+            icon: <RiMailLine />,
             link: "/sms",
             subLinks: [
                 { title: "Schedule SMS Campaign", link: "/sms/schedule-sms-campaign" },
@@ -230,19 +223,19 @@ export const Mylinks = function (branchid: number): Link[] {
         },
         {
             title: "Registration",
-            icon: Icon,
+            icon: <RiFileListLine />,
             link: "/registration",
             subLinks: []
         },
         {
             title: "Customers",
-            icon: Icon,
+            icon: <RiCustomerService2Line />,
             link: "/customers",
             subLinks: []
         },
         {
             title: "Billing",
-            icon: Icon,
+            icon: <RiMoneyDollarCircleLine />,
             link: "/billing/patientid",
             subLinks: [
                 { title: 'Filter Client ', link: '/billing/patientid' },
@@ -254,15 +247,13 @@ export const Mylinks = function (branchid: number): Link[] {
         },
         {
             title: "Sales",
-            icon: Icon,
+            icon: <RiShoppingCartLine />,
             link: "/billing/salessummary",
-            subLinks: [
-
-            ]
+            subLinks: []
         },
         {
             title: "Appointments",
-            icon: Icon,
+            icon: <RiCalendarLine />,
             link: "/appointments",
             subLinks: [
                 { title: 'Appointments Calender', link: '/appointments' },
@@ -282,7 +273,7 @@ export const Mylinks = function (branchid: number): Link[] {
         },
         {
             title: "Doctors Portal",
-            icon: Icon,
+            icon: <RiStethoscopeLine />,
             link: "/doctor/consultation",
             subLinks: [
                 { title: 'Consulations', link: '/doctor/consultation/allconsultations' },
@@ -294,7 +285,7 @@ export const Mylinks = function (branchid: number): Link[] {
         },
         {
             title: "Clinicians",
-            icon: Icon,
+            icon: <RiUserHeartLine />,
             link: '/clincian',
             subLinks: [
                 { title: "Clinicians", link: "/clinician" },
@@ -303,7 +294,7 @@ export const Mylinks = function (branchid: number): Link[] {
         },
         {
             title: 'Settings',
-            icon: Icon,
+            icon: <RiSettings3Line />,
             link: '/settings',
             subLinks: [
                 { title: "Applications Settings", link: "/settings/applicationsettings" },

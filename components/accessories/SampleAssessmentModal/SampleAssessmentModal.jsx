@@ -4,10 +4,20 @@ import { customFetch, customPost } from "../../Auth/customFetch";
 import { ToastContainer, toast } from "react-toastify";
 import AssessmentRenderingView from "./AssessmentViewSampleValidation";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
+import { 
+    RiCheckboxLine, 
+    RiCheckboxBlankLine, 
+    RiCheckboxMultipleLine, 
+    RiSaveLine, 
+    RiCloseLine,
+    RiInformationLine  
+} from '@remixicon/react';
 
 export default function SampleAssessmentModal({ show, hide, billingid, removeClient }) {
 	const [loading, setLoading] = useState(true);
 	const [testcollection, setTestCollection] = useState([]);
+	const [selectedTests, setSelectedTests] = useState([]);
+	const [showInstructions, setShowInstructions] = useState(false);
 	const { applicationsettings } = useApplicationSettings();
 	const { user } = applicationsettings;
 	const employeeid = user?.employeeid;
@@ -34,10 +44,10 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
 
 	const validateSample = async (id, sat) => {
 		const status = sat === "accept" ? 1 : 0;
-		setTestCollection((prev) => {
-			return prev.map((item) => {
-				if (item.testid == id) {
-					if (status == 1) {
+		setTestCollection(prev => {
+			return prev.map(item => {
+				if (item.testid === id) {
+					if (status === 1) {
 						return {
 							...item,
 							validatedby: employeeid,
@@ -46,9 +56,10 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
 							validatedon: new Date(),
 						};
 					} else {
-						const { rejectionmessage } = item
-						if (rejectionmessage == null || (typeof rejectionmessage == "string" && item.rejectionmessage.length <= 5)) {
-							return toast.error('Warning!! Kindly Provide Reason for Sample Rejection')
+						const { rejectionmessage } = item;
+						if (!rejectionmessage || (typeof rejectionmessage === "string" && rejectionmessage.length <= 5)) {
+							toast.error('Warning!! Kindly Provide Reason for Sample Rejection');
+							return item;
 						}
 						return {
 							...item,
@@ -75,7 +86,19 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
 		});
 	};
 
-	const handleSubmit = async (ev) => {
+	const handleSelectAll = () => {
+		if (selectedTests.length === testcollection.length) {
+			setSelectedTests([]);
+		} else {
+			setSelectedTests(testcollection.map(item => item.testid));
+		}
+	};
+
+	const handleBulkAction = (action) => {
+		selectedTests.forEach(id => validateSample(id, action));
+	};
+
+	const handleSubmit = async () => {
 		try {
 			const hasEmptyDeclineMessage = testcollection.some(
 				(item) => item.approvalstatus === 0 && !item.rejectionmessage
@@ -87,8 +110,7 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
 
 			setLoading(true);
 
-			const pushResponse = await customPost(`sample/transaction/sample/validation/update`, "PUT", { testcollection }
-			);
+			const pushResponse = await customPost(`sample/transaction/sample/validation/update`, "PUT", { testcollection });
 
 			const { status, message } = pushResponse;
 
@@ -106,35 +128,101 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
 		}
 	};
 
+	const handleCheckboxChange = (testid) => {
+	    setSelectedTests(prev => {
+	        if (prev.includes(testid)) {
+	            return prev.filter(id => id !== testid);
+	        } else {
+	            return [...prev, testid];
+	        }
+	    });
+	};
 
 	return (
 		<>
 			<ToastContainer theme="colored" position="top-center" className={'text-sm'} />
-			<Modal show={show} backdrop="static" size="fullscreen" onHide={hide} scrollable>
-				<Modal.Header closeButton>
-					<h5>Sample Assessment And Validation</h5>
+			<Modal show={show} backdrop="static" size="xl" onHide={hide} scrollable>
+				<Modal.Header closeButton className="bg-light">
+					<div className="d-flex justify-content-between align-items-center w-100">
+						<h5 className="mb-0 d-flex align-items-center">
+							<RiInformationLine className="me-2" />
+							Sample Assessment And Validation
+						</h5>
+						<div className="form-check form-switch">
+							<input
+								className="form-check-input"
+								type="checkbox"
+								id="toggleInstructions"
+								checked={showInstructions}
+								onChange={() => setShowInstructions(!showInstructions)}
+							/>
+							<label className="form-check-label small" htmlFor="toggleInstructions">
+								Show Instructions
+							</label>
+						</div>
+					</div>
 				</Modal.Header>
-				<Modal.Body>
+				<Modal.Body className="p-4">
+					{testcollection.length > 0 && showInstructions && (
+					    <div className="alert alert-light mb-3 border pls-color">
+					        <h6 className="mb-2">Instructions:</h6>
+					        <ol className="mb-0">
+					            <li>Review each test result carefully before validation</li>
+					            <li>Use the checkbox to select individual tests or "Select All" for bulk actions</li>
+					            <li>Click "Accept" to approve or "Reject" to decline a test</li>
+					            <li>For rejected tests, provide a clear reason in the decline message field</li>
+					            <li>Click "Save Changes" to finalize your validation</li>
+					        </ol>
+					    </div>
+					)}
+
+					<div className="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
+						<div onClick={handleSelectAll} className="d-flex align-items-center cursor-pointer">
+							{selectedTests.length === testcollection.length ? 
+								<RiCheckboxMultipleLine className="text-primary" /> : 
+								<RiCheckboxBlankLine className="text-muted" />
+							}
+							<span className="ml-2 font-weight-medium">Select All</span>
+						</div>
+						<div className="d-flex">
+							<button 
+								className="btn btn-success btn-sm mr-2 d-flex align-items-center"
+								onClick={() => handleBulkAction('accept')}>
+								<RiCheckboxLine className="me-1" />
+								Accept All
+							</button>
+							<button 
+								className="btn btn-danger btn-sm d-flex align-items-center"
+								onClick={() => handleBulkAction('reject')}>
+								<RiCloseLine className="me-1" />
+								Reject All
+							</button>
+						</div>
+					</div>
+					
 					<AssessmentRenderingView
 						loading={loading}
 						handleDeclineMessage={handleDeclineMessage}
 						validateSample={validateSample}
 						testcollection={testcollection}
+						selectedTests={selectedTests}
+						setSelectedTests={setSelectedTests}
+						handleCheckboxChange={handleCheckboxChange}
 					/>
 				</Modal.Body>
-				<Modal.Footer>
+				<Modal.Footer className="bg-light">
 					<button
-						className="btn btn-primary btn-sm"
+						className="btn btn-primary btn-sm d-flex align-items-center"
 						onClick={handleSubmit}
-						disabled={loading}
-					>
-						Save
+						disabled={loading}>
+						<RiSaveLine className="me-1" />
+						Save Changes
 					</button>
 					<button
-						className="btn btn-danger btn-sm"
+						className="btn btn-outline-danger btn-sm d-flex align-items-center"
 						onClick={hide}
-						disabled={loading}
-					>
+						disabled={loading}>
+						<RiCloseLine className="me-1" />
 						Close
 					</button>
 				</Modal.Footer>

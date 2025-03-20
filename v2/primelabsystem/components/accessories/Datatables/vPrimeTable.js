@@ -257,10 +257,6 @@ export default function
      const hasColumnFiltering = column.some((item, index) => item.customFilterable == true)
 
 
-
-
-
-
      const handlePagination = async (value) => {
           let currentPage = queryParams.page;
           if (typeof value === "number") {
