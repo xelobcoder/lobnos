@@ -3,15 +3,19 @@ import RefundAdmin from '../../../../../components/Billing/Refund/RefundAdmin';
 import { customFetch } from '../../../../../components/Auth/customFetch';
 import { Dangerous } from '@mui/icons-material';
 
-export default async function RefundAdminPage({ params }: {
-    params: { employeeid: number }
+export default async function RefundAdminPage({ params ,searchParams}: {
+    params: { employeeid: number },
+    searchParams?: {
+       status: string,
+    }
 }) {
     let result: any = []
-    const { employeeid } = await params
+    const { employeeid} = await params
+    const status = await searchParams?.status ||  'pending'
 
     try {
         const response = await customFetch(
-            `billing/refund/details/status?status=pending&&employeeid=${employeeid}&&page=1&&count=10`
+            `billing/refund/details/status?status=${status}&&employeeid=${employeeid}&&page=1&&count=10`
         );
         if (response && Array.isArray(response?.result)) {
             result = response?.result || [];
@@ -24,8 +28,8 @@ export default async function RefundAdminPage({ params }: {
 
 
     return (
-        <div>
-            <RefundAdmin initData={result} employeeid={employeeid} />
+        <div style={{width:'100%', overflowX:"auto"}}>
+            <RefundAdmin initData={result} employeeid={employeeid} currentStatus={status|| 'pending'} />
         </div>
     )
 }

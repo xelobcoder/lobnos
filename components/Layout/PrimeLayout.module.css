@@ -1,174 +1,224 @@
-.pageContainer {
-    display: flex;
-    min-height: 100vh;
-}
-
-.lightMode {
-    background-color: white;
-    color: #333;
-}
-
-.darkMode {
-    background-color: #1f2937;
-    color: #f3f4f6;
-}
-
 .iconSidebar {
-    width: 72px;
-    background-color: inherit;
-    color: inherit;
-    padding: 1rem 0.5rem;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    height: 100vh;
-    z-index: 20;
-    border-right: 1px solid #e5e7eb;
+  width: 72px;
+  background: #1a237e;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
 }
 
 .iconHeader {
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  padding: 16px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .companyIcon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #f3f4f6;
-    color: inherit;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  margin-bottom: 16px;
 }
 
 .toggleButton {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: inherit;
+  width: 48px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.toggleButton:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
 }
 
 .iconNav {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  padding: 16px 12px;
 }
 
 .iconItem {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: inherit;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
 }
 
 .iconItem:hover {
-    background-color: #f3f4f6;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
 .iconItem.active {
-    background-color: #e5e7eb;
-    color: #1f2937;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .linksSidebar {
-    width: 0;
-    background-color: inherit;
-    position: fixed;
-    height: 100vh;
-    left: 72px;
-    overflow: hidden;
-    transition: width 0.3s;
-    z-index: 10;
-    border-right: 1px solid #e5e7eb;
-}
-
-.linksSidebar.expanded {
-    width: 250px;
-}
-
-.linksSidebar.collapsed {
-    width: 0;
+  width: 220px;
+  background: #f8f9fa;
+  height: 100vh;
+  position: fixed;
+  left: 72px;
+  top: 0;
+  border-right: 1px solid #e9ecef;
+  transition: transform 0.3s ease;
+  z-index: 99;
 }
 
 .linksContainer {
-    padding: 1.5rem;
-    color: inherit;
-    width: 250px;
+  padding: 12px;
 }
 
 .linkGroupTitle {
-    color: inherit;
-    font-size: 0.875rem;
-    margin-bottom: 0.75rem;
-    font-weight: 500;
-}
-
-.linkItem {
-    color: inherit;
-    text-decoration: none;
-    padding: 0.5rem;
-    border-radius: 0.375rem;
-    transition: background-color 0.2s;
-    display: block;
-    font-size: 0.75rem;
-}
-
-.linkItem:hover {
-    background-color: #f3f4f6;
-    color: #1f2937;
-}
-
-.searchContainer {
-    margin: 1rem 0;
-    padding: 0 0.5rem;
-    position: relative;
-}
-
-.searchIcon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #9ca3af;
-    width: 20px;
-    height: 20px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #1a237e;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
 }
 
 .searchInput {
-    width: 100%;
-    padding: 0.5rem 1rem 0.5rem 2.5rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.375rem;
-    outline: none;
-    font-size: 0.875rem;
+  width: 100%;
+  padding: 5px 10px 5px 28px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 12px;
+  background: white;
 }
 
-.searchInput:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+.linksList {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
-.mainContent {
-    flex: 1;
-    margin-left: 72px;
-    padding: 1rem;
-    transition: margin-left 0.3s;
+.linkItem {
+  padding: 5px 8px;
+  color: #4a5568;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.linkItem:hover {
+  background: #edf2f7;
+  color: #1a237e;
+  font-weight: 700;
+}
+
+.linkItem.active {
+  background: #e6e8ff;
+  color: #1a237e;
+  font-weight: 700;
 }
 
 .mainContent.sidebarExpanded {
-    margin-left: 322px;
+  margin-left: 292px;
+}
+
+.linksSidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+.linksSidebar.expanded {
+  transform: translateX(0);
+}
+
+.linksContainer {
+  padding: 24px;
+}
+
+.linkGroupTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 16px;
+}
+
+.searchContainer {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 16px 8px 36px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a0aec0;
+}
+
+.linksList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.linkItem {
+  padding: 8px 12px;
+  color: #4a5568;
+  text-decoration: none;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.linkItem:hover {
+  background: #edf2f7;
+  color: #2d3748;
+}
+
+.mainContent {
+  transition: margin-left 0.3s ease;
+  margin-left: 72px;
+  min-height: 100vh;
+}
+
+.mainContent.sidebarExpanded {
+  margin-left: 352px;
 }
 
 .mainContent.sidebarCollapsed {
-    margin-left: 72px;
+  margin-left: 72px;
+}
+
+.darkMode {
+  background: #1a202c;
+  color: #e2e8f0;
+}
+
+.lightMode {
+  background: #ffffff;
+  color: #2d3748;
 }

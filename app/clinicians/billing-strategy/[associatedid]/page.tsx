@@ -13,18 +13,9 @@ export default async function ClinicianBillingStrategyPage({
 	try {
 		const { associatedid } = await params;
 		const { strategy } = await searchParams;
-
-
-		if (!associatedid || !strategy) {
-			return <h1>Invalid request.</h1>;
-		}
-		
-
+		if (!associatedid || !strategy) return <h1>Invalid request.</h1>;
 		const checkingResponses = await customFetch(`clinicians/billing/${associatedid}/has-strategy`);
-
 		const { hasStrategy } = checkingResponses;
-
-
 		if (!hasStrategy) {
 			return (
 				<ClinicianBillingModeView

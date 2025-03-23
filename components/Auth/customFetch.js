@@ -325,6 +325,15 @@ export const getSampleTypeList = async function (setSource) {
 	Array.isArray(result) && result ? setSource(result) : setSource([])
 }
 
+
+export const getSampleContainerList = async function (setSource) {
+	const result = await customFetch("sample/containers")
+	Array.isArray(result) && result ? setSource(result) : setSource([])
+}
+
+
+
+
 /**
  * Retrieves application settings from a server.
  * If the server returns a successful response with settings, it returns the first result.
@@ -848,8 +857,8 @@ export const defaultTestEditValues = {
 
 
 
-export const getSingleEditTest = (testid, setTestData, setLoading) => {
-	customFetch(`gettestpanel/edit?id=${testid}`)
+export const getSingleEditTest = (testid, setTestData, setLoading,withoutdepartment=true) => {
+	customFetch(`gettestpanel/edit?id=${testid}&&withoutdepartment=${withoutdepartment}`)
 		.then((data) => {
 			setTestData(data)
 			setLoading(false)

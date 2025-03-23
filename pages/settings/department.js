@@ -4,7 +4,8 @@ import Add_department from '../../components/settingsComponents/department';
 import DepartmentList from '../../components/settingsComponents/departmentList';
 import { customPost, getDepartment } from '../../components/Auth/customFetch';
 import MainSettingsLayoutView from '../../components/settingsComponents/MainSettingsLayoutView';
-import { ToastContainer,toast } from 'react-toastify';
+import { toast } from 'react-toastify';
+import PrimeToast from '../../components/accessories/PrimeToast';
 
 export default function Department() {
   const [key, setKey] = useState('department_list');
@@ -41,9 +42,11 @@ export default function Department() {
   }
   return (
     <MainSettingsLayoutView>
-      <ToastContainer />
+      <PrimeToast/>
       <Add_department />
-      <DepartmentList data={department} handleDelete={handleDelete} handleEdit={handleEdit} />
+     <div className='my-3'>
+     <DepartmentList data={department} handleDelete={handleDelete} handleEdit={handleEdit} />
+     </div>
     </MainSettingsLayoutView>
   );
 }

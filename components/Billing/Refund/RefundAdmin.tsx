@@ -10,6 +10,8 @@ import IconButton from "@mui/material/IconButton";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { Search } from "@mui/icons-material";
 import { filteringRefundsUsingServiceId, handleRefundServerSideProcessing } from "../../serverActions/ActionFiltering";
+import { useRouter } from "next/navigation";
+
 
 interface Witness {
 	witness: string;
@@ -17,18 +19,19 @@ interface Witness {
 	message: string;
 }
 
-export default function RefundAdmin({ initData = [] ,employeeid}) {
-	const [status, setStatus] = useState<"pending" | "completed">("pending");
+export default function RefundAdmin({ initData = [], employeeid,currentStatus }) {
+	const [status, setStatus] = useState<"pending" | "completed">(currentStatus||"pending");
 	const [data, setData] = useState<RefundAdminViewType[]>(initData);
 	const [search, setSearch] = useState<string>("");
 	const [loading, setLoading] = useState<boolean>(false);
 	const [modalShow, setModalShow] = useState<boolean>(false);
 	const [selectedMessage, setSelectedMessage] = useState<string>("");
-
+const router = useRouter();
 
 
 	const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		setStatus(e.target.value as any);
+		const newStatus = e.target.value;
+		router.push(`/billing/refund/refundAdmin/${employeeid}?status=${newStatus}`);
 	};
 
 	const handleApprove = async (item: RefundAdminViewType, isApprove = 0) => {
@@ -53,51 +56,52 @@ export default function RefundAdmin({ initData = [] ,employeeid}) {
 	};
 
 	const columns = [
-		{ Header: 'serviceid', accessor: 'serviceid' },
+		{ 
+			Header: 'serviceid', 
+			accessor: 'serviceid',
+			width: 120 
+		},
 		{
 			Header: "Category",
 			accessor: "serviceCategory",
-			Cell: ({ value, row }) => {
-				return <div>
+			width: 200,
+			Cell: ({ value, row }) => (
+				<div>
 					<span>{row.original.serviceName}</span>
 					<span>({value})</span>
 				</div>
-			}
+			)
 		},
-		...Array(3)
-			.fill(null)
-			.flatMap((_, index) => [
-				{
-					Header: `Wit.. ${index + 1}`,
-					accessor: `witnesses[${index}].name`,
-					Cell: ({ value }: { value: string | null }) => value || "N/A",
-				},
-				{
-					Header: `Wit.. ${index + 1} Message`,
-					accessor: `witnesses[${index}].message`,
-					Cell: ({ value }: { value: string | null }) => {
-						if (value && value.length > 100) {
-							return (
-								<div>
-									<span
-										style={{ cursor: "pointer" }}
-										onClick={() => handleViewMessage(value)}
-									>
-										{value.substring(0, 100)}...<IconButton
-											color="primary"
-											onClick={() => handleViewMessage(value)}
-											style={{ marginLeft: "8px" }}
-										>
-											<VisibilityIcon />
-										</IconButton>
-									</span>
-								</div>
-							);
-						}
-						return value || "N/A";
-					},
-				},
-			]),
+		// Witness 1
+		{
+			Header: "Wit.. 1",
+			accessor: "witnesses[0].name",
+			width: 150,
+			Cell: ({ value }: { value: string | null }) => value || "N/A",
+		},
+		{
+			Header: "Wit.. 1 Message",
+			accessor: "witnesses[0].message",
+			width: 250,
+			Cell: ({ value }: { value: string | null }) => (
+				<MessageCell value={value} onView={handleViewMessage} />
+			),
+		},
+		// Witness 2
+		{
+			Header: "Wit.. 2",
+			accessor: "witnesses[1].name",
+			width: 150,
+			Cell: ({ value }: { value: string | null }) => value || "N/A",
+		},
+		{
+			Header: "Wit.. 2 Message",
+			accessor: "witnesses[1].message",
+			width: 250,
+			Cell: ({ value }: { value: string | null }) => (
+				<MessageCell value={value} onView={handleViewMessage} />
+			),
+		},
 		{
 			Header: "Cost",
 			accessor: "cost",
@@ -180,11 +184,12 @@ export default function RefundAdmin({ initData = [] ,employeeid}) {
 				</div>
 			</section>
 
-			<section>
+			<div>
 				<h4>{status.charAt(0).toUpperCase() + status.slice(1)} List</h4>
 				{loading && <div className="p-3 bg-secondary-subtle">Loading...</div>}
 				{data.length > 0 && (
-					<PrimeTable
+					<div style={{width:'100%', overflowX:'auto'}}>
+						<PrimeTable
 						column={columns}
 						data={data}
 						filtering={false}
@@ -192,8 +197,9 @@ export default function RefundAdmin({ initData = [] ,employeeid}) {
 						serverSideFiltering={true}
 						handleSeverSideProcessing={handleRefundServerSideProcessing}
 					/>
+					</div>
 				)}
-			</section>
+			</div>
 
 			<Modal show={modalShow} onHide={handleCloseModal} backdrop="static" size="lg">
 				<Modal.Header className="bg-secondary-subtle" closeButton>
@@ -213,3 +219,23 @@ export default function RefundAdmin({ initData = [] ,employeeid}) {
 		</div>
 	);
 }
+
+
+// Add MessageCell component inside RefundAdmin
+export function MessageCell({ value, onView }: { value: string | null, onView: (message: string) => void }) {
+	if (!value) return "N/A";
+	if (value.length <= 100) return value;
+
+	return (
+		<div>
+			<span style={{ cursor: "pointer" }} onClick={() => onView(value)}>
+				{value.substring(0, 100)}...
+				<IconButton color="primary" onClick={() => onView(value)} style={{ marginLeft: "8px" }}>
+					<VisibilityIcon />
+				</IconButton>
+			</span>
+		</div>
+	);
+};
+
+

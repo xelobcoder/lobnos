@@ -3,10 +3,11 @@ import { customFetch } from '../Auth/customFetch';
 import VitalSignChartModal from './vitalSignChartModal';
 import VitalSignTable from './VitalSignTable';
 import VitalSignFilterForm from './VitalSignFilterForm';
+import { RiRefreshLine } from '@remixicon/react';
 
 
 
-export default function VitalSignCustomerListInformation({ searchParams,size="fullscreen" }) {
+export default function VitalSignCustomerListInformation({ searchParams, size = "fullscreen" }) {
     const { patientid } = searchParams;
     const [vitalSigns, setVitalSigns] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -46,6 +47,11 @@ export default function VitalSignCustomerListInformation({ searchParams,size="fu
 
     const handleFilterSubmit = (e) => {
         e.preventDefault();
+        getPatientVitalSigns(patientid, filterFrom, filterTo);
+    };
+
+    const handleRefresh = () => {
+        setLoading(true);
         getPatientVitalSigns(patientid, filterFrom, filterTo);
     };
 
@@ -97,7 +103,21 @@ export default function VitalSignCustomerListInformation({ searchParams,size="fu
 
     return (
         <div className="">
-            <VitalSignFilterForm filterFrom={filterFrom} filterTo={filterTo} handleFilterChange={handleFilterChange} handleFilterSubmit={handleFilterSubmit} />
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <VitalSignFilterForm 
+                    filterFrom={filterFrom} 
+                    filterTo={filterTo} 
+                    handleFilterChange={handleFilterChange} 
+                    handleFilterSubmit={handleFilterSubmit} 
+                />
+                <button 
+                    onClick={handleRefresh} 
+                    className="btn btn-light"
+                    title="Refresh Data"
+                >
+                    <RiRefreshLine />
+                </button>
+            </div>
             
             <VitalSignTable groupedVitalSigns={groupedVitalSigns} openModal={openModal} />
 

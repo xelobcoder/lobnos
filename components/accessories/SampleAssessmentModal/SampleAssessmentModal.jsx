@@ -168,10 +168,10 @@ export default function SampleAssessmentModal({ show, hide, billingid, removeCli
 					        <h6 className="mb-2">Instructions:</h6>
 					        <ol className="mb-0 small">
 					            <li>Review each test result carefully before validation</li>
-					            <li>Use the checkbox to select individual tests or "Select All" for bulk actions</li>
-					            <li>Click "Accept" to approve or "Reject" to decline a test</li>
+					            <li>Use the checkbox to select individual tests or &quot;Select All&quot; for bulk actions</li>
+					            <li>Click &quot;Accept&quot; to approve or &quot;Reject&quot; to decline a test</li>
 					            <li>For rejected tests, provide a clear reason in the decline message field</li>
-					            <li>Click "Save Changes" to finalize your validation</li>
+					            <li>Click &quot;Save Changes&quot; to finalize your validation</li>
 					        </ol>
 					    </div>
 					)}

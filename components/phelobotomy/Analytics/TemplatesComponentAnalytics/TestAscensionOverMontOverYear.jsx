@@ -17,21 +17,27 @@ import {
 import { customFetch, reactSelectCustomStyles } from '../../../Auth/customFetch';
 
 const COLORS = ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF'];
+
 const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
         const { day, testCount, approvalCount, rejectionSampleCount } = payload[0].payload;
         return (
-            <div className="bg-white p-2 border rounded shadow-sm">
-                <p className="mb-1 fw-bold" style={{ color: COLORS[3] }}>Day: {day}</p>
-                <p className="mb-1" style={{ color: COLORS[0] }}>
-                    <span className="fw-bold">Test Count: </span>{testCount}
-                </p>
-                <p className="mb-1" style={{ color: COLORS[1] }}>
-                    <span className="fw-bold">Approval Count: </span>{approvalCount}
-                </p>
-                <p className="mb-0" style={{ color: COLORS[2] }}>
-                    <span className="fw-bold">Rejection Sample Count: </span>{rejectionSampleCount}
-                </p>
+            <div className="bg-white p-3 border-0 rounded-3 shadow-sm">
+                <p className="mb-2 fw-bold">Day: {day}</p>
+                <div className="d-flex flex-column gap-2">
+                    <div className="d-flex justify-content-between">
+                        <span>Tests:</span>
+                        <span className="fw-bold" style={{ color: COLORS[0] }}>{testCount}</span>
+                    </div>
+                    <div className="d-flex justify-content-between">
+                        <span>Approved:</span>
+                        <span className="fw-bold" style={{ color: COLORS[1] }}>{approvalCount}</span>
+                    </div>
+                    <div className="d-flex justify-content-between">
+                        <span>Rejected:</span>
+                        <span className="fw-bold" style={{ color: COLORS[2] }}>{rejectionSampleCount}</span>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -93,7 +99,6 @@ export default function TestAscensionOverMonthOverYear() {
         fetchData();
     }, [month, year]);
 
-
     const pieData = [
         { name: 'Test Count', value: data.reduce((acc, cur) => acc + cur.testCount, 0) },
         { name: 'Approval Count', value: data.reduce((acc, cur) => acc + cur.approvalCount, 0) },
@@ -154,7 +159,7 @@ export default function TestAscensionOverMonthOverYear() {
                     Error: {error}
                 </div>
             ) : (
-                <div className='d-flex '>
+                <div className='d-flex'>
                     <div className='col-6'>
                         <ResponsiveContainer width="100%" height={400}>
                             <BarChart data={data} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
@@ -163,12 +168,11 @@ export default function TestAscensionOverMonthOverYear() {
                                 <YAxis />
                                 <Tooltip content={<CustomTooltip />} />
                                 <Legend />
-                                <Bar dataKey="testCount" stackId="a" fill={COLORS[0]} barSize={30} radius={[10, 10, 0, 0]} />
-                                <Bar dataKey="approvalCount" stackId="a" fill={COLORS[1]} barSize={30} radius={[10, 10, 0, 0]} />
-                                <Bar dataKey="rejectionSampleCount" stackId="a" fill={COLORS[2]} barSize={30} radius={[10, 10, 0, 0]} />
+                                <Bar dataKey="testCount" name="Tests" stackId="stack" fill={COLORS[0]} barSize={30} radius={[10, 10, 0, 0]} />
+                                <Bar dataKey="approvalCount" name="Approved" stackId="stack" fill={COLORS[1]} barSize={30} radius={[10, 10, 0, 0]} />
+                                <Bar dataKey="rejectionSampleCount" name="Rejected" stackId="stack" fill={COLORS[2]} barSize={30} radius={[10, 10, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
-
                     </div>
                     <div className="my-4 col-6">
                         <h3 className="fs-5 fw-bold text-center">Overall Distribution</h3>
@@ -184,7 +188,7 @@ export default function TestAscensionOverMonthOverYear() {
                                     dataKey="value"
                                 >
                                     {pieData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        <Cell key={`cell-${index}`} fill={COLORS[index]} />
                                     ))}
                                 </Pie>
                                 <Tooltip />

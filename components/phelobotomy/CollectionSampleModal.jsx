@@ -4,6 +4,7 @@ import { customPost, getDataAndUpdateState } from "../Auth/customFetch";
 import { ToastContainer, toast } from "react-toastify";
 import Loader from "../accessories/Loader";
 import ReceivedCollectionModalTableTr from "./ReceivedCollectionModalTableTr";
+import {  RiCloseLine, RiCheckboxMultipleLine, RiCheckboxBlankLine, RiPlayCircleLine, RiCheckDoubleLine } from '@remixicon/react';
 
 
 export default function CollectionSampleModal({
@@ -117,9 +118,7 @@ export default function CollectionSampleModal({
 					<thead>
 						<tr>
 							<th className="text-capitalize bg-body-secondary fw-light">Test</th>
-							<th className="text-capitalize bg-body-secondary fw-light">Sample Type</th>
-							<th className="text-capitalize bg-body-secondary fw-light">Qty Req</th>
-							<th className="text-capitalize bg-body-secondary fw-light">Container</th>
+							<th className="text-capitalize bg-body-secondary fw-light">Sample Details</th>
 							<th className="text-capitalize bg-body-secondary fw-light">Status</th>
 							<th className="text-capitalize bg-body-secondary fw-light">Action</th>
 							<th className="text-capitalize bg-body-secondary fw-light">Message</th>
@@ -130,15 +129,29 @@ export default function CollectionSampleModal({
 							updateCollectionStatus={updateCollectionStatus} toast={toast} key={index} multipleSelected={multipleSelected} toggleMultipleSelection={toggleMultipleSelection} item={item} updateCollectionAfterStatusChange={updateCollectionAfterStatusChange} />)}
 						<tr>
 							<td colSpan={7}>
-								<button onClick={toggleAllSelections} className={`btn btn-${allCollected ? "danger" : "primary"} btn-sm`}>
+								<div className="d-flex">
+								<button 
+									onClick={toggleAllSelections} 
+									className={`btn btn-${allCollected ? "danger" : "primary"} btn-sm d-flex align-items-center gap-1`}
+								>
+									{allCollected ? <RiCheckboxMultipleLine /> : <RiCheckboxBlankLine />}
 									{allCollected ? "Unselect All" : "Select All"}
 								</button>
-								<button onClick={(ev) => { handleInitiateSelected("collectionStartDate") }} className="btn btn-warning btn-sm mx-2">
+								<button 
+									onClick={(ev) => { handleInitiateSelected("collectionStartDate") }} 
+									className="btn btn-outline-warning btn-sm mx-2 d-flex align-items-center gap-1"
+								>
+									<RiPlayCircleLine />
 									Initiate Selected
 								</button>
-								<button onClick={(ev) => { handleInitiateSelected('collectionEndDate') }} className="btn btn-warning btn-sm mx-2">
+								<button 
+									onClick={(ev) => { handleInitiateSelected('collectionEndDate') }} 
+									className="btn btn-outline-success btn-sm mx-2 d-flex align-items-center gap-1"
+								>
+									<RiCheckDoubleLine />
 									Complete Selected
 								</button>
+								</div>
 							</td>
 						</tr>
 					</tbody>
@@ -171,7 +184,7 @@ export default function CollectionSampleModal({
 	return (
 		<>
 			<ToastContainer className={'text-sm'} position="top-center" />
-			<Modal show={show} size="fullscreen" backdrop="static" keyboard="false" onHide={hide}>
+			<Modal show={show} size="xl" backdrop="static" keyboard="false" onHide={hide}>
 				<Modal.Header style={{ backgroundColor: "#e9ecef" }} closeButton className="d-flex justify-content-between text-capitalize fw-bold">
 					<div>
 						{fullname} ({patientid}) - Billing ID: {billingid}
@@ -183,14 +196,16 @@ export default function CollectionSampleModal({
 				<Modal.Footer>
 					<button
 						onClick={() => setFullscreen(!fullscreen)}
-						className="btn btn-light text-secondary btn-sm mx-5"
+						className="btn btn-light text-secondary btn-sm mx-5 d-flex align-items-center gap-1"
 					>
+						{/* <RiExpandLine /> */}
 						Fullscreen
 					</button>
-					<button className="btn btn-primary btn-sm" onClick={handleSubmit}>
-						Save
-					</button>
-					<button className="btn btn-danger btn-sm" onClick={hide}>
+					<button 
+						className="btn btn-danger btn-sm d-flex align-items-center gap-1" 
+						onClick={hide}
+					>
+						<RiCloseLine />
 						Close
 					</button>
 				</Modal.Footer>

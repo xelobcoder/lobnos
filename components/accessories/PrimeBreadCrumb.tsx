@@ -13,29 +13,24 @@ interface BreadcrumbProps {
 export default function PrimeBreadcrumb({ links }: BreadcrumbProps) {
     return (
         <nav aria-label="Breadcrumb" className="text-sm">
-            <div className="flex space-x-2 d-flex my-2 pls-color">
+            <div className="d-flex align-items-center my-2 gap-2">
                 {links.map((link, index) => (
-                    <div key={link.href} className="flex items-center">
-                        {index > 0 && (
-                            <span className="text-gray-400 mx-2" aria-hidden="true">
-                                &gt;
-                            </span>
-                        )}
-                        {index === links.length - 1 ? (
-                            <Link
-                                href={link.href}
-                                className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
-                            >
-                                {link.label}
-                            </Link>
+                    <div key={link.href} className="d-flex align-items-center gap-2">
+                        {index === 0 ? (
+                            <i className="ri-home-3-line text-primary fs-sm"></i>
                         ) : (
-                            <Link
-                                href={link.href}
-                                className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
-                            >
-                                {link.label}
-                            </Link>
+                            <i className="ri-arrow-right-s-line text-muted fs-xs"></i>
                         )}
+                        <Link
+                            href={link.href}
+                            className={`text-decoration-none ${
+                                index === links.length - 1 
+                                    ? 'text-muted fw-medium' 
+                                    : 'text-primary hover-underline'
+                            }`}
+                        >
+                            {link.label}
+                        </Link>
                     </div>
                 ))}
             </div>

@@ -2,48 +2,69 @@ import React from 'react';
 import VitalSignLineChart from './VitalSignLineChart';
 
 export default function VitalSignCharts({ groupedVitalSigns, date, generateChartData }) {
-	return (
-		<div className='grid-50'>
-			<div>
-				<VitalSignLineChart
-					data={generateChartData(groupedVitalSigns[date], 'temperature')}
-					title={`Temperature Trends for ${date}`}
-					dataKey="temperature"
-					strokeColor="#8884d8"
-				/>
-			</div>
-			<div>
-				<VitalSignLineChart
-					data={generateChartData(groupedVitalSigns[date], 'pulse')}
-					title={`Pulse Trends for ${date}`}
-					dataKey="pulse"
-					strokeColor="#82ca9d"
-				/>
-			</div>
-			<div>
-				<VitalSignLineChart
-					data={generateChartData(groupedVitalSigns[date], 'respiration')}
-					title={`Respiration Trends for ${date}`}
-					dataKey="respiration"
-					strokeColor="#ff7300"
-				/>
-			</div>
-			<div>
-				<VitalSignLineChart
-					data={generateChartData(groupedVitalSigns[date], 'spo2')}
-					title={`SpO2 Trends for ${date}`}
-					dataKey="spo2"
-					strokeColor="#387908"
-				/>
-			</div>
-			<div>
-				<VitalSignLineChart
-					data={generateChartData(groupedVitalSigns[date], 'bp')}
-					title={`Blood Pressure Trends for ${date}`}
-					dataKey="bp"
-					strokeColor="#8884d8"
-				/>
-			</div>
-		</div>
-	);
+    const charts = [
+        {
+            dataKey: 'temperature',
+            title: 'Temperature',
+            color: 'hsl(220 70% 50%)',
+            unit: '°C',
+            icon: '🌡️'
+        },
+        {
+            dataKey: 'pulse',
+            title: 'Pulse Rate',
+            color: 'hsl(340 70% 50%)',
+            unit: 'bpm',
+            icon: '💗'
+        },
+        {
+            dataKey: 'respiration',
+            title: 'Respiration Rate',
+            color: 'hsl(160 70% 50%)',
+            unit: 'breaths/min',
+            icon: '🫁'
+        },
+        {
+            dataKey: 'spo2',
+            title: 'SpO2',
+            color: 'hsl(280 70% 50%)',
+            unit: '%',
+            icon: '🫂'
+        },
+        {
+            dataKey: 'bp',
+            title: 'Blood Pressure',
+            color: 'hsl(40 70% 50%)',
+            unit: 'mmHg',
+            icon: '🩺'
+        }
+    ];
+
+    return (
+        <div className="container-fluid p-4">
+            <h3 className="mb-4 text-secondary">Vital Signs for {date}</h3>
+            <div className="row g-4">
+                {charts.map((chart, index) => (
+                    <div key={chart.dataKey} 
+                         className={`${index === charts.length - 1 ? 'col-12' : 'col-md-6'}`}>
+                        <div className="card h-100 border-0">
+                            <div className="card-header bg-transparent border-0 d-flex align-items-center">
+                                <span className="fs-4 me-2">{chart.icon}</span>
+                                <h5 className="mb-0">{chart.title}</h5>
+                                <span className="ms-2 text-muted">({chart.unit})</span>
+                            </div>
+                            <div className="card-body">
+                                <VitalSignLineChart
+                                    data={generateChartData(groupedVitalSigns[date], chart.dataKey)}
+                                    title={chart.title}
+                                    dataKey={chart.dataKey}
+                                    strokeColor={chart.color}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
 }

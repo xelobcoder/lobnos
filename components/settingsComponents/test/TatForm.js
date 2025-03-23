@@ -1,11 +1,10 @@
 import React from "react";
 
-const TatForm = ({ data, handleChangeWithState }) => {
+export default function TatForm({ data, handleChangeWithState, setTestData }) {
     return (
         <>
             <h5>Tat(Turn Around Time) Set Up</h5>
             <div className="form-row grid-reg d-flex flex-column">
-                {/* Tat Count Row */}
                 <div className="d-flex align-items-center mb-3">
                     <label className="col-2 pls-label">Tat Count:</label>
                     <input
@@ -91,5 +90,3 @@ const TatForm = ({ data, handleChangeWithState }) => {
         </>
     );
 };
-
-export default TatForm;

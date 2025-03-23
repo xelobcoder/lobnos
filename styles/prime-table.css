@@ -6,6 +6,17 @@
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    /* Add horizontal scrolling */
+    min-width: fit-content;
+    overflow-x: auto;
+    display: block;
+}
+
+.prime-table thead,
+.prime-table tbody {
+    /* Ensure table maintains proper layout */
+    display: table;
+    width: 100%;
 }
 
 .prime-table thead th {

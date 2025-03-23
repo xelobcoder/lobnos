@@ -7,7 +7,8 @@ import {
 	defaultTestEditValues,
 	handleChangeWithState,
 	customPost,
-	getSingleEditTest
+	getSingleEditTest,
+	getSampleContainerList
 } from "../../Auth/customFetch";
 import { Add } from "@mui/icons-material";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
@@ -19,23 +20,27 @@ export default function TestForm({ method, customtest, testid, router }) {
 	const { employeeid } = useApplicationSettings().applicationsettings.user;
 	const [sampleType, setSample] = useState([]);
 	const [category, setCategory] = useState([]);
+	const [sampleContainers,seetSampleContainers] = useState([]);
 	const [data, setTestData] = useState({ ...defaultTestEditValues, iscustom: customtest });
 	const [FieldDisabledDueNone, setFieldDisabledDueNone] = useState(false);
 	const [isLoading, setLoading] = useState(true);
 
 	const getTestParams = useCallback(async () => {
-		getSingleEditTest(testid, setTestData, setLoading);
+		getSingleEditTest(testid, setTestData, setLoading,false);
 	}, [testid]);
 
 	useEffect(() => {
 		if (testid) {
 			getTestParams();
 		}
-	}, [getTestParams, testid]);
+	}, [getTestParams, testid]); 
+
+	console.log(data);
 
 	useEffect(() => {
 		getDepartment(setCategory);
 		getSampleTypeList(setSample);
+		getSampleContainerList(seetSampleContainers);
 	}, []);
 
 	const handleSwitch = (event, target) => {
@@ -86,7 +91,7 @@ export default function TestForm({ method, customtest, testid, router }) {
 
 	return (
 		<div>
-			<ToastContainer  className={'text-sm'} position="top-center" theme="colored"/>
+			<ToastContainer className={'text-sm'} position="top-center" theme="colored"/>
 			<>
 				<div className="mx-2 d-flex justify-content-between">
 					<h5 className="text-capitalize pls-label bg-secondary-subtle p-3 pls-color br-5">{data?.name}</h5>
@@ -119,11 +124,17 @@ export default function TestForm({ method, customtest, testid, router }) {
 							FieldDisabledDueNone={FieldDisabledDueNone}
 							category={category}
 							sampleType={sampleType}
+							setTestData={setTestData}
+							sampleContainers={sampleContainers}
 						/>
 						<hr />
 						<ConfigurationForm data={data} handleSwitch={handleSwitch} />
 						<hr />
-						<TatForm data={data} handleChangeWithState={handleChangeWithState} />
+						<TatForm 
+							data={data} 
+							handleChangeWithState={handleChangeWithState} 
+							setTestData={setTestData} 
+						/>
 						<hr />
 						<div>
 							<button

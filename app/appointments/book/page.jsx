@@ -1,28 +1,30 @@
 "use client"
 import NewAppointment from '../../../components/appointments/newAppointmentModal'
-import { Tab, Tabs, Breadcrumb } from 'react-bootstrap'
+import { Tab, Tabs } from 'react-bootstrap'
 import PreviousAppointments from '../../../components/appointments/previousAppointments'
 import { useSearchParams } from 'next/navigation'
-import PrimeLayout from '../../../components/Layout/PrimeLayout'
-export default function BookAppointment() {
-	// const [disabled, setDisabled] = useState(true);
-	const patientid = useSearchParams().get('patientid');
+import PrimeBreadcrumb from '../../../components/accessories/PrimeBreadCrumb'
 
-	return (
-		<section className='container-fluid'>
-			<Breadcrumb className='ui fw-bold'>
-				<Breadcrumb.Item href='/appointments' className="text-sm">Calendar</Breadcrumb.Item>
-				<Breadcrumb.Item href='/appointments/tt' className="text-sm">Appointment List</Breadcrumb.Item>
-				<Breadcrumb.Item href='/appointments/book' className="text-sm">New Appointment</Breadcrumb.Item>
-			</Breadcrumb>
-			<Tabs>
-				<Tab eventKey={1} title="New Appointment">
-					<NewAppointment />
-				</Tab>
-				<Tab disabled={!patientid} eventKey={2} title="Previous Appointment">
-					<PreviousAppointments />
-				</Tab>
-			</Tabs>
-		</section>
-	)
+export default function BookAppointment() {
+    const patientid = useSearchParams().get('patientid');
+
+    const breadcrumbLinks = [
+        { href: '/appointments', label: 'Calendar' },
+        { href: '/appointments/tt', label: 'Appointment List' },
+        { href: '/appointments/book', label: 'New Appointment' }
+    ];
+
+    return (
+        <section className='container-fluid'>
+            <PrimeBreadcrumb links={breadcrumbLinks} />
+            <Tabs>
+                <Tab eventKey={1} title="New Appointment">
+                    <NewAppointment />
+                </Tab>
+                <Tab disabled={!patientid} eventKey={2} title="Previous Appointment">
+                    <PreviousAppointments />
+                </Tab>
+            </Tabs>
+        </section>
+    )
 }

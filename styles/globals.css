@@ -36,6 +36,7 @@
   transition: all 0.3s ease;
 }
 
+
 .dropzone-container:hover {
   background-color: #e9ecef;
 }
@@ -1135,15 +1136,7 @@ textarea:required:focus:invalid {
 }
 
 
-#frontpagewrapper,
-#loginWrapper {
-  background-color: hsl(from green 56 55 67);
-  min-height: 100vh;
-  max-height: max-content;
-  width: 100%;
-      background: url('../public/scale.jpg');
-  margin: 0;
-}
+
 
 #frontpagecards {
   display: grid;

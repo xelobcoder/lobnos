@@ -19,7 +19,7 @@ const Icon = (
 
 
 
-export const Mylinks = function (branchid: number): Link[] {
+export const Mylinks = function (branchid: number,employeeid:number): Link[] {
     const branchId = plsEncryption(branchid.toString());
     return [
         {
@@ -96,7 +96,12 @@ export const Mylinks = function (branchid: number): Link[] {
             title: 'Customers Vital signs',
             link: "/customers/recordVitalSigns",
             icon: <RiUserHeartLine />,
-            subLinks: []
+            subLinks: [
+                {
+                    title: 'Customers Vital signs',
+                    link: "/customers/recordVitalSigns",
+                }
+            ]
         },
         {
             title: "Service Costs",
@@ -158,18 +163,6 @@ export const Mylinks = function (branchid: number): Link[] {
             ]
         },
         {
-            title: "Ultrasound Operations",
-            icon: <RiHospitalLine />,
-            link: '/operations/imaging/ultrasound',
-            subLinks: [
-                { title: 'Waiting List', link: '/operations/imaging/ultrasound' },
-                { title: 'Processed List', link: '/operations/imaging/ultrasound/processedlist' },
-                { title: 'Analytics', link: '/operations/imaging/ultrasound/analytics' },
-                { title: 'Create Templates', link: '/operations/imaging/ultrasound/templates' },
-                { title: 'Ultrasound Templates', link: '/operations/imaging/ultrasound/templates/list' },
-            ]
-        },
-        {
             title: 'Laboratory Operations',
             icon: <RiMedicineBottleLine />,
             link: '${/operations/laboratory/validated',
@@ -205,7 +198,12 @@ export const Mylinks = function (branchid: number): Link[] {
                 {
                     title: "Stock Management",
                     link: `/operations/laboratory/stockmanagement`,
-                }
+                },
+                { title: 'Waiting List', link: '/operations/imaging/ultrasound' },
+                { title: 'Processed List', link: '/operations/imaging/ultrasound/processedlist' },
+                { title: 'Analytics', link: '/operations/imaging/ultrasound/analytics' },
+                { title: 'Create Templates', link: '/operations/imaging/ultrasound/templates' },
+                { title: 'Ultrasound Templates', link: '/operations/imaging/ultrasound/templates/list' },
             ]
         },
         {
@@ -241,16 +239,13 @@ export const Mylinks = function (branchid: number): Link[] {
                 { title: 'Filter Client ', link: '/billing/patientid' },
                 { title: 'packages', link: '/billing/packages/create-new-package' }, { title: 'Bill settings Night Adjustment', link: '/billing/settings/night-adjustments' },
                 { title: 'Daily Transactions', link: '/billing/sales/branches' },
-                { title: "Refund Admin", link: "/billing/refund/refundAdmin" },
-                { title: "Refund FrontDesk Representative", link: "/billing/refund" }
+                { title: "Refund Admin", link: `/billing/refund/refundAdmin/${employeeid}` },
+                { title: "Refund FrontDesk Representative", link: `/billing/refund/${employeeid}` },
+                {    title: "Sales",
+                    link: "/billing/salessummary"}
             ]
         },
-        {
-            title: "Sales",
-            icon: <RiShoppingCartLine />,
-            link: "/billing/salessummary",
-            subLinks: []
-        },
+     
         {
             title: "Appointments",
             icon: <RiCalendarLine />,
@@ -308,23 +303,12 @@ export const Mylinks = function (branchid: number): Link[] {
                 { title: "Taxes", link: "/settings/tax" },
                 { title: "Test Panels", link: "/settings/testpanel/testlist" },
                 { title: "Services", link: "/settings/additionalservices" },
-
-
                 { title: "Email Management", link: "/settings/emailsetting" },
-
-            ]
-        },
-        {
-            title: "Drugs", link: "/settings/applicationsettings/drugs", icon: Icon, subLinks: [
                 { title: 'Drug Category', link: '/settings/applicationsettings/drugs/drugCategoryView' },
-                { title: 'Drugs List', link: '/settings/applicationsettings/drugs' }
-            ]
-        },
-        {
-            title: "Outsourcing", link: "/settings/outsource", icon: Icon,
-            subLinks: [
+                { title: 'Drugs List', link: '/settings/applicationsettings/drugs' },
                 { title: 'New Organization', link: '/settings/outsource/newOutsourcing' },
                 { title: 'Outsourcing List', link: '/settings/outsource' }
+
             ]
         },
     ];

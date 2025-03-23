@@ -1,31 +1,81 @@
 import React from 'react';
 import Link from 'next/link';
-import { Draw, IntegrationInstructions } from '@mui/icons-material';
+import { RiSyringeLine, RiFileTextLine } from '@remixicon/react';
+import styles from './adminView.module.css';
+
+const links = [
+  {
+    href: '/phelobotomy',
+    icon: <RiSyringeLine size={24} />,
+    text: "Manage sample collection procedures and patient records",
+    label: 'Phlebotomy',
+    category: 'Sample Collection',
+    description: 'Blood sample collection management'
+  },
+  {
+    href: '/instructions',
+    icon: <RiFileTextLine size={24} />,
+    text: "Access phlebotomy procedures and guidelines",
+    label: 'Instructions',
+    category: 'Support',
+    description: 'Documentation and procedures'
+  }
+];
 
 export default function FrontPagePhelobotomyView() {
+  const categories = [...new Set(links.map(link => link.category))];
+
   return (
-    <div>
-      <ul style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-        gap: '20px',
-        listStyleType: 'none',
-        padding: 0,
-        margin: 0
-      }}>
-        <li>
-          <Link className="bg-primary text-white p-4 text-center" href="/phelobotomy" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <Draw sx={{ height: 100, width: 100, marginBottom: '8px' }} />
-            <div>Phelobotomy</div>
-          </Link>
-        </li>
-        <li>
-          <Link className="bg-primary text-white p-4 text-center" href="/instructions" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <IntegrationInstructions sx={{ height: 100, width: 100, marginBottom: '8px' }} />
-            <div>Instructions</div>
-          </Link>
-        </li>
-      </ul>
+    <div className={`${styles.adminDashboard} min-vh-100`}>
+      <div className="container-fluid py-5">
+        <div className="row mb-5">
+          <div className="col-12">
+            <h1 className="h3 mb-2">Phlebotomy Portal</h1>
+            <p className="text-muted">Manage sample collection and phlebotomy procedures</p>
+          </div>
+        </div>
+
+        {categories.map(category => (
+          <div key={category} className="mb-5">
+            <h2 className={`h5 mb-4 text-uppercase ${styles.letterSpacing1}`}>{category}</h2>
+            <div className="row g-4">
+              {links
+                .filter(link => link.category === category)
+                .map((link, index) => (
+                <div key={index} className="col-12 col-md-6">
+                  <div className={`card h-100 border-0 ${styles.appCard}`}>
+                    <div className="card-body p-4">
+                      <div className="d-flex align-items-center mb-3">
+                        <div className={`${styles.appIcon} me-3`}>
+                          {link.icon}
+                        </div>
+                        <h3 className="h6 mb-0">{link.label}</h3>
+                      </div>
+                      <p className="text-muted small mb-3">{link.text}</p>
+                      <div className="mt-auto pt-3 border-top">
+                        <div className="d-flex justify-content-between align-items-center">
+                          <Link 
+                            href={link.href}
+                            className={`btn btn-sm px-3 ${styles.primaryBtn}`}
+                          >
+                            Open App
+                          </Link>
+                          <Link 
+                            href="/" 
+                            className="text-muted small text-decoration-none"
+                          >
+                            Learn more
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

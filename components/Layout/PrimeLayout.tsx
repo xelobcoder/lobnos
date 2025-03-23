@@ -6,18 +6,6 @@ import styles from './PrimeLayout.module.css';
 import { RiSearchLine, RiMenuFoldLine, RiMenuUnfoldLine, RiMoonLine, RiSunLine } from '@remixicon/react';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 
-interface SubLink {
-    title: string;
-    link: string;
-}
-
-interface LinkItem {
-    title: string;
-    link: string;
-    icon: React.ReactNode;
-    subLinks: SubLink[];
-}
-
 interface PrimeLayoutProps {
     children: React.ReactNode;
 }
@@ -26,11 +14,18 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
     const [activeGroup, setActiveGroup] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(false);
-    const [isDarkMode, setIsDarkMode] = useState<boolean>(false); // New state for dark mode
-    const { company, branchid } = useApplicationSettings().applicationsettings;
-    const links = Mylinks(branchid);
+    const [isDarkMode, setIsDarkMode] = useState<boolean>(false); 
+    const { company, branchid ,user} = useApplicationSettings().applicationsettings;
+    const links = Mylinks(branchid,user.employeeid);
 
     const handleGroupClick = (index: number) => {
+        const currentItem = links[index];
+        if (!currentItem.subLinks || currentItem.subLinks.length === 0) {
+            if (currentItem.link) {
+                window.location.href = currentItem.link;
+                return;
+            }
+        }
         setActiveGroup(activeGroup === index ? null : index);
         setIsSidebarExpanded(activeGroup !== index);
     };
@@ -47,6 +42,11 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
         links[activeGroup].subLinks.filter(link => 
             link.title.toLowerCase().includes(searchQuery.toLowerCase())
         ) : [];
+
+    const hasSublinks = activeGroup !== null && 
+        links[activeGroup] && 
+        links[activeGroup].subLinks && 
+        links[activeGroup].subLinks.length > 0;
 
     return (
         <div className={`${styles.pageContainer} ${isDarkMode ? styles.darkMode : styles.lightMode}`}>
@@ -77,8 +77,8 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
                 </nav>
             </aside>
 
-            <aside className={`${styles.linksSidebar} ${isSidebarExpanded ? styles.expanded : styles.collapsed}`}>
-                {activeGroup !== null && links[activeGroup] && (
+            {hasSublinks && (
+                <aside className={`${styles.linksSidebar} ${isSidebarExpanded ? styles.expanded : styles.collapsed}`}>
                     <div className={styles.linksContainer}>
                         <h2 className={styles.linkGroupTitle}>{links[activeGroup].title}</h2>
                         <div className={styles.searchContainer}>
@@ -103,10 +103,10 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
                             ))}
                         </div>
                     </div>
-                )}
-            </aside>
+                </aside>
+            )}
 
-            <main className={`${styles.mainContent} ${isSidebarExpanded ? styles.sidebarExpanded : styles.sidebarCollapsed}`}>
+            <main className={`${styles.mainContent} ${hasSublinks && isSidebarExpanded ? styles.sidebarExpanded : styles.sidebarCollapsed}`}>
                 {children}
             </main>
         </div>

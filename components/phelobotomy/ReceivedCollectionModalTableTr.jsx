@@ -3,6 +3,7 @@ import { Spinner } from "react-bootstrap";
 import { calculateTimeUsed, customPost } from "../Auth/customFetch";
 import moment from "moment/moment";
 import { Start, Stop } from "@mui/icons-material";
+import { RiPlayCircleLine, RiCheckDoubleLine } from '@remixicon/react';
 
 export default function ReceivedCollectionModalTableTr({ item, toggleMultipleSelection, multipleSelected, toast, updateCollectionStatus}) {
     const [isCollectionLoading, setIsCollectionLoading] = useState(false);
@@ -42,39 +43,61 @@ export default function ReceivedCollectionModalTableTr({ item, toggleMultipleSel
 
 
     return (
-        < tr className="text-sm" >
-            <td className="fw-bold">
+        <tr className="text-sm">
+            <td className="fw-bold" style={{ width: '20%' }}>
                 <input
                     type="checkbox"
                     onChange={(ev) => toggleMultipleSelection(ev, item)}
                     checked={multipleSelected.includes(item.testid)}
                 />
-                <span className="mx-2">   {item.name}</span>
+                <span className="mx-2">{item.name}</span>
             </td>
-            <td className={item.sampletype === "serum" ? "text-warning" : item.sampletype === "blood" ? "text-danger" : "text-dark"}>
-                {item.sampletype}
+            <td style={{ width: '20%' }}>
+                <div className="d-flex flex-column">
+                    <span className={item.sampletype === "serum" ? "text-warning" : item.sampletype === "blood" ? "text-danger" : "text-dark"}>
+                        {item.sampletype}
+                    </span>
+                    <span>
+                        {item.qty_required} {item.unit}
+                    </span>
+                    <span>
+                        {item.sample_container}
+                    </span>
+                </div>
             </td>
-            <td>
-                {item.qty_required} {item.unit}
+            <td style={{ width: '20%' }}>
+                {item.status}{statusView(item)}
             </td>
-            <td>{item.sample_container}</td>
-            <td>{item.status}{statusView(item)} </td>
-            <td>
-                <button disabled={isCollectionLoading || item.collectionStartDate} onClick={() => handleIndividualSample('collectionStartDate', item)} className="btn btn-primary btn-sm">
-                    {isCollectionLoading && <Spinner size="sm" />}    Initiate
-                </button>
-                <button onClick={() => handleIndividualSample('collectionEndDate', item)} disabled={isCompletedLoading || item.collectionEndDate} className="btn btn-success mx-2 btn-sm">
-                    {isCompletedLoading && <Spinner size="sm" />}    Complete</button>
+            <td style={{ width: '10%' }}>
+                <div className="d-flex flex-column gap-1">
+                    <button 
+                        disabled={isCollectionLoading || item.collectionStartDate} 
+                        onClick={() => handleIndividualSample('collectionStartDate', item)} 
+                        className="btn btn-outline-primary btn-sm d-flex align-items-center gap-1"
+                    >
+                        {isCollectionLoading ? <Spinner size="sm" /> : <RiPlayCircleLine />}
+                        Initiate
+                    </button>
+                    <button 
+                        onClick={() => handleIndividualSample('collectionEndDate', item)} 
+                        disabled={isCompletedLoading || item.collectionEndDate} 
+                        className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+                    >
+                        {isCompletedLoading ? <Spinner size="sm" /> : <RiCheckDoubleLine />}
+                        Complete
+                    </button>
+                </div>
             </td>
-            <td>
+            <td style={{ width: '20%' }}>
                 <textarea
                     value={item.samplemessage}
                     onChange={(ev) => handleSampleMessageChange(ev, item.id)}
                     className="form-control"
                     placeholder="Type a message here"
                     disabled={item.collection === "true"}
+                    style={{ minHeight: '80px' }}
                 />
             </td>
-        </tr >
+        </tr>
     )
 }

@@ -3,11 +3,11 @@ import { useRouter,useSearchParams } from 'next/navigation';
 import { FormLabel } from 'react-bootstrap';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import {ToastContainer,toast} from 'react-toastify';
+import { RiBuilding2Line, RiUserLine } from '@remixicon/react';
 
 export default function Add_department() {
   const searchParams = useSearchParams();
   const [department, setDepartment] = useState({department: '',departmentManager: '',employeeid: ""})
-
   const [employeeList, setEmployeeList] = useState([])
 
   const handleDepartmentChange = (event) => {
@@ -16,16 +16,13 @@ export default function Add_department() {
 
   const handleEmployeeChange = (event) => {
     const { value } = event.target
-    // find from employee list
     const employee = employeeList.find((employee) => employee.employeeid == value);
     if (!employee) return;
     const { username } = employee;
     setDepartment({ ...department, departmentManager: username, employeeid: value })
   }
 
-
   const [tab, setTab] = useState('submit');
-  // use router to relaod and also to look rdit in url for editing a pacticcular department
   const router = useRouter();
 
   const handleSubmit = (event) => {
@@ -41,9 +38,8 @@ export default function Add_department() {
           setTab('submit');
           router.push('/settings/department');
           setTimeout(() => {
-
           }, 500)
-        } else {        }
+        }
       } else {
         toast.error(message, { autoClose: '1000' })
       }
@@ -56,7 +52,6 @@ export default function Add_department() {
     }
   };
 
-
   const getEmployees = async () => {
     const response = await customFetch('logins');
     const { status, statusCode, result } = response;
@@ -67,15 +62,10 @@ export default function Add_department() {
     }
   }
 
-
   useEffect(() => {
     getEmployees();
   }, [])
 
-
-
-
-  // monitor for edit tab in the url
   const id = searchParams.get('id');
   const employeeid = searchParams.get('employeeid');
   const urltab = searchParams.get('tab');
@@ -85,53 +75,74 @@ export default function Add_department() {
   useEffect(() => {
     if (urltab === 'edit') {
       setTab('update');
-      // fetch department from server
       setDepartment({department: departmantName,departmentManager: departmentManager,employeeid: employeeid})
     }
   }, [id, employeeid, departmentManager,urltab,departmantName])
 
   return (
     <>
-      <ToastContainer/>
-      <div className="card">
-          <div className="card-header bg-secondary mb-0 p-1">
-          <h6 className=" text-white mt-1 mx-2">Add Department</h6>
-          </div>
-          <div className="card-body">
-          <form className='d-flex'>
-              <div className="form-group">
-              <FormLabel className='text-primary' htmlFor="department">Department</FormLabel>
-                <input
-                  type="text"
-                  className="custom-input"
-                  id="department"
-                  name="department"
-                  value={department.department}
-                  onChange={handleDepartmentChange}
-                  placeholder="Enter Department"
-                />
+      <div className="card  border-0">
+        <div className="card-header modal-color bg-gradient p-3">
+          <h5 className="mb-0 fw-semibold">Add Department</h5>
+        </div>
+        <div className="card-body p-4">
+          <form>
+            <div className="row g-4">
+              <div className="col-md-5">
+                <div className="form-group">
+                  <FormLabel className="text-secondary small mb-2">Department Name</FormLabel>
+                  <div className="input-group">
+                    <span className="input-group-text bg-light border-end-0">
+                      <RiBuilding2Line className="text-primary" />
+                    </span>
+                    <input
+                      type="text"
+                      className="form-control border-start-0 ps-0"
+                      id="department"
+                      name="department"
+                      value={department.department}
+                      onChange={handleDepartmentChange}
+                      placeholder="Enter department name"
+                    />
+                  </div>
+                </div>
               </div>
-            <div className="form-group mx-3">
-              <FormLabel className='text-primary' htmlFor="department">Department Manager</FormLabel>
-                <select
-                  className="custom-select"
-                  id="departmentManager"
-                  name="departmentManager"
-                  value={department.departmentManager}
-                  onChange={(e) => handleEmployeeChange(e)}
-                >
-                  <option value={department.departmentManager}>{department.departmentManager || 'Select Department Manager'}</option>
-                  {employeeList.map((employee, index) => (
-                    <option key={index} value={employee.employeeid}>
-                      {employee?.username}
-                    </option>
-                  ))}
-                </select>
+
+              <div className="col-md-5">
+                <div className="form-group">
+                  <FormLabel className="text-secondary small mb-2">Department Manager</FormLabel>
+                  <div className="input-group">
+                    <span className="input-group-text bg-light border-end-0">
+                      <RiUserLine className="text-primary" />
+                    </span>
+                    <select
+                      className="form-select border-start-0 ps-0"
+                      id="departmentManager"
+                      name="departmentManager"
+                      value={department.employeeid}
+                      onChange={handleEmployeeChange}
+                    >
+                      <option value="">Select Department Manager</option>
+                      {employeeList.map((employee) => (
+                        <option key={employee.employeeid} value={employee.employeeid}>
+                          {employee?.username}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
-            <div className='mt-4' >
-              <button className='btn btn-primary btn-sm mt-1'  onClick={handleSubmit} >
-                {tab}
-              </button>
+
+              <div className="col-md-2">
+                <div className="form-group h-100 d-flex align-items-end">
+                  <button 
+                    className="btn btn-primary w-100 text-capitalize" 
+                    onClick={handleSubmit}
+                  >
+                    {tab === 'submit' ? 'Add Department' : 'Update Department'}
+                  </button>
+                </div>
+              </div>
             </div>
           </form>
         </div>

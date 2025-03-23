@@ -14,9 +14,11 @@
 
 .tablewrapper {
     overflow-x: auto;
-    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    min-width: min-content;
+    position: relative;
     border-radius: 8px;
-    /* border: 1px solid #e0e0e0; */
     background-color: #fff;
     margin-top: 20px;
 }
@@ -103,41 +105,47 @@
 }
 
 [data-bs-theme="dark"] .tablewrapper {
-    background-color: #222;
-    border: 1px solid #555;
+    background-color: #1a1a1a;
+    border: 1px solid #444;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.05);
 }
 
 [data-bs-theme="dark"] .table {
+    background-color: #1a1a1a;
     color: #e0e0e0;
-    background-color: #000;
 }
 
 [data-bs-theme="dark"] .table th {
-    background-color: #333;
-    color: #fff;
+    background-color: #2d2d2d;
+    color: #ffffff;
+    border-bottom: 1px solid #444;
 }
 
 [data-bs-theme="dark"] .table td {
-    background-color: #222;
-    color: #fff;
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    border-top: 1px solid #444;
 }
 
 [data-bs-theme="dark"] .paginationBtn {
-    background-color: #007bff;
-    color: #fff;
+    background-color: #2d2d2d;
+    color: #ffffff;
+    border: 1px solid #444;
 }
 
-[data-bs-theme="dark"] .pagination-btn:hover {
-    background-color: #0056b3;
+[data-bs-theme="dark"] .paginationBtn:hover {
+    background-color: #3d3d3d;
 }
 
 [data-bs-theme="dark"] .no-data {
-    background-color: #222;
-    color: #aaa;
+    background-color: #2d2d2d;
+    color: #b0b0b0;
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.05);
 }
 
 [data-bs-theme="dark"] .checkbox {
-    background-color: #555;
+    background-color: #444;
+    border-color: #555;
 }
 
 [data-bs-theme="dark"] .custom-tooltip {

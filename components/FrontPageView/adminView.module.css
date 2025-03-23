@@ -1,0 +1,44 @@
+.adminDashboard {
+  background-color: #f8f9fa;
+}
+
+.letterSpacing1 {
+  letter-spacing: 1px;
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.appCard {
+  background: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.appCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.appIcon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: linear-gradient(45deg, #3182ce, #2c5282);
+  color: white;
+}
+
+.appIcon img {
+  filter: brightness(0) invert(1);
+}
+
+.primaryBtn {
+  background: #3182ce;
+  border: none;
+}
+
+.primaryBtn:hover {
+  background: #2c5282;
+}

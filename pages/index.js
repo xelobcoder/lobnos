@@ -1,34 +1,66 @@
-import FrontPageFrontdeskView from '../components/FrontPageView/frontdeskView';
-import FrontPageAdminView from '../components/FrontPageView/adminView';
-import FrontPageLabScientistView from '../components/FrontPageView/labScientistView';
-import FrontPageSonographerView from '../components/FrontPageView/sonographerView';
-import FrontPagePhelobotomyView from '../components/FrontPageView/phelobotomyView';
-import HeaderNav from "../components/Layout/HeaderNav";
-import { Container } from 'react-bootstrap';
-import { useApplicationSettings } from '../components/Auth/useApplicationContext';
+import { useApplicationSettings } from "../components/Auth/useApplicationContext";
+import PrimeLayout from "../components/Layout/PrimeLayout";
+import FrontPageAdminView from "../components/FrontPageView/adminView";
+import FrontPageFrontdeskView from "../components/FrontPageView/frontdeskView";
+import FrontPageLabScientistView from "../components/FrontPageView/labScientistView";
+import FrontPagePhelobotomyView from "../components/FrontPageView/phelobotomyView";
+import FrontPageSonographerView from "../components/FrontPageView/sonographerView";
+import styles from './index.module.css';
+
 export default function Index() {
   const { applicationsettings } = useApplicationSettings();
   const { user, daysToExpiration } = applicationsettings;
-  const role = user.role;
+
+  const roleViews = {
+    'customer service representative': FrontPageFrontdeskView,
+    'admin': FrontPageAdminView,
+    'manager': FrontPageAdminView,
+    'scientist': FrontPageLabScientistView,
+    'sonographer': FrontPageSonographerView,
+    'phelobotomist': FrontPagePhelobotomyView
+  };
+
+  const RoleComponent = roleViews[user.role];
+
+  if (!daysToExpiration || daysToExpiration <= 0) {
+    return (
+      <PrimeLayout>
+        <div className={styles.expiredContainer}>
+          <div className={styles.expiredContent}>
+            <h1 className={styles.expiredTitle}>License Expired</h1>
+            <p className={styles.expiredText}>
+              Your product license has expired. Please contact our support team for renewal.
+            </p>
+            <button 
+              className={styles.contactButton}
+              onClick={() => window.location.href = 'mailto:support@example.com'}
+            >
+              Contact Support
+            </button>
+          </div>
+        </div>
+      </PrimeLayout>
+    );
+  }
+
+  if (!RoleComponent) {
+    return (
+      <PrimeLayout>
+        <div className={styles.errorContainer}>
+          <h2 className={styles.errorTitle}>Access Denied</h2>
+          <p className={styles.errorText}>
+            You don't have permission to access this page. Please contact your administrator.
+          </p>
+        </div>
+      </PrimeLayout>
+    );
+  }
 
   return (
-    <>
-      <HeaderNav />
-      {(daysToExpiration && daysToExpiration > 0) ? (
-        <div id="frontpagewrapper" className="bg-secondary-subtle" >
-          <Container>
-            {role === "customer service representative" && <FrontPageFrontdeskView />}
-            {(role === "admin" || role == "manager") && <FrontPageAdminView />}
-            {role === "scientist" && <FrontPageLabScientistView />}
-            {role === "sonographer" && <FrontPageSonographerView />}
-            {role === "phelobotomist" && <FrontPagePhelobotomyView />}
-          </Container>
-        </div>
-      ) : (
-        <div className='alert alert-danger my-2 mx-3 p-3'>
-          <h1 >Product Licensed Expired.Contact Developer for updates</h1>
-        </div>
-      )}
-    </>
+    <PrimeLayout>
+      <div className={styles.pageContainer}>
+        <RoleComponent />
+      </div>
+    </PrimeLayout>
   );
 }
