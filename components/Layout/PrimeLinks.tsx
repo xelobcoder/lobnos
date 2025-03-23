@@ -204,6 +204,9 @@ export const Mylinks = function (branchid: number,employeeid:number): Link[] {
                 { title: 'Analytics', link: '/operations/imaging/ultrasound/analytics' },
                 { title: 'Create Templates', link: '/operations/imaging/ultrasound/templates' },
                 { title: 'Ultrasound Templates', link: '/operations/imaging/ultrasound/templates/list' },
+                { title: "Phlebotomy", link: "/operations/laboratory/phelobotomy" },
+                { title: "Rejected Samples", link: "/operations/laboratory/phelobotomy/rejectedsamples" },
+                { title: "Analytics", link: "/operations/laboratory/phelobotomy/analytics" },
             ]
         },
         {
@@ -219,17 +222,21 @@ export const Mylinks = function (branchid: number,employeeid:number): Link[] {
                 { title: "UnResolved Messages", link: "/sms/smsmessages/unresolved" }
             ]
         },
-        {
-            title: "Registration",
-            icon: <RiFileListLine />,
-            link: "/registration",
-            subLinks: []
-        },
+       
         {
             title: "Customers",
             icon: <RiCustomerService2Line />,
             link: "/customers",
-            subLinks: []
+            subLinks: [{
+                title: "Customers",
+                link: "/customers",
+            }, {
+                title: "Registration",
+                link: "/registration"
+            },
+            { title: "Clinicians", link: "/clinician" },
+            { title: "Add New Clinician", link: "/clinician/new" },
+        ]
         },
         {
             title: "Billing",
@@ -278,15 +285,7 @@ export const Mylinks = function (branchid: number,employeeid:number): Link[] {
                 }
             ]
         },
-        {
-            title: "Clinicians",
-            icon: <RiUserHeartLine />,
-            link: '/clincian',
-            subLinks: [
-                { title: "Clinicians", link: "/clinician" },
-                { title: "Add New Clinician", link: "/clinician/new" },
-            ]
-        },
+       
         {
             title: 'Settings',
             icon: <RiSettings3Line />,
