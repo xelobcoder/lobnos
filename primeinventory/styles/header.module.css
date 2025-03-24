@@ -1,0 +1,163 @@
+.applicationLayout {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+.softwarelabelheader {
+    background-color: #F9F9F9;
+    text-transform: uppercase;
+}
+
+.applicationLayout > nav  {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    top: 0;
+    left: 0;
+    z-index: 9000;
+    background-color: #1a73e8;
+}
+
+.sidebar, .unfold {
+  /* background-color: #232529;
+  background-color: #1a73e8;  */
+  height: 100vh;
+  width: 100% !important;
+  overflow-x: hidden;
+}
+
+
+.sidebarList {
+  list-style-type: none;
+  margin: 0;
+  margin-top:20px;
+      transition: "background-color 0.3s ease";
+  padding: 0;
+}
+
+.sidebarItem {
+  display: block;
+  margin-left: 20px;
+  margin-right: 20px;
+  margin-top: 10px;
+}
+
+.sidebarItem > a {
+  text-decoration: none;
+  color: #e3e5e4;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 10% 80% auto;
+}
+
+.sidebarItem > a:hover {
+  background-color: #3d3f42;
+  border-radius: 20px;
+}
+
+.subLinks {
+  background-color: #111725;
+  color: white;
+  border-radius: 5px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.expanded-menu-link {
+  display: block;
+  margin-bottom: 8px;
+  color: #61dafb;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.expanded-menu-link:hover {
+  color: #fff;
+  background-color: #232529;
+}
+
+.unfold > .sidebarList > li > a > .linkText,
+.unfold > .sidebarList > li > a > .dropdownArrow {
+  display: none;
+}
+
+.sidebar > .sidebarList > li > a > .linkText,
+.sidebar > .sidebarList > li > a > .dropdownArrow {
+  display: block !important;
+}
+
+.unfold .sidebarItem > a:hover {
+  background-color: green;
+}
+
+.sidebarWrapper{
+  width: 250px;
+}
+
+.sidebarWrapperless {
+  width: auto;
+}
+
+
+@media (max-width: 984px )  {
+   .sidebarWrapper {
+      width: "100%"  !important;
+   }
+
+   .sidebarWrapper,
+   .sidebarList {
+    display: none;
+   }
+
+
+   /* .unfold > .sidebarList > li > a > .linkText,
+.unfold > .sidebarList > li > a > .dropdownArrow {
+  display: flex !important;
+} */
+  }
+
+
+
+.tooltip {
+  display: none;
+}
+
+.unfold .tooltip {
+  display: block;
+}
+
+.slitter {
+  height: 100vh;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  width:'100%';
+  background-color: white;
+  display: flex;
+}
+
+ .mainBarWrapper  {
+  padding :20px;
+  height: 100vh;
+  width: 100%;
+  overflow-y: inherit;
+  background-color: white;
+}
+
+.sidebarWrapper {
+  width: 300px !important;
+  background-color:black !important;
+  transition: width 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+              background-color 300ms ease, 
+              opacity 300ms ease-in-out;
+  opacity: 0.8;
+}
+
+.sidebarWrapperfold {
+  width: auto !important;
+  background-color:#1a73e8;
+  transition: width 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
+              background-color 300ms ease, 
+              opacity 300ms ease-in-out;
+}

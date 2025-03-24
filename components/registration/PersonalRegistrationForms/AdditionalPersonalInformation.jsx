@@ -20,10 +20,10 @@ const AdditionalPersonalInformation = ({ fields, checkIFNumberisAvailable }) => 
 
     return (
         <div>
-            {fields.mobile.visible && (
-                <div className="form-row grid-reg my-1">
-                    <label className="pls-label">Mobile Number</label>
-                    <div>
+            <div className="row g-3">
+                {fields.mobile.visible && (
+                    <div className="col-md-4">
+                        <label className="form-label pls-label">Mobile Number</label>
                         <input
                             {...register('mobile')}
                             type="tel"
@@ -34,34 +34,28 @@ const AdditionalPersonalInformation = ({ fields, checkIFNumberisAvailable }) => 
                             maxLength={10}
                             minLength={10}
                             placeholder="Mobile contact"
-                            className="custom-input"
+                            className="form-control"
                         />
                         {errors.mobile && (
-                            <p style={{ color: 'red', fontSize: '0.8em' }}>
-                                {errors.mobile.message}
-                            </p>
+                            <p className="text-small-danger small">{errors.mobile.message}</p>
                         )}
                         {isNumberExist && (
                             <div className="mt-2">
-                                <p className="text-danger">
-                                    Number is associated with a different client
-                                </p>
+                                <p className="text-small-danger small">Number is associated with a different client</p>
                                 <Form.Check
                                     type="switch"
                                     id="contactpointer"
-                                    label="Is this person a relative? Use this contact for communication."
+                                    label="Is this person a relative?"
                                     {...register('contactpointer')}
                                 />
                             </div>
                         )}
                     </div>
-                </div>
-            )}
+                )}
 
-            {fields.whatAppcontact.visible && (
-                <div className="form-row grid-reg my-1">
-                    <label className="pls-label">WhatsApp Contact</label>
-                    <div>
+                {fields.whatAppcontact.visible && (
+                    <div className="col-md-4">
+                        <label className="form-label pls-label">WhatsApp Contact</label>
                         <input
                             {...register('whatAppcontact')}
                             type="tel"
@@ -69,120 +63,95 @@ const AdditionalPersonalInformation = ({ fields, checkIFNumberisAvailable }) => 
                             maxLength={10}
                             minLength={10}
                             placeholder="WhatsApp contact"
-                            className="custom-input"
+                            className="form-control"
                         />
                         {errors.whatAppcontact && (
-                            <p style={{ color: 'red', fontSize: '0.8em' }}>
-                                {errors.whatAppcontact.message}
-                            </p>
+                            <p className="text-small-danger small">{errors.whatAppcontact.message}</p>
                         )}
                     </div>
-                </div>
-            )}
+                )}
 
-            {fields.email.visible && (
-                <div className="form-row grid-reg my-1">
-                    <label className="pls-label">Email</label>
-                    <div>
+                {fields.email.visible && (
+                    <div className="col-md-4">
+                        <label className="form-label pls-label">Email</label>
                         <input
                             {...register('email')}
                             type="email"
                             placeholder="Email"
-                            className="custom-input"
+                            className="form-control"
                         />
                         {errors.email && (
-                            <p style={{ color: 'red', fontSize: '0.8em' }}>
-                                {errors.email.message}
-                            </p>
+                            <p className="text-small-danger small">{errors.email.message}</p>
                         )}
                     </div>
-                </div>
-            )}
+                )}
 
-            {fields.occupation.visible && (
-                <div className="form-row grid-reg my-1">
-                    <label className="pls-label">Occupation</label>
-                    <div>
+                {fields.occupation.visible && (
+                    <div className="col-md-4">
+                        <label className="form-label pls-label">Occupation</label>
                         <input
                             {...register('occupation')}
                             type="text"
                             placeholder="Occupation"
-                            className="custom-input"
+                            className="form-control"
                         />
                         {errors.occupation && (
-                            <p style={{ color: 'red', fontSize: '0.8em' }}>
-                                {errors.occupation.message}
-                            </p>
+                            <p className="text-small-danger small">{errors.occupation.message}</p>
                         )}
                     </div>
-                </div>
-            )}
+                )}
 
-            {fields.patientOrganization.visible && (
-                <div className="form-row grid-reg my-1">
-                    <label className="pls-label">Organization</label>
-                    <div>
+                {fields.patientOrganization.visible && (
+                    <div className="col-md-4">
+                        <label className="form-label pls-label">Organization</label>
                         <input
                             {...register('patientOrganization')}
                             type="text"
                             placeholder="Patient Organization"
-                            className="custom-input h-40"
+                            className="form-control"
                         />
                         {errors.patientOrganization && (
-                            <p style={{ color: 'red', fontSize: '0.8em' }}>
-                                {errors.patientOrganization.message}
-                            </p>
+                            <p className="text-small-danger small">{errors.patientOrganization.message}</p>
                         )}
                     </div>
-                </div>
-            )}
+                )}
 
-            {fields.maritalstatus.visible && (
-                <div className="form-row grid-reg my-1">
-                    <label className="pls-label">Marital Status</label>
-                    <div>
-                        <Form.Check
-                            type="radio"
-                            label="Single"
-                            value="single"
-                            {...register('maritalstatus')}
-                            style={{ marginBottom: '10px', fontSize: '16px' }}
-                        />
-                        <Form.Check
-                            type="radio"
-                            label="Married"
-                            value="married"
-                            {...register('maritalstatus')}
-                            style={{ fontSize: '16px' }}
-                        />
+                {fields.maritalstatus.visible && (
+                    <div className="col-md-4">
+                        <label className="form-label pls-label">Marital Status</label>
+                        <div>
+                            <Form.Check
+                                type="radio"
+                                label="Single"
+                                value="single"
+                                {...register('maritalstatus')}
+                                className="mb-2"
+                            />
+                            <Form.Check
+                                type="radio"
+                                label="Married"
+                                value="married"
+                                {...register('maritalstatus')}
+                            />
+                        </div>
                         {errors.maritalstatus && (
-                            <p style={{ color: 'red', fontSize: '0.8em' }}>
-                                {errors.maritalstatus.message}
-                            </p>
+                            <p className="text-small-danger small">{errors.maritalstatus.message}</p>
                         )}
                     </div>
-                </div>
-            )}
+                )}
+            </div>
 
-            <div>
+            <div className="mt-4">
                 <button
                     type="submit"
-                    className="btn mt-3 btn-success btn-sm text-capitalize"
+                    className="btn btn-success btn-sm"
                     disabled={isSubmitting}
                 >
                     {isSubmitting && (
-                        <span
-                            className="spinner-border spinner-border-sm mr-2"
-                            role="status"
-                            aria-hidden="true"
-                        ></span>
+                        <span className="spinner-border spinner-border-sm me-2" />
                     )}
                     Save current progress
                 </button>
-
-                <Button variant="light" className="mt-3 btn-sm mx-2" type="button">
-                    <Money /> Register and Bill Client
-                </Button>
             </div>
         </div>
     );

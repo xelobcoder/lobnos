@@ -11,7 +11,10 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
 		...defaultData,
 		region: "",
 		districtCode: "",
-		districtName: ""
+		districtName: "",
+		area: defaultData?.area || "",
+		gpsLocation: defaultData?.gpsLocation || "",
+		address: defaultData?.address || ""
 	});
 	const [isloading, setLoading] = useState(false);
 	const [districtOptions, setDistrictOptions] = useState([]);
@@ -121,7 +124,7 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
 								<input
 									disabled={isloading}
 									className="custom-input"
-									value={data.area}
+									value={data.area || ""}
 									onChange={e =>
 										setData({
 											...data,
@@ -144,7 +147,7 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
 								<input
 									disabled={isloading}
 									className="custom-input"
-									value={data.gpsLocation}
+									value={data.gpsLocation || ""}
 									onChange={e =>
 										setData({
 											...data,
@@ -170,7 +173,7 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
 									className="form-control"
 									name="address"
 									rows={5}
-									value={data.address}
+									value={data.address || ""}
 									onChange={e => {
 										setData({ ...data, address: e.target.value });
 									}}

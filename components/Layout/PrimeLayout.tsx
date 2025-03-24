@@ -106,7 +106,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
                 </aside>
             )}
 
-            <main className={`${styles.mainContent} ${hasSublinks && isSidebarExpanded ? styles.sidebarExpanded : styles.sidebarCollapsed}`}>
+            <main className={` p-2 ${styles.mainContent} ${hasSublinks && isSidebarExpanded ? styles.sidebarExpanded : styles.sidebarCollapsed}`}>
                 {children}
             </main>
         </div>

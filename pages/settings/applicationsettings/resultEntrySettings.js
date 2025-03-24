@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Form, Button, Col, Container, Table } from 'react-bootstrap';
+import { Form, Button } from 'react-bootstrap';
 import MainSettingsLayoutView from '../../../components/settingsComponents/MainSettingsLayoutView';
-import { customFetch, customPost, getInstitutionUsers, getResultEntrySettings, ResultEntrydefaultData } from '../../../components/Auth/customFetch';
+import { customFetch, customPost, getResultEntrySettings, ResultEntrydefaultData } from '../../../components/Auth/customFetch';
 import { toast, ToastContainer } from 'react-toastify';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
-
+import { RiLockLine, RiPinDistanceLine, RiHistoryLine, RiFileListLine, 
+         RiTimeLine, RiLockPasswordLine, RiMailLine, RiAlertLine, 
+         RiNotification3Line, RiUserAddLine, RiDeleteBin6Line, RiSave3Line } from '@remixicon/react';
 
 const ResultSettingsForm = () => {
-	const { user } = useApplicationSettings().applicationsettings;
+	const { user ,tenantId} = useApplicationSettings().applicationsettings;
 	const employeeid = user.employeeid
 	const [formData, setFormData] = useState(ResultEntrydefaultData);
 
@@ -110,7 +112,7 @@ const ResultSettingsForm = () => {
 		}
 
 		try {
-			const response = await customPost(`applicationsetting/resultsettings/resultentrysettings?employeeid=${auth?.employeeid}`, 'PUT', {
+			const response = await customPost(`applicationsetting/resultsettings/resultentrysettings?tenantId=${tenantId}&&employeeid=${auth?.employeeid}`, 'PUT', {
 				...formData,
 				staffQualifiedToValidationResult: selectedScientists.map(s => s.employeeid)
 			});
@@ -127,126 +129,139 @@ const ResultSettingsForm = () => {
 
 	return (
 		<MainSettingsLayoutView>
-			<ToastContainer
-				theme='colored'
-				position="top-center"
-				className={'text-sm'} />
-			<Container>
-				<div className="heightedBorder p-2 my-2 pls-color text-uppercase bg-secondary-subtle fw-bold">
-					Result Entry Settings
+			<ToastContainer theme="colored" position="top-center" />
+			<div className="px-4 py-3">
+				<div className="d-flex justify-content-between align-items-center mb-4">
+					<h4 className="mb-0 text-uppercase fw-bold">Result Entry Settings</h4>
+					<Button 
+						variant="primary" 
+						onClick={handleSubmit}
+						className="d-flex align-items-center gap-2"
+					>
+						<RiSave3Line /> Save Settings
+					</Button>
 				</div>
-				<Form onSubmit={handleSubmit}>
-					<Table className='ttable'>
-						<thead>
-							<tr>
-								<th>Setting</th>
-								<th>Action Enabled</th>
-							</tr>
-						</thead>
-						<tbody>
-							{[
-								{ id: 'resultLockAfter24Hours', label: 'Lock Result After 24 Hours' },
-								{ id: 'isPinOnResultEntry', label: 'PIN Required on Result Entry' },
-								{ id: 'isPinOnResultViewAfter24Hours', label: 'PIN Required on Result View After 24 Hours' },
-								{ id: 'showPastTestResult', label: 'Show Past Test Results' },
-								{ id: 'allowScientistViewAudit', label: 'Allow Scientist View Audit' },
-								{ id: 'showTaTAnalysis', label: 'Show TaT Analysis' },
-								{ id: 'encryptResultAfter24Hours', label: 'Encrypt Result After 24 Hours' },
-								{ id: 'sendLoginEmailNotificationAfterResultEdit', label: 'Send Login Email Notification After Result Edit' },
-								{ id: 'monitorForCriticalValues', label: 'Monitor for Critical Values' },
-								{ id: 'notifyClientOnResultReady', label: 'Notify Client on Result Ready' }
-							].map(({ id, label }) => (
-								<tr key={id}>
-									<td className='p-3 pls-label'>{label}</td>
-									<td className='p-3'>
-										<Form.Check
-											type="switch"
-											style={{ fontSize: '24px' }}
-											id={`${id}Switch`}
-											name={id}
-											checked={formData[id] === 1}
-											onChange={handleChange}
-										/>
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</Table>
-					<div className="heightedBorder p-2 my-2 pls-color text-uppercase bg-secondary-subtle fw-bold">
-						Result Validators
+
+				<div className="row g-4">
+					{/* Settings Panel */}
+					<div className="col-lg-8">
+						<div className="bg-white rounded-3 shadow-sm p-4 mb-4">
+							<h5 className="mb-4 text-uppercase fw-semibold">General Settings</h5>
+							<div className="row g-3">
+								{[
+									{ id: 'resultLockAfter24Hours', label: 'Lock Result After 24 Hours', icon: <RiLockLine /> },
+									{ id: 'isPinOnResultEntry', label: 'PIN Required on Result Entry', icon: <RiPinDistanceLine /> },
+									{ id: 'isPinOnResultViewAfter24Hours', label: 'PIN Required on Result View After 24 Hours', icon: <RiPinDistanceLine /> },
+									{ id: 'showPastTestResult', label: 'Show Past Test Results', icon: <RiHistoryLine /> },
+									{ id: 'allowScientistViewAudit', label: 'Allow Scientist View Audit', icon: <RiFileListLine /> },
+									{ id: 'showTaTAnalysis', label: 'Show TaT Analysis', icon: <RiTimeLine /> },
+									{ id: 'encryptResultAfter24Hours', label: 'Encrypt Result After 24 Hours', icon: <RiLockPasswordLine /> },
+									{ id: 'sendLoginEmailNotificationAfterResultEdit', label: 'Send Login Email Notification After Result Edit', icon: <RiMailLine /> },
+									{ id: 'monitorForCriticalValues', label: 'Monitor for Critical Values', icon: <RiAlertLine /> },
+									{ id: 'notifyClientOnResultReady', label: 'Notify Client on Result Ready', icon: <RiNotification3Line /> }
+								].map(({ id, label, icon }) => (
+									<div key={id} className="col-md-6">
+										<div className="border rounded p-3 h-100 d-flex align-items-center justify-content-between">
+											<div className="d-flex align-items-center gap-2">
+												<span className="text-primary">{icon}</span>
+												<span className="fs-7">{label}</span>
+											</div>
+											<Form.Check
+												type="switch"
+												id={`${id}Switch`}
+												name={id}
+												checked={formData[id] === 1}
+												onChange={handleChange}
+											/>
+										</div>
+									</div>
+								))}
+							</div>
+						</div>
 					</div>
-					<Form.Group controlId="maximumResultValidation">
-						<Form.Label className='pls-label' column sm={4}>Maximum Result Validation</Form.Label>
-						<Col sm={8}>
-							<Form.Control
-								className='custom-input'
-								type="number"
-								name="maximumResultValidation"
-								value={formData.maximumResultValidation}
-								onChange={handleChange} />
-						</Col>
-					</Form.Group>
 
-					<Form.Group controlId="minimumResultValidation">
-						<Form.Label className='pls-label' column sm={4}>Minimum Result Validation</Form.Label>
-						<Col sm={8}>
-							<Form.Control
-								className='custom-input'
-								type="number"
-								name="minimumResultValidation"
-								value={formData.minimumResultValidation}
-								onChange={handleChange} />
-						</Col>
-					</Form.Group>
+					{/* Validation Panel */}
+					<div className="col-lg-4">
+						<div className="bg-white rounded-3 shadow-sm p-4">
+							<h5 className="mb-4 text-uppercase fw-semibold">Validation Rules</h5>
+							
+							<div className="mb-4">
+								<Form.Group className="mb-3">
+									<Form.Label className="fw-medium">Maximum Validators</Form.Label>
+									<Form.Control
+										type="number"
+										name="maximumResultValidation"
+										value={formData.maximumResultValidation}
+										onChange={handleChange}
+										min="1"
+									/>
+								</Form.Group>
 
-					<Form.Group controlId="staffQualifiedToValidationResult">
-						<Form.Label className='pls-label' column sm={4}>Staff Qualified for Validation Result</Form.Label>
-						<Col sm={8}>
-							{Array.isArray(scientists) && scientists.length > 0 && (
-								<div>
-									<select
-										disabled={formData.maximumResultValidation == 0 || !formData.maximumResultValidation || !formData.minimumResultValidation || formData.minimumResultValidation == 0 || formData.minimumResultValidation == formData.maximumResultValidation}
-										className='custom-select'
+								<Form.Group className="mb-3">
+									<Form.Label className="fw-medium">Minimum Validators</Form.Label>
+									<Form.Control
+										type="number"
+										name="minimumResultValidation"
+										value={formData.minimumResultValidation}
+										onChange={handleChange}
+										min="1"
+									/>
+								</Form.Group>
+
+								<div className="d-flex gap-2">
+									<Form.Select
 										value={currentSelection}
-										onChange={(ev) => { setCurrentSelection(ev.target.value) }}>
+										onChange={(e) => setCurrentSelection(e.target.value)}
+										disabled={!formData.maximumResultValidation || !formData.minimumResultValidation}
+									>
 										<option value="">Select Scientist</option>
 										{scientists.map((item) => (
 											<option key={item.employeeid} value={item.employeeid}>
 												{item.username}
 											</option>
 										))}
-									</select>
-									<Button variant="outline-success my-2 " className='btn-sm' onClick={(ev) => { addStaffIDField() }}>Add scientist</Button>
+									</Form.Select>
+									<Button 
+										variant="outline-primary"
+										onClick={addStaffIDField}
+										disabled={!currentSelection}
+									>
+										<RiUserAddLine />
+									</Button>
 								</div>
-							)}
-						</Col>
-					</Form.Group>
-					<div className='col-lg-8 col-sm-12'>
-						<Table className="mt-2 table ttable ">
-							<thead>
-								<tr>
-									<th>Selected Scientists</th>
-									<th>Action</th>
-								</tr>
-							</thead>
-							<tbody>
-								{Array.isArray(selectedScientists) && selectedScientists.length > 0 && selectedScientists.map((scientist, index) => (
-									<tr key={index}>
-										<td>{scientist.username}</td>
-										<td>
-											<Button variant="outline-danger" size="sm" onClick={() => removeStaffIDField(index)}>Remove</Button>
-										</td>
-									</tr>
-								))}
-							</tbody>
-						</Table>
-					</div>
+							</div>
 
-					<Button variant="primary" className='mt-2 btn-sm   ' type="submit">
-						Save Settings
-					</Button>
-				</Form>
-			</Container>
+							<div className="border rounded">
+								<div className="p-3 border-bottom bg-light">
+									<h6 className="mb-0 fw-semibold">Selected Scientists</h6>
+								</div>
+								<div className="p-3">
+									{selectedScientists.length === 0 ? (
+										<div className="text-center text-muted py-4">
+											No scientists selected
+										</div>
+									) : (
+										<div className="d-flex flex-column gap-2">
+											{selectedScientists.map((scientist, index) => (
+												<div key={index} className="d-flex justify-content-between align-items-center p-2 border rounded">
+													<span>{scientist.username}</span>
+													<Button 
+														variant="link" 
+														className="text-danger p-0"
+														onClick={() => removeStaffIDField(index)}
+													>
+														<RiDeleteBin6Line />
+													</Button>
+												</div>
+											))}
+										</div>
+									)}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</MainSettingsLayoutView>
 	);
 };

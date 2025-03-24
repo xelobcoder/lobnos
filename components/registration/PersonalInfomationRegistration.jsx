@@ -33,6 +33,7 @@ export default function PersonalInformationRegistration({
 
 
 	const onSubmit = async (formData) => {
+		
 		try {
 			const method = patientid ? "PUT" : "POST";
 			const endpoint =
