@@ -1,13 +1,14 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { RiCalendarLine, RiDownloadLine, RiFileListLine, RiTestTubeLine, 
-    RiEyeLine, RiHistoryLine, RiArrowUpSLine, RiArrowDownSLine } from '@remixicon/react';
+    RiEyeLine, RiHistoryLine, RiArrowUpSLine, RiArrowDownSLine, RiMoreFill } from '@remixicon/react';
 import { customFetch } from '../../Auth/customFetch';
 import styles from './TransactionsViewOnly.module.css';
+import { Dropdown } from 'react-bootstrap';
+import TransactionDetails from './TransactionDetails';
 
-interface Transaction {
+export interface transactionSummaryBilling {
     billingid: number;
-    totalTransactionCost: string;
     totalcost: string;
     paid: string;
     payable: string;
@@ -16,20 +17,30 @@ interface Transaction {
     outstanding: string;
     balance: string;
     billedon: string;
+    amountIncuredDueTax:number;
     clientstatus: string;
     lastupdated: string;
 }
 
-const TransactionsViewOnly = ({ patientid }) => {
+interface Props {
+    patientid: number;
+}
+
+const TransactionsViewOnly = ({ patientid }: Props) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
+    const [showDetails, setShowDetails] = useState(false);
+    const [selectedBillingId, setSelectedBillingId] = useState<number | null>(null);
+    
     const [dateRange, setDateRange] = useState({
         start: '',
         end: ''
     });
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [transactions, setTransactions] = useState<transactionSummaryBilling[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [sortConfig, setSortConfig] = useState<{
-        key: keyof Transaction | null;
+        key: keyof transactionSummaryBilling | null;
         direction: 'ascending' | 'descending';
     }>({
         key: null,
@@ -52,24 +63,24 @@ const TransactionsViewOnly = ({ patientid }) => {
         fetchTransactions();
     }, [patientid]);
 
-    const getTransactionStatus = (transaction: Transaction) => {
-        if (Number(transaction.totalrefunded) > 0) return 'refunded';
-        if (Number(transaction.outstanding) > 0) return 'incomplete';
-        if (Number(transaction.paid) >= Number(transaction.payable)) return 'success';
-        return 'incomplete';
+    const getTransactionStatus = (transaction: transactionSummaryBilling) => {
+        if (Number(transaction.totalrefunded) > 0) return { status: 'Refunded', class: styles.statusWarning };
+        if (Number(transaction.outstanding) > 0) return { status: 'Incomplete', class: styles.statusDanger };
+        if (Number(transaction.paid) >= Number(transaction.payable)) return { status: 'Success', class: styles.statusSuccess };
+        return { status: 'Incomplete', class: styles.statusDanger };
     };
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: '2-digit',
+            year:'numeric',
+            day:'2-digit',
+            month: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
         });
     };
 
-    const handleSort = (key: keyof Transaction) => {
+    const handleSort = (key: keyof transactionSummaryBilling) => {
         let direction: 'ascending' | 'descending' = 'ascending';
         
         if (sortConfig.key === key && sortConfig.direction === 'ascending') {
@@ -79,21 +90,23 @@ const TransactionsViewOnly = ({ patientid }) => {
         setSortConfig({ key, direction });
         
         const sortedData = [...transactions].sort((a, b) => {
-            if (key === 'billingid' || key === 'billedon') {
-                if (key === 'billedon') {
-                    return direction === 'ascending' 
-                        ? new Date(a[key]).getTime() - new Date(b[key]).getTime()
-                        : new Date(b[key]).getTime() - new Date(a[key]).getTime();
-                }
+            if (key === 'billingid') {
                 return direction === 'ascending' 
-                    ? Number(a[key]) - Number(b[key])
-                    : Number(b[key]) - Number(a[key]);
+                    ? a[key] - b[key]
+                    : b[key] - a[key];
             }
             
-            if (['totalTransactionCost', 'paid', 'totalrefunded'].includes(key)) {
+            if (key === 'billedon') {
+                return direction === 'ascending' 
+                    ? new Date(a[key]).getTime() - new Date(b[key]).getTime()
+                    : new Date(b[key]).getTime() - new Date(a[key]).getTime();
+            }
+            
+            // Handle numeric string values
+            if (['totalcost', 'paid', 'payable', 'totalrefunded', 'discount', 'outstanding', 'balance'].includes(key)) {
                 return direction === 'ascending'
-                    ? Number(a[key]) - Number(b[key])
-                    : Number(b[key]) - Number(a[key]);
+                    ? parseFloat(String(a[key])) - parseFloat(String(b[key]))
+                    : parseFloat(String(b[key])) - parseFloat(String(a[key]));
             }
             
             return 0;
@@ -104,6 +117,11 @@ const TransactionsViewOnly = ({ patientid }) => {
 
     if (loading) return <div className={styles.loading}><div className="spinner-border spinner-border-sm text-primary" role="status"></div></div>;
     if (error) return <div className={styles.error}>{error}</div>;
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentTransactions = transactions.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(transactions.length / itemsPerPage);
 
     return (
         <div className={styles.container}>
@@ -138,88 +156,161 @@ const TransactionsViewOnly = ({ patientid }) => {
                 <table className={styles.table}>
                     <thead>
                         <tr>
-                            <th onClick={() => handleSort('billingid')} className={sortConfig.key === 'billingid' ? styles.activeSortColumn : ''}>
-                                Transaction ID
-                                {sortConfig.key === 'billingid' && (
+                            <th onClick={() => handleSort('billingid')}>
+                                ID {sortConfig.key === 'billingid' && (
                                     <span className={styles.sortIcon}>
                                         {sortConfig.direction === 'ascending' ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
                                     </span>
                                 )}
                             </th>
-                            <th onClick={() => handleSort('totalTransactionCost')} className={sortConfig.key === 'totalTransactionCost' ? styles.activeSortColumn : ''}>
-                                Amount
-                                {sortConfig.key === 'totalTransactionCost' && (
+                            <th onClick={() => handleSort('totalcost')}>
+                                Total Cost {sortConfig.key === 'totalcost' && (
+                                    <span className={styles.sortIcon}>
+                                        {sortConfig.direction === 'ascending' ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
+                                    </span>
+                                )}
+                            </th>
+                            <th onClick={() => handleSort('paid')}>
+                                Paid {sortConfig.key === 'paid' && (
+                                    <span className={styles.sortIcon}>
+                                        {sortConfig.direction === 'ascending' ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
+                                    </span>
+                                )}
+                            </th>
+                            <th onClick={() => handleSort('payable')}>
+                                Payable {sortConfig.key === 'payable' && (
+                                    <span className={styles.sortIcon}>
+                                        {sortConfig.direction === 'ascending' ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
+                                    </span>
+                                )}
+                            </th>
+                            <th onClick={() => handleSort('totalrefunded')}>
+                                Refunded {sortConfig.key === 'totalrefunded' && (
+                                    <span className={styles.sortIcon}>
+                                        {sortConfig.direction === 'ascending' ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
+                                    </span>
+                                )}
+                            </th>
+                            <th onClick={() => handleSort('discount')}>
+                                Discount {sortConfig.key === 'discount' && (
+                                    <span className={styles.sortIcon}>
+                                        {sortConfig.direction === 'ascending' ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
+                                    </span>
+                                )}
+                            </th>
+                            <th onClick={() => handleSort('outstanding')}>
+                                Outstanding {sortConfig.key === 'outstanding' && (
+                                    <span className={styles.sortIcon}>
+                                        {sortConfig.direction === 'ascending' ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
+                                    </span>
+                                )}
+                            </th>
+                            <th onClick={() => handleSort('balance')}>
+                                Balance {sortConfig.key === 'balance' && (
+                                    <span className={styles.sortIcon}>
+                                        {sortConfig.direction === 'ascending' ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
+                                    </span>
+                                )}
+                            </th>
+                            <th onClick={() => handleSort('billedon')}>
+                                Time {sortConfig.key === 'billedon' && (
                                     <span className={styles.sortIcon}>
                                         {sortConfig.direction === 'ascending' ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
                                     </span>
                                 )}
                             </th>
                             <th>Status</th>
-                            <th onClick={() => handleSort('paid')} className={sortConfig.key === 'paid' ? styles.activeSortColumn : ''}>
-                                Paid
-                                {sortConfig.key === 'paid' && (
-                                    <span className={styles.sortIcon}>
-                                        {sortConfig.direction === 'ascending' ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
-                                    </span>
-                                )}
-                            </th>
-                            <th onClick={() => handleSort('totalrefunded')} className={sortConfig.key === 'totalrefunded' ? styles.activeSortColumn : ''}>
-                                Refunded
-                                {sortConfig.key === 'totalrefunded' && (
-                                    <span className={styles.sortIcon}>
-                                        {sortConfig.direction === 'ascending' ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
-                                    </span>
-                                )}
-                            </th>
-                            <th onClick={() => handleSort('billedon')} className={sortConfig.key === 'billedon' ? styles.activeSortColumn : ''}>
-                                Date
-                                {sortConfig.key === 'billedon' && (
-                                    <span className={styles.sortIcon}>
-                                        {sortConfig.direction === 'ascending' ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
-                                    </span>
-                                )}
-                            </th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {transactions.map((transaction) => {
-                            const status = getTransactionStatus(transaction);
-                            return (
-                                <tr key={transaction.billingid}>
-                                    <td>#{transaction.billingid}</td>
-                                    <td>GHS {transaction.totalTransactionCost}</td>
-                                    <td>
-                                        <span className={`${styles.statusBadge} ${styles[`status${status.charAt(0).toUpperCase() + status.slice(1)}`]}`}>
-                                            ●
-                                        </span>
-                                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                                    </td>
-                                    <td>GHS {transaction.paid}</td>
-                                    <td>GHS {transaction.totalrefunded}</td>
-                                    <td>{formatDate(transaction.billedon)}</td>
-                                    <td>
-                                        <div className={styles.actionButtons}>
-                                            <button className={styles.actionButton} title="View Details">
-                                                <RiEyeLine size={16} />
-                                            </button>
-                                            <button className={styles.actionButton} title="Billing History">
-                                                <RiHistoryLine size={16} />
-                                            </button>
-                                            <button className={styles.actionButton} title="Test Results">
-                                                <RiTestTubeLine size={16} />
-                                            </button>
-                                            <button className={styles.actionButton} title="Documents">
-                                                <RiFileListLine size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
+                        {currentTransactions.map((transaction) => (
+                            <tr key={transaction.billingid}>
+                                <td>#{transaction.billingid}</td>
+                                <td>GHS {transaction.totalcost}</td>
+                                <td>GHS {transaction.paid}</td>
+                                <td>GHS {transaction.payable}</td>
+                                <td>GHS {transaction.totalrefunded}</td>
+                                <td>GHS {transaction.discount}</td>
+                                <td>GHS {transaction.outstanding}</td>
+                                <td>GHS {transaction.balance}</td>
+                                <td>{formatDate(transaction.billedon)}</td>
+                                <td className={getTransactionStatus(transaction).class}>
+                                    <span className="d-flex align-items-center gap-2">
+                                        <span className={`${styles.statusDot} ${getTransactionStatus(transaction).class}`}></span>
+                                        {getTransactionStatus(transaction).status}
+                                    </span>
+                                </td>
+                           
+                                <td>
+                                    <Dropdown >
+                                        <Dropdown.Toggle id="dropdown" variant="light" size="sm" className={styles.dropdownToggle}>
+                                            <RiMoreFill size={16} />
+                                        </Dropdown.Toggle>
+                                
+                                        <Dropdown.Menu className={styles.dropdownMenu}>
+                                            <Dropdown.Item 
+                                                className={`d-flex align-items-center gap-2 ${styles.dropdownItem}`}
+                                                onClick={() => {
+                                                    setSelectedBillingId(transaction.billingid);
+                                                    setShowDetails(true);
+                                                }}
+                                            >
+                                                <RiEyeLine size={16} /> View Transaction Details
+                                            </Dropdown.Item>
+                                            <Dropdown.Item className={`d-flex align-items-center gap-2 ${styles.dropdownItem}`}>
+                                                <RiHistoryLine size={16} /> Transaction Payment History
+                                            </Dropdown.Item>
+                                            <Dropdown.Item className={`d-flex align-items-center gap-2 ${styles.dropdownItem}`}>
+                                                <RiTestTubeLine size={16} /> Test Results
+                                            </Dropdown.Item>
+                                            <Dropdown.Item className={`d-flex align-items-center gap-2 ${styles.dropdownItem}`}>
+                                                <RiFileListLine size={16} /> Documents
+                                            </Dropdown.Item>
+                                        </Dropdown.Menu>
+                                    </Dropdown>
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
+
+                <div className={styles.pagination}>
+                    <div>
+                        Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, transactions.length)} of {transactions.length} entries
+                    </div>
+                    <div className={styles.paginationButtons}>
+                        <button 
+                            className={styles.pageButton}
+                            onClick={() => setCurrentPage(prev => prev - 1)}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </button>
+                        <button 
+                            className={styles.pageButton}
+                            onClick={() => setCurrentPage(prev => prev + 1)}
+                            disabled={currentPage >= totalPages}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
             </div>
+            
+            {showDetails && selectedBillingId && (
+                <div className={styles.modalOverlay}>
+                    <TransactionDetails 
+                        billingId={selectedBillingId}
+                        onClose={() => {
+                            setShowDetails(false);
+                            setSelectedBillingId(null);
+                        }}
+                        tenantId={3}
+                        summary={currentTransactions.find(t => t.billingid === selectedBillingId)}
+                    />
+                </div>
+            )}
         </div>
     );
 };

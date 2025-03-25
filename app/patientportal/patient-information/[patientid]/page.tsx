@@ -1,59 +1,60 @@
 "use client"
 import React, { useState } from 'react';
+import { RiHomeLine, RiHomeFill, RiFirstAidKitLine, RiFirstAidKitFill, RiLockLine, RiLockFill, 
+    RiSettingsLine, RiSettingsFill, RiMessage2Line, RiMessage2Fill, RiWalletLine, RiWalletFill,
+    RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react';
+import styles from './styles/tabs.module.css';
 import PatientImage from '../../../../components/petientsComponent/patientportal/PatientImage';
 import PatientPersonalInformationViewOnly from '../../../../components/petientsComponent/patientportal/PatientPersonalInfromationViewOnly';
-import { RiHomeLine, RiHomeFill, RiFirstAidKitLine, RiFirstAidKitFill, RiLockLine, RiLockFill, 
-    RiSettingsLine, RiSettingsFill, RiMessage2Line, RiMessage2Fill, RiWalletLine, RiWalletFill } from '@remixicon/react';
-import styles from './styles/tabs.module.css';
 import AddressViewOnly from '../../../../components/petientsComponent/patientportal/AddressViewOnly';
 import EmergencyContactViewOnly from '../../../../components/petientsComponent/patientportal/EmergencyContactViewOnly';
 import CommunicationsViewOnly from '../../../../components/petientsComponent/patientportal/CommunicationsViewOnly';
 import CredentialsViewOnly from '../../../../components/petientsComponent/patientportal/CredentialsViewOnly';
 import TransactionsViewOnly from '../../../../components/petientsComponent/patientportal/TransactionsViewOnly';
 
-
-export default function PatientInformationPage() {
+export default function PatientInformationPage({params}: {params: {
+    patientid:number
+}}) {
+    const{patientid} = params
     const [activeTab, setActiveTab] = useState('personal-info');
-    const patientId = 1;
+    const [showLeftColumn, setShowLeftColumn] = useState(true);
 
     return (
         <div className="container-fluid p-0">
             <div className="row g-0">
-                // Add this state at the top of the component
-                const [showLeftColumn, setShowLeftColumn] = useState(true);
-                
-                // Add toggle button in the left column header
-                <div className="col-lg-4 col-xl-3 bg-light border-end shadow-sm" style={{ display: showLeftColumn ? 'block' : 'none' }}>
-                    <div className="p-4 bg-white rounded-3 m-3 shadow-sm">
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                            <button 
-                                className={`btn btn-sm btn-light ${styles.toggleButton}`}
-                                onClick={() => setShowLeftColumn(!showLeftColumn)}
-                                title="Toggle sidebar"
-                            >
-                                <RiArrowLeftSLine size={20} />
-                            </button>
+                {showLeftColumn && (
+                    <div className="col-lg-4 col-xl-3 bg-light border-end shadow-sm">
+                        <div className="p-4 bg-white rounded-3 m-3 shadow-sm">
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <button 
+                                    className={`btn btn-sm btn-light ${styles.toggleButton}`}
+                                    onClick={() => setShowLeftColumn(false)}
+                                    title="Hide sidebar"
+                                >
+                                    <RiArrowLeftSLine size={20} />
+                                </button>
+                            </div>
+                            <div className="text-center mb-3">
+                                <PatientImage patientid={patientid}/>
+                            </div>
+                            <PatientPersonalInformationViewOnly patientid={patientid}/>
                         </div>
-                        <div className="text-center mb-3">
-                            <PatientImage patientid={patientId}/>
-                        </div>
-                        <PatientPersonalInformationViewOnly patientid={patientId}/>
                     </div>
-                </div>
+                )}
 
-                // Update the right column to be responsive to toggle
-                <div className={`col-lg-${showLeftColumn ? '8' : '12'} col-xl-${showLeftColumn ? '9' : '12'}`}>
-                    <div className="p-0">
-                        {!showLeftColumn && (
-                            <button 
-                                className={`btn btn-sm btn-light position-absolute ${styles.toggleButtonExpanded}`}
-                                onClick={() => setShowLeftColumn(true)}
-                                title="Show sidebar"
-                            >
-                                <RiArrowRightSLine size={20} />
-                            </button>
-                        )}
+                <div className={`${showLeftColumn ? 'col-lg-8 col-xl-9' : 'col-12'} transition-all`}>
+
+                    <div className="p-0 position-relative">
                         <nav className={`nav ${styles.tabNav}`}>
+                            {!showLeftColumn && (
+                                <button 
+                                    className={`btn btn-sm btn-light me-2 ${styles.toggleButtonExpanded}`}
+                                    onClick={() => setShowLeftColumn(true)}
+                                    title="Show sidebar"
+                                >
+                                    <RiArrowRightSLine size={20} />
+                                </button>
+                            )}
                             <button 
                                 className={`${styles.tabButton} ${activeTab === 'address' ? styles.activeTab : styles.inactiveTab}`}
                                 onClick={() => setActiveTab('address')}
@@ -129,22 +130,22 @@ export default function PatientInformationPage() {
                         
                         <div className={styles.tabContent}>
                             {activeTab === 'address' && (
-                                <AddressViewOnly patientid={patientId} />
+                                <AddressViewOnly patientid={patientid} />
                             )}
                             {activeTab === 'emergency-contact' && (
-                                <EmergencyContactViewOnly patientid={patientId} />
+                                <EmergencyContactViewOnly patientid={patientid} />
                             )}
                             {activeTab === 'credentials' && (
-                                <CredentialsViewOnly patientid={patientId}/>
+                                <CredentialsViewOnly patientid={patientid}/>
                             )}
                             {activeTab === 'settings' && (
                                 <div className="alert alert-info py-2 small">Account settings coming soon</div>
                             )}
                             {activeTab === 'communications' && (
-                                <CommunicationsViewOnly patientid={patientId} />
+                                <CommunicationsViewOnly patientid={patientid} />
                             )}
                             {activeTab === 'transactions' && (
-                                <TransactionsViewOnly patientid={patientId} />
+                                <TransactionsViewOnly patientid={patientid} />
                             )}
                         </div>
                     </div>
