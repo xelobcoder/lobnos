@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { RiLockLine, RiUserLine, RiSaveLine } from '@remixicon/react';
 import { customPost } from '../../Auth/customFetch';
@@ -13,7 +14,10 @@ const credentialsSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters")
 });
 
-const PatientCredentials = ({ patientid }) => {
+const PatientCredentials = () => {
+    const searchParams = useSearchParams();
+    const patientid = searchParams.get('patientid');
+    
     const { register, handleSubmit, formState: { errors }, getValues } = useForm({
         resolver: zodResolver(credentialsSchema)
     });

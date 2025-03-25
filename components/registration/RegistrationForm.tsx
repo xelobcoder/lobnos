@@ -24,7 +24,7 @@ export default function RegistrationForm({ fields, personalInformation, addressi
         <FormProvider {...methods}>
             <div>
                 <RegistrationWrapper>
-                    <PatientImageUpload />
+                    <PatientImageUpload  patientid={patientid}/>
                     <PersonalInfomationRegistration
                         fields={fields.personalInformation}
                         toast={toast}
@@ -44,8 +44,8 @@ export default function RegistrationForm({ fields, personalInformation, addressi
                         patientid={patientid}
                         defaultData={emmergencyInformation}
                     />
-                    <PatientCredentials  patientid={patientid}/>
-                    <PatientSettings patientid={patientid} />
+                    <PatientCredentials />
+                    <PatientSettings />
                 </RegistrationWrapper>
                 <PrimeToast />
             </div>

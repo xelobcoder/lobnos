@@ -24,7 +24,8 @@ interface FormData {
 	record_type: RecordType;
 }
 
-const ConsulationPanel = () => {
+const ConsulationPanel = ({params}: {params : {clientid:number}}) => {
+	const {clientid} = params
 	const employeeid = useApplicationSettings().applicationsettings.user.employeeid;
 	const [formData, setFormData] = useState<FormData>({
 		complaints: "",
@@ -78,7 +79,7 @@ const ConsulationPanel = () => {
 			const requestUrl = consultationid ? `records/consulation/update?consultationid=${consultationid}` : 'records/consulation';
 			const response = await customPost(requestUrl, method, {
 				...formData,
-				patientid: 20248281,
+				patientid: clientid,
 				consulationby: employeeid,
 			});
 			alert(response?.status)
@@ -200,7 +201,7 @@ const ConsulationPanel = () => {
 
 				<Col md={3}>
 					<div>
-						<PreviewPatientInformation patientid={20248281} />
+						<PreviewPatientInformation patientid={clientid} />
 					</div>
 					<ListGroup className="my-2">
 						<ListGroupItem className="fw-bold pls-color list-group-item bg-secondary-subtle d-flex justify-content-between pointer">
@@ -248,7 +249,7 @@ const ConsulationPanel = () => {
 								Previous Consulation
 							</ListGroupItem>
 							<ListGroupItem>
-								<PreviousConsulation patientid={20248281} />
+								<PreviousConsulation patientid={clientid} />
 							</ListGroupItem>
 						</ListGroup>
 					</div>
@@ -275,7 +276,7 @@ const ConsulationPanel = () => {
 						<Modal.Title>Vital Sign Chart</Modal.Title>
 					</Modal.Header>
 					<Modal.Body>
-						<VitalSignCustomerListInformation searchParams={{ patientid: 20248281 }} size='xl' />
+						<VitalSignCustomerListInformation searchParams={{ patientid: clientid }} size='xl' />
 					</Modal.Body>
 					<Modal.Footer>
 						<Button variant="secondary" className="btn btn-sm" onClick={handleCloseVitalsingModal}>

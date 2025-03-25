@@ -20,6 +20,12 @@ export const RegistrationWrapper = ({ children }) => {
         }
     };
 
+    const handleStepClick = (index: number) => {
+        if (index <= maxSteps) {
+            setCurrentStep(index);
+        }
+    };
+
     return (
         <>
             <div className={styles.stepsIndicator}>
@@ -27,7 +33,11 @@ export const RegistrationWrapper = ({ children }) => {
                     <div className="d-flex flex-wrap justify-content-center gap-2 mb-3 mb-md-0">
                         {steps.map((step, index) => (
                             <React.Fragment key={index}>
-                                <div className={`${styles.step} ${currentStep === index ? styles.active : ''}`}>
+                                <div 
+                                    className={`${styles.step} ${currentStep === index ? styles.active : ''} ${styles.clickable}`}
+                                    onClick={() => handleStepClick(index)}
+                                    role="button"
+                                >
                                     <div className={styles.stepNumber}>{index + 1}</div>
                                     <div className={`${styles.stepTitle} d-none d-md-block`}>{step}</div>
                                 </div>

@@ -40,9 +40,19 @@
     gap: 8px;
 }
 
+.dragging {
+    border: 2px dashed var(--primary-color);
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.uploadContainer {
+    transition: all 0.3s ease;
+    border: 2px dashed transparent;
+}
+
 .placeholderText {
-    margin: 0;
-    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
     color: #6c757d;
 }
 

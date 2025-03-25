@@ -1,7 +1,9 @@
 "use client"
 import React, { useEffect, useState } from "react"
 import RenderInput from "./CustomInput"
+import Select from "react-select"
 import { submitFormData } from "../Auth/registerclient"
+import { reactSelectCustomStyles } from "../Auth/customFetch"
 
 export default function EmmergencyContactInformation({ defaultData, fields, patientid, toast }) {
     const [data, setData] = useState({
@@ -68,25 +70,31 @@ export default function EmmergencyContactInformation({ defaultData, fields, pati
                     value={fields.relationship}
                     label={"Relationship"}
                     field={
-                        <select
-                            disabled={isloading}
-                            className="custom-select"
-                            id="relationship"
-                            name="relationship"
-                            value={data.relationship || ''}
-                            onChange={(e) =>
+                        <Select
+                            isDisabled={isloading}
+                            className="react-select-container"
+							styles={reactSelectCustomStyles}
+                            classNamePrefix="react-select"
+                            value={
+                                data.relationship
+                                    ? { value: data.relationship, label: data.relationship }
+                                    : null
+                            }
+                            onChange={(option) =>
                                 setData({
                                     ...data,
-                                    relationship: e.target.value,
+                                    relationship: option ? option.value : "",
                                 })
                             }
-                        >
-                            <option value="">Select Relationship</option>
-                            <option value="Parent">Parent</option>
-                            <option value="Sibling">Sibling</option>
-                            <option value="Spouse">Spouse</option>
-                            <option value="Friend">Friend</option>
-                        </select>
+                            options={[
+                                { value: "Parent", label: "Parent" },
+                                { value: "Sibling", label: "Sibling" },
+                                { value: "Spouse", label: "Spouse" },
+                                { value: "Friend", label: "Friend" },
+                            ]}
+                            isClearable
+                            placeholder="Select Relationship"
+                        />
                     }
                 />
             </div>

@@ -1,5 +1,5 @@
 import { plsEncryption } from "../../lib/encryption";
-import { RiBarChartLine, RiShoppingCartLine, RiCustomerService2Line, RiMoneyDollarCircleLine, RiSettings3Line, RiStethoscopeLine, RiCalendarLine, RiUserHeartLine, RiHospitalLine, RiMailLine, RiFileListLine, RiMedicineBottleLine, RiExternalLinkLine } from '@remixicon/react';
+import { RiBarChartLine, RiCustomerService2Line, RiMoneyDollarCircleLine, RiSettings3Line, RiStethoscopeLine, RiCalendarLine, RiUserHeartLine, RiHospitalLine, RiMailLine, RiFileListLine, RiMedicineBottleLine, RiExternalLinkLine } from '@remixicon/react';
 
 interface Link {
     icon: any

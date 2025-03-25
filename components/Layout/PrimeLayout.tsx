@@ -91,7 +91,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
                                 className={styles.searchInput}
                             />
                         </div>
-                        <div className={styles.linksList}>
+                        <div className={`${styles.linksList}`}>
                             {filteredLinks.map((subLink, index) => (
                                 <Link 
                                     key={index}

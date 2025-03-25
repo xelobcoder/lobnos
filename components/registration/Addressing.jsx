@@ -4,6 +4,8 @@ import Select from "react-select";
 import RenderInput from "./CustomInput";
 import { ghanaDistricts } from "./fields/Util";
 import { submitFormData } from "../Auth/registerclient";
+import { reactSelectCustomStyles } from "../Auth/customFetch";
+
 
 export default function Addressing({ defaultData, fields, patientid, toast }) {
 	const [isClient, setClient] = useState(false);
@@ -73,6 +75,7 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
 										isDisabled={isloading}
 										options={regionOptions}
 										className="react-select-container"
+										styles={reactSelectCustomStyles}
 										classNamePrefix="react-select"
 										value={regionOptions.find(option => option.value === data.region)}
 										onChange={option => {
@@ -100,6 +103,7 @@ export default function Addressing({ defaultData, fields, patientid, toast }) {
 										isDisabled={isloading || !data.region}
 										options={districtOptions}
 										className="react-select-container"
+										styles={reactSelectCustomStyles}
 										classNamePrefix="react-select"
 										value={selectedDistrict}
 										onChange={option => {

@@ -1,11 +1,14 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useFormContext, Controller } from 'react-hook-form';
 import { Form } from 'react-bootstrap';
 import Select from 'react-select';
 import { customFetch, reactSelectCustomStyles } from '../../Auth/customFetch';
 
-const PatientSettings = ({ patientid }) => {
+const PatientSettings = () => {
+    const searchParams = useSearchParams();
+    const patientid = searchParams.get('patientid');
     const { control, register, watch, setValue } = useFormContext();
     const [loading, setLoading] = useState(true);
     const notifyEnabled = watch('notify', false);
@@ -56,7 +59,7 @@ const PatientSettings = ({ patientid }) => {
         if (patientid) {
             loadSettings();
         }
-    }, [patientid, setValue, modeOptions, methodOptions, authModeOptions]);
+    }, [patientid, setValue]);
 
     return (
         <div className="row g-3">

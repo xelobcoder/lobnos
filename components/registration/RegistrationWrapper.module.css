@@ -47,6 +47,14 @@
     justify-content: center;
     border-radius: 50%;
     transition: all 0.2s ease;
+    .clickable {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .clickable:hover {
+        transform: scale(1.05);
+    }
 }
 
 .navButton:disabled {

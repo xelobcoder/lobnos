@@ -40,10 +40,10 @@ export default async function RegistrationPage({ searchParams }: { searchParams:
         }
     }
     return <RegistrationForm 
-    fields={fields}
-    personalInformation={personalInformation}
-    addressingInformation={addressingInformation}
-    emmergencyInformation={emmergencyInformation}
-    patientid={patientid}
-/>;
+            fields={fields}
+            personalInformation={personalInformation}
+            addressingInformation={addressingInformation}
+            emmergencyInformation={emmergencyInformation}
+            patientid={patientid}
+          />;
 }
