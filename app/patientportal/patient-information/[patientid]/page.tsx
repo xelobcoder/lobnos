@@ -19,8 +19,21 @@ export default function PatientInformationPage() {
     return (
         <div className="container-fluid p-0">
             <div className="row g-0">
-                <div className="col-lg-4 col-xl-3 bg-light border-end shadow-sm">
+                // Add this state at the top of the component
+                const [showLeftColumn, setShowLeftColumn] = useState(true);
+                
+                // Add toggle button in the left column header
+                <div className="col-lg-4 col-xl-3 bg-light border-end shadow-sm" style={{ display: showLeftColumn ? 'block' : 'none' }}>
                     <div className="p-4 bg-white rounded-3 m-3 shadow-sm">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <button 
+                                className={`btn btn-sm btn-light ${styles.toggleButton}`}
+                                onClick={() => setShowLeftColumn(!showLeftColumn)}
+                                title="Toggle sidebar"
+                            >
+                                <RiArrowLeftSLine size={20} />
+                            </button>
+                        </div>
                         <div className="text-center mb-3">
                             <PatientImage patientid={patientId}/>
                         </div>
@@ -28,8 +41,18 @@ export default function PatientInformationPage() {
                     </div>
                 </div>
 
-                <div className="col-lg-8 col-xl-9">
+                // Update the right column to be responsive to toggle
+                <div className={`col-lg-${showLeftColumn ? '8' : '12'} col-xl-${showLeftColumn ? '9' : '12'}`}>
                     <div className="p-0">
+                        {!showLeftColumn && (
+                            <button 
+                                className={`btn btn-sm btn-light position-absolute ${styles.toggleButtonExpanded}`}
+                                onClick={() => setShowLeftColumn(true)}
+                                title="Show sidebar"
+                            >
+                                <RiArrowRightSLine size={20} />
+                            </button>
+                        )}
                         <nav className={`nav ${styles.tabNav}`}>
                             <button 
                                 className={`${styles.tabButton} ${activeTab === 'address' ? styles.activeTab : styles.inactiveTab}`}
