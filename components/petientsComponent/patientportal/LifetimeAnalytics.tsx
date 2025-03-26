@@ -10,6 +10,7 @@ interface LifetimeData {
   total_paid: string;
   total_outstanding: string;
   first_transaction: string;
+  total_discount: string;
   last_transaction: string;
   duration: {
     start: string;
@@ -46,12 +47,17 @@ export default function LifetimeAnalytics({ patientid }: LifetimeAnalyticsProps)
     fetchLifetimeData();
   }, [patientid]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('default', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "No transactions yet";
+    try {
+      return new Date(dateString).toLocaleDateString('default', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch {
+      return "Invalid date";
+    }
   };
 
   return (
@@ -72,11 +78,11 @@ export default function LifetimeAnalytics({ patientid }: LifetimeAnalyticsProps)
             <div className={styles.dateBox}>
               <div className={styles.dateItem}>
                 <div className={styles.dateLabel}>First Transaction</div>
-                <div className={styles.dateValue}>{formatDate(data.first_transaction)}</div>
+                <div className={styles.dateValue}>{formatDate(data?.first_transaction)}</div>
               </div>
               <div className={styles.dateItem}>
                 <div className={styles.dateLabel}>Last Transaction</div>
-                <div className={styles.dateValue}>{formatDate(data.last_transaction)}</div>
+                <div className={styles.dateValue}>{formatDate(data?.last_transaction)}</div>
               </div>
             </div>
 
@@ -92,9 +98,21 @@ export default function LifetimeAnalytics({ patientid }: LifetimeAnalyticsProps)
                 </div>
               </div>
               <div className={styles.statBox}>
+                <div className={styles.statLabel}>Total Payable</div>
+                <div className={styles.statValue}>
+                  {currencyFormatter.format(parseFloat(data.total_payable))}
+                </div>
+              </div>
+              <div className={styles.statBox}>
                 <div className={styles.statLabel}>Total Paid</div>
                 <div className={styles.statValue}>
                   {currencyFormatter.format(parseFloat(data.total_paid))}
+                </div>
+              </div>
+              <div className={styles.statBox}>
+                <div className={styles.statLabel}>Total Discount</div>
+                <div className={styles.statValue}>
+                  {currencyFormatter.format(parseFloat(data.total_discount))}
                 </div>
               </div>
               <div className={styles.statBox}>
