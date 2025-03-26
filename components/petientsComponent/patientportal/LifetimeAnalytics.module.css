@@ -1,0 +1,79 @@
+.statsContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.dateBox {
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dateItem:not(:last-child) {
+  margin-bottom: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .statsContainer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dateBox {
+    flex-direction: row;
+  }
+
+  .dateItem:not(:last-child) {
+    margin-bottom: 0;
+  }
+}
+
+.statBox {
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.statBox:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: var(--bs-gray-600);
+  margin-bottom: 0.5rem;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--bs-gray-900);
+  line-height: 1.2;
+}
+
+.dateBox {
+  background: var(--bs-primary-bg-subtle);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.dateItem {
+  flex: 1;
+}
+
+.dateLabel {
+  font-size: 0.875rem;
+  color: var(--bs-primary);
+  margin-bottom: 0.25rem;
+}
+
+.dateValue {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--bs-gray-900);
+}

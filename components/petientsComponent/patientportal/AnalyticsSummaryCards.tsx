@@ -143,21 +143,23 @@ export default function AnalyticsSummaryCards({ patientid }: AnalyticsSummaryCar
                 </div>)}
 
                 <div className="d-flex justify-content-between mt-4">
-                    <div>
-                        <small className="text-muted d-block">Total Transactions</small>
-                        <h5 className="mb-0">{data.reduce((sum, item) => sum + item.total_transactions, 0)}</h5>
-                    </div>
-                    <div>
-                        <small className="text-muted d-block">Total Amount</small>
-                        <h5 className="mb-0">{currencyFormatter.format(data.reduce((sum, item) => sum + parseFloat(item.total_amount), 0))}</h5>
-                    </div>
-                    <div>
-                        <small className="text-muted d-block">Total Paid</small>
-                        <h5 className="mb-0">{currencyFormatter.format(data.reduce((sum, item) => sum + parseFloat(item.total_paid), 0))}</h5>
-                    </div>
-                    <div>
-                        <small className="text-muted d-block">Outstanding</small>
-                        <h5 className="mb-0">{currencyFormatter.format(data.reduce((sum, item) => sum + parseFloat(item.total_outstanding), 0))}</h5>
+                    <div className={styles.summaryStats}>
+                        <div className={styles.statItem}>
+                            <small className="text-muted d-block">Total Transactions</small>
+                            <h5 className="mb-0">{data.reduce((sum, item) => sum + item.total_transactions, 0)}</h5>
+                        </div>
+                        <div className={styles.statItem}>
+                            <small className="text-muted d-block">Total Amount</small>
+                            <h5 className="mb-0">{currencyFormatter.format(data.reduce((sum, item) => sum + parseFloat(item.total_amount), 0))}</h5>
+                        </div>
+                        <div className={styles.statItem}>
+                            <small className="text-muted d-block">Total Paid</small>
+                            <h5 className="mb-0">{currencyFormatter.format(data.reduce((sum, item) => sum + parseFloat(item.total_paid), 0))}</h5>
+                        </div>
+                        <div className={styles.statItem}>
+                            <small className="text-muted d-block">Outstanding</small>
+                            <h5 className="mb-0">{currencyFormatter.format(data.reduce((sum, item) => sum + parseFloat(item.total_outstanding), 0))}</h5>
+                        </div>
                     </div>
                 </div>
             </Card.Body>
