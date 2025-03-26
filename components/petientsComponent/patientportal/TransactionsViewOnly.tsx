@@ -283,14 +283,13 @@ const TransactionsViewOnly = ({ patientid }: Props) => {
                         <button 
                             className={styles.pageButton}
                             onClick={() => setCurrentPage(prev => prev - 1)}
-                            disabled={currentPage === 1}
+                            disabled={currentPage === 0}
                         >
                             Previous
                         </button>
                         <button 
                             className={styles.pageButton}
                             onClick={() => setCurrentPage(prev => prev + 1)}
-                            disabled={currentPage >= totalPages}
                         >
                             Next
                         </button>

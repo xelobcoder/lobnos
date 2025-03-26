@@ -76,14 +76,26 @@
 }
 
 .tableContainer {
-    width: 100%;
     overflow-x: auto;
+    height: 40vh;
     -webkit-overflow-scrolling: touch;
     margin-bottom: 1.5rem;
     border-radius: 8px;
     background: #ffffff;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e7eb;
+}
+
+.table {
+    width: 100%;
+    min-width: 1200px;
+    min-height: inherit;
+    border-collapse: collapse;
+    background: white;
+}
+
+.table tbody {
+    min-height: calc(40vh - 56px); /* Accounting for header height */
 }
 
 .tableContainer::-webkit-scrollbar {
@@ -125,7 +137,8 @@
     justify-content: space-between;
     padding: 1rem 0;
     border-top: 1px solid #e2e8f0;
-    margin-top: 1rem;
+    margin:10px;
+    font-size: 13px;
 }
 
 .paginationButtons {
@@ -322,5 +335,4 @@
     position: absolute;
     right: 0.75rem;
     top: 50%;
-    transform: translateY(-50%);
-}
+    transform: translateY(-50%);}
