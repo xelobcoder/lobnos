@@ -26,8 +26,14 @@ export default function NightAdjustment() {
 
     const handleFormSubmit = async (event: FormEvent) => {
         event.preventDefault();
-        if (startTime >= endTime) {
-            toast.error("End time must be greater than start time", {
+        const startHour = parseInt(startTime.split(':')[0]);
+        const endHour = parseInt(endTime.split(':')[0]);
+        
+        const isValidNightShift = (startHour >= 18 && endHour <= 12) || 
+                                 (startHour < endHour);
+
+        if (!isValidNightShift) {
+            toast.error("Invalid night shift hours. For overnight shifts, start time should be evening (18:00-23:00) and end time should be morning (00:00-12:00)", {
                 position: "top-center",
                 className: "text-sm",
             });

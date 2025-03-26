@@ -85,16 +85,27 @@ export function BillingPageContextProvider({ children }) {
           } = billingdata;
 
           const { taxIncluded, taxValue } = appsettings;
+          
+          const isWithinAdjustmentPeriod = nightStart > nightEnd 
+               ? (currentHour >= nightStart || currentHour < nightEnd) 
+               : (currentHour >= nightStart && currentHour < nightEnd);
+// for debugging purpose
+          // console.warn('Adjustment Period:', {
+          //      startTime: nightStart,
+          //      endTime: nightEnd,
+          //      currentHour,
+          //      isWithinPeriod: isWithinAdjustmentPeriod
+          // });
 
-          const isNightTime = currentHour >= nightStart && currentHour <= nightEnd;
-
-          if (hasNightAdjustment && isNightTime) {
+          if (hasNightAdjustment && isWithinAdjustmentPeriod) {
                billingdata.cart = applyNightAdjustment(cart, nightAdjustmentMode, nightAdjustmentValue);
-
           } else {
-               billingdata.cart = billingdata.cart.map((item, index) => {
-                    return { ...item, hasNightAdjustment: false, nightAdjustmentMode: 'none', nightAdjustmentValue: 0 }
-               })
+               billingdata.cart = billingdata.cart.map((item) => ({
+                    ...item,
+                    hasNightAdjustment: false,
+                    nightAdjustmentMode: 'none',
+                    nightAdjustmentValue: 0
+               }));
           }
 
           const totalTest = cart.length > 0 ? calculateTotalTestCost(billingdata.cart) : 0;

@@ -88,7 +88,6 @@ export default async function PatientBillingPageIndex({
 			getAllNecessaryData(),
 			customFetch('paymentmodes'),
 		]);
-
 		
 
 		if (billingid) {
@@ -162,7 +161,6 @@ export default async function PatientBillingPageIndex({
 		}
 
 	} catch (error) {
-		console.log(error)
 		return (
 			<h4 className="pls-color bg-s p-4 br-5 secondary-subtle">
 				Error loading billing data. Please try again later.

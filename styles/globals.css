@@ -1620,7 +1620,7 @@ body {
 @media screen and (min-width: 900px) {
   .billing-page-display {
     display: grid;
-    grid-template-columns: 20% 60% 20%;
+    grid-template-columns: 25% 55% 20%;
     height: 100vh;
   }
   .billing-page-display > .billing-page-display-child:nth-child(1),

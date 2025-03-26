@@ -2,44 +2,85 @@ import React from 'react';
 import ClinicianFiltering from '../../../accessories/SectorFileringComponents/ClinicianFiltering';
 import InsuranceOrganizationFiltering from '../../../accessories/SectorFileringComponents/InsuranceOrganizationFiltering';
 import OrganizationalBillingSourceSearch from '../BillingSourceComponents/OrganizationBillingSearch';
+import { Form, Card } from 'react-bootstrap';
+import { RiHospitalLine, RiUserHeartLine, RiFileLine } from '@remixicon/react';
 
 const BillingSourceComponent = ({ billingSource, updateValuesToContext, handleInsuranceSelection, handleClinicianSelection, isClient }) => {
-    switch (billingSource) {
-        case 2:
-            return (
-                <div className="mb-2">
+    const renderSourceIcon = () => {
+        switch (billingSource) {
+            case 2: return <RiHospitalLine className="text-primary mb-2" size={24} />;
+            case 3: return <RiHospitalLine className="text-success mb-2" size={24} />;
+            case 4: return <RiFileLine className="text-info mb-2" size={24} />;
+            case 6: return <RiUserHeartLine className="text-warning mb-2" size={24} />;
+            default: return null;
+        }
+    };
+
+    const getSourceTitle = () => {
+        switch (billingSource) {
+            case 2: return "Organization Billing";
+            case 3: return "Insurance Organization";
+            case 4: return "Claim Code";
+            case 6: return "Clinician Search";
+            default: return "";
+        }
+    };
+
+    return (
+    <div>
+        {typeof billingSource == "number" && billingSource > 1 && 
+        (
+            <Card className=" mb-3 mt-3 mx-0">
+            <Card.Body>
+                <div className="text-center">
+                    {renderSourceIcon()}
+                    <h6 className="mb-3">{getSourceTitle()}</h6>
+                </div>
+
+                {billingSource === 2 && (
                     <OrganizationalBillingSourceSearch updatefunction={updateValuesToContext} />
-                </div>
-            );
-        case 3:
-            return (
-                <div className="form-group">
-                    <label>search organization here</label>
-                    {isClient && < InsuranceOrganizationFiltering onSelect={handleInsuranceSelection} />}
-                </div>
-            );
-        case 4:
-            return (
-                <div className="form-group">
-                    <label>search organization here</label>
-                    <input type='text' placeholder="Get Claim Code Here" className="custom-input" />
-                </div>
-            );
-        case 6:
-            return (
-                <div className="form-group">
-                    <label>search clinician here</label>
-                    <ClinicianFiltering onSelect={handleClinicianSelection} />
-                </div>
-            );
-        default:
-            return null;
-    }
+                )}
+
+                {billingSource === 3 && (
+                    <Form.Group>
+                        <Form.Label className="small text-muted">Search Organization</Form.Label>
+                        {isClient && (
+                            <div className="position-relative">
+                                <InsuranceOrganizationFiltering onSelect={handleInsuranceSelection} />
+                            </div>
+                        )}
+                    </Form.Group>
+                )}
+
+                {billingSource === 4 && (
+                    <Form.Group>
+                        <Form.Label className="small text-muted">Claim Code</Form.Label>
+                        <Form.Control 
+                            type="text" 
+                            placeholder="Enter claim code"
+                            className="rounded-3 border-light"
+                        />
+                    </Form.Group>
+                )}
+
+                {billingSource === 6 && (
+                    <Form.Group>
+                        <Form.Label className="small text-muted">Search Clinician</Form.Label>
+                        <div className="position-relative">
+                            <ClinicianFiltering onSelect={handleClinicianSelection} />
+                        </div>
+                    </Form.Group>
+                )}
+            </Card.Body>
+        </Card>
+        )}
+    </div>
+    );
 };
 
 const RenderingBillingSourceLayout = ({ billingdata, updateValuesToContext, handleInsuranceSelection, handleClinicianSelection, isClient }) => {
     return (
-        <div>
+        <div >
             <BillingSourceComponent
                 isClient={isClient}
                 billingSource={billingdata?.billingSource}

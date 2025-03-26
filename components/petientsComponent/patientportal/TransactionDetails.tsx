@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styles from './TransactionDetails.module.css';
-import { customFetch } from '../../Auth/customFetch';
-import { RiCloseLine, RiCalendarLine, RiMoneyDollarCircleLine, RiUserLine } from '@remixicon/react';
+import { currencyFormatter, customFetch } from '../../Auth/customFetch';
+import { RiCloseLine, RiCalendarLine, RiMoneyDollarCircleLine, RiUserLine ,RiTestTubeLine} from '@remixicon/react';
 import { transactionSummaryBilling } from './TransactionsViewOnly';
 
 interface Witness {
@@ -10,7 +10,7 @@ interface Witness {
     employeeid: number;
 }
 
-// Remove duplicate Props interface
+
 interface TransactionDetail {
     serviceid: number;
     billingid: number;
@@ -51,8 +51,6 @@ interface TransactionDetail {
     witnesses: Witness[];
 }
 
-// Consolidate interfaces into one
-// Update the props interface to include transaction data
 interface TransactionDetailsProps {
     billingId: number;
     onClose: () => void;
@@ -103,28 +101,34 @@ const TransactionDetails: React.FC<TransactionDetailsProps> = ({
                 
                 {transaction && (
                     <div className={styles.content}>
-                        <div className={styles.summaryCard}>
-                            <div className={styles.summaryItem}>
-                                <span className={styles.summaryLabel}>Billing ID</span>
-                                <span className={styles.summaryValue}>#{transaction.billingid}</span>
+                        <div className="list-group pls-color ">
+                            <div className="list-group-item d-flex justify-content-between p-3 align-items-center">
+                                <div className="d-flex align-items-center">
+                                    <RiMoneyDollarCircleLine size={25} className=" me-3" />
+                                    <span className='text-uppercase'>Base Cost</span>
+                                </div>
+                                <span className="fw-bold text-uppercase">{currencyFormatter.format(parseFloat(transaction?.totalcost?.toString() ?? '0.00'))}</span>
                             </div>
-                            <div className={styles.summaryItem}>
-                                <span className={styles.summaryLabel}>Base Cost</span>
-                                <span className={styles.summaryValue}>GHS {transaction.totalcost}</span>
+                            <div className="list-group-item d-flex justify-content-between p-3 align-items-center">
+                                <div className="d-flex align-items-center">
+                                    <RiCalendarLine size={25} className=" me-3" />
+                                    <span className='text-uppercase'>Tax Amount</span>
+                                </div>
+                                <span className="fw-bold">{transaction.amountIncuredDueTax || '0.00'}</span>
                             </div>
-                            <div className={styles.summaryItem}>
-                                <span className={styles.summaryLabel}>Tax</span>
-                                <span className={styles.summaryValue}>
-                                    GHS {transaction.amountIncuredDueTax || '0.00'}
-                                </span>
+                            <div className="list-group-item d-flex justify-content-between p-3 align-items-center">
+                                <div className="d-flex align-items-center">
+                                    <RiMoneyDollarCircleLine size={25} className=" me-3" />
+                                    <span className='text-uppercase'>Discount Applied</span>
+                                </div>
+                                <span className="fw-bold text-uppercase">{transaction.discount || '0.00'}</span>
                             </div>
-                            <div className={styles.summaryItem}>
-                                <span className={styles.summaryLabel}>Discount</span>
-                                <span className={styles.summaryValue}>GHS {transaction.discount || '0.00'}</span>
-                            </div>
-                            <div className={styles.summaryItem}>
-                                <span className={styles.summaryLabel}>Total Payable</span>
-                                <span className={styles.summaryValue}>GHS {transaction.payable}</span>
+                            <div className="list-group-item d-flex justify-content-between p-3 align-items-center">
+                                <div className="d-flex align-items-center">
+                                    <RiMoneyDollarCircleLine size={25} className=" me-3" />
+                                    <span className='text-uppercase'>Total Payable</span>
+                                </div>
+                                <span className="fw-bold text-uppercase">{transaction.payable}</span>
                             </div>
                         </div>
                     </div>
@@ -136,27 +140,104 @@ const TransactionDetails: React.FC<TransactionDetailsProps> = ({
                             <table className={styles.dataTable}>
                                 <thead>
                                     <tr>
-                                        <th>Service</th>
-                                        <th>Track ID</th>
+                                        <th>Service Category</th>
+                                        <th>Name</th>
                                         <th>Cost</th>
-                                        <th>Registration</th>
-                                        <th>Added On</th>
-                                        <th>Night Adjustment</th>
+                                        <th>Registration Type</th>
+                                        <th>Outsourced</th>
+                                        <th>Service Added On</th>
                                         <th>Tax Value</th>
+                                        <th>Tax Amount</th>
+                                        <th>Tax Included</th>
                                         <th>Discount</th>
+                                        <th>Total Cost</th>
+                                        <th>Total Payable</th>
+                                        <th>NHIS</th>
+                                        <th>PHIS</th>
+                                        <th>Night Adjustment</th>
+                                        <th>Night Value</th>
+                                        <th>Night Mode</th>
+                                        <th>Package Used</th>
+                                        <th>Refund Status</th>
+                                        <th>Amount Refunded</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {data.map((item) => (
                                         <tr key={item.serviceid}>
-                                            <td>{item.serviceCategory}</td>
-                                            <td>#{item.trackId}</td>
-                                            <td>GHS {item.cost}</td>
-                                            <td>{item.registrationType}</td>
+                                            <td>
+                                                <div className="d-flex align-items-center gap-2">
+                                                    <RiTestTubeLine className="text-primary" size={18} />
+                                                    <span>{item.serviceCategory}</span>
+                                                </div>
+                                            </td>
+                                            <td>{item.name}</td>
+                                            <td className="fw-semibold text-primary">
+                                                {currencyFormatter.format(parseFloat(item.cost))}
+                                            </td>
+                                            <td>
+                                                <span className="badge bg-info-subtle text-info">
+                                                    {item.registrationType}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className={`badge ${item.isoutsourced ? 'bg-warning-subtle text-warning' : 'bg-success-subtle text-success'}`}>
+                                                    {item.isoutsourced ? 'Outsourced' : 'In-house'}
+                                                </span>
+                                            </td>
                                             <td>{new Date(item.serviceAddedOn).toLocaleString()}</td>
-                                            <td>{item.hasNightAdjustment ? `${item.nightAdjustmentValue}%` : 'No'}</td>
-                                            <td>GHS {item.taxValue}</td>
-                                            <td>GHS {item.discount}</td>
+                                            <td>{item.taxIncluded ? item.taxValue : '0.00'}</td>
+                                            <td>{item.taxIncluded ? currencyFormatter.format(parseFloat(item.amountIncurredDueTax)) : '0.00'}</td>
+                                            <td>
+                                                <span className={`badge ${item.taxIncluded ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}`}>
+                                                    {item.taxIncluded ? 'Yes' : 'No'}
+                                                </span>
+                                            </td>
+                                            <td className="text-danger fw-semibold">
+                                                {currencyFormatter.format(parseFloat(item.discount))}
+                                            </td>
+                                            <td className="fw-semibold">
+                                                {currencyFormatter.format(parseFloat(item.totalcost))}
+                                            </td>
+                                            <td className="fw-bold text-primary">
+                                                {currencyFormatter.format(parseFloat(item.totalpayable))}
+                                            </td>
+                                            <td>
+                                                <span className={`badge ${item.isNHIS ? 'bg-primary-subtle text-primary' : 'bg-secondary-subtle text-secondary'}`}>
+                                                    {item.isNHIS ? 'Yes' : 'No'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className={`badge ${item.isPHIS ? 'bg-primary-subtle text-primary' : 'bg-secondary-subtle text-secondary'}`}>
+                                                    {item.isPHIS ? 'Yes' : 'No'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span className={`badge ${item.hasNightAdjustment ? 'bg-info-subtle text-info' : 'bg-secondary-subtle text-secondary'}`}>
+                                                    {item.hasNightAdjustment ? 'Yes' : 'No'}
+                                                </span>
+                                            </td>
+                                            <td>{item.nightAdjustmentValue}</td>
+                                            <td>{item.nightAdjustmentMode}</td>
+                                            <td>
+                                                <span className={`badge ${item.isPackageUsed ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'}`}>
+                                                    {item.isPackageUsed ? 'Yes' : 'No'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {item.isRefundCompleted ? (
+                                                    <span className="badge bg-success-subtle text-success">Completed</span>
+                                                ) : item.isRefundApproved ? (
+                                                    <span className="badge bg-info-subtle text-info">Approved</span>
+                                                ) : item.isRefundInitiated ? (
+                                                    <span className="badge bg-warning-subtle text-warning">Initiated</span>
+                                                ) : (
+                                                    <span className="badge bg-secondary-subtle text-secondary">None</span>
+                                                )}
+                                            </td>
+                                            <td className="text-danger fw-semibold">
+                                                {currencyFormatter.format(parseFloat(item.amountRefunded))}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>

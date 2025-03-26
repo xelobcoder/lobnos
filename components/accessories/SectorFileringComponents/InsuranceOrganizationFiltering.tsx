@@ -50,12 +50,14 @@ export default function InsuranceOrganizationFiltering({ onSelect }: InsuranceOr
         <div>
             {isClient && (
                 <AsyncSelect
+                    isClearable
+                    isSearchable
                     cacheOptions
-                    // styles={reactSelectCustomStyles}
+                    styles={reactSelectCustomStyles}
                     loadOptions={loadOptions}
                     id="template-filtering"
                     defaultOptions={false}
-                    placeholder="Type at least 4 characters to search"
+                    placeholder="Type at least 4 characters"
                     onChange={handleSelectChange}
                     formatOptionLabel={(data: InsuranceOrganization) => data.label}
                 />

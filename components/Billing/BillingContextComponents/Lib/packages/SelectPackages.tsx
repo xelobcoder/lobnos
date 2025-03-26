@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Spinner } from 'react-bootstrap';
+import { Form, Card, Spinner } from 'react-bootstrap';
+import {  RiErrorWarningLine } from '@remixicon/react';
 import Select from 'react-select';
 import { customFetch, customPost } from '../../../../Auth/customFetch';
 import { BillingContext } from '../../BillingContext';
@@ -153,39 +154,78 @@ export default function SelectPackages() {
     if (!billingSource) return null;
 
     return (
-        <div className="my-2">
-            <input
-                id="use-package-checkbox"
-                checked={checked}
-                disabled={
-                    ![1, 2, 6].includes(billingSource) ||
-                    (billingSource === 6 && !clinicianId) ||
-                    (billingSource === 2 && !organizationId)
-                }
-                onChange={handleChecked}
-                type="checkbox"
-                aria-labelledby="use-package-label"
-            />
-            <span id="use-package-label" className="mx-1">
-                Use A Package
-            </span>
-
-            {checked && (
-                <div className="mt-2">
-                    {errorMessage && <div className="alert alert-danger">{errorMessage}</div>}
-                    {loading ? (
-                        <Spinner size="sm" />
-                    ) : (
-                        <Select
-                            options={packages}
-                            value={selectedPackage}
-                            onChange={handlePackagesSelected}
-                            placeholder="Select a package"
-                        />
-                    )}
-                    {loadingPackageTest && <Spinner size="sm" />}
+        <Card>
+            <Card.Body>
+                <div className="d-flex align-items-center mb-3 bg-secondary-subtle br-5 p-2 ">
+                    <h6 className="mb-0 pls-label">Package Selection</h6>
                 </div>
-            )}
-        </div>
+
+                <Form.Check
+                    type="switch"
+                    id="use-package-checkbox"
+                    label="Use A Package"
+                    checked={checked}
+                    disabled={
+                        ![1, 2, 6].includes(billingSource) ||
+                        (billingSource === 6 && !clinicianId) ||
+                        (billingSource === 2 && !organizationId)
+                    }
+                    onChange={handleChecked}
+                    className="mb-3"
+                />
+
+                {checked && (
+                    <div className="mt-3">
+                        {errorMessage && (
+                            <div className="alert alert-danger d-flex align-items-center">
+                                <RiErrorWarningLine className="me-2" />
+                                <small>{errorMessage}</small>
+                            </div>
+                        )}
+                        
+                        {loading ? (
+                            <div className="text-center py-3">
+                                <Spinner animation="border" size="sm" className="text-primary" />
+                                <small className="d-block mt-2 text-muted">Loading packages...</small>
+                            </div>
+                        ) : (
+                            <Select
+                                isSearchable
+                                options={packages}
+                                value={selectedPackage}
+                                onChange={handlePackagesSelected}
+                                placeholder="Select a package"
+                                className="shadow-sm"
+                                classNamePrefix="select"
+                                isDisabled={loading}
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        borderColor: '#dee2e6',
+                                        '&:hover': {
+                                            borderColor: '#a3afc4'
+                                        }
+                                    }),
+                                    option: (base, state) => ({
+                                        ...base,
+                                        backgroundColor: state.isSelected ? '#0d6efd' : base.backgroundColor,
+                                        '&:hover': {
+                                            backgroundColor: state.isSelected ? '#0d6efd' : '#f8f9fa'
+                                        }
+                                    })
+                                }}
+                            />
+                        )}
+                        
+                        {loadingPackageTest && (
+                            <div className="text-center mt-3">
+                                <Spinner animation="border" size="sm" className="text-primary" />
+                                <small className="d-block mt-2 text-muted">Loading package details...</small>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </Card.Body>
+        </Card>
     );
 }
