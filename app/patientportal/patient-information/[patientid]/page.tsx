@@ -11,6 +11,9 @@ import EmergencyContactViewOnly from '../../../../components/petientsComponent/p
 import CommunicationsViewOnly from '../../../../components/petientsComponent/patientportal/CommunicationsViewOnly';
 import CredentialsViewOnly from '../../../../components/petientsComponent/patientportal/CredentialsViewOnly';
 import TransactionsViewOnly from '../../../../components/petientsComponent/patientportal/TransactionsViewOnly';
+import { RiBarChartLine, RiBarChartFill } from '@remixicon/react';
+import PatientChartView from '../../../../components/petientsComponent/patientportal/PatientChartView';
+
 
 export default function PatientInformationPage({params}: {params: {
     patientid:number
@@ -126,6 +129,18 @@ export default function PatientInformationPage({params}: {params: {
                                 )}
                                 Transactions
                             </button>
+                            
+                            <button 
+                                className={`${styles.tabButton} ${activeTab === 'chart' ? styles.activeTab : styles.inactiveTab}`}
+                                onClick={() => setActiveTab('chart')}
+                            >
+                                {activeTab === 'chart' ? (
+                                    <RiBarChartFill className={styles.tabIcon} />
+                                ) : (
+                                    <RiBarChartLine className={styles.tabIcon} />
+                                )}
+                                Analytics
+                            </button>
                         </nav>
                         
                         <div className={styles.tabContent}>
@@ -146,6 +161,9 @@ export default function PatientInformationPage({params}: {params: {
                             )}
                             {activeTab === 'transactions' && (
                                 <TransactionsViewOnly patientid={patientid} />
+                            )}
+                            {activeTab === 'chart' && (
+                                <PatientChartView patientid={patientid} />
                             )}
                         </div>
                     </div>
