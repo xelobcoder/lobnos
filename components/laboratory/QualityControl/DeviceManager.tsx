@@ -11,6 +11,7 @@ import { useApplicationSettings } from '../../Auth/useApplicationContext';
 import PrimeToast from '../../accessories/PrimeToast';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import moment from 'moment';
+import { fetchDevices } from './lib';
 
 
 export function DeviceManager() {
@@ -26,23 +27,10 @@ export function DeviceManager() {
     });
 
     useEffect(() => {
-        fetchDevices();
+        fetchDevices({ setDevices,setLoading,toast}) 
     }, []);
 
-    const fetchDevices = async () => {
-        try {
-            setLoading(true);
-            const response = await customFetch('devices');
-            if (!response.data) throw new Error('Failed to fetch devices');
-            const data = await response.data
-            setDevices(data);
-        } catch (error) {
-            toast.error('Failed to load devices');
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+   
 
     const handleClose = () => {
         setShowModal(false);
@@ -65,7 +53,7 @@ export function DeviceManager() {
             const response = await customPost(`devices/${id}`, 'DELETE', {});
             console.log(response)
             toast.success('Device deleted successfully');
-            fetchDevices();
+            fetchDevices({ setDevices,setLoading,toast}) 
         } catch (error) {
             toast.error('Failed to delete device');
             console.error(error);
@@ -100,7 +88,7 @@ export function DeviceManager() {
             if (status === true) {
                 toast.success(`Device ${selectedDevice ? 'updated' : 'added'} successfully`);
                 handleClose();
-                fetchDevices();
+                fetchDevices({ setDevices, setLoading,toast})
             } else {
                 toast.error(`Failed to ${selectedDevice ? 'update' : 'add'} device`);
             }

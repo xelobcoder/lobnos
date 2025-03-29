@@ -1,44 +1,56 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Form, Button, Card, Alert } from 'react-bootstrap';
-import Select from 'react-select';
-import { customFetch, reactSelectCustomStyles } from '../../../Auth/customFetch';
 import { toast } from 'react-toastify';
+import { customFetch, reactSelectCustomStyles } from '../../../Auth/customFetch';
+import { ControlParameter, Reading, DeviceOption, ControlMaterialOption } from './types';
+import { QCParameterForm } from './QCParameterForm';
+import { QCReadingForm } from './QCReadingForm';
+import styles from './QCRecordingManager.module.css';
+import { fetchDevices } from '../lib';
 
-interface ControlParameter {
+interface Device {
+    id: string;
+    deviceName: string;
+    model: string;
+}
+
+interface Control {
+    id: string;
     name: string;
-    unit: string;
-    targetValue: number;
-    standardDeviation: number;
-    warningLimit: number;
-    actionLimit: number;
+    lotNumber: string;
 }
 
-interface Reading {
-    value: number;
-    isValid: boolean;
-    status: 'normal' | 'warning' | 'critical' | null;
+interface QCReading {
+    deviceId: string;
+    controlMaterialId: string;
+    readings: Record<string, Reading>;
+    comments: string;
 }
 
-interface DeviceOption {
-    value: string;
-    label: string;
-    device: {
-        id: string;
-        deviceName: string;
-        model: string;
+const validateReading = (value: number, parameter: ControlParameter): Reading => {
+    if (isNaN(value) || value <= 0) {
+        return {
+            value,
+            isValid: false,
+            status: null
+        };
+    }
+
+    const deviation = Math.abs(value - parameter.targetValue) / parameter.standardDeviation;
+    let status: Reading['status'] = 'normal';
+    
+    if (deviation > parameter.actionLimit) {
+        status = 'critical';
+    } else if (deviation > parameter.warningLimit) {
+        status = 'warning';
+    }
+
+    return {
+        value,
+        isValid: true,
+        status
     };
-}
-
-interface ControlMaterialOption {
-    value: string;
-    label: string;
-    control: {
-        id: string;
-        name: string;
-        lotNumber: string;
-    };
-}
+};
 
 export function QCRecordingManager() {
     const [selectedDevice, setSelectedDevice] = useState<DeviceOption | null>(null);
@@ -51,6 +63,33 @@ export function QCRecordingManager() {
     const [loadingDevices, setLoadingDevices] = useState(false);
     const [controlMaterials, setControlMaterials] = useState<ControlMaterialOption[]>([]);
     const [loadingControls, setLoadingControls] = useState(false);
+    const [controlParameters, setControlParameters] = useState<ControlParameter[]>([]);
+    const [loadingParameters, setLoadingParameters] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        getUserDevices();
+    }, []);
+
+    const getUserDevices = async () => {
+        try {
+            setLoadingDevices(true);
+            const response = await fetchDevices();
+            if (!response) throw new Error('Failed to fetch devices');
+            
+            const deviceOptions = response.map((device: Device) => ({
+                value: device.id,
+                label: `${device.deviceName} (${device.model})`,
+                device: device
+            }));
+            setDevices(deviceOptions);
+        } catch (error: any) {
+            console.error('Failed to load devices:', error);
+            toast.error(error.message || 'Failed to load devices');
+        } finally {
+            setLoadingDevices(false);
+        }
+    };
 
     const fetchControlMaterials = async (deviceId: string) => {
         try {
@@ -58,16 +97,16 @@ export function QCRecordingManager() {
             const response = await customFetch(`controlmaterials/device/${deviceId}`);
             if (!response) throw new Error('Failed to fetch control materials');
             
-            const controlOptions = response.map((control: any) => ({
+            const controlOptions = response.map((control: Control) => ({
                 value: control.id,
                 label: `${control.name} (${control.lotNumber})`,
                 control: control
             }));
             
             setControlMaterials(controlOptions);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to load control materials:', error);
-            toast.error('Failed to load control materials');
+            toast.error(error.message || 'Failed to load control materials');
         } finally {
             setLoadingControls(false);
         }
@@ -76,51 +115,36 @@ export function QCRecordingManager() {
     const handleDeviceChange = (selected: DeviceOption | null) => {
         setSelectedDevice(selected);
         setSelectedControl(null);
+        setControlMaterials([]);
+        setControlParameters([]);
+        setReadings({});
         if (selected?.value) {
             fetchControlMaterials(selected.value);
         }
     };
 
-    // Remove standalone Select components and keep them in the return statement
-    const handleContinue = () => {
-        setShowReadingForm(true);
+    const handleControlChange = (selected: ControlMaterialOption | null) => {
+        setSelectedControl(selected);
+        setReadings({});
+        setControlParameters([]);
+        if (selected?.value) {
+            handleControlParameters(selected.value);
+        }
     };
 
-    // Mock data - replace with API call
-    const controlParameters: ControlParameter[] = [
-        {
-            name: 'Glucose',
-            unit: 'mmol/L',
-            targetValue: 5.5,
-            standardDeviation: 0.2,
-            warningLimit: 2,
-            actionLimit: 3
-        },
-        {
-            name: 'Creatinine',
-            unit: 'µmol/L',
-            targetValue: 90,
-            standardDeviation: 5,
-            warningLimit: 2,
-            actionLimit: 3
+    const handleControlParameters = async (controlId: string) => {
+        try {
+            setLoadingParameters(true);
+            const response = await customFetch(`controlparameters/material/${controlId}`);
+            if (!response) throw new Error('Failed to fetch control parameters');
+            
+            setControlParameters(response);
+        } catch (error: any) {
+            console.error('Failed to load control parameters:', error);
+            toast.error(error.message || 'Failed to load control parameters');
+        } finally {
+            setLoadingParameters(false);
         }
-    ];
-
-    const validateReading = (value: number, parameter: ControlParameter): Reading => {
-        const deviation = Math.abs(value - parameter.targetValue) / parameter.standardDeviation;
-        let status: Reading['status'] = 'normal';
-        
-        if (deviation > parameter.actionLimit) {
-            status = 'critical';
-        } else if (deviation > parameter.warningLimit) {
-            status = 'warning';
-        }
-
-        return {
-            value,
-            isValid: !isNaN(value) && value > 0,
-            status
-        };
     };
 
     const handleReadingChange = (parameterName: string, value: string) => {
@@ -140,7 +164,12 @@ export function QCRecordingManager() {
         e.preventDefault();
         const errors: string[] = [];
 
-        // Validate all readings
+        if (!selectedDevice || !selectedControl) {
+            errors.push('Device and Control Material must be selected');
+            setValidationErrors(errors);
+            return;
+        }
+
         controlParameters.forEach(param => {
             if (!readings[param.name]?.isValid) {
                 errors.push(`Invalid value for ${param.name}`);
@@ -152,185 +181,67 @@ export function QCRecordingManager() {
             return;
         }
 
-        // TODO: Implement API call to save readings
-        console.log('Saving readings:', { readings, comments });
+        try {
+            setIsSubmitting(true);
+            const qcReading: QCReading = {
+                deviceId: selectedDevice.value,
+                controlMaterialId: selectedControl.value,
+                readings,
+                comments
+            };
+
+            const response = await customFetch('qc-readings');
+
+            if (response.success) {
+                toast.success('QC readings saved successfully');
+                resetForm();
+            } else {
+                throw new Error('Failed to save QC readings');
+            }
+        } catch (error: any) {
+            console.error('Error saving QC readings:', error);
+            toast.error(error.message || 'Failed to save QC readings');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    useEffect(() => {
-        fetchDevices();
-    }, []);
-
-    const fetchDevices = async () => {
-        try {
-            setLoadingDevices(true);
-            const response = await customFetch('devices');
-            if (!response.data) throw new Error('Failed to fetch devices');
-            
-            const deviceOptions = response.data.map(device => ({
-                value: device.id,
-                label: `${device.deviceName} (${device.model})`,
-                device: device
-            }));
-            
-            setDevices(deviceOptions);
-        } catch (error) {
-            console.error('Failed to load devices:', error);
-            toast.error('Failed to load devices');
-        } finally {
-            setLoadingDevices(false);
-        }
+    const resetForm = () => {
+        setShowReadingForm(false);
+        setReadings({});
+        setComments('');
+        setValidationErrors([]);
+        setSelectedControl(null);
+        setControlParameters([]);
     };
 
     return (
         <div>
             {!showReadingForm ? (
-                <Row className="mb-4">
-                    <Col md={6}>
-                        <Card>
-                            <Card.Body>
-                                <Form>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Device</Form.Label>
-                                        <Select
-                                            value={selectedDevice}
-                                            onChange={setSelectedDevice}
-                                            styles={reactSelectCustomStyles}
-                                            options={devices}
-                                            placeholder={loadingDevices ? "Loading devices..." : "Select Device"}
-                                            isLoading={loadingDevices}
-                                            isDisabled={loadingDevices}
-                                        />
-                                    </Form.Group>
-                                    
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Control Material</Form.Label>
-                                        <Select
-                                            value={selectedControl}
-                                            onChange={setSelectedControl}
-                                            options={controlMaterials}
-                                            styles={reactSelectCustomStyles}
-                                            placeholder={loadingControls ? "Loading controls..." : "Select Control Material"}
-                                            isLoading={loadingControls}
-                                            isDisabled={!selectedDevice || loadingControls}
-                                        />
-                                    </Form.Group>
-
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Date and Time</Form.Label>
-                                        <Form.Control
-                                            type="datetime-local"
-                                            defaultValue={new Date().toISOString().slice(0, 16)}
-                                        />
-                                    </Form.Group>
-
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Operator</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            placeholder="Enter operator name"
-                                        />
-                                    </Form.Group>
-
-                                    <div className="d-grid">
-                                        <Button 
-                                            variant="primary"
-                                            disabled={!selectedDevice || !selectedControl}
-                                            onClick={handleContinue}
-                                        >
-                                            Continue to Results Entry
-                                        </Button>
-                                    </div>
-                                </Form>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-
-                    <Col md={6}>
-                        <Card>
-                            <Card.Body>
-                                <h5 className="mb-3">Recent Records</h5>
-                                <div className="text-muted">
-                                    Select a device and control material to view recent QC records
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                </Row>
+                <QCReadingForm
+                    selectedDevice={selectedDevice}
+                    selectedControl={selectedControl}
+                    devices={devices}
+                    controlMaterials={controlMaterials}
+                    loadingDevices={loadingDevices}
+                    loadingControls={loadingControls}
+                    loadingParameters={loadingParameters}
+                    onDeviceChange={handleDeviceChange}
+                    onControlChange={handleControlChange}
+                    onContinue={() => setShowReadingForm(true)}
+                />
             ) : (
-                // Reading Entry Form
-                <Card>
-                    <Card.Body>
-                        <div className="d-flex justify-content-between align-items-center mb-4">
-                            <h5>Enter Control Readings</h5>
-                            <Button variant="outline-secondary" onClick={() => setShowReadingForm(false)}>
-                                Back to Selection
-                            </Button>
-                        </div>
-
-                        {validationErrors.length > 0 && (
-                            <Alert variant="danger">
-                                <ul className="mb-0">
-                                    {validationErrors.map((error, index) => (
-                                        <li key={index}>{error}</li>
-                                    ))}
-                                </ul>
-                            </Alert>
-                        )}
-                        
-                        <Form onSubmit={handleSubmit}>
-                            <Row>
-                                {controlParameters.map(parameter => (
-                                    <Col md={6} key={parameter.name}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>
-                                                {parameter.name} ({parameter.unit})
-                                                <small className="text-muted ms-2">
-                                                    Target: {parameter.targetValue} ± {parameter.standardDeviation}
-                                                </small>
-                                            </Form.Label>
-                                            <Form.Control 
-                                                type="number" 
-                                                step="0.01"
-                                                onChange={(e) => handleReadingChange(parameter.name, e.target.value)}
-                                                className={readings[parameter.name]?.status ? `border-${readings[parameter.name].status}` : ''}
-                                            />
-                                            {readings[parameter.name]?.status === 'warning' && (
-                                                <Form.Text className="text-warning">
-                                                    Warning: Value outside warning limits
-                                                </Form.Text>
-                                            )}
-                                            {readings[parameter.name]?.status === 'critical' && (
-                                                <Form.Text className="text-danger">
-                                                    Critical: Value outside action limits
-                                                </Form.Text>
-                                            )}
-                                        </Form.Group>
-                                    </Col>
-                                ))}
-                            </Row>
-
-                            <Form.Group className="mb-3">
-                                <Form.Label>Comments</Form.Label>
-                                <Form.Control 
-                                    as="textarea" 
-                                    rows={3}
-                                    value={comments}
-                                    onChange={(e) => setComments(e.target.value)}
-                                    placeholder="Enter any observations or comments"
-                                />
-                            </Form.Group>
-
-                            <div className="d-flex gap-2">
-                                <Button variant="primary" type="submit">
-                                    Save Readings
-                                </Button>
-                                <Button variant="outline-secondary" onClick={() => setShowReadingForm(false)}>
-                                    Cancel
-                                </Button>
-                            </div>
-                        </Form>
-                    </Card.Body>
-                </Card>
+                <QCParameterForm
+                    controlParameters={controlParameters}
+                    readings={readings}
+                    comments={comments}
+                    validationErrors={validationErrors}
+                    isSubmitting={isSubmitting}
+                    onReadingChange={handleReadingChange}
+                    onCommentsChange={(value) => setComments(value)}
+                    onSubmit={handleSubmit}
+                    onCancel={() => setShowReadingForm(false)}
+                />
             )}
         </div>
     );
