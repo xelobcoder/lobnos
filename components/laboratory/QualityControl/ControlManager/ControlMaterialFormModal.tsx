@@ -1,10 +1,12 @@
-import React from 'react';
+import React, {  useState } from 'react';
 import { Modal, Form, Button, Row, Col } from 'react-bootstrap';
 import { Controller } from 'react-hook-form';
 import Select from 'react-select';
 import { ControlMaterialType } from '../types/ControlMaterial';
 import { reactSelectCustomStyles } from '../../../Auth/customFetch';
 import AsyncSelect from 'react-select/async';
+import { toast } from 'react-toastify';
+import { filteringDatabaseTables } from '../../../serverActions/ActionFiltering';
 
 interface ControlMaterialFormModalProps {
     show: boolean;
@@ -13,7 +15,7 @@ interface ControlMaterialFormModalProps {
     register: any;
     errors: any;
     loadingDevices: boolean;
-    devices:any,
+    devices: any,
     watch: any;
     control: any;
     selectedMaterial: ControlMaterialType | null;
@@ -34,6 +36,10 @@ export function ControlMaterialFormModal({
     selectedMaterial
 }: ControlMaterialFormModalProps) {
     const sourceType = watch('sourceType');
+    const [loadingTests, setLoadingTests] = useState(false);
+    const [tests, setTests] = useState<any>([]);
+
+
 
     const sourceTypeOptions = [
         { value: 'manufacturer', label: 'Commercial' },
@@ -48,11 +54,29 @@ export function ControlMaterialFormModal({
     ];
 
     const loadDeviceOptions = async (inputValue: string) => {
-            if (onDeviceSearch) {
-                await onDeviceSearch(inputValue);
-            }
-                    return devices;
-                };
+        if (onDeviceSearch) {
+            await onDeviceSearch(inputValue);
+        }
+        return devices;
+    };
+
+    const fetchAllAvailableTest = async (inputValue: string) => {
+        setLoadingTests(true);
+        try {
+            const data = await filteringDatabaseTables("test_panels", inputValue, "name", 100);
+            const options = data.map((test: any) => ({
+                value: test.id,
+                label: test.name
+            }));
+            setTests(options);
+            return options;
+        } catch (error) {
+            toast.error('Failed to fetch available tests');
+            return []; 
+        } finally {
+            setLoadingTests(false);
+        }
+    }
 
     return (
         <Modal show={show} onHide={onHide} backdrop="static">
@@ -145,19 +169,34 @@ export function ControlMaterialFormModal({
                     <Row className="mb-3">
                         <Col md={12}>
                             <Form.Group>
-                                <Form.Label>
-                                    {sourceType === 'manufacturer' ? 'Expiry Date' : 'Opened Date'}
-                                </Form.Label>
+                                <Form.Label>Expiry Date</Form.Label>
                                 <Form.Control
                                     type="date"
-                                    {...register(sourceType === 'manufacturer' ? 'expiryDate' : 'openedDate')}
-                                    isInvalid={!!errors[sourceType === 'manufacturer' ? 'expiryDate' : 'openedDate']}
+                                    {...register('expiryDate')}
+                                    isInvalid={!!errors.expiryDate}
                                 />
                                 <Form.Control.Feedback type="invalid">
-                                    {errors[sourceType === 'manufacturer' ? 'expiryDate' : 'openedDate']?.message}
+                                    {errors.expiryDate?.message}
                                 </Form.Control.Feedback>
                             </Form.Group>
                         </Col>
+                        <Col md={12}>
+                            {sourceType === 'manufacturer' ? null : (
+                                <Form.Group>
+                                    <Form.Label>Opened Date</Form.Label>
+                                    <Form.Control
+                                        type="date"
+                                        {...register('openedDate')}
+                                        isInvalid={!!errors.openedDate}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.openedDate?.message}
+                                    </Form.Control.Feedback>
+                                </Form.Group>
+                            )}
+                        </Col>
+                    </Row>
+                    <Row className="mb-3">
                         <Col md={12}>
                             <Form.Group>
                                 <Form.Label>Storage Conditions</Form.Label>
@@ -237,7 +276,32 @@ export function ControlMaterialFormModal({
                             </Form.Control.Feedback>
                         )}
                     </Form.Group>
-
+                    <Form.Group className="mb-3">
+                        <Form.Label>Associated Test</Form.Label>
+                        <Controller
+                            name="testId"
+                            control={control}
+                            render={({ field }) => (
+                                <AsyncSelect
+                                    {...field}
+                                    cacheOptions
+                                    defaultOptions
+                                    loadOptions={fetchAllAvailableTest}
+                                    isLoading={loadingTests}
+                                    styles={reactSelectCustomStyles}
+                                    placeholder="Select a test..."
+                                    className={errors.testId ? 'is-invalid' : ''}
+                                    value={tests.find(option => option.value === field.value)}
+                                    onChange={(option) => field.onChange(option?.value)}
+                                />
+                            )}
+                        />
+                        {errors.testId && (
+                            <Form.Control.Feedback type="invalid">
+                                {errors.testId.message}
+                            </Form.Control.Feedback>
+                        )}
+                    </Form.Group>
                     <div className="text-muted mb-3">
                         <small>* Parameters and expected values can be added after creating the control material</small>
                     </div>
@@ -254,5 +318,3 @@ export function ControlMaterialFormModal({
         </Modal>
     );
 }
-
- 

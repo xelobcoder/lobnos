@@ -42,7 +42,7 @@ export default async function MultipleTestConditionPage({ params }: { params: { 
                 customFetch(`multi/definition/${conditionid}`),
                 customFetch(`multi/definition/conditions/${conditionid}`)
             ]);
-
+console.log(response, conditionDefinition, contraintsChecker)
             if (conditionDefinition && Array.isArray(conditionDefinition) && conditionDefinition.length > 0) {
                 condition.conditionName = conditionDefinition[0]['conditionName'];
                 condition.conditionId = conditionDefinition[0]['id'];

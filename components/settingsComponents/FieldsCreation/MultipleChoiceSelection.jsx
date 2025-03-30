@@ -1,5 +1,6 @@
-import { Add, Delete } from "@mui/icons-material";
+import { Add, Delete, Edit } from "@mui/icons-material";
 import { useEffect, useState } from "react";
+import styles from './MultipleChoiceSelection.module.css';
 
 export default function MultipleChoiceSelectiionTestPanelCreation({ defaultOptions = [], field, setField }) {
 	const [options, setOptions] = useState(defaultOptions);
@@ -68,47 +69,59 @@ export default function MultipleChoiceSelectiionTestPanelCreation({ defaultOptio
 	};
 
 	return (
-		<div>
-			<div className="p-2 pointer">
-				<strong className="my-3" style={{ textDecoration: "underline" }}>
-					<em>Multiple selection/dropdown</em>
-				</strong>
-				<Delete
-					titleAccess="Delete selected options"
-					color="error"
-					onClick={handleDeleteSelectedOptions}
-				/>
+		<div className={styles.container}>
+			<div className={styles.header}>
+				<h3 className={styles.title}>Multiple Selection Options</h3>
+				{checked.length > 0 && (
+					<button 
+						className={styles.iconButton}
+						onClick={handleDeleteSelectedOptions}
+						title="Delete selected options"
+					>
+						<Delete fontSize="small" />
+					</button>
+				)}
 			</div>
-			<div>
+
+			<div className={styles.inputGroup}>
 				<input
-					className="custom-input col-3 my-2"
+					className={styles.input}
 					value={editing}
 					onChange={(ev) => setEditing(ev.target.value)}
+					placeholder="Enter option text"
 				/>
 				<button
 					onClick={handleAddOption}
-					className="mx-2 btn btn-secondary"
+					className={`${styles.iconButton} ${styles.addButton}`}
+					title={editIndex !== null ? 'Update option' : 'Add option'}
 				>
-					<Add />
+					<Add fontSize="small" />
 				</button>
 			</div>
-			<div className="list-group">
-				{options.length > 0 && options.map((item, index) => (
-					<div key={index} className="d-flex align-items-center justify-content-between list-group-item">
-						<div className="d-flex align-items-center">
+
+			<div className={styles.optionsList}>
+				{options.length > 0 ? options.map((item, index) => (
+					<div key={index} className={styles.optionItem}>
+						<div className={styles.optionContent}>
 							<input
 								type="checkbox"
-								className="form-check-input me-2"
 								checked={checked.includes(index)}
 								onChange={() => handleCheckboxChange(index)}
+								className={styles.checkbox}
 							/>
-							<p className="mb-0 text-uppercase">{item}</p>
+							<span className={styles.optionText}>{item}</span>
 						</div>
-						<button onClick={() => handleEditOption(index)} className="mx-2 btn btn-primary btn-sm">
-							Edit
+						<button 
+							onClick={() => handleEditOption(index)} 
+							className={`${styles.iconButton} ${styles.editButton}`}
+							title="Edit option"
+						>
+							<Edit fontSize="small" />
 						</button>
 					</div>
-				))}
+				)) : (
+					<div className={styles.emptyState}>No options added yet</div>
+				)}
 			</div>
 		</div>
 	);

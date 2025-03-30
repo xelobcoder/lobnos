@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const controlMaterialSchema = z.object({
     id: z.string().optional(),
+    testId: z.number(),  
     name: z.string().min(1, "Name is required"),
     lotNumber: z.string().min(1, "Lot number is required").optional(),
     sourceType: z.enum(["manufacturer", "sister_lab", "trusted_source"]),

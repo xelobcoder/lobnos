@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Add } from "@mui/icons-material";
 import SingleFieldMultipleSingleConstraintsComponent from "./MultiConditionComponents/singleFieldMultipleSingleConstraintsComponent";
 import { defaultConstaints } from './data/testUtil';
+import styles from './TrackAlertValueForm.module.css';
 
 export default function TrackAlertLevelValueForm({ field, setField }) {
     const { isValueTracked } = field;
@@ -43,35 +44,40 @@ export default function TrackAlertLevelValueForm({ field, setField }) {
     }, [createdConstraints]);
 
     return (
-        <div className="my-4">
-            <div id="trackalertlevelvalue" className="pointer">
-                <div className="form-row d-flex justify-content-between">
-                    <div>
-                        <input
-                            checked={field?.isValueTracked === 1}
-                            onChange={updateFieldTrack}
-                            type="checkbox"
-                        />
-                        Track value(s) of parameter
-                    </div>
-                    {showTrack && <button
+        <div className={styles.container}>
+            <div className={styles.header}>
+                <label className={styles.checkboxLabel}>
+                    <input
+                        type="checkbox"
+                        checked={field?.isValueTracked === 1}
+                        onChange={updateFieldTrack}
+                        className={styles.checkbox}
+                    />
+                    <span>Track value(s) of parameter</span>
+                </label>
+                {showTrack && (
+                    <button
                         type="button"
-                        className="btn btn-light btn-sm text-primary text-capitalize"
+                        className={styles.addButton}
                         onClick={createConstraints}
                     >
-                        <Add /> add new constraint
-                    </button>}
-                </div>
-                {showTrack && createdConstraints.length > 0 && (
-                    <table className="billing-cart-table my-2">
+                        <Add fontSize="small" />
+                        <span>Add Constraint</span>
+                    </button>
+                )}
+            </div>
+            
+            {showTrack && createdConstraints.length > 0 && (
+                <div className={styles.tableContainer}>
+                    <table className={styles.table}>
                         <thead>
                             <tr>
-                                <th>constraints</th>
-                                <th>value</th>
-                                <th>action</th>
-                                <th>replacing value</th>
-                                <th>prefix</th>
-                                <th>suffix</th>
+                                <th>Constraints</th>
+                                <th>Value</th>
+                                <th>Action</th>
+                                <th>Replacing Value</th>
+                                <th>Prefix</th>
+                                <th>Suffix</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -85,8 +91,8 @@ export default function TrackAlertLevelValueForm({ field, setField }) {
                             ))}
                         </tbody>
                     </table>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }

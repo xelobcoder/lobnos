@@ -1,0 +1,111 @@
+.container {
+    padding: 12px;
+    background: #fff;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+}
+
+.title {
+    font-size: 13px;
+    font-style: italic;
+    text-decoration: underline;
+    color: #333;
+    margin: 0;
+}
+
+.inputGroup {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.iconButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 4px;
+    padding: 6px;
+    cursor: pointer;
+    min-width: 28px;
+    height: 28px;
+}
+
+.addButton {
+    background: #6c757d;
+    color: white;
+}
+
+.addButton:hover {
+    background: #5a6268;
+}
+
+.editButton {
+    background: #007bff;
+    color: white;
+}
+
+.editButton:hover {
+    background: #0056b3;
+}
+
+.deleteButton {
+    background: none;
+    color: #dc3545;
+}
+
+.deleteButton:hover {
+    background: rgba(220, 53, 69, 0.1);
+}
+
+.optionsList {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.optionItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.optionItem:last-child {
+    border-bottom: none;
+}
+
+.optionContent {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.checkbox {
+    margin: 0;
+}
+
+.optionText {
+    text-transform: uppercase;
+    font-size: 13px;
+}
+
+.emptyState {
+    padding: 16px;
+    text-align: center;
+    color: #6c757d;
+    font-size: 13px;
+}

@@ -1,5 +1,5 @@
-import { customPost } from "../../../Auth/customPost";
 import { NotificationAdd, NotStarted, SwapVertTwoTone } from "@mui/icons-material";
+import { customPost } from "../../../Auth/customFetch";
 
 export const handleCreationMasterRUle = function (ev, field) {
 	const { value } = ev.target;

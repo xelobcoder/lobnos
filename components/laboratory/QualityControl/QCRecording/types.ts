@@ -7,10 +7,12 @@ export interface ControlParameter {
     actionLimit: number;
 }
 
+export type ReadingStatus = 'normal' | 'warning' | 'critical' | 'unmonitored' | null;
+
 export interface Reading {
     value: number;
     isValid: boolean;
-    status: 'normal' | 'warning' | 'critical' | null;
+    status: ReadingStatus;
 }
 
 export interface DeviceOption {

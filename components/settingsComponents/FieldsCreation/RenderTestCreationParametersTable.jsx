@@ -1,86 +1,75 @@
 import React from 'react';
 import ReformatTestParamOptions from './FormatOptions';
-import styles from '../../../styles/SmsTemplateList.module.css'
-
+import styles from './RenderTestCreationParametersTable.module.css';
 
 export default function RenderTestCreationParameters({ data, reorder, setReorder, changeOrdering, editField, removeField }) {
-    const handleReorderClick = () => setReorder(!reorder);
-
-    const renderTableData = (item, index) => (
-        <tr key={index}>
-            <td className='text-sm'>{item.name}</td>
-            <td className='text-sm'>{item.upperlimit}</td>
-            <td className='text-sm'>{item.lowerlimit}</td>
-            <td className='text-sm'>{item.male ? item.male.upperlimit : ""}</td>
-            <td className='text-sm'>{item.male ? item.male.lowerlimit : ""}</td>
-            <td className='text-sm'>{item.female ? item.female.upperlimit : ""}</td>
-            <td className='text-sm'>{item.female ? item.female.lowerlimit : ""}</td>
-            <td className='text-sm'>{item.valueAlert}</td>
-            <td className="table-column-width-reset">
-                {item.options ? <ReformatTestParamOptions stringdata={item.options} /> : ""}
-            </td>
-            <td className="table-column-width-reset">
-                {item.textReference ? <ReformatTestParamOptions stringdata={item.textReference} /> : ""}
-            </td>
-            <td>
-                {item.options === "ultrasoundFields" ? 'Yes' : 'No'}
-            </td>
-            <td className='text-sm'>
-                <div className="d-flex">
-                    <input
-                        type="number"
-                        className="custom-input "
-                        value={item.ordering}
-                        disabled={reorder}
-                        onChange={(ev) => changeOrdering(item, ev)}
-                    />
-                    <button
-                        title="Edit Parameter"
-                        onClick={() => editField(item)}
-                        className="btn btn-info mx-2 btn-sm text-capitalize"
-                    >
-                        Edit
-                    </button>
-                    <button
-                        title="Remove Parameter"
-                        onClick={() => removeField(item)}
-                        className="btn btn-danger btn-sm text-capitalize"
-                    >
-                        delete
-                    </button>
-                </div>
-            </td>
-        </tr>
-    );
-
     return (
-        <div>
-            <div className='d-flex justify-content-end'>
-                <button onClick={handleReorderClick} className="btn btn-link pls-label ">
-                    Reorder Fields
+        <div className={styles.container}>
+            <div className={styles.header}>
+                <button onClick={() => setReorder(!reorder)} className={styles.reorderBtn}>
+                    {reorder ? 'Enable Reorder' : 'Disable Reorder'}
                 </button>
             </div>
-            <table className={`${styles.table} text-sm `}>
-                <thead >
-                    <tr className='pls-label text-sm'>
-                        <th className='pls-label  bg-secondary-subtle'>Parameter Name</th>
-                        <th className='pls-label  bg-secondary-subtle'>GUL</th>
-                        <th className='pls-label  bg-secondary-subtle'>GLL</th>
-                        <th className='pls-label  bg-secondary-subtle'>MUL</th>
-                        <th className='pls-label  bg-secondary-subtle'>MLL</th>
-                        <th className='pls-label  bg-secondary-subtle'>FUL</th>
-                        <th className='pls-label  bg-secondary-subtle'>FLL</th>
-                        <th className='pls-label  bg-secondary-subtle'>AlertValue</th>
-                        <th className='pls-label  bg-secondary-subtle'>Options</th>
-                        <th className='pls-label  bg-secondary-subtle'>Plain</th>
-                        <th className='pls-label  bg-secondary-subtle'>Ultrasound Type</th>
-                        <th className='pls-label  bg-secondary-subtle'>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {Array.isArray(data) && data.length > 0 && data.map((item, index) => renderTableData(item, index))}
-                </tbody>
-            </table>
+            <div className={styles.tableWrapper}>
+                <table className={styles.table}>
+                    <thead>
+                        <tr>
+                            <th>Parameter Name</th>
+                            <th title="General Upper Limit">GUL</th>
+                            <th title="General Lower Limit">GLL</th>
+                            <th title="Male Upper Limit">MUL</th>
+                            <th title="Male Lower Limit">MLL</th>
+                            <th title="Female Upper Limit">FUL</th>
+                            <th title="Female Lower Limit">FLL</th>
+                            <th>Alert Value</th>
+                            <th>Options</th>
+                            <th>Plain</th>
+                            <th>Ultrasound Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {Array.isArray(data) && data.map((item, index) => (
+                            <tr key={index}>
+                                <td>{item.name}</td>
+                                <td>{item.upperlimit}</td>
+                                <td>{item.lowerlimit}</td>
+                                <td>{item.male?.upperlimit}</td>
+                                <td>{item.male?.lowerlimit}</td>
+                                <td>{item.female?.upperlimit}</td>
+                                <td>{item.female?.lowerlimit}</td>
+                                <td>{item.valueAlert}</td>
+                                <td>{item.options && <ReformatTestParamOptions stringdata={item.options} />}</td>
+                                <td>{item.textReference && <ReformatTestParamOptions stringdata={item.textReference} />}</td>
+                                <td>{item.options === "ultrasoundFields" ? 'Yes' : 'No'}</td>
+                                <td>
+                                    <div className={styles.actions}>
+                                        <input
+                                            type="number"
+                                            className={styles.orderInput}
+                                            value={item.ordering}
+                                            disabled={reorder}
+                                            onChange={(ev) => changeOrdering(item, ev)}
+                                        />
+                                        <button
+                                            onClick={() => editField(item)}
+                                            className={styles.editBtn}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => removeField(item)}
+                                            className={styles.deleteBtn}
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }

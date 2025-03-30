@@ -1,7 +1,8 @@
 import React from 'react';
 import { Form, Button, Card, Row, Col, Alert } from 'react-bootstrap';
-import { ControlParameter, Reading } from './types';
+import { ControlParameter, Reading, ReadingStatus } from './types';
 import styles from './QCRecordingManager.module.css';
+import { QCParameterInput } from './QCParameterInput';
 
 interface QCParameterFormProps {
     controlParameters: ControlParameter[];
@@ -26,15 +27,6 @@ export function QCParameterForm({
     onSubmit,
     onCancel
 }: QCParameterFormProps) {
-    const getReadingStatusClass = (status: Reading['status']) => {
-        switch (status) {
-            case 'normal': return styles.statusNormal;
-            case 'warning': return styles.statusWarning;
-            case 'critical': return styles.statusCritical;
-            default: return '';
-        }
-    };
-
     return (
         <Card className={styles.readingCard}>
             <Card.Body>
@@ -59,26 +51,11 @@ export function QCParameterForm({
                     <Row>
                         {controlParameters.map(parameter => (
                             <Col md={6} key={parameter.name}>
-                                <div className={`${styles.parameterInput} ${readings[parameter.name]?.status ? getReadingStatusClass(readings[parameter.name].status) : ''}`}>
-                                    <Form.Group>
-                                        <Form.Label>{parameter.name}</Form.Label>
-                                        <div className={styles.targetValue}>
-                                            Target: {parameter.targetValue} ± {parameter.standardDeviation} {parameter.unit}
-                                        </div>
-                                        <Form.Control 
-                                            type="number" 
-                                            step="0.01"
-                                            onChange={(e) => onReadingChange(parameter.name, e.target.value)}
-                                            required
-                                        />
-                                        {readings[parameter.name]?.status && (
-                                            <Form.Text className={`text-${readings[parameter.name].status}`}>
-                                                {readings[parameter.name].status === 'warning' ? 'Warning: ' : 'Critical: '}
-                                                Value outside limits
-                                            </Form.Text>
-                                        )}
-                                    </Form.Group>
-                                </div>
+                                <QCParameterInput
+                                    parameter={parameter}
+                                    reading={readings[parameter.name]}
+                                    onReadingChange={onReadingChange}
+                                />
                             </Col>
                         ))}
                     </Row>

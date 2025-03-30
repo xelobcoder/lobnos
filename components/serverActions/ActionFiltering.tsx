@@ -7,8 +7,6 @@ import { formatDate } from "../operations/Laboratory/Lib";
 import { cookies } from "next/headers";
 
 
-console.log(cookies)
-
 export async function filteringDatabaseTables(target: string, filtering: string, column: string, limit: number) {
 	try {
 		const response = await customFetch(`application/filtering/table/${target}?value=${filtering}&&original=${column}&&limit=${limit}`);

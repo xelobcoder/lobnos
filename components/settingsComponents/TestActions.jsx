@@ -19,8 +19,10 @@ const TestActions = ({ id, row, deleteCustomTest }) => {
             <Link href={`/settings/testpanel/testlist/procedure/${id}`} className="border-bottom border-primary text-primary mx-2">
                 Add Manual
             </Link>
-            {services.
-                isConnectedInventory == 1 &&
+            <Link href={`/laboratory/qualitycontrol/test/${id}`} className="mx-2 border-bottom border-primary text-primary">
+                quality control
+            </Link>
+            {services.isConnectedInventory == 1 &&
                 <Link href={`/inventory/autoLaboratorydeductions?testid=${randomText}${row.original.id}`} className="border-bottom mx-2 border-primary text-primary">
                     Inventory Template
                 </Link>}

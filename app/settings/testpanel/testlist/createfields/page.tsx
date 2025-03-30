@@ -1,5 +1,6 @@
-import CreateTestFields from '../../../../../components/settingsComponents/FieldsCreation/createfieldsComponent';
+
 import { customFetch } from '../../../../../components/Auth/customFetch';
+import CreateTestFields from '../../../../../components/settingsComponents/FieldsCreation/createfieldsComponent';
 export default async function CreateSingleFieldPage({ searchParams }: { searchParams: { testid: Number, testname: string } }) {
    const { testid, testname } = await searchParams
 
@@ -13,7 +14,7 @@ export default async function CreateSingleFieldPage({ searchParams }: { searchPa
       customFetch(`testpanel/list/customtestrule?testid=${testid}`)
    ]);
 
-   console.log(testdata, fieldConstraintsCategorization, testRules)
+
 
    return (
       <div>

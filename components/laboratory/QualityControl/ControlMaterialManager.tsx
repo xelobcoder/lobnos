@@ -25,6 +25,8 @@ export function ControlMaterialManager() {
     const [showParametersModal, setShowParametersModal] = useState(false);
     const [selectedMaterialForParams, setSelectedMaterialForParams] = useState<string | null>(null);
     const [loadingDevices, setLoadingDevices] = useState(false);
+    const [tests, setTests] = useState<any[]>([]);
+   
 
     const { register, handleSubmit, reset, watch, control, formState: { errors }, setValue } = useForm<ControlMaterialType>({
         resolver: zodResolver(controlMaterialSchema),
@@ -154,6 +156,9 @@ export function ControlMaterialManager() {
     }
 
     const columns = [
+        {Header: "Associated Test",
+            accessor: 'testPanelName',
+        },
         {
             Header: 'DeviceName',
             accessor: 'deviceName',
@@ -197,12 +202,25 @@ export function ControlMaterialManager() {
             accessor: 'storageConditions',
         },
         {
-            Header: 'Status',
-            accessor: 'status',
+            Header: 'Created By',
+            accessor: 'createdByUser',
+        },
+        {
+            Header: 'Current Status',
+            accessor: 'currentStatus',
             Cell: ({ value }) => (
                 <Badge bg={value === 'active' ? 'success' : 'warning'}>
                     {value}
                 </Badge>
+            ),
+        },
+        {
+            Header: 'Days Until Expiry',
+            accessor: 'daysUntilExpiry',
+            Cell: ({ value }) => (
+                <span className={value <= 30 ? 'text-danger' : ''}>
+                    {value}
+                </span>
             ),
         },
         {
@@ -218,7 +236,7 @@ export function ControlMaterialManager() {
                             setShowParametersModal(true);
                         }}
                     >
-                        Params <RiListCheck size={14} />
+                        <RiListCheck size={14} />
                     </Button>
                     <Button
                         variant="outline-primary"
@@ -238,6 +256,7 @@ export function ControlMaterialManager() {
             ),
         }
     ];
+
 
     if (loading) {
         return <div>Loading...</div>;
@@ -263,7 +282,9 @@ export function ControlMaterialManager() {
                 onSubmit={handleSubmit(onSubmit)}
                 register={register}
                 watch={watch}
+       
                 errors={errors}
+  
                 selectedMaterial={selectedMaterial}
                 control={control}
                 devices={devices}

@@ -8,9 +8,8 @@ import { useRouter } from "next/navigation";
 
 export default function TestListDisplay() {
 	const [data, setData] = useState([]);
-	const [selectedRows, setSelectedRows] = useState([]);
 	const [isLoading, setLoading] = useState(true);
-	const router =useRouter()
+	const router = useRouter();
 
 	useEffect(() => {
 		customFetch('testpanel/list/bulk')
@@ -38,45 +37,7 @@ export default function TestListDisplay() {
 		}
 	};
 
-	const handleRowSelect = (id) => {
-		setSelectedRows((prevSelected) => {
-			if (prevSelected.includes(id)) {
-				return prevSelected.filter((rowId) => rowId !== id); 
-			} else {
-				return [...prevSelected, id];
-			}
-		});
-	};
-
-	const handleSelectAll = (isChecked) => {
-		if (isChecked) {
-			setSelectedRows(data.map(item => item.id)); 
-		} else {
-			setSelectedRows([]); 
-		}
-	};
-
 	const columns = [
-		{
-			Header: () => (
-				<input
-					type="checkbox"
-					checked={selectedRows.length === data.length && data.length > 0}
-					onChange={(e) => handleSelectAll(e.target.checked)}
-				/>
-			),
-			accessor: 'select',
-			Cell: ({ row }) => {
-				const { id } = row.original;
-				return (
-					<input
-						type="checkbox"
-						checked={selectedRows.includes(id)}
-						onChange={() => handleRowSelect(id)}
-					/>
-				);
-			}
-		},
 		{
 			Header: 'Name',
 			accessor: 'name',

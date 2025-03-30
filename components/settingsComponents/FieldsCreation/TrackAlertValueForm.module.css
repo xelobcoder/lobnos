@@ -1,0 +1,73 @@
+.container {
+    padding: 16px 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.checkbox {
+    margin: 0;
+    cursor: pointer;
+}
+
+.addButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: white;
+    color: #2563eb;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.addButton:hover {
+    background: #f8fafc;
+    border-color: #2563eb;
+}
+
+.tableContainer {
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.table th {
+    background: #f8fafc;
+    color: #374151;
+    font-weight: 500;
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    text-transform: capitalize;
+}
+
+.table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
