@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit } from '@mui/icons-material';
+import { RiEditLine } from '@remixicon/react';
 import { getStatusClass, NORMAL_RANGES } from './dataActions/vitalsigns';
 import { useRouter } from 'next/navigation';
 import style from '../../styles/SmsTemplateList.module.css'
@@ -54,7 +54,7 @@ export default function VitalSignTable({ groupedVitalSigns, openModal }) {
 										</td>
 										<td>
 											<button onClick={(ev) => { router.push(`/customers/recordVitalSigns?iNewChart=1&&patientid=2024972&&edit=1&&vsKeyId=${vitalSign.vitalsignid}`)}} className='btn p-0 bg-info-subtle'>
-												<Edit />
+												<RiEditLine />
 											</button>
 										</td>
 									</tr>

@@ -4,6 +4,7 @@ import "../../styles/globals.css";
 import '../../node_modules/react-toastify/dist/ReactToastify.min.css';
 import { ApplicationProvider } from "../../components/Auth/useApplicationContext";
 import PrimeLayout from "../../components/Layout/PrimeLayout";
+import { AppointmentsLinks } from "../../components/Layout/links/categories/AppointmentsLinks";
 
 
 
@@ -14,16 +15,12 @@ export default function SMSLayout({
 }) {
 
   return (
-    <html lang="en">
-      <body >
-        <Suspense>
+    <Suspense>
           <ApplicationProvider>
-            <PrimeLayout>
+            <PrimeLayout links={AppointmentsLinks}>
               {children}
             </PrimeLayout>
           </ApplicationProvider>
         </Suspense>
-      </body>
-    </html>
   );
 }

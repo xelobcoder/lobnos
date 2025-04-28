@@ -1,12 +1,17 @@
+import { useState } from "react";
 import Link from "next/link";
 import styles from './TestFieldsHeader.module.css';
-import { 
+import {
     RiAlertLine,
     RiGitBranchLine,
-   RiCornerDownRightFill
+    RiCornerDownRightFill,
+    RiShieldCheckLine
 } from '@remixicon/react';
+import QualityControlModal from './QualityControlModal';
 
 export default function TestFieldsHeader({ testid, testname }) {
+    const [showQCModal, setShowQCModal] = useState(false);
+
     return (
         <div className={styles.header}>
             <div className={styles.headerContent}>
@@ -15,13 +20,13 @@ export default function TestFieldsHeader({ testid, testname }) {
                     <span className={styles.badge}>Test Configuration</span>
                 </div>
                 <div className={styles.headerLinks}>
-                    <Link
-                        href={`/settings/test/${testid}/alert-levels`}
+                    <button 
+                        onClick={() => setShowQCModal(true)}
                         className={styles.headerLink}
                     >
-                        <RiAlertLine size={20} />
-                        <span>Alert Levels</span>
-                    </Link>
+                        <RiShieldCheckLine size={20} />
+                        <span>Quality Control</span>
+                    </button>
                     <Link
                         href={`/settings/applicationsettings/testpanels/fieldscategory/${testid}`}
                         className={styles.headerLink}
@@ -36,8 +41,16 @@ export default function TestFieldsHeader({ testid, testname }) {
                         <RiCornerDownRightFill size={20} />
                         <span>Multiple Conditions</span>
                     </Link>
+
                 </div>
             </div>
+
+            <QualityControlModal 
+                show={showQCModal}
+                onHide={() => setShowQCModal(false)}
+                testId={testid}
+                testName={testname}
+            />
         </div>
     );
 }

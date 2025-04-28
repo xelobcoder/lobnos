@@ -1,6 +1,6 @@
 import { Card, Table, Form, Badge, Button } from "react-bootstrap";
 import { EditIcon } from "../../Billing/BillingContextComponents/Lib/Icons";
-import { Delete } from "@mui/icons-material";
+import { RiDeleteBack2Fill } from "@remixicon/react";
 
 interface AttendanceListTabProps {
     filteredAttendance: any[];
@@ -113,7 +113,7 @@ const AttendanceListTab: React.FC<AttendanceListTabProps> = ({
                                         <EditIcon />
                                     </Button>{" "}
                                     <Button variant="danger" size="sm" onClick={() => deleteAttendance(index)}>
-                                        <Delete />
+                                        <RiDeleteBack2Fill/>
                                     </Button>
                                 </td>
                             </tr>

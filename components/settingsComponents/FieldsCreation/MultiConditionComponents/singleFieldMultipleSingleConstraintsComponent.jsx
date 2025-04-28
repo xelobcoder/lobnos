@@ -1,50 +1,74 @@
-import { ALERT_OPTIONS, CONSTRAINTSLEVEL } from "../data/testUtil"
+import { ALERT_OPTIONS, CONSTRAINTSLEVEL } from "../data/testUtil";
+import Select from 'react-select';
+import { reactSelectCustomStyles } from "../../../Auth/customFetch";
 
 export default function SingleFieldMultipleSingleConstraintsComponent({ field, index, handleChangeWithState }) {
+    const constraintOptions = CONSTRAINTSLEVEL.map(({ value, description, shortcut }) => ({
+        value: shortcut,
+        label: description
+    }));
+
+    const alertOptions = ALERT_OPTIONS.map(({ value, label, action }) => ({
+        value: action,
+        label: label
+    }));
+
+    const handleSelectChange = (option, actionMeta) => {
+        const ev = { target: { value: option.value } };
+        handleChangeWithState(index, actionMeta.name, ev);
+    };
+
+    const handleValueChange = (ev) => {
+        let value = ev.target.value;
+        if (field.constraint_type === 'between') {
+            value = value.replace(/[^0-9-]/g, '');
+            const hyphenCount = (value.match(/-/g) || []).length;
+            if (hyphenCount > 1) {
+                value = value.replace(/-/g, (match, offset) => offset === value.indexOf('-') ? match : '');
+            }
+        }
+        handleChangeWithState(index, 'value', { target: { value } });
+    };
 
     return (<tr>
         <td>
-            <select
-                onChange={(ev) => handleChangeWithState(index, 'constraint', ev)}
-                value={field.constraint || ''}
-                className="custom-select"
-            >
-                {CONSTRAINTSLEVEL.map(({ value, description }) => (
-                    <option key={value} value={value}>
-                        {description}
-                    </option>
-                ))}
-            </select>
+            <Select
+                options={constraintOptions}
+                value={constraintOptions.find(option => option.value === field.constraint_type)}
+                onChange={(option) => handleSelectChange(option, { name: 'constraint_type' })}
+                styles={reactSelectCustomStyles}
+                placeholder="Select constraint"
+                name="constraint_type"
+            />
         </td>
         <td>
             <input
                 type="text"
-                onChange={(ev) => handleChangeWithState(index, 'valueAlert', ev)}
+                onChange={handleValueChange}
                 className="custom-input"
-                value={field.valueAlert || ''}
+                value={field.value || ''}
+                placeholder={field.constraint_type === 'between' ? "e.g., 20-40" : "Enter value"}
             />
         </td>
         <td>
-            <select
-                onChange={(ev) => handleChangeWithState(index, 'alert', ev)}
-                value={field.alert || ''}
-                className="custom-select"
-            >
-                {Object.entries(ALERT_OPTIONS).map(([value, description]) => (
-                    <option key={value} value={value}>
-                        {description}
-                    </option>
-                ))}
-            </select>
+            <Select
+                options={alertOptions}
+                value={alertOptions.find(option => option.value === field.action)}
+                onChange={(option) => handleSelectChange(option, { name: 'action' })}
+                styles={reactSelectCustomStyles}
+                placeholder="Select action"
+                name="action"
+            />
         </td>
         <td>
-            {field?.alert == 3 && (
+            {field.action === 'replace' && (
                 <div className="form-group mx-2">
                     <input
                         type="text"
                         className="custom-input"
-                        onChange={(ev) => handleChangeWithState(index, 'replacementText', ev)}
-                        value={field.replacementText || ''}
+                        onChange={(ev) => handleChangeWithState(index, 'replacement_text', ev)}
+                        value={field.replacement_text || ''}
+                        placeholder="Enter replacement text"
                     />
                 </div>
             )}
@@ -66,5 +90,5 @@ export default function SingleFieldMultipleSingleConstraintsComponent({ field, i
             />
         </td>
     </tr>
-    )
+    );
 }

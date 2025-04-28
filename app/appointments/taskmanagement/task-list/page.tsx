@@ -2,10 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Card, Badge, Button, Modal, ButtonGroup } from 'react-bootstrap';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import ViewListIcon from '@mui/icons-material/ViewList';
-import ViewColumnIcon from '@mui/icons-material/ViewColumn';
+import { 
+    RiAddLine, 
+    RiEdit2Fill,
+    RiListView,
+    RiKanbanView2,
+    RiAddLargeFill
+} from '@remixicon/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
 import { customFetch } from '../../../../components/Auth/customFetch';
@@ -143,7 +146,7 @@ const TaskViewer = () => {
                         variant="primary"
                         className="d-flex align-items-center btn-sm"
                     >
-                        <EditIcon fontSize="small" className="me-1" /> Edit Task
+                        < RiEdit2Fill fontSize="small" className="me-1" /> Edit Task
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -216,7 +219,7 @@ const TaskViewer = () => {
                                         variant="light"
                                         className="w-100 mt-2"
                                     >
-                                        <AddIcon fontSize="small" className="me-1" /> Add Task
+                                        <RiAddLine className="me-1" /> Add Task
                                     </Button>
                                 </Card.Body>
                             </Card>
@@ -247,14 +250,14 @@ const TaskViewer = () => {
                                 onClick={() => setView("list")}
                                 className="d-flex align-items-center"
                             >
-                                <ViewListIcon fontSize="small" className="me-1" /> List
+                                <RiListView fontSize="small" className="me-1" /> List
                             </Button>
                             <Button
                                 variant={view === "kanban" ? "primary" : "light"}
                                 onClick={() => setView("kanban")}
                                 className="d-flex align-items-center"
                             >
-                                <ViewColumnIcon fontSize="small" className="me-1" /> Kanban
+                                <RiKanbanView2 fontSize="small" className="me-1" /> Kanban
                             </Button>
                         </ButtonGroup>
                         <Button
@@ -265,7 +268,7 @@ const TaskViewer = () => {
                             size="sm"
                             className="d-flex align-items-center"
                         >
-                            <AddIcon fontSize="small" className="me-1" /> New Task
+                            <RiAddLargeFill fontSize="small" className="me-1" /> New Task
                         </Button>
                     </div>
                 </Col>

@@ -63,8 +63,10 @@ export default function ParamCreationGForm({ field, setField, generalTestRule, f
                                     className={`${styles.typeBox} ${field.plan === type.value ? styles.selected : ''}`}
                                     onClick={() => handleTypeSelect(type.value)}
                                 >
-                                    <IconComponent size={24} className={styles.icon} />
-                                    <span>{type.label}</span>
+                                    <div className={styles.typeBoxContent}>
+                                        <IconComponent className={styles.icon} />
+                                        <span className={styles.typeBoxLabel}>{type.label}</span>
+                                    </div>
                                 </div>
                             );
                         })}

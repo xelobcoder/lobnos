@@ -1,4 +1,4 @@
-import Add from "@mui/icons-material/Add";
+import { RiAddLine } from '@remixicon/react';
 import Link from "next/link";
 import { useState } from "react";
 import { handleChangeWithState } from "../Auth/customFetch";
@@ -48,7 +48,7 @@ export default function RecordVitalSignsChartForm({ searchParams }) {
                     <div className="mb-2">
                         <Link href={`/customers/recordVitalSigns?iNewChart=1&&patientid=${patientid}`}>
                             <button className="btn btn-primary btn-sm">
-                                <Add /> Add new vitals
+                                <RiAddLine /> Add new vitals
                             </button>
                         </Link>
                     </div>

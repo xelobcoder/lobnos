@@ -1,33 +1,25 @@
 'use client';
 import React, { useState } from "react";
-import { Mylinks } from "./PrimeLinks";
-import Link from "next/link";
 import styles from './PrimeLayout.module.css';
-import { RiSearchLine, RiMenuFoldLine, RiMenuUnfoldLine, RiMoonLine, RiSunLine } from '@remixicon/react';
+import { RiMenuFoldLine, RiMenuUnfoldLine, RiMoonLine, RiSunLine } from '@remixicon/react';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 
 interface PrimeLayoutProps {
     children: React.ReactNode;
+    links:{title: string;
+        icon: React.ReactNode;
+        link?: string;} [];
 }
 
-const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
-    const [activeGroup, setActiveGroup] = useState<number | null>(null);
-    const [searchQuery, setSearchQuery] = useState('');
+const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(false);
     const [isDarkMode, setIsDarkMode] = useState<boolean>(false); 
-    const { company, branchid ,user} = useApplicationSettings().applicationsettings;
-    const links = Mylinks(branchid,user.employeeid);
+    const { company,user } = useApplicationSettings().applicationsettings;
 
-    const handleGroupClick = (index: number) => {
-        const currentItem = links[index];
-        if (!currentItem.subLinks || currentItem.subLinks.length === 0) {
-            if (currentItem.link) {
-                window.location.href = currentItem.link;
-                return;
-            }
+    const handleGroupClick = (link: string | undefined) => {
+        if (link) {
+            window.location.href = link;
         }
-        setActiveGroup(activeGroup === index ? null : index);
-        setIsSidebarExpanded(activeGroup !== index);
     };
 
     const toggleSidebar = () => {
@@ -38,20 +30,19 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
         setIsDarkMode(!isDarkMode);
     };
 
-    const filteredLinks = activeGroup !== null && links[activeGroup] ? 
-        links[activeGroup].subLinks.filter(link => 
-            link.title.toLowerCase().includes(searchQuery.toLowerCase())
-        ) : [];
-
-    const hasSublinks = activeGroup !== null && 
-        links[activeGroup] && 
-        links[activeGroup].subLinks && 
-        links[activeGroup].subLinks.length > 0;
-
     return (
-        <div className={`${styles.pageContainer} ${isDarkMode ? styles.darkMode : styles.lightMode}`}>
-            <aside className={styles.iconSidebar}>
-                <div className={styles.iconHeader}>
+        <div className={styles.pageContainer}>
+            <header className={styles.header}>
+                <div className={styles.headerContent}>
+                    <h1>{company}</h1>
+                    <div className={styles.userInfo}>
+                        <span>{user.username}</span>
+                        <span className={styles.role}>{user.role}</span>
+                    </div>
+                </div>
+            </header>
+            <aside className={`${styles.sidebar} ${isSidebarExpanded ? styles.expanded : styles.collapsed}`}>
+                <div className={styles.sidebarHeader}>
                     <div className={styles.companyIcon}>
                         {company?.name?.charAt(0)}
                     </div>
@@ -63,51 +54,27 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children }) => {
                     </button>
                 </div>
 
-                <nav className={styles.iconNav}>
+                <nav className={styles.sidebarNav}>
                     {Array.isArray(links) && links.map((item, index) => (
                         <div 
                             key={index} 
-                            className={`${styles.iconItem} ${activeGroup === index ? styles.active : ''}`}
-                            onClick={() => handleGroupClick(index)}
+                            className={styles.navItem}
+                            onClick={() => handleGroupClick(item.link)}
                             title={item.title}
                         >
                             <span className={styles.icon}>{item.icon}</span>
+                            {isSidebarExpanded && (
+                                <span className={styles.title}>{item.title}</span>
+                            )}
                         </div>
                     ))}
                 </nav>
             </aside>
 
-            {hasSublinks && (
-                <aside className={`${styles.linksSidebar} ${isSidebarExpanded ? styles.expanded : styles.collapsed}`}>
-                    <div className={styles.linksContainer}>
-                        <h2 className={styles.linkGroupTitle}>{links[activeGroup].title}</h2>
-                        <div className={styles.searchContainer}>
-                            <RiSearchLine className={styles.searchIcon} />
-                            <input
-                                type="text"
-                                placeholder="Search links..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className={styles.searchInput}
-                            />
-                        </div>
-                        <div className={`${styles.linksList}`}>
-                            {filteredLinks.map((subLink, index) => (
-                                <Link 
-                                    key={index}
-                                    href={subLink.link}
-                                    className={styles.linkItem}
-                                >
-                                    {subLink.title}
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                </aside>
-            )}
-
-            <main className={` p-2 ${styles.mainContent} ${hasSublinks && isSidebarExpanded ? styles.sidebarExpanded : styles.sidebarCollapsed}`}>
-                {children}
+            <main className={`${styles.mainContent} ${isSidebarExpanded ? styles.sidebarExpanded : styles.sidebarCollapsed}`}>
+                <div className="p-4">
+                    {children}
+                </div>
             </main>
         </div>
     );

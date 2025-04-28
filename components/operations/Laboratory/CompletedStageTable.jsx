@@ -2,9 +2,7 @@ import { PrepareResultEntryHeader } from "../../Auth/customFetch";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { fnTiming } from "./Lib";
 import { Dropdown } from 'react-bootstrap';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
+import { RiMoreLine, RiCheckLine, RiCloseLine } from '@remixicon/react';
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
 
@@ -59,14 +57,14 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 			Cell: ({ row }) => (
 				<Dropdown>
 					<Dropdown.Toggle variant="link" size="sm" className="p-0">
-						<MoreHorizIcon />
+						<RiMoreLine size={16} />
 					</Dropdown.Toggle>
 					<Dropdown.Menu>
 						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original,false,branchid)}>
-							<CheckIcon fontSize="small" /> Enter result
+							<RiCheckLine size={16} className="me-2" /> Enter result
 						</Dropdown.Item>
 						<Dropdown.Item onClick={() => console.log(`Enter All related for ${row.original.patientid}`)}>
-							<CloseIcon fontSize="small" /> Enter All related
+							<RiCloseLine size={16} className="me-2" /> Enter All related
 						</Dropdown.Item>
 					</Dropdown.Menu>
 				</Dropdown>

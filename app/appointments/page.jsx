@@ -3,13 +3,20 @@ import React, { useState, useEffect } from 'react';
 import { customFetch } from '../../components/Auth/customFetch';
 import Loader from '../../components/accessories/Loader';
 import { Modal, Button, Badge, Form } from 'react-bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import dayjs from 'dayjs';
-import 'dayjs/locale/en';
-import { ArrowBackIos, ArrowForwardIos, Cancel, EditAttributes, PostAdd, SaveAsSharp } from '@mui/icons-material';
+import { 
+    RiArrowLeftSLine, 
+    RiArrowRightSLine, 
+    RiCloseLine, 
+    RiEditLine, 
+    RiAddLine, 
+    RiSaveLine, 
+	RiArrowGoForwardLine
+} from '@remixicon/react';
 import { EditIcon } from '../../components/Billing/BillingContextComponents/Lib/Icons';
 import { motion } from 'framer-motion';
-dayjs.locale('en');
+import dayjs from 'dayjs';
+import 'dayjs/locale/en';
+
 
 export default function Appointment() {
 	const [appointments, setAppointments] = useState([]);
@@ -22,7 +29,6 @@ export default function Appointment() {
 	const [viewMode, setViewMode] = useState('Month');
 	const [modalMode, setModalMode] = useState('view');
 
-	// Fetch appointments when currentDate changes
 	useEffect(() => {
 		const fetchAppointments = async () => {
 			try {
@@ -304,11 +310,35 @@ export default function Appointment() {
 					<div className="d-flex gap-2">
 						<div className="btn-group">
 							<Button onClick={navigateToPreviousMonth} variant="danger" size="sm" aria-label="Previous month">
-								<ArrowBackIos />
-							</Button>
+                                <RiArrowLeftSLine />
+                            </Button>
+                            <Button onClick={navigateToToday} variant="danger" size="sm">Today</Button>
+                            <Button onClick={navigateToNextMonth} variant="danger" size="sm" aria-label="Next month">
+                                <RiArrowRightSLine />
+                            </Button>
+                            
+                       
+                            <Button variant="outline-secondary" size="sm" onClick={handleCancelEdit}>
+                                <RiCloseLine /> Cancel
+                            </Button>
+                            
+                         
+                            <Button variant="outline-primary" size="sm" onClick={() => setModalMode('edit')}>
+                                <RiEditLine /> Edit
+                            </Button>
+                            
+                        
+                            <Button variant="primary" size="sm" className="d-flex align-items-center">
+                                <RiAddLine /> New Appointment
+                            </Button>
+                            
+                            
+                            <Button variant="success" size="sm" onClick={handleSaveChanges} className="me-2">
+                                <RiSaveLine /> Save
+                            </Button>
 							<Button onClick={navigateToToday} variant="danger" size="sm">Today</Button>
 							<Button onClick={navigateToNextMonth} variant="danger" size="sm" aria-label="Next month">
-								<ArrowForwardIos />
+								<RiArrowGoForwardLine/>
 							</Button>
 						</div>
 						<div className="btn-group">
@@ -372,10 +402,10 @@ export default function Appointment() {
 					{modalMode === 'edit' && (
 						<div className="d-flex">
 							<Button variant="success" size="sm" onClick={handleSaveChanges} className="me-2">
-								<PostAdd /> Save
+								 Save
 							</Button>
 							<Button variant="outline-secondary" size="sm" onClick={handleCancelEdit}>
-								<Cancel /> Cancel
+								 Cancel
 							</Button>
 						</div>
 					)}

@@ -1,8 +1,6 @@
 import React from "react";
 import { Dropdown } from 'react-bootstrap';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
+import { RiMoreLine, RiCheckLine, RiCloseLine } from '@remixicon/react';
 import { useUltrasoundContext } from "./UltrasoundContext";
 import Pagination from "../../accessories/pagination";
 import { generateRandomTextAndNumbers, PrepareResultEntryHeader } from "../../Auth/customFetch";
@@ -64,14 +62,14 @@ export default function AscentionUltrasoundUnCompletedTable() {
 			Cell: ({ row }) => (
 				<Dropdown>
 					<Dropdown.Toggle variant="link" size="sm" className="p-0">
-						<MoreHorizIcon />
+						<RiMoreLine size={16} />
 					</Dropdown.Toggle>
 					<Dropdown.Menu>
 						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original, true)}>
-							<CheckIcon fontSize="small" /> Enter result
+							<RiCheckLine size={16} className="me-1" /> Enter result
 						</Dropdown.Item>
 						<Dropdown.Item onClick={() => handlePrintResult(row.original)}>
-							<CloseIcon fontSize="small" />
+							<RiCloseLine size={16} className="me-1" />
 							Print Result
 						</Dropdown.Item>
 					</Dropdown.Menu>

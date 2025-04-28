@@ -1,4 +1,4 @@
-import { Start, Stop } from "@mui/icons-material";
+import { RiPlayCircleLine, RiStopCircleLine } from '@remixicon/react';
 import { useState } from "react";
 import { Spinner } from "react-bootstrap";
 import { customPost } from "../../Auth/customFetch";
@@ -33,18 +33,20 @@ export default function ProcessingButtons({ item, employeeid, updateTestCollecti
        }
 
        return (
-              <div >
+              <div>
                      <button
                             disabled={item.processingStartDate}
                             onClick={(ev) => { handleProcessing(item, 'start') }}
                             className="btn btn-success btn-sm">
                             {(subStart || (BulkTargetTo == item.ascensionid && action === "start")) && <Spinner size="sm" />}
-                            <Start />start </button>
+                            <RiPlayCircleLine size={16} className="me-1" /> Start
+                     </button>
                      <button
                             disabled={item.processingEndDate}
                             onClick={(ev) => { handleProcessing(item, 'stop') }}
                             className="mx-2 btn btn-danger btn-sm">
-                            {(subStop || (BulkTargetTo == item.ascensionid && action === "stop")) && <Spinner size="sm" />} <Stop /> stop
+                            {(subStop || (BulkTargetTo == item.ascensionid && action === "stop")) && <Spinner size="sm" />}
+                            <RiStopCircleLine size={16} className="me-1" /> Stop
                      </button>
               </div>
        )

@@ -4,7 +4,7 @@ import { printResultNavigator } from "../../Auth/customFetch";
 import { useRouter } from "next/navigation";
 import ActionDropdown from "./ActionAscensionTables";
 import { useMediaQuery } from 'react-responsive';
-import { SelectAll } from "@mui/icons-material";
+import { RiCheckboxMultipleLine } from '@remixicon/react';
 import ValidationModal from "./ValidationModal";
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
@@ -95,7 +95,7 @@ export default function ValidationAscensionTable({ employeeid }) {
 					}}
 					disabled={collection.length === 0}
 				>
-					{isMobile ? <SelectAll titleAccess="select and unselect all ascensions" /> : "Select All"}
+					{isMobile ? <RiCheckboxMultipleLine title="select and unselect all ascensions" size={16} /> : "Select All"}
 				</button>
 			</div>
 			<PrimeTable column={columns} data={collection}

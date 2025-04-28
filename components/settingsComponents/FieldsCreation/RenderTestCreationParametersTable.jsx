@@ -1,8 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReformatTestParamOptions from './FormatOptions';
+import CreateFieldConstraintsModal from './CreateFieldConstraintsModal';
 import styles from './RenderTestCreationParametersTable.module.css';
 
-export default function RenderTestCreationParameters({ data, reorder, setReorder, changeOrdering, editField, removeField }) {
+export default function RenderTestCreationParameters({ data, reorder, setReorder, changeOrdering, editField, removeField ,testid}) {
+    const [showConstraintsModal, setShowConstraintsModal] = useState(false);
+    const [selectedFieldId, setSelectedFieldId] = useState(null);
+
+    const handleOpenConstraintsModal = (fieldId) => {
+        setSelectedFieldId(fieldId);
+        setShowConstraintsModal(true);
+    };
+
     return (
         <div className={styles.container}>
             <div className={styles.header}>
@@ -63,6 +72,12 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
                                         >
                                             Delete
                                         </button>
+                                        <button
+                                            onClick={() => handleOpenConstraintsModal(item.id)}
+                                            className={styles.constraintsBtn}
+                                        >
+                                            Create Constraints
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -70,6 +85,13 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
                     </tbody>
                 </table>
             </div>
+
+            <CreateFieldConstraintsModal 
+                fieldId={selectedFieldId}
+                show={showConstraintsModal}
+                testId={testid}
+                onHide={() => setShowConstraintsModal(false)}
+            />
         </div>
     );
 }

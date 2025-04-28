@@ -6,7 +6,7 @@ import { Alert, Button } from "react-bootstrap";
 import StockManagementSmallerScreen from "../../operations/Laboratory/stockMangementSmallerScreen";
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
-import { RemoveRedEye } from "@mui/icons-material";
+import { RiEyeLine } from '@remixicon/react';
 
 
 export default function StockManagementCompo({ ascensionList }) {
@@ -41,7 +41,7 @@ export default function StockManagementCompo({ ascensionList }) {
 			Header: 'Action',
 			Cell: ({ row }) => (
 				<Button variant="outline-primary" className="btn-sm br-5 border-primary-2 border" onClick={() => handleActionClick(row.original)}>
-					<RemoveRedEye />
+					<RiEyeLine size={16} />
 				</Button>
 			),
 		},

@@ -6,7 +6,7 @@ import Loader from '../../accessories/Loader';
 import { customFetch, generateRandomTextAndNumbers } from '../../Auth/customFetch';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import { handleServerSideProcessingAscensionData } from '../../serverActions/ActionFiltering';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { RiMoreLine } from '@remixicon/react';
 
 const Print = (
      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
@@ -154,7 +154,7 @@ export default function ValidatedResultTable({ employeeid }) {
                          <Dropdown.Toggle
                               variant='link'
                               size="sm">
-                              <MoreVertIcon fontSize="small" />
+                              <RiMoreLine fontSize="small" />
                          </Dropdown.Toggle>
 
                          <Dropdown.Menu>

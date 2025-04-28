@@ -3,10 +3,10 @@ import React, { useEffect, useState } from "react";
 import { Form, Spinner } from "react-bootstrap";
 import ClinicianIndividualBillingConcession from "./ClinicianIndividualBillingConcession";
 import OrganizationFiltering from "../accessories/SectorFileringComponents/OrganizationFiltering";
-import { Delete } from "@mui/icons-material";
 import { customPost } from "../Auth/customFetch";
 import { PreviousClinicianBillingRecord } from "./dev.type";
 import { ToastContainer, toast } from "react-toastify";
+import { RiDeleteBinLine } from '@remixicon/react';
 interface SelectedTest {
 	testName: string;
 	originalPrice: number;
@@ -261,7 +261,7 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords,
 															)
 														}
 													>
-														<Delete fontSize="small" />
+														<RiDeleteBinLine fontSize="small" />
 													</button>
 												</td>
 											</tr>
@@ -278,7 +278,7 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords,
 									Selected Tests
 								</span>
 								<button className="btn btn-danger btn-sm mx-5" onClick={handleRemoveSelectedTests}>
-									<Delete fontSize="small" />
+									<RiDeleteBinLine fontSize="small" />
 								</button>
 							</div>
 							<table className="table ttable mt-1">
@@ -331,7 +331,7 @@ export default function ClinicianBillingModeView({ clinicianid, previousRecords,
 														);
 													}}
 												>
-													<Delete fontSize="small" />
+													<RiDeleteBinLine fontSize="small" />
 												</button>
 											</td>
 										</tr>

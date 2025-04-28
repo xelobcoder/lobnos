@@ -1,6 +1,6 @@
 import moment from "moment";
 import { customFetch } from "../../Auth/customFetch";
-import { Start, Stop } from "@mui/icons-material";
+import { RiPlayFill, RiStopFill } from '@remixicon/react';
 
 export const formatDate = (date) => {
        return new Date(date).toISOString().split('T')[0];
@@ -53,9 +53,9 @@ export const fnTiming = (item) => {
        const parsedEnd = processingEndDate ? moment(processingEndDate).format('LLLL') : ''
        return (
               <div className="bg-light d-block br-5">
-                     {parsedStart && <span > <Start color="success" />{parsedStart}</span>}
+                     {parsedStart && <span> <RiPlayFill color="green" />{parsedStart}</span>}
                      <hr className="p-0 m-0" />
-                     {parsedEnd && <span> <Stop color='error' />{parsedEnd}</span>}
+                     {parsedEnd && <span> <RiStopFill color='red' />{parsedEnd}</span>}
               </div>
        )
 } 

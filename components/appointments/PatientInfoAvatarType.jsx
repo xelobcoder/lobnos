@@ -1,10 +1,12 @@
 import React from "react";
-import NoteIcon from "@mui/icons-material/Note";
-import EmailIcon from "@mui/icons-material/Email";
-import CallIcon from "@mui/icons-material/Call";
-import TaskIcon from "@mui/icons-material/Task";
-import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import { 
+    RiStickyNoteLine, 
+    RiMailLine, 
+    RiPhoneLine, 
+    RiTaskLine, 
+    RiGroupLine, 
+    RiMoreFill 
+} from '@remixicon/react';
 
 export default function PatientInfo({ patientdata = {} }) {
   const { firstname, middlename, lastname, email, gender, age, mobile_number, age_Type } = patientdata;
@@ -31,22 +33,22 @@ export default function PatientInfo({ patientdata = {} }) {
       </div>
       <div className="d-flex">
         <button className="btn btn-outline-primary shadow border-2">
-          <NoteIcon /> Note
+          <RiStickyNoteLine className="me-1" /> Note
         </button>
         <button className="btn btn-outline-primary shadow mx-2 border-2">
-          <EmailIcon /> Email
+          <RiMailLine className="me-1" /> Email
         </button>
         <button className="btn btn-outline-primary shadow mx-2 border-2">
-          <CallIcon /> Call
+          <RiPhoneLine className="me-1" /> Call
         </button>
         <button className="btn btn-outline-primary shadow mx-2 border-2">
-          <TaskIcon /> Task
+          <RiTaskLine className="me-1" /> Task
         </button>
         <button className="btn btn-outline-primary shadow mx-2 border-2">
-          <MeetingRoomIcon /> Meeting
+          <RiGroupLine className="me-1" /> Meeting
         </button>
         <button className="btn btn-outline-primary shadow mx-2 border-2">
-          <MoreHorizIcon /> More
+          <RiMoreFill className="me-1" /> More
         </button>
       </div>
     </div>

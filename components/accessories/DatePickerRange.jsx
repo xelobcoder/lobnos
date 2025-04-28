@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import { getDateRange } from "../Auth/customFetch";
-import { CalendarMonth } from "@mui/icons-material";
+import { RiCalendarLine } from '@remixicon/react';
 export default function
   DatePickerRange({ getRange, start, end, ...props }) {
   const [dateRange, setDateRange] = useState([start, end]);
@@ -13,7 +13,7 @@ export default function
 
   return (
     <DatePicker
-      icon={<CalendarMonth fontSize="sm" />}
+      icon={<RiCalendarLine size="1em" />}
       selectsRange={true}
       title="date range from start to date"
       startDate={startDate}

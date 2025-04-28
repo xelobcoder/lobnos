@@ -1,4 +1,4 @@
-import { Refresh } from "@mui/icons-material";
+import { RiRefreshLine } from '@remixicon/react';
 import React from "react";
 import { Form, Button } from "react-bootstrap";
 
@@ -40,7 +40,7 @@ const ShiftCyclePicker: React.FC<ShiftCyclePickerProps> = ({
             </div>
             <div className="mx-2">
                 <Button onClick={onGenerate} className="btn-sm mx-2">
-                    <Refresh/> Generate
+                    <RiRefreshLine className="me-1" /> Generate
                 </Button>
             </div>
         </div>

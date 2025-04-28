@@ -4,7 +4,7 @@ import { Modal, Button } from 'react-bootstrap';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import { handleServerTurnAroundTime } from '../../serverActions/ActionFiltering';
 import moment from 'moment';
-import { RemoveRedEye, CheckCircle, AccessTime } from '@mui/icons-material';
+import { RiEyeLine, RiCheckboxCircleLine,  RiAccessibilityFill } from '@remixicon/react';
 
 export default function TurnAroundDataTable({ data }) {
     const [showModal, setShowModal] = useState(false);
@@ -41,7 +41,7 @@ export default function TurnAroundDataTable({ data }) {
                     className="btn btn-sm"
                     onClick={() => handleRowClick(row)}
                 >
-                    <RemoveRedEye />
+                    <RiEyeLine size={16} />
                 </Button>
             ),
         },
@@ -69,7 +69,7 @@ export default function TurnAroundDataTable({ data }) {
                                     <div className="position-relative" style={{ zIndex: 1 }}>
                                         <div className="timeline-icon rounded-circle border bg-white d-flex align-items-center justify-content-center"
                                             style={{ width: '44px', height: '44px' }}>
-                                            <CheckCircle className="text-success" fontSize="medium" />
+                                            <RiCheckboxCircleLine className="text-success" fontSize="medium" />
                                         </div>
                                     </div>
                                     <div className="ms-3 flex-grow-1">
@@ -89,7 +89,7 @@ export default function TurnAroundDataTable({ data }) {
                                     <div className="position-relative" style={{ zIndex: 1 }}>
                                         <div className="timeline-icon rounded-circle border bg-white d-flex align-items-center justify-content-center"
                                             style={{ width: '44px', height: '44px' }}>
-                                            <CheckCircle className="text-success" fontSize="medium" />
+                                            <RiCheckboxCircleLine className="text-success" fontSize="medium" />
                                         </div>
                                     </div>
                                     <div className="ms-3 flex-grow-1">
@@ -109,7 +109,7 @@ export default function TurnAroundDataTable({ data }) {
                                     <div className="position-relative" style={{ zIndex: 1 }}>
                                         <div className="timeline-icon rounded-circle border bg-white d-flex align-items-center justify-content-center"
                                             style={{ width: '44px', height: '44px' }}>
-                                            <CheckCircle className="text-success" fontSize="medium" />
+                                            <RiCheckboxCircleLine className="text-success" fontSize="medium" />
                                         </div>
                                     </div>
                                     <div className="ms-3 flex-grow-1">
@@ -129,7 +129,7 @@ export default function TurnAroundDataTable({ data }) {
                                     <div className="position-relative" style={{ zIndex: 1 }}>
                                         <div className="timeline-icon rounded-circle border bg-white d-flex align-items-center justify-content-center"
                                             style={{ width: '44px', height: '44px' }}>
-                                            <CheckCircle className="text-success" fontSize="medium" />
+                                            <RiCheckboxCircleLine className="text-success" fontSize="medium" />
                                         </div>
                                     </div>
                                     <div className="ms-3 flex-grow-1">
@@ -149,7 +149,7 @@ export default function TurnAroundDataTable({ data }) {
                                     <div className="position-relative" style={{ zIndex: 1 }}>
                                         <div className="timeline-icon rounded-circle border bg-white d-flex align-items-center justify-content-center"
                                             style={{ width: '44px', height: '44px' }}>
-                                            <CheckCircle className="text-success" fontSize="medium" />
+                                            <RiCheckboxCircleLine className="text-success" fontSize="medium" />
                                         </div>
                                     </div>
                                     <div className="ms-3 flex-grow-1">
@@ -169,7 +169,7 @@ export default function TurnAroundDataTable({ data }) {
                                     <div className="position-relative" style={{ zIndex: 1 }}>
                                         <div className="timeline-icon rounded-circle border bg-white d-flex align-items-center justify-content-center"
                                             style={{ width: '44px', height: '44px' }}>
-                                            <AccessTime className="text-primary" fontSize="medium" />
+                                            <RiAccessibilityFill className="text-primary" fontSize="medium" />
                                         </div>
                                     </div>
                                     <div className="ms-3 flex-grow-1">
@@ -189,7 +189,7 @@ export default function TurnAroundDataTable({ data }) {
                                     <div className="position-relative" style={{ zIndex: 1 }}>
                                         <div className="timeline-icon rounded-circle border bg-white d-flex align-items-center justify-content-center"
                                             style={{ width: '44px', height: '44px' }}>
-                                            <AccessTime className="text-primary" fontSize="medium" />
+                                            <RiAccessibilityFill className="text-primary" fontSize="medium" />
                                         </div>
                                     </div>
                                     <div className="ms-3 flex-grow-1">

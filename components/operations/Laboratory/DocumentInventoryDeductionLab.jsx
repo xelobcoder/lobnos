@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, ListGroup } from "react-bootstrap";
 import { fetchTestTemplate } from "../../inventory/LimsConnection/lib";
 import InventoryStockFiltering from "../../inventory/LimsConnection/InventoryStockFiltering";
-import { Add } from "@mui/icons-material";
+import { RiAddLine } from '@remixicon/react';
 import PreviewTestInformation from "./PreviewTestInformation";
 
 const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
@@ -115,7 +115,7 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                          className="btn-sm"
                          variant="primary"
                          onClick={handleSave}
-                         tabIndex={templates.length + 1} // Set tabIndex after the last input
+                         tabIndex={templates.length + 1} 
                     >
                          Save Data
                     </Button>

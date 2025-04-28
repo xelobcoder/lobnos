@@ -159,6 +159,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
                                 <RenderTestCreationParameters
                                     data={data}
                                     reorder={reorder}
+									testid={testid}
                                     setReorder={setReorder}
                                     changeOrdering={changeOrdering}
                                     editField={editField}
