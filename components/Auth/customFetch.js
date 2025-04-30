@@ -579,7 +579,7 @@ export const activateInstitutionUser = async (id, previousStatus, setUser) => {
 
 export const getDateExpression = `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}`
 
-export const getBranches = async function (setBranches, id, loader = null) {
+export const getBranches = async function (setBranches, id, loader) {
 	try {
 		if (loader) loader(true)
 		let endpoint = `branches`

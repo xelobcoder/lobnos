@@ -1,6 +1,6 @@
-import { Forward } from "@mui/icons-material";
 import { useState } from "react";
 import ResultEntryComponent from "./ResultEntryComponent";
+import { RiArrowRightLine } from '@remixicon/react';
 
 export default function OperationsListTestCollection({ operations }) {
 	const { testList } = operations;
@@ -37,7 +37,7 @@ export default function OperationsListTestCollection({ operations }) {
 										handleTestCollectionSingle(item);
 									}}
 								>
-									<Forward fontSize="small" />
+									<RiArrowRightLine size={24} />
 								</button>
 							</div>
 						))}

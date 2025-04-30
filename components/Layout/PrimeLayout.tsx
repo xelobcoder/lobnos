@@ -3,12 +3,11 @@ import React, { useState } from "react";
 import styles from './PrimeLayout.module.css';
 import { RiMenuFoldLine, RiMenuUnfoldLine, RiMoonLine, RiSunLine } from '@remixicon/react';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
+import { Link } from "./links/types";
 
 interface PrimeLayoutProps {
     children: React.ReactNode;
-    links:{title: string;
-        icon: React.ReactNode;
-        link?: string;} [];
+    links:Link[]
 }
 
 const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {

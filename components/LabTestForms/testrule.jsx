@@ -4,7 +4,6 @@ import { customPost } from "../Auth/customPost";
 import Indicator from "../accessories/Reports/indicator";
 import { toast, ToastContainer } from 'react-toastify';
 import Loader from "../accessories/Loader";
-import { BarChart, Dangerous, History } from "@mui/icons-material";
 import ResultEntryMainEntryBase from "./ResultEntryMainEntryBase";
 import moment from "moment";
 import { useApplicationSettings } from "../Auth/useApplicationContext";

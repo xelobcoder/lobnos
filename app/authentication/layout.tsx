@@ -4,6 +4,7 @@ import "../../styles/globals.css";
 import '../../node_modules/react-toastify/dist/ReactToastify.min.css';
 import { ApplicationProvider } from "../../components/Auth/useApplicationContext";
 import PrimeLayout from "../../components/Layout/PrimeLayout";
+import { ApplicationSettingsLinks } from "../../components/Layout/links/categories/ApplicationSettingsLinks";
 
 
 
@@ -18,7 +19,7 @@ export default function SMSLayout({
       <body >
         <Suspense>
           <ApplicationProvider>
-            <PrimeLayout>
+            <PrimeLayout links={ApplicationSettingsLinks}>
               {children}
             </PrimeLayout>
           </ApplicationProvider>

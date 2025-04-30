@@ -1,8 +1,8 @@
 import { useContext } from 'react';
-import { Delete } from "@mui/icons-material";
 import ServicesSearchComponent from "./BillingSourceComponents/ServicesSearchComponentJsx";
 import { currencyFormatter } from '../../Auth/customFetch';
 import { BillingContext } from './BillingContext';
+import { RiDeleteBackFill } from '@remixicon/react';
 
 export default function ServicesProvidedToPatientBilling() {
     const { billingdata, recalculateTotalBill } = useContext(BillingContext);
@@ -96,7 +96,7 @@ export default function ServicesProvidedToPatientBilling() {
                                         className="btn btn-danger btn-sm"
                                         onClick={() => removeService(service.keyid)}
                                     >
-                                        <Delete />
+                                        <RiDeleteBackFill/>
                                     </button>
                                 </td>
                             </tr>

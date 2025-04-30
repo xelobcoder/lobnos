@@ -1,5 +1,4 @@
 import { Row, Spinner } from "react-bootstrap";
-import { MoneyRounded, Clear } from "@mui/icons-material";
 import { useContext, useState } from "react";
 import { BillingContext } from "./BillingContext";
 import Select from "react-select";
@@ -7,6 +6,7 @@ import { toast } from "react-toastify";
 import { Billingdefaultdata, organizationOptions, urgencyOptions, ValidateAndSubmitBillingInformation } from "../../../lib/billingLib";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import ReceiptOptionsModal from "../ReceiptOptionsModal";
+import { RiMoneyDollarCircleLine, RiCloseLine } from '@remixicon/react';
 
 export default function BillingPageAdditionalInformation({ patientid, billingid }) {
 	const [showMoreBtn, setShowMoreBtn] = useState(false);
@@ -181,14 +181,14 @@ export default function BillingPageAdditionalInformation({ patientid, billingid 
 							disabled={checkButtonDisabled(billingdata)}
 							className="btn btn-success mx-2"
 							onClick={(ev) => { handleSubmit() }}>
-							{isSaving && <Spinner size="sm" />}<MoneyRounded /> Bill Client
+							{isSaving && <Spinner size="sm" />}<RiMoneyDollarCircleLine size={18} /> Bill Client
 						</button>
 						<button
 							onClick={(ev) => {
 								updateBilling(Billingdefaultdata);
 							}}
 							className="btn btn-danger">
-							<Clear /> Cancel
+							<RiCloseLine size={18} /> Cancel
 						</button>
 					</div>
 				</div>

@@ -1,12 +1,12 @@
 import React from 'react';
 import { Dropdown } from 'react-bootstrap';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { RiMoreFill } from '@remixicon/react';
 
 const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, handleBilling }) => {
      return (
           <Dropdown>
                <Dropdown.Toggle variant="light"  id="archives-dropdown" style={{zIndex:9999,height:'auto'}}>
-                    <MoreVertIcon />
+               <RiMoreFill size={24} />
                </Dropdown.Toggle>
                <Dropdown.Menu className="m-0 p-0 bg-white">
                     <Dropdown.Item className='text-capitalize' onClick={() => callActivation(item.activation_status, item.patientid, toast)}>

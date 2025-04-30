@@ -1,10 +1,10 @@
 import Select from "react-select";
+import { RiAddLine, RiLinkUnlinkM } from '@remixicon/react';
 import Add from "../../icons/PlusOutlineSvg";
 import { useContext, useState } from "react";
 import { BillingContext } from "./BillingContext";
 import { customFetch } from "../../Auth/customFetch";
 import Link from "next/link";
-import { LinkOff } from "@mui/icons-material";
 import { hasPreviousRecords } from "../../../lib/billingLib";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 
@@ -126,7 +126,17 @@ export default function TrTable({ toast }) {
 			return (<div>
 				{role && ['manager', 'admin'].includes(role) ?
 					<div>
-						organization not added for test <br /><Link href={`/settings/testpanel/testlist/${selected?.id}/outsourcingList?testname=R${selected?.name}`}><LinkOff /> Add Outsourcing organization</Link>
+						organization not added for test <br /><Link href={`/settings/testpanel/testlist/${selected?.id}/outsourcingList?testname=R${selected?.name}`}>
+						<RiLinkUnlinkM size={16} /> Add Outsourcing organization
+						</Link>
+						// In the button component:
+						<button
+						onClick={(ev) => {
+						addtoCart();
+						}}
+						className="btn btn-secondary">
+						<RiAddLine size={18} />
+						</button>
 					</div>
 					:
 					<div>Outsourcing organization not added to test</div>}

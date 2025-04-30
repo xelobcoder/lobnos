@@ -1,8 +1,8 @@
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Select from 'react-select';
 import { fetchServices } from '../../../../lib/billingLib';
-import { currencyFormatter, reactSelectCustomStyles } from '../../../Auth/customFetch';
-import { Add } from '@mui/icons-material';
+import { currencyFormatter } from '../../../Auth/customFetch';
+import { RiAddLine } from '@remixicon/react';
 import { useApplicationSettings } from '../../../Auth/useApplicationContext';
 
 export default function ServicesSearchComponent({ updatefunction }) {
@@ -56,7 +56,7 @@ export default function ServicesSearchComponent({ updatefunction }) {
                         })
                     }}
                     className='btn btn-secondary btn-sm'>
-                    <Add />
+                    <RiAddLine size={18} />
                 </button>
             </td>
         </tr>

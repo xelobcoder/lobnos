@@ -34,7 +34,7 @@
     "app/operations/laboratory/sample/rejected/history/page.jsx",
     "components/LabTestForms/testrule.jsx",
     "components/phelobotomy/Analytics/TemplatesComponentAnalytics/TestAscensionOverMontOverYear.jsx"
-, "v2/primelabsystem/app/customers/index.js"  ],
+, "v2/primelabsystem/app/customers/index.js", "components/registration/fields/Util.js"  ],
   "exclude": [
     "node_modules"
   ]

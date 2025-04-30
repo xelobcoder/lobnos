@@ -6,9 +6,7 @@ import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import { toast, ToastContainer } from "react-toastify";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
-import IconButton from "@mui/material/IconButton";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import { Search } from "@mui/icons-material";
+import { RiSearchLine, RiEyeLine } from '@remixicon/react';
 import { filteringRefundsUsingServiceId, handleRefundServerSideProcessing } from "../../serverActions/ActionFiltering";
 import { useRouter } from "next/navigation";
 
@@ -179,7 +177,7 @@ const router = useRouter();
 				<div className="col-1 d-flex">
 					<input className="custom-input" type="number" onChange={(ev) => { setSearch(ev.target.value) }} placeholder="serviceid" />
 					<button type="button" onClick={(ev) => { handleGetRefundServiceWithId(search) }} className="btn btn-secondary-outline btn-sm">
-						<Search />
+						<RiSearchLine/>
 					</button>
 				</div>
 			</section>
@@ -220,8 +218,6 @@ const router = useRouter();
 	);
 }
 
-
-// Add MessageCell component inside RefundAdmin
 export function MessageCell({ value, onView }: { value: string | null, onView: (message: string) => void }) {
 	if (!value) return "N/A";
 	if (value.length <= 100) return value;
@@ -229,10 +225,8 @@ export function MessageCell({ value, onView }: { value: string | null, onView: (
 	return (
 		<div>
 			<span style={{ cursor: "pointer" }} onClick={() => onView(value)}>
-				{value.substring(0, 100)}...
-				<IconButton color="primary" onClick={() => onView(value)} style={{ marginLeft: "8px" }}>
-					<VisibilityIcon />
-				</IconButton>
+				{value.substring(0, 100)}
+					<RiEyeLine color="primary" onClick={() => onView(value)} style={{ marginLeft: "8px" }}/>
 			</span>
 		</div>
 	);

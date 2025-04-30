@@ -1,13 +1,16 @@
 "use client"
 import { useState } from 'react'
 import UserList from '../Auth/Roles/userList'
-import { activateInstitutionUser, getInstitutionUsers, customPost, updatePagination, handleChangeWithState } from '../Auth/customFetch'
+import { activateInstitutionUser, customPost, updatePagination } from '../Auth/customFetch'
+import { RiTeamLine, RiUserAddLine } from '@remixicon/react'
+import { useRouter } from 'next/navigation';
 
 
 
 export default function ApplicationUsersPage({ users }) {
 	const [advanced, setAdvanced] = useState(false);
 	const [filters, setFiltering] = useState({ name: '', role: '', email: "", contact: '' });
+const router = useRouter();
 
 	const updatePage = (value) => {
 		if (value === pagequery.page) return;
@@ -28,27 +31,26 @@ export default function ApplicationUsersPage({ users }) {
 
 
 
-	const updateFilering = (ev) => {
-		const { name } = ev.target;
-		handleChangeWithState(ev, name, setFiltering, filters);
-	}
-
-
-	const initFilteringUsers = (ev) => {
-		ev.preventDefault();
-		const { name, email, role, contact } = filters;
-		if (Object.values(filters).some((item, index) => { return item.toString().length > 0 })) {
-			let endpoint = `logins?count=${pagequery.count}&&page=${pagequery.page}&&name=${name}&&email=${email}&&role=${role}&&contact=${contact}`;
-			getInstitutionUsers(setUser, endpoint, setLoading);
-		}
-	}
-
+	
 
 
 	return (
 		<div className='container-fluid'>
-			<div className='d-flex justify-content-between pls-label'>
-				<h4 className=' bg-secondary-subtle p-2 br-5 pls-label'>Employee List</h4>
+			<div className='d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded-3'>
+				<div className='d-flex align-items-center gap-3'>
+					<RiTeamLine className="text-primary" size={24} />
+					<h2 className='h4 mb-0 text-primary'>Employee Management</h2>
+				</div>
+				
+				<div className='d-flex gap-3'>
+					<button 
+					className='btn btn-primary btn-sm d-flex align-items-center gap-2'
+					onClick={() => router.push('/authentication/register')}
+					>
+					<RiUserAddLine size={18} />
+					Add New Employee
+					</button>
+				</div>
 			</div>
 
 			<UserList

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import ClinicianFiltering from '../../accessories/SectorFileringComponents/ClinicianFiltering';
 import { Button } from 'react-bootstrap';
-import { DeleteForever, Send } from '@mui/icons-material';
-import { customFetch, customPost } from '../../Auth/customFetch';
+import { RiDeleteBinFill, RiSendPlaneLine } from '@remixicon/react';
+import { customPost } from '../../Auth/customFetch';
 import { toast, ToastContainer } from 'react-toastify';
 import { loadClinicianPackage } from '../../serverActions/ActionFiltering';
 import Spinner from 'react-bootstrap/Spinner';
@@ -107,7 +107,7 @@ export default function ApplicableClinicians({ packageid }: ApplicableClinicians
                                 <td>{clinician.location}</td>
                                 <td>{clinician.phone}</td>
                                 <td>
-                                    <DeleteForever color='error' onClick={() => removeClinician(clinician.id)} />
+                                    <RiDeleteBinFill color='error' onClick={() => removeClinician(clinician.id)} />
                                 </td>
                             </tr>
                         ))
@@ -129,12 +129,12 @@ export default function ApplicableClinicians({ packageid }: ApplicableClinicians
                             </>
                         ) : (
                             <>
-                                Submit <Send />
+                                Submit  <RiSendPlaneLine size={18}/>
                             </>
                         )}
                     </Button>
                     <Button variant="danger" size='sm' onClick={clearAllClinicians} disabled={loading}>
-                        <DeleteForever />
+                        <RiDeleteBinFill size={18}/>
                         Clear All
                     </Button>
                 </div>

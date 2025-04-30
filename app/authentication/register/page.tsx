@@ -54,7 +54,6 @@ interface Branch {
     name: string;
 }
 
-// Reusable InputField Component
 interface InputFieldProps {
     label: string;
     type: string;
@@ -125,13 +124,21 @@ export default function AuthenticationIndexPage() {
             setLoading(true);
             try {
                 const formData = new FormData();
-                Object.keys(register).forEach(key => {
-                    if (key === 'image' && register.image) {
-                        formData.append('image', register.image);
-                    } else if (key !== 'image') {
-                        formData.append(key, register[key]);
-                    }
-                });
+                
+                formData.append('name', register.name);
+                formData.append('email', register.email);
+                formData.append('mobile', register.mobile);
+                formData.append('password', register.password);
+                formData.append('cpassword', register.cpassword);
+                formData.append('role', register.role);
+                formData.append('branch', register.branch);
+                formData.append('pin', register.pin);
+                formData.append('altMobile', register.altMobile);
+                formData.append('dob', register.dob);
+                
+                if (register.image) {
+                    formData.append('image', register.image);
+                }
 
                 if (employeeid) {
                     formData.append('employeeid', employeeid);

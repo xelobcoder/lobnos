@@ -1,7 +1,9 @@
 import React from 'react'
 import RefundAdmin from '../../../../../components/Billing/Refund/RefundAdmin';
 import { customFetch } from '../../../../../components/Auth/customFetch';
-import { Dangerous } from '@mui/icons-material';
+import { RiErrorWarningLine } from '@remixicon/react';
+
+
 
 export default async function RefundAdminPage({ params ,searchParams}: {
     params: { employeeid: number },
@@ -21,9 +23,10 @@ export default async function RefundAdminPage({ params ,searchParams}: {
             result = response?.result || [];
         }
     } catch (err) {
-        return <div className='alert alert-danger pls-color col-3'>
-            <Dangerous color='error' sx={{ width: '100px', height: '100px' }} />
-            Error Loading Refund Data</div>
+        return( <div className='alert alert-danger pls-color col-3'>
+            <RiErrorWarningLine className="text-danger" size={100} />
+            Error Loading Refund Data
+        </div>)
     }
 
 

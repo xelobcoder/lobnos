@@ -4,7 +4,7 @@ import { useState } from "react";
 import { customPost } from "../../../../components/Auth/customFetch";
 import PackagesTable from "../../../../components/Billing/packages/PackagesList";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 
 
 interface PackageFormData {
@@ -38,7 +38,6 @@ const CreatePackageForm: React.FC = () => {
 
     return (
         <div>
-            <ToastContainer theme="colored" position="top-center" className={'text-sm'} />
             <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                     <label htmlFor="package_name" className="form-label">

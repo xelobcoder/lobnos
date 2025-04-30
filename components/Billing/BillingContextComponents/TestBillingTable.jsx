@@ -1,4 +1,5 @@
-import { Clear, Delete, Edit } from "@mui/icons-material";
+
+import { RiPencilLine, RiDeleteBinLine } from '@remixicon/react';
 import { useContext, useState } from "react";
 import { Table, Spinner } from "react-bootstrap";
 import Select from "react-select";
@@ -102,9 +103,19 @@ export default function TestBillingTable({ toast }) {
 							<td>{currencyFormatter.format(item.discount || 0)}</td>
 							<td>
 								{item.isoutsourced === 1 && (
-									<Edit color="primary" onClick={() => handleEditTest(item)} style={{ cursor: "pointer" }} />
+									<RiPencilLine 
+										className="text-primary" 
+										onClick={() => handleEditTest(item)} 
+										style={{ cursor: "pointer" }}
+										size={16}
+									/>
 								)}
-								<Delete color="error" onClick={() => removeFromCart(item.id)} style={{ cursor: "pointer" }} />
+								<RiDeleteBinLine 
+									className="text-danger" 
+									onClick={() => removeFromCart(item.id)} 
+									style={{ cursor: "pointer" }}
+									size={16}
+								/>
 							</td>
 						</tr>
 					))}
@@ -117,7 +128,7 @@ export default function TestBillingTable({ toast }) {
 						<td>{currencyFormatter.format(billingdata.totalTestDiscount)}</td>
 						<td>
 							<button className="btn btn-danger btn-sm">
-								<Delete />
+								<RiDeleteBinLine size={16} />
 							</button>
 						</td>
 					</tr>

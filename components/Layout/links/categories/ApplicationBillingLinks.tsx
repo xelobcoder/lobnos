@@ -5,7 +5,8 @@ import {
     RiMoonLine,
     RiExchangeDollarLine,
     RiRefundLine,
-    RiMoneyDollarCircleLine
+    RiMoneyDollarCircleLine,
+    RiSettings2Line
 } from '@remixicon/react';
 
 export const ApplicationBillingLinks = function (branchid: number, employeeid: number): Link[] {
@@ -17,5 +18,8 @@ export const ApplicationBillingLinks = function (branchid: number, employeeid: n
         { title: "Refund Admin", link: `/billing/refund/refundAdmin/${employeeid}`, icon: <RiRefundLine /> },
         { title: "Refund FrontDesk Representative", link: `/billing/refund/${employeeid}`, icon: <RiRefundLine /> },
         { title: "Sales", link: "/billing/salessummary", icon: <RiMoneyDollarCircleLine /> }
+        {title:"Application UI customization", link:"/settings/applicationsettings/customization", icon: 
+            <RiSettings2Line/>
+        }
     ];
 };

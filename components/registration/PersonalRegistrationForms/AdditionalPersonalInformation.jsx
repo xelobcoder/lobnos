@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Form, Button } from 'react-bootstrap';
-import { Money } from '@mui/icons-material';
+import { RiMoneyDollarCircleLine } from '@remixicon/react';
 
 const AdditionalPersonalInformation = ({ fields, checkIFNumberisAvailable }) => {
     const {

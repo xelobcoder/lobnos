@@ -3,8 +3,17 @@ import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import { plsEncryption } from '../../../lib/encryption';
 import { buildLoginQueryServerSide } from '../../serverActions/ActionFiltering';
 import { Dropdown, ButtonGroup } from 'react-bootstrap';
-import { MoreVertOutlined } from '@mui/icons-material';
-import Avatar from '@mui/material/Avatar'; 
+import { 
+  RiMoreFill, 
+  RiUser3Line,
+  RiPencilLine,
+  RiDeleteBinLine,
+  RiToggleLine,
+  RiShieldKeyholeLine,
+  RiHistoryLine,
+  RiCalendarEventLine 
+} from '@remixicon/react'; 
+
 
 export default function UserList({ users, handleDelete, activateUser, updateRefresh, filters }) {
 	const navigateTo = useRouter();
@@ -14,16 +23,10 @@ export default function UserList({ users, handleDelete, activateUser, updateRefr
 			Header: "Icon",
 			accessor: "", 
 			Cell: function ({ row}) {
-				const initials = row.original.username
-					.split(' ')
-					.map((name) => name[0])
-					.join('')
-					.toUpperCase();
-
 				return (
-					<Avatar sx={{ bgcolor: '#3f51b5',padding:'30px' }}> 
-						{initials} 
-					</Avatar>
+					<span className="bg-primary rounded-circle p-2">
+						<RiUser3Line className="text-white fs-5" />
+					</span>
 				);
 			},
 			width: 80, 
@@ -59,26 +62,44 @@ export default function UserList({ users, handleDelete, activateUser, updateRefr
 				return (
 					<Dropdown as={ButtonGroup}>
 						<Dropdown.Toggle variant="link" size="sm">
-							<MoreVertOutlined fontSize="small" />
+							<RiMoreFill style={{ fontSize: '1.25rem', color: '#6c757d' }} />
 						</Dropdown.Toggle>
 						<Dropdown.Menu>
 							<Dropdown.Item className='pls-color border-bottom-1' onClick={() => navigateTo.push(`/authentication/register?employeeid=${employeeid}`)}>
-								Edit
+								<div className="d-flex align-items-center gap-2">
+									<RiPencilLine className="fs-5" />
+									Edit
+								</div>
 							</Dropdown.Item>
 							<Dropdown.Item className='pls-color border-bottom-1' onClick={() => handleDelete(employeeid)}>
-								Delete
+								<div className="d-flex align-items-center gap-2">
+									<RiDeleteBinLine className="fs-5" />
+									Delete
+								</div>
 							</Dropdown.Item>
 							<Dropdown.Item className='pls-color border-bottom-1' onClick={() => activateUser(employeeid, activation, updateRefresh)}>
-								{activation === 1 ? "Deactivate" : "Activate"}
+								<div className="d-flex align-items-center gap-2">
+									<RiToggleLine className="fs-5" />
+									{activation === 1 ? "Deactivate" : "Activate"}
+								</div>
 							</Dropdown.Item>
 							<Dropdown.Item className='pls-color border-bottom-1' href={`/authentication/permissions?employeeid=${employeeid}&&username=${username}&&role=${role}`}>
-								Update Permissions
+								<div className="d-flex align-items-center gap-2">
+									<RiShieldKeyholeLine className="fs-5" />
+									Update Permissions
+								</div>
 							</Dropdown.Item>
 							<Dropdown.Item className='pls-color border-bottom-1' href={`/authentication/loginhistory/${plsEncryption(employeeid.toString())}`}>
-								View Login History
+								<div className="d-flex align-items-center gap-2">
+									<RiHistoryLine className="fs-5" />
+									View Login History
+								</div>
 							</Dropdown.Item>
 							<Dropdown.Item className='pls-color border-bottom-1' href={`/appointments/attendance/preference-shift/${plsEncryption(employeeid.toString())}`}>
-								View/create Preferred Shifts
+								<div className="d-flex align-items-center gap-2">
+									<RiCalendarEventLine className="fs-5" />
+									View/create Preferred Shifts
+								</div>
 							</Dropdown.Item>
 						</Dropdown.Menu>
 					</Dropdown>

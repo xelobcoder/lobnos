@@ -31,8 +31,6 @@ export default async function Page() {
     }
 
     return (
-        <div>
-            <ApplicationUsersPage users={result} />
-        </div>
+        <ApplicationUsersPage users={result} />
     );
 }
