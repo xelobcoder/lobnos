@@ -823,8 +823,8 @@ export const formatTest = (name) => {
 export const defaultTestEditValues = {
 	id: "",
 	name: "",
-	category: "",
-	price: "",
+	category: 0,
+	price: 0,
 	created_on: "",
 	sample: "none",
 	description: "",

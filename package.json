@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node server.js",
-    "next": "next dev",
+    "dev": "node server.js  --experimental-https",
+    "next": "next dev  --experimental-https",
     "start": "next start",
     "build": "next build",
     "ns": "next build && node --env-file=.env server.js",

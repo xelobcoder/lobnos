@@ -72,7 +72,7 @@ const CaseCountAreaChart = ({ data }) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {data.map((entry, index) => {
+                    {Array.isArray(data) && data.length>  0 && data.map((entry, index) => {
                         const previousEntry = index > 0 ? data[index - 1] : null;
                         const percentageChange = previousEntry ? calculatePercentageChange(entry.caseCount, previousEntry.caseCount) : 0;
 

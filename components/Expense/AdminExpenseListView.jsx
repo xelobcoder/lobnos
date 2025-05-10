@@ -1,9 +1,7 @@
 // pages/AdminExpensesList.js
 import { useEffect, useState } from "react";
-import ExpenseLayout from "../../components/Expense/ExpenseLayout";
-import { customFetch, customPost, updatePagination } from "../../components/Auth/customFetch";
+import { customFetch } from "../../components/Auth/customFetch";
 import ExpenseRejectionModal from "./ExpenseRejectionModal";
-import { toast, ToastContainer } from "react-toastify";
 import ExpenseFilter from "./ExpenseFilterComponent";
 import ExpenseList from "./ExpenseListComponent";
 import ExpenseDetail from "./ExpenseDetailsComponent";
@@ -43,9 +41,8 @@ export default function AdminExpensesList({ branchid, employeeid }) {
   };
 
   return (
-    <ExpenseLayout>
-      <ToastContainer />
-      <ExpenseFilter filter={filter} setFilter={setFilter} handleFilters={handleFilters} />
+   <div>
+     <ExpenseFilter filter={filter} setFilter={setFilter} handleFilters={handleFilters} />
       <ExpenseList expenses={expenses} setSelected={setSelected} selected={selected} />
       {selected && (
         <ExpenseDetail
@@ -56,6 +53,6 @@ export default function AdminExpensesList({ branchid, employeeid }) {
         />
       )}
       <ExpenseRejectionModal showRmodal={showRmodal} onHide={() => setRmodal(false)} />
-    </ExpenseLayout>
+   </div>
   );
 }

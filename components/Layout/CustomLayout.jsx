@@ -3,7 +3,7 @@ import SubLinksSideBar from "./LinksDisplay";
 import ApplicationHeader from "./HeaderNav";
 import { Container } from "react-bootstrap";
 import Link from "next/link";
-import { Home } from "@mui/icons-material";
+import { RiHomeLine } from '@remixicon/react';  
 import  { useApplicationSettings } from "../Auth/useApplicationContext";
 export default function AppCustomLayout({ children, sideLinks }) {
 	const [target, setTarget] = useState(null);
@@ -25,7 +25,7 @@ export default function AppCustomLayout({ children, sideLinks }) {
 							<li className="grouper">
 								<Link href={'/'}
 									className={`link-group text-capitalize br-5 a-active  m-2 `}>
-									<span className="rxn-icon"><Home /></span>
+									<span className="rxn-icon"><RiHomeLine /></span>
 									<span className="text-sidebar">Home</span>
 								</Link>
 							</li>

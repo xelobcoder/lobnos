@@ -2,8 +2,7 @@ import { useState } from "react"
 import { Spinner } from "react-bootstrap";
 import { calculateTimeUsed, customPost } from "../Auth/customFetch";
 import moment from "moment/moment";
-import { Start, Stop } from "@mui/icons-material";
-import { RiPlayCircleLine, RiCheckDoubleLine } from '@remixicon/react';
+import { RiPlayCircleLine, RiCheckDoubleLine, RiPlayFill, RiStopFill } from '@remixicon/react';
 
 export default function ReceivedCollectionModalTableTr({ item, toggleMultipleSelection, multipleSelected, toast, updateCollectionStatus}) {
     const [isCollectionLoading, setIsCollectionLoading] = useState(false);
@@ -34,9 +33,9 @@ export default function ReceivedCollectionModalTableTr({ item, toggleMultipleSel
 
     const statusView = (item) => {
         return (<div>
-            {item.collectionStartDate && <span><Start color="warning" />{moment(item.collectionStartDate).format('LLLL')}</span>}
+            {item.collectionStartDate && <span><RiPlayFill className="text-warning" />{moment(item.collectionStartDate).format('LLLL')}</span>}
             <br />
-            {item.collectionEndDate && <span><Stop color="success" />{moment(item.collectionEndDate).format('LLLL')}</span>}<br />
+            {item.collectionEndDate && <span><RiStopFill className="text-success" />{moment(item.collectionEndDate).format('LLLL')}</span>}<br />
             {item.collectionEndDate && item.collectionStartDate && calculateTimeUsed(item.collectionStartDate, item.collectionEndDate)}
         </div>)
     }

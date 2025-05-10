@@ -7,7 +7,6 @@ import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntry
 import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
 import VersionFooter from '../../../components/accessories/VersionFooter';
 import ApplicationHeader from '../../../components/Layout/HeaderNav';
-import { Print } from '@mui/icons-material';
 import UseCustomResultTemplatingPrintOut from '../../../components/ResutlUI/ResultPrintOut/UseCustomResultTemplatingPrintOut';
 import UseCustomResultCommentsTemplatingPrintOut from '../../../components/ResutlUI/ResultPrintOut/useCustomResultCommentsTemplatingPrintOut';
 import { customFetch } from '../../../components/Auth/customFetch';
@@ -73,7 +72,6 @@ export default function RESULT_FOR_PRINTING() {
 					style={{ position: 'absolute', top: '10vh', left: '90vw' }}
 					className='btn btn-secondary p-2'
 					onClick={() => { window.print() }}>
-					<Print /> Print result
 				</button>
 			</div>
 		</>

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Recipient } from "../../app/sms/schedule-sms-campaign/page";
+import { Recipient } from "../../app/communications/sms/schedule-sms-campaign/page";
 import { SmsCategoryType, SmsSmsCategoryData } from "./SmsInterfaces";
 import { toast } from "react-toastify";
 import { pushDatabaseResponseForSavingScheduleMessage } from "../serverActions/ActionFiltering";

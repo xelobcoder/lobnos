@@ -1,4 +1,4 @@
-import { Add, Delete, Edit } from "@mui/icons-material";
+import { RiAddLine, RiDeleteBinLine, RiPencilLine } from "@remixicon/react";
 import { useEffect, useState } from "react";
 import styles from './MultipleChoiceSelection.module.css';
 
@@ -78,7 +78,7 @@ export default function MultipleChoiceSelectiionTestPanelCreation({ defaultOptio
 						onClick={handleDeleteSelectedOptions}
 						title="Delete selected options"
 					>
-						<Delete fontSize="small" />
+						<RiDeleteBinLine />
 					</button>
 				)}
 			</div>
@@ -95,7 +95,7 @@ export default function MultipleChoiceSelectiionTestPanelCreation({ defaultOptio
 					className={`${styles.iconButton} ${styles.addButton}`}
 					title={editIndex !== null ? 'Update option' : 'Add option'}
 				>
-					<Add fontSize="small" />
+					<RiAddLine />
 				</button>
 			</div>
 
@@ -116,7 +116,7 @@ export default function MultipleChoiceSelectiionTestPanelCreation({ defaultOptio
 							className={`${styles.iconButton} ${styles.editButton}`}
 							title="Edit option"
 						>
-							<Edit fontSize="small" />
+							<RiPencilLine />
 						</button>
 					</div>
 				)) : (

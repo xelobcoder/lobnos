@@ -1,4 +1,3 @@
-import Barcode from "react-barcode"
 export default function UseDisclaimer({ patientid }) {
   return (
     <>
@@ -6,9 +5,7 @@ export default function UseDisclaimer({ patientid }) {
         <div className="text-capitalize fw-bold mt-3">
           <span>SIGNATURE:.............................</span>
         </div>
-        <span>
-          <Barcode displayValue={false} fontSize={13} height={40} value={patientid} />
-        </span>
+      
       </div>
       <div style={{  fontSize: "13px" }}>
         PLEASE NOTE:

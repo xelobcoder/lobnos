@@ -2,7 +2,8 @@ import React from 'react';
 import Loader from '../../components/accessories/Loader';
 import Image from 'next/image';
 import { currencyFormatter } from '../../components/Auth/customFetch';
-import { List } from '@mui/icons-material';
+import { RiListOrdered } from '@remixicon/react';
+
 
 const ExpenseDetail = ({ detail, imagefull, setImageFull, selectedLoading, onReject }) => {
 	if (selectedLoading) {
@@ -43,7 +44,7 @@ const ExpenseDetail = ({ detail, imagefull, setImageFull, selectedLoading, onRej
 			<div className="mx-2">
 				<div className="d-flex justify-content-between">
 					<h6>Receipts</h6>
-					<List fontSize="large" onClick={() => setImageFull(!imagefull)} />
+					<RiListOrdered fontSize="large" onClick={() => setImageFull(!imagefull)} />
 				</div>
 				{detail?.images && detail?.images.length === 0 && "No receipts uploaded"}
 				{detail?.images && detail.images.length > 0 && (

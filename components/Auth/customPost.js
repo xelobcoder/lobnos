@@ -23,7 +23,7 @@ export async function customPost(endpoint, method, data, hash = false) {
             throw new Error("HASH_KEY not set in NODE_ENV");
         }
     }
-    let response = await fetch(`${process.env.BASEURL}/${endpoint}`, {
+    let response = await fetch(`${process.env.BASEURL}${endpoint}`, {
         method: method,
         headers: {
             "content-type": "application/json",

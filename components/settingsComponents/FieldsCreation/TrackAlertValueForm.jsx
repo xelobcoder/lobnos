@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Add } from "@mui/icons-material";
 import SingleFieldMultipleSingleConstraintsComponent from "./MultiConditionComponents/singleFieldMultipleSingleConstraintsComponent";
 import styles from './TrackAlertValueForm.module.css';
+import { RiAddLine } from "@remixicon/react";
 
 export default function TrackAlertLevelValueForm({field,constraints, handleChangeWithState, createConstraints}) {
 
@@ -12,7 +12,7 @@ export default function TrackAlertLevelValueForm({field,constraints, handleChang
                 className={styles.addButton}
                 onClick={createConstraints}
             >
-                <Add fontSize="small" />
+                <RiAddLine fontSize="small" />
                 <span>Add Constraint</span>
             </button>
 

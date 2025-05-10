@@ -1,0 +1,129 @@
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.headingIcon {
+  color: #1976d2;
+  flex-shrink: 0;
+}
+
+.heading {
+  font-weight: 600;
+  color: #222;
+  font-size: 1.3rem;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.headingDivider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 0 0 16px 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 1rem;
+}
+
+.table th,
+.table td {
+  padding: 8px 6px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 1rem;
+}
+
+.table th {
+  font-weight: 600;
+  color: #444;
+  background: #f7f7f7;
+}
+
+.iconCol {
+  width: 40px;
+  text-align: center;
+}
+.nameCol {
+  width: 180px;
+}
+.headerCol {
+  width: 180px;
+}
+.schedulerCol {
+  width: 180px;
+}
+.smsCol {
+  width: 260px;
+}
+
+.rowEven {
+  background: #fff;
+}
+
+.rowOdd {
+  background: #fafbfc;
+}
+
+.table tbody tr:hover {
+  background: #f0f4f8;
+}
+
+.iconCell {
+  text-align: center;
+}
+
+.nameCell {
+  font-weight: 500;
+  color: #222;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 5px 8px;
+  background: #fafbfc;
+  font-size: 1rem;
+}
+
+.input:focus {
+  border: 1px solid #1976d2;
+  outline: none;
+  background: #fff;
+}
+
+.select {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 5px 8px;
+  background: #fafbfc;
+  font-size: 1rem;
+}
+
+.select:focus {
+  border: 1px solid #1976d2;
+  outline: none;
+  background: #fff;
+}
+
+.smsCell {
+  font-family: 'Consolas', monospace;
+  font-size: 0.97rem;
+  color: #333;
+  background: #f7f7f7;
+  border-radius: 4px;
+  padding: 6px 8px;
+  word-break: break-all;
+}
+
+.noContent {
+  color: #bdbdbd;
+}

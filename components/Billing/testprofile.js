@@ -1,9 +1,9 @@
-import { DeleteOutlineTwoTone } from '@mui/icons-material';
 import { useState, useEffect, useCallback } from 'react';
 import Select from 'react-select';
 import { currencyFormatter, customFetch, customPost } from '../Auth/customFetch';
 import { ToastContainer, toast } from 'react-toastify';
 import Link from 'next/link';
+import { RiDeleteBinLine, RiAddLine } from "@remixicon/react"; 
 
 export default function TestProfileBilling({ clientDetails }) {
   const [billingdata, setBillingdata] = useState({ ...clientDetails, totalCost: 0 });
@@ -124,20 +124,20 @@ export default function TestProfileBilling({ clientDetails }) {
               styles={{ container: (provided) => ({ ...provided, width: '70%' }) }}
             />
 
-            <button className='btn btn-primary btn-sm py-0'
-              onClick={handleAddTestButton}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                fill="currentColor"
-                className="bi bi-plus-lg"
-                viewBox="0 0 16 16">
-                <path fillRule="evenodd"
-                  d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2" />
-              </svg>
+            // In the return statement's Add Test button:
+            <button className='btn btn-primary btn-sm py-0' onClick={handleAddTestButton}>
+              <RiAddLine size={20} className="me-1" />
               Add Test
             </button>
+            
+            // In the table row's delete button:
+            <td>
+              <RiDeleteBinLine 
+                onClick={() => handleRemoveTest(item)} 
+                className="text-danger"
+                size={20}
+              />
+            </td>
           </div>
         </div>
         <div className='card-body'>

@@ -251,6 +251,13 @@ export const getResultEntryDataServerSide = async ({
 		customFetch(testResultUrl),
 	]);
 
+	console.log({
+		commentsResponse,
+		resultResponse,
+	});
+
+
+
 	return [resultResponse, commentsResponse];
 };
 
@@ -405,5 +412,21 @@ export async function loadTaskDefinition(pagination) {
 		return { result: [], error: false };
 	} catch (err) {
 		return { result: [], error: false }
+	}
+}
+
+
+
+
+export const handleServerCriticalValues= async (paginate) => {
+	try {
+		const { page, count } = paginate
+		const response = await customFetch(`result/criticalvalues/logging/paginated?page=${page}&&count=${count}`);
+		if (response?.data && Array.isArray(response?.data)) {
+			return { result: response?.data, error: false }
+		}
+		return { result: [], error: true }
+	} catch (err) {
+		return { result: [], error: true }
 	}
 }

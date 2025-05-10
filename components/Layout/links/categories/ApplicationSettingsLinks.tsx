@@ -30,7 +30,7 @@ export const ApplicationSettingsLinks: Link[] =
         { title: "Company Info", link: "/settings/companyprofile", icon: <RiBuildingLine /> },
         { title: "Departments", link: "/settings/departments", icon: <RiGroupLine /> },
         { title: "Taxes", link: "/settings/tax", icon: <RiMoneyDollarCircleLine /> },
-        { title: "Test Panels", link: "/settings/testpanel/testlist", icon: <RiListCheck2 /> },
+        { title: "Test Panels", link: "/settings/applicationsettings/testpanels/testlist", icon: <RiListCheck2 /> },
         { title: "Services", link: "/settings/additionalservices", icon: <RiCustomerService2Line /> },
         { title: 'New Outsourcin Organization', link: '/settings/outsource/new-outsourcing', icon: <RiBuildingFill /> },
         { title: 'Outsourcing List', link: '/settings/outsource', icon: <RiBuilding2Line /> } ,

@@ -5,12 +5,10 @@ import { Button, Spinner } from "react-bootstrap";
 import CustomParameterTypeSelection from "./CustomParameterTypeSelection";
 import RenderTestCreationParameters from "./RenderTestCreationParametersTable";
 import { defaultCreationRule, parseTextToObject, updateFieldsRules } from "./data/testUtil";
-import TrackAlertLevelValueForm from "./TrackAlertValueForm";
 import UltrasoundFieldsCreation from "./UltrasoundFieldsCreation";
 import TestFieldsHeader from './TestFieldsHeader';
 import styles from './createfields.module.css';
 import ParamCreationGForm from "./ParamCreationForm";
-import PrimeToast from "../../accessories/PrimeToast";
 
 export default function CreateTestFields({ testid, testname, testRules, fieldConstraintsCategorization, testdata }) {
 	const [generalTestRule, setGeneralTestRule] = useState(testdata || defaultCreationRule);
@@ -96,7 +94,6 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 
 	return (
 		<div className={styles.container}>
-			<PrimeToast/>
 			<TestFieldsHeader testid={testid} testname={testname} />
 			
 			<div className={styles.columnPartitioner}>

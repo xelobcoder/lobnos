@@ -12,7 +12,6 @@ import Link from "next/link";
 
 export default function CreateTestRule({ clientdata }) {
 	const { testid, test, patientid, billingid, employeeid, ascensionid, resultEntryStart, resultEntryEnd } = clientdata;
-
 	const { result } = useApplicationSettings().applicationsettings;
 	const [comments, setComments] = useState({ comments: '' });
 	const [testname, setTestname] = useState("");
@@ -90,7 +89,7 @@ export default function CreateTestRule({ clientdata }) {
 	const handleSubmit = async () => {
 		try {
 			const transformed = rule.map((item) => {
-				return { field: item?.name, value: item?.value };
+				return { field: item?.name, value: item?.value, fieldid:item?.id,originalvalue:item?.originalvalue||item?.value };
 			});
 			const allHasValues = transformed.some((a) => a.value == "");
 			if (allHasValues) {
@@ -123,8 +122,8 @@ export default function CreateTestRule({ clientdata }) {
 	};
 
 	const handleCreateFields = () => {
-		if (testid) {
-			window.open(`/settings/testpanel/testlist/createfields?testid=${testid}&&testname=${testname}`);
+		if (testid && testname) {
+			window.open(`/settings/applicationsettings/testpanels/testlist/createfields?testid=${testid}&&testname=${testname}`);
 		}
 	};
 

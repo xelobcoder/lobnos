@@ -1,6 +1,4 @@
-/* eslint-disable react/display-name */
-import React, { useState, forwardRef, useImperativeHandle } from 'react';
-import { Button, Box, Typography, Modal } from '@mui/material';
+import { Modal, Button } from 'react-bootstrap';
 
 const style = {
   position: 'absolute',
@@ -18,47 +16,39 @@ const style = {
 const OptionsTrackClient = forwardRef((props, ref) => {
   const [open, setOpen] = useState(false);
 
-  const handleOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  useImperativeHandle(ref, () => ({
-    open: handleOpen,
-    close: handleClose,
-  }));
-
+  
   return (
     <div>
-      <div>
-        <Modal
-          open={open}
-          onClose={handleClose}
-          aria-labelledby="modal-modal-title"
-          aria-describedby="modal-modal-description"
-        >
-          <Box sx={style}>
-            <Typography id="modal-modal-title" variant="h6" component="h2">
-              Please, what do you want to track?
-            </Typography>
-            <Typography
-              className='d-flex justify-content-between'
-              id="modal-modal-description"
-              sx={{ mt: 2 }}
+      <Modal 
+        show={open} 
+        onHide={handleClose}
+        centered
+        style={{
+          transform: 'translate(-50%, -50%)',
+          top: '20%',
+          left: '50%',
+          width: '450px'
+        }}
+      >
+        <Modal.Body className="border-4 p-4">
+          <h4 className="mb-4">Please, what do you want to track?</h4>
+          <div className="d-flex justify-content-between">
+            <Button 
+              variant="warning" 
+              className="lead p-2"
             >
-              <button className='btn btn-warning lead p-2'>
-                Track this transaction test
-              </button>
-              <button onClick={(ev) => console.log('Tracking at all times ')} className='btn btn-primary lead p-2'>
-                Track at all times
-              </button>
-            </Typography>
-          </Box>
-        </Modal>
-      </div>
+              Track this transaction test
+            </Button>
+            <Button 
+              variant="primary" 
+              className="lead p-2"
+              onClick={(ev) => console.log('Tracking at all times ')}
+            >
+              Track at all times
+            </Button>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 });

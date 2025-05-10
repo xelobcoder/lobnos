@@ -17,7 +17,7 @@ export const ApplicationBillingLinks = function (branchid: number, employeeid: n
         { title: 'Daily Transactions', link: '/billing/sales/branches', icon: <RiExchangeDollarLine /> },
         { title: "Refund Admin", link: `/billing/refund/refundAdmin/${employeeid}`, icon: <RiRefundLine /> },
         { title: "Refund FrontDesk Representative", link: `/billing/refund/${employeeid}`, icon: <RiRefundLine /> },
-        { title: "Sales", link: "/billing/salessummary", icon: <RiMoneyDollarCircleLine /> }
+        { title: "Sales", link: "/billing/salessummary", icon: <RiMoneyDollarCircleLine /> },
         {title:"Application UI customization", link:"/settings/applicationsettings/customization", icon: 
             <RiSettings2Line/>
         }

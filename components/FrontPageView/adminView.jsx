@@ -7,15 +7,13 @@ import {
   RiMailLine,
   RiStethoscopeLine,
   RiUserLine,
-  RiFileTextLine,
-  RiFileListLine,
-  RiShoppingBag3Line,
-  RiBarChartBoxLine
+  RiBarChartBoxLine,
+  RiMessage2Line 
 } from '@remixicon/react';
 
 const links = [
   {
-    href: '/registration',
+    href: '/crm/registration',
     icon: <RiMoneyDollarCircleLine size={24} />,
     text: "Process patient registrations and manage billing workflows efficiently",
     label: 'Registration & Billing',
@@ -39,20 +37,12 @@ const links = [
     description: 'Medical imaging and radiology management'
   },
   {
-    href: '/phelobotomy',
+    href: '/operations/phelobotomy',
     icon: <img width={24} height={24} src='/frontpage/sample.png' />,
     text: "Organize and track sample collection procedures",
     label: 'Phelobotomy',
     category: 'Core Operations',
     description: 'Sample collection and management'
-  },
-  {
-    href: '/administration/approval',
-    icon: <img width={24} height={24} src='/frontpage/approved.png' />,
-    text: "Review and approve laboratory results and reports",
-    label: 'Result Approval',
-    category: 'Administration',
-    description: 'Result verification and approval workflow'
   },
   {
     href: '/dashboard/sales',
@@ -88,14 +78,6 @@ const links = [
     disabled: true
   },
   {
-    href: '/supplier',
-    icon: <RiShoppingBag3Line size={24} />,
-    text: "Manage suppliers and purchase orders",
-    label: 'Purchase Management',
-    category: 'Finance',
-    description: 'Supplier and purchase order management'
-  },
-  {
     href: '/dashboard/resultanalysis',
     icon: <RiBarChartBoxLine size={24} />,
     text: "Analyze test results and generate insights",
@@ -110,6 +92,14 @@ const links = [
     label: 'Email Services',
     category: 'Communication',
     description: 'Email configuration and management'
+  },
+  {
+    href: '/communications/sms',
+    icon: <RiMessage2Line size={24} />, 
+    text: "Configure and manage SMS notifications",
+    label: 'SMS Services', 
+    category: 'Communication',
+    description: 'SMS configuration and management' 
   },
   {
     href: '/doctor/consultation',
@@ -127,18 +117,33 @@ const links = [
     category: 'Healthcare',
     description: 'Patient information management'
   },
-  {
-    href: '/instructions',
-    icon: <RiFileTextLine size={24} />,
-    text: "Access system documentation and guides",
-    label: 'Instructions',
-    category: 'Support',
-    description: 'System documentation and help'
-  }
 ];
 
 export default function FrontPageAdminView() {
   const categories = [...new Set(links.map(link => link.category))];
+  
+  const categoryColors = {
+    'Core Operations': '#E53935',
+    'Analytics': '#1E88E5',
+    'Administration': '#8E24AA',
+    'Finance': '#43A047',
+    'Communication': '#FB8C00',
+    'Healthcare': '#00ACC1'
+  };
+  
+  const getIconStyle = (category) => {
+    const color = categoryColors[category] || '#3b82f6';
+    return {
+      color: color,
+      background: `${color}15`,
+      padding: '10px',
+      borderRadius: '8px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: `0 2px 4px ${color}20`
+    };
+  };
   
   return (
     <div className={`${styles.adminDashboard} min-vh-100`}>
@@ -152,16 +157,18 @@ export default function FrontPageAdminView() {
 
         {categories.map(category => (
           <div key={category} className="mb-5">
-            <h2 className={`h5 mb-4 text-uppercase ${styles.letterSpacing1}`}>{category}</h2>
+            <h2 className={`h5 mb-4 text-uppercase ${styles.letterSpacing1}`} style={{color: categoryColors[category]}}>
+              {category}
+            </h2>
             <div className="row g-4">
               {links
                 .filter(link => link.category === category)
                 .map((link, index) => (
                 <div key={index} className="col-12 col-md-6 col-lg-4 col-xl-3">
-                  <div className={`card h-100 border-0 ${styles.appCard}`}>
+                  <div className={`card h-100 border-0 ${styles.appCard}`} style={{boxShadow: `0 4px 6px rgba(0,0,0,0.05), 0 1px 3px ${categoryColors[category]}25`}}>
                     <div className="card-body p-4">
                       <div className="d-flex align-items-center mb-3">
-                        <div className={`${styles.appIcon} me-3`}>
+                        <div className={`${styles.appIcon} me-3`} style={getIconStyle(link.category)}>
                           {link.icon}
                         </div>
                         <h3 className="h6 mb-0">{link.label}</h3>
@@ -172,12 +179,18 @@ export default function FrontPageAdminView() {
                           <Link 
                             href={link.href}
                             className={`btn btn-sm px-3 ${styles.primaryBtn}`}
+                            style={{
+                              backgroundColor: `${categoryColors[link.category]}`,
+                              borderColor: `${categoryColors[link.category]}`,
+                              color: '#fff'
+                            }}
                           >
                             Open App
                           </Link>
                           <Link 
                             href="/" 
                             className="text-muted small text-decoration-none"
+                            style={{color: `${categoryColors[link.category]}80 !important`}}
                           >
                             Learn more
                           </Link>

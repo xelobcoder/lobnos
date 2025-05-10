@@ -1,9 +1,11 @@
 "use client";
 import React from 'react';
 import { Card, Row, Col, Container } from 'react-bootstrap';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import { 
+    RiCheckDoubleLine, 
+    RiPlayFill, 
+    RiHourglassLine 
+} from '@remixicon/react';
 
 export default function TestsCompletedVsInitiatedVrsUninitiated({ value = [] }) {
     if (!value.length) {
@@ -80,7 +82,7 @@ export default function TestsCompletedVsInitiatedVrsUninitiated({ value = [] }) 
                     <AnalyticCard
                         title="Completed Tests"
                         value={value[0].completed_tests}
-                        Icon={CheckCircleIcon}
+                        Icon={RiCheckDoubleLine}
                         bgColor={cardColors.completed.bg}
                         iconColor={cardColors.completed.icon}
                         formatAsCurrency={false}
@@ -90,7 +92,7 @@ export default function TestsCompletedVsInitiatedVrsUninitiated({ value = [] }) 
                     <AnalyticCard
                         title="Initiated Tests"
                         value={value[0].initiated_tests}
-                        Icon={PlayArrowIcon}
+                        Icon={RiPlayFill}
                         bgColor={cardColors.initiated.bg}
                         iconColor={cardColors.initiated.icon}
                         formatAsCurrency={false}
@@ -100,7 +102,7 @@ export default function TestsCompletedVsInitiatedVrsUninitiated({ value = [] }) 
                     <AnalyticCard
                         title="Uninitiated"
                         value={value[0].uninitiated}
-                        Icon={HourglassEmptyIcon}
+                        Icon={RiHourglassLine}
                         bgColor={cardColors.uninitiated.bg}
                         iconColor={cardColors.uninitiated.icon}
                         formatAsCurrency={false}

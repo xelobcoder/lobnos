@@ -1,8 +1,15 @@
+"use client"
 import Link from "next/link";
 import { customFetch } from "../../Auth/customFetch";
-import { ExpandLess, ExpandMore, ViewAgendaOutlined } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { 
+    RiArrowDownSLine, 
+    RiArrowUpSLine, 
+    RiFileListLine,
+    RiSearchLine
+} from '@remixicon/react';
+
 
 const SidebarItem = ({ item, expandTarget, setExpandTarget }) => {
     const isExpanded = expandTarget === item.id;
@@ -26,9 +33,9 @@ const SidebarItem = ({ item, expandTarget, setExpandTarget }) => {
             >
                 <span>{item.name}</span>
                 {isExpanded ? (
-                    <ExpandLess style={{ color: isExpanded ? "#fff" : "#d1d5db" }} />
+                    <RiArrowUpSLine style={{ color: isExpanded ? "#fff" : "#d1d5db" }} />
                 ) : (
-                    <ExpandMore />
+                    <RiArrowDownSLine style={{ color: "#d1d5db" }} />
                 )}
             </div>
             {isExpanded && (
@@ -47,6 +54,7 @@ const SidebarItem = ({ item, expandTarget, setExpandTarget }) => {
     );
 };
 
+// Update the ExpandedMenu component icons
 const ExpandedMenu = ({ itemId }) => (
     <>
         <Link
@@ -59,7 +67,7 @@ const ExpandedMenu = ({ itemId }) => (
                 fontSize: "14px",
             }}
         >
-            <ViewAgendaOutlined fontSize="small" /> Month Case Count
+            <RiFileListLine fontSize="small" /> Month Case Count
         </Link>
         <Link
             href={`/dashboard/resultanalysis/yearmonthcasescount?testid=${itemId}&show=allcaseCount&duration=year&expandTarget=${itemId}`}
@@ -71,7 +79,7 @@ const ExpandedMenu = ({ itemId }) => (
                 fontSize: "14px",
             }}
         >
-            <ViewAgendaOutlined fontSize="small" /> Year Case Count
+            <RiFileListLine fontSize="small" /> Year Case Count
         </Link>
         <Link
             href={`/dashboard/resultanalysis/monthresultsvalues?testid=${itemId}&show=resultvalues&duration=month&expandTarget=${itemId}&isGroupedByDate=0`}
@@ -82,7 +90,7 @@ const ExpandedMenu = ({ itemId }) => (
                 fontSize: "14px",
             }}
         >
-            <ViewAgendaOutlined fontSize="small" /> Month Result Values
+            <RiFileListLine fontSize="small" /> Month Result Values
         </Link>
     </>
 );
@@ -148,7 +156,7 @@ export default function ResultAnalysisSideBar() {
                             href={`/dashboard/resultanalysis/alltest`}
                             style={{ textDecoration: "none", color: "#d1d5db" }}
                         >
-                            <ViewAgendaOutlined /> All Tests
+                            <RiFileListLine /> All Tests
                         </Link>
                     </div>
                 </li>

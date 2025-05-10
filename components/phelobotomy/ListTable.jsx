@@ -58,14 +58,24 @@ export default function ListTable({ data, handleCollectSample, receive }) {
 		},
 	]
 
-
-	
+	const rowClassName = (row) => {
+		if (row.original && row.original.clientstatus === "urgent") {
+			return "alert alert-danger  text-white";
+		}
+		return "";
+	};
 
 	return (
 		<div>
-			<PrimeTable column={columns}
+			<PrimeTable
+				column={columns}
 				handleSeverSideProcessing={handleSeverSideProcessingPhelobotomy}
-				data={data} filtering={false} serverSideFiltering={true} />
+				data={data}
+				filtering={false}
+				rowClassName={rowClassName}
+				serverSideFiltering={true}
+				
+			/>
 		</div>
 	);
 }

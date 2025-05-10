@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from "react"
 import TableDisplay from "../../components/accessories/TableDisplay"
 import { customFetch, deleteOrganization, handleChangeWithState, updatePagination } from "../Auth/customFetch"
-import { IconButton } from "@mui/material"
-import { DeleteOutlineOutlined, Edit } from "@mui/icons-material"
 import { useRouter } from "next/router"
 import Pagination from "../../components/accessories/pagination"
 import Loader from "../../components/accessories/Loader"
+import { RiEditLine, RiDeleteBinLine } from '@remixicon/react';
 
 
 export default function OrganizationList() {
@@ -51,22 +50,8 @@ export default function OrganizationList() {
       Cell: ({ row }) => {
         return (
           <span>
-            <IconButton
-              edge="start"
-              size="small"
-              sx={{ color: "blue" }}
-              onClick={(ev) => {
-                handleEditing(row.original.id)
-              }}>
-              <Edit />
-            </IconButton>
-            <IconButton
-              edge="start"
-              size="small"
-              sx={{ color: "red" }}
-              onClick={(e) => deleteOrganization(row.original.ID, getOrganizationData)}>
-              <DeleteOutlineOutlined />
-            </IconButton>
+            <RiEditLine onClick={(ev) => { handleEditing(row.original.id) }} />
+            <RiDeleteBinLine onClick={(e) => deleteOrganization(row.original.ID, getOrganizationData)} />
           </span>
         )
       },
