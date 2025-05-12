@@ -1,11 +1,8 @@
 "use client"
-import React, { useEffect, useState } from 'react';
-import { currencyFormatter, customFetch } from '../../Auth/customFetch';
+import React, { useState } from 'react';
+import { currencyFormatter } from '../../Auth/customFetch';
 import { Card, Row, Col, Container } from 'react-bootstrap';
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import ReceiptIcon from '@mui/icons-material/Receipt';
-import CalculateIcon from '@mui/icons-material/Calculate';
+import { RiTeamLine, RiMoneyDollarCircleLine, RiBillLine, RiCalculatorLine } from '@remixicon/react';
 
 interface AnalyticsData {
     total_rows: number;
@@ -99,7 +96,7 @@ const ClinicianOverallAnalytics: React.FC<ClinicianOverallAnalyticsProps> = ({ c
                         <AnalyticCard
                             title="Total Cases"
                             value={analyticsData.total_rows}
-                            Icon={PeopleAltIcon}
+                            Icon={RiTeamLine}
                             bgColor={cardColors.cases.bg}
                             iconColor={cardColors.cases.icon}
                             formatAsCurrency={false}
@@ -109,7 +106,7 @@ const ClinicianOverallAnalytics: React.FC<ClinicianOverallAnalyticsProps> = ({ c
                         <AnalyticCard
                             title="Total Cost"
                             value={analyticsData.total_cost}
-                            Icon={AttachMoneyIcon}
+                            Icon={RiMoneyDollarCircleLine}
                             bgColor={cardColors.cost.bg}
                             iconColor={cardColors.cost.icon}
                         />
@@ -118,7 +115,7 @@ const ClinicianOverallAnalytics: React.FC<ClinicianOverallAnalyticsProps> = ({ c
                         <AnalyticCard
                             title="Total Payable"
                             value={analyticsData.payable}
-                            Icon={ReceiptIcon}
+                            Icon={RiBillLine}
                             bgColor={cardColors.payable.bg}
                             iconColor={cardColors.payable.icon}
                         />
@@ -127,7 +124,7 @@ const ClinicianOverallAnalytics: React.FC<ClinicianOverallAnalyticsProps> = ({ c
                         <AnalyticCard
                             title="Tax Amount"
                             value={analyticsData.amountIncurredDueTax}
-                            Icon={CalculateIcon}
+                            Icon={RiCalculatorLine}
                             bgColor={cardColors.tax.bg}
                             iconColor={cardColors.tax.icon}
                         />

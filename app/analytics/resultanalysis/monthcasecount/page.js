@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { customFetch } from "../../../../components/Auth/customFetch";
-import CaseCountAreaChart from "../../../../lib/resultanalaysis/MonthCaseCountChart";
+import { customFetch } from "../../../../../components/Auth/customFetch";
+import CaseCountAreaChart from "../../../../../lib/resultanalaysis/MonthCaseCountChart";
 
 export default function ResultAnalysisTestMonthlyCasesCount() {
   const [response, setResponse] = useState([]);

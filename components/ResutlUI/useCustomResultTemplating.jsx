@@ -17,7 +17,7 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
 					const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}`)
 					const { result } = response;
 					result?.result && setResult(result?.result || [])
-					result?.testname && setTestname(testname);
+					result?.testname && setTestname(result?.testname);
 					setLoading(false)
 				}
 			}
@@ -38,7 +38,7 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
 		<div >
 			<h5 className="text-uppercase ui text-center border-bottom  border-2 border-secondary">
 				<span className="fw-bold">
-					{test && test.includes("_") ? test.split("_").join(" ") : test}
+					{testname}
 				</span>
 			</h5>
 			<table className={isResultView ? "alpha-result-table" : "table billing-cart-table"} >

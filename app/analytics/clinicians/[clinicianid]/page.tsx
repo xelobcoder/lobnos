@@ -1,12 +1,12 @@
-import ClinicianAnalyticsCaseSummaryDaily from "../../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsCaseSummaryDailyRecent";
-import ClinicianAnalyticsCaseSummaryMonthly from "../../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsCaseSummaryMonthly";
-import ClinicianAnalyticsCaseSummaryYearly from "../../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsCaseSummaryYearly";
-import ClinicianAnalyticsDailyCaseChange from "../../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsDailyCaseChange";
-import ClinicianAnalyticsMonthlyTotals from "../../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsMonthlyTotals";
-import ClinicianOverallAnalytics from "../../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsOverallTotal";
-import ClinicianAnalyticsYearlyTotals from "../../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsYearlyTotals";
-import ClinicianCasesVerseTotalCases from "../../../../../components/analytics/clinicians-analytics/ClinicianCasesVerseTotalCases";
-import { customFetch } from "../../../../../components/Auth/customFetch";
+import ClinicianAnalyticsCaseSummaryDaily from "../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsCaseSummaryDailyRecent";
+import ClinicianAnalyticsCaseSummaryMonthly from "../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsCaseSummaryMonthly";
+import ClinicianAnalyticsCaseSummaryYearly from "../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsCaseSummaryYearly";
+import ClinicianAnalyticsDailyCaseChange from "../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsDailyCaseChange";
+import ClinicianAnalyticsMonthlyTotals from "../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsMonthlyTotals";
+import ClinicianOverallAnalytics from "../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsOverallTotal";
+import ClinicianAnalyticsYearlyTotals from "../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsYearlyTotals";
+import ClinicianCasesVerseTotalCases from "../../../../components/analytics/clinicians-analytics/ClinicianCasesVerseTotalCases";
+import { customFetch } from "../../../../components/Auth/customFetch";
 
 export default async function Page({ params }: { params: { clinicianid: number } }) {
     const { clinicianid } = params;

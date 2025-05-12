@@ -91,6 +91,7 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
                </Modal.Header>
                <Modal.Body>
                     <PreviewPatientInformation patientid={selectedAscension.patientid} />
+                    <h5></h5>
                     <div style={{ overflowX: 'auto' }} className="my-3">
                          <UseCustomResultTemplating
                               isResultView={false}

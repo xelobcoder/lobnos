@@ -78,7 +78,7 @@ const links = [
     disabled: true
   },
   {
-    href: '/dashboard/resultanalysis',
+    href: '/analytics/resultanalysis',
     icon: <RiBarChartBoxLine size={24} />,
     text: "Analyze test results and generate insights",
     label: 'Result Analysis',

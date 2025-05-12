@@ -5,7 +5,6 @@ import { customFetch } from '../../Auth/customFetch';
 import moment from 'moment';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Card, Button, Form } from 'react-bootstrap';
-import { ArrowBack, ArrowCircleLeftRounded, ArrowForward } from '@mui/icons-material';
 import styles from '../../../styles/SmsTemplateList.module.css';
 
 interface DailyCaseChange {
@@ -186,7 +185,8 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 						placeholder="Records per page"
 					/>
 					<Button variant="primary" size="sm" onClick={handleRefreshClick}>
-						<ArrowCircleLeftRounded /> Refresh
+						{/* <ArrowCircleLeftRounded />  */}
+						Refresh
 					</Button>
 				</div>
 			</div>
@@ -304,14 +304,16 @@ const ClinicianAnalyticsDailyCaseChange: React.FC<ClinicianAnalyticsDailyCaseCha
 						onClick={() => handlePageMan("decrease")}
 						className="btn-sm"
 					>
-						<ArrowBack /> Previous
+						{/* <ArrowBack />  */}
+						Previous
 					</Button>
 					<Button
 						variant="light"
 						onClick={() => handlePageMan("increase")}
 						className="btn-sm ms-2"
 					>
-						Next <ArrowForward />
+						Next 
+						{/* <ArrowForward /> */}
 					</Button>
 				</div>
 			</div>

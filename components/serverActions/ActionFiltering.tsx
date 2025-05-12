@@ -362,7 +362,7 @@ export const ClinicianAnalyticsCaseSummaryDailyServerSide = async (clinicianId: 
 
 export const handleSelectionClinicianAnalytics = async (value: any) => {
 	if (!value || !value?.id) return
-	redirect(`/dashboard/analytics/clinicians/${value?.id}`)
+	redirect(`/analytics/clinicians/${value?.id}`)
 }
 
 

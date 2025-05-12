@@ -1,6 +1,6 @@
 import React from 'react'
-import ClinicianFiltering from '../../../../components/accessories/SectorFileringComponents/ClinicianFiltering'
-import { handleSelectionClinicianAnalytics } from '../../../../components/serverActions/ActionFiltering'
+import ClinicianFiltering from '../../../components/accessories/SectorFileringComponents/ClinicianFiltering'
+import { handleSelectionClinicianAnalytics } from '../../../components/serverActions/ActionFiltering'
 
 export default function ClinicianAnalytics() {
    

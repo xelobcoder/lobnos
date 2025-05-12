@@ -1,26 +1,23 @@
 import { Suspense } from "react";
 import { ApplicationProvider } from "../../components/Auth/useApplicationContext";
 import PrimeLayout from "../../components/Layout/PrimeLayout";
+import { DoashBoardMainLinks } from "../../components/Layout/links/categories/DashboardLinks";
 
 
 
 export default function SMSLayout({
-  children,
+    children,
 }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }) {
 
-  return (
-    <html lang="en">
-      <body >
+    return (
         <Suspense>
-          <ApplicationProvider>
-            <PrimeLayout>
-              {children}
-            </PrimeLayout>
-          </ApplicationProvider>
+            <ApplicationProvider>
+                <PrimeLayout links={DoashBoardMainLinks}>
+                    {children}
+                </PrimeLayout>
+            </ApplicationProvider>
         </Suspense>
-      </body>
-    </html>
-  );
+    );
 }

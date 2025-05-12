@@ -34,7 +34,7 @@ export default function UseResultCommentSingle({ testid, billingid, patientid, m
 		<div>
 			{comments && comments.length > 0 &&  <h5>Comments</h5>}
 			{renderingView()}
-			Impression Hereto make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProImpression Hereto make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProImpression Hereto make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IProbably I am here to make the greatest impact Probably IPro
+			
 			<hr className="p-0 "/>
 			<span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
 		</div>

@@ -89,7 +89,7 @@ export default function CreateTestRule({ clientdata }) {
 	const handleSubmit = async () => {
 		try {
 			const transformed = rule.map((item) => {
-				return { field: item?.name, value: item?.value, fieldid:item?.id,originalvalue:item?.originalvalue||item?.value };
+				return { field: item?.name, value: item?.value, fieldid:item?.id,originalvalue:item?.value };
 			});
 			const allHasValues = transformed.some((a) => a.value == "");
 			if (allHasValues) {
