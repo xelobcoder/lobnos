@@ -6,13 +6,15 @@ type ApplicationContextType = {
     theme: string;
     isAuthenticated: boolean;
     employeeid: number;
+    branchid:number
 };
 
 const defaultApplicationContext: ApplicationContextType = {
     user: 'Tiifu Hamza Kojo Boronson',
     theme: "light",
     isAuthenticated: false,
-    employeeid:3
+    employeeid:3,
+    branchid:36
 };
 
 const ApplicationContext = createContext<ApplicationContextType>(defaultApplicationContext);

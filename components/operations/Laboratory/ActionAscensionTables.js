@@ -1,9 +1,9 @@
 import { Dropdown } from 'react-bootstrap';
 import { RiCheckLine, RiEyeLine, RiMore2Fill } from '@remixicon/react';
-
 const ActionDropdown = ({
      onValidate,
      onViewResult,
+     onNavigate
 }) => {
      return (
           <Dropdown>
@@ -16,6 +16,9 @@ const ActionDropdown = ({
                     </Dropdown.Item>
                     <Dropdown.Item onClick={onViewResult}>
                          <RiEyeLine size="16" className="me-2" /> View Result
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={onNavigate}>
+                         <RiEyeLine size="16" className="me-2" /> Update Result Values
                     </Dropdown.Item>
                </Dropdown.Menu>
           </Dropdown>

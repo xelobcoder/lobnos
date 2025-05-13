@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { handleComments } from "../Auth/customFetch";
-import { customPost } from "../Auth/customPost";
+import { customPost, handleComments } from "../Auth/customFetch";
 import Indicator from "../accessories/Reports/indicator";
 import { toast, ToastContainer } from 'react-toastify';
 import Loader from "../accessories/Loader";

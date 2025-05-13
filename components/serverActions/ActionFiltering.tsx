@@ -250,14 +250,7 @@ export const getResultEntryDataServerSide = async ({
 		customFetch(commentsUrl),
 		customFetch(testResultUrl),
 	]);
-
-	console.log({
-		commentsResponse,
-		resultResponse,
-	});
-
-
-
+	
 	return [resultResponse, commentsResponse];
 };
 

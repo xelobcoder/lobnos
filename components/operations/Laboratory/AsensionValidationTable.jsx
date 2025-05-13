@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
-import { printResultNavigator } from "../../Auth/customFetch";
+import { PrepareResultEntryHeader, printResultNavigator } from "../../Auth/customFetch";
 import { useRouter } from "next/navigation";
 import ActionDropdown from "./ActionAscensionTables";
 import { useMediaQuery } from 'react-responsive';
@@ -9,17 +9,16 @@ import ValidationModal from "./ValidationModal";
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
 import moment from "moment";
+import { useApplication } from "../../primeinventory/components/application/ApplicationContextProvider";
 
 export default function ValidationAscensionTable({ employeeid }) {
 	const { isLoading, collection, queryParams, setCollection } = useLaboratoryContext();
 	const router = useRouter();
 	const isMobile = useMediaQuery({ maxWidth: 768 });
-
 	const [isValidationModalOpened, setIsValidationModalOpened] = useState(false);
 	const [selectedAscension, setSelectedAscension] = useState(null);
-
 	const [visibleTimelines, setVisibleTimelines] = useState({});
-
+	const {branchid} = useApplication();
 
 	const viewResultHandler = (item) => {
 		printResultNavigator(router, item.billingid, { ...item, testid: item.id }, true);
@@ -38,6 +37,11 @@ export default function ValidationAscensionTable({ employeeid }) {
 			setCollection(prev);
 		}
 	};
+
+
+	const onNavigate = (row) => {
+		PrepareResultEntryHeader(row,false,branchid)
+	}
 
 	const columns = [
 		{ Header: "Fullname", accessor: "fullname", width: 150, Cell: ({ value, row }) => <div className="text-uppercase">{value}<br />{row.original.age}</div> },
@@ -67,6 +71,7 @@ export default function ValidationAscensionTable({ employeeid }) {
 				<ActionDropdown
 					onValidate={() => handleActionClick(row.original)}
 					onViewResult={() => viewResultHandler(row.original)}
+					onNavigate={() =>  {onNavigate(row.original)}}
 				/>
 			),
 		}

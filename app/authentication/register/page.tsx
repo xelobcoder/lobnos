@@ -3,10 +3,7 @@ import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { handleResponse, validateFormData, customFetch, getBranches } from '../../../components/Auth/customFetch';
 import Loader from '../../../components/accessories/Loader';
 import { useSearchParams } from 'next/navigation';
-import { useDropzone } from 'react-dropzone';
-import Image from 'next/image';
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -38,60 +35,19 @@ interface RegisterData {
     department: string;
     employeeId: string;
     pin: string;
-    image: File | null;
-    imagePreview?: string;
 }
 
 const defaultData: RegisterData = {
     name: '', email: '', password: '', cpassword: '',
     role: '', branch: '', mobile: '', altMobile: '',
     address: '', dob: '', startDate: '', accessLevel: '',
-    department: '', employeeId: '', pin: '', image: null
+    department: '', employeeId: '', pin: ''
 };
 
 interface Branch {
     branchid: string;
     name: string;
 }
-
-interface InputFieldProps {
-    label: string;
-    type: string;
-    name: string;
-    value: string;
-    onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-    placeholder?: string;
-    required?: boolean;
-    minLength?: number;
-    maxLength?: number;
-}
-
-const InputField: React.FC<InputFieldProps> = ({
-    label,
-    type,
-    name,
-    value,
-    onChange,
-    placeholder,
-    required,
-    minLength,
-    maxLength,
-}) => (
-    <div className="form-row grid-reg mt-3">
-        <label className="pls-label mt-1 mb-1" htmlFor={name}>{label}</label>
-        <input
-            type={type}
-            name={name}
-            value={value}
-            onChange={onChange}
-            className="custom-input"
-            placeholder={placeholder}
-            required={required}
-            minLength={minLength}
-            maxLength={maxLength}
-        />
-    </div>
-);
 
 export default function AuthenticationIndexPage() {
     const searchParams = useSearchParams();
@@ -123,36 +79,34 @@ export default function AuthenticationIndexPage() {
         if (validateForm()) {
             setLoading(true);
             try {
-                const formData = new FormData();
-                
-                formData.append('name', register.name);
-                formData.append('email', register.email);
-                formData.append('mobile', register.mobile);
-                formData.append('password', register.password);
-                formData.append('cpassword', register.cpassword);
-                formData.append('role', register.role);
-                formData.append('branch', register.branch);
-                formData.append('pin', register.pin);
-                formData.append('altMobile', register.altMobile);
-                formData.append('dob', register.dob);
-                
-                if (register.image) {
-                    formData.append('image', register.image);
-                }
-
-                if (employeeid) {
-                    formData.append('employeeid', employeeid);
-                }
-
+                const data = {
+                    name: register.name,
+                    email: register.email,
+                    mobile: register.mobile,
+                    password: register.password,
+                    cpassword: register.cpassword,
+                    role: register.role,
+                    branch: register.branch,
+                    pin: register.pin,
+                    altMobile: register.altMobile,
+                    dob: register.dob,
+                    startDate: register.startDate,
+                    accessLevel: register.accessLevel,
+                    department: register.department,
+                    employeeId: register.employeeId,
+                    address: register.address,
+                    employeeid: employeeid || undefined
+                };
+    
                 await validateFormData(
-                    formData,
+                    data,
                     false,
                     ["name", "email", "password", "cpassword", "role", "mobile", "pin"],
                     employeeid ? 'logins/update' : 'logins',
                     handleResponse,
-					false
+                    false
                 );
-
+    
                 toast.success(employeeid ? 'Employee updated successfully!' : 'Employee registered successfully!');
             } catch (error) {
                 console.error('Error submitting form', error);
@@ -162,25 +116,6 @@ export default function AuthenticationIndexPage() {
             }
         }
     };
-
-    const onDrop = (acceptedFiles: File[]) => {
-        if (acceptedFiles && acceptedFiles[0]) {
-            const file = acceptedFiles[0];
-            setRegister(prev => ({
-                ...prev,
-                image: file,
-                imagePreview: URL.createObjectURL(file)
-            }));
-        }
-    };
-
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        onDrop,
-        accept: {
-            'image/*': ['.jpeg', '.jpg', '.png']
-        },
-        maxFiles: 1
-    });
 
     useEffect(() => {
         if (employeeid) {
@@ -200,14 +135,6 @@ export default function AuthenticationIndexPage() {
 
     useEffect(() => { getBranches(setBranches, undefined, undefined) }, []);
 
-    useEffect(() => {
-        return () => {
-            if (register.imagePreview) {
-                URL.revokeObjectURL(register.imagePreview);
-            }
-        };
-    }, [register.imagePreview]);
-
     if (isLoading) return <Loader w={100} h={100} />;
 
     return (
@@ -223,73 +150,101 @@ export default function AuthenticationIndexPage() {
                     <h5 className="text-capitalize">{employeeid ? 'Update Employee Information' : 'New Employee Registration'}</h5>
                     <hr />
                     <div className="row">
-                        <InputField
-                            label="Username"
-                            type="text"
-                            name="name"
-                            value={register.name}
-                            onChange={handleChange}
-                            placeholder="Name"
-                            required
-                        />
-                        <InputField
-                            label="Email"
-                            type="email"
-                            name="email"
-                            value={register.email}
-                            onChange={handleChange}
-                            placeholder="Email"
-                            required
-                        />
-                        <InputField
-                            label="Mobile Number"
-                            type="tel"
-                            name="mobile"
-                            value={register.mobile}
-                            onChange={handleChange}
-                            placeholder="Mobile Number"
-                            required
-                            minLength={10}
-                            maxLength={10}
-                        />
-                        <InputField
-                            label="Alternative Contact Number"
-                            type="tel"
-                            name="altMobile"
-                            value={register.altMobile}
-                            onChange={handleChange}
-                            placeholder="Alternative Contact Number"
-                            minLength={10}
-                            maxLength={10}
-                        />
-                        <InputField
-                            label="Date of Birth"
-                            type="date"
-                            name="dob"
-                            value={register.dob}
-                            onChange={handleChange}
-                            required
-                        />
-                        <InputField
-                            label="Password"
-                            type="password"
-                            name="password"
-                            value={register.password}
-                            onChange={handleChange}
-                            placeholder="Password"
-                            required
-                            minLength={6}
-                        />
-                        <InputField
-                            label="Confirm Password"
-                            type="password"
-                            name="cpassword"
-                            value={register.cpassword}
-                            onChange={handleChange}
-                            placeholder="Confirm Password"
-                            required
-                            minLength={6}
-                        />
+                        <div className="form-row grid-reg mt-3">
+                            <label className="pls-label mt-1 mb-1" htmlFor="name">Username</label>
+                            <input
+                                type="text"
+                                name="name"
+                                value={register.name}
+                                onChange={handleChange}
+                                className="custom-input"
+                                placeholder="Name"
+                                required
+                                autoComplete="off"
+                            />
+                        </div>
+                        <div className="form-row grid-reg mt-3">
+                            <label className="pls-label mt-1 mb-1" htmlFor="email">Email</label>
+                            <input
+                                type="email"
+                                name="email"
+                                value={register.email}
+                                onChange={handleChange}
+                                className="custom-input"
+                                placeholder="Email"
+                                required
+                                autoComplete="off"
+                            />
+                        </div>
+                        <div className="form-row grid-reg mt-3">
+                            <label className="pls-label mt-1 mb-1" htmlFor="mobile">Mobile Number</label>
+                            <input
+                                type="tel"
+                                name="mobile"
+                                value={register.mobile}
+                                onChange={handleChange}
+                                className="custom-input"
+                                placeholder="Mobile Number"
+                                required
+                                minLength={10}
+                                maxLength={10}
+                                autoComplete="off"
+                            />
+                        </div>
+                        <div className="form-row grid-reg mt-3">
+                            <label className="pls-label mt-1 mb-1" htmlFor="altMobile">Alternative Contact Number</label>
+                            <input
+                                type="tel"
+                                name="altMobile"
+                                value={register.altMobile}
+                                onChange={handleChange}
+                                className="custom-input"
+                                placeholder="Alternative Contact Number"
+                                minLength={10}
+                                maxLength={10}
+                                autoComplete="off"
+                            />
+                        </div>
+                        <div className="form-row grid-reg mt-3">
+                            <label className="pls-label mt-1 mb-1" htmlFor="dob">Date of Birth</label>
+                            <input
+                                type="date"
+                                name="dob"
+                                value={register.dob}
+                                onChange={handleChange}
+                                className="custom-input"
+                                required
+                                autoComplete="off"
+                            />
+                        </div>
+                        <div className="form-row grid-reg mt-3">
+                            <label className="pls-label mt-1 mb-1" htmlFor="password">Password</label>
+                            <input
+                                type="password"
+                                name="password"
+                                value={register.password}
+                                onChange={handleChange}
+                                className="custom-input"
+                                placeholder="Password"
+                                required
+                                minLength={6}
+                                autoComplete="off"
+                            />
+                        </div>
+                        <div className="form-row grid-reg mt-3">
+                            <label className="pls-label mt-1 mb-1" htmlFor="cpassword">Confirm Password</label>
+                            <input
+                                type="password"
+                                name="cpassword"
+                                value={register.cpassword}
+                                onChange={handleChange}
+                                className="custom-input"
+                                placeholder="Confirm Password"
+                                required
+                                minLength={6}
+                                autoComplete="off"
+                            />
+                        </div>
                         <div className="form-row grid-reg mt-3">
                             <label className="pls-label mt-1 mb-1" htmlFor="role">Role</label>
                             <select
@@ -327,43 +282,20 @@ export default function AuthenticationIndexPage() {
                                     ))}
                             </select>
                         </div>
-                        <InputField
-                            label="PIN Code"
-                            type="password"
-                            name="pin"
-                            value={register.pin}
-                            onChange={handleChange}
-                            placeholder="Enter 4-digit PIN"
-                            required
-                            minLength={4}
-                            maxLength={4}
-                        />
                         <div className="form-row grid-reg mt-3">
-                            <label className="pls-label mt-1 mb-1">Profile Image</label>
-                            <div
-                                {...getRootProps()}
-                                className={`dropzone-container p-4 border rounded ${isDragActive ? 'border-primary' : 'border-dashed'}`}
-                                style={{ cursor: 'pointer', minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            >
-                                <input {...getInputProps()} />
-                                {register.imagePreview ? (
-                                    <div className="text-center">
-                                        <Image
-                                            src={register.imagePreview}
-                                            alt="Profile preview"
-                                            width={150}
-                                            height={150}
-                                            style={{ objectFit: 'cover', borderRadius: '8px' } as const}
-                                        />
-                                        <p className="mt-2 text-muted">Click or drag to replace</p>
-                                    </div>
-                                ) : (
-                                    <div className="text-center">
-                                        <p>Drag and drop an image here, or click to select</p>
-                                        <p className="text-muted">Supported formats: JPG, PNG</p>
-                                    </div>
-                                )}
-                            </div>
+                            <label className="pls-label mt-1 mb-1" htmlFor="pin">PIN Code</label>
+                            <input
+                                type="password"
+                                name="pin"
+                                value={register.pin}
+                                onChange={handleChange}
+                                className="custom-input"
+                                placeholder="Enter 4-digit PIN"
+                                required
+                                minLength={4}
+                                maxLength={4}
+                                autoComplete="off"
+                            />
                         </div>
                         <div className="form-group mt-4">
                             <button
