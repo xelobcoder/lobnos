@@ -235,6 +235,7 @@ interface FetchParams {
 	testid: string;
 	billingid: string;
 	patientid: string;
+	ascensionid: string;
 }
 
 
@@ -242,9 +243,10 @@ export const getResultEntryDataServerSide = async ({
 	testid,
 	billingid,
 	patientid,
+	ascensionid
 }: FetchParams): Promise<[resultResponse: any, commentsResponse: any]> => {
 	const commentsUrl = `testpanel/list/customtestrule/previous/comments?testid=${testid}&csvid=${billingid}&ptid=${patientid}`;
-	const testResultUrl = `testpanel/list/customtestrule/previous?testid=${testid}&ptid=${patientid}&csvid=${billingid}`;
+	const testResultUrl = `testpanel/list/customtestrule/previous?testid=${testid}&ptid=${patientid}&csvid=${billingid}&&ascensionid=${ascensionid}`;
 
 	const [commentsResponse, resultResponse] = await Promise.all([
 		customFetch(commentsUrl),

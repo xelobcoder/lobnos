@@ -52,6 +52,11 @@ export const CrmLinks: Link[] = [
         icon: <RiAddBoxLine />
     },
     {
+        title:"Test Price List",
+        link:"/crm/pricelist",
+        icon:<RiMoneyDollarCircleLine/>
+    },
+    {
         title: "Packages",
         link: "/billing/packages/create-new-package",
         icon: <RiBox3Line />

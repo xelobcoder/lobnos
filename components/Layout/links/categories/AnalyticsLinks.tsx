@@ -9,6 +9,7 @@ export const AnalyticsLinks = function (branchid: number, employeeid: number): L
     return [
         { title: 'Patient Analytics', link: '/dashboard/analytics/patients', icon: <RiUserHeartLine /> },
         { title: 'Clinicians Analytics', link: "/dashboard/analytics/clinicians", icon: <RiUserStarLine /> },
-        { title: 'Phelobotomy Analytics', link: "/operations/laboratory/phelobotomy/analytics", icon: <RiTestTubeLine /> }
+        { title: 'Phelobotomy Analytics', link: "/operations/laboratory/phelobotomy/analytics", icon: <RiTestTubeLine /> },
+        {title:"Sales Trends", link:"/analytics/sales", icon:<RiTestTubeLine/>}
     ];
 };

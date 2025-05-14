@@ -70,7 +70,7 @@ export default function DailySalesTrend() {
 
      const formatDate = (dateString) => {
           const date = new Date(dateString);
-          return date.toLocaleDateString(); // Format as "MM/DD/YYYY"
+          return date.toLocaleDateString();
      };
 
      return (

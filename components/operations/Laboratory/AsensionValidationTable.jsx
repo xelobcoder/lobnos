@@ -9,7 +9,8 @@ import ValidationModal from "./ValidationModal";
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
 import moment from "moment";
-import { useApplication } from "../../primeinventory/components/application/ApplicationContextProvider";
+import { useApplication } from "../../Auth/useApplicationContext";
+
 
 export default function ValidationAscensionTable({ employeeid }) {
 	const { isLoading, collection, queryParams, setCollection } = useLaboratoryContext();

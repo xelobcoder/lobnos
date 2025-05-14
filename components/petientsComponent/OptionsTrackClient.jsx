@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 
 const style = {
@@ -13,7 +14,7 @@ const style = {
   p: 4,
 };
 
-const OptionsTrackClient = forwardRef((props, ref) => {
+const OptionsTrackClient = (openModal,handleClose) => {
   const [open, setOpen] = useState(false);
 
   
@@ -51,6 +52,6 @@ const OptionsTrackClient = forwardRef((props, ref) => {
       </Modal>
     </div>
   );
-});
+}
 
 export default OptionsTrackClient;

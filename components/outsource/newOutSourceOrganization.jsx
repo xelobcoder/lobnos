@@ -48,7 +48,7 @@ const validationSchema = Yup.object().shape({
 
 export default function OutSourcingOrganizationForm() {
     const { applicationsettings } = useApplicationSettings();
-    const employeeid = applicationsettings.user.employeeid;
+    const employeeid = applicationsettings?.user?.employeeid
     const outsourceid = useSearchParams().get("orgid");
     const method = outsourceid ? 'PUT' : 'POST';
     const [formData, setFormData] = useState(defaultData);

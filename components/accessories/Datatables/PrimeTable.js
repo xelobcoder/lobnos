@@ -218,7 +218,7 @@ export default function PrimeTable({
      return (
           <div
                className={`${style.tablewrapper} shadow-sm`}
-               style={{ minHeight: "50vh", borderRadius: "10px" }}
+               style={{ minHeight: "60vh", borderRadius: "10px" }}
           >
                <div className="mx-3 my-2 d-flex justify-content-between">
                     <div className="col-3">

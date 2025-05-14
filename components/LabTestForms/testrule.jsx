@@ -30,7 +30,7 @@ export default function CreateTestRule({ clientdata }) {
 	useEffect(() => {
 		const gettingFields = async function () {
 			try {
-				const [resultResponse, commentsResponse] = await getResultEntryDataServerSide({ testid, billingid, patientid })
+				const [resultResponse, commentsResponse] = await getResultEntryDataServerSide({ testid, billingid, patientid ,ascensionid})
 
 
 				function updatesResultForm(data) {
