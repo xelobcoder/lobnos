@@ -5,41 +5,42 @@ import FrontPageFrontdeskView from "../components/FrontPageView/frontdeskView";
 import FrontPageLabScientistView from "../components/FrontPageView/labScientistView";
 import FrontPagePhelobotomyView from "../components/FrontPageView/phelobotomyView";
 import FrontPageSonographerView from "../components/FrontPageView/sonographerView";
-import styles from './index.module.css';
+import styles from "./index.module.css";
 
 export default function Index() {
   const { applicationsettings } = useApplicationSettings();
   const { user, daysToExpiration } = applicationsettings;
 
   const roleViews = {
-    'customer service representative': FrontPageFrontdeskView,
-    'admin': FrontPageAdminView,
-    'manager': FrontPageAdminView,
-    'scientist': FrontPageLabScientistView,
-    'sonographer': FrontPageSonographerView,
-    'phelobotomist': FrontPagePhelobotomyView
+    "customer service representative": FrontPageFrontdeskView,
+    admin: FrontPageAdminView,
+    manager: FrontPageAdminView,
+    scientist: FrontPageLabScientistView,
+    sonographer: FrontPageSonographerView,
+    phelobotomist: FrontPagePhelobotomyView,
   };
 
   const RoleComponent = roleViews[user.role];
 
   if (!daysToExpiration || daysToExpiration <= 0) {
     return (
-      <PrimeLayout>
-        <div className={styles.expiredContainer}>
-          <div className={styles.expiredContent}>
-            <h1 className={styles.expiredTitle}>License Expired</h1>
-            <p className={styles.expiredText}>
-              Your product license has expired. Please contact our support team for renewal.
-            </p>
-            <button 
-              className={styles.contactButton}
-              onClick={() => window.location.href = 'mailto:support@example.com'}
-            >
-              Contact Support
-            </button>
-          </div>
+      <div className={styles.expiredContainer}>
+        <div className={styles.expiredContent}>
+          <h1 className={styles.expiredTitle}>License Expired</h1>
+          <p className={styles.expiredText}>
+            Your product license has expired. Please contact our support team
+            for renewal.
+          </p>
+          <button
+            className={styles.contactButton}
+            onClick={() =>
+              (window.location.href = "mailto:support@example.com")
+            }
+          >
+            Contact Support
+          </button>
         </div>
-      </PrimeLayout>
+      </div>
     );
   }
 
@@ -49,7 +50,8 @@ export default function Index() {
         <div className={styles.errorContainer}>
           <h2 className={styles.errorTitle}>Access Denied</h2>
           <p className={styles.errorText}>
-            You don't have permission to access this page. Please contact your administrator.
+            You don't have permission to access this page. Please contact your
+            administrator.
           </p>
         </div>
       </PrimeLayout>
