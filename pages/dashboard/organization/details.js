@@ -1,5 +1,5 @@
 import { useSearchParams } from "next/navigation"
-import DashBoardLayoutSales from "../../../components/salesSummary/DashBoardLayout";
+
 import { useEffect, useState } from "react";
 import { customFetch } from "../../../components/Auth/customFetch";
 import ISLOADING from "../../../components/isLoading";
@@ -33,45 +33,43 @@ export default function OrganizationDashboardDetails() {
   }, [organizationid])
 
   return (
-    <DashBoardLayoutSales>
-      <main >
-      {loading && <ISLOADING />}
-      <h2>{organizationName}</h2>
-      <div className="grid-30-30-30">
-        {salesReport.monthly && <PerformanceOrganization title={'DAY SUMMARY'} data={salesReport.today} />}
-        {salesReport.monthly && <PerformanceOrganization title={'MONTH SALE SUMMARY'} data={salesReport.monthly} />}
-        {salesReport.monthly && <PerformanceOrganization title={'YEAR SALE SUMMARY'} data={salesReport.yearly} />}
-      </div>
-      <div>
-        <section className="organization-chart">
-            <div className="">
-            <div className="card br-0"> 
-              <div className="card-header">
-                 Daily Performance Chart
+    <main >
+    {loading && <ISLOADING />}
+    <h2>{organizationName}</h2>
+    <div className="grid-30-30-30">
+      {salesReport.monthly && <PerformanceOrganization title={'DAY SUMMARY'} data={salesReport.today} />}
+      {salesReport.monthly && <PerformanceOrganization title={'MONTH SALE SUMMARY'} data={salesReport.monthly} />}
+      {salesReport.monthly && <PerformanceOrganization title={'YEAR SALE SUMMARY'} data={salesReport.yearly} />}
+    </div>
+    <div>
+      <section className="organization-chart">
+          <div className="">
+          <div className="card br-0"> 
+            <div className="card-header">
+               Daily Performance Chart
+            </div>
+            <div className="card-body">
+                {salesReport.daily && salesReport.daily.length > 0 ?
+                   (<BarChartPerformanceComponent data={salesReport.daily} />)
+                  :
+                  ( <h5 className="alert alert-info">No data to display chart of daily Performance</h5>) }
+            </div>
+          </div>
+          </div>
+          <div>
+            <div className="card br-0">
+              <div className="card-header modal-color">
+                Weekly Performance Chart
               </div>
-              <div className="card-body">
-                  {salesReport.daily && salesReport.daily.length > 0 ?
-                     (<BarChartPerformanceComponent data={salesReport.daily} />)
-                    :
-                    ( <h5 className="alert alert-info">No data to display chart of daily Performance</h5>) }
+              <div className="card-body p-0">
+              { (salesReport?.weekly && salesReport?.weekly.length > 0 ) ?
+                <WeeklyPieChart data={salesReport.weekly} />:
+                ( <h5 className="alert alert-info m-2">No data to display chart of weekly Performance</h5>)}
               </div>
-            </div>
-            </div>
-            <div>
-              <div className="card br-0">
-                <div className="card-header modal-color">
-                  Weekly Performance Chart
-                </div>
-                <div className="card-body p-0">
-                { (salesReport?.weekly && salesReport?.weekly.length > 0 ) ?
-                  <WeeklyPieChart data={salesReport.weekly} />:
-                  ( <h5 className="alert alert-info m-2">No data to display chart of weekly Performance</h5>)}
-                </div>
-            </div>
-         </div>
-          </section>
-      </div>
-    </main>
-    </DashBoardLayoutSales>
+          </div>
+       </div>
+        </section>
+    </div>
+  </main>
   )
 }

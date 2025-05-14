@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button, Modal, Spinner, Dropdown } from 'react-bootstrap';
+import { Button, Modal, Dropdown } from 'react-bootstrap';
 import NewInsuranceCompanyForm from '../../components/insurance/NewInsuranceCompanyForm';
-import { Add, MoreHoriz } from '@mui/icons-material';
 import PrimeTable from '../../components/accessories/Datatables/PrimeTable';
 import { customFetch } from '../../components/Auth/customFetch';
 import Loader from '../../components/accessories/Loader';
+import { RiAddFill, RiMore2Fill } from '@remixicon/react';
 
 const InsurancePage: React.FC = () => {
     const [showModal, setShowModal] = useState(false);
@@ -103,7 +103,7 @@ const InsurancePage: React.FC = () => {
             Cell: ({ row }: any) => (
                 <Dropdown >
                     <Dropdown.Toggle id="archives-dropdown" variant="light" >
-                        <MoreHoriz />
+                        <RiMore2Fill/>
                     </Dropdown.Toggle>
                     <Dropdown.Menu>
                         <Dropdown.Item onClick={() => handleEditInsurance(row.original)}>Edit</Dropdown.Item>
@@ -145,13 +145,15 @@ const InsurancePage: React.FC = () => {
             <div className='d-flex  justify-content-between'>
                 <h4>  Insurance Master</h4>
                 <Button variant="primary" className='btn-sm' onClick={handleShow}>
-                    <Add /> Add Insurance
+         <RiAddFill/>
+                    Add Insurance
                 </Button>
             </div>
 
             <PrimeTable
                 filtering={false}
                 column={columns}
+                rowClassName={()=> ''}
                 data={insurances}
                 serverSideFiltering={true}
                 handleSeverSideProcessing={handleSeverSideProcessing}

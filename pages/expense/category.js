@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import ExpenseLayout from "../../components/Expense/ExpenseLayout";
 import { customFetch, customPost } from "../../components/Auth/customFetch";
 import Loader from '../../components/accessories/Loader';
-import { DeleteOutlineRounded } from "@mui/icons-material";
+import { DeleteBinLine } from "@remixicon/react";
 import { ToastContainer, toast } from "react-toastify";
 import { useApplicationSettings } from "../../components/Auth/useApplicationContext";
 
@@ -93,7 +92,7 @@ export default function ExpenseCategoryCreation() {
                                              handleEdit(item);
                                         }} className="btn btn-info btn-sm">edit</button>
                                         <button className="btn btn-danger btn-sm mx-2">
-                                             <DeleteOutlineRounded />
+                                             <DeleteBinLine />
                                         </button>
                                    </td>
                               </tr>
@@ -112,29 +111,29 @@ export default function ExpenseCategoryCreation() {
      }
 
      return (
-          <ExpenseLayout>
-               <ToastContainer />
-               <section>
-                    <label>Expense Category</label>
-                    <input value={newCategory} onChange={(ev) => {
-                         setNewCategory(ev.target.value)
-                    }} type="input" className="form-control mb-2" />
-                    <button type="button"
-                         onClick={(ev) => { handleSaveButton(ev) }}
-                         className="btn btn-success btn-sm">new category</button>
-               </section>
-               <section>
-                    <table className="table mt-2 ttable">
-                         <thead>
-                              <tr>
-                                   <th>category</th>
-                                   <th>created on</th>
-                                   <th>Actions</th>
-                              </tr>
-                         </thead>
-                         {isRenderingView()}
-                    </table>
-               </section>
-          </ExpenseLayout>
+          <div>
+          <ToastContainer />
+           <section>
+                <label>Expense Category</label>
+                <input value={newCategory} onChange={(ev) => {
+                     setNewCategory(ev.target.value)
+                }} type="input" className="form-control mb-2" />
+                <button type="button"
+                     onClick={(ev) => { handleSaveButton(ev) }}
+                     className="btn btn-success btn-sm">new category</button>
+           </section>
+           <section>
+                <table className="table mt-2 ttable">
+                     <thead>
+                          <tr>
+                               <th>category</th>
+                               <th>created on</th>
+                               <th>Actions</th>
+                          </tr>
+                     </thead>
+                     {isRenderingView()}
+                </table>
+           </section>
+          </div>
      )
 }

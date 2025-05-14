@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react"
-import { customFetch, monthCollection, dayCollection } from "../Auth/customFetch"
-import { AnalyticsOutlined } from "@mui/icons-material"
+import { AnalyticsLineChart, AnalyticsBarChart, AnalyticsPieChart } from '@remixicon/react';
+import { useState, useEffect } from 'react';
+
 
 export default function SalesSummaryPatient({ header, data, currency, patientid,rendersales }) {
   const [runSales, setRunSales] = useState(rendersales);
@@ -96,7 +96,7 @@ export default function SalesSummaryPatient({ header, data, currency, patientid,
 
   const renderChart = function (target) {
     if (patientid && runSales) {
-      updateInitials({ type: "RENDER_CHART", target })
+      updateInitials({ type: "RENDER_CHART", target });
     }
   }
 
@@ -110,10 +110,10 @@ export default function SalesSummaryPatient({ header, data, currency, patientid,
               <div className="card-header d-flex justify-content-between pointer">
                 <span> Day ({data?.day?.day}th)</span>
                 <span>
-                  <AnalyticsOutlined
+                  <AnalyticsLineChart
                     titleAccess="Daily chart of the month"
                     onClick={(ev) => {
-                      renderChart("daily")
+                      renderChart("daily");
                     }}
                   />
                 </span>
@@ -124,15 +124,15 @@ export default function SalesSummaryPatient({ header, data, currency, patientid,
                 </h1>
               </div>
             </div>
-            {/* test cost */}
+            {/* Repeat similar changes for other cards */}
             <div className="card br-5">
               <div className="card-header d-flex justify-content-between pointer">
                 <span> Week ({data?.week?.week})</span>
                 <span>
-                  <AnalyticsOutlined
+                  <AnalyticsBarChart
                     titleAccess="Week of the month"
                     onClick={(ev) => {
-                      renderChart("weekly")
+                      renderChart("weekly");
                     }}
                   />
                 </span>
@@ -143,15 +143,14 @@ export default function SalesSummaryPatient({ header, data, currency, patientid,
                 </h1>
               </div>
             </div>
-            {/* total paid */}
             <div className="card br-5">
               <div className="card-header d-flex justify-content-between pointer">
                 <span>Month( {data?.month?.month})</span>
                 <span>
-                  <AnalyticsOutlined
+                  <AnalyticsPieChart
                     titleAccess="month of the year"
                     onClick={(ev) => {
-                      renderChart("monthly")
+                      renderChart("monthly");
                     }}
                   />
                 </span>
@@ -162,7 +161,6 @@ export default function SalesSummaryPatient({ header, data, currency, patientid,
                 </h1>
               </div>
             </div>
-            {/* outstanding */}
             <div className="card br-5">
               <div className="card-header d-flex justify-content-between pointer">
                 <span>Year ({new Date().getFullYear()})</span>
@@ -170,7 +168,7 @@ export default function SalesSummaryPatient({ header, data, currency, patientid,
                   <AnalyticsOutlined
                     titleAccess="chart in years"
                     onClick={(ev) => {
-                      renderChart("yearly")
+                      renderChart("yearly");
                     }}
                   />
                 </span>

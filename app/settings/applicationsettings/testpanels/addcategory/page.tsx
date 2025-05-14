@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import TestPanelLayout from '../../../components/testpanel/TestPanelLayout'
 import TestContext, { TestPanelProvider } from '../../../components/testpanel/contextTest';
-import SendSharpIcon from '@mui/icons-material/SendSharp';
+import SendSharpIcon from '@remixicon/react';
 
 export default function Addcategory() {
   const [categoryList, setCategoryList] = useState([]);

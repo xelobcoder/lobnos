@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { AnalyticsRounded, ExploreTwoTone, Menu, TrackChanges, ViewCompactAltTwoTone } from '@mui/icons-material';
 import { printResultNavigator } from '../Auth/customFetch';
 import { useRouter } from 'next/router';
 

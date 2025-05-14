@@ -2,7 +2,6 @@ import { useState, useReducer } from 'react'
 import SearchFieldPatients from '../../components/petientsComponent/searchField'
 import TestsTable from '../../components/petientsComponent/TestsTable';
 import SalesSummaryPatient from '../../components/petientsComponent/SalesSummaryPatient';
-import Header from '../../components/header';
 import PreviewPatientInformation from '../../components/petientsComponent/PreviewPatientInformation';
 import PerformanceChartGeneral from '../../components/salesSummary/PerformanceChartGeneral';
 
