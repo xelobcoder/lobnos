@@ -150,10 +150,10 @@ export default function OrganizationBasicForm({ organizationid }) {
         setDragging(false);
     };
 
-    const renderingFormView = () => {
-        if (isloading) return <Loader />;
-        return (
-            <Card className="bg-white p-4">
+    if (isloading) return <Loader />;
+
+    return <>
+      <Card className="bg-white p-4">
                 <Card.Header className="bg-secondary text-white">
                     <h5>{message}</h5>
                 </Card.Header>
@@ -350,8 +350,5 @@ export default function OrganizationBasicForm({ organizationid }) {
                     <ToastContainer theme="colored" position="top-center" className={'text-sm'} />
                 </Card.Body>
             </Card>
-        );
-    };
-
-    return <>{renderingFormView()}</>;
+    </>;
 }

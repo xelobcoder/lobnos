@@ -1,6 +1,5 @@
 "use client";
 import { Dropdown, Table, Button } from "react-bootstrap";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import PrimeTable from "../accessories/Datatables/PrimeTable";
 import { currencyFormatter } from "../Auth/customFetch";
 import { plsEncryption } from "../../lib/encryption";
@@ -74,7 +73,7 @@ export default function BilledClientsView({ data = [], branchid }) {
 				return (
 					<Dropdown>
 						<Dropdown.Toggle variant="light" id="archives-dropdown">
-							<MoreVertIcon />
+							show
 						</Dropdown.Toggle>
 						<Dropdown.Menu className="m-0 p-0 bg-white">
 							<Dropdown.Item

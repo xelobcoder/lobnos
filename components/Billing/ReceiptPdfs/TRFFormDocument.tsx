@@ -1,9 +1,5 @@
-import {
-    Document, Text, StyleSheet,
-    Page, View
-} from "@react-pdf/renderer";
+import React from 'react';
 
-// Helper: split an array into columns
 const splitIntoColumns = (arr, columns) => {
     const chunkSize = Math.ceil(arr.length / columns);
     return Array.from({ length: columns }, (_, i) =>
@@ -114,41 +110,47 @@ const repeatFollowUp = {
     otherInfo: "",
 };
 
-const styles = StyleSheet.create({
+const styles = {
     page: {
         padding: 20,
         fontSize: 10,
-        fontFamily: "Helvetica",
+        fontFamily: "Helvetica, Arial, sans-serif",
         backgroundColor: "#fff",
+        maxWidth: '100%',
+        boxSizing: 'border-box'
     },
     title: {
         textAlign: "center",
         fontSize: 18,
-        fontFamily: "Helvetica-Bold",
+        fontFamily: "Helvetica, Arial, sans-serif",
+        fontWeight: "bold",
         marginBottom: 15,
         color: "#2c3e50",
     },
     section: {
         marginBottom: 12,
         padding: 10,
-        border: "1 solid #ddd",
+        border: "1px solid #ddd",
         borderRadius: 4,
     },
     sectionHeader: {
-        fontFamily: "Helvetica-Bold",
+        fontFamily: "Helvetica, Arial, sans-serif",
+        fontWeight: "bold",
         fontSize: 12,
         marginBottom: 8,
-        borderBottom: "1 solid #ddd",
+        borderBottom: "1px solid #ddd",
         paddingBottom: 4,
         color: "#34495e",
     },
     row: {
+        display: "flex",
         flexDirection: "row",
         marginBottom: 4,
     },
     label: {
         width: "40%",
-        fontFamily: "Helvetica-Bold",
+        fontFamily: "Helvetica, Arial, sans-serif",
+        fontWeight: "bold",
         color: "#555",
     },
     value: {
@@ -156,30 +158,34 @@ const styles = StyleSheet.create({
         color: "#333",
     },
     twoColumn: {
+        display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
         marginBottom: 10,
+        gap: '4%'
     },
     half: {
         width: "48%",
         padding: 8,
-        border: "1 solid #ddd",
+        border: "1px solid #ddd",
         borderRadius: 4,
     },
     table: {
-        border: "1 solid #ddd",
+        border: "1px solid #ddd",
         borderRadius: 4,
         marginBottom: 10,
     },
     tableHeader: {
+        display: "flex",
         flexDirection: "row",
         backgroundColor: "#f7f7f7",
-        borderBottom: "1 solid #ddd",
+        borderBottom: "1px solid #ddd",
         padding: 6,
     },
     tableRow: {
+        display: "flex",
         flexDirection: "row",
-        borderBottom: "1 solid #eee",
+        borderBottom: "1px solid #eee",
         padding: 6,
     },
     tableCell: {
@@ -194,6 +200,7 @@ const styles = StyleSheet.create({
         color: "#333",
     },
     specimenContainer: {
+        display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
     },
@@ -210,14 +217,15 @@ const styles = StyleSheet.create({
         marginTop: 5,
     },
     signatureRow: {
+        display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
-        marginVertical: 10,
+        margin: "10px 0",
     },
     centered: {
         textAlign: "center",
     },
-});
+};
 
 // Helper function to check if a value is empty or placeholder
 const isRelevant = (value) => {
@@ -226,366 +234,364 @@ const isRelevant = (value) => {
 
 export default function TRFFormDocument() {
     return (
-        <Document>
-            <Page size="A4" style={styles.page}>
-                <View>
-                    <Text style={styles.title}>Test Requisition Form</Text>
-                </View>
+        <div style={styles.page}>
+            <div>
+                <h1 style={styles.title}>Test Requisition Form</h1>
+            </div>
 
-                {/* Patient Information */}
-                <View style={styles.twoColumn}>
-                    <View style={styles.half}>
-                        <Text style={styles.sectionHeader}>Patient Information</Text>
-                        {isRelevant(patientInfo.id) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Patient&apos;s ID:</Text>
-                                <Text style={styles.value}>{patientInfo.id}</Text>
-                            </View>
-                        )}
-                        {isRelevant(patientInfo.name) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Name:</Text>
-                                <Text style={styles.value}>{patientInfo.name}</Text>
-                            </View>
-                        )}
-                        {isRelevant(patientInfo.address) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Address:</Text>
-                                <Text style={styles.value}>{patientInfo.address}</Text>
-                            </View>
-                        )}
-                        {isRelevant(patientInfo.email) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Email:</Text>
-                                <Text style={styles.value}>{patientInfo.email}</Text>
-                            </View>
-                        )}
-                        {isRelevant(patientInfo.phone) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Phone:</Text>
-                                <Text style={styles.value}>{patientInfo.phone}</Text>
-                            </View>
-                        )}
-                        {isRelevant(patientInfo.dob) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>DOB:</Text>
-                                <Text style={styles.value}>{patientInfo.dob}</Text>
-                            </View>
-                        )}
-                        {isRelevant(patientInfo.age) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Age:</Text>
-                                <Text style={styles.value}>{patientInfo.age}</Text>
-                            </View>
-                        )}
-                        {isRelevant(patientInfo.gender) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Gender:</Text>
-                                <Text style={styles.value}>{patientInfo.gender}</Text>
-                            </View>
-                        )}
-                        {isRelevant(patientInfo.height) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Height:</Text>
-                                <Text style={styles.value}>{patientInfo.height}</Text>
-                            </View>
-                        )}
-                        {isRelevant(patientInfo.weight) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Weight:</Text>
-                                <Text style={styles.value}>{patientInfo.weight}</Text>
-                            </View>
-                        )}
-                    </View>
+            {/* Patient Information */}
+            <div style={styles.twoColumn}>
+                <div style={styles.half}>
+                    <div style={styles.sectionHeader}>Patient Information</div>
+                    {isRelevant(patientInfo.id) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Patient's ID:</div>
+                            <div style={styles.value}>{patientInfo.id}</div>
+                        </div>
+                    )}
+                    {isRelevant(patientInfo.name) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Name:</div>
+                            <div style={styles.value}>{patientInfo.name}</div>
+                        </div>
+                    )}
+                    {isRelevant(patientInfo.address) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Address:</div>
+                            <div style={styles.value}>{patientInfo.address}</div>
+                        </div>
+                    )}
+                    {isRelevant(patientInfo.email) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Email:</div>
+                            <div style={styles.value}>{patientInfo.email}</div>
+                        </div>
+                    )}
+                    {isRelevant(patientInfo.phone) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Phone:</div>
+                            <div style={styles.value}>{patientInfo.phone}</div>
+                        </div>
+                    )}
+                    {isRelevant(patientInfo.dob) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>DOB:</div>
+                            <div style={styles.value}>{patientInfo.dob}</div>
+                        </div>
+                    )}
+                    {isRelevant(patientInfo.age) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Age:</div>
+                            <div style={styles.value}>{patientInfo.age}</div>
+                        </div>
+                    )}
+                    {isRelevant(patientInfo.gender) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Gender:</div>
+                            <div style={styles.value}>{patientInfo.gender}</div>
+                        </div>
+                    )}
+                    {isRelevant(patientInfo.height) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Height:</div>
+                            <div style={styles.value}>{patientInfo.height}</div>
+                        </div>
+                    )}
+                    {isRelevant(patientInfo.weight) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Weight:</div>
+                            <div style={styles.value}>{patientInfo.weight}</div>
+                        </div>
+                    )}
+                </div>
 
-                    {/* Test Requirements */}
-                    <View style={styles.half}>
-                        <Text style={styles.sectionHeader}>Test Requirements</Text>
-                        <View style={styles.table}>
-                            <View style={styles.tableHeader}>
-                                <Text style={[styles.tableCell, { flex: 0.3 }]}>Test Code</Text>
-                                <Text style={[styles.tableCell, { flex: 0.7 }]}>Test Description</Text>
-                            </View>
-                            {testRequirements.map((req, index) => (
-                                <View style={styles.tableRow} key={index}>
-                                    <Text style={[styles.tableCell, { flex: 0.3 }]}>{req.code}</Text>
-                                    <Text style={[styles.tableCell, { flex: 0.7 }]}>{req.description}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </View>
-                </View>
-
-                {/* Billing & Referring Doctor */}
-                <View style={styles.twoColumn}>
-                    <View style={styles.half}>
-                        <Text style={styles.sectionHeader}>Billing Information</Text>
-                        {isRelevant(billingInfo.billTo) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Bill To:</Text>
-                                <Text style={styles.value}>{billingInfo.billTo}</Text>
-                            </View>
-                        )}
-                        {isRelevant(billingInfo.clientCode) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Client Code:</Text>
-                                <Text style={styles.value}>{billingInfo.clientCode}</Text>
-                            </View>
-                        )}
-                        {isRelevant(billingInfo.dueAmount) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Due Amount:</Text>
-                                <Text style={styles.value}>{billingInfo.dueAmount}</Text>
-                            </View>
-                        )}
-                        {isRelevant(billingInfo.mode) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Mode:</Text>
-                                <Text style={styles.value}>{billingInfo.mode}</Text>
-                            </View>
-                        )}
-                    </View>
-                    <View style={styles.half}>
-                        <Text style={styles.sectionHeader}>Referring Doctor</Text>
-                        {isRelevant(referringDoctor.name) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Name:</Text>
-                                <Text style={styles.value}>{referringDoctor.name}</Text>
-                            </View>
-                        )}
-                        {isRelevant(referringDoctor.phone) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Phone:</Text>
-                                <Text style={styles.value}>{referringDoctor.phone}</Text>
-                            </View>
-                        )}
-                        {isRelevant(referringDoctor.email) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Email:</Text>
-                                <Text style={styles.value}>{referringDoctor.email}</Text>
-                            </View>
-                        )}
-                        {isRelevant(referringDoctor.accountNumber) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Account No.:</Text>
-                                <Text style={styles.value}>{referringDoctor.accountNumber}</Text>
-                            </View>
-                        )}
-                    </View>
-                </View>
-
-                {/* Specimen & Lab Reception */}
-                <View style={styles.twoColumn}>
-                    <View style={styles.half}>
-                        <Text style={styles.sectionHeader}>Specimen Information</Text>
-                        {isRelevant(specimenInfo.receivedFrom) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Received From:</Text>
-                                <Text style={styles.value}>{specimenInfo.receivedFrom}</Text>
-                            </View>
-                        )}
-                        {isRelevant(specimenInfo.billId) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Bill ID:</Text>
-                                <Text style={styles.value}>{specimenInfo.billId}</Text>
-                            </View>
-                        )}
-                        {isRelevant(specimenInfo.orderNumber) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Order/Lab Ref. No.:</Text>
-                                <Text style={styles.value}>{specimenInfo.orderNumber}</Text>
-                            </View>
-                        )}
-                        {isRelevant(specimenInfo.dateDrawn) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Date Drawn:</Text>
-                                <Text style={styles.value}>{specimenInfo.dateDrawn}</Text>
-                            </View>
-                        )}
-                        {isRelevant(specimenInfo.timeDrawn) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Time Drawn:</Text>
-                                <Text style={styles.value}>{specimenInfo.timeDrawn}</Text>
-                            </View>
-                        )}
-                        {isRelevant(specimenInfo.collectedAt) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Collected At:</Text>
-                                <Text style={styles.value}>{specimenInfo.collectedAt}</Text>
-                            </View>
-                        )}
-                        {isRelevant(specimenInfo.sampleId) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Sample ID:</Text>
-                                <Text style={styles.value}>{specimenInfo.sampleId}</Text>
-                            </View>
-                        )}
-                    </View>
-                    <View style={styles.half}>
-                        <Text style={styles.sectionHeader}>Received in Lab</Text>
-                        {isRelevant(receivedInLab.date) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Date:</Text>
-                                <Text style={styles.value}>{receivedInLab.date}</Text>
-                            </View>
-                        )}
-                        {isRelevant(receivedInLab.time) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Time:</Text>
-                                <Text style={styles.value}>{receivedInLab.time}</Text>
-                            </View>
-                        )}
-                        {isRelevant(receivedInLab.outsourceName) && (
-                            <View style={styles.row}>
-                                <Text style={styles.label}>Outsource Name:</Text>
-                                <Text style={styles.value}>{receivedInLab.outsourceName}</Text>
-                            </View>
-                        )}
-                        <Text style={styles.sectionHeader}>Temperature (Sent)</Text>
-                        <Text style={styles.value}>
-                            {temperatureSent.frozen ? "[x]" : "[ ]"} Frozen (&lt;-10°C)
-                        </Text>
-                        <Text style={styles.value}>
-                            {temperatureSent.cold ? "[x]" : "[ ]"} Cold (2-8°C)
-                        </Text>
-                        <Text style={styles.value}>
-                            {temperatureSent.ambient ? "[x]" : "[ ]"} Ambient
-                        </Text>
-                        <Text style={styles.sectionHeader}>Temperature (Received)</Text>
-                        <Text style={styles.value}>
-                            {temperatureReceived.frozen ? "[x]" : "[ ]"} Frozen (&lt;-10°C)
-                        </Text>
-                        <Text style={styles.value}>
-                            {temperatureReceived.cold ? "[x]" : "[ ]"} Cold (2-8°C)
-                        </Text>
-                        <Text style={styles.value}>
-                            {temperatureReceived.ambient ? "[x]" : "[ ]"} Ambient
-                        </Text>
-                    </View>
-                </View>
-
-                {/* Specimen Type */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionHeader}>Specimen Type</Text>
-                    <View style={styles.specimenContainer}>
-                        {specimenColumns.map((col, colIndex) => (
-                            <View key={colIndex} style={styles.specimenColumn}>
-                                {col.map((type, typeIndex) => (
-                                    <Text key={typeIndex} style={styles.specimenItem}>
-                                        [ ] {type}
-                                    </Text>
-                                ))}
-                            </View>
+                {/* Test Requirements */}
+                <div style={styles.half}>
+                    <div style={styles.sectionHeader}>Test Requirements</div>
+                    <div style={styles.table}>
+                        <div style={styles.tableHeader}>
+                            <div style={[styles.tableCell, { flex: 0.3 }]}>Test Code</div>
+                            <div style={[styles.tableCell, { flex: 0.7 }]}>Test Description</div>
+                        </div>
+                        {testRequirements.map((req, index) => (
+                            <div style={styles.tableRow} key={index}>
+                                <div style={[styles.tableCell, { flex: 0.3 }]}>{req.code}</div>
+                                <div style={[styles.tableCell, { flex: 0.7 }]}>{req.description}</div>
+                            </div>
                         ))}
-                    </View>
-                </View>
+                    </div>
+                </div>
+            </div>
 
-                {/* For Repeat / Follow-Up Patients */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionHeader}>For Repeat / Follow-Up Patients</Text>
-                    {isRelevant(repeatFollowUp.oldAccessionNo) && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>Old Accession No.:</Text>
-                            <Text style={styles.value}>{repeatFollowUp.oldAccessionNo}</Text>
-                        </View>
+            {/* Billing & Referring Doctor */}
+            <div style={styles.twoColumn}>
+                <div style={styles.half}>
+                    <div style={styles.sectionHeader}>Billing Information</div>
+                    {isRelevant(billingInfo.billTo) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Bill To:</div>
+                            <div style={styles.value}>{billingInfo.billTo}</div>
+                        </div>
                     )}
-                    {isRelevant(repeatFollowUp.provisionalDiagnosis) && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>1) Provisional Diagnosis:</Text>
-                            <Text style={styles.value}>{repeatFollowUp.provisionalDiagnosis}</Text>
-                        </View>
+                    {isRelevant(billingInfo.clientCode) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Client Code:</div>
+                            <div style={styles.value}>{billingInfo.clientCode}</div>
+                        </div>
                     )}
-                    {isRelevant(repeatFollowUp.historyOfMedication) && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>2) H/o Medication:</Text>
-                            <Text style={styles.value}>{repeatFollowUp.historyOfMedication}</Text>
-                        </View>
+                    {isRelevant(billingInfo.dueAmount) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Due Amount:</div>
+                            <div style={styles.value}>{billingInfo.dueAmount}</div>
+                        </div>
                     )}
-                    {isRelevant(repeatFollowUp.ifYesName) && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>3) If Yes, Name:</Text>
-                            <Text style={styles.value}>{repeatFollowUp.ifYesName}</Text>
-                        </View>
+                    {isRelevant(billingInfo.mode) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Mode:</div>
+                            <div style={styles.value}>{billingInfo.mode}</div>
+                        </div>
                     )}
-                    {isRelevant(repeatFollowUp.statusOfMedication) && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>4) Status of Medication:</Text>
-                            <Text style={styles.value}>{repeatFollowUp.statusOfMedication}</Text>
-                        </View>
+                </div>
+                <div style={styles.half}>
+                    <div style={styles.sectionHeader}>Referring Doctor</div>
+                    {isRelevant(referringDoctor.name) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Name:</div>
+                            <div style={styles.value}>{referringDoctor.name}</div>
+                        </div>
                     )}
-                    {isRelevant(repeatFollowUp.duration) && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>5) If ongoing, Duration:</Text>
-                            <Text style={styles.value}>{repeatFollowUp.duration}</Text>
-                        </View>
+                    {isRelevant(referringDoctor.phone) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Phone:</div>
+                            <div style={styles.value}>{referringDoctor.phone}</div>
+                        </div>
                     )}
-                    {isRelevant(repeatFollowUp.terminatedWhen) && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>6) If terminated, When:</Text>
-                            <Text style={styles.value}>{repeatFollowUp.terminatedWhen}</Text>
-                        </View>
+                    {isRelevant(referringDoctor.email) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Email:</div>
+                            <div style={styles.value}>{referringDoctor.email}</div>
+                        </div>
                     )}
-                    {isRelevant(repeatFollowUp.lmp) && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>7) LMP (if applicable):</Text>
-                            <Text style={styles.value}>{repeatFollowUp.lmp}</Text>
-                        </View>
+                    {isRelevant(referringDoctor.accountNumber) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Account No.:</div>
+                            <div style={styles.value}>{referringDoctor.accountNumber}</div>
+                        </div>
                     )}
-                    {isRelevant(repeatFollowUp.fastingPeriod) && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>8) Fasting Period:</Text>
-                            <Text style={styles.value}>{repeatFollowUp.fastingPeriod}</Text>
-                        </View>
-                    )}
-                    {isRelevant(repeatFollowUp.urineVolume) && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>9) 24 hr Urine Volume:</Text>
-                            <Text style={styles.value}>{repeatFollowUp.urineVolume}</Text>
-                        </View>
-                    )}
-                    {isRelevant(repeatFollowUp.histopathHistory) && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>10) Histopath History:</Text>
-                            <Text style={styles.value}>{repeatFollowUp.histopathHistory}</Text>
-                        </View>
-                    )}
-                    {isRelevant(repeatFollowUp.otherInfo) && (
-                        <View style={styles.row}>
-                            <Text style={styles.label}>11) Other Info:</Text>
-                            <Text style={styles.value}>{repeatFollowUp.otherInfo}</Text>
-                        </View>
-                    )}
-                </View>
+                </div>
+            </div>
 
-                {/* Please Note */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionHeader}>Please Note</Text>
-                    <Text style={styles.note}>
-                        After completion of the ordered tests, the remaining sample may be stored and used for research in medical sciences.
-                        &quot;I / We consent to receive information or be contacted through mail, telecommunication, electronic &amp; personal means from leonides, time to time.&quot;
-                    </Text>
-                    <Text style={styles.note}>[ ] I don&apos;t agree</Text>
-                </View>
+            {/* Specimen & Lab Reception */}
+            <div style={styles.twoColumn}>
+                <div style={styles.half}>
+                    <div style={styles.sectionHeader}>Specimen Information</div>
+                    {isRelevant(specimenInfo.receivedFrom) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Received From:</div>
+                            <div style={styles.value}>{specimenInfo.receivedFrom}</div>
+                        </div>
+                    )}
+                    {isRelevant(specimenInfo.billId) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Bill ID:</div>
+                            <div style={styles.value}>{specimenInfo.billId}</div>
+                        </div>
+                    )}
+                    {isRelevant(specimenInfo.orderNumber) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Order/Lab Ref. No.:</div>
+                            <div style={styles.value}>{specimenInfo.orderNumber}</div>
+                        </div>
+                    )}
+                    {isRelevant(specimenInfo.dateDrawn) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Date Drawn:</div>
+                            <div style={styles.value}>{specimenInfo.dateDrawn}</div>
+                        </div>
+                    )}
+                    {isRelevant(specimenInfo.timeDrawn) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Time Drawn:</div>
+                            <div style={styles.value}>{specimenInfo.timeDrawn}</div>
+                        </div>
+                    )}
+                    {isRelevant(specimenInfo.collectedAt) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Collected At:</div>
+                            <div style={styles.value}>{specimenInfo.collectedAt}</div>
+                        </div>
+                    )}
+                    {isRelevant(specimenInfo.sampleId) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Sample ID:</div>
+                            <div style={styles.value}>{specimenInfo.sampleId}</div>
+                        </div>
+                    )}
+                </div>
+                <div style={styles.half}>
+                    <div style={styles.sectionHeader}>Received in Lab</div>
+                    {isRelevant(receivedInLab.date) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Date:</div>
+                            <div style={styles.value}>{receivedInLab.date}</div>
+                        </div>
+                    )}
+                    {isRelevant(receivedInLab.time) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Time:</div>
+                            <div style={styles.value}>{receivedInLab.time}</div>
+                        </div>
+                    )}
+                    {isRelevant(receivedInLab.outsourceName) && (
+                        <div style={styles.row}>
+                            <div style={styles.label}>Outsource Name:</div>
+                            <div style={styles.value}>{receivedInLab.outsourceName}</div>
+                        </div>
+                    )}
+                    <div style={styles.sectionHeader}>Temperature (Sent)</div>
+                    <div style={styles.value}>
+                        {temperatureSent.frozen ? "[x]" : "[ ]"} Frozen (&lt;-10°C)
+                    </div>
+                    <div style={styles.value}>
+                        {temperatureSent.cold ? "[x]" : "[ ]"} Cold (2-8°C)
+                    </div>
+                    <div style={styles.value}>
+                        {temperatureSent.ambient ? "[x]" : "[ ]"} Ambient
+                    </div>
+                    <div style={styles.sectionHeader}>Temperature (Received)</div>
+                    <div style={styles.value}>
+                        {temperatureReceived.frozen ? "[x]" : "[ ]"} Frozen (&lt;-10°C)
+                    </div>
+                    <div style={styles.value}>
+                        {temperatureReceived.cold ? "[x]" : "[ ]"} Cold (2-8°C)
+                    </div>
+                    <div style={styles.value}>
+                        {temperatureReceived.ambient ? "[x]" : "[ ]"} Ambient
+                    </div>
+                </div>
+            </div>
 
-                {/* Signature Section */}
-                <View style={styles.section}>
-                    <View style={styles.signatureRow}>
-                        <Text style={styles.label}>Signature of Requisitioner / Patient:</Text>
-                        <Text style={styles.value}>_____________________</Text>
-                    </View>
-                    <View style={styles.signatureRow}>
-                        <Text style={styles.label}>Date:</Text>
-                        <Text style={styles.value}>_____________________</Text>
-                    </View>
-                </View>
+            {/* Specimen Type */}
+            <div style={styles.section}>
+                <div style={styles.sectionHeader}>Specimen Type</div>
+                <div style={styles.specimenContainer}>
+                    {specimenColumns.map((col, colIndex) => (
+                        <div key={colIndex} style={styles.specimenColumn}>
+                            {col.map((type, typeIndex) => (
+                                <div key={typeIndex} style={styles.specimenItem}>
+                                    [ ] {type}
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            </div>
 
-                {/* Important Note */}
-                <View style={styles.section}>
-                    <Text style={[styles.sectionHeader, styles.centered]}>
-                        Important: All requested information is mandatory for accurate and timely reporting.
-                    </Text>
-                </View>
-            </Page>
-        </Document>
+            {/* For Repeat / Follow-Up Patients */}
+            <div style={styles.section}>
+                <div style={styles.sectionHeader}>For Repeat / Follow-Up Patients</div>
+                {isRelevant(repeatFollowUp.oldAccessionNo) && (
+                    <div style={styles.row}>
+                        <div style={styles.label}>Old Accession No.:</div>
+                        <div style={styles.value}>{repeatFollowUp.oldAccessionNo}</div>
+                    </div>
+                )}
+                {isRelevant(repeatFollowUp.provisionalDiagnosis) && (
+                    <div style={styles.row}>
+                        <div style={styles.label}>1) Provisional Diagnosis:</div>
+                        <div style={styles.value}>{repeatFollowUp.provisionalDiagnosis}</div>
+                    </div>
+                )}
+                {isRelevant(repeatFollowUp.historyOfMedication) && (
+                    <div style={styles.row}>
+                        <div style={styles.label}>2) H/o Medication:</div>
+                        <div style={styles.value}>{repeatFollowUp.historyOfMedication}</div>
+                    </div>
+                )}
+                {isRelevant(repeatFollowUp.ifYesName) && (
+                    <div style={styles.row}>
+                        <div style={styles.label}>3) If Yes, Name:</div>
+                        <div style={styles.value}>{repeatFollowUp.ifYesName}</div>
+                    </div>
+                )}
+                {isRelevant(repeatFollowUp.statusOfMedication) && (
+                    <div style={styles.row}>
+                        <div style={styles.label}>4) Status of Medication:</div>
+                        <div style={styles.value}>{repeatFollowUp.statusOfMedication}</div>
+                    </div>
+                )}
+                {isRelevant(repeatFollowUp.duration) && (
+                    <div style={styles.row}>
+                        <div style={styles.label}>5) If ongoing, Duration:</div>
+                        <div style={styles.value}>{repeatFollowUp.duration}</div>
+                    </div>
+                )}
+                {isRelevant(repeatFollowUp.terminatedWhen) && (
+                    <div style={styles.row}>
+                        <div style={styles.label}>6) If terminated, When:</div>
+                        <div style={styles.value}>{repeatFollowUp.terminatedWhen}</div>
+                    </div>
+                )}
+                {isRelevant(repeatFollowUp.lmp) && (
+                    <div style={styles.row}>
+                        <div style={styles.label}>7) LMP (if applicable):</div>
+                        <div style={styles.value}>{repeatFollowUp.lmp}</div>
+                    </div>
+                )}
+                {isRelevant(repeatFollowUp.fastingPeriod) && (
+                    <div style={styles.row}>
+                        <div style={styles.label}>8) Fasting Period:</div>
+                        <div style={styles.value}>{repeatFollowUp.fastingPeriod}</div>
+                    </div>
+                )}
+                {isRelevant(repeatFollowUp.urineVolume) && (
+                    <div style={styles.row}>
+                        <div style={styles.label}>9) 24 hr Urine Volume:</div>
+                        <div style={styles.value}>{repeatFollowUp.urineVolume}</div>
+                    </div>
+                )}
+                {isRelevant(repeatFollowUp.histopathHistory) && (
+                    <div style={styles.row}>
+                        <div style={styles.label}>10) Histopath History:</div>
+                        <div style={styles.value}>{repeatFollowUp.histopathHistory}</div>
+                    </div>
+                )}
+                {isRelevant(repeatFollowUp.otherInfo) && (
+                    <div style={styles.row}>
+                        <div style={styles.label}>11) Other Info:</div>
+                        <div style={styles.value}>{repeatFollowUp.otherInfo}</div>
+                    </div>
+                )}
+            </div>
+
+            {/* Please Note */}
+            <div style={styles.section}>
+                <div style={styles.sectionHeader}>Please Note</div>
+                <div style={styles.note}>
+                    After completion of the ordered tests, the remaining sample may be stored and used for research in medical sciences.
+                    "I / We consent to receive information or be contacted through mail, telecommunication, electronic & personal means from leonides, time to time."
+                </div>
+                <div style={styles.note}>[ ] I don't agree</div>
+            </div>
+
+            {/* Signature Section */}
+            <div style={styles.section}>
+                <div style={styles.signatureRow}>
+                    <div style={styles.label}>Signature of Requisitioner / Patient:</div>
+                    <div style={styles.value}>_____________________</div>
+                </div>
+                <div style={styles.signatureRow}>
+                    <div style={styles.label}>Date:</div>
+                    <div style={styles.value}>_____________________</div>
+                </div>
+            </div>
+
+            {/* Important Note */}
+            <div style={styles.section}>
+                <div style={[styles.sectionHeader, styles.centered]}>
+                    Important: All requested information is mandatory for accurate and timely reporting.
+                </div>
+            </div>
+        </div>
     );
 }

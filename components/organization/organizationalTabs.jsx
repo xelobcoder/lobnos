@@ -1,15 +1,15 @@
+"use client"
 import { Tab, Tabs } from "react-bootstrap";
 import OrganizationBasicForm from "./BasicOrganizationForm";
-import { useRouter } from "next/router";
 import ContactPerson from "./ContactPerson";
 import PaymentModule from "./PaymentModule";
 import { useState } from "react";
-import OrganizationSetupSettings from "./OrganizationSettings";
+import OrganizationSetupSettings from "./OrganizationSettings"
+import { useParams } from "next/navigation";
 
 export default function OrganizationNavigationalTabs() {
     const [activeKey, setActiveKey] = useState('home');
-    const router = useRouter();
-    const organizationId = router.query.id;
+    const organizationId = useParams().id;
 
     return (
         <Tabs
