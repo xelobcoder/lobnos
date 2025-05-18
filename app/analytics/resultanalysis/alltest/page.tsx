@@ -1,10 +1,9 @@
-"use client"
+import { RiFlaskLine, RiCalendar2Line } from "@remixicon/react";
 import { customFetch } from "../../../../components/Auth/customFetch";
 import ResultAnalysisRow from "../../../../lib/resultanalaysis/RowAnalysis";
-import { useEffect, useState } from "react";
-import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
-import { RiFlaskLine, RiCalendar2Line } from "@remixicon/react";
-
+import { cookies } from 'next/headers';
+import { jwtVerify } from 'jose';
+import { UserPayload, verifyPrimeToken } from "../../../../middleware";
 
 type MonthData = {
     state: "positive" | "negative" | string;
@@ -18,24 +17,35 @@ type ResultItem = {
     data: MonthData[];
 };
 
-export default function ResultAnalysisAllTestView() {
-    const [resultData, setResultData] = useState<ResultItem[]>([]);
-    const { employeeid } = useApplicationSettings().applicationsettings.user;
+export default async function ResultAnalysisAllTestView() {
+    const cookieStore = cookies();
+    const sessionToken = cookieStore.get('PLS-SESSION')?.value;
+ 
+    let employeeid;
+    if (sessionToken) {
+        try {
+            const {payload,isValid} = await verifyPrimeToken(sessionToken) as unknown as {payload:UserPayload , isValid:boolean}
+            if(isValid && payload){
+                employeeid = payload?.user?.employeeid;
+            }
+        } catch (error) {
+            console.error('Error verifying token:', error);
+            throw new Error('Unauthorized');
+        }
+    }
 
-    const getData = async function () {
-        const response = await customFetch(`result/analysis/test/alltest/yearlycount?employeeid=${employeeid}`);
-        setResultData(response);
-    };
+    if (!employeeid) {
+        throw new Error('Unauthorized: Employee ID not found');
+    }
+
+    const response = await customFetch(`result/analysis/test/alltest/yearlycount?employeeid=${employeeid}`);
+    const resultData: ResultItem[] = Array.isArray(response) && response.length > 0 ? response : [];
 
     const months: string[] = [
         "January", "February", "March", "April", "May",
         "June", "July", "August", "September", "October",
         "November", "December"
     ];
-
-    useEffect(() => {
-        if (employeeid) getData()
-    }, [employeeid]);
 
     return (
         <div className="table-container" style={{

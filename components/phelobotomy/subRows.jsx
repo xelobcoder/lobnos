@@ -1,10 +1,8 @@
 
 import React from 'react';
-import { useTable, useResizeColumns, useFlexLayout, useExpanded } from 'react-table';
-
-
+import PrimeTable from '../accessories/Datatables/PrimeTable'
 const ListTable = ({ data }) => {
-    const columns = React.useMemo(() => [
+    const columns = [
         {
             Header: '',
             accessor: 'billingid',
@@ -69,76 +67,17 @@ const ListTable = ({ data }) => {
                 </button>
             ),
         }
-    ], []);
+    ]
 
-    const {
-        getTableProps,
-        getTableBodyProps,
-        headerGroups,
-        rows,
-        prepareRow,
-    } = useTable(
-        {
-            columns,
-            data,
-            defaultColumn: { minWidth: 10, maxWidth: 300 },
-            getSubRows: (row) => row.subRows || [],
-
-        },
-        useFlexLayout,
-        useResizeColumns,
-        useExpanded
-    );
 
     return (
         <div className='table-responsive'>
-            <table {...getTableProps()} className="table" style={{ fontSize: '14px' }}>
-                <thead>
-                    {headerGroups.map((headerGroup,v) => (
-                        <tr key={v} {...headerGroup.getHeaderGroupProps()} >
-                            {headerGroup.headers.map((column,index )=> (
-                                <th key={index} {...column.getHeaderProps()}>
-                                    {column.render('Header')}
-                                    {/* Resizer for columns */}
-                                    {column.canResize && (
-                                        <div
-                                            {...column.getResizerProps()}
-                                            className="resizer"
-                                        />
-                                    )}
-                                </th>
-                            ))}
-                        </tr>
-                    ))}
-                </thead>
-                <tbody {...getTableBodyProps()}>
-                    {rows.map(row => {
-                        prepareRow(row);
-                        const rowClass = row.original.clientstatus === 'urgent' ? 'table-danger' : '';
-                        return (
-                            <React.Fragment key={row.id}>
-                                <tr {...row.getRowProps({ className: `${rowClass}` })}>
-                                    {row.cells.map(cell,index => (
-                                        <td key={index} {...cell.getCellProps()}>{cell.render('Cell')}</td>
-                                    ))}
-                                </tr>
-                                {row.isExpanded && row.subRows && (
-                                    row.subRows.map((subRow,ind) => {
-                                        prepareRow(subRow);
-                                        return (
-                                            <tr key={ind} {...subRow.getRowProps({ className: 'column-bordered p-3' })}>
-                                                {subRow.cells.map((cell,index )=> (
-                                                    <td key={index} {...cell.getCellProps()}>{cell.render('Cell')}</td>
-                                                ))}
-                                            </tr>
-                                        );
-                                    })
-                                )}
-                            </React.Fragment>
-                        );
-                    })}
-                </tbody>
-            </table>
+            <PrimeTable
+                columns={columns}
+                data={data}
+                filtering={false}
+                handleServerSideRendering={null}
+            />
         </div>
     );
 };

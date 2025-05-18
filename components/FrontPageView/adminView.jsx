@@ -45,10 +45,10 @@ const links = [
     description: 'Sample collection and management'
   },
   {
-    href: '/dashboard/sales',
+    href: '/analytics/sales',
     icon: <img width={24} height={24} src='/frontpage/dashboard.png' />,
     text: "Monitor key performance metrics and financial analytics",
-    label: 'Dashboard',
+    label: 'Analytics',
     category: 'Analytics',
     description: 'Business intelligence and reporting'
   },
@@ -78,7 +78,7 @@ const links = [
     disabled: true
   },
   {
-    href: '/analytics/resultanalysis',
+    href: '/analytics/resultanalysis/alltest',
     icon: <RiBarChartBoxLine size={24} />,
     text: "Analyze test results and generate insights",
     label: 'Result Analysis',

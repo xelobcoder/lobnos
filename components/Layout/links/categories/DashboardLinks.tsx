@@ -12,12 +12,3 @@ export const DoashBoardMainLinks: Link[] = [
 
 
 
-
-
-
-
-export const ResultAnalysisLinks : Link[] = [
-    {link: "/analytics/resultanalysis/alltest", title: "All Test", icon:<RiFileListLine />},
-    {link:"/analytics/resultanalysis/monthresultsvalues", title: "Monthly Results Values", icon:<RiFileListLine />},
-    {link:"/analytics/resultanalysis/yearmonthcasescount", title: "Year Month Cases Count", icon:<RiFileListLine />}
-]

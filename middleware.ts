@@ -2,14 +2,15 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-interface UserPayload {
+export interface UserPayload {
     user: {
         role: string;
+        employeeid:number
     };
     email: string;
 }
 
-async function verifyToken(token: string) {
+export async function verifyPrimeToken(token: string) {
     try {
         const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY);
         const { payload } = await jwtVerify(token, secret);
@@ -28,7 +29,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (sessionToken) {
-        const { isValid, payload } = await verifyToken(sessionToken);
+        const { isValid, payload } = await verifyPrimeToken(sessionToken);
 
         if (!isValid && !isLoginPage) {
             const response = NextResponse.redirect(new URL('/authentications/login', request.url));

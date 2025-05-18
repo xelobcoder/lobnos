@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { ApplicationProvider } from "../../../components/Auth/useApplicationContext";
-import { ResultAnalysisLinks } from "../../../components/Layout/links/categories/DashboardLinks";
 import PrimeLayout from "../../../components/Layout/PrimeLayout";
 
 export default function SMSLayout({
@@ -14,7 +13,7 @@ export default function SMSLayout({
       <body >
         <Suspense>
           <ApplicationProvider>
-            <PrimeLayout links={ResultAnalysisLinks}>
+            <PrimeLayout links={[]}>
               {children}
             </PrimeLayout>
           </ApplicationProvider>

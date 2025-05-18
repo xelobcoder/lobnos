@@ -1,3 +1,5 @@
+"use client"
+import { useEffect, useState } from "react";
 import { customFetch } from "../Auth/customFetch";
 import { 
     RiTimeLine, 
@@ -8,19 +10,22 @@ import {
 
 const defaultValues = { rejected: null, orders: null, completed: null, pending: null };
 
-export default async function PhelobotomySummaryAnalytics() {
-    let data = defaultValues;
+export default function PhelobotomySummaryAnalytics() {
+    const [data, setData] = useState(defaultValues);
 
-    const fetchSummary = async function () {
-        try {
-            const response = await customFetch(`ascension/phelobotomistAnalyticsSummary`);
-            data = response;
-        } catch (err) {
-            data = defaultValues;
-        }
-    };
-
-    await fetchSummary();
+    useEffect(() => {
+        let isMounted = true;
+        const fetchSummary = async () => {
+            try {
+                const response = await customFetch(`ascension/phelobotomistAnalyticsSummary`);
+                if (isMounted) setData(response);
+            } catch (err) {
+                if (isMounted) setData(defaultValues);
+            }
+        };
+        fetchSummary();
+        return () => { isMounted = false; };
+    }, []);
 
     const iconStyles = [
         { bg: "rgba(33,150,243,0.12)", color: "#2196f3" },

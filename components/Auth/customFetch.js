@@ -10,14 +10,14 @@ import moment from "moment"
 export async function customFetch(endpoint) {
 	try {
 		const url = new URL(`/api/v1/${endpoint}`, process.env.BASEURL);
-		url.searchParams.append("tenantId", "3");
+		url.searchParams.append("tenantId", process.env.TENANTID);
 		const response = await fetch(url.toString(), {
 			headers: {
 				Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
 				"Content-Type": "application/json",
 				"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0"
 			},
-			cache: "no-store"
+			cache: "default"
 		});
 		const source = await response.json();
 		const { status, message } = source;

@@ -59,8 +59,10 @@ export default function Index() {
   }
 
   return (
-    <div className={styles.pageContainer}>
+   <PrimeLayout>
+     <div className={styles.pageContainer}>
       <RoleComponent />
     </div>
+    </PrimeLayout>
   );
 }

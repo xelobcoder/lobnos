@@ -1,3 +1,4 @@
+"use client"
 import { RiArrowUpSLine, RiArrowDownSLine, RiInformationLine } from "@remixicon/react";
 import Link from "next/link";
 import { useState } from 'react';

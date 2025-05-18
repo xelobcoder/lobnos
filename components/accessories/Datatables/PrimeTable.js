@@ -146,8 +146,8 @@ export default function PrimeTable({
         value === "Next"
           ? currentPage + 1
           : currentPage > 0
-          ? currentPage - 1
-          : 0;
+            ? currentPage - 1
+            : 0;
       currentPage = nextPage;
     }
     setQueryParams({ ...queryParams, page: currentPage });
@@ -198,13 +198,12 @@ export default function PrimeTable({
         <tbody {...getTableBodyProps()}>
           {rows.map((row, index) => {
             prepareRow(row);
-            // Add even/odd row styling for zebra effect
             const zebraClass = index % 2 === 0 ? style.evenRow : style.oddRow;
             return (
               <tr
                 {...row.getRowProps()}
                 key={index}
-                className={`${rowClass}  ${style.tableRow}`}
+                className={`  ${style.tableRow}`}
                 style={{ transition: "background 0.2s" }}
               >
                 {row.cells.map((cell) => (
@@ -276,19 +275,16 @@ export default function PrimeTable({
                           onClick={() => handlePagination(item)}
                           key={index}
                           className={`
-                                                                 ${
-                                                                   style.paginationBtn
-                                                                 }
-                                                                 ${
-                                                                   isActive
-                                                                     ? style.paginationBtnActive
-                                                                     : ""
-                                                                 }
-                                                                 ${
-                                                                   isNav
-                                                                     ? style.paginationBtnNav
-                                                                     : ""
-                                                                 }
+                                                                 ${style.paginationBtn
+                            }
+                                                                 ${isActive
+                              ? style.paginationBtnActive
+                              : ""
+                            }
+                                                                 ${isNav
+                              ? style.paginationBtnNav
+                              : ""
+                            }
                                                             `}
                           aria-current={isActive ? "page" : undefined}
                         >
