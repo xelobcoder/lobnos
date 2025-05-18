@@ -43,7 +43,7 @@ export default function RejectedSamplesComponent({ data }) {
 	return (
 		<>
 			<h6>Rejected Sample List</h6>
-			<section className="ui">
+			<section>
 				<PrimeTable column={columns} data={data} filtering={false} serverSideFiltering={true} handleSeverSideProcessing={handleSeverSideProcessingRejectedSample}/>
 			</section>
 		</>

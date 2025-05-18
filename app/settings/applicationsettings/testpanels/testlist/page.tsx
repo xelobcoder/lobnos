@@ -98,9 +98,10 @@ export default function TestListDisplay() {
             <div>
                 <PrimeTable
                     serverSideFiltering={true}
-                    filtering={false} 
+                    filtering={true} 
                     handleSeverSideProcessing={null}
                     column={columns} 
+                    rowClassName={null}
                     data={data} 
                 />
             </div>

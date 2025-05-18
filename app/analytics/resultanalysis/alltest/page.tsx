@@ -86,6 +86,7 @@ export default function ResultAnalysisAllTestView() {
                                 <span style={{ marginLeft: 4 }}>{month.slice(0, 3)}</span>
                             </th>
                         ))}
+                        <th>Result</th>
                     </tr>
                 </thead>
                 <tbody>

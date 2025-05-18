@@ -5,9 +5,6 @@ import CollectionSampleModal from "../CollectionSampleModal";
 import ReceiveLabSampleModal from "./ReceiveLabSampleModal";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import {
-  RiTestTubeLine,
-  RiFlaskLine,
-  RiMicroscopeLine,
   RiHealthBookLine,
 } from "@remixicon/react";
 

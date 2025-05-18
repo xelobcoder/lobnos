@@ -1,12 +1,12 @@
-import { Folder, List } from "@mui/icons-material";
-import ExpenseLayout from "../../../components/Expense/ExpenseLayout";
+"use client"
 import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
-import { useRouter } from "next/router";
-import { customFetch, customPost } from "../../../components/Auth/customFetch";
 import Image from 'next/image';
-import Loader from "../../../components/accessories/Loader";
 import { ToastContainer, toast } from 'react-toastify';
+import {useParams} from "next/navigation"
+import { customFetch, customPost } from '../../../../../components/Auth/customFetch';
+import Loader from '../../../../../components/accessories/Loader';
+import { RiFolder2Fill, RiListOrdered } from "@remixicon/react";
 
 export default function ReceiptUploadForm() {
      const [files, setFiles] = useState([]);
@@ -14,7 +14,7 @@ export default function ReceiptUploadForm() {
      const [loading, setLoading] = useState(true);
      const [imagefull, setImageFull] = useState(false);
      const [deleteList, setDeleteList] = useState([]);
-     const expenseid = useRouter().query.id;
+     const expenseid = useParams().id;
 
      const onDrop = useCallback((acceptedFiles) => {
           setFiles(acceptedFiles.map((file) => { return { file, preview: URL.createObjectURL(file) } }));
@@ -37,7 +37,7 @@ export default function ReceiptUploadForm() {
                })
                formData.append("receiptid", expenseid);
 
-               const response = await fetch(`${process.env.BASEURL}/expenses/receipt/upload?id=${expenseid}`, {
+               const response = await fetch(`${process.env.BASEURL}expenses/receipt/upload?id=${expenseid}`, {
                     method: 'POST',
                     body: formData,
                })
@@ -88,13 +88,13 @@ export default function ReceiptUploadForm() {
 
 
      return (
-          <ExpenseLayout>
+          <div>
                <ToastContainer />
                <div className="mx-3 br-5 bg-white border-primary" style={{ borderStyle: 'dashed' }}>
                     <div {...getRootProps({ className: 'dropzone' })}>
                          <input {...getInputProps()} />
                          <div className="d-flex justify-content-center">
-                              <Folder sx={{ color: 'gray', fontSize: '100px' }} />
+                              <RiFolder2Fill style={{ color: 'gray', fontSize: '100px' }} /> {/* Updated icon */}
                          </div>
                          <p className="text-center p-5">Drag & Drop images here, or click to select files</p>
                     </div>
@@ -103,7 +103,7 @@ export default function ReceiptUploadForm() {
                     <div>
                          <div className="d-flex justify-content-between">
                               <h6 className="mt-3 mx-2">Selected Files:</h6>
-                              <List className="pointer" fontSize="large" style={{ fontSize: '50px' }} onClick={(ev) => { setImageFull(!imagefull) }} />
+                              <RiListOrdered className="pointer" fontSize="large" style={{ fontSize: '50px' }} onClick={(ev) => { setImageFull(!imagefull) }} /> {/* Updated icon */}
                          </div>
                          <ul className={`${imagefull ? "grid grid-100 container" : "grid-30-30-30"} bg-white border p-2`}>
                               {files.map((file) => (
@@ -131,7 +131,7 @@ export default function ReceiptUploadForm() {
                <div>
                     {loading && <Loader />}
                     {previous.length == 0 ? <div className="alert alert-info">No Receipts Were Preveiously uploaded</div> : previous.map((item, index) => {
-                         const url = `${process.env.BASEURL}/expenses/receipt/upload/images?imageid=${item}`
+                         const url = `${process.env.BASEURL}expenses/receipt/upload/images?imageid=${item}`
                          return (<div key={index} style={{ display: 'grid', gridTemplateColumns: '5% 95%' }} >
                               <div>
                                    <input checked={deleteList.includes(item) ? true : false} onClick={(ev) => { setDeleteList([...deleteList, item]) }} type="checkbox" className="custom-input" />
@@ -146,6 +146,6 @@ export default function ReceiptUploadForm() {
 
                     })}
                </div>
-          </ExpenseLayout>
+          </div>
      )
 }

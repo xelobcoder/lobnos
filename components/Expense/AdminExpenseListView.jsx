@@ -1,4 +1,3 @@
-// pages/AdminExpensesList.js
 import { useEffect, useState } from "react";
 import { customFetch } from "../../components/Auth/customFetch";
 import ExpenseRejectionModal from "./ExpenseRejectionModal";
@@ -41,7 +40,7 @@ export default function AdminExpensesList({ branchid, employeeid }) {
   };
 
   return (
-   <div>
+   <div className="container-fluid p-4"> {/* Added container and padding */}
      <ExpenseFilter filter={filter} setFilter={setFilter} handleFilters={handleFilters} />
       <ExpenseList expenses={expenses} setSelected={setSelected} selected={selected} />
       {selected && (

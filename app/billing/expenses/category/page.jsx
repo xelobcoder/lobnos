@@ -1,9 +1,10 @@
+"use client"
 import { useEffect, useState } from "react";
-import { customFetch, customPost } from "../../components/Auth/customFetch";
-import Loader from '../../components/accessories/Loader';
+import { customFetch, customPost } from "../../../../components/Auth/customFetch";
+import Loader from '../../../../components/accessories/Loader';
 import { DeleteBinLine } from "@remixicon/react";
 import { ToastContainer, toast } from "react-toastify";
-import { useApplicationSettings } from "../../components/Auth/useApplicationContext";
+import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 
 
 export default function ExpenseCategoryCreation() {

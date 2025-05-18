@@ -1,3 +1,4 @@
+"use client"
 import { useSearchParams } from "next/navigation";
 import dynamic from 'next/dynamic';
 const MARKDOWN_EDITOR = dynamic(() => import("../../../../../../../components/accessories/markdownEditor"), {

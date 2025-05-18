@@ -1,7 +1,8 @@
-import Authorization from '../../components/accessories/authorization';
-import { useApplicationSettings } from '../../components/Auth/useApplicationContext';
-import AdminExpensesList from '../../components/Expense/AdminExpenseListView';
+"use client"
 
+import Authorization from "../../../../components/accessories/authorization";
+import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
+import AdminExpensesList from "../../../../components/Expense/AdminExpenseListView";
 
 export default function ExpenseListAdmin() {
      const { applicationsettings } = useApplicationSettings();

@@ -31,8 +31,7 @@ export default function CreateTestRule({ clientdata }) {
 		const gettingFields = async function () {
 			try {
 				const [resultResponse, commentsResponse] = await getResultEntryDataServerSide({ testid, billingid, patientid ,ascensionid})
-
-
+				
 				function updatesResultForm(data) {
 					const { testname, result, hasDrugs } = data;
 					if (result && Array.isArray(result)) {
