@@ -78,10 +78,9 @@ export default async function ResultAnalysisAllTestView() {
                     <RiCalendar2Line size={26} style={{ color: "#90caf9", verticalAlign: "middle", marginLeft: 8 }} />
                 </span>
             </div>
-            <table className="table ttable billing-cart-table" style={{
+            <table className="table" style={{
                 background: "#fff",
                 borderRadius: 8,
-                overflow: "hidden",
                 fontSize: "1rem"
             }}>
                 <thead>

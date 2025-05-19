@@ -1,8 +1,9 @@
 "use client"
 import { RiArrowUpSLine, RiArrowDownSLine, RiInformationLine } from "@remixicon/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from 'react';
-import { Modal } from 'react-bootstrap';
+import { ButtonGroup, Modal } from 'react-bootstrap';
 
 const ChangeIcon = (data) => {
     const { state, casesCount } = data;
@@ -15,6 +16,7 @@ export default function ResultAnalysisRow({ item, months, index }) {
     const [showModal, setShowModal] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const router = useRouter();
 
     const monthOptions = [
         { value: 1, label: 'January' },
@@ -77,12 +79,17 @@ export default function ResultAnalysisRow({ item, months, index }) {
                 );
             })}
             <td>
-                <button 
-                    className="btn btn-sm btn-outline-primary"
+               <ButtonGroup >
+               <button 
+                    className="btn btn-sm btn-outline-primary fw-bold"
                     onClick={() => setShowModal(true)}
                 >
-                    Result  
+                    M
                 </button>
+                <button  onClick={(ev) => {router.push(`/analytics/resultanalysis/yearmonthcasescount/${item.testid}`)}} className="btn btn-sm btn-outline-secondary">
+                    Y
+                </button>
+               </ButtonGroup>
 
                 <Modal show={showModal} onHide={() => setShowModal(false)}>
                     <Modal.Header closeButton>

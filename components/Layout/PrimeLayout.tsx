@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from "react";
 import styles from './PrimeLayout.module.css';
-import { RiMenuFoldLine, RiMenuUnfoldLine, RiMoonLine, RiSunLine } from '@remixicon/react';
+import { RiMenuFoldLine, RiMenuUnfoldLine, RiMoonLine, RiSunLine, RiHomeLine } from '@remixicon/react';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link } from "./links/types";
 
@@ -12,7 +12,7 @@ interface PrimeLayoutProps {
 
 const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(false);
-    const [isDarkMode, setIsDarkMode] = useState<boolean>(false); 
+    const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
     const { company,user } = useApplicationSettings().applicationsettings;
 
     const handleGroupClick = (link: string | undefined) => {
@@ -54,6 +54,17 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                 </div>
 
                 <nav className={styles.sidebarNav}>
+                    <div
+                        className={styles.navItem}
+                        onClick={() => handleGroupClick('/')} 
+                        title="Home"
+                    >
+                        <span className={styles.icon}><RiHomeLine /></span> 
+                        {isSidebarExpanded && (
+                            <span className={styles.title}>Home</span>
+                        )}
+                    </div>
+                    {/* Existing links */}
                     {Array.isArray(links) && links.map((item, index) => (
                         <div 
                             key={index} 
