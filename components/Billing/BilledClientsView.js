@@ -4,11 +4,11 @@ import PrimeTable from "../accessories/Datatables/PrimeTable";
 import { currencyFormatter } from "../Auth/customFetch";
 import { plsEncryption } from "../../lib/encryption";
 import { useState } from "react";
-import { Search } from "@mui/icons-material";
 import { handleDatePicker, handleSeverSideProcessing } from "../serverActions/ActionFiltering";
 import { fetchPreviousBilledRecords } from "../../lib/billingLib";
 import TransactionDetailsModal from './TransactionDetailsModal';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
+import { RiSearchLine } from "@remixicon/react";
 
 export default function BilledClientsView({ data = [], branchid }) {
 	const [datequery, setDatequery] = useState({ from: '', to: '' });
@@ -128,7 +128,7 @@ export default function BilledClientsView({ data = [], branchid }) {
 						className="btn btn-outline-secondary btn-sm mx-2"
 						onClick={() => handleDatePicker({ branchid, date: datequery.from })}
 					>
-						<Search />
+						<RiSearchLine/>
 					</button>
 				</div>
 			</div>

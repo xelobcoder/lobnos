@@ -1,10 +1,9 @@
-import React, { useState } from 'react'
-import TestPanelLayout from '../../../components/testpanel/TestPanelLayout'
-import TestContext, { TestPanelProvider } from '../../../components/testpanel/contextTest';
-import SendSharpIcon from '@remixicon/react';
+"use client"
+import { useState } from 'react'
+import { RiForward10Fill } from '@remixicon/react';
 
 export default function Addcategory() {
-  const [categoryList, setCategoryList] = useState([]);
+  const [categoryList, setCategoryList] = useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -13,8 +12,6 @@ export default function Addcategory() {
 
   return (
     <>
-      <TestPanelProvider>
-        <TestPanelLayout>
           <div className='container'>
             <form>
               <div className='form-group'>
@@ -27,13 +24,11 @@ export default function Addcategory() {
                 </textarea>
               </div>
               <button type='button' className='btn btn-primary mt-3'>
-                <SendSharpIcon />
+                <RiForward10Fill/>
                 Submit
               </button>
             </form>
           </div>
-        </TestPanelLayout>
-      </TestPanelProvider>
     </>
   )
 }

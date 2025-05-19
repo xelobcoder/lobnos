@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { customFetch } from '../../../../components/Auth/customFetch';

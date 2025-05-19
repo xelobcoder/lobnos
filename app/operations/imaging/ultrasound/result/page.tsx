@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useState } from 'react';
 import { customPost, customFetch } from '../../../../../components/Auth/customFetch';
 import Indicator from '../../../../../components/accessories/Reports/indicator';
@@ -79,11 +80,11 @@ export default function EnterResultUltrasound() {
 	const handleResult = async () => {
 		setSubmitting(true);
 		try {
-			const myFields = fields.map((item) => ({ field: item.name, value: item.value }));
+			const myFields = fields.map((item:{name:string,value:string}) => ({ field: item.name, value: item.value }));
 			const pushContent = await customPost(`result/entry/customtest`, 'POST', {
 				csvid: urlbillingid,
 				testid,
-				patientid: parseInt(patientid),
+				patientid: parseInt(patientid as string),
 				test: scan,
 				ptid: urlpatientid,
 				comments: impression,
@@ -150,7 +151,7 @@ export default function EnterResultUltrasound() {
 		fetchTemplates();
 	}, [urlbillingid, urlpatientid, ascensionid, scan]);
 
-	const handleFieldChange = (data, index) => {
+	const handleFieldChange = (data, index:number) => {
 		const previous = [...fields];
 		previous[index].value = data;
 		setFields(previous);

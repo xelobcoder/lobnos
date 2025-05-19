@@ -11,7 +11,7 @@ export default function PrimeTable({
      column,
      data,
      filtering,
-     rowClassName,
+     rowClassName=null,
      serverSideFiltering = false,
      handleSeverSideProcessing,
      urlparams = {},

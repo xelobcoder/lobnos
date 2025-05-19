@@ -15,7 +15,7 @@ export default function SMSLayout({
 
      return (
           <html lang="en">
-               <body >
+               <body>
                     <PrimeToast/>
                    {children}
                </body>

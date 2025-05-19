@@ -1,4 +1,4 @@
-import { Dangerous } from "@mui/icons-material";
+import { RiErrorWarningFill } from "@remixicon/react";
 import { customFetch } from "../../../../components/Auth/customFetch";
 import RefundPageAllView from "../../../../components/Billing/Refund/RefundPageAllView";
 
@@ -17,7 +17,7 @@ export default async function RefundAdminPage({ params }: {
         }
     } catch (err) {
         return <div className='alert alert-danger pls-color col-3'>
-            <Dangerous color='error' sx={{ width: '100px', height: '100px' }} />
+            <RiErrorWarningFill color='error'  />
             Error Loading Refund Data</div>
     }
 

@@ -6,8 +6,8 @@ import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import WitnessModalComp from "./WitnessModalComp";
 import { Button } from "react-bootstrap";
 import { toast, ToastContainer } from "react-toastify";
-import { Search } from "@mui/icons-material";
 import { filteringRefundsUsingServiceId, handleRefundServerSideProcessing } from "../../serverActions/ActionFiltering";
+import { RiSearchLine } from "@remixicon/react";
 
 type Witness = {
 	witness: string;
@@ -202,7 +202,7 @@ export default function RefundPageAllView({ initData, employeeid }) {
 				<div className="col-1 d-flex">
 					<input className="custom-input" type="number" onChange={(ev) => { setSearch(ev.target.value) }} placeholder="serviceid" />
 					<button type="button" onClick={(ev) => { handleGetRefundServiceWithId(search) }} className="btn btn-secondary-outline btn-sm">
-						<Search />
+						<RiSearchLine scale={24} />
 					</button>
 				</div>
 			</section>

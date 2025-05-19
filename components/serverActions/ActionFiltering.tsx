@@ -5,6 +5,7 @@ import { customFetch, customPost } from "../Auth/customFetch"
 import { plsEncryption } from "../../lib/encryption";
 import { formatDate } from "../operations/Laboratory/Lib";
 import { cookies } from "next/headers";
+import { jwtVerify, SignJWT } from 'jose';
 
 
 export async function filteringDatabaseTables(target: string, filtering: string, column: string, limit: number) {
@@ -252,7 +253,7 @@ export const getResultEntryDataServerSide = async ({
 		customFetch(commentsUrl),
 		customFetch(testResultUrl),
 	]);
-	
+
 	return [resultResponse, commentsResponse];
 };
 
@@ -413,7 +414,7 @@ export async function loadTaskDefinition(pagination) {
 
 
 
-export const handleServerCriticalValues= async (paginate) => {
+export const handleServerCriticalValues = async (paginate) => {
 	try {
 		const { page, count } = paginate
 		const response = await customFetch(`result/criticalvalues/logging/paginated?page=${page}&&count=${count}`);
@@ -424,4 +425,77 @@ export const handleServerCriticalValues= async (paginate) => {
 	} catch (err) {
 		return { result: [], error: true }
 	}
+}
+
+
+
+export const handleUserLogin = async (formData) => {
+	const email = formData.get("email")
+	const password = formData.get("password")
+	const response = await customPost('prime/login', 'POST', { email, password });
+	const { status, accessToken, user } = response;
+
+	const validateAndEncryptToken = async (status:string,accessToken:string,user:{employeeid:number, username:string, role:string, email:string}, email:string)
+	:Promise<{status:boolean,role:string,message?:string} |undefined> => {
+		if (status && accessToken) {
+			try {
+				const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY);
+	
+				const signedToken = await new SignJWT({
+					email,
+					user,
+					accessToken
+				})
+					.setProtectedHeader({ alg: 'HS256' })
+					.setIssuedAt()
+					.setExpirationTime('1h')
+					.sign(secret);
+	
+	
+				const { payload } = await jwtVerify(signedToken, secret);
+				cookies().set('PLS-SESSION', signedToken, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'strict',
+					path: '/',
+					maxAge: payload.exp ? payload.exp - Math.floor(Date.now() / 1000) : 3600
+				});
+	
+				const allowedRoles = ["sonographer", "scientist", "manager","admin"];
+	
+				const userRole = user?.role?.toLowerCase();
+				const isValidRole = allowedRoles.includes(userRole);
+				if(isValidRole) {
+					return { status: true, role: userRole };
+				}
+			} catch (error) {
+				console.error('Token signing/verification failed:', error);
+				return { status: false, message: 'Authentication failed' ,role:''};
+			}
+		}
+	}
+
+	const  payload= await validateAndEncryptToken(status,accessToken,user,email);
+	const allowedRoles = ["sonographer", "scientist", "manager","admin"];
+
+	if (payload){
+		const {  role } = payload;
+		const isValidRole = allowedRoles.includes(role);
+		if (isValidRole) {
+			if (role === "admin" ||role == "manager") {
+				redirect("/")
+			} else if (role === "sonographer") {
+				redirect("/operations/imaging/")
+			} else if (role === "scientist") {
+				redirect("/operations/laboratory")
+			} else {
+				redirect("/notfound")
+			}
+	  }
+	}
+
+	
+	
+
+	return { error: 'Invalid credentials' };
 }
