@@ -1,3 +1,4 @@
+"use client"
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button, Form, Card, Row, Col, Badge } from "react-bootstrap";
@@ -16,7 +17,7 @@ import {
     RiSearchLine
 } from '@remixicon/react';
 
-// Define interfaces for our data structures
+
 interface TestOption {
     value: number;
     label: string;

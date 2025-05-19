@@ -1,3 +1,4 @@
+"use client"
 import React, { useCallback, useState } from 'react';
 import { Image, Card, Button } from 'react-bootstrap';
 import { useDropzone } from 'react-dropzone';

@@ -2,13 +2,18 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-
+interface UserPayload {
+    user: {
+        role: string;
+    };
+    email: string;
+}
 
 async function verifyToken(token: string) {
     try {
         const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY);
         const { payload } = await jwtVerify(token, secret);
-        return { isValid: true, payload };
+        return { isValid: true, payload: (payload as unknown) as UserPayload };
     } catch (error) {
         return { isValid: false, payload: null };
     }
@@ -36,7 +41,7 @@ export async function middleware(request: NextRequest) {
         }  
 
         if (isValid && payload && !isLoginPage) {
-            const { user, email } = payload;
+            const { user, email } = payload as UserPayload;
             const role = user.role || "";
             const currentPath = request.nextUrl.pathname;
 

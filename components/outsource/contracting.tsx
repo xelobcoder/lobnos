@@ -1,3 +1,4 @@
+"use client"
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import { Row, Col, Form, Button, Card, Alert } from 'react-bootstrap';
 import * as Yup from 'yup';

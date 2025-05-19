@@ -101,7 +101,6 @@ export default function TestListDisplay() {
                     filtering={true} 
                     handleSeverSideProcessing={null}
                     column={columns} 
-                    rowClassName={null}
                     data={data} 
                 />
             </div>

@@ -72,7 +72,6 @@ export default function ListTable({ data, handleCollectSample, receive }) {
 				handleSeverSideProcessing={handleSeverSideProcessingPhelobotomy}
 				data={data}
 				filtering={false}
-				rowClassName={rowClassName}
 				serverSideFiltering={true}
 				
 			/>

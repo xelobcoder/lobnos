@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format, formatDistance } from 'date-fns';
-import { CheckCircle, LockClock } from '@mui/icons-material';
+import { RiCheckboxCircleLine, RiTimeLine } from '@remixicon/react';
 
 interface TimelineEvent {
     id: number;
@@ -120,9 +120,9 @@ const VerticalTimeline = ({
                                         <div className="timeline-icon rounded-circle border bg-white d-flex align-items-center justify-content-center"
                                             style={{ width: '44px', height: '44px' }}>
                                             {event.status === 'completed' ? (
-                                                <CheckCircle fontSize='small' />
+                                                <RiCheckboxCircleLine size={20} />
                                             ) : (
-                                                <LockClock  fontSize='small'/>
+                                                <RiTimeLine size={20} />
                                             )}
                                         </div>
                                     </div>

@@ -188,7 +188,6 @@ export default function OrganizationList() {
         column={columns} data={organization}
         filtering={false}
         serverSideFiltering={true}
-        rowClassName={()=> {}}
         handleSeverSideProcessing={null}
       />
     </section>

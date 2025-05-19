@@ -65,7 +65,6 @@ const MonthResultValuesComponent: React.FC<MonthResultValuesComponentProps> = ({
         <div>
             <PrimeTable
             column={columns}
-            rowClassName={() =>  {}}
             data={data}
             filtering={true}
             serverSideFiltering={false}

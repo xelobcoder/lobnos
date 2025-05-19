@@ -198,15 +198,13 @@ export default function PrimeTable({
         <tbody {...getTableBodyProps()}>
           {rows.map((row, index) => {
             prepareRow(row);
-            const rowClass =
-              typeof rowClassName === "function" ? rowClassName(row) : "";
             // Add even/odd row styling for zebra effect
             const zebraClass = index % 2 === 0 ? style.evenRow : style.oddRow;
             return (
               <tr
                 {...row.getRowProps()}
                 key={index}
-                className={`${rowClass} ${zebraClass} ${style.tableRow}`}
+                className={`${rowClass}  ${style.tableRow}`}
                 style={{ transition: "background 0.2s" }}
               >
                 {row.cells.map((cell) => (

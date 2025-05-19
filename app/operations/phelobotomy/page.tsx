@@ -1,3 +1,4 @@
+"use client"
 import React from 'react'
 import PhelobotomySummaryAnalytics from '../../../components/phelobotomy/PhelobotomySummaryAnalytics';
 

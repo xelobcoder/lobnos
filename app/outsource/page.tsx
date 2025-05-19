@@ -1,4 +1,3 @@
-
 "use client"
 import { Tab, Tabs } from "react-bootstrap";
 import OutSourcingOrganizationForm from "../../components/outsource/newOutSourceOrganization";
@@ -26,3 +25,4 @@ export default function OutsourcingIndexPage() {
         </div>
     );
 }
+
