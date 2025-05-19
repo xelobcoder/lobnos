@@ -1,4 +1,4 @@
-function SpinningLoading({ color }) {
+export default function SpinningLoading({ color }) {
   return (
     <div className="d-flex align-items-center">
       <span className={`spinner-border spinner-border-sm ${color}`} role="status">

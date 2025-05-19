@@ -18,7 +18,7 @@ export default function UnauthorizedPage() {
           <h1 className="display-4 fw-bold text-danger mb-4">401</h1>
           <h2 className="h4 fw-semibold text-dark mb-4">Unauthorized Access</h2>
           <p className="text-muted mb-4">
-            Sorry, you don't have permission to access this page. Please contact your administrator if you believe this is a mistake.
+            Sorry, you don&apos;t have permission to access this page. Please contact your administrator if you believe this is a mistake.
           </p>
           <Link 
             href="/"

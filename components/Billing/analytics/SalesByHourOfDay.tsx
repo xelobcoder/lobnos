@@ -14,7 +14,7 @@ import {
     Legend,
 } from "recharts";
 import { Button, Form } from "react-bootstrap";
-import { ArrowCircleLeftRounded } from "@mui/icons-material";
+import { RiRefreshFill } from "@remixicon/react";
 
 interface DataEntry {
     hour: number;
@@ -114,7 +114,7 @@ export default function SalesByHourOfDay() {
                         style={{ maxWidth: "200px", borderColor: '#ced4da', borderRadius: '0.25rem' }}
                     />
                     <Button variant="outline-secondary" size="sm" onClick={handleRefreshClick}>
-                        <ArrowCircleLeftRounded /> Refresh
+                        <RiRefreshFill/> Refresh
                     </Button>
                 </div>
                 <div className="col-12 col-md-6 d-flex align-items-center justify-content-end gap-3">

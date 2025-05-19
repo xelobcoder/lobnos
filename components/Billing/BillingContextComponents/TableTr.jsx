@@ -129,7 +129,7 @@ export default function TrTable({ toast }) {
 						organization not added for test <br /><Link href={`/settings/testpanel/testlist/${selected?.id}/outsourcingList?testname=R${selected?.name}`}>
 						<RiLinkUnlinkM size={16} /> Add Outsourcing organization
 						</Link>
-						// In the button component:
+						{/* In the button component: */}
 						<button
 						onClick={(ev) => {
 						addtoCart();

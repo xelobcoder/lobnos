@@ -20,7 +20,7 @@ export default function Addcategory() {
               </div>
               <div className='form-group'>
                 <label htmlFor='description'>Description</label>
-                <textarea className='form-control' name='description' onChange={handleChange} id='description' rows='3'>
+                <textarea className='form-control' name='description' onChange={handleChange} id='description' rows={3}>
                 </textarea>
               </div>
               <button type='button' className='btn btn-primary mt-3'>

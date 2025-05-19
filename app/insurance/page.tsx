@@ -153,7 +153,6 @@ const InsurancePage: React.FC = () => {
             <PrimeTable
                 filtering={false}
                 column={columns}
-                rowClassName={()=> ''}
                 data={insurances}
                 serverSideFiltering={true}
                 handleSeverSideProcessing={handleSeverSideProcessing}

@@ -58,7 +58,7 @@ const PhelobotomyAnalyticsPage: React.FC = () => {
             <section>
                 <CollectionToDisputeToApprovedToRedrawnLast30daysHandler />
             </section>
-            <MonthlyApprovalRateByMonthAndYear data={data.monthlyApprovalRate as any} />
+            <MonthlyApprovalRateByMonthAndYear />
             <div>
                 <PhelobotomistSummaryTable />
                 <div className='d-flex-lg'>

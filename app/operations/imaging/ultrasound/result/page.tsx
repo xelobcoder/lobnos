@@ -13,10 +13,15 @@ import { reactSelectCustomStyles } from '../../../../../components/Auth/customFe
 
 const MARKDOWN_EDITOR = dynamic(() => import('../../../../../components/accessories/markdownEditor'), { ssr: false });
 
+interface Field {
+    name: string;
+    value: string;
+}
+
 export default function EnterResultUltrasound() {
 	const { user } = useApplicationSettings().applicationsettings;
 	const employeeid = user?.employeeid;
-	const [fields, setFields] = useState([]);
+	const [fields, setFields] = useState<Field[]>([]);
 	const [impression, setImpression] = useState("");
 	const [testname, setTestName] = useState("");
 	const [templateOptions, setTemplateOptions] = useState([]);
@@ -124,7 +129,7 @@ export default function EnterResultUltrasound() {
 
 				const [resultResponse, commentsResponse] = await Promise.all([testResultFetch, commentsFetch]);
 
-				const updatesResultForm = (data) => {
+				const updatesResultForm = (data: { testname: string; result: Field[] }) => {
 					const { testname, result } = data;
 					if (result && Array.isArray(result)) {
 						setFields(result);

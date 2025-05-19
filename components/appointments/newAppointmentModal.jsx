@@ -2,7 +2,6 @@ import PatientFiltering from "../../components/accessories/SectorFileringCompone
 import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import Autocomplete from "react-select";
-import PatientInfo from "./PatientInfoAvatarType";
 
 import {
 	inviteMethod,

@@ -2,9 +2,9 @@
 import { useEffect, useState } from "react";
 import { customFetch, customPost } from "../../../../components/Auth/customFetch";
 import Loader from '../../../../components/accessories/Loader';
-import { DeleteBinLine } from "@remixicon/react";
 import { ToastContainer, toast } from "react-toastify";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
+import { RiDeleteBin2Fill } from "@remixicon/react";
 
 
 export default function ExpenseCategoryCreation() {
@@ -84,7 +84,7 @@ export default function ExpenseCategoryCreation() {
           } else {
                if (category.length > 0) {
                     return <tbody>
-                         {category.map((item, index) => {
+                         {Array.isArray(category) && category.length > 0 &&  category.map((item, index) => {
                               return <tr key={index}>
                                    <td>{item.category}</td>
                                    <td>{new Date(item.createdon).toLocaleDateString() || ""}</td>
@@ -93,7 +93,7 @@ export default function ExpenseCategoryCreation() {
                                              handleEdit(item);
                                         }} className="btn btn-info btn-sm">edit</button>
                                         <button className="btn btn-danger btn-sm mx-2">
-                                             <DeleteBinLine />
+                                             <RiDeleteBin2Fill size={20} />
                                         </button>
                                    </td>
                               </tr>

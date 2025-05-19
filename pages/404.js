@@ -1,6 +1,7 @@
 import React from "react";
 import { useRouter } from "next/router";
-import { HomeFill } from "@remixicon/react";
+import { RiHome2Fill } from "@remixicon/react";
+
 
 export default function NotFound() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function NotFound() {
             }}
             className="btn btn-primary mb-2"
           >
-            visit homepage <HomeFill />
+            visit homepage <RiHome2Fill/>
           </button>
         </div>
       </header>

@@ -1,3 +1,4 @@
+import { RiNotificationLine, RiStopCircleLine, RiSwap2Line} from "@remixicon/react";
 import { customPost } from "../../../Auth/customFetch";
 export const handleCreationMasterRUle = function (ev, field) {
   const { value } = ev.target;
@@ -224,7 +225,7 @@ export const getAlertOptionsAndDisplay = (alert) => {
     case 2:
       return <RiStopCircleLine className="text-muted" size={16} />;
     case 3:
-      return <RiSwapVerticalLine className="text-warning" size={16} />;
+      return <RiSwap2Line className="text-warning" size={16} />;
     default:
       return "";
   }

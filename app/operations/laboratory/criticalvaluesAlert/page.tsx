@@ -177,7 +177,6 @@ export default function CriticalValuesAlert() {
 					</span>
 				</h5>
 				<PrimeTable
-					rowClassName={rowClassName}
 					column={columns} data={criticalValues}
 					filtering={true}
 					handleSeverSideProcessing={handleServerCriticalValues}

@@ -5,6 +5,7 @@ import TableDisplay from "../../../../components/accessories/TableDisplay";
 import { useSearchParams } from "next/navigation";
 import Loader from "../../../../components/accessories/Loader";
 import PreviewPatientInformation from "../../../../components/petientsComponent/PreviewPatientInformation";
+import { RiMoreLine } from '@remixicon/react';
 
 export default function ResultEntryCompletedDepartmentViewTwo() {
 	const [data, setData] = useState([]);
@@ -109,7 +110,7 @@ export default function ResultEntryCompletedDepartmentViewTwo() {
 				return (
 					<Dropdown>
 						<Dropdown.Toggle size="sm" variant="outline-primary" id="archives-dropdown">
-							<MoreVert />
+							<RiMoreLine />
 						</Dropdown.Toggle>
 						<Dropdown.Menu>
 							<Dropdown.Item
@@ -143,7 +144,7 @@ export default function ResultEntryCompletedDepartmentViewTwo() {
 	if (!patientid) return null;
 
 	if (loading) {
-		return <LaboratoryLayout><Loader /></LaboratoryLayout>
+		return <Loader/>
 	}
 
 

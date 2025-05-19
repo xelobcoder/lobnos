@@ -119,18 +119,18 @@ export default function TestProfileBilling({ clientDetails }) {
               getOptionLabel={(option) => option.name}
               getOptionValue={(option) => option.id}
               onChange={(newValue) => setTestValueId(newValue)}
-              placeholder='Search test'
+              placeholder="Search test"
               isClearable
               styles={{ container: (provided) => ({ ...provided, width: '70%' }) }}
             />
 
-            // In the return statement's Add Test button:
-            <button className='btn btn-primary btn-sm py-0' onClick={handleAddTestButton}>
+            {/* Add Test button */}
+            <button className="btn btn-primary btn-sm py-0" onClick={handleAddTestButton}>
               <RiAddLine size={20} className="me-1" />
               Add Test
             </button>
             
-            // In the table row's delete button:
+            {/* Delete button in table row */}
             <td>
               <RiDeleteBinLine 
                 onClick={() => handleRemoveTest(item)} 
@@ -159,7 +159,11 @@ export default function TestProfileBilling({ clientDetails }) {
                       <td className='lims-text-color'>{index + 1}.{" "}{item?.name}</td>
                       <td>{item?.price}</td>
                       <td>
-                        <DeleteOutlineTwoTone onClick={() => handleRemoveTest(item)} color='error' />
+                        <RiDeleteBinLine 
+                          onClick={() => handleRemoveTest(item)} 
+                          className="text-danger"
+                          size={20}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -185,7 +189,7 @@ export default function TestProfileBilling({ clientDetails }) {
                 <div className='alert alert-danger'>
                   Tax status between this and the previous transactions do not match. Initiate new transaction to prevent errors in accounting.
                   <br />
-                  <Link href={`/billing/patientid?patientid=${patientid}`} className='border-bottom border-secondary border-2'>Initiate New Transaction</Link>
+                  <Link href={`/billing/patientid?patientid=${patientid}`} className="border-bottom border-secondary border-2">Initiate New Transaction</Link>
                 </div>
               )}
               <div className='lims-text-color alert alert-info text-sm'>

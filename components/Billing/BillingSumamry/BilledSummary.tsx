@@ -1,12 +1,12 @@
 import React from 'react';
 import { toast } from 'react-toastify';
 import { customFetch, currencyFormatter } from '../../Auth/customFetch';
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import ReceiptIcon from '@mui/icons-material/Receipt';
-import PercentIcon from '@mui/icons-material/Percent';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import MoneyOffIcon from '@mui/icons-material/MoneyOff';
+import { RiTeamLine } from '@remixicon/react';
+import { RiMoneyDollarCircleLine } from '@remixicon/react';
+import { RiFileList3Line } from '@remixicon/react';
+import { RiPercentLine } from '@remixicon/react';
+import { RiWalletLine } from '@remixicon/react';
+
 
 interface Summary {
     registeredClient: number;
@@ -106,7 +106,7 @@ export default async function BilledSummary({ branchid }: { branchid: string }) 
                 <AnalyticCard
                     title="Billed Clients"
                     value={summary.billedClients}
-                    Icon={PeopleAltIcon}
+                    Icon={RiTeamLine}
                     bgColor={cardColors.billedClients.bg}
                     iconColor={cardColors.billedClients.icon}
                     formatAsCurrency={false}
@@ -114,35 +114,35 @@ export default async function BilledSummary({ branchid }: { branchid: string }) 
                 <AnalyticCard
                     title="Total Sales"
                     value={summary.salesAmount}
-                    Icon={AttachMoneyIcon}
+                    Icon={RiMoneyDollarCircleLine}
                     bgColor={cardColors.totalSales.bg}
                     iconColor={cardColors.totalSales.icon}
                 />
                 <AnalyticCard
                     title="Amount Paid"
                     value={summary.totalAmountReceived}
-                    Icon={ReceiptIcon}
+                    Icon={RiFileList3Line}
                     bgColor={cardColors.amountPaid.bg}
                     iconColor={cardColors.amountPaid.icon}
                 />
                 <AnalyticCard
                     title="Discount"
                     value={summary.discount}
-                    Icon={PercentIcon}
+                    Icon={RiPercentLine}
                     bgColor={cardColors.discount.bg}
                     iconColor={cardColors.discount.icon}
                 />
                 <AnalyticCard
                     title="Pending Debts"
                     value={summary.salesAmount - summary.totalAmountReceived}
-                    Icon={AccountBalanceWalletIcon}
+                    Icon={RiWalletLine}
                     bgColor={cardColors.pendingDebts.bg}
                     iconColor={cardColors.pendingDebts.icon}
                 />
                 <AnalyticCard
                     title="Expenses Incurred"
                     value={summary.dayExpenseSum > 0 ? summary.dayExpenseSum : 0}
-                    Icon={MoneyOffIcon}
+                    Icon={RiMoneyDollarCircleLine}
                     bgColor={cardColors.expenses.bg}
                     iconColor={cardColors.expenses.icon}
                 />
