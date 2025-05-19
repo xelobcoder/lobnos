@@ -81,7 +81,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                 </nav>
             </aside>
 
-            <main className={`${styles.mainContent} ${isSidebarExpanded ? styles.sidebarExpanded : styles.sidebarCollapsed}`}>
+            <main  className={`${styles.mainContent} ${isSidebarExpanded ? styles.sidebarExpanded : styles.sidebarCollapsed}`}>
                 <div className="p-4">
                     {children}
                 </div>

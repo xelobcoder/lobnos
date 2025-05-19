@@ -15,16 +15,12 @@ export default function SMSLayout({
 }) {
 
   return (
-    <html lang="en">
-      <body >
-        <Suspense>
-          <ApplicationProvider>
-            <PrimeLayout links={CrmLinks}>
-              {children}
-            </PrimeLayout>
-          </ApplicationProvider>
-        </Suspense>
-      </body>
-    </html>
+    <Suspense>
+    <ApplicationProvider>
+      <PrimeLayout links={CrmLinks}>
+        {children}
+      </PrimeLayout>
+    </ApplicationProvider>
+  </Suspense>
   );
 }

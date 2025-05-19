@@ -105,7 +105,7 @@ const links = [
     href: '/doctor/consultation',
     icon: <RiStethoscopeLine size={24} />,
     text: "Access and manage doctor consultations",
-    label: "Doctor's Portal",
+    label: "Consultation Portal",
     category: 'Healthcare',
     description: 'Doctor consultation management'
   },

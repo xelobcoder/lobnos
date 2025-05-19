@@ -25,7 +25,9 @@
 }
 
 
-
+.card{
+  background-color: white !important;
+}
 
 * {
      /* font-family: "Barlow", sans-serif !important; */

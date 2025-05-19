@@ -139,7 +139,7 @@
     padding: 16px;
     min-height: calc(100vh - 48px);
     transition: margin 0.3s ease;
-    background-color: #f8f9fa;
+    background-color:#f5f4f4;
 }
 
 .mainContent.sidebarExpanded {

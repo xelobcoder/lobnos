@@ -70,7 +70,7 @@ const YearMonthTestCasesCountPage = () => {
    <div className="container-fluid px-4 py-3">
       <p className="text-muted mb-4 border p-3 br-5 bg-info-subtle text-sm ">This chart displays the count of test cases per month for the selected test ID.</p>
       <hr />
-     <div className="p-4 border br-5 ">
+     <div className="p-4 border br-5 bg-white">
           <div className="d-flex align-items-center gap-3 mb-4">
             <RiFlaskLine size={28} className="text-primary transition-colors" style={{ color: 'hsl(var(--primary))' }} />
             <h2 className="fs-4 fw-bold mb-2 pls-label transition-colors" style={{ color: 'hsl(var(--foreground))' }}>
