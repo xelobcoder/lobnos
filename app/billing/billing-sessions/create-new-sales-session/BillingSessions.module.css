@@ -1,63 +1,130 @@
-/* BillingSessions.module.css */
+.pageBackground {
+    background-color: #f0f2f5;
+    min-height: 100vh;
+    padding-bottom: 2rem;
+}
+
+.pageHeaderTitle {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #343a40;
+    margin-bottom: 0;
+}
+
 .googleFormContainer {
     background-color: #fff;
-    border-radius: 8px; /* Google-like rounded corners */
+    border-radius: 8px;
     padding: 24px;
-    max-width: 500px; /* Common width for Google forms */
-    margin: auto; /* Center it if it's the main content */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.formTitle {
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: #202124;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.formLabel {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #3c4043;
+    margin-bottom: 0.3rem;
 }
 
 .googleFormControl {
-    border-radius: 4px !important; /* Slightly rounded input */
-    border: 1px solid #dadce0 !important; /* Google's typical input border color */
+    border-radius: 4px !important;
+    border: 1px solid #dadce0 !important;
     padding: 10px 12px !important;
-    font-size: 1rem !important;
+    font-size: 0.95rem !important;
+    line-height: 1.5;
+    background-clip: padding-box;
 }
 
 .googleFormControl:focus {
-    border-color: #1a73e8 !important; /* Google blue focus */
-    box-shadow: 0 0 0 1px #1a73e8 !important; /* Focus ring */
+    border-color: #1a73e8 !important;
+    box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.25) !important;
+}
+
+.googleFormControl:not([multiple]) {
+    padding-right: 2.25rem  !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
 }
 
 .googleButtonPrimary {
-    background-color: #1a73e8 !important; /* Google blue */
+    background-color: #1a73e8 !important;
     border-color: #1a73e8 !important;
     color: white !important;
     border-radius: 4px !important;
     padding: 10px 24px !important;
     font-weight: 500 !important;
-    font-size: 0.875rem !important;
-    text-transform: none !important; /* Google buttons aren't usually all caps */
+    font-size: 0.9rem !important;
+    text-transform: none !important;
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
 }
 
 .googleButtonPrimary:hover,
 .googleButtonPrimary:focus {
-    background-color: #185abc !important; /* Darker blue on hover/focus */
+    background-color: #185abc !important;
     border-color: #185abc !important;
+    box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.25) !important;
 }
 
 .googleButtonPrimary:disabled {
     background-color: #f1f3f4 !important;
     border-color: #f1f3f4 !important;
     color: #bdc1c6 !important;
-}
-
-.googleInputGroupText {
-    background-color: #fff !important;
-    border: 1px solid #dadce0 !important;
-    border-left: none !important; /* If button is on the right */
-    border-radius: 0 4px 4px 0 !important;
-}
-
-.formTitle {
-    font-size: 1.5rem; /* 24px */
-    font-weight: 400;
-    color: #202124; /* Google's primary text color */
-    margin-bottom: 24px;
-    text-align: center;
+    cursor: not-allowed;
 }
 
 .formHelperText {
-    font-size: 0.875rem;
-    color: #5f6368; /* Google's secondary text color */
+    font-size: 0.8rem;
+    color: #5f6368;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+@media (max-width: 767.98px) {
+    .googleFormContainer {
+        padding: 20px;
+    }
+    .formTitle {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
+    .googleFormControl {
+        font-size: 0.9rem !important;
+    }
+    .googleButtonPrimary {
+        font-size: 0.85rem !important;
+        padding: 9px 20px !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .googleFormContainer {
+        padding: 16px;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0;
+        box-shadow: none;
+        border-top: 1px solid #e0e0e0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .pageHeaderTitle {
+        font-size: 1.0rem;
+    }
+    .formLabel {
+        font-size: 0.8rem;
+    }
 }

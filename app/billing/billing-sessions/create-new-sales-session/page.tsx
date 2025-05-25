@@ -6,6 +6,7 @@ import { Button, Form, Spinner, Alert, Container, Row, Col } from 'react-bootstr
 import styles from './BillingSessions.module.css';
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
 import { useRouter } from 'next/navigation';
+import { RiArrowLeftLine } from '@remixicon/react';
 
 interface SalesSession {
     sessionid: number;
@@ -73,7 +74,6 @@ export default function BillingSessions() {
             }
 
         } catch (err: any) {
-            console.error("Failed to load initial data:", err);
             setError(err.message || 'An error occurred while loading data.');
         } finally {
             setIsLoadingData(false);
@@ -125,24 +125,23 @@ export default function BillingSessions() {
                 session_started_by: loggedInUserEmployeeId,
                 amountreceivedby: parseInt(selectedEmployee, 10),
                 openingamount: amount,
-                sessiondate: new Date().toISOString(), 
+                sessiondate: new Date().toISOString(),
             };
 
-            const response: { status: boolean } = await customPost(
-                'billing/sales/session/create','POST', payload
+            const response: { status: boolean; message?: string } = await customPost(
+                'billing/sales/session/create', 'POST', payload
             );
-            
-            if (response && response.status === true) { 
-                setSuccessMessage(`Sales session activated for ${employeesList.find(e=>e.employeeid === parseInt(selectedEmployee))?.username || 'employee'} with opening amount: ${amount.toFixed(2)}`);
+
+            if (response && response.status === true) {
+                setSuccessMessage(`Sales session activated for ${employeesList.find(e => e.employeeid === parseInt(selectedEmployee))?.username || 'employee'} with opening amount: ${amount.toFixed(2)}`);
                 setOpeningAmount('');
                 setSelectedBranch('');
                 setSelectedEmployee('');
             } else {
-                throw new Error('Failed to create session.');
-            }          
+                throw new Error(response.message || 'Failed to create session.');
+            }
 
         } catch (err: any) {
-            console.error("Session activation failed:", err);
             setError(err.message || 'An unexpected error occurred during session activation.');
         } finally {
             setIsLoading(false);
@@ -151,31 +150,39 @@ export default function BillingSessions() {
 
     if (isLoadingData) {
         return (
-            <Container className="py-4 text-center">
-                <Spinner animation="border" role="status" variant="primary">
-                    <span className="visually-hidden">Loading data...</span>
-                </Spinner>
-                <p>Loading initial data...</p>
+            <Container fluid className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
+                <div className="text-center">
+                    <Spinner animation="border" role="status" variant="primary" style={{ width: '3rem', height: '3rem' }}>
+                        <span className="visually-hidden">Loading data...</span>
+                    </Spinner>
+                    <p className="mt-2 text-muted">Loading initial data...</p>
+                </div>
             </Container>
         );
     }
 
     return (
-        <Container className="py-4">
-            <Button onClick={(ev) => {router.push('/billing/billing-sessions/sales-session')}} className='br-0' style={{borderRadius:'0px'}}>
-               SESSION LIST
-            </Button>
-            <Row className="justify-content-center">
-                <Col md={8} lg={7} xl={6}> 
-                    <div className={styles.googleFormContainer}>
-                        <h2 className={styles.formTitle}>Activate New Billing Session</h2>
+        <Container fluid className={styles.pageBackground}>
+            <Row className="pt-3 pb-2 mb-3 border-bottom align-items-center sticky-top bg-light">
+                <Col xs="auto">
+                    <Button variant="link" onClick={() => router.back()} className="p-0 me-2">
+                        <RiArrowLeftLine size={24} />
+                    </Button>
+                </Col>
+                <Col>
+                    <h4 className={styles.pageHeaderTitle}>Activate New Billing Session</h4>
+                </Col>
+            </Row>
 
+            <Row className="justify-content-center">
+                <Col xs={12} sm={10} md={8} lg={7} xl={6}>
+                    <div className={styles.googleFormContainer}>
                         {error && (
                             <Alert
                                 variant="danger"
                                 onClose={() => setError('')}
                                 dismissible
-                                className="mb-3 small" 
+                                className="mb-3 small"
                             >
                                 {error}
                             </Alert>
@@ -183,23 +190,26 @@ export default function BillingSessions() {
                         {successMessage && (
                             <Alert
                                 variant="success"
-                                onClose={() => setSuccessMessage('')}
-                                dismissible
                                 className="mb-3 small"
                             >
                                 {successMessage}
+                                <div className="mt-2">
+                                    <Button variant="outline-success" size="sm" onClick={() => router.push('/billing/billing-sessions/sales-session')}>
+                                        View Sessions List
+                                    </Button>
+                                </div>
                             </Alert>
                         )}
 
                         <Form onSubmit={handleSubmit}>
                             <Form.Group controlId="branchSelect" className="mb-3">
-                                <Form.Label>Branch</Form.Label>
+                                <Form.Label className={styles.formLabel}>Branch</Form.Label>
                                 <Form.Select
                                     aria-label="Select Branch"
                                     value={selectedBranch}
                                     onChange={handleBranchChange}
                                     className={styles.googleFormControl}
-                                    disabled={isLoading || branchesList.length === 0}
+                                    disabled={isLoading || isLoadingData || branchesList.length === 0}
                                     required
                                 >
                                     <option value="">Select a Branch</option>
@@ -209,17 +219,17 @@ export default function BillingSessions() {
                                         </option>
                                     ))}
                                 </Form.Select>
-                                {branchesList.length === 0 && !isLoadingData && <Form.Text className="text-danger">No branches available.</Form.Text>}
+                                {branchesList.length === 0 && !isLoadingData && <Form.Text className="text-danger small mt-1">No branches available.</Form.Text>}
                             </Form.Group>
 
                             <Form.Group controlId="employeeSelect" className="mb-3">
-                                <Form.Label>Employee for Session</Form.Label>
+                                <Form.Label className={styles.formLabel}>Employee for Session</Form.Label>
                                 <Form.Select
                                     aria-label="Select Employee"
                                     value={selectedEmployee}
                                     onChange={(e) => setSelectedEmployee(e.target.value)}
                                     className={styles.googleFormControl}
-                                    disabled={isLoading || !selectedBranch || filteredEmployees.length === 0}
+                                    disabled={isLoading || isLoadingData || !selectedBranch || filteredEmployees.length === 0}
                                     required
                                 >
                                     <option value="">Select an Employee</option>
@@ -229,11 +239,11 @@ export default function BillingSessions() {
                                         </option>
                                     ))}
                                 </Form.Select>
-                                {selectedBranch && filteredEmployees.length === 0 && !isLoadingData && <Form.Text className="text-danger">No employees found for this branch.</Form.Text>}
+                                {selectedBranch && filteredEmployees.length === 0 && !isLoadingData && <Form.Text className="text-danger small mt-1">No employees found for this branch.</Form.Text>}
                             </Form.Group>
 
                             <Form.Group controlId="openingAmountInput" className="mb-3">
-                                <Form.Label>Opening Amount</Form.Label>
+                                <Form.Label className={styles.formLabel}>Opening Amount</Form.Label>
                                 <Form.Control
                                     type="number"
                                     placeholder="Enter opening amount"
@@ -242,7 +252,7 @@ export default function BillingSessions() {
                                     min="0.01"
                                     step="0.01"
                                     required
-                                    disabled={isLoading}
+                                    disabled={isLoading || isLoadingData}
                                     aria-label="Opening Amount"
                                     className={styles.googleFormControl}
                                 />
@@ -253,8 +263,8 @@ export default function BillingSessions() {
 
                             <Button
                                 type="submit"
-                                disabled={isLoading || !loggedInUserEmployeeId || !selectedBranch || !selectedEmployee || !openingAmount.trim()}
-                                className={`${styles.googleButtonPrimary} w-100 mt-2`}
+                                disabled={isLoading || isLoadingData || !loggedInUserEmployeeId || !selectedBranch || !selectedEmployee || !openingAmount.trim()}
+                                className={`${styles.googleButtonPrimary} w-100 mt-3`}
                             >
                                 {isLoading ? (
                                     <>
