@@ -2,65 +2,62 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useApplication } from '../../../../components/Auth/useApplicationContext';
-import { Button, Form, InputGroup, Spinner, Alert, Container, Row, Col } from 'react-bootstrap';
-import styles from './BillingSessions.module.css'; // Ensure this path is correct
-import { customFetch, customPost } from '../../../../components/Auth/customFetch'; // Ensure this path is correct
+import { Button, Form, Spinner, Alert, Container, Row, Col } from 'react-bootstrap';
+import styles from './BillingSessions.module.css';
+import { customFetch, customPost } from '../../../../components/Auth/customFetch';
+import { useRouter } from 'next/navigation';
 
-// Interfaces (ensure these match your actual data structures)
 interface SalesSession {
     sessionid: number;
     sessiondate: Date;
-    session_started_by: number; // Logged-in user who starts the session
+    session_started_by: number;
     sessionendedon: Date | null;
     openingamount: number;
-    amountreceivedby: number; // Employee for whom the till is opened
-    branchid: number; // Branch for the session
+    amountreceivedby: number;
+    branchid: number;
 }
 
 interface Employee {
     employeeid: number;
     username: string;
-    branch: number; // Assuming this is the branchid the employee belongs to
-    // Add other relevant fields like firstname, lastname if you want to display full name
+    branch: number;
 }
 
 interface Branch {
     branchid: number;
     name: string;
-    // Add other fields if needed
 }
 
-// Type for customFetch response (adjust if your customFetch returns differently)
 interface FetchResponse<T> {
     status: string;
     result: T[];
-    message?: string; // Optional error message
+    message?: string;
 }
-
 
 export default function BillingSessions() {
     const { user } = useApplication();
-    const loggedInUserEmployeeId = user?.employeeid; // ID of the user operating the system
+    const loggedInUserEmployeeId = user?.employeeid;
 
     const [openingAmount, setOpeningAmount] = useState('');
-    const [selectedBranch, setSelectedBranch] = useState<string>(''); // Store branchid as string from select
-    const [selectedEmployee, setSelectedEmployee] = useState<string>(''); // Store employeeid as string
+    const [selectedBranch, setSelectedBranch] = useState<string>('');
+    const [selectedEmployee, setSelectedEmployee] = useState<string>('');
 
     const [branchesList, setBranchesList] = useState<Branch[]>([]);
     const [employeesList, setEmployeesList] = useState<Employee[]>([]);
 
     const [isLoading, setIsLoading] = useState(false);
-    const [isLoadingData, setIsLoadingData] = useState(true); // For initial data load
+    const [isLoadingData, setIsLoadingData] = useState(true);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const router = useRouter();
 
     const LoadInitData = async () => {
         setIsLoadingData(true);
         setError('');
         try {
             const [branchesResponse, employeesResponse]: [FetchResponse<Branch>, FetchResponse<Employee>] = await Promise.all([
-                customFetch('branches'), // Endpoint to get all branches
-                customFetch('logins')    // Endpoint to get all employees
+                customFetch('branches'),
+                customFetch('logins')
             ]);
 
             if (branchesResponse && branchesResponse.result && Array.isArray(branchesResponse.result)) {
@@ -87,7 +84,6 @@ export default function BillingSessions() {
         LoadInitData();
     }, []);
 
-    // Filter employees based on selected branch
     const filteredEmployees = useMemo(() => {
         if (!selectedBranch) return [];
         return employeesList.filter(emp => emp.branch === parseInt(selectedBranch, 10));
@@ -95,7 +91,7 @@ export default function BillingSessions() {
 
     const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedBranch(e.target.value);
-        setSelectedEmployee(''); // Reset employee selection when branch changes
+        setSelectedEmployee('');
     };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -129,10 +125,9 @@ export default function BillingSessions() {
                 session_started_by: loggedInUserEmployeeId,
                 amountreceivedby: parseInt(selectedEmployee, 10),
                 openingamount: amount,
-                sessiondate: new Date().toISOString(), // Send as ISO string
+                sessiondate: new Date().toISOString(), 
             };
 
-            console.log("Submitting payload:", payload);
             const response: { status: boolean } = await customPost(
                 'billing/sales/session/create','POST', payload
             );
@@ -167,8 +162,11 @@ export default function BillingSessions() {
 
     return (
         <Container className="py-4">
+            <Button onClick={(ev) => {router.push('/billing/billing-sessions/sales-session')}} className='br-0' style={{borderRadius:'0px'}}>
+               SESSION LIST
+            </Button>
             <Row className="justify-content-center">
-                <Col md={8} lg={7} xl={6}> {/* Adjusted column size for more fields */}
+                <Col md={8} lg={7} xl={6}> 
                     <div className={styles.googleFormContainer}>
                         <h2 className={styles.formTitle}>Activate New Billing Session</h2>
 
@@ -177,7 +175,7 @@ export default function BillingSessions() {
                                 variant="danger"
                                 onClose={() => setError('')}
                                 dismissible
-                                className="mb-3 small" // Using small for potentially longer error messages
+                                className="mb-3 small" 
                             >
                                 {error}
                             </Alert>
@@ -227,7 +225,7 @@ export default function BillingSessions() {
                                     <option value="">Select an Employee</option>
                                     {filteredEmployees.map((employee) => (
                                         <option key={employee.employeeid} value={employee.employeeid}>
-                                            {employee.username} {/* Or use a full name if available */}
+                                            {employee.username}
                                         </option>
                                     ))}
                                 </Form.Select>
