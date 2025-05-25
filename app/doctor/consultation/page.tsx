@@ -1,18 +1,19 @@
 "use client"
 import React from 'react'
 import PatientFiltered from '../../../components/accessories/SectorFileringComponents/CustomerFiltering'
-import { redirect } from 'next/navigation'
+import {useRouter} from 'next/navigation'
 
 export default function ConsultationgloFieldSettingsPage() {
+     const router = useRouter();
      const handleSelectedPatient = (selected: any) => {
           const { patientid } = selected;
           if (patientid) {
-               redirect('/doctor/consultation/${patientid}')
+               router.push('/doctor/consultation/${patientid}')
           }
      }
 
      return (
-          <div>
+          <div className='col-5'>
                <PatientFiltered isDisabled={false} getSelectedPatient={handleSelectedPatient} />
           </div>
      )

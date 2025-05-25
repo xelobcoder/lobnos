@@ -15,6 +15,7 @@ export default function PatientFiltered({ getSelectedPatient, isDisabled, placeh
 		try {
 			setSelectedOption(null);
 			const result = await loadOptions(inputValue);
+			if (!Array.isArray(result) || result.length == 0) return 
 			const clients = result.map((client) => ({
 				value: client.patientid,
 				fullname: `${client.firstname.charAt(0).toUpperCase()}${client.firstname.slice(1)} ${client.middlename
