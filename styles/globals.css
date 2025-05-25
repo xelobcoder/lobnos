@@ -186,13 +186,6 @@ border-none {
 }
 
 
-.span-close {
-  position: relative;
-  top: -35px;
-  left: 90%;
-  padding: 10px;
-  cursor: pointer;
-}
 .bg-orange {
   background-color: var(--custom-orange) !important;
 }
@@ -464,28 +457,6 @@ a {
   text-transform: capitalize;
 }
 
-
-.card-autocomplete{
-  font-size: 14px;
-}
-.purchases_to_order {
-  margin: 0px;
-  padding: 10px;
-  border-radius: 5px;
-  font-size: 14px;
-  cursor: pointer;
-  color: white;
-}
-.purchases_to_order:nth-child(1) {
-  background-color: var(--prime-attention);
-}
-
-.purchases_to_order:nth-child(2) {
-  background-color: var(--custom-orange);
-}
-.purchases_to_order:nth-child(3) {
-  background-color: var(--custom-dark_blue);
-}
 i {font-size:100px;
    color: var(--custom-blue);
     cursor: pointer;}

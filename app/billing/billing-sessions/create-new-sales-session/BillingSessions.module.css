@@ -1,0 +1,63 @@
+/* BillingSessions.module.css */
+.googleFormContainer {
+    background-color: #fff;
+    border-radius: 8px; /* Google-like rounded corners */
+    padding: 24px;
+    max-width: 500px; /* Common width for Google forms */
+    margin: auto; /* Center it if it's the main content */
+}
+
+.googleFormControl {
+    border-radius: 4px !important; /* Slightly rounded input */
+    border: 1px solid #dadce0 !important; /* Google's typical input border color */
+    padding: 10px 12px !important;
+    font-size: 1rem !important;
+}
+
+.googleFormControl:focus {
+    border-color: #1a73e8 !important; /* Google blue focus */
+    box-shadow: 0 0 0 1px #1a73e8 !important; /* Focus ring */
+}
+
+.googleButtonPrimary {
+    background-color: #1a73e8 !important; /* Google blue */
+    border-color: #1a73e8 !important;
+    color: white !important;
+    border-radius: 4px !important;
+    padding: 10px 24px !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+    text-transform: none !important; /* Google buttons aren't usually all caps */
+}
+
+.googleButtonPrimary:hover,
+.googleButtonPrimary:focus {
+    background-color: #185abc !important; /* Darker blue on hover/focus */
+    border-color: #185abc !important;
+}
+
+.googleButtonPrimary:disabled {
+    background-color: #f1f3f4 !important;
+    border-color: #f1f3f4 !important;
+    color: #bdc1c6 !important;
+}
+
+.googleInputGroupText {
+    background-color: #fff !important;
+    border: 1px solid #dadce0 !important;
+    border-left: none !important; /* If button is on the right */
+    border-radius: 0 4px 4px 0 !important;
+}
+
+.formTitle {
+    font-size: 1.5rem; /* 24px */
+    font-weight: 400;
+    color: #202124; /* Google's primary text color */
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.formHelperText {
+    font-size: 0.875rem;
+    color: #5f6368; /* Google's secondary text color */
+}

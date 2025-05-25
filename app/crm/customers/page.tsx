@@ -8,6 +8,8 @@ import PatientFiltered from '../../../components/accessories/SectorFileringCompo
 import CustomersActions from '../../../components/customer/CustomersActionDropDown';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { toast } from 'react-toastify';
+import { plsEncryption } from '../../../lib/encryption';
+import { RiResetLeftFill } from '@remixicon/react';
 
 interface Customer {
     patientid: string | number;
@@ -33,9 +35,10 @@ export default function Activator() {
     const handleBilling = (item) => {
         const { patientid } = item;
         if (patientid) {
-            router.push(`/billing/patientid?patientid=${patientid}&&isNewTransaction=1`);
+            const encryptedPatientId = plsEncryption(patientid.toString());
+            router.push(`/billing/patientid/${encryptedPatientId}`);
         } else {
-            alert('Patientid not included')
+            toast.error('Patientid not included')
         }
     };
 
@@ -67,7 +70,19 @@ export default function Activator() {
 
 
 
-
+    const resetFiltering = async () => {
+        try {
+            setLoading(true)
+            const data = await customFetch(`customers`)
+            if (data && Array.isArray(data)) {
+                setStore(data)
+            }
+        } catch (err) {
+            toast.error("Error loading new data");
+        } finally {
+            setLoading(false);
+        }
+    }
 
 
     const columns = [
@@ -154,20 +169,25 @@ export default function Activator() {
 
     return (
         <div className='p-2'>
-                <div className="col-md-8 col-sm-12 col-lg-4 my-2 d-lg-flex justify-content-end">
-                    <PatientFiltered isDisabled={false} getSelectedPatient={filteredPatient} />
+            <div className="col-md-8 col-sm-12 col-lg-5 my-2 d-lg-flex ">
+                <div className='col-8'>
+                <PatientFiltered isDisabled={false} getSelectedPatient={filteredPatient} />
                 </div>
-                <div >
-                    {Array.isArray(tempStore)
-                        && tempStore.length > 0
-                        && <PrimeTable
-						 column={columns}
-                            data={tempStore}
-                            handleSeverSideProcessing={handleSeverSideProcessing}
-                            serverSideFiltering={true}
-                        />}
-                </div>
+                    <div className='mx-3' style={{marginTop:'3px'}}>
+                        <button className='btn btn-outline-danger btn-sm' onClick={() =>  {resetFiltering()}}> <RiResetLeftFill/> Reset </button>
+                    </div>
             </div>
+            <div >
+                {Array.isArray(tempStore)
+                    && tempStore.length > 0
+                    && <PrimeTable
+                        column={columns}
+                        data={tempStore}
+                        handleSeverSideProcessing={handleSeverSideProcessing}
+                        serverSideFiltering={true}
+                    />}
+            </div>
+        </div>
     );
 }
 

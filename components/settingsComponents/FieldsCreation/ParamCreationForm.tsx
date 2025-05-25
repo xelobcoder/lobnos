@@ -41,7 +41,7 @@ export default function ParamCreationGForm({ field, setField, generalTestRule, f
 
     return (
         <div className={styles.formBuilder}>
-            <div className={styles.formSection}>
+            <div className={styles.formSectionStatic}>
                 <div className={styles.inputGroup}>
                     <label className={styles.inputLabel}>Field Name</label>
                     <input
@@ -54,25 +54,24 @@ export default function ParamCreationGForm({ field, setField, generalTestRule, f
 
                 <div className={styles.inputGroup}>
                     <label className={styles.inputLabel}>Input Type</label>
-                    <div className={styles.typeGrid}>
-                        {inputTypes.map((type) => {
-                            const IconComponent = type.Icon;
-                            return (
-                                <div
-                                    key={type.value}
-                                    className={`${styles.typeBox} ${field.plan === type.value ? styles.selected : ''}`}
-                                    onClick={() => handleTypeSelect(type.value)}
-                                >
-                                    <div className={styles.typeBoxContent}>
-                                        <IconComponent className={styles.icon} />
-                                        <span className={styles.typeBoxLabel}>{type.label}</span>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                    <Select
+                        options={inputTypes}
+                        styles={reactSelectCustomStyles}
+                        value={inputTypes.find(option => option.value === field.plan) || null}
+                        onChange={(selectedOption) => handleTypeSelect(selectedOption?.value || null)}
+                        className={styles.inputTypeSelect}
+                        placeholder="Select Input Type"
+                        isClearable
+                        formatOptionLabel={({ value, label, Icon }) => (
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <Icon style={{ marginRight: '8px' }} />
+                                {label}
+                            </div>
+                        )}
+                    />
                 </div>
-
+            </div>
+            <div className={styles.formSectionScrollable}>
                 <div className={styles.optionsGroup}>
                     <div className={styles.optionItem}>
                         <label className={styles.checkboxLabel}>

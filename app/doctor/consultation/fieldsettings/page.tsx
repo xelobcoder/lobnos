@@ -1,6 +1,7 @@
 "use client"
 import React, { useState } from "react";
 import { Container, Row, Col, Form, Button, ListGroup, Card } from "react-bootstrap";
+import { toast } from 'react-toastify';
 
 interface FormData {
      complaints: string;
@@ -38,7 +39,7 @@ const DynamicForm = () => {
 
      const handleSubmit = (e: React.FormEvent) => {
           e.preventDefault();
-          alert("Form Submitted Successfully!");
+          toast.success("Form Submitted Successfully!");
      };
 
      return (
