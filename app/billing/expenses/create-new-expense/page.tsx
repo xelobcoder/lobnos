@@ -15,7 +15,8 @@ interface ExpenseForm {
     date: string;
     merchant: string;
     amount: string;
-    category: string;
+    category_name: string; // Renamed from category
+    category_id: number; // New field for category ID
     mode: string;
     description: string;
     receipt: FileList | null;
@@ -29,8 +30,14 @@ interface PaymentMode {
 }
 
 interface Category {
-    category: string;
-    categoryid: number;
+    category: string; // This seems to be category name from the existing fetch
+    categoryid: number; // This seems to be category id from the existing fetch
+}
+
+// New interface for our mock/future API categories
+interface ExpenseCategory {
+    id: number;
+    name: string;
 }
 
 interface SelectOption {
@@ -42,8 +49,9 @@ const expenseSchema = z.object({
     date: z.string().min(1, "Date is required"),
     merchant: z.string().min(1, "Merchant name is required"),
     amount: z.string().min(1, "Amount is required"),
-    category: z.string().min(1, "Category is required"),
-    mode: z.string().min(1, "Payment mode is required"),  
+    category_name: z.string().min(1, "Category Name is required"), // Renamed from category
+    category_id: z.number().min(1, "Expense Category is required"), // New field for category ID
+    mode: z.string().min(1, "Payment mode is required"),
     description: z.string().min(1, "Description is required"),
     receipt: z.any().optional(),
     invoiceNumber: z.string().optional(),
@@ -55,7 +63,8 @@ const defautExpense: ExpenseForm = {
     date: '',
     merchant: '',
     amount: '',
-    category: '',
+    category_name: '', // Renamed from category
+    category_id: 0, // Default for the new ID
     mode: '',
     description: '',
     receipt: null,
@@ -72,8 +81,18 @@ export default function AddNewExpense() {
     });
     const [isLoading, setLoading] = useState<boolean>(false);
     const [paymentmode, setPaymentMode] = useState<PaymentMode[]>([]);
-    const [category, setCategoryList] = useState<Category[]>([]);
+    const [fetchedCategories, setFetchedCategories] = useState<Category[]>([]); // Renamed from category for clarity
     
+    // Mocked expense categories as per requirements
+    const mockCategories: ExpenseCategory[] = [
+      { id: 1, name: 'Travel' },
+      { id: 2, name: 'Meals & Entertainment' },
+      { id: 3, name: 'Software & Subscriptions' },
+      { id: 4, name: 'Office Supplies' },
+    ];
+    const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>(mockCategories);
+
+
     const { user,branchid } = useApplicationSettings().applicationsettings;
     const employeeid = user?.employeeid;
     const searchParams = useSearchParams();
@@ -101,19 +120,34 @@ export default function AddNewExpense() {
         }
     };
 
+    // This useEffect fetches what seems to be category names for a different purpose
+    // Let's keep it and store its data in fetchedCategories (renamed from category)
     useEffect(() => {
         setLoading(true);
         customFetch(`expense/get/category`)
             .then((data: Category[]) => {
                 if (Array.isArray(data)) {
-                    setCategoryList(data);
+                    setFetchedCategories(data); // Store in renamed state
                 }
             })
-            .catch((err: Error) => { })
+            .catch((err: Error) => { /* Handle error */ })
             .finally(() => {
                 setLoading(false);
             });
     }, []);
+
+    // useEffect for fetching actual expense categories (currently mocked)
+    // In a real scenario, this would fetch from an endpoint like `/api/expense-categories`
+    // For now, it just sets the mocked data.
+    useEffect(() => {
+        // Simulate API call
+        setLoading(true);
+        setTimeout(() => {
+            setExpenseCategories(mockCategories);
+            setLoading(false);
+        }, 500); // Simulate network delay
+    }, []);
+
 
     useEffect(() => {
         async function getPaymentModes() {
@@ -203,40 +237,56 @@ export default function AddNewExpense() {
                         </div>
 
                         <div className="col-md-12 ">
+                            {/* This seems to be the old category dropdown, let's rename its label and field */}
                             <div className="col-md-12">
-                                <label className="form-label pls-label">Category</label>
+                                <label className="form-label pls-label">Category Name (Legacy)</label>
                                 <Select
-                                    options={category.map(item => ({
-                                        value: String(item.categoryid || ''),
+                                    options={fetchedCategories.map(item => ({ // Use renamed fetchedCategories
+                                        value: String(item.categoryid || ''), // This might be the ID for the category_name
                                         label: item.category
                                     }))}
                                     styles={reactSelectCustomStyles}
-                                    placeholder="Select a category"
-                                    className={`react-select-container ${errors.category ? 'is-invalid' : ''}`}
+                                    placeholder="Select a category name"
+                                    className={`react-select-container ${errors.category_name ? 'is-invalid' : ''}`}
                                     classNamePrefix="react-select"
                                     isClearable
-                                    onChange={(option) => setValue('category', option?.value || '')}
+                                    onChange={(option) => setValue('category_name', option?.label || '')} // Store label as category_name
                                 />
-                                {errors.category && <div className="invalid-feedback">{errors.category.message}</div>}
+                                {errors.category_name && <div className="invalid-feedback">{errors.category_name.message}</div>}
                             </div>
-                          
-                            <div className="col-md-12">
-                                <label className="form-label pls-label">Payment Method</label>
-          
-                                <Select
-                                    options={paymentmode.map(item => ({
-                                        value: item.KeyID.toString(), 
-                                        label: item.PaymentMode
-                                    }))}
-                                    placeholder="Select payment method"
-                                    className={` ${errors.mode ? 'is-invalid' : ''}`}
-                                    classNamePrefix="react-select"
-                                    isClearable
-                                    styles={reactSelectCustomStyles}
-                                    onChange={(option) => setValue('mode', option?.value || '')}
-                                />
-                                {errors.mode && <div className="invalid-feedback">{errors.mode.message}</div>}
-                            </div>
+                        </div>
+
+                        <div className="col-md-12 ">
+                            <label className="form-label pls-label">Expense Category</label>
+                            <Select
+                                options={expenseCategories.map(item => ({
+                                    value: String(item.id),
+                                    label: item.name
+                                }))}
+                                styles={reactSelectCustomStyles}
+                                placeholder="Select an expense category"
+                                className={`react-select-container ${errors.category_id ? 'is-invalid' : ''}`}
+                                classNamePrefix="react-select"
+                                isClearable
+                                onChange={(option) => setValue('category_id', option ? parseInt(option.value) : 0)}
+                            />
+                            {errors.category_id && <div className="invalid-feedback">{errors.category_id.message}</div>}
+                        </div>
+                        
+                        <div className="col-md-12">
+                            <label className="form-label pls-label">Payment Method</label>
+                            <Select
+                                options={paymentmode.map(item => ({
+                                    value: item.KeyID.toString(),
+                                    label: item.PaymentMode
+                                }))}
+                                placeholder="Select payment method"
+                                className={`react-select-container ${errors.mode ? 'is-invalid' : ''}`}
+                                classNamePrefix="react-select"
+                                isClearable
+                                styles={reactSelectCustomStyles}
+                                onChange={(option) => setValue('mode', option?.value || '')}
+                            />
                             {errors.mode && <div className="invalid-feedback">{errors.mode.message}</div>}
                         </div>
 
