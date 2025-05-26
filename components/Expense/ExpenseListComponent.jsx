@@ -21,6 +21,9 @@ const ExpenseList = ({ expenses, setSelected, selected }) => {
 							</span>
 							<span className="text-secondary text-lead">{currencyFormatter.format(item.amount)}</span>
 						</div>
+						<div className="mt-1"> 
+							<span className="text-muted small">Category: {item?.expense_category_name || 'N/A'}</span>
+						</div>
 						<div className="mt-2 d-flex justify-content-between">
 							<div className="text-capitalize">
 								Requested By:

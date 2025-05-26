@@ -9,8 +9,10 @@ import {
 } from '../../../../lib/billingLib';
 import { redirect } from 'next/navigation';
 import { customFetch } from '../../../../components/Auth/customFetch';
-import BillingPageLayout from '../../../../components/Billing/BillingContextComponents/BillingPageLayout';
+// Remove BillingPageLayout import, add BillingPageContextProvider and BillingStepper
 import BillingPagePatientInformation from '../../../../components/Billing/BillingContextComponents/PersonalInfoView';
+import { BillingPageContextProvider } from '../../../../components/Billing/BillingContextComponents/BillingContext'; // Adjusted path
+import BillingStepper from '../../../../components/Billing/MultiStepBilling/BillingStepper'; // Adjusted path
 
 interface Params {
 	categorytrackid: number;
@@ -169,10 +171,12 @@ export default async function PatientBillingPageIndex({
 	}
 
 	return (
-		<div>
-			<BillingPagePatientInformation data={patientBasicInformation} />
-			<BillingPageLayout unencryptedid={patientid} patientid={patientIdDecrypted} initdata={billingdata} />
-		</div>
+		<BillingPageContextProvider initialBillingData={billingdata}>
+			<div> {/* Or a root fragment */}
+				<BillingPagePatientInformation data={patientBasicInformation} />
+				<BillingStepper />
+			</div>
+		</BillingPageContextProvider>
 	);
 }
 

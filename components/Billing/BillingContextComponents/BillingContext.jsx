@@ -1,7 +1,23 @@
 import { createContext, useState } from "react";
 import { Billingdefaultdata } from "../../../lib/billingLib";
 
-export const BillingContext = createContext(Billingdefaultdata);
+// Define Step Types
+export const BILLING_STEPS = {
+  ITEMS: 'items',       // Step for selecting billable items
+  REVIEW: 'review',     // Step for reviewing the pending bill
+  PAYMENT: 'payment',   // Step for processing payment
+};
+
+export const BillingContext = createContext({
+    ...Billingdefaultdata,
+    currentStep: BILLING_STEPS.ITEMS,
+    goToStep: (stepName) => {}, // Removed type annotation
+    goToNextStep: () => {},
+    goToPreviousStep: () => {},
+    recalculateTotalBill: (data) => {}, // Removed type annotation
+    updateBilling: (data) => {}, // Removed type annotation
+    BILLING_STEPS,
+});
 export const BillingProvider = BillingContext.Provider;
 
 function calculateTotalTestCost(cart) {
@@ -60,14 +76,41 @@ function applyNightAdjustment(cart, nightAdjustmentMode, nightAdjustmentValue) {
      });
 }
 
-export function BillingPageContextProvider({ children }) {
-     const [billingdata, setBillingdata] = useState(Billingdefaultdata);
+export function BillingPageContextProvider({ children, initialBillingData }) { // Added initialBillingData prop
+     const [billingdata, setBillingdata] = useState(initialBillingData || Billingdefaultdata); // Use initialBillingData or fallback
+     const [currentStep, setCurrentStep] = useState(BILLING_STEPS.ITEMS);
 
      const updateBilling = (value) => {
           setBillingdata(value);
      };
 
-     const recalculateTotalBill = (billingdata) => {
+     // Navigation Functions
+     const goToStep = (stepName) => {
+          if (Object.values(BILLING_STEPS).includes(stepName)) {
+               setCurrentStep(stepName);
+          } else {
+               console.warn("Attempted to navigate to invalid billing step:", stepName);
+          }
+     };
+
+     const goToNextStep = () => {
+          if (currentStep === BILLING_STEPS.ITEMS) {
+               setCurrentStep(BILLING_STEPS.REVIEW);
+          } else if (currentStep === BILLING_STEPS.REVIEW) {
+               setCurrentStep(BILLING_STEPS.PAYMENT);
+          }
+     };
+
+     const goToPreviousStep = () => {
+          if (currentStep === BILLING_STEPS.PAYMENT) {
+               setCurrentStep(BILLING_STEPS.REVIEW);
+          } else if (currentStep === BILLING_STEPS.REVIEW) {
+               setCurrentStep(BILLING_STEPS.ITEMS);
+          }
+     };
+
+     const recalculateTotalBill = (currentBillingDataInput) => { // Renamed to avoid conflict
+          const dataToRecalculate = currentBillingDataInput || billingdata; // Use passed data or current state
           const currentDate = new Date();
           const currentHour = currentDate.getHours();
 
@@ -80,59 +123,60 @@ export function BillingPageContextProvider({ children }) {
                nightStart,
                nightEnd,
                totalServiceDiscount,
-               hasNightAdjustment,
+               hasNightAdjustment, // This is the flag indicating if night adjustment *should* be considered
                totalCostOfServices = 0,
-          } = billingdata;
+          } = dataToRecalculate;
 
-          const { taxIncluded, taxValue } = appsettings;
+          const { taxIncluded, taxValue: taxValFromSettings } = appsettings; // Renamed taxValue to avoid conflict
           
-          const isWithinAdjustmentPeriod = nightStart > nightEnd 
-               ? (currentHour >= nightStart || currentHour < nightEnd) 
+          const isWithinAdjustmentPeriod = nightStart > nightEnd
+               ? (currentHour >= nightStart || currentHour < nightEnd)
                : (currentHour >= nightStart && currentHour < nightEnd);
-// for debugging purpose
-          // console.warn('Adjustment Period:', {
-          //      startTime: nightStart,
-          //      endTime: nightEnd,
-          //      currentHour,
-          //      isWithinPeriod: isWithinAdjustmentPeriod
-          // });
 
-          if (hasNightAdjustment && isWithinAdjustmentPeriod) {
-               billingdata.cart = applyNightAdjustment(cart, nightAdjustmentMode, nightAdjustmentValue);
-          } else {
-               billingdata.cart = billingdata.cart.map((item) => ({
+          let processedCart = cart.map(item => {
+            const originalVal = item.originalValue !== undefined ? item.originalValue : item.discountedValue;
+            let currentDiscountedValue = originalVal;
+
+            if (hasNightAdjustment && isWithinAdjustmentPeriod) {
+                if (nightAdjustmentMode === "absolute") {
+                    currentDiscountedValue = originalVal + nightAdjustmentValue;
+                } else if (nightAdjustmentMode === "percentage") {
+                    currentDiscountedValue = originalVal + (nightAdjustmentValue / 100) * originalVal;
+                }
+                return {
                     ...item,
-                    hasNightAdjustment: false,
-                    nightAdjustmentMode: 'none',
-                    nightAdjustmentValue: 0
-               }));
-          }
+                    originalValue: originalVal,
+                    discountedValue: currentDiscountedValue,
+                    // Retain nightAdjustmentMode and nightAdjustmentValue as set initially
+                };
+            } else {
+                return {
+                    ...item,
+                    originalValue: originalVal,
+                    discountedValue: originalVal, // Revert to original value
+                    // Retain nightAdjustmentMode and nightAdjustmentValue
+                };
+            }
+          });
 
-          const totalTest = cart.length > 0 ? calculateTotalTestCost(billingdata.cart) : 0;
-
+          const totalTest = processedCart.length > 0 ? calculateTotalTestCost(processedCart) : 0;
           const servicePlusTestCost = calculateServicePlusTestCost(totalTest, totalCostOfServices);
-
-          let amountIncurredDueTax = parseFloat(
-               calculateTax(servicePlusTestCost, taxIncluded, taxValue).toFixed(2)
+          const amountIncurredDueTax = parseFloat(
+               calculateTax(servicePlusTestCost, taxIncluded, taxValFromSettings).toFixed(2)
           );
-
-          let total = parseFloat((servicePlusTestCost + (servicePlusTestCost > 0 ? amountIncurredDueTax : 0)).toFixed(2));
-
-          const totalTestDiscount = parseFloat(calculateDiscount(billingdata.cart).toFixed(2))
-
-          const discount = parseFloat(totalServiceDiscount || 0) + parseFloat(totalTestDiscount || 0)
-
-          let parsedPaid = parseFloat(parsePaidAmount(paid).toFixed(2));
-
+          const total = parseFloat((servicePlusTestCost + (servicePlusTestCost > 0 ? amountIncurredDueTax : 0)).toFixed(2));
+          const totalTestDiscount = parseFloat(calculateDiscount(processedCart).toFixed(2));
+          const discount = parseFloat(totalServiceDiscount || 0) + parseFloat(totalTestDiscount || 0);
+          const parsedPaid = parseFloat(parsePaidAmount(paid).toFixed(2));
           const payable = parseFloat((total - discount).toFixed(2));
+          const outstanding = parseFloat((payable - parsedPaid).toFixed(2));
 
-          let outstanding = parseFloat((payable - parsedPaid).toFixed(2));
-
-          updateBilling({
-               ...billingdata,
+          setBillingdata({
+               ...dataToRecalculate,
+               cart: processedCart,
                payable,
                outstanding,
-               taxValue,
+               taxValue: taxValFromSettings, // Use the value from appsettings
                paid: parsedPaid,
                testcost: totalTest,
                totalTestDiscount,
@@ -142,9 +186,20 @@ export function BillingPageContextProvider({ children }) {
                taxIncluded: taxIncluded === 1,
           });
      };
+     
+     const contextValue = {
+          billingdata,
+          updateBilling,
+          recalculateTotalBill,
+          currentStep,
+          goToStep,
+          goToNextStep,
+          goToPreviousStep,
+          BILLING_STEPS,
+     };
 
      return (
-          <BillingProvider value={{ billingdata, updateBilling, recalculateTotalBill }}>
+          <BillingProvider value={contextValue}>
                {children}
           </BillingProvider>
      );
