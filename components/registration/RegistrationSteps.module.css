@@ -1,0 +1,55 @@
+.registration-container {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.steps-indicator {
+    padding: 2rem 0;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.step.active .step-number {
+    background: #0d6efd;
+    color: white;
+}
+
+.step-connector {
+    height: 2px;
+    width: 100px;
+    background: #e9ecef;
+    margin-top: 16px;
+}
+
+.step-title {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.step.active .step-title {
+    color: #0d6efd;
+}
+
+.step-content {
+    display: none;
+}
+
+.step-content.active {
+    display: block;
+}

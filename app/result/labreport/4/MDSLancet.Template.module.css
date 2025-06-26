@@ -1,0 +1,258 @@
+.page {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif !important;
+    font-size: 9pt;
+    color: #000;
+    background-color: white;
+    width: 210mm; /* A4 width */
+    min-height: 297mm; /* A4 height */
+    margin: 10px auto; /* For screen viewing */
+    padding: 15mm 12mm; /* Approximate padding from image */
+    box-sizing: border-box;
+    border: 1px solid #ccc; /* Optional border for screen */
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #555;
+}
+
+.logoSection {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    /* Assuming a placeholder or actual logo dimensions */
+    width: 40px; /* Adjust as needed */
+    height: auto;
+    margin-right: 8px;
+}
+
+.labNameLarge {
+    font-size: 16pt;
+    font-weight: bold;
+    color: #333; /* Dark grey */
+    letter-spacing: 1px;
+}
+
+.labSubName {
+    font-size: 7pt;
+    color: #444;
+    text-transform: uppercase;
+}
+
+.labContactHeader {
+    text-align: right;
+    font-size: 7.5pt;
+    line-height: 1.3;
+}
+
+.labContactHeader strong {
+    font-weight: bold;
+}
+
+.reportTitleBar {
+    background-color: #333A4C; /* Dark blue-grey from image */
+    color: white;
+    text-align: center;
+    padding: 5px 0;
+    font-size: 13pt;
+    font-weight: bold;
+    margin: 10px -12mm; /* Extend to page padding edges */
+    letter-spacing: 1px;
+}
+
+.patientInfoSection {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr; /* Left column wider */
+    gap: 0 20px; /* Column gap */
+    font-size: 8.5pt;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px dotted #888;
+}
+
+.infoBlock {
+    line-height: 1.5;
+}
+
+.infoPair {
+    display: flex;
+}
+
+.infoLabel {
+    min-width: 90px; /* Adjust as needed */
+    font-weight: normal;
+    color: #333;
+    flex-shrink: 0;
+}
+
+.infoValue {
+    font-weight: bold;
+    color: #000;
+}
+
+.guarantorBlock {
+    margin-top: 5px;
+}
+
+.sectionTitle {
+    font-weight: bold;
+    font-size: 9.5pt;
+    text-transform: uppercase;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    color: #333;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #ccc;
+}
+
+.resultsArea {
+    margin-bottom: 15px;
+    font-size: 9pt;
+}
+
+.resultsHeaderRow {
+    display: flex;
+    font-weight: bold;
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #555;
+}
+
+.resultsTestCol {
+    flex: 3;
+    padding-left: 5px;
+}
+
+.resultsResultCol {
+    flex: 1;
+    text-align: right;
+}
+
+.resultsUnitsCol {
+    flex: 0.7;
+    text-align: left;
+    padding-left: 10px;
+}
+
+.resultsRefCol {
+    flex: 1.2;
+    text-align: right;
+    padding-right: 5px;
+}
+
+.resultRow {
+    display: flex;
+    padding: 2px 0;
+    align-items: center;
+}
+
+.resultTestName {
+    flex: 3;
+    padding-left: 5px;
+}
+
+.resultValue {
+    flex: 1;
+    text-align: right;
+    font-weight: bold;
+}
+
+.resultFlag {
+    font-weight: bold;
+    margin-right: 3px; /* Space between flag and value */
+}
+
+.resultUnits {
+    flex: 0.7;
+    text-align: left;
+    padding-left: 10px;
+    font-size: 8.5pt;
+    color: #333;
+}
+
+.resultRef {
+    flex: 1.2;
+    text-align: right;
+    padding-right: 5px;
+    font-size: 8.5pt;
+    color: #333;
+}
+
+.subResultRow {
+    padding-left: 25px; /* Indent sub-results like 'Therapeutic' */
+    font-size: 8.5pt;
+}
+
+.noSampleInfo {
+    font-style: italic;
+    color: #555;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    font-size: 8.5pt;
+}
+
+.limitationSection {
+    margin-top: 20px;
+    font-size: 7.5pt;
+    line-height: 1.4;
+    color: #444;
+    padding-top: 10px;
+    border-top: 1px dotted #aaa;
+}
+
+.limitationTitle {
+    font-weight: bold;
+    font-size: 8pt;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.footer {
+    margin-top: 25px;
+    padding-top: 10px;
+    border-top: 1px solid #555;
+    font-size: 7pt;
+    color: #333;
+    text-align: center;
+}
+
+.endOfReportMark {
+    font-weight: bold;
+}
+
+.footerFinePrint {
+    font-size: 6pt;
+    color: #666;
+    text-align: right;
+    margin-top: 15px;
+}
+
+
+/* Print specific styles */
+@media print {
+    .page {
+        margin: 0 !important;
+        padding: 8mm 5mm !important; /* Minimal padding for print if needed, adjust as necessary */
+        border: none !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        min-height: initial !important;
+        page-break-after: auto;
+    }
+
+    .reportTitleBar {
+        margin: 10px 0; /* Adjust for no page padding */
+        -webkit-print-color-adjust: exact; /* Ensures background color prints in Chrome/Safari */
+        color-adjust: exact; /* Standard property for background color printing */
+    }
+
+    .header, .patientInfoSection, .resultsArea, .limitationSection, .footer {
+        page-break-inside: avoid;
+    }
+}

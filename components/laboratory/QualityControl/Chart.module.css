@@ -1,0 +1,49 @@
+/* src/styles/Chart.module.css */
+.chartWrapper {
+    /* Similar to a ShadCN card */
+    background-color: hsl(0, 0%, 100%); /* card */
+    border: 1px solid hsl(214.3, 31.8%, 91.4%); /* border */
+    border-radius: 0.75rem; /* rounded-lg */
+    padding: 1.5rem; /* p-6, adjust as needed */
+    margin-bottom: 1.5rem; /* mb-6 */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); /* shadow-md */
+    overflow: hidden; /* Ensures child elements respect border-radius */
+  }
+  
+  .chartWrapper h5 {
+    /* Style for the chart title within the wrapper */
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600; /* font-semibold */
+    color: hsl(222.2, 84%, 4.9%); /* foreground */
+    margin-bottom: 1rem;
+  }
+  
+  /* Custom Tooltip Styling (Example) */
+  .customTooltip {
+    background-color: hsla(0, 0%, 100%, 0.9); /* card with slight transparency */
+    border: 1px solid hsl(214.3, 31.8%, 91.4%); /* border */
+    border-radius: 0.5rem; /* rounded-md */
+    padding: 0.75rem 1rem; /* p-3 p-4 */
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1); /* shadow-lg */
+    font-size: 0.875rem; /* text-sm */
+    color: hsl(222.2, 84%, 4.9%); /* foreground */
+  }
+  
+  .tooltipLabel {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: hsl(222.2, 84%, 4.9%); /* foreground */
+  }
+  
+  .tooltipItem {
+    margin-bottom: 0.25rem;
+  }
+  
+  .tooltipItemName {
+    color: hsl(215, 20.2%, 65.1%); /* muted-foreground */
+  }
+  
+  .tooltipItemValue {
+    font-weight: 500;
+    margin-left: 0.5rem;
+  }

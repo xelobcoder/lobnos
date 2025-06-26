@@ -1,0 +1,266 @@
+.page {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif !important;
+    font-size: 16px; /* 9pt */
+    color: black;
+    background-color: white;
+    width: 800px;
+    min-height: 1123px; /* 297mm */
+    margin: 10px auto;
+   padding: 20px;
+    box-sizing: border-box;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+}
+
+.mainContent {
+    flex-grow: 1;
+}
+
+.pageFooterElements {
+    margin-top: auto;
+    padding-top: 15px;
+}
+
+.header {
+    display: grid;
+    grid-template-columns: 20% auto;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    
+}
+
+.logoSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-right: 20px;
+}
+
+.logo {
+    width: 60px;
+    height: auto;
+    margin-bottom: 3px;
+}
+
+.logoMotto {
+    font-size: 9px; /* 7pt */
+    font-style: italic;
+    color: #555;
+}
+
+.labInfo {
+    flex-grow: 1;
+}
+
+.labName {
+    font-size: 25px;
+    font-weight: bold;
+    color: black;
+    border-bottom: 2px solid black;
+    margin-bottom: 3px;
+}
+
+.labContact {
+    font-size: 13px; /* 8pt */
+    line-height: 1.4;
+    color: black;
+}
+
+.sectionTitle {
+    font-weight: bold;
+    font-size: 13px; /* 9.5pt */
+    text-align: center;
+    text-transform: uppercase;
+    margin-top: 10px;
+    margin-bottom: 8px;
+    padding: 3px 0;
+    border-top: 1px solid #C0C0C0;
+    border-bottom: 1px solid #C0C0C0;
+}
+
+.personalInfo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 20px;
+    font-size: 12px; /* 8.5pt */
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+.infoPair {
+    display: flex;
+}
+
+.infoLabel {
+    font-weight: bold;
+    color: black;
+    font-size: 15px;
+    margin-right: 10px;
+    min-width: 70px;
+}
+
+.infoValue {
+    font-weight: bold;
+    color: #000;
+    font-size: 15px;
+    text-transform: uppercase;
+}
+
+.resultsTableContainer {
+    margin-bottom: 20px;
+}
+
+.resultsTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px; /* 9pt */
+    table-layout: fixed;
+}
+
+.resultsTh {
+    background-color: #fff7d1;
+    color: #174a7c;
+    padding: 6px 8px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: bold;
+    border-bottom: 1px solid #D4A06A;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.resultsTd {
+    padding: 3px 6px;
+    font-size: 12px;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.resultsTdParameter {
+    font-weight: 600;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.resultsTdValue {
+    text-align: right;
+}
+
+.resultsTdUnits {
+    text-align: left;
+}
+
+.resultsTdReferences {
+    text-align: center;
+}
+
+.resultsTdFlags {
+    text-align: center;
+    font-weight: bold;
+}
+
+.flagH {
+    color: #C00000;
+}
+.flagL {
+    color: #0070C0;
+}
+
+.commentsSection {
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+.commentsTitle {
+    font-weight: bold;
+    font-size: 12px; /* 9pt */
+    margin-bottom: 5px;
+}
+
+.commentsContent {
+    min-height: 40px;
+    border-bottom: 1px dotted #888;
+    padding-bottom: 5px;
+    font-style: italic;
+    color: black;
+}
+
+.validationSection {
+    margin-top: 20px;
+    font-size: 12px; /* 9pt */
+}
+
+.validatedBy {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.signatureLine {
+    margin-top: 3px;
+    margin-bottom: 15px;
+    letter-spacing: 1px; /* 1px is already a pixel unit */
+}
+
+.limitationInfoSection {
+    font-size: 10px; /* 7.5pt */
+    color: black;
+    line-height: 1.3;
+    margin-top: 15px;
+}
+
+.limitationInfoTitle {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.barcodeSection {
+    margin-top: 15px;
+    text-align: right;
+}
+
+.barcodeImg {
+    height: 30px;
+    width: auto;
+}
+
+.footerFinePrint {
+    font-size: 9px; 
+    color: blue;
+    font-family: 'Courier New', Courier, monospace;
+    font-style: italic;
+    text-align: center;
+    margin-top: 10px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 5px;
+}
+
+@media print {
+    .page {
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100vw !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    .resultsTable {
+        font-size: 15px !important;
+    }
+    .resultsTh, .resultsTd {
+        font-size: 15px !important;
+        padding: 4px 6px !important;
+    }
+  
+}

@@ -1,0 +1,160 @@
+.container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.headerIcon {
+    font-size: 20px;
+    margin-right: 8px;
+    color: #e91e63; /* Pink accent */
+}
+
+.count {
+    background: #f0f0f0;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 12px;
+    color: #777;
+}
+
+.birthdayList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Smaller cards */
+    gap: 16px;
+}
+
+.birthdayCard {
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.birthdayCard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.cardHeader h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1rem;
+}
+
+.age {
+    background: #e91e63; /* Pink accent */
+    color: white;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+}
+
+.birthdayInfo {
+    margin: 12px 0;
+    padding: 10px 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+}
+
+.today {
+    background: #e91e63; /* Pink accent */
+    color: white;
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-left: 6px;
+    font-size: 0.8rem;
+}
+
+.daysUntil {
+    color: #777;
+    margin-left: 6px;
+    font-size: 0.8rem;
+}
+
+.contactInfo p {
+    display: flex;
+    align-items: center;
+    margin: 6px 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.icon {
+    margin-right: 6px;
+    color: #888;
+}
+
+.loading {
+    text-align: center;
+    padding: 30px;
+    color: #777;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.loadingIcon {
+    animation: spin 1s linear infinite;
+    font-size: 20px;
+}
+
+.error {
+    color: #d32f2f;
+    text-align: center;
+    padding: 30px;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(211, 47, 47, 0.1);
+}
+
+.noBirthdays {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 30px;
+    color: #777;
+    background: #f9f9f9;
+    border-radius: 10px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.nextButton {
+    background-color: #e91e63; /* Pink accent */
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+}
+
+.nextButton:hover {
+    background-color: #c2185b;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

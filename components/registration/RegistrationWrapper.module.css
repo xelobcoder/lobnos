@@ -1,0 +1,68 @@
+.stepsIndicator {
+    padding: 1rem 0;
+}
+
+.stepConnector {
+    height: 2px;
+    width: 60px;
+    background: #e9ecef;
+    margin-top: 16px;
+}
+
+.stepNumber {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.stepTitle {
+    font-size: 0.75rem;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+.step.active .stepTitle {
+    color: #0d6efd;
+}
+
+.registrationContent {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.navButton {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    .clickable {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .clickable:hover {
+        transform: scale(1.05);
+    }
+}
+
+.navButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.navButton:not(:disabled):hover {
+    background-color: #e9ecef;
+    transform: scale(1.05);
+}

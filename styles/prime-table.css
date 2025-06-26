@@ -1,0 +1,74 @@
+.prime-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    /* Add horizontal scrolling */
+    min-width: fit-content;
+    overflow-x: auto;
+    display: block;
+}
+
+.prime-table thead,
+.prime-table tbody {
+    /* Ensure table maintains proper layout */
+    display: table;
+    width: 100%;
+}
+
+.prime-table thead th {
+    background-color: #f8f9fa;
+    padding: 12px 15px;
+    font-weight: 600;
+    color: #344767;
+    border-bottom: 1px solid #e9ecef;
+    white-space: nowrap;
+}
+
+.prime-table tbody td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e9ecef;
+    color: #495057;
+    transition: background-color 0.2s;
+}
+
+.prime-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.prime-table .sorted-asc,
+.prime-table .sorted-desc {
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+.prime-table input.custom-input {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 6px 12px;
+    width: 100%;
+    font-size: 0.875rem;
+}
+
+.prime-table .table-pagination {
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.prime-table .table-pagination button {
+    padding: 4px 8px;
+    margin: 0 2px;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.prime-table .table-pagination button.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+

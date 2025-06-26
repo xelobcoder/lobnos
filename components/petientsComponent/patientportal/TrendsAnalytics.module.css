@@ -1,0 +1,11 @@
+.chartContainer {
+    overflow-x: auto;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+}
+
+@media (max-width: 768px) {
+    .chartContainer {
+        min-width: 500px;
+    }
+}

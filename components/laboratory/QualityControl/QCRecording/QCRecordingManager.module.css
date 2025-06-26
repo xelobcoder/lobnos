@@ -1,0 +1,53 @@
+.readingCard {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.parameterInput {
+    position: relative;
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.targetValue {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.statusNormal {
+    border-left: 4px solid #10b981;
+}
+
+.statusWarning {
+    border-left: 4px solid #f59e0b;
+}
+
+.statusCritical {
+    border-left: 4px solid #ef4444;
+}
+
+.recentRecords {
+    height: 100%;
+    min-height: 300px;
+}
+
+.deviceInfo {
+    padding: 0.75rem;
+    background: #f8fafc;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.deviceName {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.controlInfo {
+    color: #6b7280;
+    font-size: 0.875rem;
+}

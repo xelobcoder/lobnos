@@ -1,0 +1,284 @@
+.formBuilder {
+
+}
+
+@media (min-width: 768px) {
+    .formBuilder {
+        padding: 24px;
+    }
+}
+
+.typeGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.typeBox {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.typeBoxContent {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.typeBoxLabel {
+    font-size: 14px;
+    color: #374151;
+}
+
+.typeBox.selected {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+@media (min-width: 640px) {
+    .typeGrid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+
+@media (min-width: 768px) {
+    .typeGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .typeBoxContent {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .icon {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+.optionsGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px;
+    background: white;
+    height: max-content;
+    border-radius: 8px;
+    width: 100%;
+    border: 1px solid #e5e7eb;
+}
+
+@media (min-width: 768px) {
+    .optionsGroup {
+        gap: 16px;
+        padding: 20px;
+    }
+}
+
+.formInput, .formSelect {
+    width: 100%;
+    min-height: 36px;
+}
+
+@media (min-width: 768px) {
+    .formInput, .formSelect {
+        min-height: 40px;
+    }
+}
+
+.formSectionStatic {
+    position: sticky;
+    top: 0;
+    background-color: #ffffff; /* Add a background color to prevent content underneath from showing */
+    z-index: 1; /* Ensure it stays on top */
+    padding-bottom: 20px; /* Add some padding at the bottom */
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.formSectionScrollable {
+    /* Styles for the scrollable section */
+    max-height: 400px; /* Adjust height as needed */
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-right: 8px; /* Add some padding for the scrollbar */
+}
+
+.formSection {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.inputLabel {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d2939;
+    margin-bottom: 4px;
+}
+
+.formInput {
+    height: 40px;
+    padding: 10px 14px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.formInput:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
+}
+
+.inputHint {
+    font-size: 12px;
+    color: #667085;
+}
+
+.typeSelector {
+    position: relative;
+}
+
+.formSelect {
+    width: 100%;
+    height: 40px;
+    padding: 8px 12px;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    background-color: white;
+    font-size: 14px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23667085' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+}
+
+.optionsGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 6px;
+}
+
+.optionItem {
+    display: flex;
+    align-items: center;
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #344054;
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+.checkbox {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #d0d5dd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.categorySelect {
+    width: 100%;
+}
+
+.categorySelect :global(.select__control) {
+    min-height: 40px;
+    border-color: #d0d5dd;
+}
+
+.categorySelect :global(.select__control--is-focused) {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.typeGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.typeBox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fff;
+}
+
+.typeBox:hover {
+    border-color: #2563eb;
+    background: #f8fafc;
+}
+
+.typeBox.selected {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.typeBox span {
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.typeBox svg {
+    color: inherit;
+}
+
+.icon {
+    width: 24px;
+    height: 24px;
+}
+
+.error {
+    border-color: #dc2626;
+}
+
+.errorMessage {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 4px;
+}

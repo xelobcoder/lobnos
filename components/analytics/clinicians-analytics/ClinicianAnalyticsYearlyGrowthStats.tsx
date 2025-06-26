@@ -1,0 +1,13 @@
+import React from 'react';
+
+const ClinicianAnalyticsYearlyGrowthStats = ({ clinicianId }) => {
+    return (
+        <div>
+            <h1>ClinicianAnalyticsYearlyGrowthStats</h1>
+            <p>Clinician ID: {clinicianId}</p>
+            {/* Add your component logic here */}
+        </div>
+    );
+};
+
+export default ClinicianAnalyticsYearlyGrowthStats;

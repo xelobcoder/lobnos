@@ -1,0 +1,165 @@
+.container {
+  padding: 0px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  background-color: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  font-weight: 600;
+}
+
+.newBranchButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidePanel {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  height: 100%;
+  position: relative;
+}
+
+.sidePanel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background-color: #dee2e6;
+}
+
+.sidePanelHeader {
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.sidePanelTitle {
+  margin: 0;
+  font-weight: 600;
+}
+
+.mainPanel {
+  background: white;
+  border-radius: 1rem;
+  height: 100%;
+}
+
+.tableHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.tableTitle {
+  margin: 0;
+  font-weight: 600;
+}
+
+.branchCount {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge {
+  background-color: #0d6efd;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.countText {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.tableContainer {
+  min-height: 400px;
+}
+
+.branchIcon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(13, 110, 253, 0.1);
+  border-radius: 50%;
+  padding: 0.75rem;
+  margin-right: 1rem;
+}
+
+.dateContainer {
+  display: flex;
+  align-items: center;
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.statusIndicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.statusIndicator.active {
+  background-color: #198754;
+}
+
+.statusIndicator.inactive {
+  background-color: #dc3545;
+}
+
+.actionsContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+}
+
+.loadingState {
+  padding: 3rem;
+  text-align: center;
+}
+
+.loadingText {
+  color: #6c757d;
+  margin-top: 1rem;
+}
+
+.emptyState {
+  padding: 3rem;
+  text-align: center;
+}
+
+.emptyIcon {
+  color: #6c757d;
+  margin-bottom: 1rem;
+}
+
+.emptyText {
+  color: #6c757d;
+}
+

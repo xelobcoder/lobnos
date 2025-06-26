@@ -1,0 +1,12 @@
+{
+	"editor.tabSize": 5,
+	"files.autoSave": "afterDelay",
+	"workbench.colorTheme": "Default Dark Modern",
+	"workbench.editor.pinnedTabSizing": "shrink",
+	"editor.fontSize": 13,
+	"editor.fontFamily": "JetBrains Mono, monospace",
+	"editor.lineHeight": 22,
+	"workbench.sideBar.location": "left",
+	"terminal.integrated.splitCwd": "workspaceRoot",
+	"terminal.integrated.shellIntegration.enabled": true
+}

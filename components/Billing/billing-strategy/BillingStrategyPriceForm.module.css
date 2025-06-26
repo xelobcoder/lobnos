@@ -1,0 +1,33 @@
+.form-container, .panels-container {
+  border: 1px solid #dee2e6;
+  padding: 1.5rem;
+  border-radius: 6px;
+  background-color: #fff;
+}
+.panels-header {
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+.panel-item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #dee2e6;
+  transition: background-color 0.2s ease;
+}
+.panel-item:hover {
+  background-color: #f8f9fa;
+}
+.panel-item:last-child {
+  border-bottom: none;
+}
+.submit-button, .add-to-cart-button {
+  transition: all 0.3s ease;
+}
+.submit-button:hover, .add-to-cart-button:hover {
+  transform: translateY(-1px);
+}
+.panels-footer {
+  border-top: 1px solid #dee2e6;
+  padding-top: 0.75rem;
+  margin-top: 1rem;
+}

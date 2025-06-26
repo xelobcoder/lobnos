@@ -1,0 +1,485 @@
+'use client';
+
+import MultiRenderingBillingSourceFields from "./RenderingBillingSourceFields";
+import MultiPACKAGESELECT from './MultiPACKAGESELECT';
+import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
+import { Card, Form, Button, Spinner } from "react-bootstrap";
+import { useContext, useState, useEffect } from "react";
+import { currencyFormatter, customFetch, customPost } from "../../Auth/customFetch";
+import { defaultMultiBillingData } from "../../../lib/Multi/MultiTypes";
+import { MultiBillingProvider, MultiBillingContext } from "./MultiBillingContext";
+import MultiSummary from "./MultiSummary";
+import { useRouter, useParams } from "next/navigation";
+import { useApplication } from "../../Auth/useApplicationContext";
+import { toast } from "react-toastify";
+import MultiBillingHeader from './MultiBillingHeader';
+
+
+
+export default function MultiBillingLayout({ billingContextProps }: {
+    billingContextProps: {
+        categorytrackid: number,
+        entitytype?: string,
+        entityname?: string,
+        entityid?: string,
+        patientid: number;
+        specialcode?: string,
+    }
+}) {
+    return (
+        <MultiBillingProvider>
+            <MultiBillingLayoutContent billingContextProps={billingContextProps} />
+        </MultiBillingProvider>
+    );
+}
+
+function MultiBillingLayoutContent({ billingContextProps }: {
+    billingContextProps: {
+        categorytrackid: number,
+        entitytype?: string,
+        entityname?: string,
+        patientid: number,
+        entityid?: string,
+        specialcode?: string,
+    }
+}) {
+    const { categorytrackid, entitytype, entityname, entityid, patientid } = billingContextProps;
+    const branchid = useApplication().branchid;
+    const employeeid = useApplication().user?.employeeid || 0;
+    const role = useApplication().user?.role 
+    const context = useContext(MultiBillingContext);
+    if (!context) throw new Error("MultiBillingContext not found");
+    const { billingdata, setBillingData } = context;
+    const router = useRouter();
+    const patientId = useParams()?.patientid;
+
+
+    // Helper to parse entityname from URL and replace + with space
+    const getEntityNameFromUrl = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const rawName = urlParams.get('entityname') || '';
+        return rawName.replace(/\+/g, ' ');
+    };
+
+
+
+
+    const [useSpecialCode, setUseSpecialCode] = useState(false);
+    const [specialCode, setSpecialCode] = useState(billingContextProps.specialcode || "");
+    const [specialCodeError, setSpecialCodeError] = useState("");
+    const [loadingSpecialCode, setLoadingSpecialCode] = useState(false);
+    const [loadingPanels, setLoadingPanels] = useState(false);
+
+
+    // Backend-driven billing: load all info from backend
+    const [loadingBackendBilling, setLoadingBackendBilling] = useState(false);
+    const [backendError, setBackendError] = useState<string | null>(null);
+
+    // Add state for usePackage checkbox
+    const [usePackage, setUsePackage] = useState(false);
+    // Add state for useServices checkbox
+    const [useServices, setUseServices] = useState(false);
+    // Add state to control summary visibility
+    const [showSummary, setShowSummary] = useState(false);
+    // Add state to hold summary data from backend
+    const [summaryData, setSummaryData] = useState(null);
+
+    const handleSpecialCodeChange = (e) => {
+        const value = e.target.value;
+        setSpecialCode(value);
+        if (value.length > 0 && value.length <= 3) {
+            setSpecialCodeError("Special code must be more than 3 characters.");
+        } else {
+            setSpecialCodeError("");
+        }
+    };
+
+    const updateEntityInUrl = (
+        entitytype: string,
+        entityname: string,
+        entityid: string | number,
+        specialcode?: string
+    ) => {
+        const path = window.location.pathname;
+        const parts = path.split('/');
+
+        if (isNaN(Number(parts[parts.length - 1]))) {
+            return;
+        }
+
+        const entityTypeToBillingSource: Record<string, number> = {
+            organization: 2,
+            insurance: 4,
+            clinician: 6,
+        };
+
+        const billingSource = entityTypeToBillingSource[entitytype.toLowerCase()] || 0;
+
+        parts[parts.length - 1] = String(billingSource);
+
+        const queryParams: Record<string, string> = {
+            entitytype,
+            entityname: entityname.replace(/\s+/g, '+'),
+            entityid: String(entityid),
+        };
+        if (specialcode && specialcode.length > 0) {
+            queryParams['specialcode'] = specialcode;
+        }
+        const search = new URLSearchParams(queryParams).toString();
+        router.replace(`${parts.join('/')}?${search}`);
+    };
+
+
+
+
+
+    const handleSelectedEntityClinician = (entity) => {
+        if (!entity) return;
+        const { id, name } = entity;
+        setBillingData((prev) => ({
+            ...prev,
+            entityId: id,
+            entitytype: "clinician",
+            entityname: name || "",
+            billingSource: 6,
+        }));
+        updateEntityInUrl("clinician", name || "", id, specialCode);
+
+    };
+
+    const handleSelectedEntityInsurance = (entity) => {
+        if (!entity) return;
+        const { id, insuranceName } = entity;
+        setBillingData((prev) => ({
+            ...prev,
+            entityId: id,
+            entitytype: "insurance",
+            entityname: insuranceName || "",
+            billingSource: 4,
+        }));
+        updateEntityInUrl("insurance", insuranceName || "", id, specialCode);
+
+    };
+
+    const handleOrganizationSelection = (entity) => {
+        const { id, name } = entity;
+        setBillingData((prev) => ({
+            ...prev,
+            entityId: id,
+            entitytype: "organization",
+            entityname: name || "",
+            billingSource: 2,
+        }));
+        updateEntityInUrl("organization", name || "", id, specialCode);
+    };
+
+
+    const handleReset = () => {
+        setBillingData(prev => ({
+            ...defaultMultiBillingData,
+            billingSource: prev.billingSource,
+            branchid: prev.branchid,
+            patientid: prev.patientid,
+            entitytype: prev.entitytype,
+            entityId: prev.entityId,
+            entityname: prev.entityname,
+            includeServices: false,
+            servicesList: [],
+            isPackageUsed: false,
+            packageid: 0,
+            specialcode: '',
+        }));
+        setUsePackage(false);
+        setUseServices(false);
+        setShowSummary(false);
+        setSpecialCode('');
+        setSpecialCodeError('');
+        router.replace(window.location.pathname);
+    };
+
+
+    const handleUrgencyChange = (selectedOption) => {
+        setBillingData(prev => ({
+            ...prev,
+            status: selectedOption.value,
+        }));
+    }
+
+
+    const handleReturnToMulti = () => {
+        if (patientId) {
+            router.replace(`/billing/patientid/${patientId}/multi/`);
+        }
+    };
+
+
+
+
+
+    // Backend-driven billing: load all info from backend
+    const loadBackendBilling = async () => {
+        // If special code is being used, clear entitytype and entityId in the request
+        const includeServices = useServices;
+        const servicesList = billingdata.servicesList || [];
+        let url;
+        const billingIdParam = billingdata.billingid ? `&billingid=${billingdata.billingid}` : '';
+        if (useSpecialCode && specialCode && !specialCodeError) {
+            url = `billing/multi/init?tenantId=3` +
+                `&entityType=` +
+                `&isPackageUsed=${billingdata.isPackageUsed}` +
+                `&useServices=${includeServices}` +
+                `&includeServices=${includeServices}` +
+                `&packageid=${billingdata.packageid || ''}` +
+                `&branchid=${billingdata.branchid || ''}` +
+                `&patientId=${billingdata.patientid || patientid || ''}` +
+                `&entityId=` +
+                `&billingSource=${billingdata.billingSource || categorytrackid}` +
+                `&referalCode=${specialCode}` +
+                billingIdParam;
+        } else if (billingdata.entitytype && billingdata.entityId && Number(billingdata.billingSource || categorytrackid) > 1) {
+            url = `billing/multi/init?tenantId=3` +
+                `&entityType=${billingdata.entitytype}` +
+                `&isPackageUsed=${billingdata.isPackageUsed}` +
+                `&useServices=${includeServices}` +
+                `&includeServices=${includeServices}` +
+                `&packageid=${billingdata.packageid || ''}` +
+                `&branchid=${billingdata.branchid || ''}` +
+                `&patientId=${billingdata.patientid || patientid || ''}` +
+                `&entityId=${billingdata.entityId}` +
+                `&billingSource=${billingdata.billingSource || categorytrackid}` +
+                billingIdParam;
+        } else {
+            url = `billing/multi/init?tenantId=3` +
+                `&entityType=general` +
+                `&isPackageUsed=${billingdata.isPackageUsed}` +
+                `&useServices=${includeServices}` +
+                `&includeServices=${includeServices}` +
+                `&packageid=${billingdata.packageid || ''}` +
+                `&branchid=${billingdata.branchid || ''}` +
+                `&patientId=${billingdata.patientid}` +
+                `&billingSource=1` +
+                billingIdParam;
+        }
+        setLoadingBackendBilling(true);
+        setBackendError(null);
+        try {
+            const backendData = await customFetch(url);
+            if (typeof backendData == "string") {
+                toast.error(backendData);
+            }
+
+            if (typeof backendData == "object" && !backendData.hasOwnProperty('testList')) {
+                toast.error(backendData.message || "Failed to load billing data from backend.");
+                return;
+            }
+            setBillingData(prev => {
+                // If backend entitytype is different from current, update URL and billingSource
+                let updated = {
+                    ...prev,
+                    ...backendData,
+                    entityId: backendData.entityId ?? prev.entityId,
+                    entitytype: backendData.entityType ?? prev.entitytype,
+                    patientid: backendData.patientId ?? prev.patientid,
+                    billingSource: backendData.billingSource ?? prev.billingSource,
+                    includeServices: backendData.includeServices ?? includeServices,
+                    servicesList: includeServices ? backendData.servicesList || servicesList : [],
+                    payments: prev.payments || [],
+                    cart: backendData.isPackageUsed ? backendData.testList: []
+                };
+                if (
+                    backendData.entityType &&
+                    backendData.entityType !== prev.entitytype
+                ) {
+                    // Update URL to reflect new entitytype and billingSource
+                    const entityTypeToBillingSource = {
+                        organization: 2,
+                        insurance: 4,
+                        clinician: 6,
+                        general: 1
+                    };
+                    const newSource = entityTypeToBillingSource[backendData.entityType.toLowerCase()] || 1;
+                    const path = window.location.pathname.split('/');
+                    if (!isNaN(Number(path[path.length - 1]))) {
+                        path[path.length - 1] = String(newSource);
+                        const queryParams = new URLSearchParams(window.location.search);
+                        queryParams.set('entitytype', backendData.entityType);
+                        if (backendData.entityname) queryParams.set('entityname', backendData.entityname);
+                        if (backendData.entityId) queryParams.set('entityid', backendData.entityId);
+                        window.history.replaceState({}, '', `${path.join('/')}?${queryParams.toString()}`);
+                    }
+                    updated.billingSource = newSource;
+                    updated.entitytype = backendData.entityType;
+                }
+                return updated;
+            });
+        } catch (err) {
+            setBackendError('Failed to load billing data from backend.');
+        } finally {
+            setLoadingBackendBilling(false);
+        }
+    };
+
+    const handlePackageActivation = (checked) => {
+        setBillingData(prev => ({
+            ...prev,
+            isPackageUsed: checked,
+            packageid: 0,
+        }));
+    }
+
+    // Checkout handler: send billing data to backend
+    const handleCheckout = async () => {
+        try {
+            const checkoutPayload = {
+                patientId: billingdata.patientid,
+                billingid: billingdata.billingid,
+                cart: billingdata.cart,
+                servicesList: billingdata.servicesProvided,
+                paymentDetails: null, // always null, since not in billingdata
+                branchid: billingdata.branchid,
+                billingSource: billingdata.billingSource,
+                referalCode: specialCode || '', // use specialCode from state
+                promoCode: billingdata.promoCode || '',
+                isPromo: billingdata.isPromo || false,
+                isPackageUsed: billingdata.isPackageUsed,
+                packageid: billingdata.packageid,
+            };
+            const response = await customPost('billing/multi/checkout', 'POST', checkoutPayload);
+            if (response && response.success && response.data) {
+                setBillingData(prev => ({ ...prev, ...response.data ,cart: response.data.isPackageUsed?
+                    response.data.packageTestList : response.data.cart || [] ,
+                    payments: [],
+                    paid: 0,
+                    balance: response.data.amountPayable || 0,
+                    servicesProvided: response.data.servicesList || checkoutPayload.servicesList || [],
+                }));
+                setShowSummary(true);
+            } else {
+                toast.error(response?.message || "Checkout failed. Please try again.");
+            }
+        } catch (error) {
+            console.error("Checkout error:", error);
+            toast.error("Failed to complete checkout. Please try again.");
+        }
+    };
+
+    // On mount, set entitytype and billingSource if present
+    useEffect(() => {
+        setBillingData(prev => ({
+            ...prev,
+            entitytype: entitytype as any,
+            billingSource: categorytrackid,
+            patientid: patientid || prev.patientid,
+            branchid: branchid,
+            employeeid: employeeid,
+            showdetails: role === 'admin' || role === 'superadmin' || role =="manager" ,
+        }));
+    }, []);
+
+    // Helper: should Load Data be enabled?
+    const canLoadData = (() => {
+        if (billingdata.isPackageUsed && !billingdata.packageid) return false;
+        if (useSpecialCode && specialCode && !specialCodeError) return true;
+        const resolvedBillingSource = Number(billingdata.billingSource || categorytrackid);
+        if (resolvedBillingSource > 1) {
+            return !!(billingdata.entitytype && billingdata.entityId);
+        }
+        return true;
+    })();
+
+    if (loadingBackendBilling) {
+        return (
+            <div className="d-flex align-items-center justify-content-center" style={{ minHeight: 200 }}>
+                <Spinner animation="border" variant="primary" />
+                <span className="ms-2">Loading billing data...</span>
+            </div>
+        );
+    }
+    if (backendError) {
+        return <div className="alert alert-danger">{backendError}</div>;
+    }
+
+    return (
+        <div className="card mt-2">
+            <MultiBillingHeader
+                billingdata={billingdata}
+                setBillingData={setBillingData}
+                useServices={useServices}
+                useSpecialCode={useSpecialCode}
+                specialCode={specialCode}
+                specialCodeError={specialCodeError}
+                loadingSpecialCode={loadingSpecialCode}
+                loadingBackendBilling={loadingBackendBilling}
+                canLoadData={canLoadData}
+                onPackageActivation={handlePackageActivation}
+                onUseServicesChange={checked => {
+                    setUseServices(checked);
+                    setBillingData(prev => ({ ...prev, includeServices: checked }));
+                }}
+                onUseSpecialCodeChange={setUseSpecialCode}
+                onSpecialCodeChange={handleSpecialCodeChange}
+                onLoadBackendBilling={loadBackendBilling}
+                onReset={handleReset}
+                onReturnToMulti={handleReturnToMulti}
+                onCheckout={handleCheckout}
+            />
+
+            <Card.Header className="bg-white px-2 py-2 d-flex flex-wrap align-items-center gap-2">
+                {billingdata.previousRecords && billingdata.previousRecords.length > 0 && (
+                    <div className="d-flex flex-wrap align-items-center gap-2 w-100 small" style={{ fontWeight: 500 }}>
+                        <span>Prev Total: <b>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.totalAmount || 0))}</b></span>
+                        <span className="mx-2 d-none d-md-inline">|</span>
+                        <span>Prev Paid: <b>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.paid || 0))}</b></span>
+                        <span className="mx-2 d-none d-md-inline">|</span>
+                        <span>Prev Refunded: <b style={{ color: '#dc3545' }}>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.refunded || 0))}</b></span>
+                        <span className="mx-2 d-none d-md-inline">|</span>
+                        <span>Prev Outstanding: <b style={{ color: '#dc3545' }}>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.balance || 0))}</b></span>
+                        <span className="mx-2 d-none d-md-inline">|</span>
+                        <span>Prev Balance: <b>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.balance || 0))}</b></span>
+                        <span className="mx-2 d-none d-md-inline">|</span>
+                        <span>Prev Tax: <b>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.totalAmountIncurredDueTax || 0))}</b></span>
+                        <span className="mx-2 d-none d-md-inline">|</span>
+                        <span>Prev Payable: <b>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.amountPayable || 0))}</b></span>
+                    </div>
+                )}
+            </Card.Header>
+            <div className="card-body m-0 p-0">
+                <div className="row g-0">
+                    <div className="col-md-3 p-3 border-end" style={{ minHeight: 300 }}>
+                        <MultiRenderingBillingSourceFields
+                            isClient={true}
+                            updateValuesToContext={handleOrganizationSelection}
+                            handleSelectedEntityClinician={handleSelectedEntityClinician}
+                            handleUrgencyChange={handleUrgencyChange}
+                            handleSelectedEntityInsurance={handleSelectedEntityInsurance}
+                        />
+                        {billingdata.isPackageUsed && <div className="mt-3">
+                            <MultiPACKAGESELECT />
+                        </div>}
+                    </div>
+                    <div className="col-md-6" style={{ minHeight: 300 }}>
+                        {loadingPanels ? (
+                            <div className="h-100 w-100 d-flex align-items-center justify-content-center">
+                                <Spinner animation="border" variant="primary" />
+                                <span className="ms-2">Loading test panels...</span>
+                            </div>
+                        ) : (
+                            <div className="h-100 w-100 border-start p-2">
+                                <MultiRenderingWithPatientId />
+                            </div>
+                        )}
+                    </div>
+                    <div className="col-md-3 border-start p-2" style={{ minHeight: 300 }}>
+                        {showSummary && <MultiSummary />}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+const parsedTimeValue = (value: string | null) => {
+    return value && typeof value === 'string' && value.includes(':')
+        ? parseInt(value.split(':')[0])
+        : null;
+};

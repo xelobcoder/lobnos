@@ -1,0 +1,142 @@
+.root { /* Add a local class */
+    --background-color: #f9f9f9;
+    --text-color: #333;
+    --heading-color: #333;
+    --secondary-background-color: #f0f0f0;
+    --secondary-text-color: #777;
+    --card-background-color: white;
+    --border-color: #eee;
+    --icon-color: #999;
+    --error-background-color: #fff;
+}
+
+/* Define variables for dark mode */
+[data-theme="dark"] .root {
+    --background-color: #1e293b; /* Dark blue-gray */
+    --text-color: #cbd5e1; /* Light gray */
+    --heading-color: #f9fafb; /* Off-white */
+    --secondary-background-color: #334155; /* Slightly lighter blue-gray */
+    --secondary-text-color: #94a3b8; /* Medium gray */
+    --card-background-color: #334155; /* Darker blue-gray */
+    --border-color: #475569; /* Darker gray */
+    --icon-color: #94a3b8; /* Medium gray */
+    --error-background-color: #475569; /* Darker gray */
+}
+
+.container {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #f9f9f9;
+    color: #333;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.headerIcon {
+    font-size: 24px;
+    margin-right: 8px;
+    color: #ff69b4;
+}
+
+.count {
+    background: #f0f0f0;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 14px;
+    color: #777;
+}
+
+.birthdayList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.birthdayCard {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s, color 0.3s;
+    color: #333;
+}
+
+.birthdayCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.cardHeader h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.2rem;
+}
+
+.age {
+    background: #ff69b4;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+}
+
+.birthdayInfo {
+    margin: 16px 0;
+    padding: 12px 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+}
+
+.contactInfo p {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+    color: #333;
+}
+
+.icon {
+    margin-right: 8px;
+    color: #999;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.error {
+    color: #f87171; /* Light red */
+    text-align: center;
+    padding: 40px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(248, 113, 113, 0.1);
+}
+
+.noBirthdays {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px;
+    color: #333;
+    background: #f9f9f9;
+    border-radius: 12px;
+}

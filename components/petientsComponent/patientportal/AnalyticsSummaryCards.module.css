@@ -1,0 +1,98 @@
+.chartContainer {
+    overflow-x: auto;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+}
+
+.summaryStats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+    width: 100%;
+}
+
+.statItem {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+.statItem small {
+    font-size: 0.875rem;
+}
+
+.statItem h5 {
+    font-size: 1.25rem;
+    margin-top: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .summaryStats {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+.tooltip {
+  background-color: hsl(0, 0%, 100%);
+  border: 1px solid hsl(220, 13%, 91%);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.chartTitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: hsl(222, 47%, 11%);
+}
+
+.chartSubtitle {
+  color: hsl(215, 16%, 47%);
+  font-size: 0.875rem;
+}
+
+:global(.dark) .tooltip {
+  background-color: hsl(222, 47%, 11%);
+  border-color: hsl(217, 19%, 27%);
+}
+
+:global(.dark) .chartTitle {
+  color: hsl(0, 0%, 100%);
+}
+
+:global(.dark) .chartSubtitle {
+  color: hsl(215, 20%, 65%);
+}
+
+.loadingContainer {
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.loadingBar {
+  width: 50%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, hsl(217, 91%, 60%), transparent);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.loadingText {
+  color: hsl(215, 16%, 47%);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

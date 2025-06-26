@@ -1,0 +1,165 @@
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin:0;
+  padding:0;
+  color: #374151;
+}
+
+.pageHeader {
+  padding: 1.5rem 1.5rem;
+  text-align: center;
+  margin: 0;
+  background-color: #111827;
+  border-bottom: 1px solid #e5e7eb;
+  color: white;
+}
+
+.systemNameGlobal {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.mainContent {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.loginCard {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+}
+
+.loginHeader {
+  margin-bottom: 2rem;
+}
+
+.logoIcon {
+  color: #4F46E5;
+  margin-bottom: 0.75rem;
+}
+
+.title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.errorMessage {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  text-align: left;
+  border: 1px solid #fecaca;
+}
+
+.loginForm {
+  text-align: left;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.formInput::placeholder {
+  color: #9ca3af;
+}
+.formInput:focus {
+  outline: none;
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+.forgotPasswordContainer {
+  text-align: right;
+  margin-top: 0.5rem;
+}
+
+.forgotPasswordLink {
+  font-size: 0.875rem;
+  color: #4F46E5;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.forgotPasswordLink:hover {
+  color: #4338ca;
+  text-decoration: underline;
+}
+
+.signInButton {
+  width: 100%;
+  background-color: #4F46E5;
+  color: #ffffff;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin-top: 1rem;
+}
+.signInButton:hover {
+  background-color: #4338ca;
+}
+.signInButton:active {
+  transform: translateY(1px);
+}
+
+.pageFooter {
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+@media (max-width: 480px) {
+  .loginCard {
+    padding: 2rem 1.5rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+  }
+  .title {
+    font-size: 1.5rem;
+  }
+  .subtitle {
+    font-size: 0.9375rem;
+  }
+}

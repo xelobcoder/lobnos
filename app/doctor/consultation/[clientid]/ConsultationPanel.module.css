@@ -1,0 +1,176 @@
+.consultationPage {
+    background-color: #f4f7f9;
+    min-height: 100vh;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.mainRow {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.mainContentCol {
+    padding-right: 15px;
+}
+
+.sidebarCol {
+    padding-left: 15px;
+}
+
+.formContainer {
+    background-color: #ffffff;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    height: 100%;
+}
+
+.formTitle {
+    color: #333;
+    margin-bottom: 25px;
+    font-weight: 600;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+}
+
+.fieldCard {
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    box-shadow: none;
+}
+
+.fieldCardHeader {
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e0;
+    font-weight: 500;
+    color: #495057;
+}
+.fieldCardHeader .form-label {
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.expandButton {
+    padding: 0.2rem 0.4rem;
+    color: #007bff;
+    text-decoration: none;
+}
+.expandButton:hover {
+    color: #0056b3;
+    background-color: rgba(0, 123, 255, 0.1);
+    border-radius: 4px;
+}
+
+.fieldCardBody {
+    padding: 15px;
+}
+
+.formTextarea {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    padding: 10px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    resize: vertical;
+}
+.formTextarea:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.submitButtonContainer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.submitButton {
+    padding: 10px 25px;
+    font-size: 1rem;
+    font-weight: 500;
+    min-width: 180px;
+}
+
+.sidebarContent {
+    position: sticky;
+    top: 20px;
+}
+
+.sidebarCard {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-bottom: 20px;
+    border: 1px solid #e7e7e7;
+}
+
+.sidebarCardHeader {
+    background-color: #007bff;
+    color: white;
+    font-weight: 600;
+    padding: 12px 15px;
+    font-size: 1rem;
+    border-bottom: none;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+}
+.sidebarCard .card-body {
+    padding: 15px;
+}
+.sidebarCard .form-check-label {
+    font-size: 0.9rem;
+}
+.sidebarCard .form-check-input {
+    margin-top: 0.25rem;
+}
+
+.vitalSignsButton {
+    width: 100%;
+    margin-top: 15px;
+    font-weight: 500;
+}
+
+.previousConsultationsList {
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 5px !important;
+}
+.previousConsultationsList .list-group-item {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+}
+
+.modalHeader {
+    background-color: #f0f3f5;
+    border-bottom: 1px solid #dee2e6;
+}
+.modalHeader .modal-title {
+    font-weight: 600;
+    color: #333;
+}
+
+.modalTextarea {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+.modalTextarea:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.modalFooter {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}

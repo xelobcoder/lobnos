@@ -1,0 +1,102 @@
+
+/* Dashboard container */
+.dashboardContainer {
+    display: flex;
+    height: 100vh;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Sidebar styles */
+.sidebar {
+    width: 240px;
+    background-color: #f9f9f9;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 24px;
+    color: #28a745; /* Green color */
+    text-align: left;
+}
+
+.sidebar .nav-link {
+    color: #333;
+}
+
+.sidebar .nav-link.active {
+    color: #007bff;
+}
+
+/* Main content styles */
+.mainContent {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    background-color: #f5f5f5;
+}
+
+/* Top bar styles */
+.topBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+}
+
+
+/* Patient info section styles */
+.patientInfoSection {
+    display: flex;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 24px;
+}
+
+
+/* Data section styles */
+.dataSection {
+    display: flex;
+    gap: 24px;
+}
+
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .dashboardContainer {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        margin-bottom: 24px;
+    }
+
+    .mainContent {
+        padding: 16px;
+    }
+
+    .dataSection {
+        flex-direction: column;
+    }
+
+    .profileImage {
+        margin-bottom: 1rem; /* Added margin */
+    }
+
+    .sendMessageButton {
+        margin-top: 1rem; /* Added margin */
+    }
+}
