@@ -5,7 +5,6 @@ import { Alert } from 'react-bootstrap';
 import { plsDecryption } from '../../../../../../lib/encryption';
 import MultiBillingLayout from '../../../../../../components/Billing/Multi/MultBillingLayout';
 import { RiErrorWarningFill } from '@remixicon/react';
-import { cookies } from 'next/headers';
 
 
 export interface PatientInfo {
@@ -16,11 +15,11 @@ export interface PatientInfo {
     lastname: string;
     middlename: string;
     email: string;
-    dob: string; // ISO date string
+    dob: string; 
     age: number;
     gender: "male" | "female" | string;
     occupation: string;
-    date: string; // ISO date string (registration or record date)
+    date: string; 
     activation_status: boolean;
     contactpointer: string;
     whatappcontact: string;
@@ -48,24 +47,19 @@ function normalizePatientInfo(raw: any): PatientInfo {
     };
 }
 
-interface PageProps {
-    params: {
-        patientid: string;
-        billingsourceid: string;
-    };
-}
-
 export default async function MultiStepBillingSourcePage({ params, searchParams }: any) {
     let patientBasicInformation = {};
     const categorytrackid = parseInt(params.billingsourceid, 10);
     const undeCryptedPatientId = params?.patientid;
     const patientid = plsDecryption(undeCryptedPatientId?.toString() ?? "");
 
-    // Pick entity params from searchParams (Next.js 13+ app dir)
+
     const entitytype = searchParams?.entitytype ?? null;
     const entityname = searchParams?.entityname ?? null;
     const entityid = searchParams?.entityid ?? null;
     const specialcode = searchParams?.specialcode ?? null;
+    const billingid = searchParams?.billingid ?? null;
+    const isNewTransaction = searchParams?.isNewTransaction === 0 || searchParams?.isNewTransaction === "0" ?  true : false;
 
     if (patientid && categorytrackid) {
         try {
@@ -103,6 +97,8 @@ export default async function MultiStepBillingSourcePage({ params, searchParams 
                     patientid:parseInt(patientid, 10),
                     entityname,
                     entityid,
+                    billingid: billingid ? parseInt(billingid, 10) : null,
+                    isNewTransaction,
                     specialcode,
                 }}
             />

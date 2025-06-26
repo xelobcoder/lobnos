@@ -10,22 +10,13 @@ import { MultiBillingData, defaultMultiBillingData } from '../../../lib/Multi/Mu
 import MultiPayment from './MultiPayment';
 import { MultiValidateAndSubmitBillingInformation } from "../../../lib/Multi/multiBillingValidation";
 
-// Option types
-interface OptionType {
-    value: string | number;
-    label: string;
-    id?: string | number;
-    name?: string;
-}
-
-
 
 export default function MultiBillingPageAdditionalInformation() {
     const [isSaving, setIsSaving] = useState(false);
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error('MultiBillingContext is undefined');
-    const { billingdata, setBillingData, recalculateTotalBill } = context;
-    // Only extract the fields actually used in this component
+    const { billingdata, setBillingData } = context;
+
     const {
         billingid,
         patientid
@@ -33,10 +24,10 @@ export default function MultiBillingPageAdditionalInformation() {
     const { applicationsettings } = useApplicationSettings();
     const branchid = applicationsettings.branchid;
     const { employeeid } = applicationsettings.user;
-    const [showReceiptOptionsModal, setShowReceiptptionsModal] = useState(false);
+    const [showReceiptOptionsModal, setShowReceiptOptionsModal] = useState(false);
     const [generatedBillingid, setGeneratedBillingid] = useState<string | undefined>(undefined);
     const [showChoiceModal, setShowChoiceModal] = useState(false);
-    const closeReceiptModal = () => setShowReceiptptionsModal(false);
+    const closeReceiptModal = () => setShowReceiptOptionsModal(false);
     const router = useRouter();
 
     const handleModalClose = () => {
@@ -62,7 +53,7 @@ export default function MultiBillingPageAdditionalInformation() {
     const handleUserChoice = (choice: string) => {
         setShowChoiceModal(false);
         if (choice === 'print') {
-            setShowReceiptptionsModal(true);
+            setShowReceiptOptionsModal(true);
         } else {
             setBillingData(defaultMultiBillingData);
             router.push(`/billing/sales/branches/${plsEncryption(branchid.toString())}`);
@@ -73,6 +64,7 @@ export default function MultiBillingPageAdditionalInformation() {
     const handleBillingSuccess = (billingid: string, message?: string) => {
         setGeneratedBillingid(billingid);
         setShowChoiceModal(true);
+        setBillingData(defaultMultiBillingData);
     };
 
     const handleSubmit = async () => {
@@ -83,7 +75,6 @@ export default function MultiBillingPageAdditionalInformation() {
             : 0;
         const amountPayable = Number(billingdata.amountPayable) || 0;
         if (totalPayments !== amountPayable) {
-            alert('Total payments must match the amount payable.');
             return;
         }
         try {
@@ -94,6 +85,9 @@ export default function MultiBillingPageAdditionalInformation() {
                 employeeid: employeeid,
                 branchid: branchid,
                 isConditionsUnderstood: false,
+                isPromo:billingdata.isPromo ?? false,
+                promoCodeId: billingdata.promoDetails?.id  || billingdata?.promoId,
+                promoCode: billingdata.promoDetails?.code || '',
                 patientid: Number(patientid),
                 payments: billingdata.payments,
                 additionalInfo: billingdata.additionalInfo ?? '',
@@ -107,30 +101,27 @@ export default function MultiBillingPageAdditionalInformation() {
             console.log(response)
             if (!response || typeof response !== 'object') {
                 setIsSaving(false);
-                alert('Submission failed. Please try again.');
                 return;
             }
             const { status, message, billingid: newBillingId } = response;
+            console.log(status)
             if (status === 'pending verification') {
                 setIsSaving(false);
-                alert('Submission is pending verification.');
                 return;
             }
             if (status === true || status === 'success') {
                 if (!newBillingId) {
                     setIsSaving(false);
-                    alert('No billing ID returned.');
                     return;
                 }
-                handleBillingSuccess(newBillingId, message);
+                setGeneratedBillingid(newBillingId);
+                setShowReceiptOptionsModal(true);
                 setIsSaving(false);
                 return;
             }
             setIsSaving(false);
-            alert(message || 'Submission failed.');
         } catch (error) {
             setIsSaving(false);
-            alert('An error occurred during submission.');
         }
     };
 
@@ -143,10 +134,8 @@ export default function MultiBillingPageAdditionalInformation() {
                     <div className="text-sm p-2 pls-color">
                         <div className="form-group">
                             <label className="pls-label text-sm">Payment(s)</label>
-                            {/* Multi-payment UI: allow user to add multiple payment modes and amounts */}
                             <MultiPayment
                             />
-                            {/* Show total and validation */}
                             {Array.isArray(billingdata.payments) && billingdata.payments.length > 0 && (
                                 <div className="mt-1 small">
                                     Total: <b>{billingdata.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0)}</b>
@@ -156,8 +145,6 @@ export default function MultiBillingPageAdditionalInformation() {
                                 </div>
                             )}
                         </div>
-                        {/* Promo code field removed: now handled in header */}
-                        {/* Show Total Payable after promo code is applied */}
                         <div className="mt-2">
                             <label className="pls-label text-sm">Total Payable</label>
                             <div className="fw-bold text-success" style={{ fontSize: '1.1em' }}>
@@ -166,7 +153,6 @@ export default function MultiBillingPageAdditionalInformation() {
                                     : ''}
                             </div>
                         </div>
-                        {/* Advance Payment and Balance/Change fields removed: now handled by multi-payment system */}
                     </div>
                 </section>
                 <hr />

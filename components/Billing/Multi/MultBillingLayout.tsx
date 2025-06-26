@@ -13,6 +13,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useApplication } from "../../Auth/useApplicationContext";
 import { toast } from "react-toastify";
 import MultiBillingHeader from './MultiBillingHeader';
+import PreviousRecordsHeader from './PreviousRecordsHeader';
 
 
 
@@ -22,6 +23,8 @@ export default function MultiBillingLayout({ billingContextProps }: {
         entitytype?: string,
         entityname?: string,
         entityid?: string,
+        billingid:number|null,
+        isNewTransaction?: boolean,
         patientid: number;
         specialcode?: string,
     }
@@ -38,12 +41,14 @@ function MultiBillingLayoutContent({ billingContextProps }: {
         categorytrackid: number,
         entitytype?: string,
         entityname?: string,
+        billingid?: number | null,
+        isNewTransaction?: boolean,
         patientid: number,
         entityid?: string,
         specialcode?: string,
     }
 }) {
-    const { categorytrackid, entitytype, entityname, entityid, patientid } = billingContextProps;
+    const { categorytrackid, entitytype, entityname, entityid, patientid,billingid,isNewTransaction } = billingContextProps;
     const branchid = useApplication().branchid;
     const employeeid = useApplication().user?.employeeid || 0;
     const role = useApplication().user?.role 
@@ -330,19 +335,23 @@ function MultiBillingLayoutContent({ billingContextProps }: {
     // Checkout handler: send billing data to backend
     const handleCheckout = async () => {
         try {
+            console.log("Checkout data:", billingdata);
             const checkoutPayload = {
                 patientId: billingdata.patientid,
                 billingid: billingdata.billingid,
                 cart: billingdata.cart,
                 servicesList: billingdata.servicesProvided,
-                paymentDetails: null, // always null, since not in billingdata
+                paymentDetails: null, 
                 branchid: billingdata.branchid,
                 billingSource: billingdata.billingSource,
-                referalCode: specialCode || '', // use specialCode from state
+                referalCode: specialCode || '',
                 promoCode: billingdata.promoCode || '',
                 isPromo: billingdata.isPromo || false,
+                promoCodeId: billingdata?.promoDetails?.id,
                 isPackageUsed: billingdata.isPackageUsed,
                 packageid: billingdata.packageid,
+                entityid: billingdata.entityId,
+                entitytype: billingdata.entitytype,
             };
             const response = await customPost('billing/multi/checkout', 'POST', checkoutPayload);
             if (response && response.success && response.data) {
@@ -351,7 +360,11 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                     payments: [],
                     paid: 0,
                     balance: response.data.amountPayable || 0,
-                    servicesProvided: response.data.servicesList || checkoutPayload.servicesList || [],
+                    promoDetails: response.data.promoDetails || {},
+                    promoCode: response.data?.promoDetails?.code,
+                    promoCodeId: response.data?.promoDetails?.id,
+                    promoMethod: response.data?.promoDetails?.method,     
+                    servicesProvided: response.data?.servicesList || checkoutPayload.servicesList || [],
                 }));
                 setShowSummary(true);
             } else {
@@ -371,6 +384,8 @@ function MultiBillingLayoutContent({ billingContextProps }: {
             billingSource: categorytrackid,
             patientid: patientid || prev.patientid,
             branchid: branchid,
+            billingid: billingid || prev.billingid,
+            isNewTransaction: isNewTransaction || false,
             employeeid: employeeid,
             showdetails: role === 'admin' || role === 'superadmin' || role =="manager" ,
         }));
@@ -424,25 +439,8 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                 onCheckout={handleCheckout}
             />
 
-            <Card.Header className="bg-white px-2 py-2 d-flex flex-wrap align-items-center gap-2">
-                {billingdata.previousRecords && billingdata.previousRecords.length > 0 && (
-                    <div className="d-flex flex-wrap align-items-center gap-2 w-100 small" style={{ fontWeight: 500 }}>
-                        <span>Prev Total: <b>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.totalAmount || 0))}</b></span>
-                        <span className="mx-2 d-none d-md-inline">|</span>
-                        <span>Prev Paid: <b>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.paid || 0))}</b></span>
-                        <span className="mx-2 d-none d-md-inline">|</span>
-                        <span>Prev Refunded: <b style={{ color: '#dc3545' }}>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.refunded || 0))}</b></span>
-                        <span className="mx-2 d-none d-md-inline">|</span>
-                        <span>Prev Outstanding: <b style={{ color: '#dc3545' }}>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.balance || 0))}</b></span>
-                        <span className="mx-2 d-none d-md-inline">|</span>
-                        <span>Prev Balance: <b>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.balance || 0))}</b></span>
-                        <span className="mx-2 d-none d-md-inline">|</span>
-                        <span>Prev Tax: <b>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.totalAmountIncurredDueTax || 0))}</b></span>
-                        <span className="mx-2 d-none d-md-inline">|</span>
-                        <span>Prev Payable: <b>{currencyFormatter.format(Number(billingdata.previousRecords[0]?.amountPayable || 0))}</b></span>
-                    </div>
-                )}
-            </Card.Header>
+            <PreviousRecordsHeader />
+            
             <div className="card-body m-0 p-0">
                 <div className="row g-0">
                     <div className="col-md-3 p-3 border-end" style={{ minHeight: 300 }}>

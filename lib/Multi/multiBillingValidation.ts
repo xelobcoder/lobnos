@@ -1,5 +1,6 @@
 import { customPost } from "../../components/Auth/customFetch";
 import { MultiBillingData } from "./MultiTypes";
+import { toast } from "react-toastify";
 
 const BillingFailures = {
     notOrganizationSelected: `organization not selected`,
@@ -59,6 +60,7 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             additionalInfo,
             totaldiscount,
             paid,
+            promoCodeId,
             totalAmountIncurredDueTax,
             totalServiceAmount,
             balance,
@@ -68,9 +70,11 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             servicesList = [],
             previousRecords = [],
             previousPaymentHistory = [],
+            promoCode ,
+
             refundList = [],
         } = billingdata as any;
-
+console.log(billingdata)
         // Multi-payment validation
         if (!Array.isArray(payments) || payments.length === 0) {
             return { error: 'At least one payment entry is required.' };
@@ -121,6 +125,8 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             billingSource,
             outstanding,
             paid,
+            promoCodeId,
+            promoCode,
             status,
             isConditionsUnderstood,
             patientid: parseInt(patientid?.toString?.() ?? ''),
@@ -129,6 +135,7 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             entityId,
             isPackageUsed,
             branchid,
+            entityid: entityId ? parseInt(entityId.toString()) : null,
             hasNightAdjustment,
             type,
             entitytype,
@@ -148,7 +155,8 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             return response;
         }
         // If backend returns updated billing data, return it for context update
-        if (response.status === true || response.status === 'success') {
+        if (response.status === true || response.status === 'success' || response.success === true) {
+            toast.success(response.message || 'Billing submitted successfully');
             return { ...response, updatedBillingData: response.data || response.updatedBillingData || null };
         }
         return response;

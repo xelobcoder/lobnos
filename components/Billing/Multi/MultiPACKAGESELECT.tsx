@@ -27,18 +27,23 @@ export default function MultiPACKAGESELECT() {
 
     const fetchPackages = async () => {
         try {
-            if ((billingdata.billingSource && billingdata.billingSource > 1 && !entityId)) return;
+            if ((billingdata.billingSource && billingdata.billingSource > 1 && !entityId)) {
+                setErrorMessage('Please select an entity before loading packages.');
+                return;
+            }
             setLoading(true);
             setErrorMessage('');
             const requestData = { entityId, entitytype, categorytrackid: billingdata.billingSource };
             const response = await customPost('packages/billing/verify/load', 'POST', requestData);
             if (response) {
-                setPackages(
-                    response.map((pkg: any) => ({
-                        value: pkg.id,
-                        label: pkg.package_name,
-                    }))
-                );
+                const pkgs = response.map((pkg: any) => ({
+                    value: pkg.id,
+                    label: pkg.package_name,
+                }));
+                setPackages(pkgs);
+                if (pkgs.length === 0) {
+                    setErrorMessage('No packages found for the selected entity.');
+                }
             }
         } catch (err) {
             console.error(err);
@@ -59,35 +64,7 @@ export default function MultiPACKAGESELECT() {
             packageid: selectedOption ? selectedOption.value : undefined,
             isPackageUsed: !!selectedOption,
         });
-        // if (selectedOption) {
-        //     try {
-        //         // Fetch package details from backend and update billingdata with backend-calculated fields
-        //         const response = await customPost('packages/billing/verify/details', 'POST', {
-        //             packageid: selectedOption.value,
-        //             entityId,
-        //             entitytype,
-        //             categorytrackid: billingdata.billingSource,
-        //         });
-        //         if (response && response.billingData) {
-        //             // Update billingdata with backend-calculated billing fields (amountPayable, subtotal, payments, etc.)
-        //             setBillingData((prev: any) => ({
-        //                 ...prev,
-        //                 ...response.billingData,
-        //                 packageid: selectedOption.value,
-        //                 isPackageUsed: true,
-        //             }));
-        //         }
-        //     } catch (err) {
-        //         setErrorMessage('Failed to load package details.');
-        //     } finally {
-        //         setLoadingPackageTest(false);
-        //     }
-        // } else {
-        //     setLoadingPackageTest(false);
-        // }
     };
-
-
 
     return (
         <Card>
@@ -105,7 +82,7 @@ export default function MultiPACKAGESELECT() {
                 </div>
                 <div className="mt-3">
                     {errorMessage && (
-                        <div className="alert alert-danger d-flex align-items-center">
+                        <div className="alert alert-danger text-sm p-1 d-flex align-items-center">
                             <RiErrorWarningLine className="me-2" />
                             <small>{errorMessage}</small>
                         </div>

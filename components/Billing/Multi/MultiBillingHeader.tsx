@@ -1,7 +1,8 @@
 import { Card, Form, Button, Spinner } from "react-bootstrap";
-import { useState } from "react";
-import { customPost } from "../../Auth/customFetch";
+import { useEffect } from "react";
+import { customFetch, customPost } from "../../Auth/customFetch";
 import { RiArrowGoBackFill, RiCheckLine, RiCloseCircleFill } from '@remixicon/react';
+import { toast } from 'react-toastify';
 
 // Promo interface and validatePromoCode function
 interface Promo {
@@ -51,23 +52,50 @@ export default function MultiBillingHeader({
     onReturnToMulti,
     onCheckout
 }) {
-    // Promo code verification state
-    const [promoVerifyLoading, setPromoVerifyLoading] = useState(false);
-    const [promoVerifyMessage, setPromoVerifyMessage] = useState<string | null>(null);
-    const [promoVerifySuccess, setPromoVerifySuccess] = useState<boolean | null>(null);
-
+    // Function to verify promo code
     const handleVerifyPromo = async () => {
-        setPromoVerifyLoading(true);
-        setPromoVerifyMessage(null);
-        setPromoVerifySuccess(null);
+        setBillingData(prev => ({ ...prev, promoVerifyLoading: true, promoVerifyMessage: null, promoVerifySuccess: null }));
         const code = billingdata.promoCode || '';
         const patientid = billingdata.patientid || 0;
         const result = await validatePromoCode(code, patientid);
-        setPromoVerifyLoading(false);
-        setPromoVerifyMessage(result.message || '');
-        setPromoVerifySuccess(result.valid);
-        // Optionally, update billingdata with promo info if needed
-        // if (result.valid && result.promo) setBillingData(prev => ({ ...prev, promo: result.promo }));
+        setBillingData(prev => ({
+            ...prev,
+            promoVerifyLoading: false,
+            promoVerifyMessage: result.message || '',
+            promoVerifySuccess: result.valid
+        }));
+    };
+
+    // Function to verify billing ID and update previousRecordsSummary
+    const handleVerifyBillingId = async () => {
+        if (!billingdata.billingid || isNaN(Number(billingdata.billingid))) {
+            toast.error('Please enter a valid Billing ID to verify.');
+            setBillingData(prev => ({ ...prev, billingIdVerified: false }));
+            return;
+        }
+        const arr = await getTransactionPreviousBillingRecords(Number(billingdata.billingid));
+        if (Array.isArray(arr) && arr.length > 0) {
+            setBillingData(prev => ({ ...prev, previousRecordsSummary: arr[0], billingIdVerified: true }));
+            toast.success('Billing ID ' + billingdata.billingid + ' verified!');
+        } else {
+            toast.error('No previous billing record found for this Billing ID.');
+            setBillingData(prev => ({ ...prev, billingIdVerified: false }));
+        }
+    };
+
+    // Function to verify billing ID and update previousRecordsSummary
+    const getTransactionPreviousBillingRecords = async (billingid: number) => {
+        try {
+            const response = await customFetch(`billing/previous/transaction/data?billingid=${billingid}`);
+            return response.result;
+        } catch (err) {
+            return [];
+        }
+    };
+
+    // Function to reset promo verification state
+    const resetPromoVerification = () => {
+        setBillingData(prev => ({ ...prev, promoVerifySuccess: null, promoVerifyMessage: null }));
     };
 
     return (
@@ -96,6 +124,7 @@ export default function MultiBillingHeader({
                     <Form.Check
                         type="checkbox"
                         label="Reference Code"
+                        disabled={billingdata.billingSource == 1}
                         checked={useSpecialCode}
                         onChange={e => onUseSpecialCodeChange(e.target.checked)
                         }
@@ -106,11 +135,34 @@ export default function MultiBillingHeader({
                     <Form.Check
                         type="checkbox"
                         label="Promo Code"
-                        checked={billingdata.showPromoCode}
-                        onChange={e => setBillingData(prev => ({ ...prev, showPromoCode: e.target.checked ,isPromo: e.target.checked}))}
+                        checked={!!billingdata.showPromoCode}
+                        onChange={e => {
+                            setBillingData(prev => ({ ...prev, showPromoCode: e.target.checked ,isPromo: e.target.checked }));
+                            if (!e.target.checked) resetPromoVerification();
+                        }}
                         className="mb-0 flex-shrink-0"
                         aria-label="Show Promo Code"
                     />
+                    {/* Promo Code Verified Badge */}
+                    {billingdata.showPromoCode && billingdata.promoVerifySuccess === true && (
+                        <span className="badge bg-success ms-2 text-sm" style={{fontSize: '0.55em', fontWeight: 500}}>Promo Verified</span>
+                    )}
+                    {billingdata.showPromoCode && billingdata.promoVerifySuccess === false && (
+                        <span className="badge bg-danger ms-2" style={{fontSize: '0.55em', fontWeight: 500}}>Promo Invalid</span>
+                    )}
+                    <span className="mx-1" style={{color:'#bbb'}}>|</span>
+                    <Form.Check
+                        type="checkbox"
+                        label="Create Related Billing"
+                        checked={!!billingdata.showRelatedBilling}
+                        onChange={e => setBillingData(prev => ({ ...prev, showRelatedBilling: e.target.checked }))}
+                        className="mb-0 me-2 flex-shrink-0"
+                        aria-label="Create Related Billing"
+                    />
+                    {/* Billing ID Verified Badge */}
+                    {billingdata.showRelatedBilling && billingdata.billingid && billingdata.billingIdVerified && (
+                        <span className="badge bg-success ms-2 text-sm" style={{fontSize: '0.6em'}}>Billing ID Verified</span>
+                    )}
                     {/* Entity Info moved here */}
                     {!!billingdata.entityId && !!billingdata.entitytype && (
                         <span className="ms-2 px-2 py-1 bg-light border rounded small text-nowrap flex-shrink-1 d-flex align-items-center gap-2"
@@ -163,27 +215,31 @@ export default function MultiBillingHeader({
                                 )}
                             </div>
                         )}
-                        {/* Billing ID Input */}
-                        <div className="col-12 col-lg-auto d-flex align-items-center" style={{minWidth: 160, height: 40}}>
-                            <Form.Control
-                                type="number"
-                                placeholder="Check Billing ID"
-                                size="sm"
-                                style={{ minWidth: 0, height: 38 }}
-                                className="w-100 border"
-                                value={billingdata.billingid || ''}
-                                onChange={e => setBillingData(prev => ({ ...prev, billingid: e.target.value }))}
-                                onKeyDown={e => {
-                                    if (e.key === 'Enter' && e.currentTarget.value) {
-                                        const url = new URL(window.location.href);
-                                        url.searchParams.set('billingid', e.currentTarget.value);
-                                        url.searchParams.set('isNewTransaction', '0');
-                                        window.location.search = url.search;
-                                    }
-                                }}
-                                aria-label="Billing ID"
-                            />
-                        </div>
+                        {/* Billing ID Input (conditionally shown) */}
+                        {billingdata.showRelatedBilling && (
+                            <div className="col-12 col-lg-auto d-flex align-items-center" style={{minWidth: 160, height: 40}}>
+                                <Form.Control
+                                    type="number"
+                                    placeholder="Check Billing ID"
+                                    size="sm"
+                                    style={{ minWidth: 0, height: 38 }}
+                                    className="w-100 border"
+                                    value={billingdata.billingid || ''}
+                                    onChange={e => setBillingData(prev => ({ ...prev, billingid: e.target.value }))}
+                                    aria-label="Billing ID"
+                                />
+                                <Button
+                                    variant="outline-info"
+                                    size="sm"
+                                    className="ms-2"
+                                    style={{height: 38, display: 'flex', alignItems: 'center'}} 
+                                    onClick={handleVerifyBillingId}
+                                    aria-label="Verify Billing ID"
+                                >
+                                    Verify
+                                </Button>
+                            </div>
+                        )}
                         {/* Promo Code Section */}
                         {billingdata.showPromoCode && (
                             <div className="col-12 col-lg-auto d-flex align-items-center" style={{minWidth: 220, height: 40}}>
@@ -192,7 +248,7 @@ export default function MultiBillingHeader({
                                         id="promoCode"
                                         type="text"
                                         value={billingdata.promoCode || ''}
-                                        onChange={e => setBillingData(prev => ({ ...prev, promoCode: e.target.value }))}
+                                        onChange={e => setBillingData(prev => ({ ...prev, promoCode: e.target.value, promoVerifySuccess: null, promoVerifyMessage: null }))}
                                         placeholder="Enter promo code"
                                         size="sm"
                                         style={{ minWidth: 0, height: 38 }}
@@ -204,26 +260,26 @@ export default function MultiBillingHeader({
                                             variant="outline-success"
                                             size="sm"
                                             onClick={handleVerifyPromo}
-                                            disabled={promoVerifyLoading || !(billingdata.promoCode && billingdata.promoCode.length > 0)}
+                                            disabled={billingdata.promoVerifyLoading || !(billingdata.promoCode && billingdata.promoCode.length > 0)}
                                             aria-label="Verify Promo Code"
                                             style={{height: 38, display: 'flex', alignItems: 'center'}}
                                         >
-                                            {promoVerifyLoading ? (
+                                            {billingdata.promoVerifyLoading ? (
                                                 <Spinner as="span" animation="border" size="sm" className="me-1" />
                                             ) : (
                                                 "Verify"
                                             )}
                                         </Button>
                                         <Button
-                                            variant={promoVerifySuccess === true ? "success" : promoVerifySuccess === false ? "danger" : "outline-secondary"}
+                                            variant={billingdata.promoVerifySuccess === true ? "success" : billingdata.promoVerifySuccess === false ? "danger" : "outline-secondary"}
                                             size="sm"
                                             disabled
                                             style={{ width: 40, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                             aria-label="Promo Code Status"
                                         >
-                                            {promoVerifySuccess === true ? (
+                                            {billingdata.promoVerifySuccess === true ? (
                                                 <RiCheckLine size={20} color="#fff" />
-                                            ) : promoVerifySuccess === false ? (
+                                            ) : billingdata.promoVerifySuccess === false ? (
                                                 <RiCloseCircleFill size={20} color="#fff" />
                                             ) : null}
                                         </Button>
