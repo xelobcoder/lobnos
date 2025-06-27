@@ -60,7 +60,7 @@ export default function MultiBillingPageAdditionalInformation() {
         }
     };
 
-    // Helper for billing success
+
     const handleBillingSuccess = (billingid: string, message?: string) => {
         setGeneratedBillingid(billingid);
         setShowChoiceModal(true);
@@ -69,7 +69,7 @@ export default function MultiBillingPageAdditionalInformation() {
 
     const handleSubmit = async () => {
         if (isSaving) return;
-        // Validate payments
+
         const totalPayments = Array.isArray(billingdata.payments)
             ? billingdata.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0)
             : 0;
@@ -79,7 +79,6 @@ export default function MultiBillingPageAdditionalInformation() {
         }
         try {
             setIsSaving(true);
-            // Prepare data for backend, including all required fields
             const dataToBeUploaded = {
                 ...billingdata,
                 employeeid: employeeid,
@@ -92,10 +91,9 @@ export default function MultiBillingPageAdditionalInformation() {
                 payments: billingdata.payments,
                 additionalInfo: billingdata.additionalInfo ?? '',
             } as any;
-            const method = billingid ? 'PUT' : 'POST';
+
             const response = await MultiValidateAndSubmitBillingInformation(
                 dataToBeUploaded,
-                method,
                 billingid ? Number(billingid) : undefined
             );
             console.log(response)

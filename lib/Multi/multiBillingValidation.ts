@@ -15,16 +15,12 @@ const BillingFailures = {
 
 export const MultiValidateAndSubmitBillingInformation = async function (
     billingdata: MultiBillingData,
-    method: 'POST' | 'PUT',
     billingid?: number,
 ) {
     try {
         console.log(billingdata);
         if (typeof billingdata !== "object" || !billingdata.billingSource) {
             return { error: BillingFailures.invalidBillingData };
-        }
-        if (method === "PUT" && !billingid) {
-            return { error: BillingFailures.requiredParametersMissed };
         }
 
         const {
@@ -74,7 +70,7 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 
             refundList = [],
         } = billingdata as any;
-console.log(billingdata)
+
         // Multi-payment validation
         if (!Array.isArray(payments) || payments.length === 0) {
             return { error: 'At least one payment entry is required.' };
@@ -117,7 +113,6 @@ console.log(billingdata)
             return { error: BillingFailures.requiredParametersMissed };
         }
 
-        // Prepare backend data with only the required and backend-driven fields
         const backendData: any = {
             amountPayable,
             cart,
@@ -149,8 +144,8 @@ console.log(billingdata)
             promoMethod,
             promo
         };
-        const url = method === "POST" ? "billing/multi/submit" : `billing/multi/submit?billingid=${billingid}`;
-        const response = await customPost(url, method, backendData);
+        const url = "billing/multi/submit";
+        const response = await customPost(url, "POST", backendData);
         if (response.status && response.status === 'pending verification') {
             return response;
         }

@@ -66,7 +66,7 @@ export default function MultiBillingHeader({
         }));
     };
 
-    // Function to verify billing ID and update previousRecordsSummary
+
     const handleVerifyBillingId = async () => {
         if (!billingdata.billingid || isNaN(Number(billingdata.billingid))) {
             toast.error('Please enter a valid Billing ID to verify.');
@@ -83,7 +83,7 @@ export default function MultiBillingHeader({
         }
     };
 
-    // Function to verify billing ID and update previousRecordsSummary
+
     const getTransactionPreviousBillingRecords = async (billingid: number) => {
         try {
             const response = await customFetch(`billing/previous/transaction/data?billingid=${billingid}`);
