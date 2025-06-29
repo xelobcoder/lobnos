@@ -1,105 +1,220 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { customFetch } from '../../../../../components/Auth/customFetch';
+
+// --- ICONS (from @remixicons/react) ---
 import {
-     LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
-     XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
-} from "recharts";
+	RiErrorWarningLine,
+	RiArchiveLine,
+	RiCheckboxCircleLine,
+	RiTimeLine,
+	RiCloseCircleLine
+} from "@remixicon/react";
 
-const lineData = [
-     { name: "Jan", uv: 400, pv: 240 },
-     { name: "Feb", uv: 300, pv: 139 },
-     { name: "Mar", uv: 200, pv: 980 },
-     { name: "Apr", uv: 278, pv: 390 },
-     { name: "May", uv: 189, pv: 480 },
-     { name: "Jun", uv: 239, pv: 380 },
-];
+// --- TYPE DEFINITIONS ---
+type PieData = { name: string; value: number };
 
-const barData = [
-     { name: "Mon", sent: 300, received: 456 },
-     { name: "Tue", sent: 145, received: 230 },
-     { name: "Wed", sent: 200, received: 345 },
-     { name: "Thu", sent: 278, received: 200 },
-     { name: "Fri", sent: 189, received: 278 },
-];
+interface StatCardProps {
+	title: string;
+	value: number;
+	percentage: string;
+	color: string;
+	Icon: React.ElementType;
+}
 
-const pieData = [
-     { name: "Delivered", value: 400 },
-     { name: "Failed", value: 100 },
-     { name: "Pending", value: 50 },
-];
+interface CustomTooltipProps {
+	active?: boolean;
+	payload?: any[];
+	total: number;
+}
 
-const COLORS = ["#0088FE", "#FF8042", "#00C49F"];
+interface StateDisplayProps {
+	message: string;
+}
+
+// --- COLOR CONSTANTS ---
+const PIE_CHART_COLORS = {
+	Sent: '#3B82F6',    // Blue
+	Pending: '#F97316', // Orange
+	Failed: '#EF4444',  // Red
+};
+
+
+
+const DashboardLayout = ({ children }: { children: React.ReactNode }) => (
+	<div className="container-fluid p-3 p-md-4 bg-light">
+		<header className="mb-4">
+			<h3 className="h4 fw-bold text-dark mb-1">SMS Delivery Status</h3>
+			<p className="text-muted small mb-0">An overview of your recent messaging campaigns.</p>
+		</header>
+		<main>{children}</main>
+	</div>
+);
+
+const StatCard: React.FC<StatCardProps> = ({ title, value, percentage, color, Icon }) => (
+	<div
+		className="card h-100 shadow-sm border-0"
+		style={{ borderTop: `4px solid ${color}` }}
+	>
+		<div className="card-body py-3">
+			<div className="d-flex align-items-center justify-content-between mb-1">
+				<p className="card-text text-muted mb-0 small">{title}</p>
+				<Icon style={{ height: '20px', width: '20px', color }} />
+			</div>
+			<h3 className="card-title fw-bold text-dark mb-1" style={{ fontSize: '1.5rem' }}>{value.toLocaleString()}</h3>
+			<p className="card-text mb-0"><small className="text-muted">{percentage}% of total</small></p>
+		</div>
+	</div>
+);
+
+const LoadingState: React.FC = () => (
+	<div className="d-flex flex-column align-items-center justify-content-center py-5 text-muted">
+		<div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+			<span className="visually-hidden">Loading...</span>
+		</div>
+		<p className="mt-3">Loading analytics...</p>
+	</div>
+);
+
+const ErrorState: React.FC<StateDisplayProps> = ({ message }) => (
+	<div className="alert alert-danger d-flex flex-column align-items-center text-center p-4">
+		<RiErrorWarningLine style={{ height: '32px', width: '32px' }} />
+		<h4 className="alert-heading mt-2">An Error Occurred</h4>
+		<p className="mb-0">{message}</p>
+	</div>
+);
+
+const ChartPlaceholder: React.FC<StateDisplayProps> = ({ message }) => (
+	<div className="d-flex h-100 flex-column align-items-center justify-content-center text-muted" style={{ minHeight: '250px' }}>
+		<RiArchiveLine style={{ height: '40px', width: '40px' }} />
+		<p className="mt-3 text-center">{message}</p>
+	</div>
+);
+
+const CustomPieTooltip: React.FC<CustomTooltipProps> = ({ active, payload, total }) => {
+	if (active && payload && payload.length && total > 0) {
+		const data = payload[0];
+		return (
+			<div className="card shadow-sm p-2">
+				<div className="card-body p-1">
+					<p className="fw-semibold mb-1" style={{ color: data.payload.fill }}>{data.name}</p>
+					<p className="mb-1" style={{ fontSize: '0.9rem' }}>Count: {data.value.toLocaleString()}</p>
+					<p className="text-muted mb-0" style={{ fontSize: '0.8rem' }}>{((data.value / total) * 100).toFixed(1)}% of total</p>
+				</div>
+			</div>
+		);
+	}
+	return null;
+};
+
+const renderCustomizedPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+	if (percent < 0.05) return null; // Don't render label for very small slices
+	const RADIAN = Math.PI / 180;
+	const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+	const x = cx + radius * Math.cos(-midAngle * RADIAN);
+	const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+	return (
+		<text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" className="fw-semibold" style={{ fontSize: '0.8rem' }}>
+			{`${(percent * 100).toFixed(0)}%`}
+		</text>
+	);
+};
+
+// --- MAIN DASHBOARD COMPONENT ---
 
 export default function SmsDashboard() {
-  return (
-    <div style={{ padding: 32, background: 'linear-gradient(120deg, #f8fafc 0%, #e0e7ef 100%)', minHeight: '100vh' }}>
-      <h1 style={{ textAlign: 'center', fontWeight: 700, marginBottom: 40, letterSpacing: 1, color: '#2a4365' }}>SMS Dashboard</h1>
-      <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', justifyContent: 'center' }}>
-        {/* Line Chart Card */}
-        <div style={{ flex: 1, minWidth: 350, maxWidth: 500, height: 340, background: '#fff', borderRadius: 18, boxShadow: '0 4px 24px #0001', padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h2 style={{ fontSize: 20, color: '#2b6cb0', marginBottom: 12 }}>Monthly SMS Traffic</h2>
-          <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={lineData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#82ca9d" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="name" tick={{ fontSize: 13 }} />
-              <YAxis tick={{ fontSize: 13 }} />
-              <Tooltip contentStyle={{ borderRadius: 8, background: '#f7fafc', border: '1px solid #cbd5e1' }} />
-              <Legend iconType="circle" />
-              <Line type="monotone" dataKey="uv" stroke="#4f46e5" strokeWidth={3} name="Sent" fillOpacity={1} fill="url(#colorUv)" dot={{ r: 5 }} activeDot={{ r: 8 }} />
-              <Line type="monotone" dataKey="pv" stroke="#10b981" strokeWidth={3} name="Received" fillOpacity={1} fill="url(#colorPv)" dot={{ r: 5 }} activeDot={{ r: 8 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-        {/* Bar Chart Card */}
-        <div style={{ flex: 1, minWidth: 350, maxWidth: 500, height: 340, background: '#fff', borderRadius: 18, boxShadow: '0 4px 24px #0001', padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h2 style={{ fontSize: 20, color: '#2b6cb0', marginBottom: 12 }}>Weekly SMS Summary</h2>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={barData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="name" tick={{ fontSize: 13 }} />
-              <YAxis tick={{ fontSize: 13 }} />
-              <Tooltip contentStyle={{ borderRadius: 8, background: '#f7fafc', border: '1px solid #cbd5e1' }} />
-              <Legend iconType="circle" />
-              <Bar dataKey="sent" fill="#6366f1" name="Sent" radius={[8, 8, 0, 0]} barSize={28} />
-              <Bar dataKey="received" fill="#34d399" name="Received" radius={[8, 8, 0, 0]} barSize={28} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        {/* Pie Chart Card */}
-        <div style={{ flex: 1, minWidth: 350, maxWidth: 500, height: 340, background: '#fff', borderRadius: 18, boxShadow: '0 4px 24px #0001', padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h2 style={{ fontSize: 20, color: '#2b6cb0', marginBottom: 12 }}>Delivery Status</h2>
-          <ResponsiveContainer width="100%" height={240}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                isAnimationActive
-              >
-                {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{ borderRadius: 8, background: '#f7fafc', border: '1px solid #cbd5e1' }} />
-              <Legend iconType="circle" />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    </div>
-  );
+	const [pieData, setPieData] = useState<PieData[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState("");
+
+	useEffect(() => {
+		// ... fetching logic remains the same
+		const fetchAnalytics = async () => {
+			setLoading(true);
+			try {
+				const res = await customFetch('prime/sms-analytics/job-status-counts');
+				if (res && res.success && res.data) {
+					setPieData([
+						{ name: "Sent", value: res.data.sent || 0 },
+						{ name: "Pending", value: res.data.pending || 0 },
+						{ name: "Failed", value: res.data.failed || 0 },
+					]);
+				} else {
+					setError("No analytics data could be retrieved.");
+				}
+			} catch (err) {
+				setError("Failed to connect to the analytics service.");
+			} finally {
+				setLoading(false);
+			}
+		};
+		fetchAnalytics();
+	}, []);
+
+	const totalPieData = pieData.reduce((sum, entry) => sum + entry.value, 0);
+
+	const statIcons = {
+		Sent: RiCheckboxCircleLine,
+		Pending: RiTimeLine,
+		Failed: RiCloseCircleLine,
+	};
+
+	if (loading) return <DashboardLayout><LoadingState /></DashboardLayout>;
+	if (error) return <DashboardLayout><ErrorState message={error} /></DashboardLayout>;
+
+	return (
+		<DashboardLayout>
+			{totalPieData > 0 && (
+				<div className="row g-3 g-lg-4 mb-4">
+					{pieData.map((entry) => (
+						<div className="col-md-4" key={entry.name}>
+							<StatCard
+								title={entry.name}
+								value={entry.value}
+								percentage={totalPieData > 0 ? ((entry.value / totalPieData) * 100).toFixed(1) : '0.0'}
+								color={PIE_CHART_COLORS[entry.name as keyof typeof PIE_CHART_COLORS]}
+								Icon={statIcons[entry.name as keyof typeof statIcons]}
+							/>
+						</div>
+					))}
+				</div>
+			)}
+
+			<div className="card col-4">
+				<div className="card-header bg-white border-bottom-0 pt-3">
+					<h3 className="h5 fw-semibold text-dark">Status Distribution</h3>
+				</div>
+				<div className="card-body pt-0">
+					{totalPieData > 0 ? (
+						<ResponsiveContainer width="100%" height={220}>
+							<PieChart>
+								<Pie
+									data={pieData}
+									dataKey="value"
+									nameKey="name"
+									cx="50%"
+									cy="50%"
+									outerRadius={80}
+									innerRadius={45}
+									labelLine={false}
+									label={renderCustomizedPieLabel}
+									paddingAngle={2}
+								>
+									{pieData.map((entry) => (
+										<Cell key={`cell-${entry.name}`} fill={PIE_CHART_COLORS[entry.name as keyof typeof PIE_CHART_COLORS]} />
+									))}
+								</Pie>
+								<Tooltip content={<CustomPieTooltip total={totalPieData} />} />
+								<Legend iconType="circle" />
+							</PieChart>
+						</ResponsiveContainer>
+					) : (
+						<ChartPlaceholder message="No delivery status data to display." />
+					)}
+				</div>
+			</div>
+		</DashboardLayout>
+	);
 }
