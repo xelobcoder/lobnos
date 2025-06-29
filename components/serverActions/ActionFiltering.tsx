@@ -442,6 +442,32 @@ export const handleServerCriticalValues = async (paginate) => {
 	}
 }
 
+export const handleServerRecipientSmsJobs = async (pagination: { page: number, count: number, jobid: number }) => {
+	const { page, count, jobid } = pagination;
+	try {
+		const response = await customFetch(`prime/sms-job-recipients/by-job/${jobid}?page=${page}&&count=${count}`);
+		if (response && Array.isArray(response)) {
+			return { result: response, error: false };
+		}
+		return { result: [], error: false };
+	} catch (err) {
+		return { result: [], error: true };
+	}
+}
+
+export const handleServerProcessingSmsJobs = async (pagination: { page: number, count: number }) => {
+	const { page, count } = pagination;
+	try {
+		const response = await customFetch(`prime/sms-jobs-paginated?page=${page}&&count=${count}`);
+		if (response && Array.isArray(response.jobs)) {
+			return { result: response.jobs, error: false };
+		}
+		return { result: [], error: false };
+	} catch (err) {
+		return { result: [], error: true };
+	}
+}
+
 
 
 export const handleUserLogin = async (formData) => {
@@ -449,7 +475,7 @@ export const handleUserLogin = async (formData) => {
 	const password = formData.get("password")
 	const response = await customPost('prime/login', 'POST', { email, password });
 	const { status, accessToken, user } = response;
-	if (response  && !status) return response;
+	if (response && !status) return response;
 	const validateAndEncryptToken = async (status: string, accessToken: string, user: { employeeid: number, username: string, role: string, email: string }, email: string)
 		: Promise<{ status: boolean, role: string, message?: string } | undefined> => {
 		if (status && accessToken) {
