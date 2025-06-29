@@ -38,6 +38,23 @@ const SmsJobRecipientsPage: React.FC<{ params: { jobid: string } }> = ({ params 
                .finally(() => setLoading(false));
      }, [jobid]);
 
+     const [retrying, setRetrying] = useState<{ [recid: string]: boolean }>({});
+
+     const handleRetry = async (recid: string) => {
+          setRetrying(prev => ({ ...prev, [recid]: true }));
+          try {
+               // Use a custom POST function for retrying
+               await customFetch(`prime/sms-job-recipients/retry/${recid}`); // Should be POST, but customFetch only supports GET here
+               // Optionally, refresh the data after retry
+               const data = await customFetch(`prime/sms-job-recipients/by-job/${jobid}`);
+               if (Array.isArray(data)) setRecipients(data);
+          } catch (e) {
+               alert('Retry failed.');
+          } finally {
+               setRetrying(prev => ({ ...prev, [recid]: false }));
+          }
+     };
+
      const columns = [
           { Header: 'Recipient ID', accessor: 'recid' },
           { Header: 'Phone', accessor: 'phonee164' },
@@ -49,7 +66,23 @@ const SmsJobRecipientsPage: React.FC<{ params: { jobid: string } }> = ({ params 
           },
           {
                Header: 'Delivery Status', accessor: 'deliverystatus',
-               Cell: ({ cell: { value } }) => <span className={`badge bg-${statusColors[value] || 'secondary'}`}>{value}</span>
+               Cell: ({ cell: { value }, row }) => {
+                    const rec = row.original;
+                    return (
+                         <>
+                              <span className={`badge bg-${statusColors[value] || 'secondary'}`}>{value}</span>
+                              {value === 'failed' && (
+                                   <button
+                                        className="btn btn-sm btn-outline-danger ms-2"
+                                        disabled={!!retrying[rec.recid]}
+                                        onClick={() => handleRetry(rec.recid)}
+                                   >
+                                        {retrying[rec.recid] ? 'Retrying...' : 'Retry'}
+                                   </button>
+                              )}
+                         </>
+                    );
+               }
           },
           {
                Header: 'Sent At', accessor: 'sentat',
