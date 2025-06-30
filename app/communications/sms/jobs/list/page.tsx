@@ -1,13 +1,10 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import Modal from 'react-bootstrap/Modal';
-import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import Alert from 'react-bootstrap/Alert';
-import { customFetch } from '../../../../../../components/Auth/customFetch';
-import PrimeTable from '../../../../../../components/accessories/Datatables/PrimeTable';
-import { handleServerProcessingSmsJobs } from '../../../../../../components/serverActions/ActionFiltering';
-
+import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
+import { handleServerProcessingSmsJobs } from '../../../../../components/serverActions/ActionFiltering';
+import { customFetch } from '../../../../../components/Auth/customFetch';
 
 const statusColors: Record<string, string> = {
      sent: 'success',
@@ -72,33 +69,6 @@ const SmsJobsListPage: React.FC = () => {
      Cell: ({ row }) => {
           const job = row.original;
           const jobid = job.jobid;
-          const [show, setShow] = React.useState(false);
-          const handleShow = () => setShow(true);
-          const handleClose = () => setShow(false);
-          if (job.recipientscope === 'all') {
-               return <>
-                    <button
-                         className="btn btn-sm btn-outline-primary"
-                         type="button"
-                         style={{ minWidth: 110 }}
-                         onClick={handleShow}
-                    >
-                         View Recipients
-                    </button>
-                    <Modal show={show} onHide={handleClose} centered>
-                         <Modal.Header closeButton>
-                              <Modal.Title>Recipients Info</Modal.Title>
-                         </Modal.Header>
-                         <Modal.Body>
-                              <div className="mb-2">This message was sent to <b>all</b> of the <b>{job.category}</b> category.</div>
-                              <div>Status: <span className={`badge bg-${statusColors[job.status] || 'secondary'}`}>{job.status}</span></div>
-                         </Modal.Body>
-                         <Modal.Footer>
-                              <Button variant="secondary" onClick={handleClose}>Close</Button>
-                         </Modal.Footer>
-                    </Modal>
-               </>;
-          }
           return (
                <a
                     className="btn btn-sm btn-outline-primary"

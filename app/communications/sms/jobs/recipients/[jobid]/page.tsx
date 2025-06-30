@@ -2,9 +2,10 @@
 import React, { useEffect, useState } from 'react';
 import Spinner from 'react-bootstrap/Spinner';
 import Alert from 'react-bootstrap/Alert';
-import PrimeTable from '../../../../../../../components/accessories/Datatables/PrimeTable';
-import { customFetch } from '../../../../../../../components/Auth/customFetch';
-import { handleServerRecipientSmsJobs } from '../../../../../../../components/serverActions/ActionFiltering';
+import { toast } from 'react-toastify';
+import PrimeTable from '../../../../../../components/accessories/Datatables/PrimeTable';
+import { handleServerRecipientSmsJobs } from '../../../../../../components/serverActions/ActionFiltering';
+import { customFetch } from '../../../../../../components/Auth/customFetch';
 
 const statusColors: Record<string, string> = {
      sent: 'success',
@@ -38,20 +39,26 @@ const SmsJobRecipientsPage: React.FC<{ params: { jobid: string } }> = ({ params 
                .finally(() => setLoading(false));
      }, [jobid]);
 
-     const [retrying, setRetrying] = useState<{ [recid: string]: boolean }>({});
+     const [retrying, setRetrying] = useState<{ [refid: string]: boolean }>({});
 
-     const handleRetry = async (recid: string) => {
-          setRetrying(prev => ({ ...prev, [recid]: true }));
+     const handleRetry = async (refid: string) => {
+          setRetrying(prev => ({ ...prev, [refid]: true }));
           try {
-               // Use a custom POST function for retrying
-               await customFetch(`prime/sms-job-recipients/retry/${recid}`); // Should be POST, but customFetch only supports GET here
-               // Optionally, refresh the data after retry
-               const data = await customFetch(`prime/sms-job-recipients/by-job/${jobid}`);
-               if (Array.isArray(data)) setRecipients(data);
+               const response = await customFetch(`prime/sms/failed/transaction/retry/${jobid}/${refid}`);       
+               if (response && response.status === 'success') {
+                    // Refresh the data after successful retry
+                    const data = await customFetch(`prime/sms-job-recipients/by-job/${jobid}`);
+                    if (Array.isArray(data)) setRecipients(data);
+                    toast.success('SMS retry initiated successfully.');
+               } else {
+                    // Handle failed retry
+                    const message = response?.message || 'Failed to retry sending SMS. Please try again later.';
+                    toast.error(message);
+               }
           } catch (e) {
-               alert('Retry failed.');
+               toast.error('Retry failed. Please try again later.');
           } finally {
-               setRetrying(prev => ({ ...prev, [recid]: false }));
+               setRetrying(prev => ({ ...prev, [refid]: false }));
           }
      };
 
@@ -74,10 +81,10 @@ const SmsJobRecipientsPage: React.FC<{ params: { jobid: string } }> = ({ params 
                               {value === 'failed' && (
                                    <button
                                         className="btn btn-sm btn-outline-danger ms-2"
-                                        disabled={!!retrying[rec.recid]}
-                                        onClick={() => handleRetry(rec.recid)}
+                                        disabled={!!retrying[rec.refid]}
+                                        onClick={() => handleRetry(rec.refid)}
                                    >
-                                        {retrying[rec.recid] ? 'Retrying...' : 'Retry'}
+                                        {retrying[rec.refid] ? 'Retrying...' : 'Retry'}
                                    </button>
                               )}
                          </>

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { customFetch, customPost } from '../../../../../components/Auth/customFetch';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Badge from 'react-bootstrap/Badge';
-import { useApplication } from '../../../../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
+import { customPost ,customFetch} from '../../../../components/Auth/customFetch';
+import { useApplication } from '../../../../components/Auth/useApplicationContext';
 
 interface TemplateFormProps {
 	visible: boolean;

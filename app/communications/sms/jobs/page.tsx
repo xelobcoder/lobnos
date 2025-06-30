@@ -39,14 +39,15 @@ import Form from 'react-bootstrap/Form';
 import Tabs from 'react-bootstrap/Tabs';
 import Tab from 'react-bootstrap/Tab';
 import { toast } from 'react-toastify';
-import { customPost, customFetch } from '../../../../../components/Auth/customFetch';
-import { useApplication } from '../../../../../components/Auth/useApplicationContext';
-import Loader from '../../../../../components/accessories/Loader';
-import OrganizationFiltering from '../../../../../components/accessories/SectorFileringComponents/OrganizationFiltering';
-import ClinicianFiltering from '../../../../../components/accessories/SectorFileringComponents/ClinicianFiltering';
-import PatientFiltered from '../../../../../components/accessories/SectorFileringComponents/CustomerFiltering';
-import { RiDeleteBack2Line, RiDeleteBackFill, RiDeleteBin2Fill, RiDeleteBin3Fill, RiDeleteBinLine } from '@remixicon/react';
-import exp from 'constants';
+import { RiDeleteBinLine, RiDeleteBack2Line, RiDeleteBin2Fill, RiDeleteBin3Fill } from '@remixicon/react';
+import Loader from '../../../../components/accessories/Loader';
+import ClinicianFiltering from '../../../../components/accessories/SectorFileringComponents/ClinicianFiltering';
+import PatientFiltered from '../../../../components/accessories/SectorFileringComponents/CustomerFiltering';
+import OrganizationFiltering from '../../../../components/accessories/SectorFileringComponents/OrganizationFiltering';
+import { customFetch, customPost } from '../../../../components/Auth/customFetch';
+import { useApplication } from '../../../../components/Auth/useApplicationContext';
+
+
 
 const categoryOptions = [
 	{ label: 'Patient', value: 'patient' },
@@ -301,16 +302,16 @@ const SmsJobPage: React.FC = () => {
 			const res = await customPost('prime/sms-jobs', 'POST', payload);
 			if (res && res.jobId) {
 				toast.success('SMS job created!');
-				setForm({
-					templateId: '',
-					customBody: '',
-					category: '',
-					recipientScope: 'all',
-					targetIds: '',
-					sendType: 'immediate',
-					scheduledAt: '',
-				});
-				setSelectedRecipients({ category: '', recipients: [] });
+				// setForm({
+				// 	templateId: '',
+				// 	customBody: '',
+				// 	category: '',
+				// 	recipientScope: 'all',
+				// 	targetIds: '',
+				// 	sendType: 'immediate',
+				// 	scheduledAt: '',
+				// });
+				// setSelectedRecipients({ category: '', recipients: [] });
 			} else {
 				throw new Error('No jobId returned');
 			}

@@ -1,12 +1,13 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { customFetch, customPost } from '../../../../../components/Auth/customFetch';
-import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
-import Loader from '../../../../../components/accessories/Loader';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
 import TemplateFormModal from './TemplateFormModal';
 import { toast } from 'react-toastify';
+import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
+import Loader from '../../../../components/accessories/Loader';
+import { customPost,customFetch } from '../../../../components/Auth/customFetch';
 
 
 type TemplateCategory = 'patient' | 'clinician' | 'organization';
@@ -70,6 +71,11 @@ const SmsTemplatesPage: React.FC = () => {
      const [error, setError] = useState<string | null>(null);
      const [modalVisible, setModalVisible] = useState(false);
      const [editingTemplate, setEditingTemplate] = useState<SMSTemplate | null>(null);
+     const [confirmDelete, setConfirmDelete] = useState<{ show: boolean; templateId: string | null; templateName: string }>({
+          show: false,
+          templateId: null,
+          templateName: ''
+     });
 
      const loadTemplates = async () => {
           setLoading(true);
@@ -101,7 +107,7 @@ const SmsTemplatesPage: React.FC = () => {
                setEditingTemplate(data);
                setModalVisible(true);
           } catch (e: any) {
-               window.alert(e.message || 'Failed to load template');
+               toast.error(e.message || 'Failed to load template');
           } finally {
                setFormLoading(false);
           }
@@ -111,13 +117,28 @@ const SmsTemplatesPage: React.FC = () => {
           setLoading(true);
           try {
                await deleteTemplate(id);
-               window.alert('Template deleted');
+               toast.success('Template deleted successfully');
                loadTemplates();
           } catch (e: any) {
-               window.alert(e.message || 'Failed to delete template');
+               toast.error(e.message || 'Failed to delete template');
           } finally {
                setLoading(false);
+               setConfirmDelete({ show: false, templateId: null, templateName: '' });
           }
+     };
+
+     const showDeleteConfirmation = (id: string, name: string) => {
+          setConfirmDelete({ show: true, templateId: id, templateName: name });
+     };
+
+     const handleConfirmDelete = () => {
+          if (confirmDelete.templateId) {
+               handleDelete(confirmDelete.templateId);
+          }
+     };
+
+     const handleCancelDelete = () => {
+          setConfirmDelete({ show: false, templateId: null, templateName: '' });
      };
 
      const handleFormSubmit = async (status: boolean) => {
@@ -153,7 +174,7 @@ const SmsTemplatesPage: React.FC = () => {
                          </button>
                          <button
                               className="btn  text-danger p-0"
-                              onClick={() => window.confirm('Are you sure to delete this template?') && handleDelete(row.original.id)}
+                              onClick={() => showDeleteConfirmation(row.original.id, row.original.name)}
                          >
                               Delete
                          </button>
@@ -200,6 +221,27 @@ const SmsTemplatesPage: React.FC = () => {
                     initialValues={editingTemplate || undefined}
                     loading={formLoading}
                />
+               
+               {/* Delete Confirmation Modal */}
+               <Modal show={confirmDelete.show} onHide={handleCancelDelete} centered size="sm">
+                    <Modal.Header closeButton>
+                         <Modal.Title>Confirm Delete</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                         <p className="mb-0">
+                              Are you sure you want to delete the template <strong>"{confirmDelete.templateName}"</strong>?
+                         </p>
+                         <p className="text-muted small mt-2 mb-0">This action cannot be undone.</p>
+                    </Modal.Body>
+                    <Modal.Footer>
+                         <Button variant="secondary" onClick={handleCancelDelete}>
+                              Cancel
+                         </Button>
+                         <Button variant="danger" onClick={handleConfirmDelete}>
+                              Delete
+                         </Button>
+                    </Modal.Footer>
+               </Modal>
           </div>
      );
 };

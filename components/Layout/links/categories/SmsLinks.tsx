@@ -6,16 +6,15 @@ import {
     RiFileListLine,
     RiMessage2Line,
     RiErrorWarningLine,
-    RiHome2Line
+    RiHome2Line,
+    RiDashboardLine,
+    RiTeamLine
 } from '@remixicon/react';
 
-export const SmsLinks :Link[]=
-     [
-        { title: "Schedule SMS Campaign", link: "/communications/sms/schedule-sms-campaign", icon: <RiCalendarCheckLine /> },
-        { title: "Create SMS Template", link: "/communications/sms/create-sms-templates", icon: <RiFileAddLine /> },
-        { title: "SMS logs", link: "/communications/sms/smslogs", icon: <RiHistoryLine /> },
-        { title: "SMS Templates", link: "/communications/sms/sms-templates", icon: <RiFileListLine /> },
-        { title: "SMS Messages", link: "/communications/sms/smsmessages", icon: <RiMessage2Line /> },
-        { title: "UnResolved Messages", link: "/communications/sms/smsmessages/unresolved", icon: <RiErrorWarningLine /> },
-        {title:'Laboratory Lifecycle Events', link:"/communications/sms/laboratory-lifecycle-events", icon:<RiHistoryLine/>},
+export const SmsLinks: Link[] =
+    [
+        { title: "SMS Dashboard", link: "/communications/sms/dashboard", icon: <RiDashboardLine /> },
+        { title: "SMS Jobs", link: "/communications/sms/jobs/list", icon: <RiFileListLine /> },
+        { title: "Laboratory Lifecycle Events", link: "/communications/sms/laboratory-lifecycle-events", icon: <RiHistoryLine /> },
+        { title: "SMS Templates", link: "/communications/sms/templates", icon: <RiFileAddLine /> },
     ];

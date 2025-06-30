@@ -21,7 +21,7 @@ const JobTrendsTooltip = ({ active, payload, label }: any) => {
 
 import React, { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { customFetch } from '../../../../../components/Auth/customFetch';
+
 
 // --- ICONS (from @remixicons/react) ---
 import {
@@ -31,6 +31,7 @@ import {
 	RiTimeLine,
 	RiCloseCircleLine
 } from "@remixicon/react";
+import { customFetch } from "../../../../components/Auth/customFetch";
 
 // --- TYPE DEFINITIONS ---
 type PieData = { name: string; value: number };
@@ -198,7 +199,7 @@ export default function SmsDashboard() {
 				// Main status pie
 				const res = await customFetch('prime/sms-analytics/job-status-counts');
 				// Recipient delivery breakdown pie
-				const recRes = await customFetch('api/v1/prime/sms-analytics/recipient-delivery-counts');
+				const recRes = await customFetch('prime/sms-analytics/recipient-delivery-counts');
 				// Job trends by day (with date range)
 				let trendsRes;
 				if (trendStart && trendEnd) {
@@ -299,6 +300,7 @@ export default function SmsDashboard() {
 			tick: { fontSize: 11, fill: '#6c757d' },
 			axisLine: { stroke: '#dee2e6' },
 			tickLine: { stroke: '#dee2e6' },
+			tickFormatter: (value: string) => formatDate(value),
 		};
 		const yAxisProps = {
 			tick: { fontSize: 11, fill: '#6c757d' },
@@ -371,10 +373,13 @@ export default function SmsDashboard() {
 	};
 
 	// --- Trend Table ---
-	// Format date as readable (e.g., Jun 29, 2025)
+	// Format date as yyyy-mmm-dd (e.g., 2025-Jun-29)
 	const formatDate = (dateStr: string) => {
 		const d = new Date(dateStr);
-		return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+		const year = d.getFullYear();
+		const month = d.toLocaleDateString(undefined, { month: 'short' });
+		const day = d.getDate().toString().padStart(2, '0');
+		return `${year}-${month}-${day}`;
 	};
 
 	const renderTrendTable = () => (
@@ -432,7 +437,7 @@ export default function SmsDashboard() {
 				<div className="col-md-6">
 					<div className="card h-100">
 						<div className="card-header bg-white border-bottom-0 pt-3">
-							<h3 className="h5 fw-semibold text-dark mb-0">Status Distribution</h3>
+							<h3 className="h5 fw-semibold text-dark mb-0">SMS Jobs Status Distribution</h3>
 						</div>
 						<div className="card-body pt-0">
 							{totalPieData > 0 ? (
