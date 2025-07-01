@@ -8,6 +8,7 @@ import { customFetch, customPost } from "../../../../components/Auth/customFetch
 import { toast } from 'react-toastify';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
 import styles from './LaboratorySMSLifecycle.module.css';
+import EditTemplateModal from './EditTemplateModal';
 
 interface Event {
     eventid: number;
@@ -24,11 +25,38 @@ export default function LaboratorySMSLifecycle() {
     const [events, setEvents] = useState<Event[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
-    const [editingEvent, setEditingEvent] = useState<{ eventId: number; code: string; content: string; description: string; category: string } | null>(null);
+    const [editingEvent, setEditingEvent] = useState<(Event & { placeholders?: string[] }) | null>(null);
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [placeholders, setPlaceholders] = useState<{ [key: string]: string[] }>({});
     const [selectedPlaceholder, setSelectedPlaceholder] = useState('');
     const [usedPlaceholders, setUsedPlaceholders] = useState<string[]>([]);
+    const [placeholdersLoading, setPlaceholdersLoading] = useState<boolean>(false);
+
+    const extractPlaceholdersFromEvents = useCallback((events: Event[]) => {
+        const placeholdersByCategory: { [key: string]: string[] } = {
+            patient: [],
+            clinician: [],
+            organization: []
+        };
+
+        events.forEach(event => {
+            const placeholderPattern = /\{\{([^}]+)\}\}/g;
+            const matches = event.content.match(placeholderPattern) || [];
+            
+            matches.forEach(match => {
+                if (!placeholdersByCategory[event.category].includes(match)) {
+                    placeholdersByCategory[event.category].push(match);
+                }
+            });
+        });
+
+        // Sort placeholders alphabetically for each category
+        Object.keys(placeholdersByCategory).forEach(category => {
+            placeholdersByCategory[category].sort();
+        });
+
+        setPlaceholders(placeholdersByCategory);
+    }, []);
 
     const fetchTemplates = useCallback(async () => {
         setIsLoading(true);
@@ -37,6 +65,8 @@ export default function LaboratorySMSLifecycle() {
             const response = await customFetch(`sms/events`);
             if (response && response.success && Array.isArray(response.data)) {
                 setEvents(response.data);
+                // Extract placeholders from the actual event content
+                extractPlaceholdersFromEvents(response.data);
             } else {
                 setError("Failed to load SMS events");
             }
@@ -46,7 +76,7 @@ export default function LaboratorySMSLifecycle() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [extractPlaceholdersFromEvents]);
 
     const toggleEventStatus = useCallback(async (eventId: number, currentStatus: number) => {
         try {
@@ -95,20 +125,18 @@ export default function LaboratorySMSLifecycle() {
         }
     }, []);
 
-    const handleEditTemplate = (eventId: number, code: string, content: string, description: string, category: string) => {
-        setEditingEvent({ eventId, code, content, description, category });
-        setUsedPlaceholders([]);
+    const handleEditTemplate = (eventId: number) => {
+        const event = events.find(e => e.eventid === eventId);
+        if (!event) return;
+        setEditingEvent(event);
         setSelectedPlaceholder('');
         setShowEditModal(true);
         
-        customFetch('prime/sms-category-mappings-with-placeholders').then((data) => {
-            if (data && typeof data === 'object' && data.patient) {
-                setPlaceholders(data);
-            } else {
-                setPlaceholders({});
-                console.error('Invalid placeholders data from backend:', data);
-            }
-        });
+        // Extract placeholders already in the content
+        const placeholderPattern = /\{\{[^}]+\}\}/g;
+        const currentPlaceholders = event.content.match(placeholderPattern) || [];
+        const uniquePlaceholders = Array.from(new Set(currentPlaceholders));
+        setUsedPlaceholders(uniquePlaceholders);
     };
 
     const handleSaveTemplate = () => {
@@ -126,27 +154,50 @@ export default function LaboratorySMSLifecycle() {
 
     const handlePlaceholderClick = (placeholder: string) => {
         if (placeholder && editingEvent) {
+            const newContent = editingEvent.content + (editingEvent.content && !editingEvent.content.endsWith(' ') ? ' ' : '') + placeholder;
+            
             setEditingEvent((prev) => prev ? ({ 
                 ...prev, 
-                content: prev.content + (prev.content && !prev.content.endsWith(' ') ? ' ' : '') + placeholder 
+                content: newContent
             }) : null);
-            setUsedPlaceholders((prev) => prev.includes(placeholder) ? prev : [...prev, placeholder]);
+            
+            // Re-scan content for all placeholders
+            const placeholderPattern = /\{\{[^}]+\}\}/g;
+            const allPlaceholders = newContent.match(placeholderPattern) || [];
+            const uniquePlaceholders = Array.from(new Set(allPlaceholders));
+            setUsedPlaceholders(uniquePlaceholders);
         }
     };
 
     const handleRemovePlaceholder = (placeholderToRemove: string) => {
         if (placeholderToRemove && editingEvent) {
+            const updatedContent = editingEvent.content.replace(placeholderToRemove, '').replace(/\s+/g, ' ').trim();
+            
             setEditingEvent((prev) => prev ? ({ 
                 ...prev, 
-                content: prev.content.replace(placeholderToRemove, '').replace(/\s+/g, ' ').trim()
+                content: updatedContent
             }) : null);
             
-            setUsedPlaceholders((prev) => {
-                const updatedContent = editingEvent.content.replace(placeholderToRemove, '').replace(/\s+/g, ' ').trim();
-                const stillExists = updatedContent.includes(placeholderToRemove);
-                return stillExists ? prev : prev.filter(ph => ph !== placeholderToRemove);
-            });
+            // Re-scan content for remaining placeholders
+            const placeholderPattern = /\{\{[^}]+\}\}/g;
+            const remainingPlaceholders = updatedContent.match(placeholderPattern) || [];
+            const uniqueRemaining = Array.from(new Set(remainingPlaceholders));
+            setUsedPlaceholders(uniqueRemaining);
         }
+    };
+
+    const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const newContent = e.target.value;
+        setEditingEvent({
+            ...editingEvent!,
+            content: newContent
+        });
+        
+        // Re-scan content for placeholders when user types
+        const placeholderPattern = /\{\{[^}]+\}\}/g;
+        const foundPlaceholders = newContent.match(placeholderPattern) || [];
+        const uniquePlaceholders = Array.from(new Set(foundPlaceholders));
+        setUsedPlaceholders(uniquePlaceholders);
     };
 
     const handlePlaceholderSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -248,10 +299,10 @@ export default function LaboratorySMSLifecycle() {
                         >
                             {event.active === 1 ? 'Deactivate' : 'Activate'}
                         </button>
-                        {editingEvent?.eventId !== event.eventid && (
+                        {editingEvent?.eventid !== event.eventid && (
                             <button
                                 className="btn btn-sm btn-outline-primary"
-                                onClick={() => handleEditTemplate(event.eventid, event.code, event.content, event.description, event.category)}
+                                onClick={() => handleEditTemplate(event.eventid)}
                             >
                                 Edit Template
                             </button>
@@ -316,125 +367,20 @@ export default function LaboratorySMSLifecycle() {
             </div>
 
             {/* Edit Template Modal */}
-            <Modal show={showEditModal} onHide={handleCancelEdit} size="lg" backdrop="static" centered>
-                <Modal.Header closeButton>
-                    <Modal.Title>Edit SMS Template</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    {editingEvent && (
-                        <div className="row">
-                            <div className="col-md-6 border-end">
-                                <div className="mb-3">
-                                    <label className="form-label fw-bold">Event:</label>
-                                    <div className="d-flex align-items-center gap-2">
-                                        <code className="text-primary">{editingEvent.code}</code>
-                                        <span className="text-muted">- {editingEvent.description}</span>
-                                    </div>
-                                </div>
-                                <div className="mb-3">
-                                    <label htmlFor="templateContent" className="form-label fw-bold">
-                                        SMS Template Content:
-                                    </label>
-                                    <textarea
-                                        id="templateContent"
-                                        className="form-control"
-                                        rows={8}
-                                        value={editingEvent.content}
-                                        onChange={(e) => setEditingEvent({
-                                            ...editingEvent,
-                                            content: e.target.value
-                                        })}
-                                        placeholder="Enter your SMS template content here..."
-                                    />
-                                    <div className="form-text">
-                                        You can use placeholders like <code>{'{{firstname}}'}</code>, <code>{'{{companyname}}'}</code>, etc.
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Insert Placeholder (Dropdown)</Form.Label>
-                                    <Form.Select
-                                        value={selectedPlaceholder}
-                                        onChange={handlePlaceholderSelect}
-                                    >
-                                        <option value="">Select placeholder to insert</option>
-                                        {(placeholders[editingEvent.category] || []).map((ph) => (
-                                            <option key={ph} value={ph}>{ph}</option>
-                                        ))}
-                                    </Form.Select>
-                                </Form.Group>
-                                
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Available Placeholders (Click to Add)</Form.Label>
-                                    <div className="border rounded p-2 bg-light" style={{ maxHeight: '120px', overflowY: 'auto' }}>
-                                        {(placeholders[editingEvent.category] || []).length > 0 ? (
-                                            <div className="d-flex flex-wrap gap-1">
-                                                {(placeholders[editingEvent.category] || []).map((ph) => (
-                                                    <Badge 
-                                                        key={ph} 
-                                                        bg="primary" 
-                                                        className="cursor-pointer user-select-none"
-                                                        style={{ cursor: 'pointer' }}
-                                                        onClick={() => handlePlaceholderClick(ph)}
-                                                        title={`Click to add ${ph} to your message`}
-                                                    >
-                                                        {ph}
-                                                    </Badge>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <span className="text-muted">No placeholders available for this category</span>
-                                        )}
-                                    </div>
-                                    <small className="text-muted">Click any placeholder above to add it to your message body</small>
-                                </Form.Group>
-                                
-                                <div className="mb-3">
-                                    <label className="form-label fw-bold">Preview:</label>
-                                    <div className="border rounded p-3 bg-light">
-                                        <small className="text-muted">SMS Preview:</small>
-                                        <div className="mt-1">{editingEvent.content || 'No content entered'}</div>
-                                    </div>
-                                </div>
-                                
-                                <div className="mb-3">
-                                    <Form.Label>Used Placeholders (Click to Remove)</Form.Label>
-                                    <div>
-                                        {usedPlaceholders.length > 0 ? (
-                                            usedPlaceholders.map((ph) => (
-                                                <Badge 
-                                                    bg="info" 
-                                                    key={ph} 
-                                                    className="me-1 mb-1 cursor-pointer user-select-none"
-                                                    style={{ cursor: 'pointer' }}
-                                                    onClick={() => handleRemovePlaceholder(ph)}
-                                                    title={`Click to remove ${ph} from your message`}
-                                                >
-                                                    {ph} ×
-                                                </Badge>
-                                            ))
-                                        ) : (
-                                            <span className="text-muted">No placeholders used yet</span>
-                                        )}
-                                    </div>
-                                    <small className="text-muted">
-                                        {usedPlaceholders.length > 0 ? 'Click any placeholder above to remove it from your message' : ''}
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCancelEdit}>
-                        Cancel
-                    </Button>
-                    <Button variant="primary" onClick={handleSaveTemplate}>
-                        Save Template
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            <EditTemplateModal
+                showEditModal={showEditModal}
+                handleCancelEdit={handleCancelEdit}
+                handleSaveTemplate={handleSaveTemplate}
+                editingEvent={editingEvent}
+                selectedPlaceholder={selectedPlaceholder}
+                handlePlaceholderSelect={handlePlaceholderSelect}
+                placeholdersLoading={placeholdersLoading}
+                usedPlaceholders={usedPlaceholders}
+                handlePlaceholderClick={handlePlaceholderClick}
+                handleRemovePlaceholder={handleRemovePlaceholder}
+                handleContentChange={handleContentChange}
+                placeholders={editingEvent?.placeholders || []}
+            />
         </div>
     );
 }
