@@ -468,6 +468,26 @@ export const handleServerProcessingSmsJobs = async (pagination: { page: number, 
 	}
 }
 
+export const handleServerProcessingSmsTemplates = async (pagination: { page: number, count: number }) => {
+	const { page, count } = pagination;
+	try {
+		const response = await customFetch(`prime/sms-templates-paginated?page=${page}&&count=${count}`);
+		if (response && Array.isArray(response.templates)) {
+			const data = response.templates.map((item) => ({
+				id: String(item.templateid),
+				name: item.name,
+				body: item.body,
+				category: item.category,
+				createdBy: item.createdbyname || String(item.createdby),
+				createdAt: item.createdat,
+			}));
+			return { result: data, error: false };
+		}
+		return { result: [], error: false };
+	} catch (err) {
+		return { result: [], error: true };
+	}
+}
 
 
 export const handleUserLogin = async (formData) => {

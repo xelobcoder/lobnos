@@ -10,7 +10,7 @@ import { useApplication } from '../../../../components/Auth/useApplicationContex
 interface TemplateFormProps {
 	visible: boolean;
 	onCancel: () => void;
-	onSubmit: (values: any) => Promise<void>;
+	onSubmit: (success: boolean) => Promise<void>;
 	initialValues?: Partial<any>;
 	loading: boolean;
 }
@@ -51,12 +51,37 @@ const TemplateFormModal: React.FC<TemplateFormProps> = ({ visible, onCancel, onS
 		setForm({ ...form, [e.target.name]: e.target.value });
 	};
 
+	const handlePlaceholderClick = (placeholder: string) => {
+		if (placeholder && canEditBody) {
+			setForm((prev) => ({ 
+				...prev, 
+				body: prev.body + (prev.body && !prev.body.endsWith(' ') ? ' ' : '') + placeholder 
+			}));
+			setUsedPlaceholders((prev) => prev.includes(placeholder) ? prev : [...prev, placeholder]);
+		}
+	};
+
+	const handleRemovePlaceholder = (placeholderToRemove: string) => {
+		if (placeholderToRemove && canEditBody) {
+			setForm((prev) => ({ 
+				...prev, 
+				body: prev.body.replace(placeholderToRemove, '').replace(/\s+/g, ' ').trim()
+			}));
+			
+			setUsedPlaceholders((prev) => {
+				const updatedBody = form.body.replace(placeholderToRemove, '').replace(/\s+/g, ' ').trim();
+				const stillExists = updatedBody.includes(placeholderToRemove);
+				return stillExists ? prev : prev.filter(ph => ph !== placeholderToRemove);
+			});
+		}
+	};
+
 	const handlePlaceholderSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const ph = e.target.value;
 		setSelectedPlaceholder(ph);
 		if (ph) {
-			setForm((prev) => ({ ...prev, body: prev.body + (prev.body ? ' ' : '') + ph }));
-			setUsedPlaceholders((prev) => prev.includes(ph) ? prev : [...prev, ph]);
+			handlePlaceholderClick(ph);
+			setSelectedPlaceholder(''); 
 		}
 	};
 
@@ -81,10 +106,18 @@ const handleSubmit = async (e: React.FormEvent) => {
 		createdBy: employeeid,
 	};
 	try {
-		await customPost('prime/sms-templates','POST', payload);
-		onSubmit(payload);
+		const response = await customPost('prime/sms-templates','POST', payload);
+		if (response && response.id) {
+			toast.success('SMS template saved successfully!');
+			onSubmit(true);
+		} else {
+			toast.error('Failed to save SMS template - Invalid response');
+			onSubmit(false);
+		}
 	} catch (err) {
 		console.error('Failed to create template', err);
+		toast.error('Failed to save SMS template');
+		onSubmit(false);
 	} finally {
 		setSaving(false);
 	}
@@ -110,7 +143,6 @@ const handleSubmit = async (e: React.FormEvent) => {
 				</Modal.Header>
 				<Modal.Body>
 					<div className="row">
-						{/* Left column: Form */}
 						<div className="col-md-6 border-end">
 							<Form.Group className="mb-3">
 								<Form.Label>Name</Form.Label>
@@ -137,21 +169,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 									<option value="organization">Organization</option>
 								</Form.Select>
 							</Form.Group>
-							{form.category && (
-								<Form.Group className="mb-3">
-									<Form.Label>Insert Placeholder</Form.Label>
-									<Form.Select
-										value={selectedPlaceholder}
-										onChange={handlePlaceholderSelect}
-										disabled={loading || !canEditBody}
-									>
-										<option value="">Select placeholder</option>
-										{currentPlaceholders.map((ph) => (
-											<option key={ph} value={ph}>{ph}</option>
-										))}
-									</Form.Select>
-								</Form.Group>
-							)}
+							
 							<Form.Group className="mb-3">
 								<Form.Label>Body</Form.Label>
 								<Form.Control
@@ -159,30 +177,84 @@ const handleSubmit = async (e: React.FormEvent) => {
 									name="body"
 									value={form.body}
 									onChange={handleChange}
-									rows={4}
+									rows={6}
 									required
 									disabled={!canEditBody || loading}
 									placeholder={canEditBody ? 'Enter message body. Use placeholders as needed.' : 'Select a category first'}
 								/>
 							</Form.Group>
 						</div>
-						{/* Right column: Preview and Used Placeholders */}
 						<div className="col-md-6">
+							<Form.Group className="mb-3">
+								<Form.Label>Insert Placeholder (Dropdown)</Form.Label>
+								<Form.Select
+									value={selectedPlaceholder}
+									onChange={handlePlaceholderSelect}
+									disabled={loading || !canEditBody}
+								>
+									<option value="">{!form.category ? 'Select a category first' : 'Select placeholder to insert'}</option>
+									{currentPlaceholders.map((ph) => (
+										<option key={ph} value={ph}>{ph}</option>
+									))}
+								</Form.Select>
+							</Form.Group>
+							
+							<Form.Group className="mb-3">
+								<Form.Label>Available Placeholders (Click to Add)</Form.Label>
+								<div className="border rounded p-2 bg-light" style={{ maxHeight: '120px', overflowY: 'auto' }}>
+									{!form.category ? (
+										<span className="text-muted">Select a category to see available placeholders</span>
+									) : currentPlaceholders.length > 0 ? (
+										<div className="d-flex flex-wrap gap-1">
+											{currentPlaceholders.map((ph) => (
+												<Badge 
+													key={ph} 
+													bg="primary" 
+													className="cursor-pointer user-select-none"
+													style={{ cursor: 'pointer' }}
+													onClick={() => handlePlaceholderClick(ph)}
+													title={`Click to add ${ph} to your message`}
+												>
+													{ph}
+												</Badge>
+											))}
+										</div>
+									) : (
+										<span className="text-muted">No placeholders available for this category</span>
+									)}
+								</div>
+								<small className="text-muted">
+									{form.category ? 'Click any placeholder above to add it to your message body' : 'Select a category first to see clickable placeholders'}
+								</small>
+							</Form.Group>
+							
 							<div className="mb-3">
 								<Form.Label>Example Preview</Form.Label>
 								<div className="border rounded p-2 bg-light text-secondary" style={{ minHeight: 40 }}>{form.body ? preview : <span className="text-muted">Message preview will appear here</span>}</div>
 							</div>
 							<div className="mb-3">
-								<Form.Label>Used Placeholders</Form.Label>
+								<Form.Label>Used Placeholders (Click to Remove)</Form.Label>
 								<div>
 									{usedPlaceholders.length > 0 ? (
 										usedPlaceholders.map((ph) => (
-											<Badge bg="info" key={ph} className="me-1 mb-1">{ph}</Badge>
+											<Badge 
+												bg="info" 
+												key={ph} 
+												className="me-1 mb-1 cursor-pointer user-select-none"
+												style={{ cursor: 'pointer' }}
+												onClick={() => handleRemovePlaceholder(ph)}
+												title={`Click to remove ${ph} from your message`}
+											>
+												{ph} ×
+											</Badge>
 										))
 									) : (
 										<span className="text-muted">No placeholders used yet</span>
 									)}
 								</div>
+								<small className="text-muted">
+									{usedPlaceholders.length > 0 ? 'Click any placeholder above to remove it from your message' : ''}
+								</small>
 							</div>
 						</div>
 					</div>

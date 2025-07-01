@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
 import Loader from '../../../../components/accessories/Loader';
 import { customPost,customFetch } from '../../../../components/Auth/customFetch';
+import { handleServerProcessingSmsTemplates } from '../../../../components/serverActions/ActionFiltering';
 
 
 type TemplateCategory = 'patient' | 'clinician' | 'organization';
@@ -92,7 +93,6 @@ const SmsTemplatesPage: React.FC = () => {
 
      useEffect(() => {
           loadTemplates();
-          // eslint-disable-next-line react-hooks/exhaustive-deps
      }, []);
 
      const handleCreate = () => {
@@ -212,7 +212,7 @@ const SmsTemplatesPage: React.FC = () => {
                     data={templates}
                     column={columns}
                     serverSideFiltering={true}
-                    handleSeverSideProcessing={null}
+                    handleSeverSideProcessing={handleServerProcessingSmsTemplates}
                />
                <TemplateFormModal
                     visible={modalVisible}
