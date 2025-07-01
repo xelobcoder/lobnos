@@ -154,13 +154,12 @@ export default function LaboratorySMSLifecycle() {
 
     const handlePlaceholderClick = (placeholder: string) => {
         if (placeholder && editingEvent) {
-            const newContent = editingEvent.content + (editingEvent.content && !editingEvent.content.endsWith(' ') ? ' ' : '') + placeholder;
-            
-            setEditingEvent((prev) => prev ? ({ 
-                ...prev, 
+            const wrapped = `{{${placeholder}}}`;
+            const newContent = editingEvent.content + (editingEvent.content && !editingEvent.content.endsWith(' ') ? ' ' : '') + wrapped;
+            setEditingEvent((prev) => prev ? ({
+                ...prev,
                 content: newContent
             }) : null);
-            
             // Re-scan content for all placeholders
             const placeholderPattern = /\{\{[^}]+\}\}/g;
             const allPlaceholders = newContent.match(placeholderPattern) || [];

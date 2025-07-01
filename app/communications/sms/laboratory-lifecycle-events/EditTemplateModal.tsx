@@ -35,6 +35,13 @@ export default function EditTemplateModal({
     handleContentChange,
     placeholders
 }: EditTemplateModalProps) {
+    // Add state and filter logic at the top of the component
+    const [filterText, setFilterText] = React.useState('');
+    const filteredPlaceholders = React.useMemo(() => {
+        if (!placeholders) return [];
+        if (!filterText) return placeholders;
+        return placeholders.filter((ph: string) => ph.toLowerCase().includes(filterText.toLowerCase()));
+    }, [placeholders, filterText]);
     return (
         <Modal show={showEditModal} onHide={handleCancelEdit} size="xl" backdrop="static" centered>
             <Modal.Header closeButton>
@@ -86,21 +93,33 @@ export default function EditTemplateModal({
                             </Form.Group>
                             <Form.Group className="mb-3">
                                 <Form.Label>Available Placeholders (Click to Add)</Form.Label>
-                                <div className="border rounded p-2 bg-light" style={{ maxHeight: '120px', overflowY: 'auto' }}>
+                                <div className="mb-2">
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Search placeholders..."
+                                        size="sm"
+                                        className="mb-2"
+                                        onChange={e => setFilterText(e.target.value)}
+                                        value={filterText}
+                                        disabled={placeholdersLoading || !placeholders || placeholders.length === 0}
+                                        style={{ maxWidth: 300 }}
+                                    />
+                                </div>
+                                <div className="border rounded p-2 bg-light" >
                                     {placeholdersLoading ? (
                                         <div className="text-center text-muted">
                                             <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
                                             Loading placeholders...
                                         </div>
                                     ) : (
-                                        placeholders && placeholders.length > 0 ? (
+                                        filteredPlaceholders.length > 0 ? (
                                             <div className="d-flex flex-wrap gap-1">
-                                                {placeholders.map((ph: string) => (
+                                                {filteredPlaceholders.map((ph: string) => (
                                                     <Badge
                                                         key={ph}
                                                         bg="primary"
-                                                        className="cursor-pointer user-select-none"
-                                                        style={{ cursor: 'pointer' }}
+                                                        className="cursor-pointer user-select-none placeholder-pill"
+                                                        style={{ cursor: 'pointer', fontSize: '0.95em', padding: '0.45em 0.8em', borderRadius: '1em', transition: 'background 0.2s' }}
                                                         onClick={() => handlePlaceholderClick(ph)}
                                                         title={`Click to add ${ph} to your message`}
                                                     >
@@ -109,13 +128,20 @@ export default function EditTemplateModal({
                                                 ))}
                                             </div>
                                         ) : (
-                                            <span className="text-muted">No placeholders available for this event</span>
+                                            <div className="text-center text-muted py-2" style={{ fontStyle: 'italic' }}>
+                                                <span>No placeholders found</span>
+                                            </div>
                                         )
                                     )}
                                 </div>
                                 <small className="text-muted">
                                     {!placeholdersLoading && 'Click any placeholder above to add it to your message body'}
                                 </small>
+                                <style jsx>{`
+                                    .placeholder-pill:hover {
+                                        background: #0d6efdcc !important;
+                                    }
+                                `}</style>
                             </Form.Group>
                             <div className="mb-3">
                                 <label className="form-label fw-bold">Preview:</label>
