@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useState } from "react";
+import Spinner from 'react-bootstrap/Spinner';
 import { currencyFormatter, customFetch, customPost } from "../../Auth/customFetch";
 import { RefundAdminViewType } from "../../sms/type";
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
@@ -24,8 +25,9 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 	const [loading, setLoading] = useState<boolean>(false);
 	const [modalShow, setModalShow] = useState<boolean>(false);
 	const [selectedMessage, setSelectedMessage] = useState<string>("");
+	const [confirmModal, setConfirmModal] = useState<{ show: boolean, item: RefundAdminViewType | null, action: 'approve' | 'revoke' | null }>({ show: false, item: null, action: null });
+	const [actionLoading, setActionLoading] = useState(false);
 	const router = useRouter();
-
 
 	const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		const newStatus = e.target.value;
@@ -33,6 +35,7 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 	};
 
 	const handleApprove = async (item: RefundAdminViewType, isApprove = 0) => {
+		setActionLoading(true);
 		const { serviceid } = item;
 		const requestData = { serviceid, employeeid, isApprove };
 		try {
@@ -42,6 +45,8 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 				requestData
 			);
 			const { status: success, message } = response;
+			setActionLoading(false);
+			setConfirmModal({ show: false, item: null, action: null });
 			if (success) {
 				toast.success(isApprove == 1 ? "Refund Approved successfully" : "Refund Revoked successfully");
 				setData((prev) => prev.filter((entry) => entry !== item));
@@ -49,8 +54,15 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 				toast.error(message || "Action failed");
 			}
 		} catch {
+			setActionLoading(false);
+			setConfirmModal({ show: false, item: null, action: null });
 			toast.error("Error processing approval");
 		}
+	};
+
+	const handleConfirmAction = () => {
+		if (!confirmModal.item || !confirmModal.action) return;
+		handleApprove(confirmModal.item, confirmModal.action === 'approve' ? 1 : 0);
 	};
 
 
@@ -74,16 +86,11 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 		}
 
 
-		if (status ) getStatusChangeData(status);
+		if (status) getStatusChangeData(status);
 
-	}, [ status]);
+	}, [status]);
 
 	const columns = [
-		{
-			Header: 'serviceid',
-			accessor: 'serviceid',
-			width: 120
-		},
 		{
 			Header: "Category",
 			accessor: "serviceCategory",
@@ -91,53 +98,46 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 			Cell: ({ value, row }) => (
 				<div>
 					<span>{row.original.serviceName}</span>
-					<span>({value})</span>
+					<span> ({value})</span>
 				</div>
 			)
 		},
-		// Witness 1
 		{
-			Header: "Wit.. 1",
-			accessor: "witnesses[0].name",
-			width: 150,
-			Cell: ({ value }: { value: string | null }) => value || "N/A",
-		},
-		{
-			Header: "Wit.. 1 Message",
-			accessor: "witnesses[0].message",
-			width: 250,
-			Cell: ({ value }: { value: string | null }) => (
-				<MessageCell value={value} onView={handleViewMessage} />
-			),
-		},
-		// Witness 2
-		{
-			Header: "Wit.. 2",
-			accessor: "witnesses[1].name",
-			width: 150,
-			Cell: ({ value }: { value: string | null }) => value || "N/A",
-		},
-		{
-			Header: "Wit.. 2 Message",
-			accessor: "witnesses[1].message",
-			width: 250,
-			Cell: ({ value }: { value: string | null }) => (
-				<MessageCell value={value} onView={handleViewMessage} />
+			Header: "View Witnesses",
+			accessor: "witnesses",
+			width: 160,
+			disableSortBy: true,
+			Cell: ({ row }) => (
+				<button
+					className="btn btn-outline-info btn-sm"
+					onClick={() => handleViewWitnesses(row.original.witnesses)}
+				>
+					View Witnesses
+				</button>
 			),
 		},
 		{
 			Header: "Cost",
 			accessor: "cost",
-			Cell: ({ value }: { value: number }) => currencyFormatter.format(value),
+			Cell: ({ value }: { value: string }) => currencyFormatter.format(parseFloat(value)),
 		},
 		{
 			Header: "Tax",
 			accessor: "amountIncurredDueTax",
-			Cell: ({ value }: { value: number }) => currencyFormatter.format(value),
+			Cell: ({ value }: { value: string }) => currencyFormatter.format(parseFloat(value)),
+		},
+		{
+			Header: "Amount Refunded",
+			accessor: "amountRefunded",
+			Cell: ({ value }: { value: string }) => currencyFormatter.format(parseFloat(value)),
 		},
 		{
 			Header: "Billed By",
 			accessor: "billedby",
+		},
+		{
+			Header: 'Refunded By',
+			accessor: 'refundedby',
 		},
 		{
 			Header: "Status",
@@ -157,14 +157,14 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 					<button
 						disabled={row.original.isRefundApproved}
 						className="btn btn-sm btn-primary"
-						onClick={() => handleApprove(row.original, 1)}
+						onClick={() => setConfirmModal({ show: true, item: row.original, action: 'approve' })}
 					>
 						Approve
 					</button>
 					{
 						(row.original.isRefundCompleted == 0 && row.original.isRefundApproved == 1) &&
 						<button
-							onClick={(ev) => { handleApprove(row.original, 0) }}
+							onClick={() => setConfirmModal({ show: true, item: row.original, action: 'revoke' })}
 							className="btn btn-danger btn-sm">Revoke </button>
 					}
 				</div>
@@ -173,6 +173,15 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 	];
 
 
+
+	// Witness Modal State
+	const [witnessModalShow, setWitnessModalShow] = useState(false);
+	const [witnessesToShow, setWitnessesToShow] = useState<Witness[]>([]);
+
+	const handleViewWitnesses = (witnesses: Witness[]) => {
+		setWitnessesToShow(witnesses);
+		setWitnessModalShow(true);
+	};
 
 	const handleViewMessage = (message: string) => {
 		setSelectedMessage(message);
@@ -191,9 +200,9 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 
 	return (
 		<div>
-			<section className="d-flex justify-content-between mb-3">
+			<section className="d-flex justify-content-between ">
 				<div className="col-2">
-					<select className="custom-select" value={status} onChange={(ev) =>  {setStatus(ev.target.value as "pending" | "completed")}}>
+					<select className="custom-select" value={status} onChange={(ev) => { setStatus(ev.target.value as "pending" | "completed") }}>
 						<option value="pending">Pending Refund</option>
 						<option value="completed">Completed Refund</option>
 					</select>
@@ -223,6 +232,36 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 				)}
 			</div>
 
+
+			{/* Witnesses Modal */}
+			<Modal show={witnessModalShow} onHide={() => setWitnessModalShow(false)} backdrop="static" >
+				<Modal.Header className="bg-secondary-subtle" closeButton>
+					<Modal.Title>Witnesses</Modal.Title>
+				</Modal.Header>
+				<Modal.Body style={{ maxHeight: "70vh", overflowY: "auto" }}>
+					{witnessesToShow && witnessesToShow.length > 0 ? (
+						<div>
+							{witnessesToShow.map((wit, idx) => (
+								<div key={idx} className="mb-3 p-2 border rounded bg-light">
+									<div><b>Name:</b> {wit.name || 'N/A'}</div>
+									<div><b>Message:</b> {wit.message ? (
+										wit.message.length > 100 ? (
+											<span>{wit.message.substring(0, 100)}... <span style={{ color: '#007bff', cursor: 'pointer' }} onClick={() => handleViewMessage(wit.message)}>View Full</span></span>
+										) : wit.message
+									) : 'N/A'}</div>
+								</div>
+							))}
+						</div>
+					) : <div>No witnesses available.</div>}
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={() => setWitnessModalShow(false)}>
+						Close
+					</Button>
+				</Modal.Footer>
+			</Modal>
+
+			{/* Message Modal */}
 			<Modal show={modalShow} onHide={handleCloseModal} backdrop="static" size="lg">
 				<Modal.Header className="bg-secondary-subtle" closeButton>
 					<Modal.Title>Full Message</Modal.Title>
@@ -235,6 +274,28 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 				<Modal.Footer>
 					<Button variant="secondary" onClick={handleCloseModal}>
 						Close
+					</Button>
+				</Modal.Footer>
+			</Modal>
+
+			{/* Confirm Approve/Revoke Modal */}
+			<Modal show={confirmModal.show} onHide={() => setConfirmModal({ show: false, item: null, action: null })} backdrop="static" centered>
+				<Modal.Header closeButton>
+					<Modal.Title>{confirmModal.action === 'approve' ? 'Approve Refund' : 'Revoke Refund'}</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					{confirmModal.action === 'approve' ? (
+						<p>Are you sure you want to <b>approve</b> this refund?</p>
+					) : (
+						<p>Are you sure you want to <b>revoke</b> this refund approval?</p>
+					)}
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={() => setConfirmModal({ show: false, item: null, action: null })} disabled={actionLoading}>
+						Cancel
+					</Button>
+					<Button variant={confirmModal.action === 'approve' ? 'primary' : 'danger'} onClick={handleConfirmAction} disabled={actionLoading}>
+						{actionLoading ? <Spinner size="sm" animation="border" /> : (confirmModal.action === 'approve' ? 'Approve' : 'Revoke')}
 					</Button>
 				</Modal.Footer>
 			</Modal>

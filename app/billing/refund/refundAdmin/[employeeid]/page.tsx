@@ -34,8 +34,8 @@ export default async function RefundAdminPage({ params, searchParams }: {
     }
 
     return (
-        <div className="container-fluid mt-4" style={{ overflowX: "auto" }}>
-            <h2 className="mb-4">Refund Administration</h2>
+        <div className="container-fluid p-1" style={{ overflowX: "auto", fontSize: '0.95rem' }}>
+            <h2 className="mb-4" style={{ fontSize: '1.2rem' }}>Refund Administration</h2>
             <RefundAdmin initData={result} employeeid={employeeid} currentStatus={status || 'pending'} />
         </div>
     );

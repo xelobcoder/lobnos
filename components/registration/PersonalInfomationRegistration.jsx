@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useState } from "react";
+import { Modal, Button } from 'react-bootstrap';
 import { useForm, FormProvider } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { customFetch, customPost } from "../Auth/customFetch";
@@ -8,6 +9,7 @@ import PersonalRegistrationForms from "./PersonalRegistrationForms/PersonalRegis
 import AdditionalPersonalInformation from "./PersonalRegistrationForms/AdditionalPersonalInformation";
 import { handleAgeCalculations } from "../Auth/registerclient";
 import { buildPersonalInformationSchema } from "./validationSchema";
+import { plsEncryption } from "../../lib/encryption";
 
 
 export default function PersonalInformationRegistration({
@@ -18,6 +20,8 @@ export default function PersonalInformationRegistration({
 	redirect = false,
 }) {
 	const [isLoading, setIsLoading] = useState(false);
+	const [showDecisionModal, setShowDecisionModal] = useState(false);
+	const [redirectUrl, setRedirectUrl] = useState("");
 	const dynamicSchema = buildPersonalInformationSchema(fields);
 
 	const methods = useForm({
@@ -33,7 +37,6 @@ export default function PersonalInformationRegistration({
 
 
 	const onSubmit = async (formData) => {
-		
 		try {
 			const method = patientid ? "PUT" : "POST";
 			const endpoint =
@@ -49,13 +52,12 @@ export default function PersonalInformationRegistration({
 
 			if (response?.status == true || response?.status === "success") {
 				const toastMessage = redirect
-					? `${message}. Redirecting to billing page`
+					? `${message}. Registration successful.`
 					: message;
 				toast.success(toastMessage || "updating record sucessfully");
-				if (redirect &&  redirect == true) {
-					setTimeout(() => {
-						window.location.href = `/billing/patientid?patientid=${newPatientId}`;
-					}, 1500);
+				if (response.patientid && redirect) {
+					setRedirectUrl(`/billing/patientid/${plsEncryption(response.patientid.toString())}/multi`);
+					setShowDecisionModal(true);
 				}
 			} else {
 				toast.error(message, { autoClose: 1000 });
@@ -81,27 +83,45 @@ export default function PersonalInformationRegistration({
 	}
 
 	return (
-		<section className="col-lg-12 col-sm-12">
-			<FormProvider {...methods}>
-				<form
-					autoComplete="off"
-					noValidate
-					autoCorrect="false"
-					onSubmit={handleSubmit(onSubmit)}
-				>
-					<div>
-						<PersonalRegistrationForms
-							toast={toast}
-							handleAgeCalculations={handleAgeCalculations}
-							fields={fields}
-							designation={designation}
-						/>
-						<AdditionalPersonalInformation
-							checkIFNumberisAvailable={checkIFNumberisAvailable}
-							fields={fields} patientid={patientid} />
-					</div>
-				</form>
-			</FormProvider>
-		</section>
+		<>
+			<section className="col-lg-12 col-sm-12">
+				<FormProvider {...methods}>
+					<form
+						autoComplete="off"
+						noValidate
+						autoCorrect="false"
+						onSubmit={handleSubmit(onSubmit)}
+					>
+						<div>
+							<PersonalRegistrationForms
+								toast={toast}
+								handleAgeCalculations={handleAgeCalculations}
+								fields={fields}
+								designation={designation}
+							/>
+							<AdditionalPersonalInformation
+								checkIFNumberisAvailable={checkIFNumberisAvailable}
+								fields={fields} patientid={patientid} />
+						</div>
+					</form>
+				</FormProvider>
+			</section>
+			<Modal show={showDecisionModal} onHide={() => setShowDecisionModal(false)} backdrop="static" centered>
+				<Modal.Header closeButton>
+					<Modal.Title>Registration Complete</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<p>Do you want to proceed to billing for this patient?</p>
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={() => { setShowDecisionModal(false); reset(defaultData); }}>
+						Stay on this page
+					</Button>
+					<Button variant="primary" onClick={() => { window.location.href = redirectUrl; }}>
+						Go to Billing
+					</Button>
+				</Modal.Footer>
+			</Modal>
+		</>
 	);
 }

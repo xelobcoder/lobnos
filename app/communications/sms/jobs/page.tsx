@@ -36,8 +36,6 @@ import React, { useState } from 'react';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import Tabs from 'react-bootstrap/Tabs';
-import Tab from 'react-bootstrap/Tab';
 import { toast } from 'react-toastify';
 import { RiDeleteBinLine, RiDeleteBack2Line, RiDeleteBin2Fill, RiDeleteBin3Fill } from '@remixicon/react';
 import Loader from '../../../../components/accessories/Loader';

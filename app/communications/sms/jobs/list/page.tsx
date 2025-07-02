@@ -72,7 +72,7 @@ const SmsJobsListPage: React.FC = () => {
           return (
                <a
                     className="btn btn-sm btn-outline-primary"
-                    href={`/communications/sms/v2/jobs/recipients/${jobid}`}
+                    href={`/communications/sms/jobs/recipients/${jobid}`}
                     style={{ minWidth: 110 }}
                >
                     View Recipients

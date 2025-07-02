@@ -52,8 +52,26 @@ export default function ReceiptOptionsModal({ open, close, billingid, patientid 
         }
     };
 
-    const handleSMSClick = () => {
-        // Implement SMS functionality here
+    const [isSMSLoading, setIsSMSLoading] = useState(false);
+    const handleSMSClick = async () => {
+        if (!billingid) return;
+        setIsSMSLoading(true);
+        try {
+            const response = await customFetch(`sms/events/trigger/payment-made?billingid=${billingid}`);
+            const { status } = response;
+            if (status &&( status === true || status === 'success')) {
+                toast.success('Receipt sent via SMS successfully');
+                setTimeout(() => {
+                    close();
+                }, 2000);
+            } else {
+                toast.error('Receipt via SMS failed');
+            }
+        } catch (error) {
+            toast.error('An error occurred while sending the SMS');
+        } finally {
+            setIsSMSLoading(false);
+        }
     };
 
     return (
@@ -119,7 +137,7 @@ export default function ReceiptOptionsModal({ open, close, billingid, patientid 
                             <Card
                                 className="h-100 text-center pls-color"
                                 style={cardStyle}
-                                onClick={handleSMSClick}
+                                onClick={isSMSLoading ? undefined : handleSMSClick}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.transform = 'scale(1.05)';
                                     e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
@@ -130,19 +148,23 @@ export default function ReceiptOptionsModal({ open, close, billingid, patientid 
                                 }}
                             >
                                 <Card.Body className="d-flex flex-column align-items-center justify-content-center p-1">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="16"
-                                        height="16"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    >
-                                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-                                    </svg>
+                                    {isSMSLoading ? (
+                                        <Spinner animation="border" size="sm" />
+                                    ) : (
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                                        </svg>
+                                    )}
                                     <div className="mb-0" style={{ fontSize: '0.7rem' }}>SMS</div>
                                 </Card.Body>
                             </Card>

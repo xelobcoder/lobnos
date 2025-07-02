@@ -29,7 +29,7 @@ export default function BillingTypeSelection() {
     const handleGenerateBillingId = async () => {
         const currentdate = new Date();
         const year = currentdate.getFullYear();
-        const day = (currentdate.getDay() + 1).toString().padStart(2, '0')
+        const day = currentdate.getDate().toString().padStart(2, '0');
         const month = (currentdate.getMonth() + 1).toString().padStart(2, '0');
         const date = `${year}-${month}-${day}`;
 

@@ -7,30 +7,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { handleDatePicker, handleSeverSideProcessing } from "../serverActions/ActionFiltering";
 import { fetchPreviousBilledRecords } from "../../lib/billingLib";
-import TransactionDetailsModal from './TransactionDetailsModal';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { RiSearchLine } from "@remixicon/react";
 
 export default function BilledClientsView({ data = [], branchid }) {
 	const [datequery, setDatequery] = useState({ from: '', to: '' });
-	const [showModal, setShowModal] = useState(false);
-	const [previousTransactions, setPreviousTransactions] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const { employeeid } = useApplicationSettings().applicationsettings.user;
 	const router = useRouter();
-
-	const handleViewTransactionDetails = async (billingid) => {
-		setIsLoading(true);
-		setShowModal(true);
-		try {
-			const transactions = await fetchPreviousBilledRecords(billingid);
-			setPreviousTransactions(transactions);
-		} catch (error) {
-			console.error("Error fetching transaction details:", error);
-		} finally {
-			setIsLoading(false);
-		}
-	};
 
 	const columns = [
 		{
@@ -98,7 +82,7 @@ export default function BilledClientsView({ data = [], branchid }) {
 							</Dropdown.Item>
 							<Dropdown.Item
 								className="m-0 p-2 border-top text-sm border-top-1"
-								onClick={() => handleViewTransactionDetails(row.original.billingid)}
+								href={`/billing/transactions/previous-transaction/${row.original.billingid}`}
 							>
 								View Transactions Details
 							</Dropdown.Item>
@@ -155,13 +139,6 @@ export default function BilledClientsView({ data = [], branchid }) {
 				data={data || []}
 				serverSideFiltering={true}
 				handleSeverSideProcessing={handleSeverSideProcessing}
-			/>
-
-			<TransactionDetailsModal
-				showModal={showModal}
-				setShowModal={setShowModal}
-				previousTransactions={previousTransactions}
-				employeeid={employeeid}
 			/>
 		</div>
 	);
