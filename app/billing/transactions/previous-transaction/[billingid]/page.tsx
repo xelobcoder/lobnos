@@ -51,6 +51,8 @@ export default function PreviousTransactionSummaryPage() {
 	const [showWriteOffModal, setShowWriteOffModal] = useState(false);
 	const [writeOffReason, setWriteOffReason] = useState('');
 	const [isWritingOff, setIsWritingOff] = useState(false);
+	const [showRefundAllModal, setShowRefundAllModal] = useState(false);
+	const [refundAllReason, setRefundAllReason] = useState('');
 
 	const handleRefundList = (trackId) => {
 		toast.info(`Refund list updated for trackId: ${trackId}`);
@@ -123,19 +125,36 @@ export default function PreviousTransactionSummaryPage() {
 		fetchData();
 	}, [billingidParam]);
 
-	const handleRefundAll = async () => {
-		if (PaymentMode && !isNaN(Number(PaymentMode)) && employeeid && billingdata.billingid) {
-			try {
-				setSubmitting(true)
-				const endpoint = `billing/previous/refund/all/${billingdata.billingid}/${employeeid}/${PaymentMode}`;
-				const response = await customFetch(endpoint);
-				const { status, message } = response;
-				setSubmitting(false);
-				status ? toast.success(message) : toast.error(response?.message || "Refunding all failed")
-			} catch (err) {
-				setSubmitting(false);
-				toast.error("Something wrong occured")
-			}
+	const handleRefundAll = () => {
+		if (billingdata.islocked === 1 || billingdata.writeOff === 1) {
+			toast.error('Refund All is not allowed for locked or written-off transactions.');
+			return;
+		}
+		setShowRefundAllModal(true);
+	};
+
+	// This function actually performs the refund all API call
+	const handleRefundAllSubmit = async () => {
+		if (!PaymentMode || isNaN(Number(PaymentMode))) {
+			toast.error('Please select a valid payment mode.');
+			return;
+		}
+		if (!employeeid || !billingdata.billingid) {
+			toast.error('Missing employee or billing information.');
+			return;
+		}
+		try {
+			setSubmitting(true);
+			const endpoint = `billing/previous/refund/all/${billingdata.billingid}/${employeeid}/${PaymentMode}`;
+			const response = await customFetch(endpoint);
+			const { status, message } = response;
+			setSubmitting(false);
+			setShowRefundAllModal(false);
+			status ? toast.success(message) : toast.error(response?.message || "Refunding all failed");
+		} catch (err) {
+			setSubmitting(false);
+			setShowRefundAllModal(false);
+			toast.error("Something wrong occurred");
 		}
 	};
 
@@ -146,6 +165,10 @@ export default function PreviousTransactionSummaryPage() {
 	const [refundReason, setRefundReason] = useState('');
 
 	const handleRefundService = (service: Service) => {
+		if (billingdata.islocked === 1 || billingdata.writeOff === 1) {
+			toast.error('Refund is not allowed for locked or written-off transactions.');
+			return;
+		}
 		setRefundTarget(service);
 		setRefundReason('');
 		setShowRefundModal(true);
@@ -291,17 +314,17 @@ export default function PreviousTransactionSummaryPage() {
 				const hasWitnessed = isRefundInitiated && Array.isArray(witnesses) && witnesses.length > 0 && witnesses.some((w: Witness) => w.employeeid === employeeid);
 				return (
 					<div className="d-flex gap-2 align-items-center">
-	   {/* Refund button if not initiated */}
-	   {!isRefundInitiated && (
-		   <Button
-			   size="sm"
-			   variant="danger"
-			   onClick={() => handleRefundService(svc)}
-			   disabled={billingdata.islocked === 1 || billingdata.writeOff === 1}
-		   >
-			   Refund Service
-		   </Button>
-	   )}
+						{/* Refund button if not initiated */}
+						{!isRefundInitiated && (
+							<Button
+								size="sm"
+								variant="danger"
+								onClick={() => handleRefundService(svc)}
+								disabled={billingdata.islocked === 1 || billingdata.writeOff === 1}
+							>
+								Refund Service
+							</Button>
+						)}
 						{/* Cashout button if refund is initiated and approved but not completed */}
 						{isRefundInitiated === 1 && isRefundApproved === 1 && isRefundCompleted !== 1 && (
 							<Button size="sm" variant="success" onClick={() => handleCashOutRefund(svc)}>
@@ -592,30 +615,94 @@ export default function PreviousTransactionSummaryPage() {
 							handleSeverSideProcessing={false} />
 					</div>
 				</div>
-				<div className="d-flex justify-content-end gap-2 mt-4">
-				   <Button
-					   size='sm'
-					   variant="danger"
-					   onClick={handleRefundAll}
-					   disabled={billingdata.islocked === 1 || billingdata.writeOff === 1}
-				   >
-					   {submitting && <Spinner size='sm' />}  <RefreshCwIcon /> {" "}
-					   {submitting ? "refunding" : " Refund All"}
-				   </Button>
-			   <Button
-				   size='sm'
-				   variant="warning"
-				   onClick={handleWriteOff}
-				   disabled={billingdata.islocked === 1 || billingdata.writeOff === 1}
-			   >
-				   <EditIcon />  {" "}
-				   Write Off
-			   </Button>
-					<Button size='sm' variant="primary" onClick={handleOtherAction}>
-						<SettingsIcon />  {" "}
-						Other Action
-					</Button>
-				</div>
+			   <div className="d-flex justify-content-end gap-2 mt-4">
+				   {(() => {
+					   const isLocked = billingdata.islocked === 1;
+					   const isWrittenOff = billingdata.writeOff === 1;
+					   const totalRefunded = Number(billingdata.totalrefunded) || 0;
+					   const totalPayable = Number(billingdata.payable) || 0;
+					   const allRefunded = totalRefunded >= totalPayable && totalPayable > 0;
+					   const nothingToRefund = totalPayable <= 0;
+					   const disableActions = isLocked || isWrittenOff || allRefunded || nothingToRefund;
+					   const getDisabledReason = () => {
+						   if (isLocked) return 'Transaction is locked.';
+						   if (isWrittenOff) return 'Transaction is written off.';
+						   if (allRefunded) return 'All services have already been refunded.';
+						   if (nothingToRefund) return 'No payable amount left for action.';
+						   return '';
+					   };
+					   return <>
+						   <Button
+							   size='sm'
+							   variant="danger"
+							   onClick={() => {
+								   if (disableActions) toast.error(getDisabledReason());
+								   else handleRefundAll();
+							   }}
+							   disabled={disableActions}
+						   >
+							   {submitting && <Spinner size='sm' />}  <RefreshCwIcon /> {" "}
+							   {submitting ? "refunding" : " Refund All"}
+						   </Button>
+						   <Button
+							   size='sm'
+							   variant="warning"
+							   onClick={() => {
+								   if (disableActions) toast.error(getDisabledReason());
+								   else handleWriteOff();
+							   }}
+							   disabled={disableActions}
+						   >
+							   <EditIcon />  {" "}
+							   Write Off
+						   </Button>
+						   <Button
+							   size='sm'
+							   variant="primary"
+							   onClick={() => {
+								   if (disableActions) toast.error(getDisabledReason());
+								   else handleOtherAction();
+							   }}
+							   disabled={disableActions}
+						   >
+							   <SettingsIcon />  {" "}
+							   Other Action
+						   </Button>
+					   </>;
+				   })()}
+			   </div>
+
+				<Modal show={showRefundAllModal} onHide={() => setShowRefundAllModal(false)} backdrop="static">
+					<Modal.Header closeButton>
+						<Modal.Title>Refund All</Modal.Title>
+					</Modal.Header>
+					<Modal.Body>
+						<div className="mb-3">
+							<label htmlFor="refundAllPaymentMode" className="form-label">Select Payment Mode</label>
+							<select
+								id="refundAllPaymentMode"
+								className="form-control"
+								value={PaymentMode}
+								onChange={e => setPaymentMode(e.target.value)}
+							>
+								<option value="">Select Refund Mode Here</option>
+								{paymentModes.map((mode) => (
+									<option key={mode.KeyID} value={mode.KeyID}>
+										{mode.PaymentMode}
+									</option>
+								))}
+							</select>
+						</div>
+					</Modal.Body>
+					<Modal.Footer>
+						<Button variant="secondary" onClick={() => setShowRefundAllModal(false)} disabled={submitting}>
+							Cancel
+						</Button>
+						<Button variant="primary" onClick={handleRefundAllSubmit} disabled={submitting || !PaymentMode}>
+							{submitting ? <Spinner size="sm" /> : null} Refund All
+						</Button>
+					</Modal.Footer>
+				</Modal>
 			</div>
 		);
 
