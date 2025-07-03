@@ -10,6 +10,7 @@ import Button from "react-bootstrap/Button";
 import { RiSearchLine, RiEyeLine } from '@remixicon/react';
 import { filteringRefundsUsingServiceId, handleRefundServerSideProcessing } from "../../serverActions/ActionFiltering";
 import { useRouter } from "next/navigation";
+import { useApplication } from "../../Auth/useApplicationContext";
 
 
 interface Witness {
@@ -18,15 +19,17 @@ interface Witness {
 	message: string;
 }
 
-export default function RefundAdmin({ initData = [], employeeid, currentStatus }) {
+export default function RefundAdmin({ initData = [], currentStatus }) {
 	const [status, setStatus] = useState<"pending" | "completed">(currentStatus || "pending");
 	const [data, setData] = useState<RefundAdminViewType[]>(initData);
 	const [search, setSearch] = useState<string>("");
 	const [loading, setLoading] = useState<boolean>(false);
+	const employeeid = useApplication()?.user?.employeeid;
 	const [modalShow, setModalShow] = useState<boolean>(false);
 	const [selectedMessage, setSelectedMessage] = useState<string>("");
 	const [confirmModal, setConfirmModal] = useState<{ show: boolean, item: RefundAdminViewType | null, action: 'approve' | 'revoke' | null }>({ show: false, item: null, action: null });
 	const [actionLoading, setActionLoading] = useState(false);
+	const [orderDirection, setOrderDirection] = useState<'ASC' | 'DESC'>('DESC');
 	const router = useRouter();
 
 	const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -67,11 +70,11 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 
 
 	useEffect(() => {
-		const getStatusChangeData = async (status: "pending" | "completed") => {
+		const getStatusChangeData = async (status: "pending" | "completed", orderDirection: 'ASC' | 'DESC' = 'DESC') => {
 			setLoading(true);
 			try {
 				const response = await customFetch(
-					`billing/refund/details/status?status=${status}&employeeid=${employeeid}&page=1&count=10`
+					`billing/refund/details/status?status=${status}&employeeid=${employeeid}&page=1&count=10&orderDirection=${orderDirection}`
 				);
 				if (response && Array.isArray(response?.result)) {
 					setData(response.result);
@@ -86,9 +89,9 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 		}
 
 
-		if (status) getStatusChangeData(status);
+		if (status) getStatusChangeData(status, orderDirection);
 
-	}, [status]);
+	}, [status, orderDirection]);
 
 	const columns = [
 		{
@@ -200,16 +203,27 @@ export default function RefundAdmin({ initData = [], employeeid, currentStatus }
 
 	return (
 		<div>
-			<section className="d-flex justify-content-between ">
-				<div className="col-2">
-					<select className="custom-select" value={status} onChange={(ev) => { setStatus(ev.target.value as "pending" | "completed") }}>
+			<section className="row g-2 align-items-end mb-4 bg-white p-2 br-5">
+				<div className="col-md-3 col-12 mb-2 mb-md-0">
+					<label className="form-label fw-semibold text-secondary small mb-1">Refund Status</label>
+					<select className="form-select" value={status} onChange={(ev) => { setStatus(ev.target.value as "pending" | "completed") }}>
 						<option value="pending">Pending Refund</option>
 						<option value="completed">Completed Refund</option>
 					</select>
 				</div>
-				<div className="col-1 d-flex">
-					<input className="custom-input" type="number" onChange={(ev) => { setSearch(ev.target.value) }} placeholder="serviceid" />
-					<button type="button" onClick={(ev) => { handleGetRefundServiceWithId(search) }} className="btn btn-secondary-outline btn-sm">
+				<div className="col-md-3 col-12 mb-2 mb-md-0">
+					<label className="form-label fw-semibold text-secondary small mb-1">Order Direction</label>
+					<select className="form-select" value={orderDirection} onChange={e => setOrderDirection(e.target.value as 'ASC' | 'DESC')}>
+						<option value="DESC">Newest First</option>
+						<option value="ASC">Oldest First</option>
+					</select>
+				</div>
+				<div className="col-md-4 col-12 d-flex align-items-end gap-2">
+					<div className="flex-grow-1">
+						<label className="form-label fw-semibold text-secondary small mb-1">Search by Service ID</label>
+						<input className="form-control" type="number" value={search} onChange={(ev) => { setSearch(ev.target.value) }} placeholder="Service ID" />
+					</div>
+					<button type="button" onClick={() => handleGetRefundServiceWithId(search)} className="btn btn-outline-secondary btn-sm mt-3 mt-md-0">
 						<RiSearchLine />
 					</button>
 				</div>

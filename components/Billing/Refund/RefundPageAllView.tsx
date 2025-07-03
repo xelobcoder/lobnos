@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import { customFetch, currencyFormatter, customPost } from "../../Auth/customFetch";
-import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import WitnessModalComp from "./WitnessModalComp";
 import { Button } from "react-bootstrap";
 import { toast, ToastContainer } from "react-toastify";
@@ -40,8 +39,26 @@ export default function RefundPageAllView({ initData, employeeid }) {
 	const [modalTitleHeader, setModalTitleHeader] = useState<string>("");
 
 
-	const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-		setStatus(e.target.value);
+	const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+		const newStatus = e.target.value;
+		setStatus(newStatus);
+		setLoading(true);
+		try {
+			const response = await customFetch(
+				`billing/refund/details/status?status=${newStatus}&&employeeid=${employeeid}&&page=1&&count=10`
+			);
+			if (response && Array.isArray(response?.result)) {
+				setData(response.result);
+			} else {
+				setData([]);
+				toast.error("No data found");
+			}
+		} catch (error) {
+			setData([]);
+			toast.error("Error fetching data");
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	const handleWitness = (item: any) => {
@@ -61,37 +78,38 @@ export default function RefundPageAllView({ initData, employeeid }) {
 		setShowModal(true);
 	};
 
-	const handleSubmitWitness = async () => {
-		if (witnessMessage.trim().length > 3 && currentRefund) {
-			const { witnesses } = currentRefund;
-			let currentWitnessMatch: Witness | undefined = undefined;
-			if (Array.isArray(witnesses)) {
-				if (witnesses.length > 0) {
-					currentWitnessMatch = witnesses.find((item: Witness) => item.employeeid === employeeid);
-					if (currentWitnessMatch) {
-						currentWitnessMatch.message = witnessMessage;
-					}
+const handleSubmitWitness = async () => {
+	if (witnessMessage.trim().length > 3 && currentRefund) {
+		const numericEmployeeId = Number(employeeid);
+		const { witnesses } = currentRefund;
+		let currentWitnessMatch: Witness | undefined = undefined;
+		if (Array.isArray(witnesses)) {
+			if (witnesses.length > 0) {
+				currentWitnessMatch = witnesses.find((item: Witness) => item.employeeid === numericEmployeeId);
+				if (currentWitnessMatch) {
+					currentWitnessMatch.message = witnessMessage;
 				} else {
-					currentWitnessMatch = { employeeid, message: witnessMessage, name: '', witness: 'to be determined' };
+					currentWitnessMatch = { employeeid: numericEmployeeId, message: witnessMessage, name: '', witness: 'to be determined' };
 				}
-
-				let requestData = {
-					...currentRefund,
-					employeeid,
-					witnesses: currentWitnessMatch ? [currentWitnessMatch] : [],
-				};
-
-				const response = await customPost(`billing/previous/refund/update/previous`, 'POST', requestData);
-				const { status, message } = response;
-				status ===
-					true
-					? toast.success("action successsfull")
-					:
-					toast.error(message || "action failed");
-				setShowModal(false);
+			} else {
+				currentWitnessMatch = { employeeid: numericEmployeeId, message: witnessMessage, name: '', witness: 'to be determined' };
 			}
 		}
-	};
+
+		let requestData = {
+			...currentRefund,
+			employeeid: numericEmployeeId,
+			witnesses: currentWitnessMatch ? [currentWitnessMatch] : [],
+		};
+
+		const response = await customPost(`billing/previous/refund/update/previous`, 'POST', requestData);
+		const { status, message } = response;
+		status === true
+			? toast.success("action successsfull")
+			: toast.error(message || "action failed");
+		setShowModal(false);
+	}
+};
 
 	const columns = [
 		{
@@ -105,26 +123,31 @@ export default function RefundPageAllView({ initData, employeeid }) {
 				</div>)
 			}
 		},
-		{
-			Header: `${status === "completed" ? "My Witness Note" : "Witness Message"}`,
-			accessor: "witnesses",
-			Cell: ({ row }: { row: any }) => {
-				const { witnesses } = row.original;
+{
+	Header: `${status === "completed" ? "My Witness Note" : "Witness Message"}`,
+	accessor: "witnesses",
+	Cell: ({ row }: { row: any }) => {
+		const { witnesses } = row.original;
+		const numericEmployeeId = Number(employeeid);
+		const currentWitness = witnesses.find((w: any) => w.employeeid === numericEmployeeId);
 
-				if (status === "completed") {
-					return <div>{witnesses[0]?.message}</div>;
-				} else if (status === "pending") {
-					const currentWitness = witnesses.find(
-						(witness: any) => witness.employeeid === employeeid
-					);
-
-					if (currentWitness && currentWitness.message) {
-						return <div>{currentWitness.message}</div>;
-					}
-					return null;
-				}
-			},
-		},
+		if (currentWitness && currentWitness.message) {
+			return (
+				<div className="d-flex align-items-center gap-2">
+					<span>{currentWitness.message}</span>
+					<Button
+						variant="outline-info"
+						size="sm"
+						onClick={() => alert(currentWitness.message)}
+					>
+						View
+					</Button>
+				</div>
+			);
+		}
+		return <span className="text-muted">No message</span>;
+	},
+},
 		{ Header: 'Service/test Name', accessor: "serviceName" },
 		{
 			Header: "Cost",
@@ -144,10 +167,12 @@ export default function RefundPageAllView({ initData, employeeid }) {
 			Header: "Add Witness",
 			accessor: "addWitness",
 			Cell: ({ row }: { row: any }) => {
-				const { canwitness, canEdit } = row.original;
+				const { witnesses, canEdit } = row.original;
+				const isAlreadyWitness = witnesses.some((w: Witness) => w.employeeid === employeeid);
+				const hasEmptySlot = witnesses.some((w: Witness) => w.employeeid === null);
 				return (
 					<div>
-						{canwitness && (
+						{!isAlreadyWitness && hasEmptySlot && (
 							<Button
 								variant="primary"
 								size="sm"
@@ -165,29 +190,17 @@ export default function RefundPageAllView({ initData, employeeid }) {
 								Edit Witness Note
 							</Button>
 						)}
-						{!canwitness && !canEdit && <div>No action available</div>}
+						{!canEdit && (!hasEmptySlot || isAlreadyWitness) && <div>No action available</div>}
 					</div>
 				);
 			},
 		},
 	];
 
-	const handleServerSideProcessing = async (values: { count: number; page: number }) => {
-		const { count, page } = values;
-		try {
-			const data = await customFetch(
-				`billing/refund/details/status?status=${status}&&employeeid=${employeeid}&&page=${page}&&count=${count}`
-			);
-			return { result: data.result };
-		} catch (err) {
-			return { error: "Something went wrong loading page data" };
-		}
-	};
 	const handleGetRefundServiceWithId = async (value: number | string) => {
 		const result = await filteringRefundsUsingServiceId(value, employeeid);
 		setData(result)
 	}
-
 
 	return (
 		<div>
