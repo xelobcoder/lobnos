@@ -29,92 +29,66 @@ const MultiPayment: React.FC = () => {
     });
     const [validationError, setValidationError] = useState('');
 
-    // Calculate remaining amount
     const currentTotal = payments.reduce((sum, p) => sum + p.amount, 0);
     const remainingAmount = payable - currentTotal;
-
-    // Calculate available payment modes directly (no useEffect needed)
     const usedModes = new Set(payments.map(p => p.mode));
     const availableModes: PaymentModeOption[] = paymentModes.filter(mode => !usedModes.has(mode.value));
 
     const handleAdd = () => {
         setValidationError('');
 
-        // Validate inputs
         if (!newPayment.mode) {
             setValidationError('Please select a payment mode');
             return;
         }
-
-        // Use parseFloat and toFixed(2) to avoid floating point issues
         const amount = Math.round(parseFloat(newPayment.amount) * 100) / 100;
         const roundedRemaining = Math.round(remainingAmount * 100) / 100;
         if (isNaN(amount) || amount <= 0) {
             setValidationError('Please enter a valid positive amount');
             return;
         }
-
-        // Use strict equality for floating point comparison
         if (amount > roundedRemaining + 0.0001) {
             setValidationError(`Amount cannot exceed remaining payable (${roundedRemaining.toFixed(2)})`);
             return;
         }
-
-        // Add new payment
         const updatedPayments = [...payments, { mode: newPayment.mode, amount }];
         const totalPaid = updatedPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
         const newBalance = Math.round((payable - totalPaid) * 100) / 100;
         setBillingData({ ...billingdata, payments: updatedPayments, paid: totalPaid, balance: newBalance });
-
-        // Reset form
         setNewPayment({ mode: '', amount: '' });
     };
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         let value = e.target.value;
-
-        // Allow empty string or valid numbers
         if (value === '') {
             setNewPayment(np => ({ ...np, amount: '' }));
             return;
         }
-
-        // Allow decimals, but only up to two decimal places
         if (!/^\d*(\.\d{0,2})?$/.test(value)) {
             return;
         }
-
-        // Parse the number
         const numValue = parseFloat(value);
         if (isNaN(numValue)) {
             return;
         }
-
-        // Prevent negative numbers
         if (numValue < 0) {
             setNewPayment(np => ({ ...np, amount: '0' }));
             return;
         }
-
-        // Cap at remaining amount, allow exact cents
         const remaining = Math.round((payable - payments.reduce((sum, p) => sum + p.amount, 0)) * 100) / 100;
         if (numValue > remaining) {
             setNewPayment(np => ({ ...np, amount: remaining.toFixed(2) }));
             return;
         }
-
         setNewPayment(np => ({ ...np, amount: value }));
     };
 
-    // Early returns for edge cases
     if (!paymentModes || paymentModes.length === 0) {
         return <div className="alert alert-warning">No payment modes available</div>;
     }
-
     if (payable <= 0) {
         return <div className="alert alert-warning">Nothing to pay</div>;
     }
-
     if (payments.length === 0 && availableModes.length === 0) {
         return <div className="alert alert-warning">No payments made and no payment modes available</div>;
     }
@@ -210,12 +184,9 @@ const MultiPayment: React.FC = () => {
                 </tbody>
             </table>
 
-            {/* Validation messages */}
             {validationError && (
                 <div className="text-danger small mt-1">{validationError}</div>
             )}
-
-            {/* Total summary */}
             <div className="mt-1 small">
                 Total: <b>{currentTotal.toFixed(2)}</b> / {payable.toFixed(2)}
                 {currentTotal !== payable && (
@@ -224,8 +195,6 @@ const MultiPayment: React.FC = () => {
                     </span>
                 )}
             </div>
-
-            {/* Warning if all modes used */}
             {availableModes.length === 0 && payments.length > 0 && (
                 <div className="text-warning small mt-1">
                     All available payment modes have been used

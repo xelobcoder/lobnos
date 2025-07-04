@@ -76,6 +76,29 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             refundList = [],
         } = billingdata as any;
 
+
+        // Adjustment Correction Outstanding Logic (parse as number for validation)
+        if (
+            isAdjustment === 1 &&
+            adjustmentType === 'correction' &&
+            previousRecordsSummary &&
+            previousRecordsSummary.paid !== undefined &&
+            previousRecordsSummary.amountPayable !== undefined
+        ) {
+            const prevPaid = Number(previousRecordsSummary.paid) || 0;
+            const prevPayable = Number(previousRecordsSummary.amountPayable) || 0;
+            const currPayable = Number(amountPayable) || 0;
+            if (prevPaid < currPayable) {
+                return {
+                    status: 'outstanding_confirmation_required',
+                    message: 'The amount paid previously is less than the current total payable. Proceeding will write off the outstanding amount. Do you want to continue?',
+                    outstandingToWriteOff: currPayable - prevPaid,
+                    previousPaid: prevPaid,
+                    currentPayable: currPayable
+                };
+            }
+        }
+
         // Multi-payment validation
         if (!Array.isArray(payments) || payments.length === 0) {
             return { error: 'At least one payment entry is required.' };
@@ -112,28 +135,7 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 
 
 
-        // Adjustment Correction Outstanding Logic
-        if (
-            isAdjustment === 1 &&
-            adjustmentType === 'correction' &&
-            previousRecordsSummary &&
-            typeof previousRecordsSummary.paid === 'number' &&
-            typeof previousRecordsSummary.amountPayable === 'number'
-        ) {
-            // Compare previous paid with current amountPayable
-            if (previousRecordsSummary.paid < amountPayable) {
-                // Outstanding exists, require client confirmation to proceed and write off
-                // This should trigger a dialog in the UI; here, we return a special status for the UI to handle
-                return {
-                    status: 'outstanding_confirmation_required',
-                    message: 'The amount paid previously is less than the current total payable. Proceeding will write off the outstanding amount. Do you want to continue?',
-                    outstandingToWriteOff: amountPayable - previousRecordsSummary.paid,
-                    previousPaid: previousRecordsSummary.paid,
-                    currentPayable: amountPayable
-                };
-            }
-        }
-
+      
 
 
         const isFinancialParamsAccurate =
