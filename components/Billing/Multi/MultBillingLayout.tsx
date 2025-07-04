@@ -3,9 +3,9 @@
 import MultiRenderingBillingSourceFields from "./RenderingBillingSourceFields";
 import MultiPACKAGESELECT from './MultiPACKAGESELECT';
 import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
-import { Card, Form, Button, Spinner } from "react-bootstrap";
+import { Spinner } from "react-bootstrap";
 import { useContext, useState, useEffect } from "react";
-import { currencyFormatter, customFetch, customPost } from "../../Auth/customFetch";
+import { customFetch, customPost } from "../../Auth/customFetch";
 import { defaultMultiBillingData } from "../../../lib/Multi/MultiTypes";
 import { MultiBillingProvider, MultiBillingContext } from "./MultiBillingContext";
 import MultiSummary from "./MultiSummary";
@@ -23,9 +23,13 @@ export default function MultiBillingLayout({ billingContextProps }: {
         entitytype?: string,
         entityname?: string,
         entityid?: string,
-        billingid:number|null,
+        billingid: number | null,
         isNewTransaction?: boolean,
         patientid: number;
+        isRelatedBilling?: boolean,
+        isAdjustment?: boolean,
+        adjustmentType?: 'addition' | 'correction' | 'voided' | null,
+        adjustmentReason?: string,
         specialcode?: string,
     }
 }) {
@@ -43,50 +47,37 @@ function MultiBillingLayoutContent({ billingContextProps }: {
         entityname?: string,
         billingid?: number | null,
         isNewTransaction?: boolean,
+        isRelatedBilling?: boolean,
         patientid: number,
         entityid?: string,
+        isAdjustment?: boolean,
+        adjustmentType?: 'addition' | 'correction' | 'voided' | null,
+        adjustmentReason?: string,
         specialcode?: string,
     }
 }) {
-    const { categorytrackid, entitytype, entityname, entityid, patientid,billingid,isNewTransaction } = billingContextProps;
+    const { categorytrackid, entitytype, entityname, entityid, patientid, billingid, isNewTransaction,
+        isAdjustment, adjustmentType, adjustmentReason,
+        isRelatedBilling } = billingContextProps;
     const branchid = useApplication().branchid;
     const employeeid = useApplication().user?.employeeid || 0;
-    const role = useApplication().user?.role 
+    const role = useApplication().user?.role
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData } = context;
     const router = useRouter();
     const patientId = useParams()?.patientid;
 
-
-    // Helper to parse entityname from URL and replace + with space
-    const getEntityNameFromUrl = () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const rawName = urlParams.get('entityname') || '';
-        return rawName.replace(/\+/g, ' ');
-    };
-
-
-
-
     const [useSpecialCode, setUseSpecialCode] = useState(false);
     const [specialCode, setSpecialCode] = useState(billingContextProps.specialcode || "");
     const [specialCodeError, setSpecialCodeError] = useState("");
     const [loadingSpecialCode, setLoadingSpecialCode] = useState(false);
     const [loadingPanels, setLoadingPanels] = useState(false);
-
-
-    // Backend-driven billing: load all info from backend
     const [loadingBackendBilling, setLoadingBackendBilling] = useState(false);
     const [backendError, setBackendError] = useState<string | null>(null);
-
-    // Add state for usePackage checkbox
     const [usePackage, setUsePackage] = useState(false);
-    // Add state for useServices checkbox
     const [useServices, setUseServices] = useState(false);
-    // Add state to control summary visibility
     const [showSummary, setShowSummary] = useState(false);
-    // Add state to hold summary data from backend
     const [summaryData, setSummaryData] = useState(null);
 
     const handleSpecialCodeChange = (e) => {
@@ -119,19 +110,20 @@ function MultiBillingLayoutContent({ billingContextProps }: {
         };
 
         const billingSource = entityTypeToBillingSource[entitytype.toLowerCase()] || 0;
-
         parts[parts.length - 1] = String(billingSource);
 
-        const queryParams: Record<string, string> = {
-            entitytype,
-            entityname: entityname.replace(/\s+/g, '+'),
-            entityid: String(entityid),
-        };
+        // Get current query params and update only entitytype, entityname, entityid, and specialcode
+        const currentParams = new URLSearchParams(window.location.search);
+        currentParams.set('entitytype', entitytype);
+        currentParams.set('entityname', entityname.replace(/\s+/g, '+'));
+        currentParams.set('entityid', String(entityid));
         if (specialcode && specialcode.length > 0) {
-            queryParams['specialcode'] = specialcode;
+            currentParams.set('specialcode', specialcode);
+        } else {
+            currentParams.delete('specialcode');
         }
-        const search = new URLSearchParams(queryParams).toString();
-        router.replace(`${parts.join('/')}?${search}`);
+        // All other query params are preserved
+        router.replace(`${parts.join('/')}?${currentParams.toString()}`);
     };
 
 
@@ -149,7 +141,6 @@ function MultiBillingLayoutContent({ billingContextProps }: {
             billingSource: 6,
         }));
         updateEntityInUrl("clinician", name || "", id, specialCode);
-
     };
 
     const handleSelectedEntityInsurance = (entity) => {
@@ -212,9 +203,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
 
 
     const handleReturnToMulti = () => {
-        if (patientId) {
-            router.replace(`/billing/patientid/${patientId}/multi/`);
-        }
+        if (patientId) router.replace(`/billing/patientid/${patientId}/multi/`);
     };
 
 
@@ -223,7 +212,6 @@ function MultiBillingLayoutContent({ billingContextProps }: {
 
     // Backend-driven billing: load all info from backend
     const loadBackendBilling = async () => {
-        // If special code is being used, clear entitytype and entityId in the request
         const includeServices = useServices;
         const servicesList = billingdata.servicesList || [];
         let url;
@@ -282,6 +270,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                 let updated = {
                     ...prev,
                     ...backendData,
+                    previousRecordsSummary: prev.previousRecordsSummary,
                     entityId: backendData.entityId ?? prev.entityId,
                     entitytype: backendData.entityType ?? prev.entitytype,
                     patientid: backendData.patientId ?? prev.patientid,
@@ -289,7 +278,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                     includeServices: backendData.includeServices ?? includeServices,
                     servicesList: includeServices ? backendData.servicesList || servicesList : [],
                     payments: prev.payments || [],
-                    cart: backendData.isPackageUsed ? backendData.testList: []
+                    cart: backendData.isPackageUsed ? backendData.testList : []
                 };
                 if (
                     backendData.entityType &&
@@ -304,12 +293,22 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                     };
                     const newSource = entityTypeToBillingSource[backendData.entityType.toLowerCase()] || 1;
                     const path = window.location.pathname.split('/');
+
                     if (!isNaN(Number(path[path.length - 1]))) {
                         path[path.length - 1] = String(newSource);
                         const queryParams = new URLSearchParams(window.location.search);
+                        // Only update these three, keep all others
                         queryParams.set('entitytype', backendData.entityType);
-                        if (backendData.entityname) queryParams.set('entityname', backendData.entityname);
-                        if (backendData.entityId) queryParams.set('entityid', backendData.entityId);
+                        if (backendData.entityname) {
+                            queryParams.set('entityname', backendData.entityname);
+                        } else {
+                            queryParams.delete('entityname');
+                        }
+                        if (backendData.entityId) {
+                            queryParams.set('entityid', backendData.entityId);
+                        } else {
+                            queryParams.delete('entityid');
+                        }
                         window.history.replaceState({}, '', `${path.join('/')}?${queryParams.toString()}`);
                     }
                     updated.billingSource = newSource;
@@ -341,7 +340,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                 billingid: billingdata.billingid,
                 cart: billingdata.cart,
                 servicesList: billingdata.servicesProvided,
-                paymentDetails: null, 
+                paymentDetails: null,
                 branchid: billingdata.branchid,
                 billingSource: billingdata.billingSource,
                 referalCode: specialCode || '',
@@ -355,15 +354,16 @@ function MultiBillingLayoutContent({ billingContextProps }: {
             };
             const response = await customPost('billing/multi/checkout', 'POST', checkoutPayload);
             if (response && response.success && response.data) {
-                setBillingData(prev => ({ ...prev, ...response.data ,cart: response.data.isPackageUsed?
-                    response.data.packageTestList : response.data.cart || [] ,
+                setBillingData(prev => ({
+                    ...prev, ...response.data, cart: response.data.isPackageUsed ?
+                        response.data.packageTestList : response.data.cart || [],
                     payments: [],
                     paid: 0,
                     balance: response.data.amountPayable || 0,
                     promoDetails: response.data.promoDetails || {},
                     promoCode: response.data?.promoDetails?.code,
                     promoCodeId: response.data?.promoDetails?.id,
-                    promoMethod: response.data?.promoDetails?.method,     
+                    promoMethod: response.data?.promoDetails?.method,
                     servicesProvided: response.data?.servicesList || checkoutPayload.servicesList || [],
                 }));
                 setShowSummary(true);
@@ -377,7 +377,29 @@ function MultiBillingLayoutContent({ billingContextProps }: {
     };
 
     // On mount, set entitytype and billingSource if present
-    useEffect(() => {
+
+    const onMountedRun = async () => {
+        const getTransactionPreviousBillingRecords = async (billingid: number) => {
+            try {
+                const response = await customFetch(`billing/previous/transaction/data?billingid=${billingid}`);
+                return response.result;
+            } catch (err) {
+                return [];
+            }
+        };
+        let billingIdVerified = false;
+        const hasBillingId = isRelatedBilling && billingid;
+        let summaryObj = undefined;
+
+        if (hasBillingId) {
+            const response = await getTransactionPreviousBillingRecords(Number(billingid));
+            if (response && Array.isArray(response) && response.length > 0) {
+                console.log("Previous billing records found:", response);
+                summaryObj = response[0];
+                billingIdVerified = true;
+            }
+        }
+
         setBillingData(prev => ({
             ...prev,
             entitytype: entitytype as any,
@@ -387,8 +409,18 @@ function MultiBillingLayoutContent({ billingContextProps }: {
             billingid: billingid || prev.billingid,
             isNewTransaction: isNewTransaction || false,
             employeeid: employeeid,
-            showdetails: role === 'admin' || role === 'superadmin' || role =="manager" ,
+            billingIdVerified,
+            isAdjustment: typeof isAdjustment === 'boolean' ? (isAdjustment ? 1 : 0) : isAdjustment,
+            adjustmentType: adjustmentType || 'addition',
+            adjustmentReason: adjustmentReason || '',
+            showRelatedBilling: billingid ? true : false,
+            showdetails: role === 'admin' || role === 'superadmin' || role == "manager",
+            previousRecordsSummary: summaryObj,
         }));
+    }
+
+    useEffect(() => {
+        onMountedRun()
     }, []);
 
     // Helper: should Load Data be enabled?
@@ -440,7 +472,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
             />
 
             <PreviousRecordsHeader />
-            
+
             <div className="card-body m-0 p-0">
                 <div className="row g-0">
                     <div className="col-md-3 p-3 border-end" style={{ minHeight: 300 }}>
@@ -476,8 +508,3 @@ function MultiBillingLayoutContent({ billingContextProps }: {
     );
 }
 
-const parsedTimeValue = (value: string | null) => {
-    return value && typeof value === 'string' && value.includes(':')
-        ? parseInt(value.split(':')[0])
-        : null;
-};

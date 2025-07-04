@@ -111,7 +111,7 @@ export default function MultiBillingHeader({
                         className="mb-0 me-1 flex-shrink-0"
                         aria-label="Use Package"
                     />
-                    <span className="mx-1" style={{color:'#bbb'}}>|</span>
+                    <span className="mx-1" style={{ color: '#bbb' }}>|</span>
                     <Form.Check
                         type="checkbox"
                         label="Use Services"
@@ -120,7 +120,7 @@ export default function MultiBillingHeader({
                         className="mb-0 me-1 flex-shrink-0"
                         aria-label="Use Services"
                     />
-                    <span className="mx-1" style={{color:'#bbb'}}>|</span>
+                    <span className="mx-1" style={{ color: '#bbb' }}>|</span>
                     <Form.Check
                         type="checkbox"
                         label="Reference Code"
@@ -131,13 +131,13 @@ export default function MultiBillingHeader({
                         className="mb-0 flex-shrink-0"
                         aria-label="Reference Code"
                     />
-                    <span className="mx-1" style={{color:'#bbb'}}>|</span>
+                    <span className="mx-1" style={{ color: '#bbb' }}>|</span>
                     <Form.Check
                         type="checkbox"
                         label="Promo Code"
                         checked={!!billingdata.showPromoCode}
                         onChange={e => {
-                            setBillingData(prev => ({ ...prev, showPromoCode: e.target.checked ,isPromo: e.target.checked }));
+                            setBillingData(prev => ({ ...prev, showPromoCode: e.target.checked, isPromo: e.target.checked }));
                             if (!e.target.checked) resetPromoVerification();
                         }}
                         className="mb-0 flex-shrink-0"
@@ -145,12 +145,12 @@ export default function MultiBillingHeader({
                     />
                     {/* Promo Code Verified Badge */}
                     {billingdata.showPromoCode && billingdata.promoVerifySuccess === true && (
-                        <span className="badge bg-success ms-2 text-sm" style={{fontSize: '0.55em', fontWeight: 500}}>Promo Verified</span>
+                        <span className="badge bg-success ms-2 text-sm" style={{ fontSize: '0.55em', fontWeight: 500 }}>Promo Verified</span>
                     )}
                     {billingdata.showPromoCode && billingdata.promoVerifySuccess === false && (
-                        <span className="badge bg-danger ms-2" style={{fontSize: '0.55em', fontWeight: 500}}>Promo Invalid</span>
+                        <span className="badge bg-danger ms-2" style={{ fontSize: '0.55em', fontWeight: 500 }}>Promo Invalid</span>
                     )}
-                    <span className="mx-1" style={{color:'#bbb'}}>|</span>
+                    <span className="mx-1" style={{ color: '#bbb' }}>|</span>
                     <Form.Check
                         type="checkbox"
                         label="Create Related Billing"
@@ -161,12 +161,12 @@ export default function MultiBillingHeader({
                     />
                     {/* Billing ID Verified Badge */}
                     {billingdata.showRelatedBilling && billingdata.billingid && billingdata.billingIdVerified && (
-                        <span className="badge bg-success ms-2 text-sm" style={{fontSize: '0.6em'}}>Billing ID Verified</span>
+                        <span className="badge bg-success ms-2 text-sm" style={{ fontSize: '0.6em' }}>Billing ID Verified</span>
                     )}
                     {/* Entity Info moved here */}
                     {!!billingdata.entityId && !!billingdata.entitytype && (
                         <span className="ms-2 px-2 py-1 bg-light border rounded small text-nowrap flex-shrink-1 d-flex align-items-center gap-2"
-                            style={{maxWidth: '40vw', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 500}}
+                            style={{ maxWidth: '40vw', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 500 }}
                         >
                             <span>ID: <b>{billingdata.entityId}</b></span>
                             <span className="mx-2">|</span>
@@ -198,7 +198,7 @@ export default function MultiBillingHeader({
                     <div className="row gx-2 gy-2 align-items-center w-100 flex-lg-nowrap flex-wrap">
                         {/* Special Code Input */}
                         {useSpecialCode && (
-                            <div className="col-12 col-lg-auto d-flex align-items-center" style={{minWidth: 180, height: 40}}>
+                            <div className="col-12 col-lg-auto d-flex align-items-center" style={{ minWidth: 180, height: 40 }}>
                                 <Form.Control
                                     type="text"
                                     placeholder="Enter special code"
@@ -217,7 +217,7 @@ export default function MultiBillingHeader({
                         )}
                         {/* Billing ID Input (conditionally shown) */}
                         {billingdata.showRelatedBilling && (
-                            <div className="col-12 col-lg-auto d-flex align-items-center" style={{minWidth: 160, height: 40}}>
+                            <div className="col-12 col-lg-auto d-flex align-items-center" style={{ minWidth: 160, height: 40 }}>
                                 <Form.Control
                                     type="number"
                                     placeholder="Check Billing ID"
@@ -232,7 +232,7 @@ export default function MultiBillingHeader({
                                     variant="outline-info"
                                     size="sm"
                                     className="ms-2"
-                                    style={{height: 38, display: 'flex', alignItems: 'center'}} 
+                                    style={{ height: 38, display: 'flex', alignItems: 'center' }}
                                     onClick={handleVerifyBillingId}
                                     aria-label="Verify Billing ID"
                                 >
@@ -242,7 +242,7 @@ export default function MultiBillingHeader({
                         )}
                         {/* Promo Code Section */}
                         {billingdata.showPromoCode && (
-                            <div className="col-12 col-lg-auto d-flex align-items-center" style={{minWidth: 220, height: 40}}>
+                            <div className="col-12 col-lg-auto d-flex align-items-center" style={{ minWidth: 220, height: 40 }}>
                                 <Form className="d-flex flex-row align-items-center w-100" style={{ minWidth: 0 }}>
                                     <Form.Control
                                         id="promoCode"
@@ -255,14 +255,14 @@ export default function MultiBillingHeader({
                                         className="flex-grow-1 border"
                                         aria-label="Promo Code"
                                     />
-                                    <div className="btn-group ms-2 flex-shrink-0" role="group" style={{height: 38}}>
+                                    <div className="btn-group ms-2 flex-shrink-0" role="group" style={{ height: 38 }}>
                                         <Button
                                             variant="outline-success"
                                             size="sm"
                                             onClick={handleVerifyPromo}
                                             disabled={billingdata.promoVerifyLoading || !(billingdata.promoCode && billingdata.promoCode.length > 0)}
                                             aria-label="Verify Promo Code"
-                                            style={{height: 38, display: 'flex', alignItems: 'center'}}
+                                            style={{ height: 38, display: 'flex', alignItems: 'center' }}
                                         >
                                             {billingdata.promoVerifyLoading ? (
                                                 <Spinner as="span" animation="border" size="sm" className="me-1" />
@@ -288,7 +288,7 @@ export default function MultiBillingHeader({
                             </div>
                         )}
                         {/* Action Buttons */}
-                        <div className="col-12 col-lg-auto d-flex flex-row flex-wrap align-items-center gap-2 justify-content-lg-end mt-2 mt-lg-0" style={{minWidth: 320, height: 40}}>
+                        <div className="col-12 col-lg-auto d-flex flex-row flex-wrap align-items-center gap-2 justify-content-lg-end mt-2 mt-lg-0" style={{ minWidth: 320, height: 40 }}>
                             <Button
                                 variant="primary"
                                 size="sm"
@@ -296,7 +296,7 @@ export default function MultiBillingHeader({
                                 onClick={onLoadBackendBilling}
                                 disabled={loadingBackendBilling || !canLoadData}
                                 aria-label="Load Billing Data"
-                                style={{height: 38, display: 'flex', alignItems: 'center'}}
+                                style={{ height: 38, display: 'flex', alignItems: 'center' }}
                             >
                                 {loadingBackendBilling ? <Spinner as="span" animation="border" size="sm" className="me-1" /> : null}
                                 Load
@@ -307,7 +307,7 @@ export default function MultiBillingHeader({
                                 className="ms-1"
                                 onClick={onReset}
                                 aria-label="Reset Billing Form"
-                                style={{height: 38, display: 'flex', alignItems: 'center'}}
+                                style={{ height: 38, display: 'flex', alignItems: 'center' }}
                             >
                                 Reset
                             </Button>
@@ -317,9 +317,9 @@ export default function MultiBillingHeader({
                                 className="ms-2"
                                 onClick={onReturnToMulti}
                                 aria-label="Return to Multi"
-                                style={{height: 38, display: 'flex', alignItems: 'center'}}
+                                style={{ height: 38, display: 'flex', alignItems: 'center' }}
                             >
-                                <RiArrowGoBackFill/> Multi
+                                <RiArrowGoBackFill /> Multi
                             </Button>
                             <Button
                                 variant="success"

@@ -258,11 +258,7 @@ export default function RefundAdmin({ initData = [], currentStatus }) {
 							{witnessesToShow.map((wit, idx) => (
 								<div key={idx} className="mb-3 p-2 border rounded bg-light">
 									<div><b>Name:</b> {wit.name || 'N/A'}</div>
-									<div><b>Message:</b> {wit.message ? (
-										wit.message.length > 100 ? (
-											<span>{wit.message.substring(0, 100)}... <span style={{ color: '#007bff', cursor: 'pointer' }} onClick={() => handleViewMessage(wit.message)}>View Full</span></span>
-										) : wit.message
-									) : 'N/A'}</div>
+									<div><b>Message:</b> {wit.message ? wit.message : 'N/A'}</div>
 								</div>
 							))}
 						</div>

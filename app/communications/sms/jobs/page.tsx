@@ -300,16 +300,16 @@ const SmsJobPage: React.FC = () => {
 			const res = await customPost('prime/sms-jobs', 'POST', payload);
 			if (res && res.jobId) {
 				toast.success('SMS job created!');
-				// setForm({
-				// 	templateId: '',
-				// 	customBody: '',
-				// 	category: '',
-				// 	recipientScope: 'all',
-				// 	targetIds: '',
-				// 	sendType: 'immediate',
-				// 	scheduledAt: '',
-				// });
-				// setSelectedRecipients({ category: '', recipients: [] });
+				setForm({
+					templateId: '',
+					customBody: '',
+					category: '',
+					recipientScope: 'all',
+					targetIds: '',
+					sendType: 'immediate',
+					scheduledAt: '',
+				});
+				setSelectedRecipients({ category: '', recipients: [] });
 			} else {
 				throw new Error('No jobId returned');
 			}

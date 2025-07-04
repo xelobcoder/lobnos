@@ -92,6 +92,10 @@ export interface MultiBillingData {
     amountPayable: number;
     paid: number;
     balance: number;
+    isAdjustment?: number;
+    adjustmentType?: 'addition' | 'correction' | 'voided' | null;
+    adjustmentReason?: string;
+    relatedBillingId?: number | string;
     promoCode: number | null;
     promoDiscount?: number;
     testList?: TestCartItem[];
@@ -137,6 +141,9 @@ export const defaultMultiBillingData: MultiBillingData = {
     subtotal: 0,
     promoId: null,
     totaldiscount: 0,
+    isAdjustment: 0,
+    adjustmentType: 'addition',
+    adjustmentReason: '',
     totalAmountIncurredDueTax: 0,
     totalServiceAmount: 0,
     amountPayable: 0,

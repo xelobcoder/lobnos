@@ -111,91 +111,93 @@ const handleSubmitWitness = async () => {
 	}
 };
 
-	const columns = [
-		{
-			Header: "billingid (Category)",
-			accessor: "serviceCategory",
-			Cell: ({ row, value }) => {
-				return (<div>
-					<span>{row.original.billingid}</span>
-					<br />
-					<span>({value})</span>
-				</div>)
-			}
-		},
-{
+const columns = [
+  {
+	Header: "billingid (Category)",
+	accessor: "serviceCategory",
+	Cell: ({ row, value }) => (
+	  <div>
+		<span>{row.original.billingid}</span>
+		<br />
+		<span>({value})</span>
+	  </div>
+	)
+  },
+  {
 	Header: `${status === "completed" ? "My Witness Note" : "Witness Message"}`,
 	accessor: "witnesses",
 	Cell: ({ row }: { row: any }) => {
-		const { witnesses } = row.original;
-		const numericEmployeeId = Number(employeeid);
-		const currentWitness = witnesses.find((w: any) => w.employeeid === numericEmployeeId);
-
-		if (currentWitness && currentWitness.message) {
-			return (
-				<div className="d-flex align-items-center gap-2">
-					<span>{currentWitness.message}</span>
-					<Button
-						variant="outline-info"
-						size="sm"
-						onClick={() => alert(currentWitness.message)}
-					>
-						View
-					</Button>
-				</div>
-			);
-		}
-		return <span className="text-muted">No message</span>;
-	},
-},
-		{ Header: 'Service/test Name', accessor: "serviceName" },
-		{
-			Header: "Cost",
-			accessor: "cost",
-			Cell: ({ value }: { value: number }) => currencyFormatter.format(value),
-		},
-		{
-			Header: "Amount Due to Tax",
-			accessor: "amountIncurredDueTax",
-			Cell: ({ value }: { value: number }) => currencyFormatter.format(value),
-		},
-		{
-			Header: "Billed By",
-			accessor: "billedby",
-		},
-		{
-			Header: "Add Witness",
-			accessor: "addWitness",
-			Cell: ({ row }: { row: any }) => {
-				const { witnesses, canEdit } = row.original;
-				const isAlreadyWitness = witnesses.some((w: Witness) => w.employeeid === employeeid);
-				const hasEmptySlot = witnesses.some((w: Witness) => w.employeeid === null);
-				return (
-					<div>
-						{!isAlreadyWitness && hasEmptySlot && (
-							<Button
-								variant="primary"
-								size="sm"
-								onClick={() => handleWitness(row.original)}
-							>
-								Add Witness
-							</Button>
-						)}
-						{canEdit && (
-							<Button
-								variant="primary"
-								size="sm"
-								onClick={() => handleEditWitnessNote(row.original)}
-							>
-								Edit Witness Note
-							</Button>
-						)}
-						{!canEdit && (!hasEmptySlot || isAlreadyWitness) && <div>No action available</div>}
-					</div>
-				);
-			},
-		},
-	];
+	  const { witnesses } = row.original;
+	  const numericEmployeeId = Number(employeeid);
+	  const currentWitness = witnesses.find((w: any) => w.employeeid === numericEmployeeId);
+	  if (currentWitness && currentWitness.message) {
+		return (
+		  <div className="d-flex align-items-center gap-2">
+			<span>{currentWitness.message}</span>
+			<Button
+			  variant="outline-info"
+			  size="sm"
+			  onClick={() => alert(currentWitness.message)}
+			>
+			  View
+			</Button>
+		  </div>
+		);
+	  }
+	  return <span className="text-muted">No message</span>;
+	}
+  },
+  { Header: 'Service/test Name', accessor: "serviceName" },
+  {
+	Header: "Cost",
+	accessor: "cost",
+	Cell: ({ value }: { value: number }) => currencyFormatter.format(value)
+  },
+  {
+	Header: "Amount Due to Tax",
+	accessor: "amountIncurredDueTax",
+	Cell: ({ value }: { value: number }) => currencyFormatter.format(value)
+  },
+  {
+	Header: "Billed By",
+	accessor: "billedby"
+  },
+  {
+	Header: "Add Witness",
+	accessor: "addWitness",
+	Cell: ({ row }: { row: any }) => {
+	  if (status === "completed") {
+		return <div className="text-muted">No action available</div>;
+	  }
+	  const { witnesses, canEdit } = row.original;
+	  const isAlreadyWitness = witnesses.some((w: Witness) => w.employeeid === employeeid);
+	  const hasEmptySlot = witnesses.some((w: Witness) => w.employeeid === null);
+	  return (
+		<div>
+		  {!isAlreadyWitness && hasEmptySlot && (
+			<Button
+			  variant="primary"
+			  size="sm"
+			  onClick={() => handleWitness(row.original)}
+			>
+			  Add Witness
+			</Button>
+		  )}
+		  {canEdit && (
+			<Button
+			  variant="primary"
+			  size="sm"
+			  onClick={() => handleEditWitnessNote(row.original)}
+			>
+			  Edit Witness Note
+			</Button>
+		  )}
+		  {!canEdit && (!hasEmptySlot || isAlreadyWitness) && <div>No action available</div>}
+		</div>
+	  );
+	}
+  }
+];
 
 	const handleGetRefundServiceWithId = async (value: number | string) => {
 		const result = await filteringRefundsUsingServiceId(value, employeeid);

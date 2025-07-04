@@ -54,7 +54,7 @@ export default function PreviousTransactionSummaryPage() {
 	const [writeOffReason, setWriteOffReason] = useState('');
 	const [isWritingOff, setIsWritingOff] = useState(false);
 	const [showRefundAllModal, setShowRefundAllModal] = useState(false);
-	const [refundAllReason, setRefundAllReason] = useState('');
+
 
 
 
@@ -124,34 +124,48 @@ export default function PreviousTransactionSummaryPage() {
 		fetchData();
 	}, [billingidParam]);
 
+	const [refundAllReason, setRefundAllReason] = useState('');
+	const [refundAllAcknowledge, setRefundAllAcknowledge] = useState('');
+	const [refundAllError, setRefundAllError] = useState('');
 	const handleRefundAll = () => {
 		if (billingdata.islocked === 1 || billingdata.writeOff === 1) {
 			toast.error('Refund All is not allowed for locked or written-off transactions.');
 			return;
 		}
+		setRefundAllReason('');
+		setRefundAllAcknowledge('');
+		setRefundAllError('');
 		setShowRefundAllModal(true);
 	};
 
 	// This function actually performs the refund all API call
 	const handleRefundAllSubmit = async () => {
+		setRefundAllError('');
+		if (!refundAllReason.trim()) {
+			setRefundAllError('Please provide a reason for refunding all.');
+			return;
+		}
+		if (refundAllAcknowledge.trim().toLowerCase() !== 'i acknowledge') {
+			setRefundAllError('You must type "I acknowledge" to proceed.');
+			return;
+		}
 		if (!PaymentMode || isNaN(Number(PaymentMode))) {
-			toast.error('Please select a valid payment mode.');
+			setRefundAllError('Please select a valid payment mode.');
 			return;
 		}
 		if (!employeeid || !billingdata.billingid) {
-			toast.error('Missing employee or billing information.');
+			setRefundAllError('Missing employee or billing information.');
 			return;
 		}
 		try {
 			setSubmitting(true);
-			const endpoint = `billing/previous/refund/all/${billingdata.billingid}/${employeeid}/${PaymentMode}`;
+			const endpoint = `billing/previous/refund/all/${billingdata.billingid}/${employeeid}/${PaymentMode}?reason=${encodeURIComponent(refundAllReason)}`;
 			const response = await customFetch(endpoint);
 			const { status, message } = response;
 			setSubmitting(false);
 			setShowRefundAllModal(false);
-			if (status  == true) {
+			if (status == true) {
 				toast.success(message || 'Refund all processed successfully');
-				// Optionally, you can refresh the data after successful refund
 				await fetchRecords(billingdata.billingid);
 			} else {
 				toast.error(message || 'Refunding all failed');
@@ -218,8 +232,6 @@ export default function PreviousTransactionSummaryPage() {
 				'POST',
 				RequestData
 			);
-
-			console.log(response);
 			if (response?.status) {
 				toast.success(response.message || 'Refund cashed out successfully');
 			} else {
@@ -263,93 +275,93 @@ export default function PreviousTransactionSummaryPage() {
 		return taxes;
 	};
 
-const columns = [
-  { Header: 'Track ID', accessor: 'trackId' },
-  {Header:'Service Name', accessor: 'name'},
-  { Header: 'Cost', accessor: 'cost', Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0) },
-  {
-	Header: 'Service Added On',
-	accessor: 'serviceAddedOn',
-	Cell: ({ cell: { value } }) => (value ? new Date(value).toLocaleString() : '')
-  },
-  {
-	Header: 'Discount',
-	accessor: 'discount',
-	Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
-  },
-  {
-	Header: 'Total Cost',
-	accessor: 'totalcost',
-	Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
-  },
-  {
-	Header: 'Total Payable',
-	accessor: 'totalpayable',
-	Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
-  },
-  { Header: 'Status', accessor: 'status' },
-  {
-	Header: 'Amount Refunded',
-	accessor: 'amountRefunded',
-	Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
-  },
-  { Header: 'Organization Name', accessor: 'organizationName' },
-  {
-	Header: 'Tax/Details',
-	id: 'taxDetails',
-	Cell: ({ row }) => {
-	  const svc = row.original;
-	  const taxes = getServiceTaxes(svc);
-	  return (
-		<Button size="sm" variant="info" onClick={() => {
-		  setModalTaxes(taxes);
-		  setModalService(svc);
-		  setShowTaxModal(true);
-		}}>
-		  View Details
-		</Button>
-	  );
-	}
-  },
-  {
-	Header: 'Actions/Witnesses',
-	accessor: 'actions',
-	Cell: ({ row }) => {
-	  const svc = row.original;
-	  const { isRefundInitiated, isRefundApproved, isRefundCompleted, witnesses } = svc;
-	  const hasWitnessed = isRefundInitiated && Array.isArray(witnesses) && witnesses.length > 0 && witnesses.some((w) => w.employeeid === employeeid);
-	  const canRefundAllOrWriteOff = role === 'admin' || role === 'manager';
-	  const hasAnyWitnesses = Array.isArray(witnesses) && witnesses.length > 0;
-	  return (
-		<div className="d-flex gap-2 align-items-center">
-		  {!isRefundInitiated && (
-			<Button
-			  size="sm"
-			  variant="danger"
-			  onClick={() => handleRefundService(svc)}
-			  disabled={billingdata.islocked === 1 || billingdata.writeOff === 1}
-			>
-			  Refund Service
-			</Button>
-		  )}
-		  {isRefundInitiated === 1 && isRefundApproved === 1 && isRefundCompleted !== 1 && (
-			<Button size="sm" variant="success" onClick={() => handleCashOutRefund(svc)}>
-			  Issue Out Cash
-			</Button>
-		  )}
-		  {hasAnyWitnesses && (
-			<Button size="sm" variant="secondary" onClick={() => {
-			  setWitnesses(svc.witnesses);
-			  setShowWitnessModal(true);
-			}}>
-			  View Witnesses
-			</Button>
-		  )}
-		</div>
-	  );
-	}
-  }
-];
+	const columns = [
+		{ Header: 'Track ID', accessor: 'trackId' },
+		{ Header: 'Service Name', accessor: 'name' },
+		{ Header: 'Cost', accessor: 'cost', Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0) },
+		{
+			Header: 'Service Added On',
+			accessor: 'serviceAddedOn',
+			Cell: ({ cell: { value } }) => (value ? new Date(value).toLocaleString() : '')
+		},
+		{
+			Header: 'Discount',
+			accessor: 'discount',
+			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
+		},
+		{
+			Header: 'Total Cost',
+			accessor: 'totalcost',
+			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
+		},
+		{
+			Header: 'Total Payable',
+			accessor: 'totalpayable',
+			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
+		},
+		{ Header: 'Status', accessor: 'status' },
+		{
+			Header: 'Amount Refunded',
+			accessor: 'amountRefunded',
+			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
+		},
+		{ Header: 'Organization Name', accessor: 'organizationName' },
+		{
+			Header: 'Tax/Details',
+			id: 'taxDetails',
+			Cell: ({ row }) => {
+				const svc = row.original;
+				const taxes = getServiceTaxes(svc);
+				return (
+					<Button size="sm" variant="info" onClick={() => {
+						setModalTaxes(taxes);
+						setModalService(svc);
+						setShowTaxModal(true);
+					}}>
+						View Details
+					</Button>
+				);
+			}
+		},
+		{
+			Header: 'Actions/Witnesses',
+			accessor: 'actions',
+			Cell: ({ row }) => {
+				const svc = row.original;
+				const { isRefundInitiated, isRefundApproved, isRefundCompleted, witnesses } = svc;
+				const hasWitnessed = isRefundInitiated && Array.isArray(witnesses) && witnesses.length > 0 && witnesses.some((w) => w.employeeid === employeeid);
+				const canRefundAllOrWriteOff = role === 'admin' || role === 'manager';
+				const hasAnyWitnesses = Array.isArray(witnesses) && witnesses.length > 0;
+				return (
+					<div className="d-flex gap-2 align-items-center">
+						{!isRefundInitiated && (
+							<Button
+								size="sm"
+								variant="danger"
+								onClick={() => handleRefundService(svc)}
+								disabled={billingdata.islocked === 1 || billingdata.writeOff === 1}
+							>
+								Refund Service
+							</Button>
+						)}
+						{isRefundInitiated === 1 && isRefundApproved === 1 && (isRefundCompleted !== 1) && (
+							<Button size="sm" variant="success" onClick={() => handleCashOutRefund(svc)}>
+								Issue Out Cash
+							</Button>
+						)}
+						{hasAnyWitnesses && (
+							<Button size="sm" variant="secondary" onClick={() => {
+								setWitnesses(svc.witnesses);
+								setShowWitnessModal(true);
+							}}>
+								View Witnesses
+							</Button>
+						)}
+					</div>
+				);
+			}
+		}
+	];
 
 	const renderRefundModal = () => (
 		<Modal show={showRefundModal} onHide={() => setShowRefundModal(false)} backdrop="static">
@@ -421,91 +433,91 @@ const columns = [
 		alert('Other Action clicked');
 	};
 
-const renderTaxModal = () => {
-	let amountIncurredDueTax = '';
-	if (modalService && modalService.amountIncurredDueTax !== undefined) {
-		amountIncurredDueTax = modalService.amountIncurredDueTax;
-	}
-	const isOutsourced = modalService && typeof modalService.isoutsourced !== 'undefined' ? (modalService.isoutsourced ? 'Yes' : 'No') : '';
-	const serviceCategory = modalService && modalService.serviceCategory ? modalService.serviceCategory : '';
-	const registrationType = modalService && modalService.registrationType ? modalService.registrationType : '';
-	// Night adjustment details
-	const hasNightAdjustment = modalService && modalService.hasNightAdjustment === 1;
-	const nightAdjustmentValue = modalService && modalService.nightAdjustmentValue ? modalService.nightAdjustmentValue : '';
-	const nightAdjustmentMode = modalService && modalService.nightAdjustmentMode ? modalService.nightAdjustmentMode : '';
-	// Insurance
-	const isNHIS = modalService && modalService.isNHIS === 1 ? 'Yes' : 'No';
-	const isPHIS = modalService && modalService.isPHIS === 1 ? 'Yes' : 'No';
-	return (
-		<Modal backdrop='static' show={showTaxModal} onHide={() => { setShowTaxModal(false); setModalService(null); }}>
-			<Modal.Header closeButton className='bg-secondary-subtle text-sm'>
-				<Modal.Title>Service Taxes & Details</Modal.Title>
-			</Modal.Header>
-			<Modal.Body>
-				{amountIncurredDueTax && (
-					<div className="alert alert-info mb-3 text-sm" role="alert">
-						<strong>Amount Incurred Due To Taxes:</strong> {currencyFormatter.format(Number(amountIncurredDueTax) || 0)}
-					</div>
-				)}
-				{isOutsourced && (
-					<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm"><strong>Is Outsourced:</strong> {isOutsourced}</div>
-				)}
-				{serviceCategory && (
-					<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm"><strong>Service Category:</strong> {serviceCategory}</div>
-				)}
-				{registrationType && (
-					<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm"><strong>Registration Type:</strong> {registrationType}</div>
-				)}
-				{/* Night Adjustment Details */}
-				{hasNightAdjustment && (
-					<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm">
-						<strong>Night Adjustment:</strong> Yes<br />
-						<strong>Night Adjustment Value:</strong> {nightAdjustmentValue}<br />
-						<strong>Night Adjustment Mode:</strong> {nightAdjustmentMode}
-					</div>
-				)}
-				{/* Insurance Details */}
-				{modalService && (
-					<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm">
-						<strong>NHIS:</strong> {isNHIS}<br />
-						<strong>PHIS:</strong> {isPHIS}
-					</div>
-				)}
-				{modalTaxes.length > 0 ? (
-					<div>
-						<table className={styles.table}>
-							<thead>
-								<tr>
-									<th>Name</th>
-									<th>Value</th>
-									<th>Applied</th>
-									<th>Created On</th>
-								</tr>
-							</thead>
-							<tbody>
-								{Array.isArray(modalTaxes) && modalTaxes.length > 0 && modalTaxes.map((tax, i) => (
-									<tr key={i}>
-										<td>{tax.name}</td>
-										<td>{tax.value}</td>
-										<td>{tax.apply ? tax.apply.toString() : ''}</td>
-										<td>{tax.createdOn ? new Date(tax.createdOn).toLocaleString() : ''}</td>
+	const renderTaxModal = () => {
+		let amountIncurredDueTax = '';
+		if (modalService && modalService.amountIncurredDueTax !== undefined) {
+			amountIncurredDueTax = modalService.amountIncurredDueTax;
+		}
+		const isOutsourced = modalService && typeof modalService.isoutsourced !== 'undefined' ? (modalService.isoutsourced ? 'Yes' : 'No') : '';
+		const serviceCategory = modalService && modalService.serviceCategory ? modalService.serviceCategory : '';
+		const registrationType = modalService && modalService.registrationType ? modalService.registrationType : '';
+		// Night adjustment details
+		const hasNightAdjustment = modalService && modalService.hasNightAdjustment === 1;
+		const nightAdjustmentValue = modalService && modalService.nightAdjustmentValue ? modalService.nightAdjustmentValue : '';
+		const nightAdjustmentMode = modalService && modalService.nightAdjustmentMode ? modalService.nightAdjustmentMode : '';
+		// Insurance
+		const isNHIS = modalService && modalService.isNHIS === 1 ? 'Yes' : 'No';
+		const isPHIS = modalService && modalService.isPHIS === 1 ? 'Yes' : 'No';
+		return (
+			<Modal backdrop='static' show={showTaxModal} onHide={() => { setShowTaxModal(false); setModalService(null); }}>
+				<Modal.Header closeButton className='bg-secondary-subtle text-sm'>
+					<Modal.Title>Service Taxes & Details</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					{amountIncurredDueTax && (
+						<div className="alert alert-info mb-3 text-sm" role="alert">
+							<strong>Amount Incurred Due To Taxes:</strong> {currencyFormatter.format(Number(amountIncurredDueTax) || 0)}
+						</div>
+					)}
+					{isOutsourced && (
+						<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm"><strong>Is Outsourced:</strong> {isOutsourced}</div>
+					)}
+					{serviceCategory && (
+						<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm"><strong>Service Category:</strong> {serviceCategory}</div>
+					)}
+					{registrationType && (
+						<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm"><strong>Registration Type:</strong> {registrationType}</div>
+					)}
+					{/* Night Adjustment Details */}
+					{hasNightAdjustment && (
+						<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm">
+							<strong>Night Adjustment:</strong> Yes<br />
+							<strong>Night Adjustment Value:</strong> {nightAdjustmentValue}<br />
+							<strong>Night Adjustment Mode:</strong> {nightAdjustmentMode}
+						</div>
+					)}
+					{/* Insurance Details */}
+					{modalService && (
+						<div className="mb-2 bg-light border border-bottom br-5 p-2 text-sm">
+							<strong>NHIS:</strong> {isNHIS}<br />
+							<strong>PHIS:</strong> {isPHIS}
+						</div>
+					)}
+					{modalTaxes.length > 0 ? (
+						<div>
+							<table className={styles.table}>
+								<thead>
+									<tr>
+										<th>Name</th>
+										<th>Value</th>
+										<th>Applied</th>
+										<th>Created On</th>
 									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-				) : (
-					<div className='alert alert-info text-sm'>No taxes found for this service.</div>
-				)}
-			</Modal.Body>
-			<Modal.Footer>
-				<Button variant="secondary" onClick={() => { setShowTaxModal(false); setModalService(null); }}>
-					Close
-				</Button>
-			</Modal.Footer>
-		</Modal>
-	);
-};
+								</thead>
+								<tbody>
+									{Array.isArray(modalTaxes) && modalTaxes.length > 0 && modalTaxes.map((tax, i) => (
+										<tr key={i}>
+											<td>{tax.name}</td>
+											<td>{tax.value}</td>
+											<td>{tax.apply ? tax.apply.toString() : ''}</td>
+											<td>{tax.createdOn ? new Date(tax.createdOn).toLocaleString() : ''}</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+					) : (
+						<div className='alert alert-info text-sm'>No taxes found for this service.</div>
+					)}
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={() => { setShowTaxModal(false); setModalService(null); }}>
+						Close
+					</Button>
+				</Modal.Footer>
+			</Modal>
+		);
+	};
 
 	const [paymentModes, setPaymentModes] = useState<any[]>([]);
 	useEffect(() => {
@@ -541,7 +553,7 @@ const renderTaxModal = () => {
 			<div>
 				<div className="d-flex justify-content-end mb-3">
 					<button className='d-flex align-items-center btn btn-secondary btn-sm'>
-						<RiRefreshFill  onClick={(ev) =>  {fetchRecords(Number(params?.billingid))}}/>	Refresh
+						<RiRefreshFill onClick={(ev) => { fetchRecords(Number(params?.billingid)) }} />	Refresh
 					</button>
 				</div>
 				<div className="bg-white br-5 p-3">
@@ -674,7 +686,7 @@ const renderTaxModal = () => {
 									<EditIcon />  {" "}
 									Write Off
 								</Button>
-								
+
 							</>;
 						})()}
 					</div>
@@ -684,6 +696,27 @@ const renderTaxModal = () => {
 							<Modal.Title>Refund All</Modal.Title>
 						</Modal.Header>
 						<Modal.Body>
+							<div className="mb-3">
+								<label htmlFor="refundAllReason" className="form-label">Reason for Refunding All</label>
+								<textarea
+									id="refundAllReason"
+									className="form-control"
+									value={refundAllReason}
+									onChange={e => setRefundAllReason(e.target.value)}
+									rows={3}
+									placeholder="Enter reason for refunding all..."
+								/>
+							</div>
+							<div className="mb-3">
+								<label htmlFor="refundAllAcknowledge" className="form-label">Type <b>I acknowledge</b> to confirm you understand this action</label>
+								<input
+									id="refundAllAcknowledge"
+									className="form-control"
+									value={refundAllAcknowledge}
+									onChange={e => setRefundAllAcknowledge(e.target.value)}
+									placeholder="Type 'I acknowledge' to proceed"
+								/>
+							</div>
 							<div className="mb-3">
 								<label htmlFor="refundAllPaymentMode" className="form-label">Select Payment Mode</label>
 								<select
@@ -700,12 +733,13 @@ const renderTaxModal = () => {
 									))}
 								</select>
 							</div>
+							{refundAllError && <div className="alert alert-danger text-sm">{refundAllError}</div>}
 						</Modal.Body>
 						<Modal.Footer>
 							<Button variant="secondary" onClick={() => setShowRefundAllModal(false)} disabled={submitting}>
 								Cancel
 							</Button>
-							<Button variant="primary" onClick={handleRefundAllSubmit} disabled={submitting || !PaymentMode}>
+							<Button variant="primary" onClick={handleRefundAllSubmit} disabled={submitting}>
 								{submitting ? <Spinner size="sm" /> : null} Refund All
 							</Button>
 						</Modal.Footer>

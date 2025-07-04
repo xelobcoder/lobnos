@@ -84,8 +84,8 @@ export default function MultiBillingPageAdditionalInformation() {
                 employeeid: employeeid,
                 branchid: branchid,
                 isConditionsUnderstood: false,
-                isPromo:billingdata.isPromo ?? false,
-                promoCodeId: billingdata.promoDetails?.id  || billingdata?.promoId,
+                isPromo: billingdata.isPromo ?? false,
+                promoCodeId: billingdata.promoDetails?.id || billingdata?.promoId,
                 promoCode: billingdata.promoDetails?.code || '',
                 patientid: Number(patientid),
                 payments: billingdata.payments,
@@ -96,7 +96,6 @@ export default function MultiBillingPageAdditionalInformation() {
                 dataToBeUploaded,
                 billingid ? Number(billingid) : undefined
             );
-            console.log(response)
             if (!response || typeof response !== 'object') {
                 setIsSaving(false);
                 return;
@@ -112,6 +111,7 @@ export default function MultiBillingPageAdditionalInformation() {
                     setIsSaving(false);
                     return;
                 }
+                // setBillingData(defaultMultiBillingData); // Reset form immediately after success
                 setGeneratedBillingid(newBillingId);
                 setShowReceiptOptionsModal(true);
                 setIsSaving(false);

@@ -15,11 +15,11 @@ export interface PatientInfo {
     lastname: string;
     middlename: string;
     email: string;
-    dob: string; 
+    dob: string;
     age: number;
     gender: "male" | "female" | string;
     occupation: string;
-    date: string; 
+    date: string;
     activation_status: boolean;
     contactpointer: string;
     whatappcontact: string;
@@ -59,7 +59,13 @@ export default async function MultiStepBillingSourcePage({ params, searchParams 
     const entityid = searchParams?.entityid ?? null;
     const specialcode = searchParams?.specialcode ?? null;
     const billingid = searchParams?.billingid ?? null;
-    const isNewTransaction = searchParams?.isNewTransaction === 0 || searchParams?.isNewTransaction === "0" ?  true : false;
+    const isRelatedBilling = searchParams?.isRelatedBilling === 0 || searchParams?.isRelatedBilling === "0" ? false : true;
+    const isNewTransaction = searchParams?.isNewTransaction === 0 || searchParams?.isNewTransaction === "0" ? true : false;
+    const isAdjustment = searchParams?.isAdjustment === 0 || searchParams?.isAdjustment === "0" ? false : true;
+    const adjustmentType = searchParams?.adjustmentType || 'addition';
+    const adjustmentReason = searchParams?.adjustmentReason || '';
+
+
 
     if (patientid && categorytrackid) {
         try {
@@ -94,8 +100,12 @@ export default async function MultiStepBillingSourcePage({ params, searchParams 
                 billingContextProps={{
                     categorytrackid,
                     entitytype,
-                    patientid:parseInt(patientid, 10),
+                    patientid: parseInt(patientid, 10),
                     entityname,
+                    isRelatedBilling,
+                    isAdjustment,
+                    adjustmentType,
+                    adjustmentReason,
                     entityid,
                     billingid: billingid ? parseInt(billingid, 10) : null,
                     isNewTransaction,
