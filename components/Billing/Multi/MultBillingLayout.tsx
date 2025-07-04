@@ -14,6 +14,7 @@ import { useApplication } from "../../Auth/useApplicationContext";
 import { toast } from "react-toastify";
 import MultiBillingHeader from './MultiBillingHeader';
 import PreviousRecordsHeader from './PreviousRecordsHeader';
+import { plsEncryption } from "../../../lib/encryption";
 
 
 
@@ -354,6 +355,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
             };
             const response = await customPost('billing/multi/checkout', 'POST', checkoutPayload);
             if (response && response.success && response.data) {
+
                 setBillingData(prev => ({
                     ...prev, ...response.data, cart: response.data.isPackageUsed ?
                         response.data.packageTestList : response.data.cart || [],
@@ -369,6 +371,10 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                 setShowSummary(true);
             } else {
                 toast.error(response?.message || "Checkout failed. Please try again.");
+                if (response.message == 'Outstanding debt found') {
+                    router.replace(`/billing/patientid/${plsEncryption((billingdata.patientid ?? '').toString())}/outstanding-debt`);
+                    return;
+                }
             }
         } catch (error) {
             console.error("Checkout error:", error);
@@ -489,8 +495,8 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                         {billingdata.isAdjustment && billingdata.adjustmentReason && (
                             <div>
                                 <label>Reason for Adjustment</label>
-                               <div className="text-muted alert alert-info text-sm mb-0">
-                                {billingdata.adjustmentReason || "No reason provided"}
+                                <div className="text-muted alert alert-info text-sm mb-0">
+                                    {billingdata.adjustmentReason || "No reason provided"}
                                 </div>
                             </div>
                         )}

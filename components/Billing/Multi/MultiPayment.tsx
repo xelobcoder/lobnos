@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import Select from "react-select";
 import { Button, Tooltip, OverlayTrigger } from "react-bootstrap";
 import { MultiBillingContext } from "./MultiBillingContext";
+import { calculateCorrectionalAdjustment } from '../../../lib/Multi/correctionUtils';
 
 interface PaymentModeOption {
     value: string | number;
@@ -22,6 +23,14 @@ const MultiPayment: React.FC = () => {
         ? billingdata.paymentModes.map((item: any) => ({ value: item.KeyID, label: item.PaymentMode }))
         : [];
     const payable = Number(billingdata.amountPayable) || 0;
+    const isAdjustment = String(billingdata.isAdjustment) === '1' || String(billingdata.isAdjustment) === 'true';
+    const adjustmentType = billingdata.adjustmentType;
+    const isCorrection = isAdjustment && adjustmentType === 'correction';
+    const currentTotal = payments.reduce((sum, p) => sum + p.amount, 0);
+    const correctional = isCorrection ? calculateCorrectionalAdjustment(billingdata) : null;
+    const previousPaid = correctional ? correctional.previousPaid : 0;
+    const correctionDiff = correctional ? correctional.currentPayable - correctional.previousPaid : 0;
+    const remainingAmount = isCorrection ? Math.max(0, correctionDiff - currentTotal) : payable - currentTotal;
 
     const [newPayment, setNewPayment] = useState<Omit<PaymentEntry, 'amount'> & { amount: string }>({ 
         mode: '', 
@@ -29,14 +38,11 @@ const MultiPayment: React.FC = () => {
     });
     const [validationError, setValidationError] = useState('');
 
-    const currentTotal = payments.reduce((sum, p) => sum + p.amount, 0);
-    const remainingAmount = payable - currentTotal;
     const usedModes = new Set(payments.map(p => p.mode));
     const availableModes: PaymentModeOption[] = paymentModes.filter(mode => !usedModes.has(mode.value));
 
     const handleAdd = () => {
         setValidationError('');
-
         if (!newPayment.mode) {
             setValidationError('Please select a payment mode');
             return;
@@ -47,7 +53,11 @@ const MultiPayment: React.FC = () => {
             setValidationError('Please enter a valid positive amount');
             return;
         }
-        if (amount > roundedRemaining + 0.0001) {
+        if (isCorrection && amount > roundedRemaining + 0.0001) {
+            setValidationError(`Amount cannot exceed correctional difference (${roundedRemaining.toFixed(2)})`);
+            return;
+        }
+        if (!isCorrection && amount > roundedRemaining + 0.0001) {
             setValidationError(`Amount cannot exceed remaining payable (${roundedRemaining.toFixed(2)})`);
             return;
         }
@@ -75,7 +85,7 @@ const MultiPayment: React.FC = () => {
             setNewPayment(np => ({ ...np, amount: '0' }));
             return;
         }
-        const remaining = Math.round((payable - payments.reduce((sum, p) => sum + p.amount, 0)) * 100) / 100;
+        const remaining = isCorrection ? Math.max(0, correctionDiff - payments.reduce((sum, p) => sum + p.amount, 0)) : Math.round((payable - payments.reduce((sum, p) => sum + p.amount, 0)) * 100) / 100;
         if (numValue > remaining) {
             setNewPayment(np => ({ ...np, amount: remaining.toFixed(2) }));
             return;
@@ -86,8 +96,13 @@ const MultiPayment: React.FC = () => {
     if (!paymentModes || paymentModes.length === 0) {
         return <div className="alert alert-warning">No payment modes available</div>;
     }
-    if (payable <= 0) {
-        return <div className="alert alert-warning">Nothing to pay</div>;
+    if (isCorrection) {
+        if (correctionDiff < 0) {
+            return <div className="alert alert-info">No payment required. Previous paid amount ({previousPaid.toFixed(2)}) exceeds new payable ({payable.toFixed(2)}). Excess: {(Math.abs(correctionDiff)).toFixed(2)}</div>;
+        }
+        if (correctionDiff === 0) {
+            return <div className="alert alert-info">No payment required. Previous paid amount matches new payable.</div>;
+        }
     }
     if (payments.length === 0 && availableModes.length === 0) {
         return <div className="alert alert-warning">No payments made and no payment modes available</div>;
@@ -95,7 +110,7 @@ const MultiPayment: React.FC = () => {
     
     return (
         <div className="form-group">
-            <label className="pls-label text-sm">Payment List</label>
+            <label className="pls-label text-sm">Payment List(Valid for current Transaction)</label>
             
             <table className="table table-bordered table-sm">
                 <thead>
@@ -188,11 +203,73 @@ const MultiPayment: React.FC = () => {
                 <div className="text-danger small mt-1">{validationError}</div>
             )}
             <div className="mt-1 small">
-                Total: <b>{currentTotal.toFixed(2)}</b> / {payable.toFixed(2)}
-                {currentTotal !== payable && (
-                    <span className="text-danger ms-2">
-                        Remaining: {(payable - currentTotal).toFixed(2)}
-                    </span>
+                {isCorrection ? (
+                    <div className="card border-info mb-2" style={{ maxWidth: 420 }}>
+                        <div className="card-header bg-info text-white py-1 px-2" style={{ fontWeight: 600, fontSize: '1em' }}>
+                            Correctional Adjustment Summary
+                        </div>
+                        <div className="card-body p-2">
+                            <table className="table table-bordered table-sm mb-1" style={{ background: '#f8f9fa' }}>
+                                <tbody>
+                                    <tr>
+                                        <th>Previous Paid</th>
+                                        <td className="text-end">{previousPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>New Payable</th>
+                                        <td className="text-end">{payable.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Correctional Difference</th>
+                                        <td className={correctionDiff > 0 ? 'text-danger fw-bold text-end' : correctionDiff < 0 ? 'text-success fw-bold text-end' : 'text-end'}>
+                                            {correctionDiff > 0 && '+'}{correctionDiff.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Total Paid This Correction</th>
+                                        <td className="text-end">{currentTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })} / {correctionDiff.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            {correctionDiff > 0 && (
+                                <div className="text-danger fw-bold">
+                                    {currentTotal < correctionDiff
+                                        ? <>Outstanding: {(correctionDiff - currentTotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}</>
+                                        : currentTotal > correctionDiff
+                                            ? <>Excess: {(currentTotal - correctionDiff).toLocaleString(undefined, { minimumFractionDigits: 2 })}</>
+                                            : <span className="text-success">Correctional payment complete.</span>
+                                    }
+                                </div>
+                            )}
+                            {correctionDiff === 0 && (
+                                <div className="text-info">No payment required. Previous paid matches new payable.</div>
+                            )}
+                            {correctionDiff < 0 && (
+                                <div className="text-success">No payment required. Previous paid exceeds new payable. Excess: {Math.abs(correctionDiff).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="card border-secondary mb-2" style={{ maxWidth: 420 }}>
+                        <div className="card-header bg-secondary text-white py-1 px-2" style={{ fontWeight: 600, fontSize: '1em' }}>
+                            Payment Summary
+                        </div>
+                        <div className="card-body p-2">
+                            <table className="table table-bordered table-sm mb-1" style={{ background: '#f8f9fa' }}>
+                                <tbody>
+                                    <tr>
+                                        <th>Total Paid</th>
+                                        <td className="text-end">{currentTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })} / {payable.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            {currentTotal !== payable && (
+                                <div className="text-danger fw-bold">
+                                    Remaining: {(payable - currentTotal).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 )}
             </div>
             {availableModes.length === 0 && payments.length > 0 && (
@@ -202,6 +279,6 @@ const MultiPayment: React.FC = () => {
             )}
         </div>
     );
-};
+}
 
 export default MultiPayment;

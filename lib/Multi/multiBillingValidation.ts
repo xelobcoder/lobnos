@@ -77,50 +77,33 @@ export const MultiValidateAndSubmitBillingInformation = async function (
         } = billingdata as any;
 
 
-        // Adjustment Correction Outstanding Logic (parse as number for validation)
-        if (
-            isAdjustment === 1 &&
-            adjustmentType === 'correction' &&
-            previousRecordsSummary &&
-            previousRecordsSummary.paid !== undefined &&
-            previousRecordsSummary.amountPayable !== undefined
-        ) {
-            const prevPaid = Number(previousRecordsSummary.paid) || 0;
-            const prevPayable = Number(previousRecordsSummary.amountPayable) || 0;
-            const currPayable = Number(amountPayable) || 0;
-            if (prevPaid < currPayable) {
-                return {
-                    status: 'outstanding_confirmation_required',
-                    message: 'The amount paid previously is less than the current total payable. Proceeding will write off the outstanding amount. Do you want to continue?',
-                    outstandingToWriteOff: currPayable - prevPaid,
-                    previousPaid: prevPaid,
-                    currentPayable: currPayable
-                };
-            }
-        }
-
-        // Multi-payment validation
-        if (!Array.isArray(payments) || payments.length === 0) {
+        if ((!Array.isArray(payments) || payments.length === 0) && !isAdjustment && adjustmentType != 'correction') {
             return { error: 'At least one payment entry is required.' };
         }
+
         let paymentSum = 0;
         const paymentModesSet = new Set();
-        for (const payment of payments) {
-            if (!payment || typeof payment.amount !== 'number' || payment.amount <= 0) {
-                return { error: 'Each payment must have a valid, positive amount.' };
+        if (!isAdjustment && adjustmentType != 'correction') {
+            for (const payment of payments) {
+                if (!payment || typeof payment.amount !== 'number' || payment.amount <= 0) {
+                    return { error: 'Each payment must have a valid, positive amount.' };
+                }
+                if (!payment.mode) {
+                    return { error: 'Each payment must have a valid payment mode.' };
+                }
+                if (paymentModesSet.has(payment.mode)) {
+                    return { error: 'Duplicate payment modes are not allowed.' };
+                }
+                paymentModesSet.add(payment.mode);
+                paymentSum += payment.amount;
             }
-            if (!payment.mode) {
-                return { error: 'Each payment must have a valid payment mode.' };
-            }
-            if (paymentModesSet.has(payment.mode)) {
-                return { error: 'Duplicate payment modes are not allowed.' };
-            }
-            paymentModesSet.add(payment.mode);
-            paymentSum += payment.amount;
         }
         const expectedAmount = actualAmountPayable || amountPayable;
-        if (Math.abs(paymentSum - expectedAmount) > 0.009) {
-            return { error: 'Total payment amount must exactly match the amount payable.' };
+        // Skip payment sum check if isAdjustment and adjustmentType is 'correction'
+        if (!(isAdjustment && adjustmentType === 'correction')) {
+            if (Math.abs(paymentSum - expectedAmount) > 0.009) {
+                return { error: 'Total payment amount must exactly match the amount payable.' };
+            }
         }
 
         if (cart.length === 0 && servicesProvided.length === 0) {
@@ -132,11 +115,6 @@ export const MultiValidateAndSubmitBillingInformation = async function (
         if (billingSource > 1 && !entityId) {
             return { error: BillingFailures.requiredParametersMissed };
         }
-
-
-
-      
-
 
         const isFinancialParamsAccurate =
             [subtotal, totaldiscount, balance, amountPayable, paid, totalAmountIncurredDueTax]

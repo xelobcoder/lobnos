@@ -10,30 +10,39 @@ import { MultiBillingData, defaultMultiBillingData } from '../../../lib/Multi/Mu
 import MultiPayment from './MultiPayment';
 import { MultiValidateAndSubmitBillingInformation } from "../../../lib/Multi/multiBillingValidation";
 import { toast } from "react-toastify";
+import { calculateCorrectionalAdjustment } from '../../../lib/Multi/correctionUtils';
 
 
 export default function MultiBillingPageAdditionalInformation() {
 	// Outstanding Write-Off Dialog State
 	const [showOutstandingDialog, setShowOutstandingDialog] = useState(false);
-	const [outstandingInfo, setOutstandingInfo] = useState<{ outstandingToWriteOff: number, previousPaid: number, currentPayable: number } | null>(null);
+	const [outstandingInfo, setOutstandingInfo] = useState<{
+		outstandingToWriteOff: number,
+		previousPaid: number,
+		currentPayable: number,
+		newPayments: number,
+		totalPaid: number
+	} | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
-
 	const context = useContext(MultiBillingContext);
 	if (!context) throw new Error('MultiBillingContext is undefined');
 	const { billingdata, setBillingData } = context;
 	const { billingid, patientid } = billingdata;
 	const { applicationsettings } = useApplicationSettings();
 	const branchid = applicationsettings.branchid;
-	const { employeeid } = applicationsettings.user;
+	const { employeeid, role } = applicationsettings.user;
 	const [showReceiptOptionsModal, setShowReceiptOptionsModal] = useState(false);
 	const [generatedBillingid, setGeneratedBillingid] = useState<string | undefined>(undefined);
 	const [showChoiceModal, setShowChoiceModal] = useState(false);
+	const [userAgreedToWriteOff, setUserAgreedToWriteOff] = useState(false);
+	const [adminWriteOffInternalLoss, setAdminWriteOffInternalLoss] = useState(false);
 	const closeReceiptModal = () => setShowReceiptOptionsModal(false);
 	const router = useRouter();
 
 	const handleModalClose = () => {
 		setShowChoiceModal(false);
 		setBillingData(defaultMultiBillingData);
+		setUserAgreedToWriteOff(false);
 	};
 
 	const checkButtonDisabled = (billingdata: MultiBillingData) => {
@@ -91,30 +100,18 @@ export default function MultiBillingPageAdditionalInformation() {
 			billingdata.adjustmentType === 'correction' &&
 			billingdata.previousRecordsSummary &&
 			billingdata.previousRecordsSummary.paid !== undefined &&
-			billingdata.previousRecordsSummary.payable !== undefined
+			billingdata.previousRecordsSummary.payable !== undefined &&
+			!writeOffConfirmed
 		) {
-			// Always show the danger modal for any correction adjustment, regardless of logic
-			const prevPaid = Number(billingdata.previousRecordsSummary.paid) || 0;
-			const prevPayable = Number(billingdata.previousRecordsSummary.payable) || 0;
-			let outstandingToWriteOff = 0;
-			let isExcess = false;
-			if (prevPaid > amountPayable) {
-				outstandingToWriteOff = prevPaid - amountPayable;
-				isExcess = true;
-			} else if (prevPaid < amountPayable) {
-				outstandingToWriteOff = amountPayable - prevPaid;
-			}
+			const correctional = calculateCorrectionalAdjustment(billingdata);
 			setOutstandingInfo({
-				outstandingToWriteOff,
-				previousPaid: prevPaid,
-				currentPayable: amountPayable
+				outstandingToWriteOff: correctional.outstandingToWriteOff,
+				previousPaid: correctional.previousPaid,
+				newPayments: correctional.newPayments,
+				totalPaid: correctional.totalPaid,
+				currentPayable: correctional.currentPayable
 			});
 			setShowOutstandingDialog(true);
-			if (isExcess) {
-				toast.warn('Previous payment is greater than the current payable. You need to balance the client account.');
-			} else if (outstandingToWriteOff > 0) {
-				toast.error('You are about to write off an outstanding balance. This action is irreversible and will affect the client\'s financial record. Proceed with caution.');
-			}
 			return;
 		}
 		if (totalPayments !== amountPayable && billingdata.isAdjustment !== 1) return;
@@ -153,7 +150,9 @@ export default function MultiBillingPageAdditionalInformation() {
 				setOutstandingInfo({
 					outstandingToWriteOff: response.outstandingToWriteOff,
 					previousPaid: response.previousPaid,
-					currentPayable: response.currentPayable
+					currentPayable: response.currentPayable,
+					newPayments: 0,
+					totalPaid: response.previousPaid // Only previousPaid is relevant here
 				});
 				setShowOutstandingDialog(true);
 				setIsSaving(false);
@@ -175,7 +174,7 @@ export default function MultiBillingPageAdditionalInformation() {
 					return;
 				}
 				setGeneratedBillingid(newBillingId);
-				setShowReceiptOptionsModal(true);
+				setShowChoiceModal(true);
 				setIsSaving(false);
 				return;
 			}
@@ -192,7 +191,7 @@ export default function MultiBillingPageAdditionalInformation() {
 					<div className="text-sm p-2 pls-color">
 						<div className="form-group">
 							<label className="pls-label text-sm">Payment(s)</label>
-							<MultiPayment/>
+							<MultiPayment />
 							{Array.isArray(billingdata.payments) && billingdata.payments.length > 0 && (
 								<div className="mt-1 small">
 									Total: <b>{billingdata.payments.reduce((sum, p) => sum + Number(p.amount || 0), 0)}</b>
@@ -233,33 +232,84 @@ export default function MultiBillingPageAdditionalInformation() {
 							{isSaving && <Spinner size="sm" />}<RiMoneyDollarCircleLine size={18} /> Bill Client
 						</button>
 						{/* Outstanding Write-Off Dialog */}
-						<Modal show={showOutstandingDialog} onHide={() => setShowOutstandingDialog(false)} centered backdrop="static" keyboard={false}>
-							<Modal.Header closeButton className="bg-danger text-white">
-								<Modal.Title>Danger: Outstanding Write-Off</Modal.Title>
+						<Modal show={showOutstandingDialog} onHide={() => setShowOutstandingDialog(false)} backdrop="static" keyboard={false}>
+							<Modal.Header closeButton style={{ background: '#003366', color: '#fff', borderBottom: '4px solid #ffc107' }}>
+								<Modal.Title style={{ fontWeight: 600, letterSpacing: 1 }}>
+									Financial Adjustment Required
+								</Modal.Title>
 							</Modal.Header>
 							<Modal.Body>
 								{outstandingInfo && (
 									<>
-										<Alert variant={
-											outstandingInfo.previousPaid > outstandingInfo.currentPayable ? "warning" :
-												outstandingInfo.previousPaid < outstandingInfo.currentPayable ? "danger" : "info"
+										<Alert className="text-sm" variant={
+											outstandingInfo.totalPaid > outstandingInfo.currentPayable ? "warning" :
+												outstandingInfo.totalPaid < outstandingInfo.currentPayable ? "danger" : "info"
 										}>
-											<div>
-												<b>Previous Paid:</b> {outstandingInfo.previousPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}<br />
-												<b>Current Payable:</b> {outstandingInfo.currentPayable.toLocaleString(undefined, { minimumFractionDigits: 2 })}<br />
-												<b>{outstandingInfo.previousPaid > outstandingInfo.currentPayable ? 'Excess to Balance' : 'Outstanding to Write Off'}:</b> <span className={outstandingInfo.previousPaid > outstandingInfo.currentPayable ? "text-success" : "text-danger"}>{Math.abs(outstandingInfo.outstandingToWriteOff).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-											</div>
-											{outstandingInfo.previousPaid > outstandingInfo.currentPayable ? (
-												<div className="mt-3 fw-bold text-warning">Notice: Previous payment is greater than the current payable. You need to balance the client account.</div>
-											) : outstandingInfo.previousPaid < outstandingInfo.currentPayable ? (
-												<>
-													<div className="mt-3 fw-bold text-danger">Warning: Proceeding will write off the outstanding amount. This action is irreversible and will affect the client's financial record.</div>
-													<div className="mt-2">Are you sure you want to continue?</div>
-												</>
-											) : (
+											<table className="table table-bordered table-sm mb-0" style={{ background: '#f8f9fa' }}>
+												<tbody>
+													<tr>
+														<th style={{ width: '50%' }}>Previous Paid</th>
+														<td className="text-end">{outstandingInfo.previousPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+													</tr>
+													<tr>
+														<th>New Payments</th>
+														<td className="text-end">{outstandingInfo.newPayments?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+													</tr>
+													<tr>
+														<th>Total Paid</th>
+														<td className="text-end fw-bold">{outstandingInfo.totalPaid?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+													</tr>
+													<tr>
+														<th>Current Payable</th>
+														<td className="text-end">{outstandingInfo.currentPayable.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+													</tr>
+													{outstandingInfo.totalPaid < outstandingInfo.currentPayable && (
+														<tr className="table-danger">
+															<th>Outstanding to Top Up</th>
+															<td className="text-end fw-bold text-danger">
+																{Math.abs(outstandingInfo.outstandingToWriteOff).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+															</td>
+														</tr>
+													)}
+													{outstandingInfo.totalPaid > outstandingInfo.currentPayable && (
+														<tr className="table-success">
+															<th>Excess Paid</th>
+															<td className="text-end fw-bold text-success">
+																{Math.abs(outstandingInfo.outstandingToWriteOff).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+															</td>
+														</tr>
+													)}
+												</tbody>
+											</table>
+											{outstandingInfo.totalPaid < outstandingInfo.currentPayable && (
+												<div className="mt-3 fw-bold text-danger">
+													You need to top up the outstanding amount to complete this correction.
+												</div>
+											)}
+											{outstandingInfo.totalPaid > outstandingInfo.currentPayable && (
+												<div className="mt-3 fw-bold text-warning">
+													Notice: Total paid is greater than the current payable. The excess will be recorded as a balance or refund.
+												</div>
+											)}
+											{outstandingInfo.totalPaid === outstandingInfo.currentPayable && (
 												<div className="mt-3 fw-bold text-info">No outstanding or excess. Payments are balanced.</div>
 											)}
 										</Alert>
+										{/* Admin-only: Write off as internal loss checkbox (only if not excess) */}
+										{role === 'admin' && outstandingInfo.totalPaid < outstandingInfo.currentPayable && (
+											<div className="form-check mt-3">
+												<input
+													className="form-check-input"
+													type="checkbox"
+													id="adminWriteOffInternalLoss"
+													checked={adminWriteOffInternalLoss}
+													onChange={e => setAdminWriteOffInternalLoss(e.target.checked)}
+												/>
+												<label className="form-check-label" htmlFor="adminWriteOffInternalLoss">
+													Write off as internal loss (admin only)
+												</label>
+											</div>
+										)}
 									</>
 								)}
 							</Modal.Body>
@@ -269,9 +319,11 @@ export default function MultiBillingPageAdditionalInformation() {
 								</Button>
 								<Button variant="danger" onClick={() => {
 									setShowOutstandingDialog(false);
+									setUserAgreedToWriteOff(true);
+									// You can use adminWriteOffInternalLoss in your backend payload if needed
 									handleSubmit(true);
 								}}>
-									Yes, Write Off & Continue
+									Yes,  Continue Billing
 								</Button>
 							</Modal.Footer>
 						</Modal>
