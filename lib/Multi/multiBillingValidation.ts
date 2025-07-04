@@ -56,17 +56,22 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             additionalInfo,
             totaldiscount,
             paid,
+            isAdjustment,
+            adjustmentType,
+            adjustmentReason,
             promoCodeId,
             totalAmountIncurredDueTax,
             totalServiceAmount,
+            additionalinformation,
             balance,
             promoDiscount,
             packageid,
             entityname,
+            previousRecordsSummary,
             servicesList = [],
             previousRecords = [],
             previousPaymentHistory = [],
-            promoCode ,
+            promoCode,
 
             refundList = [],
         } = billingdata as any;
@@ -105,10 +110,36 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             return { error: BillingFailures.requiredParametersMissed };
         }
 
+
+
+        // Adjustment Correction Outstanding Logic
+        if (
+            isAdjustment === 1 &&
+            adjustmentType === 'correction' &&
+            previousRecordsSummary &&
+            typeof previousRecordsSummary.paid === 'number' &&
+            typeof previousRecordsSummary.amountPayable === 'number'
+        ) {
+            // Compare previous paid with current amountPayable
+            if (previousRecordsSummary.paid < amountPayable) {
+                // Outstanding exists, require client confirmation to proceed and write off
+                // This should trigger a dialog in the UI; here, we return a special status for the UI to handle
+                return {
+                    status: 'outstanding_confirmation_required',
+                    message: 'The amount paid previously is less than the current total payable. Proceeding will write off the outstanding amount. Do you want to continue?',
+                    outstandingToWriteOff: amountPayable - previousRecordsSummary.paid,
+                    previousPaid: previousRecordsSummary.paid,
+                    currentPayable: amountPayable
+                };
+            }
+        }
+
+
+
         const isFinancialParamsAccurate =
             [subtotal, totaldiscount, balance, amountPayable, paid, totalAmountIncurredDueTax]
                 .every(val => typeof val === 'number' && !isNaN(val));
-        console.log('isFinancialParamsAccurate', isFinancialParamsAccurate);
+
         if (!isFinancialParamsAccurate) {
             return { error: BillingFailures.requiredParametersMissed };
         }
@@ -135,25 +166,32 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             type,
             entitytype,
             samplingCenter: branchid,
-            payments, additionalInfo,
+            payments,
             isPromo,
             paymentStatus,
             paymentReceived,
+            additionalinformation,
             packageid,
             isPromoValid,
             promoMethod,
-            promo
+            promo,
+            adjustmentReason,
+            adjustmentType,
+            isAdjustment: typeof isAdjustment === 'boolean' ? (isAdjustment ? 1 : 0) : isAdjustment,
         };
+
         const url = "billing/multi/submit";
         const response = await customPost(url, "POST", backendData);
         if (response.status && response.status === 'pending verification') {
             return response;
         }
+
         // If backend returns updated billing data, return it for context update
         if (response.status === true || response.status === 'success' || response.success === true) {
             toast.success(response.message || 'Billing submitted successfully');
             return { ...response, updatedBillingData: response.data || response.updatedBillingData || null };
         }
+
         return response;
     } catch (err: any) {
         console.log(err)

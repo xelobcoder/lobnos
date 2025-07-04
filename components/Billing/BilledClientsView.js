@@ -32,10 +32,10 @@ export default function BilledClientsView({ data = [], branchid }) {
 		return Math.random().toString(36).substring(2, 8).toUpperCase();
 	}
 
-	function openAdjustModal(billingid) {
+	function openAdjustModal(billingid, patientid) {
 		setModalType('adjust');
 		setModalBillingId(billingid);
-		setModalPatientId(null);
+		setModalPatientId(patientid);
 		const str = generateRandString();
 		setModalRandString(str);
 		setModalUserRandInput("");
@@ -57,18 +57,25 @@ export default function BilledClientsView({ data = [], branchid }) {
 	function closeModal() {
 		setShowModal(false);
 	}
+
+
 	function handleModalSubmit() {
 		setShowModal(false);
+		if (!modalBillingId || !modalPatientId || !modalReason) {
+			alert("Please fill all fields before proceeding.");
+		}
 		const encPatientId = plsEncryption(modalPatientId?.toString());
+		console.log(encPatientId, modalBillingId, modalPatientId)
 		const encReason = encodeURIComponent(modalReason);
 		const adjustmentType = modalType === 'update' ? 'addition' : 'correction';
-		const url = `/billing/patientid/${encPatientId}/multi?billingid=${modalBillingId}&isNewTransaction=0&&isRelatedBilling=1&&adjustmentReason=${encReason}&&adjustmentType=${adjustmentType}`;
+		const url = `/billing/patientid/${encPatientId}/multi?billingid=${modalBillingId}&isNewTransaction=0&&isRelatedBilling=1&&adjustmentReason=${encReason}&&adjustmentType=${adjustmentType}&&isAdjustment=1&&employeeid=${employeeid}`;
 		if (modalType === 'adjust') {
 			router.push(url);
 		} else if (modalType === 'update') {
-			router.push(`/billing/patientid/${encPatientId}/multi?billingid=${modalBillingId}&isNewTransaction=0&&isRelatedBilling=1&&adjustmentReason=${encReason}&&adjustmentType=addition`);
+			router.push(`/billing/patientid/${encPatientId}/multi?billingid=${modalBillingId}&isNewTransaction=0&&isRelatedBilling=1&&adjustmentReason=${encReason}&&adjustmentType=addition&&isAdjustment=1&&employeeid=${employeeid}`);
 		}
 	}
+
 	const columns = [
 		{
 			Header: "Date",
@@ -118,7 +125,7 @@ export default function BilledClientsView({ data = [], branchid }) {
 							<Dropdown.Menu className="m-0 p-0 bg-white">
 								<Dropdown.Item
 									className="m-0 p-2 border-top text-sm border-top-1 d-flex align-items-center gap-2"
-									onClick={() => openAdjustModal(row.original.billingid)}
+									onClick={() => openAdjustModal(row.original.billingid, row.original.patientid)}
 									as="button"
 									style={{ width: "100%", textAlign: "left" }}
 								>

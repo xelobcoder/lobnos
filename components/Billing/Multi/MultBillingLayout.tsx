@@ -486,6 +486,14 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                         {billingdata.isPackageUsed && <div className="mt-3">
                             <MultiPACKAGESELECT />
                         </div>}
+                        {billingdata.isAdjustment && billingdata.adjustmentReason && (
+                            <div>
+                                <label>Reason for Adjustment</label>
+                               <div className="text-muted alert alert-info text-sm mb-0">
+                                {billingdata.adjustmentReason || "No reason provided"}
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <div className="col-md-6" style={{ minHeight: 300 }}>
                         {loadingPanels ? (
