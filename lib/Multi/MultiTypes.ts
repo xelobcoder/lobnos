@@ -7,6 +7,7 @@ export interface TestCartItem {
     id: number;
     isoutsourced: number;
     testid: number;
+    prioritised: boolean;
     concessionMode: string;
     concessionValue: number;
     pricingType: string;
@@ -41,6 +42,7 @@ export interface ServicesListItem {
     totalpayable?: number;
     cost?: number;
     hasNightAdjustment: boolean;
+    prioritised: boolean;
     nightAdjustmentValue: number;
     nightAdjustmentMode: string;
     nightAdjustmentStartTime: string;
@@ -53,6 +55,7 @@ export interface MultiBillingData {
     patientid?: number | null;
     entityId?: string | number | null;
     entitytype?: entitytype;
+    excessAction?: 'balance' | 'refund';
     isPackageUsed: boolean;
     packageid?: number;
     status?: string;

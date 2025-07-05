@@ -101,7 +101,7 @@ export default function MultiBillingHeader({
     return (
         <>
             {/* NEW: Dedicated Card Header for Package/Service/Reference Code */}
-            <Card.Header className="bg-white bg-opacity-75 py-2 px-2 border-bottom" style={{ borderTop: '1px solid #dee2e6' }}>
+            <Card.Header className="bg-white bg-opacity-75  py-2 px-2 border-bottom" style={{ borderTop: '1px solid #dee2e6' }}>
                 <div className="d-flex flex-wrap align-items-center gap-2 w-100">
                     <Form.Check
                         type="checkbox"

@@ -54,8 +54,10 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             paymentReceived,
             subtotal,
             additionalInfo,
+            writeOffOutstanding,
             totaldiscount,
             paid,
+            excessAction,
             isAdjustment,
             adjustmentType,
             adjustmentReason,
@@ -152,27 +154,29 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             paymentReceived,
             additionalinformation,
             packageid,
+            excessAction,
             isPromoValid,
             promoMethod,
             promo,
             adjustmentReason,
+            writeOffOutstanding,
             adjustmentType,
             isAdjustment: typeof isAdjustment === 'boolean' ? (isAdjustment ? 1 : 0) : isAdjustment,
         };
-
+console.log(backendData);
         const url = "billing/multi/submit";
         const response = await customPost(url, "POST", backendData);
         if (response.status && response.status === 'pending verification') {
             return response;
         }
 
-        // If backend returns updated billing data, return it for context update
-        if (response.status === true || response.status === 'success' || response.success === true) {
-            toast.success(response.message || 'Billing submitted successfully');
-            return { ...response, updatedBillingData: response.data || response.updatedBillingData || null };
-        }
+        // // If backend returns updated billing data, return it for context update
+        // if (response.status === true || response.status === 'success' || response.success === true) {
+        //     toast.success(response.message || 'Billing submitted successfully');
+        //     return { ...response, updatedBillingData: response.data || response.updatedBillingData || null };
+        // }
 
-        return response;
+        // return response;
     } catch (err: any) {
         console.log(err)
         return { status: "error", message: "Error occurred during transit", details: err.message };

@@ -1,10 +1,12 @@
+"use client";
+import { useEffect, useState } from "react";
 import BilledSummary from "../../../../../components/Billing/BillingSumamry/BilledSummary";
-import BilledClientsView from '../../../../../components/Billing/BilledClientsView'
+import BilledClientsView from '../../../../../components/Billing/BilledClientsView';
 import { plsDecryption } from "../../../../../lib/encryption";
 import { customFetch } from "../../../../../components/Auth/customFetch";
 import Link from "next/link";
 
-export default async function DailySalesViewCustomerRepresentative({ params, searchParams }: {
+export default function DailySalesViewCustomerRepresentative({ params, searchParams }: {
 	params: {
 		branchid: string
 	},
@@ -13,53 +15,65 @@ export default async function DailySalesViewCustomerRepresentative({ params, sea
 		to?: string
 	}
 }) {
-	let { branchid } = await params;
-	const { from, to } = await searchParams;
-	let transactions = [];
-	let summary = undefined;
+	const [transactions, setTransactions] = useState<any[]>([]);
+	const [summary, setSummary] = useState<any>(undefined);
+	const [branchIdState, setBranchIdState] = useState<string>("");
+	const { branchid } = params;
+	const { from, to } = searchParams;
 
-	if (branchid) {
-		try {
-			branchid = plsDecryption(branchid.toString());
-		} catch {
-			return <div className="alert alert-danger text-small">Wrong Branch Provided</div>
+	useEffect(() => {
+		let decryptedBranchId = "";
+		if (branchid) {
+			try {
+				decryptedBranchId = plsDecryption(branchid.toString());
+			} catch {
+				setBranchIdState("");
+				return;
+			}
+			setBranchIdState(decryptedBranchId);
 		}
-	}
+	}, [branchid]);
 
-	try {
-		let endpoint = "billing/payment/info/client";
-		if (from && to) {
-			endpoint += `?from=${from}&to=${to}`;
-		} else if (from) {
-			endpoint += `?from=${from}`;
-		} else if (to) {
-			endpoint += `?to=${to}`;
+	useEffect(() => {
+		async function fetchData() {
+			if (!branchIdState) return;
+			let endpoint = "billing/payment/info/client";
+			if (from && to) {
+				endpoint += `?from=${from}&to=${to}`;
+			} else if (from) {
+				endpoint += `?from=${from}`;
+			} else if (to) {
+				endpoint += `?to=${to}`;
+			}
+			endpoint = endpoint + `&&branchid=${branchIdState}`;
+			try {
+				const data = await customFetch(endpoint);
+				if (data.status === "success" && data.statusCode === 200) {
+					setTransactions(data.data);
+					setSummary(data.summary);
+				} else {
+					setTransactions([]);
+					setSummary(undefined);
+				}
+			} catch (error) {
+				setTransactions([]);
+				setSummary(undefined);
+			}
 		}
+		fetchData();
+	}, [branchIdState, from, to]);
 
-		endpoint = endpoint + `&&branchid=${branchid}`
-
-		const data = await customFetch(endpoint);
-
-		if (data.status === "success" && data.statusCode === 200) {
-			transactions = data.data
-			summary = data.summary
-		}
-	} catch (error) {
-		transactions = [];
-	}
-
-	if (!branchid) {
+	if (!branchIdState) {
 		return <div className="alert alert-info">
 			Please select a branch to view transactions.
 			<Link href={'/billing/sales/branches'}>View Branches </Link>
-		</div>
+		</div>;
 	}
-
 
 	return (
 		<div>
-			{branchid && <BilledSummary branchid={branchid} from={from} to={to} />}
-			<BilledClientsView data={transactions} branchid={branchid} />
+			{branchIdState && <BilledSummary branchid={branchIdState} from={from} to={to} />}
+			<BilledClientsView data={transactions } branchid={branchIdState}  />
 		</div>
 	);
 }

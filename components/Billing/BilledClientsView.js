@@ -4,16 +4,26 @@ import { RiEdit2Line, RiFileAddLine, RiDeleteBinLine, RiPrinterLine, RiRefund2Li
 import PrimeTable from "../accessories/Datatables/PrimeTable";
 import { currencyFormatter } from "../Auth/customFetch";
 import { plsEncryption } from "../../lib/encryption";
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { handleDatePicker, handleSeverSideProcessing } from "../serverActions/ActionFiltering";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { RiSearchLine } from "@remixicon/react";
+import styles from './../../styles/SmsTemplateList.module.css'
 
 
-export default function BilledClientsView({ data = [], branchid }) {
-	const [datequery, setDatequery] = useState({ from: '', to: '' });
+export default function BilledClientsView({ data = [], branchid}) {
+	const searchParams = useSearchParams();
+	const pquery = useMemo(() => {
+		const from = searchParams.get('from') || '';
+		const to = searchParams.get('to') || '';
+		return { from, to };
+	}, [searchParams]);
+
+	const [datequery, setDatequery] = useState({
+		from: pquery.from || '', to: pquery.to || ''
+	});
 	const [isLoading, setIsLoading] = useState(false);
 	const { employeeid } = useApplicationSettings().applicationsettings.user;
 	const router = useRouter();
@@ -26,6 +36,10 @@ export default function BilledClientsView({ data = [], branchid }) {
 	const [modalRandString, setModalRandString] = useState("");
 	const [modalUserRandInput, setModalUserRandInput] = useState("");
 	const [modalReason, setModalReason] = useState("");
+
+	// State for view more modal
+	const [showViewMore, setShowViewMore] = useState(false);
+	const [viewMoreData, setViewMoreData] = useState(null);
 
 	// Generate a random string (6 chars)
 	function generateRandString() {
@@ -42,6 +56,8 @@ export default function BilledClientsView({ data = [], branchid }) {
 		setModalReason("");
 		setShowModal(true);
 	}
+
+
 
 	function openUpdateModal(billingid, patientid) {
 		setModalType('update');
@@ -63,9 +79,9 @@ export default function BilledClientsView({ data = [], branchid }) {
 		setShowModal(false);
 		if (!modalBillingId || !modalPatientId || !modalReason) {
 			alert("Please fill all fields before proceeding.");
+			return;
 		}
 		const encPatientId = plsEncryption(modalPatientId?.toString());
-		console.log(encPatientId, modalBillingId, modalPatientId)
 		const encReason = encodeURIComponent(modalReason);
 		const adjustmentType = modalType === 'update' ? 'addition' : 'correction';
 		const url = `/billing/patientid/${encPatientId}/multi?billingid=${modalBillingId}&isNewTransaction=0&&isRelatedBilling=1&&adjustmentReason=${encReason}&&adjustmentType=${adjustmentType}&&isAdjustment=1&&employeeid=${employeeid}`;
@@ -76,46 +92,24 @@ export default function BilledClientsView({ data = [], branchid }) {
 		}
 	}
 
-	const columns = [
-		{
-			Header: "Date",
-			accessor: "date",
-			Cell: ({ value }) => <span>{new Date(value).toLocaleDateString()}</span>,
-		},
+	// Define which columns are core financials
+	const coreColumns = [
+		{ Header: "Date", accessor: "billedon", Cell: ({ value }) => value ? <span>{new Date(value).toLocaleDateString()}</span> : '' },
 		{ Header: "Fullname", accessor: "fullname" },
-		{
-			Header: "Patient ID",
-			accessor: "fullpatientid",
-		},
+		{ Header: "Patient ID", accessor: "fullpatientid" },
 		{ Header: "Bill Id", accessor: "billingid" },
-		{
-			Header: "Amt Payable",
-			accessor: "payable",
-			Cell: ({ value }) => <div>{currencyFormatter.format(value)}</div>,
-		},
-		{
-			Header: "Amount Paid",
-			accessor: "paid",
-			Cell: ({ row }) => <div>{currencyFormatter.format(row.original.paid)}</div>,
-		},
-		{ Header: 'Discount', accessor: 'discount', Cell: ({ row }) => <div>{currencyFormatter.format(row.original.discount)}</div> },
-		{ Header: 'Amt Refunded', accessor: 'totalRefunded', Cell: ({ row }) => <div>{currencyFormatter.format(row.original.totalRefunded)}</div> },
-		{
-			Header: "Outstanding",
-			accessor: "outstanding",
-			Cell: ({ row }) => (
-				<div>
-					<span className={row.original.outstanding > 0 ? "text-danger" : "text-primary"}>
-						{currencyFormatter.format(row.original.outstanding)}
-					</span>
-				</div>
-			),
-		},
+		{ Header: "Amt Payable", accessor: "payable", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
+		{ Header: "Amount Paid", accessor: "paid", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
+		{ Header: "Outstanding", accessor: "outstanding", Cell: ({ value }) => (<div><span className={Number(value) > 0 ? "text-danger" : "text-primary"}>{currencyFormatter.format(Number(value) || 0)}</span></div>) },
+		{ Header: "Discount", accessor: "discount", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
+		{ Header: "Amt Refunded", accessor: "totalrefunded", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
+		{ Header: "Balance", accessor: "balance", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
+		{ Header: "Status", accessor: "status", Cell: ({ value }) => value ? <span className={value === 'pending' ? 'text-warning' : 'text-success'}>{value}</span> : <span className="text-muted">-</span> },
 		{
 			Header: "Actions",
 			accessor: "actions",
 			Cell: ({ row }) => {
-				const outstandingBill = row.original?.outstanding;
+				const outstandingBill = Number(row.original?.outstanding);
 				return (
 					<>
 						<Dropdown>
@@ -144,7 +138,7 @@ export default function BilledClientsView({ data = [], branchid }) {
 									<RiRefund2Line size={16} /> Write Off Outstanding
 								</Dropdown.Item>
 								<Dropdown.Item
-									onClick={() => openUpdateModal(row.original.billingid, row.original.patientid)}
+									onClick={() => openUpdateModal(row.original.billingid, row.original.fullpatientid)}
 									as="button"
 									className="text-capitalize text-sm m-0 px-2 border-top border-top-1 d-flex align-items-center gap-2"
 									style={{ width: "100%", textAlign: "left" }}
@@ -169,10 +163,18 @@ export default function BilledClientsView({ data = [], branchid }) {
 								>
 									<RiFileList2Line size={16} /> View Transactions Details
 								</Dropdown.Item>
+								<Dropdown.Item
+									className="m-0 p-2 border-top text-sm border-top-1 d-flex align-items-center gap-2"
+									onClick={() => handleViewMore(row.original)}
+									as="button"
+									style={{ width: "100%", textAlign: "left" }}
+								>
+									View More
+								</Dropdown.Item>
 								{outstandingBill > 0 && (
 									<Dropdown.Item
 										className="text-sm m-0 px-2 border-top border-top-1"
-										href={`/billing/patientid/${plsEncryption(row.original.patientid.toString())}/outstanding-debt`}
+										href={`/billing/patientid/${plsEncryption(row.original.fullpatientid.toString())}/outstanding-debt`}
 									>
 										Settle Bill
 									</Dropdown.Item>
@@ -184,6 +186,17 @@ export default function BilledClientsView({ data = [], branchid }) {
 			},
 		},
 	];
+
+	function handleViewMore(rowData) {
+		setViewMoreData(rowData);
+		setShowViewMore(true);
+	}
+
+	// List of fields that should be formatted as currency
+	const monetaryFields = [
+		'payable', 'paid', 'outstanding', 'discount', 'totalrefunded', 'balance', 'totalcost', 'totalTransactionCost', 'amountIncurredDueTax', 'adjustmentamount', 'promoValue', 'currentPayable', 'previousPaid', 'newPayments', 'totalPaid', 'outstandingToWriteOff'
+	];
+
 
 	return (
 		<div>
@@ -231,6 +244,47 @@ export default function BilledClientsView({ data = [], branchid }) {
 				</Modal.Footer>
 			</Modal>
 
+			{/* View More Modal */}
+			<Modal show={showViewMore} onHide={() => setShowViewMore(false)} centered>
+				<Modal.Header closeButton>
+					<Modal.Title>Billing Details</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					{viewMoreData && (
+						<div>
+							<table className={styles.table}>
+								<tbody>
+									{Object.entries(viewMoreData).map(([key, value]) => (
+										!coreColumns.some(col => col.accessor === key) &&
+										key !== 'year' && key !== 'month' && key !== 'day' && (
+											<tr key={key}>
+												<th style={{ textTransform: 'capitalize' }}>{key.replace(/([A-Z])/g, ' $1')}</th>
+												<td>{
+													value === null || value === undefined
+														? 'None'
+														: value === 1
+															? 'Yes'
+															: value === 0
+																? 'No'
+																: monetaryFields.includes(key)
+																	? currencyFormatter.format(Number(value) || 0)
+																	: String(value)
+												}</td>
+											</tr>
+										)
+									))}
+								</tbody>
+							</table>
+						</div>
+					)}
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={() => setShowViewMore(false)}>
+						Close
+					</Button>
+				</Modal.Footer>
+			</Modal>
+
 			<div className="d-flex justify-content-end col-12 my-2">
 				<div className="col-4 d-flex">
 					{datequery.from && datequery.to && (
@@ -261,9 +315,9 @@ export default function BilledClientsView({ data = [], branchid }) {
 				</div>
 			</div>
 			<PrimeTable
-				column={columns}
+				column={coreColumns}
 				styling="ttable table"
-				urlparams={datequery}
+				urlparams={{...datequery,branchid}}
 				data={data || []}
 				serverSideFiltering={true}
 				handleSeverSideProcessing={handleSeverSideProcessing}

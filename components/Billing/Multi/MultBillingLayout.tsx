@@ -1,5 +1,5 @@
 'use client';
-
+import React from "react";
 import MultiRenderingBillingSourceFields from "./RenderingBillingSourceFields";
 import MultiPACKAGESELECT from './MultiPACKAGESELECT';
 import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import MultiBillingHeader from './MultiBillingHeader';
 import PreviousRecordsHeader from './PreviousRecordsHeader';
 import { plsEncryption } from "../../../lib/encryption";
+import MultiBillingPageAdditionalInformation from "./MultiBillingPageAdditionalInformation";
 
 
 
@@ -453,72 +454,76 @@ function MultiBillingLayoutContent({ billingContextProps }: {
     }
 
     return (
-        <div className="card mt-2">
-            <MultiBillingHeader
-                billingdata={billingdata}
-                setBillingData={setBillingData}
-                useServices={useServices}
-                useSpecialCode={useSpecialCode}
-                specialCode={specialCode}
-                specialCodeError={specialCodeError}
-                loadingSpecialCode={loadingSpecialCode}
-                loadingBackendBilling={loadingBackendBilling}
-                canLoadData={canLoadData}
-                onPackageActivation={handlePackageActivation}
-                onUseServicesChange={checked => {
-                    setUseServices(checked);
-                    setBillingData(prev => ({ ...prev, includeServices: checked }));
-                }}
-                onUseSpecialCodeChange={setUseSpecialCode}
-                onSpecialCodeChange={handleSpecialCodeChange}
-                onLoadBackendBilling={loadBackendBilling}
-                onReset={handleReset}
-                onReturnToMulti={handleReturnToMulti}
-                onCheckout={handleCheckout}
-            />
+        <React.Fragment>
+            <div className="card mt-2">
+                <MultiBillingHeader
+                    billingdata={billingdata}
+                    setBillingData={setBillingData}
+                    useServices={useServices}
+                    useSpecialCode={useSpecialCode}
+                    specialCode={specialCode}
+                    specialCodeError={specialCodeError}
+                    loadingSpecialCode={loadingSpecialCode}
+                    loadingBackendBilling={loadingBackendBilling}
+                    canLoadData={canLoadData}
+                    onPackageActivation={handlePackageActivation}
+                    onUseServicesChange={checked => {
+                        setUseServices(checked);
+                        setBillingData(prev => ({ ...prev, includeServices: checked }));
+                    }}
+                    onUseSpecialCodeChange={setUseSpecialCode}
+                    onSpecialCodeChange={handleSpecialCodeChange}
+                    onLoadBackendBilling={loadBackendBilling}
+                    onReset={handleReset}
+                    onReturnToMulti={handleReturnToMulti}
+                    onCheckout={handleCheckout}
+                />
 
-            <PreviousRecordsHeader />
+                <PreviousRecordsHeader />
 
-            <div className="card-body m-0 p-0">
-                <div className="row g-0">
-                    <div className="col-md-3 p-3 border-end" style={{ minHeight: 300 }}>
-                        <MultiRenderingBillingSourceFields
-                            isClient={true}
-                            updateValuesToContext={handleOrganizationSelection}
-                            handleSelectedEntityClinician={handleSelectedEntityClinician}
-                            handleUrgencyChange={handleUrgencyChange}
-                            handleSelectedEntityInsurance={handleSelectedEntityInsurance}
-                        />
-                        {billingdata.isPackageUsed && <div className="mt-3">
-                            <MultiPACKAGESELECT />
-                        </div>}
-                        {billingdata.isAdjustment && billingdata.adjustmentReason && (
-                            <div>
-                                <label>Reason for Adjustment</label>
-                                <div className="text-muted alert alert-info text-sm mb-0">
-                                    {billingdata.adjustmentReason || "No reason provided"}
+                <div className="card-body m-0 p-0">
+                    <div className="row g-0">
+                        <div className="col-12 col-md-3 p-3 border-end" style={{ minHeight: 300 }}>
+                            <MultiRenderingBillingSourceFields
+                                isClient={true}
+                                updateValuesToContext={handleOrganizationSelection}
+                                handleSelectedEntityClinician={handleSelectedEntityClinician}
+                                handleUrgencyChange={handleUrgencyChange}
+                                handleSelectedEntityInsurance={handleSelectedEntityInsurance}
+                            />
+                            {billingdata.isPackageUsed && <div className="mt-3">
+                                <MultiPACKAGESELECT />
+                            </div>}
+                            {billingdata.isAdjustment && billingdata.adjustmentReason && (
+                                <div>
+                                    <label>Reason for Adjustment</label>
+                                    <div className="text-muted alert alert-info text-sm mb-0">
+                                        {billingdata.adjustmentReason || "No reason provided"}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                    <div className="col-md-6" style={{ minHeight: 300 }}>
-                        {loadingPanels ? (
-                            <div className="h-100 w-100 d-flex align-items-center justify-content-center">
-                                <Spinner animation="border" variant="primary" />
-                                <span className="ms-2">Loading test panels...</span>
-                            </div>
-                        ) : (
-                            <div className="h-100 w-100 border-start p-2">
-                                <MultiRenderingWithPatientId />
-                            </div>
-                        )}
-                    </div>
-                    <div className="col-md-3 border-start p-2" style={{ minHeight: 300 }}>
-                        {showSummary && <MultiSummary />}
+                            )}
+                        </div>
+                        <div className="col-12 col-md-6" style={{ minHeight: 300 }}>
+                            {loadingPanels ? (
+                                <div className="h-100 w-100 d-flex align-items-center justify-content-center">
+                                    <Spinner animation="border" variant="primary" />
+                                    <span className="ms-2">Loading test panels...</span>
+                                </div>
+                            ) : (
+                                <div className="h-100 w-100 border-start p-2">
+                                    <MultiRenderingWithPatientId />
+                                </div>
+                            )}
+                        </div>
+                        <div className="col-12 col-md-3 border-start p-2" style={{ minHeight: 300 }}>
+                            {showSummary && <MultiSummary />}
+                        </div>
                     </div>
                 </div>
+
             </div>
-        </div>
+
+        </React.Fragment>
     );
 }
 

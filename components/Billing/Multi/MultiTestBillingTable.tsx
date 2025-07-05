@@ -1,3 +1,5 @@
+
+
 import { RiPencilLine, RiDeleteBinLine } from '@remixicon/react';
 import { useState, useContext } from "react";
 import { Table, Spinner } from "react-bootstrap";
@@ -11,12 +13,11 @@ export default function MultiTestBillingTable() {
     const context = useContext(MultiBillingContext);
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata, setBillingData, recalculateTotalBill } = context;
-
     const cart = Array.isArray(billingdata?.cart) ? billingdata.cart : [];
-
     const [editingItem, setEditingItem] = useState<any>(null);
     const [organizations, setOrganizations] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const {amountPayable,paid } = billingdata;
 
     const removeFromCart = (testId: any) => {
         const filteredCart = cart.filter((item: any) => item.id !== testId);
@@ -65,6 +66,7 @@ export default function MultiTestBillingTable() {
         }
     };
 
+
     if (!billingdata.billingSource) {
         return <div className="br-0 alert border-2 border-danger alert-danger alert-dismissible br-5 text-sm">Select Billing Source to continue</div>;
     }
@@ -104,6 +106,12 @@ export default function MultiTestBillingTable() {
                             <td>{currencyFormatter.format(item.discountedValue ?? 0)}</td>
                             <td>{currencyFormatter.format(item.discount ?? 0)}</td>
                             <td>
+                                <input
+                                    type="checkbox"
+                                    className="form-check-input me-2"
+                                    checked={item.prioritised === true}
+                                    title="Mark as prioritized"
+                                />
                                 {item.isoutsourced === 1 && (
                                     <RiPencilLine 
                                         className="text-primary" 

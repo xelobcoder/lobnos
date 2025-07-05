@@ -6,11 +6,12 @@ import ReceiptOptionsModal from "../ReceiptOptionsModal";
 import { RiMoneyDollarCircleLine, RiCloseLine, RiPrinterLine, RiStore3Line } from '@remixicon/react';
 import { useRouter } from "next/navigation";
 import { plsEncryption } from "../../../lib/encryption";
-import { MultiBillingData, defaultMultiBillingData } from '../../../lib/Multi/MultiTypes';
+import { MultiBillingData, defaultMultiBillingData, TestCartItem } from '../../../lib/Multi/MultiTypes';
 import MultiPayment from './MultiPayment';
 import { MultiValidateAndSubmitBillingInformation } from "../../../lib/Multi/multiBillingValidation";
 import { toast } from "react-toastify";
 import { calculateCorrectionalAdjustment } from '../../../lib/Multi/correctionUtils';
+import { currencyFormatter } from "../../Auth/customFetch";
 
 
 export default function MultiBillingPageAdditionalInformation() {
@@ -94,7 +95,7 @@ export default function MultiBillingPageAdditionalInformation() {
 
 		const totalPayments = billingdata.paid;
 		const amountPayable = Number(billingdata.amountPayable) || 0;
-		// Adjustment Correction Outstanding Logic (frontend check)
+
 		if (
 			billingdata.isAdjustment === 1 &&
 			billingdata.adjustmentType === 'correction' &&
@@ -116,6 +117,11 @@ export default function MultiBillingPageAdditionalInformation() {
 		}
 		if (totalPayments !== amountPayable && billingdata.isAdjustment !== 1) return;
 
+		// No need for modal, prioritization is done inline when paid < payable
+		if (totalPayments < amountPayable && !writeOffConfirmed) {
+			return;
+		}
+
 
 		try {
 			setIsSaving(true);
@@ -135,9 +141,9 @@ export default function MultiBillingPageAdditionalInformation() {
 				adjustmentReason: billingdata.adjustmentReason || '',
 				entitytype: billingdata.entitytype || null,
 				writeOffOutstanding: writeOffConfirmed ? true : undefined,
+				adminWriteOffInternalLoss: adminWriteOffInternalLoss ? 1 : 0,
+				excessAction: billingdata.excessAction || null
 			} as any;
-
-			console.log('Submitting billing:', dataToBeUploaded);
 
 			const response = await MultiValidateAndSubmitBillingInformation(
 				dataToBeUploaded,
@@ -152,7 +158,7 @@ export default function MultiBillingPageAdditionalInformation() {
 					previousPaid: response.previousPaid,
 					currentPayable: response.currentPayable,
 					newPayments: 0,
-					totalPaid: response.previousPaid // Only previousPaid is relevant here
+					totalPaid: response.previousPaid
 				});
 				setShowOutstandingDialog(true);
 				setIsSaving(false);
@@ -231,7 +237,7 @@ export default function MultiBillingPageAdditionalInformation() {
 							onClick={() => { handleSubmit() }}>
 							{isSaving && <Spinner size="sm" />}<RiMoneyDollarCircleLine size={18} /> Bill Client
 						</button>
-						{/* Outstanding Write-Off Dialog */}
+
 						<Modal show={showOutstandingDialog} onHide={() => setShowOutstandingDialog(false)} backdrop="static" keyboard={false}>
 							<Modal.Header closeButton style={{ background: '#003366', color: '#fff', borderBottom: '4px solid #ffc107' }}>
 								<Modal.Title style={{ fontWeight: 600, letterSpacing: 1 }}>
@@ -249,25 +255,25 @@ export default function MultiBillingPageAdditionalInformation() {
 												<tbody>
 													<tr>
 														<th style={{ width: '50%' }}>Previous Paid</th>
-														<td className="text-end">{outstandingInfo.previousPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+														<td className="text-end">{currencyFormatter.format(outstandingInfo.previousPaid)}</td>
 													</tr>
 													<tr>
 														<th>New Payments</th>
-														<td className="text-end">{outstandingInfo.newPayments?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+														<td className="text-end">{currencyFormatter.format(outstandingInfo.newPayments)}</td>
 													</tr>
 													<tr>
 														<th>Total Paid</th>
-														<td className="text-end fw-bold">{outstandingInfo.totalPaid?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+														<td className="text-end fw-bold">{currencyFormatter.format(outstandingInfo.totalPaid)}</td>
 													</tr>
 													<tr>
 														<th>Current Payable</th>
-														<td className="text-end">{outstandingInfo.currentPayable.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+														<td className="text-end">{currencyFormatter.format(outstandingInfo.currentPayable)}</td>
 													</tr>
 													{outstandingInfo.totalPaid < outstandingInfo.currentPayable && (
 														<tr className="table-danger">
 															<th>Outstanding to Top Up</th>
 															<td className="text-end fw-bold text-danger">
-																{Math.abs(outstandingInfo.outstandingToWriteOff).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+																{currencyFormatter.format(Math.abs(outstandingInfo.outstandingToWriteOff))}
 															</td>
 														</tr>
 													)}
@@ -286,9 +292,36 @@ export default function MultiBillingPageAdditionalInformation() {
 													You need to top up the outstanding amount to complete this correction.
 												</div>
 											)}
+
 											{outstandingInfo.totalPaid > outstandingInfo.currentPayable && (
 												<div className="mt-3 fw-bold text-warning">
 													Notice: Total paid is greater than the current payable. The excess will be recorded as a balance or refund.
+													<div className="form-check mt-2">
+														<input
+															className="form-check-input"
+															type="radio"
+															name="excessAction"
+															id="excessAsBalance"
+															checked={billingdata.excessAction !== 'refund'}
+															onChange={() => context.setBillingData({ ...billingdata, excessAction: 'balance' })}
+														/>
+														<label className="form-check-label" htmlFor="excessAsBalance">
+															Record as Balance
+														</label>
+													</div>
+													<div className="form-check">
+														<input
+															className="form-check-input"
+															type="radio"
+															name="excessAction"
+															id="excessAsRefund"
+															checked={billingdata.excessAction === 'refund'}
+															onChange={() => context.setBillingData({ ...billingdata, excessAction: 'refund' })}
+														/>
+														<label className="form-check-label" htmlFor="excessAsRefund">
+															Refund to Client
+														</label>
+													</div>
 												</div>
 											)}
 											{outstandingInfo.totalPaid === outstandingInfo.currentPayable && (
