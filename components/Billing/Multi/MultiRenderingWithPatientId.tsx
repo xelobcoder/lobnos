@@ -10,9 +10,6 @@ export default function MultiRenderingWithPatientId() {
     if (!context) throw new Error("MultiBillingContext not found");
     const { billingdata } = context;
 
-    if (billingdata.cantIgnoreDebt && billingdata.outstandingDebt > 0) {
-        return null;
-    }
 
     if (!billingdata.billingSource) {
         return (
@@ -24,9 +21,6 @@ export default function MultiRenderingWithPatientId() {
 
     return (
         <div  >
-            {billingdata.previewPrevious && billingdata.previousRecords.length > 0 && (
-                <MultiPreviousBilledTestRecords />
-            )}
             <Col>
                 <MultiTestBillingTable />
                 <MultiServicesProvidedToPatientBilling />

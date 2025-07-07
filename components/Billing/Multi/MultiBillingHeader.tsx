@@ -100,8 +100,7 @@ export default function MultiBillingHeader({
 
     return (
         <>
-            {/* NEW: Dedicated Card Header for Package/Service/Reference Code */}
-            <Card.Header className="bg-white bg-opacity-75  py-2 px-2 border-bottom" style={{ borderTop: '1px solid #dee2e6' }}>
+            <Card.Header className="bg-white py-2 px-2 " >
                 <div className="d-flex flex-wrap align-items-center gap-2 w-100">
                     <Form.Check
                         type="checkbox"
@@ -191,14 +190,13 @@ export default function MultiBillingHeader({
                     )}
                 </div>
             </Card.Header>
-
-            {/* Main Card Header (rest of your controls remain here) */}
-            <Card.Header className="bg-light bg-opacity-75 py-3 px-2 border-bottom" style={{ borderTop: '1px solid #dee2e6' }}>
+     
+            <Card.Header className="py-3  px-2 " >
                 <div className="container-fluid px-0">
-                    <div className="row gx-2 gy-2 align-items-center w-100 flex-lg-nowrap flex-wrap">
+                    <div className="row m-0">
                         {/* Special Code Input */}
                         {useSpecialCode && (
-                            <div className="col-12 col-lg-auto d-flex align-items-center" style={{ minWidth: 180, height: 40 }}>
+                            <div className="col-12 col-lg-auto d-flex align-items-center" >
                                 <Form.Control
                                     type="text"
                                     placeholder="Enter special code"

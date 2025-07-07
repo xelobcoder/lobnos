@@ -138,7 +138,7 @@ export default function BilledClientsView({ data = [], branchid}) {
 									<RiRefund2Line size={16} /> Write Off Outstanding
 								</Dropdown.Item>
 								<Dropdown.Item
-									onClick={() => openUpdateModal(row.original.billingid, row.original.fullpatientid)}
+									onClick={() => openUpdateModal(row.original.billingid, row.original.patientid)}
 									as="button"
 									className="text-capitalize text-sm m-0 px-2 border-top border-top-1 d-flex align-items-center gap-2"
 									style={{ width: "100%", textAlign: "left" }}

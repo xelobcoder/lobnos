@@ -106,12 +106,6 @@ export default function MultiTestBillingTable() {
                             <td>{currencyFormatter.format(item.discountedValue ?? 0)}</td>
                             <td>{currencyFormatter.format(item.discount ?? 0)}</td>
                             <td>
-                                <input
-                                    type="checkbox"
-                                    className="form-check-input me-2"
-                                    checked={item.prioritised === true}
-                                    title="Mark as prioritized"
-                                />
                                 {item.isoutsourced === 1 && (
                                     <RiPencilLine 
                                         className="text-primary" 

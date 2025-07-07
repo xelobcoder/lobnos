@@ -1032,3 +1032,5 @@ export const getResultEntrySettings = async (employeeid) => {
 		return ResultEntrydefaultData
 	}
 }
+
+

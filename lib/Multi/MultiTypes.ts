@@ -50,6 +50,8 @@ export interface ServicesListItem {
 }
 
 export interface MultiBillingData {
+    allowAdvancePayment?: boolean;
+    openPaymentModal?: number;
     billingid?: string | number;
     billingSource: number;
     patientid?: number | null;
@@ -198,5 +200,6 @@ export const defaultMultiBillingData: MultiBillingData = {
     promoVerifySuccess: null,
     promoVerifyMessage: null,
     promoVerifyLoading: false,
-    billingIdVerified: false
+    billingIdVerified: false,
+    openPaymentModal: undefined
 };

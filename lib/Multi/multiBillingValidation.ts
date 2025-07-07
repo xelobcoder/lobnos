@@ -74,18 +74,14 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             previousRecords = [],
             previousPaymentHistory = [],
             promoCode,
-
             refundList = [],
         } = billingdata as any;
 
 
-        if ((!Array.isArray(payments) || payments.length === 0) && !isAdjustment && adjustmentType != 'correction') {
-            return { error: 'At least one payment entry is required.' };
-        }
-
+        // Payment validation is now optional for order flow. Only validate if payments are present.
         let paymentSum = 0;
         const paymentModesSet = new Set();
-        if (!isAdjustment && adjustmentType != 'correction') {
+        if (Array.isArray(payments) && payments.length > 0 && !isAdjustment && adjustmentType != 'correction') {
             for (const payment of payments) {
                 if (!payment || typeof payment.amount !== 'number' || payment.amount <= 0) {
                     return { error: 'Each payment must have a valid, positive amount.' };
@@ -99,12 +95,11 @@ export const MultiValidateAndSubmitBillingInformation = async function (
                 paymentModesSet.add(payment.mode);
                 paymentSum += payment.amount;
             }
-        }
-        const expectedAmount = actualAmountPayable || amountPayable;
-        // Skip payment sum check if isAdjustment and adjustmentType is 'correction'
-        if (!(isAdjustment && adjustmentType === 'correction')) {
-            if (Math.abs(paymentSum - expectedAmount) > 0.009) {
-                return { error: 'Total payment amount must exactly match the amount payable.' };
+            const expectedAmount = actualAmountPayable || amountPayable;
+            if (!(isAdjustment && adjustmentType === 'correction')) {
+                if (Math.abs(paymentSum - expectedAmount) > 0.009) {
+                    return { error: 'Total payment amount must exactly match the amount payable.' };
+                }
             }
         }
 
@@ -163,20 +158,20 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             adjustmentType,
             isAdjustment: typeof isAdjustment === 'boolean' ? (isAdjustment ? 1 : 0) : isAdjustment,
         };
-console.log(backendData);
+
         const url = "billing/multi/submit";
         const response = await customPost(url, "POST", backendData);
         if (response.status && response.status === 'pending verification') {
             return response;
         }
+console.log("Response from backend:", response);
+        // If backend returns updated billing data, return it for context update
+        if (response.status === true || response.status === 'success' || response.success === true) {
+            toast.success(response.message || 'Billing submitted successfully');
+            return { ...response, updatedBillingData: response.data || response.updatedBillingData || null };
+        }
 
-        // // If backend returns updated billing data, return it for context update
-        // if (response.status === true || response.status === 'success' || response.success === true) {
-        //     toast.success(response.message || 'Billing submitted successfully');
-        //     return { ...response, updatedBillingData: response.data || response.updatedBillingData || null };
-        // }
-
-        // return response;
+        return response;
     } catch (err: any) {
         console.log(err)
         return { status: "error", message: "Error occurred during transit", details: err.message };

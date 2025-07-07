@@ -3,7 +3,7 @@ import React from "react";
 import MultiRenderingBillingSourceFields from "./RenderingBillingSourceFields";
 import MultiPACKAGESELECT from './MultiPACKAGESELECT';
 import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
-import { Spinner } from "react-bootstrap";
+import { Button, Spinner } from "react-bootstrap";
 import { useContext, useState, useEffect } from "react";
 import { customFetch, customPost } from "../../Auth/customFetch";
 import { defaultMultiBillingData } from "../../../lib/Multi/MultiTypes";
@@ -15,7 +15,7 @@ import { toast } from "react-toastify";
 import MultiBillingHeader from './MultiBillingHeader';
 import PreviousRecordsHeader from './PreviousRecordsHeader';
 import { plsEncryption } from "../../../lib/encryption";
-import MultiBillingPageAdditionalInformation from "./MultiBillingPageAdditionalInformation";
+import { MultiValidateAndSubmitBillingInformation } from "../../../lib/Multi/multiBillingValidation";
 
 
 
@@ -333,10 +333,99 @@ function MultiBillingLayoutContent({ billingContextProps }: {
         }));
     }
 
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSubmit = async (writeOffConfirmed = false) => {
+        if (isSaving) return;
+
+        if (!billingdata || !billingdata.patientid) {
+            return toast.error('Patient ID is required to submit billing');
+        }
+
+        if (billingdata.isAdjustment === 1 && !billingdata.adjustmentType) {
+            return toast.error('Adjustment type is required for adjustments');
+        }
+
+        if (billingdata.isAdjustment === 1 && !billingdata.adjustmentReason && billingdata.adjustmentType == 'correction') {
+            return toast.error('Adjustment reason is required for correction adjustments');
+        }
+
+
+        const totalPayments = billingdata.paid;
+        const amountPayable = Number(billingdata.amountPayable) || 0;
+
+        try {
+            setIsSaving(true);
+            const dataToBeUploaded = {
+                ...billingdata,
+                employeeid: employeeid,
+                branchid: branchid,
+                amountPayable,
+                totalPayments,
+                isConditionsUnderstood: false,
+                isPromo: billingdata.isPromo ?? false,
+                promoCodeId: billingdata.promoDetails?.id || billingdata?.promoId,
+                promoCode: billingdata.promoDetails?.code || '',
+                patientid: Number(patientid),
+                payments: billingdata.payments,
+                additionalinformation: billingdata.additionalInfo ?? '',
+                isAdjustment: typeof billingdata.isAdjustment === 'boolean' ? (billingdata.isAdjustment ? 1 : 0) : billingdata.isAdjustment,
+                adjustmentType: billingdata.adjustmentType || 'addition',
+                adjustmentReason: billingdata.adjustmentReason || '',
+                entitytype: billingdata.entitytype || null,
+                writeOffOutstanding: writeOffConfirmed ? true : undefined,
+                excessAction: billingdata.excessAction || null
+            } as any;
+
+            const response = await MultiValidateAndSubmitBillingInformation(
+                dataToBeUploaded,
+                billingid ? Number(billingid) : undefined
+            );
+
+
+            const { status, message } = response;
+
+            if (status == true || status === 'success') {
+                toast.success(message || "Billing data submitted successfully");
+                if (typeof window !== 'undefined') {
+                    if (window.confirm("Do you want to proceed to payment now?")) {
+                        router.replace(`/billing/patientid/${plsEncryption((billingdata.patientid ?? '').toString())}/multi/order/payment/${response.billingid || ''}`);
+                    } else {
+                        // Reset the form and go back to multi
+                        setBillingData(prev => ({
+                            ...defaultMultiBillingData,
+                            billingSource: prev.billingSource,
+                            branchid: prev.branchid,
+                            patientid: prev.patientid,
+                            entitytype: prev.entitytype,
+                            entityId: prev.entityId,
+                            entityname: prev.entityname,
+                            includeServices: false,
+                            servicesList: [],
+                            isPackageUsed: false,
+                            packageid: 0,
+                            specialcode: '',
+                        }));
+                        if (patientId) router.replace(`/billing/patientid/${patientId}/multi/`);
+                    }
+                }
+            }
+            if (status == false) {
+                return toast.error(message || "Failed to submit billing data");
+            }
+
+        } catch (error) {
+            setIsSaving(false);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+
+
     // Checkout handler: send billing data to backend
     const handleCheckout = async () => {
         try {
-            console.log("Checkout data:", billingdata);
             const checkoutPayload = {
                 patientId: billingdata.patientid,
                 billingid: billingdata.billingid,
@@ -362,6 +451,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                         response.data.packageTestList : response.data.cart || [],
                     payments: [],
                     paid: 0,
+                    allowAdvancePayment: true,
                     balance: response.data.amountPayable || 0,
                     promoDetails: response.data.promoDetails || {},
                     promoCode: response.data?.promoDetails?.code,
@@ -427,7 +517,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
     }
 
     useEffect(() => {
-        onMountedRun()
+        onMountedRun();
     }, []);
 
     // Helper: should Load Data be enabled?
@@ -440,6 +530,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
         }
         return true;
     })();
+
 
     if (loadingBackendBilling) {
         return (
@@ -518,6 +609,29 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                         <div className="col-12 col-md-3 border-start p-2" style={{ minHeight: 300 }}>
                             {showSummary && <MultiSummary />}
                         </div>
+                    </div>
+                </div>
+                <div className="card-footer d-flex justify-content-between align-items-center">
+                    <div className="d-flex justify-content-between " >
+                        {/* Show Advanced Payment and Bill Client only if making advance payment and certain conditions are met */}
+                        {billingdata?.allowAdvancePayment && (
+                            <>
+                                <Button variant="outline-primary" className="mx-2 " size="sm" onClick={() => {
+                                    setBillingData(prev => ({
+                                        ...prev,
+                                        openPaymentModal: 2,
+                                    }));
+                                }} >
+                                    💳 Advanced Payment
+                                </Button>
+                                <Button variant="outline-primary" className="mx-2 " size="sm" onClick={(ev) => { handleSubmit() }}>
+                                    💳 Bill Client
+                                </Button>
+                            </>
+                        )}
+                        <Button onClick={(ev) => { handleSubmit() }} variant="outline-secondary" className="mx-2" size="sm"  >
+                            Proceed to order
+                        </Button>
                     </div>
                 </div>
 

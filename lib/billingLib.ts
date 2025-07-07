@@ -479,6 +479,15 @@ export const fetchPreviousBilledRecords = async function (billingid) {
     }
 }
 
+export  const getTransactionPreviousBillingRecords = async (billingid: number) => {
+            try {
+                const response = await customFetch(`billing/previous/transaction/data?billingid=${billingid}`);
+                return response.result;
+            } catch (err) {
+                return [];
+            }
+        };
+
 
 
 export const hasPreviousRecords = function (billingdata, selected) {

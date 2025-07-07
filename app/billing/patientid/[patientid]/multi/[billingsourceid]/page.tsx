@@ -70,6 +70,7 @@ export default async function MultiStepBillingSourcePage({ params, searchParams 
     if (patientid && categorytrackid) {
         try {
             const response = await customFetch(`register/personalinformation?patientid=${patientid}`);
+            console.log(`Response from personal information:${patientid}`, response);
             const { result, status, statusCode } = response;
             if (statusCode == 200 && status === "success") {
                 patientBasicInformation = normalizePatientInfo(result);
@@ -81,6 +82,7 @@ export default async function MultiStepBillingSourcePage({ params, searchParams 
                 );
             }
         } catch (error) {
+            console.error("Error fetching patient information:", error);
             return (
                 <Alert variant='danger' className='p-3 text-sm col-3 mx-auto'>
                     <RiErrorWarningFill />
