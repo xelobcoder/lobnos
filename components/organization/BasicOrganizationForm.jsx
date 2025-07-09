@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { regions, organizationDefaultBasicInfo, customFetch, customPost, validateFormData } from "../Auth/customFetch";
+import { regions, organizationDefaultBasicInfo, customFetch, customFile, customPost, validateFormData } from "../Auth/customFetch";
 import Loader from "../accessories/Loader";
 import { toast, ToastContainer } from 'react-toastify';
 import { 
@@ -13,6 +13,7 @@ import {
 	RiFileExcel2Line,
 	RiEditLine
 } from '@remixicon/react';
+import { Modal, Button } from 'react-bootstrap';
 
 const customStyles = `
   .image-upload-area {
@@ -45,6 +46,8 @@ export default function OrganizationBasicForm({ organizationid }) {
 	const [excelFile, setExcelFile] = useState(null);
 	const [uploading, setUploading] = useState(false);
 	const [showExcelModal, setShowExcelModal] = useState(false);
+	const [excelPreview, setExcelPreview] = useState(null);
+	const [selectedRows, setSelectedRows] = useState([]);
 
 	useEffect(() => {
 		if (organizationid) {
@@ -208,36 +211,23 @@ export default function OrganizationBasicForm({ organizationid }) {
 
 	const handleExcelUpload = async () => {
 		if (!excelFile) {
-			toast.error('Please select an Excel file first', {
+			toast.error('Please select a file first', {
 				position: 'top-right',
 				autoClose: 2000,
 			});
 			return;
 		}
-
 		setUploading(true);
 		const formData = new FormData();
 		formData.append('file', excelFile);
-
+		formData.append('target', 'organization');
 		try {
-			const response = await fetch('/api/organizations/import', {
-				method: 'POST',
-				body: formData,
-			});
-
-			const result = await response.json();
-
-			if (response.ok) {
-				toast.success(`Successfully imported ${result.count} organizations`, {
-					position: 'top-right',
-					autoClose: 3000,
-				});
-				setExcelFile(null);
-				setShowExcelModal(false);
-				// Reset file input
-				document.getElementById('excelFileInput').value = '';
+			const response = await customFile('parse-excel', formData);
+			if (response && response.header && response.data) {
+				setExcelPreview(response);
+				setSelectedRows([]); // Reset selected rows when new data is loaded
 			} else {
-				toast.error(result.message || 'Failed to import Excel file', {
+				toast.error('Failed to parse Excel file', {
 					position: 'top-right',
 					autoClose: 3000,
 				});
@@ -250,6 +240,84 @@ export default function OrganizationBasicForm({ organizationid }) {
 		} finally {
 			setUploading(false);
 		}
+	};
+
+	const handleConfirmImport = async () => {
+		if (!excelPreview) return;
+		
+		// Filter out selected rows from the data
+		const filteredData = excelPreview.data.filter((_, index) => !selectedRows.includes(index));
+		
+		if (filteredData.length === 0) {
+			toast.error('No data to import. Please unselect some rows or upload a different file.', {
+				position: 'top-right',
+				autoClose: 3000,
+			});
+			return;
+		}
+		
+		setUploading(true);
+		try {
+			// Send the filtered data to the backend for saving
+			const saveResponse = await customPost('organizations/import', 'POST', {
+				header: excelPreview.header,
+				data: filteredData,
+				target: 'organization',
+			});
+			if (saveResponse && saveResponse.status === 'success') {
+				toast.success('Organizations imported successfully!', {
+					position: 'top-right',
+					autoClose: 3000,
+				});
+				setShowExcelModal(false);
+				setExcelPreview(null);
+				setExcelFile(null);
+				setSelectedRows([]);
+			} else {
+				toast.error(saveResponse?.message || 'Failed to save organizations', {
+					position: 'top-right',
+					autoClose: 3000,
+				});
+			}
+		} catch (err) {
+			toast.error('Error saving organizations. Please try again.', {
+				position: 'top-right',
+				autoClose: 3000,
+			});
+		} finally {
+			setUploading(false);
+		}
+	};
+
+	const handleRowSelect = (rowIndex) => {
+		setSelectedRows(prev => 
+			prev.includes(rowIndex) 
+				? prev.filter(index => index !== rowIndex)
+				: [...prev, rowIndex]
+		);
+	};
+
+	const handleSelectAll = () => {
+		if (!excelPreview) return;
+		
+		if (selectedRows.length === excelPreview.data.length) {
+			// If all rows are selected, deselect all
+			setSelectedRows([]);
+		} else {
+			// Select all rows
+			setSelectedRows(excelPreview.data.map((_, index) => index));
+		}
+	};
+
+	const handleRemoveSelected = () => {
+		if (!excelPreview || selectedRows.length === 0) return;
+		
+		const newData = excelPreview.data.filter((_, index) => !selectedRows.includes(index));
+		setExcelPreview({
+			...excelPreview,
+			data: newData
+		});
+		setSelectedRows([]);
 	};
 
 	if (isloading) return (
@@ -526,90 +594,176 @@ export default function OrganizationBasicForm({ organizationid }) {
 					</form>
 
 					{/* Excel Import Modal */}
-					{showExcelModal && (
-						<div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-							<div className="modal-dialog modal-dialog-centered">
-								<div className="modal-content">
-									<div className="modal-header">
-										<h5 className="modal-title d-flex align-items-center gap-2">
-											<RiFileExcel2Line size={20} />
-											Import Organizations from Excel
-										</h5>
-										<button 
-											type="button" 
-											className="btn-close" 
-											onClick={() => setShowExcelModal(false)}
-											disabled={uploading}
-										></button>
-									</div>
-									<div className="modal-body">
-										<div className="mb-3">
-											<label htmlFor="excelFileInput" className="form-label fw-semibold">
-												Choose Excel File
-											</label>
-											<input
-												type="file"
-												className="form-control"
-												id="excelFileInput"
-												accept=".xlsx,.xls"
-												onChange={handleExcelFileSelect}
-											/>
-											<div className="form-text">
-												Supported formats: .xlsx, .xls
-											</div>
-										</div>
-										
-										{excelFile && (
-											<div className="alert alert-info">
-												<strong>Selected file:</strong> {excelFile.name}
-											</div>
-										)}
-										
-										<div className="alert alert-warning">
-											<strong>Note:</strong> Make sure your Excel file has the following columns:
-											<ul className="mb-0 mt-2">
-												<li>Name</li>
-												<li>Email</li>
-												<li>Mobile</li>
-												<li>Location</li>
-												<li>Address</li>
-												<li>Region</li>
-												<li>Type</li>
-											</ul>
+					<Modal show={showExcelModal} onHide={() => setShowExcelModal(false)} backdrop="static" keyboard={false} fullscreen>
+						<Modal.Header closeButton>
+							<Modal.Title className="d-flex align-items-center gap-2">
+								<RiFileExcel2Line size={20} />
+								{excelPreview ? "Preview Imported Data" : "Import Organizations from Excel"}
+							</Modal.Title>
+						</Modal.Header>
+						<Modal.Body>
+							{!excelPreview ? (
+								<>
+									<div className="mb-3">
+										<label htmlFor="excelFile" className="form-label fw-semibold">
+											Choose Excel File
+										</label>
+										<input
+											type="file"
+											className="form-control"
+											id="excelFile"
+											accept=".xlsx,.xls"
+											onChange={handleExcelFileSelect}
+										/>
+										<div className="form-text">
+											Supported formats: .xlsx, .xls
 										</div>
 									</div>
-									<div className="modal-footer">
-										<button 
-											type="button"
-											className="btn btn-secondary"
-											onClick={() => setShowExcelModal(false)}
-											disabled={uploading}
-										>
-											Cancel
-										</button>
-										<button 
-											type="button"
-											className="btn btn-primary"
-											onClick={handleExcelUpload}
-											disabled={!excelFile || uploading}
-										>
-											{uploading ? (
-												<>
-													<span className="spinner-border spinner-border-sm me-2" role="status"></span>
-													Uploading...
-												</>
-											) : (
-												<>
-													<RiFileExcel2Line size={16} className="me-1" />
-													Import Data
-												</>
+
+									{excelFile && (
+										<div className="alert alert-info">
+											<strong>Selected file:</strong> {excelFile.name}
+										</div>
+									)}
+
+									<div className="alert alert-warning">
+										<strong>Note:</strong> Make sure your Excel file has the following columns:
+										<ul className="mb-0 mt-2">
+											<li>Name</li>
+											<li>Email</li>
+											<li>Mobile</li>
+											<li>Location</li>
+											<li>Address</li>
+											<li>Region</li>
+											<li>Type</li>
+										</ul>
+									</div>
+								</>
+							) : (
+								<>
+									<div className="mb-3">
+										<strong>Review the data below. Click 'Confirm & Save' to import, or 'Back' to select a different file.</strong>
+									</div>
+									
+									{excelPreview.data && excelPreview.data.length > 0 && (
+										<div className="mb-3 d-flex gap-2 align-items-center">
+											<button
+												type="button"
+												className="btn btn-sm btn-outline-primary"
+												onClick={handleSelectAll}
+											>
+												{selectedRows.length === excelPreview.data.length ? 'Deselect All' : 'Select All'}
+											</button>
+											{selectedRows.length > 0 && (
+												<button
+													type="button"
+													className="btn btn-sm btn-outline-danger"
+													onClick={handleRemoveSelected}
+												>
+													Remove Selected ({selectedRows.length})
+												</button>
 											)}
-										</button>
+											<small className="text-muted">
+												{excelPreview.data.length} total rows
+											</small>
+										</div>
+									)}
+									
+									<div style={{ overflow: 'auto' }}>
+										<table className="table table-bordered table-striped">
+											<thead className="table-dark">
+												<tr>
+													<th>
+														<input
+															type="checkbox"
+															className="form-check-input"
+															checked={excelPreview.data && selectedRows.length === excelPreview.data.length && excelPreview.data.length > 0}
+															onChange={handleSelectAll}
+														/>
+													</th>
+													{excelPreview.header && excelPreview.header.map((header, index) => (
+														<th key={index}>{header}</th>
+													))}
+												</tr>
+											</thead>
+											<tbody>
+												{excelPreview.data && excelPreview.data.map((row, rowIndex) => (
+													<tr key={rowIndex} className={selectedRows.includes(rowIndex) ? 'table-warning' : ''}>
+														<td>
+															<input
+																type="checkbox"
+																className="form-check-input"
+																checked={selectedRows.includes(rowIndex)}
+																onChange={() => handleRowSelect(rowIndex)}
+															/>
+														</td>
+														{excelPreview.header && excelPreview.header.map((header, colIndex) => (
+															<td key={colIndex} className="fw-medium">
+																{row[header] || '-'}
+															</td>
+														))}
+													</tr>
+												))}
+											</tbody>
+										</table>
 									</div>
-								</div>
-							</div>
-						</div>
-					)}
+								</>
+							)}
+						</Modal.Body>
+						<Modal.Footer>
+							<Button
+								variant="secondary"
+								onClick={() => {
+									if (excelPreview) {
+										setExcelPreview(null);
+										setSelectedRows([]);
+									} else {
+										setShowExcelModal(false);
+									}
+								}}
+								disabled={uploading}
+							>
+								{excelPreview ? "Back" : "Cancel"}
+							</Button>
+							{!excelPreview ? (
+								<Button
+									variant="primary"
+									onClick={handleExcelUpload}
+									disabled={!excelFile || uploading}
+								>
+									{uploading ? (
+										<>
+											<span className="spinner-border spinner-border-sm me-2" role="status"></span>
+											Parsing...
+										</>
+									) : (
+										<>
+											<RiFileExcel2Line size={16} className="me-1" />
+											Parse & Preview
+										</>
+									)}
+								</Button>
+							) : (
+								<Button
+									variant="primary"
+									onClick={handleConfirmImport}
+									disabled={uploading}
+								>
+									{uploading ? (
+										<>
+											<span className="spinner-border spinner-border-sm me-2" role="status"></span>
+											Saving...
+										</>
+									) : (
+										<>
+											<RiFileExcel2Line size={16} className="me-1" />
+											Confirm & Save
+										</>
+									)}
+								</Button>
+							)}
+						</Modal.Footer>
+					</Modal>
 
 					<ToastContainer theme="colored" position="top-center" className={'text-sm'} />
 				</div>

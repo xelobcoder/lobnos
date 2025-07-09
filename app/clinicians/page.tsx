@@ -1,6 +1,9 @@
-"use client";
+'use client'
+
+
+
 import { useEffect, useState } from "react";
-import { customFetch, customPost } from "../../components/Auth/customFetch";
+import { customFetch, customFile, customPost } from "../../components/Auth/customFetch";
 import { toast } from 'react-toastify';
 import { RiDeleteBinLine, RiEditLine, RiEyeLine, RiMoreFill, RiAddLine, RiInfoI, RiFileExcel2Line } from '@remixicon/react';
 import { useRouter } from "next/navigation";
@@ -8,35 +11,36 @@ import { Button, Dropdown, Modal } from "react-bootstrap";
 import PrimeTable from "../../components/accessories/Datatables/PrimeTable";
 import Link from "next/link";
 import { useApplication } from "../../components/Auth/useApplicationContext";
+import styles from '../../styles/SmsTemplateList.module.css'
 
 const customStyles = `
   .bg-gradient-primary {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+	background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
   }
   
 
   
   .dropdown-menu {
-    border: none !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+	border: none !important;
+	box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
   }
   
   .dropdown-item:hover {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
-    transform: translateX(3px);
-    transition: all 0.2s ease;
+	background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+	transform: translateX(3px);
+	transition: all 0.2s ease;
   }
   
   .table-responsive table {
-    border-collapse: separate;
-    border-spacing: 0;
+	border-collapse: separate;
+	border-spacing: 0;
   }
   
   .table-responsive th {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
-    border: none !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.5px;
+	background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+	border: none !important;
+	font-weight: 600 !important;
+	letter-spacing: 0.5px;
   }
 `;
 
@@ -112,29 +116,29 @@ type Clinician = {
 };
 
 const FinancialInfoModal = ({ show, onHide, data }) => (
-    <Modal show={show} onHide={onHide}>
-        <Modal.Header closeButton>
-            <Modal.Title>Financial Information</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-            {data ? (
-                <div className="d-flex flex-column gap-2 text-sm">
-                    <div><strong>Identifier:</strong> {data.identifier || 'N/A'}</div>
-                    <div><strong>Module:</strong> {data.module || 'N/A'}</div>
-                    <div><strong>Momo Number:</strong> {data.momo || 'N/A'}</div>
-                    <div><strong>Momo Name:</strong> {data.momoname || 'N/A'}</div>
-                    <div><strong>Bank Name:</strong> {data.bankname || 'N/A'}</div>
-                    <div><strong>Bank Branch:</strong> {data.bankbranch || 'N/A'}</div>
-                    <div><strong>Account Number:</strong> {data.accountnumber || 'N/A'}</div>
-                    <div><strong>Account Name:</strong> {data.accountname || 'N/A'}</div>
-                    <div><strong>Commission Rate:</strong> {data.commission != null ? `${data.commission}%` : 'N/A'}</div>
-                </div>
-            ) : <div>No data</div>}
-        </Modal.Body>
-        <Modal.Footer>
-            <Button variant="secondary" onClick={onHide}>Close</Button>
-        </Modal.Footer>
-    </Modal>
+	<Modal show={show} onHide={onHide}>
+		<Modal.Header closeButton>
+			<Modal.Title>Financial Information</Modal.Title>
+		</Modal.Header>
+		<Modal.Body>
+			{data ? (
+				<div className="d-flex flex-column gap-2 text-sm">
+					<div><strong>Identifier:</strong> {data.identifier || 'N/A'}</div>
+					<div><strong>Module:</strong> {data.module || 'N/A'}</div>
+					<div><strong>Momo Number:</strong> {data.momo || 'N/A'}</div>
+					<div><strong>Momo Name:</strong> {data.momoname || 'N/A'}</div>
+					<div><strong>Bank Name:</strong> {data.bankname || 'N/A'}</div>
+					<div><strong>Bank Branch:</strong> {data.bankbranch || 'N/A'}</div>
+					<div><strong>Account Number:</strong> {data.accountnumber || 'N/A'}</div>
+					<div><strong>Account Name:</strong> {data.accountname || 'N/A'}</div>
+					<div><strong>Commission Rate:</strong> {data.commission != null ? `${data.commission}%` : 'N/A'}</div>
+				</div>
+			) : <div>No data</div>}
+		</Modal.Body>
+		<Modal.Footer>
+			<Button variant="secondary" onClick={onHide}>Close</Button>
+		</Modal.Footer>
+	</Modal>
 );
 
 export default function ClinicianList() {
@@ -146,6 +150,13 @@ export default function ClinicianList() {
 	const [showExcelModal, setShowExcelModal] = useState(false);
 	const [excelFile, setExcelFile] = useState<File | null>(null);
 	const [uploading, setUploading] = useState(false);
+	type ExcelPreview = {
+		header: string[];
+		data: any[];
+		[key: string]: any;
+	};
+	const [excelPreview, setExcelPreview] = useState<ExcelPreview | null>(null);
+	const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
 	const role = useApplication().user.role;
 	const isAdmin = role === 'admin' || role === 'superadmin';
@@ -192,9 +203,10 @@ export default function ClinicianList() {
 
 	const handleDelete = async (original: Clinician) => {
 		const confirmation = confirm('Are you sure you want to delete this clinician?');
-		if (!confirmation) return;
 
+		if (!confirmation) return;
 		const { id } = original;
+
 		if (!id) return;
 
 		try {
@@ -239,35 +251,71 @@ export default function ClinicianList() {
 			});
 			return;
 		}
-
 		setUploading(true);
 		const formData = new FormData();
 		formData.append('file', excelFile);
-
+		formData.append('target', 'clinician');
 		try {
-			const response = await fetch('/api/clinicians/import', {
-				method: 'POST',
-				body: formData,
-			});
-
-			const result = await response.json();
-
-			if (response.ok) {
-				toast.success(`Successfully imported ${result.count} clinicians`, {
-					position: 'top-right',
-					autoClose: 3000,
-				});
-				setShowExcelModal(false);
-				setExcelFile(null);
-				getClinicianData();
+			const response = await customFile('parse-excel', formData);
+			if (response && response.header && response.data) {
+				setExcelPreview(response);
+				setSelectedRows([]); // Reset selected rows when new data is loaded
 			} else {
-				toast.error(result.message || 'Failed to import Excel file', {
+				toast.error('Failed to parse Excel file', {
 					position: 'top-right',
 					autoClose: 3000,
 				});
 			}
 		} catch (error) {
 			toast.error('Error uploading file. Please try again.', {
+				position: 'top-right',
+				autoClose: 3000,
+			});
+		} finally {
+			setUploading(false);
+		}
+	};
+
+	const handleConfirmImport = async () => {
+		if (!excelPreview) return;
+		
+		// Filter out selected rows from the data
+		const filteredData = excelPreview.data.filter((_, index) => !selectedRows.includes(index));
+		
+		if (filteredData.length === 0) {
+			toast.error('No data to import. Please unselect some rows or upload a different file.', {
+				position: 'top-right',
+				autoClose: 3000,
+			});
+			return;
+		}
+		
+		setUploading(true);
+		try {
+			// Send the filtered data to the backend for saving
+			const saveResponse = await customPost('clinicians/import', 'POST', {
+				header: excelPreview.header,
+				data: filteredData,
+				target: 'clinician',
+			});
+			if (saveResponse && saveResponse.status === 'success') {
+				toast.success('Clinicians imported successfully!', {
+					position: 'top-right',
+					autoClose: 3000,
+				});
+				setShowExcelModal(false);
+				setExcelPreview(null);
+				setExcelFile(null);
+				setSelectedRows([]);
+				getClinicianData();
+			} else {
+				toast.error(saveResponse?.message || 'Failed to save clinicians', {
+					position: 'top-right',
+					autoClose: 3000,
+				});
+			}
+		} catch (err) {
+			toast.error('Error saving clinicians. Please try again.', {
 				position: 'top-right',
 				autoClose: 3000,
 			});
@@ -374,6 +422,37 @@ export default function ClinicianList() {
 
 	const columns = isAdmin ? extendAdminView : columnsMini;
 
+	const handleRowSelect = (rowIndex: number) => {
+		setSelectedRows(prev => 
+			prev.includes(rowIndex) 
+				? prev.filter(index => index !== rowIndex)
+				: [...prev, rowIndex]
+		);
+	};
+
+	const handleSelectAll = () => {
+		if (!excelPreview) return;
+		
+		if (selectedRows.length === excelPreview.data.length) {
+			// If all rows are selected, deselect all
+			setSelectedRows([]);
+		} else {
+			// Select all rows
+			setSelectedRows(excelPreview.data.map((_, index) => index));
+		}
+	};
+
+	const handleRemoveSelected = () => {
+		if (!excelPreview || selectedRows.length === 0) return;
+		
+		const newData = excelPreview.data.filter((_, index) => !selectedRows.includes(index));
+		setExcelPreview({
+			...excelPreview,
+			data: newData
+		});
+		setSelectedRows([]);
+	};
+
 	return (
 		<>
 			<style>{customStyles}</style>
@@ -432,75 +511,175 @@ export default function ClinicianList() {
 								onHide={() => setShowFinancialModal(false)}
 								data={financialModalData}
 							/>
-							
-							<Modal show={showExcelModal} onHide={() => setShowExcelModal(false)} centered>
+
+							<Modal show={showExcelModal} onHide={() => setShowExcelModal(false)} backdrop="static" keyboard={false} fullscreen>
 								<Modal.Header closeButton>
 									<Modal.Title className="d-flex align-items-center gap-2">
 										<RiFileExcel2Line size={20} />
-										Import Clinicians from Excel
+										{excelPreview ? "Preview Imported Data" : "Import Clinicians from Excel"}
 									</Modal.Title>
 								</Modal.Header>
 								<Modal.Body>
-									<div className="mb-3">
-										<label htmlFor="excelFile" className="form-label fw-semibold">
-											Choose Excel File
-										</label>
-										<input
-											type="file"
-											className="form-control"
-											id="excelFile"
-											accept=".xlsx,.xls"
-											onChange={handleFileSelect}
-										/>
-										<div className="form-text">
-											Supported formats: .xlsx, .xls
-										</div>
-									</div>
-									
-									{excelFile && (
-										<div className="alert alert-info">
-											<strong>Selected file:</strong> {excelFile.name}
-										</div>
+									{!excelPreview ? (
+										<>
+											<div className="mb-3">
+												<label htmlFor="excelFile" className="form-label fw-semibold">
+													Choose Excel File
+												</label>
+												<input
+													type="file"
+													className="form-control"
+													id="excelFile"
+													accept=".xlsx,.xls"
+													onChange={handleFileSelect}
+												/>
+												<div className="form-text">
+													Supported formats: .xlsx, .xls
+												</div>
+											</div>
+
+											{excelFile && (
+												<div className="alert alert-info">
+													<strong>Selected file:</strong> {excelFile.name}
+												</div>
+											)}
+
+											<div className="alert alert-warning">
+												<strong>Note:</strong> Make sure your Excel file has the following columns:
+												<ul className="mb-0 mt-2">
+													<li>Name</li>
+													<li>Email</li>
+													<li>Phone</li>
+													<li>Location</li>
+													<li>Address</li>
+													<li>Occupation</li>
+													<li>Commission</li>
+												</ul>
+											</div>
+										</>
+									) : (
+										<>
+											<div className="mb-3">
+												<strong>Review the data below. Click 'Confirm & Save' to import, or 'Back' to select a different file.</strong>
+											</div>
+											
+											{excelPreview.data && excelPreview.data.length > 0 && (
+												<div className="mb-3 d-flex gap-2 align-items-center">
+													<button
+														type="button"
+														className="btn btn-sm btn-outline-primary"
+														onClick={handleSelectAll}
+													>
+														{selectedRows.length === excelPreview.data.length ? 'Deselect All' : 'Select All'}
+													</button>
+													{selectedRows.length > 0 && (
+														<button
+															type="button"
+															className="btn btn-sm btn-outline-danger"
+															onClick={handleRemoveSelected}
+														>
+															Remove Selected ({selectedRows.length})
+														</button>
+													)}
+													<small className="text-muted">
+														{excelPreview.data.length} total rows
+													</small>
+												</div>
+											)}
+											
+											<div style={{ overflow: 'auto' }}>
+												<table className="table table-bordered table-striped">
+													<thead className="table-dark">
+														<tr>
+															<th>
+																<input
+																	type="checkbox"
+																	className="form-check-input"
+																	checked={excelPreview.data && selectedRows.length === excelPreview.data.length && excelPreview.data.length > 0}
+																	onChange={handleSelectAll}
+																/>
+															</th>
+															{excelPreview.header && excelPreview.header.map((header, index) => (
+																<th key={index}>{header}</th>
+															))}
+														</tr>
+													</thead>
+													<tbody>
+														{excelPreview.data && excelPreview.data.map((row, rowIndex) => (
+															<tr key={rowIndex} className={selectedRows.includes(rowIndex) ? 'table-warning' : ''}>
+																<td>
+																	<input
+																		type="checkbox"
+																		className="form-check-input"
+																		checked={selectedRows.includes(rowIndex)}
+																		onChange={() => handleRowSelect(rowIndex)}
+																	/>
+																</td>
+																{excelPreview.header && excelPreview.header.map((header, colIndex) => (
+																	<td key={colIndex} className="fw-medium">
+																		{row[header] || '-'}
+																	</td>
+																))}
+															</tr>
+														))}
+													</tbody>
+												</table>
+											</div>
+										</>
 									)}
-									
-									<div className="alert alert-warning">
-										<strong>Note:</strong> Make sure your Excel file has the following columns:
-										<ul className="mb-0 mt-2">
-											<li>Name</li>
-											<li>Email</li>
-											<li>Phone</li>
-											<li>Location</li>
-											<li>Address</li>
-											<li>Occupation</li>
-											<li>Commission</li>
-										</ul>
-									</div>
 								</Modal.Body>
 								<Modal.Footer>
-									<Button 
-										variant="secondary" 
-										onClick={() => setShowExcelModal(false)}
+									<Button
+										variant="secondary"
+										onClick={() => {
+											if (excelPreview) {
+												setExcelPreview(null);
+												setSelectedRows([]);
+											} else {
+												setShowExcelModal(false);
+											}
+										}}
 										disabled={uploading}
 									>
-										Cancel
+										{excelPreview ? "Back" : "Cancel"}
 									</Button>
-									<Button 
-										variant="primary" 
-										onClick={handleExcelUpload}
-										disabled={!excelFile || uploading}
-									>
-										{uploading ? (
-											<>
-												<span className="spinner-border spinner-border-sm me-2" role="status"></span>
-												Uploading...
-											</>
-										) : (
-											<>
-												<RiFileExcel2Line size={16} className="me-1" />
-												Import Data
-											</>
-										)}
-									</Button>
+									{!excelPreview ? (
+										<Button
+											variant="primary"
+											onClick={handleExcelUpload}
+											disabled={!excelFile || uploading}
+										>
+											{uploading ? (
+												<>
+													<span className="spinner-border spinner-border-sm me-2" role="status"></span>
+													Parsing...
+												</>
+											) : (
+												<>
+													<RiFileExcel2Line size={16} className="me-1" />
+													Parse & Preview
+												</>
+											)}
+										</Button>
+									) : (
+										<Button
+											variant="primary"
+											onClick={handleConfirmImport}
+											disabled={uploading}
+										>
+											{uploading ? (
+												<>
+													<span className="spinner-border spinner-border-sm me-2" role="status"></span>
+													Saving...
+												</>
+											) : (
+												<>
+													<RiFileExcel2Line size={16} className="me-1" />
+													Confirm & Save
+												</>
+											)}
+										</Button>
+									)}
 								</Modal.Footer>
 							</Modal>
 						</div>

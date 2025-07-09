@@ -1,6 +1,27 @@
 import Cookies from "js-cookie"
 import moment from "moment"
 
+export async function customFile(endpoint,formbody) {
+	if (process.env.NODE_ENV == "production" && !process.env.NEXT_PUBLIC_ACCESS_TOKEN) {
+		throw new Error("NEXT_PUBLIC_ACCESS_TOKEN MISSING")
+	}
+	const url = new URL(`${endpoint}`, process.env.BASEURL);
+	url.searchParams.append("tenantId", process.env.TENANTID);
+
+	const response = await fetch(url.toString(), {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+			"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0"
+		},
+		cache: "no-cache",
+		body: formbody	
+	})
+
+	const source = await response.json();
+	return source;
+}
+
 /**
  * Sends an HTTP request to the specified endpoint and returns the response as JSON.
  *
