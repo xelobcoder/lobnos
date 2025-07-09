@@ -16,7 +16,8 @@ import {
 
 const customStyles = `
   .image-upload-area {
-	border: 2px dashed #dee2e6;
+
+  border: 2px dashed #dee2e6;
 	border-radius: 8px;
 	background: #f8f9fa;
 	transition: border-color 0.3s ease;
