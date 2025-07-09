@@ -17,7 +17,8 @@ import {
     RiBuildingFill,
     RiGitRepositoryFill,
     RiStarHalfLine,
-    RiGift2Line
+    RiGift2Line,
+    RiSteamLine
 } from '@remixicon/react';
 
 export const ApplicationSettingsLinks: Link[] =
@@ -26,6 +27,7 @@ export const ApplicationSettingsLinks: Link[] =
         { title: "Registration Fields", link: "/settings/applicationsettings/registrationFields", icon: <RiFileListLine /> },
         { title: "Result Entry Settings", link: "/settings/applicationsettings/resultentrysettings", icon: <RiFileTextLine /> },
         { title: "Report Settings", link: "/settings/applicationsettings/reportSettings", icon: <RiFileTextLine /> },
+        { title: 'Sample Container', link: '/settings/applicationsettings/sample-containers', icon: <RiSteamLine /> },
         { title: "Users", link: "/authentication/users", icon: <RiUserSettingsLine /> },
         { title: "Branches", link: "/settings/branches", icon: <RiBuilding2Line /> },
         { title: "Sample Types", link: "/settings/applicationsettings/testpanels/sampletypes", icon: <RiTestTubeLine /> },

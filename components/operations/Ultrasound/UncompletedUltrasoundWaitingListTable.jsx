@@ -14,7 +14,8 @@ export default function AscentionUltrasoundUnCompletedTable() {
 		let { billingid, name, id, patientid, ascensionid } = row;
 		billingid = `${generateRandomTextAndNumbers(70)}${billingid}`;
 		patientid = `${generateRandomTextAndNumbers(50)}${patientid}`;
-		window.open(`${process.env.PLS_PDF_GENERATOR}result/pdf/generate?csvid=${billingid}&&ptid=${patientid}&&target=70,50&&ascensionId=${ascensionid}&&testname=${name}&&testid=${id}&&isUltrasound=true&&isMultiple=false`, "_blank");
+		window.open(`${process.env.PLS_PDF_GENERATOR}result/pdf/generate?csvid=${billingid}&&ptid=${patientid}&&target=70,50&&ascensionId=${ascensionid}&&testname=${name}&&testid=${id}&&isUltrasound=true&&isMultiple=false&&password&&is_password_encrypted=false`, "_blank");
+	// window.open(`/ultrasound/report?csvid=${billingid}&&ptid=${patientid}&&target=70,50&&ascensionId=${ascensionid}&&testname=${name}&&testid=${id}&&isUltrasound=true&&isMultiple=false&&password&&is_password_encrypted=false`)
 	};
 
 	const columns = [

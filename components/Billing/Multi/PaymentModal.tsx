@@ -61,7 +61,7 @@ const validatePaymentAmount = (inputValue: string, idx: number, payAllPayments: 
      const [payAllPayments, setPayAllPayments] = React.useState<PaymentEntry[]>(payments.length ? payments : [{ mode: '', amount: 0 }]);
      const [payAllError, setPayAllError] = React.useState('');
      const tests = billingdata?.cart || [];
-     const services = billingdata?.servicesList || [];
+     const services = billingdata?.servicesProvided || [];
 
      const items = [
           ...tests.map(test => ({
@@ -146,7 +146,26 @@ const validatePaymentAmount = (inputValue: string, idx: number, payAllPayments: 
           setNewPayment({ mode: '', amount: '' });
           setPayAllPayments([{ mode: '', amount: 0 }]);
           setPayAllError('');
-          setBillingData({ ...billingdata, payments: [], paid: 0, balance: payable });
+
+          const resetCart = (billingdata?.cart || []).map(item => ({
+               ...item,
+               paidamount: 0,
+               paymentstatus: 'pending',
+          }));
+        
+          const resetServices = (billingdata?.servicesProvided || []).map(item => ({
+               ...item,
+               paidamount: 0,
+               paymentstatus: 'pending',
+          }));
+          setBillingData({
+               ...billingdata,
+               payments: [],
+               paid: 0,
+               balance: payable,
+               cart: resetCart,
+               servicesProvided: resetServices,
+          });
      }
 
 
@@ -186,8 +205,10 @@ const validatePaymentAmount = (inputValue: string, idx: number, payAllPayments: 
 
 
 
+     // Show remaining as (payable - billingdata.paid) to always reflect actual paid amount
      const paymentSummaryHtml = (() => {
-          const remaining = payable - localTotalPaid;
+          const paid = billingdata?.paid || 0;
+          const remaining = payable - paid;
           if (remaining !== 0) {
                return (
                     <div className="text-danger fw-bold">
@@ -557,9 +578,15 @@ const validatePaymentAmount = (inputValue: string, idx: number, payAllPayments: 
                                         };
                                         let paid = paidPerItem[itemIdx];
                                         let paymentstatus = 'pending';
-                                        if ((test.discountedValue ?? 0) === 0) paymentstatus = 'Paid';
-                                        else if (paid >= (test.discountedValue ?? 0) && (test.discountedValue ?? 0) > 0) paymentstatus = 'Paid';
-                                        else if (paid > 0) paymentstatus = 'partial';
+                                        if ((test.discountedValue ?? 0) === 0) {
+                                             paid = test.discountedValue ?? paid;
+                                             paymentstatus = 'Paid';
+                                        } else if (paid >= (test.discountedValue ?? 0) && (test.discountedValue ?? 0) > 0) {
+                                             paid = test.discountedValue ?? paid;
+                                             paymentstatus = 'Paid';
+                                        } else if (paid > 0) {
+                                             paymentstatus = 'partial';
+                                        }
                                         return {
                                              ...test,
                                              paidamount: paid,
@@ -575,9 +602,15 @@ const validatePaymentAmount = (inputValue: string, idx: number, payAllPayments: 
                                         };
                                         let paid = paidPerItem[itemIdx];
                                         let paymentstatus = 'pending';
-                                        if ((service.discountedValue ?? 0) === 0) paymentstatus = 'Paid';
-                                        else if (paid >= (service.discountedValue ?? 0) && (service.discountedValue ?? 0) > 0) paymentstatus = 'Paid';
-                                        else if (paid > 0) paymentstatus = 'partial';
+                                        if ((service.discountedValue ?? 0) === 0) {
+                                             paid = service.discountedValue ?? paid;
+                                             paymentstatus = 'Paid';
+                                        } else if (paid >= (service.discountedValue ?? 0) && (service.discountedValue ?? 0) > 0) {
+                                             paid = service.discountedValue ?? paid;
+                                             paymentstatus = 'Paid';
+                                        } else if (paid > 0) {
+                                             paymentstatus = 'partial';
+                                        }
                                         return {
                                              ...service,
                                              paidamount: paid,

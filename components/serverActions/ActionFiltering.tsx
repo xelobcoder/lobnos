@@ -217,8 +217,8 @@ export const handlePaginationServerRejectedHistory = async (pagination) => {
 
 export const handleServerTurnAroundTime = async (paginate) => {
 	try {
-		const { page, count } = paginate
-		const response = await customFetch(`testascension/tat-data?page=${page}&&count=${count}`);
+		const { page, count,sorting } = paginate
+		const response = await customFetch(`testascension/tat-data?page=${page}&&count=${count}&&sorting=${sorting}`);
 		if (response?.data && Array.isArray(response?.data)) {
 			return { result: response?.data, error: false }
 		}
@@ -229,6 +229,19 @@ export const handleServerTurnAroundTime = async (paginate) => {
 }
 
 
+export const orgainzationServerSideProcessing = async (paginate: {page:number,count:number}) => {
+	try  {
+		const url =`organizations/details?count=${paginate.count}&page=${paginate.page}`
+	const result = await customFetch(url);
+	if (result.statusCode === 200 && Array.isArray(result.result)) {
+		return { result: result.result, error: false };
+	}
+	return { result: [], error: true  };
+	} catch (err) {
+		return { result: [], error: true };
+	}
+
+}
 
 
 interface FetchParams {

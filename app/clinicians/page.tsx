@@ -2,14 +2,44 @@
 import { useEffect, useState } from "react";
 import { customFetch, customPost } from "../../components/Auth/customFetch";
 import { toast } from 'react-toastify';
-import { RiDeleteBinLine, RiEditLine, RiEyeLine, RiMoreFill, RiAddLine, RiInfoI } from '@remixicon/react';
+import { RiDeleteBinLine, RiEditLine, RiEyeLine, RiMoreFill, RiAddLine, RiInfoI, RiFileExcel2Line } from '@remixicon/react';
 import { useRouter } from "next/navigation";
-import { Button, Dropdown } from "react-bootstrap";
+import { Button, Dropdown, Modal } from "react-bootstrap";
 import PrimeTable from "../../components/accessories/Datatables/PrimeTable";
 import Link from "next/link";
 import { useApplication } from "../../components/Auth/useApplicationContext";
 
-// ActionButtons component using Bootstrap Dropdown
+const customStyles = `
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+  }
+  
+
+  
+  .dropdown-menu {
+    border: none !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+  }
+  
+  .dropdown-item:hover {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    transform: translateX(3px);
+    transition: all 0.2s ease;
+  }
+  
+  .table-responsive table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  
+  .table-responsive th {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+    border: none !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px;
+  }
+`;
+
 const ActionButtons = ({ original, onEdit, onView, onDelete }) => {
 	return (
 		<Dropdown>
@@ -21,49 +51,49 @@ const ActionButtons = ({ original, onEdit, onView, onDelete }) => {
 			>
 				<RiMoreFill className="text-muted" />
 			</Dropdown.Toggle>
-			<Dropdown.Menu align="end" className="shadow-sm border-0 rounded-3">
+			<Dropdown.Menu align="end" className="shadow border-0 rounded-3 overflow-hidden">
 				<Dropdown.Item
 					onClick={() => onEdit(original)}
-					className="d-flex align-items-center gap-2 py-2"
+					className="d-flex align-items-center gap-2 py-2 border-0"
 				>
-					<RiEditLine className="text-primary" size={18} />
-					Edit
+					<RiEditLine className="text-primary" size={16} />
+					<span className="fw-medium">Edit Details</span>
 				</Dropdown.Item>
 				<Dropdown.Item
 					onClick={() => onView(original)}
-					className="d-flex align-items-center gap-2 py-2"
+					className="d-flex align-items-center gap-2 py-2 border-0"
 				>
-					<RiEyeLine className="text-success" size={18} />
-					View
+					<RiEyeLine className="text-success" size={16} />
+					<span className="fw-medium">View Profile</span>
 				</Dropdown.Item>
+				<Dropdown.Divider className="my-1" />
 				<Dropdown.Item
-					onClick={() => onDelete(original)}
-					className="d-flex align-items-center gap-2 py-2"
+					className="d-flex align-items-center gap-2 py-2 border-0"
 				>
-					<RiDeleteBinLine className="text-danger" size={18} />
-					Delete
-				</Dropdown.Item>
-				<Dropdown.Item
-
-					className="d-flex align-items-center gap-2 py-2"
-				>
-					<Link href={`/clinicians/payment-information/${original.id}`} className="text-decoration-none text-dark">
-						<RiInfoI size={18} />
-						Update Payment Information
+					<Link href={`/clinicians/payment-information/${original.id}`} className="text-decoration-none text-dark d-flex align-items-center gap-2 w-100">
+						<RiInfoI className="text-info" size={16} />
+						<span className="fw-medium">Payment Info</span>
 					</Link>
-
 				</Dropdown.Item>
 				<Dropdown.Item
 					as="div"
-					className="d-flex align-items-center gap-2 py-2"
+					className="d-flex align-items-center gap-2 py-2 border-0"
 				>
-					<RiAddLine size={18} />
 					<Link
 						href={`/billing/billing-strategy/clinician/${original.id}/check`}
-						className="text-decoration-none text-dark"
+						className="text-decoration-none text-dark d-flex align-items-center gap-2 w-100"
 					>
-						Create Special Billing
+						<RiAddLine className="text-warning" size={16} />
+						<span className="fw-medium">Special Billing</span>
 					</Link>
+				</Dropdown.Item>
+				<Dropdown.Divider className="my-1" />
+				<Dropdown.Item
+					onClick={() => onDelete(original)}
+					className="d-flex align-items-center gap-2 py-2 border-0 text-danger"
+				>
+					<RiDeleteBinLine size={16} />
+					<span className="fw-medium">Delete</span>
 				</Dropdown.Item>
 			</Dropdown.Menu>
 		</Dropdown>
@@ -81,10 +111,42 @@ type Clinician = {
 	address: string;
 };
 
+const FinancialInfoModal = ({ show, onHide, data }) => (
+    <Modal show={show} onHide={onHide}>
+        <Modal.Header closeButton>
+            <Modal.Title>Financial Information</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+            {data ? (
+                <div className="d-flex flex-column gap-2 text-sm">
+                    <div><strong>Identifier:</strong> {data.identifier || 'N/A'}</div>
+                    <div><strong>Module:</strong> {data.module || 'N/A'}</div>
+                    <div><strong>Momo Number:</strong> {data.momo || 'N/A'}</div>
+                    <div><strong>Momo Name:</strong> {data.momoname || 'N/A'}</div>
+                    <div><strong>Bank Name:</strong> {data.bankname || 'N/A'}</div>
+                    <div><strong>Bank Branch:</strong> {data.bankbranch || 'N/A'}</div>
+                    <div><strong>Account Number:</strong> {data.accountnumber || 'N/A'}</div>
+                    <div><strong>Account Name:</strong> {data.accountname || 'N/A'}</div>
+                    <div><strong>Commission Rate:</strong> {data.commission != null ? `${data.commission}%` : 'N/A'}</div>
+                </div>
+            ) : <div>No data</div>}
+        </Modal.Body>
+        <Modal.Footer>
+            <Button variant="secondary" onClick={onHide}>Close</Button>
+        </Modal.Footer>
+    </Modal>
+);
+
 export default function ClinicianList() {
 	const [clinicianList, setClinician] = useState<Clinician[]>([]);
 	const [pagination, setPagination] = useState({ page: 1, count: 10, show: false });
 	const [loading, setLoading] = useState(false);
+	const [showFinancialModal, setShowFinancialModal] = useState(false);
+	const [financialModalData, setFinancialModalData] = useState(null);
+	const [showExcelModal, setShowExcelModal] = useState(false);
+	const [excelFile, setExcelFile] = useState<File | null>(null);
+	const [uploading, setUploading] = useState(false);
+
 	const role = useApplication().user.role;
 	const isAdmin = role === 'admin' || role === 'superadmin';
 	const router = useRouter();
@@ -102,7 +164,6 @@ export default function ClinicianList() {
 					autoClose: 2000,
 				});
 			}
-
 		} catch (err) {
 			toast.error(err.message || 'Error connecting to server', {
 				position: 'top-right',
@@ -154,6 +215,67 @@ export default function ClinicianList() {
 		}
 	};
 
+	const handleExcelImport = () => {
+		setShowExcelModal(true);
+	};
+
+	const handleFileSelect = (event) => {
+		const file = event.target.files[0];
+		if (file && (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.type === 'application/vnd.ms-excel')) {
+			setExcelFile(file);
+		} else {
+			toast.error('Please select a valid Excel file (.xlsx or .xls)', {
+				position: 'top-right',
+				autoClose: 3000,
+			});
+		}
+	};
+
+	const handleExcelUpload = async () => {
+		if (!excelFile) {
+			toast.error('Please select a file first', {
+				position: 'top-right',
+				autoClose: 2000,
+			});
+			return;
+		}
+
+		setUploading(true);
+		const formData = new FormData();
+		formData.append('file', excelFile);
+
+		try {
+			const response = await fetch('/api/clinicians/import', {
+				method: 'POST',
+				body: formData,
+			});
+
+			const result = await response.json();
+
+			if (response.ok) {
+				toast.success(`Successfully imported ${result.count} clinicians`, {
+					position: 'top-right',
+					autoClose: 3000,
+				});
+				setShowExcelModal(false);
+				setExcelFile(null);
+				getClinicianData();
+			} else {
+				toast.error(result.message || 'Failed to import Excel file', {
+					position: 'top-right',
+					autoClose: 3000,
+				});
+			}
+		} catch (error) {
+			toast.error('Error uploading file. Please try again.', {
+				position: 'top-right',
+				autoClose: 3000,
+			});
+		} finally {
+			setUploading(false);
+		}
+	};
+
 	const updatePage = async (pagination) => {
 		const { count, page } = pagination;
 		if (!count || !page) return;
@@ -177,7 +299,13 @@ export default function ClinicianList() {
 		{
 			Header: 'Commission Rate',
 			accessor: 'commission',
-			Cell: ({ row }) => <div>{row.original?.commission}%</div>,
+			Cell: ({ row }) => (
+				<div className="d-flex align-items-center gap-2">
+					<span className="badge bg-success-subtle text-success-emphasis px-2 py-1">
+						{row.original?.commission}%
+					</span>
+				</div>
+			),
 		},
 		{ Header: 'Phone', accessor: 'phone' },
 		{ Header: 'Occupation', accessor: 'occupation' },
@@ -203,27 +331,20 @@ export default function ClinicianList() {
 		{ Header: 'Location', accessor: 'location' },
 		{ Header: 'Address', accessor: 'address' },
 		{ Header: 'Occupation', accessor: 'occupation' },
-		{ Header: 'Identifier', accessor: 'identifier' },
-		{ Header: 'Module', accessor: 'module' },
 		{
-			Header: 'Momo Number',
-			accessor: 'momo',
-			Cell: ({ row }) => <div>{row.original?.momo || 'N/A'}</div>,
-		},
-		{
-			Header: 'Momo Name',
-			accessor: 'momoname',
-			Cell: ({ row }) => <div>{row.original?.momoname || 'N/A'}</div>,
-		},
-		{ Header: 'Bank Name', accessor: 'bankname' },
-		{ Header: 'Bank Branch', accessor: 'bankbranch' },
-		{ Header: 'Account Number', accessor: 'accountnumber' },
-		{ Header: 'Account Name', accessor: 'accountname' },
-		{
-			Header: 'Commission Rate',
-			accessor: 'commission',
+			Header: 'Financial Info',
+			accessor: 'financial',
+			disableSortBy: true,
 			Cell: ({ row }) => (
-				<div>{row.original?.commission != null ? `${row.original.commission}%` : 'N/A'}</div>
+				<Button
+					size="sm"
+					variant="outline-info"
+					onClick={() => row.original._showFinancialModal(row.original)}
+					className="d-flex align-items-center gap-1 px-2"
+				>
+					<RiInfoI size={14} />
+					Financial Details
+				</Button>
 			),
 		},
 		{
@@ -241,42 +362,151 @@ export default function ClinicianList() {
 		},
 	];
 
+	const dataWithModal = isAdmin
+		? clinicianList.map(item => ({
+			...item,
+			_showFinancialModal: (row) => {
+				setFinancialModalData(row);
+				setShowFinancialModal(true);
+			},
+		}))
+		: clinicianList;
 
 	const columns = isAdmin ? extendAdminView : columnsMini;
 
-
 	return (
-		<div className="container-fluid py-4">
-			{loading ? (
-				<div className="card shadow-sm p-4">
-
-				</div>
-			) : (
-				<div className="card shadow-sm p-4">
-					<div className="d-flex justify-content-between align-items-center mb-4">
-						<h5 className="mb-0 text-dark fw-semibold">Registered Clinicians</h5>
-						<Button
-							variant="primary"
-							size="sm"
-							onClick={() => router.push("/clinicians/add-new")}
-							className="d-flex align-items-center gap-2"
-						>
-							<RiAddLine size={18} />
-							Add New Clinician
-						</Button>
+		<>
+			<style>{customStyles}</style>
+			<div className="container-fluid py-4">
+				{loading ? (
+					<div className="card shadow-sm border-0 rounded-3">
+						<div className="card-body p-5 text-center">
+							<div className="spinner-border text-primary mb-3" role="status">
+								<span className="visually-hidden">Loading...</span>
+							</div>
+							<h6 className="text-muted">Loading clinician data...</h6>
+						</div>
 					</div>
-					<div className="table-responsive">
-						<PrimeTable
-							column={columns}
-							data={clinicianList}
-							filtering={false}
-							serverSideFiltering={true}
-							handleSeverSideProcessing={updatePage}
-
-						/>
+				) : (
+					<div className="card shadow-sm border-0 rounded-3 overflow-hidden">
+						<div className="card-header bg-gradient-primary text-white border-0 py-3">
+							<div className="d-flex justify-content-between align-items-center">
+								<div>
+									<h5 className="mb-1 fw-semibold">Registered Clinicians</h5>
+									<small className="opacity-75">Manage and view all registered healthcare professionals</small>
+								</div>
+								<div className="d-flex gap-2">
+									<Button
+										variant="outline-light"
+										size="sm"
+										onClick={handleExcelImport}
+										className="d-flex align-items-center gap-2 fw-semibold"
+									>
+										<RiFileExcel2Line size={16} />
+										Import Excel
+									</Button>
+									<Button
+										variant="light"
+										size="sm"
+										onClick={() => router.push("/clinicians/add-new")}
+										className="d-flex align-items-center gap-2 fw-semibold"
+									>
+										<RiAddLine size={18} />
+										Add New Clinician
+									</Button>
+								</div>
+							</div>
+						</div>
+						<div className="card-body p-0">
+							<div className="table-responsive">
+								<PrimeTable
+									column={columns}
+									data={dataWithModal}
+									filtering={false}
+									serverSideFiltering={true}
+									handleSeverSideProcessing={updatePage}
+								/>
+							</div>
+							<FinancialInfoModal
+								show={showFinancialModal}
+								onHide={() => setShowFinancialModal(false)}
+								data={financialModalData}
+							/>
+							
+							<Modal show={showExcelModal} onHide={() => setShowExcelModal(false)} centered>
+								<Modal.Header closeButton>
+									<Modal.Title className="d-flex align-items-center gap-2">
+										<RiFileExcel2Line size={20} />
+										Import Clinicians from Excel
+									</Modal.Title>
+								</Modal.Header>
+								<Modal.Body>
+									<div className="mb-3">
+										<label htmlFor="excelFile" className="form-label fw-semibold">
+											Choose Excel File
+										</label>
+										<input
+											type="file"
+											className="form-control"
+											id="excelFile"
+											accept=".xlsx,.xls"
+											onChange={handleFileSelect}
+										/>
+										<div className="form-text">
+											Supported formats: .xlsx, .xls
+										</div>
+									</div>
+									
+									{excelFile && (
+										<div className="alert alert-info">
+											<strong>Selected file:</strong> {excelFile.name}
+										</div>
+									)}
+									
+									<div className="alert alert-warning">
+										<strong>Note:</strong> Make sure your Excel file has the following columns:
+										<ul className="mb-0 mt-2">
+											<li>Name</li>
+											<li>Email</li>
+											<li>Phone</li>
+											<li>Location</li>
+											<li>Address</li>
+											<li>Occupation</li>
+											<li>Commission</li>
+										</ul>
+									</div>
+								</Modal.Body>
+								<Modal.Footer>
+									<Button 
+										variant="secondary" 
+										onClick={() => setShowExcelModal(false)}
+										disabled={uploading}
+									>
+										Cancel
+									</Button>
+									<Button 
+										variant="primary" 
+										onClick={handleExcelUpload}
+										disabled={!excelFile || uploading}
+									>
+										{uploading ? (
+											<>
+												<span className="spinner-border spinner-border-sm me-2" role="status"></span>
+												Uploading...
+											</>
+										) : (
+											<>
+												<RiFileExcel2Line size={16} className="me-1" />
+												Import Data
+											</>
+										)}
+									</Button>
+								</Modal.Footer>
+							</Modal>
+						</div>
 					</div>
-				</div>
-			)}
-		</div>
+				)}
+			</div>
+		</>
 	);
 }

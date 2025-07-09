@@ -1,4 +1,3 @@
-import { textReferenceFormating } from "../settingsComponents/FieldsCreation/data/testUtil";
 
 export default function HasTextReferenceOptionsResultView({ fieldItem }) {
 	const { name, units, value, textReference } = fieldItem;
@@ -7,6 +6,6 @@ export default function HasTextReferenceOptionsResultView({ fieldItem }) {
 		<td>{"> "}{name}</td>
 		<td>{value}</td>
 		<td>{units}</td>
-		<td>{textReferenceFormating(textReference)}</td>
+		{/* <td>{textReferenceFormating(textReference)}</td> */}
 	</tr>
 }

@@ -5,18 +5,18 @@ import AscentionUltrasoundUnCompletedTable from "../../../../components/operatio
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 
 export default function UltrasonograhyWaitingList() {
-  const { applicationsettings } = useApplicationSettings();
-  const { employeeid, username, role } = applicationsettings.user;
+	const { applicationsettings } = useApplicationSettings();
+	const { employeeid, username, role } = applicationsettings.user;
 
-  if (!employeeid) return null;
+	if (!employeeid) return null;
 
-  return (
-    <UltrasoundStagesProvider>
-      <UltrasoundAscensionFiltering
-        ascension_stage={"ULTRASOUND_UNCOMPLETED"}
-        employeeid={employeeid}
-      />
-      <AscentionUltrasoundUnCompletedTable />
-    </UltrasoundStagesProvider>
-  );
+	return (
+		<UltrasoundStagesProvider>
+			<UltrasoundAscensionFiltering
+				ascension_stage={"ULTRASOUND_UNCOMPLETED"}
+				employeeid={employeeid}
+			/>
+			<AscentionUltrasoundUnCompletedTable />
+		</UltrasoundStagesProvider>
+	);
 }

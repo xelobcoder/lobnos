@@ -1,6 +1,6 @@
 import React from 'react';
 import { PrintOutdata } from '../1/data'; // Assuming PrintOutdata structure
-import styles from './vitalscan.module.css'
+
 interface RecordItemVS {
     id: string | number;
     parameter: string;
@@ -84,13 +84,6 @@ const VitalScanTemplate: React.FC = () => {
         footerFinePrint: "Software by leonidas IntelliLIS v0.0.1 copyright @2025. Tell: 0249434803 || 0595964245" // Example
     };
 
-    // Helper to get flag class
-    const getFlagClass = (flag?: string): string => {
-        if (flag === 'H') return styles.flagH;
-        if (flag === 'L') return styles.flagL;
-        return '';
-    };
-
     // Function to derive H/L flags if not present in data
     const deriveFlag = (valueStr: string, referencesStr: string): string => {
         const value = parseFloat(valueStr);
@@ -104,124 +97,83 @@ const VitalScanTemplate: React.FC = () => {
     };
 
     return (
-        <div className={styles.page}>
-            {/* Main Content Wrapper */}
-            <div className={styles.mainContent}>
-                <header className={styles.header}>
-                    <div className={styles.logoSection}>
-                        <img src={data.companyInfo.logoUrl} alt="VitalScan Logo" className={styles.logo} />
-                        <div className={styles.logoMotto}>{data.companyInfo.motto}</div>
-                    </div>
-                    <div className={styles.labInfo}>
-                        <div className={styles.labName}>{data.companyInfo.name}</div>
-                        <div className={styles.labContact}>{data.companyInfo.location}</div>
-                        <div className={styles.labContact}>{data.companyInfo.email}</div>
-                        <div className={styles.labContact}>{data.companyInfo.contactUs}</div>
-                    </div>
-                </header>
-
-                <div className={styles.sectionTitle}>Personal Information</div>
-                <section className={styles.personalInfo}>
-                    <div>
-                        <div className={styles.infoPair}>
-                            <span className={styles.infoLabel}>FULL NAME:</span>
-                            <span className={styles.infoValue}>{data.patientInformation.fullName}</span>
-                        </div>
-                        <div className={styles.infoPair}>
-                            <span className={styles.infoLabel}>GENDER:</span>
-                            <span className={styles.infoValue}>{data.patientInformation.gender}</span>
-                        </div>
-                        <div className={styles.infoPair}>
-                            <span className={styles.infoLabel}>AGE:</span>
-                            <span className={styles.infoValue}>{data.patientInformation.age}</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div className={styles.infoPair}>
-                            <span className={styles.infoLabel}>PATIENT ID:</span>
-                            <span className={styles.infoValue}>{data.patientInformation.patientId}</span>
-                        </div>
-                        <div className={styles.infoPair}>
-                            <span className={styles.infoLabel}>BILLING ID:</span>
-                            <span className={styles.infoValue}>{data.patientInformation.billingId}</span>
-                        </div>
-                        <div className={styles.infoPair}>
-                            <span className={styles.infoLabel}>REPORT DATE:</span>
-                            <span className={styles.infoValue}>{data.patientInformation.reportDate}</span>
-                        </div>
-                    </div>
-                </section>
-
-                <div className={styles.sectionTitle}>{data.testTitle}</div>
-                <div className={styles.resultsTableContainer}>
-                    <table className={styles.resultsTable}>
-                        <thead>
-                            <tr>
-                                <th className={styles.resultsTh}>Test</th>
-                                <th className={styles.resultsTh} >Value</th>
-                                <th className={styles.resultsTh}>Units</th>
-                                <th className={styles.resultsTh} style={{ textAlign: 'center' }}>References</th>
-                                <th className={styles.resultsTh} style={{ textAlign: 'center' }}>Flags</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.records.map(record => {
-                                const flagToDisplay = record.flags || deriveFlag(record.value, record.references);
-                                return (
-                                    <tr key={record.id}>
-                                        <td className={`${styles.resultsTd} ${styles.resultsTdParameter}`}> {" > "}{record.parameter}</td>
-                                        <td className={`${styles.resultsTd}`}>{record.value}</td>
-                                        <td className={`${styles.resultsTd} ${styles.resultsTdUnits}`}>{record.units}</td>
-                                        <td className={`${styles.resultsTd} ${styles.resultsTdReferences}`}>{record.references}</td>
-                                        <td className={`${styles.resultsTd} ${styles.resultsTdFlags} ${getFlagClass(flagToDisplay)}`}>
-                                            {flagToDisplay}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+        <div className="container p-4 bg-white my-3" >
+            <header className="d-flex justify-content-between ">
+                <div>
+                    <img src={data.companyInfo.logoUrl} alt="VitalScan Logo" style={{ width: '100px' }} />
                 </div>
-
-                <div className={styles.commentsSection}>
-                    <div className={styles.commentsTitle}>Comments</div>
-                    <div className={styles.commentsContent}>
-                        {data.comments ? (typeof data.comments === 'string' && data.comments.startsWith('<p>') ? <div dangerouslySetInnerHTML={{ __html: data.comments }} /> : data.comments) : '................................................................................'}
-                    </div>
+                <div className="">
+                    <h3 className="text-uppercase text-decoration-underline fw-bold" >{data.companyInfo.name}</h3>
+                    <p className="mb-0" style={{ fontSize: '12pt' }}>{data.companyInfo.location}</p>
+                    <p className="mb-0" style={{ fontSize: '12pt' }}>{data.companyInfo.email}</p>
+                    <p className="mb-0" style={{ fontSize: '12pt' }}>{data.companyInfo.contactUs}</p>
                 </div>
-            </div> {/* End of mainContent wrapper */}
+                <div />
+            </header>
 
-            {/* Footer Elements Wrapper */}
-            <div className={styles.pageFooterElements}>
-                {data.validator && (
-                    <div className={styles.validationSection}>
-                        <div className={styles.validatedBy}>VALIDATED BY: {data.validator.name}</div>
-                        <div className={styles.signatureLine}>SIGNATURE: ............................................</div>
-                    </div>
-                )}
+            <section className='border-bottom border-dark my-3' >
+                <h5 className='text-uppercase text-center border-bottom my-2 border-dark fw-bold'>Personal Information</h5>
+                <div className="row gx-5">
+                    <div className="col-6"><span className="fw-bold">FULL NAME:</span> {data.patientInformation.fullName}</div>
+                    <div className="col-6"><span className="fw-bold">PATIENT ID:</span> {data.patientInformation.patientId}</div>
+                    <div className="col-6"><span className="fw-bold">GENDER:</span> {data.patientInformation.gender}</div>
+                    <div className="col-6"><span className="fw-bold">BILLING ID:</span> {data.patientInformation.billingId}</div>
+                    <div className="col-6"><span className="fw-bold">AGE:</span> {data.patientInformation.age}</div>
+                    <div className="col-6"><span className="fw-bold">REPORT DATE:</span> {data.patientInformation.reportDate}</div>
+                </div>
+            </section>
 
-                {data.limitationInformation && (
-                    <div className={styles.limitationInfoSection}>
-                        <div className={styles.limitationInfoTitle}>Limitation Information:</div>
-                        {typeof data.limitationInformation === 'string' && data.limitationInformation.startsWith('<') ?
-                            <div dangerouslySetInnerHTML={{ __html: data.limitationInformation }} /> :
-                            <div>{data.limitationInformation}</div>
-                        }
-                    </div>
-                )}
+            <section>
+                <h4 className="text-center fw-bold p-1 text-uppercase border-dark border-bottom" >
+                    {data.testTitle}
+                </h4>
+                <table className="table">
+                    <thead className='table-warning'>
+                        <tr>
+                            <th className="text-start">Parameter</th>
+                            <th className="text-start">Value</th>
+                            <th className="text-start">Units</th>
+                            <th className="text-start">References</th>
+                            <th className="text-start">Flags</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.records.map(record => {
+                            const flagToDisplay = record.flags || deriveFlag(record.value, record.references);
+                            return (
+                                <tr key={record.id}>
+                                    <td>{record.parameter}</td>
+                                    <td>{record.value}</td>
+                                    <td>{record.units}</td>
+                                    <td>{record.references}</td>
+                                    <td>{flagToDisplay}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </section>
 
-                {data.barcodeUrl && (
-                    <div className={styles.barcodeSection}>
-                        <img src={data.barcodeUrl} alt="Report Barcode" className={styles.barcodeImg} />
-                    </div>
-                )}
+       
+            <section className="mt-3">
+                <div className="fw-bold">Comments</div>
+                <div style={{ borderBottom: '1px solid black', minHeight: '24px' }}>{data.comments}</div>
+            </section>
 
-                {data.footerFinePrint && (
-                    <div className={styles.footerFinePrint}>
-                        {data.footerFinePrint}
-                    </div>
-                )}
-            </div> {/* End of pageFooterElements wrapper */}
+            <section className="d-flex justify-content-between align-items-end mt-4">
+                <div>
+                    <div>VALIDATED BY: {data.validator?.name}</div>
+                    <div className="mt-4">SIGNATURE: <span style={{ borderTop: '1px dotted black', paddingLeft: '150px' }}></span></div>
+                </div>
+                <div>
+                    <img src={data.barcodeUrl} alt="Barcode" style={{ width: '200px', height: '50px' }} />
+                </div>
+            </section>
+
+            <footer className="text-center mt-4" style={{ fontSize: '8pt' }}>
+                <p className="fst-italic">{data.limitationInformation}</p>
+                <p>{data.footerFinePrint}</p>
+            </footer>
         </div>
     );
 };

@@ -10,11 +10,17 @@ export function LaboratoryStagesProvider({ children }) {
        const [loadCounter, setLoadCounter] = useState(0);
        const [isLoading, setLoading] = useState(true);
        const [canloadPage, setLoadPage] = useState(false);
-      
-       
+
+       // Set default date to today in yyyy-mm-dd format
+       const today = new Date();
+       const yyyy = today.getFullYear();
+       const mm = String(today.getMonth() + 1).padStart(2, '0');
+       const dd = String(today.getDate()).padStart(2, '0');
+       const currentDate = `${yyyy}-${mm}-${dd}`;
+
        const [queryParams, setQueryParams] = useState({
-              _dateFrom: null,
-              _dateEnd: null,
+              _dateFrom: currentDate,
+              _dateEnd: currentDate,
               searchString: '',
               page: 1,
               count: 10,

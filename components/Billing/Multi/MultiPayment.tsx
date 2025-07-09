@@ -121,7 +121,6 @@ const MultiPayment: React.FC = () => {
 
     return (
         <React.Fragment>
-        
             <PaymentModal
                 show={billingdata.openPaymentModal == 2}
                 onHide={() =>  {
@@ -130,17 +129,8 @@ const MultiPayment: React.FC = () => {
                     }
                 }}
                 payments={payments}
-                paymentModes={paymentModes}
                 availableModes={availableModes}
-                newPayment={newPayment}
-                validationError={validationError}
-                isCorrection={isCorrection}
-                correctionDiff={correctionDiff}
-                previousPaid={previousPaid}
                 payable={payable}
-                currentTotal={currentTotal}
-                handleAdd={handleAdd}
-                handleAmountChange={handleAmountChange}
                 setNewPayment={setNewPayment}
                 setBillingData={setBillingData}
                 billingdata={billingdata}

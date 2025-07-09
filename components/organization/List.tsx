@@ -15,7 +15,28 @@ import {
 import Link from "next/link"
 import { useRouter } from 'next/navigation'
 import PrimeTable from "../accessories/Datatables/PrimeTable";
-import { Dropdown } from 'react-bootstrap';
+import { Dropdown, Button, Card } from 'react-bootstrap';
+import { orgainzationServerSideProcessing } from "../serverActions/ActionFiltering";
+
+const customStyles = `
+  .empty-state-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
+    border: 1px solid #e9ecef !important;
+    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0856d6 100%) !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #0b5ed7 0%, #0747ba 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
+  }
+`;
 
 
 
@@ -135,24 +156,40 @@ export default function OrganizationList() {
 
 	if (organization.length === 0 && !isloading) {
 		return (
-			<div>
-				<div className="alert alert-info">
-					No organization found. Please add a new organization.
-				</div>
-				<button
-					onClick={() => router.push("/organization/new")}
-					className="btn btn-primary d-flex align-items-center">
-					<RiAddLine className="me-2" size={20} />
-					Add New Organization
-				</button>
+			<div className="container-fluid py-4">
+				<style>{customStyles}</style>
+				<Card className="empty-state-card border-0 rounded-4">
+					<Card.Body className="p-5 text-center">
+						<div className="mb-4">
+							<div 
+								className="bg-primary bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+								style={{ width: '80px', height: '80px' }}
+							>
+								<RiBuildingLine className="text-primary" size={32} />
+							</div>
+							<h4 className="text-dark mb-2 fw-semibold">No Organizations Found</h4>
+							<p className="text-muted mb-4 fs-6">
+								Get started by adding your first organization to the system.<br />
+								<small>Organizations help you manage clients and billing efficiently.</small>
+							</p>
+						</div>
+						<Button
+							variant="primary"
+							size="lg"
+							onClick={() => router.push("/organization/new")}
+							className="d-flex align-items-center gap-2 mx-auto px-4 py-3 fw-semibold"
+						>
+							<RiAddLine size={20} />
+							Add New Organization
+						</Button>
+					</Card.Body>
+				</Card>
 			</div>
 		)
 	}
 	return (
 		<section>
 			<div className="d-flex justify-content-between">
-
-
 			</div>
 			<form className="grid grid-5">
 				<div className="form-row">
@@ -233,7 +270,7 @@ export default function OrganizationList() {
 				column={columns} data={organization}
 				filtering={false}
 				serverSideFiltering={true}
-				handleSeverSideProcessing={null}
+				handleSeverSideProcessing={orgainzationServerSideProcessing}
 			/>
 		</section>
 	)

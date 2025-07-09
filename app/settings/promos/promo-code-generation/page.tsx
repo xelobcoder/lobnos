@@ -1,17 +1,6 @@
 'use client'
 import React, { useEffect, useState } from "react";
-import {
-	RiGift2Line,
-	RiInformationLine,
-	RiPercentLine,
-	RiHashtag,
-	RiCalendarEventLine,
-	RiCheckboxCircleLine,
-	RiCloseCircleLine,
-	RiToggleLine
-} from "@remixicon/react";
 import { Card } from "react-bootstrap";
-import { useSearchParams } from "next/navigation";
 import { customPost } from "../../../../components/Auth/customFetch";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
