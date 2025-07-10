@@ -146,19 +146,8 @@ export default function OrganizationBasicForm({ organizationid }) {
 			formData.append('organizations', file);
 
 			console.log('Uploading image...');
-			const response = await fetch(`http://localhost:5000/api/v1/organization/profile/image?id=${organizationid}`, {
-				method: 'POST',
-				body: formData,
-			});
-
-			if (response.ok) {
-				const result = await response.json();
-				console.log('Upload successful:', result);
-				return result;
-			} else {
-				console.error('Upload failed:', response.statusText);
-				return null;
-			}
+			const response = await customFile(`organization/profile/image?id=${organizationid}`, formData);
+console.log('Image upload response:', response);
 		} catch (error) {
 			console.error('Error during upload:', error);
 			return null;
@@ -223,7 +212,7 @@ export default function OrganizationBasicForm({ organizationid }) {
 		formData.append('target', 'organization');
 		try {
 			const response = await customFile('parse-excel', formData);
-			if (response && response.header && response.data) {
+			if (response && response.header && response.validation ){
 				setExcelPreview(response);
 				setSelectedRows([]); // Reset selected rows when new data is loaded
 			} else {
@@ -246,7 +235,7 @@ export default function OrganizationBasicForm({ organizationid }) {
 		if (!excelPreview) return;
 		
 		// Filter out selected rows from the data
-		const filteredData = excelPreview.data.filter((_, index) => !selectedRows.includes(index));
+		const filteredData = excelPreview.validation.filter((_, index) => !selectedRows.includes(index));
 		
 		if (filteredData.length === 0) {
 			toast.error('No data to import. Please unselect some rows or upload a different file.', {
@@ -259,24 +248,39 @@ export default function OrganizationBasicForm({ organizationid }) {
 		setUploading(true);
 		try {
 			// Send the filtered data to the backend for saving
-			const saveResponse = await customPost('organizations/import', 'POST', {
-				header: excelPreview.header,
+			const saveResponse = await customPost('organization/bulk/registration', 'POST', {
 				data: filteredData,
-				target: 'organization',
 			});
-			if (saveResponse && saveResponse.status === 'success') {
-				toast.success('Organizations imported successfully!', {
+			if (saveResponse && (saveResponse.success || saveResponse.status === 'success' || saveResponse.status === true)) {
+				toast.success(`Bulk registration complete! Success: ${saveResponse.successCount ?? saveResponse.total} / ${saveResponse.total ?? filteredData.length}`, {
 					position: 'top-right',
-					autoClose: 3000,
+					autoClose: 4000,
 				});
 				setShowExcelModal(false);
 				setExcelPreview(null);
 				setExcelFile(null);
 				setSelectedRows([]);
-			} else {
-				toast.error(saveResponse?.message || 'Failed to save organizations', {
+			} else if (saveResponse && (saveResponse.partialSuccess || saveResponse.failCount > 0)) {
+				const errors = Array.isArray(saveResponse.results) ? saveResponse.results.slice(0, 5) : [];
+				let msg = `Some records failed. Success: ${saveResponse.successCount ?? 0} / ${saveResponse.total ?? filteredData.length}`;
+				if (errors.length > 0) {
+					msg += '\nExample errors:';
+					errors.forEach((err, i) => { msg += `\n${i + 1}. ${err}`; });
+				}
+				toast.error(msg, {
 					position: 'top-right',
-					autoClose: 3000,
+					autoClose: 8000,
+				});
+			} else {
+				const errors = Array.isArray(saveResponse?.results) ? saveResponse.results.slice(0, 5) : [];
+				let msg = saveResponse?.message || 'Bulk registration failed.';
+				if (errors.length > 0) {
+					msg += '\nExample errors:';
+					errors.forEach((err, i) => { msg += `\n${i + 1}. ${err}`; });
+				}
+				toast.error(msg, {
+					position: 'top-right',
+					autoClose: 8000,
 				});
 			}
 		} catch (err) {
@@ -300,22 +304,22 @@ export default function OrganizationBasicForm({ organizationid }) {
 	const handleSelectAll = () => {
 		if (!excelPreview) return;
 		
-		if (selectedRows.length === excelPreview.data.length) {
+		if (selectedRows.length === excelPreview.validation.length) {
 			// If all rows are selected, deselect all
 			setSelectedRows([]);
 		} else {
 			// Select all rows
-			setSelectedRows(excelPreview.data.map((_, index) => index));
+			setSelectedRows(excelPreview.validation.map((_, index) => index));
 		}
 	};
 
 	const handleRemoveSelected = () => {
 		if (!excelPreview || selectedRows.length === 0) return;
 		
-		const newData = excelPreview.data.filter((_, index) => !selectedRows.includes(index));
+		const newValidation = excelPreview.validation.filter((_, index) => !selectedRows.includes(index));
 		setExcelPreview({
 			...excelPreview,
-			data: newData
+			validation: newValidation
 		});
 		setSelectedRows([]);
 	};
@@ -645,14 +649,14 @@ export default function OrganizationBasicForm({ organizationid }) {
 										<strong>Review the data below. Click 'Confirm & Save' to import, or 'Back' to select a different file.</strong>
 									</div>
 									
-									{excelPreview.data && excelPreview.data.length > 0 && (
+									{excelPreview.validation && excelPreview.validation.length > 0 && (
 										<div className="mb-3 d-flex gap-2 align-items-center">
 											<button
 												type="button"
 												className="btn btn-sm btn-outline-primary"
 												onClick={handleSelectAll}
 											>
-												{selectedRows.length === excelPreview.data.length ? 'Deselect All' : 'Select All'}
+												{selectedRows.length === excelPreview.validation.length ? 'Deselect All' : 'Select All'}
 											</button>
 											{selectedRows.length > 0 && (
 												<button
@@ -664,7 +668,7 @@ export default function OrganizationBasicForm({ organizationid }) {
 												</button>
 											)}
 											<small className="text-muted">
-												{excelPreview.data.length} total rows
+												{excelPreview.validation.length} total rows
 											</small>
 										</div>
 									)}
@@ -677,7 +681,7 @@ export default function OrganizationBasicForm({ organizationid }) {
 														<input
 															type="checkbox"
 															className="form-check-input"
-															checked={excelPreview.data && selectedRows.length === excelPreview.data.length && excelPreview.data.length > 0}
+															checked={excelPreview.validation && selectedRows.length === excelPreview.validation.length && excelPreview.validation.length > 0}
 															onChange={handleSelectAll}
 														/>
 													</th>
@@ -687,7 +691,7 @@ export default function OrganizationBasicForm({ organizationid }) {
 												</tr>
 											</thead>
 											<tbody>
-												{excelPreview.data && excelPreview.data.map((row, rowIndex) => (
+												{excelPreview.validation && excelPreview.validation.map((row, rowIndex) => (
 													<tr key={rowIndex} className={selectedRows.includes(rowIndex) ? 'table-warning' : ''}>
 														<td>
 															<input

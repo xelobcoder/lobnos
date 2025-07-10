@@ -113,6 +113,7 @@ type Clinician = {
 	phone: string;
 	occupation: string;
 	address: string;
+	_showFinancialModal?: (row: any) => void;
 };
 
 const FinancialInfoModal = ({ show, onHide, data }) => (
@@ -278,40 +279,53 @@ export default function ClinicianList() {
 
 	const handleConfirmImport = async () => {
 		if (!excelPreview) return;
-		
-		// Filter out selected rows from the data
 		const filteredData = excelPreview.data.filter((_, index) => !selectedRows.includes(index));
-		
+
 		if (filteredData.length === 0) {
-			toast.error('No data to import. Please unselect some rows or upload a different file.', {
+			return toast.error('No data to import. Please unselect some rows or upload a different file.', {
 				position: 'top-right',
 				autoClose: 3000,
 			});
-			return;
 		}
-		
+
 		setUploading(true);
 		try {
-			// Send the filtered data to the backend for saving
-			const saveResponse = await customPost('clinicians/import', 'POST', {
-				header: excelPreview.header,
+			const saveResponse = await customPost('clinicians/bulk', 'POST', {
 				data: filteredData,
-				target: 'clinician',
 			});
-			if (saveResponse && saveResponse.status === 'success') {
-				toast.success('Clinicians imported successfully!', {
+
+			if (saveResponse && (saveResponse.success || saveResponse.status === 'success' || saveResponse.status === true)) {
+				toast.success(`Bulk registration complete! Success: ${saveResponse.successCount ?? saveResponse.total} / ${saveResponse.total ?? filteredData.length}`, {
 					position: 'top-right',
-					autoClose: 3000,
+					autoClose: 4000,
 				});
+				
 				setShowExcelModal(false);
 				setExcelPreview(null);
 				setExcelFile(null);
 				setSelectedRows([]);
 				getClinicianData();
-			} else {
-				toast.error(saveResponse?.message || 'Failed to save clinicians', {
+			} else if (saveResponse && (saveResponse.partialSuccess || saveResponse.failCount > 0)) {
+				const errors = Array.isArray(saveResponse.results) ? saveResponse.results.slice(0, 5) : [];
+				let msg = `Some records failed. Success: ${saveResponse.successCount ?? 0} / ${saveResponse.total ?? filteredData.length}`;
+				if (errors.length > 0) {
+					msg += '\nExample errors:';
+					errors.forEach((err, i) => { msg += `\n${i + 1}. ${err}`; });
+				}
+				toast.error(msg, {
 					position: 'top-right',
-					autoClose: 3000,
+					autoClose: 8000,
+				});
+			} else {
+				const errors = Array.isArray(saveResponse?.results) ? saveResponse.results.slice(0, 5) : [];
+				let msg = saveResponse?.message || 'Bulk registration failed.';
+				if (errors.length > 0) {
+					msg += '\nExample errors:';
+					errors.forEach((err, i) => { msg += `\n${i + 1}. ${err}`; });
+				}
+				toast.error(msg, {
+					position: 'top-right',
+					autoClose: 8000,
 				});
 			}
 		} catch (err) {
@@ -372,6 +386,11 @@ export default function ClinicianList() {
 		},
 	];
 
+	const handleShowFinancialModal = (clinician) => {
+		setFinancialModalData(clinician);
+		setShowFinancialModal(true);
+	};
+
 	const extendAdminView = [
 		{ Header: 'Name', accessor: 'name' },
 		{ Header: 'Email', accessor: 'email' },
@@ -387,7 +406,7 @@ export default function ClinicianList() {
 				<Button
 					size="sm"
 					variant="outline-info"
-					onClick={() => row.original._showFinancialModal(row.original)}
+					onClick={() => handleShowFinancialModal(row.original)}
 					className="d-flex align-items-center gap-1 px-2"
 				>
 					<RiInfoI size={14} />
@@ -409,16 +428,6 @@ export default function ClinicianList() {
 			),
 		},
 	];
-
-	const dataWithModal = isAdmin
-		? clinicianList.map(item => ({
-			...item,
-			_showFinancialModal: (row) => {
-				setFinancialModalData(row);
-				setShowFinancialModal(true);
-			},
-		}))
-		: clinicianList;
 
 	const columns = isAdmin ? extendAdminView : columnsMini;
 
@@ -500,7 +509,7 @@ export default function ClinicianList() {
 							<div className="table-responsive">
 								<PrimeTable
 									column={columns}
-									data={dataWithModal}
+									data={clinicianList}
 									filtering={false}
 									serverSideFiltering={true}
 									handleSeverSideProcessing={updatePage}
