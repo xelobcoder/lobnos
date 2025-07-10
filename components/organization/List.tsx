@@ -17,79 +17,47 @@ import { useRouter } from 'next/navigation'
 import PrimeTable from "../accessories/Datatables/PrimeTable";
 import { Dropdown, Button, Card } from 'react-bootstrap';
 import { orgainzationServerSideProcessing } from "../serverActions/ActionFiltering";
+import ExcelExportButton from "../common/ExcelExportButton";
+import '../../styles/organization-list.css';
 
-const customStyles = `
-  .empty-state-card {
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
-    border: 1px solid #e9ecef !important;
-    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1) !important;
-  }
-  
-  .btn-primary {
-    background: linear-gradient(135deg, #0d6efd 0%, #0856d6 100%) !important;
-    border: none !important;
-    transition: all 0.3s ease !important;
-  }
-  
-  .btn-primary:hover {
-    background: linear-gradient(135deg, #0b5ed7 0%, #0747ba 100%) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3) !important;
-  }
-
-  .dropdown-toggle {
-    transition: all 0.2s ease !important;
-  }
-
-  .dropdown-toggle:hover {
-    background-color: #f8f9fa !important;
-    transform: scale(1.05) !important;
-  }
-
-  .dropdown-menu {
-    border: none !important;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
-    animation: fadeInDown 0.2s ease-out !important;
-  }
-
-  .dropdown-item {
-    transition: all 0.2s ease !important;
-    border-radius: 8px !important;
-    margin: 2px 8px !important;
-  }
-
-  .dropdown-item:hover {
-    background-color: #f8f9fa !important;
-    transform: translateX(4px) !important;
-  }
-
-  .dropdown-item.text-danger:hover {
-    background-color: #fff5f5 !important;
-    color: #dc3545 !important;
-  }
-
-  @keyframes fadeInDown {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-`;
-
-
+type Organization = {
+	id: number | string;
+	ID?: number | string;
+	name?: string;
+	location?: string;
+	mobile?: string;
+	email?: string;
+	region?: string;
+	address?: string;
+	[key: string]: any;
+};
 
 export default function OrganizationList() {
-	const [organization, setOrganization] = useState([])
-	const [originalOrganizations, setOriginalOrganizations] = useState([])
+	const [organization, setOrganization] = useState<Organization[]>([])
+	const [originalOrganizations, setOriginalOrganizations] = useState<Organization[]>([])
 	const [paginate, setPaginate] = useState({ count: 10, page: 1 })
 	const [filter, setFilter] = useState({ type: 'organization', value: '' })
 	const [load, setLoad] = useState(false)
 	const [isloading, setLoading] = useState(true)
 	const router = useRouter()
+
+	// Define export columns mapping for better control
+	const exportColumns = [
+		{ key: 'name', label: 'Organization Name' },
+		{ key: 'location', label: 'Location' },
+		{ key: 'mobile', label: 'Contact Number' },
+		{ key: 'email', label: 'Email Address' },
+		{ key: 'region', label: 'Region' },
+		{ key: 'address', label: 'Address' }
+	];
+
+	// Dynamic table height based on data length
+	const getTableClass = () => {
+		const dataLength = organization.length;
+		if (dataLength <= 3) return 'dynamic-table small-data';
+		if (dataLength <= 10) return 'dynamic-table medium-data';
+		return 'dynamic-table large-data';
+	};
 
 	const handleEditing = async (id) => {
 		router.push(`/organization/${id}/basicinfo`)
@@ -250,7 +218,6 @@ export default function OrganizationList() {
 	if (organization.length === 0 && !isloading && !filter.value) {
 		return (
 			<div className="container-fluid py-4">
-				<style>{customStyles}</style>
 				<Card className="empty-state-card border-0 rounded-4">
 					<Card.Body className="p-5 text-center">
 						<div className="mb-4">
@@ -282,81 +249,171 @@ export default function OrganizationList() {
 	}
 	return (
 		<section>
-			<style>{customStyles}</style>
-
-			{/* Bootstrap Filter Section */}
-			<div className="card mb-4">
+			{/* Professional Bootstrap Filter Section */}
+			<div className="card mb-4 shadow-sm">
 				<div className="card-header bg-light">
 					<div className="d-flex justify-content-between align-items-center">
-						<h6 className="mb-0 text-dark fw-semibold d-flex align-items-center">
-							<RiFilterLine className="me-2 text-primary" size={20} />
-							Filter & Search Organizations
-						</h6>
-
+						<div className="d-flex align-items-center">
+							<div className="bg-primary bg-opacity-10 rounded-circle me-3 d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
+								<RiFilterLine className="text-primary" size={20} />
+							</div>
+							<div>
+								<h5 className="mb-1 text-dark fw-bold">Organizations</h5>
+								<p className="mb-0 text-muted small">Filter and search your organizations</p>
+							</div>
+						</div>
+						<div className="d-flex align-items-center gap-3">
+							<div className="d-flex align-items-center gap-3">
+							<span className="badge bg-light text-dark fw-normal px-3 py-2 rounded-pill">
+								{organization.length} {organization.length === 1 ? 'Organization' : 'Organizations'}
+							</span>
+							<ExcelExportButton
+								data={organization}
+								filename="organizations"
+								columns={exportColumns}
+								disabled={!organization || organization.length === 0}
+							/>
+						</div>
+						<div className="">
+							<div className="d-grid">
+								<button
+									type="button"
+									onClick={() => router.push("/organization/new")}
+									className="btn btn-success p-1"
+								>
+									<RiAddLine className="me-2" size={20} />
+									New Organization
+								</button>
+							</div>
+						</div>
+						</div>
 					</div>
 				</div>
 
 				<div className="card-body">
-					<div className="row g-3">
-						<div className="col-lg-8 col-md-7">
-							<div className="input-group">
-								<span className="input-group-text">
-									{filter.type === 'organization' && <RiBuildingLine size={18} className="text-muted" />}
-									{filter.type === 'email' && <RiMailLine size={18} className="text-muted" />}
-									{filter.type === 'contact' && <RiPhoneLine size={18} className="text-muted" />}
-								</span>
-								<select
-									className="form-select"
-									style={{ maxWidth: '160px' }}
-									value={filter.type || 'organization'}
-									onChange={ev => setFilter({ ...filter, type: ev.target.value })}
-								>
-									<option value="organization">Organization</option>
-									<option value="email">Email Address</option>
-									<option value="contact">Contact Number</option>
-								</select>
-								<input
-									value={filter.value || ''}
-									onChange={ev => setFilter({ ...filter, value: ev.target.value })}
-									className="form-control"
-									type={filter.type === 'email' ? 'email' : filter.type === 'contact' ? 'tel' : 'text'}
-									placeholder={
-										filter.type === 'email' ? 'Enter email address...' :
-											filter.type === 'contact' ? 'Enter contact number...' :
-												'Enter organization name...'
-									}
-									minLength={filter.type === 'contact' ? 10 : undefined}
-									maxLength={filter.type === 'contact' ? 10 : undefined}
-									onKeyPress={(e) => {
-										if (e.key === 'Enter') {
-											e.preventDefault();
-											filterButton();
-										}
-									}}
-								/>
-								<button
-									onClick={ev => {
-										ev.preventDefault();
-										filterButton();
-									}}
-									type="button"
-									className="btn btn-outline-secondary"
-									disabled={!filter.value?.trim()}
-								>
-									<RiSearchLine className="me-1" size={18} />
-									Search
-								</button>
+					<div className="row g-4">
+						<div className="col-lg-8">
+							<div className="d-flex flex-column gap-3">
+								<div className="d-flex gap-2 align-items-center mb-3 flex-wrap">
+									{/* Filter Type Selection - Bootstrap Button Group (smaller, inline) */}
+									<div className="btn-group btn-group-sm" role="group" aria-label="Filter type">
+										<input
+											type="radio"
+											className="btn-check"
+											name="filterType"
+											id="filter-organization"
+											value="organization"
+											checked={filter.type === 'organization'}
+											onChange={ev => setFilter({ ...filter, type: ev.target.value })}
+										/>
+										<label className="btn btn-outline-primary" htmlFor="filter-organization">
+											<RiBuildingLine size={14} className="me-1" />
+											Org
+										</label>
+										<input
+											type="radio"
+											className="btn-check"
+											name="filterType"
+											id="filter-email"
+											value="email"
+											checked={filter.type === 'email'}
+											onChange={ev => setFilter({ ...filter, type: ev.target.value })}
+										/>
+										<label className="btn btn-outline-primary" htmlFor="filter-email">
+											<RiMailLine size={14} className="me-1" />
+											Email
+										</label>
+										<input
+											type="radio"
+											className="btn-check"
+											name="filterType"
+											id="filter-contact"
+											value="contact"
+											checked={filter.type === 'contact'}
+											onChange={ev => setFilter({ ...filter, type: ev.target.value })}
+										/>
+										<label className="btn btn-outline-primary" htmlFor="filter-contact">
+											<RiPhoneLine size={14} className="me-1" />
+											Contact
+										</label>
+									</div>
+									{/* Search Input Group */}
+									<div className="input-group flex-grow-1" style={{ minWidth: 220 }}>
+										<span className="input-group-text">
+											{filter.type === 'organization' && <RiBuildingLine size={16} />}
+											{filter.type === 'email' && <RiMailLine size={16} />}
+											{filter.type === 'contact' && <RiPhoneLine size={16} />}
+										</span>
+										<input
+											value={filter.value || ''}
+											onChange={ev => setFilter({ ...filter, value: ev.target.value })}
+											className="form-control form-control-sm"
+											type={filter.type === 'email' ? 'email' : filter.type === 'contact' ? 'tel' : 'text'}
+											placeholder={
+												filter.type === 'email' ? 'Search by email address...' :
+													filter.type === 'contact' ? 'Search by contact number...' :
+														'Search organizations...'
+											}
+											minLength={filter.type === 'contact' ? 10 : undefined}
+											maxLength={filter.type === 'contact' ? 10 : undefined}
+											onKeyPress={(e) => {
+												if (e.key === 'Enter') {
+													e.preventDefault();
+													filterButton();
+												}
+											}}
+										/>
+										<button
+											onClick={ev => {
+												ev.preventDefault();
+												filterButton();
+											}}
+											type="button"
+											className="btn btn-primary btn-sm"
+											disabled={!filter.value?.trim()}
+										>
+											<RiSearchLine size={16} className="me-1" />
+											Search
+										</button>
+									</div>
+								</div>
+
+								{/* Search Input Group */}
+								
+
+								{filter.value && (
+									<div className="mt-3">
+										<div className="alert alert-primary alert-dismissible d-inline-flex align-items-center py-2" role="alert">
+											<small className="me-3 mb-0 fw-medium">
+												<span className="text-muted">Filtering by</span>{' '}
+												<span className="fw-bold text-primary text-capitalize">{filter.type}</span>:{' '}
+												<span className="fw-semibold">"{filter.value}"</span>
+											</small>
+											<button
+												type="button"
+												className="btn-close"
+												aria-label="Clear filter"
+												onClick={() => {
+													setFilter({ type: 'organization', value: '' });
+													setOrganization(originalOrganizations);
+												}}
+											></button>
+										</div>
+									</div>
+								)}
 							</div>
 
 							{filter.value && (
-								<div className="mt-2">
-									<div className="alert alert-info py-2 mb-0 d-flex justify-content-between align-items-center">
-										<small className="mb-0">
-											Searching for <strong>{filter.type}</strong>: "{filter.value}"
+								<div className="mt-3">
+									<div className="alert alert-primary alert-dismissible d-inline-flex align-items-center py-2" role="alert">
+										<small className="me-3 mb-0 fw-medium">
+											<span className="text-muted">Filtering by</span>{' '}
+											<span className="fw-bold text-primary text-capitalize">{filter.type}</span>:{' '}
+											<span className="fw-semibold">"{filter.value}"</span>
 										</small>
 										<button
 											type="button"
-											className="btn-close btn-sm"
+											className="btn-close"
 											aria-label="Clear filter"
 											onClick={() => {
 												setFilter({ type: 'organization', value: '' });
@@ -368,51 +425,59 @@ export default function OrganizationList() {
 							)}
 						</div>
 
-						<div className="col-lg-4 col-md-5">
-							<div className="d-grid">
-								<button
-									type="button"
-									onClick={() => router.push("/organization/new")}
-									className="btn btn-primary d-flex align-items-center justify-content-center"
-								>
-									<RiAddLine className="me-2" size={20} />
-									Add New Organization
-								</button>
-							</div>
-						</div>
+						
 					</div>
 
-					{/* Show "no results" message when filtering returns empty */}
+					{/* Professional No Results Section */}
 					{organization.length === 0 && !isloading && filter.value && (
-						<div className="text-center py-4 mt-3">
-							<div className="text-muted">
-								<RiSearchLine size={48} className="mb-3 opacity-50" />
-								<h6 className="text-dark">No organizations match your search</h6>
-								<p className="mb-3">
-									No organizations found for <strong>{filter.type}</strong>: "{filter.value}"
+						<div className="card border-2 border-dashed border-secondary bg-light text-center mt-3">
+							<div className="card-body py-4">
+								<div className="bg-info bg-opacity-10 rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style={{ width: '64px', height: '64px' }}>
+									<RiSearchLine size={28} className="text-info" />
+								</div>
+								<h6 className="text-dark fw-semibold mb-2">No Results Found</h6>
+								<p className="text-muted mb-4">
+									We couldn't find any organizations matching your search for{' '}
+									<strong className="text-primary">"{filter.value}"</strong> in{' '}
+									<strong>{filter.type.replace(/([A-Z])/g, ' $1').toLowerCase()}</strong>.
 								</p>
-								<button
-									type="button"
-									className="btn btn-outline-primary btn-sm"
-									onClick={() => {
-										setFilter({ type: 'organization', value: '' });
-										setOrganization(originalOrganizations);
-									}}
-								>
-									Clear filter and view all organizations
-								</button>
+								<div className="d-flex justify-content-center gap-3">
+									<button
+										type="button"
+										className="btn btn-info btn-sm"
+										onClick={() => {
+											setFilter({ type: 'organization', value: '' });
+											setOrganization(originalOrganizations);
+										}}
+									>
+										<RiFilterLine className="me-2" size={16} />
+										Clear Filter
+									</button>
+									<button
+										type="button"
+										className="btn btn-outline-primary btn-sm"
+										onClick={() => router.push("/organization/new")}
+									>
+										<RiAddLine className="me-2" size={16} />
+										Add Organization
+									</button>
+								</div>
 							</div>
 						</div>
 					)}
 				</div>
 			</div>
 
-			<PrimeTable
-				column={columns} data={organization}
-				filtering={false}
-				serverSideFiltering={true}
-				handleSeverSideProcessing={orgainzationServerSideProcessing}
-			/>
+			<div className="table-container">
+				<PrimeTable
+					column={columns} 
+					data={organization}
+					filtering={false}
+					serverSideFiltering={true}
+					handleSeverSideProcessing={orgainzationServerSideProcessing}
+					
+				/>
+			</div>
 		</section>
 	)
 }
