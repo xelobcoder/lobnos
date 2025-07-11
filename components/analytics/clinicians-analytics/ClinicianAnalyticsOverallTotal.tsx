@@ -38,35 +38,57 @@ const AnalyticCard: React.FC<AnalyticCardProps> = ({
     const bgSubtleClass = `bg-${variant}-subtle`;
     const textClass = `text-${variant}`;
     const borderClass = `border-${variant}`;
-
+    // Custom accent color for border and icon background
+    const accentGradients: Record<CardVariant, string> = {
+        primary: 'linear-gradient(135deg, oklch(0.646 0.222 41.116) 0%, oklch(0.7 0.15 41.116) 100%)',
+        success: 'linear-gradient(135deg, oklch(0.4 0.18 140) 0%, oklch(0.6 0.18 140) 100%)',
+        warning: 'linear-gradient(135deg, oklch(0.68 0.22 15) 0%, oklch(0.72 0.18 15) 100%)',
+        danger: 'linear-gradient(135deg, oklch(0.7 0.18 20) 0%, oklch(0.8 0.18 20) 100%)',
+    };
     return (
         <div
-            className={`card h-100 shadow-sm border-0 border-top-0 ${borderClass}`}
+            className={`card h-100 shadow-sm border-0 border-top ${borderClass} analytic-card-hover`}
             style={{
-                borderTopWidth: '4px !important', // Ensure top border thickness
-                borderRadius: '0.75rem', // Bootstrap's rounded-lg is 0.5rem, this is a bit more
+                borderTopWidth: 5,
+                borderRadius: '1rem',
+                background: 'linear-gradient(135deg, #fff 80%, #f8f9fa 100%)',
+                transition: 'box-shadow 0.2s, transform 0.2s',
+                minHeight: 170
             }}
         >
-            <div className="card-body d-flex flex-column p-3 p-lg-4"> {/* Responsive padding */}
+            <div className="card-body d-flex flex-column p-3 p-lg-4">
                 <div className="d-flex align-items-start mb-3">
                     <div
-                        className={`d-inline-flex align-items-center justify-content-center rounded-circle me-3 ${bgSubtleClass} ${textClass}`}
+                        className={`d-inline-flex align-items-center justify-content-center rounded-circle me-3 shadow-sm ${textClass}`}
                         style={{
-                            width: '44px', // Fixed size for icon container
-                            height: '44px',
+                            width: '46px',
+                            height: '46px',
                             flexShrink: 0,
+                            background: accentGradients[variant],
+                            boxShadow: `0 2px 8px ${variant === 'primary' ? 'oklch(0.646 0.222 41.116 / 0.18)' : '#00000018'}`
                         }}
                     >
-                        <Icon size={ICON_SIZE} />
+                        <Icon size={ICON_SIZE} color="#fff" />
                     </div>
                     <h3 className="card-title h6 fw-medium text-body-secondary mb-0 pt-1">
                         {title}
                     </h3>
                 </div>
-                <div className={`h3 fw-bold mt-auto mb-0 ${textClass}`} style={{ fontSize: '1.75rem' }}> {/* Larger value */}
-                    {formatAsCurrency ? currencyFormatter.format(Number(value) || 0) : value}
+                <div className={`h2 fw-bold mt-auto mb-0 ${textClass} lh-1`} style={{ fontSize: '1.45rem', letterSpacing: '0.01em' }}>
+                    {formatAsCurrency ? (
+                        <span title={String(value)}>{currencyFormatter.format(Number(value) || 0)}</span>
+                    ) : (
+                        <span title={String(value)}>{value}</span>
+                    )}
                 </div>
             </div>
+            <style jsx>{`
+                .analytic-card-hover:hover {
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.10) !important;
+                    transform: translateY(-3px) scale(1.015);
+                    border-top-width: 6px !important;
+                }
+            `}</style>
         </div>
     );
 };

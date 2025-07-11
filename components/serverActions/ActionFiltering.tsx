@@ -365,17 +365,7 @@ export const ClinicianAnalyticsCaseSummaryDailyServerSide = async (clinicianId: 
 		const response = await customFetch(
 			`clinician/anal/case-summary/daily/${clinicianId}?year=${year}`
 		);
-		if (response?.success) {
-			if (response?.data && Array.isArray(response?.data)) {
-				const sortedData = response.data.sort((a, b) =>
-					new Date(a.date).getTime() - new Date(b.date).getTime()
-				);
-				return sortedData
-			}
-			return []
-		} else {
-			return []
-		}
+		return response.data
 	} catch (err) {
 		return []
 	}
