@@ -141,7 +141,7 @@ export default async function PatientBillingPageIndex({
 		}
 
 		if (typeof initGeneralBillingData === 'object' && Object.keys(initGeneralBillingData).length > 0) {
-			billingdata = { ...billingdata, ...initGeneralBillingData, isServiceOnly, billingSource: 0 };
+			billingdata = { ...billingdata, ...initGeneralBillingData, billingSource: 0 };
 		}
 
 

@@ -569,7 +569,7 @@ export default function ClinicianList() {
 									) : (
 										<>
 											<div className="mb-3">
-												<strong>Review the data below. Click 'Confirm & Save' to import, or 'Back' to select a different file.</strong>
+												<strong>Review the data below. Click Confirm & Save to import, or Back to select a different file.</strong>
 											</div>
 											
 											{excelPreview.data && excelPreview.data.length > 0 && (

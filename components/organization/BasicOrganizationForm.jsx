@@ -646,7 +646,7 @@ console.log('Image upload response:', response);
 							) : (
 								<>
 									<div className="mb-3">
-										<strong>Review the data below. Click 'Confirm & Save' to import, or 'Back' to select a different file.</strong>
+										<strong>Review the data below. Click Confirm & Save to import, or Back to select a different file.</strong>
 									</div>
 									
 									{excelPreview.validation && excelPreview.validation.length > 0 && (

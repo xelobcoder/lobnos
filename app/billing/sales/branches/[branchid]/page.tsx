@@ -73,7 +73,7 @@ export default function DailySalesViewCustomerRepresentative({ params, searchPar
 	return (
 		<div>
 			{branchIdState && <BilledSummary branchid={branchIdState} from={from} to={to} />}
-			<BilledClientsView data={transactions } branchid={branchIdState}  />
+			<BilledClientsView data={transactions? transactions: []} branchid={branchIdState}  />
 		</div>
 	);
 }

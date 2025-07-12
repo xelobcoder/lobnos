@@ -3,9 +3,32 @@ import { PrintOutdata } from '../1/data';
 import styles from './MDSLancet.Template.module.css'
 
 // Interfaces (RecordItem, PatientInformation, CompanyInfo, Validator, MDSReportData - as defined above with new fields)
-interface RecordItem { /* ... as before ... */ }
-interface PatientInformation { /* ... as before ... */ }
-interface CompanyInfo { /* ... as before ... */ }
+interface RecordItem {
+    id: string | number;
+    name: string;
+    value?: string | number;
+    units?: string;
+    textReference?: string;
+    flag?: string;
+    subItems?: { name: string; textReference: string }[];
+}
+interface PatientInformation {
+    firstname: string;
+    lastname: string;
+    fullpatientid: string;
+    age: number;
+    gender: string;
+    dob?: string;
+    organization: string;
+    referringDoctor: string;
+}
+interface CompanyInfo {
+    name: string;
+    address: string;
+    phonenumber: string;
+    prNum: string;
+    logoUrl: string;
+}
 
 interface Validator {
     username: string;

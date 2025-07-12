@@ -10,7 +10,12 @@ interface RecordItem {
     ascensionid: number; billingid: number; patientid: number; originalvalue: string;
     created_on: string; updated_on: string; employeeid: number; entrymode: string; fieldid: number;
 }
-interface CompanyInfo { /* ... */ }
+interface CompanyInfo {
+    name: string;
+    website?: string;
+    motto?: string;
+    // Add other properties as needed
+}
 interface PatientInformation {
     patientid: number; fullpatientid: string; designation: string; firstname: string; email: string;
     dob: string; age: number; gender: string; marital_status: string; mobile_number: string;
@@ -92,18 +97,19 @@ const lancetStyles: { [key: string]: React.CSSProperties } = {
     drugTd: { borderBottom: '1px solid #eee', padding: '5px' },
 };
 
+
 // --- React Component Template ---
-const LancetTemplate: React.FC<{ data: ReportData }> = () => {
-    const data =PrintOutdata
-    const { companyInfo, patientInformation, records, testname, comments, logourl, billingid, enteredOn, lastupdatedon, hasDrugs, drugList } =data
+const LancetTemplate: React.FC = () => {
+    const data = PrintOutdata as ReportData;
+    const { companyInfo, patientInformation, records, testname, comments, logourl, billingid, enteredOn, lastupdatedon, hasDrugs } = data;
     const groupedRecords = groupRecordsByCategoryLancet(records);
 
-    const labVerw = data.labVerw || String(billingid);
-    const verwysNr = data.verwysNr || 'N/A';
-    const ontvangsDatum = data.ontvangsDatum || formatDateSimpleLancet(enteredOn);
-    const verslagDatum = data.verslagDatum || formatDateSimpleLancet(lastupdatedon);
-    const medFondse = data.medFondse || patientInformation.organization || 'N/A';
-    const clinicalData = data.clinicalData || (testname.toLowerCase().includes('culture') ? 'Culture & Sensitivity as requested.' : 'Routine Test');
+    const labVerw = data.labVerw?.toString() || String(billingid);
+    const verwysNr = data.verwysNr ?? 'N/A';
+    const ontvangsDatum = data.ontvangsDatum ?? formatDateSimpleLancet(enteredOn);
+    const verslagDatum = data.verslagDatum ?? formatDateSimpleLancet(lastupdatedon);
+    const medFondse = data.medFondse ?? patientInformation.organization ?? 'N/A';
+    const clinicalData = data.clinicalData ?? (testname.toLowerCase().includes('culture') ? 'Culture & Sensitivity as requested.' : 'Routine Test');
 
     return (
         <div style={lancetStyles.page}>
@@ -130,7 +136,7 @@ const LancetTemplate: React.FC<{ data: ReportData }> = () => {
                     <div style={lancetStyles.infoItem}><span style={lancetStyles.infoLabel}>Kontak Nrs:</span> <span style={lancetStyles.infoValue}>{patientInformation.mobile_number}</span></div>
                     <div style={lancetStyles.infoItem}><span style={lancetStyles.infoLabel}>Med Fondse:</span> <span style={lancetStyles.infoValue}>{medFondse}</span></div>
                     <div style={lancetStyles.infoItem}><span style={lancetStyles.infoLabel}>Epos:</span> <span style={lancetStyles.infoValue}>{patientInformation.email || 'N/A'}</span></div>
-                    <div style={lancetStyles.infoItem}><span style={lancetStyles.infoLabel}>Verwys Dr:</span> <span style={lancetStyles.infoValue}>{patientInformation.referringDoctor || 'N/A'}</span></div>
+                    <div style={lancetStyles.infoItem}><span style={lancetStyles.infoLabel}>Verwys Dr:</span> <span style={lancetStyles.infoValue}>{patientInformation.referringDoctor ?? 'N/A'}</span></div>
                     {data.anderDokters && <div style={lancetStyles.infoItem}><span style={lancetStyles.infoLabel}>Ander Dokters:</span> <span style={lancetStyles.infoValue}>{data.anderDokters}</span></div>}
                 </div>
 
@@ -176,7 +182,7 @@ const LancetTemplate: React.FC<{ data: ReportData }> = () => {
                     </div>
                 ))}
 
-                {hasDrugs && drugList && drugList.length > 0 && (
+                {hasDrugs && Array.isArray((data as any).drugList) && (data as any).drugList.length > 0 && (
                     <div style={{ marginTop: '20px' }}>
                         <div style={lancetStyles.sectionTitle}>ANTIBIOTIC SENSITIVITY</div>
                         <table style={lancetStyles.drugTable}>
@@ -187,7 +193,7 @@ const LancetTemplate: React.FC<{ data: ReportData }> = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {drugList.map(drug => (
+                                {(data as any).drugList.map((drug: any) => (
                                     <tr key={drug.id}>
                                         <td style={lancetStyles.drugTd}>{drug.drug}</td>
                                         <td style={{ ...lancetStyles.drugTd, textAlign: 'center' }}>{drug.sensitivity}</td>

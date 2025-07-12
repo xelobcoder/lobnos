@@ -200,7 +200,7 @@ const SRLTemplate: React.FC = () => {
 
             {clientNameAndAddress && (
                 <div className={styles.clientInfoSection}>
-                    <strong>CLIENT'S NAME AND ADDRESS:</strong> {clientNameAndAddress}
+                    <strong>CLIENTS NAME AND ADDRESS:</strong> {clientNameAndAddress}
                 </div>
             )}
 

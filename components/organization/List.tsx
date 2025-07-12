@@ -51,15 +51,8 @@ export default function OrganizationList() {
 		{ key: 'address', label: 'Address' }
 	];
 
-	// Dynamic table height based on data length
-	const getTableClass = () => {
-		const dataLength = organization.length;
-		if (dataLength <= 3) return 'dynamic-table small-data';
-		if (dataLength <= 10) return 'dynamic-table medium-data';
-		return 'dynamic-table large-data';
-	};
 
-	const handleEditing = async (id) => {
+	const handleEditing = async (id:number) => {
 		router.push(`/organization/${id}/basicinfo`)
 	}
 
@@ -387,7 +380,7 @@ export default function OrganizationList() {
 											<small className="me-3 mb-0 fw-medium">
 												<span className="text-muted">Filtering by</span>{' '}
 												<span className="fw-bold text-primary text-capitalize">{filter.type}</span>:{' '}
-												<span className="fw-semibold">"{filter.value}"</span>
+												<span className="fw-semibold">{filter.value}</span>
 											</small>
 											<button
 												type="button"
@@ -409,7 +402,7 @@ export default function OrganizationList() {
 										<small className="me-3 mb-0 fw-medium">
 											<span className="text-muted">Filtering by</span>{' '}
 											<span className="fw-bold text-primary text-capitalize">{filter.type}</span>:{' '}
-											<span className="fw-semibold">"{filter.value}"</span>
+											<span className="fw-semibold">{filter.value}</span>
 										</small>
 										<button
 											type="button"
@@ -437,8 +430,8 @@ export default function OrganizationList() {
 								</div>
 								<h6 className="text-dark fw-semibold mb-2">No Results Found</h6>
 								<p className="text-muted mb-4">
-									We couldn't find any organizations matching your search for{' '}
-									<strong className="text-primary">"{filter.value}"</strong> in{' '}
+									We could not find any organizations matching your search for{' '}
+									<strong className="text-primary">{filter.value}</strong> in{' '}
 									<strong>{filter.type.replace(/([A-Z])/g, ' $1').toLowerCase()}</strong>.
 								</p>
 								<div className="d-flex justify-content-center gap-3">

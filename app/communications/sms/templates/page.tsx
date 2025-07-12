@@ -229,7 +229,7 @@ const SmsTemplatesPage: React.FC = () => {
                     </Modal.Header>
                     <Modal.Body>
                          <p className="mb-0">
-                              Are you sure you want to delete the template <strong>"{confirmDelete.templateName}"</strong>?
+                              Are you sure you want to delete the template <strong>{confirmDelete.templateName}</strong>?
                          </p>
                          <p className="text-muted small mt-2 mb-0">This action cannot be undone.</p>
                     </Modal.Body>

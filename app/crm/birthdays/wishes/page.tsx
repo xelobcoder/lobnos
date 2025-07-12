@@ -48,7 +48,7 @@ export default function BirthdayWishes() {
     }, []);
 
     if (isLoading) {
-        return <div className={styles.loading}>Loading today's birthdays...</div>;
+        return <div className={styles.loading}>Loading todays birthdays...</div>;
     }
 
     if (error) {
@@ -60,7 +60,7 @@ export default function BirthdayWishes() {
             <div className={styles.header}>
                 <h2>
                     <RiCakeLine className={styles.headerIcon} />
-                    Today's Birthdays
+                    Todays Birthdays
                 </h2>
                 <span className={styles.count}>Total: {birthdays.length}</span>
             </div>

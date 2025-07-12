@@ -160,9 +160,29 @@ export default function RESULT_FOR_PRINTING() {
                     <div className="single_result_page ui bg-secondary">
                         <div className="result bg-white mt-5">
                             <section>
-                                <CompanyHeaders companyInfo={resultdata?.companyInfo || null} logo={resultdata?.logourl} />
+                                <CompanyHeaders
+                                    companyInfo={
+                                        resultdata?.companyInfo
+                                            ? {
+                                                ...resultdata.companyInfo,
+                                                alternativenumber: resultdata.companyInfo.alternativenumber?.toString()
+                                            }
+                                            : null
+                                    }
+                                    logo={resultdata?.logourl}
+                                />
                                 <PersonalInformation
-                                    PersonalInformation={resultdata?.patientInformation}
+                                    PersonalInformation={{
+                                        ...(resultdata?.patientInformation
+                                            ? {
+                                                ...resultdata.patientInformation,
+                                                patientid: resultdata.patientInformation.patientid.toString(),
+                                                fullpatientid: resultdata.patientInformation.fullpatientid
+                                                    ? resultdata.patientInformation.fullpatientid
+                                                    : ''
+                                            }
+                                            : { fullpatientid: '' }),
+                                    }}
                                     billingid={resultdata?.billingid}
                                 />
                             </section>

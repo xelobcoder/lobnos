@@ -1,5 +1,5 @@
 "use client"
-import {useEffect, useState} from 'react';
+import {useEffect, useState, useCallback} from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -122,7 +122,7 @@ export default function PaymentModuleClinician() {
         },
     });
     const [isLoading, setIsLoading] = useState(false);
-    const module = watch('module'); 
+    const paymentModule = watch('module'); 
     const clinicianid = useParams()?.clinicianid
 
     const onSubmit = async (data: PaymentData) => {
@@ -151,11 +151,11 @@ export default function PaymentModuleClinician() {
         }
     };
 
-    const showMomoFields = module === 'mobile-money';
-    const showBankFields = module === 'credit-card';
+    const showMomoFields = paymentModule === 'mobile-money';
+    const showBankFields = paymentModule === 'credit-card';
 
     // if clicnidianid is porvided, we have to load the existing payment configuration
-    const loadPreviousConfiguration = async () => {
+    const loadPreviousConfiguration = useCallback(async () => {
         try {
             setIsLoading(true);
             const configuration = await customFetch(`clinicians/payments/${clinicianid}`);
@@ -179,12 +179,12 @@ export default function PaymentModuleClinician() {
         finally {
             setIsLoading(false);
         }
-    }
+    }, [clinicianid, reset]);
 
 
     useEffect(() => {
         loadPreviousConfiguration();
-    },[clinicianid]);
+    },[loadPreviousConfiguration]);
 
 
     if(isLoading){

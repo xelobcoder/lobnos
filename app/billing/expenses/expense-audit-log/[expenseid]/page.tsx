@@ -188,7 +188,7 @@ const filteredLogs = useMemo(() => {
           className={styles.noLogs}
         >
           <h3>No audit logs found</h3>
-          <p>This expense hasn't been modified yet.</p>
+          <p>This expense has not been modified yet.</p>
         </motion.div>
       ) : (
         <div>

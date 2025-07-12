@@ -34,7 +34,7 @@ export default function BirthdaySettings() {
                                     </label>
                                 </div>
                                 <small className="text-muted d-block mt-2">
-                                    Receive SMS notifications when it's someone's birthday
+                                    Receive SMS notifications when its someones birthday
                                 </small>
                             </div>
 
@@ -56,7 +56,7 @@ export default function BirthdaySettings() {
                                     </label>
                                 </div>
                                 <small className="text-muted d-block mt-2">
-                                    Receive email notifications when it's someone's birthday
+                                    Receive email notifications when its someones birthday
                                 </small>
                             </div>
         </div>

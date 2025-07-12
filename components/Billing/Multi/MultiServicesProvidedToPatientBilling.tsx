@@ -20,7 +20,7 @@ export default function MultiServicesProvidedToPatientBilling() {
     };
 
     const serviceListSelectionChangeHandler = (newService: any) => {
-        if (previousRecords.length > 0) {
+        if (Array.isArray(previousRecords) &&  previousRecords.length > 0) {
             const hasPreviouslyBeenBilled = previousRecords.some(
                 (item: any) => item.categoryTrackId === 5 && item.trackId === newService.keyid
             );

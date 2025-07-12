@@ -13,7 +13,7 @@ import { RiSearchLine } from "@remixicon/react";
 import styles from './../../styles/SmsTemplateList.module.css'
 
 
-export default function BilledClientsView({ data = [], branchid}) {
+export default function BilledClientsView({ data, branchid}) {
 	const searchParams = useSearchParams();
 	const pquery = useMemo(() => {
 		const from = searchParams.get('from') || '';

@@ -11,7 +11,7 @@ export default function UseDisclaimer({ patientid }: UseDisclaimerProps) {
           <span>SIGNATURE:.............................</span>
         </div>
         <span>
-          <Barcode displayValue={false} fontSize={13} height={40} value={patientid} />
+          {/* <Barcode displayValue={false} fontSize={13} height={40} value={patientid} /> */}
         </span>
       </div>
       <div style={{ fontSize: "13px" }}>

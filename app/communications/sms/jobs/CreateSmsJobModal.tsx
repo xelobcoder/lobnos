@@ -3,8 +3,9 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import { toast } from 'react-toastify';
-import { customPost } from '../../../../../components/Auth/customFetch';
-import { useApplication } from '../../../../../components/Auth/useApplicationContext';
+import { customPost } from '../../../../components/Auth/customFetch';
+import { useApplication } from '../../../../components/Auth/useApplicationContext';
+
 
 interface CreateSmsJobModalProps {
 	visible: boolean;

@@ -6,7 +6,7 @@ import { customPost } from '../../../../components/Auth/customFetch';
 import { BillingStrategy } from '../../../../components/Billing/billing-strategy/BillingStrategyTypes';
 import { useRouter } from 'next/navigation';
 
-export default function page() {
+export default function Page() {
     const router = useRouter();
     const handleSubmit = async (data: {
         name: string;

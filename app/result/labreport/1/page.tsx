@@ -68,8 +68,6 @@ interface PatientInformation {
     organization?: string; // Could be used for "Source" if applicable
     contactpointer: string;
     whatAppcontact?: string;
-
-    // Fields derived/added for Hi-Precision template based on image
     source?: string; // e.g., "ETIGA LIFE & GENERAL ASSURANCE PHILS-HS-SENIOR"
     clinicianName?: string; // e.g., "ANUNCIACION, REY CAESAR R. M.D."
 }
@@ -193,8 +191,9 @@ const hpStyles: { [key: string]: React.CSSProperties } = {
 };
 
 // --- React Component Template ---
-const HiPrecisionTemplate: React.FC<{ data: ReportData }> = () => {
-    const { companyInfo, patientInformation, records, testname, validators, billingid, enteredOn, lastupdatedon, logourl, dispatchTime, pageInfo, comments, hasDrugs, drugList } = PrintOutdata
+const HiPrecisionTemplate: React.FC = () => {
+    const { companyInfo, patientInformation, records, testname, validators, billingid, enteredOn, lastupdatedon, logourl, comments, hasDrugs, } = PrintOutdata;
+    const dispatchTime = (PrintOutdata as any).dispatchTime || '';
     const groupedRecords = groupRecordsByCategory(records);
 
     const medTech = validators.find(v => v.role.toLowerCase().includes('medical technologist') || v.role.toLowerCase().includes('hm'));
@@ -217,15 +216,15 @@ const HiPrecisionTemplate: React.FC<{ data: ReportData }> = () => {
                     <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Name</span>: <span style={hpStyles.infoValue}>{getPatientFullNameHP(patientInformation)}</span></div>
                     <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>PID</span>: <span style={hpStyles.infoValue}>{patientInformation.fullpatientid || 'N/A'}</span></div>
                     <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Age/Sex</span>: <span style={hpStyles.infoValue}>{patientInformation.age} {patientInformation.agetype} / {patientInformation.gender.toUpperCase()}</span></div>
-                    <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Source</span>: <span style={hpStyles.infoValue}>{patientInformation.source || patientInformation.organization || 'N/A'}</span></div>
-                    <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Clinician</span>: <span style={hpStyles.infoValue}>{patientInformation.clinicianName || 'N/A'}</span></div>
+                    {/* <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Source</span>: <span style={hpStyles.infoValue}>{patientInformation.source || patientInformation.organization || 'N/A'}</span></div> */}
+                    {/* <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Clinician</span>: <span style={hpStyles.infoValue}>{patientInformation.clinicianName || 'N/A'}</span></div> */}
                     <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Date Requested</span>: <span style={hpStyles.infoValue}>{formatDate(patientInformation.date, true) || 'N/A'}</span></div>
                 </div>
                 <div style={hpStyles.patientInfoCol}>
                     <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Lab. Number</span>: <span style={hpStyles.infoValue}>{String(billingid) || 'N/A'}</span></div>
                     <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Birthdate</span>: <span style={hpStyles.infoValue}>{formatDate(patientInformation.dob)}</span></div>
                     <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Dispatch</span>: <span style={hpStyles.infoValue}>{dispatchTime || 'N/A'}</span></div>
-                    <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Page</span>: <span style={hpStyles.infoValue}>{pageInfo || '1 of 1'}</span></div>
+                    {/* <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Page</span>: <span style={hpStyles.infoValue}>{pageInfo || '1 of 1'}</span></div> */}
                     <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Received</span>: <span style={hpStyles.infoValue}>{formatDate(enteredOn, false)} {formatTimeOnly(enteredOn)}</span></div>
                     <div style={hpStyles.infoPair}><span style={hpStyles.infoLabel}>Printed</span>: <span style={hpStyles.infoValue}>{formatDate(lastupdatedon, false)} {formatTimeOnly(lastupdatedon)}</span></div>
                 </div>
@@ -290,29 +289,7 @@ const HiPrecisionTemplate: React.FC<{ data: ReportData }> = () => {
                 </tbody>
             </table>
 
-            {hasDrugs && drugList && drugList.length > 0 && (
-                <div style={{ marginTop: '20px' }}>
-                    <div style={{ ...hpStyles.categoryHeader, textAlign: 'center', marginBottom: '10px' }}>
-                        ANTIBIOTIC SENSITIVITY PATTERN
-                    </div>
-                    <table style={hpStyles.drugTable}>
-                        <thead>
-                            <tr>
-                                <th style={hpStyles.drugTh}>Antibiotic</th>
-                                <th style={{ ...hpStyles.drugTh, textAlign: 'center' }}>Sensitivity</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {drugList.map(drug => (
-                                <tr key={drug.id}>
-                                    <td style={hpStyles.drugTd}>{drug.drug}</td>
-                                    <td style={{ ...hpStyles.drugTd, textAlign: 'center' }}>{drug.sensitivity}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+       
 
             {comments && (
                 <div style={{ marginTop: '20px', fontSize: '9pt', border: '1px solid #eee', padding: '10px' }}>
@@ -321,25 +298,6 @@ const HiPrecisionTemplate: React.FC<{ data: ReportData }> = () => {
                 </div>
             )}
 
-            <footer style={hpStyles.footer}>
-                <div style={hpStyles.signatureBlock}>
-                    {/* Signature image can be placed here if URL available */}
-                    <div style={hpStyles.signatureLine}></div>
-                    <div>{medTech?.username || 'N/A'}</div>
-                    <div>Lic. #{medTech?.licenseNumber || 'N/A'}</div>
-                    <div>MEDICAL TECHNOLOGIST</div>
-                </div>
-                <div style={{ ...hpStyles.signatureBlock, alignSelf: 'center', fontWeight: 'bold', color: '#555' }}>
-                    SYSTEM VALIDATED
-                </div>
-                <div style={hpStyles.signatureBlock}>
-                    {/* Signature image can be placed here if URL available */}
-                    <div style={hpStyles.signatureLine}></div>
-                    <div>{pathologist?.username || 'N/A'}</div>
-                    <div>Lic. #{pathologist?.licenseNumber || 'N/A'}</div>
-                    <div>PATHOLOGIST</div>
-                </div>
-            </footer>
             <div style={hpStyles.pageFooterText}>
                 ** Report Electronically Signed Out ** QUALITY CONTROL ** PATHOLOGIST ** HPD
             </div>

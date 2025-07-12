@@ -14,7 +14,7 @@ export default function UseScanResultTemplate({ billingid, testid, test, patient
 
   useEffect(() => {
     try {
-      async function getData() {
+      const getData = async () => {
         if (billingid && test && testid && patientid) {
           setLoading(true)
           const response = await customFetch(`result/preview?billingid=${billingid}&&testid=${testid}&&test=${test}`)
