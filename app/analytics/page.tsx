@@ -77,7 +77,7 @@ export default function AnalyticsCardSumamry() {
 
                          {/* Analytics Cards Grid */}
                          <div className="row g-3">
-                              {ALinks.map((link, index) => {
+                              {Array.isArray(ALinks) && ALinks.length > 0 &&  ALinks.map((link, index) => {
                                    const IconComponent = link.icon;
                                    return (
                                         <div key={index} className="col-md-6 col-12">

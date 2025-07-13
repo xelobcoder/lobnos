@@ -10,12 +10,11 @@ import { useParams } from 'next/navigation';
 import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
 import styles from '../../../../../styles/SmsTemplateList.module.css'
 import { Service, Witness } from '../../../../../types/serviceTypes';
-import { useApplication, useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
+import { useApplication } from '../../../../../components/Auth/useApplicationContext';
 import { RiRefreshFill } from '@remixicon/react';
 
 
 export default function PreviousTransactionSummaryPage() {
-	const { applicationsettings } = useApplicationSettings();
 	const user = useApplication().user;
 	const role = user?.role;
 	const employeeid = user?.employeeid;

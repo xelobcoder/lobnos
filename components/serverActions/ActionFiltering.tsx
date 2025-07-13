@@ -47,7 +47,7 @@ export const handleDatePicker = async ({ branchid, date, from, to }) => {
 
 
 export const handleSeverSideProcessing = async (pagination) => {
-	const { page, count, from, to,branchid } = pagination;
+	const { page, count, from, to, branchid } = pagination;
 	try {
 		const data = await customFetch(
 			`billing/payment/info/client?page=${page}&&count=${count}&& from=${from}&& to=${to}&&branchid=${branchid}`
@@ -217,7 +217,7 @@ export const handlePaginationServerRejectedHistory = async (pagination) => {
 
 export const handleServerTurnAroundTime = async (paginate) => {
 	try {
-		const { page, count,sorting } = paginate
+		const { page, count, sorting } = paginate
 		const response = await customFetch(`testascension/tat-data?page=${page}&&count=${count}&&sorting=${sorting}`);
 		if (response?.data && Array.isArray(response?.data)) {
 			return { result: response?.data, error: false }
@@ -229,14 +229,14 @@ export const handleServerTurnAroundTime = async (paginate) => {
 }
 
 
-export const orgainzationServerSideProcessing = async (paginate: {page:number,count:number}) => {
-	try  {
-		const url =`organizations/details?count=${paginate.count}&page=${paginate.page}`
-	const result = await customFetch(url);
-	if (result.statusCode === 200 && Array.isArray(result.result)) {
-		return { result: result.result, error: false };
-	}
-	return { result: [], error: true  };
+export const orgainzationServerSideProcessing = async (paginate: { page: number, count: number }) => {
+	try {
+		const url = `organizations/details?count=${paginate.count}&page=${paginate.page}`
+		const result = await customFetch(url);
+		if (result.statusCode === 200 && Array.isArray(result.result)) {
+			return { result: result.result, error: false };
+		}
+		return { result: [], error: true };
 	} catch (err) {
 		return { result: [], error: true };
 	}
@@ -389,6 +389,20 @@ export async function createConditionAction(conditionName: FormDataEntryValue, t
 		throw new Error("No response from the server.");
 	}
 	return response
+}
+
+
+export async function noopServerSideHandle(pagination: { page: number, count: number, branchid: number, employeeid: number }) {
+	try {
+		const { page, count, branchid, employeeid } = pagination
+		const response = await customFetch(`expense/merchants?branchid=${branchid}&&employeeid=${employeeid}&&page=${page}&&count=${count}`);
+		if (response && Array.isArray(response)) {
+			return { result: response, error: false };
+		}
+		return { result: [], error: false };
+	} catch (err) {
+		return { result: [], error: true };
+	}
 }
 
 

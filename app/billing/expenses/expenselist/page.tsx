@@ -7,8 +7,7 @@ import AdminExpensesList from "../../../../components/Expense/AdminExpenseListVi
 export default function ExpenseListAdmin() {
      const { applicationsettings } = useApplicationSettings();
      const { user, branchid } = applicationsettings;
-     const { employeeid, username, role } = user;
-
+     const { employeeid, role } = user;
      if (!employeeid) return null
 
 

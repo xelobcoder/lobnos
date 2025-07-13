@@ -3,18 +3,18 @@ import { ApplicationProvider } from "../../../components/Auth/useApplicationCont
 import PrimeLayout from "../../../components/Layout/PrimeLayout";
 
 export default function SMSLayout({
-  children,
+	children,
 }: {
-  children: React.ReactNode;
+	children: React.ReactNode;
 }) {
 
-  return (
-    <Suspense>
-    <ApplicationProvider>
-      <PrimeLayout links={[]}>
-        {children}
-      </PrimeLayout>
-    </ApplicationProvider>
-  </Suspense>
-  );
+	return (
+		<Suspense>
+			<ApplicationProvider>
+				<PrimeLayout links={[]}>
+					{children}
+				</PrimeLayout>
+			</ApplicationProvider>
+		</Suspense>
+	);
 }

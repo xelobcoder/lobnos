@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import '../../styles/result.css'
 
 
@@ -10,8 +11,10 @@ export default function ResultLayout({
 }) {
 
      return (
-            <div>
+           <Suspense>
+                <div>
                  {children}
             </div>
+            </Suspense>
      );
 }
