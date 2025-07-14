@@ -1,52 +1,90 @@
 "use client";
+import React from "react";
 import { Dropdown } from "react-bootstrap";
 import { RiEdit2Line, RiFileAddLine, RiDeleteBinLine, RiPrinterLine, RiRefund2Line, RiFileList2Line } from '@remixicon/react';
 import PrimeTable from "../accessories/Datatables/PrimeTable";
 import { currencyFormatter } from "../Auth/customFetch";
 import { plsEncryption } from "../../lib/encryption";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, ChangeEvent } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { useRouter, useSearchParams } from "next/navigation";
 import { handleDatePicker, handleSeverSideProcessing } from "../serverActions/ActionFiltering";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { RiSearchLine } from "@remixicon/react";
 import styles from './../../styles/SmsTemplateList.module.css'
+import { billingSource } from "../../lib/billingLib";
+import Select from 'react-select'
+import AdjustBillingSourceModal from './AdjustBillingSourceModal';
 
+export interface BillingSourceOption {
+  value: number;
+  label: string;
+}
 
-export default function BilledClientsView({ data, branchid}) {
+interface BilledClientsViewProps {
+  data: any[];
+  branchid: number | string;
+}
+
+interface DateQuery {
+  from: string;
+  to: string;
+}
+
+interface TableColumn {
+  Header: string;
+  accessor: string;
+  Cell?: ({ value }: { value: any }) => React.ReactElement | string;
+}
+
+interface RowData {
+  original: {
+	billingid: number;
+	patientid: number;
+	fullpatientid: string;
+	outstanding: number;
+	[key: string]: any;
+  };
+}
+
+type ModalType = 'adjust' | 'update' | null;
+
+export default function BilledClientsView({ data, branchid }: BilledClientsViewProps) {
+const [selectedBillingSource, setSelectedBillingSource] = useState<BillingSourceOption | null>(null);
+const [itemToEdit, setItemToEdit] = useState<any>(null);
 	const searchParams = useSearchParams();
 	const pquery = useMemo(() => {
-		const from = searchParams.get('from') || '';
-		const to = searchParams.get('to') || '';
+		const from = searchParams?.get('from') || '';
+		const to = searchParams?.get('to') || '';
 		return { from, to };
 	}, [searchParams]);
 
-	const [datequery, setDatequery] = useState({
+	const [datequery, setDatequery] = useState<DateQuery>({
 		from: pquery.from || '', to: pquery.to || ''
 	});
-	const [isLoading, setIsLoading] = useState(false);
+	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const { employeeid } = useApplicationSettings().applicationsettings.user;
 	const router = useRouter();
 
 	// Unified modal state
-	const [showModal, setShowModal] = useState(false);
-	const [modalType, setModalType] = useState(null); // 'adjust' or 'update'
-	const [modalBillingId, setModalBillingId] = useState(null);
-	const [modalPatientId, setModalPatientId] = useState(null);
-	const [modalRandString, setModalRandString] = useState("");
-	const [modalUserRandInput, setModalUserRandInput] = useState("");
-	const [modalReason, setModalReason] = useState("");
+const [showModal, setShowModal] = useState<boolean>(false);
+const [modalType, setModalType] = useState<ModalType>(null); // 'adjust' or 'update'
+const [modalBillingId, setModalBillingId] = useState<number | null>(null);
+const [modalPatientId, setModalPatientId] = useState<number | string | null>(null);
+const [modalRandString, setModalRandString] = useState<string>("");
+const [modalUserRandInput, setModalUserRandInput] = useState<string>("");
+const [modalReason, setModalReason] = useState<string>("");
 
 	// State for view more modal
-	const [showViewMore, setShowViewMore] = useState(false);
-	const [viewMoreData, setViewMoreData] = useState(null);
+const [showViewMore, setShowViewMore] = useState<boolean>(false);
+const [viewMoreData, setViewMoreData] = useState<any>(null);
 
 	// Generate a random string (6 chars)
-	function generateRandString() {
+	function generateRandString(): string {
 		return Math.random().toString(36).substring(2, 8).toUpperCase();
 	}
 
-	function openAdjustModal(billingid, patientid) {
+	function openAdjustModal(billingid: number, patientid: number | string): void {
 		setModalType('adjust');
 		setModalBillingId(billingid);
 		setModalPatientId(patientid);
@@ -54,12 +92,52 @@ export default function BilledClientsView({ data, branchid}) {
 		setModalRandString(str);
 		setModalUserRandInput("");
 		setModalReason("");
+		// Find the full item to edit from data
+		const foundItem = data.find(item => item.billingid === billingid);
+		setItemToEdit(foundItem || null);
 		setShowModal(true);
 	}
 
+const options: BillingSourceOption[] = billingSource.map((source: any) => ({
+	value: source.value,
+	label: source.label
+}));
 
+	// Custom styles for react-select
+	const customStyles = {
+		control: (base: any) => ({
+			...base,
+			minHeight: 42,
+			borderColor: '#dee2e6',
+			boxShadow: 'none',
+			'&:hover': {
+				borderColor: '#0d6efd'
+			}
+		}),
+		option: (base: any, state: { isSelected: boolean; isFocused: boolean }) => ({
+			...base,
+			backgroundColor: state.isSelected ? '#0d6efd' : state.isFocused ? '#f8f9fa' : 'white',
+			fontSize: 14,
+			padding: '8px 12px'
+		}),
+		placeholder: (base: any) => ({
+			...base,
+			fontSize: 14
+		}),
+		singleValue: (base: any) => ({
+			...base,
+			fontSize: 14
+		})
+	};
 
-	function openUpdateModal(billingid, patientid) {
+	// Custom label rendering for react-select
+	const formatOptionLabel = (option: BillingSourceOption) => (
+		<span className="d-flex align-items-center gap-2">
+			<span>{option.label}</span>
+		</span>
+	);
+
+	function openUpdateModal(billingid: number, patientid: number | string): void {
 		setModalType('update');
 		setModalBillingId(billingid);
 		setModalPatientId(patientid);
@@ -70,12 +148,11 @@ export default function BilledClientsView({ data, branchid}) {
 		setShowModal(true);
 	}
 
-	function closeModal() {
+	function closeModal(): void {
 		setShowModal(false);
 	}
 
-
-	function handleModalSubmit() {
+	function handleModalSubmit(): void {
 		setShowModal(false);
 		if (!modalBillingId || !modalPatientId || !modalReason) {
 			alert("Please fill all fields before proceeding.");
@@ -187,25 +264,23 @@ export default function BilledClientsView({ data, branchid}) {
 		},
 	];
 
-	function handleViewMore(rowData) {
+	function handleViewMore(rowData: any): void {
 		setViewMoreData(rowData);
 		setShowViewMore(true);
 	}
 
-	// List of fields that should be formatted as currency
-	const monetaryFields = [
-		'payable', 'paid', 'outstanding', 'discount', 'totalrefunded', 'balance', 'totalcost', 'totalTransactionCost', 'amountIncurredDueTax', 'adjustmentamount', 'promoValue', 'currentPayable', 'previousPaid', 'newPayments', 'totalPaid', 'outstandingToWriteOff'
-	];
+// List of fields that should be formatted as currency
+const monetaryFields: string[] = [
+	'payable', 'paid', 'outstanding', 'discount', 'totalrefunded', 'balance', 'totalcost', 'totalTransactionCost', 'amountIncurredDueTax', 'adjustmentamount', 'promoValue', 'currentPayable', 'previousPaid', 'newPayments', 'totalPaid', 'outstandingToWriteOff'
+];
 
 
 	return (
 		<div>
-			{/* Unified Modal for Adjust/Update */}
-			<Modal show={showModal} onHide={closeModal} centered>
+			{/* Modal for Update Transaction */}
+			<Modal show={showModal && modalType === 'update'} onHide={closeModal} centered>
 				<Modal.Header closeButton>
-					<Modal.Title>
-						{modalType === 'adjust' ? 'Adjust/Correct Transaction' : 'Update Transaction (Add New Service/Test)'}
-					</Modal.Title>
+					<Modal.Title>Update Transaction (Add New Service/Test)</Modal.Title>
 				</Modal.Header>
 				<Modal.Body>
 					<div className="mb-3">
@@ -220,7 +295,7 @@ export default function BilledClientsView({ data, branchid}) {
 						/>
 					</div>
 					<div className="mb-3">
-						<label className="form-label">Reason for {modalType === 'adjust' ? 'adjustment' : 'update'}:</label>
+						<label className="form-label">Reason for update:</label>
 						<Form.Control
 							as="textarea"
 							rows={3}
@@ -243,6 +318,20 @@ export default function BilledClientsView({ data, branchid}) {
 					</Button>
 				</Modal.Footer>
 			</Modal>
+			{/* Modal for Adjust Transaction (moved to separate component) */}
+			<AdjustBillingSourceModal
+				show={showModal && modalType === 'adjust'}
+				onClose={closeModal}
+				onContinue={handleModalSubmit}
+				options={options}
+				selectedBillingSource={selectedBillingSource}
+				setSelectedBillingSource={setSelectedBillingSource}
+				formatOptionLabel={formatOptionLabel}
+				billingid={modalBillingId}
+				selectedItem={selectedBillingSource}
+				itemToEdit={itemToEdit}
+			/>
+				
 
 			{/* View More Modal */}
 			<Modal show={showViewMore} onHide={() => setShowViewMore(false)} centered>
@@ -308,7 +397,7 @@ export default function BilledClientsView({ data, branchid}) {
 
 					<button
 						className="btn btn-outline-secondary btn-sm mx-2"
-						onClick={() => handleDatePicker({ branchid, from: datequery.from, to: datequery.to })}
+						onClick={() => handleDatePicker({ branchid, date: datequery.from, from: datequery.from, to: datequery.to })}
 					>
 						<RiSearchLine />
 					</button>
@@ -316,8 +405,8 @@ export default function BilledClientsView({ data, branchid}) {
 			</div>
 			<PrimeTable
 				column={coreColumns}
-				styling="ttable table"
-				urlparams={{...datequery,branchid}}
+	
+				urlparams={{ ...datequery, branchid }}
 				data={data || []}
 				serverSideFiltering={true}
 				handleSeverSideProcessing={handleSeverSideProcessing}

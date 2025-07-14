@@ -24,6 +24,7 @@ export default function MultiBillingLayout({ billingContextProps }: {
         categorytrackid: number,
         entitytype?: string,
         entityname?: string,
+        ispricingcheckout: boolean,
         entityid?: string,
         billingid: number | null,
         isNewTransaction?: boolean,
@@ -52,6 +53,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
         isRelatedBilling?: boolean,
         patientid: number,
         entityid?: string,
+        ispricingcheckout: boolean,
         isAdjustment?: boolean,
         adjustmentType?: 'addition' | 'correction' | 'voided' | null,
         adjustmentReason?: string,
@@ -60,7 +62,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
 }) {
     const { categorytrackid, entitytype, entityname, entityid, patientid, billingid, isNewTransaction,
         isAdjustment, adjustmentType, adjustmentReason,
-        isRelatedBilling } = billingContextProps;
+        isRelatedBilling, ispricingcheckout } = billingContextProps
     const branchid = useApplication().branchid;
     const employeeid = useApplication().user?.employeeid || 0;
     const role = useApplication().user?.role
@@ -230,6 +232,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                 `&entityId=` +
                 `&billingSource=${billingdata.billingSource || categorytrackid}` +
                 `&referalCode=${specialCode}` +
+                `&ispricingcheckout=${ispricingcheckout}` +
                 billingIdParam;
         } else if (billingdata.entitytype && billingdata.entityId && Number(billingdata.billingSource || categorytrackid) > 1) {
             url = `billing/multi/init?tenantId=3` +
@@ -242,6 +245,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                 `&patientId=${billingdata.patientid || patientid || ''}` +
                 `&entityId=${billingdata.entityId}` +
                 `&billingSource=${billingdata.billingSource || categorytrackid}` +
+                `&ispricingcheckout=${ispricingcheckout}` +
                 billingIdParam;
         } else {
             url = `billing/multi/init?tenantId=3` +
@@ -253,6 +257,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                 `&branchid=${billingdata.branchid || ''}` +
                 `&patientId=${billingdata.patientid}` +
                 `&billingSource=1` +
+                `&ispricingcheckout=${ispricingcheckout}` +
                 billingIdParam;
         }
         setLoadingBackendBilling(true);
@@ -442,6 +447,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                 packageid: billingdata.packageid,
                 entityid: billingdata.entityId,
                 entitytype: billingdata.entitytype,
+                ispricingcheckout: ispricingcheckout
             };
             const response = await customPost('billing/multi/checkout', 'POST', checkoutPayload);
             if (response && response.success && response.data) {
@@ -616,7 +622,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                         {/* Show Advanced Payment and Bill Client only if making advance payment and certain conditions are met */}
                         {billingdata?.allowAdvancePayment && (
                             <>
-                                <Button variant="outline-primary" className="mx-2 " size="sm" onClick={() => {
+                                <Button disabled={ispricingcheckout} variant="outline-primary" className="mx-2 " size="sm" onClick={() => {
                                     setBillingData(prev => ({
                                         ...prev,
                                         openPaymentModal: 2,
@@ -624,12 +630,12 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                                 }} >
                                     💳 Advanced Payment
                                 </Button>
-                                <Button variant="outline-primary" className="mx-2 " size="sm" onClick={(ev) => { handleSubmit() }}>
+                                <Button disabled={ispricingcheckout} variant="outline-primary" className="mx-2 " size="sm" onClick={(ev) => { handleSubmit() }}>
                                     💳 Bill Client
                                 </Button>
                             </>
                         )}
-                        <Button onClick={(ev) => { handleSubmit() }} variant="outline-secondary" className="mx-2" size="sm"  >
+                        <Button disabled={ispricingcheckout} onClick={(ev) => { handleSubmit() }} variant="outline-secondary" className="mx-2" size="sm"  >
                             Proceed to order
                         </Button>
                     </div>

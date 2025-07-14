@@ -50,9 +50,12 @@ function normalizePatientInfo(raw: any): PatientInfo {
 export default async function MultiStepBillingSourcePage({ params, searchParams }: any) {
     let patientBasicInformation = {};
     const categorytrackid = parseInt(params.billingsourceid, 10);
-    const undeCryptedPatientId = params?.patientid;
-    const patientid = plsDecryption(undeCryptedPatientId?.toString() ?? "");
-
+    const ispricingcheckout = searchParams?.ispricingcheckout === '1';
+    let patientid: string | null = null;
+    if (!ispricingcheckout) {
+        const undeCryptedPatientId = params?.patientid;
+        patientid = plsDecryption(undeCryptedPatientId?.toString() ?? "");
+    }
 
     const entitytype = searchParams?.entitytype ?? null;
     const entityname = searchParams?.entityname ?? null;
@@ -65,9 +68,7 @@ export default async function MultiStepBillingSourcePage({ params, searchParams 
     const adjustmentType = searchParams?.adjustmentType || 'addition';
     const adjustmentReason = searchParams?.adjustmentReason || '';
 
-
-
-    if (patientid && categorytrackid) {
+    if (!ispricingcheckout && patientid && categorytrackid) {
         try {
             const response = await customFetch(`register/personalinformation?patientid=${patientid}`);
             console.log(`Response from personal information:${patientid}`, response);
@@ -93,18 +94,21 @@ export default async function MultiStepBillingSourcePage({ params, searchParams 
 
     return (
         <div>
-            <div className='p-2 bg-white'>
-                <BillingPagePatientInformation data={patientBasicInformation} />
-            </div>
+            {!ispricingcheckout && (
+                <div className='p-2 bg-white'>
+                    <BillingPagePatientInformation data={patientBasicInformation} />
+                </div>
+            )}
             <hr className='p-0 m-0' />
             <MultiBillingLayout
                 billingContextProps={{
                     categorytrackid,
                     entitytype,
-                    patientid: parseInt(patientid, 10),
+                    patientid: ispricingcheckout ? 0 : (patientid ? parseInt(patientid, 10) : 0),
                     entityname,
                     isRelatedBilling,
                     isAdjustment,
+                    ispricingcheckout,
                     adjustmentType,
                     adjustmentReason,
                     entityid,

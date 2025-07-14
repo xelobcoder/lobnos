@@ -16,7 +16,6 @@ export default async function BillingBranchesPage() {
             throw new Error('No branches found');
         }
 
-        // Get current date in YYYY-MM-DD format
         const currentDate = dayjs().format('YYYY-MM-DD');
 
         return (
@@ -34,7 +33,6 @@ export default async function BillingBranchesPage() {
             </div>
         );
     } catch (error) {
-        console.error('Error fetching branches:', error);
         return <div>Error loading branches. Please try again later.</div>;
     }
 }

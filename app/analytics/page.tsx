@@ -24,7 +24,7 @@ export default function AnalyticsCardSumamry() {
           },
           {
                name: 'Results Analytics',
-               href: '/analytics/results',
+               href: '/analytics/resultanalysis/alltest',
                icon: RiTestTubeLine,
                description: "Analyze test results, turnaround times, and quality metrics",
                color: "oklch(0.6 0.118 184.704)",
