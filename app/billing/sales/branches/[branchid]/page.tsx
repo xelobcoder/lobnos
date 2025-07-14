@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import BilledSummary from "../../../../../components/Billing/BillingSumamry/BilledSummary";
-import BilledClientsView from '../../../../../components/Billing/BilledClientsView';
 import { plsDecryption } from "../../../../../lib/encryption";
 import { customFetch } from "../../../../../components/Auth/customFetch";
 import Link from "next/link";
+import BilledClientsView from "../../../../../components/Billing/BilledClientsView";
 
 export default function DailySalesViewCustomerRepresentative({ params, searchParams }: {
 	params: {

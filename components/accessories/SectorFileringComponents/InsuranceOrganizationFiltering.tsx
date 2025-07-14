@@ -9,6 +9,7 @@ interface InsuranceOrganization {
     label: any
     value: number;
     content: any;
+    id?: any   
 }
 
 interface InsuranceOrganizationFilteringProps {

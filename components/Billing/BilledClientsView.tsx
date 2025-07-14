@@ -5,7 +5,7 @@ import { RiEdit2Line, RiFileAddLine, RiDeleteBinLine, RiPrinterLine, RiRefund2Li
 import PrimeTable from "../accessories/Datatables/PrimeTable";
 import { currencyFormatter } from "../Auth/customFetch";
 import { plsEncryption } from "../../lib/encryption";
-import { useState, useMemo, useEffect, ChangeEvent } from "react";
+import { useState, useMemo } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { useRouter, useSearchParams } from "next/navigation";
 import { handleDatePicker, handleSeverSideProcessing } from "../serverActions/ActionFiltering";
@@ -13,45 +13,44 @@ import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { RiSearchLine } from "@remixicon/react";
 import styles from './../../styles/SmsTemplateList.module.css'
 import { billingSource } from "../../lib/billingLib";
-import Select from 'react-select'
 import AdjustBillingSourceModal from './AdjustBillingSourceModal';
 
 export interface BillingSourceOption {
-  value: number;
-  label: string;
+	value: number;
+	label: string;
 }
 
 interface BilledClientsViewProps {
-  data: any[];
-  branchid: number | string;
+	data: any[];
+	branchid: number | string;
 }
 
 interface DateQuery {
-  from: string;
-  to: string;
+	from: string;
+	to: string;
 }
 
 interface TableColumn {
-  Header: string;
-  accessor: string;
-  Cell?: ({ value }: { value: any }) => React.ReactElement | string;
+	Header: string;
+	accessor: string;
+	Cell?: ({ value }: { value: any }) => React.ReactElement | string;
 }
 
 interface RowData {
-  original: {
-	billingid: number;
-	patientid: number;
-	fullpatientid: string;
-	outstanding: number;
-	[key: string]: any;
-  };
+	original: {
+		billingid: number;
+		patientid: number;
+		fullpatientid: string;
+		outstanding: number;
+		[key: string]: any;
+	};
 }
 
 type ModalType = 'adjust' | 'update' | null;
 
 export default function BilledClientsView({ data, branchid }: BilledClientsViewProps) {
-const [selectedBillingSource, setSelectedBillingSource] = useState<BillingSourceOption | null>(null);
-const [itemToEdit, setItemToEdit] = useState<any>(null);
+	const [selectedBillingSource, setSelectedBillingSource] = useState<BillingSourceOption | null>(null);
+	const [itemToEdit, setItemToEdit] = useState<any>(null);
 	const searchParams = useSearchParams();
 	const pquery = useMemo(() => {
 		const from = searchParams?.get('from') || '';
@@ -67,17 +66,17 @@ const [itemToEdit, setItemToEdit] = useState<any>(null);
 	const router = useRouter();
 
 	// Unified modal state
-const [showModal, setShowModal] = useState<boolean>(false);
-const [modalType, setModalType] = useState<ModalType>(null); // 'adjust' or 'update'
-const [modalBillingId, setModalBillingId] = useState<number | null>(null);
-const [modalPatientId, setModalPatientId] = useState<number | string | null>(null);
-const [modalRandString, setModalRandString] = useState<string>("");
-const [modalUserRandInput, setModalUserRandInput] = useState<string>("");
-const [modalReason, setModalReason] = useState<string>("");
+	const [showModal, setShowModal] = useState<boolean>(false);
+	const [modalType, setModalType] = useState<ModalType>(null); // 'adjust' or 'update'
+	const [modalBillingId, setModalBillingId] = useState<number | null>(null);
+	const [modalPatientId, setModalPatientId] = useState<number | string | null>(null);
+	const [modalRandString, setModalRandString] = useState<string>("");
+	const [modalUserRandInput, setModalUserRandInput] = useState<string>("");
+	const [modalReason, setModalReason] = useState<string>("");
 
 	// State for view more modal
-const [showViewMore, setShowViewMore] = useState<boolean>(false);
-const [viewMoreData, setViewMoreData] = useState<any>(null);
+	const [showViewMore, setShowViewMore] = useState<boolean>(false);
+	const [viewMoreData, setViewMoreData] = useState<any>(null);
 
 	// Generate a random string (6 chars)
 	function generateRandString(): string {
@@ -98,39 +97,12 @@ const [viewMoreData, setViewMoreData] = useState<any>(null);
 		setShowModal(true);
 	}
 
-const options: BillingSourceOption[] = billingSource.map((source: any) => ({
-	value: source.value,
-	label: source.label
-}));
+	const options: BillingSourceOption[] = billingSource.map((source: any) => ({
+		value: source.value,
+		label: source.label
+	}));
 
-	// Custom styles for react-select
-	const customStyles = {
-		control: (base: any) => ({
-			...base,
-			minHeight: 42,
-			borderColor: '#dee2e6',
-			boxShadow: 'none',
-			'&:hover': {
-				borderColor: '#0d6efd'
-			}
-		}),
-		option: (base: any, state: { isSelected: boolean; isFocused: boolean }) => ({
-			...base,
-			backgroundColor: state.isSelected ? '#0d6efd' : state.isFocused ? '#f8f9fa' : 'white',
-			fontSize: 14,
-			padding: '8px 12px'
-		}),
-		placeholder: (base: any) => ({
-			...base,
-			fontSize: 14
-		}),
-		singleValue: (base: any) => ({
-			...base,
-			fontSize: 14
-		})
-	};
 
-	// Custom label rendering for react-select
 	const formatOptionLabel = (option: BillingSourceOption) => (
 		<span className="d-flex align-items-center gap-2">
 			<span>{option.label}</span>
@@ -200,19 +172,7 @@ const options: BillingSourceOption[] = billingSource.map((source: any) => ({
 									as="button"
 									style={{ width: "100%", textAlign: "left" }}
 								>
-									<RiEdit2Line size={16} /> Adjust /correct transaction Transaction
-								</Dropdown.Item>
-								<Dropdown.Item
-									className="m-0 p-2 border-top text-sm border-top-1 d-flex align-items-center gap-2"
-									href={`/billing/transactions/adjustment/void-transaction/${row.original.billingid}`}
-								>
-									<RiDeleteBinLine size={16} /> Void Transaction
-								</Dropdown.Item>
-								<Dropdown.Item
-									className="m-0 p-2 border-top text-sm border-top-1 d-flex align-items-center gap-2"
-									href={`/billing/transactions/adjustment/writeoff-outstanding/${row.original.billingid}`}
-								>
-									<RiRefund2Line size={16} /> Write Off Outstanding
+									<RiEdit2Line size={16} /> Correct Billing Source
 								</Dropdown.Item>
 								<Dropdown.Item
 									onClick={() => openUpdateModal(row.original.billingid, row.original.patientid)}
@@ -269,10 +229,10 @@ const options: BillingSourceOption[] = billingSource.map((source: any) => ({
 		setShowViewMore(true);
 	}
 
-// List of fields that should be formatted as currency
-const monetaryFields: string[] = [
-	'payable', 'paid', 'outstanding', 'discount', 'totalrefunded', 'balance', 'totalcost', 'totalTransactionCost', 'amountIncurredDueTax', 'adjustmentamount', 'promoValue', 'currentPayable', 'previousPaid', 'newPayments', 'totalPaid', 'outstandingToWriteOff'
-];
+	// List of fields that should be formatted as currency
+	const monetaryFields: string[] = [
+		'payable', 'paid', 'outstanding', 'discount', 'totalrefunded', 'balance', 'totalcost', 'totalTransactionCost', 'amountIncurredDueTax', 'adjustmentamount', 'promoValue', 'currentPayable', 'previousPaid', 'newPayments', 'totalPaid', 'outstandingToWriteOff'
+	];
 
 
 	return (
@@ -324,14 +284,9 @@ const monetaryFields: string[] = [
 				onClose={closeModal}
 				onContinue={handleModalSubmit}
 				options={options}
-				selectedBillingSource={selectedBillingSource}
-				setSelectedBillingSource={setSelectedBillingSource}
-				formatOptionLabel={formatOptionLabel}
 				billingid={modalBillingId}
-				selectedItem={selectedBillingSource}
-				itemToEdit={itemToEdit}
 			/>
-				
+
 
 			{/* View More Modal */}
 			<Modal show={showViewMore} onHide={() => setShowViewMore(false)} centered>
@@ -405,7 +360,7 @@ const monetaryFields: string[] = [
 			</div>
 			<PrimeTable
 				column={coreColumns}
-	
+
 				urlparams={{ ...datequery, branchid }}
 				data={data || []}
 				serverSideFiltering={true}

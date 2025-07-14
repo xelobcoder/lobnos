@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { customFetch } from '../../../Auth/customFetch';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Blue (Activated)
-const COLOR_ACCENT_ALT = '#F4B400'; // Gold/Yellow (Inactivated)
+const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT_ALT = '#F4B400';
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 

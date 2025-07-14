@@ -61,10 +61,7 @@ const MaritalStatus: React.FC = () => {
 		return <div>Loading marital status data...</div>;
 	}
 
-	if (error) {
-		return <div>{error}</div>;
-	}
-
+	if (error) return <div>{error}</div>
 
 	const colorMapping: Record<string, string> = {
 		"Single": "#4285F4",
