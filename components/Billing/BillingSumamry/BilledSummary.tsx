@@ -3,11 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { customFetch, currencyFormatter } from "../../Auth/customFetch";
-import { RiTeamLine } from "@remixicon/react";
-import { RiMoneyDollarCircleLine } from "@remixicon/react";
 import { RiFileList3Line } from "@remixicon/react";
-import { RiPercentLine } from "@remixicon/react";
 import { RiWalletLine } from "@remixicon/react";
+import { RiRefund2Line } from "@remixicon/react";
+import { RiAccountCircleLine } from "@remixicon/react";
+import { RiCheckboxCircleLine } from "@remixicon/react";
+import { RiAlarmWarningLine } from "@remixicon/react";
 
 interface Summary {
 	totalTransactionCost: number;
@@ -64,46 +65,58 @@ const AnalyticCard = ({
 	formatAsCurrency = true,
 }: AnalyticCardProps) => (
 	<div
-		className="card border-0 shadow rounded mb-3"
+		className="card border-0 shadow-sm rounded mb-3"
 		style={{
-			background: bgColor,
-			borderRadius: "12px",
-			transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-			height: "89px",
+			background: `linear-gradient(135deg, ${bgColor} 0%, ${bgColor}E6 100%)`,
+			borderRadius: "16px",
+			transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+			height: "110px",
 			flex: "1 1 auto",
 			margin: "0 8px",
+			border: "1px solid rgba(255,255,255,0.2)",
+			cursor: "pointer",
+		}}
+		onMouseEnter={(e) => {
+			e.currentTarget.style.transform = "translateY(-4px)";
+			e.currentTarget.style.boxShadow = "0 8px 25px rgba(0,0,0,0.15)";
+		}}
+		onMouseLeave={(e) => {
+			e.currentTarget.style.transform = "translateY(0)";
+			e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
 		}}
 	>
-		<div className="card-body">
-			<div className="d-flex justify-content-between align-items-center mb-1">
+		<div className="card-body p-3">
+			<div className="d-flex justify-content-between align-items-start mb-2">
 				<div
 					className="d-flex align-items-center justify-content-center"
 					style={{
-						backgroundColor: iconColor,
-						padding: "6px",
-						borderRadius: "6px",
+						background: `linear-gradient(135deg, ${iconColor} 0%, ${iconColor}DD 100%)`,
+						padding: "10px",
+						borderRadius: "12px",
+						boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
 					}}
 				>
-					<Icon style={{ fontSize: "1rem", color: "white" }} />
+					<Icon style={{ fontSize: "1.2rem", color: "white" }} />
 				</div>
-				<h6 className="mb-0 text-muted" style={{ fontSize: "0.875rem" }}>
+				<h6 className="mb-0 text-muted fw-medium" style={{ fontSize: "0.8rem", lineHeight: "1.2" }}>
 					{title}
 				</h6>
 			</div>
-			<div className="fw-bold" style={{ fontSize: "1rem" }}>
-				{formatAsCurrency ? currencyFormatter.format(Number(value) || 0) : value}
+			<div className="fw-bold text-dark" style={{ fontSize: "1.2rem", lineHeight: "1.3" }}>
+				{formatAsCurrency ? currencyFormatter.format(Number(value) || 0) : value.toLocaleString()}
 			</div>
 		</div>
 	</div>
 );
 
 const cardColors = {
-	billedClients: { bg: "#ECF2FF", icon: "#3B82F6" },
-	totalSales: { bg: "#E8FDF5", icon: "#10B981" },
-	amountPaid: { bg: "#FFF4ED", icon: "#F97316" },
-	discount: { bg: "#F3E8FF", icon: "#E11D48" },
-	pendingDebts: { bg: "#FEF3C7", icon: "#F59E0B" },
-	expenses: { bg: "#FEE2E2", icon: "#EF4444" },
+	billedClients: { bg: "#F0F9FF", icon: "#0EA5E9" },
+	totalSales: { bg: "#F0FDF4", icon: "#22C55E" },
+	amountPaid: { bg: "#FFF7ED", icon: "#F97316" },
+	discount: { bg: "#FAF5FF", icon: "#A855F7" },
+	pendingDebts: { bg: "#FFFBEB", icon: "#EAB308" },
+	expenses: { bg: "#FEF2F2", icon: "#EF4444" },
+	outstanding: { bg: "#FDF2F8", icon: "#EC4899" },
 };
 
 type PropsQuery = {
@@ -137,52 +150,59 @@ export default function BilledSummary({ branchid, from, to }: PropsQuery) {
 	}, [branchid, from, to]);
 
 	return (
-		<div className="">
+		<div className="p-2" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", borderRadius: "16px" }}>
 			{branch && (
-				<h5 className="mb-3">
-					Branch: <span className="text-primary">{branch.name}</span>
-				</h5>
+				<div className="mb-4">
+					<h4 className="mb-2 fw-bold text-dark">Financial Summary</h4>
+					<div className="d-flex align-items-center gap-2">
+						<span className="text-muted">Branch:</span>
+						<span className="fw-semibold text-primary fs-5">{branch.name}</span>
+						<span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 ms-2">
+							Active
+						</span>
+					</div>
+				</div>
 			)}
-			<div className="d-flex flex-column flex-md-row gap-1">
-				<AnalyticCard
-					title="Total Transaction Cost"
-					value={internalSummary.totalTransactionCost}
-					Icon={RiMoneyDollarCircleLine}
-					bgColor={cardColors.totalSales.bg}
-					iconColor={cardColors.totalSales.icon}
-				/>
+			<div className="d-flex flex-column flex-lg-row gap-2 flex-wrap">
 				<AnalyticCard
 					title="Total Cost"
 					value={internalSummary.totalCost}
 					Icon={RiFileList3Line}
-					bgColor={cardColors.amountPaid.bg}
-					iconColor={cardColors.amountPaid.icon}
+					bgColor={cardColors.totalSales.bg}
+					iconColor={cardColors.totalSales.icon}
 				/>
 				<AnalyticCard
 					title="Total Paid"
 					value={internalSummary.totalPaid}
-					Icon={RiPercentLine}
-					bgColor={cardColors.discount.bg}
-					iconColor={cardColors.discount.icon}
+					Icon={RiCheckboxCircleLine}
+					bgColor={cardColors.amountPaid.bg}
+					iconColor={cardColors.amountPaid.icon}
 				/>
 				<AnalyticCard
 					title="Total Payable"
 					value={internalSummary.totalPayable}
 					Icon={RiWalletLine}
-					bgColor={cardColors.pendingDebts.bg}
-					iconColor={cardColors.pendingDebts.icon}
+					bgColor={cardColors.discount.bg}
+					iconColor={cardColors.discount.icon}
+				/>
+				<AnalyticCard
+					title="Total Outstanding"
+					value={internalSummary.totalOutstanding}
+					Icon={RiAlarmWarningLine}
+					bgColor={cardColors.outstanding.bg}
+					iconColor={cardColors.outstanding.icon}
 				/>
 				<AnalyticCard
 					title="Total Refunded"
 					value={internalSummary.totalRefunded}
-					Icon={RiMoneyDollarCircleLine}
+					Icon={RiRefund2Line}
 					bgColor={cardColors.expenses.bg}
 					iconColor={cardColors.expenses.icon}
 				/>
 				<AnalyticCard
-					title="Total Balance"
-					value={internalSummary.totalBalance}
-					Icon={RiTeamLine}
+					title="Transaction Count"
+					value={internalSummary.transactionCount}
+					Icon={RiAccountCircleLine}
 					bgColor={cardColors.billedClients.bg}
 					iconColor={cardColors.billedClients.icon}
 					formatAsCurrency={false}

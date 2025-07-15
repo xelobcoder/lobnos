@@ -5,8 +5,11 @@ import { BillingSourceOption } from "./BilledClientsView";
 import ClinicianFiltering from "../accessories/SectorFileringComponents/ClinicianFiltering";
 import InsuranceOrganizationFiltering from "../accessories/SectorFileringComponents/InsuranceOrganizationFiltering";
 import OrganizationalBillingSourceSearch from "./BillingContextComponents/BillingSourceComponents/OrganizationBillingSearch";
-import { reactSelectCustomStyles } from "../Auth/customFetch";
+import { customPost, reactSelectCustomStyles } from "../Auth/customFetch";
 import { billingSource } from "../../lib/billingLib";
+import { useApplication } from "../Auth/useApplicationContext";
+import { toast } from "react-toastify";
+
 
 
 
@@ -38,6 +41,9 @@ const AdjustBillingSourceModal: React.FC<AdjustBillingSourceModalProps> = ({
 	const [selectedEntity, setSelectedEntity] = React.useState<SelectedEntity | null>(null);
 	const [claimCode, setClaimCode] = React.useState<string>("");
 	const [pendingAction, setPendingAction] = React.useState<string>("");
+	const [isLoading, setIsLoading] = React.useState<boolean>(false);
+	const branchid = useApplication().branchid;
+	const employeeId = useApplication()?.user.employeeid;
 
 	const updateValuesToContext = (value: EntitySeelction, target: 'insurance' | 'organization' | 'clinician') => {
 		if (!value) return;
@@ -57,19 +63,34 @@ const AdjustBillingSourceModal: React.FC<AdjustBillingSourceModalProps> = ({
 		updateValuesToContext(value, 'organization');
 	};
 
-	// Placeholder for future backend/tool integration
+	// Send data to backend and handle loading state
 	const handleConfirmChange = async () => {
-		// Here you will call your backend/tool to update the transaction
-		// Example:
-		// await updateBillingSource({
-		//   billingid,
-		//   newSource: selectedBillingSource,
-		//   entity: selectedEntity,
-		//   claimCode,
-		// });
-		// await logChange(...)
-		setPendingAction("Change submitted (simulated). This will update the transaction and log the change.");
-		onContinue();
+		if (!selectedEntity || !billingid) return;
+		setIsLoading(true);
+		setPendingAction("");
+		try {
+			const payload = {
+				entity_type: selectedEntity.entity_type,
+				entity_id: selectedEntity.entity_id,
+				branchid,
+				billingid,
+				employeeId,
+			};
+
+			const response = await customPost("billing/correction/source", "POST", payload);
+			setPendingAction(response?.message || "Change submitted.");
+			const {success,message} = response;
+			if (success == true){
+				toast.success(message || "Billing source updated successfully.");
+			} else {
+				toast.error(message || "Failed to update billing source.");
+				setPendingAction("Failed to update billing source.");
+			}
+
+		} catch (err) {
+			setPendingAction("Error submitting change.");
+		}
+		setIsLoading(false);
 	};
 
 
@@ -182,8 +203,8 @@ const AdjustBillingSourceModal: React.FC<AdjustBillingSourceModalProps> = ({
 				<Button variant="secondary" onClick={onClose}>
 					Cancel
 				</Button>
-				<Button variant="primary" onClick={handleConfirmChange} disabled={!selectedBillingSource}>
-					Continue
+				<Button variant="primary" onClick={handleConfirmChange} disabled={!selectedBillingSource || isLoading}>
+					{isLoading ? "Saving..." : "Continue"}
 				</Button>
 			</Modal.Footer>
 		</Modal>

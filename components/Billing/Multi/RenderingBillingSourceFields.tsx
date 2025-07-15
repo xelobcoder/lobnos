@@ -91,7 +91,7 @@ export default function MultiRenderingBillingSourceFields({
                         <Form.Group>
                             <Form.Label className="small text-muted">Search Clinician</Form.Label>
                             <div className="position-relative">
-                                <ClinicianFiltering onSelect={handleSelectedEntityClinician} />
+                                <ClinicianFiltering isBulk={true} onSelect={handleSelectedEntityClinician} />
                             </div>
                         </Form.Group>
                     )}

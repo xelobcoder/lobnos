@@ -5,8 +5,9 @@ import {
     RiMoneyDollarCircleLine
 } from '@remixicon/react';
 
-export const ClinicianLinks : Link[] = 
-     [
+export const ClinicianLinks: Link[] =
+    [
         { title: 'Clinicians List', link: '/clinicians', icon: <RiTeamLine /> },
         { title: 'New Clinician ', link: '/clinicians/add-new', icon: <RiUserSettingsLine /> },
+        { title: 'Commission Information', link: '/clinicians/commision-information', icon: <RiMoneyDollarCircleLine /> },
     ];

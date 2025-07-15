@@ -1,5 +1,6 @@
 'use client';
 import React from "react";
+import dayjs from "dayjs";
 import MultiRenderingBillingSourceFields from "./RenderingBillingSourceFields";
 import MultiPACKAGESELECT from './MultiPACKAGESELECT';
 import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
@@ -71,6 +72,8 @@ function MultiBillingLayoutContent({ billingContextProps }: {
     const { billingdata, setBillingData } = context;
     const router = useRouter();
     const patientId = useParams()?.patientid;
+
+
 
     const [useSpecialCode, setUseSpecialCode] = useState(false);
     const [specialCode, setSpecialCode] = useState(billingContextProps.specialcode || "");
@@ -393,10 +396,12 @@ function MultiBillingLayoutContent({ billingContextProps }: {
             if (status == true || status === 'success') {
                 toast.success(message || "Billing data submitted successfully");
                 if (typeof window !== 'undefined') {
-                    if (window.confirm("Do you want to proceed to payment now?")) {
-                        router.replace(`/billing/patientid/${plsEncryption((billingdata.patientid ?? '').toString())}/multi/order/payment/${response.billingid || ''}`);
+                    const viewTransactions = window.confirm("Billing data submitted successfully. Do you want to view transactions?");
+                    if (viewTransactions && patientId && branchid) {
+                        const today = dayjs().format('YYYY-MM-DD');
+                        const url = `/billing/sales/branches/${plsEncryption(branchid?.toString())}?from=${today}&to=${today}&patientid=${plsEncryption(patientId?.toString())}`;
+                        router.replace(url);
                     } else {
-                        // Reset the form and go back to multi
                         setBillingData(prev => ({
                             ...defaultMultiBillingData,
                             billingSource: prev.billingSource,

@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import { ApplicationProvider } from "../../../components/Auth/useApplicationContext";
 import PrimeLayout from "../../../components/Layout/PrimeLayout";
 import { Link } from "../../../components/Layout/links/types";
-import { useParams } from "next/navigation";
 
 import {
      RiPieChart2Line,

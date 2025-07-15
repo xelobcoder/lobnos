@@ -141,13 +141,14 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 		}
 	}
 
-	// Define which columns are core financials
+
 	const coreColumns = [
 		{ Header: "Date", accessor: "billedon", Cell: ({ value }) => value ? <span>{new Date(value).toLocaleDateString()}</span> : '' },
 		{ Header: "Fullname", accessor: "fullname" },
 		{ Header: "Patient ID", accessor: "fullpatientid" },
 		{ Header: "Bill Id", accessor: "billingid" },
 		{ Header: "Amt Payable", accessor: "payable", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
+		{ Header: "Total Cost", accessor: "totalcost", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
 		{ Header: "Amount Paid", accessor: "paid", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
 		{ Header: "Outstanding", accessor: "outstanding", Cell: ({ value }) => (<div><span className={Number(value) > 0 ? "text-danger" : "text-primary"}>{currencyFormatter.format(Number(value) || 0)}</span></div>) },
 		{ Header: "Discount", accessor: "discount", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },

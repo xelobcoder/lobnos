@@ -1,0 +1,386 @@
+.container {
+    padding: 1.5rem;
+    background: #fafafa;
+    min-height: 100vh;
+    font-family: 'lexend', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #d0d7de;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+    color: #0f172a;
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.subtitle {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 400;
+}
+
+.dateRange {
+    color: #1e40af;
+    font-weight: 500;
+    background: #eff6ff;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    border: 1px solid #bfdbfe;
+}
+
+.card {
+    background: white;
+    border: 1px solid #d0d7de;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.cardTitle {
+    color: #25461b;
+    font-size: 1.15rem;
+    font-weight: 700;
+    padding: 1rem 1.5rem;
+    margin: 0;
+    background: linear-gradient(90deg, #d9ead3 0%, #b6d7a8 100%);
+    border-bottom: 2px solid #6aa84f;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 4px rgba(106, 168, 79, 0.08);
+}
+
+.cardContent {
+    padding: 1.5rem;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.statItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: linear-gradient(90deg, #e2f0d9 0%, #b6d7a8 100%);
+    padding: 1rem;
+    border: 1px solid #b6d7a8;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(106, 168, 79, 0.08);
+}
+
+.statIcon {
+    color: #4b5563;
+    font-size: 1.25rem;
+    background: #e5e7eb;
+    padding: 0.5rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
+}
+
+.statInfo {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.statValue {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.125rem;
+    line-height: 1.2;
+}
+
+.statLabel {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.tableContainer {
+    overflow-x: auto;
+    border: 1px solid #d1d5db;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    background: white;
+    font-size: 0.875rem;
+}
+
+.th {
+    background: linear-gradient(90deg, #b6d7a8 0%, #93c47d 100%); /* Excel green gradient */
+    color: #25461b;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    text-align: left;
+    font-weight: 700;
+    border-bottom: 2px solid #6aa84f;
+    border-right: 1px solid #e5e7eb;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    box-shadow: 0 2px 4px rgba(106, 168, 79, 0.08);
+}
+
+.th:last-child {
+    border-right: none;
+}
+
+.td {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+    color: #374151;
+    font-weight: 400;
+}
+
+.td:last-child {
+    border-right: none;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+.table tbody tr:hover {
+    background-color: #eff6ff;
+}
+
+.table tbody tr:last-child .td {
+    border-bottom: 1px solid #d1d5db;
+}
+
+.currencyCell {
+    text-align: right;
+
+    font-weight: 500;
+}
+
+.numberCell {
+    text-align: right;
+
+}
+
+.dateCell {
+
+}
+
+.metricHighlight {
+    background: linear-gradient(90deg, #b6d7a8 0%, #6aa84f 100%);
+    color: #25461b;
+    padding: 0.125rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(106, 168, 79, 0.10);
+}
+
+.viewButton {
+    display: inline-block;
+    padding: 0.35rem 1.1rem;
+    background: linear-gradient(90deg, #b6d7a8 0%, #6aa84f 100%);
+    color: #25461b;
+    font-weight: 700;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 1px 2px rgba(106, 168, 79, 0.10);
+    transition: background 0.2s, color 0.2s;
+}
+.viewButton:hover {
+    background: linear-gradient(90deg, #6aa84f 0%, #b6d7a8 100%);
+    color: #18310d;
+}
+
+.sectionDivider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 1.5rem 0;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    font-style: italic;
+}
+
+.dateFilterForm {
+    display: flex;
+    align-items: flex-end;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    background: #f3f9f1;
+    padding: 1rem 1.5rem;
+    border-radius: 6px;
+    border: 1px solid #b6d7a8;
+    box-shadow: 0 1px 3px rgba(106, 168, 79, 0.08);
+}
+
+.dateFilterLabel {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.95rem;
+    color: #25461b;
+    font-weight: 500;
+    gap: 0.25rem;
+}
+
+.dateInput {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #b6d7a8;
+    border-radius: 4px;
+    background: #e2f0d9;
+    color: #25461b;
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+    transition: border 0.2s;
+}
+.dateInput:focus {
+    border: 1.5px solid #6aa84f;
+    background: #d9ead3;
+}
+
+.filterButton {
+    padding: 0.6rem 1.5rem;
+    background: linear-gradient(90deg, #b6d7a8 0%, #6aa84f 100%);
+    color: #25461b;
+    font-weight: 700;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(106, 168, 79, 0.10);
+    transition: background 0.2s, color 0.2s;
+}
+.filterButton:disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.errorBox {
+    background-color: #fff5f5;
+    border: 1px solid #e53e3e;
+    color: #9b2c2c;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.pre {
+    background-color: #2d3748;
+    color: #e2e8f0;
+    padding: 1rem;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .title {
+        font-size: 1.5rem;
+    }
+    
+    .subtitle {
+        font-size: 0.875rem;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .cardContent {
+        padding: 1rem;
+    }
+    
+    .statsGrid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .statItem {
+        padding: 0.75rem;
+    }
+    
+    .th, .td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0.5rem;
+    }
+    
+    .header {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .title {
+        font-size: 1.25rem;
+    }
+    
+    .cardTitle {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    .statValue {
+        font-size: 1rem;
+    }
+    
+    .th, .td {
+        padding: 0.375rem 0.125rem;
+        font-size: 0.6875rem;
+    }
+}
