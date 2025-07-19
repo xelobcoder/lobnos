@@ -149,6 +149,7 @@ async function getFinancialData(target: string, from: string, end: string) {
         if (!financialInformation) {
             throw new Error("API returned no data.");
         }
+        console.log("Financial Information:", financialInformation);
         return financialInformation;
     } catch (error: any) {
         return { error: error.message || 'An unknown error occurred' };
@@ -158,8 +159,6 @@ async function getFinancialData(target: string, from: string, end: string) {
 export default async function FinancialSummaryPage({ searchParams }: { searchParams: { date: string, from: string, end: string } }) {
     const { date, from, end } = searchParams;
     const data = await getFinancialData(date, from, end);
-
-    console.log("Financial Data:", data);
 
     if (data.error) {
         return (

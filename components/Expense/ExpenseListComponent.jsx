@@ -10,7 +10,8 @@ const statusMap = {
 
 const ExpenseList = ({ expenses, setSelected, selected }) => {
 	const [view, setView] = useState('card'); 
-	if (expenses.length === 0) {
+	console.log('ExpenseList rendered with view:', view,expenses);
+	if (Array.isArray(expenses) && expenses.length === 0) {
 		return (
 			<div className="d-flex flex-column align-items-center justify-content-center bg-light-subtle rounded-3 py-5 my-4 border border-0 shadow-sm" style={{ minHeight: 220 }}>
 				<RiInboxArchiveLine size={48} className="mb-3 text-secondary" />

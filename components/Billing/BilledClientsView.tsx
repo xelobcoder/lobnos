@@ -361,7 +361,6 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 			</div>
 			<PrimeTable
 				column={coreColumns}
-
 				urlparams={{ ...datequery, branchid }}
 				data={data || []}
 				serverSideFiltering={true}

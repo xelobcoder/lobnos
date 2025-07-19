@@ -50,9 +50,8 @@ export const handleSeverSideProcessing = async (pagination) => {
 	const { page, count, from, to, branchid } = pagination;
 	try {
 		const data = await customFetch(
-			`billing/payment/info/client?page=${page}&&count=${count}&& from=${from}&& to=${to}&&branchid=${branchid}`
+			`billing/payment/info/client?page=${page}&&count=${count}&&from=${from}&&to=${to}&&branchid=${branchid}`
 		);
-
 		if (data.status === "success" && data.statusCode === 200 && Array.isArray(data.data) && data.data.length > 0) {
 			return { result: data.data, error: false }
 		}
