@@ -24,14 +24,24 @@ interface DailyCeoSnapshot {
     total_billing_amount: string;
     total_payable_amount: string;
     total_paid_amount: string;
-    total_services_rendered: number;
-    total_refunds_processed: string;
-    total_refund_payments_made: string;
     total_outstanding_amount: string;
     total_discounts_given: string;
     total_tax_incurred: string;
-    unique_patients_billed: number;
-    refund_completion_rate_percentage: string;
+}
+
+interface ServiceStatusCounts {
+    active_services: string;
+    cancelled_services: string;
+    refunded_services: string;
+    voided_services: string;
+    written_off_services: string;
+    total_services: number;
+}
+
+interface DailyUniqueClientsSummary {
+    unique_registered_clients: number;
+    start_date: string;
+    end_date: string;
 }
 
 interface TopPerformingBranch {
@@ -42,17 +52,11 @@ interface TopPerformingBranch {
 
 interface DailyNightAdjustmentImpact {
     report_date: string;
-    total_billed_without_night_adjustment: string;
-    amount_gained_from_night_adjustment: string;
-    total_billed_with_night_adjustment: string;
-    billed_without_night_adjustment_part_for_night_adjusted_services: string;
-    night_adjustment_uplift: string;
-    package_cases: string;
-    package_total_value: string;
+    total_payable_amount: string;
+    total_night_adjustment_value: string;
+    night_adjustment_cases_count: number;
+    normal_cases_count: number;
     total_cases: number;
-    clinician_referrals: string;
-    organization_referrals: string;
-    self_cases: string;
 }
 
 interface DailyTestTransaction {
@@ -72,7 +76,6 @@ interface PaymentModeBreakdown {
 }
 
 interface EmployeeCashCollection {
-    mode: string;
     username: string;
     total_transactions: number;
     total_amount: string;
@@ -149,7 +152,6 @@ async function getFinancialData(target: string, from: string, end: string) {
         if (!financialInformation) {
             throw new Error("API returned no data.");
         }
-        console.log("Financial Information:", financialInformation);
         return financialInformation;
     } catch (error: any) {
         return { error: error.message || 'An unknown error occurred' };
@@ -180,6 +182,8 @@ export default async function FinancialSummaryPage({ searchParams }: { searchPar
 
     const {
         dailyCeoSnapshot = [],
+        serviceStatusCounts = [],
+        dailyUniqueClientsSummary = [],
         dailyNightAdjustmentImpact = [],
         topPerformingBranches = [],
         dailyTestTransactionSnapshot = [],
@@ -190,13 +194,32 @@ export default async function FinancialSummaryPage({ searchParams }: { searchPar
         mismatchedPaymentHistory = []
     } = data;
 
-    const snapshot = dailyCeoSnapshot[0] || {};
-    const nightAdjustment = dailyNightAdjustmentImpact[0] || {};
+    // Calculate aggregated totals from all daily snapshots
+    const aggregatedSnapshot = dailyCeoSnapshot.reduce((acc, snapshot) => ({
+        total_billing_amount: (Number(acc.total_billing_amount || 0) + Number(snapshot.total_billing_amount || 0)).toString(),
+        total_payable_amount: (Number(acc.total_payable_amount || 0) + Number(snapshot.total_payable_amount || 0)).toString(),
+        total_paid_amount: (Number(acc.total_paid_amount || 0) + Number(snapshot.total_paid_amount || 0)).toString(),
+        total_outstanding_amount: (Number(acc.total_outstanding_amount || 0) + Number(snapshot.total_outstanding_amount || 0)).toString(),
+        total_discounts_given: (Number(acc.total_discounts_given || 0) + Number(snapshot.total_discounts_given || 0)).toString(),
+        total_tax_incurred: (Number(acc.total_tax_incurred || 0) + Number(snapshot.total_tax_incurred || 0)).toString(),
+        analytics_date: snapshot.analytics_date // Keep the latest date
+    }), {
+        total_billing_amount: '0',
+        total_payable_amount: '0',
+        total_paid_amount: '0',
+        total_outstanding_amount: '0',
+        total_discounts_given: '0',
+        total_tax_incurred: '0',
+        analytics_date: ''
+    });
+
+    const serviceStatus = serviceStatusCounts[0] || {};
+    const uniqueClients = dailyUniqueClientsSummary[0] || {};
     
-    const branchesData = Array.isArray(topPerformingBranches[0]) ? topPerformingBranches[0] : [];
-    const modesData = Array.isArray(breakDownPaymentModes[0]) ? breakDownPaymentModes[0] : [];
+    const branchesData = Array.isArray(topPerformingBranches) ? topPerformingBranches : [];
+    const modesData = Array.isArray(breakDownPaymentModes) ? breakDownPaymentModes : [];
    
-    const dateRangeText = formatDateRange(from, end, snapshot.analytics_date);
+    const dateRangeText = formatDateRange(from, end, aggregatedSnapshot.analytics_date);
 
     return (
         <main className={styles.container}>
@@ -213,18 +236,72 @@ export default async function FinancialSummaryPage({ searchParams }: { searchPar
 
             <Card title="Executive Summary" icon={<RiPieChartLine />}>
                 <div className={styles.statsGrid}>
-                    <Stat label="Total Billed" value={currencyFormatter.format(Number(snapshot.total_billing_amount || 0))} icon={<RiLineChartLine />} />
-                    <Stat label="Total Amount Payable" value={currencyFormatter.format(Number(snapshot.total_payable_amount || 0))} icon={<RiLineChartLine />} />
-                    <Stat label="Total Paid" value={currencyFormatter.format(Number(snapshot.total_paid_amount || 0))} icon={<RiHandCoinLine />} />
-                    <Stat label="Total Outstanding" value={currencyFormatter.format(Number(snapshot.total_outstanding_amount || 0))} icon={<RiBankCardLine />} />
-                    <Stat label="Total Refunds Processed" value={currencyFormatter.format(Number(snapshot.total_refunds_processed || 0))} icon={<RiCashLine />} />
-                    <Stat label="Total Refund Payments" value={currencyFormatter.format(Number(snapshot.total_refund_payments_made || 0))} icon={<RiCashLine />} />
-                    <Stat label="Total Tax Incurred" value={currencyFormatter.format(Number(snapshot.total_tax_incurred || 0))} icon={<RiCashLine />} />
-                    <Stat label="Services Rendered" value={snapshot.total_services_rendered || 0} icon={<RiFileList3Line />} />
-                    <Stat label="Unique Patients" value={snapshot.unique_patients_billed || 0} icon={<RiGroupLine />} />
-                    <Stat label="Total Discounts" value={currencyFormatter.format(Number(snapshot.total_discounts_given || 0))} icon={<RiCashLine />} />
-                    <Stat label="Refund Completion Rate" value={`${Number(snapshot.refund_completion_rate_percentage || 0).toFixed(2)}%`} icon={<RiCashLine />} />
+                    <Stat label="Total Billed" value={currencyFormatter.format(Number(aggregatedSnapshot.total_billing_amount || 0))} icon={<RiLineChartLine />} />
+                    <Stat label="Total Amount Payable" value={currencyFormatter.format(Number(aggregatedSnapshot.total_payable_amount || 0))} icon={<RiLineChartLine />} />
+                    <Stat label="Total Paid" value={currencyFormatter.format(Number(aggregatedSnapshot.total_paid_amount || 0))} icon={<RiHandCoinLine />} />
+                    <Stat label="Total Outstanding" value={currencyFormatter.format(Number(aggregatedSnapshot.total_outstanding_amount || 0))} icon={<RiBankCardLine />} />
+                    <Stat label="Total Tax Incurred" value={currencyFormatter.format(Number(aggregatedSnapshot.total_tax_incurred || 0))} icon={<RiCashLine />} />
+                    <Stat label="Total Discounts" value={currencyFormatter.format(Number(aggregatedSnapshot.total_discounts_given || 0))} icon={<RiCashLine />} />
+                    <Stat label="Active Services" value={serviceStatus.active_services || 0} icon={<RiFileList3Line />} />
+                    <Stat label="Total Services" value={serviceStatus.total_services || 0} icon={<RiFileList3Line />} />
+                    <Stat label="Cancelled Services" value={serviceStatus.cancelled_services || 0} icon={<RiFileList3Line />} />
+                    <Stat label="Unique Clients" value={uniqueClients.unique_registered_clients || 0} icon={<RiGroupLine />} />
+                    <Stat label="Refunded Services" value={serviceStatus.refunded_services || 0} icon={<RiCashLine />} />
                 </div>
+            </Card>
+
+            <div className={styles.sectionDivider}></div>
+
+            <Card title="Daily Financial Breakdown" icon={<RiCalendarLine />}>
+                {Array.isArray(dailyCeoSnapshot) && dailyCeoSnapshot.length > 0 ? (
+                    <div className={styles.tableContainer}>
+                        <table className={styles.table}>
+                            <thead>
+                                <tr>
+                                    <th className={styles.th}>Date</th>
+                                    <th className={styles.th}>Total Billed</th>
+                                    <th className={styles.th}>Total Payable</th>
+                                    <th className={styles.th}>Total Paid</th>
+                                    <th className={styles.th}>Outstanding</th>
+                                    <th className={styles.th}>Tax Incurred</th>
+                                    <th className={styles.th}>Discounts</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {dailyCeoSnapshot.map((daily: DailyCeoSnapshot, index: number) => (
+                                    <tr key={index}>
+                                        <td className={`${styles.td} ${styles.dateCell}`}>
+                                            {new Date(daily.analytics_date).toLocaleDateString()}
+                                        </td>
+                                        <td className={`${styles.td} ${styles.currencyCell}`}>
+                                            {currencyFormatter.format(Number(daily.total_billing_amount))}
+                                        </td>
+                                        <td className={`${styles.td} ${styles.currencyCell}`}>
+                                            {currencyFormatter.format(Number(daily.total_payable_amount))}
+                                        </td>
+                                        <td className={`${styles.td} ${styles.currencyCell}`}>
+                                            {currencyFormatter.format(Number(daily.total_paid_amount))}
+                                        </td>
+                                        <td className={`${styles.td} ${styles.currencyCell}`}>
+                                            {currencyFormatter.format(Number(daily.total_outstanding_amount))}
+                                        </td>
+                                        <td className={`${styles.td} ${styles.currencyCell}`}>
+                                            {currencyFormatter.format(Number(daily.total_tax_incurred))}
+                                        </td>
+                                        <td className={`${styles.td} ${styles.currencyCell}`}>
+                                            {currencyFormatter.format(Number(daily.total_discounts_given))}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className={styles.emptyState}>
+                        <RiCalendarLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
+                        <p>No daily financial data available for the selected period.</p>
+                    </div>
+                )}
             </Card>
 
             <div className={styles.sectionDivider}></div>
@@ -374,6 +451,41 @@ export default async function FinancialSummaryPage({ searchParams }: { searchPar
             <div className={styles.sectionDivider}></div>
 
             <CeoClinicianSalesChart data={cliniciansalesdailyData} />
+
+            {Array.isArray(mismatchedPaymentHistory) && mismatchedPaymentHistory.length > 0 && (
+                <Card title="Mismatched Payment History" icon={<RiAlertLine />}>
+                    <div className={styles.tableContainer}>
+                        <table className={styles.table}>
+                            <thead>
+                                <tr>
+                                    <th className={styles.th}>Billing ID</th>
+                                    <th className={styles.th}>Paid in Billing</th>
+                                    <th className={styles.th}>Total in Billing History</th>
+                                    <th className={styles.th}>Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {mismatchedPaymentHistory.map((mismatch: any, index: number) => (
+                                    <tr key={index}>
+                                        <td className={`${styles.td} ${styles.numberCell}`}>
+                                            {mismatch.billingid}
+                                        </td>
+                                        <td className={`${styles.td} ${styles.currencyCell}`}>
+                                            {currencyFormatter.format(Number(mismatch.paid_in_billing))}
+                                        </td>
+                                        <td className={`${styles.td} ${styles.currencyCell}`}>
+                                            {currencyFormatter.format(Number(mismatch.total_in_billinghx))}
+                                        </td>
+                                        <td className={`${styles.td} ${styles.currencyCell}`} style={{ color: Number(mismatch.difference) < 0 ? 'red' : 'green' }}>
+                                            {currencyFormatter.format(Number(mismatch.difference))}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+            )}
         </main>
     );
 }
