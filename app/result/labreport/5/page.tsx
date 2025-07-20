@@ -1,5 +1,6 @@
 import React from 'react';
-import { PrintOutdata } from '../1/data'; // Assuming PrintOutdata structure
+import { PrintOutdata } from './data'; 
+import styles from './vitalscan.module.css';
 
 interface RecordItemVS {
     id: string | number;
@@ -97,22 +98,22 @@ const VitalScanTemplate: React.FC = () => {
     };
 
     return (
-        <div className="container p-4 bg-white my-3" >
-            <header className="d-flex justify-content-between ">
+        <div className={styles.page} >
+            <header  style={{display:'grid', gridTemplateColumns: '25% auto', alignItems: 'center', gap: '1rem'}}>
                 <div>
                     <img src={data.companyInfo.logoUrl} alt="VitalScan Logo" style={{ width: '100px' }} />
                 </div>
                 <div className="">
-                    <h3 className="text-uppercase text-decoration-underline fw-bold" >{data.companyInfo.name}</h3>
-                    <p className="mb-0" style={{ fontSize: '12pt' }}>{data.companyInfo.location}</p>
-                    <p className="mb-0" style={{ fontSize: '12pt' }}>{data.companyInfo.email}</p>
-                    <p className="mb-0" style={{ fontSize: '12pt' }}>{data.companyInfo.contactUs}</p>
+                    <h4 className="text-uppercase text-decoration-underline " >{data.companyInfo.name}</h4>
+                    <p className="mb-0" style={{ fontSize: '10pt' }}>{data.companyInfo.location}</p>
+                    <p className="mb-0" style={{ fontSize: '10pt' }}>{data.companyInfo.email}</p>
+                    <p className="mb-0" style={{ fontSize: '10pt' }}>{data.companyInfo.contactUs}</p>
                 </div>
                 <div />
             </header>
 
-            <section className='border-bottom border-dark my-3' >
-                <h5 className='text-uppercase text-center border-bottom my-2 border-dark fw-bold'>Personal Information</h5>
+            <section className='border-bottom border-dark ' >
+                <h5 className='text-uppercase text-center border-bottom my-2 border-dark '>Personal Information</h5>
                 <div className="row gx-5">
                     <div className="col-6"><span className="fw-bold">FULL NAME:</span> {data.patientInformation.fullName}</div>
                     <div className="col-6"><span className="fw-bold">PATIENT ID:</span> {data.patientInformation.patientId}</div>
@@ -124,9 +125,9 @@ const VitalScanTemplate: React.FC = () => {
             </section>
 
             <section>
-                <h4 className="text-center fw-bold p-1 text-uppercase border-dark border-bottom" >
+                <h5 className="text-center p-1 text-uppercase border-dark border-bottom" >
                     {data.testTitle}
-                </h4>
+                </h5>
                 <table className="table">
                     <thead className='table-warning'>
                         <tr>

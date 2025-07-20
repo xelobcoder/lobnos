@@ -11,8 +11,7 @@ import UseResultCommentSinglePreview from '../../../components/ResutlUI/useResul
 import VersionFooter from '../../../components/accessories/VersionFooter';
 import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
 import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
-
-import { RiPrinterLine, RiArrowLeftLine, RiPrinterCloudFill } from '@remixicon/react'; // 🎯 Remix Icons
+import styles from  './5/vitalscan.module.css';
 
 interface ResultSettings {
     letterHeading: number;
@@ -129,7 +128,7 @@ export default function RESULT_FOR_PRINTING() {
     const testid = searchParams?.get('testid');
     const csvid = searchParams?.get('csvid');
 
-    const url = `result/printout/ascension/getResult?csvid=${csvid}&&testid=${testid}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=`;
+    const url = `result/printout/ascension/getResult?csvid=${csvid}&&testid=${testid}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
 
     useEffect(() => {
         customFetch(url)
@@ -142,73 +141,55 @@ export default function RESULT_FOR_PRINTING() {
     if (!resultdata?.records) return <h4></h4>;
 
     return (
-        <div className='result-print-out'>
-            <div id='header-user-view' className='bg-dark text-white p-4 col-12 text-capitalize d-flex align-items-center gap-2 d-flex  justify-content-between'
-                
-            >
-                
-                <h5 className="mb-0"><RiArrowLeftLine size={20} />Result Print Out</h5>
-                <button className='btn btn-secondary'>
-                   <RiPrinterCloudFill/> Print Result Out 
-                </button>
+        <div className={styles.page} >
+            <div className="result">
+                <section>
+                    <CompanyHeaders
+                        companyInfo={
+                            resultdata?.companyInfo
+                                ? {
+                                    ...resultdata.companyInfo,
+                                    alternativenumber: resultdata.companyInfo.alternativenumber?.toString()
+                                }
+                                : null
+                        }
+                        logo={resultdata?.logourl}
+                    />
+                    <PersonalInformation
+                        PersonalInformation={{
+                            ...(resultdata?.patientInformation
+                                ? {
+                                    ...resultdata.patientInformation,
+                                    patientid: resultdata.patientInformation.patientid.toString(),
+                                    fullpatientid: resultdata.patientInformation.fullpatientid
+                                        ? resultdata.patientInformation.fullpatientid
+                                        : ''
+                                }
+                                : { fullpatientid: '' }),
+                        }}
+                        billingid={resultdata?.billingid}
+                    />
+                </section>
+
+                <section>
+                    <UseCustomResultTemplatingPreview
+                        test={resultdata?.testname}
+                        records={resultdata?.records}
+                    />
+                    <UseResultCommentSinglePreview comments={resultdata.comments} />
+                    <UseClinicalLiteratureReview literature={resultdata.literatureReview} />
+                </section>
+                <section>
+                    <UseResultEntryScientist
+                        lastupdatedon={resultdata?.lastupdatedon}
+                        validators={resultdata.validators}
+                        resultentry={resultdata.resultentry}
+                        enteredOn={resultdata.enteredOn}
+                    />
+                    <UseDisclaimer />
+                    <VersionFooter />
+                </section>
             </div>
-
-            {/* Main */}
-            <main className='d-flex'>
-                <div className='col-2 forged-sidebar'></div>
-                <div className='col-10'>
-                    <div className="single_result_page ui bg-secondary">
-                        <div className="result bg-white mt-5">
-                            <section>
-                                <CompanyHeaders
-                                    companyInfo={
-                                        resultdata?.companyInfo
-                                            ? {
-                                                ...resultdata.companyInfo,
-                                                alternativenumber: resultdata.companyInfo.alternativenumber?.toString()
-                                            }
-                                            : null
-                                    }
-                                    logo={resultdata?.logourl}
-                                />
-                                <PersonalInformation
-                                    PersonalInformation={{
-                                        ...(resultdata?.patientInformation
-                                            ? {
-                                                ...resultdata.patientInformation,
-                                                patientid: resultdata.patientInformation.patientid.toString(),
-                                                fullpatientid: resultdata.patientInformation.fullpatientid
-                                                    ? resultdata.patientInformation.fullpatientid
-                                                    : ''
-                                            }
-                                            : { fullpatientid: '' }),
-                                    }}
-                                    billingid={resultdata?.billingid}
-                                />
-                            </section>
-
-                            <section>
-                                <UseCustomResultTemplatingPreview
-                                    test={resultdata?.testname}
-                                    records={resultdata?.records}
-                                />
-                                <UseResultCommentSinglePreview comments={resultdata.comments} />
-                                <UseClinicalLiteratureReview literature={resultdata.literatureReview} />
-                            </section>
-                            <section>
-                                <UseResultEntryScientist
-                                    lastupdatedon={resultdata?.lastupdatedon}
-                                    validators={resultdata.validators}
-                                    resultentry={resultdata.resultentry}
-                                    enteredOn={resultdata.enteredOn}
-                                />
-                                <UseDisclaimer />
-                                <VersionFooter />
-                            </section>
-                        </div>
-                    </div>
-                </div>
-            </main>
         </div>
     );
 }

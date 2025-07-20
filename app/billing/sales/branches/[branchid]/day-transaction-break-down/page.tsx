@@ -44,6 +44,18 @@ interface DailyUniqueClientsSummary {
     end_date: string;
 }
 
+interface OrganizationCommission {
+    service_date: string;
+    organization_id: number;
+    organization_name: string;
+    organization_phone: number;
+    organization_email: string;
+    total_services: number;
+    total_value: string;
+    commission_percent: number;
+    commission_earned: string;
+}
+
 interface TopPerformingBranch {
     branchid: number;
     revenue: string;
@@ -183,6 +195,7 @@ export default async function FinancialSummaryPage({ searchParams }: { searchPar
     const {
         dailyCeoSnapshot = [],
         serviceStatusCounts = [],
+        OrganizationCommissions = [],
         dailyUniqueClientsSummary = [],
         dailyNightAdjustmentImpact = [],
         topPerformingBranches = [],
@@ -202,7 +215,7 @@ export default async function FinancialSummaryPage({ searchParams }: { searchPar
         total_outstanding_amount: (Number(acc.total_outstanding_amount || 0) + Number(snapshot.total_outstanding_amount || 0)).toString(),
         total_discounts_given: (Number(acc.total_discounts_given || 0) + Number(snapshot.total_discounts_given || 0)).toString(),
         total_tax_incurred: (Number(acc.total_tax_incurred || 0) + Number(snapshot.total_tax_incurred || 0)).toString(),
-        analytics_date: snapshot.analytics_date // Keep the latest date
+        analytics_date: snapshot.analytics_date 
     }), {
         total_billing_amount: '0',
         total_payable_amount: '0',
@@ -360,6 +373,57 @@ export default async function FinancialSummaryPage({ searchParams }: { searchPar
                         {auditTrailActions.map((action: AuditTrailAction, index: number) => (
                             <Stat key={index} label={`${action.action_type} Actions`} value={action.count} icon={<RiFileList3Line />} />
                         ))}
+                    </div>
+                </Card>
+            )}
+
+            {Array.isArray(OrganizationCommissions) && OrganizationCommissions.length > 0 && (
+                <Card title="Organization Commissions" icon={<RiGroupLine />}>
+                    <div className={styles.tableContainer}>
+                        <table className={styles.table}>
+                            <thead>
+                                <tr>
+                                    <th className={styles.th}>Service Date</th>
+                                    <th className={styles.th}>Organization</th>
+                                    <th className={styles.th}>Contact</th>
+                                    <th className={styles.th}>Services</th>
+                                    <th className={styles.th}>Total Value</th>
+                                    <th className={styles.th}>Commission %</th>
+                                    <th className={styles.th}>Commission Earned</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {OrganizationCommissions.map((commission: OrganizationCommission, index: number) => (
+                                    <tr key={index}>
+                                        <td className={`${styles.td} ${styles.dateCell}`}>
+                                            {new Date(commission.service_date).toLocaleDateString()}
+                                        </td>
+                                        <td className={styles.td}>
+                                            <div>
+                                                <strong>{commission.organization_name}</strong>
+                                                <br />
+                                                <small style={{ color: '#666' }}>{commission.organization_email}</small>
+                                            </div>
+                                        </td>
+                                        <td className={styles.td}>
+                                            {commission.organization_phone}
+                                        </td>
+                                        <td className={`${styles.td} ${styles.numberCell}`}>
+                                            <span className={styles.metricHighlight}>{commission.total_services}</span>
+                                        </td>
+                                        <td className={`${styles.td} ${styles.currencyCell}`}>
+                                            {currencyFormatter.format(Number(commission.total_value))}
+                                        </td>
+                                        <td className={`${styles.td} ${styles.numberCell}`}>
+                                            {commission.commission_percent}%
+                                        </td>
+                                        <td className={`${styles.td} ${styles.currencyCell}`}>
+                                            {currencyFormatter.format(Number(commission.commission_earned))}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </Card>
             )}

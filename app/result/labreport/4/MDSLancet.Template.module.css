@@ -1,15 +1,16 @@
 .page {
-    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif !important;
-    font-size: 9pt;
-    color: #000;
+    font-family:  "Lexend Deca", Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    color: black;
     background-color: white;
-    width: 210mm; /* A4 width */
-    min-height: 297mm; /* A4 height */
-    margin: 10px auto; /* For screen viewing */
-    padding: 15mm 12mm; /* Approximate padding from image */
+    width: 210mm;
+    min-height: 297mm;
+    margin: 5px auto;
+    padding: 5mm 5mm;
     box-sizing: border-box;
-    border: 1px solid #ccc; /* Optional border for screen */
+    border: 1px solid #ccc;
 }
+
 
 .header {
     display: flex;
@@ -26,8 +27,7 @@
 }
 
 .logo {
-    /* Assuming a placeholder or actual logo dimensions */
-    width: 40px; /* Adjust as needed */
+    width: 40px;
     height: auto;
     margin-right: 8px;
 }
@@ -47,7 +47,7 @@
 
 .labContactHeader {
     text-align: right;
-    font-size: 7.5pt;
+    font-size: 10pt;
     line-height: 1.3;
 }
 
@@ -56,13 +56,13 @@
 }
 
 .reportTitleBar {
-    background-color: #333A4C; /* Dark blue-grey from image */
+    background-color: #333A4C;
     color: white;
     text-align: center;
     padding: 5px 0;
     font-size: 13pt;
     font-weight: bold;
-    margin: 10px -12mm; /* Extend to page padding edges */
+    margin: 10px -12mm;
     letter-spacing: 1px;
 }
 
@@ -70,14 +70,15 @@
     display: grid;
     grid-template-columns: 1.2fr 1fr; /* Left column wider */
     gap: 0 20px; /* Column gap */
-    font-size: 8.5pt;
-    margin-bottom: 15px;
+    font-size: 9pt;
+    text-transform: capitalize !important;
     padding-bottom: 10px;
-    border-bottom: 1px dotted #888;
+    border-bottom:  1px solid black;
 }
 
 .infoBlock {
     line-height: 1.5;
+    text-transform: uppercase;
 }
 
 .infoPair {
@@ -86,9 +87,8 @@
 
 .infoLabel {
     min-width: 90px; /* Adjust as needed */
-    font-weight: normal;
-    color: #333;
     flex-shrink: 0;
+    text-transform: uppercase;
 }
 
 .infoValue {
@@ -96,19 +96,17 @@
     color: #000;
 }
 
-.guarantorBlock {
-    margin-top: 5px;
-}
 
 .sectionTitle {
-    font-weight: bold;
-    font-size: 9.5pt;
+    font-size: 10.5pt;
     text-transform: uppercase;
-    margin-top: 15px;
     margin-bottom: 8px;
-    color: #333;
+    font-weight: bolder;
+    display: flex;
+    padding: 5px;
+    justify-content: center;
     padding-bottom: 3px;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid black;
 }
 
 .resultsArea {
@@ -149,6 +147,7 @@
 .resultRow {
     display: flex;
     padding: 2px 0;
+    font-size: 11.0pt;
     align-items: center;
 }
 
@@ -159,8 +158,8 @@
 
 .resultValue {
     flex: 1;
+      font-size: 9.5pt;
     text-align: right;
-    font-weight: bold;
 }
 
 .resultFlag {
@@ -172,7 +171,7 @@
     flex: 0.7;
     text-align: left;
     padding-left: 10px;
-    font-size: 8.5pt;
+    font-size: 9.5pt;
     color: #333;
 }
 
@@ -180,12 +179,12 @@
     flex: 1.2;
     text-align: right;
     padding-right: 5px;
-    font-size: 8.5pt;
+    font-size: 9.5pt;
     color: #333;
 }
 
 .subResultRow {
-    padding-left: 25px; /* Indent sub-results like 'Therapeutic' */
+    padding-left: 25px;
     font-size: 8.5pt;
 }
 
@@ -234,11 +233,10 @@
 }
 
 
-/* Print specific styles */
 @media print {
     .page {
         margin: 0 !important;
-        padding: 8mm 5mm !important; /* Minimal padding for print if needed, adjust as necessary */
+        padding: 0mm 0mm !important;
         border: none !important;
         box-shadow: none !important;
         width: 100% !important;
@@ -247,12 +245,11 @@
     }
 
     .reportTitleBar {
-        margin: 10px 0; /* Adjust for no page padding */
-        -webkit-print-color-adjust: exact; /* Ensures background color prints in Chrome/Safari */
-        color-adjust: exact; /* Standard property for background color printing */
+        margin: 10px 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
-
-    .header, .patientInfoSection, .resultsArea, .limitationSection, .footer {
+    .header, .patientInfoSection{
         page-break-inside: avoid;
     }
 }

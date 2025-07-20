@@ -1,0 +1,16 @@
+.company-info-result {
+  display: grid;
+  grid-template-columns: 20% auto;
+  grid-gap: 20px;
+}
+
+.company-name {
+  font-size: 20px !important;
+  text-transform: uppercase;
+  text-decoration: underline;
+}
+
+ .company-kids {
+  font-size: 12.5px;
+  font-family: 'Times New Roman', Times, serif !important;
+}

@@ -4,11 +4,22 @@ import { handleSeverSideProcessingPhelobotomy } from "../serverActions/ActionFil
 import { RiInboxLine, RiTestTubeLine } from '@remixicon/react';
 
 
-export default function ListTable({ data, handleCollectSample}) {
+export default function ListTable({ data, handleCollectSample, selectedItems = [], onToggleSelection }) {
 
 	
 
 	const columns = [
+		{
+			Header: "Select",
+			accessor: "select",
+			Cell: ({ row }) => (
+				<input
+					type="checkbox"
+					checked={selectedItems.some(item => item.billingid === row.original.billingid)}
+					onChange={() => onToggleSelection(row.original)}
+				/>
+			),
+		},
 		{
 			Header: "Date",
 			accessor: "date",

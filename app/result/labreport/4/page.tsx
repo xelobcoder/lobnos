@@ -1,5 +1,5 @@
 import React from 'react';
-import { PrintOutdata } from '../1/data';
+import { PrintOutdata } from './data';
 import styles from './MDSLancet.Template.module.css'
 
 // Interfaces (RecordItem, PatientInformation, CompanyInfo, Validator, MDSReportData - as defined above with new fields)
@@ -69,9 +69,8 @@ const MDSLancetTemplate: React.FC = () => {
     const rawData = PrintOutdata as any;
 
     const data: MDSReportData = {
-        // ... (existing data mapping for companyInfo, patientInformation, etc.) ...
         companyInfo: {
-            name: rawData.companyInfo?.name || "MDS-LANCET LABORATORIES (GH) LTD.",
+            name: rawData.companyInfo?.name || "VITALSCAN AND DIAGNOSTIC CENTRE",
             address: rawData.companyInfo?.address || "Tamale Depot",
             phonenumber: rawData.companyInfo?.fax || "0302 306 746",
             prNum: rawData.companyInfo?.prNum || "5201055",
@@ -91,8 +90,7 @@ const MDSLancetTemplate: React.FC = () => {
         mriNo: rawData.mriNo || "GN01888456",
         specNo: rawData.specNo || "0603:HC000051L",
         requested: rawData.testname || "COAG",
-        guarantor: rawData.guarantor || "MR A GARGO",
-        medAid: rawData.medAid || "CASH N",
+ 
         tel: rawData.tel || "VITAL SCAN (W) NOT AVAILABLE",
         collectionDate: rawData.collectionDate || "03/06/25 1653",
         receivedDate: rawData.enteredOn || "03/06/25 1653",
@@ -134,15 +132,17 @@ const MDSLancetTemplate: React.FC = () => {
                 <div className={styles.logoSection}>
                     <img src={data.companyInfo.logoUrl} alt="Lab Logo" className={styles.logo} />
                     <div>
-                        <div className={styles.labNameLarge}>MDS-LANCET</div>
-                        <div className={styles.labSubName}>LABORATORIES</div>
+                        <div className={styles.labNameLarge}>VITALSCAN </div>
+                        <div className={styles.labSubName}>LABORATORIES AND DIAGNOSTICS </div>
                     </div>
                 </div>
                 <div className={styles.labContactHeader}>
                     <div><strong>{data.companyInfo.name}</strong></div>
                     <div>{data.companyInfo.address}</div>
-                    <div>Fax: {data.companyInfo.phonenumber}</div>
-                    <div>Px Num : {data.companyInfo.prNum}</div>
+                 <div className='d-flex'>
+                       <div>Phone No: {data.companyInfo.phonenumber}.</div>
+                       <div> Email : {data.companyInfo.prNum}</div>
+                    </div>
                 </div>
             </header>
 
@@ -170,41 +170,21 @@ const MDSLancetTemplate: React.FC = () => {
                     <div className={styles.infoPair}>
                         <span className={styles.infoLabel}>Lab Ref.</span>: <span className={styles.infoValue}>{data.labRef}</span>
                     </div>
-                    <div className={styles.infoPair}>
-                        <span className={styles.infoLabel}>MRI No.</span>: <span className={styles.infoValue}>{data.mriNo}</span>
-                    </div>
-                    <div className={styles.infoPair}>
-                        <span className={styles.infoLabel}>Spec #</span>: <span className={styles.infoValue}>{data.specNo}</span>
-                    </div>
-                    <div className={styles.infoPair}>
-                        <span className={styles.infoLabel}>Requested</span>: <span className={styles.infoValue}>{data.requested}</span>
-                    </div>
-                    <div className={styles.guarantorBlock}>
-                        <div className={styles.infoPair}><span className={styles.infoLabel}>Guarantor</span>: <span className={styles.infoValue}>{data.guarantor}</span></div>
-                        <div className={styles.infoPair}><span className={styles.infoLabel}>MedAid</span>: <span className={styles.infoValue}>{data.medAid}</span></div>
-                        <div className={styles.infoPair}><span className={styles.infoLabel}>Tel</span>: <span className={styles.infoValue}>{data.tel}</span></div>
-                    </div>
-                </div>
-            </section>
-
-            <section className={styles.patientInfoSection} style={{ borderBottom: 'none', marginBottom: '5px', paddingBottom: '5px' }}>
-                <div className={styles.infoBlock}> {/* Empty or for other info if needed */} </div>
-                <div className={styles.infoBlock}>
+                     <div className={styles.infoBlock}>
                     <div className={styles.infoPair}><span className={styles.infoLabel}>Collection Date</span>: <span className={styles.infoValue}>{formatDateMDS(data.collectionDate)}</span> <span style={{ marginLeft: '5px' }}>{formatTimeMDS(data.collectionDate)}</span></div>
                     <div className={styles.infoPair}><span className={styles.infoLabel}>Received Date</span>: <span className={styles.infoValue}>{formatDateMDS(data.receivedDate)}</span> <span style={{ marginLeft: '5px' }}>{formatTimeMDS(data.receivedDate)}</span></div>
                     <div className={styles.infoPair}><span className={styles.infoLabel}>FINAL Report Date</span>: <span className={styles.infoValue}>{formatDateMDS(data.finalReportDate)}</span> <span style={{ marginLeft: '5px' }}>{formatTimeMDS(data.finalReportDate)}</span></div>
                 </div>
+                </div>
             </section>
-
-            <div className={styles.noSampleInfo}>NO SAMPLE TIME STATED. TIME RECORD IS THE TIME LAB PROCESSED</div>
 
             {Object.entries(data.recordsByCategory).map(([category, records]) => (
                 <section key={category} className={styles.resultsArea}>
-                    <div className={styles.sectionTitle}>{category}</div>
+                    <div className={styles.sectionTitle}>FULL BLOOD COUNT</div>
                     <div className={styles.resultsHeaderRow}>
                         <div className={styles.resultsTestCol}>Test</div>
                         <div className={styles.resultsResultCol}>Result</div>
-                        <div className={styles.resultsUnitsCol}></div>
+                        <div className={styles.resultsUnitsCol}>unit</div>
                         <div className={styles.resultsRefCol}>Reference</div>
                     </div>
                     {records.map(record => {

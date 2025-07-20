@@ -13,13 +13,20 @@ export default function CollectionSampleModal({
 	collection,
 	employeeid,
 	removeCollectedSample,
+	selectedSamples = [],
+	collections = [],
+	currentIndex = 0,
+	onNextItem,
 }) {
-	const { billingid, patientid, fullname } = collection;
+	const { billingid, patientid, fullname } = collection || {};
 	const [loading, setLoading] = useState(true);
 	const [testCollection, setTestCollection] = useState([]);
 	const [allCollected, setAllCollected] = useState(false);
 	const [multipleSelected, setMultipleSelected] = useState([]);
 	const [fullscreen, setFullscreen] = useState(false);
+
+	// Check if this is multi-processing mode
+	const isMultiProcessing = collections.length > 0;
 
 
 	const fetchClientAscension = useCallback(async (id) => {
@@ -32,6 +39,9 @@ export default function CollectionSampleModal({
 	useEffect(() => {
 		if (show) {
 			fetchClientAscension(billingid);
+			// Reset modal selections when opening
+			setMultipleSelected([]);
+			setAllCollected(false);
 		}
 	}, [billingid, fetchClientAscension, show]);
 
@@ -83,8 +93,19 @@ export default function CollectionSampleModal({
 			prev.filter(item => !collectedIds.includes(item.testid))
 		);
 
+		// Remove the processed sample from the main list
 		removeCollectedSample(billingid);
 		setLoading(false);
+
+		// If in multi-processing mode, automatically move to next item
+		if (isMultiProcessing) {
+			// Small delay to ensure state updates complete
+			setTimeout(() => {
+				if (onNextItem) {
+					onNextItem();
+				}
+			}, 500);
+		}
 	};
 
 	const toggleMultipleSelection = (ev, item) => {
@@ -128,29 +149,9 @@ export default function CollectionSampleModal({
 						{testCollection.map((item, index) => <ReceivedCollectionModalTableTr
 							updateCollectionStatus={updateCollectionStatus} toast={toast} key={index} multipleSelected={multipleSelected} toggleMultipleSelection={toggleMultipleSelection} item={item} updateCollectionAfterStatusChange={updateCollectionAfterStatusChange} />)}
 						<tr>
-							<td colSpan={7}>
-								<div className="d-flex">
-								<button 
-									onClick={toggleAllSelections} 
-									className={`btn btn-${allCollected ? "danger" : "primary"} btn-sm d-flex align-items-center gap-1`}
-								>
-									{allCollected ? <RiCheckboxMultipleLine /> : <RiCheckboxBlankLine />}
-									{allCollected ? "Unselect All" : "Select All"}
-								</button>
-								<button 
-									onClick={(ev) => { handleInitiateSelected("collectionStartDate") }} 
-									className="btn btn-outline-warning btn-sm mx-2 d-flex align-items-center gap-1"
-								>
-									<RiPlayCircleLine />
-									Initiate Selected
-								</button>
-								<button 
-									onClick={(ev) => { handleInitiateSelected('collectionEndDate') }} 
-									className="btn btn-outline-success btn-sm mx-2 d-flex align-items-center gap-1"
-								>
-									<RiCheckDoubleLine />
-									Complete Selected
-								</button>
+							<td colSpan={7} className="text-center py-2">
+								<div className="text-muted small">
+									Use the action buttons above to process selected samples
 								</div>
 							</td>
 						</tr>
@@ -187,26 +188,90 @@ export default function CollectionSampleModal({
 			<Modal show={show} size="xl" backdrop="static" keyboard="false" onHide={hide}>
 				<Modal.Header style={{ backgroundColor: "#e9ecef" }} closeButton className="d-flex justify-content-between text-capitalize fw-bold">
 					<div>
-						{fullname} ({patientid}) - Billing ID: {billingid}
+						{isMultiProcessing ? (
+							<div>
+								<span>Processing Multiple Samples ({currentIndex + 1}/{collections.length})</span>
+								<div className="small text-muted mt-1">
+									Current: {fullname} ({patientid}) - Billing ID: {billingid}
+								</div>
+							</div>
+						) : (
+							<span>{fullname} ({patientid}) - Billing ID: {billingid}</span>
+						)}
 					</div>
 				</Modal.Header>
 				<Modal.Body>
+					{/* Top Action Bar */}
+					{testCollection.length > 0 && !loading && (
+						<div className="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
+							<div className="d-flex align-items-center gap-2">
+								<button 
+									onClick={toggleAllSelections} 
+									className={`btn btn-${allCollected ? "danger" : "primary"} btn-sm d-flex align-items-center gap-1`}
+								>
+									{allCollected ? <RiCheckboxMultipleLine /> : <RiCheckboxBlankLine />}
+									{allCollected ? "Unselect All" : "Select All"}
+								</button>
+								<span className="text-muted small">
+									{multipleSelected.length} of {testCollection.length} selected
+								</span>
+							</div>
+							<div className="d-flex gap-2">
+								<button 
+									onClick={(ev) => { handleInitiateSelected("collectionStartDate") }} 
+									className="btn btn-outline-warning btn-sm d-flex align-items-center gap-1"
+									disabled={multipleSelected.length === 0}
+								>
+									<RiPlayCircleLine />
+									Initiate Selected ({multipleSelected.length})
+								</button>
+								<button 
+									onClick={(ev) => { handleInitiateSelected('collectionEndDate') }} 
+									className="btn btn-outline-success btn-sm d-flex align-items-center gap-1"
+									disabled={multipleSelected.length === 0}
+								>
+									<RiCheckDoubleLine />
+									Complete Selected ({multipleSelected.length})
+								</button>
+							</div>
+						</div>
+					)}
 					{ModalBodyView()}
 				</Modal.Body>
 				<Modal.Footer>
+					{isMultiProcessing && (
+						<div className="d-flex align-items-center gap-2 me-auto">
+							<span className="text-muted small">
+								Progress: {currentIndex + 1} of {collections.length}
+							</span>
+							<div className="progress" style={{ width: '150px', height: '6px' }}>
+								<div 
+									className="progress-bar bg-primary" 
+									style={{ width: `${((currentIndex + 1) / collections.length) * 100}%` }}
+								></div>
+							</div>
+						</div>
+					)}
 					<button
 						onClick={() => setFullscreen(!fullscreen)}
-						className="btn btn-light text-secondary btn-sm mx-5 d-flex align-items-center gap-1"
+						className="btn btn-light text-secondary btn-sm mx-2 d-flex align-items-center gap-1"
 					>
-						{/* <RiExpandLine /> */}
 						Fullscreen
 					</button>
+					{isMultiProcessing && currentIndex < collections.length - 1 && (
+						<button 
+							className="btn btn-success btn-sm d-flex align-items-center gap-1 me-2" 
+							onClick={onNextItem}
+						>
+							Next Sample ({currentIndex + 2}/{collections.length})
+						</button>
+					)}
 					<button 
 						className="btn btn-danger btn-sm d-flex align-items-center gap-1" 
 						onClick={hide}
 					>
 						<RiCloseLine />
-						Close
+						{isMultiProcessing ? 'Finish All' : 'Close'}
 					</button>
 				</Modal.Footer>
 			</Modal>
