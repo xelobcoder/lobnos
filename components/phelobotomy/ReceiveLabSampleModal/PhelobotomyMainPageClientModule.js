@@ -20,7 +20,7 @@ export default function PhelobotomyMainPageClientModule({ data }) {
 		patientid: null,
 		fullname: null,
 	});
-	const [selectedDate, setSelectedDate] = useState("");
+	
 	const [selectedItems, setSelectedItems] = useState([]);
 	const [collections, setCollections] = useState([]);
 	const [currentIndex, setCurrentIndex] = useState(0);

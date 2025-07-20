@@ -1,22 +1,20 @@
 "use client"
 import PendingTableSample from "./pendingTable";
 
-export default function SampleValidationComponent({ data }) {
-
-
+export default function SampleValidationComponent({ data, initialStartDate, initialEndDate }) {
 	const removeClientFromList = (id) => {
 		if (!id) return;
-		setLoading(true);
-		setData((prev) => prev.filter((item) => item.billingid !== id));
-		setLoading(false);
 	};
 
-
-
 	return (
-		<div >
+		<div>
 			<section>
-				<PendingTableSample data={data} removeClient={removeClientFromList} />
+				<PendingTableSample 
+					data={data} 
+					removeClient={removeClientFromList}
+					initialStartDate={initialStartDate}
+					initialEndDate={initialEndDate}
+				/>
 			</section>
 		</div>
 	);

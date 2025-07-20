@@ -5,9 +5,6 @@ import { RiInboxLine, RiTestTubeLine } from '@remixicon/react';
 
 
 export default function ListTable({ data, handleCollectSample, selectedItems = [], onToggleSelection }) {
-
-	
-
 	const columns = [
 		{
 			Header: "Select",

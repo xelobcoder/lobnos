@@ -183,9 +183,9 @@ export const handleSeverSideProcessingRejectedSample = async (pagination) => {
 
 
 
-export const handleServerSideProcessingSampleValidation = async ({ page, count }) => {
+export const handleServerSideProcessingSampleValidation = async ({ page, count ,startDate,endDate}) => {
 	try {
-		const fetchInitialData = await customFetch(`sample/client/list/unvalidated?count=${count}&page=${page}`);
+		const fetchInitialData = await customFetch(`sample/client/list/unvalidated?count=${count}&page=${page}&&startDate=${startDate}&&endDate=${endDate}`);
 		const { result } = fetchInitialData;
 		if (Array.isArray(result))
 			if (result && Array.isArray(result)) {

@@ -17,6 +17,7 @@
   --text-color: black;
   --prime-attention: #ff6a00;
   --prime-links-font-family: "Lexend Deca", Helvetica, Arial, sans-serif;
+  --prime-font-family: 'Ralleway', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   --prime-ui-font-family: "Montserrat", sans-serif;
   --custom-orange: #feb602;
   --custom-dark_blue: #142a5e;
@@ -40,6 +41,7 @@
 
 * {
   /* font-family: var(--prime-links-font-family); */
+  font-family: var(--prime-font-family) !important;
 }
 
 .ui-sm {

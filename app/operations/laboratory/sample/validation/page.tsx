@@ -5,20 +5,37 @@ import SampleValidationComponent from '../../../../../components/samples/SampleV
 
 export default async function Page() {
     try {
-        const fetchInitialData = await customFetch(`sample/client/list/unvalidated?count=10&page=1`);
+        const today = new Date().toISOString().split('T')[0];
+        const fetchInitialData = await customFetch(
+            `sample/client/list/unvalidated?count=10&page=1&startDate=${today}&endDate=${today}`
+        );
 
         const { result } = fetchInitialData;
         if (result && Array.isArray(result)) {
-            return <SampleValidationComponent data={result} />
+            return (
+                <SampleValidationComponent 
+                    data={result}
+                    initialStartDate={today}
+                    initialEndDate={today}
+                />
+            );
         } else {
-            return <SampleValidationComponent data={[]} />
+            return (
+                <SampleValidationComponent 
+                    data={[]}
+                    initialStartDate={today}
+                    initialEndDate={today}
+                />
+            )
         }
 
     } catch (err) {
-        <Container>
-            <Alert dismissible variant="danger" className='pls-color'>
-                Failed to load pending cases. Please try again later.
-            </Alert>
-        </Container >
+        return (
+            <Container>
+                <Alert dismissible variant="danger" className='pls-color'>
+                    Failed to load pending cases. Please try again later.
+                </Alert>
+            </Container >
+        );
     }
 }
