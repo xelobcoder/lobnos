@@ -2,21 +2,24 @@ import React from "react";
 import { Dropdown } from 'react-bootstrap';
 import { RiMoreLine, RiCheckLine, RiCloseLine } from '@remixicon/react';
 import { useUltrasoundContext } from "./UltrasoundContext";
-import Pagination from "../../accessories/pagination";
 import { generateRandomTextAndNumbers, PrepareResultEntryHeader } from "../../Auth/customFetch";
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { useApplication } from "../../Auth/useApplicationContext";
+import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
+
 
 export default function AscentionUltrasoundUnCompletedTable() {
-	const { isLoading, collection, queryParams, setLoadPage, updatePageValue ,} = useUltrasoundContext();
+	const { isLoading, collection, queryParams } = useUltrasoundContext();
 	const branchid = useApplication().branchid;
 	const handlePrintResult = (row) => {
 		let { billingid, name, id, patientid, ascensionid } = row;
 		billingid = `${generateRandomTextAndNumbers(70)}${billingid}`;
 		patientid = `${generateRandomTextAndNumbers(50)}${patientid}`;
 		window.open(`${process.env.PLS_PDF_GENERATOR}result/pdf/generate?csvid=${billingid}&&ptid=${patientid}&&target=70,50&&ascensionId=${ascensionid}&&testname=${name}&&testid=${id}&&isUltrasound=true&&isMultiple=false&&password&&is_password_encrypted=false`, "_blank");
-	// window.open(`/ultrasound/report?csvid=${billingid}&&ptid=${patientid}&&target=70,50&&ascensionId=${ascensionid}&&testname=${name}&&testid=${id}&&isUltrasound=true&&isMultiple=false&&password&&is_password_encrypted=false`)
+		// window.open(`/ultrasound/report?csvid=${billingid}&&ptid=${patientid}&&target=70,50&&ascensionId=${ascensionid}&&testname=${name}&&testid=${id}&&isUltrasound=true&&isMultiple=false&&password&&is_password_encrypted=false`)
 	};
+
+	console.log(queryParams)
 
 	const columns = [
 		{
@@ -67,7 +70,7 @@ export default function AscentionUltrasoundUnCompletedTable() {
 						<RiMoreLine size={16} />
 					</Dropdown.Toggle>
 					<Dropdown.Menu>
-						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original, true,branchid)}>
+						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original, true, branchid)}>
 							<RiCheckLine size={16} className="me-1" /> Enter result
 						</Dropdown.Item>
 						<Dropdown.Item onClick={() => handlePrintResult(row.original)}>
@@ -87,10 +90,12 @@ export default function AscentionUltrasoundUnCompletedTable() {
 
 	return (
 		<div>
-			<PrimeTable column={columns} data={collection} />
-			<div className="d-flex justify-content-center">
-				<Pagination page={queryParams.page} updateFunction={updatePageValue} load={setLoadPage} />
-			</div>
+			<PrimeTable
+				column={columns}
+				data={collection}
+				urlparams={{...queryParams, isUltrasound: true }}
+				serverSideFiltering={true}
+				handleSeverSideProcessing={handleServerSideProcessingAscensionData } />
 		</div>
 	);
 }

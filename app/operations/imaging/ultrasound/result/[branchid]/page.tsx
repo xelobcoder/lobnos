@@ -18,6 +18,14 @@ interface Field {
 	value: string;
 }
 
+interface ClinicalHistoryResponse {
+	id: number;
+	ascensionid: number;
+	clinical_history: string;
+	created_at: string;
+	updated_at: string;
+}
+
 export default function EnterResultUltrasound() {
 	const { user } = useApplicationSettings().applicationsettings;
 	const employeeid = user?.employeeid;
@@ -128,6 +136,8 @@ export default function EnterResultUltrasound() {
 		return status ? toast.success(message) : toast.error(message);
 	}
 
+
+
 	useEffect(() => {
 		setLoading(true);
 		const gettingFields = async () => {
@@ -140,7 +150,10 @@ export default function EnterResultUltrasound() {
 					`testpanel/list/customtestrule/previous?testid=${testid}&&ptid=${urlpatientid}&&csvid=${urlbillingid}`
 				);
 
-				const [resultResponse, commentsResponse] = await Promise.all([testResultFetch, commentsFetch]);
+
+				const clinicalHistoryFetch = customFetch(`ultrasound/chx/ascension/${ascensionid}`);
+
+				const [resultResponse, commentsResponse, clinicalHistoryResponse] = await Promise.all([testResultFetch, commentsFetch, clinicalHistoryFetch]);
 
 				const updatesResultForm = (data: { testname: string; result: Field[] }) => {
 					const { testname, result } = data;
@@ -156,8 +169,15 @@ export default function EnterResultUltrasound() {
 					setImpression(data.comments);
 				};
 
+				const updatesClinicalHistoryForm = (data: ClinicalHistoryResponse) => {
+					if (data && data.clinical_history && data.ascensionid) {
+						setClinicalHistory(data.clinical_history);
+					}
+				};
+
 				updatesResultForm(resultResponse);
 				updatesCommentsForm(commentsResponse);
+				updatesClinicalHistoryForm(clinicalHistoryResponse);
 				setLoading(false);
 			} catch (err) {
 				console.log(err);
@@ -165,7 +185,9 @@ export default function EnterResultUltrasound() {
 				setImpression("");
 			}
 		};
-		if (urlbillingid && urlpatientid && ascensionid) gettingFields();
+		if (urlbillingid && urlpatientid && ascensionid) {
+			gettingFields();
+		}
 		fetchTemplates();
 	}, [urlbillingid, urlpatientid, ascensionid, scan]);
 

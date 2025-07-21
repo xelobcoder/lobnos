@@ -12,8 +12,6 @@ import ActivationStatus from '../../../components/analytics/patients-analytics/c
 import OccupationDistribution from '../../../components/analytics/patients-analytics/components/OccupationDistribution';
 import MissingDataAnalysis from '../../../components/analytics/patients-analytics/components/MissingDataAnalysis';
 import DuplicateRecords from '../../../components/analytics/patients-analytics/components/DuplicateRecords';
-import CombinedAttributes from '../../../components/analytics/patients-analytics/components/CombinedAttributes';
-import HighValuePatients from '../../../components/analytics/patients-analytics/components/HighValuePatients';
 import Dashboards from '../../../components/analytics/patients-analytics/components/Dashboards';
 
 
