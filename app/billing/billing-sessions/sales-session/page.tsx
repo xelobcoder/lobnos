@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { Table, Pagination, Spinner, Alert, Container, Row, Col, Badge, Button } from 'react-bootstrap';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { Spinner, Alert, Container, Row, Col, Badge, Button } from 'react-bootstrap';
 import { currencyFormatter, customFetch, customPost } from '../../../../components/Auth/customFetch';
 import styles from './SessionTable.module.css';
 import { RiAddBoxFill } from '@remixicon/react';
 import { useRouter } from 'next/navigation';
 import EndSessionModal from './EndSessionModal';
+import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
 
 interface SessionData {
 	sessionid: number;
@@ -50,12 +51,12 @@ export default function SessionsTable() {
 	const [employeesList, setEmployeesList] = useState<Employee[]>([]);
 	const router = useRouter();
 
-	const fetchSessions = useCallback(async (page: number, limit: number) => {
+	const fetchSessions = useCallback(async () => {
 		setIsLoading(true);
 		setError(null);
 		try {
 			const response: SessionsApiResponse = await customFetch(
-				`billing/sales/session/list?page=${page}&limit=${limit}`
+				`billing/sales/session/list?page=${currentPage}&limit=${ITEMS_PER_PAGE}`
 			);
 
 			if (response && response.data) {
@@ -88,9 +89,9 @@ export default function SessionsTable() {
 	}, []);
 
 	useEffect(() => {
-		fetchSessions(currentPage, ITEMS_PER_PAGE);
+		fetchSessions();
 		fetchEmployees();
-	}, [currentPage, fetchSessions, fetchEmployees]);
+	}, [ fetchSessions, fetchEmployees]);
 
 	const handlePageChange = (pageNumber: number) => {
 		if (pageNumber >= 1 && pageNumber <= totalPages && pageNumber !== currentPage) {
@@ -121,26 +122,87 @@ export default function SessionsTable() {
 		setShowEndModal(true);
 	};
 
-	const handleEndSessionConfirm = async (handoverAmount: number, validatedBy: number) => {
-		setIsLoading(true);
-		try {
-			const response = await customPost(`billing/sales/session/${selectedSessionId}/end`, "POST", {
-				handover_amount: handoverAmount,
-				validated_by: validatedBy
-			});
+	const columns = useMemo(() => [
+		{
+			Header: 'ID',
+			accessor: (row: SessionData, index: number) => index + 1,
+			id: 'id',
+		},
+		{
+			Header: 'Branch',
+			accessor: 'branchname',
+		},
+		{
+			Header: 'Session Date',
+			accessor: 'sessiondate',
+			Cell: ({ value }: { value: string }) => formatDate(value),
+		},
+		{
+			Header: 'Started By',
+			accessor: 'started_by_username',
+		},
+		{
+			Header: 'Till For',
+			accessor: 'received_by_username',
+		},
+		{
+			Header: 'Opening Amt.',
+			accessor: 'openingamount',
+			Cell: ({ row, value }: { row: { original: SessionData }, value: string }) => (
+				<span className={`border ${row.original.sessionendedon ? 'bg-success' : 'bg-danger'} text-white px-2 py-1 rounded`}>
+					{currencyFormatter.format(parseFloat(value) || 0)}
+				</span>
+			),
+		},
+		{
+			Header: 'Ended On',
+			accessor: 'sessionendedon',
+			Cell: ({ value }: { value: string | null }) => 
+				value ? formatDate(value) : <span>-</span>,
+		},
+		{
+			Header: 'Validated By',
+			accessor: 'validated_by_username',
+			Cell: ({ value }: { value: string }) => value || '-',
+		},
+		{
+			Header: 'Handover Amt.',
+			accessor: 'handingoveramount',
+			Cell: ({ value }: { value: number }) => 
+				value ? currencyFormatter.format(value) : '-',
+		},
+		{
+			Header: 'Status',
+			accessor: 'sessionendedon',
+			Cell: ({ value }: { value: string | null }) => 
+				value ? (
+					<Badge pill className={styles.statusBadgeEnded}>Ended</Badge>
+				) : (
+					<Badge pill className={styles.statusBadgeActive}>Active</Badge>
+				),
+			id: 'status',
+		},
+		{
+			Header: 'Actions',
+			accessor: 'sessionid',
+			Cell: ({ row }: { row: { original: SessionData } }) => (
+				!row.original.sessionendedon && (
+					<Button
+						variant="outline-danger"
+						size="sm"
+						onClick={() => handleEndSessionClick(row.original.sessionid)}
+						disabled={isLoading}
+						title="End Session"
+					>
+						End Session
+					</Button>
+				)
+			),
+			id: 'actions',
+		},
+	], [isLoading]);
 
-			if (response && response.status === 'success') {
-				setShowEndModal(false);
-				fetchSessions(currentPage, ITEMS_PER_PAGE);
-			} else {
-				throw new Error(response?.message || 'Failed to end session');
-			}
-		} catch (err: any) {
-			setError(err.message || 'Failed to end session.');
-		} finally {
-			setIsLoading(false);
-		}
-	};
+	
 
 	if (isLoading && sessions.length === 0 && !error) {
 		return (
@@ -171,126 +233,19 @@ export default function SessionsTable() {
 							<Alert variant="danger" onClose={() => setError(null)} dismissible className="mb-3">
 								<Alert.Heading as="h5" style={{ fontSize: '1rem' }}>Error</Alert.Heading>
 								<p style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>{error}</p>
-								<Button onClick={() => fetchSessions(1, ITEMS_PER_PAGE)} variant="outline-danger" size="sm">
+								<Button onClick={() => fetchSessions()} variant="outline-danger" size="sm">
 									Try Again
 								</Button>
 							</Alert>
 						)}
 
-						<Table responsive hover className="align-middle">
-							<thead className={styles.tableHeader}>
-								<tr>
-									<th className="fw-bold text-nowrap">ID</th>
-									<th className="fw-bold text-nowrap">Branch</th>
-									<th className="fw-bold text-nowrap">Session Date</th>
-									<th className="fw-bold text-nowrap">Started By</th>
-									<th className="fw-bold text-nowrap">Till For</th>
-									<th className={`fw-bold text-nowrap`}>Opening Amt.</th>
-									<th className="fw-bold text-nowrap">Ended On</th>
-									<th className="fw-bold text-nowrap">Validated By</th>
-									<th className="fw-bold text-nowrap">Handover Amt.</th>
-									<th className="fw-bold text-nowrap">Status</th>
-									<th className="fw-bold text-nowrap text-center">Actions</th>
-								</tr>
-							</thead>
-							<tbody>
-								{sessions.length > 0 ? (
-									sessions.map((session, index) => (
-										<tr key={session.sessionid}>
-											<td style={{ fontSize: '0.8em' }}>{index + 1}</td>
-											<td style={{ fontSize: '0.8em' }}>{session.branchname}</td>
-											<td style={{ fontSize: '0.8em' }}>{formatDate(session.sessiondate)}</td>
-											<td style={{ fontSize: '0.8em' }}>{session.started_by_username}</td>
-											<td style={{ fontSize: '0.8em' }}>{session.received_by_username}</td>
-											<td className={` border ${session.sessionendedon ? 'bg-success' : 'bg-danger'} text-white`} style={{ fontSize: '0.8em' }}>{currencyFormatter.format(parseFloat(session.openingamount) || 0)}</td>
-											<td style={{ fontSize: '0.8em' }}>{session.sessionendedon ? formatDate(session.sessionendedon) : <span >-</span>}</td>
-											<td style={{ fontSize: '0.8em' }}>{session.validated_by_username || '-'}</td> {/* Added this cell */}
-											<td style={{ fontSize: '0.8em' }}>{session.handingoveramount ? currencyFormatter.format(session.handingoveramount) : '-'}</td> {/* Added this cell */}
-											<td style={{ fontSize: '0.8em' }}>
-												{session.sessionendedon ? (
-													<Badge pill className={styles.statusBadgeEnded}>Ended</Badge>
-												) : (
-													<Badge pill className={styles.statusBadgeActive}>Active</Badge>
-												)}
-											</td>
-											<td className={`text-muted ${styles.tableCellActions} text-center`} style={{ fontSize: '0.8em' }}>
-												{!session.sessionendedon && (
-													<Button
-														variant="outline-danger"
-														size="sm"
-														onClick={() => handleEndSessionClick(session.sessionid)}
-														disabled={isLoading}
-														title="End Session"
-													>
-														End Session
-													</Button>
-												)}
-											</td>
-										</tr>
-									))
-								) : (
-									<tr>
-										<td className="text-muted text-center py-4" style={{ fontSize: '0.8em' }} colSpan={9}>
-											No sessions found.
-										</td>
-									</tr>
-								)}
-							</tbody>
-						</Table>
-
-						{totalPages > 1 && (
-							<div className={`${styles.paginationContainer} d-flex justify-content-end mt-3`}>
-								<Pagination size="sm" className="gap-1">
-									<Pagination.First
-										onClick={() => handlePageChange(1)}
-										disabled={currentPage === 1 || isLoading}
-										className="rounded-1"
-									/>
-									<Pagination.Prev
-										onClick={() => handlePageChange(currentPage - 1)}
-										disabled={currentPage === 1 || isLoading}
-										className="rounded-1"
-									/>
-									{Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => {
-										const showPage = Math.abs(pageNumber - currentPage) < 2 ||
-											pageNumber === 1 || pageNumber === totalPages ||
-											(currentPage <= 3 && pageNumber <= 4) ||
-											(currentPage >= totalPages - 2 && pageNumber >= totalPages - 3);
-
-										if ((pageNumber === 2 && currentPage > 3 && totalPages > 5) ||
-											(pageNumber === totalPages - 1 && currentPage < totalPages - 2 && totalPages > 5)) {
-											if ((pageNumber === 2 && currentPage > 4) || (pageNumber === totalPages - 1 && currentPage < totalPages - 3))
-												return <Pagination.Ellipsis key={`ellipsis-${pageNumber}`} disabled />;
-										}
-
-										if (showPage || totalPages <= 5) {
-											return (
-												<Pagination.Item
-													key={pageNumber}
-													active={pageNumber === currentPage}
-													onClick={() => handlePageChange(pageNumber)}
-													disabled={isLoading}
-													className="rounded-1"
-												>
-													{pageNumber}
-												</Pagination.Item>
-											);
-										}
-										return null;
-									})}
-									<Pagination.Next
-										onClick={() => handlePageChange(currentPage + 1)}
-										disabled={currentPage === totalPages || isLoading}
-										className="rounded-1"
-									/>
-									<Pagination.Last
-										onClick={() => handlePageChange(totalPages)}
-										disabled={currentPage === totalPages || isLoading}
-										className="rounded-1"
-									/>
-								</Pagination>
-							</div>
-						)}
+						<PrimeTable
+							column={columns}
+							data={sessions}
+							filtering={true}
+							serverSideFiltering={false}
+							handleSeverSideProcessing={() => {}}
+						/>
 					</div>
 				</Col>
 			</Row>
@@ -298,8 +253,8 @@ export default function SessionsTable() {
 				show={showEndModal}
 				onHide={() => setShowEndModal(false)}
 				sessionId={selectedSessionId || 0}
-				onConfirm={handleEndSessionConfirm}
 				isLoading={isLoading}
+				onConfirm={fetchSessions}
 				employeesList={employeesList}
 			/>
 		</div>

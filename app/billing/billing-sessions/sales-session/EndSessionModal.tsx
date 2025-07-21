@@ -33,7 +33,7 @@ interface EndSessionModalProps {
      show: boolean;
      onHide: () => void;
      sessionId: number;
-     onConfirm: (handoverAmount: number, validatedBy: number) => void;
+     onConfirm: () => void;
      isLoading: boolean;
      employeesList: Employee[];
 }
@@ -78,7 +78,7 @@ export default function EndSessionModal({
                if (!isNaN(amount) && !isNaN(validator)) {
                     if (
                          sessionSummary &&
-                         Number(amount) !== Number(sessionSummary.totalPayable) &&
+                         Number(amount) !== Number(sessionSummary.expectedAmount) &&
                          reason.trim() === ''
                     ) {
                          setShowReason(true);
@@ -87,7 +87,7 @@ export default function EndSessionModal({
                          return;
                     }
                     setShowReason(false);
-                    onConfirm(amount, validator);
+                    onConfirm();
                }
 
                const responseEndSession = await customPost(`billing/sales/session/endsession`, 'PUT',
