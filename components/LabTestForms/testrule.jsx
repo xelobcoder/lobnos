@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { customPost, handleComments } from "../Auth/customFetch";
 import Indicator from "../accessories/Reports/indicator";
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import Loader from "../accessories/Loader";
 import ResultEntryMainEntryBase from "./ResultEntryMainEntryBase";
 import moment from "moment";
@@ -85,15 +85,17 @@ export default function CreateTestRule({ clientdata }) {
 		setRule(newRule);
 	};
 
+	const [isSaving, setIsSaving] = useState(false);
+
 	const handleSubmit = async () => {
 		try {
+			setIsSaving(true);
 			const transformed = rule.map((item) => {
 				return { field: item?.name, value: item?.value, fieldid: item?.id, originalvalue: item?.value };
 			});
 			const allHasValues = transformed.some((a) => a.value == "");
-			if (allHasValues) {
-				toast.error("Some fields are empty", { autoClose: 2000 });
-			}
+			if (allHasValues) 	toast.error("Some fields are empty", { autoClose: 2000 });
+
 			const data = {
 				fields: transformed,
 				csvid: billingid,
@@ -117,6 +119,8 @@ export default function CreateTestRule({ clientdata }) {
 			}
 		} catch (err) {
 			toast.error("Something went wrong", { autoClose: 1000 });
+		} finally {
+			setIsSaving(false);
 		}
 	};
 
@@ -164,7 +168,6 @@ export default function CreateTestRule({ clientdata }) {
 
 	return (
 		<div>
-			<ToastContainer theme="colored" position="top-center" className={'text-sm'} />
 			<section className="card rounded-4 border-0 mx-auto my-4" style={{ maxWidth: 800, background: '#f9fafb' }}>
 				<div style={{ backgroundColor: '#e9ecef', borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem', borderBottom: '1px solid #ececec', fontSize: '1rem' }} className="card-header d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 fw-bold">
 					<div className="btn-group mb-2 mb-md-0 align-items-center" role="group" aria-label="result form entry label ">
@@ -218,7 +221,8 @@ export default function CreateTestRule({ clientdata }) {
 							isPinUsed={result.isPinOnResultEntry}
 							handleSubmit={handleSubmit}
 							handleCreateFields={handleCreateFields}
-							handlestate={handlestate} />
+							handlestate={handlestate}
+							isloading={isSaving} />
 					</div>
 				</div>
 			</section>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { customFetch } from '../../../../components/Auth/customFetch';
 import PhelobotomyMainPageClientModule from '../../../../components/phelobotomy/ReceiveLabSampleModal/PhelobotomyMainPageClientModule';
 import { Container, Alert, Button, Spinner } from 'react-bootstrap';
@@ -12,6 +12,7 @@ export default function PagePhelobotomy() {
         start_date: new Date().toISOString().split('T')[0], 
         end_date: new Date().toISOString().split('T')[0] 
     });
+    
 
     const handleLoad = async () => {
         setLoading(true);
@@ -26,6 +27,10 @@ export default function PagePhelobotomy() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        handleLoad();
+    }, []);
 
     return (
         <div>

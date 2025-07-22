@@ -25,10 +25,8 @@ export default function CollectionSampleModal({
 	const [multipleSelected, setMultipleSelected] = useState([]);
 	const [fullscreen, setFullscreen] = useState(false);
 
-	// Check if this is multi-processing mode
+
 	const isMultiProcessing = collections.length > 0;
-
-
 	const fetchClientAscension = useCallback(async (id) => {
 		if (!id) return;
 		await getDataAndUpdateState(setTestCollection,
@@ -39,7 +37,6 @@ export default function CollectionSampleModal({
 	useEffect(() => {
 		if (show) {
 			fetchClientAscension(billingid);
-			// Reset modal selections when opening
 			setMultipleSelected([]);
 			setAllCollected(false);
 		}
@@ -87,26 +84,19 @@ export default function CollectionSampleModal({
 	};
 
 	const handleSubmit = async () => {
-		setLoading(true);
-		const collectedIds = multipleSelected;
-		setTestCollection((prev) =>
-			prev.filter(item => !collectedIds.includes(item.testid))
-		);
-
-		// Remove the processed sample from the main list
-		removeCollectedSample(billingid);
-		setLoading(false);
-
-		// If in multi-processing mode, automatically move to next item
-		if (isMultiProcessing) {
-			// Small delay to ensure state updates complete
-			setTimeout(() => {
-				if (onNextItem) {
-					onNextItem();
-				}
-			}, 500);
-		}
-	};
+	setLoading(true);
+	const collectedIds = multipleSelected;
+	setTestCollection((prev) => prev.filter(item => !collectedIds.includes(item.testid)));
+	removeCollectedSample(billingid);
+	setLoading(false);
+	if (isMultiProcessing) {
+		setTimeout(() => {
+			if (onNextItem) {
+				onNextItem();
+			}
+		}, 500);
+	}
+};
 
 	const toggleMultipleSelection = (ev, item) => {
 		const { checked } = ev.target;

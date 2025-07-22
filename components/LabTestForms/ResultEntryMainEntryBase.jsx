@@ -2,7 +2,7 @@ import ResultEntryHtmlGenerator from "../Auth/ResultEntryHtmlGenerator";
 import CommentSection from "./commentSection";
 import ResultEntryDrugsForm from "./ResultEntryDrugsForm";
 
-export default function ResultEntryMainEntryBase({ handlestate, handleCreateFields, rule = [], handleSubmit, setComments, comments, handleComments, isPinUsed, hasDrugs, setModifiedDrugs, ascensionid, testid }) {
+export default function ResultEntryMainEntryBase({ handlestate, handleCreateFields, rule = [], handleSubmit, setComments, comments, handleComments, isPinUsed, hasDrugs, setModifiedDrugs, ascensionid, testid, isloading }) {
 	return (
 		<section>
 			<div className="table-responsive my-2">
@@ -39,8 +39,8 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 					</div>
 				)}
 				<div>
-					<button onClick={handleSubmit} className="btn btn-primary btn-sm my-2 mx-1">
-						Save changes
+					<button onClick={handleSubmit} className="btn btn-primary btn-sm my-2 mx-1" disabled={isloading}>
+						{isloading ? 'Saving...' : 'Save changes'}
 					</button>
 				</div>
 			</div>

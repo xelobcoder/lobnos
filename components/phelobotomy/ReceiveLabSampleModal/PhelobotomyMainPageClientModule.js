@@ -79,10 +79,8 @@ export default function PhelobotomyMainPageClientModule({ data }) {
 
 	const handleSelectAll = () => {
 		if (selectedItems.length === localData.length) {
-			// If all are selected, clear selection
 			setSelectedItems([]);
 		} else {
-			// Select all items
 			setSelectedItems([...localData]);
 		}
 	};
@@ -154,7 +152,8 @@ export default function PhelobotomyMainPageClientModule({ data }) {
 				handleCollectSample={handleCollectSample}
 				selectedItems={selectedItems}
 				onToggleSelection={handleToggleSelection}
-			/>			{/* Modals */}
+			/>	
+					
 			<CollectionSampleModal
 				show={showModal}
 				hide={hideModal}

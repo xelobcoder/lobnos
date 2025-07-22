@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 export default function ApplicationUsersPage({ users }) {
 	const [advanced, setAdvanced] = useState(false);
 	const [filters, setFiltering] = useState({ name: '', role: '', email: "", contact: '' });
-const router = useRouter();
+	const router = useRouter();
 
 	const updatePage = (value) => {
 		if (value === pagequery.page) return;
@@ -25,13 +25,14 @@ const router = useRouter();
 			const { statusCode, message, result } = response;
 			if (statusCode === 200) {
 				alert(message);
+				router.refresh();
 			}
 		}
 	}
 
 
 
-	
+
 
 
 	return (
@@ -41,14 +42,14 @@ const router = useRouter();
 					<RiTeamLine className="text-primary" size={24} />
 					<h2 className='h4 mb-0 text-primary'>Employee Management</h2>
 				</div>
-				
+
 				<div className='d-flex gap-3'>
-					<button 
-					className='btn btn-primary btn-sm d-flex align-items-center gap-2'
-					onClick={() => router.push('/authentication/register')}
+					<button
+						className='btn btn-primary btn-sm d-flex align-items-center gap-2'
+						onClick={() => router.push('/authentication/register')}
 					>
-					<RiUserAddLine size={18} />
-					Add New Employee
+						<RiUserAddLine size={18} />
+						Add New Employee
 					</button>
 				</div>
 			</div>

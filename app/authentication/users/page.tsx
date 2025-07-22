@@ -3,34 +3,34 @@ import ApplicationUsersPage from '../../../components/settingsComponents/Applica
 import { customFetch } from '../../../components/Auth/customFetch';
 
 export default async function Page() {
-    let result: any[] = [];
-    let errorMessage: string | null = null;
-    const query = { count: 10, page: 1, name: '', role: '', email: "", contact: '' };
+	let result: any[] = [];
+	let errorMessage: string | null = null;
+	const query = { count: 10, page: 1, name: '', role: '', email: "", contact: '' };
 
-    const queryParams = new URLSearchParams({
-        count: String(query.count),
-        page: String(query.page),
-        name: query.name,
-        email: query.email,
-        role: query.role,
-        contact: query.contact,
-    });
+	const queryParams = new URLSearchParams({
+		count: String(query.count),
+		page: String(query.page),
+		name: query.name,
+		email: query.email,
+		role: query.role,
+		contact: query.contact,
+	});
 
-    try {
-        const response = await customFetch(`logins?${queryParams.toString()}`);
-        if (response?.result && Array.isArray(response?.result)) {
-            result = response.result;
-        }
-    } catch (error) {
-        errorMessage = 'Failed to fetch data. Please try again later.';
-        return errorMessage && (
-            <div className="alert alert-danger" role="alert">
-                {errorMessage}
-            </div>
-        )
-    }
+	try {
+		const response = await customFetch(`logins?${queryParams.toString()}`);
+		if (response?.result && Array.isArray(response?.result)) {
+			result = response.result;
+		}
+	} catch (error) {
+		errorMessage = 'Failed to fetch data. Please try again later.';
+		return errorMessage && (
+			<div className="alert alert-danger" role="alert">
+				{errorMessage}
+			</div>
+		)
+	}
 
-    return (
-        <ApplicationUsersPage users={result} />
-    );
+	return (
+		<ApplicationUsersPage users={result} />
+	);
 }
