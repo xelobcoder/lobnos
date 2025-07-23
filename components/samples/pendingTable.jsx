@@ -12,6 +12,7 @@ import { customFetch } from '../Auth/customFetch';
 export default function SampleValidationComponent({ data: initialData, initialStartDate = '', initialEndDate = '', removeClient }) {
 	const [data, setData] = useState(initialData);
 	const [loading, setLoading] = useState(false);
+	const [sortBy, setSortBy] = useState('DESC');
 	const [showAssesModal, setShowAssesModal] = useState(false);
 	const [target, setTarget] = useState(null);
 	const [multiMode, setMultiMode] = useState(false);
@@ -47,11 +48,9 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 	const handleLoadData = async () => {
 		setLoading(true);
 		try {
-			let url = 'sample/client/list/unvalidated?count=10&page=1';
+			let url = 'sample/client/list/unvalidated?count=10&page=1&&sortby=' + sortBy;
 			if (startDate) url += `&startDate=${startDate}`;
 			if (endDate) url += `&endDate=${endDate}`;
-
-			console.log('Fetching data with date range:', { startDate: startDate || 'not set', endDate: endDate || 'not set' });
 			const fetchResponse = await customFetch(url);
 			const { result } = fetchResponse;
 			if (result && Array.isArray(result) && result.length > 0) {
@@ -121,8 +120,12 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 		{
 			Header: "Billing ID",
 			accessor: "billingid",
-			Cell: function ({ value }) {
-				return <div className="text-monospace">{value}</div>;
+			Cell: function ({row}) {
+				return <div className="text-monospace">
+					<span className="text-muted">BillingId:{row.original.billingid}</span>
+					<br />
+					<span className="text-muted"> Ascensionid: ASC-{row.original.ascensionid} </span>
+				</div>;
 			}
 		},
 		{
@@ -131,7 +134,7 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 			Cell: function ({ row }) {
 				const item = row.original;
 				return (
-					<div className="d-flex justify-content-end">
+					<div className="d-flex ">
 						<button
 							className="btn btn-primary btn-sm d-flex align-items-center"
 							onClick={(ev) => {
@@ -198,8 +201,19 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 							style={{ maxWidth: '150px' }}
 							value={endDate}
 							onChange={(e) => setEndDate(e.target.value)}
-							min={startDate} // Ensure end date is not before start date
+							min={startDate} 
 						/>
+					</div>
+					<div>
+						<select className='form-select form-select-sm' onChange={(e) => {
+							const sortValue = e.target.value;
+							setSortBy(sortValue);
+						}} defaultValue="DESC">
+							<option value="" disabled>Sort By</option>
+							<option value="">Default</option>
+							<option value="DESC">Sort by Date (Newest)</option>
+							<option value="ASC">Sort by Date (Oldest)</option>
+						</select>
 					</div>
 					<button
 						className="btn btn-primary btn-sm d-flex align-items-center gap-1"
@@ -256,7 +270,7 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 							handleSeverSideProcessing={handleServerSideProcessingSampleValidation}
 							data={data}
 							filtering={false}
-							urlparams={{ startDate, endDate }}
+							urlparams={{ startDate, endDate , sortBy }}
 							serverSideFiltering={true}
 							className="table-striped table-hover"
 						/>

@@ -7,7 +7,7 @@ export default async function Page() {
     try {
         const today = new Date().toISOString().split('T')[0];
         const fetchInitialData = await customFetch(
-            `sample/client/list/unvalidated?count=10&page=1&startDate=${today}&endDate=${today}`
+            `sample/client/list/unvalidated?count=10&page=1&startDate=${today}&endDate=${today}&&sortby=DESC`
         );
 
         const { result } = fetchInitialData;

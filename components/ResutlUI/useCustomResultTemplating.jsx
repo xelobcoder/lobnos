@@ -42,7 +42,7 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
 				</span>
 			</h5>
 			<table className={isResultView ? "alpha-result-table" : "table billing-cart-table"} >
-				<thead className={isResultView ? "table-warning" : "table-secondary"} >
+				<thead className="table-warning">
 					<tr>
 						<th scope="col" >Parameter</th>
 						<th scope="col">Value</th>

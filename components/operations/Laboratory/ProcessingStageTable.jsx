@@ -163,7 +163,9 @@ export default function AscensionProcessingTable() {
                     searchString: queryParams.searchString,
                     _dateEnd: queryParams._dateEnd,
                     isUltrasound: queryParams.isUltrasound,
-                    employeeid, ascension_stage: 'PROCESSING'
+                    employeeid, ascension_stage: 'PROCESSING',
+				branchid: queryParams.branchid,
+				sortby: queryParams.sortby
                 }}
                 handleSeverSideProcessing={handleServerSideProcessingAscensionData}
                 serverSideFiltering={true} />

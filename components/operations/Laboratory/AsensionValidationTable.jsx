@@ -48,7 +48,27 @@ export default function ValidationAscensionTable({ employeeid }) {
 		{ Header: "Fullname", accessor: "fullname", width: 150, Cell: ({ value, row }) => <div className="text-uppercase">{value}<br />{row.original.age}</div> },
 		{ Header: "Patient ID", accessor: "fullpatientid", width: 60 },
 		{ Header: "Test Name", accessor: "name", width: 150 },
-		{ Header: "Processing", accessor: "processing", width: 150 },
+		{ Header: "Processing", accessor: "processing", width: 150,
+		  Cell: ({ row }) => (
+			<div className="list-group p-0 bg-secondary-subtle">
+			  <span className="list-group-item p-0" key={`proc-start-${row.original.patientid}`}>
+				{moment(row.original.processingStartDate).format("LLLL")}
+			  </span>
+			  <span className="list-group-item p-0" key={`proc-end-${row.original.patientid}`}>
+				{moment(row.original.processingEndDate).format("LLLL")}
+			  </span>
+			</div>
+		  )
+		},
+		{ Header: "Department", accessor: "department", width: 120 },
+		{ Header: "Clinician", accessor: "clinicianName", width: 120, Cell: ({ value }) => value ? value : <span className="text-muted">N/A</span> },
+		{ Header: "Status", accessor: "paymentstatus", width: 80, Cell: ({ value }) => {
+			let badgeClass = "badge bg-secondary";
+			if (value === "paid") badgeClass = "badge bg-success";
+			else if (value === "pending") badgeClass = "badge bg-warning text-dark";
+			else if (value === "partial") badgeClass = "badge bg-info text-dark";
+			return <span className={badgeClass}>{value}</span>;
+		} },
 		{
 			Header: "Results",
 			accessor: "results",

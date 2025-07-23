@@ -14,19 +14,30 @@ export default function LimitViewHtmlGeneratorResultView({ fieldItem, index }) {
      }
 
 
-     return (<tr style={{ fontSize: '14px' }}>
-          <td>  {"> "}{name}</td>
-          <td>
-               {value}
-          </td>
-          <td>
-               {units}
-          </td>
-          <td>
-               {lowerlimit}~{upperlimit}
-          </td>
-          <td>
-               {determineTableColor(value, upperlimit, lowerlimit)}
-          </td>
-     </tr>)
+     const flag = determineTableColor(value, upperlimit, lowerlimit);
+     const rowStyle = flag === 'H' ? { fontWeight: 'bold', fontSize: '14px', background: '#ffeaea' }
+          : flag === 'L' ? { fontWeight: 'bold', fontSize: '14px', background: '#eaf1ff' }
+               : { fontSize: '14px' };
+
+     return (
+          <tr style={rowStyle}>
+               <td>  {"> "}{name}</td>
+               <td>
+                    {flag === 'H' ? <span style={{ color: 'red' }}>{value}</span>
+                         : flag === 'L' ? <span style={{ color: 'blue' }}>{value}</span>
+                              : value}
+               </td>
+               <td>
+                    {units}
+               </td>
+               <td>
+                    {lowerlimit}~{upperlimit}
+               </td>
+               <td>
+                    {flag === 'H' ? <span style={{ color: 'red' }}>H</span>
+                         : flag === 'L' ? <span style={{ color: 'blue' }}>L</span>
+                              : ''}
+               </td>
+          </tr>
+     )
 }

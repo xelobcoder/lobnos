@@ -118,7 +118,7 @@ export const handleRefundServerSideProcessing = async (values: { count: number; 
 export const handleServerSideProcessingAscensionData = async (pagination) => {
 	console.log("Pagination data:", pagination);
 	try {
-		const { page, count, employeeid, ascension_stage, _dateFrom, _dateEnd, isUltrasound, searchString } = pagination;
+		const { page, count, employeeid, ascension_stage, _dateFrom, _dateEnd, isUltrasound, searchString ,sortby} = pagination;
 
 		const parsedFrom = _dateFrom ? formatDate(_dateFrom) : _dateFrom;
 		const parsedEnd = _dateEnd ? formatDate(_dateEnd) : _dateEnd;
@@ -131,14 +131,14 @@ export const handleServerSideProcessingAscensionData = async (pagination) => {
 				`&&page=${page}` +
 				`&&count=${count}` +
 				`&&isUltrasound=${isUltrasound}` +
-				`&&employeeid=${employeeid}`
+				`&&employeeid=${employeeid}`+
+				`&&sortby=${sortby}`
 			);
-			console.log("Server-side processing result:", result);
-			// if (Array.isArray(result)) {
-			// 	return { result, error: false }
-			// } else {
-			// 	return { result: [], error: false }
-			// }
+			if (Array.isArray(result)) {
+				return { result, error: false }
+			} else {
+				return { result: [], error: false }
+			}
 		}
 	} catch (err) {
 		return { result: [], error: true }
@@ -185,9 +185,9 @@ export const handleSeverSideProcessingRejectedSample = async (pagination) => {
 
 
 
-export const handleServerSideProcessingSampleValidation = async ({ page, count ,startDate,endDate}) => {
+export const handleServerSideProcessingSampleValidation = async ({ page, count ,startDate,endDate,sortBy}) => {
 	try {
-		const fetchInitialData = await customFetch(`sample/client/list/unvalidated?count=${count}&page=${page}&&startDate=${startDate}&&endDate=${endDate}`);
+		const fetchInitialData = await customFetch(`sample/client/list/unvalidated?count=${count}&page=${page}&&startDate=${startDate}&&endDate=${endDate}&&sortby=${sortBy}`);
 		const { result } = fetchInitialData;
 		if (Array.isArray(result))
 			if (result && Array.isArray(result)) {

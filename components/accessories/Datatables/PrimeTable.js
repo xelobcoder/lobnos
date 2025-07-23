@@ -108,7 +108,7 @@ export default function PrimeTable({
 			</tr>
 		));
 
-	async function RunServerAction(currentPage, currentCount) {
+	async function RunServerAction(currentPage, currentCount,sortby) {
 		if (
 			typeof handleSeverSideProcessing === "function" &&
 			serverSideFiltering
@@ -118,6 +118,7 @@ export default function PrimeTable({
 				page: currentPage,
 				count: currentCount,
 				...urlparams,
+				sortby
 			});
 
 			if (processedResponse) {
@@ -228,7 +229,7 @@ const RenderingTable = ({ getTableBodyProps }) => {
 			style={{ overflowY: "auto", borderRadius: "10px" }}
 		>
 			<div className="mx-3 my-2 d-flex justify-content-between">
-				<div className="col-3">
+				<div className="col-12 col-md-6 d-flex align-items-center">
 					{handleSeverSideProcessing && (
 						<ShowTableDisplayCount
 							page={queryParams.page}

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, ListGroup, Toast, ToastContainer } from "react-bootstrap";
+import { Modal, Button, Form, ListGroup } from "react-bootstrap";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import PreviewPatientInformation from "../../petientsComponent/PreviewPatientInformation";
 import UseCustomResultTemplating from "../../ResutlUI/useCustomResultTemplating";
 import UseResultCommentSingle from "../../ResutlUI/useResultCommentSingle";
@@ -15,9 +17,7 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
      const [sucessfulValidation, setSuccessfulValidation] = useState(null); 
      const [isApproved, setIsApproved] = useState(false);
      const [isMobile, setIsMobile] = useState(window.innerWidth > 768);
-     const [showToast, setShowToast] = useState(false);
-     const [toastMessage, setToastMessage] = useState('');
-     const [toastColor, setToastColor] = useState('success');
+     // Remove Bootstrap Toast state, use react-toastify
 
      useEffect(() => {
           const handleResize = () => setIsMobile(window.innerWidth > 768);
@@ -58,26 +58,20 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
           const { ascensionid } = selectedAscension;
 
           if (!pinValue || pinValue.toString().length === 0) {
-               setToastMessage('Pin Must be filled before saving');
-               setToastColor("warning");
-               setShowToast(true);
+               toast.warn('Pin Must be filled before saving');
                return;
           }
 
           if (pinValue && isApproved && staff.length > 0) {
                const currentStaffApproval = staff.filter((a) => a.employeeid === employeeid);
                if (currentStaffApproval.length > 0) {
-                    const sendReponse = await customPost(`test/approval/get/staffQualifiedToValidationResult?employeeid=${employeeid}&&ascensionid=${ascensionid}`, 'PUT', currentStaffApproval[0]);
+                    const sendReponse = await customPost(`test/approval/get/staffQualifiedToValidationResult?employeeid=${employeeid}&&ascensionid=${ascensionid}&&ascensionId=${ascensionid}`, 'PUT', currentStaffApproval[0]);
                     const { status } = sendReponse;
                     if (status === true) {
-                         setToastMessage('Validation successful');
-                         setToastColor("success")
+                         toast.success('Validation successful');
                          setSuccessfulValidation(selectedAscension.ascensionid);
-                         setShowToast(true);
                     } else {
-                         setToastMessage(sendReponse?.message);
-                         setToastColor('danger');
-                         setShowToast(true);
+                         toast.error(sendReponse?.message || 'Validation failed');
                          setSuccessfulValidation(null);
                     }
                }
@@ -85,7 +79,7 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
      };
 
      return (
-          <Modal show={show} onHide={onClose} size={isMobile ? "lg" : "fullscreen"} backdrop={false}>
+          <Modal show={show} onHide={onClose} size='xl' backdrop={false}>
                <Modal.Header closeButton className="fw-bold bg-secondary-subtle">
                     <Modal.Title>Result Validation</Modal.Title>
                </Modal.Header>
@@ -153,15 +147,7 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
                     <Button variant="secondary" onClick={(ev) => { onClose(sucessfulValidation)}}>Close</Button>
                     <Button variant="primary" onClick={handleSaveValue}>Validate</Button>
                </Modal.Footer>
-               <ToastContainer position="bottom-center" className="p-3">
-                    <Toast show={showToast}
-                         bg={toastColor} onClose={() => setShowToast(false)} delay={5000} autohide>
-                         <Toast.Header>
-                              <strong className="me-auto">Notification</strong>
-                         </Toast.Header>
-                         <Toast.Body>{toastMessage}</Toast.Body>
-                    </Toast>
-               </ToastContainer>
+               <ToastContainer position="bottom-center" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
           </Modal>
      );
 };

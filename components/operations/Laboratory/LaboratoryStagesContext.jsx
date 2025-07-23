@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from "react";
 import { updatePagination } from "../../Auth/customFetch";
 import { getAscensionData } from "./Lib";
 import { ToastContainer, toast } from "react-toastify";
+import { useApplication } from "../../Auth/useApplicationContext";
 const LaboratoryContext = createContext({ isLoading: true, collection: [] });
 
 
@@ -10,6 +11,7 @@ export function LaboratoryStagesProvider({ children }) {
        const [loadCounter, setLoadCounter] = useState(0);
        const [isLoading, setLoading] = useState(true);
        const [canloadPage, setLoadPage] = useState(false);
+       const branchid = useApplication().branchid;
 
        // Set default date to today in yyyy-mm-dd format
        const today = new Date();
@@ -25,7 +27,8 @@ export function LaboratoryStagesProvider({ children }) {
               page: 1,
               count: 10,
               isUltrasound: false,
-              branchid:null
+              branchid: branchid,
+              sortby: 'DESC',
        });
 
        const updatePageValue = (value) => {
@@ -43,7 +46,6 @@ export function LaboratoryStagesProvider({ children }) {
                      loadCounter, setLoadCounter,
                             setQueryParams, updatePageValue, canloadPage, setLoadPage
               }}>
-                     <ToastContainer theme="colored" position="top-right" className={'text-sm'} />
                      {children}
 
               </LaboratoryContext.Provider>
