@@ -115,7 +115,7 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                          className="btn-sm"
                          variant="primary"
                          onClick={handleSave}
-                         tabIndex={templates.length + 1} 
+                         tabIndex={templates.length + 1}
                     >
                          Save Data
                     </Button>
@@ -123,7 +123,7 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                          className="btn-sm"
                          variant="secondary"
                          onClick={handleCloseModal}
-                         tabIndex={templates.length + 2} // Next in line after "Save Data"
+                         tabIndex={templates.length + 2}
                     >
                          Close
                     </Button>

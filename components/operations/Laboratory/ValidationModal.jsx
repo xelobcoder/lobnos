@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, ListGroup } from "react-bootstrap";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import {toast } from 'react-toastify';
 import PreviewPatientInformation from "../../petientsComponent/PreviewPatientInformation";
 import UseCustomResultTemplating from "../../ResutlUI/useCustomResultTemplating";
 import UseResultCommentSingle from "../../ResutlUI/useResultCommentSingle";
-import { customPost, getResultEntrySettings, ResultEntrydefaultData } from "../../Auth/customFetch";
+import { customFetch, customPost, getResultEntrySettings, ResultEntrydefaultData, validatePin } from "../../Auth/customFetch";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import { getAscensionStaffApproved } from "./Lib";
 
@@ -35,9 +34,11 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
 
      useEffect(() => { getInitData() }, []);
 
-     const handleAddApproved = () => {
+     const handleAddApproved = async () => {
           if (isApproved && pinValue.toString().length > 0) {
-               if (staff.length < resultSettings.maximumResultValidation) {
+               // Validate PIN first
+               const status = await validatePin(employeeid, pinValue);
+               if (status && staff.length < resultSettings.maximumResultValidation) {
                     setIsApproved(true);
                     setStaff([...staff, { username: selectedAscension.fullname, employeeid, ascensionid: selectedAscension.ascensionid }]);
                }
@@ -134,7 +135,7 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
                     {Array.isArray(staff) && staff.length > 0 && (
                          <ListGroup className="my-3">
                               <ListGroup.Item className="bg-secondary-subtle fw-bold">Approved By this Staffs</ListGroup.Item>
-                              {staff.map((item, index) => (
+                              {Array.isArray(staff) && staff.length > 0 && staff.map((item, index) => (
                                    <ListGroup.Item key={index} className="text-capitalize pls-color d-flex justify-content-between">
                                         <span>{item.username}</span>
                                         {role == "admin" && <span><button className="btn  btn-outline-danger btn-sm" disabled>Remove Validation</button></span>}
@@ -147,7 +148,6 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
                     <Button variant="secondary" onClick={(ev) => { onClose(sucessfulValidation)}}>Close</Button>
                     <Button variant="primary" onClick={handleSaveValue}>Validate</Button>
                </Modal.Footer>
-               <ToastContainer position="bottom-center" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
           </Modal>
      );
 };

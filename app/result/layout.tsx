@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
-import '../../styles/result.css'
+import { ApplicationProvider } from '../../components/Auth/useApplicationContext';
+// import '../../styles/result.css'
 
 
 
@@ -11,10 +12,10 @@ export default function ResultLayout({
 }) {
 
      return (
-           <Suspense>
-                <div>
-                 {children}
-            </div>
-            </Suspense>
+         <Suspense>
+                    <ApplicationProvider >
+                              {children}
+                    </ApplicationProvider>
+               </Suspense>
      );
 }

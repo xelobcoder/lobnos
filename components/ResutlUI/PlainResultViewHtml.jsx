@@ -1,28 +1,42 @@
 
-export default function PlainResultPrintingViewHtmlGenerator({ fieldItem }) {
+export default function PlainResultPrintingViewHtmlGenerator({ fieldItem, index, resultsettings }) {
 	const { name, units, value, plain } = fieldItem;
 
-	// Format the plain string into lines with bolded group labels (any label: value)
+	// Get settings from resultsettings or use defaults
+	const settings = resultsettings?.testBody;
+
 	const formatPlain = (plain) => {
 		if (!plain) return '';
-		// Split by space, then by colon
 		return plain.split(/\s+/).map((part, idx) => {
 			const match = part.match(/^([^:]+):(.+)$/);
 			if (match) {
 				return <div key={idx}><b>{match[1].trim()}:</b> {match[2].trim()}</div>;
 			} else {
-				// If not matching, just show as is
 				return <div key={idx}>{part}</div>;
 			}
 		});
 	};
 
 	return (
-		<tr>
-			<td>{">"}{name}</td>
-			<td>{value}</td>
-			<td>{units}</td>
-			<td colSpan={2}>{formatPlain(plain)}</td>
+		<tr
+			style={{
+				fontSize: `${settings?.fontSize}px`,
+				fontFamily: settings?.fontFamily,
+				color: settings?.color
+			}}
+		>
+			<td>
+				<span style={{ fontWeight: settings?.boldenParameter ? '500' : 'normal' }}>{name}</span>
+			</td>
+			<td>
+				<span style={{ fontWeight: settings?.boldenValue ? '500' : 'normal' }}>{value}</span>
+			</td>
+			<td>
+				<span style={{ fontWeight: settings?.boldenUnits ? '500' : 'normal' }}>{units}</span>
+			</td>
+			<td colSpan={2}>
+				<span >{plain}</span>
+			</td>
 		</tr>
 	);
 }

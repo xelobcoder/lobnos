@@ -118,7 +118,7 @@ export const handleRefundServerSideProcessing = async (values: { count: number; 
 export const handleServerSideProcessingAscensionData = async (pagination) => {
 	console.log("Pagination data:", pagination);
 	try {
-		const { page, count, employeeid, ascension_stage, _dateFrom, _dateEnd, isUltrasound, searchString ,sortby} = pagination;
+		const { page, count, employeeid, ascension_stage, _dateFrom, _dateEnd, isUltrasound, searchString, sortby } = pagination;
 
 		const parsedFrom = _dateFrom ? formatDate(_dateFrom) : _dateFrom;
 		const parsedEnd = _dateEnd ? formatDate(_dateEnd) : _dateEnd;
@@ -131,7 +131,7 @@ export const handleServerSideProcessingAscensionData = async (pagination) => {
 				`&&page=${page}` +
 				`&&count=${count}` +
 				`&&isUltrasound=${isUltrasound}` +
-				`&&employeeid=${employeeid}`+
+				`&&employeeid=${employeeid}` +
 				`&&sortby=${sortby}`
 			);
 			if (Array.isArray(result)) {
@@ -185,7 +185,7 @@ export const handleSeverSideProcessingRejectedSample = async (pagination) => {
 
 
 
-export const handleServerSideProcessingSampleValidation = async ({ page, count ,startDate,endDate,sortBy}) => {
+export const handleServerSideProcessingSampleValidation = async ({ page, count, startDate, endDate, sortBy }) => {
 	try {
 		const fetchInitialData = await customFetch(`sample/client/list/unvalidated?count=${count}&page=${page}&&startDate=${startDate}&&endDate=${endDate}&&sortby=${sortBy}`);
 		const { result } = fetchInitialData;
@@ -250,6 +250,7 @@ interface FetchParams {
 	billingid: string;
 	patientid: string;
 	ascensionid: string;
+	employeeid?: number;
 }
 
 
@@ -257,16 +258,15 @@ export const getResultEntryDataServerSide = async ({
 	testid,
 	billingid,
 	patientid,
-	ascensionid
+	ascensionid, employeeid
 }: FetchParams): Promise<[resultResponse: any, commentsResponse: any]> => {
 	const commentsUrl = `testpanel/list/customtestrule/previous/comments?testid=${testid}&csvid=${billingid}&ptid=${patientid}`;
-	const testResultUrl = `testpanel/list/customtestrule/previous?testid=${testid}&ptid=${patientid}&csvid=${billingid}&&ascensionid=${ascensionid}`;
+	const testResultUrl = `testpanel/list/customtestrule/previous?testid=${testid}&ptid=${patientid}&csvid=${billingid}&&ascensionid=${ascensionid}&&employeeid=${employeeid}`;
 
 	const [commentsResponse, resultResponse] = await Promise.all([
 		customFetch(commentsUrl),
 		customFetch(testResultUrl),
 	]);
-
 	return [resultResponse, commentsResponse];
 };
 

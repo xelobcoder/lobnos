@@ -60,12 +60,11 @@ export default function ValidatedResultTable({ employeeid }) {
      const [isClient, setIsClient] = useState(false);
 
      const viewResultHandler = (item, multiple = false) => {
-
-          const { testid, name, patientid, ascensionid, billingid } = item
+          const { testid, name, patientid, ascensionid, billingid } = item;
           const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
           const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
-
-          window.open(`${process.env.PLS_PDF_GENERATOR}result/pdf/generate?csvid=${csvid}&&testid=${testid}&&testname=${name.toLowerCase()}&&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=${multiple}&&isUltrasound=false&&is_password_encrypted=false&&password=`)
+          const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=${multiple}&&isUltrasound=false&&is_password_encrypted=false&&password=`;
+          window.open(`/result/labreport?${url}`);
      };
 
 
@@ -82,7 +81,7 @@ export default function ValidatedResultTable({ employeeid }) {
           const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
           const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
           const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=`
-          window.open(`/result/labreport?${url}`)
+          window.open(`/result/labreport/4?${url}`)
      }
 
 

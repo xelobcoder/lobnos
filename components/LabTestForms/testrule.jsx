@@ -31,7 +31,7 @@ export default function CreateTestRule({ clientdata }) {
 	useEffect(() => {
 		const gettingFields = async function () {
 			try {
-				const [resultResponse, commentsResponse] = await getResultEntryDataServerSide({ testid, billingid, patientid, ascensionid })
+				const [resultResponse, commentsResponse] = await getResultEntryDataServerSide({ testid, billingid, patientid, ascensionid,employeeid })
 
 				function updatesResultForm(data) {
 					const { testname, result, hasDrugs } = data;
@@ -91,7 +91,7 @@ export default function CreateTestRule({ clientdata }) {
 		try {
 			setIsSaving(true);
 			const transformed = rule.map((item) => {
-				return { field: item?.name, value: item?.value, fieldid: item?.id, originalvalue: item?.value };
+				return { field: item?.name, value: item?.value, fieldid: item.fieldid, originalvalue: item?.value };
 			});
 			const allHasValues = transformed.some((a) => a.value == "");
 			if (allHasValues) 	toast.error("Some fields are empty", { autoClose: 2000 });

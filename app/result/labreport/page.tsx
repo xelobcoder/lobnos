@@ -1,7 +1,8 @@
 'use client';
-
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { defaultResultSettings, customFetch } from '../../../components/Auth/customFetch';
 import CompanyHeaders from '../../../components/ResultView/CompanyHeaders';
 import PersonalInformation from '../../../components/ResultView/PersonalInformation';
@@ -11,14 +12,20 @@ import UseResultCommentSinglePreview from '../../../components/ResutlUI/useResul
 import VersionFooter from '../../../components/accessories/VersionFooter';
 import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
 import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
-import styles from  './5/vitalscan.module.css';
+import styles from './5/vitalscan.module.css';
 
 interface ResultSettings {
-    letterHeading: number;
-    literatureReview: number;
-    DepartmentEntry: number;
-    passwordonResult: number;
-    samplingInformation: number;
+    fontfamily: string;
+    testnameColor: string;
+    testnameFontSize: number;
+    highlightFlags: boolean;
+    hightFlagColor: string;
+    includeSignature: boolean;
+    includeLimitations: boolean;
+    limitations: string;
+    hasColorsForFlags: boolean;
+    lowFlagColor: string;
+    template: number;
 }
 
 interface Record {
@@ -115,15 +122,29 @@ interface ResultData {
 }
 
 export default function RESULT_FOR_PRINTING() {
-    const [resultsettings, setResultSettings] = useState(defaultResultSettings);
+
     const [loader, setLoader] = useState(false);
     const [resultdata, setResultData] = useState<ResultData | null>(null);
-
+    // Fix fontfamily mismatch
+    const [resultSettings, setResultSettings] = useState<ResultSettings>({
+        fontfamily: defaultResultSettings.fontFamily || 'Arial',
+        testnameColor: defaultResultSettings.testnameColor,
+        testnameFontSize: defaultResultSettings.testnameFontSize,
+        highlightFlags: defaultResultSettings.highlightFlags,
+        hightFlagColor: defaultResultSettings.hightFlagColor,
+        includeSignature: defaultResultSettings.includeSignature,
+        includeLimitations: defaultResultSettings.includeLimitations,
+        limitations: defaultResultSettings.limitations,
+        hasColorsForFlags: defaultResultSettings.hasColorsForFlags,
+        lowFlagColor: defaultResultSettings.lowFlagColor,
+        template: defaultResultSettings.template
+    });
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const searchParams = useSearchParams();
     const billingid = searchParams?.get('csvid') || '';
     const test = searchParams?.get('testname') || '';
     const target = searchParams?.get('target') || '';
-    const ascensionid = searchParams?.get('ascensionId') || ';'
+    const ascensionid = searchParams?.get('ascensionId') || '';
     const ptid = searchParams?.get('ptid') || '';
     const testid = searchParams?.get('testid');
     const csvid = searchParams?.get('csvid');
@@ -131,64 +152,155 @@ export default function RESULT_FOR_PRINTING() {
     const url = `result/printout/ascension/getResult?csvid=${csvid}&&testid=${testid}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
 
     useEffect(() => {
+        setLoader(true);
         customFetch(url)
             .then((data) => setResultData(data))
             .catch((err) => console.error(err))
-            .finally(() => { setLoader(false) });
+            .finally(() => { setLoader(false); });
     }, []);
+
+    useEffect(() => {
+        if (!loader && resultdata?.records) {
+            // Wait for logo image to load
+            const logoImg = document.querySelector('.result img');
+            if (logoImg && !(logoImg as HTMLImageElement).complete) {
+                (logoImg as HTMLImageElement).onload = () => generatePDF();
+            } else {
+                generatePDF();
+            }
+        }
+        function generatePDF() {
+            setTimeout(() => {
+                const resultElement = document.querySelector('.result');
+                if (!resultElement) return;
+                html2canvas(resultElement as HTMLElement, { scale: 2, useCORS: true }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    const pageHeight = pdf.internal.pageSize.getHeight();
+                    const margin = 10; // 10mm margin on all sides
+                    const usableWidth = pageWidth - margin * 2;
+                    const usableHeight = pageHeight - margin * 2;
+                    const imgProps = pdf.getImageProperties(imgData);
+                    const imgWidth = usableWidth;
+                    const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+                    let position = margin;
+                    let remainingHeight = imgHeight;
+                    let imgY = margin;
+                    let pageCount = 0;
+
+                    while (remainingHeight > 0) {
+                        pdf.addImage(
+                            imgData,
+                            'PNG',
+                            margin,
+                            imgY,
+                            imgWidth,
+                            imgHeight
+                        );
+
+                        pdf.saveGraphicsState();
+                        pdf.setTextColor(225, 225, 225); // very light gray
+                        pdf.setFontSize(9); // smaller font for low key
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.text('VITALSCAN APPROVED REPORT ', pageWidth / 2, pageHeight / 2, {
+                            angle: 60,
+                            align: 'right',
+                            baseline: 'bottom'
+                        });
+                        pdf.restoreGraphicsState();
+                        remainingHeight -= usableHeight;
+                        imgY -= usableHeight;
+                        pageCount++;
+                        if (remainingHeight > 0) pdf.addPage();
+                    }
+                    // Build PDF filename
+                    const safeTestName = (test || '').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+                    const filename = `${ascensionid || ''}_${safeTestName}.pdf`;
+                    // Show PDF embedded in page
+                    const blob = pdf.output('blob');
+                    const blobUrl = URL.createObjectURL(blob);
+                    setPdfUrl(blobUrl);
+                });
+            }, 500);
+        }
+    }, [loader, resultdata]);
 
     if (loader) return <h4>Loading .....</h4>;
     if (!resultdata?.records) return <h4></h4>;
 
-    return (
-        <div className={styles.page} >
-            <div className="result">
-                <section>
-                    <CompanyHeaders
-                        companyInfo={
-                            resultdata?.companyInfo
-                                ? {
-                                    ...resultdata.companyInfo,
-                                    alternativenumber: resultdata.companyInfo.alternativenumber?.toString()
-                                }
-                                : null
-                        }
-                        logo={resultdata?.logourl}
-                    />
-                    <PersonalInformation
-                        PersonalInformation={{
-                            ...(resultdata?.patientInformation
-                                ? {
-                                    ...resultdata.patientInformation,
-                                    patientid: resultdata.patientInformation.patientid.toString(),
-                                    fullpatientid: resultdata.patientInformation.fullpatientid
-                                        ? resultdata.patientInformation.fullpatientid
-                                        : ''
-                                }
-                                : { fullpatientid: '' }),
-                        }}
-                        billingid={resultdata?.billingid}
-                    />
-                </section>
+    // Show the PDF iframe once ready
+    if (pdfUrl) {
+        return (
+            <iframe src={pdfUrl} title="Lab Report PDF" style={{ width: '100vw', height: '100vh', border: 'none' }} />
+        );
+    }
 
-                <section>
-                    <UseCustomResultTemplatingPreview
-                        test={resultdata?.testname}
-                        records={resultdata?.records}
-                    />
-                    <UseResultCommentSinglePreview comments={resultdata.comments} />
-                    <UseClinicalLiteratureReview literature={resultdata.literatureReview} />
-                </section>
-                <section>
-                    <UseResultEntryScientist
-                        lastupdatedon={resultdata?.lastupdatedon}
-                        validators={resultdata.validators}
-                        resultentry={resultdata.resultentry}
-                        enteredOn={resultdata.enteredOn}
-                    />
-                    <UseDisclaimer />
-                    <VersionFooter />
-                </section>
+    // Render the report HTML visibly, overlay loading spinner
+    return (
+        <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
+            {/* Loading overlay */}
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(255,255,255,0.7)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: 24, fontWeight: 'bold' }}>Generating PDF...</span>
+            </div>
+            {/* Report content */}
+            <div className={styles.page} style={{ fontFamily: resultSettings.fontfamily }}>
+                <div className="result">
+                    <div >
+                        <section>
+                            <CompanyHeaders
+                                companyInfo={
+                                    resultdata?.companyInfo
+                                        ? {
+                                            ...resultdata.companyInfo,
+                                            alternativenumber: resultdata.companyInfo.alternativenumber?.toString()
+                                        }
+                                        : null
+                                }
+                                logo={resultdata?.logourl}
+                            />
+                            <PersonalInformation
+                                PersonalInformation={{
+                                    ...(resultdata?.patientInformation
+                                        ? {
+                                            ...resultdata.patientInformation,
+                                            patientid: resultdata.patientInformation.patientid.toString(),
+                                            fullpatientid: resultdata.patientInformation.fullpatientid
+                                                ? resultdata.patientInformation.fullpatientid
+                                                : ''
+                                        }
+                                        : { fullpatientid: '' })
+                                }}
+                                billingid={resultdata?.billingid}
+                            />
+                        </section>
+
+                        <section>
+                            <UseCustomResultTemplatingPreview
+                                test={resultdata?.testname}
+                                records={resultdata?.records}
+                                resultsettings={resultSettings}
+                            />
+                            <UseResultCommentSinglePreview comments={resultdata?.comments} />
+                            <UseClinicalLiteratureReview literature={resultdata?.literatureReview} />
+                        </section>
+                        <section>
+                            <UseResultEntryScientist
+                                lastupdatedon={resultdata?.lastupdatedon}
+                                validators={resultdata?.validators}
+                                resultentry={resultdata?.resultentry}
+                                enteredOn={resultdata?.enteredOn}
+                                patientid={resultdata.patientInformation.patientid}
+                            />
+                            <span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
+                            {resultSettings.includeLimitations && <UseDisclaimer />}
+                        </section>
+                    </div>
+                    <section>
+                        <VersionFooter />
+                    </section>
+                </div>
             </div>
         </div>
     );

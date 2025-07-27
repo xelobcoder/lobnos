@@ -4,7 +4,7 @@ import Loader from "../accessories/Loader"
 import HasLimitReference from "./hasLimitsReference"
 import ResultViewHtmlGenerator from "../Auth/ResultViewHtmlGenerator";
 
-export default function UseCustomResultTemplating({ billingid, testid, test, patientid, isResultView = true }) {
+export default function UseCustomResultTemplating({ billingid, testid, test, patientid, isResultView = true,resultsettings }) {
 	const [testname, setTestname] = useState('');
 	const [result, setResult] = useState([])
 	const [isloading, setLoading] = useState(true)
@@ -53,7 +53,7 @@ export default function UseCustomResultTemplating({ billingid, testid, test, pat
 				</thead>
 				<tbody >
 					{result.map((item, index) => {
-						return <ResultViewHtmlGenerator index={index} field={item} key={index} />
+						return <ResultViewHtmlGenerator index={index} field={item} key={index}  resultsettings={resultsettings}/>
 					})}
 				</tbody>
 			</table>

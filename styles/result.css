@@ -13,7 +13,7 @@
 
 
 .company-info-result > div > .company-kids {
-  font-size: 16px;
+  font-size: 14px;
 }
 .single_result_page {
   height: max-content;
@@ -43,7 +43,7 @@
 .result-sampling-details > .left,
 .result-sampling-details > .right {
   text-transform: uppercase !important; 
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .result-sampling-details > .left {
@@ -137,7 +137,7 @@
 }
 
 .result-sampling-details > .left {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .result-section-header {
@@ -146,7 +146,7 @@
   text-transform: uppercase;
   font-weight: 500;
 
-  font-size: 18px;
+  font-size: 16px;
   border-bottom: 1px solid black;
 }
 

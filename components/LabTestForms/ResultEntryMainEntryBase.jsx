@@ -1,8 +1,27 @@
 import ResultEntryHtmlGenerator from "../Auth/ResultEntryHtmlGenerator";
 import CommentSection from "./commentSection";
 import ResultEntryDrugsForm from "./ResultEntryDrugsForm";
+import { toast } from 'react-toastify';
+import { useState } from "react";
+import { useApplication } from "../Auth/useApplicationContext";
+import { validatePin } from "../Auth/customFetch";
+
 
 export default function ResultEntryMainEntryBase({ handlestate, handleCreateFields, rule = [], handleSubmit, setComments, comments, handleComments, isPinUsed, hasDrugs, setModifiedDrugs, ascensionid, testid, isloading }) {
+	const [pin, setPin] = useState("");
+	const employeeid = useApplication()?.user?.employeeid;
+
+	const handleSave = async () => {
+		if (!pin) return toast.warn("PIN is required");
+		const response = await validatePin(employeeid, pin);
+		console.log(response,'PIN Response');
+		if (!response == true) return toast.error(response?.message || "Invalid PIN");
+		else {
+			handleSubmit();
+		}
+
+	};
+
 	return (
 		<section>
 			<div className="table-responsive my-2">
@@ -35,11 +54,20 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 			<div className="d-flex flex-column flex-md-row justify-content-between mt-2">
 				{isPinUsed && (
 					<div className="mb-2 mb-md-0">
-						<input className="custom-input" type="password" placeholder="Enter pin here" style={{ fontSize: '0.85rem', height: 28, padding: '2px 6px' }} />
+						<input
+							className="custom-input"
+							type="password"
+							placeholder="Enter pin here"
+							style={{ fontSize: '0.85rem', height: 28, padding: '2px 6px' }}
+							value={pin}
+							autoComplete="off"
+							autoCorrect="off"
+							onChange={e => setPin(e.target.value)}
+						/>
 					</div>
 				)}
 				<div>
-					<button onClick={handleSubmit} className="btn btn-primary btn-sm my-2 mx-1" disabled={isloading}>
+					<button onClick={handleSave} className="btn btn-primary btn-sm my-2 mx-1" disabled={isloading}>
 						{isloading ? 'Saving...' : 'Save changes'}
 					</button>
 				</div>

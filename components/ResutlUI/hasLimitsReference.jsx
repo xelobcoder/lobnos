@@ -1,6 +1,8 @@
-export default function LimitViewHtmlGeneratorResultView({ fieldItem, index }) {
+export default function LimitViewHtmlGeneratorResultView({ fieldItem, index, resultsettings }) {
      const { name, value, upperlimit, lowerlimit, units } = fieldItem;
 
+     // Get settings from resultsettings or use defaults
+     const settings = resultsettings?.testBody
 
      const determineTableColor = (value, upperlimit, lowerlimit) => {
           if (!isNaN(value) && value != "" && !isNaN(upperlimit) && !isNaN(lowerlimit)) {
@@ -13,30 +15,71 @@ export default function LimitViewHtmlGeneratorResultView({ fieldItem, index }) {
           }
      }
 
-
      const flag = determineTableColor(value, upperlimit, lowerlimit);
-     const rowStyle = flag === 'H' ? { fontWeight: 'bold', fontSize: '14px', background: '#ffeaea' }
-          : flag === 'L' ? { fontWeight: 'bold', fontSize: '14px', background: '#eaf1ff' }
-               : { fontSize: '14px' };
+     
+     // Determine flag color based on settings
+     const getFlagColor = (flag) => {
+          if (!settings?.hasColorsForFlags) return settings?.color;
+          if (flag === 'H') return settings?.hightFlagColor;
+          if (flag === 'L') return settings?.lowFlagColor;
+          return settings?.color;
+     };
 
      return (
-          <tr style={rowStyle}>
-               <td>  {"> "}{name}</td>
-               <td>
-                    {flag === 'H' ? <span style={{ color: 'red' }}>{value}</span>
-                         : flag === 'L' ? <span style={{ color: 'blue' }}>{value}</span>
-                              : value}
+          <tr style={{ 
+               fontSize: `${settings?.fontSize}px`, 
+               fontFamily: settings?.fontFamily,
+               color: settings?.color 
+          }}>
+               <td style={{ width: '40%' }}>
+                    <span style={{ 
+                         fontWeight: settings?.boldenParameter ? '500' : 'normal' 
+                    }}>
+                         {name}
+                    </span>
                </td>
-               <td>
-                    {units}
+               <td style={{ width: '20%' }}>
+                    {flag === 'H' || flag === "L" ? (
+                         <span style={{ 
+                              fontWeight: settings?.boldenValue ? '500' : 'normal',
+                              color: settings?.highlightFlags ? getFlagColor(flag) : settings?.color
+                         }}>
+                              {value}
+                         </span>
+                    ) : (
+                         <span style={{ 
+                              fontWeight: settings?.boldenValue ? '500' : 'normal' 
+                         }}>
+                              {value}
+                         </span>
+                    )}
                </td>
-               <td>
+               <td style={{ width: '20%' }}>
+                    <span style={{ 
+                         fontWeight: settings?.boldenUnits ? '500' : 'normal' 
+                    }}>
+                         {units}
+                    </span>
+               </td>
+               <td style={{ width: '20%' }}>
                     {lowerlimit}~{upperlimit}
                </td>
-               <td>
-                    {flag === 'H' ? <span style={{ color: 'red' }}>H</span>
-                         : flag === 'L' ? <span style={{ color: 'blue' }}>L</span>
-                              : ''}
+               <td style={{ width: '10%' }}>
+                    {flag === 'H' ? (
+                         <span style={{ 
+                              color: settings?.hasColorsForFlags ? settings?.hightFlagColor : settings?.color,
+                              fontWeight: '500'
+                         }}>
+                              H
+                         </span>
+                    ) : flag === 'L' ? (
+                         <span style={{ 
+                              color: settings?.hasColorsForFlags ? settings?.lowFlagColor : settings?.color,
+                              fontWeight: '500'
+                         }}>
+                              L
+                         </span>
+                    ) : ''}
                </td>
           </tr>
      )

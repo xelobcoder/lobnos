@@ -51,8 +51,7 @@ export default function OperationsListTestCollection({ operations }) {
 					const checked = selectedTests.some((t) => t.testid === item.testid);
 					return (
 						<div
-							key={index}
-							className={`list-group-item d-flex justify-content-between align-items-center p-2 mb-2 rounded shadow-sm pls-color ${checked ? "border-primary border-2" : "border"}`}
+							key={index} className={`list-group-item d-flex justify-content-between align-items-center p-2 mb-2 rounded shadow-sm pls-color ${checked ? "border-primary border-2" : "border"}`}
 						>
 							<input
 								type="checkbox"

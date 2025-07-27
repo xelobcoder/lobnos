@@ -4,7 +4,16 @@
   html {
     margin: 0 !important;
     padding: 0 !important;
+    background-color: white !important;
     overflow: visible !important;
+  }
+
+  .result {
+    background-color: white !important;
+  }
+
+  .no-print {
+    display: none !important;
   }
 }
 
@@ -39,9 +48,14 @@
   background-color: white !important;
 }
 
+html,
+body {
+  font-family: var(--prime-font-family) !important;
+}
+
 * {
   /* font-family: var(--prime-links-font-family); */
-  font-family: var(--prime-font-family) !important;
+  /* font-family: var(--prime-font-family) !important; */
 }
 
 .ui-sm {
@@ -129,7 +143,7 @@ body {
   height: 100vh;
   overflow-x: hidden;
   overflow-y: auto;
-  font-family: "Barlow", sans-serif !important;
+  /* font-family: "Barlow", sans-serif !important; */
 }
 
 

@@ -1,7 +1,8 @@
 import Cookies from "js-cookie"
 import moment from "moment"
+import { toast } from "react-toastify";
 
-export async function customFile(endpoint,formbody) {
+export async function customFile(endpoint, formbody) {
 	if (process.env.NODE_ENV == "production" && !process.env.NEXT_PUBLIC_ACCESS_TOKEN) {
 		throw new Error("NEXT_PUBLIC_ACCESS_TOKEN MISSING")
 	}
@@ -15,7 +16,7 @@ export async function customFile(endpoint,formbody) {
 			"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0"
 		},
 		cache: "no-cache",
-		body: formbody	
+		body: formbody
 	})
 
 	const source = await response.json();
@@ -89,15 +90,28 @@ export const parseDate = (date) => {
 	return new Date(date).toLocaleDateString();
 }
 
-
-
-export const defaultResultSettings = {
-	literatureReview: 1,
-	letterHeading: 1,
-	passwordonResult: 1,
-	DepartmentEntry: 1,
-	samplingInformation: 1,
+export const validatePin = async (employeeid, pin) => {
+	// Validate PIN first
+	try {
+		if (pin && pin.toString().length < 4) {
+			return "PIN must be at least 4 digits long";
+		}
+		const url = `prime/validate-user-pin?employeeid=${employeeid}&&pin=${encodeURIComponent(pin)}`;
+		const response = await customFetch(url);
+		if (response && response.status && response.status === true) {
+			return true;
+		} else {
+			return toast.error(response?.message || 'Invalid PIN');
+		}
+	} catch (error) {
+		toast.error("An error occurred while validating the PIN");
+		return false;
+	}
 }
+
+
+
+
 
 export async function getResultSettings(setResult, setLoading) {
 	customFetch("applicationsetting/resultsettings")
@@ -879,7 +893,7 @@ export const defaultTestEditValues = {
 
 
 
-export const getSingleEditTest = (testid, setTestData, setLoading,withoutdepartment=true) => {
+export const getSingleEditTest = (testid, setTestData, setLoading, withoutdepartment = true) => {
 	customFetch(`gettestpanel/edit?id=${testid}&&withoutdepartment=${withoutdepartment}`)
 		.then((data) => {
 			setTestData(data)
@@ -910,7 +924,7 @@ export const getDateRange = (range) => {
 
 
 
-export function PrepareResultEntryHeader(data, isUltrasound = false,branchid) {
+export function PrepareResultEntryHeader(data, isUltrasound = false, branchid) {
 	if (typeof data != "object") return;
 	const { id, name, billingid, patientid, ascensionid } = data;
 	if (!id || !name || !billingid || !patientid) return;
