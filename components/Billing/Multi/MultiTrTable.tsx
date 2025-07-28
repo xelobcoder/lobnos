@@ -6,6 +6,7 @@ import Link from "next/link";
 import { hasPreviousRecords } from "../../../lib/billingLib";
 import { MultiBillingContext } from "./MultiBillingContext";
 import { useApplication } from "../../Auth/useApplicationContext";
+import { customFetch } from "../../Auth/customFetch";
 
 
 
@@ -31,7 +32,8 @@ export default function MultiTrTable() {
         if (testid) {
             try {
                 setLoadingOutsource(true);
-                const storedOrgs = await fetch(`/api/outsourcing/organization/testpanel/outsourceinfo?testid=${testid}`).then(res => res.json());
+                const storedOrgs = await customFetch(`outsourcing/organization/testpanel/outsourceinfo?testid=${testid}`)
+               console.log(storedOrgs)
                 const selectedOrgs = storedOrgs.map((org: any) => ({
                     outsourceid: org.outsourceid,
                     name: org.name,
@@ -85,7 +87,7 @@ export default function MultiTrTable() {
     const handleTestSelectedChangeVariable = (newValue: any) => {
         if (typeof newValue != "object") return;
         const { isoutsourced, id } = newValue;
-        const testid = billingdata.billingSource == 2 ? newValue?.testid : id;
+        const testid = newValue?.testid;
         if (isoutsourced == 1) {
             if (billingdata.cart.length === 0) {
                 fetchStoredOrganizations(testid);
@@ -114,7 +116,7 @@ export default function MultiTrTable() {
             return (<div>
                 {role && ['manager', 'admin'].includes(role) ?
                     <div>
-                        organization not added for test <br /><Link href={`/settings/applicationsettings/testpanels/testlist/${selected?.id}/outsourcingList?testname=R${selected?.name}`}>
+                        organization not added for test <br /><Link href={`/settings/applicationsettings/testpanels/testlist/${selected?.testid}/outsourcingList?testname=R${selected?.name}`}>
                             <RiLinkUnlinkM size={16} /> Add Outsourcing organization
                         </Link>
                         <button

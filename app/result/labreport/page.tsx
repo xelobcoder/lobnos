@@ -3,7 +3,7 @@ import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { defaultResultSettings, customFetch } from '../../../components/Auth/customFetch';
+import {  customFetch } from '../../../components/Auth/customFetch';
 import CompanyHeaders from '../../../components/ResultView/CompanyHeaders';
 import PersonalInformation from '../../../components/ResultView/PersonalInformation';
 import UseClinicalLiteratureReview from '../../../components/ResutlUI/UseClinicalLiteratureReview';
@@ -13,20 +13,9 @@ import VersionFooter from '../../../components/accessories/VersionFooter';
 import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
 import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
 import styles from './5/vitalscan.module.css';
+import { defaultResultSettings, ResultSettings } from '../../../components/ResultView/result-settings';
 
-interface ResultSettings {
-    fontfamily: string;
-    testnameColor: string;
-    testnameFontSize: number;
-    highlightFlags: boolean;
-    hightFlagColor: string;
-    includeSignature: boolean;
-    includeLimitations: boolean;
-    limitations: string;
-    hasColorsForFlags: boolean;
-    lowFlagColor: string;
-    template: number;
-}
+
 
 interface Record {
     id: number;
@@ -125,20 +114,7 @@ export default function RESULT_FOR_PRINTING() {
 
     const [loader, setLoader] = useState(false);
     const [resultdata, setResultData] = useState<ResultData | null>(null);
-    // Fix fontfamily mismatch
-    const [resultSettings, setResultSettings] = useState<ResultSettings>({
-        fontfamily: defaultResultSettings.fontFamily || 'Arial',
-        testnameColor: defaultResultSettings.testnameColor,
-        testnameFontSize: defaultResultSettings.testnameFontSize,
-        highlightFlags: defaultResultSettings.highlightFlags,
-        hightFlagColor: defaultResultSettings.hightFlagColor,
-        includeSignature: defaultResultSettings.includeSignature,
-        includeLimitations: defaultResultSettings.includeLimitations,
-        limitations: defaultResultSettings.limitations,
-        hasColorsForFlags: defaultResultSettings.hasColorsForFlags,
-        lowFlagColor: defaultResultSettings.lowFlagColor,
-        template: defaultResultSettings.template
-    });
+    const [resultSettings, setResultSettings] = useState<ResultSettings>(defaultResultSettings);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const searchParams = useSearchParams();
     const billingid = searchParams?.get('csvid') || '';
@@ -290,11 +266,14 @@ export default function RESULT_FOR_PRINTING() {
                                 lastupdatedon={resultdata?.lastupdatedon}
                                 validators={resultdata?.validators}
                                 resultentry={resultdata?.resultentry}
+                                billingid={resultdata?.billingid}
+                                ascensionid={ascensionid}
                                 enteredOn={resultdata?.enteredOn}
                                 patientid={resultdata.patientInformation.patientid}
+                                resultsettings={resultSettings}
                             />
                             <span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
-                            {resultSettings.includeLimitations && <UseDisclaimer />}
+                            {resultSettings.includeLimitations && <UseDisclaimer disclaimer={resultSettings.limitations} />}
                         </section>
                     </div>
                     <section>

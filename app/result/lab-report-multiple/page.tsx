@@ -2,18 +2,14 @@
 import { useState, useEffect, Suspense } from "react"
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { customFetch, getResultSettings, readyToPrint } from "../../../components/Auth/customFetch"
+import { customFetch } from "../../../components/Auth/customFetch"
 import { useSearchParams } from "next/navigation"
-import UseClinicalLiteratureReview from "../../../components/ResutlUI/UseClinicalLiteratureReview"
-import UseResultEntryScientist from "../../../components/ResutlUI/UseResultEntryFormat"
 import UseDisclaimer from "../../../components/ResutlUI/useDisclaimer"
-import VersionFooter from "../../../components/accessories/VersionFooter"
 import { defaultResultSettings, ResultSettings } from "../../../components/ResultView/result-settings"
 import styles from './../labreport/4/MDSLancet.Template.module.css'
 import MdsCompanyInformation from "../../../components/ResultView/MdsCompanyInformation"
 import MdsPersonalInformation from "../../../components/ResultView/MdsPersonalInformation"
 import UseCustomResultTemplatingPreview from "../../../components/ResutlUI/useCustomResultTemplatingPreview"
-import UseResultCommentSinglePreview from "../../../components/ResutlUI/useResultCommentSinglePreview"
 import { useApplication } from "../../../components/Auth/useApplicationContext";
 
 export default function LabReportPrintingMultiple() {
@@ -49,99 +45,89 @@ export default function LabReportPrintingMultiple() {
 
 
 
-
-	// const handleCheck = (ev, item) => {
-	// 	const checked = ev.target.checked
-	// 	if (checked) {
-	// 		setPrintList([...toprintList, item])
-	// 	} else {
-	// 		const printList = [...toprintList]
-	// 		setPrintList(printList.filter((values, index) => values.testid != item.testid))
-	// 	}
-	// ...existing code...
-const [pdfUrl, setPdfUrl] = useState<{ url: string; filename: string } | null>(null);
-const [pdfError, setPdfError] = useState<string | null>(null);
-const [pdfLoading, setPdfLoading] = useState(false);
-const [showPdf, setShowPdf] = useState(false);
-const [showPdfControls, setShowPdfControls] = useState(false);
+	const [pdfUrl, setPdfUrl] = useState<{ url: string; filename: string } | null>(null);
+	const [pdfError, setPdfError] = useState<string | null>(null);
+	const [pdfLoading, setPdfLoading] = useState(false);
+	const [showPdf, setShowPdf] = useState(false);
+	const [showPdfControls, setShowPdfControls] = useState(false);
 	// selectedTests: array of indices, in the order selected
 	const [selectedTests, setSelectedTests] = useState<number[]>([]);
 
 	// Helper: are all tests selected?
 	const allTestsSelected = resultdata && Array.isArray(resultdata.test) && selectedTests.length === resultdata.test.length && selectedTests.every((v, i) => v === i);
 
-useEffect(() => {
-	setPdfError(null);
-	setPdfLoading(false);
-	if (!loader && resultdata && Array.isArray(resultdata.test)) {
-		setPdfLoading(true);
-		setTimeout(() => {
-			// Use the actual DOM element for the report content
-			const resultElement = document.querySelector('.result');
-			if (!resultElement) {
-				setPdfError('Unable to find report content for PDF.');
-				setPdfLoading(false);
-				return;
-			}
-			html2canvas(resultElement as HTMLElement, { scale: 2, useCORS: true }).then(canvas => {
-				const imgData = canvas.toDataURL('image/png');
-				const pdf = new jsPDF('p', 'mm', 'a4');
-				const pageWidth = pdf.internal.pageSize.getWidth();
-				const pageHeight = pdf.internal.pageSize.getHeight();
-				const margin = 10;
-				const usableWidth = pageWidth - margin * 2;
-				const usableHeight = pageHeight - margin * 2;
-				const imgProps = pdf.getImageProperties(imgData);
-				const imgWidth = usableWidth;
-				const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-
-				let remainingHeight = imgHeight;
-				let imgY = margin;
-				let pageNum = 1;
-
-				while (remainingHeight > 0) {
-					pdf.addImage(
-						imgData,
-						'PNG',
-						margin,
-						imgY,
-						imgWidth,
-						imgHeight
-					);
-					pdf.saveGraphicsState();
-					pdf.setTextColor(225, 225, 225);
-					pdf.setFontSize(9);
-					pdf.restoreGraphicsState();
-					pdf.setTextColor(60, 60, 60);
-					pdf.setFontSize(10);
-					pdf.text(` ${pageNum}`, pageWidth / 2, pageHeight - 14, { align: 'center' });
-					pdf.setFontSize(8);
-					pdf.setTextColor(65, 105, 225);
-					const copyright = `Software by leonides intell,PLS v0.0.1 copyright @${new Date().getFullYear()}. Tell: 0249434803 || 0595964565`;
-					pdf.text(copyright, pageWidth / 2, pageHeight - 6, { align: 'center' });
-					pageNum++;
-					remainingHeight -= usableHeight;
-					imgY -= usableHeight;
-					if (remainingHeight > 0) pdf.addPage();
+	useEffect(() => {
+		setPdfError(null);
+		setPdfLoading(false);
+		if (!loader && resultdata && Array.isArray(resultdata.test)) {
+			setPdfLoading(true);
+			setTimeout(() => {
+				// Use the actual DOM element for the report content
+				const resultElement = document.querySelector('.result');
+				if (!resultElement) {
+					setPdfError('Unable to find report content for PDF.');
+					setPdfLoading(false);
+					return;
 				}
-				const patientName = (resultdata?.patientInformation?.firstname || '') + '_' + (resultdata?.patientInformation?.lastname || '');
-				const safePatientName = patientName.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-				const safeBillingId = (resultdata?.billingid || '').toString().replace(/[^a-zA-Z0-9_]/g, '');
-				const safeAscensionId = (ascensionid || '').toString().replace(/[^a-zA-Z0-9_]/g, '');
-				const now = new Date();
-				const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-				const filename = `${safePatientName}-${safeBillingId}-${safeAscensionId}-${dateStr}.pdf`;
-				const blob = pdf.output('blob');
-				const blobUrl = URL.createObjectURL(blob);
-				setPdfUrl({ url: blobUrl, filename });
-				setPdfLoading(false);
-			}).catch(err => {
-				setPdfError('PDF generation failed: ' + (err?.message || err));
-				setPdfLoading(false);
-			});
-		}, 500);
-	}
-}, [loader, resultdata, selectedTests]);
+				html2canvas(resultElement as HTMLElement, { scale: 2, useCORS: true }).then(canvas => {
+					const imgData = canvas.toDataURL('image/png');
+					const pdf = new jsPDF('p', 'mm', 'a4');
+					const pageWidth = pdf.internal.pageSize.getWidth();
+					const pageHeight = pdf.internal.pageSize.getHeight();
+					const margin = 10;
+					const usableWidth = pageWidth - margin * 2;
+					const usableHeight = pageHeight - margin * 2;
+					const imgProps = pdf.getImageProperties(imgData);
+					const imgWidth = usableWidth;
+					const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+					let remainingHeight = imgHeight;
+					let imgY = margin;
+					let pageNum = 1;
+
+					while (remainingHeight > 0) {
+						pdf.addImage(
+							imgData,
+							'PNG',
+							margin,
+							imgY,
+							imgWidth,
+							imgHeight
+						);
+						pdf.saveGraphicsState();
+						pdf.setTextColor(225, 225, 225);
+						pdf.setFontSize(9);
+						pdf.restoreGraphicsState();
+						pdf.setTextColor(60, 60, 60);
+						pdf.setFontSize(10);
+						pdf.text(` ${pageNum}`, pageWidth / 2, pageHeight - 14, { align: 'center' });
+						pdf.setFontSize(8);
+						pdf.setTextColor(65, 105, 225);
+						const copyright = `Software by leonides intell,PLS v0.0.1 copyright @${new Date().getFullYear()}. Tell: 0249434803 || 0595964565`;
+						pdf.text(copyright, pageWidth / 2, pageHeight - 6, { align: 'center' });
+						pageNum++;
+						remainingHeight -= usableHeight;
+						imgY -= usableHeight;
+						if (remainingHeight > 0) pdf.addPage();
+					}
+					const patientName = (resultdata?.patientInformation?.firstname || '') + '_' + (resultdata?.patientInformation?.lastname || '');
+					const safePatientName = patientName.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+					const safeBillingId = (resultdata?.billingid || '').toString().replace(/[^a-zA-Z0-9_]/g, '');
+					const safeAscensionId = (ascensionid || '').toString().replace(/[^a-zA-Z0-9_]/g, '');
+					const now = new Date();
+					const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+					const filename = `${safePatientName}-${safeBillingId}-${safeAscensionId}-${dateStr}.pdf`;
+					const blob = pdf.output('blob');
+					const blobUrl = URL.createObjectURL(blob);
+					setPdfUrl({ url: blobUrl, filename });
+					setPdfLoading(false);
+				}).catch(err => {
+					setPdfError('PDF generation failed: ' + (err?.message || err));
+					setPdfLoading(false);
+				});
+			}, 500);
+		}
+	}, [loader, resultdata, selectedTests]);
 
 	// When resultdata loads, select all tests by default
 	useEffect(() => {
@@ -354,7 +340,7 @@ useEffect(() => {
 										})()}
 									</div>
 								</div>
-								
+
 								<div style={{ width: '100%', marginTop: 32, textAlign: 'center', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
 									{resultSettings.includeLimitations && (
 										<span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
@@ -365,7 +351,7 @@ useEffect(() => {
 											<div className="mx-2">{resultdata.generalValidation.username}</div>
 										</div>
 									)}
-									{resultSettings.includeLimitations && <UseDisclaimer />}
+									{resultSettings.includeLimitations && <UseDisclaimer disclaimer={resultSettings.limitations} />}
 								</div>
 							</div>
 							{pdfUrl && (
