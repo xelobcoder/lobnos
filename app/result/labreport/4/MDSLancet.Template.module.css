@@ -51,7 +51,6 @@
     margin: 5px auto;
     padding: 5mm 5mm;
     box-sizing: border-box;
-    border: 1px solid #ccc;
     display: flex;
     flex-direction: column;
 }
@@ -317,7 +316,6 @@
         margin: 10px 0;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-        background: #333A4C !important;
         color: white !important;
     }
 

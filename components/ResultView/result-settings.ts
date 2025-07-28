@@ -27,6 +27,11 @@ export interface ResultSettings {
           boldenParameter: boolean;
           boldenValue: boolean;
           boldenUnits: boolean;
+          trFirstColumnName: string;
+          trSecondColumnName: string;
+          trThirdColumnName?: string;
+          trFourthColumnName?: string;
+          trFifthColumnName?: string;
      };
      includeSignature: boolean;
      includeLimitations: boolean;
@@ -35,6 +40,11 @@ export interface ResultSettings {
      template: number;
      includeWatermark?: boolean;
      includeBarcode?: boolean;
+     useGeneraralValidation?: boolean;
+     useIndividualValidations?: boolean;
+     showMethod: boolean;
+     useReportTitle?: boolean;
+     useInstrumentation?: boolean;
 }
 
 export const defaultResultSettings: ResultSettings = {
@@ -45,7 +55,7 @@ export const defaultResultSettings: ResultSettings = {
      testnameBackgroundColor: 'white',
      testnameFontSize: 16,
      mainReportHeaderBgColor: '#4169e1',
-     testTableHeaderBackgroundColor: 'lightgray',
+     testTableHeaderBackgroundColor: '#4169e1',
      testTableHeaderTextColor: "black",
      mainReportHeaderColor: 'white',
      testTableHeaderFontSize: 13,
@@ -66,10 +76,18 @@ export const defaultResultSettings: ResultSettings = {
           boldenParameter: false,
           boldenValue: false,
           boldenUnits: true,
+          trFirstColumnName:'Investigation',
+          trSecondColumnName:'value',
+          trThirdColumnName:'units',
+          trFourthColumnName:'reference',
+          trFifthColumnName:'flag',
+
      },
      includeSignature: true,
      includeLimitations: false,
      limitations: "No limitations",
+     useGeneraralValidation: false,
+     useIndividualValidations:true,
      includeBarcode: true,
      showEndOfResult: true,
      comments: {
@@ -77,4 +95,6 @@ export const defaultResultSettings: ResultSettings = {
      },
      template: 1,
      includeWatermark: true,
+     showMethod: true,
+     useReportTitle: true,
 }

@@ -1,15 +1,15 @@
 import Barcode from 'react-barcode';
 
-export default function UseResultEntryScientist({ validators, resultentry, enteredOn, lastupdatedon, patientid, billingid, ascensionid }) {
+export default function UseResultEntryScientist({ validators, resultentry, enteredOn, resultsettings, lastupdatedon, patientid, billingid, ascensionid }) {
 	const barcodeValue = billingid && ascensionid && patientid ? `${billingid}-${ascensionid}-${patientid}` : patientid || billingid || ascensionid;
-	console.log(barcodeValue, billingid, ascensionid, patientid);
+
 	return (
 		<div className="report-container">
-			{/* <div className="grid-30-30-30 text-sm">
-							   <span>Entry By:</span>
-							   <span> {resultentry}</span>
-							   <p>{new Date(enteredOn).toLocaleString()}</p>
-					   </div> */}
+			<div className="grid-30-30-30 text-sm">
+				<span>Authenticated By:</span>
+				<span> {resultentry}</span>
+				<p>{new Date(enteredOn).toLocaleString()}</p>
+			</div>
 			<div className='d-flex justify-content-between '>
 				{Array.isArray(validators) && validators.length > 0 && validators.map((validator) => (
 					<div key={validator.employeeid} >

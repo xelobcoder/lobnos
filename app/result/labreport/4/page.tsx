@@ -36,7 +36,12 @@ const MDSLancetTemplate: React.FC = () => {
     useEffect(() => {
         setLoader(true);
         customFetch(url)
-            .then((data) => setResultData(data))
+            .then((data) => {
+                if (data && data.resultsettings) {
+                    setResultSettings(data.resultsettings);
+                }
+                setResultData(data)
+            })
             .catch((err) => console.error(err))
             .finally(() => { setLoader(false); });
     }, []);
@@ -93,15 +98,7 @@ const MDSLancetTemplate: React.FC = () => {
                         pdf.saveGraphicsState();
                         pdf.setTextColor(225, 225, 225);
                         pdf.setFontSize(9);
-                        if (resultSettings.includeWatermark) {
-                            pdf.setFont(resultSettings.fontfamily);
-                            pdf.text(resultdata.companyInfo.name, pageWidth / 2, pageHeight / 2, {
-                                angle: 50,
-                                align: 'right',
-                                baseline: 'bottom',
-                                
-                            });
-                        }
+
                         pdf.restoreGraphicsState();
                         pdf.setTextColor(60, 60, 60);
                         pdf.setFontSize(10);
@@ -230,22 +227,38 @@ const MDSLancetTemplate: React.FC = () => {
                                         test={resultdata?.testname}
                                         records={resultdata?.records}
                                         resultsettings={resultSettings}
+                                        testInfo={resultdata?.testInfo}
+                                        testdetailcategory={resultdata.testdetailcategory}
                                     />
-                                    <UseResultCommentSinglePreview comments={resultdata?.comments} />
+
                                     <UseClinicalLiteratureReview literature={resultdata?.literatureReview} />
+                                    <UseResultCommentSinglePreview comments={resultdata?.comments} />
                                 </section>
                                 <section>
-                                    <UseResultEntryScientist
+                                    {resultSettings.useIndividualValidations && !resultSettings.useGeneraralValidation && <UseResultEntryScientist
                                         lastupdatedon={resultdata?.lastupdatedon}
                                         validators={resultdata?.validators}
                                         resultentry={resultdata?.resultentry}
                                         enteredOn={resultdata?.enteredOn}
                                         ascensionid={ascensionid}
                                         billingid={resultdata?.billingid}
+                                        resultsettings={resultSettings}
                                         patientid={resultdata?.patientInformation?.patientid}
-                                    />
+                                    />}
+                                    {resultSettings.showMethod && resultdata.testInfo && resultdata.testInfo.method && (
+                                        <div className='d-flex '>
+                                            <div className='fw-bold'>Method: </div>
+                                            <p className='mx-1'>{resultdata.testInfo.method}</p>
+                                        </div>
+                                    )}
+                                    {resultSettings.showMethod && resultdata.testInfo && resultdata.testInfo.instrumentation && (
+                                        <div className='d-flex '>
+                                            <div className='fw-bold'>Instrumentation: </div>
+                                            <p className='mx-1'>{resultdata.testInfo.instrumentation}</p>
+                                        </div>
+                                    )}
                                     <span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
-                                    {resultSettings.includeLimitations && <UseDisclaimer />}
+                                    {resultSettings.includeLimitations && <UseDisclaimer  disclaimer={resultSettings.limitations}/>}
                                 </section>
                             </div>
                         </div>
@@ -258,7 +271,7 @@ const MDSLancetTemplate: React.FC = () => {
                     </div>
                     {pdfUrl && (
                         <button
-                            className='printing-button'
+                            className='printing-button no-print'
                             onClick={() => setShowPdfControls(true)}
                             style={{
                                 position: 'absolute',

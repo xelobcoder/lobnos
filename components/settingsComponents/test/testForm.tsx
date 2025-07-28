@@ -46,7 +46,7 @@ interface TestData {
 	testprice: string;
 	hasManual: string;
 	procedureCode: string;
-	deviceId:number;
+	deviceId: number;
 	includeDeviceInResult: boolean;
 	pre_Tat: string;
 	tat: string;
@@ -59,6 +59,9 @@ interface TestData {
 	iscustom: number;
 	hasGenderVariation: number;
 	hasChildrenLimit: number;
+	deviceInterfaceMapping: string | null;
+	reportitle: string;
+	method: string | null;
 }
 
 const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => {
@@ -66,7 +69,13 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 	const [sampleType, setSample] = useState<any[]>([]);
 	const [category, setCategory] = useState<any[]>([]);
 	const [sampleContainers, setSampleContainers] = useState<any[]>([]);
-	const [data, setTestData] = useState<TestData|any>({ ...defaultTestEditValues, iscustom: customtest });
+	const [data, setTestData] = useState<TestData | any>({
+		...defaultTestEditValues,
+		iscustom: customtest,
+		deviceInterfaceMapping: null,
+		reportitle: '',
+		method: null
+	});
 	const [FieldDisabledDueNone, setFieldDisabledDueNone] = useState<boolean>(false);
 	const [isLoading, setLoading] = useState<boolean>(true);
 
@@ -93,13 +102,20 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 
 	const handleForm = async (ev: FormEvent): Promise<void> => {
 		ev.preventDefault();
-		const { category, sample_container, sample, name, testprice } = data;
-		
+		const { category, sample_container, sample, name, testprice, reportitle, method: testMethod, deviceInterfaceMapping } = data;
+
 		if (sample === 0 || (sample_container === "" && sample !== 8) || name === "" || category === 0) {
 			toast.error("Sample type, container, and category are required", { autoClose: 2000 });
 			return;
 		}
-
+		if (!reportitle || reportitle.trim() === "") {
+			toast.error("Report title is required", { autoClose: 2000 });
+			return;
+		}
+		if (!testMethod || testMethod.trim() === "") {
+			toast.error("Method is required", { autoClose: 2000 });
+			return;
+		}
 		if (parseFloat(testprice) < 0) {
 			toast.error("Test price must be 0 or more", { autoClose: 2000 });
 			return;
@@ -107,7 +123,7 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 
 		try {
 			const response = await customPost(`testpanel/list`, method, { ...data, employeeid });
-			response.status === "success" 
+			response.status === "success"
 				? toast.success("Test panel updated successfully", { autoClose: 500 })
 				: toast.error("Test panel not updated", { autoClose: 500 });
 		} catch (error) {
@@ -118,7 +134,7 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 	const handleSampleTypeChange = (ev: ChangeEvent<HTMLSelectElement>): void => {
 		const { value } = ev.target;
 		const numericValue = parseInt(value, 10);
-		
+
 		if (numericValue === 8) {
 			setTestData({ ...data, sample: numericValue, sample_container: "", unit: "", qty_required: "" });
 			return;
@@ -138,7 +154,6 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 
 	return (
 		<div>
-			<ToastContainer className={'text-sm'} position="top-center" theme="colored"/>
 			<>
 				<div className="mx-2 d-flex justify-content-between">
 					<h5 className="text-capitalize pls-label bg-secondary-subtle p-3 pls-color br-5">{data?.name}</h5>
@@ -164,6 +179,8 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 
 				<div className="border bg-white border-secondary-subtle mx-2 p-2">
 					<form className="mx-4">
+						{/* New fields for reportitle, method, deviceInterfaceMapping */}
+
 						<TestBasicForm
 							data={data}
 							handleChangeWithState={handleChangeWithState}
@@ -177,10 +194,10 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 						<hr />
 						<ConfigurationForm data={data} handleSwitch={handleSwitch} />
 						<hr />
-						<TatForm 
-							data={data} 
-							handleChangeWithState={handleChangeWithState} 
-							setTestData={setTestData} 
+						<TatForm
+							data={data}
+							handleChangeWithState={handleChangeWithState}
+							setTestData={setTestData}
 						/>
 						<hr />
 						<div>

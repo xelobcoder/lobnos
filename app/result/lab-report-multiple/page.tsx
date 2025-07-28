@@ -36,7 +36,12 @@ export default function LabReportPrintingMultiple() {
 		if (billingid && testid && ascensionid && employeeid) {
 			setLoader(true);
 			customFetch(url)
-				.then((data) => setResultData(data))
+				.then((data) => {
+					if (data && data.resultsettings) {
+						setResultSettings(data.resultsettings);
+					}
+					setResultData(data);
+				})
 				.catch((err) => console.error(err))
 				.finally(() => { setLoader(false); });
 		}
@@ -54,93 +59,89 @@ export default function LabReportPrintingMultiple() {
 	// 		setPrintList(printList.filter((values, index) => values.testid != item.testid))
 	// 	}
 	// ...existing code...
-	const [pdfUrl, setPdfUrl] = useState<{ url: string; filename: string } | null>(null);
-	const [showPdf, setShowPdf] = useState(false);
-	const [showPdfControls, setShowPdfControls] = useState(false);
+const [pdfUrl, setPdfUrl] = useState<{ url: string; filename: string } | null>(null);
+const [pdfError, setPdfError] = useState<string | null>(null);
+const [pdfLoading, setPdfLoading] = useState(false);
+const [showPdf, setShowPdf] = useState(false);
+const [showPdfControls, setShowPdfControls] = useState(false);
 	// selectedTests: array of indices, in the order selected
 	const [selectedTests, setSelectedTests] = useState<number[]>([]);
 
 	// Helper: are all tests selected?
 	const allTestsSelected = resultdata && Array.isArray(resultdata.test) && selectedTests.length === resultdata.test.length && selectedTests.every((v, i) => v === i);
 
-	useEffect(() => {
-		if (!loader && resultdata && Array.isArray(resultdata.test)) {
-			const resultElement = document.querySelector('.result') as HTMLElement | null;
-			if (!resultElement) return;
-			const images = Array.from(resultElement.querySelectorAll('img'));
-			const unloaded = images.filter(img => !img.complete);
-			if (unloaded.length > 0) {
-				let loadedCount = 0;
-				unloaded.forEach(img => {
-					img.onload = img.onerror = () => {
-						loadedCount++;
-						if (loadedCount === unloaded.length) generatePDF();
-					};
-				});
-			} else {
-				generatePDF();
+useEffect(() => {
+	setPdfError(null);
+	setPdfLoading(false);
+	if (!loader && resultdata && Array.isArray(resultdata.test)) {
+		setPdfLoading(true);
+		setTimeout(() => {
+			// Use the actual DOM element for the report content
+			const resultElement = document.querySelector('.result');
+			if (!resultElement) {
+				setPdfError('Unable to find report content for PDF.');
+				setPdfLoading(false);
+				return;
 			}
-		}
+			html2canvas(resultElement as HTMLElement, { scale: 2, useCORS: true }).then(canvas => {
+				const imgData = canvas.toDataURL('image/png');
+				const pdf = new jsPDF('p', 'mm', 'a4');
+				const pageWidth = pdf.internal.pageSize.getWidth();
+				const pageHeight = pdf.internal.pageSize.getHeight();
+				const margin = 10;
+				const usableWidth = pageWidth - margin * 2;
+				const usableHeight = pageHeight - margin * 2;
+				const imgProps = pdf.getImageProperties(imgData);
+				const imgWidth = usableWidth;
+				const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
 
-		function generatePDF() {
-			setTimeout(() => {
-				const resultElement = document.querySelector('.result') as HTMLElement | null;
-				if (!resultElement) return;
-				html2canvas(resultElement, { scale: 2, useCORS: true }).then(canvas => {
-					const imgData = canvas.toDataURL('image/png');
-					const pdf = new jsPDF('p', 'mm', 'a4');
-					const pageWidth = pdf.internal.pageSize.getWidth();
-					const pageHeight = pdf.internal.pageSize.getHeight();
-					const margin = 10;
-					const usableWidth = pageWidth - margin * 2;
-					const usableHeight = pageHeight - margin * 2;
-					const imgProps = pdf.getImageProperties(imgData);
-					const imgWidth = usableWidth;
-					const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+				let remainingHeight = imgHeight;
+				let imgY = margin;
+				let pageNum = 1;
 
-					let remainingHeight = imgHeight;
-					let imgY = margin;
-					let pageNum = 1;
-
-					while (remainingHeight > 0) {
-						pdf.addImage(
-							imgData,
-							'PNG',
-							margin,
-							imgY,
-							imgWidth,
-							imgHeight
-						);
-						pdf.saveGraphicsState();
-						pdf.setTextColor(225, 225, 225);
-						pdf.setFontSize(9);
-						pdf.restoreGraphicsState();
-						pdf.setTextColor(60, 60, 60);
-						pdf.setFontSize(10);
-						pdf.text(` ${pageNum}`, pageWidth / 2, pageHeight - 14, { align: 'center' });
-						pdf.setFontSize(8);
-						pdf.setTextColor(65, 105, 225);
-						const copyright = `Software by leonides intell,PLS v0.0.1 copyright @${new Date().getFullYear()}. Tell: 0249434803 || 0595964565`;
-						pdf.text(copyright, pageWidth / 2, pageHeight - 6, { align: 'center' });
-						pageNum++;
-						remainingHeight -= usableHeight;
-						imgY -= usableHeight;
-						if (remainingHeight > 0) pdf.addPage();
-					}
-					const patientName = (resultdata?.patientInformation?.firstname || '') + '_' + (resultdata?.patientInformation?.lastname || '');
-					const safePatientName = patientName.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-					const safeBillingId = (resultdata?.billingid || '').toString().replace(/[^a-zA-Z0-9_]/g, '');
-					const safeAscensionId = (ascensionid || '').toString().replace(/[^a-zA-Z0-9_]/g, '');
-					const now = new Date();
-					const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-					const filename = `${safePatientName}-${safeBillingId}-${safeAscensionId}-${dateStr}.pdf`;
-					const blob = pdf.output('blob');
-					const blobUrl = URL.createObjectURL(blob);
-					setPdfUrl({ url: blobUrl, filename });
-				});
-			}, 500);
-		}
-	}, [loader, resultdata]);
+				while (remainingHeight > 0) {
+					pdf.addImage(
+						imgData,
+						'PNG',
+						margin,
+						imgY,
+						imgWidth,
+						imgHeight
+					);
+					pdf.saveGraphicsState();
+					pdf.setTextColor(225, 225, 225);
+					pdf.setFontSize(9);
+					pdf.restoreGraphicsState();
+					pdf.setTextColor(60, 60, 60);
+					pdf.setFontSize(10);
+					pdf.text(` ${pageNum}`, pageWidth / 2, pageHeight - 14, { align: 'center' });
+					pdf.setFontSize(8);
+					pdf.setTextColor(65, 105, 225);
+					const copyright = `Software by leonides intell,PLS v0.0.1 copyright @${new Date().getFullYear()}. Tell: 0249434803 || 0595964565`;
+					pdf.text(copyright, pageWidth / 2, pageHeight - 6, { align: 'center' });
+					pageNum++;
+					remainingHeight -= usableHeight;
+					imgY -= usableHeight;
+					if (remainingHeight > 0) pdf.addPage();
+				}
+				const patientName = (resultdata?.patientInformation?.firstname || '') + '_' + (resultdata?.patientInformation?.lastname || '');
+				const safePatientName = patientName.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+				const safeBillingId = (resultdata?.billingid || '').toString().replace(/[^a-zA-Z0-9_]/g, '');
+				const safeAscensionId = (ascensionid || '').toString().replace(/[^a-zA-Z0-9_]/g, '');
+				const now = new Date();
+				const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+				const filename = `${safePatientName}-${safeBillingId}-${safeAscensionId}-${dateStr}.pdf`;
+				const blob = pdf.output('blob');
+				const blobUrl = URL.createObjectURL(blob);
+				setPdfUrl({ url: blobUrl, filename });
+				setPdfLoading(false);
+			}).catch(err => {
+				setPdfError('PDF generation failed: ' + (err?.message || err));
+				setPdfLoading(false);
+			});
+		}, 500);
+	}
+}, [loader, resultdata, selectedTests]);
 
 	// When resultdata loads, select all tests by default
 	useEffect(() => {
@@ -265,6 +266,27 @@ export default function LabReportPrintingMultiple() {
 								>
 									Print
 								</button>
+								<button
+									className="no-print"
+									disabled={!pdfUrl || pdfLoading || !!pdfError}
+									onClick={() => setShowPdfControls(true)}
+									style={{
+										marginTop: 12,
+										padding: '6px 16px',
+										borderRadius: 4,
+										border: '1px solid #4169e1',
+										background: pdfUrl && !pdfLoading && !pdfError ? '#4169e1' : '#ccc',
+										color: '#fff',
+										fontWeight: 700,
+										cursor: pdfUrl && !pdfLoading && !pdfError ? 'pointer' : 'not-allowed',
+										fontSize: 16
+									}}
+								>
+									{pdfLoading ? 'Generating PDF...' : pdfError ? 'PDF Error' : 'PDF Options'}
+								</button>
+								{pdfError && (
+									<span style={{ color: 'red', fontSize: 12, marginTop: 4 }}>{pdfError}</span>
+								)}
 							</div>
 						</aside>
 						{/* Main report area */}
@@ -325,35 +347,26 @@ export default function LabReportPrintingMultiple() {
 														test={resultdata.test[idx].testname}
 														records={resultdata.test[idx].records}
 														resultsettings={resultSettings}
+														testdetailcategory={resultdata.test[idx].testdetailcategory}
 													/>
-													{/* Clinical note (literature review) should come before comments */}
-													{resultdata.test[idx].literatureReview && <UseClinicalLiteratureReview literature={resultdata.test[idx].literatureReview} />}
-													{/* Only show all comments in the last selected section */}
-													{i === selected.length - 1 && allComments.length > 0 && (
-														<UseResultCommentSinglePreview comments={allComments} />
-													)}
-													<UseResultEntryScientist
-														lastupdatedon={resultdata.test[idx].lastupdatedon}
-														validators={getValidators(idx)}
-														resultentry={resultdata.test[idx].resultentry}
-														enteredOn={resultdata.test[idx].enteredOn}
-														ascensionid={ascensionid}
-														billingid={resultdata.billingid}
-														patientid={resultdata.patientInformation?.patientid}
-													/>
-													<span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
 												</section>
 											));
 										})()}
-										{resultSettings.includeLimitations && <UseDisclaimer />}
 									</div>
 								</div>
-								<footer className={styles.footerSection}>
-									<VersionFooter />
-									<div className={styles.pageNumber}>
-										<span className="pageNumber"></span>
-									</div>
-								</footer>
+								
+								<div style={{ width: '100%', marginTop: 32, textAlign: 'center', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+									{resultSettings.includeLimitations && (
+										<span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
+									)}
+									{resultdata.generalValidation && (
+										<div className="d-flex" style={{ justifyContent: 'center', marginTop: 8 }}>
+											<div className="text-uppercase">Verified By:</div>
+											<div className="mx-2">{resultdata.generalValidation.username}</div>
+										</div>
+									)}
+									{resultSettings.includeLimitations && <UseDisclaimer />}
+								</div>
 							</div>
 							{pdfUrl && (
 								<button

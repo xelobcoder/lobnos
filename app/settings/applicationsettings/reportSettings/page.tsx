@@ -24,24 +24,41 @@ const fontFamilies = [
 	'Ralleway, Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
 ];
 
+const defaultTestBodyColumnNames = {
+  trFirstColumnName: 'Investigation',
+  trSecondColumnName: 'value',
+  trThirdColumnName: 'units',
+  trFourthColumnName: 'reference',
+  trFifthColumnName: 'flag',
+};
+
 const SettingsForm = () => {
-	const [settings, setSettings] = useState<ResultSettings>(defaultResultSettings);
-	const [loading, setLoading] = useState<boolean>(true);
-	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [settings, setSettings] = useState<ResultSettings>(() => {
+	const s = { ...defaultResultSettings };
+	s.testBody = { ...s.testBody, ...defaultTestBodyColumnNames, ...defaultResultSettings.testBody };
+	return s;
+  });
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
 
-	const loadApplicationResultSettings = async () => {
-		try {
-			setLoading(true);
-			const response = await customFetch(`applicationsetting/resultsettings`);
-			if (response && Object.keys(response).length == 0) return;
-			setSettings(response);
-		} catch (error) {
-			toast.error("Failed to load settings", { autoClose: 500, position: "top-center" });
-		} finally {
-			setLoading(false);
-		}
+  const loadApplicationResultSettings = async () => {
+	try {
+	  setLoading(true);
+	  const response = await customFetch(`applicationsetting/resultsettings`);
+	  if (response && Object.keys(response).length == 0) return;
+	  // Merge in default column names if missing
+	  const merged = {
+		...response,
+		testBody: { ...defaultTestBodyColumnNames, ...(response?.testBody || {}) },
+	  };
+	  setSettings(merged);
+	} catch (error) {
+	  toast.error("Failed to load settings", { autoClose: 500, position: "top-center" });
+	} finally {
+	  setLoading(false);
 	}
+  }
 
 	useEffect(() => {
 		loadApplicationResultSettings();
@@ -126,26 +143,26 @@ const SettingsForm = () => {
 										<Form.Group className="mb-3" controlId="testnameColor">
 											<div className="form-label">Test Name Color</div>
 											<div className="d-flex align-items-center gap-2">
-<Form.Control
-	type="color"
-	name="testnameColor"
-	value={settings.testnameColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({ ...prev, testnameColor: value }));
-	}}
-	style={{ width: 50, minWidth: 50, padding: 0 }}
-/>
-<Form.Control
-	type="text"
-	name="testnameColor"
-	value={settings.testnameColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({ ...prev, testnameColor: value }));
-	}}
-	style={{ width: 120 }}
-/>
+												<Form.Control
+													type="color"
+													name="testnameColor"
+													value={settings.testnameColor}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({ ...prev, testnameColor: value }));
+													}}
+													style={{ width: 50, minWidth: 50, padding: 0 }}
+												/>
+												<Form.Control
+													type="text"
+													name="testnameColor"
+													value={settings.testnameColor}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({ ...prev, testnameColor: value }));
+													}}
+													style={{ width: 120 }}
+												/>
 											</div>
 										</Form.Group>
 									</Col>
@@ -153,26 +170,26 @@ const SettingsForm = () => {
 										<Form.Group className="mb-3" controlId="testnameBackgroundColor">
 											<div className="form-label">Test Name Background Color</div>
 											<div className="d-flex align-items-center gap-2">
-<Form.Control
-	type="color"
-	name="testnameBackgroundColor"
-	value={settings.testnameBackgroundColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({ ...prev, testnameBackgroundColor: value }));
-	}}
-	style={{ width: 50, minWidth: 50, padding: 0 }}
-/>
-<Form.Control
-	type="text"
-	name="testnameBackgroundColor"
-	value={settings.testnameBackgroundColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({ ...prev, testnameBackgroundColor: value }));
-	}}
-	style={{ width: 120 }}
-/>
+												<Form.Control
+													type="color"
+													name="testnameBackgroundColor"
+													value={settings.testnameBackgroundColor}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({ ...prev, testnameBackgroundColor: value }));
+													}}
+													style={{ width: 50, minWidth: 50, padding: 0 }}
+												/>
+												<Form.Control
+													type="text"
+													name="testnameBackgroundColor"
+													value={settings.testnameBackgroundColor}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({ ...prev, testnameBackgroundColor: value }));
+													}}
+													style={{ width: 120 }}
+												/>
 											</div>
 										</Form.Group>
 									</Col>
@@ -224,26 +241,26 @@ const SettingsForm = () => {
 										<Form.Group className="mb-3" controlId="mainReportHeaderColor">
 											<div className="form-label">Main Report Header Text Color</div>
 											<div className="d-flex align-items-center gap-2">
-<Form.Control
-	type="color"
-	name="mainReportHeaderColor"
-	value={settings.mainReportHeaderColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({ ...prev, mainReportHeaderColor: value }));
-	}}
-	style={{ width: 50, minWidth: 50, padding: 0 }}
-/>
-<Form.Control
-	type="text"
-	name="mainReportHeaderColor"
-	value={settings.mainReportHeaderColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({ ...prev, mainReportHeaderColor: value }));
-	}}
-	style={{ width: 120 }}
-/>
+												<Form.Control
+													type="color"
+													name="mainReportHeaderColor"
+													value={settings.mainReportHeaderColor}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({ ...prev, mainReportHeaderColor: value }));
+													}}
+													style={{ width: 50, minWidth: 50, padding: 0 }}
+												/>
+												<Form.Control
+													type="text"
+													name="mainReportHeaderColor"
+													value={settings.mainReportHeaderColor}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({ ...prev, mainReportHeaderColor: value }));
+													}}
+													style={{ width: 120 }}
+												/>
 											</div>
 										</Form.Group>
 									</Col>
@@ -251,26 +268,26 @@ const SettingsForm = () => {
 										<Form.Group className="mb-3" controlId="testTableHeaderBackgroundColor">
 											<div className="form-label">Test Table Header Background Color</div>
 											<div className="d-flex align-items-center gap-2">
-<Form.Control
-	type="color"
-	name="testTableHeaderBackgroundColor"
-	value={settings.testTableHeaderBackgroundColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({ ...prev, testTableHeaderBackgroundColor: value }));
-	}}
-	style={{ width: 50, minWidth: 50, padding: 0 }}
-/>
-<Form.Control
-	type="text"
-	name="testTableHeaderBackgroundColor"
-	value={settings.testTableHeaderBackgroundColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({ ...prev, testTableHeaderBackgroundColor: value }));
-	}}
-	style={{ width: 120 }}
-/>
+												<Form.Control
+													type="color"
+													name="testTableHeaderBackgroundColor"
+													value={settings.testTableHeaderBackgroundColor}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({ ...prev, testTableHeaderBackgroundColor: value }));
+													}}
+													style={{ width: 50, minWidth: 50, padding: 0 }}
+												/>
+												<Form.Control
+													type="text"
+													name="testTableHeaderBackgroundColor"
+													value={settings.testTableHeaderBackgroundColor}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({ ...prev, testTableHeaderBackgroundColor: value }));
+													}}
+													style={{ width: 120 }}
+												/>
 											</div>
 										</Form.Group>
 									</Col>
@@ -280,26 +297,26 @@ const SettingsForm = () => {
 										<Form.Group className="mb-3" controlId="testTableHeaderTextColor">
 											<div className="form-label">Test Table Header Text Color</div>
 											<div className="d-flex align-items-center gap-2">
-<Form.Control
-	type="color"
-	name="testTableHeaderTextColor"
-	value={settings.testTableHeaderTextColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({ ...prev, testTableHeaderTextColor: value }));
-	}}
-	style={{ width: 50, minWidth: 50, padding: 0 }}
-/>
-<Form.Control
-	type="text"
-	name="testTableHeaderTextColor"
-	value={settings.testTableHeaderTextColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({ ...prev, testTableHeaderTextColor: value }));
-	}}
-	style={{ width: 120 }}
-/>
+												<Form.Control
+													type="color"
+													name="testTableHeaderTextColor"
+													value={settings.testTableHeaderTextColor}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({ ...prev, testTableHeaderTextColor: value }));
+													}}
+													style={{ width: 50, minWidth: 50, padding: 0 }}
+												/>
+												<Form.Control
+													type="text"
+													name="testTableHeaderTextColor"
+													value={settings.testTableHeaderTextColor}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({ ...prev, testTableHeaderTextColor: value }));
+													}}
+													style={{ width: 120 }}
+												/>
 											</div>
 										</Form.Group>
 									</Col>
@@ -335,32 +352,32 @@ const SettingsForm = () => {
 										<Form.Group className="mb-3" controlId="companyInfo.color">
 											<div className="form-label">Company Name Color</div>
 											<div className="d-flex align-items-center gap-2">
-<Form.Control
-	type="color"
-	name="companyInfo.color"
-	value={settings.companyInfo.color}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({
-			...prev,
-			companyInfo: { ...prev.companyInfo, color: value }
-		}));
-	}}
-	style={{ width: 50, minWidth: 50, padding: 0 }}
-/>
-<Form.Control
-	type="text"
-	name="companyInfo.color"
-	value={settings.companyInfo.color}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({
-			...prev,
-			companyInfo: { ...prev.companyInfo, color: value }
-		}));
-	}}
-	style={{ width: 120 }}
-/>
+												<Form.Control
+													type="color"
+													name="companyInfo.color"
+													value={settings.companyInfo.color}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({
+															...prev,
+															companyInfo: { ...prev.companyInfo, color: value }
+														}));
+													}}
+													style={{ width: 50, minWidth: 50, padding: 0 }}
+												/>
+												<Form.Control
+													type="text"
+													name="companyInfo.color"
+													value={settings.companyInfo.color}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({
+															...prev,
+															companyInfo: { ...prev.companyInfo, color: value }
+														}));
+													}}
+													style={{ width: 120 }}
+												/>
 											</div>
 										</Form.Group>
 									</Col>
@@ -382,6 +399,56 @@ const SettingsForm = () => {
 										label="Include Limitations"
 										name="includeLimitations"
 										checked={settings.includeLimitations}
+										onChange={handleChange}
+									/>
+								</Form.Group>
+								<Form.Group className="mb-3 d-flex align-items-center">
+									<Form.Check
+										type="switch"
+										id="useGeneraralValidation"
+										label="Use General Validation"
+										name="useGeneraralValidation"
+										checked={!!settings.useGeneraralValidation}
+										onChange={handleChange}
+									/>
+								</Form.Group>
+								<Form.Group className="mb-3 d-flex align-items-center">
+									<Form.Check
+										type="switch"
+										id="useIndividualValidations"
+										label="Use Individual Validations"
+										name="useIndividualValidations"
+										checked={!!settings.useIndividualValidations}
+										onChange={handleChange}
+									/>
+								</Form.Group>
+								<Form.Group className="mb-3 d-flex align-items-center">
+									<Form.Check
+										type="switch"
+										id="showMethod"
+										label="Show Method"
+										name="showMethod"
+										checked={!!settings.showMethod}
+										onChange={handleChange}
+									/>
+								</Form.Group>
+								<Form.Group className="mb-3 d-flex align-items-center">
+									<Form.Check
+										type="switch"
+										id="useInstrumentation"
+										label="Use Instrumentation"
+										name="useInstrumentation"
+										checked={!!settings.useInstrumentation}
+										onChange={handleChange}
+									/>
+								</Form.Group>
+								<Form.Group className="mb-3 d-flex align-items-center">
+									<Form.Check
+										type="switch"
+										id="useReportTitle"
+										label="Use Report Title"
+										name="useReportTitle"
+										checked={!!settings.useReportTitle}
 										onChange={handleChange}
 									/>
 								</Form.Group>
@@ -457,33 +524,92 @@ const SettingsForm = () => {
 										<Form.Group className="mb-3" controlId="testBody.color">
 											<div className="form-label">Test Body Color</div>
 											<div className="d-flex align-items-center gap-2">
-<Form.Control
-	type="color"
-	name="testBody.color"
-	value={settings.testBody.color}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({
-			...prev,
-			testBody: { ...prev.testBody, color: value }
-		}));
-	}}
-	style={{ width: 50, minWidth: 50, padding: 0 }}
-/>
-<Form.Control
-	type="text"
-	name="testBody.color"
-	value={settings.testBody.color}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({
-			...prev,
-			testBody: { ...prev.testBody, color: value }
-		}));
-	}}
-	style={{ width: 120 }}
-/>
+												<Form.Control
+													type="color"
+													name="testBody.color"
+													value={settings.testBody.color}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({
+															...prev,
+															testBody: { ...prev.testBody, color: value }
+														}));
+													}}
+													style={{ width: 50, minWidth: 50, padding: 0 }}
+												/>
+												<Form.Control
+													type="text"
+													name="testBody.color"
+													value={settings.testBody.color}
+													onChange={e => {
+														const value = e.target.value;
+														setSettings(prev => ({
+															...prev,
+															testBody: { ...prev.testBody, color: value }
+														}));
+													}}
+													style={{ width: 120 }}
+												/>
 											</div>
+										</Form.Group>
+									</Col>
+								</Row>
+								<Row>
+									<Col md={4}>
+										<Form.Group className="mb-3" controlId="testBody.trFirstColumnName">
+											<div className="form-label">First Column Name</div>
+											<Form.Control
+												type="text"
+												name="testBody.trFirstColumnName"
+												value={settings.testBody.trFirstColumnName}
+												onChange={handleChange}
+											/>
+										</Form.Group>
+									</Col>
+									<Col md={4}>
+										<Form.Group className="mb-3" controlId="testBody.trSecondColumnName">
+											<div className="form-label">Second Column Name</div>
+											<Form.Control
+												type="text"
+												name="testBody.trSecondColumnName"
+												value={settings.testBody.trSecondColumnName}
+												onChange={handleChange}
+											/>
+										</Form.Group>
+									</Col>
+									<Col md={4}>
+										<Form.Group className="mb-3" controlId="testBody.trThirdColumnName">
+											<div className="form-label">Third Column Name</div>
+											<Form.Control
+												type="text"
+												name="testBody.trThirdColumnName"
+												value={settings.testBody.trThirdColumnName}
+												onChange={handleChange}
+											/>
+										</Form.Group>
+									</Col>
+								</Row>
+								<Row>
+									<Col md={6}>
+										<Form.Group className="mb-3" controlId="testBody.trFourthColumnName">
+											<div className="form-label">Fourth Column Name</div>
+											<Form.Control
+												type="text"
+												name="testBody.trFourthColumnName"
+												value={settings.testBody.trFourthColumnName}
+												onChange={handleChange}
+											/>
+										</Form.Group>
+									</Col>
+									<Col md={6}>
+										<Form.Group className="mb-3" controlId="testBody.trFifthColumnName">
+											<div className="form-label">Fifth Column Name</div>
+											<Form.Control
+												type="text"
+												name="testBody.trFifthColumnName"
+												value={settings.testBody.trFifthColumnName}
+												onChange={handleChange}
+											/>
 										</Form.Group>
 									</Col>
 								</Row>
@@ -525,32 +651,32 @@ const SettingsForm = () => {
 											<Form.Group className="mb-3" controlId="testBody.hightFlagColor">
 												<div className="form-label">High Flag Color</div>
 												<div className="d-flex align-items-center gap-2">
-<Form.Control
-	type="color"
-	name="testBody.hightFlagColor"
-	value={settings.testBody.hightFlagColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({
-			...prev,
-			testBody: { ...prev.testBody, hightFlagColor: value }
-		}));
-	}}
-	style={{ width: 50, minWidth: 50, padding: 0 }}
-/>
-<Form.Control
-	type="text"
-	name="testBody.hightFlagColor"
-	value={settings.testBody.hightFlagColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({
-			...prev,
-			testBody: { ...prev.testBody, hightFlagColor: value }
-		}));
-	}}
-	style={{ width: 120 }}
-/>
+													<Form.Control
+														type="color"
+														name="testBody.hightFlagColor"
+														value={settings.testBody.hightFlagColor}
+														onChange={e => {
+															const value = e.target.value;
+															setSettings(prev => ({
+																...prev,
+																testBody: { ...prev.testBody, hightFlagColor: value }
+															}));
+														}}
+														style={{ width: 50, minWidth: 50, padding: 0 }}
+													/>
+													<Form.Control
+														type="text"
+														name="testBody.hightFlagColor"
+														value={settings.testBody.hightFlagColor}
+														onChange={e => {
+															const value = e.target.value;
+															setSettings(prev => ({
+																...prev,
+																testBody: { ...prev.testBody, hightFlagColor: value }
+															}));
+														}}
+														style={{ width: 120 }}
+													/>
 												</div>
 											</Form.Group>
 										</Col>
@@ -558,32 +684,32 @@ const SettingsForm = () => {
 											<Form.Group className="mb-3" controlId="testBody.lowFlagColor">
 												<div className="form-label">Low Flag Color</div>
 												<div className="d-flex align-items-center gap-2">
-<Form.Control
-	type="color"
-	name="testBody.lowFlagColor"
-	value={settings.testBody.lowFlagColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({
-			...prev,
-			testBody: { ...prev.testBody, lowFlagColor: value }
-		}));
-	}}
-	style={{ width: 50, minWidth: 50, padding: 0 }}
-/>
-<Form.Control
-	type="text"
-	name="testBody.lowFlagColor"
-	value={settings.testBody.lowFlagColor}
-	onChange={e => {
-		const value = e.target.value;
-		setSettings(prev => ({
-			...prev,
-			testBody: { ...prev.testBody, lowFlagColor: value }
-		}));
-	}}
-	style={{ width: 120 }}
-/>
+													<Form.Control
+														type="color"
+														name="testBody.lowFlagColor"
+														value={settings.testBody.lowFlagColor}
+														onChange={e => {
+															const value = e.target.value;
+															setSettings(prev => ({
+																...prev,
+																testBody: { ...prev.testBody, lowFlagColor: value }
+															}));
+														}}
+														style={{ width: 50, minWidth: 50, padding: 0 }}
+													/>
+													<Form.Control
+														type="text"
+														name="testBody.lowFlagColor"
+														value={settings.testBody.lowFlagColor}
+														onChange={e => {
+															const value = e.target.value;
+															setSettings(prev => ({
+																...prev,
+																testBody: { ...prev.testBody, lowFlagColor: value }
+															}));
+														}}
+														style={{ width: 120 }}
+													/>
 												</div>
 											</Form.Group>
 										</Col>
