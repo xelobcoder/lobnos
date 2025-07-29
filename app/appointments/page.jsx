@@ -3,19 +3,21 @@ import React, { useState, useEffect } from 'react';
 import { customFetch } from '../../components/Auth/customFetch';
 import Loader from '../../components/accessories/Loader';
 import { Modal, Button, Badge, Form } from 'react-bootstrap';
-import { 
-    RiArrowLeftSLine, 
-    RiArrowRightSLine, 
-    RiCloseLine, 
-    RiEditLine, 
-    RiAddLine, 
-    RiSaveLine, 
+import {
+	RiArrowLeftSLine,
+	RiArrowRightSLine,
+	RiCloseLine,
+	RiEditLine,
+	RiAddLine,
+	RiSaveLine,
 	RiArrowGoForwardLine
 } from '@remixicon/react';
 import { EditIcon } from '../../components/Billing/BillingContextComponents/Lib/Icons';
 import { motion } from 'framer-motion';
 import dayjs from 'dayjs';
 import 'dayjs/locale/en';
+
+import AppointmentModal from '../../components/appointments/AppointmentModal';
 
 
 export default function Appointment() {
@@ -310,35 +312,14 @@ export default function Appointment() {
 					<div className="d-flex gap-2">
 						<div className="btn-group">
 							<Button onClick={navigateToPreviousMonth} variant="danger" size="sm" aria-label="Previous month">
-                                <RiArrowLeftSLine />
-                            </Button>
-                            <Button onClick={navigateToToday} variant="danger" size="sm">Today</Button>
-                            <Button onClick={navigateToNextMonth} variant="danger" size="sm" aria-label="Next month">
-                                <RiArrowRightSLine />
-                            </Button>
-                            
-                       
-                            <Button variant="outline-secondary" size="sm" onClick={handleCancelEdit}>
-                                <RiCloseLine /> Cancel
-                            </Button>
-                            
-                         
-                            <Button variant="outline-primary" size="sm" onClick={() => setModalMode('edit')}>
-                                <RiEditLine /> Edit
-                            </Button>
-                            
-                        
-                            <Button variant="primary" size="sm" className="d-flex align-items-center">
-                                <RiAddLine /> New Appointment
-                            </Button>
-                            
-                            
-                            <Button variant="success" size="sm" onClick={handleSaveChanges} className="me-2">
-                                <RiSaveLine /> Save
-                            </Button>
+								<RiArrowLeftSLine />
+							</Button>
 							<Button onClick={navigateToToday} variant="danger" size="sm">Today</Button>
 							<Button onClick={navigateToNextMonth} variant="danger" size="sm" aria-label="Next month">
-								<RiArrowGoForwardLine/>
+								<RiArrowRightSLine />
+							</Button>
+							<Button onClick={navigateToNextMonth} variant="danger" size="sm" aria-label="Next month">
+								<RiArrowGoForwardLine />
 							</Button>
 						</div>
 						<div className="btn-group">
@@ -385,89 +366,20 @@ export default function Appointment() {
 					)}
 				</div>
 			</div>
-			<Modal show={showModal} onHide={handleCloseModal} backdrop="static">
-				<Modal.Header className="bg-secondary-subtle fw-bold d-flex justify-content-between" closeButton>
-					<div className="d-flex justify-content-between">
-						<div>
-							<h5>{selectedDate ? dayjs(selectedDate).format('MMMM D, YYYY') : 'Appointment Details'}</h5>
-						</div>
-						<div className="mx-5">
-							{modalMode === 'view' && (
-								<Button variant="outline-primary" size="sm" onClick={() => setModalMode('edit')}>
-									<EditIcon /> Edit
-								</Button>
-							)}
-						</div>
-					</div>
-					{modalMode === 'edit' && (
-						<div className="d-flex">
-							<Button variant="success" size="sm" onClick={handleSaveChanges} className="me-2">
-								 Save
-							</Button>
-							<Button variant="outline-secondary" size="sm" onClick={handleCancelEdit}>
-								 Cancel
-							</Button>
-						</div>
-					)}
-				</Modal.Header>
-				<Modal.Body>
-					{selectedAppointments.length === 0 ? (
-						<p>No appointments for this day.</p>
-					) : modalMode === 'view' ? (
-						<ul className="list-unstyled">
-							{selectedAppointments.map(appointment => (
-								<li key={appointment.id} className="mb-2">
-									<div className="d-flex justify-content-between align-items-center">
-										<div>
-											<h6 className="mb-1">{appointment.title}</h6>
-											<p className="text-muted small">{formatTime(appointment.appointment_time)}</p>
-										</div>
-										<div>
-											<Badge bg={getStatusColor(appointment.status)}>{appointment.status}</Badge>
-										</div>
-									</div>
-									<hr />
-								</li>
-							))}
-						</ul>
-					) : (
-						<Form>
-							{editedAppointments.map((appointment, index) => (
-								<div key={appointment.id} className="mb-3">
-									<Form.Group controlId={`title-${appointment.id}`} className="mb-1">
-										<Form.Label>Title</Form.Label>
-										<Form.Control
-											type="text"
-											value={appointment.title}
-											onChange={(e) => handleEditChange(index, 'title', e.target.value)}
-										/>
-									</Form.Group>
-									<Form.Group controlId={`time-${appointment.id}`} className="mb-1">
-										<Form.Label>Time</Form.Label>
-										<Form.Control
-											type="text"
-											value={formatTime(appointment.appointment_time)}
-											onChange={(e) => handleEditChange(index, 'appointment_time', e.target.value)}
-										/>
-									</Form.Group>
-									<Form.Group controlId={`status-${appointment.id}`}>
-										<Form.Label>Status</Form.Label>
-										<Form.Select value={appointment.status} onChange={(e) => handleEditChange(index, 'status', e.target.value)}>
-											<option value="Confirmed">Confirmed</option>
-											<option value="Pending">Pending</option>
-											<option value="Cancelled">Cancelled</option>
-										</Form.Select>
-									</Form.Group>
-									<hr />
-								</div>
-							))}
-						</Form>
-					)}
-				</Modal.Body>
-				<Modal.Footer>
-					<Button variant="secondary" size="sm" onClick={handleCloseModal}>Close</Button>
-				</Modal.Footer>
-			</Modal>
+			<AppointmentModal
+				show={showModal}
+				onHide={handleCloseModal}
+				selectedDate={selectedDate}
+				selectedAppointments={selectedAppointments}
+				editedAppointments={editedAppointments}
+				modalMode={modalMode}
+				setModalMode={setModalMode}
+				handleEditChange={handleEditChange}
+				handleSaveChanges={handleSaveChanges}
+				handleCancelEdit={handleCancelEdit}
+				formatTime={formatTime}
+				getStatusColor={getStatusColor}
+			/>
 		</div>
 	);
 }

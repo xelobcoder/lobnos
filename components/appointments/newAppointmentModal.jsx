@@ -72,105 +72,106 @@ export default function NewAppointment() {
 	};
 
 	return (
-		<><ToastContainer theme="colored" /><section>
-			<div className="d-flex justify-content-between my-2">
+		<>
+			<section>
+				<div className="d-flex justify-content-between my-2">
 
-			</div>
-			<Container>
-				<div className="col-6">
-					<PatientFiltering getSelectedPatient={getSelectedPatient} isDisabled={disableFilter} />
 				</div>
-				<div >
+				<Container>
 					<div className="col-6">
-						{/* <div>{selected && <PatientInfo patientdata={patient} />}</div> */}
-						<div className="form-row w-100 mb-3">
-							<label>Date of Appointment</label>
-							<br />
-							<div>
-								<DatePicker
-									className="custom-input"
-									selected={appointment.appointment_date}
-									onChange={(date) => setAppointment({ ...appointment, appointment_date: date })} />
+						<PatientFiltering getSelectedPatient={getSelectedPatient} isDisabled={disableFilter} />
+					</div>
+					<div >
+						<div className="col-6">
+							{/* <div>{selected && <PatientInfo patientdata={patient} />}</div> */}
+							<div className="form-row w-100 mb-3">
+								<label>Date of Appointment</label>
+								<br />
+								<div>
+									<DatePicker
+										className="custom-input"
+										selected={appointment.appointment_date}
+										onChange={(date) => setAppointment({ ...appointment, appointment_date: date })} />
+								</div>
 							</div>
-						</div>
-						<div className="form-row mb-3">
-							<label>Consulting Healthcare Practitioner</label>
-							<div>
+							<div className="form-row mb-3">
+								<label>Consulting Healthcare Practitioner</label>
+								<div>
+									<Autocomplete
+										styles={reactSelectCustomStyles}
+										value={appointment.practioner}
+										onChange={(value) => {
+											onChangePractioner(value, setAppointment, appointment, setMorning, setAfternoon, setEvening);
+										}}
+										options={employees || []}
+										getOptionLabel={(option) => <span className="text-uppercase">{option.username}</span>}
+										getOptionValue={(option) => option.username} />
+									{isloadingEmployees && <SpinningLoading color="text-dark" />}
+								</div>
+							</div>
+							<div className="form-row mb-3">
+								<label>Title of Appointment</label>
+								<input
+									value={appointment.title}
+									onChange={(e) => setAppointment({ ...appointment, title: e.target.value })}
+									type="text"
+									className="custom-input" />
+							</div>
+							<div className="form-row mb-3">
+								<label>Brief Description/Purpose</label>
+								<textarea
+									rows={5}
+									className="form-control"
+									value={appointment.purpose}
+									onChange={(e) => setAppointment({ ...appointment, purpose: e.target.value })} />
+							</div>
+							<div className="form-row">
+								<label>Duration (minutes)</label>
 								<Autocomplete
 									styles={reactSelectCustomStyles}
-									value={appointment.practioner}
-									onChange={(value) => {
-										onChangePractioner(value, setAppointment, appointment, setMorning, setAfternoon, setEvening);
-									}}
-									options={employees || []}
-									getOptionLabel={(option) => <span className="text-uppercase">{option.username}</span>}
-									getOptionValue={(option) => option.username} />
-								{isloadingEmployees && <SpinningLoading color="text-dark" />}
+									getOptionLabel={(option) => option.label}
+									value={appointment.duration}
+									onChange={(value) => setAppointment({ ...appointment, duration: value })}
+									options={durationOptions} />
 							</div>
 						</div>
-						<div className="form-row mb-3">
-							<label>Title of Appointment</label>
-							<input
-								value={appointment.title}
-								onChange={(e) => setAppointment({ ...appointment, title: e.target.value })}
-								type="text"
-								className="custom-input" />
-						</div>
-						<div className="form-row mb-3">
-							<label>Brief Description/Purpose</label>
-							<textarea
-								rows={5}
-								className="form-control"
-								value={appointment.purpose}
-								onChange={(e) => setAppointment({ ...appointment, purpose: e.target.value })} />
-						</div>
-						<div className="form-row">
-							<label>Duration (minutes)</label>
-							<Autocomplete
-								styles={reactSelectCustomStyles}
-								getOptionLabel={(option) => option.label}
-								value={appointment.duration}
-								onChange={(value) => setAppointment({ ...appointment, duration: value })}
-								options={durationOptions} />
+						<div className="col-6">
+							<div className="form-row mb-3">
+								<label>Preference</label>
+								<Autocomplete
+									value={appointment.preference}
+									styles={reactSelectCustomStyles}
+									getOptionLabel={(options) => options.label}
+									onChange={(value) => setAppointment({ ...appointment, preference: value })}
+									options={preferenceOptions} />
+
+							</div>
+							<div className="form-row">
+								<label>Invite Method</label>
+								<Autocomplete
+									styles={reactSelectCustomStyles}
+									value={appointment.inviteMethod}
+									getOptionLabel={(options) => options.label}
+									onChange={(value) => setAppointment({ ...appointment, inviteMethod: value })}
+									options={inviteMethod} />
+							</div>
+							<div className="form-row my-2">
+								{<AppointmentSlots handleClick={handleSlotClick} title={"Morning"} appointment={appointment} slot={morning} />}
+								{<AppointmentSlots handleClick={handleSlotClick} title={"Afternoon"} appointment={appointment} slot={afternoon} />}
+								{<AppointmentSlots handleClick={handleSlotClick} title={"Evening"} appointment={appointment} slot={evening_slots} />}
+							</div>
+							<button
+								type="button"
+								disabled={morning.length === 0 && afternoon.length === 0 && evening_slots.length === 0}
+								onClick={(ev) => {
+									handleFormSubmit(ev);
+								}}
+								className="btn btn-primary mt-3">
+								Schedule Appointment
+							</button>
 						</div>
 					</div>
-					<div className="col-6">
-						<div className="form-row mb-3">
-							<label>Preference</label>
-							<Autocomplete
-								value={appointment.preference}
-								styles={reactSelectCustomStyles}
-								getOptionLabel={(options) => options.label}
-								onChange={(value) => setAppointment({ ...appointment, preference: value })}
-								options={preferenceOptions} />
-							
-						</div>
-						<div className="form-row">
-							<label>Invite Method</label>
-							<Autocomplete
-								styles={reactSelectCustomStyles}
-								value={appointment.inviteMethod}
-								getOptionLabel={(options) => options.label}
-								onChange={(value) => setAppointment({ ...appointment, inviteMethod: value })}
-								options={inviteMethod} />
-						</div>
-						<div className="form-row my-2">
-							{<AppointmentSlots handleClick={handleSlotClick} title={"Morning"} appointment={appointment} slot={morning} />}
-							{<AppointmentSlots handleClick={handleSlotClick} title={"Afternoon"} appointment={appointment} slot={afternoon} />}
-							{<AppointmentSlots handleClick={handleSlotClick} title={"Evening"} appointment={appointment} slot={evening_slots} />}
-						</div>
-						<button
-							type="button"
-							disabled={morning.length === 0 && afternoon.length === 0 && evening_slots.length === 0}
-							onClick={(ev) => {
-								handleFormSubmit(ev);
-							}}
-							className="btn btn-primary mt-3">
-							Schedule Appointment
-						</button>
-					</div>
-				</div>
-			</Container>
-		</section></>
+				</Container>
+			</section></>
 	);
 }

@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "node server.js  --experimental-https",
-    "next": "next dev  --experimental-https",
-    "start": "next start  -p 3000 ",
+    "next": "next dev  --experimental-https -p 2377",
+    "start": "next start  -p 2377 ",
     "build": "next build",
     "ns": "next build && node --env-file=.env server.js",
     "build:css": ""

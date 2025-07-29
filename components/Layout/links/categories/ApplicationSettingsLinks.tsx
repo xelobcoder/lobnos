@@ -42,7 +42,7 @@ export const ApplicationSettingsLinks: Link[] =
         { title: 'Billing Strategy', link: '/billing/billing-strategy/strategies', icon: <RiStarHalfLine /> },
         { title: 'Drug Category', link: '/settings/applicationsettings/drugs/drugCategoryView', icon: <RiMedicineBottleLine /> },
         { title: 'Drugs List', link: '/settings/applicationsettings/drugs', icon: <RiMedicineBottleFill /> },
-        { title: 'Insurance Companies', link: '/settings/insurance', icon: <RiGitRepositoryFill /> },
+        { title: 'Insurance Companies', link: '/billing/insurance', icon: <RiGitRepositoryFill /> },
         { title: 'Promo Codes', link: '/settings/promos/promo-code-generation', icon: <RiGift2Line /> },
         { title: 'Campaigns', link: '/settings/promos/campaign-creation', icon: <RiGift2Line /> }
     ];

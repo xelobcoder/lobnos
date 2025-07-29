@@ -10,7 +10,7 @@ export default function BookAppointment() {
 
     const breadcrumbLinks = [
         { href: '/appointments', label: 'Calendar' },
-        { href: '/appointments/tt', label: 'Appointment List' },
+        { href: '/appointments/appointment-list', label: 'Appointment List' },
         { href: '/appointments/book', label: 'New Appointment' }
     ];
 

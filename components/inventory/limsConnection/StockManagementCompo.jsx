@@ -58,16 +58,6 @@ export default function StockManagementCompo({ ascensionList }) {
 	};
 
 
-	if (services.isConnectedInventory === 0) {
-		return (
-			<Alert className="m-2 p-2 pls-color col-3">
-				<Alert.Heading style={{ fontSize: '14px' }} className="text-capitalize text-sm pls-color fw-bold">
-					Inventory services feature not activated
-				</Alert.Heading>
-				<hr />
-			</Alert>
-		);
-	}
 
 	return (
 		<div>

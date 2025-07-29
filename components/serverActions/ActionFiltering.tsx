@@ -575,3 +575,18 @@ export const handleUserLogin = async (formData) => {
 
 	return { error: 'Invalid credentials' };
 }
+
+export const fetchServerSideAppointments = async (pagination: { page: number, count: number, order: 'DESC' | 'ASC' }) => {
+	try {
+		const { page, count, order } = pagination;
+		const response = await customFetch(`appointments?page=${page}&count=${count}`);
+		if (Array.isArray(response)) {
+			return { result: response, error: false };
+		} else {
+			return { result: [], error: false };
+		}
+	} catch (error) {
+		console.error('Error fetching appointments:', error);
+		return { result: [], error: true };
+	}
+};
