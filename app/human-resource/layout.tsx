@@ -1,6 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import './global.css'
+import "../../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import PrimeLayout from "../../components/Layout/PrimeLayout"
 import { Suspense } from "react"
 import { ApplicationProvider } from "../../components/Auth/useApplicationContext"

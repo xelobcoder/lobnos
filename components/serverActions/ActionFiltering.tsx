@@ -590,3 +590,10 @@ export const fetchServerSideAppointments = async (pagination: { page: number, co
 		return { result: [], error: true };
 	}
 };
+
+
+
+export const destroyUserSession = async () => {
+	cookies().delete('PLS-SESSION');
+		redirect('/authentications/login');
+}

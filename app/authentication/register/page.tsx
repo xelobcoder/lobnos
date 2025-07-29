@@ -125,11 +125,22 @@ export default function AuthenticationIndexPage() {
 		if (employeeid) {
 			setLoading(true);
 			customFetch(`logins/user?id=${employeeid}`)
-				.then((data: { statusCode: number; message: string; result: Array<{ role: string; username: string; email: string; }> }) => {
+				.then((data: { statusCode: number; message: string; result: Array<any> }) => {
 					const { statusCode, message, result } = data;
 					if (statusCode === 200 && message === 'success' && result.length > 0) {
-						const { role, username, email } = result[0];
-						setRegister(prev => ({ ...prev, name: username, email, role }));
+						const user = result[0];
+						setRegister(prev => ({
+							...prev,
+							name: user.username || '',
+							email: user.email || '',
+							role: user.role || '',
+							branch: user.branch ? String(user.branch) : '',
+							mobile: user.mobile || '',
+							altMobile: user.alternativeMobile || '',
+							dob: user.dob ? user.dob.substring(0, 10) : '',
+							startDate: user.date_created ? user.date_created.substring(0, 10) : '',
+							pin: user.pin ? String(user.pin) : '',
+						}));
 					}
 					setLoading(false);
 				})

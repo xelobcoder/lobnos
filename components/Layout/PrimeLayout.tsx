@@ -22,7 +22,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
     const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
     const { company, user } = useApplicationSettings().applicationsettings;
-
+    const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
 
     useEffect(() => {
@@ -102,7 +102,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         `}>
             <header
                 className={styles.header}
-              
+
             >
                 <div className={styles.headerContent}>
                     <h1>{company?.name || "Prime Laboratory System(PLS)"}</h1>
@@ -116,10 +116,12 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                 {(user?.username?.charAt(0) || 'U').toUpperCase()}
                             </Dropdown.Toggle>
                             <Dropdown.Menu>
-                                <Dropdown.Item href="/profile">Profile</Dropdown.Item>
+                                <Dropdown.Item href={`/human-resource/profile?employeeid=${employeeid}`}>Profile</Dropdown.Item>
                                 <Dropdown.Item href="/settings">Settings</Dropdown.Item>
                                 <Dropdown.Divider />
-                                <Dropdown.Item href="/logout">Logout</Dropdown.Item>
+                                <Dropdown.Item href="/authentication/logout">
+                                    Logout
+                                </Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>
                     </div>
