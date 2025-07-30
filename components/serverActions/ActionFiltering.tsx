@@ -530,9 +530,27 @@ export const handleUserLogin = async (formData) => {
 
 
 				const { payload } = await jwtVerify(signedToken, secret);
+				// Dynamically detect protocol for secure cookie
+				let isHttps = false;
+				try {
+					// Use Next.js headers() if available
+					const { headers } = await import('next/headers');
+					const hdrs = headers();
+					console.log("Headers:", hdrs);
+					const xfp = hdrs.get('x-forwarded-proto');
+					let proto = xfp;
+					if (!proto) {
+						const referer = hdrs.get('referer') || '';
+						proto = referer.split(':')[0];
+					}
+					isHttps = proto === 'https';
+				} catch (e) {
+					// Fallback to env if headers() is not available
+					isHttps = process.env.NODE_ENV === 'production' || process.env.HTTPS === 'true';
+				}
 				cookies().set('PLS-SESSION', signedToken, {
 					httpOnly: true,
-					secure: process.env.NODE_ENV === 'production',
+					secure: isHttps,
 					sameSite: 'strict',
 					path: '/',
 					maxAge: payload.exp ? payload.exp - Math.floor(Date.now() / 1000) : 3600
@@ -595,5 +613,53 @@ export const fetchServerSideAppointments = async (pagination: { page: number, co
 
 export const destroyUserSession = async () => {
 	cookies().delete('PLS-SESSION');
-		redirect('/authentications/login');
+	redirect('/authentications/login');
+}
+
+
+
+export const handleServerSidePatientArchives = async (pagination: {
+	patientid?: number;
+	from?: string;
+	to?: string;
+	billingid?: string;
+	fullname?: string;
+	page: number;
+	isPatientSpecific?: boolean;
+	count: number;
+	sortby: 'ASC' | 'DESC'
+}) => {
+	try {
+		const { from, to, billingid, patientid, fullname, page, count, isPatientSpecific = false } = pagination;
+		if (isPatientSpecific && !patientid) {
+			return { result: [], error: true };
+		}
+console.log("Server-side patient archives pagination:", pagination);
+		try {
+			const trimmedFullname = fullname ? fullname.trim() : "";
+			const params = [
+				`from=${encodeURIComponent(from == null ? "" : from)}`,
+				`to=${encodeURIComponent(to == null ? "" : to)}`,
+				`billingid=${encodeURIComponent(billingid == null ? "" : billingid)}`,
+				`patientid=${encodeURIComponent(patientid == null ? "" : parseInt(patientid.toString()))}`,
+				`fullname=${encodeURIComponent(trimmedFullname)}`,
+				`page=${encodeURIComponent(page)}`,
+				`count=${encodeURIComponent(count)}`,
+				`sortingwise=${encodeURIComponent(pagination?.sortby)}`
+			];
+			const url = `operations/collection/result?${params.join("&&")}`;
+			const response = await customFetch(url);
+			const { statusCode, result } = response;
+			console.log("Server-side patient archives response:", response,params.join("&&"));
+			if (Array.isArray(result) && statusCode === 200) {
+				return { result, error: false };
+			} else {
+				return { result: [], error: false };
+			}
+		} catch {
+			return { result: [], error: true };
+		}
+	} catch (error) {
+		return { result: [], error: true };
+	}
 }

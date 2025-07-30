@@ -12,7 +12,7 @@ const nextConfig = {
 		TENANTID:"3",
 	},
 	images: {
-		domains: ["localhost", "192.168.43.170",],
+		domains: ["localhost", "192.168.43.150",],
 	},
 };
 

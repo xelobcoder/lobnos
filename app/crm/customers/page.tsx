@@ -63,9 +63,9 @@ export default function Activator() {
 
     const gotoPrevTrans = (patientid) => {
         if (patientid) {
-            patientid = `${generateRandomTextAndNumbers(50)}${patientid}`;
+            patientid = `${plsEncryption(patientid.toString())}`;
         }
-        window.open(`operations/laboratory/patientarchives/transactions?ptid=${patientid}`)
+        window.open(`/operations/laboratory/patientarchives/${patientid}`)
     }
 
 

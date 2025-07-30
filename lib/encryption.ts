@@ -33,6 +33,6 @@ export function plsDecryption(encryptedText: string): string {
         return decryptedText;
     } catch (error) {
         console.log("Decryption error:", error);
-        throw new Error("Failed to decrypt the text.");
+        return "";
     }
 }
