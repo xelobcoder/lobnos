@@ -23,6 +23,23 @@ const DEFAULTVALUES = {
 	to: today,
 };
 
+const generateRandomTextAndNumbers = (length) => {
+	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	let result = '';
+	for (let i = 0; i < length; i++) {
+		result += chars.charAt(Math.floor(Math.random() * chars.length));
+	}
+	return result;
+};
+
+const handleBrowserView = (data) => {
+	const { testid, test_name, patientid, ascensionid, billingid } = data;
+	const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
+	const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
+	const url = `csvid=${csvid}&&testid=${testid}&&testname=${test_name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=`;
+	window.open(`/result/labreport/4?${url}`);
+};
+
 const PatientArchivesPage = () => {
 	const [query, setQuery] = useState(DEFAULTVALUES);
 	const [collection, setCollection] = useState<any[]>([]);
@@ -128,11 +145,7 @@ const PatientArchivesPage = () => {
 			accessor: "actions",
 			Cell: ({ row }) => (
 				<button
-					onClick={() => {
-						router.push(
-							`/operations/laboratory/patientarchives/result?testid=${row.original.testid}&patientid=${row.original.patientid}&billingid=${row.original.billingid}`
-						);
-					}}
+					onClick={() => handleBrowserView(row.original)}
 					className="btn btn-primary btn-sm"
 				>
 					View Result
