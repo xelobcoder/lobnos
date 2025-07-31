@@ -2,13 +2,14 @@
 import React from 'react'
 import PatientFiltered from '../../../components/accessories/SectorFileringComponents/CustomerFiltering'
 import {useRouter} from 'next/navigation'
+import { plsEncryption } from '../../../lib/encryption';
 
 export default function ConsultationgloFieldSettingsPage() {
      const router = useRouter();
      const handleSelectedPatient = (selected: any) => {
           const { patientid } = selected;
           if (patientid) {
-               router.push(`/doctor/consultation/${patientid}`)
+               router.push(`/doctor/consultation/${plsEncryption(patientid.toString())}`);
           }
      }
 

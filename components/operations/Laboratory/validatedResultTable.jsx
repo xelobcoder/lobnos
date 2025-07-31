@@ -164,17 +164,25 @@ export default function ValidatedResultTable({ employeeid }) {
 
                          <Dropdown.Menu>
                               <Dropdown.Item className='pls-label' onClick={() => handleBrowserView(row.original)}>
-                                   Print Result Browser template one
+                                   {downloadSvg}  Print Result
                               </Dropdown.Item>
-                              <Dropdown.Item className='pls-label' onClick={() => viewResultHandler(row.original)}>
+                              <Dropdown.Item className='pls-label' onClick={() => {
+                                   const { testid, patientid, ascensionid, billingid } = row.original;
+                                   window.open(`/communications/sms/laboratory-lifecycle-events/sends?testid=${encodeURIComponent(testid)}&patientid=${encodeURIComponent(patientid)}&ascensionid=${encodeURIComponent(ascensionid)}&billingid=${encodeURIComponent(billingid)}`);
+                              }}>
+                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{marginRight: '6px', verticalAlign: 'middle'}}><path fill="none" d="M0 0h24v24H0z"></path><path d="M2 21l21-9-21-9v7l15 2-15 2z"></path></svg>
+                                   Send Completed SMS
+                              </Dropdown.Item>
+                              
+                              {/* <Dropdown.Item className='pls-label' onClick={() => viewResultHandler(row.original)}>
                                    {downloadSvg} Print Result
-                              </Dropdown.Item>
-                              <Dropdown.Item className='pls-label' onClick={() => viewResultHandler(row.original, true)}>
+                              </Dropdown.Item> */}
+                              {/* <Dropdown.Item className='pls-label' onClick={() => viewResultHandler(row.original, true)}>
                                    {downloadSvg}  Print Multiple Results
                               </Dropdown.Item>
                               <Dropdown.Item className='pls-label' onClick={() => sendEmailHandler(row.original)}>
                                    {EmailSvg} Send Report via Email
-                              </Dropdown.Item>
+                              </Dropdown.Item> */}
                               <Dropdown.Item className='pls-label' onClick={() => downloadSingleReportHandler(row.original)}>
                                    {downloadSvg} Download Password Protected Report
                               </Dropdown.Item>
