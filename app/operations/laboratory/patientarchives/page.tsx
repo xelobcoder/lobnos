@@ -11,6 +11,8 @@ import PrimeTable from "../../../../components/accessories/Datatables/PrimeTable
 import { useRouter } from "next/navigation";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 import { handleServerSidePatientArchives } from "../../../../components/serverActions/ActionFiltering";
+import { RiCodeView } from "@remixicon/react";
+import { plsEncryption } from "../../../../lib/encryption";
 
 const today = dayjs().format("YYYY-MM-DD");
 const DEFAULTVALUES = {
@@ -92,8 +94,8 @@ const PatientArchivesPage = () => {
 		setQuery({ ...DEFAULTVALUES, from: today, to: today, count: 10, page: 1 });
 	};
 
-	const columns = [
-		{ Header: "Billed On", accessor: "billing_date", Cell: ({ value }) => value ? dayjs(value).format("DD MMM YYYY") : "" },
+const columns = [
+{ Header: "Billed On", accessor: "billing_date", Cell: ({ value }) => value ? dayjs(value).format("DD MMM YYYY, hh:mm A") : "" },
 		{
 			Header: "Patient Info",
 			accessor: "patientinfo",
@@ -129,28 +131,53 @@ const PatientArchivesPage = () => {
 		},
 		{ Header: "Last Updated On", accessor: "lastupdatedon", Cell: ({ value }) => value ? dayjs(value).format("DD MMM YYYY, HH:mm") : "" },
 
-		{
-			Header: "Validation Info",
-			accessor: "validationinfo",
-			Cell: ({ row }) => (
-				<div>
-					<div><b>Sample Validated On:</b> {row.original.samplevalidatedon ? dayjs(row.original.samplevalidatedon).format("DD MMM YYYY, HH:mm") : ""}</div>
-					<div><b>Validated By:</b> {row.original.validatedby || "-"}</div>
-					<div><b>Phelobotomist:</b> {row.original.phelobotomist || "-"}</div>
-				</div>
-			),
-		},
+	   {
+		   Header: "Validation Info",
+		   accessor: "validationinfo",
+		   Cell: ({ row }) => (
+			   <div>
+				   <div><b>Sample Validated On:</b> {row.original.samplevalidatedon ? dayjs(row.original.samplevalidatedon).format("DD MMM YYYY, HH:mm") : ""}</div>
+			   <div><b>Validated By:</b> {
+				   Array.isArray(row.original.validators) && row.original.validators.length > 0
+					   ? row.original.validators.map((v, idx) => (
+						   <span key={v.employeeid || idx} className="badge bg-secondary me-1">{v.username}</span>
+					   ))
+					   : (row.original.validatedby || "-")
+			   }</div>
+			   </div>
+		   ),
+	   },
+	
 		{
 			Header: "Actions",
 			accessor: "actions",
-			Cell: ({ row }) => (
-				<button
-					onClick={() => handleBrowserView(row.original)}
-					className="btn btn-primary btn-sm"
-				>
-					View Result
-				</button>
-			),
+			Cell: ({ row }) => {
+				const { patientid, fullname } = row.original;
+				const encryptedId = encodeURIComponent(patientid);
+				const encodedPatientId = encodeURIComponent(patientid || "");
+				const encodedFullname = encodeURIComponent(fullname || "");
+
+				return (
+					<>
+						<button
+							onClick={() => handleBrowserView(row.original)}
+							className="btn btn-primary btn-sm mx-1"
+						>
+							View Result
+						</button>
+						<button
+						title="View Patient Archive"
+							className="btn btn-info btn-sm mx-1"
+							onClick={() => {
+								window.open(`/operations/laboratory/patientarchives/${plsEncryption(encryptedId)}?patientid=${encodedPatientId}&fullname=${encodedFullname}`);
+							}}
+						>
+							<RiCodeView />
+						
+						</button>
+					</>
+				);
+			},
 		},
 	];
 

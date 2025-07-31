@@ -61,11 +61,13 @@ export default function Activator() {
     }
 
 
-    const gotoPrevTrans = (patientid) => {
-        if (patientid) {
-            patientid = `${plsEncryption(patientid.toString())}`;
+    const gotoPrevTrans = (patientid: string | number, fullname?: string) => {
+        let encryptedId = patientid ? `${plsEncryption(patientid.toString())}` : '';
+        let nameParam = '';
+        if (fullname) {
+            nameParam = `&fullname=${encodeURIComponent(fullname)}`;
         }
-        window.open(`/operations/laboratory/patientarchives/${patientid}`)
+        window.open(`/operations/laboratory/patientarchives/${encryptedId}?patientid=${encodeURIComponent(patientid)}${nameParam}`);
     }
 
 
@@ -119,7 +121,7 @@ export default function Activator() {
                 return (
                     <CustomersActions
                         handleBilling={handleBilling}
-                        item={item} callActivation={callActivation} gotoPrevTrans={gotoPrevTrans} toast={toast} router={router} />
+                        item={item} callActivation={callActivation} gotoPrevTrans={() => gotoPrevTrans(item.patientid, item.fullname)} toast={toast} router={router} />
                 )
             }
         }

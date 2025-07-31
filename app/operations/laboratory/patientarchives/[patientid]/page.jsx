@@ -11,10 +11,12 @@ import {
 	updatePagination,
 } from "../../../../../components/Auth/customFetch";
 import PrimeTable from "../../../../../components/accessories/Datatables/PrimeTable";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useApplicationSettings } from "../../../../../components/Auth/useApplicationContext";
 import { plsDecryption } from "../../../../../lib/encryption";
 import { handleServerSidePatientArchives } from "../../../../../components/serverActions/ActionFiltering";
+import BillingPagePatientInformation from "../../../../../components/Billing/BillingContextComponents/PersonalInfoView";
+import { RiUserFill } from "@remixicon/react";
 
 
 const today = dayjs().format("YYYY-MM-DD");
@@ -29,8 +31,11 @@ const DEFAULTVALUES = {
 };
 
 const PatientSpecificArchivesCases = () => {
+	const [patientInformation, setPatientInformation] = useState({});
 	const router = useRouter();
 	const params = useParams();
+	const searchParams = useSearchParams();
+	const fullname = searchParams.get("fullname") || "";
 	const patientidParam = params?.patientid || "";
 	const decryptedPatientId = plsDecryption(patientidParam.toString());
 	const [query, setQuery] = useState({ ...DEFAULTVALUES, patientid: patientidParam });
@@ -51,23 +56,27 @@ const PatientSpecificArchivesCases = () => {
 
 	const getDataArchives = async () => {
 		if (decryptedPatientId) {
-			const { from, to, billingid, patientid, fullname, page, count } = query;
-			const trimmedFullname = fullname ? fullname.trim() : "";
-			const params = [
-				`from=${encodeURIComponent(from == null ? "" : from)}`,
-				`to=${encodeURIComponent(to == null ? "" : to)}`,
-				`billingid=${encodeURIComponent(billingid)}`,
-				`patientid=${encodeURIComponent(decryptedPatientId)}`,
-				`fullname=${encodeURIComponent(trimmedFullname)}`,
-				`page=${encodeURIComponent(page)}`,
-				`count=${encodeURIComponent(count)}`
-			];
-			const url = `operations/collection/result?${params.join("&&")}`;
-			const response = await customFetch(url);
-			const { statusCode, result } = response;
-			if (Array.isArray(result) && statusCode === 200) {
-				setCollection(result);
-			} else {
+			try {
+				const { from, to, billingid, patientid, fullname, page, count } = query;
+				const trimmedFullname = fullname ? fullname.trim() : "";
+				const params = [
+					`from=${encodeURIComponent(from == null ? "" : from)}`,
+					`to=${encodeURIComponent(to == null ? "" : to)}`,
+					`billingid=${encodeURIComponent(billingid)}`,
+					`patientid=${encodeURIComponent(decryptedPatientId)}`,
+					`fullname=${encodeURIComponent(trimmedFullname)}`,
+					`page=${encodeURIComponent(page)}`,
+					`count=${encodeURIComponent(count)}`
+				];
+				const url = `operations/collection/result?${params.join("&&")}`;
+				const response = await customFetch(url);
+				const { statusCode, result } = response;
+				if (Array.isArray(result) && statusCode === 200) {
+					setCollection(result);
+				} else {
+					setCollection([]);
+				}
+			} catch (err) {
 				setCollection([]);
 			}
 		}
@@ -86,12 +95,22 @@ const PatientSpecificArchivesCases = () => {
 		}
 	};
 
+
+	const handleBrowserView = (data) => {
+		const { testid, test_name, patientid, ascensionid, billingid } = data;
+		const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
+		const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
+		const url = `csvid=${csvid}&&testid=${testid}&&testname=${test_name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=`;
+		window.open(`/result/labreport/4?${url}`);
+	};
+
+
 	const clearFilters = () => {
 		setQuery({ ...DEFAULTVALUES, patientid: patientidParam, from: today, to: today, count: 10, page: 1 });
 	};
 
 	const columns = [
-		{ Header: "Billed On", accessor: "billing_date", Cell: ({ value }) => value ? dayjs(value).format("DD MMM YYYY") : "" },
+{ Header: "Billed On", accessor: "billing_date", Cell: ({ value }) => value ? dayjs(value).format("DD MMM YYYY, hh:mm A") : "" },
 		{
 			Header: "Patient Info",
 			accessor: "patientinfo",
@@ -132,8 +151,13 @@ const PatientSpecificArchivesCases = () => {
 			Cell: ({ row }) => (
 				<div>
 					<div><b>Sample Validated On:</b> {row.original.samplevalidatedon ? dayjs(row.original.samplevalidatedon).format("DD MMM YYYY, HH:mm") : ""}</div>
-					<div><b>Validated By:</b> {row.original.validatedby || "-"}</div>
-					<div><b>Phelobotomist:</b> {row.original.phelobotomist || "-"}</div>
+					<div><b>Validated By:</b> {
+						Array.isArray(row.original.validators) && row.original.validators.length > 0
+							? row.original.validators.map((v, idx) => (
+								<span key={v.employeeid || idx} className="badge bg-secondary me-1">{v.username}</span>
+							))
+							: (row.original.validatedby || "-")
+					}</div>
 				</div>
 			),
 		},
@@ -143,9 +167,7 @@ const PatientSpecificArchivesCases = () => {
 			Cell: ({ row }) => (
 				<button
 					onClick={() => {
-						router.push(
-							`/operations/laboratory/patientarchives/result?testid=${row.original.testid}&patientid=${row.original.patientid}&billingid=${row.original.billingid}`
-						);
+						handleBrowserView(row.original);
 					}}
 					className="btn btn-primary btn-sm"
 				>
@@ -155,16 +177,19 @@ const PatientSpecificArchivesCases = () => {
 		},
 	];
 
-	const updatePage = (value) => {
-		updatePagination(value, setQuery, query);
-	};
 
-	useEffect(() => {
-		getDataArchives();
-	}, [decryptedPatientId]);
+
 
 	return (
 		<div>
+			<div className="bg-secondary-subtle rounded-3 shadow-sm p-3 mb-4">
+				<div className="d-flex align-items-center">
+					<RiUserFill className="me-2 text-capitalize" /> 
+					<span className="ms-2 text-capitalize ">
+						{fullname}
+					</span>
+				</div>
+			</div>
 			<section className="grid-5">
 				<div className="mx-2">
 					<input

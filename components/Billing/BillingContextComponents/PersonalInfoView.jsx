@@ -4,7 +4,22 @@ import {
 	EmailIcon,
 } from './Lib/Icons'
 
-export default async function BillingPagePatientInformation({data }) {
+export default async function BillingPagePatientInformation({ data, loadingststate = false }) {
+	if (loadingststate) {
+		return (
+			<div className="heightedBorder p-2 bg-secondary-subtle d-flex justify-content-center">
+				{"<"}Loading Patient Information please ....... {">"}
+			</div>
+		);
+	}
+	if (!data || Object.keys(data).length === 0 && !loadingststate) {
+		return (
+			<div className="heightedBorder p-2 bg-secondary-subtle d-flex justify-content-center">
+				{"<"}No Patient Information Available {">"}
+			</div>
+		);
+	}
+
 	return (
 		<section>
 			<div className="d-flex justify-content-between">

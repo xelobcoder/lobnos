@@ -188,21 +188,24 @@ export function ControlMaterialManager() {
             accessor: 'lotNumber',
         },
         {
-            Header: 'Source Type',
-            accessor: 'sourceType',
-            Cell: ({ value }) => (
-                value === 'manufacturer' ? 'Commercial' :
-                    value === 'sister_lab' ? 'Sister Lab' : 'Trusted Source'
-            ),
-        },
-        {
-            Header: 'Source Details',
-            accessor: 'sourceDetails',
-            Cell: ({ row }) => (
-                row.original.sourceType === 'manufacturer'
+            Header: 'Source',
+            id: 'source',
+            accessor: row => row.sourceType,
+            Cell: ({ row }) => {
+                let typeLabel = '';
+                if (row.original.sourceType === 'manufacturer') typeLabel = 'Commercial';
+                else if (row.original.sourceType === 'sister_lab') typeLabel = 'Sister Lab';
+                else typeLabel = 'Trusted Source';
+                const details = row.original.sourceType === 'manufacturer'
                     ? row.original.manufacturer
-                    : row.original.sourceName
-            ),
+                    : row.original.sourceName;
+                return (
+                    <div>
+                        <div className="fw-semibold">{typeLabel}</div>
+                        <div className="small text-muted">{details}</div>
+                    </div>
+                );
+            },
         },
         {
             Header: 'Expiry Date',
