@@ -27,7 +27,7 @@ export default function VitalSignTable({ groupedVitalSigns, openModal }) {
 								<th>SpO2</th>
 								<th>Respiration</th>
 								<th>Temperature</th>
-								<th>Action</th>
+								{/* <th>Action</th> */}
 							</tr>
 						</thead>
 						<tbody>
@@ -52,11 +52,11 @@ export default function VitalSignTable({ groupedVitalSigns, openModal }) {
 										<td className={getStatusClass(vitalSign.temperature, NORMAL_RANGES.temperature)}>
 											{vitalSign.temperature}
 										</td>
-										<td>
-											<button onClick={(ev) => { router.push(`/customers/recordVitalSigns?iNewChart=1&&patientid=2024972&&edit=1&&vsKeyId=${vitalSign.vitalsignid}`)}} className='btn p-0 bg-info-subtle'>
+										{/* <td>
+											<button onClick={(ev) => { router.push(`/operations/laboratory/vitals/record-vital-sign?iNewChart=1&&patientid=${vitalSign.patientid}&&edit=1&&vsKeyId=${vitalSign.vitalsignid}`) }} className='btn p-0 bg-info-subtle'>
 												<RiEditLine />
 											</button>
-										</td>
+										</td> */}
 									</tr>
 								);
 							})}

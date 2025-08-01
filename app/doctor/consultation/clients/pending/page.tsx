@@ -6,6 +6,7 @@ import { customFetch } from "../../../../../components/Auth/customFetch";
 import Link from "next/link";
 import { Button } from "react-bootstrap";
 import moment from "moment";
+import { plsEncryption } from "../../../../../lib/encryption";
 
 interface PendingConsultation {
     serviceid: number;
@@ -91,7 +92,7 @@ const PendingDoctorConsultationList = () => {
             Header: "Actions",
             accessor: "",
             Cell: ({ row }: { row: { original: PendingConsultation } }) => (
-                <Link href={`/doctor/consultation/${row.original.patientid}`} passHref>
+                <Link href={row.original.patientid ?  `/doctor/consultation/${plsEncryption(row.original.patientid.toString())}` : ''} passHref>
                     <Button variant="primary" size="sm">
                         Initialize Consultation
                     </Button>

@@ -37,6 +37,7 @@ export default function VitalSignCustomerListInformation({ searchParams, size = 
         getPatientVitalSigns(patientid, filterFrom, filterTo);
     }, [patientid]);
 
+
     const handleFilterChange = (e) => {
         if (e.target.name === 'filterFrom') {
             setFilterFrom(e.target.value);
@@ -45,6 +46,7 @@ export default function VitalSignCustomerListInformation({ searchParams, size = 
         }
     };
 
+    const [pendingFilterSubmit, setPendingFilterSubmit] = useState(false);
     const handleFilterSubmit = (e) => {
         e.preventDefault();
         getPatientVitalSigns(patientid, filterFrom, filterTo);
@@ -118,7 +120,7 @@ export default function VitalSignCustomerListInformation({ searchParams, size = 
                     <RiRefreshLine />
                 </button>
             </div>
-            
+
             <VitalSignTable groupedVitalSigns={groupedVitalSigns} openModal={openModal} />
 
             <VitalSignChartModal

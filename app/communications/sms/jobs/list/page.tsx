@@ -2,9 +2,12 @@
 import React, { useEffect, useState } from 'react';
 import Spinner from 'react-bootstrap/Spinner';
 import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
 import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
 import { handleServerProcessingSmsJobs } from '../../../../../components/serverActions/ActionFiltering';
 import { customFetch } from '../../../../../components/Auth/customFetch';
+import { RiAddLine } from '@remixicon/react';
+import { useRouter } from 'next/navigation';
 
 const statusColors: Record<string, string> = {
      sent: 'success',
@@ -18,26 +21,37 @@ function formatDate(dateStr: string) {
      return d.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-const SmsJobsListPage: React.FC = () => {
-     const [jobs, setJobs] = useState<any[]>([]);
-     const [total, setTotal] = useState<number>(0);
-     const [loading, setLoading] = useState(true);
-     const [error, setError] = useState('');
 
-     useEffect(() => {
-          setLoading(true);
-          customFetch('prime/sms-jobs-paginated')
-               .then((data) => {
-                    if (data && Array.isArray(data.jobs)) {
-                         setJobs(data.jobs);
-                         setTotal(data.total || data.jobs.length);
-                    } else {
-                         setError('No jobs found.');
-                    }
-               })
-               .catch(() => setError('Failed to fetch jobs.'))
-               .finally(() => setLoading(false));
-     }, []);
+const SmsJobsListPage: React.FC = () => {
+    const [jobs, setJobs] = useState<any[]>([]);
+    const [total, setTotal] = useState<number>(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const router = useRouter();
+
+    const fetchJobs = () => {
+        setLoading(true);
+        customFetch('prime/sms-jobs-paginated')
+            .then((data) => {
+                if (data && Array.isArray(data.jobs)) {
+                    setJobs(data.jobs);
+                    setTotal(data.total || data.jobs.length);
+                } else {
+                    setError('No jobs found.');
+                }
+            })
+            .catch(() => setError('Failed to fetch jobs.'))
+            .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        fetchJobs();
+    }, []);
+
+
+    const handleCreateJobRedirect = () => {
+        router.push('/communications/sms/jobs');
+    };
 
 
      const columns = [
@@ -100,18 +114,23 @@ const SmsJobsListPage: React.FC = () => {
           );
      }
 
-     return (
-          <div className="mt-4">
-               <h3 className="fw-semibold mb-2" style={{ fontSize: '1.25rem' }}>SMS Jobs</h3>
-               <div className="mb-2 text-muted small" style={{ fontSize: '0.95rem' }}>Total: {total}</div>
-               <PrimeTable
-                    data={jobs}
-                    column={columns}
-                    serverSideFiltering={true}
-                    handleSeverSideProcessing={handleServerProcessingSmsJobs}
-               />
-          </div>
-     );
+    return (
+        <div className="mt-4">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+                <h3 className="fw-semibold mb-2" style={{ fontSize: '1.25rem' }}>SMS Jobs</h3>
+                <Button variant="primary" size="sm" onClick={handleCreateJobRedirect}>
+                    <RiAddLine size={18} className="me-1" /> Create SMS Jobs
+                </Button>
+            </div>
+            <div className="mb-2 text-muted small" style={{ fontSize: '0.95rem' }}>Total: {total}</div>
+            <PrimeTable
+                data={jobs}
+                column={columns}
+                serverSideFiltering={true}
+                handleSeverSideProcessing={handleServerProcessingSmsJobs}
+            />
+        </div>
+    );
 };
 
 export default SmsJobsListPage;

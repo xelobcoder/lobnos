@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import MultiRenderingBillingSourceFields from "./RenderingBillingSourceFields";
 import MultiPACKAGESELECT from './MultiPACKAGESELECT';
 import MultiRenderingWithPatientId from "./MultiRenderingWithPatientId";
-import { Button, Spinner } from "react-bootstrap";
+import { Button, Spinner, Modal } from "react-bootstrap";
 import { useContext, useState, useEffect } from "react";
 import { customFetch, customPost } from "../../Auth/customFetch";
 import { defaultMultiBillingData } from "../../../lib/Multi/MultiTypes";
@@ -17,6 +17,8 @@ import MultiBillingHeader from './MultiBillingHeader';
 import PreviousRecordsHeader from './PreviousRecordsHeader';
 import { plsEncryption } from "../../../lib/encryption";
 import { MultiValidateAndSubmitBillingInformation } from "../../../lib/Multi/multiBillingValidation";
+import { RiPrinterLine, RiStore3Line } from '@remixicon/react';
+import ReceiptOptionsModal from '../ReceiptOptionsModal';
 
 
 
@@ -86,6 +88,9 @@ function MultiBillingLayoutContent({ billingContextProps }: {
     const [useServices, setUseServices] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
     const [summaryData, setSummaryData] = useState(null);
+    const [showChoiceModal, setShowChoiceModal] = useState(false);
+    const [generatedBillingid, setGeneratedBillingid] = useState<string | number | undefined>(undefined);
+    const [showReceiptOptionsModal, setShowReceiptOptionsModal] = useState(false);
 
     const handleSpecialCodeChange = (e) => {
         const value = e.target.value;
@@ -343,6 +348,31 @@ function MultiBillingLayoutContent({ billingContextProps }: {
 
     const [isSaving, setIsSaving] = useState(false);
 
+    const handleModalClose = () => {
+        setShowChoiceModal(false);
+        setBillingData(prev => ({
+            ...defaultMultiBillingData,
+            billingSource: prev.billingSource,
+            branchid: prev.branchid,
+            patientid: prev.patientid,
+            entitytype: prev.entitytype,
+            entityId: prev.entityId,
+            entityname: prev.entityname
+        }));
+    };
+
+    const handleUserChoice = (choice: string) => {
+        setShowChoiceModal(false);
+        if (choice === 'print') {
+            setShowReceiptOptionsModal(true);
+        } else {
+            setBillingData(defaultMultiBillingData);
+            router.push(`/billing/sales/branches/${plsEncryption(branchid.toString())}`);
+        }
+    };
+
+    const closeReceiptModal = () => setShowReceiptOptionsModal(false);
+
     const handleSubmit = async (writeOffConfirmed = false) => {
         if (isSaving) return;
 
@@ -402,21 +432,9 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                         const url = `/billing/sales/branches/${plsEncryption(branchid?.toString())}?from=${today}&to=${today}&patientid=${plsEncryption(patientId?.toString())}`;
                         router.replace(url);
                     } else {
-                        setBillingData(prev => ({
-                            ...defaultMultiBillingData,
-                            billingSource: prev.billingSource,
-                            branchid: prev.branchid,
-                            patientid: prev.patientid,
-                            entitytype: prev.entitytype,
-                            entityId: prev.entityId,
-                            entityname: prev.entityname,
-                            includeServices: false,
-                            servicesList: [],
-                            isPackageUsed: false,
-                            packageid: 0,
-                            specialcode: '',
-                        }));
-                        if (patientId) router.replace(`/billing/patientid/${patientId}/multi/`);
+                        // User wants to stay on the same page - trigger the choice modal
+                        setGeneratedBillingid(response.billingid || response.data?.billingid);
+                        setShowChoiceModal(true);
                     }
                 }
             }
@@ -647,6 +665,52 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                 </div>
 
             </div>
+
+            {/* Choice Modal */}
+            {showChoiceModal && (
+                <Modal
+                    show={showChoiceModal}
+                    onHide={handleModalClose}
+                    centered
+                    backdrop="static"
+                    keyboard={false}
+                >
+                    <Modal.Header closeButton>
+                        <Modal.Title>Billing Complete</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <p>What would you like to do next?</p>
+                        <div className="d-flex justify-content-end gap-2">
+                            <Button
+                                variant="primary"
+                                onClick={() => handleUserChoice('print')}
+                                className="d-flex align-items-center gap-2"
+                            >
+                                <RiPrinterLine size={18} />
+                                Print Receipt
+                            </Button>
+                            <Button
+                                variant="secondary"
+                                onClick={() => handleUserChoice('sales')}
+                                className="d-flex align-items-center gap-2"
+                            >
+                                <RiStore3Line size={18} />
+                                Go to Sales
+                            </Button>
+                        </div>
+                    </Modal.Body>
+                </Modal>
+            )}
+
+            {/* Receipt Options Modal */}
+            {showReceiptOptionsModal && (
+                <ReceiptOptionsModal 
+                    open={showReceiptOptionsModal} 
+                    close={closeReceiptModal}
+                    patientid={Number(patientid)}
+                    billingid={generatedBillingid ? Number(generatedBillingid) : 0} 
+                />
+            )}
 
         </React.Fragment>
     );

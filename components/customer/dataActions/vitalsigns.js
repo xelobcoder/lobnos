@@ -16,7 +16,7 @@ export const uploadVitalSign = async function (formdata, method = 'POST', toast 
         const { status } = response;
         status == true ? toast.success("vital sign recorded successfully") : toast.error("somthing wrong occured. upload failed")
     } catch (err) {
-        toast.error('somthing wrong ocurred');
+        toast ? toast.error('somthing wrong ocurred') : alert('somthing wrong ocurred');
     }
 }
 

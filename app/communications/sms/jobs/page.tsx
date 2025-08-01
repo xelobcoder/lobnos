@@ -423,7 +423,7 @@ const SmsJobPage: React.FC = () => {
 												<OrganizationFiltering onSelect={handleOrganizationFiltering} showbulk={false} />
 											)}
 											{form.category === 'clinician' && (form.recipientScope === 'single' || form.recipientScope === 'multiple') && (
-												<ClinicianFiltering onSelect={handleClinicianFiltering} />
+												<ClinicianFiltering onSelect={handleClinicianFiltering} isBulk={true} />
 											)}
 											{form.category === 'patient' && (form.recipientScope === 'single' || form.recipientScope === 'multiple') && (
 												<PatientFiltered getSelectedPatient={handlePatientFiltering} isDisabled={false} />

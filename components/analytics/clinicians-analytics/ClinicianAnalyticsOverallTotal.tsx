@@ -127,30 +127,30 @@ const ClinicianOverallAnalytics: React.FC<ClinicianOverallAnalyticsProps> = ({ a
                         formatAsCurrency={false}
                     />
                 </div>
-                <div className="col-12 col-sm-6 col-xl-3">
+                {/* <div className="col-12 col-sm-6 col-xl-3">
                     <AnalyticCard
                         title="Total Service Cost"
                         value={analyticsData.total_cost}
                         Icon={RiMoneyDollarCircleLine}
                         variant="success"
                     />
-                </div>
+                </div> */}
                 <div className="col-12 col-sm-6 col-xl-3">
                     <AnalyticCard
-                        title="Net Amount Payable"
+                        title="Total Sales Made"
                         value={analyticsData.payable}
                         Icon={RiBillLine}
                         variant="warning"
                     />
                 </div>
-                <div className="col-12 col-sm-6 col-xl-3">
+                {/* <div className="col-12 col-sm-6 col-xl-3">
                     <AnalyticCard
                         title="Withholding Tax (WHT)"
                         value={analyticsData.amountIncurredDueTax}
                         Icon={RiCalculatorLine}
                         variant="danger"
                     />
-                </div>
+                </div> */}
             </div>
         </div>
     );

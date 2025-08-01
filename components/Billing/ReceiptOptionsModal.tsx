@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Modal, Button, Row, Col, Card, Spinner } from 'react-bootstrap';
 import { customFetch } from '../Auth/customFetch';
 import { toast } from 'react-toastify';
+import { useApplication } from '../Auth/useApplicationContext';
+import { useRouter } from 'next/navigation';
 
 interface ReceiptModalProps {
     open: boolean;
@@ -13,6 +15,9 @@ interface ReceiptModalProps {
 export default function ReceiptOptionsModal({ open, close, billingid, patientid }: ReceiptModalProps) {
     const [isEmailLoading, setIsEmailLoading] = useState(false); 
     const [isEmailSent, setIsEmailSent] = useState(false);
+    const employeeid = useApplication()?.user?.employeeid;
+    const branchid = useApplication()?.branchid;
+    const router = useRouter();
     const cardStyle = {
         width: '75px',
         height: '50px',
@@ -40,7 +45,9 @@ export default function ReceiptOptionsModal({ open, close, billingid, patientid 
                 toast.success('Receipt delivered via email successfully');
                 setIsEmailSent(true); 
                 setTimeout(() => {
-                    close()
+                    close();
+                    // Navigate back to multi billing page
+                    router.push(`/billing/patientid/${patientid}/multi/1`);
                 }, 2000);
             } else {
                 toast.error('Receipt via email failed');
@@ -57,12 +64,15 @@ export default function ReceiptOptionsModal({ open, close, billingid, patientid 
         if (!billingid) return;
         setIsSMSLoading(true);
         try {
-            const response = await customFetch(`sms/events/trigger/payment-made?billingid=${billingid}`);
+          if (!employeeid || !billingid) return 
+             const response = await customFetch(`sms/events/trigger/payment-made?billingid=${billingid}&&employeeid=${employeeid}`);
             const { status } = response;
             if (status &&( status === true || status === 'success')) {
                 toast.success('Receipt sent via SMS successfully');
                 setTimeout(() => {
                     close();
+                    // Navigate back to multi billing page
+                    router.push(`/billing/patientid/${patientid}/multi/1`);
                 }, 2000);
             } else {
                 toast.error('Receipt via SMS failed');
@@ -82,7 +92,7 @@ export default function ReceiptOptionsModal({ open, close, billingid, patientid 
                 </Modal.Header>
                 <Modal.Body>
                     <Row className="g-3">
-                        <Col md={3}>
+                        {/* <Col md={3}>
                             <Card
                                 className="h-100 text-center pls-color"
                                 style={cardStyle}
@@ -132,7 +142,7 @@ export default function ReceiptOptionsModal({ open, close, billingid, patientid 
                                     <div className="mb-0" style={{ fontSize: '0.7rem' }}>Email</div>
                                 </Card.Body>
                             </Card>
-                        </Col>
+                        </Col> */}
                         <Col md={3}>
                             <Card
                                 className="h-100 text-center pls-color"

@@ -91,6 +91,19 @@ const ActionButtons = ({ original, onEdit, onView, onDelete }) => {
 						<span className="fw-medium">Special Billing</span>
 					</Link>
 				</Dropdown.Item>
+				{/* view analytics */}
+				<Dropdown.Item
+					as="div"
+					className="d-flex align-items-center gap-2 py-2 border-0"
+				>
+					<Link
+						href={`/analytics/sales/${original.id}/overall`}
+						className="text-decoration-none text-dark d-flex align-items-center gap-2 w-100"
+					>
+						<RiAddLine className="text-warning" size={16} />
+						<span className="fw-medium">View Analytics</span>
+					</Link>
+				</Dropdown.Item>
 				<Dropdown.Divider className="my-1" />
 				<Dropdown.Item
 					onClick={() => onDelete(original)}

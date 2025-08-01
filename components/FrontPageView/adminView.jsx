@@ -94,7 +94,7 @@ const links = [
 		description: 'Email configuration and management'
 	},
 	{
-		href: '/communications/sms',
+		href: '/communications/sms/dashboard',
 		icon: <RiMessage2Line size={24} />,
 		text: "Configure and manage SMS notifications",
 		label: 'SMS Services',

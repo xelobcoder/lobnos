@@ -72,6 +72,14 @@ export async function middleware(request: NextRequest) {
             //     return NextResponse.next();
             // }
 
+            const restrictedAccessPage = ['analytics']
+
+            if (restrictedAccessPage.some(page => currentPath.startsWith(`/${page}`))) {
+                if (!['admin', 'manager'].includes(role.toString().toLowerCase().trim())) {
+                    return NextResponse.redirect(new URL('/unauthorized', request.url));
+                }
+            }
+
 
             if (!["admin", "manager"].includes(role.toString().toLowerCase().trim())) {
                 if (currentPath.startsWith('/settings') || currentPath.startsWith('/billing/billing-sessions')) {

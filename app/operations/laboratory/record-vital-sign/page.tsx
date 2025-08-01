@@ -3,6 +3,8 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import RecordVitalSignsChartForm from "../../../../components/customer/vitalSignChartForms";
 import VitalSignCustomerListInformation from "../../../../components/customer/vitalSignCustomerList";
+import { Modal, Button } from "react-bootstrap";
+import { RiAddLine } from "@remixicon/react";
 
 
 
@@ -14,6 +16,7 @@ type QueryParams = {
 
 export default function RecordVitalSigns() {
     const [queryParams, setQueryParams] = useState<QueryParams>({})
+    const [showRecordModal, setShowRecordModal] = useState(false);
     const urlParams = useSearchParams();
 
     useEffect(() => {

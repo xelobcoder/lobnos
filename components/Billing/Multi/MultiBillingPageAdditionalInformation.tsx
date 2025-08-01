@@ -1,5 +1,5 @@
 import { Row, Spinner, Modal, Button, Alert } from "react-bootstrap";
-import { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { MultiBillingContext } from "./MultiBillingContext";
 import { useApplicationSettings } from "../../Auth/useApplicationContext";
 import ReceiptOptionsModal from "../ReceiptOptionsModal";
@@ -14,7 +14,7 @@ import { calculateCorrectionalAdjustment } from '../../../lib/Multi/correctionUt
 import { currencyFormatter } from "../../Auth/customFetch";
 
 
-export default function MultiBillingPageAdditionalInformation() {
+export default function MultiBillingPageAdditionalInformation({ showChoiceModal: forceShowChoiceModal = false, onBillingSuccess }: { showChoiceModal?: boolean, onBillingSuccess?: (billingid: string, message?: string) => void }) {
 	// Outstanding Write-Off Dialog State
 	const [showOutstandingDialog, setShowOutstandingDialog] = useState(false);
 	const [outstandingInfo, setOutstandingInfo] = useState<{
@@ -34,7 +34,7 @@ export default function MultiBillingPageAdditionalInformation() {
 	const { employeeid, role } = applicationsettings.user;
 	const [showReceiptOptionsModal, setShowReceiptOptionsModal] = useState(false);
 	const [generatedBillingid, setGeneratedBillingid] = useState<string | undefined>(undefined);
-	const [showChoiceModal, setShowChoiceModal] = useState(false);
+	const [showChoiceModal, setShowChoiceModal] = useState(forceShowChoiceModal || false);
 	const [userAgreedToWriteOff, setUserAgreedToWriteOff] = useState(false);
 	const [adminWriteOffInternalLoss, setAdminWriteOffInternalLoss] = useState(false);
 	const closeReceiptModal = () => setShowReceiptOptionsModal(false);
@@ -42,7 +42,15 @@ export default function MultiBillingPageAdditionalInformation() {
 
 	const handleModalClose = () => {
 		setShowChoiceModal(false);
-		setBillingData(defaultMultiBillingData);
+		setBillingData(prev => ({
+			...defaultMultiBillingData,
+			billingSource: prev.billingSource,
+			branchid: prev.branchid,
+			patientid: prev.patientid,
+			entitytype: prev.entitytype,
+			entityId: prev.entityId,
+			entityname: prev.entityname
+		}));
 		setUserAgreedToWriteOff(false);
 	};
 
@@ -58,10 +66,12 @@ export default function MultiBillingPageAdditionalInformation() {
 		}
 	};
 
+	// This function can be called from parent or billing logic to show the modal
 	const handleBillingSuccess = (billingid: string, message?: string) => {
 		setGeneratedBillingid(billingid);
 		setShowChoiceModal(true);
 		setBillingData(defaultMultiBillingData);
+		if (onBillingSuccess) onBillingSuccess(billingid, message);
 	};
 
 	
@@ -75,8 +85,6 @@ export default function MultiBillingPageAdditionalInformation() {
 					</div>
 				</section>
 				<hr />
-
-				
 			</div>
 			{showReceiptOptionsModal && <ReceiptOptionsModal open={showReceiptOptionsModal} close={closeReceiptModal}
 				patientid={Number(patientid)}

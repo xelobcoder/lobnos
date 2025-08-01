@@ -220,7 +220,7 @@ const ConsulationPanel = ({ params }: { params: { clientid: number } }) => {
 						<p>The consultation was saved successfully. What would you like to do next?</p>
 					</Modal.Body>
 					<Modal.Footer>
-						<Button variant="success" onClick={() => router.push(`/billing/patientid/${encodeURIComponent(clientid)}/multi`)}>
+						<Button variant="success" onClick={() => router.push(`/billing/patientid/${clientid}/multi`)}>
 							Order Laboratory Test
 						</Button>
 						<Button variant="secondary" onClick={() => router.push('/doctor/consultation')}>

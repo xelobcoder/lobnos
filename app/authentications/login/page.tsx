@@ -15,7 +15,6 @@ export default function PrimeLabLoginPage() {
 			setSubmitting(true)
 			const response = await handleUserLogin(formData);
 			const { status, message,error } = response;
-			console.log(message,response)
 			!status && setIsError(true);
 			!status && setMessage(error);
 			return response;
