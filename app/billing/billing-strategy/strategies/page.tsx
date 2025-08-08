@@ -70,7 +70,7 @@ export default function StrategiesListPage() {
             Header: 'Description',
             accessor: 'description',
             Cell: ({ value }: { value: string }) => (
-                <div style={{ maxWidth: 200,  }}>
+                <div style={{ maxWidth: 200, }}>
                     {value}
                 </div>
             )
@@ -132,8 +132,8 @@ export default function StrategiesListPage() {
     }
 
 
-    const handleSeverSideProcessing = async ({ page, count }: { page: number, count: number }): Promise<{ result?: any[], error: boolean }> => {
-        const endpoint = `billing/strategies/all/mini?page=${page}&count=${count}`;
+    const handleSeverSideProcessing = async ({ page, count, sortby = 'DESC'}: { page: number, count: number, sortby: 'ASC' | 'DESC' }): Promise<{ result?: any[], error: boolean }> => {
+        const endpoint = `billing/strategies/all/mini?page=${page}&count=${count}&&sortby=${sortby}`;
         try {
             const response = await customFetch(endpoint);
             if (response && Array.isArray(response)) {

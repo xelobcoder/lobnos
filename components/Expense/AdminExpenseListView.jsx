@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { customFetch, customPost } from "../../components/Auth/customFetch";
-import ExpenseFilter from "./ExpenseFilterComponent";
 import ExpenseList from "./ExpenseListComponent";
 import ExpenseDetail from "./ExpenseDetailsComponent";
 import Modal from 'react-bootstrap/Modal';
 import { RiAddBoxLine } from "@remixicon/react";
+import Button from 'react-bootstrap/Button';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
 
 const defaultFilterState = { from: "", to: "", status: "" };
 
@@ -121,7 +122,6 @@ export default function AdminExpensesList({ branchid, employeeid }) {
 
 	return (
 		<div className="container-fluid p-4">
-			{/* Toast notification */}
 			<div
 				className="toast-container position-fixed top-0 end-0 p-3"
 				style={{ zIndex: 9999 }}
@@ -149,12 +149,25 @@ export default function AdminExpensesList({ branchid, employeeid }) {
 			</div>
 			<div className="d-flex justify-content-between align-items-center mb-3">
 				<h4 className="mb-0">Expense Management</h4>
-				<a href="/billing/expenses/create-new-expense" className="btn btn-primary btn-sm">
-				   <RiAddBoxLine/>     New Expense
-				</a>
+				<ButtonGroup aria-label="Create expense options" size="sm">
+					<Button variant="primary" onClick={() => window.location.href='/billing/expenses/create-new-expense'}>
+						<RiAddBoxLine className="me-1"/>
+						Single Expense
+					</Button>
+					<Button variant="outline-primary" onClick={() => window.location.href='/billing/expenses/create-multiple-expenses'}>
+						<RiAddBoxLine className="me-1"/>
+						Multiple Expenses
+					</Button>
+				</ButtonGroup>
 			</div>
-			<ExpenseFilter filter={filter} setFilter={setFilter} handleFilters={handleFilters} />
-			<ExpenseList expenses={expenses} setSelected={setSelected} selected={selected} />
+			<ExpenseList 
+				expenses={expenses} 
+				setSelected={setSelected} 
+				selected={selected}
+				filter={filter}
+				setFilter={setFilter}
+				handleFilters={handleFilters}
+			/>
 			<Modal show={!!selected} onHide={() => { setSelected(null); setShowRejectionForm(false); }} size="lg" backdrop="static">
 				<Modal.Header closeButton onHide={() => { setSelected(null); setShowRejectionForm(false); }}>
 					<Modal.Title>

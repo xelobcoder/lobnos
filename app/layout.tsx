@@ -1,3 +1,4 @@
+'use client';
 import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import "../styles/globals.css";
 import '../node_modules/react-toastify/dist/ReactToastify.min.css';
@@ -7,7 +8,7 @@ import PrimeToast from "../components/accessories/PrimeToast";
 
 
 
-export default function SMSLayout({
+export default function SRootLayout({
      children,
 }: {
      children: React.ReactNode;
@@ -15,7 +16,7 @@ export default function SMSLayout({
 
      return (
           <html lang="en">
-               <body className='m-0 p-0'>
+               <body>
                     <PrimeToast/>
                    {children}
                </body>

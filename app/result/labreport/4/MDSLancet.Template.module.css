@@ -1,13 +1,14 @@
 /* Hide elements with .no-print class in print */
 .no-print {
-  display: block !important;
+    display: block !important;
 }
 
 @media print {
-  .no-print {
-    display: none !important;
-  }
+    .no-print {
+        display: none !important;
+    }
 }
+
 /* Page number for print */
 .pageNumber {
     display: none;
@@ -25,9 +26,10 @@
         color: #333;
         padding-bottom: 2mm;
     }
-  
-    
+
+
 }
+
 /* PDF/Print-specific tweaks */
 .result {
     background: white !important;
@@ -63,7 +65,6 @@
     align-items: flex-start;
     margin-bottom: 10px;
     padding-bottom: 5px;
-    border-bottom: 1px solid #555;
 }
 
 .logoSection {
@@ -299,7 +300,7 @@
         display: none !important;
     }
 
-    
+
 
     .page {
         margin: 0 !important;

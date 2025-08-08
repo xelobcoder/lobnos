@@ -22,6 +22,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
     const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
     const { company, user } = useApplicationSettings().applicationsettings;
+
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
 
@@ -105,7 +106,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
 
             >
                 <div className={styles.headerContent}>
-                    <h1>{company?.name || "Prime Laboratory System(PLS)"}</h1>
+                    <h1>{company || "Prime Laboratory System(PLS)"}</h1>
                     <div className={styles.headerControls}>
                         <div className={styles.userInfo}>
                             <span>{user?.username || "User"}</span>
@@ -135,7 +136,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                     <div className={styles.companyIcon}>
                         {(company?.name?.charAt(0) || 'C').toUpperCase()}
                     </div>
-                    {isSidebarExpanded && <span className={styles.sidebarCompanyName}>{company?.name || "Company"}</span>}
+                    {isSidebarExpanded && <span className={styles.sidebarCompanyName}>{company}</span>}
                     <div className={styles.sidebarToggleButtons}>
                         <button
                             onClick={toggleSidebar}
@@ -154,7 +155,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                 </nav>
 
                 <div className={styles.sidebarFooter}>
-                    {isSidebarExpanded && <span className={styles.footerText}>App v1.0.0</span>}
+                    {isSidebarExpanded && <span className={styles.footerText}>PLS(version 0.02 Barakah)</span>}
                     {!isSidebarExpanded && <span className={styles.footerIconPlaceholder}></span>}
                 </div>
             </aside>

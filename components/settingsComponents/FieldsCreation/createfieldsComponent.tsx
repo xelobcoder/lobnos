@@ -9,7 +9,7 @@ import TestFieldsHeader from './TestFieldsHeader';
 import ParamCreationGForm from "./ParamCreationForm";
 
 export default function CreateTestFields({ testid, testname, testRules, fieldConstraintsCategorization, testdata }) {
-	const [data, setData] = useState(testRules || []);
+	const [data, setData] = useState(testRules);
 	const [error, setError] = useState("");
 	const [field, setField] = useState(defaultCreationRule);
 	const [reorder, setReorder] = useState(true);

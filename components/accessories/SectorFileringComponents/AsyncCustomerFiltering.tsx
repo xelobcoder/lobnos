@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react";
 import AsyncSelect from "react-select/async";
-import { reactSelectCustomStyles } from "../../Auth/customFetch";
+import { customFetch, reactSelectCustomStyles } from "../../Auth/customFetch";
 import { AsyncPatientFilteringloadOptions } from "../../serverActions/ActionFiltering";
 
 export default function AsyncPatientFiltering({ getSelectedPatient, isDisabled, placeholder = "Search patient using patient ID, email, fullname" }) {
@@ -10,23 +10,29 @@ export default function AsyncPatientFiltering({ getSelectedPatient, isDisabled, 
     const [isClient, setIsClient] = useState(false);
 
 
-    const loadClientOptions = async (inputValue:string) => {
+    const loadOptions = async (input: string = ''): Promise<any[]> => {
+        if (input.length >= 3 && (typeof input === 'string' || typeof input == "number")) {
+            const response = await customFetch(`application/filtering/table/new_patients?value=${input}&&original=&&limit=10`);
+            return Array.isArray(response) ? response : [];
+        }
+        return [];
+    };
+
+    const loadClientOptions = async (inputValue: string) => {
         setLoading(true);
         try {
             setSelectedOption(null);
-            const result = await AsyncPatientFilteringloadOptions(inputValue);
+            const result = await loadOptions(inputValue);
             if (result) {
                 const clients = result.map((client) => ({
                     value: client.patientid,
-                    fullname: `${client.firstname.charAt(0).toUpperCase()}${client.firstname.slice(1)} ${client.middlename
-                        } ${client.lastname.trim()} (ID: ${client.patientid})\n`,
-                    label: `DOB: ${new Date(client.dob).toLocaleDateString()}, Gender: ${client.gender}, Age: ${client.age} ${client.agetype},\nContact: ${client.mobile_number
-                        }  Registered on: ${new Date(client.date).toLocaleDateString()}`,
+                    fullname: `${client.firstname.charAt(0).toUpperCase()}${client.firstname.slice(1)} ${client.middlename} ${client.lastname.trim()} (ID: ${client.patientid})\n`,
+                    label: `DOB: ${new Date(client.dob).toLocaleDateString()}, Gender: ${client.gender}, Age: ${client.age} ${client.agetype},\nContact: ${client.mobile_number}  Registered on: ${new Date(client.date).toLocaleDateString()}`,
                     export: client,
                 }));
                 return clients;
             }
-            return []
+            return [];
         } catch (error) {
             console.error("Failed to load options:", error);
             return [];

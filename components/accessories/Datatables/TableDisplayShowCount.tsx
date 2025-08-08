@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 
 export default function ShowTableDisplayCount({
      handleLoader,
@@ -9,23 +9,33 @@ export default function ShowTableDisplayCount({
 }: {
      handleLoader: ((count: number, page: number, sortby: 'DESC' | 'ASC') => Promise<void | { result: any, error: any }>) | null
      page: number;
-     queryParams: { count: number, page: number, sortby: 'DESC' | 'ASC' };
+     queryParams: { count: number | 'custom', page: number, sortby: 'DESC' | 'ASC' };
      setLoader: Dispatch<SetStateAction<boolean>>;
-     setQueryParams: Dispatch<SetStateAction<{ count: number, page: number, sortby: 'DESC' | 'ASC' | '' }>>;
+     setQueryParams: Dispatch<SetStateAction<{ count: number | 'custom', page: number, sortby: 'DESC' | 'ASC' | '' }>>;
 }) {
+     const [isCustomMode, setIsCustomMode] = useState(false);
+     const [customValue, setCustomValue] = useState('');
+
      const handleCountChange = async (ev: React.ChangeEvent<HTMLSelectElement>) => {
-          const value = Number(ev.target.value);
-          setQueryParams({ ...queryParams, count: value });
-          setLoader(true);
-          if (typeof handleLoader == "function") {
-               await handleLoader(page, value, queryParams.sortby);
+          const value = ev.target.value;
+          if (value === 'custom') {
+               setIsCustomMode(true);
+               setCustomValue('');
+          } else {
+               setIsCustomMode(false);
+               const numValue = Number(value);
+               setQueryParams({ ...queryParams, count: numValue });
+               setLoader(true);
+               if (typeof handleLoader == "function") {
+                    await handleLoader(page, numValue, queryParams.sortby);
+               }
           }
      };
 
      return (
           <div className="my-1 col-12 col-sm-6 col-md-6 col-lg-6 d-flex flex-column">
                <div className="d-flex w-100">
-                    <select value={queryParams.count} onChange={handleCountChange} className="custom-select">
+                    <select value={isCustomMode ? 'custom' : queryParams.count} onChange={handleCountChange} className="custom-select">
                          <option value={5}>5</option>
                          <option value={10}>10</option>
                          <option value={15}>15</option>
@@ -36,11 +46,60 @@ export default function ShowTableDisplayCount({
                          <option value={40}>40</option>
                          <option value={45}>45</option>
                          <option value={50}>50</option>
+                         <option value={100}>100</option>
+                         <option value={200}>200</option>
+                         <option value={500}>500</option>
+                         <option value={1000}>1000</option>
+                         <option value="custom">Custom...</option>
                     </select>
+                    {isCustomMode && (
+                         <div className="d-flex ms-2">
+                              <input
+                                   type="number"
+                                   min={1}
+                                   className="form-control"
+                                   style={{ width: 100 }}
+                                   placeholder="Enter count"
+                                   value={customValue}
+                                   onChange={e => {
+                                        setCustomValue(e.target.value);
+                                   }}
+                                   onKeyPress={e => {
+                                        if (e.key === 'Enter') {
+                                             const value = Number(customValue);
+                                             if (value > 0) {
+                                                  setQueryParams({ ...queryParams, count: value });
+                                                  setLoader(true);
+                                                  if (typeof handleLoader == "function") {
+                                                       handleLoader(page, value, queryParams.sortby);
+                                                  }
+                                             }
+                                        }
+                                   }}
+                              />
+                              <button
+                                   type="button"
+                                   className="btn btn-primary btn-sm ms-1"
+                                   onClick={() => {
+                                        const value = Number(customValue);
+                                        if (value > 0) {
+                                             setQueryParams({ ...queryParams, count: value });
+                                             setLoader(true);
+                                             if (typeof handleLoader == "function") {
+                                                  handleLoader(page, value, queryParams.sortby);
+                                             }
+                                        }
+                                   }}
+                                   disabled={!customValue || Number(customValue) <= 0}
+                              >
+                                   Apply
+                              </button>
+                         </div>
+                    )}
                     <select className="custom-select mx-3" onChange={(e) => {
                          const sortby = e.target.value as '' | 'DESC' | 'ASC';
                          setQueryParams({ ...queryParams, sortby });
-                         if (handleLoader && (sortby === 'DESC' || sortby === 'ASC')) {
+                         if (handleLoader && (sortby === 'DESC' || sortby === 'ASC') && typeof queryParams.count === 'number') {
                               handleLoader(page, queryParams.count, sortby);
                          }
                     }}>

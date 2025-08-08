@@ -1,26 +1,58 @@
+import CompanyHeaders from "./CompanyHeaders";
+import { ResultSettings } from "./result-settings";
 
-const MdsCompanyInformation = ({ companyInfo, styles, logourl }) => {
-    // Split name by space, first word is large, rest is subname
+interface MdsCompanyInformationProps {
+    companyInfo: {
+        name: string;
+        address: string;
+        phonenumber: string;
+        prNum: string;
+    };
+    styles: any;
+    logourl: string;
+    resultsettings: ResultSettings;
+}
+
+const MdsCompanyInformation = ({ companyInfo, styles, logourl, resultsettings }: MdsCompanyInformationProps) => {
     const nameParts = (companyInfo.name || '').split(' ');
     const largeName = nameParts[0] || '';
     const subName = nameParts.slice(1).join(' ');
+    const isBreakName = resultsettings?.companyInfo?.breakname || false;
+
+
+    if (isBreakName && nameParts.length > 1) {
+        return (
+            <header className={styles?.header}>
+                <div className={styles?.logoSection}>
+                    <img src={`${logourl}?tenantid=3`} alt="Lab Logo" className={styles?.logo} />
+                    <div>
+                        <div className={styles?.labNameLarge} style={{ fontSize: resultsettings.companyInfo.namefontsize || '20px' }}>{largeName}</div>
+                        <div className={styles?.labNameSub} style={{ fontSize: resultsettings.companyInfo.subnameFontSize || '4px' }}>{subName}</div>
+                    </div>
+                </div>
+                <div className={styles?.labContactHeader}>
+                    <div>{companyInfo.address}</div>
+                    <div className="d-flex">
+                        <div>Phone No: {companyInfo.phonenumber}.</div>
+                        <div> Email : {companyInfo.prNum}</div>
+                    </div>
+                </div>
+            </header>
+        )
+    }
+
+
     return (
-        <header className={styles?.header}>
-            <div className={styles?.logoSection}>
-                <img src={logourl} alt="Lab Logo" className={styles?.logo} />
-                <div>
-                    <div className={styles?.labNameLarge}>{largeName}</div>
-                    {subName && <div className={styles?.labSubName}>{subName}</div>}
-                </div>
-            </div>
-            <div className={styles?.labContactHeader}>
-                <div>{companyInfo.address}</div>
-                <div className="d-flex">
-                    <div>Phone No: {companyInfo.phonenumber}.</div>
-                    <div> Email : {companyInfo.prNum}</div>
-                </div>
-            </div>
-        </header>
+        <CompanyHeaders
+            companyInfo={{
+                name: companyInfo.name,
+                address: companyInfo.address,
+                phonenumber: Number(companyInfo.phonenumber),
+                email: companyInfo.prNum,
+            }}
+            resultsettings={resultsettings}
+            logo={logourl}
+        />
     );
 };
 

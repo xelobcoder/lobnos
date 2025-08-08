@@ -1,3 +1,5 @@
+"use client";
+import React, { useEffect, useState } from "react";
 import { customFetch } from "../Auth/customFetch";
 
 interface PatientData {
@@ -18,31 +20,49 @@ interface RSCPreviewPatientInformationProps {
     patientid: string;
 }
 
-export default async function RSCPreviewPatientInformation({ patientid }: RSCPreviewPatientInformationProps) {
+
+export default function RSCPreviewPatientInformation({ patientid }: RSCPreviewPatientInformationProps) {
+    const [data, setData] = useState<PatientData>({});
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!patientid) return;
+        const fetchData = async () => {
+            setIsLoading(true);
+            try {
+                const response = await customFetch(`register/personalinformation?patientid=${patientid}`);
+                setData(response?.result || {});
+                setIsLoading(false);
+            } catch (err) {
+                setError("Error loading patient information");
+                setData({});
+                setIsLoading(false);
+            }
+        };
+        fetchData();
+    }, [patientid]);
+
     if (!patientid) {
         return (
             <div className="heightedBorder p-2 bg-secondary-subtle d-flex justify-content-center">
-                {"<"}No Patient ID provided{">"}
+                {"<"}No Patient ID provided{" >"}
             </div>
         );
-    }
-
-    let data: PatientData = {};
-    let isLoading = true;
-
-    try {
-        const response = await customFetch(`register/personalinformation?patientid=${patientid}`);
-        data = response?.result || {};
-        isLoading = false;
-    } catch (err) {
-        isLoading = false;
-        data = {};
     }
 
     if (isLoading) {
         return (
             <div className="heightedBorder p-2 bg-secondary-subtle d-flex justify-content-center">
                 {"<"}Loading Patient Information please ....... {">"}
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="heightedBorder p-2 bg-danger-subtle d-flex justify-content-center">
+                {error}
             </div>
         );
     }

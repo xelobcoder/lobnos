@@ -1,10 +1,12 @@
+
+"use client";
 import {
-	UserIcon,
-	IdCardIcon,
-	EmailIcon,
+   UserIcon,
+   IdCardIcon,
+   EmailIcon,
 } from './Lib/Icons'
 
-export default async function BillingPagePatientInformation({ data, loadingststate = false }) {
+export default function BillingPagePatientInformation({ data, loadingststate = false }) {
 	if (loadingststate) {
 		return (
 			<div className="heightedBorder p-2 bg-secondary-subtle d-flex justify-content-center">

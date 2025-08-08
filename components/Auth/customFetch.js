@@ -1,5 +1,6 @@
 import Cookies from "js-cookie"
 import moment from "moment"
+import { sendStatusCode } from "next/dist/server/api-utils";
 import { toast } from "react-toastify";
 
 export async function customFile(endpoint, formbody) {
@@ -16,6 +17,7 @@ export async function customFile(endpoint, formbody) {
 			"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0"
 		},
 		cache: "no-cache",
+		credentials: "include",
 		body: formbody
 	})
 
@@ -39,17 +41,49 @@ export async function customFetch(endpoint) {
 				"Content-Type": "application/json",
 				"cache": "no-cache,must-revalidate,no-store,max-age=60,s-maxage=0"
 			},
-			cache: "no-cache"
+			cache: "no-cache",
+			credentials: "include",
 		});
+
 		const source = await response.json();
-		const { status, message } = source;
-		if (status == 401 && message == "Unauthorized") {
-			window.location.href = "/authentication/login";
+		const { status, message, statusCode } = source;
+		if ((status == 401 || statusCode == 401 || statusCode == 500) && (message.toLowerCase() == "Unauthorized".toLowerCase() || message.toLowerCase() == "Token not Provided".toLowerCase() || message.toLowerCase() == "Token Expired".toLowerCase())) {
+			handleLogout();
+			window.location.href = "/authentications/login";
 		} else {
 			return source;
 		}
 	} catch (err) {
 		console.log(err);
+	}
+}
+
+
+export async function handleLogout( setIsLoggingOut) {
+	try {
+		const response = await fetch('/api/auth/logout', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		});
+
+		if (response.ok) {
+			setTimeout(() => {
+				window.location.href = '/authentications/login';
+			}, 1000);
+		} else {
+			console.error('Logout failed');
+			setTimeout(() => {
+				window.location.href = '/authentications/login';
+			}, 1000);
+		}
+	} catch (error) {
+		setTimeout(() => {
+			window.location.href = '/authentications/login';
+		}, 1000);
+	} finally {
+		setIsLoggingOut(false);
 	}
 }
 
@@ -162,6 +196,7 @@ export async function customPost(endpoint, method, data, hash = false) {
 		},
 		cache: "no-cache",
 		body: JSON.stringify(requestBody),
+		credentials: "include",
 	})
 	let datasource = await response.json()
 	const { status, message } = datasource
@@ -745,19 +780,19 @@ export const organizationPaymentDefault = {
 	momoname: "",
 }
 
-export const handleLogout = async function (employeeid) {
-	try {
-		if (!employeeid) return;
-		const response = await customFetch(`security/user/logout?employeeid=${employeeid}`);
-		Cookies.remove('X-AUTH-PRIME-LAB-SYSTEM');
-		if (response?.status == true) {
-			window.location.href = "/authentication/login";
-		}
-		window.location.reload();
-	} catch (err) {
-		console.log('error connecting to server');
-	}
-}
+// export const handleLogout = async function (employeeid) {
+// 	try {
+// 		if (!employeeid) return;
+// 		const response = await customFetch(`security/user/logout?employeeid=${employeeid}`);
+// 		Cookies.remove('X-AUTH-PRIME-LAB-SYSTEM');
+// 		if (response?.status == true) {
+// 			window.location.href = "/authentication/login";
+// 		}
+// 		window.location.reload();
+// 	} catch (err) {
+// 		console.log('error connecting to server');
+// 	}
+// }
 
 export const filterTrendData = async (parameters, data) => {
 	const trend = parameters.map((item, index) => {

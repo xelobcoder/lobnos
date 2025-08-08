@@ -5,11 +5,13 @@ import GlobalFilter from "./GlobalFilter";
 import ShowTableDisplayCount from "./TableDisplayShowCount";
 import TableLoading from "./TableLoading";
 import style from "../../../styles/SmsTemplateList.module.css";
+import { ButtonGroup } from "react-bootstrap";
 
 export default function PrimeTable({
 	column,
 	data,
 	filtering = false,
+	isExpoerted = false,
 	serverSideFiltering = false,
 	handleSeverSideProcessing,
 	urlparams = {},
@@ -108,7 +110,7 @@ export default function PrimeTable({
 			</tr>
 		));
 
-	async function RunServerAction(currentPage, currentCount,sortby) {
+	async function RunServerAction(currentPage, currentCount, sortby) {
 		if (
 			typeof handleSeverSideProcessing === "function" &&
 			serverSideFiltering
@@ -190,38 +192,38 @@ export default function PrimeTable({
 		</tbody>
 	);
 
-const RenderingTable = ({ getTableBodyProps }) => {
-	if (isLoading) return <TableLoading span={column.length} />;
-	else if (filteredData.length == 0) return <NoDataAvailable />;
-	else {
-		return (
-			<tbody {...getTableBodyProps()}>
-				{rows.map((row, index) => {
-					prepareRow(row);
-					const zebraClass = index % 2 === 0 ? style.evenRow : style.oddRow;
-					return (
-						<tr
-							{...row.getRowProps()}
-							key={index}
-							className={`${style.tableRow} ${zebraClass}`}
-							style={{ transition: "background 0.2s" }}
-						>
-							{row.cells.map((cell) => (
-								<td
-									{...cell.getCellProps()}
-									key={cell.column.id}
-									className={style.td}
-								>
-									{cell.render("Cell")}
-								</td>
-							))}
-						</tr>
-					);
-				})}
-			</tbody>
-		);
-	}
-};
+	const RenderingTable = ({ getTableBodyProps }) => {
+		if (isLoading) return <TableLoading span={column.length} />;
+		else if (filteredData.length == 0) return <NoDataAvailable />;
+		else {
+			return (
+				<tbody {...getTableBodyProps()}>
+					{rows.map((row, index) => {
+						prepareRow(row);
+						const zebraClass = index % 2 === 0 ? style.evenRow : style.oddRow;
+						return (
+							<tr
+								{...row.getRowProps()}
+								key={index}
+								className={`${style.tableRow} ${zebraClass}`}
+								style={{ transition: "background 0.2s" }}
+							>
+								{row.cells.map((cell) => (
+									<td
+										{...cell.getCellProps()}
+										key={cell.column.id}
+										className={style.td}
+									>
+										{cell.render("Cell")}
+									</td>
+								))}
+							</tr>
+						);
+					})}
+				</tbody>
+			);
+		}
+	};
 
 	return (
 		<div
@@ -245,6 +247,36 @@ const RenderingTable = ({ getTableBodyProps }) => {
 						<div>
 							<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
 						</div>
+					)}
+				</div>
+				<div>
+					{isExpoerted && (
+						<ButtonGroup
+							className="d-flex justify-content-end"
+							aria-label="Export options"
+							size="sm"
+						>
+							<button
+								type="button"
+								className="btn btn-sm btn-outline-secondary"
+								onClick={() => {
+									alert("PDF export is not implemented yet.");
+								}}
+							>
+								excel
+							</button>
+
+							<button
+								type="button"
+								className="btn btn-sm btn-outline-secondary"
+								onClick={() => {
+									alert("PDF export is not implemented yet.");
+								}
+								}
+							>
+								PDF
+							</button>
+						</ButtonGroup>
 					)}
 				</div>
 			</div>

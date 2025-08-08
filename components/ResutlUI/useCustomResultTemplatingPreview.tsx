@@ -19,12 +19,13 @@ interface UseCustomResultTemplatingPreviewProps {
 	isResultView?: boolean;
 	resultsettings:ResultSettings
 	testdetailcategory?: TestDetailCategory[];
+	isScan?: boolean;
 	testInfo?: {
 		reportitle?: string;
 	};
 }
 
-export default function UseCustomResultTemplatingPreview({ test, records, isResultView = true, resultsettings, testInfo, testdetailcategory }: UseCustomResultTemplatingPreviewProps) {
+export default function UseCustomResultTemplatingPreview({ test, records, isResultView = true, isScan=false,resultsettings, testInfo, testdetailcategory }: UseCustomResultTemplatingPreviewProps) {
 	if (!Array.isArray(records) || records.length === 0) return null;
 
 	let reorganized: { [category: string]: any[] } = {};
@@ -55,7 +56,7 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 					{testInfo && testInfo?.reportitle ? testInfo?.reportitle : test}
 				</span>
 			</h5>
-			<table className={isResultView ? "table-borderless table-sm borderless " : "table billing-cart-table"} >
+				<table className={isResultView ? "table-borderless table-sm borderless " : "table billing-cart-table"} >
 				<thead style={{
 					backgroundColor: resultsettings?.testTableHeaderBackgroundColor || 'orange',
 					color: resultsettings?.testTableHeaderTextColor || 'black',
@@ -97,6 +98,8 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 					)}
 				</tbody>
 			</table>
+
+
 		</div>
 	)
 }

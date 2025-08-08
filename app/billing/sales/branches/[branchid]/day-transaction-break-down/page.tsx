@@ -1,5 +1,5 @@
-import React from 'react';
-import type { Metadata } from 'next';
+'use client';
+import React, { useEffect, useState } from 'react';
 import { currencyFormatter, customFetch } from '../../../../../../components/Auth/customFetch';
 import styles from './FinancialSummary.module.css';
 import {
@@ -99,10 +99,7 @@ interface AuditTrailAction {
     count: number;
 }
 
-export const metadata: Metadata = {
-    title: 'Daily Financial Summary',
-    description: 'A detailed breakdown of daily financial transactions and performance.',
-};
+// Metadata is now handled in layout.tsx for client components
 
 const Card = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
     <section className={styles.card}>
@@ -170,11 +167,42 @@ async function getFinancialData(target: string, from: string, end: string) {
     }
 }
 
-export default async function FinancialSummaryPage({ searchParams }: { searchParams: { date: string, from: string, end: string } }) {
+export default function FinancialSummaryPage({ searchParams }: { searchParams: { date: string, from: string, end: string } }) {
     const { date, from, end } = searchParams;
-    const data = await getFinancialData(date, from, end);
+    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState<any>(null);
+    const [error, setError] = useState<string | null>(null);
 
-    if (data.error) {
+    useEffect(() => {
+        async function loadData() {
+            try {
+                setLoading(true);
+                const result = await getFinancialData(date, from, end);
+                if (result.error) {
+                    setError(result.error);
+                } else {
+                    setData(result);
+                }
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An unknown error occurred');
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadData();
+    }, [date, from, end]);
+
+    if (loading) {
+        return (
+            <main className={styles.container}>
+                <div className={styles.header}>
+                    <h1 className={styles.title}>Loading...</h1>
+                </div>
+            </main>
+        );
+    }
+
+    if (error) {
         return (
             <main className={styles.container}>
                 <div className={styles.header}>
@@ -187,7 +215,17 @@ export default async function FinancialSummaryPage({ searchParams }: { searchPar
                         <p>Please check the console for more details or ensure your API server is running.</p>
                     </div>
                 </div>
-                <pre className={styles.pre}>{data.error}</pre>
+                <pre className={styles.pre}>{error}</pre>
+            </main>
+        );
+    }
+
+    if (!data) {
+        return (
+            <main className={styles.container}>
+                <div className={styles.header}>
+                    <h1 className={styles.title}>No Data Available</h1>
+                </div>
             </main>
         );
     }

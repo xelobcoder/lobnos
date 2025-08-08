@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { customFetch, customPost, reactSelectCustomStyles } from "../../../../components/Auth/customFetch";
 import Loader from "../../../../components/accessories/Loader";
@@ -8,13 +8,12 @@ import { useSearchParams } from "next/navigation";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 import Select, { SingleValue } from "react-select";
 
-// Type definitions
 interface ExpenseForm {
 	name: string;
 	date: string;
 	merchant: string;
 	amount: number;
-	category: number; // Represents categoryid
+	category: number;
 	mode: string;
 	description: string;
 	receipt: FileList | null;
@@ -44,27 +43,12 @@ const defaultExpense: ExpenseForm = {
 	date: "",
 	merchant: "",
 	amount: 0,
-	category: 0, // Default categoryid
+	category: 0,
 	mode: "",
 	description: "",
 	receipt: null,
 	invoiceNumber: "",
 	taxAmount: "",
-};
-
-// Validation schema
-const validateForm = (formData: ExpenseForm): Partial<Record<keyof ExpenseForm, string>> => {
-	const errors: Partial<Record<keyof ExpenseForm, string>> = {};
-
-	if (!formData.name.trim()) errors.name = "Expense name is required";
-	if (!formData.date) errors.date = "Date is required";
-	if (!formData.merchant.trim()) errors.merchant = "Merchant name is required";
-	if (!formData.amount || formData.amount <= 0) errors.amount = "Valid amount is required";
-	if (!formData.category) errors.category = "Category is required"; // Ensures categoryid is selected
-	if (!formData.mode) errors.mode = "Payment mode is required";
-	if (!formData.description.trim()) errors.description = "Description is required";
-
-	return errors;
 };
 
 // Format date for input
@@ -75,11 +59,26 @@ const formatDateForInput = (dateString: string): string => {
 };
 
 export default function AddNewExpense() {
-	const [formData, setFormData] = useState<ExpenseForm>(defaultExpense);
+	const [formData, setFormData] = useState<ExpenseForm>({ ...defaultExpense });
 	const [errors, setErrors] = useState<Partial<Record<keyof ExpenseForm, string>>>({});
 	const [isLoading, setLoading] = useState<boolean>(false);
 	const [paymentModes, setPaymentModes] = useState<PaymentMode[]>([]);
 	const [categories, setCategories] = useState<Category[]>([]);
+
+	// Validation schema
+	const validateForm = (formData: ExpenseForm): Partial<Record<keyof ExpenseForm, string>> => {
+		const errors: Partial<Record<keyof ExpenseForm, string>> = {};
+
+		if (!formData.name.trim()) errors.name = "Expense name is required";
+		if (!formData.date) errors.date = "Date is required";
+		if (!formData.merchant.trim()) errors.merchant = "Merchant name is required";
+		if (!formData.amount || formData.amount <= 0) errors.amount = "Valid amount is required";
+		if (!formData.category) errors.category = "Category is required";
+		if (!formData.mode) errors.mode = "Payment mode is required";
+		if (!formData.description.trim()) errors.description = "Description is required";
+
+		return errors;
+	};
 
 	const { user, branchid } = useApplicationSettings().applicationsettings;
 	const employeeid = user?.employeeid;
@@ -87,47 +86,36 @@ export default function AddNewExpense() {
 	const method = searchParams?.get("action");
 	const editid = searchParams?.get("id");
 
-	// Memoized input change handler
-	const handleInputChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-			const { name, value } = e.target;
-			setFormData((prev) => ({
-				...prev,
-				[name]: name === "amount" ? Number(value) : name === "date" ? value : value,
-			}));
-			setErrors((prev) => ({ ...prev, [name]: undefined }));
-		},
-		[]
-	);
+	// Input change handler
+	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+		const { name, value } = e.target;
+		setFormData(prev => ({
+			...prev,
+			[name]: name === "amount" ? Number(value) : value
+		}));
+		setErrors(prev => ({ ...prev, [name]: undefined }));
+	};
 
 	// Select change handler
-	const handleSelectChange = useCallback(
-		(name: keyof ExpenseForm) => (option: SingleValue<SelectOption>) => {
-			const value = name === "category" ? Number(option?.value || 0) : option?.value || "";
-			console.log(`Updating ${name} with value:`, value); // Debug log
-			setFormData((prev) => ({
-				...prev,
-				[name]: value,
-			}));
-			setErrors((prev) => ({ ...prev, [name]: undefined }));
-		},
-		[]
-	);
+	const handleSelectChange = (name: keyof ExpenseForm) => (option: SingleValue<SelectOption>) => {
+		const value = name === "category" ? Number(option?.value || 0) : option?.value || "";
+		setFormData(prev => ({ ...prev, [name]: value }));
+		setErrors(prev => ({ ...prev, [name]: undefined }));
+	};
 
 	// Form submission handler
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		const newErrors = validateForm(formData);
-		setErrors(newErrors);
-
-		if (Object.keys(newErrors).length > 0) {
+		
+		const formErrors = validateForm(formData);
+		if (Object.keys(formErrors).length > 0) {
+			setErrors(formErrors);
 			toast.error("Please fix form errors before submitting", { autoClose: 3000 });
 			return;
 		}
 
 		setLoading(true);
 		try {
-			// Ensure categoryid is included in the request
 			const submitData = {
 				...formData,
 				branchid,
@@ -135,16 +123,16 @@ export default function AddNewExpense() {
 				categoryid: formData.category,
 			};
 
-
 			const httpMethod = method && editid ? "PUT" : "POST";
 			const response = await customPost(
 				`expenses?branchid=${branchid}&employeeid=${employeeid}&&expenseid=${parseInt((submitData?.id ?? '').toString())}`,
 				httpMethod,
 				submitData
 			);
+
 			if (response && response.status && typeof response.status == 'boolean' && response.status) {
 				toast.success("Expense submitted successfully awaiting approval", { autoClose: 2000 });
-				setFormData(defaultExpense);
+				setFormData({ ...defaultExpense });
 			} else {
 				throw new Error("Submission failed");
 			}
@@ -155,38 +143,12 @@ export default function AddNewExpense() {
 		}
 	};
 
-	// Fetch expense data for edit mode
-	useEffect(() => {
-		if (method && editid) {
-			setLoading(true);
-			customFetch(`expenses/record/single?expenseid=${editid}&branchid=${branchid}&employeeid=${employeeid}`)
-				.then((data) => {
-					if (data?.length > 0) {
-						const expenseData = {
-							...data[0],
-							category: data[0].categoryid || data[0].category || 0,
-						};
-						console.log("Loaded expense data:", expenseData); // Debug log
-						setFormData(expenseData);
-					} else {
-						toast.error("Expense record not found", { autoClose: 3000 });
-					}
-				})
-				.catch(() => {
-					toast.error("Failed to load expense data", { autoClose: 3000 });
-					setFormData(defaultExpense);
-				})
-				.finally(() => setLoading(false));
-		}
-	}, [editid, method, branchid, employeeid]);
-
 	// Fetch categories
 	useEffect(() => {
 		setLoading(true);
 		customFetch(`expense/get/category?&branchid=${branchid}&employeeid=${employeeid}`)
 			.then((data: Category[]) => {
 				if (Array.isArray(data)) {
-					console.log("Loaded categories:", data); // Debug log
 					setCategories(data);
 				}
 			})
@@ -200,7 +162,6 @@ export default function AddNewExpense() {
 		customFetch("paymentmodes")
 			.then((response) => {
 				if (response?.data) {
-					console.log("Loaded payment modes:", response.data); // Debug log
 					setPaymentModes(response.data);
 				}
 			})
@@ -211,7 +172,7 @@ export default function AddNewExpense() {
 	return (
 		<div className="card p-0">
 			<div className="card-header d-flex justify-content-between align-items-center mb-4">
-				<h4 className="mb-0">{method && editid ? "Edit Expense" : "New Expense Request"}</h4>
+				<div className="mb-0">Add New Expense</div>
 				<small className="text-muted">All fields marked with * are required</small>
 			</div>
 			<div className="card-body">
@@ -236,7 +197,7 @@ export default function AddNewExpense() {
 
 						<div className="col-md-6">
 							<label className="form-label pls-label">
-								Expense Date <span className="text-danger">*</span>
+								Date <span className="text-danger">*</span>
 							</label>
 							<input
 								name="date"
@@ -267,23 +228,20 @@ export default function AddNewExpense() {
 
 						<div className="col-md-6">
 							<label className="form-label pls-label">
-								Amount <span className="text-danger">*</span>
+								Amount (GHC) <span className="text-danger">*</span>
 							</label>
-							<div className="input-group">
-								<span className="input-group-text">GHC</span>
-								<input
-									name="amount"
-									value={formData.amount || ""}
-									onChange={handleInputChange}
-									className={`form-control ${errors.amount ? "is-invalid" : ""}`}
-									type="number"
-									step="0.01"
-									min="0"
-									placeholder="0.00"
-									disabled={isLoading}
-								/>
-								{errors.amount && <div className="invalid-feedback">{errors.amount}</div>}
-							</div>
+							<input
+								name="amount"
+								value={formData.amount || ""}
+								onChange={handleInputChange}
+								className={`form-control ${errors.amount ? "is-invalid" : ""}`}
+								type="number"
+								step="0.01"
+								min="0"
+								placeholder="0.00"
+								disabled={isLoading}
+							/>
+							{errors.amount && <div className="invalid-feedback">{errors.amount}</div>}
 						</div>
 
 						<div className="col-md-6">
@@ -296,7 +254,7 @@ export default function AddNewExpense() {
 									label: item.category,
 								}))}
 								styles={reactSelectCustomStyles}
-								placeholder="Select a category"
+								placeholder="Select category"
 								classNamePrefix="react-select"
 								isClearable
 								onChange={handleSelectChange("category")}
@@ -326,7 +284,6 @@ export default function AddNewExpense() {
 								}))}
 								styles={reactSelectCustomStyles}
 								placeholder="Select payment method"
-								className={`react-select-container ${errors.mode ? "is-invalid" : ""}`}
 								classNamePrefix="react-select"
 								isClearable
 								onChange={handleSelectChange("mode")}
@@ -344,6 +301,22 @@ export default function AddNewExpense() {
 						</div>
 
 						<div className="col-md-6">
+							<label className="form-label pls-label">Tax Amount (GHC)</label>
+							<input
+								name="taxAmount"
+								value={formData.taxAmount}
+								onChange={handleInputChange}
+								className={`form-control ${errors.taxAmount ? "is-invalid" : ""}`}
+								type="number"
+								step="0.01"
+								min="0"
+								placeholder="0.00"
+								disabled={isLoading}
+							/>
+							{errors.taxAmount && <div className="invalid-feedback">{errors.taxAmount}</div>}
+						</div>
+
+						<div className="col-md-6">
 							<label className="form-label pls-label">Invoice Number</label>
 							<input
 								name="invoiceNumber"
@@ -357,25 +330,6 @@ export default function AddNewExpense() {
 							{errors.invoiceNumber && <div className="invalid-feedback">{errors.invoiceNumber}</div>}
 						</div>
 
-						<div className="col-md-6">
-							<label className="form-label pls-label">Tax Amount</label>
-							<div className="input-group">
-								<span className="input-group-text">GHC</span>
-								<input
-									name="taxAmount"
-									value={formData.taxAmount}
-									onChange={handleInputChange}
-									className={`form-control ${errors.taxAmount ? "is-invalid" : ""}`}
-									type="number"
-									step="0.01"
-									min="0"
-									placeholder="0.00"
-									disabled={isLoading}
-								/>
-								{errors.taxAmount && <div className="invalid-feedback">{errors.taxAmount}</div>}
-							</div>
-						</div>
-
 						<div className="col-12">
 							<label className="form-label pls-label">
 								Description <span className="text-danger">*</span>
@@ -386,36 +340,36 @@ export default function AddNewExpense() {
 								onChange={handleInputChange}
 								className={`form-control ${errors.description ? "is-invalid" : ""}`}
 								rows={4}
-								placeholder="Enter expense description"
+								placeholder="Enter description"
 								disabled={isLoading}
 							/>
 							{errors.description && <div className="invalid-feedback">{errors.description}</div>}
 						</div>
+					</div>
 
-						<div className="col-12 mt-4">
-							<button
-								type="submit"
-								className="btn btn-primary me-2"
-								disabled={isLoading}
-							>
-								{isLoading ? (
-									<>
-										<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-										Submitting...
-									</>
-								) : (
-									`${method && editid ? "Update" : "Submit"} Expense Request`
-								)}
-							</button>
-							<button
-								type="button"
-								className="btn btn-secondary"
-								onClick={() => setFormData(defaultExpense)}
-								disabled={isLoading}
-							>
-								Reset Form
-							</button>
-						</div>
+					<div className="d-flex justify-content-end mt-4 gap-2">
+						<button
+							type="submit"
+							className="btn btn-primary"
+							disabled={isLoading}
+						>
+							{isLoading ? (
+								<>
+									<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+									Submitting...
+								</>
+							) : (
+								"Submit Expense Request"
+							)}
+						</button>
+						<button
+							type="button"
+							className="btn btn-secondary"
+							onClick={() => setFormData({ ...defaultExpense })}
+							disabled={isLoading}
+						>
+							Reset Form
+						</button>
 					</div>
 				</form>
 			</div>

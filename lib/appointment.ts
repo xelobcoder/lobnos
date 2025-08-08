@@ -135,6 +135,7 @@ export const inviteMethod: OptionType[] = [
 	{ value: "sms", label: "sms" },
 	{ value: "email", label: "email" },
 	{ value: "whatapp", label: "whatapp" },
+	{value:'phonecall', label: 'phone call'}
 ];
 export const preferenceOptions: OptionType[] = [
 	{ value: "in person", label: "In Person" },

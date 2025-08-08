@@ -7,8 +7,16 @@ export default function AnalyticsCardSumamry() {
 
      const ALinks = [
           {
-               name: "Sales Analytics ",
+               name: "Clinician Analytics ",
                href: "/analytics/clinicians",
+               icon: RiUserHeartLine,
+               description: "Track Sales ",
+               color: "oklch(0.646 0.222 41.116)",
+               bgGradient: "linear-gradient(135deg, oklch(0.646 0.222 41.116) 0%, oklch(0.7 0.15 41.116) 100%)"
+          },
+            {
+               name: "Sales Analytics ",
+               href: "/analytics/sales ",
                icon: RiUserHeartLine,
                description: "Track Sales ",
                color: "oklch(0.646 0.222 41.116)",

@@ -153,17 +153,17 @@ export default function Activator() {
 
 
 
-    const handleSeverSideProcessing = async (values) => {
+    const handleSeverSideProcessing = async (pagination: {count:number,page:number,sortby:'ASC' | 'DESC'}) => {
         try {
-            const { page, count } = values;
-            const response = await customFetch(`customers?page=${page}&&count=${count}`);
+            const { page, count ,sortby='DESC'} = pagination;
+            const response = await customFetch(`customers?page=${page}&&count=${count}&&sortby=${sortby}`);
             if (Array.isArray(response)) {
                 return { result: response, error: false }
+            } else {
+                return { result: [], error: false}
             }
         } catch (err) {
-            return {
-                result: [], error: err
-            }
+            return { result: [], error: true }
         }
     }
 

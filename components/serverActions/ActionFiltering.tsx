@@ -1,11 +1,9 @@
-"use server"
-import { redirect } from "next/navigation";
+
 import { loadOptions } from "../../lib/appointment";
 import { customFetch, customPost } from "../Auth/customFetch"
 import { plsEncryption } from "../../lib/encryption";
 import { formatDate } from "../operations/Laboratory/Lib";
-import { cookies } from "next/headers";
-import { jwtVerify, SignJWT } from 'jose';
+
 
 
 export async function filteringDatabaseTables(target: string, filtering: string, column: string, limit: number) {
@@ -39,9 +37,8 @@ export async function AsyncPatientFilteringloadOptions
 
 
 
-export const handleDatePicker = async ({ branchid, date, from, to }) => {
-	"use server"
-	redirect(`/billing/sales/branches/${plsEncryption(branchid.toString())}?from=${from}&&to=${to}`)
+export const handleDatePicker = async ({ branchid, date, from, to }, router) => {
+	router.push(`/billing/sales/branches/${plsEncryption(branchid.toString())}?from=${from}&&to=${to}`)
 }
 
 
@@ -116,7 +113,6 @@ export const handleRefundServerSideProcessing = async (values: { count: number; 
 
 
 export const handleServerSideProcessingAscensionData = async (pagination) => {
-	console.log("Pagination data:", pagination);
 	try {
 		const { page, count, employeeid, ascension_stage, _dateFrom, _dateEnd, isUltrasound, searchString, sortby } = pagination;
 
@@ -374,10 +370,6 @@ export const ClinicianAnalyticsCaseSummaryDailyServerSide = async (clinicianId: 
 
 
 
-export const handleSelectionClinicianAnalytics = async (value: any) => {
-	if (!value || !value?.id) return
-	redirect(`/analytics/clinicians/${value?.id}`)
-}
 
 
 
@@ -448,8 +440,8 @@ export async function loadTaskDefinition(pagination) {
 
 export const handleServerCriticalValues = async (paginate) => {
 	try {
-		const { page, count } = paginate
-		const response = await customFetch(`result/criticalvalues/logging/paginated?page=${page}&&count=${count}`);
+		const { page, count ,sortby} = paginate
+		const response = await customFetch(`result/criticalvalues/logging/paginated?sortby=${sortby}&&page=${page}&&count=${count}`);
 		if (response?.data && Array.isArray(response?.data)) {
 			return { result: response?.data, error: false }
 		}
@@ -507,97 +499,11 @@ export const handleServerProcessingSmsTemplates = async (pagination: { page: num
 }
 
 
-export const handleUserLogin = async (formData) => {
-	const email = formData.get("email")
-	const password = formData.get("password")
-	const response = await customPost('prime/login', 'POST', { email, password });
-	const { status, accessToken, user } = response;
-	if (response && !status) return response;
-	const validateAndEncryptToken = async (status: string, accessToken: string, user: { employeeid: number, username: string, role: string, email: string }, email: string)
-		: Promise<{ status: boolean, role: string, message?: string } | undefined> => {
-		if (status && accessToken) {
-			try {
-				const secret = new TextEncoder().encode(process.env.JWT_SECRET_KEY);
-				const signedToken = await new SignJWT({
-					email,
-					user,
-					accessToken
-				})
-					.setProtectedHeader({ alg: 'HS256' })
-					.setIssuedAt()
-					.setExpirationTime('12h')
-					.sign(secret);
 
-
-				const { payload } = await jwtVerify(signedToken, secret);
-				// Dynamically detect protocol for secure cookie
-				let isHttps = false;
-				try {
-					// Use Next.js headers() if available
-					const { headers } = await import('next/headers');
-					const hdrs = headers();
-					console.log("Headers:", hdrs);
-					const xfp = hdrs.get('x-forwarded-proto');
-					let proto = xfp;
-					if (!proto) {
-						const referer = hdrs.get('referer') || '';
-						proto = referer.split(':')[0];
-					}
-					isHttps = proto === 'https';
-				} catch (e) {
-					// Fallback to env if headers() is not available
-					isHttps = process.env.NODE_ENV === 'production' || process.env.HTTPS === 'true';
-				}
-				cookies().set('PLS-SESSION', signedToken, {
-					httpOnly: true,
-					secure: isHttps,
-					sameSite: 'strict',
-					path: '/',
-					maxAge: payload.exp ? payload.exp - Math.floor(Date.now() / 1000) : 3600
-				});
-
-				const allowedRoles = ["sonographer", "scientist", "manager", "admin"];
-
-				const userRole = user?.role?.toLowerCase();
-				const isValidRole = allowedRoles.includes(userRole);
-				if (isValidRole) {
-					return { status: true, role: userRole };
-				}
-			} catch (error) {
-				return { status: false, message: 'Authentication failed', role: '' };
-			}
-		}
-	}
-
-	const payload = await validateAndEncryptToken(status, accessToken, user, email);
-	const allowedRoles = ["sonographer", "scientist", "manager", "admin"];
-
-	if (payload) {
-		const { role } = payload;
-		const isValidRole = allowedRoles.includes(role);
-		if (isValidRole) {
-			if (role === "admin" || role == "manager") {
-				redirect("/")
-			} else if (role === "sonographer") {
-				redirect("/operations/imaging/")
-			} else if (role === "scientist") {
-				redirect("/operations/laboratory")
-			} else {
-				redirect("/notfound")
-			}
-		}
-	}
-
-
-
-
-	return { error: 'Invalid credentials' };
-}
-
-export const fetchServerSideAppointments = async (pagination: { page: number, count: number, order: 'DESC' | 'ASC' }) => {
+export const fetchServerSideAppointments = async (pagination: { page: number, count: number, sortby: 'DESC' | 'ASC' }) => {
 	try {
-		const { page, count, order } = pagination;
-		const response = await customFetch(`appointments?page=${page}&count=${count}`);
+		const { page, count, sortby='DESC'} = pagination;
+		const response = await customFetch(`appointments?page=${page}&count=${count}&&sortby=${sortby}`);
 		if (Array.isArray(response)) {
 			return { result: response, error: false };
 		} else {
@@ -611,10 +517,6 @@ export const fetchServerSideAppointments = async (pagination: { page: number, co
 
 
 
-export const destroyUserSession = async () => {
-	cookies().delete('PLS-SESSION');
-	redirect('/authentications/login');
-}
 
 
 
@@ -634,7 +536,7 @@ export const handleServerSidePatientArchives = async (pagination: {
 		if (isPatientSpecific && !patientid) {
 			return { result: [], error: true };
 		}
-console.log("Server-side patient archives pagination:", pagination);
+		console.log("Server-side patient archives pagination:", pagination);
 		try {
 			const trimmedFullname = fullname ? fullname.trim() : "";
 			const params = [
@@ -650,7 +552,7 @@ console.log("Server-side patient archives pagination:", pagination);
 			const url = `operations/collection/result?${params.join("&&")}`;
 			const response = await customFetch(url);
 			const { statusCode, result } = response;
-			console.log("Server-side patient archives response:", response,params.join("&&"));
+			console.log("Server-side patient archives response:", response, params.join("&&"));
 			if (Array.isArray(result) && statusCode === 200) {
 				return { result, error: false };
 			} else {
@@ -660,6 +562,24 @@ console.log("Server-side patient archives pagination:", pagination);
 			return { result: [], error: true };
 		}
 	} catch (error) {
+		return { result: [], error: true };
+	}
+}
+
+
+
+export const handleSessionGatheringServer = async (pagination: { page: number, count: number, sortby: 'ASC' | 'DESC' }) => {
+	try {
+		const response = await customFetch(
+			`billing/sales/session/list?page=${pagination.page}&count=${pagination.count}&sortby=${pagination.sortby}`
+		);
+		if (response && response.data && Array.isArray(response.data)) {
+			return { result: response.data, error: false }
+		} else {
+			return { result: [], error: false };
+		}
+	} catch (error) {
+		console.error('Error fetching sessions:', error);
 		return { result: [], error: true };
 	}
 }

@@ -1,56 +1,60 @@
+
+"use client";
+import React, { useEffect, useState } from "react";
 import { customFetch } from "../../../../../components/Auth/customFetch";
 import ClinicianBillingModeView from "../../../../../components/Clinicians/ClinicianBillingModeView";
 import { PreviousClinicianBillingRecord } from "../../../../../components/Clinicians/dev.type";
 
 
-export default async function ClinicianBillingStrategyPage({
-	params,
-}: {
-	params: Promise<{ strategyid: number }>;
-}) {
-	try {
-		const { strategyid } = await params;
+export default function ClinicianBillingStrategyPage({ params }: { params: { strategyid: number } }) {
+	const { strategyid } = params;
+	const [previousRecords, setPreviousRecords] = useState<PreviousClinicianBillingRecord | null>(null);
+	const [hasStrategy, setHasStrategy] = useState<boolean | null>(null);
+	const [error, setError] = useState<string | null>(null);
+	const [loading, setLoading] = useState(true);
 
-		if (!strategyid) {
-			return <div className="alert alert-danger-subtle text-sm">Invalid request.</div>;
+	useEffect(() => {
+		async function fetchData() {
+			if (!strategyid) {
+				setError("Invalid request.");
+				setLoading(false);
+				return;
+			}
+			try {
+				const checkingResponse = await customFetch(`billing/strategies/check/${strategyid}`);
+				setHasStrategy(checkingResponse?.hasStrategy ?? false);
+				if (!checkingResponse || !checkingResponse.hasStrategy) {
+					setPreviousRecords(null);
+					setLoading(false);
+					return;
+				}
+				const response = await customFetch(`billing/strategies/${strategyid}`);
+				if (typeof response !== "object" || !response) {
+					setError("Error loading billing strategy.");
+				} else {
+					setPreviousRecords(response as PreviousClinicianBillingRecord);
+				}
+			} catch (err) {
+				setError("Error loading billing strategy.");
+			} finally {
+				setLoading(false);
+			}
 		}
+		fetchData();
+	}, [strategyid]);
 
-		const checkingResponse = await customFetch(`billing/strategies/check/${strategyid}`);
-
-
-		const { hasStrategy } = checkingResponse;
-		console.log("Checking response:", checkingResponse);
-
-		if (!checkingResponse || !hasStrategy) {
-			return (
-				<ClinicianBillingModeView
-					strategyid={strategyid}
-					previousRecords={null}
-				/>
-			);
-		}
-
-		// Load existing billing strategy
-		const response = await customFetch(
-			`billing/strategies/${strategyid}`
-		);
-
-		if (typeof response !== "object" || !response) {
-			return <h1>Error loading billing strategy.</h1>;
-		}
-
-		console.log("Loaded billing strategy:", response);
-
-		return (
-			<div>
-				<ClinicianBillingModeView
-					strategyid={strategyid}
-					previousRecords={response as PreviousClinicianBillingRecord}
-				/>
-			</div>
-		);
-	} catch (error) {
-		console.error("Error loading billing strategy:", error);
-		return <h1>Error loading billing strategy.</h1>;
+	if (loading) {
+		return <div>Loading...</div>;
 	}
+	if (error) {
+		return <div className="alert alert-danger-subtle text-sm ">{error}</div>;
+	}
+	return (
+		<div>
+			<ClinicianBillingModeView
+				strategyid={strategyid}
+				previousRecords={previousRecords}
+			/>
+		</div>
+	);
 }

@@ -8,6 +8,7 @@ import { RiAddBoxFill } from '@remixicon/react';
 import { useRouter } from 'next/navigation';
 import EndSessionModal from './EndSessionModal';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
+import { handleSessionGatheringServer } from '../../../../components/serverActions/ActionFiltering';
 
 interface SessionData {
 	sessionid: number;
@@ -91,7 +92,7 @@ export default function SessionsTable() {
 	useEffect(() => {
 		fetchSessions();
 		fetchEmployees();
-	}, [ fetchSessions, fetchEmployees]);
+	}, [fetchSessions, fetchEmployees]);
 
 	const handlePageChange = (pageNumber: number) => {
 		if (pageNumber >= 1 && pageNumber <= totalPages && pageNumber !== currentPage) {
@@ -157,7 +158,7 @@ export default function SessionsTable() {
 		{
 			Header: 'Ended On',
 			accessor: 'sessionendedon',
-			Cell: ({ value }: { value: string | null }) => 
+			Cell: ({ value }: { value: string | null }) =>
 				value ? formatDate(value) : <span>-</span>,
 		},
 		{
@@ -168,13 +169,13 @@ export default function SessionsTable() {
 		{
 			Header: 'Handover Amt.',
 			accessor: 'handingoveramount',
-			Cell: ({ value }: { value: number }) => 
+			Cell: ({ value }: { value: number }) =>
 				value ? currencyFormatter.format(value) : '-',
 		},
 		{
 			Header: 'Status',
 			accessor: 'sessionendedon',
-			Cell: ({ value }: { value: string | null }) => 
+			Cell: ({ value }: { value: string | null }) =>
 				value ? (
 					<Badge pill className={styles.statusBadgeEnded}>Ended</Badge>
 				) : (
@@ -202,7 +203,6 @@ export default function SessionsTable() {
 		},
 	], [isLoading]);
 
-	
 
 	if (isLoading && sessions.length === 0 && !error) {
 		return (
@@ -242,9 +242,10 @@ export default function SessionsTable() {
 						<PrimeTable
 							column={columns}
 							data={sessions}
+							isExpoerted={true}
 							filtering={true}
-							serverSideFiltering={false}
-							handleSeverSideProcessing={() => {}}
+							serverSideFiltering={true}
+							handleSeverSideProcessing={handleSessionGatheringServer}
 						/>
 					</div>
 				</Col>

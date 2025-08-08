@@ -1,13 +1,12 @@
 "use client";
-import React from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Dropdown } from "react-bootstrap";
 import { RiEdit2Line, RiFileAddLine, RiDeleteBinLine, RiPrinterLine, RiRefund2Line, RiFileList2Line } from '@remixicon/react';
 import PrimeTable from "../accessories/Datatables/PrimeTable";
 import { currencyFormatter } from "../Auth/customFetch";
 import { plsEncryption } from "../../lib/encryption";
-import { useState, useMemo } from "react";
-import { Modal, Button, Form } from "react-bootstrap";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Modal, Button, Form } from "react-bootstrap";
 import { handleDatePicker, handleSeverSideProcessing } from "../serverActions/ActionFiltering";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { RiSearchLine } from "@remixicon/react";
@@ -55,12 +54,27 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 	const pquery = useMemo(() => {
 		const from = searchParams?.get('from') || '';
 		const to = searchParams?.get('to') || '';
+		console.log("URL params:", { from, to });
 		return { from, to };
 	}, [searchParams]);
 
 	const [datequery, setDatequery] = useState<DateQuery>({
 		from: pquery.from || '', to: pquery.to || ''
 	});
+	
+
+	useEffect(() => {
+		if (pquery.from || pquery.to) {
+			console.log("Updating datequery from URL params:", pquery);
+			setDatequery({
+				from: pquery.from || '',
+				to: pquery.to || ''
+			});
+		}
+	}, [pquery]);
+	
+
+	
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const { employeeid } = useApplicationSettings().applicationsettings.user;
 	const router = useRouter();
@@ -212,7 +226,7 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 								{outstandingBill > 0 && (
 									<Dropdown.Item
 										className="text-sm m-0 px-2 border-top border-top-1"
-										href={`/billing/patientid/${plsEncryption(row.original.fullpatientid.toString())}/outstanding-debt`}
+										href={`/billing/patientid/${plsEncryption(row.original.patientid.toString())}/outstanding-debt`}
 									>
 										Settle Bill
 									</Dropdown.Item>
@@ -343,17 +357,27 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 					<input
 						type="date"
 						className="custom-input"
+						value={datequery.from}
 						onChange={(ev) => setDatequery({ ...datequery, from: ev.target.value })}
 					/>
 					<input
 						type="date"
 						className="custom-input mx-2"
+						value={datequery.to}
 						onChange={(ev) => setDatequery({ ...datequery, to: ev.target.value })}
 					/>
 
 					<button
 						className="btn btn-outline-secondary btn-sm mx-2"
-						onClick={() => handleDatePicker({ branchid, date: datequery.from, from: datequery.from, to: datequery.to })}
+						onClick={() => {
+							console.log("Search button clicked with dates:", datequery);
+							handleDatePicker({ 
+								branchid, 
+								date: datequery.from, 
+								from: datequery.from, 
+								to: datequery.to 
+							}, router);
+						}}
 					>
 						<RiSearchLine />
 					</button>

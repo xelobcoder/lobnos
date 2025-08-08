@@ -72,20 +72,35 @@ export async function middleware(request: NextRequest) {
             //     return NextResponse.next();
             // }
 
-            const restrictedAccessPage = ['analytics']
 
-            if (restrictedAccessPage.some(page => currentPath.startsWith(`/${page}`))) {
-                if (!['admin', 'manager'].includes(role.toString().toLowerCase().trim())) {
+            // Only admin can access analytics
+            if (currentPath.startsWith('/analytics')) {
+                if (role.toString().toLowerCase().trim() !== 'admin') {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
                 }
             }
 
 
             if (!["admin", "manager"].includes(role.toString().toLowerCase().trim())) {
-                if (currentPath.startsWith('/settings') || currentPath.startsWith('/billing/billing-sessions')) {
+                const restrictedPaths = [
+                    '/settings',
+                    '/billing/billing-sessions',
+                    '/billing/settings/night-adjustments',
+                    '/billing/billing-strategy/strategies',
+                    '/day-transaction-break-down'
+                ];
+                if (restrictedPaths.some(path => currentPath.startsWith(path))) {
                     return NextResponse.redirect(new URL('/unauthorized', request.url));
                 }
                 return NextResponse.next();
+            }
+
+            // Redirect /billing/expenses to /billing/expenses/expenseslist for admin
+            if (
+                role.toString().toLowerCase().trim() === 'admin' &&
+                currentPath === '/billing/expenses'
+            ) {
+                return NextResponse.redirect(new URL('/billing/expenses/expenselist', request.url));
             }
         }
     }

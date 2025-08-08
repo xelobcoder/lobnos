@@ -15,6 +15,10 @@ export interface ResultSettings {
      companyInfo: {
           namefontsize: number;
           color: string;
+          breakname: boolean; // Indicates if the company name should be split into large and subname
+          subnameFontSize?: number;
+          subnameColor?: string;
+
      };
      testBody: {
           fontSize: number;
@@ -45,6 +49,23 @@ export interface ResultSettings {
      showMethod: boolean;
      useReportTitle?: boolean;
      useInstrumentation?: boolean;
+     ultrasoundSettings?: {
+          fontSize: number;
+          fontFamily: string;
+          color: string;
+          headerBackgroundColor: string;
+          headerTextColor: string;
+          headerFontSize: number;
+          contentFontFamily: string;
+          contentFontSize: number;
+          contentColor: string;
+          lineHeight?: string;
+          sectionTitleColor: string;
+          sectionTitleFontSize: number;
+          showTechnique: boolean;
+          showDisclaimer: boolean;
+          disclaimerText: string;
+     }
 }
 
 export const defaultResultSettings: ResultSettings = {
@@ -62,6 +83,9 @@ export const defaultResultSettings: ResultSettings = {
      companyInfo: {
           namefontsize: 14,
           color: "black",
+          breakname: true,
+          subnameFontSize: 12,
+          subnameColor: "black"
      },
 
      testBody: {
@@ -76,18 +100,18 @@ export const defaultResultSettings: ResultSettings = {
           boldenParameter: false,
           boldenValue: false,
           boldenUnits: true,
-          trFirstColumnName:'Investigation',
-          trSecondColumnName:'value',
-          trThirdColumnName:'units',
-          trFourthColumnName:'reference',
-          trFifthColumnName:'flag',
+          trFirstColumnName: 'Investigation',
+          trSecondColumnName: 'value',
+          trThirdColumnName: 'units',
+          trFourthColumnName: 'reference',
+          trFifthColumnName: 'flag',
 
      },
      includeSignature: true,
      includeLimitations: false,
      limitations: "No limitations",
      useGeneraralValidation: false,
-     useIndividualValidations:true,
+     useIndividualValidations: true,
      includeBarcode: true,
      showEndOfResult: true,
      comments: {
@@ -97,4 +121,21 @@ export const defaultResultSettings: ResultSettings = {
      includeWatermark: true,
      showMethod: true,
      useReportTitle: true,
+     ultrasoundSettings: {
+          fontSize: 14,
+          fontFamily: 'Times New Roman, Times, serif',
+          color: 'black',
+          headerBackgroundColor: '#4169e1',
+          headerTextColor: 'white',
+          headerFontSize: 16,
+          contentFontFamily: 'Times New Roman, Times, serif',
+          contentFontSize: 14,
+          contentColor: 'black',
+          sectionTitleColor: 'black',
+          sectionTitleFontSize: 16,
+          showTechnique: true,
+          lineHeight: '1.5',
+          showDisclaimer: true,
+          disclaimerText: 'This is a sample disclaimer text for ultrasound reports.'
+     }
 }

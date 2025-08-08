@@ -137,7 +137,11 @@ const columns = [
 			<Button
 			  variant="outline-info"
 			  size="sm"
-			  onClick={() => alert(currentWitness.message)}
+			  onClick={() => {
+				setModalTitleHeader("View Witness Note");
+				setWitnessMessage(currentWitness.message);
+				setShowModal(true);
+			  }}
 			>
 			  View
 			</Button>

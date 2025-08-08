@@ -186,7 +186,7 @@ export default function CreateTestRule({ clientdata }) {
 						</button>
 						<ul className="dropdown-menu" aria-labelledby="actionsDropdown" style={{ minWidth: 0, width: 'max-content', maxWidth: 220, whiteSpace: 'nowrap', right: 0, left: 'auto', fontSize: '0.92rem' }}>
 							<li>
-								<Link className="dropdown-item d-flex align-items-center" href="/">
+								<Link className="dropdown-item d-flex align-items-center" href={`/operations/laboratory/auditlogs/${ascensionid}`}>
 									{AuditLogIcon} <span className="ms-2">Audit log</span>
 								</Link>
 							</li>

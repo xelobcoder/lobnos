@@ -1,10 +1,11 @@
-import React from 'react'
+"use client";
+import React, { useEffect, useState } from 'react';
 import BillingPagePatientInformation from '../../../../../../components/Billing/BillingContextComponents/PersonalInfoView';
-import { customFetch } from '../../../../../../components/Auth/customFetch';
 import { Alert } from 'react-bootstrap';
 import { plsDecryption } from '../../../../../../lib/encryption';
 import MultiBillingLayout from '../../../../../../components/Billing/Multi/MultBillingLayout';
 import { RiErrorWarningFill } from '@remixicon/react';
+import { customFetch } from '../../../../../../components/Auth/customFetch';
 
 
 export interface PatientInfo {
@@ -47,8 +48,11 @@ function normalizePatientInfo(raw: any): PatientInfo {
     };
 }
 
-export default async function MultiStepBillingSourcePage({ params, searchParams }: any) {
-    let patientBasicInformation = {};
+export default function MultiStepBillingSourcePage({ params, searchParams }: any) {
+    const [patientBasicInformation, setPatientBasicInformation] = useState<any>({});
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+
     const categorytrackid = parseInt(params.billingsourceid, 10);
     const ispricingcheckout = searchParams?.ispricingcheckout === '1';
     let patientid: string | null = null;
@@ -68,28 +72,33 @@ export default async function MultiStepBillingSourcePage({ params, searchParams 
     const adjustmentType = searchParams?.adjustmentType || 'addition';
     const adjustmentReason = searchParams?.adjustmentReason || '';
 
-    if (!ispricingcheckout && patientid && categorytrackid) {
-        try {
-            const response = await customFetch(`register/personalinformation?patientid=${patientid}`);
-            console.log(`Response from personal information:${patientid}`, response);
-            const { result, status, statusCode } = response;
-            if (statusCode == 200 && status === "success") {
-                patientBasicInformation = normalizePatientInfo(result);
-            } else {
-                return (
-                    <Alert variant='danger' className='p-3'>
-                        {result?.message || "Failed to fetch patient information."}
-                    </Alert>
-                );
-            }
-        } catch (error) {
-            return (
-                <Alert variant='danger' className='p-3 text-sm col-3 mx-auto'>
-                    <RiErrorWarningFill />
-                    An error occurred while fetching patient information.
-                </Alert>
-            );
+    useEffect(() => {
+        if (!ispricingcheckout && patientid && categorytrackid) {
+            setLoading(true);
+            customFetch(`register/personalinformation?patientid=${patientid}`)
+                .then((response) => {
+                    const { result, status, statusCode } = response;
+                    if (statusCode === 200 && status === "success") {
+                        setPatientBasicInformation(normalizePatientInfo(result));
+                        setError(null);
+                    } else {
+                        setError(result?.message || "Failed to fetch patient information.");
+                    }
+                })
+                .catch(() => {
+                    setError("An error occurred while fetching patient information.");
+                })
+                .finally(() => setLoading(false));
         }
+    }, [ispricingcheckout, patientid, categorytrackid]);
+
+    if (error) {
+        return (
+            <Alert variant='danger' className='p-3 text-sm col-3 mx-auto'>
+                <RiErrorWarningFill />
+                {error}
+            </Alert>
+        );
     }
 
     return (

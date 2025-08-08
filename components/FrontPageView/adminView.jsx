@@ -77,22 +77,8 @@ const links = [
 		description: 'Expense tracking and management',
 		disabled: true
 	},
-	{
-		href: '/analytics/resultanalysis/alltest',
-		icon: <RiBarChartBoxLine size={24} />,
-		text: "Analyze test results and generate insights",
-		label: 'Result Analysis',
-		category: 'Analytics',
-		description: 'Test result analysis and reporting'
-	},
-	{
-		href: '/email',
-		icon: <RiMailLine size={24} />,
-		text: "Configure and manage email notifications",
-		label: 'Email Services',
-		category: 'Communication',
-		description: 'Email configuration and management'
-	},
+	
+
 	{
 		href: '/communications/sms/dashboard',
 		icon: <RiMessage2Line size={24} />,
@@ -110,13 +96,14 @@ const links = [
 		description: 'Doctor consultation management'
 	},
 	{
-		href: '/clients',
-		icon: <RiUserLine size={24} />,
-		text: "Access and manage patient information",
-		label: "Patient's Portal",
-		category: 'Healthcare',
-		description: 'Patient information management'
+		href: '/appointments',
+		icon: <RiBarChartBoxLine size={24} />,
+		text: "Schedule and manage patient appointments efficiently",
+		label: 'Appointments',
+		category: 'Core Operations',
+		description: 'Patient appointment scheduling and management'
 	},
+
 ];
 
 export default function FrontPageAdminView() {

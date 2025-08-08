@@ -1,25 +1,78 @@
 'use client'
 import styles from './login.module.css';
 import { RiShieldCrossFill } from '@remixicon/react';
-import { handleUserLogin } from '../../../components/serverActions/ActionFiltering';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Alert, Spinner } from 'react-bootstrap';
+import { customPost } from '../../../components/Auth/customFetch';
 
 export default function PrimeLabLoginPage() {
 	const [isSubmitting, setSubmitting] = useState(false);
 	const [isError, setIsError] = useState(false);
 	const [message, setMessage] = useState<string>('');
+	const router = useRouter();
 
 	const handleLoginBind = async (formData) => {
 		try {
-			setSubmitting(true)
-			const response = await handleUserLogin(formData);
-			const { status, message,error } = response;
-			!status && setIsError(true);
-			!status && setMessage(error);
-			return response;
+			setSubmitting(true);
+			const email = formData.get("email");
+			const password = formData.get("password");
+
+			// Step 1: Authenticate with backend using customPost
+			const backendResponse = await customPost('prime/login', 'POST', { email, password });
+			console.log("Backend response:", backendResponse);
+
+			const { status, accessToken, user } = backendResponse;
+
+			if (!status) {
+				setIsError(true);
+				setMessage(backendResponse.error || 'Login failed');
+				return;
+			}
+
+			// Step 2: Send authenticated data to Next.js API to set cookies
+			const cookieResponse = await fetch('/api/auth/login', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					status,
+					accessToken,
+					user,
+					email
+				}),
+			});
+
+			const cookieResult = await cookieResponse.json();
+
+			if (!cookieResponse.ok || !cookieResult.status) {
+				setIsError(true);
+				setMessage(cookieResult.error || 'Failed to set session');
+				return;
+			}
+
+			// Step 3: Success - redirect based on role
+			setIsError(false);
+			setMessage('Login successful. Redirecting...');
+
+			const { role } = cookieResult;
+			setTimeout(() => {
+				if (role === "admin" || role === "manager") {
+					router.push("/");
+				} else if (role === "sonographer") {
+					router.push("/operations/imaging/");
+				} else if (role === "scientist") {
+					router.push("/operations/laboratory");
+				} else {
+					router.push("/notfound");
+				}
+			}, 1000);
+
 		} catch (err) {
-			console.log('Error');
+			console.error('Login error:', err);
+			setIsError(true);
+			setMessage('An error occurred during login');
 		} finally {
 			setSubmitting(false);
 		}

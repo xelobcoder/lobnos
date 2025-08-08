@@ -27,12 +27,21 @@ export default function AppointmentModal(props) {
      const [editFields, setEditFields] = useState(null);
 
 
+
      const handleListItemClick = (appointment) => {
           setSelectedListAppointment(appointment);
           setEditFields(null);
           if (modalMode === 'edit') {
                setModalMode('view');
           }
+     };
+
+     // Always reset edit form when modal closes
+     const handleClose = () => {
+          setSelectedListAppointment(null);
+          setEditFields(null);
+          setModalMode('view');
+          if (typeof onHide === 'function') onHide();
      };
 
      const handleListItemEdit = (appointment) => {
@@ -79,7 +88,7 @@ export default function AppointmentModal(props) {
 
      return (
           <>
-               <Modal show={show} onHide={onHide} backdrop="static" size='xl'>
+               <Modal show={show} onHide={handleClose} backdrop="static" size='xl'>
                     <Modal.Header className="bg-secondary-subtle fw-bold d-flex justify-content-between" closeButton>
                          <div className="d-flex justify-content-between w-100">
                               <div>
@@ -176,14 +185,14 @@ export default function AppointmentModal(props) {
                                                                  onChange={e => handleEditFieldChange('location', e.target.value)}
                                                             />
                                                        </Form.Group>
-                                                       <Form.Group className="mb-2">
+                                                       {/* <Form.Group className="mb-2">
                                                             <Form.Label>Practitioner</Form.Label>
                                                             <Form.Control
                                                                  type="text"
                                                                  value={editFields.practioner || ''}
                                                                  onChange={e => handleEditFieldChange('practioner', e.target.value)}
                                                             />
-                                                       </Form.Group>
+                                                       </Form.Group> */}
                                                        <Form.Group className="mb-2">
                                                             <Form.Label>Notes</Form.Label>
                                                             <Form.Control
@@ -216,7 +225,7 @@ export default function AppointmentModal(props) {
                          </div>
                     </Modal.Body>
                     <Modal.Footer>
-                         <Button variant="secondary" size="sm" onClick={onHide}>Close</Button>
+                         <Button variant="secondary" size="sm" onClick={handleClose}>Close</Button>
                     </Modal.Footer>
                </Modal>
           </>

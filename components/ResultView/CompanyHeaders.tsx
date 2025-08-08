@@ -1,5 +1,6 @@
 
 import styles from './CompanyHeaders.module.css';
+import { ResultSettings } from './result-settings';
 
 interface CompanyHeadersProps {
 	companyInfo: {
@@ -9,10 +10,11 @@ interface CompanyHeadersProps {
 		name: string;
 		alternativenumber?: string;
 	} | null;
-	logo: string
+	logo: string,
+	resultsettings?: ResultSettings
 }
 
-export default function CompanyHeaders({ companyInfo, logo }: CompanyHeadersProps) {
+export default function CompanyHeaders({ companyInfo, logo, resultsettings }: CompanyHeadersProps) {
 	if (!companyInfo) return null;
 
 	const {
@@ -23,25 +25,43 @@ export default function CompanyHeaders({ companyInfo, logo }: CompanyHeadersProp
 		alternativenumber
 	} = companyInfo;
 
-
-
+	const companyNamefontSize = resultsettings?.companyInfo?.namefontsize || '20px';
+	const companyNamefontColor = resultsettings?.companyInfo?.color || 'black';
+	const companyNamefontFamily = resultsettings?.fontfamily || 'Times New Roman';
 	return (
 		<div className={styles['company-info-result']}>
-			<div className="logo">
+			<div className="logo" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 				<img
 					src={logo || ''}
-					width={150}
-					height={100}
+					className={styles['company-logo']}
 					alt="Company Logo"
+					style={{ display: 'block', visibility: 'visible' }}
+					width={100}
+					height={70}
+					crossOrigin="anonymous"
+					onError={(e) => {
+						console.warn('Logo failed to load, retrying...');
+						const target = e.target as HTMLImageElement;
+						setTimeout(() => {
+							const temp = target.src;
+							target.src = '';
+							target.src = temp;
+						}, 500);
+					}}
 				/>
 			</div>
 			<div className="other-information">
-				<div className={styles['company-name']}>{name}</div>
+				<div style={{
+					fontSize: companyNamefontSize,
+					color: companyNamefontColor,
+					fontWeight: 'bold',
+					textTransform: 'uppercase',
+					fontFamily: companyNamefontFamily
+				}} className={styles['company-name']}>{name}</div>
 				<div className={styles['company-kids']}>Location: {address}</div>
-				<div className={styles['company-kids']}>Email: {email}</div>
 				<div className={`${styles['company-kids']} text-capitalize`}>
 					<span>
-						Contact us: 0{phonenumber} || 0{alternativenumber}
+						Tel: 0{phonenumber} || 0{alternativenumber},Email:{email}
 					</span>
 				</div>
 			</div>

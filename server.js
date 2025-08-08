@@ -1,19 +1,23 @@
-const { createServer } = require('http')
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+const { createServer } = require('https')
+const fs = require('fs');
 const { parse } = require('url')
 const next = require('next')
 
 const dev = process.env.NODE_ENV !== 'production'
-const hostname = 'localhost'
+const hostname = '192.168.0.150'
 const port = process.env.NODE_ENV == "production" ? process.env.PORT : 3000
-// when using middleware `hostname` and `port` must be provided below
 const app = next({ dev, hostname, port })
+
+const httpsOptions = {
+	key: fs.readFileSync('./certificates/localhost-key.pem'),
+	cert: fs.readFileSync('./certificates/localhost.pem'),
+};
 const handle = app.getRequestHandler()
 
 app.prepare().then(() => {
-	createServer(async (req, res) => {
+	createServer(httpsOptions, async (req, res) => {
 		try {
-			// Be sure to pass `true` as the second argument to `url.parse`.
-			// This tells it to parse the query portion of the URL.
 			const parsedUrl = parse(req.url, true)
 			const { pathname, query } = parsedUrl
 
@@ -35,6 +39,6 @@ app.prepare().then(() => {
 			process.exit(1)
 		})
 		.listen(port, () => {
-			console.log(`> Ready on http://${hostname}:${port}`)
+			console.log(`> Ready on https://${hostname}:${port}`)
 		})
 })
