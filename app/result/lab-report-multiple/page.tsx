@@ -1,16 +1,19 @@
 "use client"
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useRef } from "react"
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { customFetch } from "../../../components/Auth/customFetch"
 import { useSearchParams } from "next/navigation"
 import UseDisclaimer from "../../../components/ResutlUI/useDisclaimer"
 import { defaultResultSettings, ResultSettings } from "../../../components/ResultView/result-settings"
-import styles from './../labreport/4/MDSLancet.Template.module.css'
+import styles from './MDSLancet.Template-multiple.module.css';
 import MdsCompanyInformation from "../../../components/ResultView/MdsCompanyInformation"
 import MdsPersonalInformation from "../../../components/ResultView/MdsPersonalInformation"
 import UseCustomResultTemplatingPreview from "../../../components/ResutlUI/useCustomResultTemplatingPreview"
+import UseClinicalLiteratureReview from "../../../components/ResutlUI/UseClinicalLiteratureReview"
+import UseResultCommentSinglePreview from "../../../components/ResutlUI/useResultCommentSinglePreview"
 import { useApplication } from "../../../components/Auth/useApplicationContext";
+import { trackReportView, trackReportPrint } from "../../../lib/printingTracker";
 
 export default function LabReportPrintingMultiple() {
 	const [loader, setLoader] = useState(false);
@@ -43,73 +46,106 @@ export default function LabReportPrintingMultiple() {
 		}
 	}, []);
 
-
-
 	const [pdfUrl, setPdfUrl] = useState<{ url: string; filename: string } | null>(null);
 	const [pdfError, setPdfError] = useState<string | null>(null);
 	const [pdfLoading, setPdfLoading] = useState(false);
 	const [showPdf, setShowPdf] = useState(false);
 	const [showPdfControls, setShowPdfControls] = useState(false);
-	// selectedTests: array of indices, in the order selected
 	const [selectedTests, setSelectedTests] = useState<number[]>([]);
-
-	// Helper: are all tests selected?
+	const viewTrackedRef = useRef<Set<string>>(new Set());
+	const [printPageStarters, setPrintPageStarters] = useState<Set<number>>(new Set());
+	const [footerForceBreak, setFooterForceBreak] = useState(false);
 	const allTestsSelected = resultdata && Array.isArray(resultdata.test) && selectedTests.length === resultdata.test.length && selectedTests.every((v, i) => v === i);
+	const getAscensionIdForTest = (idx: number): string | number | undefined => {
+		const t: any = resultdata?.test?.[idx];
+		return t?.ascensionid ?? t?.ascensionId ?? t?.ascension_id ?? ascensionid;
+	};
+	const getSelectedAscensionIds = (): Array<string | number> => {
+		const ids = new Set<string | number>();
+		selectedTests.forEach((idx) => {
+			const id = getAscensionIdForTest(idx);
+			if (id !== undefined && id !== null) ids.add(id);
+		});
+		return Array.from(ids);
+	};
+
+	const headerRef = useRef<HTMLDivElement | null>(null);
+	const footerRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
 		setPdfError(null);
 		setPdfLoading(false);
 		if (!loader && resultdata && Array.isArray(resultdata.test)) {
 			setPdfLoading(true);
-			setTimeout(() => {
-				// Use the actual DOM element for the report content
-				const resultElement = document.querySelector('.result');
-				if (!resultElement) {
-					setPdfError('Unable to find report content for PDF.');
-					setPdfLoading(false);
-					return;
-				}
-				html2canvas(resultElement as HTMLElement, { scale: 2, useCORS: true }).then(canvas => {
-					const imgData = canvas.toDataURL('image/png');
+			setTimeout(async () => {
+				try {
+					const resultElement = document.querySelector('.result');
+					const headerEl = headerRef.current;
+					if (!resultElement || !headerEl) {
+						setPdfError('Unable to find report content for PDF.');
+						setPdfLoading(false);
+						return;
+					}
+
 					const pdf = new jsPDF('p', 'mm', 'a4');
 					const pageWidth = pdf.internal.pageSize.getWidth();
 					const pageHeight = pdf.internal.pageSize.getHeight();
 					const margin = 10;
 					const usableWidth = pageWidth - margin * 2;
-					const usableHeight = pageHeight - margin * 2;
-					const imgProps = pdf.getImageProperties(imgData);
-					const imgWidth = usableWidth;
-					const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
 
-					let remainingHeight = imgHeight;
-					let imgY = margin;
-					let pageNum = 1;
+					const headerCanvas = await html2canvas(headerEl as HTMLElement, { scale: 2, useCORS: true });
+					const headerImgData = headerCanvas.toDataURL('image/png');
+					const headerHeightMm = (headerCanvas.height * usableWidth) / headerCanvas.width;
 
-					while (remainingHeight > 0) {
-						pdf.addImage(
-							imgData,
-							'PNG',
-							margin,
-							imgY,
-							imgWidth,
-							imgHeight
-						);
-						pdf.saveGraphicsState();
-						pdf.setTextColor(225, 225, 225);
-						pdf.setFontSize(9);
-						pdf.restoreGraphicsState();
+					const contentTopY = margin + headerHeightMm;
+					const contentBottomY = pageHeight - margin;
+					const contentHeight = contentBottomY - contentTopY;
+
+					pdf.addImage(headerImgData, 'PNG', margin, margin, usableWidth, headerHeightMm);
+					let y = contentTopY;
+
+					const sectionEls: HTMLElement[] = Array.from(resultElement.querySelectorAll('.test-section')) as HTMLElement[];
+
+					for (const sectionEl of sectionEls) {
+						const canvas = await html2canvas(sectionEl as HTMLElement, { scale: 2, useCORS: true });
+						const imgData = canvas.toDataURL('image/png');
+						const imgWidthMm = usableWidth;
+						let imgHeightMm = (canvas.height * imgWidthMm) / canvas.width;
+
+						if (imgHeightMm > contentHeight) {
+							const scale = contentHeight / imgHeightMm;
+							const finalWidth = imgWidthMm * scale;
+							const finalHeight = imgHeightMm * scale;
+							if (y !== contentTopY) {
+								pdf.addPage();
+								pdf.addImage(headerImgData, 'PNG', margin, margin, usableWidth, headerHeightMm);
+								y = contentTopY;
+							}
+							pdf.addImage(imgData, 'PNG', margin + (usableWidth - finalWidth) / 2, y, finalWidth, finalHeight);
+							y += finalHeight + 4;
+						} else {
+							if (y + imgHeightMm > contentBottomY) {
+								pdf.addPage();
+								pdf.addImage(headerImgData, 'PNG', margin, margin, usableWidth, headerHeightMm);
+								y = contentTopY;
+							}
+							pdf.addImage(imgData, 'PNG', margin, y, imgWidthMm, imgHeightMm);
+							y += imgHeightMm + 4;
+						}
+					}
+
+					const pageCount = pdf.getNumberOfPages();
+					for (let i = 1; i <= pageCount; i++) {
+						pdf.setPage(i);
 						pdf.setTextColor(60, 60, 60);
 						pdf.setFontSize(10);
-						pdf.text(` ${pageNum}`, pageWidth / 2, pageHeight - 14, { align: 'center' });
+						pdf.text(` ${i}`, pageWidth / 2, pageHeight - 14, { align: 'center' });
 						pdf.setFontSize(8);
 						pdf.setTextColor(65, 105, 225);
 						const copyright = `Software by leonides intell,PLS v0.0.1 copyright @${new Date().getFullYear()}. Tell: 0249434803 || 0595964565`;
 						pdf.text(copyright, pageWidth / 2, pageHeight - 6, { align: 'center' });
-						pageNum++;
-						remainingHeight -= usableHeight;
-						imgY -= usableHeight;
-						if (remainingHeight > 0) pdf.addPage();
 					}
+
 					const patientName = (resultdata?.patientInformation?.firstname || '') + '_' + (resultdata?.patientInformation?.lastname || '');
 					const safePatientName = patientName.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
 					const safeBillingId = (resultdata?.billingid || '').toString().replace(/[^a-zA-Z0-9_]/g, '');
@@ -121,20 +157,93 @@ export default function LabReportPrintingMultiple() {
 					const blobUrl = URL.createObjectURL(blob);
 					setPdfUrl({ url: blobUrl, filename });
 					setPdfLoading(false);
-				}).catch(err => {
+				} catch (err: any) {
 					setPdfError('PDF generation failed: ' + (err?.message || err));
 					setPdfLoading(false);
-				});
+				}
 			}, 500);
 		}
 	}, [loader, resultdata, selectedTests]);
 
-	// When resultdata loads, select all tests by default
 	useEffect(() => {
 		if (resultdata && Array.isArray(resultdata.test)) {
 			setSelectedTests(resultdata.test.map((_, idx) => idx));
 		}
 	}, [resultdata]);
+
+	useEffect(() => {
+		if (!employeeid || !resultdata || !Array.isArray(resultdata.test)) return;
+		const ids = getSelectedAscensionIds().map(id => String(id));
+		const newIds = ids.filter(id => !viewTrackedRef.current.has(id));
+		if (newIds.length === 0) return;
+		newIds.forEach(id => {
+			viewTrackedRef.current.add(id);
+			try {
+				trackReportView(id, employeeid);
+			} catch {
+				console.error('Failed to track report view:', id, employeeid);
+			}
+		});
+	}, [selectedTests, resultdata, employeeid]);
+
+	const computePrintPageStarters = () => {
+		try {
+			if (!resultdata || !Array.isArray(resultdata.test)) return;
+			const selected = selectedTests.filter(idx => idx >= 0 && idx < resultdata.test.length);
+			if (selected.length === 0) { setPrintPageStarters(new Set()); setFooterForceBreak(false); return; }
+
+			const headerH = headerRef.current ? headerRef.current.offsetHeight : 0;
+			const pageHeightPx = 1122;
+			const marginPx = 38;
+			const contentHeight = pageHeightPx - marginPx * 2;
+
+			const starters: number[] = [];
+			let remaining = contentHeight - headerH;
+
+			for (let i = 0; i < selected.length; i++) {
+				const idx = selected[i];
+				const el = document.querySelector(`section.test-section[data-test-idx="${idx}"]`) as HTMLElement | null;
+				const h = el ? el.offsetHeight : 0;
+
+				if (i === 0) {
+					starters.push(idx);
+					remaining -= h;
+					continue;
+				}
+
+				if (h <= remaining) {
+					remaining -= h;
+				} else {
+					starters.push(idx);
+					remaining = (contentHeight - headerH) - h;
+				}
+			}
+
+			const extraEls = Array.from(document.querySelectorAll('section.test-section.extra-section')) as HTMLElement[];
+			extraEls.forEach(el => {
+				const h = el ? el.offsetHeight : 0;
+				if (h <= remaining) {
+					remaining -= h;
+				} else {
+					remaining = (contentHeight - headerH) - h;
+				}
+			});
+
+			const footerH = (footerRef.current?.offsetHeight || 0) + 40;
+			setFooterForceBreak(remaining < footerH);
+			setPrintPageStarters(new Set(starters));
+		} catch (e) {
+			const first = selectedTests[0];
+			setPrintPageStarters(new Set(typeof first === 'number' ? [first] : []));
+			setFooterForceBreak(false);
+		}
+	};
+
+	useEffect(() => {
+		const handler = () => computePrintPageStarters();
+		window.addEventListener('beforeprint', handler);
+		return () => window.removeEventListener('beforeprint', handler);
+	}, [resultdata, selectedTests]);
 
 	let pdfControls;
 	if (pdfUrl && showPdfControls) {
@@ -159,6 +268,12 @@ export default function LabReportPrintingMultiple() {
 							fontWeight: 'bold',
 							textDecoration: 'none',
 							boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+						}}
+						onClick={() => {
+							if (employeeid) {
+								const ids = getSelectedAscensionIds();
+								ids.forEach((id) => trackReportPrint(String(id), employeeid));
+							}
 						}}
 					>
 						Download PDF
@@ -211,7 +326,6 @@ export default function LabReportPrintingMultiple() {
 					</div>
 				) : resultdata && Array.isArray(resultdata.test) ? (
 					<div style={{ display: 'flex', flexDirection: 'row', width: '100vw', minHeight: '100vh' }}>
-						{/* Sidebar for test selection */}
 						<aside className="no-print" style={{ width: 240, background: '#f7f7fa', borderRight: '1px solid #e0e0e0', padding: 16, minHeight: '100vh', position: 'sticky', top: 0 }}>
 							<h4 style={{ marginBottom: 16, fontWeight: 700, fontSize: 18 }}>Select Tests</h4>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -247,7 +361,14 @@ export default function LabReportPrintingMultiple() {
 								</button>
 								<button
 									className="no-print"
-									onClick={() => window.print()}
+									onClick={async () => {
+										if (employeeid) {
+											const ids = getSelectedAscensionIds();
+											await Promise.all(ids.map((id) => trackReportPrint(String(id), employeeid)));
+										}
+										computePrintPageStarters();
+										setTimeout(() => window.print(), 50);
+									}}
 									style={{ marginTop: 12, padding: '6px 16px', borderRadius: 4, border: '1px solid #28a745', background: '#28a745', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 16 }}
 								>
 									Print
@@ -275,37 +396,45 @@ export default function LabReportPrintingMultiple() {
 								)}
 							</div>
 						</aside>
-						{/* Main report area */}
-						<div style={{ flex: 1, position: 'relative', minHeight: '100vh' }}>
-							<div className={styles.page} style={{ fontFamily: resultSettings.fontfamily, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+						<div style={{ flex: 1, position: 'relative', minHeight: '100vh', backgroundColor: 'white !important' }}>
+							<div className={`${styles.page} print-page`} style={{
+								fontFamily: resultSettings.fontfamily,
+								minHeight: '100vh',
+								display: 'flex',
+								border: 'none !important',
+								backgroundColor: 'white !important',
+								boxShadow: 'none !important',
+								padding: 16,
+								flexDirection: 'column'
+							}}>
 								<div className='result' style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-									<MdsCompanyInformation
-										styles={styles}
-										logourl={resultdata.logourl}
-										companyInfo={resultdata.companyInfo}
-									/>
-									<div className={styles.reportTitleBar}
-										style={{
-											backgroundColor: resultSettings.mainReportHeaderBgColor,
-											color: resultSettings.mainReportHeaderColor
-										}}>
-										MEDICAL LABORATORY REPORT
+									<div ref={headerRef} className="screen-header">
+										<MdsCompanyInformation
+											styles={styles}
+											logourl={resultdata.logourl}
+											resultsettings={resultSettings}
+											companyInfo={resultdata.companyInfo}
+										/>
+										<div className={styles.reportTitleBar}
+											style={{
+												backgroundColor: resultSettings.mainReportHeaderBgColor,
+												color: resultSettings.mainReportHeaderColor
+											}}>
+											MEDICAL LABORATORY REPORT
+										</div>
+										<MdsPersonalInformation
+											styles={styles}
+											patientInformation={resultdata.patientInformation}
+											labRef={`BILL${resultdata.billingid}`}
+											collectionDate={resultdata.samplingInformation?.collectionEndDate}
+											finalReportDate={resultdata.samplingInformation?.resultEntryEnd}
+										/>
 									</div>
-									<MdsPersonalInformation
-										styles={styles}
-										patientInformation={resultdata.patientInformation}
-										labRef={`BILL${resultdata.billingid}`}
-										collectionDate={resultdata.samplingInformation?.collectionEndDate}
-										finalReportDate={resultdata.samplingInformation?.resultEntryEnd}
-									/>
-									<div style={{ flex: 1 }}>
+									<div className="print-content" style={{ flex: 1 }}>
 										{(() => {
-											// selectedTests already contains the indices in the order of selection
 											const selected = selectedTests.filter(idx => idx >= 0 && idx < resultdata.test.length);
-											// Gather all comments from selected tests
 											let allComments: string[] = [];
 											if (allTestsSelected && resultdata.generalComments) {
-												// Use generalComments as a single HTML string, split into array for compatibility
 												allComments = [resultdata.generalComments];
 											} else {
 												allComments = selected
@@ -314,13 +443,14 @@ export default function LabReportPrintingMultiple() {
 													.flat();
 											}
 
-											// Determine which validators to use
 											const useGeneralValidation = selected.length > 1 && resultdata.generalValidation;
 											const getValidators = (idx: number) => useGeneralValidation ? [resultdata.generalValidation] : resultdata.test[idx].validators;
 
-											return selected.map((idx, i) => (
+											const nodes = selected.map((idx, i) => (
 												<section
 													key={idx}
+													className="test-section"
+													data-test-idx={idx}
 													style={{
 														marginBottom: 40,
 														borderBottom: '1px dashed #ccc',
@@ -329,6 +459,31 @@ export default function LabReportPrintingMultiple() {
 														pageBreakInside: 'avoid',
 													}}
 												>
+													{printPageStarters.has(idx) && (
+														<div className={`page-header-marker ${i !== 0 ? 'break-before' : ''}`}>
+															<MdsCompanyInformation
+																styles={styles}
+																logourl={resultdata.logourl}
+																resultsettings={resultSettings}
+																companyInfo={resultdata.companyInfo}
+															/>
+															<div className={styles.reportTitleBar}
+																style={{
+																	backgroundColor: resultSettings.mainReportHeaderBgColor,
+																	color: resultSettings.mainReportHeaderColor
+																}}>
+																MEDICAL LABORATORY REPORT
+															</div>
+															<MdsPersonalInformation
+																styles={styles}
+																patientInformation={resultdata.patientInformation}
+																labRef={`BILL${resultdata.billingid}`}
+																collectionDate={resultdata.samplingInformation?.collectionEndDate}
+																finalReportDate={resultdata.samplingInformation?.resultEntryEnd}
+															/>
+														</div>
+													)}
+
 													<UseCustomResultTemplatingPreview
 														test={resultdata.test[idx].testname}
 														records={resultdata.test[idx].records}
@@ -337,11 +492,29 @@ export default function LabReportPrintingMultiple() {
 													/>
 												</section>
 											));
+
+											if (resultdata?.literatureReview) {
+												nodes.push(
+													<section key="literature-review" className="test-section extra-section" style={{ marginBottom: 40, paddingBottom: 24, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+														<UseClinicalLiteratureReview literature={resultdata?.literatureReview} />
+													</section>
+												);
+											}
+
+											if (allComments && allComments.length > 0) {
+												nodes.push(
+													<section key="result-comments" className="test-section extra-section" style={{ marginBottom: 40, paddingBottom: 24, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+														<UseResultCommentSinglePreview comments={allComments} />
+													</section>
+												);
+											}
+
+											return nodes;
 										})()}
 									</div>
 								</div>
 
-								<div style={{ width: '100%', marginTop: 32, textAlign: 'center', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+								<div ref={footerRef} className={`report-footer ${footerForceBreak ? 'force-break' : ''}`} style={{ width: '100%', marginTop: 32, textAlign: 'center', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
 									{resultSettings.includeLimitations && (
 										<span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
 									)}
@@ -353,29 +526,31 @@ export default function LabReportPrintingMultiple() {
 									)}
 									{resultSettings.includeLimitations && <UseDisclaimer disclaimer={resultSettings.limitations} />}
 								</div>
+								{pdfUrl && (
+									<button
+										className='printing-button no-print'
+										onClick={() => {
+											setShowPdfControls(true);
+										}}
+										style={{
+											position: 'absolute',
+											top: 16,
+											right: 16,
+											zIndex: 10000,
+											background: '#4169e1',
+											color: '#fff',
+											border: 'none',
+											borderRadius: 4,
+											padding: '8px 16px',
+											fontWeight: 'bold',
+											cursor: 'pointer',
+											boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+										}}
+									>
+										PDF Options
+									</button>
+								)}
 							</div>
-							{pdfUrl && (
-								<button
-									className='printing-button no-print'
-									onClick={() => setShowPdfControls(true)}
-									style={{
-										position: 'absolute',
-										top: 16,
-										right: 16,
-										zIndex: 10000,
-										background: '#4169e1',
-										color: '#fff',
-										border: 'none',
-										borderRadius: 4,
-										padding: '8px 16px',
-										fontWeight: 'bold',
-										cursor: 'pointer',
-										boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-									}}
-								>
-									PDF Options
-								</button>
-							)}
 						</div>
 					</div>
 				) : (
@@ -384,6 +559,23 @@ export default function LabReportPrintingMultiple() {
 					</div>
 				)
 			)}
+			<style jsx global>{`
+				.print-only-header { display: none; }
+				@media print {
+					@page { margin: 10mm; }
+					body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+					.no-print { display: none !important; }
+					.print-page { box-shadow: none !important; background: #fff !important; }
+					.screen-header { display: none !important; }
+					.page-header-marker { display: block !important; }
+					.page-header-marker.break-before { page-break-before: always; }
+					.result { display: block !important; width: 100%; }
+					.print-content { display: block !important; margin: 0 !important; }
+					.test-section { break-inside: avoid-page; page-break-inside: avoid; }
+					.report-footer { break-inside: avoid-page; page-break-inside: avoid; }
+					.report-footer.force-break { page-break-before: always; }
+				}
+			`}</style>
 		</Suspense>
 	);
 }

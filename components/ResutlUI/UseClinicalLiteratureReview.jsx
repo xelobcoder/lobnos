@@ -1,4 +1,5 @@
 export default function UseClinicalLiteratureReview({ literature }) {
+	console.log("UseClinicalLiteratureReview", literature);
 	const isLiterature = literature && typeof literature === "string" && literature.length > 0;
 	return (
 	<section>

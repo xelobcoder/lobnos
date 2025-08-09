@@ -1,0 +1,61 @@
+/* Print-specific styles */
+@media print {
+    /* Remove all borders and set white background */
+    * {
+        border: none !important;
+        box-shadow: none !important;
+        background-color: white !important;
+        color: black !important;
+    }
+    
+    /* Ensure the page uses full width and height */
+    @page {
+        margin: 0;
+        size: A4;
+        background-color: white;
+    }
+    
+    /* Hide elements that shouldn't be printed */
+    .no-print,
+    .printing-button {
+        display: none !important;
+    }
+    
+    /* Set body and html to white background */
+    body, html {
+        background-color: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Ensure the main content area has white background */
+    .result {
+        background-color: white !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* Remove any container backgrounds */
+    div, section, article, main {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* Ensure text is readable */
+    p, span, div, h1, h2, h3, h4, h5, h6 {
+        color: black !important;
+    }
+    
+    /* Make sure tables print correctly */
+    table {
+        border-collapse: collapse !important;
+        background-color: white !important;
+    }
+    
+    td, th {
+        border: 1px solid #ccc !important;
+        background-color: white !important;
+        color: black !important;
+    }
+}

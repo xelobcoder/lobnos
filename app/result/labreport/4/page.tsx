@@ -7,6 +7,8 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useSearchParams } from 'next/navigation';
 import { customFetch } from '../../../../components/Auth/customFetch';
+import { useApplication } from '../../../../components/Auth/useApplicationContext';
+import { trackReportView, trackReportPrint } from '../../../../lib/printingTracker';
 import VersionFooter from '../../../../components/accessories/VersionFooter';
 import UseClinicalLiteratureReview from '../../../../components/ResutlUI/UseClinicalLiteratureReview';
 import UseCustomResultTemplatingPreview from '../../../../components/ResutlUI/useCustomResultTemplatingPreview';
@@ -17,6 +19,8 @@ import { defaultResultSettings, ResultSettings } from '../../../../components/Re
 import ResultViewHtmlGeneratorUltrasound from '../../../../components/Auth/ResultViewHtmlGeneratorUltrasound';
 
 const MDSLancetTemplate: React.FC = () => {
+    const app = useApplication();
+    const employeeid = app?.user?.employeeid;
     const [loader, setLoader] = useState(false);
     const [resultdata, setResultData] = useState<any>(null);
     const [resultSettings, setResultSettings] = useState<ResultSettings>(defaultResultSettings);
@@ -35,6 +39,8 @@ const MDSLancetTemplate: React.FC = () => {
 
     const url = `result/printout/ascension/getResult?csvid=${csvid}&&testid=${testid}&&isScan=${isScan}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
 
+
+    // Track view event on mount
     useEffect(() => {
         setLoader(true);
         customFetch(url)
@@ -43,6 +49,10 @@ const MDSLancetTemplate: React.FC = () => {
                     setResultSettings(data.resultsettings);
                 }
                 setResultData(data)
+                // Send view tracking event
+                if (ascensionid && employeeid) {
+                    trackReportView(ascensionid, employeeid);
+                }
             })
             .catch((err) => console.error(err))
             .finally(() => { setLoader(false); });
@@ -201,6 +211,11 @@ const MDSLancetTemplate: React.FC = () => {
                             textDecoration: 'none',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
                         }}
+                        onClick={() => {
+                            if (ascensionid && employeeid) {
+                                trackReportPrint(ascensionid, employeeid);
+                            }
+                        }}
                     >
                         Download PDF
                     </a>
@@ -246,9 +261,22 @@ const MDSLancetTemplate: React.FC = () => {
         <>
             {pdfControls}
             {!showPdfControls && (
-                <div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
-                    <div className={styles.page} style={{ fontFamily: resultSettings.fontfamily, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-                        <div className='result' style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ position: 'relative', width: '100vw', height: '100vh',backgroundColor:'white' }}>
+                    <div className={styles.page} style={{ 
+                        fontFamily: resultSettings.fontfamily, 
+                        minHeight: '100vh', 
+                        display: 'flex', 
+                        flexDirection: 'column',
+                        backgroundColor: 'white',
+                        border: 'none'
+                    }}>
+                        <div className='result' style={{ 
+                            flex: 1, 
+                            display: 'flex', 
+                            flexDirection: 'column',
+                            backgroundColor: 'white !important',
+                            border: 'none'
+                        }}>
                             <MdsCompanyInformation
                                 styles={styles}
                                 logourl={resultdata.logourl}
@@ -327,6 +355,33 @@ const MDSLancetTemplate: React.FC = () => {
                             </div>
                         </footer>
                     </div>
+                    {/* Print Button (hidden in print) */}
+                    <button
+                        className="no-print"
+                        style={{
+                            position: 'absolute',
+                            top: 16,
+                            left: 16,
+                            zIndex: 10000,
+                            background: '#28a745',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: 4,
+                            padding: '8px 16px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                        }}
+                        onClick={async () => {
+                            if (ascensionid && employeeid) {
+                                await trackReportPrint(ascensionid, employeeid);
+                            }
+                            window.print();
+                        }}
+                    >
+                        Print Report
+                    </button>
+                    
                     {pdfUrl && (
                         <button
                             className='printing-button no-print'

@@ -1,0 +1,342 @@
+/* Hide elements with .no-print class in print */
+.no-print {
+    display: block !important;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    .page {
+        border : none !important;
+        box-shadow: none !important;
+    }
+}
+
+/* Page number for print */
+.pageNumber {
+    display: none;
+}
+
+@media print {
+    .pageNumber {
+        display: block;
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        text-align: center;
+        font-size: 10pt;
+        color: #333;
+        padding-bottom: 2mm;
+    }
+
+
+}
+
+/* PDF/Print-specific tweaks */
+.result {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+}
+
+.page {
+    font-size: 12px;
+    color: black;
+    background-color: white;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 5px auto;
+    padding: 5mm 5mm;
+
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+}
+
+.logoSection {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 40px;
+    height: auto;
+    margin-right: 8px;
+}
+
+.labNameLarge {
+    font-size: 16pt;
+    font-weight: bold;
+    color: #333;
+    /* Dark grey */
+    letter-spacing: 1px;
+}
+
+.labSubName {
+    font-size: 7pt;
+    color: #444;
+    text-transform: uppercase;
+}
+
+.labContactHeader {
+    text-align: right;
+    font-size: 10pt;
+    line-height: 1.3;
+}
+
+.labContactHeader strong {
+    font-weight: bold;
+}
+
+.reportTitleBar {
+    color: white;
+    text-align: center;
+    padding: 5px 0;
+    font-size: 13pt;
+    font-weight: bold;
+    margin: 10px -12mm;
+    letter-spacing: 1px;
+}
+
+.patientInfoSection {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    /* Left column wider */
+    gap: 0 20px;
+    /* Column gap */
+    font-size: 9pt;
+    text-transform: capitalize !important;
+    padding-bottom: 10px;
+    border-bottom: 1px solid black;
+}
+
+.infoBlock {
+    line-height: 1.5;
+    text-transform: uppercase;
+}
+
+.infoPair {
+    display: flex;
+}
+
+.infoLabel {
+    /* min-width: 90px; */
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+.infoValue {
+    font-weight: bold;
+    color: #000;
+    margin-left: 10px;
+}
+
+
+.sectionTitle {
+    font-size: 10.5pt;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: bolder;
+    display: flex;
+    padding: 5px;
+    justify-content: center;
+    padding-bottom: 3px;
+    border-bottom: 1px solid black;
+}
+
+.resultsArea {
+    margin-bottom: 15px;
+    font-size: 9pt;
+}
+
+.resultsHeaderRow {
+    display: flex;
+    font-weight: bold;
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #555;
+}
+
+.resultsTestCol {
+    flex: 3;
+    padding-left: 5px;
+}
+
+.resultsResultCol {
+    flex: 1;
+    text-align: right;
+}
+
+.resultsUnitsCol {
+    flex: 0.7;
+    text-align: left;
+    padding-left: 10px;
+}
+
+.resultsRefCol {
+    flex: 1.2;
+    text-align: right;
+    padding-right: 5px;
+}
+
+.resultRow {
+    display: flex;
+    padding: 2px 0;
+    font-size: 11.0pt;
+    align-items: center;
+}
+
+.resultTestName {
+    flex: 3;
+    padding-left: 5px;
+}
+
+.resultValue {
+    flex: 1;
+    font-size: 9.5pt;
+    text-align: right;
+}
+
+.resultFlag {
+    font-weight: bold;
+    margin-right: 3px;
+    /* Space between flag and value */
+}
+
+.resultUnits {
+    flex: 0.7;
+    text-align: left;
+    padding-left: 10px;
+    font-size: 9.5pt;
+    color: #333;
+}
+
+.resultRef {
+    flex: 1.2;
+    text-align: right;
+    padding-right: 5px;
+    font-size: 9.5pt;
+    color: #333;
+}
+
+.subResultRow {
+    padding-left: 25px;
+    font-size: 8.5pt;
+}
+
+.noSampleInfo {
+    font-style: italic;
+    color: #555;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    font-size: 8.5pt;
+}
+
+.limitationSection {
+    margin-top: 20px;
+    font-size: 7.5pt;
+    line-height: 1.4;
+    color: #444;
+    padding-top: 10px;
+    border-top: 1px dotted #aaa;
+}
+
+.limitationTitle {
+    font-weight: bold;
+    font-size: 8pt;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.footer {
+    margin-top: 25px;
+    padding-top: 10px;
+    border-top: 1px solid #555;
+    font-size: 7pt;
+    color: #333;
+    text-align: center;
+    margin-top: auto;
+}
+
+.endOfReportMark {
+    font-weight: bold;
+}
+
+
+.footerFinePrint {
+    font-size: 6pt;
+    color: #666;
+    text-align: right;
+    margin-top: 15px;
+}
+
+@media print {
+    .result {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        width: 210mm !important;
+        min-height: 297mm !important;
+        page-break-after: auto;
+    }
+
+    .printing-button {
+        display: none !important;
+    }
+
+
+
+    .page {
+        margin: 0 !important;
+        padding: 0mm 0mm !important;
+        border: none !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        min-height: initial !important;
+        page-break-after: auto;
+        background: white !important;
+    }
+
+    .reportTitleBar {
+        margin: 10px 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        color: white !important;
+    }
+
+    .header,
+    .patientInfoSection,
+    .limitationSection,
+    .resultsArea,
+    .footer {
+        page-break-inside: avoid;
+    }
+
+    .sectionTitle,
+    .resultsHeaderRow {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
