@@ -87,6 +87,23 @@ export default function LabReportPrintingMultiple() {
 						return;
 					}
 
+					// Wait for images to load to get accurate heights (tests include clinical info)
+					const ensureImagesLoaded = async (rootEl: Element) => {
+						const images = Array.from(rootEl.querySelectorAll('img')) as HTMLImageElement[];
+						await Promise.all(images.map(img => new Promise<void>((resolve) => {
+							if (img.complete && img.naturalHeight !== 0) return resolve();
+							if (img.src.startsWith('http')) img.crossOrigin = 'anonymous';
+							img.onload = () => resolve();
+							img.onerror = () => resolve();
+						})));
+					};
+					await ensureImagesLoaded(resultElement);
+
+					// Hide print-only page headers inside sections while capturing PDF
+					const _markers = Array.from(resultElement.querySelectorAll('.page-header-marker')) as HTMLElement[];
+					const _markerDisplays = _markers.map(el => el.style.display);
+					_markers.forEach(el => { el.style.display = 'none'; });
+
 					const pdf = new jsPDF('p', 'mm', 'a4');
 					const pageWidth = pdf.internal.pageSize.getWidth();
 					const pageHeight = pdf.internal.pageSize.getHeight();
@@ -97,40 +114,117 @@ export default function LabReportPrintingMultiple() {
 					const headerImgData = headerCanvas.toDataURL('image/png');
 					const headerHeightMm = (headerCanvas.height * usableWidth) / headerCanvas.width;
 
-					const contentTopY = margin + headerHeightMm;
-					const contentBottomY = pageHeight - margin;
-					const contentHeight = contentBottomY - contentTopY;
+					const pageTopWithHeader = margin + headerHeightMm;
+					const pageTopNoHeader = margin;
+					const pageBottom = pageHeight - margin;
+					const contentHeightMm = pageBottom - pageTopWithHeader;
 
+					// First page uses header
 					pdf.addImage(headerImgData, 'PNG', margin, margin, usableWidth, headerHeightMm);
-					let y = contentTopY;
+					let y = pageTopWithHeader;
 
 					const sectionEls: HTMLElement[] = Array.from(resultElement.querySelectorAll('.test-section')) as HTMLElement[];
 
 					for (const sectionEl of sectionEls) {
-						const canvas = await html2canvas(sectionEl as HTMLElement, { scale: 2, useCORS: true });
-						const imgData = canvas.toDataURL('image/png');
-						const imgWidthMm = usableWidth;
-						let imgHeightMm = (canvas.height * imgWidthMm) / canvas.width;
+						// Temporarily remove extra spacing for clean capture
+						const prev = {
+							marginTop: sectionEl.style.marginTop,
+							marginBottom: sectionEl.style.marginBottom,
+							paddingTop: sectionEl.style.paddingTop,
+							paddingBottom: sectionEl.style.paddingBottom,
+							borderBottom: sectionEl.style.borderBottom,
+						};
+						sectionEl.style.marginTop = '0px';
+						sectionEl.style.marginBottom = '16px';
+						sectionEl.style.paddingTop = '0px';
+						sectionEl.style.paddingBottom = '0px';
+						sectionEl.style.borderBottom = 'none';
 
-						if (imgHeightMm > contentHeight) {
-							const scale = contentHeight / imgHeightMm;
-							const finalWidth = imgWidthMm * scale;
-							const finalHeight = imgHeightMm * scale;
-							if (y !== contentTopY) {
-								pdf.addPage();
-								pdf.addImage(headerImgData, 'PNG', margin, margin, usableWidth, headerHeightMm);
-								y = contentTopY;
+						// Ensure images within this section are loaded
+						await ensureImagesLoaded(sectionEl);
+
+						const canvas = await html2canvas(sectionEl as HTMLElement, { scale: 2, useCORS: true });
+						const imgWidthMm = usableWidth;
+						const mmPerPx = imgWidthMm / canvas.width;
+						const sectionMmHeight = canvas.height * mmPerPx;
+
+						const drawWholeSection = async () => {
+							const imgData = canvas.toDataURL('image/png');
+							pdf.addImage(imgData, 'PNG', margin, y, imgWidthMm, sectionMmHeight);
+							y += sectionMmHeight;
+						};
+
+						const sliceSectionAcrossPages = async () => {
+							let srcY = 0;
+							const totalPx = canvas.height;
+							while (srcY < totalPx) {
+								const availableMm = pageBottom - y;
+								if (availableMm <= 0.5) {
+									// Continuation of same test across pages: no header
+									pdf.addPage();
+									y = pageTopNoHeader;
+								}
+								const maxSlicePx = Math.floor((pageBottom - y) / mmPerPx);
+								const slicePx = Math.min(Math.max(maxSlicePx, 1), totalPx - srcY);
+
+								const sliceCanvas = document.createElement('canvas');
+								sliceCanvas.width = canvas.width;
+								sliceCanvas.height = slicePx;
+								const ctx = sliceCanvas.getContext('2d');
+								if (ctx) {
+									ctx.drawImage(
+										canvas,
+										0,
+										srcY,
+										canvas.width,
+										slicePx,
+										0,
+										0,
+										sliceCanvas.width,
+										sliceCanvas.height
+									);
+								}
+								const sliceImgData = sliceCanvas.toDataURL('image/png');
+								const sliceMmHeight = slicePx * mmPerPx;
+								pdf.addImage(sliceImgData, 'PNG', margin, y, imgWidthMm, sliceMmHeight);
+								y += sliceMmHeight;
+								srcY += slicePx;
 							}
-							pdf.addImage(imgData, 'PNG', margin + (usableWidth - finalWidth) / 2, y, finalWidth, finalHeight);
-							y += finalHeight + 4;
+						};
+
+						const remainingMm = pageBottom - y;
+						if (sectionMmHeight <= remainingMm) {
+							await drawWholeSection();
 						} else {
-							if (y + imgHeightMm > contentBottomY) {
+							// Start new test on a fresh page with header
+							if (y !== pageTopWithHeader) {
 								pdf.addPage();
 								pdf.addImage(headerImgData, 'PNG', margin, margin, usableWidth, headerHeightMm);
-								y = contentTopY;
+								y = pageTopWithHeader;
 							}
-							pdf.addImage(imgData, 'PNG', margin, y, imgWidthMm, imgHeightMm);
-							y += imgHeightMm + 4;
+							if (sectionMmHeight <= contentHeightMm) {
+								await drawWholeSection();
+							} else {
+								// Too tall: slice across pages; first page has header already, next pages omit header
+								await sliceSectionAcrossPages();
+							}
+						}
+
+						// Restore original spacing styles
+						sectionEl.style.marginTop = prev.marginTop;
+						sectionEl.style.marginBottom = prev.marginBottom;
+						sectionEl.style.paddingTop = prev.paddingTop;
+						sectionEl.style.paddingBottom = prev.paddingBottom;
+						sectionEl.style.borderBottom = prev.borderBottom;
+
+						// Gap between tests; if not enough room for gap, start new page with header for next test
+						const gapMm = 2;
+						if (y + gapMm <= pageBottom) {
+							y += gapMm;
+						} else {
+							pdf.addPage();
+							pdf.addImage(headerImgData, 'PNG', margin, margin, usableWidth, headerHeightMm);
+							y = pageTopWithHeader;
 						}
 					}
 
@@ -156,8 +250,19 @@ export default function LabReportPrintingMultiple() {
 					const blob = pdf.output('blob');
 					const blobUrl = URL.createObjectURL(blob);
 					setPdfUrl({ url: blobUrl, filename });
+
+					// Restore markers after capture
+					_markers.forEach((el, i) => { el.style.display = _markerDisplays[i]; });
 					setPdfLoading(false);
 				} catch (err: any) {
+					// Restore markers on error as well
+					try {
+						const resultElement = document.querySelector('.result');
+						if (resultElement) {
+							const _markers = Array.from(resultElement.querySelectorAll('.page-header-marker')) as HTMLElement[];
+							_markers.forEach(el => { el.style.display = ''; });
+						}
+					} catch {}
 					setPdfError('PDF generation failed: ' + (err?.message || err));
 					setPdfLoading(false);
 				}
@@ -294,17 +399,17 @@ export default function LabReportPrintingMultiple() {
 						{showPdf ? 'Hide PDF' : 'Show PDF'}
 					</button>
 					<button
-						onClick={() => setShowPdfControls(false)}
-						style={{
-							background: '#aaa',
-							color: '#fff',
-							border: 'none',
-							borderRadius: 4,
-							padding: '8px 16px',
-							fontWeight: 'bold',
-							cursor: 'pointer',
-							boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-						}}
+					 onClick={() => setShowPdfControls(false)}
+					 style={{
+						 background: '#aaa',
+						 color: '#fff',
+						 border: 'none',
+						 borderRadius: 4,
+						 padding: '8px 16px',
+						 fontWeight: 'bold',
+						 cursor: 'pointer',
+						 boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+					 }}
 					>
 						Back to Report
 					</button>
@@ -446,60 +551,74 @@ export default function LabReportPrintingMultiple() {
 											const useGeneralValidation = selected.length > 1 && resultdata.generalValidation;
 											const getValidators = (idx: number) => useGeneralValidation ? [resultdata.generalValidation] : resultdata.test[idx].validators;
 
-											const nodes = selected.map((idx, i) => (
-												<section
-													key={idx}
-													className="test-section"
-													data-test-idx={idx}
-													style={{
-														marginBottom: 40,
-														borderBottom: '1px dashed #ccc',
-														paddingBottom: 24,
-														breakInside: 'avoid',
-														pageBreakInside: 'avoid',
-													}}
-												>
-													{printPageStarters.has(idx) && (
-														<div className={`page-header-marker ${i !== 0 ? 'break-before' : ''}`}>
-															<MdsCompanyInformation
-																styles={styles}
-																logourl={resultdata.logourl}
-																resultsettings={resultSettings}
-																companyInfo={resultdata.companyInfo}
-															/>
-															<div className={styles.reportTitleBar}
-																style={{
-																	backgroundColor: resultSettings.mainReportHeaderBgColor,
-																	color: resultSettings.mainReportHeaderColor
-																}}>
-																MEDICAL LABORATORY REPORT
+											const nodes = selected.map((idx, i) => {
+												const literature = resultdata.test[idx]?.literatureReview ?? resultdata?.literatureReview;
+												return (
+													<section
+														key={idx}
+														className="test-section"
+														data-test-idx={idx}
+														style={{
+															marginBottom: 40,
+															borderBottom: '1px dashed #ccc',
+															paddingBottom: 24,
+															breakInside: 'avoid',
+															pageBreakInside: 'avoid',
+														}}
+													>
+														{printPageStarters.has(idx) && (
+															<div className={`page-header-marker ${i !== 0 ? 'break-before' : ''}`}>
+																<MdsCompanyInformation
+																	styles={styles}
+																	logourl={resultdata.logourl}
+																	resultsettings={resultSettings}
+																	companyInfo={resultdata.companyInfo}
+																/>
+																<div className={styles.reportTitleBar}
+																	style={{
+																		backgroundColor: resultSettings.mainReportHeaderBgColor,
+																		color: resultSettings.mainReportHeaderColor
+																	}}>
+																	MEDICAL LABORATORY REPORT
+																</div>
+																<MdsPersonalInformation
+																	styles={styles}
+																	patientInformation={resultdata.patientInformation}
+																	labRef={`BILL${resultdata.billingid}`}
+																	collectionDate={resultdata.samplingInformation?.collectionEndDate}
+																	finalReportDate={resultdata.samplingInformation?.resultEntryEnd}
+																/>
 															</div>
-															<MdsPersonalInformation
-																styles={styles}
-																patientInformation={resultdata.patientInformation}
-																labRef={`BILL${resultdata.billingid}`}
-																collectionDate={resultdata.samplingInformation?.collectionEndDate}
-																finalReportDate={resultdata.samplingInformation?.resultEntryEnd}
-															/>
-														</div>
-													)}
+														)}
 
-													<UseCustomResultTemplatingPreview
-														test={resultdata.test[idx].testname}
-														records={resultdata.test[idx].records}
-														resultsettings={resultSettings}
-														testdetailcategory={resultdata.test[idx].testdetailcategory}
-													/>
-												</section>
-											));
+														<UseCustomResultTemplatingPreview
+															test={resultdata.test[idx].testname}
+															records={resultdata.test[idx].records}
+															resultsettings={resultSettings}
+															testdetailcategory={resultdata.test[idx].testdetailcategory}
+														/>
 
-											if (resultdata?.literatureReview) {
-												nodes.push(
-													<section key="literature-review" className="test-section extra-section" style={{ marginBottom: 40, paddingBottom: 24, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-														<UseClinicalLiteratureReview literature={resultdata?.literatureReview} />
+														{resultSettings.showMethod && resultdata.test[idx]?.testInfo?.method && (
+															<div className='d-flex '>
+																<div className='fw-bold'>Method: </div>
+																<p className='mx-1'>{resultdata.test[idx].testInfo.method}</p>
+															</div>
+														)}
+														{resultSettings.showMethod && resultdata.test[idx]?.testInfo?.instrumentation && (
+															<div className='d-flex '>
+																<div className='fw-bold'>Instrumentation: </div>
+																<p className='mx-1'>{resultdata.test[idx].testInfo.instrumentation}</p>
+															</div>
+														)}
+
+														{literature && (
+															<div className="test-literature" style={{ marginTop: 16 }}>
+																<UseClinicalLiteratureReview literature={literature} />
+															</div>
+														)}
 													</section>
 												);
-											}
+											});
 
 											if (allComments && allComments.length > 0) {
 												nodes.push(
@@ -560,22 +679,23 @@ export default function LabReportPrintingMultiple() {
 				)
 			)}
 			<style jsx global>{`
-				.print-only-header { display: none; }
-				@media print {
-					@page { margin: 10mm; }
-					body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-					.no-print { display: none !important; }
-					.print-page { box-shadow: none !important; background: #fff !important; }
-					.screen-header { display: none !important; }
-					.page-header-marker { display: block !important; }
-					.page-header-marker.break-before { page-break-before: always; }
-					.result { display: block !important; width: 100%; }
-					.print-content { display: block !important; margin: 0 !important; }
-					.test-section { break-inside: avoid-page; page-break-inside: avoid; }
-					.report-footer { break-inside: avoid-page; page-break-inside: avoid; }
-					.report-footer.force-break { page-break-before: always; }
-				}
-			`}</style>
+                .print-only-header { display: none; }
+                .page-header-marker { display: none; }
+                @media print {
+                    @page { margin: 10mm; }
+                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    .no-print { display: none !important; }
+                    .print-page { box-shadow: none !important; background: #fff !important; }
+                    .screen-header { display: none !important; }
+                    .page-header-marker { display: block !important; }
+                    .page-header-marker.break-before { page-break-before: always; }
+                    .result { display: block !important; width: 100%; }
+                    .print-content { display: block !important; margin: 0 !important; }
+                    .test-section { break-inside: avoid-page; page-break-inside: avoid; }
+                    .report-footer { break-inside: avoid-page; page-break-inside: avoid; }
+                    .report-footer.force-break { page-break-before: always; }
+                }
+            `}</style>
 		</Suspense>
 	);
 }
