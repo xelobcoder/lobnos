@@ -8,6 +8,7 @@ import moment from "moment";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { getAscensionEditCountServerideS, getResultEntryDataServerSide } from "../serverActions/ActionFiltering";
 import Link from "next/link";
+import { plsDecryption } from "../../lib/encryption";
 
 export default function CreateTestRule({ clientdata }) {
 	const { testid, test, patientid, billingid, employeeid, ascensionid, resultEntryStart, resultEntryEnd } = clientdata;
@@ -31,7 +32,7 @@ export default function CreateTestRule({ clientdata }) {
 	useEffect(() => {
 		const gettingFields = async function () {
 			try {
-				const [resultResponse, commentsResponse] = await getResultEntryDataServerSide({ testid, billingid, patientid, ascensionid,employeeid })
+				const [resultResponse, commentsResponse] = await getResultEntryDataServerSide({ testid, billingid, patientid, ascensionid, employeeid })
 
 				function updatesResultForm(data) {
 					const { testname, result, hasDrugs } = data;
@@ -94,7 +95,7 @@ export default function CreateTestRule({ clientdata }) {
 				return { field: item?.name, value: item?.value, fieldid: item.fieldid, originalvalue: item?.value };
 			});
 			const allHasValues = transformed.some((a) => a.value == "");
-			if (allHasValues) 	toast.error("Some fields are empty", { autoClose: 2000 });
+			if (allHasValues) toast.error("Some fields are empty", { autoClose: 2000 });
 
 			const data = {
 				fields: transformed,
@@ -165,6 +166,7 @@ export default function CreateTestRule({ clientdata }) {
 			<path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L12 3.768l-8.566 11.302c-.77 1.333.192 3 1.732 3z" />
 		</svg>
 	);
+const decryptedPatientId = patientid ? patientid.slice(50) : null;
 
 	return (
 		<div>
@@ -191,7 +193,12 @@ export default function CreateTestRule({ clientdata }) {
 								</Link>
 							</li>
 							<li>
-								<Link className="dropdown-item d-flex align-items-center" href="/">
+								<Link
+									className="dropdown-item d-flex align-items-center"
+									href={`/operations/laboratory/resulttrend/${decryptedPatientId}/${testid}?trendNumber=100`}
+									target="_blank"
+									rel="noopener noreferrer"
+								>
 									{ClientTestTrendIcon} <span className="ms-2">Client test trend</span>
 								</Link>
 							</li>
