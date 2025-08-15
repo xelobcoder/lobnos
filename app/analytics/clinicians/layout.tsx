@@ -14,6 +14,7 @@ import {
      RiTeamLine,
      RiPulseLine,
 } from "@remixicon/react";
+import MAIN_LAYOUT from "../../../components/Layout/MainLayout";
 
 export default function SMSLayout({
      children,
@@ -35,9 +36,11 @@ export default function SMSLayout({
      return (
           <Suspense>
                <ApplicationProvider>
-                    <PrimeLayout links={ClincianAnalyticsLinks}>
-                         {children}
-                    </PrimeLayout>
+                    <MAIN_LAYOUT>
+                         <PrimeLayout links={ClincianAnalyticsLinks}>
+                              {children}
+                         </PrimeLayout>
+                    </MAIN_LAYOUT>
                </ApplicationProvider>
           </Suspense>
      );

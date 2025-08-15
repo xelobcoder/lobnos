@@ -8,7 +8,7 @@ import moment from "moment";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { getAscensionEditCountServerideS, getResultEntryDataServerSide } from "../serverActions/ActionFiltering";
 import Link from "next/link";
-import { plsDecryption } from "../../lib/encryption";
+
 
 export default function CreateTestRule({ clientdata }) {
 	const { testid, test, patientid, billingid, employeeid, ascensionid, resultEntryStart, resultEntryEnd } = clientdata;
@@ -166,7 +166,8 @@ export default function CreateTestRule({ clientdata }) {
 			<path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L12 3.768l-8.566 11.302c-.77 1.333.192 3 1.732 3z" />
 		</svg>
 	);
-const decryptedPatientId = patientid ? patientid.slice(50) : null;
+
+	const decryptedPatientId = patientid ? patientid.slice(50) : null;
 
 	return (
 		<div>

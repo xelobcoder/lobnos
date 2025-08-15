@@ -175,7 +175,7 @@ export default function AuditLogsPage() {
     }
     
     if (error) {
-        return <Alert variant="danger">{error}</Alert>;
+        return <Alert variant="danger">{error}</Alert>
     }
 
     return (
@@ -257,7 +257,7 @@ export default function AuditLogsPage() {
                 
                 {logs.length === 0 && searchText && !isSearching && !isLoading && (
                     <div className="mt-2 text-danger">
-                        <small>No results found for "{searchText}"</small>
+                        <small>No results found for {searchText}</small>
                     </div>
                 )}
             </div>

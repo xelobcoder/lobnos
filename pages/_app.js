@@ -9,6 +9,7 @@ import '../styles/mediaqueries.css'
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css'
 import { ApplicationProvider } from '../components/Auth/useApplicationContext';
 import { useEffect } from 'react';
+import MAIN_LAYOUT from '../components/Layout/MainLayout'
 
 function MyApp({ Component, pageProps: { pageProps } }) {
 
@@ -24,7 +25,9 @@ function MyApp({ Component, pageProps: { pageProps } }) {
 
   return (
     <ApplicationProvider>
-      <Component {...pageProps} />
+    <MAIN_LAYOUT>
+        <Component {...pageProps} />
+    </MAIN_LAYOUT>
     </ApplicationProvider>
   )
 }

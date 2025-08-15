@@ -1,21 +1,4 @@
-@media print {
 
-  body,
-  html {
-    margin: 0 !important;
-    padding: 0 !important;
-    background-color: white !important;
-    overflow: visible !important;
-  }
-
-  .result {
-    background-color: white !important;
-  }
-
-  .no-print {
-    display: none !important;
-  }
-}
 
 :root {
   --topband-bg: #21263c;
@@ -1738,4 +1721,25 @@ body {
   color: black;
   background-color: whitesmoke;
   text-transform: capitalize !important;
+}
+
+
+@media print {
+  body,
+  html {
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: white !important;
+    overflow: visible !important;
+      background: white !important;
+  }
+
+  .result,.page {
+    background-color: white !important;
+    border: none !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
 }

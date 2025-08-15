@@ -20,7 +20,6 @@ export default function PrimeLabLoginPage() {
 
 			// Step 1: Authenticate with backend using customPost
 			const backendResponse = await customPost('prime/login', 'POST', { email, password });
-			console.log("Backend response:", backendResponse);
 
 			const { status, accessToken, user } = backendResponse;
 
@@ -55,6 +54,11 @@ export default function PrimeLabLoginPage() {
 			// Step 3: Success - redirect based on role
 			setIsError(false);
 			setMessage('Login successful. Redirecting...');
+
+			// After a successful login, remove cached applicationsettings
+			if (typeof window !== 'undefined') {
+				localStorage.removeItem('applicationsettings');
+			}
 
 			const { role } = cookieResult;
 			setTimeout(() => {
@@ -94,7 +98,7 @@ export default function PrimeLabLoginPage() {
 					{/* Error display block removed */}
 					{isError && <Alert closeLabel='' variant={isError ? "danger" : "success"}>
 						<div className='text-sm'>
-							{isError  ? message : "Login successful.You would be redirected!!!"}
+							{isError ? message : "Login successful.You would be redirected!!!"}
 						</div>
 					</Alert>}
 					<form action={handleLoginBind} className={styles.loginForm}>

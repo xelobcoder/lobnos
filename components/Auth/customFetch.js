@@ -727,28 +727,30 @@ const isFalsi = (data) => {
 
 export const isAuthenticated = async function (auth, navigate, updateAuthentication) {
 	try {
+		console.log("auth", auth)
 		if (isFalsi(auth)) {
-			const token = Cookies.get("X-AUTH-PRIME-LAB-SYSTEM");
-			if (isFalsi(token)) {
-				navigate.push("/authentication/login")
-			} else {
-				const authentic = await customFetch(`authenticate/employee/token?token=${token}`);
-				const { statusCode, status } = authentic
-				if (statusCode == 200 && status == "success") {
-					const { username, role, email, employeeid, branchid } = authentic?.user
-					const permissions = JSON.parse(authentic?.user?.permissions)
-					updateAuthentication({
-						username,
-						role,
-						email,
-						employeeid,
-						permissions,
-						branchid,
-					})
-				} else {
-					navigate.push("/authentication/login")
-				}
-			}
+			const token = Cookies.get("pls-prime-tenant-session");
+			console.log("token", token)
+			// if (isFalsi(token)) {
+			// 	navigate.push("/authentication/login")
+			// } else {
+			// 	const authentic = await customFetch(`authenticate/employee/token?token=${token}`);
+			// 	const { statusCode, status } = authentic
+			// 	if (statusCode == 200 && status == "success") {
+			// 		const { username, role, email, employeeid, branchid } = authentic?.user
+			// 		const permissions = JSON.parse(authentic?.user?.permissions)
+			// 		updateAuthentication({
+			// 			username,
+			// 			role,
+			// 			email,
+			// 			employeeid,
+			// 			permissions,
+			// 			branchid,
+			// 		})
+			// 	} else {
+			// 		navigate.push("/authentication/login")
+			// 	}
+			// }
 		}
 	} catch (err) {
 		console.log(err)

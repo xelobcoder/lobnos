@@ -11,7 +11,6 @@ import {
 import { Dropdown } from 'react-bootstrap';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link as LinkType } from "./links/types";
-import { store } from '../../lib/store';
 
 interface PrimeLayoutProps {
     children: React.ReactNode;
@@ -54,13 +53,6 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         });
     };
 
-    const toggleDarkMode = () => {
-        setIsDarkMode(prev => {
-            const newState = !prev;
-            localStorage.setItem('theme', newState ? 'dark' : 'light');
-            return newState;
-        });
-    };
 
     const renderNavItem = (item: LinkType) => {
         const uniqueKey = item.title.replace(/\s+/g, '-');
@@ -93,7 +85,6 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         icon: <RiHomeLine />
     };
 
-    const customization = store.customization || {};
 
     return (
         <div className={`

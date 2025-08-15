@@ -1,3 +1,4 @@
+import MAIN_LAYOUT from "../../components/Layout/MainLayout";
 
 export default function SMSLayout({
      children,
@@ -10,4 +11,4 @@ export default function SMSLayout({
                {children}
           </div>
      );
-}
+} 

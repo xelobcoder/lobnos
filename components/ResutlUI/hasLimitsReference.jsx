@@ -31,14 +31,14 @@ export default function LimitViewHtmlGeneratorResultView({ fieldItem, index, res
                fontFamily: settings?.fontFamily,
                color: settings?.color 
           }}>
-               <td style={{ width: '40%' }}>
+               <td style={{ width: '50%' }}>
                     <span style={{ 
                          fontWeight: settings?.boldenParameter ? '500' : 'normal' 
                     }}>
                          {name}
                     </span>
                </td>
-               <td style={{ width: '20%' }}>
+               <td style={{ width: '15%' }}>
                     {flag === 'H' || flag === "L" ? (
                          <span style={{ 
                               fontWeight: settings?.boldenValue ? '500' : 'normal',
@@ -54,17 +54,17 @@ export default function LimitViewHtmlGeneratorResultView({ fieldItem, index, res
                          </span>
                     )}
                </td>
-               <td style={{ width: '20%' }}>
+               <td style={{ width: '15%' }}>
                     <span style={{ 
                          fontWeight: settings?.boldenUnits ? '500' : 'normal' 
                     }}>
                          {units}
                     </span>
                </td>
-               <td style={{ width: '20%' }}>
+               <td style={{ width: '15%' }}>
                     {lowerlimit}~{upperlimit}
                </td>
-               <td style={{ width: '10%' }}>
+               <td style={{ width: '5%' }}>
                     {flag === 'H' ? (
                          <span style={{ 
                               color: settings?.hasColorsForFlags ? settings?.hightFlagColor : settings?.color,

@@ -17,6 +17,7 @@ import UseResultCommentSinglePreview from '../../../../components/ResutlUI/useRe
 import UseResultEntryScientist from '../../../../components/ResutlUI/UseResultEntryFormat';
 import { defaultResultSettings, ResultSettings } from '../../../../components/ResultView/result-settings';
 import ResultViewHtmlGeneratorUltrasound from '../../../../components/Auth/ResultViewHtmlGeneratorUltrasound';
+import DrugsList from '../../../../components/Drugs/DrugsList';
 
 const MDSLancetTemplate: React.FC = () => {
     const app = useApplication();
@@ -69,27 +70,27 @@ const MDSLancetTemplate: React.FC = () => {
                 setTimeout(generatePDF, 1500);
             });
         }
-        
+
         // Helper function to ensure all images are loaded
         async function ensureImagesLoaded() {
             const resultElement = document.querySelector('.result');
             if (!resultElement) return;
-            
+
             // Get all images including the logo
             const images = Array.from(resultElement.querySelectorAll('img')) as HTMLImageElement[];
-            
+
             // Create an array of promises for image loading
             const loadPromises = images.map(img => {
                 // If image is already complete, return resolved promise
                 if (img.complete && img.naturalHeight !== 0) {
                     return Promise.resolve();
                 }
-                
+
                 // Force crossOrigin to anonymous for CORS issues
                 if (img.src.startsWith('http')) {
                     img.crossOrigin = 'anonymous';
                 }
-                
+
                 // Return a promise that resolves when the image loads
                 return new Promise<void>((resolve, reject) => {
                     img.onload = () => resolve();
@@ -99,7 +100,7 @@ const MDSLancetTemplate: React.FC = () => {
                     };
                 });
             });
-            
+
             // Wait for all images to load
             return Promise.all(loadPromises);
         }
@@ -109,10 +110,10 @@ const MDSLancetTemplate: React.FC = () => {
             setTimeout(() => {
                 const resultElement = document.querySelector('.result');
                 if (!resultElement) return;
-                
+
                 // Enhanced html2canvas options for better image handling
-                html2canvas(resultElement as HTMLElement, { 
-                    scale: 2, 
+                html2canvas(resultElement as HTMLElement, {
+                    scale: 2,
                     useCORS: true,
                     allowTaint: true,
                     logging: false,
@@ -261,22 +262,12 @@ const MDSLancetTemplate: React.FC = () => {
         <>
             {pdfControls}
             {!showPdfControls && (
-                <div style={{ position: 'relative', width: '100vw', height: '100vh',backgroundColor:'white' }}>
-                    <div className={styles.page} style={{ 
-                        fontFamily: resultSettings.fontfamily, 
-                        minHeight: '100vh', 
-                        display: 'flex', 
-                        flexDirection: 'column',
-                        backgroundColor: 'white',
-                        border: 'none'
+                <div style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: 'white' }}>
+                    <div className={styles.page} style={{
+                        fontFamily: resultSettings.fontfamily, minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'white',
+
                     }}>
-                        <div className='result' style={{ 
-                            flex: 1, 
-                            display: 'flex', 
-                            flexDirection: 'column',
-                            backgroundColor: 'white !important',
-                            border: 'none'
-                        }}>
+                        <div className='result'>
                             <MdsCompanyInformation
                                 styles={styles}
                                 logourl={resultdata.logourl}
@@ -307,18 +298,18 @@ const MDSLancetTemplate: React.FC = () => {
                                         testInfo={resultdata?.testInfo}
                                         testdetailcategory={resultdata.testdetailcategory}
                                     />}
-                                    {isScan &&
-                                        <ResultViewHtmlGeneratorUltrasound resultsettings={resultdata.resultsettings}
-                                            test={test}
-                                            testInfo={resultdata?.testInfo}
-                                            resultentry={resultdata?.resultentry}
-                                            records={resultdata?.records} />
+                                    {isScan && <ResultViewHtmlGeneratorUltrasound resultsettings={resultdata.resultsettings}
+                                        test={test}
+                                        testInfo={resultdata?.testInfo}
+                                        resultentry={resultdata?.resultentry}
+                                        records={resultdata?.records} />
                                     }
 
-                                    {!isScan && <>
+                                    {resultdata.hasDrugs && Array.isArray(resultdata.drugList) && resultdata.drugList.length > 0 && <DrugsList hadDrugs={resultdata.hasDrugs} drugList={resultdata.drugList} />}
+                                    {!isScan && (<>
                                         <UseClinicalLiteratureReview literature={resultdata?.literatureReview} />
                                         <UseResultCommentSinglePreview comments={resultdata?.comments} />
-                                    </>}
+                                    </>)}
                                 </section>
                                 <section>
                                     {!isScan && resultSettings.useIndividualValidations && !resultSettings.useGeneraralValidation && <UseResultEntryScientist
@@ -355,7 +346,6 @@ const MDSLancetTemplate: React.FC = () => {
                             </div>
                         </footer>
                     </div>
-                    {/* Print Button (hidden in print) */}
                     <button
                         className="no-print"
                         style={{
@@ -381,7 +371,7 @@ const MDSLancetTemplate: React.FC = () => {
                     >
                         Print Report
                     </button>
-                    
+
                     {pdfUrl && (
                         <button
                             className='printing-button no-print'

@@ -63,11 +63,11 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 					fontSize: resultsettings?.testTableHeaderFontSize || '13px'
 				}}>
 					<tr>
-						<th scope="col" >{resultsettings.testBody.trFirstColumnName || 'Test'}</th>
-						<th scope="col">{resultsettings.testBody.trSecondColumnName || 'Value'}</th>
-						<th scope="col">{resultsettings.testBody.trThirdColumnName || 'Units'}</th>
-						<th scope="col">{resultsettings.testBody.trFourthColumnName || 'References'}</th>
-						<th scope="col">{resultsettings.testBody.trFifthColumnName || 'Flags'}</th>
+						<th scope="col" style={{width:'40%'}} >{resultsettings.testBody.trFirstColumnName || 'Test'}</th>
+						<th scope="col" style={{width:'15%'}}>{resultsettings.testBody.trSecondColumnName || 'Value'}</th>
+						<th scope="col" style={{width:'15%'}}>{resultsettings.testBody.trThirdColumnName || 'Units'}</th>
+						<th scope="col" style={{width:'15%'}}>{resultsettings.testBody.trFourthColumnName || 'References'}</th>
+						<th scope="col" style={{width:'15%'}}>{resultsettings.testBody.trFifthColumnName || 'Flags'}</th>
 					</tr>
 				</thead>
 				<tbody>

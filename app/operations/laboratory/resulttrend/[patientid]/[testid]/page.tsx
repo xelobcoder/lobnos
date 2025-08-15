@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { customFetch } from '../../../../../../components/Auth/customFetch';
 import PrimeTable from '../../../../../../components/accessories/Datatables/PrimeTable';
+import PreviewPatientInformation from '../../../../../../components/petientsComponent/PreviewPatientInformation';
 
 
 interface TrendRow {
@@ -135,7 +136,8 @@ export default function ResultTrendPage() {
                     <div>
                          <div style={{ marginBottom: 24 }}>
                               <div style={{ fontWeight: 700, margin: '12px 0' }}>Fields × Accessions</div>
-                              <PrimeTable column={tableColumns} data={tableData} filtering={true} />
+                              <PreviewPatientInformation patientid={patientid} />
+                              <PrimeTable column={tableColumns} data={tableData} filtering={true} handleSeverSideProcessing={null} serverSideFiltering={false} />
                          </div>
                     </div>
                )}

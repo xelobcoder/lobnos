@@ -9,6 +9,7 @@ import styles from "./index.module.css";
 
 export default function Index() {
   const { applicationsettings } = useApplicationSettings();
+  console.log(useApplicationSettings);
   const { user, daysToExpiration } = applicationsettings;
 
   const roleViews = {
@@ -59,10 +60,10 @@ export default function Index() {
   }
 
   return (
-   <PrimeLayout>
-     <div className={styles.pageContainer}>
-      <RoleComponent />
-    </div>
+    <PrimeLayout>
+      <div className={styles.pageContainer}>
+        <RoleComponent />
+      </div>
     </PrimeLayout>
   );
 }

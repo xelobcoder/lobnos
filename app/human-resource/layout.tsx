@@ -5,6 +5,7 @@ import "../../node_modules/bootstrap/dist/css/bootstrap.min.css";
 import PrimeLayout from "../../components/Layout/PrimeLayout"
 import { Suspense } from "react"
 import { ApplicationProvider } from "../../components/Auth/useApplicationContext"
+import MAIN_LAYOUT from "../../components/Layout/MainLayout";
 
 export const metadata: Metadata = {
     title: "HR LIMS System",
@@ -18,12 +19,14 @@ export default function RootLayout({
     children: React.ReactNode
 }>) {
     return (
-         <Suspense>
-               <ApplicationProvider>
+        <Suspense>
+            <ApplicationProvider>
+                <MAIN_LAYOUT>
                     <PrimeLayout links={[]}>
-                         {children}
+                        {children}
                     </PrimeLayout>
-               </ApplicationProvider>
-          </Suspense>
+                </MAIN_LAYOUT>
+            </ApplicationProvider>
+        </Suspense>
     )
 }
