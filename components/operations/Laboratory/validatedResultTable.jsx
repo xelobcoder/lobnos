@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-
+import { PrepareResultEntryHeader } from '../../Auth/customFetch';
 // Handler for Print Multiple Results
 function handlePrintMultipleResults(row) {
-    const { testid, name, patientid, ascensionid, billingid } = row.original;
-    const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
-    const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
-    const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=false&&multiple`;
-    window.open(`/result/lab-report-multiple?${url}`);
+     const { testid, name, patientid, ascensionid, billingid } = row.original;
+     const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
+     const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
+     const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&ptid=${ptid}&&target=70,50&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&&password=false&&multiple`;
+     window.open(`/result/lab-report-multiple?${url}`);
 }
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { ListGroup, Dropdown } from 'react-bootstrap';
@@ -16,6 +16,8 @@ import { customFetch, generateRandomTextAndNumbers } from '../../Auth/customFetc
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import { handleServerSideProcessingAscensionData } from '../../serverActions/ActionFiltering';
 import { RiMoreLine } from '@remixicon/react';
+import { useApplication } from '../../Auth/useApplicationContext';
+
 
 const Print = (
      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
@@ -67,6 +69,7 @@ const MobileDataDisplay = ({ data, handleResult }) => {
 export default function ValidatedResultTable({ employeeid }) {
      const { isLoading, collection, queryParams, setQueryParams } = useLaboratoryContext();
      const [isClient, setIsClient] = useState(false);
+     const branchid = useApplication().branchid;
 
      const viewResultHandler = (item, multiple = false) => {
           const { testid, name, patientid, ascensionid, billingid } = item;
@@ -95,17 +98,7 @@ export default function ValidatedResultTable({ employeeid }) {
 
 
 
-     const sendEmailHandler = async (data) => {
 
-          const { testid, name, patientid, ascensionid, billingid } = data
-          const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
-          const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
-          await customFetch(`result/printout/ascension/multiple/getResult/channel/email?csvid=${csvid}&&testid=${testid}&&testname=${name.toLowerCase()}&&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=true&&isUltrasound=false&&target=70,50`)
-     };
-
-     const downloadSingleReportHandler = (data) => {
-          console.log('Downloading single report:', data);
-     };
 
      const downloadMultipleReportsHandler = (data) => {
           console.log('Downloading multiple reports:', data);
@@ -138,7 +131,7 @@ export default function ValidatedResultTable({ employeeid }) {
                Header: 'Department',
                accessor: 'department',
           },
-    
+
           {
                Header: 'Client Status',
                accessor: 'clientstatus',
@@ -179,15 +172,15 @@ export default function ValidatedResultTable({ employeeid }) {
                                    const { testid, patientid, ascensionid, billingid } = row.original;
                                    window.open(`/communications/sms/laboratory-lifecycle-events/sends?testid=${encodeURIComponent(testid)}&patientid=${encodeURIComponent(patientid)}&ascensionid=${encodeURIComponent(ascensionid)}&billingid=${encodeURIComponent(billingid)}`);
                               }}>
-                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{marginRight: '6px', verticalAlign: 'middle'}}><path fill="none" d="M0 0h24v24H0z"></path><path d="M2 21l21-9-21-9v7l15 2-15 2z"></path></svg>
+                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path fill="none" d="M0 0h24v24H0z"></path><path d="M2 21l21-9-21-9v7l15 2-15 2z"></path></svg>
                                    Send Completed SMS
                               </Dropdown.Item>
                               <Dropdown.Item className='pls-label' as="a" target="_blank" href={`/operations/laboratory/validated/printing-tracking/${row.original.ascensionid}`}>
-                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{marginRight: '6px', verticalAlign: 'middle'}}><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 14.93V19h-2v-2.07A8.001 8.001 0 0 1 4.07 13H2v-2h2.07A8.001 8.001 0 0 1 11 4.07V2h2v2.07A8.001 8.001 0 0 1 19.93 11H22v2h-2.07A8.001 8.001 0 0 1 13 19.93zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"></path></svg>
+                                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ marginRight: '6px', verticalAlign: 'middle' }}><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 14.93V19h-2v-2.07A8.001 8.001 0 0 1 4.07 13H2v-2h2.07A8.001 8.001 0 0 1 11 4.07V2h2v2.07A8.001 8.001 0 0 1 19.93 11H22v2h-2.07A8.001 8.001 0 0 1 13 19.93zM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8z"></path></svg>
                                    View Result Tracking
                               </Dropdown.Item>
-                              <Dropdown.Item className='pls-label' onClick={() => downloadSingleReportHandler(row.original)}>
-                                   {downloadSvg} Download Password Protected Report
+                              <Dropdown.Item className='pls-label' onClick={() => PrepareResultEntryHeader({ id: row.original.testid, ...row.original }, false, branchid,)}>
+                                   {downloadSvg} Edit Result
                               </Dropdown.Item>
                               <Dropdown.Item className='pls-label' onClick={() => downloadMultipleReportsHandler(row.original)}>
                                    {downloadSvg}  Download Multiple Reports

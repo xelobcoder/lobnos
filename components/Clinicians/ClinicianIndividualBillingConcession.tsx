@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import TestFiltering, { TestDetails } from "../accessories/SectorFileringComponents/TestFiltering";
+import styles from '../../styles/SmsTemplateList.module.css'
 
 interface SelectedTest {
     testName: string;
@@ -15,17 +16,22 @@ interface SelectedTest {
 }
 
 interface ClinicianIndividualBillingConcessionProps {
-    setSelectedTests: any
+    setSelectedTests: any;
+    selectedTests: SelectedTest[];
 }
 
 const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingConcessionProps> = ({
     setSelectedTests,
+    selectedTests
 }) => {
     const [selectionMode, setSelectionMode] = useState<"absolute" | "percentage">("absolute");
     const [concessionValueInput, setConcessionValueInput] = useState<string>("");
     const [currentTest, setCurrentTest] = useState<TestDetails | null>(null);
     const [isTestSelected, setIsTestSelected] = useState(false);
     const [pricingType, setPricingType] = useState<"surcharge" | "discount">("discount");
+
+
+
 
     // Handle test selection from TestFiltering component
     const handleSelectedTest = (test: TestDetails) => {
@@ -83,12 +89,12 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
             concessionMode: selectionMode,
         };
 
-        // Add new test to selected tests if it doesn't already exist
-        setSelectedTests((prevSelectedTests) => {
-            if (!prevSelectedTests.some((test) => test.testName === newTest.testName)) {
+        setSelectedTests((prevSelectedTests: SelectedTest[]) => {
+            const testExists = prevSelectedTests.some(t => t.testid === newTest.testid);
+            if (!testExists) {
                 return [...prevSelectedTests, newTest];
             }
-            return prevSelectedTests;
+            return prevSelectedTests.map(t => t.testid === newTest.testid ? newTest : t);
         });
 
         // Reset form state
@@ -167,6 +173,44 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
                             Add to Selected Tests
                         </button>
                     </div>
+                </div>
+            )}
+
+            {selectedTests && selectedTests.length > 0 && (
+                <div className="mt-3">
+                    <h6>Selected Tests</h6>
+                    <table className={styles.table}>
+                        <thead>
+                            <tr>
+                                <th>Test Name</th>
+                                <th>Concession Mode</th>
+                                <th>Concession Value</th>
+                                <th>Pricing Type</th>
+                                <th>Original Price</th>
+                                <th>Discounted Value</th>
+                                <th>Actual Price</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Array.isArray(selectedTests) && selectedTests.length > 0 && selectedTests.map(test => (
+                                <tr key={test.testid}>
+                                    <td>{test.testName}</td>
+                                    <td>{test.concessionMode}</td>
+                                    <td>{test.concessionValue}</td>
+                                    <td>{test.pricingType}</td>
+                                    <td>{test.originalPrice}</td>
+                                    <td>{test.discountedValue}</td>
+                                    <td>{test.actualPrice}</td>
+                                    <td>
+                                        <button className="btn btn-danger btn-sm" onClick={() => setSelectedTests(selectedTests.filter(t => t.testid !== test.testid))}>
+                                            Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             )}
         </div>

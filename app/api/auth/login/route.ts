@@ -27,16 +27,16 @@ export async function POST(request: NextRequest) {
         // Set cookies
         cookies().set('PLS-SESSION', signedToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'none',
+            secure: false,
+            sameSite: 'lax',
             path: '/',
             maxAge: payload.exp ? payload.exp - Math.floor(Date.now() / 1000) : 3600
         });
 
         cookies().set('pls-prime-tenant-session', accessToken, {
             httpOnly: true,
-            secure: true,
-            sameSite: 'none',
+            secure: false,
+            sameSite: 'lax',
             path: '/',
         });
 
@@ -45,21 +45,21 @@ export async function POST(request: NextRequest) {
         const isValidRole = allowedRoles.includes(userRole);
 
         if (isValidRole) {
-            return NextResponse.json({ 
-                status: true, 
+            return NextResponse.json({
+                status: true,
                 role: userRole,
                 message: 'Authentication successful'
             });
         } else {
-            return NextResponse.json({ 
-                error: 'Invalid role' 
+            return NextResponse.json({
+                error: 'Invalid role'
             }, { status: 403 });
         }
 
     } catch (error) {
         console.error('Authentication error:', error);
-        return NextResponse.json({ 
-            error: 'Authentication failed' 
+        return NextResponse.json({
+            error: 'Authentication failed'
         }, { status: 500 });
     }
 }

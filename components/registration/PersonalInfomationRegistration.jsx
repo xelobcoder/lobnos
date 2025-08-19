@@ -10,6 +10,7 @@ import AdditionalPersonalInformation from "./PersonalRegistrationForms/Additiona
 import { handleAgeCalculations } from "../Auth/registerclient";
 import { buildPersonalInformationSchema } from "./validationSchema";
 import { plsEncryption } from "../../lib/encryption";
+import { useApplication } from "../Auth/useApplicationContext";
 
 
 export default function PersonalInformationRegistration({
@@ -23,6 +24,8 @@ export default function PersonalInformationRegistration({
 	const [showDecisionModal, setShowDecisionModal] = useState(false);
 	const [redirectUrl, setRedirectUrl] = useState("");
 	const dynamicSchema = buildPersonalInformationSchema(fields);
+	const employeeid = useApplication()?.user?.employeeid || null;
+
 
 	const methods = useForm({
 		defaultValues: defaultData,
@@ -41,8 +44,8 @@ export default function PersonalInformationRegistration({
 			const method = patientid ? "PUT" : "POST";
 			const endpoint =
 				method === "POST"
-					? "register"
-					: `register/personalinformation?patientid=${formData?.patientid}`;
+					? `register?employeeid=${employeeid}`
+					: `register/personalinformation?patientid=${formData?.patientid}&&employeeid=${employeeid}`;
 			const response = await customPost(endpoint, method, {
 				data: {
 					...formData, mobileownership: formData?.contactpointer == true ? "relative" : "self"

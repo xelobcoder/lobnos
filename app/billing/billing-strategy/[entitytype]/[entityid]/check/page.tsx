@@ -1,7 +1,7 @@
 "use client";
 
 import { currencyFormatter, customFetch, customPost, reactSelectCustomStyles } from "../../../../../../components/Auth/customFetch";
-import { redirect, useRouter } from "next/navigation";
+import { redirect, useRouter, useParams } from "next/navigation";
 import Select from 'react-select';
 import { useState, useEffect, useMemo } from 'react';
 import { Spinner, Card, Button, Alert, Table, Badge } from 'react-bootstrap';
@@ -129,7 +129,10 @@ const StrategyPreview = ({ strategy }: { strategy: Strategy | null }) => {
 
 
 // --- Main Page Component ---
-export default function CheckEntityStrategyPage({ params }: { params: { entitytype?: string; entityid?: string } }) {
+export default function CheckEntityStrategyPage() {
+    const params = useParams() ?? {};
+    const entitytype = params.entitytype;
+    const entityid = params.entityid;
     const [strategies, setStrategies] = useState<Strategy[]>([]);
     const [entityInfo, setEntityInfo] = useState<EntityInformation | null>(null);
     const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
@@ -137,27 +140,22 @@ export default function CheckEntityStrategyPage({ params }: { params: { entityty
     const [isLoading, setIsLoading] = useState(true);
     const [isApplying, setIsApplying] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [hasStrategy, setHasStrategy] = useState(true)
 
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
             setError(null);
             try {
-                const { entitytype, entityid } = params;
+
                 if (!entitytype || !entityid) throw new Error("Entity type or ID is missing from the URL.");
-
                 const checkResponse = await customFetch(`billing/strategies/${entitytype}/${entityid}/has-strategy`);
+                if (checkResponse && !checkResponse.hasStrategy) setHasStrategy(false);
 
-                if (checkResponse && checkResponse.hasStrategy) {
-                    router.push(`/billing/billing-strategy/details/${checkResponse.strategyId}`);
-                }
-
+                if (checkResponse && checkResponse.hasStrategy) router.push(`/billing/billing-strategy/details/${checkResponse.strategyId}`);
                 const allStrategiesResponse = await customFetch(`billing/strategies/all?entitytype=${entitytype}&entityid=${entityid}`);
 
-                if (allStrategiesResponse && Array.isArray(allStrategiesResponse.strategies)) {
-                    setStrategies(allStrategiesResponse.strategies);
-                }
-
+                if (allStrategiesResponse && Array.isArray(allStrategiesResponse.strategies)) setStrategies(allStrategiesResponse.strategies);
                 if (allStrategiesResponse && allStrategiesResponse.entityInformation && Array.isArray(allStrategiesResponse.entityInformation)) {
                     setEntityInfo(allStrategiesResponse.entityInformation[0]);
                 }
@@ -233,6 +231,9 @@ export default function CheckEntityStrategyPage({ params }: { params: { entityty
             </div>
         );
     }
+
+
+    // if (!hasStrategy) return <div className="alert alert-danger p-3">No Billing Pricing Found </div>
 
 
 

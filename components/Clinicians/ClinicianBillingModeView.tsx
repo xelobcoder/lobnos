@@ -212,13 +212,6 @@ export default function ClinicianBillingModeView({
 		}
 	}, [previousRecords]);
 
-	const handleEntitySelectionToggle = (entityId: number) => {
-		setSelectedEntityIds((prevSelectedIds) =>
-			prevSelectedIds.includes(entityId)
-				? prevSelectedIds.filter((id) => id !== entityId)
-				: [...prevSelectedIds, entityId]
-		);
-	};
 
 
 
@@ -250,197 +243,45 @@ export default function ClinicianBillingModeView({
 			<Card>
 				<Card.Header className="d-flex justify-content-between align-items-center p-3">
 
-					{lastupdated && (
-						<small className="text-muted">
-							Last updated: {new Date(lastupdated).toLocaleDateString()} {new Date(lastupdated).toLocaleTimeString()}
-						</small>
-					)}
+					{strategyName && <h4 className="mb-3">{strategyName}</h4>}
 				</Card.Header>
 				<Card.Body>
-					{strategyName && <h4 className="mb-3">{strategyName}</h4>}
-					<hr />
 					<Row>
 						{/* Left Column: Form */}
 						<Col md={4} className="mb-4">
-							<Card className="border-0 shadow-sm">
+							<Card className="border-1 border-light br-5">
 								<Card.Body>
-									{/* Strategy Name */}
-									<Form.Group className="mb-3">
-										<Form.Label className="fw-bold">Strategy Name (Required)</Form.Label>
-										<Form.Control
-											id="strategyName"
-											type="text"
-											value={strategyName}
-											onChange={(e) => setStrategyName(e.target.value)}
-											placeholder="Enter strategy name"
-											aria-label="Strategy name"
-											required
-										/>
-									</Form.Group>
+									<div className=" small">Name: {strategyName}</div>
+									<div className=" small">Description: {description || 'N/A'}</div>
+									<div className=" small"> Applied to all tests: {isAllTestsConcessionVisible ? 'Yes' : 'No'}</div>
 
-									{/* Description */}
-									<Form.Group className="mb-3">
-										<Form.Label className="fw-bold">Description (Optional)</Form.Label>
-										<Form.Control
-											id="description"
-											as="textarea"
-											rows={3}
-											value={description || ''}
-											onChange={(e) => setDescription(e.target.value || null)}
-											placeholder="Enter description"
-											aria-label="Description"
-										/>
-									</Form.Group>
-
-									{/* All Tests Concession Section */}
-									<Form.Group className="mb-3">
-										<Form.Check
-											type="radio"
-											id="applyConcession"
-											label="Apply a concession on all tests"
-											checked={isAllTestsConcessionVisible}
-											onChange={() => handleConcessionToggle("all")}
-											aria-label="Apply concession to all tests"
-										/>
-									</Form.Group>
-
+									<p className=" small mb-3 p-3 border border-1 br-5 my-3 ">
+										This will apply a {price_type} amount, either a percentage or an absolute amount,
+										to all tests for the category. A {price_type} will {price_type === "discount" ? "reduce" : "increase"}
+										the price of each test by the specified value.
+									</p>
+									<div className=" small">Pricing Type: {price_type}</div>
+									<div className=" small">Concession Mode: {selectionMode}</div>
 									{isAllTestsConcessionVisible && (
 										<div className="p-3 bg-light rounded mb-3">
-											<p className="text-muted small mb-3">
-												This will apply a {price_type} amount, either a percentage or an absolute amount,
-												to all tests for the category. A {price_type} will {price_type === "discount" ? "reduce" : "increase"}
-												the price of each test by the specified value.
-											</p>
-
-											<Form.Group className="mb-3">
-												<Form.Label className="fw-bold">Pricing Type</Form.Label>
-												<Form.Select
-													id="price_type"
-													value={price_type}
-													onChange={(e) => setPriceType(e.target.value as "discount" | "surcharge")}
-													aria-label="Select pricing type"
-												>
-													<option value="discount">Discount</option>
-													<option value="surcharge">Surcharge</option>
-												</Form.Select>
-											</Form.Group>
-
-											<Form.Group className="mb-3">
-												<Form.Label className="fw-bold">Concession Mode</Form.Label>
-												<Form.Select
-													id="concessionMode"
-													value={selectionMode}
-													onChange={(e) => setSelectionMode(e.target.value as "absolute" | "percentage")}
-													aria-label="Select concession mode"
-												>
-													<option value="absolute">Absolute</option>
-													<option value="percentage">Percentage</option>
-												</Form.Select>
-											</Form.Group>
-
-											<Form.Group className="mb-3">
-												<Form.Label className="fw-bold">
-													{selectionMode === "percentage" ? "Percentage Value" : "Amount"}
-												</Form.Label>
-												<Form.Control
-													id="concessionValue"
-													type="number"
-													value={concessionValue}
-													onChange={(e) => {
-														const value = e.target.value;
-														if (value === "" || parseFloat(value) < 0) {
-															setConcessionValue("0");
-														} else if (selectionMode === "percentage" && parseFloat(value) > 100) {
-															setConcessionValue("100");
-														} else {
-															setConcessionValue(value);
-														}
-													}}
-													placeholder={selectionMode === "percentage" ? "0-100%" : "Enter amount"}
-													min="0"
-													max={selectionMode === "percentage" ? "100" : undefined}
-													step={selectionMode === "percentage" ? "0.1" : "0.01"}
-													aria-label={selectionMode === "percentage" ? "Percentage value" : "Amount"}
-												/>
-											</Form.Group>
+											<div>
+												{selectionMode === "percentage" ? "Percentage Value" : "Amount"}: {concessionValue}
+											</div>
 
 
 										</div>
 									)}
 
-									{/* Individual Tests Concession Section */}
-									<Form.Group className="mb-3">
-										<Form.Check
-											type="radio"
-											id="applyIndividualConcession"
-											label="Apply concessions to individual tests"
-											checked={!isAllTestsConcessionVisible}
-											onChange={() => handleConcessionToggle("individual")}
-											aria-label="Apply concessions to individual tests"
-										/>
-									</Form.Group>
-
-									{!isAllTestsConcessionVisible && (
-										<div className="p-3 bg-light rounded mb-3">
-											<ClinicianIndividualBillingConcession
-												setSelectedTests={setSelectedTests}
-											/>
-										</div>
-									)}
-
-									<div>
-										<Form.Group className="mb-3">
-											<Form.Label className="fw-bold">Valid From (Optional)</Form.Label>
-											<Form.Control
-												id="valid_from"
-												type="date"
-												value={valid_from || ''}
-												onChange={(e) => setValidFrom(e.target.value || null)}
-												aria-label="Valid from date"
-											/>
-										</Form.Group>
-
-										<Form.Group className="mb-3">
-											<Form.Label className="fw-bold">Valid Until (Optional)</Form.Label>
-											<Form.Control
-												id="validUntil"
-												type="date"
-												value={validUntil || ''}
-												onChange={(e) => setValidUntil(e.target.value || null)}
-												aria-label="Valid until date"
-											/>
-										</Form.Group>
+									<div className=" small">Validity Period:  {valid_from && validUntil ? `${valid_from} to ${validUntil}` : 'N/A'}</div>
+									<hr />
+									<div className=" small">
+										Valid From: {valid_from || 'N/A'}
 									</div>
-									<div className="d-flex justify-content-end gap-2">
-										<Button
-											variant="secondary"
-											onClick={() => {
-												setConcessionValue("0");
-												setSelectedTests([]);
-												setStrategyName('');
-												setDescription(null);
-												setValidFrom(null);
-												setValidUntil(null);
-											}}
-										>
-											Reset
-										</Button>
-										<Button
-											variant="primary"
-											onClick={handleBillingStrategyFormSubmission}
-											disabled={submitting || (!isAllTestsConcessionVisible && selectedTests.length === 0) || loading || !strategyName}
-											aria-label="Save billing strategy"
-										>
-											{submitting || loading ? (
-												<>
-													<Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-													<span className="ms-2">Saving...</span>
-												</>
-											) : (
-												"Save Billing Strategy"
-											)}
-										</Button>
+									<hr />
+									<div className=" small">
+										Valid Until: {validUntil || 'N/A'}
 									</div>
+
 								</Card.Body>
 							</Card>
 						</Col>
@@ -451,7 +292,7 @@ export default function ClinicianBillingModeView({
 							{Array.isArray(selectedTests) && selectedTests.length > 0 && (
 								<div className="mb-4 br-5 bg-white border">
 									<div className="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
-										<h5 className="mb-0">Selected Tests ({selectedTests.length})</h5>
+										<h5 className="mb-0"><span className="me-2"><RiDeleteBinLine size={20} /></span>Selected Tests ({selectedTests.length})</h5>
 										<Button
 											variant="outline-danger"
 											size="sm"
@@ -478,13 +319,13 @@ export default function ClinicianBillingModeView({
 																aria-label="Select all tests"
 															/>
 														</th>
-														<th scope="col">Test ID</th>
-														<th scope="col">Test Name</th>
-														<th scope="col">Mode</th>
-														<th scope="col">Type</th>
-														<th scope="col">Value</th>
-														<th scope="col">Discounted Amount</th>
-														<th scope="col">Action</th>
+														<th scope="col"><span className="me-1"></span>Test ID</th>
+														<th scope="col"><span className="me-1"></span>Test Name</th>
+														<th scope="col"><span className="me-1"></span>Mode</th>
+														<th scope="col"><span className="me-1"></span>Type</th>
+														<th scope="col"><span className="me-1"></span>Value</th>
+														<th scope="col"><span className="me-1"></span>Discounted Amount</th>
+														<th scope="col"><span className="me-1"></span>Action</th>
 													</tr>
 												</thead>
 												<tbody>
@@ -532,17 +373,15 @@ export default function ClinicianBillingModeView({
 							)}
 
 							<h5 className="bg-secondary-subtle p-2 rounded mb-3 pls-label">
-								Applicable To</h5>
-							{Array.isArray(applicableEntities) && applicableEntities.length > 0 && (
+								<span className="me-2"><RiDeleteBinLine size={20} /></span>Applicable To</h5>
+							{Array.isArray(applicableEntities) && applicableEntities.length > 0 ? (
 								<div className="mb-4 br-5 bg-white border">
-
 									<table className={styles.table}>
 										<thead>
 											<tr>
-
-												<th scope="col">Entity Name</th>
-												<th scope="col">Entity Type</th>
-												<th scope="col">Action</th>
+												<th scope="col"><span className="me-1"><RiDeleteBinLine size={16} /></span>Entity Name</th>
+												<th scope="col"><span className="me-1"><RiDeleteBinLine size={16} /></span>Entity Type</th>
+												<th scope="col"><span className="me-1"><RiDeleteBinLine size={16} /></span>Action</th>
 											</tr>
 										</thead>
 										<tbody>
@@ -565,7 +404,14 @@ export default function ClinicianBillingModeView({
 											))}
 										</tbody>
 									</table>
-								</div>)}
+								</div>)
+								:
+								(
+									<div className="text-muted p-3 border rounded bg-light d-flex align-items-center gap-2">
+										<RiDeleteBinLine size={20} className="me-2" />
+										No applicable entities for this strategy.
+									</div>
+								)}
 						</Col>
 					</Row>
 				</Card.Body>

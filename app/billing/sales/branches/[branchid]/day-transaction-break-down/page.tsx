@@ -125,7 +125,7 @@ const Stat = ({ label, value, icon }: { label: string, value: string | number, i
 
 const formatDateRange = (fromDate: string | undefined, toDate: string | undefined, analyticsDate: string | undefined) => {
     if (!fromDate && !toDate && !analyticsDate) return "Date range not specified";
-    
+
     try {
         if (fromDate && toDate) {
             const from = new Date(fromDate).toLocaleDateString('en-US', {
@@ -140,7 +140,7 @@ const formatDateRange = (fromDate: string | undefined, toDate: string | undefine
             });
             return fromDate === toDate ? from : `${from} - ${to}`;
         }
-        
+
         if (analyticsDate) {
             return new Date(analyticsDate).toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -148,7 +148,7 @@ const formatDateRange = (fromDate: string | undefined, toDate: string | undefine
                 day: 'numeric',
             });
         }
-        
+
         return "Invalid date range";
     } catch (e) {
         return "Invalid date range";
@@ -253,7 +253,7 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
         total_outstanding_amount: (Number(acc.total_outstanding_amount || 0) + Number(snapshot.total_outstanding_amount || 0)).toString(),
         total_discounts_given: (Number(acc.total_discounts_given || 0) + Number(snapshot.total_discounts_given || 0)).toString(),
         total_tax_incurred: (Number(acc.total_tax_incurred || 0) + Number(snapshot.total_tax_incurred || 0)).toString(),
-        analytics_date: snapshot.analytics_date 
+        analytics_date: snapshot.analytics_date
     }), {
         total_billing_amount: '0',
         total_payable_amount: '0',
@@ -266,10 +266,10 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
 
     const serviceStatus = serviceStatusCounts[0] || {};
     const uniqueClients = dailyUniqueClientsSummary[0] || {};
-    
+
     const branchesData = Array.isArray(topPerformingBranches) ? topPerformingBranches : [];
     const modesData = Array.isArray(breakDownPaymentModes) ? breakDownPaymentModes : [];
-   
+
     const dateRangeText = formatDateRange(from, end, aggregatedSnapshot.analytics_date);
 
     return (
@@ -365,7 +365,8 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                 <tr>
                                     <th className={styles.th}>Report Date</th>
                                     <th className={styles.th}>Total Payable Amount</th>
-                                    <th className={styles.th}>Total Night Adjustment Value</th>
+                                    <th className={styles.th}>Total Night Adjustment Payable</th>
+                                    <th className={styles.th}>Total Normal Payable</th>
                                     <th className={styles.th}>Night Adjustment Cases</th>
                                     <th className={styles.th}>Normal Cases</th>
                                     <th className={styles.th}>Total Cases</th>
@@ -381,7 +382,10 @@ export default function FinancialSummaryPage({ searchParams }: { searchParams: {
                                             {currencyFormatter.format(Number(adjustment.total_payable_amount))}
                                         </td>
                                         <td className={`${styles.td} ${styles.currencyCell}`}>
-                                            {currencyFormatter.format(Number(adjustment.total_night_adjustment_value))}
+                                            {currencyFormatter.format(Number(adjustment.total_night_adjustment_payable))}
+                                        </td>
+                                        <td className={`${styles.td} ${styles.currencyCell}`}>
+                                            {currencyFormatter.format(Number(adjustment.total_normal_payable))}
                                         </td>
                                         <td className={`${styles.td} ${styles.numberCell}`}>
                                             {adjustment.night_adjustment_cases_count}

@@ -1,22 +1,16 @@
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-const { createServer } = require('https')
-const fs = require('fs');
+const { createServer } = require('http')
 const { parse } = require('url')
 const next = require('next')
 
 const dev = process.env.NODE_ENV !== 'production'
-const hostname = '192.168.0.150'
+const hostname = process.env.HOST || 'localhost'
 const port = process.env.NODE_ENV == "production" ? process.env.PORT : 3000
 const app = next({ dev, hostname, port })
 
-const httpsOptions = {
-	key: fs.readFileSync('./certificates/localhost-key.pem'),
-	cert: fs.readFileSync('./certificates/localhost.pem'),
-};
 const handle = app.getRequestHandler()
 
 app.prepare().then(() => {
-	createServer(httpsOptions, async (req, res) => {
+	createServer(async (req, res) => {
 		try {
 			const parsedUrl = parse(req.url, true)
 			const { pathname, query } = parsedUrl
@@ -39,6 +33,6 @@ app.prepare().then(() => {
 			process.exit(1)
 		})
 		.listen(port, () => {
-			console.log(`> Ready on https://${hostname}:${port}`)
+			console.log(`> Ready on http://${hostname}:${port}`)
 		})
 })

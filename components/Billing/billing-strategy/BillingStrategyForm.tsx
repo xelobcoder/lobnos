@@ -5,6 +5,7 @@ import { Form, Button, FormControl, FormGroup, FormLabel, FormCheck, Row, Col, S
 import { BillingStrategy } from './BillingStrategyTypes';
 import { RiSave3Line } from '@remixicon/react';
 import { useState } from 'react';
+import styles from '../../../styles/SmsTemplateList.module.css';
 
 const schema = z.object({
     name: z.string().min(1, 'Name is required').max(100, 'Name is too long'),

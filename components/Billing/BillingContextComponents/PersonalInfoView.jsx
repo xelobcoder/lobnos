@@ -36,7 +36,7 @@ export default function BillingPagePatientInformation({ data, loadingststate = f
 					<div className="mx-lg-2 mx-xl-2 d-flex align-items-center">
 						<IdCardIcon className="me-2" /> {/* Use imported icon */}
 						<span className="fw-bold text-uppercase">PatientId:</span>
-						<span className="mx-2">{data?.patientid}</span>
+						<span className="mx-2">{data?.fullpatientid ||  data?.patientid}</span>
 					</div>
 					<div className="d-flex align-items-center">
 						<EmailIcon className="me-2" /> {/* Use imported icon */}

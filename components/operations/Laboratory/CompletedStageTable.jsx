@@ -1,8 +1,8 @@
 import { PrepareResultEntryHeader } from "../../Auth/customFetch";
 import { useLaboratoryContext } from "./LaboratoryStagesContext";
 import { fnTiming } from "./Lib";
-import { Dropdown } from 'react-bootstrap';
-import { RiMoreLine, RiCheckLine, RiCloseLine } from '@remixicon/react';
+import { Button } from 'react-bootstrap';
+import { RiCheckLine } from '@remixicon/react';
 import PrimeTable from "../../accessories/Datatables/PrimeTable";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
 
@@ -55,19 +55,14 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 			Header: 'Action',
 			accessor: 'action',
 			Cell: ({ row }) => (
-				<Dropdown>
-					<Dropdown.Toggle variant="link" size="sm" className="p-0">
-						<RiMoreLine size={16} />
-					</Dropdown.Toggle>
-					<Dropdown.Menu>
-						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original,false,branchid)}>
-							<RiCheckLine size={16} className="me-2" /> Enter result
-						</Dropdown.Item>
-						<Dropdown.Item onClick={() => console.log(`Enter All related for ${row.original.patientid}`)}>
-							<RiCloseLine size={16} className="me-2" /> Enter All related
-						</Dropdown.Item>
-					</Dropdown.Menu>
-				</Dropdown>
+				<Button
+					variant="outline-success"
+					size="sm"
+					className="p-1"
+					onClick={() => PrepareResultEntryHeader(row.original, false, branchid)}
+				>
+					<RiCheckLine size={16} className="me-2" /> Enter result
+				</Button>
 			),
 			width: 50
 		},

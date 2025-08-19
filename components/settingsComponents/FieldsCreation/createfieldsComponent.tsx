@@ -15,6 +15,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 	const [reorder, setReorder] = useState(true);
 	const [isLoading, setIsLoading] = useState(false);
 
+
 	const handleCreateOrUpdateField = async () => {
 		let _field = { ...field };
 		setError("");
@@ -82,7 +83,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 		setError("");
 	};
 
-	const isEditing = data.some(item => item.name === field.name && field.name !== defaultCreationRule.name);
+	const isEditing = Array.isArray(data) && data.length > 0 && data.some(item => item.name === field.name && field.name !== defaultCreationRule.name);
 
 	return (
 		<div className="container-fluid p-3">
@@ -131,7 +132,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 					<div className="card shadow-sm h-100">
 						<div className="card-body d-flex flex-column">
 							<div className="d-flex justify-content-between align-items-center mb-3">
-								<h2 className="card-title fs-5 fw-bold text-dark">Current Fields ({data.length})</h2>
+								<h2 className="card-title fs-5 fw-bold text-dark">Current Fields ({ data.length})</h2>
 							</div>
 							<div className="flex-grow-1" style={{ minHeight: '200px' }}>
 								{data.length === 0 ? (

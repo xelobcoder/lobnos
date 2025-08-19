@@ -6,7 +6,7 @@
     "dev": "node server.js  --experimental-https",
     "next": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next dev  --experimental-https -p 2377",
     "start": "next start  -p 2377 ",
-    "build": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next build",
+    "build": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next build && node --env-file=.env server.js",
     "ns": "node --env-file=.env server.js",
     "build:css": ""
   },
