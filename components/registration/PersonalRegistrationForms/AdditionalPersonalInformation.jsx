@@ -1,22 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { useFormContext } from 'react-hook-form';
-import { Form, Button } from 'react-bootstrap';
-import { RiMoneyDollarCircleLine } from '@remixicon/react';
+import { Form } from 'react-bootstrap';
 
-const AdditionalPersonalInformation = ({ fields, checkIFNumberisAvailable }) => {
-    const {
-        register,
-        getValues,
-        formState: { errors, isSubmitting },
-    } = useFormContext();
-
+const AdditionalPersonalInformation = ({ fields, setFormData, data, checkIFNumberisAvailable }) => {
     const [isNumberExist, setIsNumberExist] = useState(false);
 
-
     useEffect(() => {
-        const { contactpointer } = getValues();
-        setIsNumberExist(contactpointer == "relative" ? true : false);
-    }, [])
+        setFormData({
+            mobileownership: isNumberExist ? true : false
+        });
+    }, [isNumberExist])
 
     return (
         <div>
@@ -25,20 +17,17 @@ const AdditionalPersonalInformation = ({ fields, checkIFNumberisAvailable }) => 
                     <div className="col-md-4">
                         <label className="form-label pls-label">Mobile Number</label>
                         <input
-                            {...register('mobile')}
                             type="tel"
                             inputMode="tel"
-                            onBlur={(ev) => {
-                                checkIFNumberisAvailable(ev.target.value, setIsNumberExist);
-                            }}
+                            value={data.mobile || ''}
+                            onChange={ev => setFormData('mobile', ev.target.value)}
+                            onBlur={ev => checkIFNumberisAvailable(ev.target.value, setIsNumberExist)}
                             maxLength={10}
                             minLength={10}
                             placeholder="Mobile contact"
                             className="form-control"
+                            required={fields.mobile.compulsory}
                         />
-                        {errors.mobile && (
-                            <p className="text-small-danger small">{errors.mobile.message}</p>
-                        )}
                         {isNumberExist && (
                             <div className="mt-2">
                                 <p className="text-small-danger small">Number is associated with a different client</p>
@@ -46,7 +35,9 @@ const AdditionalPersonalInformation = ({ fields, checkIFNumberisAvailable }) => 
                                     type="switch"
                                     id="contactpointer"
                                     label="Is this person a relative?"
-                                    {...register('contactpointer')}
+                                    checked={data.contactpointer || data.contactpointer == "relative"}
+                                    onChange={ev => setFormData('contactpointer', ev.target.checked)}
+                                    required={fields.contactpointer?.compulsory}
                                 />
                             </div>
                         )}
@@ -57,17 +48,16 @@ const AdditionalPersonalInformation = ({ fields, checkIFNumberisAvailable }) => 
                     <div className="col-md-4">
                         <label className="form-label pls-label">WhatsApp Contact</label>
                         <input
-                            {...register('whatAppcontact')}
                             type="tel"
                             inputMode="tel"
+                            value={data.whatAppcontact || ''}
+                            onChange={ev => setFormData('whatAppcontact', ev.target.value)}
                             maxLength={10}
                             minLength={10}
                             placeholder="WhatsApp contact"
                             className="form-control"
+                            required={fields.whatAppcontact.compulsory}
                         />
-                        {errors.whatAppcontact && (
-                            <p className="text-small-danger small">{errors.whatAppcontact.message}</p>
-                        )}
                     </div>
                 )}
 
@@ -75,14 +65,13 @@ const AdditionalPersonalInformation = ({ fields, checkIFNumberisAvailable }) => 
                     <div className="col-md-4">
                         <label className="form-label pls-label">Email</label>
                         <input
-                            {...register('email')}
                             type="email"
+                            value={data.email || ''}
+                            onChange={ev => setFormData('email', ev.target.value)}
                             placeholder="Email"
                             className="form-control"
+                            required={fields.email.compulsory}
                         />
-                        {errors.email && (
-                            <p className="text-small-danger small">{errors.email.message}</p>
-                        )}
                     </div>
                 )}
 
@@ -90,14 +79,13 @@ const AdditionalPersonalInformation = ({ fields, checkIFNumberisAvailable }) => 
                     <div className="col-md-4">
                         <label className="form-label pls-label">Occupation</label>
                         <input
-                            {...register('occupation')}
                             type="text"
+                            value={data.occupation || ''}
+                            onChange={ev => setFormData('occupation', ev.target.value)}
                             placeholder="Occupation"
                             className="form-control"
+                            required={fields.occupation.compulsory}
                         />
-                        {errors.occupation && (
-                            <p className="text-small-danger small">{errors.occupation.message}</p>
-                        )}
                     </div>
                 )}
 
@@ -105,14 +93,13 @@ const AdditionalPersonalInformation = ({ fields, checkIFNumberisAvailable }) => 
                     <div className="col-md-4">
                         <label className="form-label pls-label">Organization</label>
                         <input
-                            {...register('patientOrganization')}
                             type="text"
+                            value={data.patientOrganization || ''}
+                            onChange={ev => setFormData('patientOrganization', ev.target.value)}
                             placeholder="Patient Organization"
                             className="form-control"
+                            required={fields.patientOrganization.compulsory}
                         />
-                        {errors.patientOrganization && (
-                            <p className="text-small-danger small">{errors.patientOrganization.message}</p>
-                        )}
                     </div>
                 )}
 
@@ -124,37 +111,24 @@ const AdditionalPersonalInformation = ({ fields, checkIFNumberisAvailable }) => 
                                 type="radio"
                                 label="Single"
                                 value="single"
-                                {...register('maritalstatus')}
+                                checked={data.maritalstatus === 'single'}
+                                onChange={ev => setFormData('maritalstatus', 'single')}
                                 className="mb-2"
+                                required={fields.maritalstatus.compulsory}
                             />
                             <Form.Check
                                 type="radio"
                                 label="Married"
                                 value="married"
-                                {...register('maritalstatus')}
+                                checked={data.maritalstatus === 'married'}
+                                onChange={ev => setFormData('maritalstatus', 'married')}
+                                required={fields.maritalstatus.compulsory}
                             />
                         </div>
-                        {errors.maritalstatus && (
-                            <p className="text-small-danger small">{errors.maritalstatus.message}</p>
-                        )}
                     </div>
                 )}
-            </div>
-
-            <div className="mt-4">
-                <button
-                    type="submit"
-                    className="btn btn-success btn-sm"
-                    disabled={isSubmitting}
-                >
-                    {isSubmitting && (
-                        <span className="spinner-border spinner-border-sm me-2" />
-                    )}
-                    Save current progress
-                </button>
             </div>
         </div>
     );
 };
-
 export default AdditionalPersonalInformation;

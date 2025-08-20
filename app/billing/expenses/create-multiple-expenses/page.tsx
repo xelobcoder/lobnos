@@ -12,7 +12,7 @@ import styles from '../../../../styles/SmsTemplateList.module.css'
 interface ExpenseForm {
 	name: string;
 	date: string;
-	merchant: string;
+	merchant: string | number;
 	amount: number;
 	category: number;
 	mode: string;
@@ -65,6 +65,11 @@ export default function CreateMultipleExpenses() {
 	const [isLoading, setLoading] = useState<boolean>(false);
 	const [paymentModes, setPaymentModes] = useState<PaymentMode[]>([]);
 	const [categories, setCategories] = useState<Category[]>([]);
+	interface Merchant {
+		id: number;
+		name: string;
+	}
+	const [merchants, setMerchants] = useState<Merchant[]>([]);
 
 	// Shared invoice fields
 	const [sharedInvoiceNumber, setSharedInvoiceNumber] = useState<string>("");
@@ -77,7 +82,7 @@ export default function CreateMultipleExpenses() {
 
 		if (!formData.name.trim()) errors.name = "Expense name is required";
 		if (!formData.date) errors.date = "Date is required";
-		if (!formData.merchant.trim()) errors.merchant = "Merchant name is required";
+		if (!formData.merchant || isNaN(Number(formData.merchant))) errors.merchant = "Merchant is required";
 		if (!formData.amount || formData.amount <= 0) errors.amount = "Valid amount is required";
 		if (!formData.category) errors.category = "Category is required";
 		if (!formData.mode) errors.mode = "Payment mode is required";
@@ -187,16 +192,24 @@ export default function CreateMultipleExpenses() {
 		}
 	};
 
-	// Fetch categories
+	// Fetch categories and merchants in parallel
 	useEffect(() => {
 		setLoading(true);
-		customFetch(`expense/get/category?&branchid=${branchid}&employeeid=${employeeid}`)
-			.then((data: Category[]) => {
-				if (Array.isArray(data)) {
-					setCategories(data);
+		Promise.all([
+			customFetch(`expense/get/category?&branchid=${branchid}&employeeid=${employeeid}`),
+			customFetch(`expense/merchants?branchid=${branchid}&employeeid=${employeeid}&tenantId=3`)
+		])
+			.then(([categoriesData, merchantsData]) => {
+				if (Array.isArray(categoriesData)) {
+					setCategories(categoriesData);
+				}
+				if (Array.isArray(merchantsData)) {
+					setMerchants(merchantsData);
 				}
 			})
-			.catch(() => toast.error("Failed to load categories", { autoClose: 3000 }))
+			.catch(() => {
+				toast.error("Failed to load categories or merchants", { autoClose: 3000 });
+			})
 			.finally(() => setLoading(false));
 	}, [branchid, employeeid]);
 
@@ -275,16 +288,29 @@ export default function CreateMultipleExpenses() {
 											{errors[idx]?.date && <div className="invalid-feedback">{errors[idx]?.date}</div>}
 										</td>
 										<td>
-											<input
-												name="merchant"
-												value={formData.merchant}
-												onChange={(e) => handleInputChange(idx, e)}
-												className={`form-control form-control-sm ${errors[idx]?.merchant ? "is-invalid" : ""}`}
-												type="text"
-												placeholder="Merchant"
-												disabled={isLoading}
+											<Select
+												options={merchants.map((merchant) => ({
+													value: merchant.id,
+													label: merchant.name,
+												}))}
+												styles={reactSelectCustomStyles}
+												placeholder="Select merchant"
+												classNamePrefix="react-select"
+												isClearable
+												onChange={handleSelectChange(idx, "merchant")}
+												value={
+													formData.merchant
+														? merchants
+															.map((merchant) => ({
+																value: merchant.id,
+																label: merchant.name,
+															}))
+															.find((option) => option.value === Number(formData.merchant)) || null
+														: null
+												}
+												isDisabled={isLoading}
 											/>
-											{errors[idx]?.merchant && <div className="invalid-feedback">{errors[idx]?.merchant}</div>}
+											{errors[idx]?.merchant && <div className="invalid-feedback d-block">{errors[idx]?.merchant}</div>}
 										</td>
 										<td>
 											<input

@@ -33,7 +33,6 @@ export default function MultiTrTable() {
             try {
                 setLoadingOutsource(true);
                 const storedOrgs = await customFetch(`outsourcing/organization/testpanel/outsourceinfo?testid=${testid}`)
-               console.log(storedOrgs)
                 const selectedOrgs = storedOrgs.map((org: any) => ({
                     outsourceid: org.outsourceid,
                     name: org.name,

@@ -33,11 +33,11 @@
   }
 
   .company-name {
-    font-size: 18px !important;
-    letter-spacing: 2px !important;
+    /* font-size: 18px !important; */
+    letter-spacing: 1.5px !important;
   }
 
-  .company-kids {
+  /* .company-kids {
     font-size: 11px;
-  }
+  } */
 }

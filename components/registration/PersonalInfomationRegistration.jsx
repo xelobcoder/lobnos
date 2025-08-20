@@ -1,14 +1,11 @@
 "use client"
 import React, { useEffect, useState } from "react";
 import { Modal, Button } from 'react-bootstrap';
-import { useForm, FormProvider } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
 import { customFetch, customPost } from "../Auth/customFetch";
 import { designation } from "./fields/Util";
 import PersonalRegistrationForms from "./PersonalRegistrationForms/PersonalRegistrationForms";
 import AdditionalPersonalInformation from "./PersonalRegistrationForms/AdditionalPersonalInformation";
 import { handleAgeCalculations } from "../Auth/registerclient";
-import { buildPersonalInformationSchema } from "./validationSchema";
 import { plsEncryption } from "../../lib/encryption";
 import { useApplication } from "../Auth/useApplicationContext";
 
@@ -23,24 +20,35 @@ export default function PersonalInformationRegistration({
 	const [isLoading, setIsLoading] = useState(false);
 	const [showDecisionModal, setShowDecisionModal] = useState(false);
 	const [redirectUrl, setRedirectUrl] = useState("");
-	const dynamicSchema = buildPersonalInformationSchema(fields);
 	const employeeid = useApplication()?.user?.employeeid || null;
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [formData, setFormData] = useState(defaultData);
 
 
-	const methods = useForm({
-		defaultValues: defaultData,
-		resolver: yupResolver(dynamicSchema),
-	});
-	const { handleSubmit, reset } = methods;
+	const validateCompulsoryFields = (data) => {
+		const compulsoryFields = Object.entries(fields)
+			.filter(([_, config]) => config.visible && config.compulsory)
+			.map(([fieldName]) => fieldName);
+		const missingFields = compulsoryFields.filter(field => {
+			const value = data[field];
+			if (typeof value === 'string') return value.trim() === '';
+			if (typeof value === 'number') {
+				return isNaN(value);
+			}
+			return value === null || value === undefined;
+		});
+		return missingFields;
+	};
 
-	useEffect(() => {
-		reset(defaultData);
-	}, [patientid, reset, defaultData]);
+	const onSubmit = async (ev) => {
+		ev.preventDefault();
 
+		const missingFields = validateCompulsoryFields(formData);
 
+		if (missingFields.length > 0) return toast.error(`Please fill all required fields: ${missingFields.join(", ")}`);
 
-	const onSubmit = async (formData) => {
 		try {
+			setIsSubmitting(true);
 			const method = patientid ? "PUT" : "POST";
 			const endpoint =
 				method === "POST"
@@ -52,7 +60,6 @@ export default function PersonalInformationRegistration({
 				}
 			});
 			const { message, patientid: newPatientId } = response;
-
 			if (response?.status == true || response?.status === "success") {
 				const toastMessage = redirect
 					? `${message}. Registration successful.`
@@ -68,6 +75,8 @@ export default function PersonalInformationRegistration({
 		} catch (error) {
 			toast.error("An error occurred while submitting the form")
 			console.error("Submission error", error);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -88,26 +97,42 @@ export default function PersonalInformationRegistration({
 	return (
 		<>
 			<section className="col-lg-12 col-sm-12">
-				<FormProvider {...methods}>
-					<form
-						autoComplete="off"
-						noValidate
-						autoCorrect="false"
-						onSubmit={handleSubmit(onSubmit)}
-					>
-						<div>
-							<PersonalRegistrationForms
-								toast={toast}
-								handleAgeCalculations={handleAgeCalculations}
-								fields={fields}
-								designation={designation}
-							/>
-							<AdditionalPersonalInformation
-								checkIFNumberisAvailable={checkIFNumberisAvailable}
-								fields={fields} patientid={patientid} />
+				<form
+					autoComplete="off"
+					noValidate
+					autoCorrect="false"
+				>
+					<div>
+						<PersonalRegistrationForms
+							toast={toast}
+							handleAgeCalculations={handleAgeCalculations}
+							fields={fields}
+							setFormData={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
+							data={formData}
+							designation={designation}
+						/>
+						<AdditionalPersonalInformation
+							setFormData={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
+							data={formData}
+							checkIFNumberisAvailable={checkIFNumberisAvailable}
+							fields={fields}
+							patientid={patientid} />
+
+						<div className="mt-4">
+							<button
+								type="button"
+								className="btn btn-success btn-sm"
+								disabled={isSubmitting}
+								onClick={(ev) => { onSubmit(ev) }}
+							>
+								{isSubmitting && (
+									<span className="spinner-border spinner-border-sm me-2" />
+								)}
+								Save current progress
+							</button>
 						</div>
-					</form>
-				</FormProvider>
+					</div>
+				</form>
 			</section>
 			<Modal show={showDecisionModal} onHide={() => setShowDecisionModal(false)} backdrop="static" centered>
 				<Modal.Header closeButton>
@@ -117,7 +142,7 @@ export default function PersonalInformationRegistration({
 					<p>Do you want to proceed to billing for this patient?</p>
 				</Modal.Body>
 				<Modal.Footer>
-					<Button variant="secondary" onClick={() => { setShowDecisionModal(false); reset(defaultData); }}>
+					<Button variant="secondary" onClick={() => { setShowDecisionModal(false); setFormData(defaultData); }}>
 						Stay on this page
 					</Button>
 					<Button variant="primary" onClick={() => { window.location.href = redirectUrl; }}>

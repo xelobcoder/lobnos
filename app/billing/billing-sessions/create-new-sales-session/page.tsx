@@ -113,8 +113,8 @@ export default function BillingSessions() {
         }
 
         const amount = parseFloat(openingAmount);
-        if (isNaN(amount) || amount <= 0) {
-            setError("Please enter a valid positive opening amount.");
+        if (isNaN(amount) || amount < 0) {
+            setError("Please enter a valid opening amount (0.0 or greater).");
             return;
         }
 
@@ -128,7 +128,7 @@ export default function BillingSessions() {
                 sessiondate: new Date().toISOString(),
             };
 
-            const response: { status: boolean; message?: string,error?:string } = await customPost(
+            const response: { status: boolean; message?: string, error?: string } = await customPost(
                 'billing/sales/session/create', 'POST', payload
             );
 
@@ -249,7 +249,7 @@ export default function BillingSessions() {
                                     placeholder="Enter opening amount"
                                     value={openingAmount}
                                     onChange={(e) => setOpeningAmount(e.target.value)}
-                                    min="0.01"
+                                    min="0.00"
                                     step="0.01"
                                     required
                                     disabled={isLoading || isLoadingData}

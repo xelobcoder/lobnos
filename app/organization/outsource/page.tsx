@@ -1,9 +1,9 @@
 "use client"
 import { Tab, Tabs } from "react-bootstrap";
-import ContractForm from "../../components/outsource/contracting";
-import OutSourcingOrganizationForm from "../../components/outsource/newOutSourceOrganization";
-import OrganizationImageUploader from "../../components/outsource/outSourceOrganizationProfileImageUpload";
-import OutsourceServices from "../../components/outsource/OutSourcingServices";
+import ContractForm from "../../../components/outsource/contracting";
+import OutSourcingOrganizationForm from "../../../components/outsource/newOutSourceOrganization";
+import OrganizationImageUploader from "../../../components/outsource/outSourceOrganizationProfileImageUpload";
+import OutsourceServices from "../../../components/outsource/OutSourcingServices";
 
 export default function OutsourcingIndexPage() {
     return (

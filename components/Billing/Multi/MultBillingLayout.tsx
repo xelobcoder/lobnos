@@ -472,12 +472,28 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                 entitytype: billingdata.entitytype,
                 ispricingcheckout: ispricingcheckout
             };
+
+            const retriveOutsourcedFromCheckoutPayload = (currentCart: any[], previousCart: any[]) => {
+                if (Array.isArray(currentCart) && Array.isArray(previousCart)) {
+                    return currentCart.map((item, index) => {
+                        const _current_single_test = previousCart.find(prevItem => prevItem.testid === item.testid);
+                        const { organization } = _current_single_test || {};
+                        if (organization && organization.outsourceid) {
+                            return { ...item, organization, outsourceid: organization.outsourceid, isoutsourced: 1 };
+                        } else {
+                            return item;
+                        }
+                    })
+                }
+                return currentCart;
+            }
+
             const response = await customPost('billing/multi/checkout', 'POST', checkoutPayload);
             if (response && response.success && response.data) {
-
                 setBillingData(prev => ({
-                    ...prev, ...response.data, cart: response.data.isPackageUsed ?
-                        response.data.packageTestList : response.data.cart || [],
+                    ...prev, ...response.data,
+                    cart: response.data.isPackageUsed ?
+                        response.data.packageTestList : retriveOutsourcedFromCheckoutPayload(response.data.cart, billingdata.cart) || [],
                     payments: [],
                     paid: 0,
                     allowAdvancePayment: true,
@@ -704,11 +720,11 @@ function MultiBillingLayoutContent({ billingContextProps }: {
 
             {/* Receipt Options Modal */}
             {showReceiptOptionsModal && (
-                <ReceiptOptionsModal 
-                    open={showReceiptOptionsModal} 
+                <ReceiptOptionsModal
+                    open={showReceiptOptionsModal}
                     close={closeReceiptModal}
                     patientid={Number(patientid)}
-                    billingid={generatedBillingid ? Number(generatedBillingid) : 0} 
+                    billingid={generatedBillingid ? Number(generatedBillingid) : 0}
                 />
             )}
 

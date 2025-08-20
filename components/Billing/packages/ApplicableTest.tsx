@@ -7,8 +7,8 @@ interface SelectedTest {
     testName: string;
     originalPrice: number;
     concessionValue: number | null;
-    discountedValue: number | null;
-    actualPrice: number | null;
+    discountAmount: number | null;
+    discountedPrice: number | null;
     testid: number;
     concessionMode: "absolute" | "percentage" | "none";
 }
@@ -20,8 +20,8 @@ interface PackageTest {
     concession_mode: "absolute" | "percentage" | "none";
     concession_value: number | null;
     name: string;
-
-    price: number
+    price: number;
+    pricingType?: "discount";
 }
 
 interface ApplicableTestComponentProps {
@@ -50,31 +50,36 @@ const ApplicableTestComponent: React.FC<ApplicableTestComponentProps> = ({ packa
             if (response && Array.isArray(response)) {
                 const formattedTests = response.map((test: PackageTest) => {
                     const concessionValue = test.concession_value || 0;
-                    let discountedValue = 0;
-                    let actualPrice = test.price;
+                    let discountAmount = 0;
+                    let discountedPrice = test.price;
 
                     if (test.concession_mode !== "none" && concessionValue > 0) {
-                        discountedValue = test.price - concessionValue;
-                        actualPrice = test.price;
+                        if (test.concession_mode === "absolute") {
+                            discountAmount = concessionValue;
+                        } else if (test.concession_mode === "percentage") {
+                            discountAmount = (concessionValue / 100) * test.price;
+                        }
+                        discountedPrice = test.price - discountAmount;
                     }
 
                     return {
                         testName: test.name,
                         originalPrice: test.price,
                         concessionValue,
-                        discountedValue,
-                        actualPrice,
+                        discountAmount,
+                        discountedPrice,
                         testid: test.test_id,
                         concessionMode: test.concession_mode,
+                        pricingType: "discount",
                     };
                 });
                 setSelectedTests(formattedTests);
             } else {
                 toast.error("Failed to load package tests.");
             }
+            // Only discount: decrease price
         } catch (error) {
-            console.error("Error fetching package tests:", error);
-            toast.error("An error occurred while fetching data.");
+            toast.error("An error occurred while loading package tests.");
         } finally {
             setLoading(false);
         }
@@ -98,30 +103,30 @@ const ApplicableTestComponent: React.FC<ApplicableTestComponentProps> = ({ packa
         }
 
         let concessionValue = 0;
-        let discountedValue = 0;
-        let actualPrice = currentTest.price;
+        let discountAmount = 0;
+        let discountedPrice = currentTest.price;
 
         if (selectionMode !== "none" && concessionValueInput !== "") {
             concessionValue = parseFloat(concessionValueInput);
 
-  
+
             if (currentTest.price === 0) {
-                 toast.warn("Cannot apply concession to a test with a price of 0.");
-                 setIsTestSelected(false);
-                 setConcessionValueInput("");
-                 setCurrentTest(null);
-                 return;
+                toast.warn("Cannot apply concession to a test with a price of 0.");
+                setIsTestSelected(false);
+                setConcessionValueInput("");
+                setCurrentTest(null);
+                return;
             }
 
-            discountedValue =
+            discountAmount =
                 selectionMode === "absolute"
                     ? concessionValue
                     : (concessionValue / 100) * currentTest.price;
 
-            actualPrice = currentTest.price - discountedValue;
+            discountedPrice = currentTest.price - discountAmount;
 
-             // Prevent actual price from being negative
-            if (actualPrice < 0) {
+            // Prevent actual price from being negative
+            if (discountedPrice < 0) {
                 toast.warn("Discount cannot result in a negative price.");
                 return;
             }
@@ -131,8 +136,8 @@ const ApplicableTestComponent: React.FC<ApplicableTestComponentProps> = ({ packa
             testName: currentTest.name,
             originalPrice: currentTest.price,
             concessionValue,
-            discountedValue,
-            actualPrice,
+            discountAmount,
+            discountedPrice,
             testid: currentTest.id,
             concessionMode: selectionMode,
         };
@@ -241,7 +246,7 @@ const ApplicableTestComponent: React.FC<ApplicableTestComponentProps> = ({ packa
                 </div>
             )}
 
-            {selectedTests.length > 0 && (
+            {Array.isArray(selectedTests) && selectedTests.length > 0 && (
                 <div className="mt-4">
                     <h4>Selected Tests</h4>
                     <table className="table pls-color" style={{ width: "100%", overflowX: "auto" }}>
@@ -252,8 +257,9 @@ const ApplicableTestComponent: React.FC<ApplicableTestComponentProps> = ({ packa
                                 <th>Original Price (Cedis)</th>
                                 <th>Concession Value</th>
                                 <th>Concession Mode</th>
-                                <th>Discounted Price (Cedis)</th>
                                 <th>Actual Price (Cedis)</th>
+                                <th>Discount Amount (Cedis)</th>
+                                <th>Discounted Price (Cedis)</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -265,8 +271,9 @@ const ApplicableTestComponent: React.FC<ApplicableTestComponentProps> = ({ packa
                                     <td>{test.originalPrice.toFixed(2)}</td>
                                     <td>{currencyFormatter.format(test.concessionValue || 0) || null}</td>
                                     <td className="text-capitalize">{test.concessionMode}</td>
-                                    <td>{currencyFormatter.format(test.discountedValue || 0)}</td>
-                                    <td>{test.actualPrice?.toFixed(2) ?? "-"}</td>
+                                    <td>{test.originalPrice.toFixed(2)}</td>
+                                    <td>{currencyFormatter.format(test.discountAmount || 0)}</td>
+                                    <td>{test.discountedPrice?.toFixed(2) ?? "-"}</td>
                                     <td>
                                         <button
                                             onClick={() => handleRemoveTest(test.testid)}

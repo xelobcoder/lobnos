@@ -282,7 +282,7 @@ export default function PrimeTable({
 			</div>
 			<table
 				className={style.table}
-				style={{ fontSize: "1rem", minWidth: "100%" }}
+				style={{ fontSize: "1rem", minWidth: "100%" ,minHeight:'30vh'}}
 				{...getTableProps()}
 			>
 				<thead>{customHeaderGroup()}</thead>

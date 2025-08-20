@@ -242,7 +242,7 @@ export default function SessionsTable() {
 						<PrimeTable
 							column={columns}
 							data={sessions}
-							isExpoerted={true}
+							isExpoerted={false}
 							filtering={true}
 							serverSideFiltering={true}
 							handleSeverSideProcessing={handleSessionGatheringServer}
@@ -252,7 +252,10 @@ export default function SessionsTable() {
 			</Row>
 			<EndSessionModal
 				show={showEndModal}
-				onHide={() => setShowEndModal(false)}
+				onHide={() => {
+					setShowEndModal(false);
+					fetchSessions();
+				}}
 				sessionId={selectedSessionId || 0}
 				isLoading={isLoading}
 				onConfirm={fetchSessions}

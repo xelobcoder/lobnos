@@ -6,7 +6,9 @@ interface MdsCompanyInformationProps {
         name: string;
         address: string;
         phonenumber: string;
+        email: string;
         prNum: string;
+        alternativenumber?: string;
     };
     styles: any;
     logourl: string;
@@ -33,7 +35,7 @@ const MdsCompanyInformation = ({ companyInfo, styles, logourl, resultsettings }:
                 <div className={styles?.labContactHeader}>
                     <div>{companyInfo.address}</div>
                     <div className="d-flex">
-                        <div>Phone No: {companyInfo.phonenumber}.</div>
+                        <div>Phone No: {companyInfo.phonenumber} ||  {companyInfo.alternativenumber}</div>
                         <div> Email : {companyInfo.prNum}</div>
                     </div>
                 </div>
@@ -48,7 +50,8 @@ const MdsCompanyInformation = ({ companyInfo, styles, logourl, resultsettings }:
                 name: companyInfo.name,
                 address: companyInfo.address,
                 phonenumber: Number(companyInfo.phonenumber),
-                email: companyInfo.prNum,
+                email: companyInfo.email || companyInfo.prNum,
+                alternativenumber: companyInfo.alternativenumber
             }}
             resultsettings={resultsettings}
             logo={logourl}

@@ -128,7 +128,7 @@ function BillingStrategyForm() {
                     price_type,
                     concessionValue: concessionValueNum,
                     applicableTest: isAllTestsConcessionVisible ? [] : updatedTests,
-                    allConcessionApplied: isAllTestsConcessionVisible,
+                    allconcessionApplied: isAllTestsConcessionVisible,
                     valid_from,
                     valid_until: validUntil,
                     description,

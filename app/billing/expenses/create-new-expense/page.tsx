@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { customFetch, customPost, reactSelectCustomStyles } from "../../../../components/Auth/customFetch";
@@ -51,6 +50,21 @@ const defaultExpense: ExpenseForm = {
 	taxAmount: "",
 };
 
+interface Merchant {
+	id: number;
+	name: string;
+	email: string;
+	phone: string;
+	address: string;
+	website: string;
+	notes: string;
+	created_at: string;
+	updated_at: string;
+	created_by: number;
+	updated_by: number | null;
+	created_by_name: string;
+}
+
 // Format date for input
 const formatDateForInput = (dateString: string): string => {
 	if (!dateString) return "";
@@ -64,6 +78,7 @@ export default function AddNewExpense() {
 	const [isLoading, setLoading] = useState<boolean>(false);
 	const [paymentModes, setPaymentModes] = useState<PaymentMode[]>([]);
 	const [categories, setCategories] = useState<Category[]>([]);
+	const [merchants, setMerchants] = useState<Merchant[]>([]);
 
 	// Validation schema
 	const validateForm = (formData: ExpenseForm): Partial<Record<keyof ExpenseForm, string>> => {
@@ -71,7 +86,7 @@ export default function AddNewExpense() {
 
 		if (!formData.name.trim()) errors.name = "Expense name is required";
 		if (!formData.date) errors.date = "Date is required";
-		if (!formData.merchant.trim()) errors.merchant = "Merchant name is required";
+		if (!formData.merchant || isNaN(Number(formData.merchant))) errors.merchant = "Merchant is required";
 		if (!formData.amount || formData.amount <= 0) errors.amount = "Valid amount is required";
 		if (!formData.category) errors.category = "Category is required";
 		if (!formData.mode) errors.mode = "Payment mode is required";
@@ -106,7 +121,7 @@ export default function AddNewExpense() {
 	// Form submission handler
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		
+
 		const formErrors = validateForm(formData);
 		if (Object.keys(formErrors).length > 0) {
 			setErrors(formErrors);
@@ -143,16 +158,26 @@ export default function AddNewExpense() {
 		}
 	};
 
-	// Fetch categories
+
+	// Fetch categories and merchants in parallel
 	useEffect(() => {
+		if (!branchid || !employeeid) return;
 		setLoading(true);
-		customFetch(`expense/get/category?&branchid=${branchid}&employeeid=${employeeid}`)
-			.then((data: Category[]) => {
-				if (Array.isArray(data)) {
-					setCategories(data);
+		Promise.all([
+			customFetch(`expense/get/category?&branchid=${branchid}&employeeid=${employeeid}`),
+			customFetch(`expense/merchants?branchid=${branchid}&employeeid=${employeeid}&tenantId=3`)
+		])
+			.then(([categoriesData, merchantsData]) => {
+				if (Array.isArray(categoriesData)) {
+					setCategories(categoriesData);
+				}
+				if (Array.isArray(merchantsData)) {
+					setMerchants(merchantsData);
 				}
 			})
-			.catch(() => toast.error("Failed to load categories", { autoClose: 3000 }))
+			.catch(() => {
+				toast.error("Failed to load categories or merchants", { autoClose: 3000 });
+			})
 			.finally(() => setLoading(false));
 	}, [branchid, employeeid]);
 
@@ -214,16 +239,29 @@ export default function AddNewExpense() {
 							<label className="form-label pls-label">
 								Merchant <span className="text-danger">*</span>
 							</label>
-							<input
-								name="merchant"
-								value={formData.merchant}
-								onChange={handleInputChange}
-								className={`form-control ${errors.merchant ? "is-invalid" : ""}`}
-								type="text"
-								placeholder="Enter merchant name"
-								disabled={isLoading}
+							<Select
+								options={merchants.map((merchant) => ({
+									value: merchant.id,
+									label: merchant.name,
+								}))}
+								styles={reactSelectCustomStyles}
+								placeholder="Select merchant"
+								classNamePrefix="react-select"
+								isClearable
+								onChange={handleSelectChange("merchant")}
+								value={
+									formData.merchant
+										? merchants
+											.map((merchant) => ({
+												value: merchant.id,
+												label: merchant.name,
+											}))
+											.find((option) => option.value === Number(formData.merchant)) || null
+										: null
+								}
+								isDisabled={isLoading}
 							/>
-							{errors.merchant && <div className="invalid-feedback">{errors.merchant}</div>}
+							{errors.merchant && <div className="invalid-feedback d-block">{errors.merchant}</div>}
 						</div>
 
 						<div className="col-md-6">

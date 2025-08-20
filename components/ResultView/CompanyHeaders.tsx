@@ -25,7 +25,7 @@ export default function CompanyHeaders({ companyInfo, logo, resultsettings }: Co
 		alternativenumber
 	} = companyInfo;
 
-	const companyNamefontSize = resultsettings?.companyInfo?.namefontsize || '20px';
+	const companyNamefontSize = resultsettings?.companyInfo?.namefontsize || '25px';
 	const companyNamefontColor = resultsettings?.companyInfo?.color || 'black';
 	const companyNamefontFamily = resultsettings?.fontfamily || 'Times New Roman';
 	return (
@@ -52,16 +52,17 @@ export default function CompanyHeaders({ companyInfo, logo, resultsettings }: Co
 			</div>
 			<div className="other-information">
 				<div style={{
-					fontSize: companyNamefontSize,
+					fontSize: `${companyNamefontSize} !important`,
 					color: companyNamefontColor,
 					fontWeight: 'bold',
+					letterSpacing: '1.5px',
 					textTransform: 'uppercase',
 					fontFamily: companyNamefontFamily
 				}} className={styles['company-name']}>{name}</div>
 				<div className={styles['company-kids']}>Location: {address}</div>
-				<div className={`${styles['company-kids']} text-capitalize`}>
+				<div className={`${styles['company-kids']}`}>
 					<span>
-						Tel: 0{phonenumber} || 0{alternativenumber},Email:{email}
+						Tel: {phonenumber} || {alternativenumber},Email:{email}
 					</span>
 				</div>
 			</div>

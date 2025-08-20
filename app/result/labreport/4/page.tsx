@@ -41,7 +41,6 @@ const MDSLancetTemplate: React.FC = () => {
     const url = `result/printout/ascension/getResult?csvid=${csvid}&&testid=${testid}&&isScan=${isScan}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
 
 
-    // Track view event on mount
     useEffect(() => {
         setLoader(true);
         customFetch(url)
@@ -50,7 +49,6 @@ const MDSLancetTemplate: React.FC = () => {
                     setResultSettings(data.resultsettings);
                 }
                 setResultData(data)
-                // Send view tracking event
                 if (ascensionid && employeeid) {
                     trackReportView(ascensionid, employeeid);
                 }
@@ -61,42 +59,37 @@ const MDSLancetTemplate: React.FC = () => {
 
     useEffect(() => {
         if (!loader && resultdata?.records) {
-            // Ensure all images are loaded before generating PDF
             ensureImagesLoaded().then(() => {
                 generatePDF();
             }).catch(err => {
                 console.error("Error loading images:", err);
-                // Generate PDF anyway after timeout if images fail to load
                 setTimeout(generatePDF, 1500);
             });
         }
 
-        // Helper function to ensure all images are loaded
+      
         async function ensureImagesLoaded() {
             const resultElement = document.querySelector('.result');
             if (!resultElement) return;
 
-            // Get all images including the logo
             const images = Array.from(resultElement.querySelectorAll('img')) as HTMLImageElement[];
 
-            // Create an array of promises for image loading
             const loadPromises = images.map(img => {
-                // If image is already complete, return resolved promise
                 if (img.complete && img.naturalHeight !== 0) {
                     return Promise.resolve();
                 }
 
-                // Force crossOrigin to anonymous for CORS issues
+
                 if (img.src.startsWith('http')) {
                     img.crossOrigin = 'anonymous';
                 }
 
-                // Return a promise that resolves when the image loads
+
                 return new Promise<void>((resolve, reject) => {
                     img.onload = () => resolve();
                     img.onerror = (e) => {
                         console.warn(`Error loading image: ${img.src}`, e);
-                        resolve(); // Resolve anyway to continue PDF generation
+                        resolve();
                     };
                 });
             });

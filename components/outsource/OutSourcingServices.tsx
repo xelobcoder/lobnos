@@ -5,7 +5,7 @@ import { Button, Form, Card, Row, Col, Badge } from "react-bootstrap";
 import Select from 'react-select';
 import { ToastContainer, toast } from "react-toastify";
 import { currencyFormatter, customFetch, customPost, reactSelectCustomStyles } from "../Auth/customFetch";
-import { useApplicationSettings } from "../Auth/useApplicationContext";
+import { useApplication, useApplicationSettings } from "../Auth/useApplicationContext";
 import styles from '../../styles/SmsTemplateList.module.css'
 import { 
     RiAddLine, 
@@ -46,8 +46,8 @@ export default function OutsourceServices() {
     const searchParams = useSearchParams();
     const outsourceid = searchParams ? searchParams.get("orgid") : null;
     
-    const { applicationsettings } = useApplicationSettings();
-    const employeeid = applicationsettings.user.employeeid;
+    const applicationsettings = useApplication();
+    const employeeid = applicationsettings?.user?.employeeid;
 
     useEffect(() => {
         const fetchTestOptions = async () => {

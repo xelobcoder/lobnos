@@ -43,6 +43,7 @@ const ExpenseList = ({ expenses, setSelected, selected, filter, setFilter, handl
 	}
 
 	const columns = [
+	
 		{
 			Header: 'Expense Name',
 			accessor: 'name',
@@ -112,19 +113,33 @@ const ExpenseList = ({ expenses, setSelected, selected, filter, setFilter, handl
 				</span>
 			)
 		},
-		{
-			Header: 'Expense ID',
-			accessor: 'id',
+			{
+			Header: 'Description',
+			accessor: 'description',
 			Cell: ({ cell: { value }, row }) => (
 				<span
-					className="text-muted"
+					className="text-secondary"
 					style={{ cursor: 'pointer' }}
 					onClick={() => setSelected(row.original)}
 				>
-					EXP{value}
+					{value}
 				</span>
 			)
-		}
+		},
+		{
+			Header: 'Merchant',
+			accessor: 'merchant_name',
+			Cell: ({ cell: { value }, row }) => (
+				<span
+					className="text-capitalize"
+					style={{ cursor: 'pointer' }}
+					onClick={() => setSelected(row.original)}
+				>
+					{value}
+				</span>
+			)
+		},
+
 	];
 
 	return (

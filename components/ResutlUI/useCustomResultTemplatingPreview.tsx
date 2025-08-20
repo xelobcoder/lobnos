@@ -17,7 +17,7 @@ interface UseCustomResultTemplatingPreviewProps {
 	test: string;
 	records: any[];
 	isResultView?: boolean;
-	resultsettings:ResultSettings
+	resultsettings: ResultSettings
 	testdetailcategory?: TestDetailCategory[];
 	isScan?: boolean;
 	testInfo?: {
@@ -25,7 +25,7 @@ interface UseCustomResultTemplatingPreviewProps {
 	};
 }
 
-export default function UseCustomResultTemplatingPreview({ test, records, isResultView = true, isScan=false,resultsettings, testInfo, testdetailcategory }: UseCustomResultTemplatingPreviewProps) {
+export default function UseCustomResultTemplatingPreview({ test, records, isResultView = true, isScan = false, resultsettings, testInfo, testdetailcategory }: UseCustomResultTemplatingPreviewProps) {
 	if (!Array.isArray(records) || records.length === 0) return null;
 
 	let reorganized: { [category: string]: any[] } = {};
@@ -56,18 +56,18 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 					{testInfo && testInfo?.reportitle ? testInfo?.reportitle : test}
 				</span>
 			</h5>
-				<table className={isResultView ? "table-borderless table-sm borderless " : "table billing-cart-table"} >
+			<table className={isResultView ? "table-borderless table-sm borderless " : "table billing-cart-table"} >
 				<thead style={{
 					backgroundColor: resultsettings?.testTableHeaderBackgroundColor || 'orange',
 					color: resultsettings?.testTableHeaderTextColor || 'black',
 					fontSize: resultsettings?.testTableHeaderFontSize || '13px'
 				}}>
 					<tr>
-						<th scope="col" style={{width:'40%'}} >{resultsettings.testBody.trFirstColumnName || 'Test'}</th>
-						<th scope="col" style={{width:'15%'}}>{resultsettings.testBody.trSecondColumnName || 'Value'}</th>
-						<th scope="col" style={{width:'15%'}}>{resultsettings.testBody.trThirdColumnName || 'Units'}</th>
-						<th scope="col" style={{width:'15%'}}>{resultsettings.testBody.trFourthColumnName || 'References'}</th>
-						<th scope="col" style={{width:'15%'}}>{resultsettings.testBody.trFifthColumnName || 'Flags'}</th>
+						<th scope="col" style={{ width: '45%' }} >{resultsettings.testBody.trFirstColumnName || 'Test'}</th>
+						<th scope="col" style={{ width: '20%' }}>{resultsettings.testBody.trSecondColumnName || 'Value'}</th>
+						<th scope="col" style={{ width: '10%' }}>{resultsettings.testBody.trThirdColumnName || 'Units'}</th>
+						<th scope="col" style={{ width: '20%' }}>{resultsettings.testBody.trFourthColumnName || 'References'}</th>
+						<th scope="col" style={{ width: '5%' }}>{resultsettings.testBody.trFifthColumnName || 'Flags'}</th>
 					</tr>
 				</thead>
 				<tbody>

@@ -3,16 +3,16 @@
 import React, { useEffect, useState } from 'react';
 import { patientRegistrationDefaultData } from '../../../components/Auth/registerclient';
 import { customFetch } from '../../../components/Auth/customFetch';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import RegistrationForm from '../../../components/registration/RegistrationForm';
 
-export default function RegistrationPage({ searchParams }: { searchParams: { patientid: number } }) {
+export default function RegistrationPage() {
     const router = useRouter();
     const [fields, setFields] = useState<any>(patientRegistrationDefaultData);
     const [personalInformation, setPersonalInformation] = useState<any>(patientRegistrationDefaultData.personalInformation);
     const [addressingInformation, setAddressingInformation] = useState<any>(patientRegistrationDefaultData.addressingInformation);
     const [emmergencyInformation, setEmmergencyInformation] = useState<any>(patientRegistrationDefaultData.emmergencyInformation);
-    const patientid = searchParams?.patientid;
+    const patientid = useSearchParams() ? Number(useSearchParams()?.get('patientid')) : undefined;
 
     useEffect(() => {
         async function fetchFields() {
@@ -46,12 +46,6 @@ export default function RegistrationPage({ searchParams }: { searchParams: { pat
         fetchPatientData();
     }, [patientid]);
 
-    const filteredPatient = (options: any) => {
-        const hasPatientid = typeof options === "object" && options.hasOwnProperty("patientid");
-        if (!hasPatientid) return;
-        const { patientid } = options;
-        router.push(`/registration?patientid=${patientid}`);
-    };
 
     return (
         <RegistrationForm
