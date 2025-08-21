@@ -2,9 +2,10 @@
 import { useState, useEffect } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
 import PrimeToast from "../../../../components/accessories/PrimeToast";
+import PrimeTable from "../../../../components/accessories/Datatables/PrimeTable";
 import { customFetch, customPost } from "../../../../components/Auth/customFetch";
 import { toast } from "react-toastify";
-import styles from  '../../../../styles/SmsTemplateList.module.css'
+import styles from '../../../../styles/SmsTemplateList.module.css'
 
 interface Shift {
     id: number;
@@ -93,12 +94,51 @@ const CreateShiftPage = () => {
         setEditingShift(shift);
         setName(shift.name);
         setColor(shift.color);
-        // Remove seconds from time strings if present
         setStartTime(shift.starttime.slice(0, 5));
         setEndTime(shift.endtime.slice(0, 5));
     };
 
+    const columns = [
+        { Header: "ID", accessor: "id" },
+        { Header: "Shift Name", accessor: "name" },
+        {
+            Header: "Color",
+            accessor: "color",
+            Cell: ({ value }) => (
+                <div style={{ backgroundColor: value, width: "30px", height: "20px" }} />
+            )
+        },
+        { Header: "Start Time", accessor: "starttime" },
+        { Header: "End Time", accessor: "endtime" },
+        {
+            Header: "Actions",
+            accessor: "actions",
+            Cell: ({ row }) => (
+                <>
+                    <Button variant="warning" size="sm" onClick={() => handleEdit(row.original)} className="me-2">
+                        Update
+                    </Button>
+                    <Button variant="danger" size="sm" onClick={() => handleDelete(row.original.id)}>
+                        Delete
+                    </Button>
+                </>
+            )
+        }
+    ]
 
+
+    const handleServerSideProcessing = async (pagination: { page: number, count: number, sortby: 'ASC' | 'DESC' }) => {
+        try {
+            const data = await customFetch(`attendance/shifts?page=${pagination.page}&count=${pagination.count}&sortby=${pagination.sortby || 'DESC'}`);
+            if (data && Array.isArray(data) && data.length > 0) {
+                return { result: data, error: false }
+            } else {
+                return { result: [], error: false }
+            }
+        } catch (error) {
+            return { result: [], error: true }
+        }
+    }
 
     return (
         <div className="mt-4">
@@ -138,39 +178,13 @@ const CreateShiftPage = () => {
                     <h3 className="mt-4 br-5 bg-secondary-subtle pls-label p-3">Existing Shifts</h3>
                     {fetchError && <Alert variant="danger">{fetchError}</Alert>}
                     {shifts.length > 0 ? (
-                        <table className={styles.table}>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Shift Name</th>
-                                    <th>Color</th>
-                                    <th>Start Time</th>
-                                    <th>End Time</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {shifts.map((shift) => (
-                                    <tr key={shift.id}>
-                                        <td>{shift.id}</td>
-                                        <td>{shift.name}</td>
-                                        <td>
-                                            <div style={{ backgroundColor: shift.color, width: "30px", height: "20px" }} />
-                                        </td>
-                                        <td>{shift.starttime}</td>
-                                        <td>{shift.endtime}</td>
-                                        <td>
-                                            <Button variant="warning" size="sm" onClick={() => handleEdit(shift)} className="me-2">
-                                                Update
-                                            </Button>
-                                            <Button variant="danger" size="sm" onClick={() => handleDelete(shift.id)}>
-                                                Delete
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                        <PrimeTable
+                            column={columns}
+                            data={shifts}
+                            filtering={false}
+                            serverSideFiltering={true}
+                            handleSeverSideProcessing={handleServerSideProcessing}
+                        />
                     ) : (
                         <p>No shifts available.</p>
                     )}

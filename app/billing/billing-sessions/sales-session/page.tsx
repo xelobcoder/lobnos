@@ -257,6 +257,7 @@ export default function SessionsTable() {
 					fetchSessions();
 				}}
 				sessionId={selectedSessionId || 0}
+				openingAmount={sessions.find(s => s.sessionid === selectedSessionId)?.openingamount || ''}
 				isLoading={isLoading}
 				onConfirm={fetchSessions}
 				employeesList={employeesList}

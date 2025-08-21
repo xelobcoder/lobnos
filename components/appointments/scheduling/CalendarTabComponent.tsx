@@ -70,7 +70,7 @@ const CalendarTab: React.FC<CalendarTabProps> = ({
                     >
                         <div style={dateHeaderStyle}>{date.toLocaleDateString()}</div>
                         <div>
-                            {calendarView[dateStr]?.map((event, index) => (
+                            {Array.isArray(calendarView[dateStr]) && calendarView[dateStr]?.map((event, index) => (
                                 <div key={index} style={eventStyle(event.shift.color)}>
                                     {event.employee.username} - {event.shift.name}
                                 </div>

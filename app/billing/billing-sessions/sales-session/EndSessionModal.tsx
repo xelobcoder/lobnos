@@ -1,11 +1,12 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Spinner, Table } from 'react-bootstrap';
+import { Modal, Button, Form, Spinner, Table, Accordion } from 'react-bootstrap';
 import { currencyFormatter, customFetch, customPost } from '../../../../components/Auth/customFetch';
 import moment from 'moment';
 import { toast } from 'react-toastify';
 import { useApplication } from '../../../../components/Auth/useApplicationContext';
 import { plsEncryption } from '../../../../lib/encryption';
+import styles from '../../../../styles/SmsTemplateList.module.css'
 
 interface HandingOverDetailsRequestResponse {
      sessionId: number;
@@ -13,6 +14,7 @@ interface HandingOverDetailsRequestResponse {
      sessionStartTime: string;
      sessionEndTime: string | null;
      totalBillingTransactions: any[];
+     expenseTransactions: any[];
      totalPayable: number;
      totalPaid: number;
      totalDiscount: number;
@@ -34,6 +36,7 @@ interface EndSessionModalProps {
      onHide: () => void;
      sessionId: number;
      onConfirm: () => void;
+     openingAmount: string;
      isLoading: boolean;
      employeesList: Employee[];
 }
@@ -42,6 +45,7 @@ export default function EndSessionModal({
      show,
      onHide,
      sessionId,
+     openingAmount,
      onConfirm,
      isLoading,
      employeesList
@@ -112,9 +116,11 @@ export default function EndSessionModal({
                          End Session #{sessionId}
                          {sessionSummary && (
                               <span className="ms-3 small text-muted">
-                                   |
+                                   ||
                                    Start: {moment(sessionSummary.sessionStartTime, 'HH:mm:ss').format('hh:mm A')} |
                                    Date: {moment(sessionSummary.sessionDate).format('ll')}
+                                   ||
+                                   Opening Amount: {currencyFormatter.format(Number(openingAmount || 0))}
                               </span>
                          )}
                     </Modal.Title>
@@ -123,8 +129,19 @@ export default function EndSessionModal({
                     {sessionSummary && (
                          <>
                               <div className="mb-4">
+                                   {sessionSummary && (
+                                        <a
+                                             href={`/billing/sales/branches/${branchid ? plsEncryption(branchid.toString()) : ''}?from=${moment(sessionSummary.sessionDate).format('YYYY-MM-DD')}&to=${moment(sessionSummary.sessionDate).format('YYYY-MM-DD')}`}
+                                             target="_blank"
+                                             rel="noopener noreferrer"
+                                             className="btn btn-link px-0 mb-2"
+                                        >
+                                             View all transactions for this session
+                                        </a>
+                                   )}
                                    <h6 className="mb-3 text-secondary">Session Summary</h6>
                                    <div className="row g-3">
+                                        {/* ...existing summary grid... */}
                                         <div className="col-lg-2 col-md-4 col-6">
                                              <div className="border rounded p-3 bg-light">
                                                   <div className="small text-muted mb-1">Total Cost</div>
@@ -164,17 +181,33 @@ export default function EndSessionModal({
                                    </div>
                               </div>
                               <div className="mb-4">
-                                   <h6 className="mb-3 text-secondary">Billing Transactions</h6>
-                                   {sessionSummary && (
-                                        <a
-                                             href={`/billing/sales/branches/${branchid ? plsEncryption(branchid.toString()) : ''}?from=${moment(sessionSummary.sessionDate).format('YYYY-MM-DD')}&to=${moment(sessionSummary.sessionDate).format('YYYY-MM-DD')}`}
-                                             target="_blank"
-                                             rel="noopener noreferrer"
-                                             className="btn btn-link px-0"
-                                        >
-                                             View all transactions for this session
-                                        </a>
-                                   )}
+                                   <h6 className="mb-3 text-secondary">Expense Records</h6>
+                                   {Array.isArray(sessionSummary.expenseTransactions) && sessionSummary.expenseTransactions.length > 0 ? (
+                                        <table className={styles.table}>
+                                             <thead>
+                                                  <tr>
+                                                       <th>ID</th>
+                                                       <th>Name</th>
+                                                       <th>Amount</th>
+                                                       <th>Merchant</th>
+                                                       <th>Date</th>
+                                                       <th>Description</th>
+                                                  </tr>
+                                             </thead>
+                                             <tbody>
+                                                  {sessionSummary.expenseTransactions.map((exp, idx) => (
+                                                       <tr key={idx}>
+                                                            <td>{exp.id}</td>
+                                                            <td>{exp.name}</td>
+                                                            <td>{currencyFormatter.format(Number(exp.amount))}</td>
+                                                            <td>{exp.merchant}</td>
+                                                            <td>{exp.date ? moment(exp.date).format('ll HH:mm') : '-'}</td>
+                                                            <td>{exp.description}</td>
+                                                       </tr>
+                                                  ))}
+                                             </tbody>
+                                        </table>
+                                   ) : <div className="text-muted">No expense records found.</div>}
                               </div>
                          </>
                     )}
@@ -227,7 +260,7 @@ export default function EndSessionModal({
                                                        required
                                                   />
                                              </Form.Group>
-                                   )}
+                                        )}
                               </div>
                          </div>
                     </div>

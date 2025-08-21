@@ -415,8 +415,8 @@ export async function LoadTestConditionsDefinition(testid: number) {
 
 export async function loadTaskDefinition(pagination) {
 	try {
-		const { page, count } = pagination;
-		const data = await customFetch(`primelims/tasks?page=${page}&&count=${count}`);
+		const { page, count ,sortby ='DESC'} = pagination;
+		const data = await customFetch(`primelims/tasks?page=${page}&&count=${count}&&sortby=${sortby}`);
 		if (Array.isArray(data) && data.length > 0) {
 			const mappedTasks = data.map(task => ({
 				id: task.id,

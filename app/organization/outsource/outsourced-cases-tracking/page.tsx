@@ -1,8 +1,10 @@
 'use client'
 import React, { useEffect, useState } from "react";
-import { customFetch } from "../../../../components/Auth/customFetch";
+import { toast } from "react-toastify";
+import { customFetch, customPost } from "../../../../components/Auth/customFetch";
 import PrimeTable from "../../../../components/accessories/Datatables/PrimeTable";
 import dayjs from "dayjs";
+import { useApplication } from "../../../../components/Auth/useApplicationContext";
 
 type OutsourcedCase = {
      tracking_id: number;
@@ -25,34 +27,53 @@ type OutsourcedCase = {
 export default function OutsourcedCasesTrackingPage() {
      const [cases, setCases] = useState<OutsourcedCase[]>([]);
      const [loading, setLoading] = useState<boolean>(true);
+     const employeeid = useApplication()?.user.employeeid;
+     const branchid = useApplication()?.branchid;
 
+
+     const fetchCases = async () => {
+          setLoading(true);
+          try {
+               const response = await customFetch(`outsourced/cases/tracking?page=1&&count=10`);
+               if ((response.status === "success" || response.status === true) && Array.isArray(response.data)) {
+                    setCases(response.data);
+               } else {
+                    setCases([]);
+               }
+          } catch (err) {
+               setCases([]);
+          } finally {
+               setLoading(false);
+          }
+     };
 
      useEffect(() => {
-          async function fetchCases() {
-               setLoading(true);
-               try {
-                    const response = await customFetch(`outsourced/cases/tracking?page=1&&count=10`);
-                    if (response.status === "success" && Array.isArray(response.data)) {
-                         setCases(response.data);
-                    } else {
-                         setCases([]);
-                    }
-               } catch (err) {
-                    setCases([]);
-               } finally {
-                    setLoading(false);
-               }
-          }
           fetchCases();
      }, []);
 
-     const handleMarkExpense = (item: OutsourcedCase) => {
-          // TODO: Implement logic for marking as expense
-          alert(`Marking tracking ID ${item.tracking_id} as expense.`);
+     const handleMarkExpense = async (item: OutsourcedCase) => {
+          const { serviceid, testid, tracking_id } = item;
+          const response = await customPost(`outsourced/cases/mark-expense`, 'POST', {
+               serviceid, testid, employeeid, branchid,
+               tracking_id
+          });
+          if (response.status === true || response.status === "success") {
+               toast.success(`Tracking ID ${tracking_id} marked as expense.`, { autoClose: 3000 });
+               fetchCases();
+          } else {
+               toast.error(`Failed to mark tracking ID ${tracking_id} as expense.`, { autoClose: 3000 });
+          }
      };
-     const handleConfirmDone = (item: OutsourcedCase) => {
-          // TODO: Implement logic for confirming done
-          alert(`Confirming tracking ID ${item.tracking_id} as done.`);
+
+     const handleConfirmDone = async (item: OutsourcedCase) => {
+          const { tracking_id } = item;
+          const response = await customPost(`outsourced/cases/confirm-done`, 'POST', { trackingId: tracking_id, branchid, employeeid });
+          if (response.status === true || response.status === "success") {
+               toast.success(`Tracking ID ${tracking_id} confirmed as done.`, { autoClose: 3000 });
+               fetchCases();
+          } else {
+               toast.error(`Failed to confirm tracking ID ${tracking_id} as done.`, { autoClose: 3000 });
+          }
      };
 
 
@@ -78,16 +99,31 @@ export default function OutsourcedCasesTrackingPage() {
           {
                Header: "Actions",
                accessor: "actions",
-               Cell: ({ row }) => (
-                    <>
-                         <button className="btn btn-warning btn-sm mx-1" onClick={() => handleMarkExpense(row.original)}>
-                              Mark as Expense
-                         </button>
-                         <button className="btn btn-success btn-sm mx-1" onClick={() => handleConfirmDone(row.original)}>
-                              Confirm Done
-                         </button>
-                    </>
-               )
+               Cell: ({ row }) => {
+                    const { approved, completedconfirmedby, expense_id } = row.original;
+                    const isConfirmed = completedconfirmedby != null;
+                    const isMarkedExpense = expense_id != null;
+                    return (
+                         <>
+                              {isMarkedExpense && (
+                                   <span className="badge bg-warning text-dark mx-1 p-2">Marked as Expense</span>
+                              )}
+                              {isConfirmed && (
+                                   <span className="badge bg-success mx-1 p-2">Confirmed</span>
+                              )}
+                              {!isMarkedExpense && approved !== 1 && (
+                                   <button className="btn btn-warning btn-sm mx-1" onClick={() => handleMarkExpense(row.original)}>
+                                        Mark as Expense
+                                   </button>
+                              )}
+                              {!isConfirmed && (
+                                   <button className="btn btn-success btn-sm mx-1" onClick={() => handleConfirmDone(row.original)}>
+                                        Confirm Done
+                                   </button>
+                              )}
+                         </>
+                    );
+               }
           }
      ];
 

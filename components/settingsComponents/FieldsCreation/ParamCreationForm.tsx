@@ -85,7 +85,7 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
                         <label className={styles.checkboxLabel}>
                             <input
                                 type="checkbox"
-                                checked={!!field?.hasunits}
+                                checked={field?.hasunits == 1 || field.hasunits == "1" || field.units.toString().length > 0}
                                 onChange={(e) => setField({ ...field, hasunits: e.target.checked })}
                                 className={styles.checkbox}
                             />

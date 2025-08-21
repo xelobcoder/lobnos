@@ -7,6 +7,7 @@ import CalendarTab from "../../../../../components/appointments/scheduling/Calen
 import ScheduleTab from "../../../../../components/appointments/scheduling/ScheduleTabComponent";
 import { plsDecryption } from "../../../../../lib/encryption";
 import { customFetch, customPost, reactSelectCustomStyles } from "../../../../../components/Auth/customFetch";
+import { toast } from "react-toastify";
 
 interface Employee {
     employeeid: number;
@@ -463,10 +464,10 @@ const AttendanceScheduler = ({ params }: { params: { cycleid: string } }) => {
         });
     };
 
-    const saveAttendanceToBackend = async (attendanceData: any[]) => {
+    const saveAttendanceToBackend = async (attendanceData: any[]): Promise<{ status: boolean, message: string }> => {
         try {
             const response = await customPost("attendance/timetable", "POST", attendanceData)
-            console.log(response)
+            return response;
         } catch (err) {
             console.error("Error saving attendance data:", err);
             throw err;
@@ -481,9 +482,13 @@ const AttendanceScheduler = ({ params }: { params: { cycleid: string } }) => {
 
         try {
             const transformedData = transformAttendanceData(attendance, decryptedCycleId);
-            await saveAttendanceToBackend(transformedData);
-            setSuccessMsg("Attendance data saved successfully!");
-            setTimeout(() => setSuccessMsg(""), 3000);
+            const response: { status: boolean, message: string } = await saveAttendanceToBackend(transformedData);
+            const { status, message } = response;
+            if (status == true) {
+                toast.success(message);
+            } else {
+                toast.error(message || "Failed to save attendance data");
+            }
         } catch (err) {
             setErrorMsg("Failed to save attendance data");
             console.error(err);
@@ -509,7 +514,7 @@ const AttendanceScheduler = ({ params }: { params: { cycleid: string } }) => {
         <div className="">
             <h1 className="p-3 bg-secondary-subtle br-5 pls-label">Attendance Scheduler</h1>
             <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k || "schedule")} className="mb-3">
-                <Tab eventKey="list" title="Attendance List">
+                {/* <Tab eventKey="list" title="Attendance List">
                     <AttendanceListTab
                         filteredAttendance={filteredAttendance}
                         filterEmployee={filterEmployee}
@@ -525,9 +530,9 @@ const AttendanceScheduler = ({ params }: { params: { cycleid: string } }) => {
                         updateStatus={updateStatus}
                         isReadOnly={isReadOnly}
                     />
-                </Tab>
+                </Tab> */}
 
-                <Tab eventKey="schedule" title="Schedule">
+                {/* <Tab eventKey="schedule" title="Schedule">
                     <ScheduleTab
                         selectedEmployee={selectedEmployee}
                         setSelectedEmployee={setSelectedEmployee}
@@ -543,7 +548,7 @@ const AttendanceScheduler = ({ params }: { params: { cycleid: string } }) => {
                         setShowModal={setShowModal}
                         currentEditIndex={currentEditIndex}
                     />
-                </Tab>
+                </Tab> */}
 
                 <Tab eventKey="bulk" title="Bulk Schedule">
                     <Card className="p-3">

@@ -38,7 +38,7 @@ const MDSLancetTemplate: React.FC = () => {
     const csvid = searchParams?.get('csvid');
     const isScan = searchParams?.get('isScan') === 'true';
 
-    const url = `result/printout/ascension/getResult?csvid=${csvid}&&testid=${testid}&&isScan=${isScan}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
+    const url = `result/printout/ascension/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&isScan=${isScan}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
 
 
     useEffect(() => {
@@ -281,7 +281,7 @@ const MDSLancetTemplate: React.FC = () => {
                                 collectionDate={!isScan ? resultdata.samplingInformation?.collectionEndDate : ''}
                                 finalReportDate={resultdata.samplingInformation?.resultEntryEnd}
                             />
-                            <div style={{ flex: 1 }}>
+                            <div  style={{width: '100%'}}>
                                 <section>
                                     {!isScan && <UseCustomResultTemplatingPreview
                                         test={resultdata?.testname}
@@ -327,6 +327,12 @@ const MDSLancetTemplate: React.FC = () => {
                                             <p className='mx-1'>{resultdata.testInfo.instrumentation}</p>
                                         </div>
                                     )}
+                                    	{resultdata.generalValidation && (
+										<div className="d-flex" style={{ justifyContent: 'center', marginTop: 8 }}>
+											<div className="text-uppercase">Verified By:</div>
+											<div className="mx-2">{resultdata.generalValidation.username}</div>
+										</div>
+									)}
                                     <span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
                                     {!isScan && resultSettings.includeLimitations && <UseDisclaimer disclaimer={resultSettings.limitations} />}
                                 </section>

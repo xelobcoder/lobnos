@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Row, Col, Card, Badge, Button, Modal, ButtonGroup } from 'react-bootstrap';
-import { 
-    RiAddLine, 
+import {
+    RiAddLine,
     RiEdit2Fill,
     RiListView,
     RiKanbanView2,
@@ -230,13 +230,9 @@ const TaskViewer = () => {
         );
     };
 
-    if (isLoading) {
-        return <Container fluid className="py-4">Loading...</Container>;
-    }
+    if (isLoading) return <Container fluid className="py-4">Loading...</Container>;
 
-    if (error) {
-        return <Container fluid className="py-4">Error: {error}</Container>;
-    }
+    if (error) return <Container fluid className="py-4">Error: {error}</Container>;
 
     return (
         <div>
