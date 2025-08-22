@@ -5,7 +5,6 @@ import { useApplicationSettings } from '../Auth/useApplicationContext';
 
 export default function MAIN_LAYOUT({ children }) {
      const { applicationsettings, setApplicationSettings } = useApplicationSettings();
-     console.log('Application Settings:', applicationsettings);
 
      const getRetrieval = async function () {
           // Try to get cached data from localStorage first
