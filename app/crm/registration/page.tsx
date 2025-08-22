@@ -7,12 +7,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import RegistrationForm from '../../../components/registration/RegistrationForm';
 
 export default function RegistrationPage() {
-    const router = useRouter();
+const searchParams = useSearchParams();
     const [fields, setFields] = useState<any>(patientRegistrationDefaultData);
     const [personalInformation, setPersonalInformation] = useState<any>(patientRegistrationDefaultData.personalInformation);
     const [addressingInformation, setAddressingInformation] = useState<any>(patientRegistrationDefaultData.addressingInformation);
     const [emmergencyInformation, setEmmergencyInformation] = useState<any>(patientRegistrationDefaultData.emmergencyInformation);
-    const patientid = useSearchParams() ? Number(useSearchParams()?.get('patientid')) : undefined;
+    const patientid = searchParams ? Number(searchParams.get('patientid')) : undefined;
 
     useEffect(() => {
         async function fetchFields() {

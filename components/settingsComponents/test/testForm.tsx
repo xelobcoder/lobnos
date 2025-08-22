@@ -108,10 +108,12 @@ const TestForm: FC<TestFormProps> = ({ method, customtest, testid, router }) => 
 			toast.error("Sample type, container, and category are required", { autoClose: 2000 });
 			return;
 		}
-		if (!reportitle || reportitle.trim() === "") {
-			toast.error("Report title is required", { autoClose: 2000 });
-			return;
-		}
+		// if (!reportitle || reportitle.trim() === "") {
+		// 	toast.error("Report title is required", { autoClose: 2000 });
+		// 	return;
+		// }
+
+		
 		if (!testMethod || testMethod.trim() === "") {
 			toast.error("Method is required", { autoClose: 2000 });
 			return;

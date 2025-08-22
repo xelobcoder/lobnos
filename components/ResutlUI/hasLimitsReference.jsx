@@ -16,7 +16,7 @@ export default function LimitViewHtmlGeneratorResultView({ fieldItem, index, res
      }
 
      const flag = determineTableColor(value, upperlimit, lowerlimit);
-     
+
      // Determine flag color based on settings
      const getFlagColor = (flag) => {
           if (!settings?.hasColorsForFlags) return settings?.color;
@@ -26,54 +26,54 @@ export default function LimitViewHtmlGeneratorResultView({ fieldItem, index, res
      };
 
      return (
-          <tr style={{ 
-               fontSize: `${settings?.fontSize}px`, 
+          <tr style={{
+               fontSize: `${settings?.fontSize}px`,
                fontFamily: settings?.fontFamily,
-               color: settings?.color 
+               color: settings?.color
           }}>
-               <td style={{ width: '50%' }}>
-                    <span style={{ 
-                         fontWeight: settings?.boldenParameter ? '500' : 'normal' 
+               <td style={{ width: '45%' }}>
+                    <span style={{
+                         fontWeight: settings?.boldenParameter ? '500' : 'normal'
                     }}>
                          {name}
                     </span>
                </td>
-               <td style={{ width: '15%' }}>
+               <td style={{ width: '20%' }}>
                     {flag === 'H' || flag === "L" ? (
-                         <span style={{ 
+                         <span style={{
                               fontWeight: settings?.boldenValue ? '500' : 'normal',
                               color: settings?.highlightFlags ? getFlagColor(flag) : settings?.color
                          }}>
                               {value}
                          </span>
                     ) : (
-                         <span style={{ 
-                              fontWeight: settings?.boldenValue ? '500' : 'normal' 
+                         <span style={{
+                              fontWeight: settings?.boldenValue ? '500' : 'normal'
                          }}>
                               {value}
                          </span>
                     )}
                </td>
-               <td style={{ width: '15%' }}>
-                    <span style={{ 
-                         fontWeight: settings?.boldenUnits ? '500' : 'normal' 
+               <td style={{ width: '10%' }}>
+                    <span style={{
+                         fontWeight: settings?.boldenUnits ? '500' : 'normal'
                     }}>
                          {units}
                     </span>
                </td>
-               <td style={{ width: '15%' }}>
+               <td style={{ width: '20%' }}>
                     {lowerlimit}~{upperlimit}
                </td>
                <td style={{ width: '5%' }}>
                     {flag === 'H' ? (
-                         <span style={{ 
+                         <span style={{
                               color: settings?.hasColorsForFlags ? settings?.hightFlagColor : settings?.color,
                               fontWeight: '500'
                          }}>
                               H
                          </span>
                     ) : flag === 'L' ? (
-                         <span style={{ 
+                         <span style={{
                               color: settings?.hasColorsForFlags ? settings?.lowFlagColor : settings?.color,
                               fontWeight: '500'
                          }}>

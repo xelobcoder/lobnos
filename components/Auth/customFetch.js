@@ -132,11 +132,7 @@ export const validatePin = async (employeeid, pin) => {
 		}
 		const url = `prime/validate-user-pin?employeeid=${employeeid}&&pin=${encodeURIComponent(pin)}`;
 		const response = await customFetch(url);
-		if (response && response.status && response.status === true) {
-			return true;
-		} else {
-			return toast.error(response?.message || 'Invalid PIN');
-		}
+		return response;
 	} catch (error) {
 		toast.error("An error occurred while validating the PIN");
 		return false;

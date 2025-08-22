@@ -1,27 +1,9 @@
 import ResultEntryHtmlGenerator from "../Auth/ResultEntryHtmlGenerator";
 import CommentSection from "./commentSection";
 import ResultEntryDrugsForm from "./ResultEntryDrugsForm";
-import { toast } from 'react-toastify';
-import { useState } from "react";
-import { useApplication } from "../Auth/useApplicationContext";
-import { validatePin } from "../Auth/customFetch";
 
 
-export default function ResultEntryMainEntryBase({ handlestate, handleCreateFields, rule = [], handleSubmit, setComments, comments, handleComments, isPinUsed, hasDrugs, setModifiedDrugs, ascensionid, testid, isloading }) {
-	const [pin, setPin] = useState("");
-	const employeeid = useApplication()?.user?.employeeid;
-
-	const handleSave = async () => {
-		if (!pin) return toast.warn("PIN is required");
-		const response = await validatePin(employeeid, pin);
-		console.log(response,'PIN Response');
-		if (!response == true) return toast.error(response?.message || "Invalid PIN");
-		else {
-			handleSubmit();
-		}
-
-	};
-
+export default function ResultEntryMainEntryBase({ handlestate, handleCreateFields, rule = [], setPin, pin, handleSubmit, setComments, comments, handleComments, isPinUsed, hasDrugs, setModifiedDrugs, ascensionid, testid, isloading }) {
 	return (
 		<section>
 			<div className="table-responsive my-2">
@@ -67,7 +49,7 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 					</div>
 				)}
 				<div>
-					<button onClick={handleSave} className="btn btn-primary btn-sm my-2 mx-1" disabled={isloading}>
+					<button onClick={handleSubmit} className="btn btn-primary btn-sm my-2 mx-1" disabled={isloading}>
 						{isloading ? 'Saving...' : 'Save changes'}
 					</button>
 				</div>

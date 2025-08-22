@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { customPost, handleComments } from "../Auth/customFetch";
+import { customPost, handleComments, validatePin } from "../Auth/customFetch";
 import Indicator from "../accessories/Reports/indicator";
 import { toast } from 'react-toastify';
 import Loader from "../accessories/Loader";
@@ -8,6 +8,7 @@ import moment from "moment";
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { getAscensionEditCountServerideS, getResultEntryDataServerSide } from "../serverActions/ActionFiltering";
 import Link from "next/link";
+
 
 
 export default function CreateTestRule({ clientdata }) {
@@ -22,9 +23,12 @@ export default function CreateTestRule({ clientdata }) {
 	const [hasDrugs, setHasDrugs] = useState(false);
 	const [modifiedDrugs, setModifiedDrugs] = useState([]);
 	const dropdownRef = useRef(null);
+	const [isSaving, setIsSaving] = useState(false);
+	const [pin, setPin] = useState("");
+
+	console.log('Modified', modifiedDrugs)
 
 	const getAscensionEditCount = async () => {
-		;
 		const count = getAscensionEditCountServerideS({ billingid, testid, patientid, ascensionid })
 		count ? setEditCount(count) : null
 	}
@@ -79,6 +83,7 @@ export default function CreateTestRule({ clientdata }) {
 		}
 	}, [testid, billingid, patientid, employeeid]);
 
+
 	const handlestate = async (ev, index) => {
 		const value = ev.target.value;
 		const newRule = [...rule];
@@ -86,16 +91,25 @@ export default function CreateTestRule({ clientdata }) {
 		setRule(newRule);
 	};
 
-	const [isSaving, setIsSaving] = useState(false);
+
 
 	const handleSubmit = async () => {
 		try {
+			if (!pin) return toast.warn("PIN is required");
+			const response = await validatePin(employeeid, pin);
+			const {status, message} = response;
+			console.log(status,typeof status)
+			if (!status) return toast.error(message || "Invalid PIN");
+
 			setIsSaving(true);
+
 			const transformed = rule.map((item) => {
 				return { field: item?.name, value: item?.value, fieldid: item.fieldid, originalvalue: item?.value };
 			});
+
 			const allHasValues = transformed.some((a) => a.value == "");
 			if (allHasValues) toast.error("Some fields are empty", { autoClose: 2000 });
+			const selectedDrugs = hasDrugs && Array.isArray(modifiedDrugs) && modifiedDrugs.length > 0 ? modifiedDrugs.filter(drug => drug.selected) : [];
 
 			const data = {
 				fields: transformed,
@@ -107,8 +121,9 @@ export default function CreateTestRule({ clientdata }) {
 				test,
 				testid,
 				hasDrugs,
-				drugs: hasDrugs ? modifiedDrugs : [],
+				drugs: hasDrugs ? selectedDrugs : [],
 			};
+
 			if (data.employeeid && data.csvid && data.fields.length > 0) {
 				const response = await customPost("result/entry/customtest", "POST", data);
 				const { message, statusCode, status } = response;
@@ -118,6 +133,7 @@ export default function CreateTestRule({ clientdata }) {
 					toast.error(message, { autoClose: 2000 });
 				}
 			}
+
 		} catch (err) {
 			toast.error("Something went wrong", { autoClose: 1000 });
 		} finally {
@@ -224,6 +240,8 @@ export default function CreateTestRule({ clientdata }) {
 							setComments={setComments}
 							hasDrugs={hasDrugs}
 							testid={testid}
+							pin={pin}
+							setPin={setPin}
 							ascensionid={ascensionid}
 							setModifiedDrugs={setModifiedDrugs}
 							isPinUsed={result.isPinOnResultEntry}

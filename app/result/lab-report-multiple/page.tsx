@@ -14,6 +14,7 @@ import UseClinicalLiteratureReview from "../../../components/ResutlUI/UseClinica
 import UseResultCommentSinglePreview from "../../../components/ResutlUI/useResultCommentSinglePreview"
 import { useApplication } from "../../../components/Auth/useApplicationContext";
 import { trackReportView, trackReportPrint } from "../../../lib/printingTracker";
+import DrugsList from "../../../components/Drugs/DrugsList";
 
 export default function LabReportPrintingMultiple() {
 	const [loader, setLoader] = useState(false);
@@ -262,7 +263,7 @@ export default function LabReportPrintingMultiple() {
 							const _markers = Array.from(resultElement.querySelectorAll('.page-header-marker')) as HTMLElement[];
 							_markers.forEach(el => { el.style.display = ''; });
 						}
-					} catch {}
+					} catch { }
 					setPdfError('PDF generation failed: ' + (err?.message || err));
 					setPdfLoading(false);
 				}
@@ -362,8 +363,7 @@ export default function LabReportPrintingMultiple() {
 					display: 'flex',
 					gap: 12
 				}}>
-					<a
-						href={pdfUrl.url}
+					<a href={pdfUrl.url}
 						download={pdfUrl.filename}
 						style={{
 							background: '#fff',
@@ -399,17 +399,17 @@ export default function LabReportPrintingMultiple() {
 						{showPdf ? 'Hide PDF' : 'Show PDF'}
 					</button>
 					<button
-					 onClick={() => setShowPdfControls(false)}
-					 style={{
-						 background: '#aaa',
-						 color: '#fff',
-						 border: 'none',
-						 borderRadius: 4,
-						 padding: '8px 16px',
-						 fontWeight: 'bold',
-						 cursor: 'pointer',
-						 boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-					 }}
+						onClick={() => setShowPdfControls(false)}
+						style={{
+							background: '#aaa',
+							color: '#fff',
+							border: 'none',
+							borderRadius: 4,
+							padding: '8px 16px',
+							fontWeight: 'bold',
+							cursor: 'pointer',
+							boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+						}}
 					>
 						Back to Report
 					</button>
@@ -598,6 +598,8 @@ export default function LabReportPrintingMultiple() {
 															testdetailcategory={resultdata.test[idx].testdetailcategory}
 														/>
 
+														{resultdata.test[idx].hasDrugs && Array.isArray(resultdata.test[idx].drugList) && resultdata.test[idx].drugList.length > 0 && <DrugsList hadDrugs={resultdata.test[idx].hasDrugs} drugList={resultdata.test[idx].drugList} />}
+
 														{resultSettings.showMethod && resultdata.test[idx]?.testInfo?.method && (
 															<div className='d-flex '>
 																<div className='fw-bold'>Method: </div>
@@ -623,7 +625,7 @@ export default function LabReportPrintingMultiple() {
 											if (allComments && allComments.length > 0) {
 												nodes.push(
 													<section key="result-comments" className="test-section extra-section" style={{ marginBottom: 40, paddingBottom: 24, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-														<UseResultCommentSinglePreview comments={allComments} />
+														<UseResultCommentSinglePreview comments={resultdata.generalComments} />
 													</section>
 												);
 											}

@@ -62,7 +62,7 @@ export default function CompanyHeaders({ companyInfo, logo, resultsettings }: Co
 				<div className={styles['company-kids']}>Location: {address}</div>
 				<div className={`${styles['company-kids']}`}>
 					<span>
-						Tel: {phonenumber} || {alternativenumber},Email:{email}
+						Tel: {phonenumber} || {alternativenumber} {"  "}Email:{email}
 					</span>
 				</div>
 			</div>

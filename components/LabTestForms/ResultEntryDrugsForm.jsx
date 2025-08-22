@@ -15,6 +15,11 @@ export default function ResultEntryDrugsForm({ setModifiedDrugs, ascensionid, te
 			try {
 				setLoading(true);
 				const drugs = await loadDrugsIfHasDrugs();
+				if (drugs  && Array.isArray(drugs)) {
+					drugs.forEach((item, index) => {
+						item.selected = ['Resistant', 'Sensitive'].includes(item.sensitivity);
+					});
+				}
 				setData(drugs);
 			} catch (error) {
 				console.error("Error fetching drugs:", error);
@@ -28,7 +33,7 @@ export default function ResultEntryDrugsForm({ setModifiedDrugs, ascensionid, te
 	const handleSensitivityChange = (id, value) => {
 		setData((prevData) =>
 			prevData.map((item) =>
-				item.id === id ? { ...item, sensitivity: value } : item
+				item.id === id ? { ...item, sensitivity: value, selected: ['Resistant','Sensitive'].includes(value) } : item
 			)
 		);
 	};

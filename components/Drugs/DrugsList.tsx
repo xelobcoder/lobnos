@@ -14,7 +14,7 @@ export interface DrugsListProps {
 
 const DrugsList: React.FC<DrugsListProps> = ({ hadDrugs, drugList }) => {
      if (!hadDrugs || !drugList || drugList.length === 0) return null;
-
+console.log('Rendering DrugsList with drugList:', drugList);
      return (
           <div>
                <table className="table mt-2 table-bordered table-striped">

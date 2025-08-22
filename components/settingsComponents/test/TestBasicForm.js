@@ -14,14 +14,14 @@ const BasicInfoForm = ({
 }) => {
 	const [showDeviceModal, setShowDeviceModal] = useState(false);
 
-const [deviceMappingValue, setDeviceMappingValue] = useState(data.deviceInterfaceMapping ? (typeof data.deviceInterfaceMapping === 'string' ? data.deviceInterfaceMapping : JSON.stringify(data.deviceInterfaceMapping)) : "");
+	const [deviceMappingValue, setDeviceMappingValue] = useState(data.deviceInterfaceMapping ? (typeof data.deviceInterfaceMapping === 'string' ? data.deviceInterfaceMapping : JSON.stringify(data.deviceInterfaceMapping)) : "");
 
-const handleDeviceMappingSave = (jsonString) => {
-	// If jsonString is present, use it, else use deviceMappingValue
-	const valueToSave = jsonString !== undefined ? jsonString : deviceMappingValue;
-	handleChangeWithState({ target: { value: valueToSave } }, "deviceInterfaceMapping", setTestData, data);
-	setShowDeviceModal(false);
-};
+	const handleDeviceMappingSave = (jsonString) => {
+		// If jsonString is present, use it, else use deviceMappingValue
+		const valueToSave = jsonString !== undefined ? jsonString : deviceMappingValue;
+		handleChangeWithState({ target: { value: valueToSave } }, "deviceInterfaceMapping", setTestData, data);
+		setShowDeviceModal(false);
+	};
 
 
 	return (
@@ -180,14 +180,14 @@ const handleDeviceMappingSave = (jsonString) => {
 				{data.deviceInterfaceMapping && (
 					<div className="mt-1 text-muted" style={{ fontSize: 13, wordBreak: 'break-all' }}>{data.deviceInterfaceMapping}</div>
 				)}
-<DeviceInterfaceMappingModal
-	show={showDeviceModal}
-	value={deviceMappingValue}
-	onChange={setDeviceMappingValue}
-	onClose={() => setShowDeviceModal(false)}
-	testid={data.testid}
-	onSave={handleDeviceMappingSave}
-/>
+				<DeviceInterfaceMappingModal
+					show={showDeviceModal}
+					value={deviceMappingValue}
+					onChange={setDeviceMappingValue}
+					onClose={() => setShowDeviceModal(false)}
+					testid={data.testid}
+					onSave={handleDeviceMappingSave}
+				/>
 			</div>
 			<hr />
 			<h5>Description</h5>

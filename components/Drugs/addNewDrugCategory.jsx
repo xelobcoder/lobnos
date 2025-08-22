@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Form, Button, Col, Row } from 'react-bootstrap';
+import { Form, Button, Row } from 'react-bootstrap';
 import { customPost } from '../Auth/customFetch';
-import { toast, ToastContainer } from 'react-toastify';
-import { useApplicationSettings } from '../Auth/useApplicationContext';
+import { toast } from 'react-toastify';
+import { useApplication} from '../Auth/useApplicationContext';
 
 
 export default function DrugCategoryForm({ edit, reset }) {
-    const { applicationsettings } = useApplicationSettings();
-    const { employeeid} = applicationsettings.user;
+    const { employeeid } = useApplication()?.user;
     const [categoryName, setCategoryName] = useState('');
     const [description, setDescription] = useState('');
     const [buttonNote, setButtonNote] = useState('Add Category');
