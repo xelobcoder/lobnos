@@ -1,6 +1,6 @@
 import ResultViewHtmlGenerator from "../Auth/ResultViewHtmlGenerator";
 import { ResultSettings } from "../ResultView/result-settings";
-
+import styles from '../../app/result/labreport/4/MDSLancet.Template.module.css';
 
 export interface TestDetailCategory {
 	categoryid: number;
@@ -32,7 +32,14 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 	let uncategorized: any[] = [];
 	if (records.length > 0 && testdetailcategory && testdetailcategory.length > 0) {
 		const categoryMap = new Map(testdetailcategory.map(cat => [cat.categoryid, cat]));
-		reorganized = records.reduce((acc, record) => {
+		// Sort records by 'ordering' property in ascending order before reorganizing
+		const sortedRecords = [...records].sort((a, b) => {
+			const orderA = typeof a.ordering === 'number' ? a.ordering : Number(a.ordering) || 0;
+			const orderB = typeof b.ordering === 'number' ? b.ordering : Number(b.ordering) || 0;
+			return orderA - orderB;
+		});
+
+		reorganized = sortedRecords.reduce((acc, record) => {
 			const category = categoryMap.get(record.categoryid);
 			if (category) {
 				if (!acc[category.categoryname]) {
@@ -56,18 +63,20 @@ export default function UseCustomResultTemplatingPreview({ test, records, isResu
 					{testInfo && testInfo?.reportitle ? testInfo?.reportitle : test}
 				</span>
 			</h5>
-			<table className={isResultView ? "table-borderless table-sm borderless " : "table billing-cart-table"} >
+			<table style={{ width: '100% !important', marginLeft: '0mm !important', marginRight: '0mm !important' }}
+				className={isResultView ? `${styles.resulttable} table-borderless table-sm` : `table billing-cart-table`} >
 				<thead style={{
 					backgroundColor: resultsettings?.testTableHeaderBackgroundColor || 'orange',
 					color: resultsettings?.testTableHeaderTextColor || 'black',
+					width: '100% !important',
 					fontSize: resultsettings?.testTableHeaderFontSize || '13px'
 				}}>
 					<tr>
-						<th scope="col" style={{ width: '45%' }} >{resultsettings.testBody.trFirstColumnName || 'Test'}</th>
-						<th scope="col" style={{ width: '20%' }}>{resultsettings.testBody.trSecondColumnName || 'Value'}</th>
-						<th scope="col" style={{ width: '10%' }}>{resultsettings.testBody.trThirdColumnName || 'Units'}</th>
-						<th scope="col" style={{ width: '20%' }}>{resultsettings.testBody.trFourthColumnName || 'References'}</th>
-						<th scope="col" style={{ width: '5%' }}>{resultsettings.testBody.trFifthColumnName || 'Flags'}</th>
+						<th style={{ width: '45%' }} >{resultsettings.testBody.trFirstColumnName || 'Test'}</th>
+						<th style={{ width: '20%' }}>{resultsettings.testBody.trSecondColumnName || 'Value'}</th>
+						<th style={{ width: '10%' }}>{resultsettings.testBody.trThirdColumnName || 'Units'}</th>
+						<th style={{ width: '20%' }}>{resultsettings.testBody.trFourthColumnName || 'References'}</th>
+						<th style={{ width: '5%' }}>{resultsettings.testBody.trFifthColumnName || 'Flags'}</th>
 					</tr>
 				</thead>
 				<tbody>

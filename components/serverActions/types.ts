@@ -3,6 +3,7 @@ interface QueryParams {
     page: number;
     name: string;
     email: string;
+    sortby: string;
     role: string;
     contact: string;
 }

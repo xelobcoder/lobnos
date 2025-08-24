@@ -16,9 +16,9 @@ export default function AscentionCompletedTable({ employeeid, branchid }) {
 
 	const columns = [
 		{
-			Header: 'Ascension Date',
+			Header: 'Ascension Date(ID)',
 			accessor: 'ascension_date',
-			Cell: ({ value }) => new Date(value).toLocaleDateString(),
+			Cell: ({ value, row }) => <>{new Date(value).toLocaleDateString()} ({row.original.ascensionid})</>,
 			width: 70
 		},
 		{

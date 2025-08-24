@@ -104,9 +104,9 @@ export default function AscensionProcessingTable() {
             style: { fontSize: '15px' },
         },
         {
-            Header: 'Ascension Date',
+            Header: 'Ascension Date(ID)',
             accessor: 'ascension_date',
-            Cell: ({ value }) => new Date(value).toLocaleDateString(),
+            Cell: ({ value, row }) => <>{new Date(value).toLocaleDateString()} ({row.original.ascensionid})</>,
         },
         { Header: 'CustomerId', accessor: 'fullpatientid' },
         { Header: 'BillID', accessor: 'billingid' },

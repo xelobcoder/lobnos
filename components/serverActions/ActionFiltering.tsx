@@ -308,6 +308,7 @@ export const buildLoginQueryServerSide = async (
 			page: String(query.page),
 			name: query.name,
 			email: query.email,
+			sortby: query.sortby || 'DESC',
 			role: query.role,
 			contact: query.contact,
 		});

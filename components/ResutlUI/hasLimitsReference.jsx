@@ -5,14 +5,39 @@ export default function LimitViewHtmlGeneratorResultView({ fieldItem, index, res
      const settings = resultsettings?.testBody
 
      const determineTableColor = (value, upperlimit, lowerlimit) => {
-          if (!isNaN(value) && value != "" && !isNaN(upperlimit) && !isNaN(lowerlimit)) {
-               value = parseFloat(value);
-               upperlimit = parseFloat(upperlimit);
-               lowerlimit = parseFloat(lowerlimit);
-               if (value > upperlimit) return 'H'
-               else if (value < lowerlimit) return 'L'
-               else return ''
+          if (value == null || value === "" || isNaN(upperlimit) || isNaN(lowerlimit)) return '';
+          let valStr = String(value).trim();
+          let numValue = null;
+          let compareType = null;
+          // Check for > or < symbols
+          if (valStr.startsWith('>')) {
+               compareType = '>';
+               numValue = parseFloat(valStr.slice(1));
+          } else if (valStr.startsWith('<')) {
+               compareType = '<';
+               numValue = parseFloat(valStr.slice(1));
+          } else {
+               numValue = parseFloat(valStr);
           }
+          upperlimit = parseFloat(upperlimit);
+          lowerlimit = parseFloat(lowerlimit);
+          if (isNaN(numValue)) return '';
+          // If value is >X, treat as X for flagging
+          if (compareType === '>') {
+               if (numValue > upperlimit) return 'H';
+               if (numValue < lowerlimit) return 'L';
+               return '';
+          }
+          // If value is <X, treat as X for flagging
+          if (compareType === '<') {
+               if (numValue > upperlimit) return 'H';
+               if (numValue < lowerlimit) return 'L';
+               return '';
+          }
+          // Normal numeric value
+          if (numValue > upperlimit) return 'H';
+          if (numValue < lowerlimit) return 'L';
+          return '';
      }
 
      const flag = determineTableColor(value, upperlimit, lowerlimit);

@@ -3,16 +3,16 @@ import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import { plsEncryption } from '../../../lib/encryption';
 import { buildLoginQueryServerSide } from '../../serverActions/ActionFiltering';
 import { Dropdown, ButtonGroup } from 'react-bootstrap';
-import { 
-  RiMoreFill, 
-  RiUser3Line,
-  RiPencilLine,
-  RiDeleteBinLine,
-  RiToggleLine,
-  RiShieldKeyholeLine,
-  RiHistoryLine,
-  RiCalendarEventLine 
-} from '@remixicon/react'; 
+import {
+	RiMoreFill,
+	RiUser3Line,
+	RiPencilLine,
+	RiDeleteBinLine,
+	RiToggleLine,
+	RiShieldKeyholeLine,
+	RiHistoryLine,
+	RiCalendarEventLine
+} from '@remixicon/react';
 
 
 export default function UserList({ users, handleDelete, activateUser, updateRefresh, filters }) {
@@ -21,18 +21,18 @@ export default function UserList({ users, handleDelete, activateUser, updateRefr
 	const columns = [
 		{
 			Header: "Icon",
-			accessor: "", 
-			Cell: function ({ row}) {
+			accessor: "",
+			Cell: function ({ row }) {
 				return (
 					<span className="bg-primary rounded-circle p-2">
 						<RiUser3Line className="text-white fs-5" />
 					</span>
 				);
 			},
-			width: 80, 
+			width: 80,
 		},
 		{
-			Header: "Username",
+			Header: "Username(Employee ID)",
 			accessor: "username",
 			Cell: function ({ row, value }) {
 				return (
@@ -40,11 +40,11 @@ export default function UserList({ users, handleDelete, activateUser, updateRefr
 						<span className='text-capitalize'>{value}</span>
 						{row.original.activation === 1 ? (
 							<div className="text-success">
-								{">>"} ( active)
+								{">>"} ( active)({row.original.employeeid})
 							</div>
 						) : (
 							<div className="text-danger">
-								{">>"} (inactive)
+								{">>"} (inactive)({row.original.employeeid})
 							</div>
 						)}
 					</div>

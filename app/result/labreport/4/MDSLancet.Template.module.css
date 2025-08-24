@@ -114,14 +114,16 @@
     margin: 10px -12mm;
     letter-spacing: 1px;
 }
-
+.TableTitleBar {
+       margin: 10px -12mm;
+}
 .patientInfoSection {
     display: grid;
     grid-template-columns: 1.2fr 1fr;
     /* Left column wider */
     gap: 0 20px;
     /* Column gap */
-    font-size: 9pt;
+    font-size: 14px !important;
     text-transform: capitalize !important;
     padding-bottom: 10px;
     border-bottom: 1px solid black;
@@ -288,6 +290,10 @@
 }
 
 @media print {
+    /* Add print page margins */
+    @page {
+        margin: 15mm 10mm 15mm 10mm;
+    }
     .result {
         background: white !important;
         margin: 0 !important;
@@ -336,4 +342,10 @@
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
+}
+
+
+.resulttable {
+    width: 100%;
+    border-collapse: collapse;
 }

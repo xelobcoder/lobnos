@@ -67,7 +67,7 @@ const MDSLancetTemplate: React.FC = () => {
             });
         }
 
-      
+
         async function ensureImagesLoaded() {
             const resultElement = document.querySelector('.result');
             if (!resultElement) return;
@@ -255,7 +255,7 @@ const MDSLancetTemplate: React.FC = () => {
         <>
             {pdfControls}
             {!showPdfControls && (
-                <div style={{ position: 'relative', width: '100vw', height: '100vh', backgroundColor: 'white' }}>
+                <div style={{ position: 'relative', width: '100%', height: '100vh', backgroundColor: 'white' }}>
                     <div className={styles.page} style={{
                         fontFamily: resultSettings.fontfamily, minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'white',
 
@@ -281,7 +281,7 @@ const MDSLancetTemplate: React.FC = () => {
                                 collectionDate={!isScan ? resultdata.samplingInformation?.collectionEndDate : ''}
                                 finalReportDate={resultdata.samplingInformation?.resultEntryEnd}
                             />
-                            <div  style={{width: '100%'}}>
+                            <div style={{ width: '100%', margin: '0' }}>
                                 <section>
                                     {!isScan && <UseCustomResultTemplatingPreview
                                         test={resultdata?.testname}
@@ -327,18 +327,18 @@ const MDSLancetTemplate: React.FC = () => {
                                             <p className='mx-1'>{resultdata.testInfo.instrumentation}</p>
                                         </div>
                                     )}
-                                    	{resultdata.generalValidation && (
-										<div className="d-flex" style={{ justifyContent: 'center', marginTop: 8 }}>
-											<div className="text-uppercase">Verified By:</div>
-											<div className="mx-2">{resultdata.generalValidation.username}</div>
-										</div>
-									)}
+                                    {resultdata.generalValidation && (
+                                        <div className="d-flex" style={{ justifyContent: 'center', marginTop: 8 }}>
+                                            <div className="text-uppercase">Verified By:</div>
+                                            <div className="mx-2">{resultdata.generalValidation.username}</div>
+                                        </div>
+                                    )}
                                     <span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
                                     {!isScan && resultSettings.includeLimitations && <UseDisclaimer disclaimer={resultSettings.limitations} />}
                                 </section>
                             </div>
                         </div>
-                        <footer className={styles.footerSection}>
+                        <footer >
                             <VersionFooter />
                             <div className={styles.pageNumber}>
                                 <span className="pageNumber"></span>

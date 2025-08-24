@@ -5,12 +5,13 @@ import { customFetch } from '../../../components/Auth/customFetch';
 export default async function Page() {
 	let result: any[] = [];
 	let errorMessage: string | null = null;
-	const query = { count: 10, page: 1, name: '', role: '', email: "", contact: '' };
+	const query = { count: 10, page: 1, name: '', role: '', email: "", contact: '',sortby:'DESC' };
 
 	const queryParams = new URLSearchParams({
 		count: String(query.count),
 		page: String(query.page),
 		name: query.name,
+		sortby: query.sortby || 'DESC',
 		email: query.email,
 		role: query.role,
 		contact: query.contact,
