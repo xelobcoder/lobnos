@@ -37,6 +37,8 @@ const MDSLancetTemplate: React.FC = () => {
     const testid = searchParams?.get('testid');
     const csvid = searchParams?.get('csvid');
     const isScan = searchParams?.get('isScan') === 'true';
+    const [isReplaceUltrasoundTestname, setIsReplaceUltrasoundTestname] = useState(false);
+    const [ultrasoundTestname, setUltrasoundTestname] = useState(test);
 
     const url = `result/printout/ascension/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&isScan=${isScan}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
 
@@ -253,6 +255,15 @@ const MDSLancetTemplate: React.FC = () => {
 
     return (
         <>
+            {isScan &&<div className='bg-secondary-subtle p-3 d-flex  justify-content-between no-print'>
+                <div>
+                    <label>Replace Ultrasound Scan Report Name </label>
+                    {isScan && <input type='checkbox' className='form-check-input' checked={isReplaceUltrasoundTestname} onChange={(e) => setIsReplaceUltrasoundTestname(e.target.checked)} />}
+                </div>
+                <div className='col-8'>
+                    {isScan && isReplaceUltrasoundTestname && <input type='text' className='form-control' value={ultrasoundTestname} onChange={(e) => setUltrasoundTestname(e.target.value)} />}
+                </div>
+            </div>}
             {pdfControls}
             {!showPdfControls && (
                 <div style={{ position: 'relative', width: '100%', height: '100vh', backgroundColor: 'white' }}>
@@ -292,7 +303,7 @@ const MDSLancetTemplate: React.FC = () => {
                                         testdetailcategory={resultdata.testdetailcategory}
                                     />}
                                     {isScan && <ResultViewHtmlGeneratorUltrasound resultsettings={resultdata.resultsettings}
-                                        test={test}
+                                        test={isReplaceUltrasoundTestname ? ultrasoundTestname : test}
                                         testInfo={resultdata?.testInfo}
                                         resultentry={resultdata?.resultentry}
                                         records={resultdata?.records} />

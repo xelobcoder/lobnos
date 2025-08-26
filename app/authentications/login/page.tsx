@@ -18,8 +18,33 @@ export default function PrimeLabLoginPage() {
 			const email = formData.get("email");
 			const password = formData.get("password");
 
+
+			// Collect detailed browser information
+			let browserInfo = {};
+			if (typeof window !== 'undefined') {
+				const nav = window.navigator;
+				browserInfo = {
+					userAgent: nav.userAgent || '',
+					platform: nav.platform || '',
+					device: /Mobi|Android/i.test(nav.userAgent) ? 'mobile' : 'computer',
+					connectionType: (nav as any)?.connection?.effectiveType || '',
+					deviceMemory: (nav as any)?.deviceMemory || '',
+					language: nav.language || '',
+					languages: nav.languages || [],
+					vendor: nav.vendor || '',
+					hardwareConcurrency: nav.hardwareConcurrency || '',
+					cookieEnabled: nav.cookieEnabled,
+					online: nav.onLine,
+					product: nav.product || '',
+					appVersion: nav.appVersion || '',
+					appName: nav.appName || '',
+					maxTouchPoints: nav.maxTouchPoints || 0,
+					// Add more fields as needed
+				};
+			}
+
 			// Step 1: Authenticate with backend using customPost
-			const backendResponse = await customPost('prime/login', 'POST', { email, password });
+			const backendResponse = await customPost('prime/login', 'POST', { email, password, browserInfo });
 
 			const { status, accessToken, user } = backendResponse;
 
@@ -39,7 +64,8 @@ export default function PrimeLabLoginPage() {
 					status,
 					accessToken,
 					user,
-					email
+					email,
+					browserInfo
 				}),
 			});
 

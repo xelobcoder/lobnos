@@ -40,12 +40,46 @@ export default function LabReportPrintingMultiple() {
 					if (data && data.resultsettings) {
 						setResultSettings(data.resultsettings);
 					}
-					setResultData(data);
+
+					if (data && data.test && Array.isArray(data.test)) {
+
+						// Sort each test's records array from lowest to largest
+						for (const test of data.test) {
+							if (Array.isArray(test.records)) {
+								test.records.sort((a, b) => {
+									// Give numeric ordering highest priority (appear last), null/undefined/zero lowest (appear first)
+									const isNumeric = (val) => {
+										if (val === null || val === undefined) return false;
+										if (typeof val === 'number') return val !== 0;
+										const parsed = parseInt(val, 10);
+										return !isNaN(parsed) && parsed !== 0;
+									};
+									const getOrder = (val) => {
+										if (val === null || val === undefined) return 0;
+										if (typeof val === 'number') return Math.floor(val);
+										const parsed = parseInt(val, 10);
+										return isNaN(parsed) ? 0 : parsed;
+									};
+									const aIsNum = isNumeric(a.ordering);
+									const bIsNum = isNumeric(b.ordering);
+									if (aIsNum && !bIsNum) return 1;
+									if (!aIsNum && bIsNum) return -1;
+									// Both numeric or both not numeric, sort by value
+									const orderA = getOrder(a.ordering);
+									const orderB = getOrder(b.ordering);
+									return orderA - orderB;
+								});
+							}
+						}
+						setResultData(data);
+					}
 				})
 				.catch((err) => console.error(err))
 				.finally(() => { setLoader(false); });
 		}
 	}, []);
+
+
 
 	const [pdfUrl, setPdfUrl] = useState<{ url: string; filename: string } | null>(null);
 	const [pdfError, setPdfError] = useState<string | null>(null);
@@ -421,6 +455,9 @@ export default function LabReportPrintingMultiple() {
 		);
 	}
 
+
+
+
 	return (
 		<Suspense>
 			{pdfControls}
@@ -531,8 +568,7 @@ export default function LabReportPrintingMultiple() {
 											styles={styles}
 											patientInformation={resultdata.patientInformation}
 											labRef={`BILL${resultdata.billingid}`}
-											collectionDate={resultdata.samplingInformation?.collectionEndDate}
-											finalReportDate={resultdata.samplingInformation?.resultEntryEnd}
+										isBulk={true}
 										/>
 									</div>
 									<div className="print-content" style={{ flex: 1 }}>
@@ -582,19 +618,21 @@ export default function LabReportPrintingMultiple() {
 																	MEDICAL LABORATORY REPORT
 																</div>
 																<MdsPersonalInformation
+																	isBulk={true}
 																	styles={styles}
 																	patientInformation={resultdata.patientInformation}
 																	labRef={`BILL${resultdata.billingid}`}
-																	collectionDate={resultdata.samplingInformation?.collectionEndDate}
-																	finalReportDate={resultdata.samplingInformation?.resultEntryEnd}
 																/>
 															</div>
 														)}
 
 														<UseCustomResultTemplatingPreview
-															test={resultdata.test[idx].testname}
+															test={resultdata.test[idx].testInfo.reportTitle ? resultdata.test[idx].testInfo.reportTitle : resultdata.test[idx].testname}
 															records={resultdata.test[idx].records}
+															testInfo={resultdata.test[idx].testInfo}
 															resultsettings={resultSettings}
+															isScan={false}
+															isResultView={true}
 															testdetailcategory={resultdata.test[idx].testdetailcategory}
 														/>
 

@@ -3,15 +3,15 @@ import React from 'react';
 
 
 interface PatientInformation {
-     firstname: string;
-     lastname: string;
-     fullpatientid: string;
-     age: number;
-     middlename?: string;
-     gender: string;
-     agetype: string;
-     dob?: string;
-     organization: string;
+    firstname: string;
+    lastname: string;
+    fullpatientid: string;
+    age: number;
+    middlename?: string;
+    gender: string;
+    agetype: string;
+    dob?: string;
+    organization: string;
 }
 
 
@@ -21,17 +21,19 @@ interface MdsPersonalInformationProps {
     labRef?: string;
     collectionDate?: string;
     receivedDate?: string;
+    isBulk?: boolean;
     finalReportDate?: string;
     styles?: { [key: string]: string };
 }
 
 const MdsPersonalInformation: React.FC<MdsPersonalInformationProps> = ({
-     patientInformation,
-     labRef,
-     collectionDate,
-     receivedDate,
-     finalReportDate,
-     styles = {}
+    patientInformation,
+    labRef,
+    collectionDate,
+    receivedDate,
+    isBulk = false,
+    finalReportDate,
+    styles = {}
 }) => {
     return (
         <section className={styles.patientInfoSection}>
@@ -51,7 +53,7 @@ const MdsPersonalInformation: React.FC<MdsPersonalInformationProps> = ({
                 <div className={styles.infoPair}>
                     <span className={styles.infoLabel}>Lab Ref.</span>: <span className={styles.infoValue}>{labRef}</span>
                 </div>
-                <div className={styles.infoBlock}>
+                {!isBulk ? (<div className={styles.infoBlock}>
                     <div className={styles.infoPair}>
                         <span className={styles.infoLabel}>Collection Date</span>:
                         <span className={styles.infoValue}>{collectionDate ? dayjs(collectionDate).format('YYYY-MM-DD') : ''}</span>
@@ -62,7 +64,15 @@ const MdsPersonalInformation: React.FC<MdsPersonalInformationProps> = ({
                         <span className={styles.infoValue}>{finalReportDate ? dayjs(finalReportDate).format('YYYY-MM-DD') : ''}</span>
                         <span style={{ marginLeft: '5px' }}>{finalReportDate ? dayjs(finalReportDate).format('hh:mm A') : ''}</span>
                     </div>
-                </div>
+                </div>) : (
+                    <div className={styles.infoBlock}>
+                        <div className={styles.infoPair}>
+                            <span className={styles.infoLabel}>Print Date </span>:
+                            <span className={styles.infoValue}>{dayjs().format('YYYY-MM-DD')}</span>
+                            <span style={{ marginLeft: '5px' }}>{dayjs().format('hh:mm A')}</span>
+                        </div>
+                    </div>
+                )}
             </div>
         </section>
     );
