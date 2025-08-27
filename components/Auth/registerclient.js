@@ -67,35 +67,26 @@ export const handleAgeCalculations = async (data, setValue) => {
   const { years, months, days } = personalParams;
   let ageCalculation = handleAge(years, months, days);
 
-  if (ageCalculation && ageCalculation !== "invalid Date") {
-    const { years: calcYears, months: calcMonths, days: calcDays } = ageCalculation;
-
-    if (calcYears == 0 && calcMonths == 0 && calcDays == 0) {
-      if (Number(data.days) > new Date().getDate()) {
-        setValue("age", 0);
-        setValue("ageType", "days");
-      } else {
-        setValue("age", calcDays);
-        setValue("ageType", "days");
-      }
-    } else if (calcYears !== 0) {
-      setValue("age", calcYears);
-      setValue("ageType", "years");
-    } else if (calcYears == 0 && calcMonths !== 0) {
-      setValue("age", calcMonths);
-      setValue("ageType", "months");
-    } else if (calcYears == 0 && calcMonths == 0 && calcDays > 0) {
-      setValue("age", calcDays);
-      setValue("ageType", "days");
-    }
-  }
-
-  if (ageCalculation === "invalid Date") {
+  if (!ageCalculation) {
     setValue("age", 0);
     setValue("days", 0);
     setValue("months", 0);
     setValue("years", 0);
     setValue("ageType", "");
+    return;
+  }
+
+  const { years: calcYears, months: calcMonths, days: calcDays } = ageCalculation;
+
+  if (calcYears > 0) {
+    setValue("age", calcYears);
+    setValue("ageType", "years");
+  } else if (calcMonths > 0) {
+    setValue("age", calcMonths);
+    setValue("ageType", "months");
+  } else {
+    setValue("age", calcDays);
+    setValue("ageType", "days");
   }
 };
 

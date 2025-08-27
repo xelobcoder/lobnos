@@ -30,8 +30,9 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
         { value: 'input', label: 'Single Line', Icon: RiFileTextLine },
         { value: 'textReference', label: 'Text with Ref', Icon: RiFileTextFill },
         { value: 'limits', label: 'Numeric Range', Icon: RiNumber5 },
+        { value: 'greaterLess', label: 'Greater Than / Less Than Value', Icon: RiNumber5 },
         { value: 'plain', label: 'Text Area', Icon: RiFile2Line },
-        {value:'ultrasoundFields', label: 'ultrasound Fields', Icon: RiFileTextFill},
+        { value: 'ultrasoundFields', label: 'ultrasound Fields', Icon: RiFileTextFill },
     ];
 
     const handleTypeSelect = (value: string | null) => {
@@ -118,7 +119,7 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
                         </label>
                     </div>
 
-                    {field?.undercategory ?(
+                    {field?.undercategory ? (
                         <div className={styles.inputGroup}>
                             <Select
                                 options={categoryOptions}
@@ -130,8 +131,21 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
                                 isClearable
                             />
                         </div>
-                    ): null}
+                    ) : null}
                 </div>
+
+                {field?.plan === 'greaterLess' && (
+                    <div className={styles.inputGroup}>
+                        <label className={styles.inputLabel}>Enter &gt;value or &lt;value</label>
+                        <input
+                            type="text"
+                            value={field?.textReference || ''}
+                            onChange={e => setField({ ...field, textReference: e.target.value })}
+                            placeholder="e.g. >5 or <10"
+                            className={styles.formInput}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

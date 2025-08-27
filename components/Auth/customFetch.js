@@ -59,7 +59,7 @@ export async function customFetch(endpoint) {
 }
 
 
-export async function handleLogout( setIsLoggingOut) {
+export async function handleLogout(setIsLoggingOut) {
 	try {
 		const response = await fetch('/api/auth/logout', {
 			method: 'POST',
@@ -140,6 +140,13 @@ export const validatePin = async (employeeid, pin) => {
 }
 
 
+export function formatDateOrNA(dateStr) {
+	// Check for empty, invalid, or zeroed date strings
+	if (!dateStr || isNaN(new Date(dateStr).getTime()) || /^0{2,}/.test(dateStr) || /^0{4}-0{2}-0{2}$/.test(dateStr) || dateStr === '0000-00-00') {
+		return 'NILL';
+	}
+	return new Date(dateStr).toLocaleDateString();
+}
 
 
 

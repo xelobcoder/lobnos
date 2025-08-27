@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { handleActivation } from '../../../components/Auth/registerclient';
-import { customFetch, generateRandomTextAndNumbers, parseDate } from '../../../components/Auth/customFetch';
+import { customFetch, formatDateOrNA, parseDate } from '../../../components/Auth/customFetch';
 import Loader from '../../../components/accessories/Loader';
 import PatientFiltered from '../../../components/accessories/SectorFileringComponents/CustomerFiltering';
 import CustomersActions from '../../../components/customer/CustomersActionDropDown';
@@ -95,7 +95,7 @@ export default function Activator() {
             filteringMode: 'text'
         },
         {
-            Header: "dob", accessor: "dob", Cell: ({ value }) => parseDate(value),
+            Header: "dob", accessor: "dob", Cell: ({ value }) => formatDateOrNA(value),
             filteringMode: 'date'
         },
         {
@@ -153,14 +153,14 @@ export default function Activator() {
 
 
 
-    const handleSeverSideProcessing = async (pagination: {count:number,page:number,sortby:'ASC' | 'DESC'}) => {
+    const handleSeverSideProcessing = async (pagination: { count: number, page: number, sortby: 'ASC' | 'DESC' }) => {
         try {
-            const { page, count ,sortby='DESC'} = pagination;
+            const { page, count, sortby = 'DESC' } = pagination;
             const response = await customFetch(`customers?page=${page}&&count=${count}&&sortby=${sortby}`);
             if (Array.isArray(response)) {
                 return { result: response, error: false }
             } else {
-                return { result: [], error: false}
+                return { result: [], error: false }
             }
         } catch (err) {
             return { result: [], error: true }
@@ -173,11 +173,11 @@ export default function Activator() {
         <div className='p-2'>
             <div className="col-md-8 col-sm-12 col-lg-5 my-2 d-lg-flex ">
                 <div className='col-8'>
-                <PatientFiltered isDisabled={false} getSelectedPatient={filteredPatient} />
+                    <PatientFiltered isDisabled={false} getSelectedPatient={filteredPatient} />
                 </div>
-                    <div className='mx-3' style={{marginTop:'3px'}}>
-                        <button className='btn btn-outline-danger btn-sm' onClick={() =>  {resetFiltering()}}> <RiResetLeftFill/> Reset </button>
-                    </div>
+                <div className='mx-3' style={{ marginTop: '3px' }}>
+                    <button className='btn btn-outline-danger btn-sm' onClick={() => { resetFiltering() }}> <RiResetLeftFill /> Reset </button>
+                </div>
             </div>
             <div >
                 {Array.isArray(tempStore)

@@ -114,7 +114,7 @@ const AdditionalPersonalInformation = ({ fields, setFormData, data, checkIFNumbe
                                 checked={data.maritalstatus === 'single'}
                                 onChange={ev => setFormData('maritalstatus', 'single')}
                                 className="mb-2"
-                                required={fields.maritalstatus.compulsory}
+                                // required={fields.maritalstatus.compulsory}
                             />
                             <Form.Check
                                 type="radio"
@@ -122,7 +122,7 @@ const AdditionalPersonalInformation = ({ fields, setFormData, data, checkIFNumbe
                                 value="married"
                                 checked={data.maritalstatus === 'married'}
                                 onChange={ev => setFormData('maritalstatus', 'married')}
-                                required={fields.maritalstatus.compulsory}
+                                // required={fields.maritalstatus.compulsory}
                             />
                         </div>
                     </div>

@@ -106,6 +106,7 @@ export default function LabReportPrintingMultiple() {
 
 	const headerRef = useRef<HTMLDivElement | null>(null);
 	const footerRef = useRef<HTMLDivElement | null>(null);
+	const verifiedRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
 		setPdfError(null);
@@ -261,6 +262,28 @@ export default function LabReportPrintingMultiple() {
 							pdf.addImage(headerImgData, 'PNG', margin, margin, usableWidth, headerHeightMm);
 							y = pageTopWithHeader;
 						}
+					}
+
+
+					// Add Verified By and Disclaimer blocks before finishing PDF
+					const verifiedEl = verifiedRef.current;
+					const footerEl = footerRef.current;
+					if (verifiedEl && footerEl) {
+						pdf.setPage(pdf.getNumberOfPages());
+						// Capture footer first to get its height
+						const footerCanvas = await html2canvas(footerEl as HTMLElement, { scale: 2, useCORS: true });
+						const footerImgData = footerCanvas.toDataURL('image/png');
+						const footerHeightMm = (footerCanvas.height * usableWidth) / footerCanvas.width;
+						// Capture Verified By block
+						const verifiedCanvas = await html2canvas(verifiedEl as HTMLElement, { scale: 2, useCORS: true });
+						const verifiedImgData = verifiedCanvas.toDataURL('image/png');
+						const verifiedHeightMm = (verifiedCanvas.height * usableWidth) / verifiedCanvas.width;
+						// Add Verified By block first
+						let yVerified = pdf.internal.pageSize.getHeight() - margin - verifiedHeightMm - footerHeightMm - 5;
+						pdf.addImage(verifiedImgData, 'PNG', margin, yVerified, usableWidth, verifiedHeightMm);
+						// Then End of Report (footer)
+						let yFooter = pdf.internal.pageSize.getHeight() - margin - footerHeightMm;
+						pdf.addImage(footerImgData, 'PNG', margin, yFooter, usableWidth, footerHeightMm);
 					}
 
 					const pageCount = pdf.getNumberOfPages();
@@ -568,7 +591,7 @@ export default function LabReportPrintingMultiple() {
 											styles={styles}
 											patientInformation={resultdata.patientInformation}
 											labRef={`BILL${resultdata.billingid}`}
-										isBulk={true}
+											isBulk={true}
 										/>
 									</div>
 									<div className="print-content" style={{ flex: 1 }}>
@@ -673,42 +696,20 @@ export default function LabReportPrintingMultiple() {
 									</div>
 								</div>
 
-								<div ref={footerRef} className={`report-footer ${footerForceBreak ? 'force-break' : ''}`} style={{ width: '100%', marginTop: 32, textAlign: 'center', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
-									{resultSettings.includeLimitations && (
-										<span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
-									)}
+								<div ref={verifiedRef} style={{ width: '100%', textAlign: 'center', marginTop: 5, marginBottom: 5, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
 									{resultdata.generalValidation && (
-										<div className="d-flex" style={{ justifyContent: 'center', marginTop: 8 }}>
+										<div className="d-flex" style={{ justifyContent: 'center', marginTop: 0 }}>
 											<div className="text-uppercase">Verified By:</div>
 											<div className="mx-2">{resultdata.generalValidation.username}</div>
 										</div>
 									)}
+								</div>
+								<div ref={footerRef} className={`report-footer ${footerForceBreak ? 'force-break' : ''}`} style={{ width: '100%', marginTop: 5, textAlign: 'center', breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+									{resultSettings.includeLimitations && (
+										<span className="text-muted d-flex justify-content-center text-sm">******End of Report ******</span>
+									)}
 									{resultSettings.includeLimitations && <UseDisclaimer disclaimer={resultSettings.limitations} />}
 								</div>
-								{pdfUrl && (
-									<button
-										className='printing-button no-print'
-										onClick={() => {
-											setShowPdfControls(true);
-										}}
-										style={{
-											position: 'absolute',
-											top: 16,
-											right: 16,
-											zIndex: 10000,
-											background: '#4169e1',
-											color: '#fff',
-											border: 'none',
-											borderRadius: 4,
-											padding: '8px 16px',
-											fontWeight: 'bold',
-											cursor: 'pointer',
-											boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-										}}
-									>
-										PDF Options
-									</button>
-								)}
 							</div>
 						</div>
 					</div>

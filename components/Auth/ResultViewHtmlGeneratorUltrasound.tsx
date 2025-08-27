@@ -90,38 +90,16 @@ export default function ResultViewHtmlGeneratorUltrasound({
                     {records.length === 1 ? (
                          <div dangerouslySetInnerHTML={{ __html: decodeHtml(records[0].value) }} />
                     ) : (
-                         <table style={{
-                              width: '100%',
-                              borderCollapse: 'collapse',
-                              marginTop: '10px',
-                              border: '1px solid #ddd'
-                         }}>
-                              <tbody>
-                                   {records.map((record, index) => (
-                                        <tr key={index} style={{
-                                             borderBottom: '1px solid #eee'
-                                        }}>
-                                             <td style={{
-                                                  fontWeight: 'bold',
-                                                  padding: '8px 12px',
-                                                  verticalAlign: 'top',
-                                                  width: '30%',
-                                                  backgroundColor: '#f8f9fa',
-                                                  border: '1px solid #ddd'
-                                             }}>
-                                                  {record.field}:
-                                             </td>
-                                             <td style={{
-                                                  padding: '8px 12px',
-                                                  verticalAlign: 'top',
-                                                  border: '1px solid #ddd'
-                                             }}>
-                                                  <div dangerouslySetInnerHTML={{ __html: decodeHtml(record.value) }} />
-                                             </td>
-                                        </tr>
-                                   ))}
-                              </tbody>
-                         </table>
+                         <div>
+                              {records.map((record, index) => (
+                                   <div key={index} style={{ marginBottom: '12px' }}>
+                                        <div style={{ fontWeight: 'bold', marginBottom: '2px' }}>{record.field}:</div>
+                                        <div style={{ marginLeft: '8px' }}>
+                                             <div dangerouslySetInnerHTML={{ __html: decodeHtml(record.value) }} />
+                                        </div>
+                                   </div>
+                              ))}
+                         </div>
                     )}
                </div>
 
@@ -131,7 +109,7 @@ export default function ResultViewHtmlGeneratorUltrasound({
                          <div className="fw-bold mb-2">Scanned By:      {resultentry}</div>
                     </div>
                )}
-               
+
                {resultsettings?.ultrasoundSettings?.showDisclaimer && resultsettings?.ultrasoundSettings?.disclaimerText && (
                     <div style={{
                          fontSize: (resultsettings?.ultrasoundSettings?.fontSize || 14) - 2 + 'px',

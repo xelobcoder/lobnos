@@ -106,12 +106,12 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 
 								<div className="p-3 mx-2" >
 									{
-									field.plan && 
-									<CustomParameterTypeSelection
-										selection={field.plan}
-										field={field}
-										setField={setField}
-									/>
+										field.plan &&
+										<CustomParameterTypeSelection
+											selection={field.plan}
+											field={field}
+											setField={setField}
+										/>
 									}
 								</div>
 							</div>
@@ -132,7 +132,7 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 					<div className="card shadow-sm h-100">
 						<div className="card-body d-flex flex-column">
 							<div className="d-flex justify-content-between align-items-center mb-3">
-								<h2 className="card-title fs-5 fw-bold text-dark">Current Fields ({ data.length})</h2>
+								<h2 className="card-title fs-5 fw-bold text-dark">Current Fields ({data.length})</h2>
 							</div>
 							<div className="flex-grow-1" style={{ minHeight: '200px' }}>
 								{data.length === 0 ? (

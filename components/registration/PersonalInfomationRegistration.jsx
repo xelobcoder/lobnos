@@ -27,7 +27,7 @@ export default function PersonalInformationRegistration({
 
 	const validateCompulsoryFields = (data) => {
 		const compulsoryFields = Object.entries(fields)
-			.filter(([_, config]) => config.visible && config.compulsory)
+			.filter(([fieldName, config]) => config.visible && config.compulsory && fieldName !== 'occupation' && fieldName !== 'patientOrganization')
 			.map(([fieldName]) => fieldName);
 		const missingFields = compulsoryFields.filter(field => {
 			const value = data[field];

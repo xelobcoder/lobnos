@@ -26,8 +26,7 @@ export default function CreateTestRule({ clientdata }) {
 	const [isSaving, setIsSaving] = useState(false);
 	const [pin, setPin] = useState("");
 
-	console.log('Modified', modifiedDrugs)
-
+	
 	const getAscensionEditCount = async () => {
 		const count = getAscensionEditCountServerideS({ billingid, testid, patientid, ascensionid })
 		count ? setEditCount(count) : null

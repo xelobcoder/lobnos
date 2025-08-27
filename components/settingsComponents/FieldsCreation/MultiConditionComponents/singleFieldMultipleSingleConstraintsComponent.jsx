@@ -73,22 +73,51 @@ export default function SingleFieldMultipleSingleConstraintsComponent({ field, i
                 </div>
             )}
         </td>
-        <td>
+        {field.action == "prefix" && (<td>
             <input
                 type="text"
                 className="custom-input"
                 onChange={(ev) => handleChangeWithState(index, 'prefix', ev)}
                 value={field.prefix || ''}
             />
-        </td>
-        <td>
-            <input
-                type="text"
-                className="custom-input"
-                onChange={(ev) => handleChangeWithState(index, 'suffix', ev)}
-                value={field.suffix || ''}
-            />
-        </td>
+        </td>)}
+        {
+            field.action == "suffix" && (
+                <td>
+                    <input
+                        type="text"
+                        className="custom-input"
+                        onChange={(ev) => handleChangeWithState(index, 'suffix', ev)}
+                        value={field.suffix || ''}
+                    />
+                </td>
+            )
+        }
+
+        {
+            field.action == "prefix-suffix" && (
+                <>
+                    <td>
+                        <input
+                            type="text"
+                            className="custom-input"
+                            onChange={(ev) => handleChangeWithState(index, 'prefix', ev)}
+                            value={field.prefix || ''}
+                            placeholder="Enter prefix"
+                        />
+                    </td>
+                    <td>
+                        <input
+                            type="text"
+                            className="custom-input"
+                            onChange={(ev) => handleChangeWithState(index, 'suffix', ev)}
+                            value={field.suffix || ''}
+                            placeholder="Enter suffix"
+                        />
+                    </td>
+                </>
+            )
+        }
     </tr>
     );
 }

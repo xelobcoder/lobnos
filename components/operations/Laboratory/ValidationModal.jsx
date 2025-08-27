@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, ListGroup } from "react-bootstrap";
-import {toast } from 'react-toastify';
+import { Modal, Button, Form, ListGroup, Spinner } from "react-bootstrap";
+import { toast } from 'react-toastify';
 import PreviewPatientInformation from "../../petientsComponent/PreviewPatientInformation";
 import UseCustomResultTemplating from "../../ResutlUI/useCustomResultTemplating";
 import UseResultCommentSingle from "../../ResutlUI/useResultCommentSingle";
@@ -13,9 +13,11 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
      const [resultSettings, setResultSettings] = useState(ResultEntrydefaultData);
      const [staff, setStaff] = useState([]);
      const [pinValue, setPin] = useState('');
-     const [sucessfulValidation, setSuccessfulValidation] = useState(null); 
+     const [sucessfulValidation, setSuccessfulValidation] = useState(null);
      const [isApproved, setIsApproved] = useState(false);
      const [isMobile, setIsMobile] = useState(window.innerWidth > 768);
+     const [isPinValidated, setIsPinValidated] = useState(false);
+     const [validatingSpinner, setValidatingSpinner] = useState(false);
      // Remove Bootstrap Toast state, use react-toastify
 
      useEffect(() => {
@@ -35,13 +37,27 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
      useEffect(() => { getInitData() }, []);
 
      const handleAddApproved = async () => {
-          if (isApproved && pinValue.toString().length > 0) {
-               // Validate PIN first
-               const status = await validatePin(employeeid, pinValue);
-               if (status && staff.length < resultSettings.maximumResultValidation) {
-                    setIsApproved(true);
-                    setStaff([...staff, { username: selectedAscension.fullname, employeeid, ascensionid: selectedAscension.ascensionid }]);
+          setValidatingSpinner(true);
+          try {
+               if (isApproved && pinValue.toString().length > 0) {
+                    // Validate PIN first
+                    const { status, message } = await validatePin(employeeid, pinValue);
+                    if (status == false) {
+                         setIsPinValidated(false);
+                         toast.error(message || 'PIN validation failed');
+                    }
+                    setIsPinValidated(true);
+                    if (status && staff.length < resultSettings.maximumResultValidation) {
+                         setIsApproved(true);
+                         setStaff([...staff, { username: selectedAscension.fullname, employeeid, ascensionid: selectedAscension.ascensionid }]);
+                    }
                }
+               setValidatingSpinner(false);
+          } catch (error) {
+               console.error("Error adding approved staff:", error);
+               setIsPinValidated(false);
+          } finally{
+               setValidatingSpinner(false);
           }
      };
 
@@ -127,7 +143,9 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
                                              name="pin" value={pinValue} onChange={(ev) => { setPin(ev.target.value) }} className="custom-input" type="password" />
                                    </div>
                                    <div className="d-flex justify-content-end mt-2">
-                                        <button onClick={handleAddApproved} className="btn btn-sm btn-light">Approve</button>
+                                        <button onClick={handleAddApproved}  className="btn btn-sm btn-light">
+                                          {validatingSpinner && <Spinner animation="border" size="sm" />}
+                                             Approve</button>
                                    </div>
                               </ListGroup.Item>
                          )}
@@ -145,8 +163,8 @@ const ValidationModal = ({ show, onClose, selectedAscension }) => {
                     )}
                </Modal.Body>
                <Modal.Footer>
-                    <Button variant="secondary" onClick={(ev) => { onClose(sucessfulValidation)}}>Close</Button>
-                    <Button variant="primary" onClick={handleSaveValue}>Validate</Button>
+                    <Button variant="secondary" onClick={(ev) => { onClose(sucessfulValidation) }}>Close</Button>
+                    <Button variant="primary" onClick={handleSaveValue} disabled={!isPinValidated}>Validate</Button>
                </Modal.Footer>
           </Modal>
      );

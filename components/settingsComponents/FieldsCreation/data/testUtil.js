@@ -1,4 +1,4 @@
-import { RiNotificationLine, RiStopCircleLine, RiSwap2Line} from "@remixicon/react";
+import { RiNotificationLine, RiStopCircleLine, RiSwap2Line } from "@remixicon/react";
 import { customPost } from "../../../Auth/customFetch";
 export const handleCreationMasterRUle = function (ev, field) {
   const { value } = ev.target;
@@ -144,30 +144,48 @@ export const CONSTRAINTSLEVEL = [
 ];
 
 export const ALERT_OPTIONS = [
-    { 
-        value: 0, 
-        label: "Select Alert Type",
-        description: "Choose how to handle the value",
-        action: "none"
-    },
-    { 
-        value: 1, 
-        label: "Alert Value",
-        description: "Notify when condition is met",
-        action: "alert"
-    },
-    { 
-        value: 2, 
-        label: "Ignore Value",
-        description: "Skip notification for this value",
-        action: "ignore"
-    },
-    { 
-        value: 3, 
-        label: "Replace Value",
-        description: "Replace with custom text",
-        action: "replace"
-    }
+  {
+    value: 0,
+    label: "Select Alert Type",
+    description: "Choose how to handle the value",
+    action: "none"
+  },
+  {
+    value: 1,
+    label: "Alert Value",
+    description: "Notify when condition is met",
+    action: "alert"
+  },
+  {
+    value: 2,
+    label: "Ignore Value",
+    description: "Skip notification for this value",
+    action: "ignore"
+  },
+  {
+    value: 3,
+    label: "Replace Value",
+    description: "Replace with custom text",
+    action: "replace"
+  },
+  {
+    value: 4,
+    label: "prefix",
+    description: "Add prefix to the value",
+    action: 'prefix'
+  },
+  {
+    value: 5,
+    label: 'suffix',
+    description: 'Add suffix to the value',
+    action: 'suffix'
+  },
+  {
+    value: 6,
+    label: 'prefix-suffix',
+    description: 'Add prefix and suffix to the value',
+    action: 'prefix-suffix'
+  }
 ];
 
 export const constraintsFormatting = (fieldConstraints) => {

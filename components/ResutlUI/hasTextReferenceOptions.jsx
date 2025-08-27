@@ -5,6 +5,10 @@ export default function HasTextReferenceOptionsResultView({ fieldItem, index, re
 	// Get settings from resultsettings or use defaults
 	const settings = resultsettings?.testBody;
 
+	// lets separate the text Reference
+	const textRef = textReference ? textReference.split(',') : [];
+
+
 	return (
 		<tr
 			style={{
@@ -23,7 +27,14 @@ export default function HasTextReferenceOptionsResultView({ fieldItem, index, re
 			<td>
 				<span style={{ fontWeight: settings?.boldenUnits ? '500' : 'normal', width: '10%' }}>{units}</span>
 			</td>
-			<td style={{ width: '25%' }}>{textReference}</td>
+			<td style={{ width: '25%' }} scope={2}>
+				{Array.isArray(textRef) && textRef.map((item, idx) => (
+					<span key={idx}>
+						{item}
+						{idx < textRef.length - 1 ? <br /> : null}
+					</span>
+				))}
+			</td>
 		</tr>
 	);
 }

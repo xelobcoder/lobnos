@@ -1,8 +1,10 @@
 "use client"
 import { useEffect, useState } from "react";
-import { customFetch } from "../Auth/customFetch";
+import { customFetch,formatDateOrNA } from "../Auth/customFetch";
 
 export default function PreviewPatientInformation({ patientid }) {
+	// Reusable date formatting function
+	
 	const [data, setData] = useState({});
 	const [isLoading, setLoading] = useState(true);
 
@@ -37,7 +39,9 @@ export default function PreviewPatientInformation({ patientid }) {
 				</li>
 
 				<div className="list-group-item d-flex flex-wrap justify-content-between">
-					<span className="text-capitalize">Date of Birth: {new Date(data?.dob).toLocaleDateString()}</span>
+					<span className="text-capitalize">
+						Date of Birth: {formatDateOrNA(data?.dob)}
+					</span>
 					<span className="text-capitalize">Age: {data?.age} {data?.ageType}</span>
 				</div>
 
@@ -48,7 +52,7 @@ export default function PreviewPatientInformation({ patientid }) {
 
 				<div className="list-group-item d-flex flex-wrap justify-content-between">
 					<span className="text-capitalize">Marital Status: {data?.maritalstatus}</span>
-					<span className="text-capitalize">Registration Date: {new Date(data?.date).toLocaleDateString()}</span>
+					<span className="text-capitalize">Registration Date: {formatDateOrNA(data?.date)}</span>
 				</div>
 				<li className="list-group-item text-capitalize">Email: {data?.email}</li>
 			</ul>
