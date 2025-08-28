@@ -114,7 +114,7 @@ export const handleRefundServerSideProcessing = async (values: { count: number; 
 
 export const handleServerSideProcessingAscensionData = async (pagination) => {
 	try {
-		const { page, count, employeeid, ascension_stage, _dateFrom, _dateEnd, isUltrasound, searchString, sortby } = pagination;
+		const { page, count, employeeid, ascension_stage, _dateFrom, _dateEnd, isUltrasound, searchString, sortby='DESC' } = pagination;
 
 		const parsedFrom = _dateFrom ? formatDate(_dateFrom) : _dateFrom;
 		const parsedEnd = _dateEnd ? formatDate(_dateEnd) : _dateEnd;

@@ -17,6 +17,7 @@ interface PendingConsultation {
     firstname: string;
     email: string;
     dob: string;
+    serviceAddedOn: string;
     age: number;
     gender: string;
     marital_status: string;
@@ -43,7 +44,7 @@ const PendingDoctorConsultationList = () => {
         try {
             setLoading(true);
             const { page, count } = pagination;
-            const url = `records/consulations/pending/records?page=${page}&&count=${count}`;
+            const url = `records/consulations/pending/records?page=${page}&&count=${count}&&sortby=ASC`;
             const response = await customFetch(url);
 
             if (response && Array.isArray(response)) {
@@ -57,8 +58,20 @@ const PendingDoctorConsultationList = () => {
         }
     };
 
-    const handlePaginationChange = (newPagination: { page: number; count: number }) => {
-        setPagination(newPagination);
+    const handlePaginationChange = async (newPagination: { page: number; count: number, sortby: 'ASC' | 'DESC' }) => {
+        const { page, count, sortby } = newPagination;
+        const url = `records/consulations/pending/records?page=${page}&&count=${count}&&sortby=${sortby}`;
+        try {
+            const response = await customFetch(url);
+            if (response && Array.isArray(response)) {
+                return { result: response, error: false };
+            } else {
+                return { result: [], error: false };
+            }
+        } catch (err) {
+            console.error("Error fetching pending consultations:", err);
+            return { result: [], error: true };
+        }
     };
 
     useEffect(() => {
@@ -83,16 +96,16 @@ const PendingDoctorConsultationList = () => {
         { Header: "Gender", accessor: "gender" },
         { Header: "Mobile Number", accessor: "mobile_number" },
         {
-            Header: "Date",
-            accessor: "date",
+            Header: "service AddedO n",
+            accessor: "serviceAddedOn",
             Cell: ({ row }: { row: { original: PendingConsultation } }) =>
-                moment(row.original.date).format("MMMM Do YYYY, h:mm:ss a")
+                moment(row.original.serviceAddedOn).format("MMMM Do YYYY, h:mm:ss a")
         },
         {
             Header: "Actions",
             accessor: "",
             Cell: ({ row }: { row: { original: PendingConsultation } }) => (
-                <Link href={row.original.patientid ?  `/doctor/consultation/${plsEncryption(row.original.patientid.toString())}` : ''} passHref>
+                <Link href={row.original.patientid ? `/doctor/consultation/${plsEncryption(row.original.patientid.toString())}` : ''} passHref>
                     <Button variant="primary" size="sm">
                         Initialize Consultation
                     </Button>

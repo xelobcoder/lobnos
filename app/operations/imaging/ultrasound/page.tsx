@@ -16,7 +16,7 @@ export default function UltrasonograhyWaitingList() {
 				ascension_stage={"ULTRASOUND_UNCOMPLETED"}
 				employeeid={employeeid}
 			/>
-			<AscentionUltrasoundUnCompletedTable />
+			<AscentionUltrasoundUnCompletedTable stage={"ULTRASOUND_UNCOMPLETED"} />
 		</UltrasoundStagesProvider>
 	);
 }

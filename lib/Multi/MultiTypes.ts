@@ -54,6 +54,7 @@ export interface MultiBillingData {
     openPaymentModal?: number;
     billingid?: string | number;
     billingSource: number;
+    totalTestAmountPayable:number;
     patientid?: number | null;
     entityId?: string | number | null;
     entitytype?: entitytype;
@@ -149,6 +150,7 @@ export const defaultMultiBillingData: MultiBillingData = {
     isAdjustment: 0,
     adjustmentType: 'addition',
     adjustmentReason: '',
+    totalTestAmountPayable:0,
     totalAmountIncurredDueTax: 0,
     totalServiceAmount: 0,
     amountPayable: 0,

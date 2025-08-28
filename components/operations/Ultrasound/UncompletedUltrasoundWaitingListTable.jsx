@@ -8,7 +8,7 @@ import { useApplication } from "../../Auth/useApplicationContext";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
 
 
-export default function AscentionUltrasoundUnCompletedTable() {
+export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 	const { isLoading, collection, queryParams } = useUltrasoundContext();
 	const branchid = useApplication().branchid;
 	const handlePrintResult = (row) => {
@@ -73,10 +73,12 @@ export default function AscentionUltrasoundUnCompletedTable() {
 						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original, true, branchid)}>
 							<RiCheckLine size={16} className="me-1" /> Enter result
 						</Dropdown.Item>
+					{stage == "ULTRASOUND_COMPLETED" && (
 						<Dropdown.Item onClick={() => handlePrintResult(row.original)}>
 							<RiCloseLine size={16} className="me-1" />
 							Print Result
 						</Dropdown.Item>
+					)}
 					</Dropdown.Menu>
 				</Dropdown>
 			),
@@ -93,9 +95,16 @@ export default function AscentionUltrasoundUnCompletedTable() {
 			<PrimeTable
 				column={columns}
 				data={collection}
-				urlparams={{...queryParams, isUltrasound: true }}
+				urlparams={{
+					_dateFrom: queryParams._dateFrom,
+					_dateEnd: queryParams._dateEnd,
+					searchString: queryParams.searchString,
+					isUltrasound: true,
+					employeeid: queryParams.employeeid,
+					ascension_stage: stage
+				}}
 				serverSideFiltering={true}
-				handleSeverSideProcessing={handleServerSideProcessingAscensionData } />
+				handleSeverSideProcessing={handleServerSideProcessingAscensionData} />
 		</div>
 	);
 }

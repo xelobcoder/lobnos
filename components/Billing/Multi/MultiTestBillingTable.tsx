@@ -129,7 +129,7 @@ export default function MultiTestBillingTable() {
                 <tfoot>
                     <tr className="table-secondary">
                         <td colSpan={2}>Test Count {cart.length}</td>
-                        <td>{currencyFormatter.format(billingdata.amountPayable ?? 0)}</td>
+                        <td>{currencyFormatter.format(billingdata.totalTestAmountPayable ?? 0)}</td>
                         <td>{currencyFormatter.format(billingdata.totaldiscount?? 0)}</td>
                         <td>
                             <button className="btn btn-danger btn-sm" onClick={() => recalculateTotalBill({ ...billingdata, cart: [] })}>

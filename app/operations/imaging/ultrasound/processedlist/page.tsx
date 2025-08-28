@@ -19,7 +19,7 @@ export default function UltrasonograhyCompletedList() {
 	return (
 		<UltrasoundStagesProvider>
 			<UltrasoundAscensionFiltering employeeid={employeeid} ascension_stage={'ULTRASOUND_COMPLETED'} />
-			<AscentionUltrasoundUnCompletedTable />
+			<AscentionUltrasoundUnCompletedTable stage={'ULTRASOUND_COMPLETED'} />
 		</UltrasoundStagesProvider>
 	)
 }

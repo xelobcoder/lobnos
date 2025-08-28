@@ -61,7 +61,7 @@ export default function MultiSummary({ summaryData }: MultiSummaryProps) {
                         <RiMoneyDollarCircleLine className="me-2" />
                         Total Cost
                     </span>
-                    <span className="fw-bold">{currencyFormatter.format(data?.totalcost || data?.subtotal)}</span>
+                    <span className="fw-bold">{currencyFormatter.format( data?.subtotal || data?.totalcost)}</span>
                 </div>
                 <div className="border-top my-2"></div>
                 <div className="list-group-item d-flex justify-content-between bg-primary-subtle">

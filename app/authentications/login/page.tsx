@@ -88,14 +88,14 @@ export default function PrimeLabLoginPage() {
 
 			const { role } = cookieResult;
 			setTimeout(() => {
-				if (role === "admin" || role === "manager") {
+				if (role === "admin" || role === "manager" || role  == "customer service representative") {
 					router.push("/");
 				} else if (role === "sonographer") {
-					router.push("/operations/imaging/");
+					router.push("/operations/imaging/ultrasound");
 				} else if (role === "scientist") {
 					router.push("/operations/laboratory");
 				} else {
-					router.push("/notfound");
+					router.push("/");
 				}
 			}, 1000);
 

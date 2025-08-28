@@ -37,6 +37,7 @@ export default function EnterResultUltrasound() {
 	const [selectedTemplate, setSelectedTemplate] = useState(null);
 	const scan = useSearchParams()?.get("scan");
 	const testid = useSearchParams()?.get("testid");
+	const update = useSearchParams()?.get("update");
 	const urlpatientid = useSearchParams()?.get("ptid");
 	const patientid = urlpatientid ? urlpatientid.slice(50) : urlpatientid;
 	const urlbillingid = useSearchParams()?.get("csvid");
@@ -94,7 +95,14 @@ export default function EnterResultUltrasound() {
 	const handleResult = async () => {
 		setSubmitting(true);
 		try {
+			const isUpdate = update === 'true';
 
+			if (isUpdate && fields && Array.isArray(fields)) {
+				const _one = fields[0]['employeeid'];
+				if (_one !== user?.employeeid || user?.role != 'admin') {
+					return toast.error("You are not authorized to update this result.");
+				}
+			}
 			const myFields = fields.map((item: { name: string, value: string, id?: number, fieldid?: string }) => {
 				const fieldid = item?.fieldid ? item.fieldid : item.id;
 				return { field: item.name, value: item.value, fieldid: fieldid, originalvalue: item.value }
