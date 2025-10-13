@@ -1,5 +1,49 @@
 "use client";
 import React, { useState } from 'react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+// PDF export function
+function exportCommissionDataToPDF(commissionData, startDate, endDate) {
+     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+     // Use Times New Roman if available
+     if (doc.getFontList && doc.getFontList()['Times New Roman']) {
+          doc.setFont('Times New Roman', 'bold');
+     } else {
+          doc.setFont('times', 'bold');
+     }
+     doc.setFontSize(22);
+     doc.text('Clinicians Commission Report', 14, 18);
+     doc.setFontSize(14);
+     doc.setFont('times', 'normal');
+     doc.text(`Period: ${startDate} to ${endDate}`, 14, 28);
+     autoTable(doc, {
+          startY: 36,
+          head: [[
+               'Service Date',
+               'Clinician Name',
+               'Phone',
+               'Occupation',
+               'Services',
+               'Total Value',
+               'Commission %',
+               'Commission Earned',
+          ]],
+          body: commissionData.map(record => [
+               formatDate(record.service_date),
+               record.clinician_name,
+               record.clinician_phone,
+               record.occupation,
+               record.total_services,
+               record.total_value,
+               record.commission_percent + '%',
+               record.commission_earned,
+          ]),
+          styles: { fontSize: 12, font: 'times', fontStyle: 'bold' },
+          headStyles: { fillColor: [22, 160, 133], fontSize: 13, font: 'times', fontStyle: 'bold' },
+          bodyStyles: { font: 'times', fontStyle: 'bold' },
+     });
+     doc.save(`commission-report-${startDate}-to-${endDate}.pdf`);
+}
 import type { Metadata } from 'next';
 import { currencyFormatter, customFetch } from '../../../components/Auth/customFetch';
 import DateFilter from './DateFilter';
@@ -214,7 +258,7 @@ export default function CliniciansCommission() {
                                         </tr>
                                    </thead>
                                    <tbody>
-                                        {Array.isArray(clinicianSummary) && clinicianSummary.length > 0 &&  Object.values(clinicianSummary)
+                                        {Array.isArray(clinicianSummary) && clinicianSummary.length > 0 && Object.values(clinicianSummary)
                                              .sort((a: any, b: any) => b.total_commission - a.total_commission)
                                              .map((clinician: any, index: number) => (
                                                   <tr key={index}>
@@ -245,6 +289,16 @@ export default function CliniciansCommission() {
                <div className={styles.sectionDivider}></div>
 
                <Card title="Detailed Commission Records" icon={<RiFileList3Line />}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+                         <button
+                              type="button"
+                              className={styles.exportButton || 'btn btn-primary'}
+                              onClick={() => exportCommissionDataToPDF(commissionData, startDate, endDate)}
+                              disabled={!commissionData || commissionData.length === 0}
+                         >
+                              Export PDF
+                         </button>
+                    </div>
                     {Array.isArray(commissionData) && commissionData.length > 0 ? (
                          <div className={styles.tableContainer}>
                               <table className={styles.table}>
