@@ -7,8 +7,8 @@ import html2canvas from 'html2canvas';
 async function exportClinicianCommissionToPDF(commissionData, clinicianName, startDate, endDate) {
 	const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 	// Use Times New Roman if available
-	if (doc.getFontList && doc.getFontList()['Times New Roman']) {
-		doc.setFont('Times New Roman', 'bold');
+	if (doc.getFontList && doc.getFontList()['Consolas']) {
+		doc.setFont('Consolas', 'bold');
 	} else {
 		doc.setFont('times', 'bold');
 	}
