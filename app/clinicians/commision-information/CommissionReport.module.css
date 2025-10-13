@@ -80,7 +80,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: linear-gradient(90deg, #e2f0d9 0%, #b6d7a8 100%);
+    /* background: linear-gradient(90deg, #e2f0d9 0%, #b6d7a8 100%); */
     padding: 1rem;
     border: 1px solid #b6d7a8;
     border-radius: 4px;

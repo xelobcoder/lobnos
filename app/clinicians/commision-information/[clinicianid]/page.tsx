@@ -12,28 +12,67 @@ async function exportClinicianCommissionToPDF(commissionData, clinicianName, sta
 	} else {
 		doc.setFont('times', 'bold');
 	}
-	doc.setFontSize(22);
-	doc.text(`Commission Report: ${clinicianName.toUpperCase()}`, 14, 18);
-	doc.setFontSize(14);
-	doc.setFont('times', 'normal');
-	doc.text(`Period: ${startDate} to ${endDate}`, 14, 28);
+	doc.setFontSize(26);
+	doc.setFont('times', 'bold');
+	const reportTitle = `COMMISSION REPORT: ${clinicianName.toUpperCase()}`;
+	doc.text(reportTitle, 14, 18, { maxWidth: 270 });
+	// Underline the title
+	const titleWidth = doc.getTextWidth(reportTitle);
+	doc.setLineWidth(1.2);
+	doc.line(14, 20, 14 + titleWidth, 20);
 
-	// Try to find the chart container and render it to image
-	const chartElem = document.querySelector('.CommissionLineChart-to-pdf') as HTMLElement;
+	doc.setFontSize(16);
+	doc.setFont('times', 'bold');
+	const periodText = `PERIOD: ${startDate.toUpperCase()} TO ${endDate.toUpperCase()}`;
+	doc.text(periodText, 14, 28, { maxWidth: 270 });
+	const periodWidth = doc.getTextWidth(periodText);
+	doc.setLineWidth(0.8);
+	doc.line(14, 30, 14 + periodWidth, 30);
+
+	// Always try to add the chart to the PDF if present
 	let tableStartY = 36;
-	if (chartElem) {
-		try {
-			const canvas = await html2canvas(chartElem, { backgroundColor: '#fff', scale: 2 });
-			const imgData = canvas.toDataURL('image/png');
-			// Fit image to PDF width (A4 landscape: 297mm)
-			const pdfWidth = 277; // 297 - 2*10mm margins
-			const imgProps = doc.getImageProperties(imgData);
-			const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-			doc.addImage(imgData, 'PNG', 10, 34, pdfWidth, imgHeight);
-			tableStartY = 34 + imgHeight + 6;
-		} catch (e) {
-			tableStartY = 36;
+	// As a last resort, render a hidden static chart image and capture that for the PDF
+	let chartImgData: string | null = null;
+	try {
+		// Create a hidden container for the static chart
+		const hiddenDiv = document.createElement('div');
+		hiddenDiv.style.position = 'fixed';
+		hiddenDiv.style.left = '-9999px';
+		hiddenDiv.style.top = '0';
+		hiddenDiv.style.width = '900px';
+		hiddenDiv.style.height = '350px';
+		hiddenDiv.style.background = '#fff';
+		hiddenDiv.style.zIndex = '-1';
+		hiddenDiv.id = 'pdf-chart-capture';
+
+		// Copy the chart SVG from the visible chart (if present)
+		const chartSvg = document.querySelector('.CommissionLineChart-to-pdf svg');
+		if (chartSvg) {
+			const cloneSvg = chartSvg.cloneNode(true);
+			hiddenDiv.appendChild(cloneSvg);
+			document.body.appendChild(hiddenDiv);
+
+			await new Promise(res => setTimeout(res, 400));
+
+			const canvas = await html2canvas(hiddenDiv, {
+				backgroundColor: '#fff',
+				scale: 2,
+				useCORS: true,
+				allowTaint: true,
+				logging: false
+			});
+			chartImgData = canvas.toDataURL('image/png');
+			document.body.removeChild(hiddenDiv);
 		}
+	} catch (e) {
+		chartImgData = null;
+	}
+	if (chartImgData) {
+		const pdfWidth = 277; // 297 - 2*10mm margins
+		const imgProps = doc.getImageProperties(chartImgData);
+		const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+		doc.addImage(chartImgData, 'PNG', 10, 34, pdfWidth, imgHeight);
+		tableStartY = 34 + imgHeight + 6;
 	}
 
 	autoTable(doc, {
@@ -48,18 +87,18 @@ async function exportClinicianCommissionToPDF(commissionData, clinicianName, sta
 		body: commissionData.map(record => [
 			dayjs(record.service_date).format('YYYY-MM-DD'),
 			record.total_services,
-			record.total_value,
+			"GHC " + parseFloat(record.total_value).toFixed(2),
 			record.commission_percent + '%',
-			record.commission_earned,
+			"GHC " + parseFloat(record.commission_earned).toFixed(2),
 		]),
 		styles: { fontSize: 12, font: 'times', fontStyle: 'bold' },
-		headStyles: { fillColor: [22, 160, 133], fontSize: 13, font: 'times', fontStyle: 'bold' },
-		bodyStyles: { font: 'times', fontStyle: 'bold' },
+		headStyles: { fillColor: [168, 120, 44], fontSize: 13, font: 'times', fontStyle: 'bold' }, // oklch(0.646 0.222 41.116) ≈ rgb(168,120,44)
+		bodyStyles: { font: 'times', fontStyle: 'bold', textColor: [0, 0, 0] },
 	});
 	doc.save(`commission-report-${clinicianName.replace(/\s+/g, '_')}-${startDate}-to-${endDate}.pdf`);
 }
 import { customFetch, currencyFormatter } from '../../../../components/Auth/customFetch';
-import DateFilter from '../DateFilter';
+
 import styles from '../CommissionReport.module.css';
 import { RiUserLine, RiPhoneLine, RiBriefcaseLine, RiMoneyDollarCircleLine, RiServiceLine, RiFileList3Line } from '@remixicon/react';
 import CommissionLineChart from "../CommissionLineChart";
@@ -97,11 +136,24 @@ async function getClinicianCommission({ clinicianid, startDate, endDate }: { cli
 
 export default function ClinicianCommissionPage({ params }: { params: { clinicianid: string } }) {
 	const today = dayjs().format('YYYY-MM-DD');
-	const [startDate, setStartDate] = useState(today);
+	const currentYear = dayjs().year();
+	const defaultStart = dayjs(`${currentYear}-01-01`).format('YYYY-MM-DD');
+	const [startDate, setStartDate] = useState(defaultStart);
 	const [endDate, setEndDate] = useState(today);
+	const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setStartDate(e.target.value);
+	};
+	const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setEndDate(e.target.value);
+	};
+	const handleResetFilters = () => {
+		setStartDate(defaultStart);
+		setEndDate(today);
+	};
 	const [commissionData, setCommissionData] = useState<CommissionData[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [chartView, setChartView] = useState<'bar' | 'line'>('bar');
 
 	useEffect(() => {
 		setLoading(true);
@@ -147,12 +199,6 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 		return (
 			<main className={styles.container}>
 				<h1 className={styles.title}>Could Not Load Clinician Commission Data</h1>
-				<DateFilter
-					startDate={startDate}
-					endDate={endDate}
-					onFilter={handleFilter}
-					loading={loading}
-				/>
 				<div className={styles.errorBox}>
 					<RiUserLine size={40} />
 					<div>
@@ -167,12 +213,6 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 		return (
 			<main className={styles.container}>
 				<h1 className={styles.title}>No Commission Data Found</h1>
-				<DateFilter
-					startDate={startDate}
-					endDate={endDate}
-					onFilter={handleFilter}
-					loading={loading}
-				/>
 				<div className={styles.emptyState}>
 					<RiUserLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
 					<p>No commission records found for this clinician.</p>
@@ -189,71 +229,97 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 	const { clinician_name, clinician_phone, occupation } = commissionData[0];
 	return (
 		<main className={styles.container}>
-			<h1 className={styles.title}><RiUserLine /> {clinician_name} - Commission Details</h1>
-			<DateFilter
-				startDate={startDate}
-				endDate={endDate}
-				onFilter={handleFilter}
-				loading={loading}
-			/>
-			{/* Summary Cards */}
-			<div className={styles.statsGrid}>
-				<div className={styles.statItem}><div className={styles.statIcon}><RiPhoneLine /></div><div className={styles.statInfo}><span className={styles.statValue}>{clinician_phone}</span><span className={styles.statLabel}>Phone</span></div></div>
-				<div className={styles.statItem}><div className={styles.statIcon}><RiBriefcaseLine /></div><div className={styles.statInfo}><span className={styles.statValue}>{occupation}</span><span className={styles.statLabel}>Occupation</span></div></div>
-				<div className={styles.statItem}><div className={styles.statIcon}><RiMoneyDollarCircleLine /></div><div className={styles.statInfo}><span className={styles.statValue}>{currencyFormatter.format(summary.total_commission)}</span><span className={styles.statLabel}>Total Commission</span></div></div>
-				<div className={styles.statItem}><div className={styles.statIcon}><RiServiceLine /></div><div className={styles.statInfo}><span className={styles.statValue}>{summary.total_services}</span><span className={styles.statLabel}>Total Services</span></div></div>
-				<div className={styles.statItem}><div className={styles.statIcon}><RiFileList3Line /></div><div className={styles.statInfo}><span className={styles.statValue}>{commissionData.length}</span><span className={styles.statLabel}>Records</span></div></div>
+			<h1 className={styles.title}><RiUserLine /> {clinician_name.toUpperCase()} - Commission Details</h1>
+			<hr />
+			{/* Date Picker and Summary Cards */}
+			<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-3 gap-3">
+
+				<div className={styles.statsGrid} style={{ display: 'flex', flexDirection: 'row', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'stretch', justifyContent: 'flex-end' }}>
+					<div className={styles.statItem}><div className={styles.statIcon}><RiPhoneLine /></div><div className={styles.statInfo}><span className={styles.statValue}>{clinician_phone}</span><span className={styles.statLabel}>Phone</span></div></div>
+					<div className={styles.statItem}><div className={styles.statIcon}><RiBriefcaseLine /></div><div className={styles.statInfo}><span className={styles.statValue}>{occupation}</span><span className={styles.statLabel}>Occupation</span></div></div>
+					<div className={styles.statItem}><div className={styles.statIcon}><RiMoneyDollarCircleLine /></div><div className={styles.statInfo}><span className={styles.statValue}>{currencyFormatter.format(summary.total_commission)}</span><span className={styles.statLabel}>Total Commission</span></div></div>
+					<div className={styles.statItem}><div className={styles.statIcon}><RiServiceLine /></div><div className={styles.statInfo}><span className={styles.statValue}>{summary.total_services}</span><span className={styles.statLabel}>Total Services</span></div></div>
+					<div className={styles.statItem}><div className={styles.statIcon}><RiFileList3Line /></div><div className={styles.statInfo}><span className={styles.statValue}>{commissionData.length}</span><span className={styles.statLabel}>Records</span></div></div>
+				</div>
 			</div>
-			{/* Chart Section */}
-			<div style={{ margin: '2rem 0 1.5rem 0' }}>
-				<div style={{
-					background: '#fff',
-					borderRadius: '0.75rem',
-					border: '1px solid #198754',
-					boxShadow: '0 2px 12px 0 #19875422',
-					padding: '1.5rem 1rem',
-				}}>
-					<h2 style={{ color: '#198754', fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem' }}>Commission Trend</h2>
+			{/* Chart Section - Modern Analytics Style (Card) */}
+			<div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)', margin: '2rem 0 1.5rem 0', background: 'none' }}>
+				<div className="card-header py-3 px-4" style={{ borderColor: 'var(--bs-border-color)', background: 'none' }}>
+					<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
+						<h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center" style={{ color: 'inherit' }}>
+							Commission Trend
+						</h2>
+						<div className="d-flex flex-row align-items-center gap-2">
+							<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+								<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)', paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+									Start
+								</span>
+								<input type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={handleStartDateChange} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: 'var(--bs-border-color)', paddingLeft: '0.3rem' }} />
+							</div>
+							<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+								<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)', paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+									End
+								</span>
+								<input type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: 'var(--bs-border-color)', paddingLeft: '0.3rem' }} />
+							</div>
+							<button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+								Reset
+							</button>
+						</div>
+						<div className="btn-group btn-group-sm" role="group" aria-label="Chart view toggle">
+							<button type="button" className={`btn ${chartView === 'bar' ? 'btn-primary active' : 'btn-outline-secondary'}`} style={chartView === 'bar' ? {} : { fontWeight: 500 }} onClick={() => setChartView('bar')}>
+								Bar
+							</button>
+							<button type="button" className={`btn ${chartView === 'line' ? 'btn-primary active' : 'btn-outline-secondary'}`} style={chartView === 'line' ? {} : { fontWeight: 500 }} onClick={() => setChartView('line')}>
+								Line
+							</button>
+						</div>
+					</div>
+				</div>
+				<div className="card-body p-3 p-md-4" style={{ background: 'none' }}>
 					<div className="CommissionLineChart-to-pdf">
-						<CommissionLineChart data={commissionData} />
+						<CommissionLineChart data={commissionData} view={chartView} />
 					</div>
 				</div>
 			</div>
 			<div className={styles.sectionDivider}></div>
-			<h2 className={styles.cardTitle}>Detailed Records</h2>
-			<div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+			<h2 >Detailed Records</h2>
+			<div className="d-flex justify-content-end" style={{ marginBottom: 12, marginTop: 12 }}>
 				<button
 					type="button"
-					className={styles.exportButton || 'btn btn-primary'}
+					className={styles.exportButton || 'btn btn-primary btn-sm'}
 					onClick={async () => await exportClinicianCommissionToPDF(commissionData, clinician_name, startDate, endDate)}
 					disabled={!commissionData || commissionData.length === 0}
 				>
 					Export PDF
 				</button>
 			</div>
-			<div className={styles.tableContainer}>
-				<table className={styles.table}>
-					<thead>
-						<tr>
-							<th className={styles.th}>Service Date</th>
-							<th className={styles.th}>Services</th>
-							<th className={styles.th}>Total Value</th>
-							<th className={styles.th}>Commission %</th>
-							<th className={styles.th}>Commission Earned</th>
-						</tr>
-					</thead>
-					<tbody>
-						{commissionData.map((record, idx) => (
-							<tr key={idx}>
-								<td className={`${styles.td} ${styles.dateCell}`}>{dayjs(record.service_date).format('YYYY-MM-DD')}</td>
-								<td className={`${styles.td} ${styles.numberCell}`}>{record.total_services}</td>
-								<td className={`${styles.td} ${styles.currencyCell}`}>{currencyFormatter.format(Number(record.total_value))}</td>
-								<td className={`${styles.td} ${styles.numberCell}`}>{record.commission_percent}%</td>
-								<td className={`${styles.td} ${styles.currencyCell}`}>{currencyFormatter.format(Number(record.commission_earned))}</td>
+			<div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: '1px solid var(--bs-border-color)' }}>
+				<h4 className="fs-6 fw-medium mb-3">Commission Records</h4>
+				<div className="table-responsive">
+					<table className="table table-sm table-hover table-striped small">
+						<thead className="sticky-top bg-body-tertiary">
+							<tr>
+								<th className="py-2">Service Date</th>
+								<th className="py-2 text-end">Services</th>
+								<th className="py-2 text-end">Total Value</th>
+								<th className="py-2 text-end">Commission %</th>
+								<th className="py-2 text-end">Commission Earned</th>
 							</tr>
-						))}
-					</tbody>
-				</table>
+						</thead>
+						<tbody>
+							{commissionData.map((record, idx) => (
+								<tr key={idx}>
+									<td className="py-2">{dayjs(record.service_date).format('YYYY-MM-DD')}</td>
+									<td className="py-2 text-end">{record.total_services}</td>
+									<td className="py-2 text-end">{currencyFormatter.format(Number(record.total_value))}</td>
+									<td className="py-2 text-end">{record.commission_percent}%</td>
+									<td className="py-2 text-end">{currencyFormatter.format(Number(record.commission_earned))}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
 			</div>
 
 		</main>
