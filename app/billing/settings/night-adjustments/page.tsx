@@ -2,11 +2,10 @@
 
 import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import { Form, Button, Spinner } from "react-bootstrap";
-import Select from "react-select";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import { customFetch, customPost, reactSelectCustomStyles } from "../../../../components/Auth/customFetch";
 import { RiMoonClearLine, RiTimeLine, RiPercentLine, RiMoneyDollarCircleLine } from "@remixicon/react";
-
+import Select from "react-select";
 const timeOptions = Array.from({ length: 24 }, (_, index) => ({
     value: `${index.toString().padStart(2, '0')}:00`,
     label: `${index.toString().padStart(2, '0')}:00`
@@ -92,97 +91,114 @@ export default function NightAdjustment() {
     }, []);
 
     return (
-        <div className="">
-            <div className="card" >
-                <div className="card-header d-flex align-items-center gap-3">
+        <div className="container-fluid">
+            <div className="border border-1 br-5 bg-white p-4">
+                <div className="d-flex align-items-center gap-3 mb-4">
                     <div className="rounded-circle">
                         <RiMoonClearLine className="text-primary" size={24} />
                     </div>
                     <h4 className="mb-0 fw-semibold">Night Billing Adjustment</h4>
                 </div>
-                <div className="card-body">
 
-                    <Form onSubmit={handleFormSubmit}>
-                        <Form.Group controlId="applyAdjustmentCheckbox" className="mb-3">
-                            <Form.Check
-                                type="switch"
-                                label="Apply Night Adjustment"
-                                checked={isAdjustmentApplied}
-                                onChange={toggleAdjustment}
-                                className="fs-5"
-                            />
-                        </Form.Group>
+                <Form onSubmit={handleFormSubmit}>
+                    <div className="row mt-3">
+                        <div className="col-12">
+                            <div className="form-row grid-reg d-flex align-items-center">
+                                <label className="pls-label">Apply Night Adjustment</label>
+                                <Form.Check
+                                    type="switch"
+                                    checked={isAdjustmentApplied}
+                                    onChange={toggleAdjustment}
+                                    className="fs-5"
+                                />
+                            </div>
+                        </div>
+                    </div>
 
-                        {isAdjustmentApplied && (
-                            <div>
-                                <div >
-                                    <Form.Group controlId="startTime">
-                                        <Form.Label className="d-flex align-items-center gap-2">
-                                            <RiTimeLine /> Start Time
-                                        </Form.Label>
+                    {isAdjustmentApplied && (
+                        <>
+                            <div className="row mt-3">
+                                <div className="col-12">
+                                    <div className="form-row grid-reg">
+                                        <label className="pls-label">
+                                            <RiTimeLine size={16} className="me-2" />
+                                            Start Time
+                                        </label>
                                         <Select
                                             options={timeOptions}
                                             value={timeOptions.find(option => option.value === startTime)}
                                             styles={reactSelectCustomStyles}
                                             onChange={(selectedOption) => setStartTime(selectedOption?.value || "")}
                                             placeholder="Select Start Time"
+                                            
                                         />
-                                    </Form.Group>
+                                    </div>
                                 </div>
+                            </div>
 
-                                <div >
-                                    <Form.Group controlId="endTime">
-                                        <Form.Label className="d-flex align-items-center gap-2">
-                                            <RiTimeLine /> End Time
-                                        </Form.Label>
+                            <div className="row mt-3">
+                                <div className="col-12">
+                                    <div className="form-row grid-reg">
+                                        <label className="pls-label">
+                                            <RiTimeLine size={16} className="me-2" />
+                                            End Time
+                                        </label>
                                         <Select
                                             options={timeOptions}
                                             value={timeOptions.find(option => option.value === endTime)}
                                             styles={reactSelectCustomStyles}
                                             onChange={(selectedOption) => setEndTime(selectedOption?.value || "")}
                                             placeholder="Select End Time"
+                                          
                                         />
-                                    </Form.Group>
+                                    </div>
                                 </div>
+                            </div>
 
-                                <div >
-                                    <Form.Group controlId="nightAdjustMode">
-                                        <Form.Label className="d-flex align-items-center gap-2">
-                                            <RiPercentLine /> Adjustment Mode
-                                        </Form.Label>
-                                        <Form.Control
-                                            as="select"
-                                            className="form-select"
+                            <div className="row mt-3">
+                                <div className="col-12">
+                                    <div className="form-row grid-reg">
+                                        <label className="pls-label">
+                                            <RiPercentLine size={16} className="me-2" />
+                                            Adjustment Mode
+                                        </label>
+                                        <Form.Select
                                             value={nightAdjustMode}
                                             onChange={handleNightAdjustModeChange}
+                                            className="custom-select"
                                         >
                                             <option value="">Select Mode</option>
                                             <option value="percentage">Percentage</option>
                                             <option value="absolute">Absolute Value</option>
-                                        </Form.Control>
-                                    </Form.Group>
+                                        </Form.Select>
+                                    </div>
                                 </div>
+                            </div>
 
-                                <div >
-                                    <Form.Group controlId="nightAdjustmentValue">
-                                        <Form.Label className="d-flex align-items-center gap-2">
-                                            <RiMoneyDollarCircleLine /> Adjustment Value
-                                        </Form.Label>
+                            <div className="row mt-3">
+                                <div className="col-12">
+                                    <div className="form-row grid-reg">
+                                        <label className="pls-label">
+                                            <RiMoneyDollarCircleLine size={16} className="me-2" />
+                                            Adjustment Value
+                                        </label>
                                         <Form.Control
                                             type="number"
-                                            className="form-control"
                                             value={nightAdjustmentValue}
                                             onChange={handleNightAdjustmentValueChange}
                                             disabled={!nightAdjustMode}
                                             placeholder="Enter Value"
+                                            className="custom-input"
                                         />
-                                    </Form.Group>
+                                    </div>
                                 </div>
                             </div>
-                        )}
+                        </>
+                    )}
 
-                        <div className="mt-4">
-                            <Button variant="primary" type="submit" disabled={loading}>
+                    <div className="row mt-4">
+                        <div className="col-12">
+                            <Button variant="primary" type="submit" disabled={loading} className="px-4">
                                 {loading ? (
                                     <><Spinner animation="border" size="sm" className="me-2" /> Updating...</>
                                 ) : (
@@ -190,8 +206,8 @@ export default function NightAdjustment() {
                                 )}
                             </Button>
                         </div>
-                    </Form>
-                </div>
+                    </div>
+                </Form>
             </div>
         </div>
     );

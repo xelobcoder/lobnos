@@ -9,7 +9,6 @@ export default async function TurnAroundTime() {
         const response = await customFetch(`testascension/tat-data?page=1&&count=10&&sorting=ASC`);
         if (response?.data && Array.isArray(response?.data)) {
             data = response.data;
-            console.log(data);
         }
     } catch (err) {
         console.error("Error loading data:", err);

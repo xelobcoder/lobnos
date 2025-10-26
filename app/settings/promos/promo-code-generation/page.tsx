@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from "react";
-import { Card } from "react-bootstrap";
+import { RiCouponLine, RiFileTextLine, RiHashtag, RiCalendarEventLine, RiPercentLine, RiMoneyDollarCircleLine, RiTimeLine, RiCheckboxCircleLine } from "@remixicon/react";
 import { customPost } from "../../../../components/Auth/customFetch";
 import { toast } from "react-toastify";
 import { useForm } from "react-hook-form";
@@ -45,9 +45,9 @@ export default function PromoCodeGenerationForm() {
 				...data,
 			};
 			const requestUrl = 'promo-codes';
-			const response: { status: boolean , error: string,id?:number } = await customPost(requestUrl, 'POST', requestData);
+			const response: { status: boolean, error: string, id?: number } = await customPost(requestUrl, 'POST', requestData);
 			if (response.status === true) {
-				toast.success( "Promo code created successfully!");
+				toast.success("Promo code created successfully!");
 				reset();
 			} else {
 				toast.error(response.error || "Failed to create promo code.");
@@ -71,77 +71,121 @@ export default function PromoCodeGenerationForm() {
 	}, [setValue]);
 
 	return (
-		<div className="py-4">
-			<Card  >
-				<Card.Header style={{ fontSize: 22, fontWeight: 600 }} className="d-flex justify-content-between align-items-center">
-					<span>Create Promo Code</span>
+		<div className="container-fluid">
+			<div className="border border-1 br-5 bg-white p-4">
+				<div className="d-flex justify-content-between align-items-center mb-4">
+					<h4 className="mb-0 fw-bold">Create Promo Code</h4>
 					<a href="/settings/promos/promo-codes" className="btn btn-outline-secondary btn-sm">
 						View Promo Codes List
 					</a>
-				</Card.Header>
-				<Card.Body className="p-4">
-					<form onSubmit={handleSubmit(onSubmit)}>
-						<div className="row g-3">
-							{/* Left column */}
-							<div className="col-md-6">
-								<div className="mb-3">
-									<label className="form-label">Code *</label>
-									<input {...register("code")} className="form-control" maxLength={100} placeholder="E.g. SUMMER2025" />
-									{errors.code && <div className="text-danger small">{errors.code.message}</div>}
-								</div>
-								<div className="mb-3">
-									<label className="form-label">Description</label>
-									<textarea {...register("description")} className="form-control" placeholder="Describe the promo or campaign" />
-									{errors.description && <div className="text-danger small">{errors.description.message}</div>}
-								</div>
-								<div className="mb-3">
-									<label className="form-label">Max Uses</label>
-									<input {...register("max_uses")} className="form-control" type="number" min={1} placeholder="Optional" />
-									{errors.max_uses && <div className="text-danger small">{errors.max_uses.message}</div>}
-								</div>
-								<div className="mb-3">
-									<label className="form-label">Valid From *</label>
-									<input {...register("valid_from")} className="form-control" type="datetime-local" />
-									{errors.valid_from && <div className="text-danger small">{errors.valid_from.message}</div>}
-								</div>
-							</div>
-							{/* Right column */}
-							<div className="col-md-6">
-								<div className="mb-3">
-									<label className="form-label">Discount Type *</label>
-									<select {...register("discount_type")} className="form-select">
-										<option value="flat">Flat</option>
-										<option value="percentage">Percentage</option>
-									</select>
-									{errors.discount_type && <div className="text-danger small">{errors.discount_type.message}</div>}
-								</div>
-								<div className="mb-3">
-									<label className="form-label">Discount Value *</label>
-									<input {...register("discount_value")} className="form-control" type="number" min={0} step="0.01" placeholder="E.g. 10 or 20.50" />
-									{errors.discount_value && <div className="text-danger small">{errors.discount_value.message}</div>}
-								</div>
-								<div className="mb-3">
-									<label className="form-label">Valid To</label>
-									<input {...register("valid_to")} className="form-control" type="datetime-local" />
-									{errors.valid_to && <div className="text-danger small">{errors.valid_to.message}</div>}
-								</div>
-								<div className="mb-3 form-check ps-0">
-									<input {...register("is_active")} className="form-check-input ms-1" type="checkbox" id="is_active" />
-									<label className="form-check-label ms-4" htmlFor="is_active">Active</label>
-									{errors.is_active && <div className="text-danger small">{errors.is_active.message}</div>}
-								</div>
-							</div>
+				</div>
+				<form onSubmit={handleSubmit(onSubmit)}>
+					<div className="form-row grid-reg mb-3">
+						<label className="pls-label">
+							<RiCouponLine size={16} className="me-2" />
+							Code *
+						</label>
+						<div >
+							<input {...register("code")} className="form-control" maxLength={100} placeholder="E.g. SUMMER2025" aria-label="Promo Code" />
+							{errors.code && <div className="text-danger small">{errors.code.message}</div>}
 						</div>
-						{error && <div className="alert alert-danger d-flex align-items-center mt-3">{error}</div>}
-						{success && <div className="alert alert-success d-flex align-items-center mt-3">{success}</div>}
-						<div className="d-flex justify-content-end mt-2">
+					</div>
+
+					<div className="form-row grid-reg mb-3">
+						<label className="pls-label">
+							<RiFileTextLine size={16} className="me-2" />
+							Description
+						</label>
+						<div >
+							<textarea {...register("description")} className="form-control" placeholder="Describe the promo or campaign" aria-label="Description" />
+							{errors.description && <div className="text-danger small">{errors.description.message}</div>}
+						</div>
+					</div>
+
+					<div className="form-row grid-reg mb-3">
+						<label className="pls-label">
+							<RiHashtag size={16} className="me-2" />
+							Max Uses
+						</label>
+						<div >
+							<input {...register("max_uses")} className="form-control" type="number" min={1} placeholder="Optional" aria-label="Max Uses" />
+							{errors.max_uses && <div className="text-danger small">{errors.max_uses.message}</div>}
+						</div>
+					</div>
+
+					<div className="form-row grid-reg mb-3">
+						<label className="pls-label">
+							<RiCalendarEventLine size={16} className="me-2" />
+							Valid From *
+						</label>
+						<div >
+							<input {...register("valid_from")} className="form-control" type="datetime-local" aria-label="Valid From" />
+							{errors.valid_from && <div className="text-danger small">{errors.valid_from.message}</div>}
+						</div>
+					</div>
+
+					<div className="form-row grid-reg mb-3">
+						<label className="pls-label">
+							<RiPercentLine size={16} className="me-2" />
+							Discount Type *
+						</label>
+						<div >
+							<select {...register("discount_type")} className="custom-select" aria-label="Discount Type">
+								<option value="flat">Flat</option>
+								<option value="percentage">Percentage</option>
+							</select>
+							{errors.discount_type && <div className="text-danger small">{errors.discount_type.message}</div>}
+						</div>
+					</div>
+
+					<div className="form-row grid-reg mb-3">
+						<label className="pls-label">
+							<RiMoneyDollarCircleLine size={16} className="me-2" />
+							Discount Value *
+						</label>
+						<div >
+							<input {...register("discount_value")} className="form-control" type="number" min={0} step="0.01" placeholder="E.g. 10 or 20.50" aria-label="Discount Value" />
+							{errors.discount_value && <div className="text-danger small">{errors.discount_value.message}</div>}
+						</div>
+					</div>
+
+					<div className="form-row grid-reg mb-3">
+						<label className="pls-label">
+							<RiTimeLine size={16} className="me-2" />
+							Valid To
+						</label>
+						<div >
+							<input {...register("valid_to")} className="form-control" type="datetime-local" aria-label="Valid To" />
+							{errors.valid_to && <div className="text-danger small">{errors.valid_to.message}</div>}
+						</div>
+					</div>
+
+					<div className="form-row grid-reg mb-3">
+						<label className="pls-label">
+							<RiCheckboxCircleLine size={16} className="me-2" />
+							Active
+						</label>
+						<div >
+							<div className="form-check">
+								<input {...register("is_active")} className="form-check-input" type="checkbox" id="is_active" aria-label="Is Active" />
+								<label className="form-check-label ms-2" htmlFor="is_active">Active</label>
+							</div>
+							{errors.is_active && <div className="text-danger small">{errors.is_active.message}</div>}
+						</div>
+					</div>
+
+					{error && <div className="alert alert-danger d-flex align-items-center mt-3">{error}</div>}
+					{success && <div className="alert alert-success d-flex align-items-center mt-3">{success}</div>}
+
+					<div className="form-row grid-reg mt-4">
+						<div>
 							<button className="btn btn-primary px-3 py-1 d-flex align-items-center gap-2" type="submit" style={{ fontSize: 14, height: 32 }} disabled={isSubmitting}>
 								{isSubmitting ? "Submitting..." : "Create Promo Code"}
 							</button>
 						</div>
-					</form>
-				</Card.Body>
-			</Card>
+					</div>
+				</form>
+			</div>
 		</div>
 	);
 }

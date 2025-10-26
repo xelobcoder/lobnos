@@ -105,8 +105,8 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
     };
 
     return (
-        <div className="list-group-item">
-            <div>
+        <div>
+            <div className="mb-4">
                 <p className="text-sm">
                     This option allows you to apply custom concession amounts to specific tests rather than applying them across all tests. For each test, you can
                     specify whether the concession is an absolute amount or a percentage of the test price. For instance, a 10 cedis reduction will directly subtract
@@ -118,12 +118,11 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
             <TestFiltering onSelect={handleSelectedTest} />
 
             {isTestSelected && currentTest && (
-                <div>
-                    <div className="form-row mt-3">
-                        <label>Concession Mode</label>
-                        <br />
+                <div className="mt-4">
+                    <div className="form-row grid-reg mt-2">
+                        <label className="pls-label">Concession Mode</label>
                         <select
-                            className="custom-select col-3"
+                            className="custom-select"
                             value={selectionMode}
                             onChange={(e) => setSelectionMode(e.target.value as "absolute" | "percentage")}
                         >
@@ -131,11 +130,11 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
                             <option value="percentage">Percentage</option>
                         </select>
                     </div>
-                    <div>
-                        <label>Pricing Method</label>
-                        <br />
+
+                    <div className="form-row grid-reg mt-2">
+                        <label className="pls-label">Pricing Method</label>
                         <select
-                            className="custom-select col-3"
+                            className="custom-select"
                             value={pricingType}
                             onChange={(e) => setPricingType(e.target.value as "surcharge" | "discount")}
                         >
@@ -144,12 +143,11 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
                         </select>
                     </div>
 
-                    <div className="form-row mt-3">
-                        <label>Concession Amount</label>
-                        <br />
+                    <div className="form-row grid-reg mt-2">
+                        <label className="pls-label">Concession Amount</label>
                         <input
                             type="number"
-                            className="custom-input col-3"
+                            className="custom-input"
                             value={concessionValueInput}
                             onChange={(e) => {
                                 const value = e.target.value;
@@ -177,40 +175,42 @@ const ClinicianIndividualBillingConcession: React.FC<ClinicianIndividualBillingC
             )}
 
             {selectedTests && selectedTests.length > 0 && (
-                <div className="mt-3">
-                    <h6>Selected Tests</h6>
-                    <table className={styles.table}>
-                        <thead>
-                            <tr>
-                                <th>Test Name</th>
-                                <th>Concession Mode</th>
-                                <th>Concession Value</th>
-                                <th>Pricing Type</th>
-                                <th>Original Price</th>
-                                <th>Discounted Value</th>
-                                <th>Actual Price</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Array.isArray(selectedTests) && selectedTests.length > 0 && selectedTests.map(test => (
-                                <tr key={test.testid}>
-                                    <td>{test.testName}</td>
-                                    <td>{test.concessionMode}</td>
-                                    <td>{test.concessionValue}</td>
-                                    <td>{test.pricingType}</td>
-                                    <td>{test.originalPrice}</td>
-                                    <td>{test.discountedValue}</td>
-                                    <td>{test.actualPrice}</td>
-                                    <td>
-                                        <button className="btn btn-danger btn-sm" onClick={() => setSelectedTests(selectedTests.filter(t => t.testid !== test.testid))}>
-                                            Remove
-                                        </button>
-                                    </td>
+                <div className="mt-4">
+                    <h6 className="mb-3">Selected Tests</h6>
+                    <div className="table-responsive">
+                        <table className={`table table-striped ${styles.table}`}>
+                            <thead>
+                                <tr>
+                                    <th>Test Name</th>
+                                    <th>Concession Mode</th>
+                                    <th>Concession Value</th>
+                                    <th>Pricing Type</th>
+                                    <th>Original Price</th>
+                                    <th>Discounted Value</th>
+                                    <th>Actual Price</th>
+                                    <th>Action</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {Array.isArray(selectedTests) && selectedTests.length > 0 && selectedTests.map(test => (
+                                    <tr key={test.testid}>
+                                        <td>{test.testName}</td>
+                                        <td>{test.concessionMode}</td>
+                                        <td>{test.concessionValue}</td>
+                                        <td>{test.pricingType}</td>
+                                        <td>{test.originalPrice}</td>
+                                        <td>{test.discountedValue}</td>
+                                        <td>{test.actualPrice}</td>
+                                        <td>
+                                            <button className="btn btn-danger btn-sm" onClick={() => setSelectedTests(selectedTests.filter(t => t.testid !== test.testid))}>
+                                                Remove
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
         </div>

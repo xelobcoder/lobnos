@@ -8,9 +8,9 @@
   --custom-blue: #2165e3;
   --text-color: black;
   --prime-attention: #ff6a00;
-  --prime-links-font-family: "Lexend Deca", Helvetica, Arial, sans-serif;
-  --prime-font-family: 'Ralleway', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  --prime-ui-font-family: "Montserrat", sans-serif;
+  --prime-links-font-family: 'IBM Plex Sans', 'Segoe UI', Roboto, 'Open Sans', sans-serif;
+  --prime-font-family: 'IBM Plex Sans', 'Segoe UI', Roboto, 'Open Sans', sans-serif;
+  --prime-ui-font-family: 'IBM Plex Sans', 'Segoe UI', Roboto, 'Open Sans', sans-serif;
   --custom-orange: #feb602;
   --custom-dark_blue: #142a5e;
   --prime-sidebar-deep: #053d6d;
@@ -34,11 +34,38 @@
 html,
 body {
   font-family: var(--prime-font-family) !important;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
 }
 
 * {
-  /* font-family: var(--prime-links-font-family); */
-  /* font-family: var(--prime-font-family) !important; */
+  box-sizing: border-box;
+}
+
+/* Typography improvements */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--prime-ui-font-family);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5em 0;
+}
+
+h1 { font-size: 2.25rem; }
+h2 { font-size: 1.875rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1.125rem; }
+h6 { font-size: 1rem; }
+
+p {
+  margin: 0 0 1em 0;
+  line-height: 1.6;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
 }
 
 .ui-sm {
@@ -596,7 +623,7 @@ input.form-control:required:invalid:focus,
   height: 40px !important;
 }
 
-.custom-input::required::after {
+.custom-input:required::after {
   content: "*" !important;
   color: red;
 }

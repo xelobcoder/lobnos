@@ -1,218 +1,405 @@
+/* Gmail-inspired three-column layout */
+.gmailContainer {
+    --role-sidebar-collapsed: 64px;
+    --role-sidebar-expanded: 200px;
+    --quick-links-width: 280px;
+    --quick-links-collapsed: 40px;
+    --transition-duration: 0.25s;
 
+    /* Color variables inspired by Gmail */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --border-color: #dadce0;
+    --text-primary: #202124;
+    --text-secondary: #5f6368;
+    --hover-bg: #f1f3f4;
+    --active-bg: #fce8e6;
+    --active-color: #d93025;
+    --accent-color: #1a73e8;
 
-.pageContainer {
-    --header-height: 56px;
-    --sidebar-width-expanded: 260px;
-    --sidebar-width-collapsed: 68px;
-    --transition-speed: 0.25s;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-
-    --current-sidebar-width: var(--sidebar-width-collapsed);
-    --professional-sidebar-bg: linear-gradient(180deg, #27ae60 0%, #27ae60 100%);
-    --professional-sidebar-hover-bg: #e6f4ea;
-    --professional-sidebar-border: #b6e2c7;
-    --professional-sidebar-text: #fff; /* Changed to white */
-    --professional-sidebar-icon: #fff; /* Changed to white */
-    --professional-sidebar-active-bg: #dff6e2;
-    --professional-sidebar-active-text: #fff; /* Changed to white */
-    --professional-sidebar-active-hover-bg: #b6e2c7;
-    --bg-primary: #f8fafd;
-    --bg-secondary: #f8fafd;
-    --bg-tertiary: #e3f2fd;
-    --bg-sidebar: var(--professional-sidebar-bg);
-    --bg-sidebar-hover: var(--professional-sidebar-hover-bg);
-    --bg-sidebar-active: var(--professional-sidebar-active-bg);
-    --bg-header: #ffffff;
-
-    --text-primary: #222;
-    --text-secondary: #5c6f7c;
-    --text-sidebar: var(--professional-sidebar-text);
-    --text-sidebar-active: var(--professional-sidebar-active-text);
-    --text-sidebar-icon: var(--professional-sidebar-icon);
-    --text-header: #222;
-
-    --border-color: #dfe3e8; 
-    --border-sidebar: var(--professional-sidebar-border);
-
-    --accent-color: var(--professional-sidebar-active-bg); 
-    --accent-color-hover: var(--professional-sidebar-active-hover-bg);
+    display: grid;
+    grid-template-columns: var(--role-sidebar-collapsed) var(--quick-links-width) 1fr;
+    height: 100vh;
+    max-height: 100vh;
+    background-color: var(--bg-primary);
+    transition: grid-template-columns var(--transition-duration) ease;
+    font-family: 'IBM Plex Sans', 'Segoe UI', Roboto, 'Open Sans', sans-serif;
+    overflow: hidden;
 }
 
-.sidebarActuallyExpanded {
-    --current-sidebar-width: var(--sidebar-width-expanded);
+/* Grid adjustments based on expansion states */
+.gmailContainer.roleExpanded {
+    grid-template-columns: var(--role-sidebar-expanded) var(--quick-links-width) 1fr;
 }
 
-.pageContainer {
-    display: flex; 
-    min-height: 100vh;
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
-    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+.gmailContainer.quickLinksCollapsed {
+    grid-template-columns: var(--role-sidebar-collapsed) var(--quick-links-collapsed) 1fr;
 }
 
-.header {
-    position: fixed;
-    top: 0;
-    left: var(--current-sidebar-width);
-    right: 0;
-    height: var(--header-height);
-    background-color: var(--bg-header);
-    color: var(--text-header);
-    z-index: 1030;
+.gmailContainer.roleExpanded.quickLinksCollapsed {
+    grid-template-columns: var(--role-sidebar-expanded) var(--quick-links-collapsed) 1fr;
+}
+
+/* First Column: Role Sidebar (Original Green Style) */
+.roleSidebar {
+    background: linear-gradient(180deg, #27ae60 0%, #27ae60 100%);
+    border-right: 1px solid var(--border-color);
     display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100vh;
+    max-height: 100vh;
+    flex-shrink: 0;
+}
+
+.roleHeader {
+    padding: 8px;
+    display: flex;
+    justify-content: center;
     align-items: center;
+    min-height: 64px;
     border-bottom: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
-    transition: left var(--transition-speed) ease, background-color var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 
-.headerContent {
-    flex-grow: 1;
+.roleToggleButton {
+    width: 48px;
+    height: 48px;
+    border: none;
+    background: transparent;
+    border-radius: 24px;
+    cursor: pointer;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
-    height: 100%;
+    justify-content: center;
+    color: #ffffff;
+    transition: background-color 0.15s ease;
 }
 
-.headerContent h1 {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin: 0;
+.roleToggleButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.roleNav {
+    flex: 1;
+    padding: 8px 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.roleNavItem {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 12px 8px;
+    margin: 4px 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #ffffff;
+    transition: all 0.2s ease;
+    position: relative;
+    min-height: 48px;
+    justify-content: flex-start;
+    gap: 12px;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.roleNavItem:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    text-decoration: none;
+    color: #ffffff;
+}
+
+.roleNavItem:focus,
+.roleNavItem.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    outline: none;
+}
+
+.roleNavIcon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.roleNavItem:hover .roleNavIcon {
+    color: #ffffff;
+}
+
+.roleNavItem:focus .roleNavIcon,
+.roleNavItem.active .roleNavIcon {
+    color: #ffffff;
+}
+
+.roleNavLabel {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #ffffff;
+    text-align: left;
+    line-height: 1.4;
+    flex: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--text-header);
+    letter-spacing: -0.01em;
 }
 
-.headerControls {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.userInfo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-align: right;
-}
-
-.userInfo span {
-    font-size: 0.875rem;
-    color: var(--text-primary);
-}
-
-.role {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    background-color: var(--bg-tertiary);
-    padding: 2px 6px;
-    border-radius: 4px;
-}
-
-.userAvatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background-color: var(--accent-color);
+.roleNavItem:hover .roleNavLabel {
     color: #ffffff;
+}
+
+.roleNavItem:focus .roleNavLabel,
+.roleNavItem.active .roleNavLabel {
+    color: #ffffff;
+}
+
+/* Collapsed state - center icons and hide labels */
+.roleCollapsed .roleNavItem {
+    justify-content: center;
+    padding: 16px 8px;
+    min-height: 48px;
+    gap: 0;
+}
+
+.roleCollapsed .roleNavIcon {
+    margin-bottom: 0;
+}
+
+.roleCollapsed .roleNavLabel {
+    display: none;
+}
+
+/* Tooltip for collapsed state */
+.roleCollapsed .roleNavItem[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(60, 64, 67, 0.9);
+    color: white;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* Tooltip for expanded state */
+.roleExpanded .roleNavItem:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: calc(100% + 15px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(45, 45, 45, 0.95);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(4px);
+    animation: tooltipFadeIn 0.2s ease-in-out 0.3s forwards;
+    opacity: 0;
+}
+
+/* Tooltip arrow for expanded state */
+.roleExpanded .roleNavItem:hover::before {
+    content: '';
+    position: absolute;
+    left: calc(100% + 9px);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid rgba(45, 45, 45, 0.95);
+    z-index: 1001;
+    pointer-events: none;
+    animation: tooltipFadeIn 0.2s ease-in-out 0.3s forwards;
+    opacity: 0;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50%) translateX(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+}
+
+/* User section in role sidebar */
+.roleUserSection {
+    padding: 12px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.roleCollapsed .roleUserSection {
+    justify-content: center;
+}
+
+.roleUserAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 500;
-    font-size: 1rem;
-    cursor: pointer;
-}
-
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: var(--current-sidebar-width);
-    background: var(--professional-sidebar-bg) !important;
-    color: var(--professional-sidebar-text);
-    font-family: 'Roboto', 'Lexend', 'Raleway', 'Segoe UI', 'Arial', sans-serif;
-    display: flex;
-    flex-direction: column;
-    box-shadow: var(--shadow-md);
-    overflow-x: hidden;
-    z-index: 1020;
-}
-
-.sidebarHeader {
-    min-height: var(--header-height);
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
-    border-bottom: 1px solid var(--border-sidebar);
+    font-size: 0.9rem;
     flex-shrink: 0;
 }
 
-.sidebarActuallyCollapsed .sidebarHeader {
-    padding: 12px 0; 
+.roleUserInfo {
+    display: flex;
     flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.roleCollapsed .roleUserInfo {
+    display: none;
+}
+
+.roleUserName {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.roleUserRole {
+    font-size: 0.75rem;
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+/* Second Column: Quick Links Sidebar */
+.quickLinksSidebar {
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 100vh;
+    max-height: 100vh;
+}
+
+/* Collapsed state for Quick Links Sidebar */
+.quickLinksCollapsed .quickLinksSidebar {
+    width: var(--quick-links-collapsed) !important;
+    min-width: var(--quick-links-collapsed) !important;
+}
+
+.quickLinksCollapsed .sidebarHeader .companySection,
+.quickLinksCollapsed .sidebarNav {
+    display: none;
+}
+
+.quickLinksCollapsed .sidebarHeader {
+    padding: 12px;
+    justify-content: center;
+}
+
+.sidebarHeader {
+    display: flex;
     align-items: center;
-    justify-content: flex-start; 
-    min-height: auto; 
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    min-height: 64px;
+}
+
+.companySection {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .companyIcon {
     width: 32px;
     height: 32px;
-    min-width: 32px;
-    border-radius: 6px;
+    border-radius: 16px;
     background-color: var(--accent-color);
-    color: #ffffff;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
     font-size: 1.1rem;
-    transition: margin var(--transition-speed) ease;
-}
-.sidebarActuallyExpanded .companyIcon {
-    margin-right: 12px;
-}
-.sidebarActuallyCollapsed .companyIcon {
-    margin-bottom: 12px;
-    margin-right: 0;
+    flex-shrink: 0;
 }
 
+.companyName {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    letter-spacing: -0.01em;
+}
+
+.companyIcon {
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    background-color: var(--accent-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.sidebarExpanded .companyIcon {
+    margin-right: 12px;
+}
 
 .sidebarCompanyName {
     font-size: 1rem;
     font-weight: 500;
-    color: var(--text-sidebar);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: var(--text-primary);
     flex-grow: 1;
-    opacity: 1;
-    transition: opacity var(--transition-speed) ease, width var(--transition-speed) ease, margin var(--transition-speed) ease;
 }
-.sidebarActuallyCollapsed .sidebarCompanyName {
-    opacity: 0;
-    width: 0;
-    height: 0;
-    overflow: hidden;
-    margin: 0;
-    pointer-events: none;
+
+.sidebarCollapsed .sidebarCompanyName {
+    display: none;
 }
 
 .sidebarToggleButtons {
     display: flex;
     align-items: center;
-}
-.sidebarActuallyExpanded .sidebarToggleButtons {
-    margin-left: auto; 
-}
-.sidebarActuallyCollapsed .sidebarToggleButtons {
-    margin-left: 0;
-    flex-direction: column;
-    gap: 8px;
 }
 
 .sidebarActionButton {
@@ -220,197 +407,302 @@
     height: 32px;
     border: none;
     background: transparent;
-    border-radius: 4px;
+    border-radius: 16px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-sidebar-icon);
-    transition: background-color 0.15s ease, color 0.15s ease;
-}
-.sidebarActuallyExpanded .sidebarActionButton {
-     margin-left: 4px;
-}
-.sidebarActuallyCollapsed .sidebarActionButton {
-    margin-left: 0;
-}
-.sidebarActionButton:hover {
-    background-color: var(--bg-sidebar-hover);
-    color: var(--text-sidebar-active);
+    color: var(--text-secondary);
+    transition: background-color 0.15s ease;
 }
 
+.sidebarActionButton:hover {
+    background-color: var(--hover-bg);
+}
 
 .sidebarNav {
-    flex-grow: 1;
-    padding: 8px 0;
+    flex: 1;
+    padding: 16px 0;
     overflow-y: auto;
-    overflow-x: hidden;
-    border-top: 1px solid var(--border-sidebar);
-    background: transparent !important;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.navGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.navGroupTitle {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 8px 16px;
+    padding: 0;
 }
 
 .navItem {
     display: flex;
     align-items: center;
-    padding: 8px 14px;
+    padding: 8px 16px;
+    margin: 1px 12px;
     cursor: pointer;
-    color: var(--professional-sidebar-text);
-    font-family: 'Roboto', 'Lexend', 'Raleway', 'Segoe UI', 'Arial', sans-serif;
-    background: transparent !important;
-    text-shadow: none;
-    font-size: 1rem;
-    font-weight: 500;
-    letter-spacing: 0.01em;
     border-radius: 8px;
-    transition: background 0.18s, color 0.18s;
-    margin: 0 4px 2px 4px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
     position: relative;
-    overflow: hidden;
-}
-.sidebarActuallyCollapsed .navItem {
-    justify-content: center; /* This is key for centering the icon */
-    padding: 12px 0; /* Vertical padding, horizontal is handled by centering */
 }
 
-/* Sidebar hover state: white text, subtle translucent white background for contrast */
+/* Bootstrap list-group item styling */
+.sidebarNav .list-group {
+    border: none;
+    border-radius: 0;
+}
+
+.sidebarNav .list-group-item {
+    border: none;
+    border-radius: 8px;
+    margin: 2px 12px;
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-primary);
+}
+
+.sidebarNav .list-group-item:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.sidebarNav .list-group-item.active,
+.sidebarNav .list-group-item.list-group-item.active,
+.list-group-item.active {
+    background-color: #27ae60 !important;
+    border-color: #27ae60 !important;
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    box-shadow: 0 2px 4px rgba(39, 174, 96, 0.2) !important;
+}
+
+.sidebarNav .list-group-item.active .icon,
+.sidebarNav .list-group-item.list-group-item.active .icon,
+.list-group-item.active .icon {
+    color: #ffffff !important;
+}
+
+.sidebarNav .list-group-item.active .title,
+.sidebarNav .list-group-item.list-group-item.active .title,
+.list-group-item.active .title {
+    color: #ffffff !important;
+}
+
+.sidebarCollapsed .navItem {
+    justify-content: center;
+    padding: 12px 8px;
+    margin: 2px 8px;
+    border-left: none;
+}
+
 .navItem:hover {
-    background: rgba(255,255,255,0.12) !important;
-    color: #fff;
-}
-
-.navItem:hover .icon {
-    color: #fff;
+    background-color: var(--hover-bg);
+    text-decoration: none;
+    color: var(--text-primary);
 }
 
 .navItem.active {
-    background: rgba(255,255,255,0.22) !important;
-    color: #fff;
-    font-weight: 600;
+    background-color: var(--active-bg);
+    border-left-color: var(--active-color);
+    color: var(--active-color);
+    font-weight: 500;
 }
-
-.navItem.active .icon {
-    color: #fff;
-}
-
-.navItem.active:hover {
-    background: var(--professional-sidebar-active-hover-bg) !important;
-}
-
 
 .icon {
-    min-width: 32px; 
-    width: 32px; /* Explicit width can help */
-    height: 32px;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
-    color: #fff; /* Changed to white */
     margin-right: 12px;
-    transition: color 0.15s ease, margin var(--transition-speed) ease;
-}
-.sidebarActuallyExpanded .icon {
-    margin-right: 12px;
-}
-.sidebarActuallyCollapsed .icon {
-    margin-right: 0; /* Ensure no margin interferes with centering */
+    color: var(--text-secondary);
+    flex-shrink: 0;
 }
 
+.sidebarCollapsed .icon {
+    margin-right: 0;
+}
+
+.navItem:hover .icon,
+.sidebarNav .list-group-item:hover .icon {
+    color: var(--text-primary);
+}
+
+.navItem.active .icon,
+.sidebarNav .list-group-item.active .icon {
+    color: #ffffff !important;
+}
 
 .title {
-    font-size: 0.9rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex-grow: 1;
-    opacity: 1;
-    transition: opacity calc(var(--transition-speed) * 0.8) ease, width calc(var(--transition-speed)*0.8) ease, margin-left calc(var(--transition-speed)*0.8) ease;
-}
-.sidebarActuallyCollapsed .title {
-    opacity: 0;
-    width: 0;
-    height:0;
-    margin-left:0;
-    overflow: hidden; /* Make sure it truly disappears */
-    pointer-events: none; /* Not interactive */
-    position: absolute; /* Take out of flow to not interfere with icon centering */
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    line-height: 1.4;
 }
 
-/* Tooltip for nav items when sidebar is collapsed */
-/* (Applies if the .navItem itself has a title attribute, which it does now) */
-.sidebarActuallyCollapsed .navItem:hover::after {
+.sidebarCollapsed .title {
+    display: none;
+}
+
+.navItem.active .title,
+.sidebarNav .list-group-item.active .title {
+    color: #ffffff !important;
+    font-weight: 500;
+}
+
+/* Tooltip for collapsed nav items */
+.sidebarCollapsed .navItem[title]:hover::after {
     content: attr(title);
     position: absolute;
-    left: calc(var(--sidebar-width-collapsed) + 5px);
+    left: calc(100% + 8px);
     top: 50%;
     transform: translateY(-50%);
-    background-color: var(--bg-sidebar);
-    color: var(--text-sidebar-active);
-    padding: 6px 10px;
+    background: rgba(60, 64, 67, 0.9);
+    color: white;
+    padding: 6px 8px;
     border-radius: 4px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     white-space: nowrap;
-    z-index: 1100;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-sidebar);
-    pointer-events: none; /* Tooltip should not be interactive */
+    z-index: 1000;
+    pointer-events: none;
 }
 
 .sidebarFooter {
-    padding: 12px 18px;
-    border-top: 1px solid var(--border-sidebar);
-    flex-shrink: 0;
+    padding: 16px;
+    border-top: 1px solid var(--border-color);
     text-align: center;
-    min-height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
+
 .footerText {
     font-size: 0.75rem;
-    color: var(--text-sidebar);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    opacity: 0.7;
+    color: var(--text-secondary);
 }
-.sidebarActuallyCollapsed .footerText {
+
+.sidebarCollapsed .footerText {
     display: none;
 }
+
 .footerIconPlaceholder {
     display: none;
 }
 
+.sidebarBottomHeader {
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-primary);
+}
 
-.mainContent {
-    padding-top: var(--header-height);
-    margin-left: var(--current-sidebar-width);
-    flex-grow: 1;
-    transition: margin-left var(--transition-speed) ease, background-color var(--transition-speed) ease;
-    background-color: var(--bg-primary);
-    overflow-y: auto;
+.sidebarCollapsed .sidebarBottomHeader {
+    display: none;
+}
+
+.headerContent {
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.headerContent h1 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
     color: var(--text-primary);
 }
 
-.contentWrapper {
-    padding: 24px;
+.headerControls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-.sidebarNav::-webkit-scrollbar, .mainContent::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+.userInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
 }
-.sidebarNav::-webkit-scrollbar-track, .mainContent::-webkit-scrollbar-track {
+
+.userInfo span {
+    font-size: 0.8rem;
+    color: var(--text-primary);
+}
+
+.role {
+    font-size: 0.7rem;
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.userAvatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Third Column: Main Content */
+.mainContent {
+    background-color: var(--bg-primary);
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+}
+
+.contentWrapper {
+    flex: 1;
+    background-color: var(--bg-primary);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px;
+}
+
+/* Scrollbar styling for main content only */
+.mainContent::-webkit-scrollbar,
+.contentWrapper::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mainContent::-webkit-scrollbar-track,
+.contentWrapper::-webkit-scrollbar-track {
     background: transparent;
 }
-.sidebarNav::-webkit-scrollbar-thumb {
-    background: var(--border-sidebar);
-    border-radius: 3px;
-}
-.mainContent::-webkit-scrollbar-thumb {
+
+.mainContent::-webkit-scrollbar-thumb,
+.contentWrapper::-webkit-scrollbar-thumb {
     background: var(--border-color);
     border-radius: 3px;
 }
-.sidebarNav::-webkit-scrollbar-thumb:hover, .mainContent::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-color);
+
+.mainContent::-webkit-scrollbar-thumb:hover,
+.contentWrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
 }

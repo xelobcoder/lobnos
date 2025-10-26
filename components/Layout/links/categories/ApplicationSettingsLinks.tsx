@@ -23,7 +23,6 @@ import {
 
 export const ApplicationSettingsLinks: Link[] =
     [
-        { title: "Applications Settings", link: "/settings/applicationsettings", icon: <RiSettings4Line /> },
         { title: "Registration Fields", link: "/settings/applicationsettings/registrationFields", icon: <RiFileListLine /> },
         { title: "Result Entry Settings", link: "/settings/applicationsettings/resultentrysettings", icon: <RiFileTextLine /> },
         { title: "Report Settings", link: "/settings/applicationsettings/reportSettings", icon: <RiFileTextLine /> },

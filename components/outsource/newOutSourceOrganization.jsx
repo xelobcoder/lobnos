@@ -6,16 +6,16 @@ import { customFetch, customPost } from '../Auth/customFetch';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Loader from '../accessories/Loader';
 import { useApplicationSettings } from '../Auth/useApplicationContext';
-import { 
-  RiBuilding2Line, 
-  RiUserLine, 
-  RiPhoneLine, 
-  RiMailLine, 
-  RiFileTextLine, 
-  RiMapPinLine, 
-  RiGlobalLine, 
-  RiSave3Line, 
-  RiArrowGoBackLine 
+import {
+    RiBuilding2Line,
+    RiUserLine,
+    RiPhoneLine,
+    RiMailLine,
+    RiFileTextLine,
+    RiMapPinLine,
+    RiGlobalLine,
+    RiSave3Line,
+    RiArrowGoBackLine
 } from '@remixicon/react';
 import { toast } from 'react-toastify';
 
@@ -116,205 +116,225 @@ export default function OutSourcingOrganizationForm() {
     if (loading) return <Loader />;
 
     return (
-      <div>
-          <Card className="shadow-sm border-0">
-            <Card.Header className="bg-gradient py-3">
-                <div className="d-flex align-items-center">
-                    <RiBuilding2Line size={24} className="me-2" />
-                    <h5 className="mb-0 fw-semibold">
+        <div className="container-fluid">
+            <div className="border border-1 br-5 bg-white p-4">
+                <div className="d-flex align-items-center mb-4">
+                    <RiBuilding2Line size={24} className="me-2 text-primary" />
+                    <h4 className="mb-0 fw-bold">
                         {outsourceid ? 'Update Organization' : 'Add New Organization'}
-                    </h5>
+                    </h4>
                 </div>
-            </Card.Header>
-            <Card.Body className="p-4">
                 <Form onSubmit={handleSubmit}>
-                    <Row>
-                        <Col md={6}>
-                            <Form.Group className="mb-3" controlId="name">
-                                <Form.Label className="text-secondary fw-medium">
-                                    <RiBuilding2Line className="me-1" /> Organization Name
-                                </Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    className="form-control-lg border-0 bg-light"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    isInvalid={!!errors.name}
-                                    placeholder="Enter organization name"
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {errors.name}
-                                </Form.Control.Feedback>
-                            </Form.Group>
+                    <div className="form-row grid-reg mb-3">
+                        <label className="pls-label">
+                            <RiBuilding2Line className="me-2" />
+                            Organization Name *
+                        </label>
+                        <div>
+                            <Form.Control
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                isInvalid={!!errors.name}
+                                placeholder="Enter organization name"
+                                aria-label="Organization Name"
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.name}
+                            </Form.Control.Feedback>
+                        </div>
+                    </div>
 
-                            <Form.Group className="mb-3" controlId="contactPerson">
-                                <Form.Label className="text-secondary fw-medium">
-                                    <RiUserLine className="me-1" /> Contact Person
-                                </Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    className="form-control-lg border-0 bg-light"
-                                    name="contactPerson"
-                                    value={formData.contactPerson}
-                                    onChange={handleChange}
-                                    isInvalid={!!errors.contactPerson}
-                                    placeholder="Enter contact person name"
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {errors.contactPerson}
-                                </Form.Control.Feedback>
-                            </Form.Group>
+                    <div className="form-row grid-reg mb-3">
+                        <label className="pls-label">
+                            <RiUserLine className="me-2" />
+                            Contact Person *
+                        </label>
+                        <div>
+                            <Form.Control
+                                type="text"
+                                name="contactPerson"
+                                value={formData.contactPerson}
+                                onChange={handleChange}
+                                isInvalid={!!errors.contactPerson}
+                                placeholder="Enter contact person name"
+                                aria-label="Contact Person"
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.contactPerson}
+                            </Form.Control.Feedback>
+                        </div>
+                    </div>
 
-                            <Form.Group className="mb-3" controlId="contactNumber">
-                                <Form.Label className="text-secondary fw-medium">
-                                    <RiPhoneLine className="me-1" /> Phone Number
-                                </Form.Label>
-                                <Form.Control
-                                    type="tel"
-                                    minLength={10}
-                                    maxLength={10}
-                                    className="form-control-lg border-0 bg-light"
-                                    name="contactNumber"
-                                    value={formData.contactNumber}
-                                    onChange={handleChange}
-                                    isInvalid={!!errors.contactNumber}
-                                    placeholder="Enter 10-digit phone number"
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {errors.contactNumber}
-                                </Form.Control.Feedback>
-                            </Form.Group>
+                    <div className="form-row grid-reg mb-3">
+                        <label className="pls-label">
+                            <RiPhoneLine className="me-2" />
+                            Phone Number *
+                        </label>
+                        <div>
+                            <Form.Control
+                                type="tel"
+                                minLength={10}
+                                maxLength={10}
+                                name="contactNumber"
+                                value={formData.contactNumber}
+                                onChange={handleChange}
+                                isInvalid={!!errors.contactNumber}
+                                placeholder="Enter 10-digit phone number"
+                                aria-label="Phone Number"
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.contactNumber}
+                            </Form.Control.Feedback>
+                        </div>
+                    </div>
 
-                            <Form.Group className="mb-3" controlId="email">
-                                <Form.Label className="text-secondary fw-medium">
-                                    <RiMailLine className="me-1" /> Email Address
-                                </Form.Label>
-                                <Form.Control
-                                    type="email"
-                                    name="email"
-                                    className="form-control-lg border-0 bg-light"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    isInvalid={!!errors.email}
-                                    placeholder="Enter email address"
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {errors.email}
-                                </Form.Control.Feedback>
-                            </Form.Group>
+                    <div className="form-row grid-reg mb-3">
+                        <label className="pls-label">
+                            <RiMailLine className="me-2" />
+                            Email Address *
+                        </label>
+                        <div>
+                            <Form.Control
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                isInvalid={!!errors.email}
+                                placeholder="Enter email address"
+                                aria-label="Email Address"
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.email}
+                            </Form.Control.Feedback>
+                        </div>
+                    </div>
 
-                            <Form.Group className="mb-3" controlId="faxNumber">
-                                <Form.Label className="text-secondary fw-medium">
-                                    <RiFileTextLine className="me-1" /> Fax Number
-                                </Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    className="form-control-lg border-0 bg-light"
-                                    name="faxNumber"
-                                    value={formData.faxNumber}
-                                    onChange={handleChange}
-                                    placeholder="Enter fax number (optional)"
-                                />
-                            </Form.Group>
-                        </Col>
+                    <div className="form-row grid-reg mb-3">
+                        <label className="pls-label">
+                            <RiFileTextLine className="me-2" />
+                            Fax Number
+                        </label>
+                        <div>
+                            <Form.Control
+                                type="text"
+                                name="faxNumber"
+                                value={formData.faxNumber}
+                                onChange={handleChange}
+                                placeholder="Enter fax number (optional)"
+                                aria-label="Fax Number"
+                            />
+                        </div>
+                    </div>
 
-                        <Col md={6}>
-                            <Form.Group className="mb-3" controlId="address">
-                                <Form.Label className="text-secondary fw-medium">
-                                    <RiMapPinLine className="me-1" /> Address
-                                </Form.Label>
-                                <Form.Control
-                                    as="textarea"
-                                    rows={3}
-                                    name="address"
-                                    className="border-0 bg-light"
-                                    value={formData.address}
-                                    onChange={handleChange}
-                                    isInvalid={!!errors.address}
-                                    placeholder="Enter complete address"
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {errors.address}
-                                </Form.Control.Feedback>
-                            </Form.Group>
+                    <div className="form-row grid-reg mb-3">
+                        <label className="pls-label">
+                            <RiMapPinLine className="me-2" />
+                            Address *
+                        </label>
+                        <div>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                name="address"
+                                value={formData.address}
+                                onChange={handleChange}
+                                isInvalid={!!errors.address}
+                                placeholder="Enter complete address"
+                                aria-label="Address"
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.address}
+                            </Form.Control.Feedback>
+                        </div>
+                    </div>
 
-                            <Form.Group className="mb-3" controlId="billingAddress">
-                                <Form.Label className="text-secondary fw-medium">
-                                    <RiMapPinLine className="me-1" /> Billing Address
-                                </Form.Label>
-                                <Form.Control
-                                    as="textarea"
-                                    className="border-0 bg-light"
-                                    rows={3}
-                                    name="billingAddress"
-                                    value={formData.billingAddress}
-                                    onChange={handleChange}
-                                    placeholder="Enter billing address (if different)"
-                                />
-                            </Form.Group>
+                    <div className="form-row grid-reg mb-3">
+                        <label className="pls-label">
+                            <RiMapPinLine className="me-2" />
+                            Billing Address
+                        </label>
+                        <div>
+                            <Form.Control
+                                as="textarea"
+                                rows={3}
+                                name="billingAddress"
+                                value={formData.billingAddress}
+                                onChange={handleChange}
+                                placeholder="Enter billing address (if different)"
+                                aria-label="Billing Address"
+                            />
+                        </div>
+                    </div>
 
-                            <Form.Group className="mb-3" controlId="websiteURL">
-                                <Form.Label className="text-secondary fw-medium">
-                                    <RiGlobalLine className="me-1" /> Website URL
-                                </Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    className="form-control-lg border-0 bg-light"
-                                    name="websiteURL"
-                                    value={formData.websiteURL}
-                                    onChange={handleChange}
-                                    isInvalid={!!errors.websiteURL}
-                                    placeholder="Enter website URL (optional)"
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                    {errors.websiteURL}
-                                </Form.Control.Feedback>
-                            </Form.Group>
+                    <div className="form-row grid-reg mb-3">
+                        <label className="pls-label">
+                            <RiGlobalLine className="me-2" />
+                            Website URL
+                        </label>
+                        <div>
+                            <Form.Control
+                                type="text"
+                                name="websiteURL"
+                                value={formData.websiteURL}
+                                onChange={handleChange}
+                                isInvalid={!!errors.websiteURL}
+                                placeholder="Enter website URL (optional)"
+                                aria-label="Website URL"
+                            />
+                            <Form.Control.Feedback type="invalid">
+                                {errors.websiteURL}
+                            </Form.Control.Feedback>
+                        </div>
+                    </div>
 
-                            <Form.Group className="mb-3" controlId="organizationType">
-                                <Form.Label className="text-secondary fw-medium">
-                                    <RiBuilding2Line className="me-1" /> Type of Organization
-                                </Form.Label>
-                                <Form.Select
-                                    className="form-select-lg border-0 bg-light"
-                                    name="organizationType"
-                                    value={formData.organizationType}
-                                    onChange={handleChange}
-                                    isInvalid={!!errors.organizationType}
-                                >
-                                    <option value="">Select organization type...</option>
-                                    <option value="hospital">Hospital</option>
-                                    <option value="clinic">Clinic</option>
-                                    <option value="research">Research Facility</option>
-                                </Form.Select>
-                                <Form.Control.Feedback type="invalid">
-                                    {errors.organizationType}
-                                </Form.Control.Feedback>
-                            </Form.Group>
-                        </Col>
-                    </Row>
+                    <div className="form-row grid-reg mb-3">
+                        <label className="pls-label">
+                            <RiBuilding2Line className="me-2" />
+                            Type of Organization *
+                        </label>
+                        <div >
+                            <Form.Select
+                                name="organizationType"
+                                value={formData.organizationType}
+                                onChange={handleChange}
+                                isInvalid={!!errors.organizationType}
+                                aria-label="Type of Organization"
+                            >
+                                <option value="">Select organization type...</option>
+                                <option value="hospital">Hospital</option>
+                                <option value="clinic">Clinic</option>
+                                <option value="research">Research Facility</option>
+                            </Form.Select>
+                            <Form.Control.Feedback type="invalid">
+                                {errors.organizationType}
+                            </Form.Control.Feedback>
+                        </div>
+                    </div>
 
-                    <div className="d-flex justify-content-end gap-2 mt-4">
-                        <Button 
-                            variant="outline-secondary" 
-                            onClick={() => router.push('/settings/outsource')}
-                            className="d-flex align-items-center"
-                        >
-                            <RiArrowGoBackLine className="me-1" /> Cancel
-                        </Button>
-                        <Button 
-                            variant="primary" 
-                            type="submit" 
-                            disabled={loading}
-                            className="d-flex align-items-center"
-                        >
-                            <RiSave3Line className="me-1" /> {loading ? 'Saving...' : 'Save Organization'}
-                        </Button>
+                    <div className="form-row mt-4">
+                        <div className="d-flex justify-content-end gap-2">
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                onClick={() => router.push('/settings/outsource')}
+                    
+                            >
+                                <RiArrowGoBackLine className="me-1" /> Cancel
+                            </Button>
+                            <Button
+                                variant="primary"
+                                type="submit"
+                                disabled={loading}
+                    size="sm"
+                            >
+                                <RiSave3Line className="me-1" /> {loading ? 'Saving...' : 'Save Organization'}
+                            </Button>
+                        </div>
                     </div>
                 </Form>
-            </Card.Body>
-        </Card>
-      </div>
+            </div>
+        </div>
     );
 }

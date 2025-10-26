@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import html2canvas from 'html2canvas';
+import styles from '../CommissionReport.module.css';
 // PDF export function for detailed records with chart
 async function exportClinicianCommissionToPDF(commissionData, clinicianName, startDate, endDate) {
 	const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
@@ -99,7 +100,7 @@ async function exportClinicianCommissionToPDF(commissionData, clinicianName, sta
 }
 import { customFetch, currencyFormatter } from '../../../../components/Auth/customFetch';
 
-import styles from '../CommissionReport.module.css';
+
 import { RiUserLine, RiPhoneLine, RiBriefcaseLine, RiMoneyDollarCircleLine, RiServiceLine, RiFileList3Line } from '@remixicon/react';
 import CommissionLineChart from "../CommissionLineChart";
 import dayjs from 'dayjs';

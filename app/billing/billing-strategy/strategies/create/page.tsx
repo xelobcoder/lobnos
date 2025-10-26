@@ -1,6 +1,5 @@
 'use client'
 import React, { useEffect, useState } from 'react';
-import { Button, Card, Col, Form, Row, Spinner } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { customFetch, customPost } from '../../../../../components/Auth/customFetch';
 import ClinicianIndividualBillingConcession from '../../../../../components/Clinicians/ClinicianIndividualBillingConcession';
@@ -215,273 +214,173 @@ function BillingStrategyForm() {
 
      return (
           <div>
-               <Row>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                         <h5 className="fw-bold">Billing Strategies</h5>
-                         <Link href="/billing/billing-strategy/strategies" className="btn btn-link">
-                              Billing Strategies
-                         </Link>
+               <>
+                    <div className="mx-2 d-flex justify-content-between">
+                         <h5 className="text-capitalize pls-label bg-secondary-subtle p-3 pls-color br-5">
+                              {strategyid ? 'Edit Billing Strategy' : 'Create Billing Strategy'}
+                         </h5>
+                         <div>
+                              <Link href="/billing/billing-strategy/strategies" className="btn btn-light btn-sm mb-1">
+                                   Billing Strategies
+                              </Link>
+                         </div>
                     </div>
-               </Row>
-               <Row>
-                    {row.isAllTestsConcessionVisible ? (
-                         <Col md={12} className="mb-4">
-                              <Card className="border-0 shadow-sm">
-                                   <Card.Body>
-                                        <hr />
-                                        <Form onSubmit={e => { e.preventDefault(); handleBillingStrategyFormSubmission(); }}>
-                                             {/* ...form groups and logic as before... */}
-                                             <Form.Group className="mb-3" controlId="strategyName">
-                                                  <Form.Label>Strategy Name</Form.Label>
-                                                  <Form.Control
-                                                       type="text"
-                                                       value={row.strategyName}
-                                                       onChange={e => handleRowChange('strategyName', e.target.value)}
-                                                       placeholder="Enter strategy name"
-                                                       required
-                                                  />
-                                             </Form.Group>
-                                             <Form.Group className="mb-3" controlId="description">
-                                                  <Form.Label>Description</Form.Label>
-                                                  <Form.Control
-                                                       as="textarea"
-                                                       rows={2}
-                                                       value={row.description}
-                                                       onChange={e => handleRowChange('description', e.target.value)}
-                                                       placeholder="Enter description"
-                                                  />
-                                             </Form.Group>
-                                             <Form.Group className="mb-3" controlId="applyTo">
-                                                  <Form.Label>Apply To</Form.Label>
-                                                  <div>
-                                                       <Form.Check
+
+                    <div className="row">
+                         <div className="col-md-5" style={{ flex: '0 0 40%', maxWidth: '40%' }}>
+                              <div className="border bg-white border-secondary-subtle p-2">
+                                   <form className="mx-4" onSubmit={e => { e.preventDefault(); handleBillingStrategyFormSubmission(); }}>
+                                        <div className="form-row grid-reg mt-2">
+                                             <label className="pls-label">Strategy Name*</label>
+                                             <input
+                                                  type="text"
+                                                  className="custom-input"
+                                                  value={row.strategyName}
+                                                  onChange={e => handleRowChange('strategyName', e.target.value)}
+                                                  placeholder="Enter strategy name"
+                                                  required
+                                             />
+                                        </div>
+
+                                        <div className="form-row grid-reg mt-2">
+                                             <label className="pls-label">Description</label>
+                                             <textarea
+                                                  className="custom-input"
+                                                  rows={3}
+                                                  value={row.description}
+                                                  onChange={e => handleRowChange('description', e.target.value)}
+                                                  placeholder="Enter description"
+                                             />
+                                        </div>
+
+                                        <div className="form-row grid-reg mt-2">
+                                             <label className="pls-label">Apply To</label>
+                                             <div>
+                                                  <div className="form-check">
+                                                       <input
+                                                            className="form-check-input"
                                                             type="radio"
                                                             id="applyConcession"
-                                                            label="All Tests"
                                                             checked={row.isAllTestsConcessionVisible}
                                                             onChange={() => handleRowChange('isAllTestsConcessionVisible', true)}
-                                                            aria-label="Apply concession to all tests"
                                                        />
-                                                       <Form.Check
+                                                       <label className="form-check-label" htmlFor="applyConcession">
+                                                            All Tests
+                                                       </label>
+                                                  </div>
+                                                  <div className="form-check">
+                                                       <input
+                                                            className="form-check-input"
                                                             type="radio"
                                                             id="applyIndividualConcession"
-                                                            label="Individual Tests"
                                                             checked={!row.isAllTestsConcessionVisible}
                                                             onChange={() => handleRowChange('isAllTestsConcessionVisible', false)}
-                                                            aria-label="Apply concessions to individual tests"
                                                        />
+                                                       <label className="form-check-label" htmlFor="applyIndividualConcession">
+                                                            Individual Tests
+                                                       </label>
                                                   </div>
-                                             </Form.Group>
-                                             {row.isAllTestsConcessionVisible && (
-                                                  <>
-                                                       <Form.Group className="mb-3" controlId="priceType">
-                                                            <Form.Label>Pricing Type</Form.Label>
-                                                            <Form.Select
-                                                                 value={row.price_type}
-                                                                 onChange={e => handleRowChange('price_type', e.target.value)}
-                                                            >
-                                                                 <option value="discount">Discount</option>
-                                                                 <option value="surcharge">Surcharge</option>
-                                                            </Form.Select>
-                                                       </Form.Group>
-                                                       <Form.Group className="mb-3" controlId="concessionMode">
-                                                            <Form.Label>Concession Mode</Form.Label>
-                                                            <Form.Select
-                                                                 value={row.selectionMode}
-                                                                 onChange={e => handleRowChange('selectionMode', e.target.value)}
-                                                            >
-                                                                 <option value="absolute">Absolute</option>
-                                                                 <option value="percentage">Percentage</option>
-                                                            </Form.Select>
-                                                       </Form.Group>
-                                                       <Form.Group className="mb-3" controlId="concessionValue">
-                                                            <Form.Label>Concession Value</Form.Label>
-                                                            <Form.Control
-                                                                 type="number"
-                                                                 value={row.concessionValue}
-                                                                 onChange={e => handleRowChange('concessionValue', e.target.value)}
-                                                                 min="0"
-                                                                 max={row.selectionMode === "percentage" ? "100" : undefined}
-                                                                 step={row.selectionMode === "percentage" ? "0.1" : "0.01"}
-                                                                 placeholder={row.selectionMode === "percentage" ? "0-100%" : "Enter amount"}
-                                                            />
-                                                       </Form.Group>
-                                                  </>
-                                             )}
-                                             <Form.Group className="mb-3" controlId="validFrom">
-                                                  <Form.Label>Valid From</Form.Label>
-                                                  <Form.Control
-                                                       type="date"
-                                                       value={row.valid_from}
-                                                       onChange={e => handleRowChange('valid_from', e.target.value)}
-                                                  />
-                                             </Form.Group>
-                                             <Form.Group className="mb-3" controlId="validUntil">
-                                                  <Form.Label>Valid Until</Form.Label>
-                                                  <Form.Control
-                                                       type="date"
-                                                       value={row.validUntil}
-                                                       onChange={e => handleRowChange('validUntil', e.target.value)}
-                                                  />
-                                             </Form.Group>
-                                             <div className="d-flex justify-content-end gap-2">
-                                                  <Button
-                                                       variant="primary"
-                                                       type="submit"
-                                                       disabled={submitting || loading || !row.strategyName}
-                                                       aria-label="Save billing strategies"
-                                                  >
-                                                       {submitting || loading ? (
-                                                            <>
-                                                                 <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-                                                                 <span className="ms-2">Saving...</span>
-                                                            </>
-                                                       ) : (
-                                                            "Save Billing Strategies"
-                                                       )}
-                                                  </Button>
                                              </div>
-                                        </Form>
-                                   </Card.Body>
-                              </Card>
-                         </Col>
-                    ) : (
-                         <>
-                              <Col md={5} style={{ flex: '0 0 40%', maxWidth: '30%' }} className="mb-4">
-                                   <Card className="border-0 shadow-sm">
-                                        <Card.Body>
-                                             <Form onSubmit={e => { e.preventDefault(); handleBillingStrategyFormSubmission(); }}>
-                                                  {/* ...form groups and logic as before... */}
-                                                  <Form.Group className="mb-3" controlId="strategyName">
-                                                       <Form.Label>Strategy Name</Form.Label>
-                                                       <Form.Control
-                                                            type="text"
-                                                            value={row.strategyName}
-                                                            onChange={e => handleRowChange('strategyName', e.target.value)}
-                                                            placeholder="Enter strategy name"
-                                                            required
-                                                       />
-                                                  </Form.Group>
-                                                  <Form.Group className="mb-3" controlId="description">
-                                                       <Form.Label>Description</Form.Label>
-                                                       <Form.Control
-                                                            as="textarea"
-                                                            rows={2}
-                                                            value={row.description}
-                                                            onChange={e => handleRowChange('description', e.target.value)}
-                                                            placeholder="Enter description"
-                                                       />
-                                                  </Form.Group>
-                                                  <Form.Group className="mb-3" controlId="applyTo">
-                                                       <Form.Label>Apply To</Form.Label>
-                                                       <div>
-                                                            <Form.Check
-                                                                 type="radio"
-                                                                 id="applyConcession"
-                                                                 label="All Tests"
-                                                                 checked={row.isAllTestsConcessionVisible}
-                                                                 onChange={() => handleRowChange('isAllTestsConcessionVisible', true)}
-                                                                 aria-label="Apply concession to all tests"
-                                                            />
-                                                            <Form.Check
-                                                                 type="radio"
-                                                                 id="applyIndividualConcession"
-                                                                 label="Individual Tests"
-                                                                 checked={!row.isAllTestsConcessionVisible}
-                                                                 onChange={() => handleRowChange('isAllTestsConcessionVisible', false)}
-                                                                 aria-label="Apply concessions to individual tests"
-                                                            />
-                                                       </div>
-                                                  </Form.Group>
-                                                  {row.isAllTestsConcessionVisible && (
-                                                       <>
-                                                            <Form.Group className="mb-3" controlId="priceType">
-                                                                 <Form.Label>Pricing Type</Form.Label>
-                                                                 <Form.Select
-                                                                      value={row.price_type}
-                                                                      onChange={e => handleRowChange('price_type', e.target.value)}
-                                                                 >
-                                                                      <option value="discount">Discount</option>
-                                                                      <option value="surcharge">Surcharge</option>
-                                                                 </Form.Select>
-                                                            </Form.Group>
-                                                            <Form.Group className="mb-3" controlId="concessionMode">
-                                                                 <Form.Label>Concession Mode</Form.Label>
-                                                                 <Form.Select
-                                                                      value={row.selectionMode}
-                                                                      onChange={e => handleRowChange('selectionMode', e.target.value)}
-                                                                 >
-                                                                      <option value="absolute">Absolute</option>
-                                                                      <option value="percentage">Percentage</option>
-                                                                 </Form.Select>
-                                                            </Form.Group>
-                                                            <Form.Group className="mb-3" controlId="concessionValue">
-                                                                 <Form.Label>Concession Value</Form.Label>
-                                                                 <Form.Control
-                                                                      type="number"
-                                                                      value={row.concessionValue}
-                                                                      onChange={e => handleRowChange('concessionValue', e.target.value)}
-                                                                      min="0"
-                                                                      max={row.selectionMode === "percentage" ? "100" : undefined}
-                                                                      step={row.selectionMode === "percentage" ? "0.1" : "0.01"}
-                                                                      placeholder={row.selectionMode === "percentage" ? "0-100%" : "Enter amount"}
-                                                                 />
-                                                            </Form.Group>
-                                                       </>
-                                                  )}
-                                                  <Form.Group className="mb-3" controlId="validFrom">
-                                                       <Form.Label>Valid From</Form.Label>
-                                                       <Form.Control
-                                                            type="date"
-                                                            value={row.valid_from}
-                                                            onChange={e => handleRowChange('valid_from', e.target.value)}
-                                                       />
-                                                  </Form.Group>
-                                                  <Form.Group className="mb-3" controlId="validUntil">
-                                                       <Form.Label>Valid Until</Form.Label>
-                                                       <Form.Control
-                                                            type="date"
-                                                            value={row.validUntil}
-                                                            onChange={e => handleRowChange('validUntil', e.target.value)}
-                                                       />
-                                                  </Form.Group>
-                                                  <div className="d-flex justify-content-end gap-2">
-                                                       <Button
-                                                            variant="primary"
-                                                            type="submit"
-                                                            disabled={submitting || loading || !row.strategyName}
-                                                            aria-label="Save billing strategies"
+                                        </div>
+
+                                        {row.isAllTestsConcessionVisible && (
+                                             <>
+                                                  <div className="form-row grid-reg mt-2">
+                                                       <label className="pls-label">Pricing Type</label>
+                                                       <select
+                                                            className="custom-select"
+                                                            value={row.price_type}
+                                                            onChange={e => handleRowChange('price_type', e.target.value)}
                                                        >
-                                                            {submitting || loading ? (
-                                                                 <>
-                                                                      <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-                                                                      <span className="ms-2">Saving...</span>
-                                                                 </>
-                                                            ) : (
-                                                                 "Save Billing Strategies"
-                                                            )}
-                                                       </Button>
+                                                            <option value="discount">Discount</option>
+                                                            <option value="surcharge">Surcharge</option>
+                                                       </select>
                                                   </div>
-                                             </Form>
-                                        </Card.Body>
-                                   </Card>
-                              </Col>
-                              <Col md={8} style={{ flex: '0 0 60%', maxWidth: '70%' }}>
-                                   {!row.isAllTestsConcessionVisible && (
-                                        <Card className="border-0 shadow-sm">
-                                             <Card.Body>
-                                                  <h5 className="fw-bold mb-3">Select Individual Tests</h5>
-                                                  <ClinicianIndividualBillingConcession
-                                                       selectedTests={selectedTests}
-                                                       setSelectedTests={setSelectedTests}
-                                                  />
-                                             </Card.Body>
-                                        </Card>
-                                   )}
-                              </Col>
-                         </>
-                    )}
-               </Row>
+
+                                                  <div className="form-row grid-reg mt-2">
+                                                       <label className="pls-label">Concession Mode</label>
+                                                       <select
+                                                            className="custom-select"
+                                                            value={row.selectionMode}
+                                                            onChange={e => handleRowChange('selectionMode', e.target.value)}
+                                                       >
+                                                            <option value="absolute">Absolute</option>
+                                                            <option value="percentage">Percentage</option>
+                                                       </select>
+                                                  </div>
+
+                                                  <div className="form-row grid-reg mt-2">
+                                                       <label className="pls-label">Concession Value</label>
+                                                       <input
+                                                            type="number"
+                                                            className="custom-input"
+                                                            value={row.concessionValue}
+                                                            onChange={e => handleRowChange('concessionValue', e.target.value)}
+                                                            min="0"
+                                                            max={row.selectionMode === "percentage" ? "100" : undefined}
+                                                            step={row.selectionMode === "percentage" ? "0.1" : "0.01"}
+                                                            placeholder={row.selectionMode === "percentage" ? "0-100%" : "Enter amount"}
+                                                       />
+                                                  </div>
+                                             </>
+                                        )}
+
+                                        <div className="form-row grid-reg mt-2">
+                                             <label className="pls-label">Valid From</label>
+                                             <input
+                                                  type="date"
+                                                  className="custom-input"
+                                                  value={row.valid_from}
+                                                  onChange={e => handleRowChange('valid_from', e.target.value)}
+                                             />
+                                        </div>
+
+                                        <div className="form-row grid-reg mt-2">
+                                             <label className="pls-label">Valid Until</label>
+                                             <input
+                                                  type="date"
+                                                  className="custom-input"
+                                                  value={row.validUntil}
+                                                  onChange={e => handleRowChange('validUntil', e.target.value)}
+                                             />
+                                        </div>
+
+                                        <hr />
+
+                                        <div>
+                                             <button
+                                                  type="submit"
+                                                  className="btn btn-success btn-sm mt-2"
+                                                  disabled={submitting || loading || !row.strategyName}
+                                             >
+                                                  {submitting || loading ? (
+                                                       <>
+                                                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                            Saving...
+                                                       </>
+                                                  ) : (
+                                                       "Save Billing Strategy"
+                                                  )}
+                                             </button>
+                                        </div>
+                                   </form>
+                              </div>
+                         </div>
+
+                         {!row.isAllTestsConcessionVisible && (
+                              <div className="col-md-7" style={{ flex: '0 0 60%', maxWidth: '60%' }}>
+                                   <div className="border bg-white border-secondary-subtle p-2">
+                                        <div className="mx-4">
+                                             <ClinicianIndividualBillingConcession
+                                                  selectedTests={selectedTests}
+                                                  setSelectedTests={setSelectedTests}
+                                             />
+                                        </div>
+                                   </div>
+                              </div>
+                         )}
+                    </div>
+               </>
           </div>
      );
 }

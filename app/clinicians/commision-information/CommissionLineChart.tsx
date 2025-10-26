@@ -32,7 +32,6 @@ export default function CommissionLineChart({ data, view }: CommissionLineChartP
 	if (view === 'bar') useBar = true;
 	if (view === 'line') useBar = false;
 	const ChartComponent = useBar ? BarChart : LineChart;
-	const ChartElement = useBar ? Bar : Line;
 
 	return (
 		<div style={{ width: "100%", height: 350, marginBottom: 32 }}>
@@ -66,19 +65,25 @@ export default function CommissionLineChart({ data, view }: CommissionLineChartP
 						cursor={{ fill: 'var(--bs-tertiary-bg)' }}
 					/>
 					<Legend verticalAlign="top" align="right" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }} />
-					<ChartElement
-						type="monotone"
-						dataKey="commission_earned"
-						name="Commission Earned"
-						stroke={COLOR_ACCENT}
-						fill={useBar ? COLOR_BAR : COLOR_ACCENT}
-						fillOpacity={useBar ? 1 : undefined}
-						strokeWidth={3}
-						dot={!useBar ? { r: 4 } : undefined}
-						activeDot={!useBar ? { r: 6 } : undefined}
-						radius={useBar ? 4 : undefined}
-						maxBarSize={useBar ? 100 : undefined}
-					/>
+					{useBar ? (
+						<Bar
+							dataKey="commission_earned"
+							name="Commission Earned"
+							fill={COLOR_BAR}
+							radius={4}
+							maxBarSize={100}
+						/>
+					) : (
+						<Line
+							type="monotone"
+							dataKey="commission_earned"
+							name="Commission Earned"
+							stroke={COLOR_ACCENT}
+							strokeWidth={3}
+							dot={{ r: 4 }}
+							activeDot={{ r: 6 }}
+						/>
+					)}
 				</ChartComponent>
 			</ResponsiveContainer>
 		</div>

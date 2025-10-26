@@ -1,4 +1,4 @@
-import { useApplicationSettings } from "../components/Auth/useApplicationContext";
+import { useApplication } from "../components/Auth/useApplicationContext";
 import PrimeLayout from "../components/Layout/PrimeLayout";
 import FrontPageAdminView from "../components/FrontPageView/adminView";
 import FrontPageFrontdeskView from "../components/FrontPageView/frontdeskView";
@@ -8,17 +8,15 @@ import FrontPageSonographerView from "../components/FrontPageView/sonographerVie
 import styles from "./index.module.css";
 
 export default function Index() {
-  const { applicationsettings } = useApplicationSettings();
-  console.log(useApplicationSettings);
-  const { user, daysToExpiration } = applicationsettings;
+  const { user, daysToExpiration } = useApplication();
 
   const roleViews = {
     "customer service representative": FrontPageFrontdeskView,
-    admin: FrontPageAdminView,
-    manager: FrontPageAdminView,
-    scientist: FrontPageLabScientistView,
-    sonographer: FrontPageSonographerView,
-    phelobotomist: FrontPagePhelobotomyView,
+     admin: FrontPageAdminView,
+     manager: FrontPageAdminView,
+     scientist: FrontPageLabScientistView,
+     sonographer: FrontPageSonographerView,
+     phelobotomist: FrontPagePhelobotomyView,
   };
 
   const RoleComponent = roleViews[user.role];
@@ -34,9 +32,7 @@ export default function Index() {
           </p>
           <button
             className={styles.contactButton}
-            onClick={() =>
-              (window.location.href = "mailto:support@example.com")
-            }
+            onClick={() => (window.location.href = "mailto:support@example.com")}
           >
             Contact Support
           </button>

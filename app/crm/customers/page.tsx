@@ -109,13 +109,6 @@ export default function Activator() {
             filteringMode: 'number'
         },
         {
-            Header: 'activation status', accessor: 'activation_status', Cell: ({ value }) => {
-                return <div className={`btn btn-sm border-2 p-1 ${value === "TRUE" ? "border-success" : "border-danger"}`}>
-                    {value === "TRUE" ? "active" : "inactive"}
-                </div>
-            }
-        },
-        {
             Header: 'more', accessor: '', Cell: ({ value, row }) => {
                 const item = row.original;
                 return (

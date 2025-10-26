@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "node server.js  --experimental-https",
     "next": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next dev  --experimental-https -p 2377",
-    "start": "next start  -p 2377 ",
+    "start": "next start   ",
     "build": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next build && node --env-file=.env server.js",
     "ns": "node --env-file=.env server.js",
+    "clean": "rm -rf .next && rm -rf out && rm -rf package-lock.json  && rm -rf node_modules && rm -rf cache",
     "build:css": ""
   },
   "dependencies": {
@@ -28,7 +29,7 @@
     "moment": "^2.30.1",
     "moment-timezone": "^0.5.47",
     "motion": "^12.4.9",
-    "next": "^14.0.4",
+    "next": "^14.2.33",
     "react": "^18.3.1",
     "react-barcode": "^1.6.1",
     "react-bootstrap": "^2.10.9",

@@ -164,7 +164,7 @@ export default function MonthlySalesTrend() {
         if (active && payload && payload.length) {
             const entry = view === 'pie' ? payload[0].payload.payload : payload[0].payload as ChartDataEntry;
             const monthLabel = view === 'pie' ? payload[0].name : entry.month;
-            
+
             return (
                 <div
                     className="rounded-lg border p-2 shadow-sm"
@@ -177,10 +177,10 @@ export default function MonthlySalesTrend() {
                 >
                     <div className="mb-1">
                         <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Month</span>
-                        <span className="fw-bold d-block" style={{color: COLOR_TOOLTIP_FG}}>{monthLabel}</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{monthLabel}</span>
                     </div>
                     {payload.map((pld: any, index: number) => (
-                         <div key={index} className="mt-1">
+                        <div key={index} className="mt-1">
                             <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>{pld.name}</span>
                             <span className="fw-bold d-block" style={{ color: pld.color || pld.payload?.fill || COLOR_ACCENT }}>
                                 {currencyFormatter.format(pld.value)}
@@ -193,7 +193,7 @@ export default function MonthlySalesTrend() {
         }
         return null;
     };
-    
+
     const renderPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
         const RADIAN = Math.PI / 180;
         const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
@@ -238,7 +238,7 @@ export default function MonthlySalesTrend() {
             iconSize: 8,
             wrapperStyle: { fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }
         };
-        
+
         if (view === "pie") {
             const pieDataKey = "totalPayableAmount"; // Or totalSales, depending on what you want to show in pie
             return (
@@ -264,8 +264,7 @@ export default function MonthlySalesTrend() {
         }
 
         const ChartComponent = view === "bar" ? BarChart : view === "line" ? LineChart : AreaChart;
-        const ChartElement = view === "bar" ? Bar : view === "line" ? Line : Area;
-        
+
         const elements = [
             { dataKey: "totalSales", name: "Total Sales", color: COLOR_ACCENT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalSales)" : undefined },
             { dataKey: "totalDiscount", name: "Discount", color: COLOR_DISCOUNT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalDiscount)" : undefined },
@@ -274,7 +273,7 @@ export default function MonthlySalesTrend() {
 
         return (
             <ChartComponent {...commonProps} barGap={view === "bar" ? 4 : undefined} barCategoryGap={view === "bar" ? "20%" : undefined}>
-                 {view === "area" && (
+                {view === "area" && (
                     <defs>
                         <linearGradient id="colorTotalSales" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor={COLOR_ACCENT} stopOpacity={0.5} /><stop offset="95%" stopColor={COLOR_ACCENT} stopOpacity={0.05} />
@@ -282,7 +281,7 @@ export default function MonthlySalesTrend() {
                         <linearGradient id="colorTotalDiscount" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor={COLOR_DISCOUNT} stopOpacity={0.5} /><stop offset="95%" stopColor={COLOR_DISCOUNT} stopOpacity={0.05} />
                         </linearGradient>
-                         <linearGradient id="colorTotalPayable" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id="colorTotalPayable" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor={COLOR_PAYABLE} stopOpacity={0.5} /><stop offset="95%" stopColor={COLOR_PAYABLE} stopOpacity={0.05} />
                         </linearGradient>
                     </defs>
@@ -292,23 +291,49 @@ export default function MonthlySalesTrend() {
                 <YAxis {...yAxisProps} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                 <Legend {...legendProps} />
-                {elements.map(el => (
-                    <ChartElement
-                        key={el.dataKey}
-                        type="monotone"
-                        dataKey={el.dataKey}
-                        name={el.name}
-                        stroke={el.color}
-                        fill={view === "bar" ? el.color : (el.fillUrl || el.color) }
-                        fillOpacity={el.fillOpacity}
-                        strokeWidth={2}
-                        dot={view !== "bar" ? { r: 3, strokeWidth: 1, fill: el.color } : undefined}
-                        activeDot={view !== "bar" ? { r: 6, strokeWidth: 1.5, fill: el.color, stroke: COLOR_TOOLTIP_BG } : undefined}
-                        radius={view === "bar" ? 4 : undefined}
-                        maxBarSize={view === "bar" ? 100 : undefined}
-                        stackId={view === "bar" || view === "area" ? "a" : undefined} // Stack bars and areas
-                    />
-                ))}
+                {elements.map(el => {
+                    if (view === "bar") {
+                        return (
+                            <Bar
+                                key={el.dataKey}
+                                dataKey={el.dataKey}
+                                name={el.name}
+                                fill={el.color}
+                                radius={4}
+                                maxBarSize={100}
+                                stackId="a"
+                            />
+                        );
+                    } else if (view === "line") {
+                        return (
+                            <Line
+                                key={el.dataKey}
+                                type="monotone"
+                                dataKey={el.dataKey}
+                                name={el.name}
+                                stroke={el.color}
+                                strokeWidth={2}
+                                dot={{ r: 3, strokeWidth: 1, fill: el.color }}
+                                activeDot={{ r: 6, strokeWidth: 1.5, fill: el.color, stroke: COLOR_TOOLTIP_BG }}
+                            />
+                        );
+                    } else if (view === "area") {
+                        return (
+                            <Area
+                                key={el.dataKey}
+                                type="monotone"
+                                dataKey={el.dataKey}
+                                name={el.name}
+                                stroke={el.color}
+                                fill={el.fillUrl || el.color}
+                                fillOpacity={1}
+                                strokeWidth={2}
+                                stackId="a"
+                            />
+                        );
+                    }
+                    return null;
+                })}
             </ChartComponent>
         );
     };
@@ -353,7 +378,7 @@ export default function MonthlySalesTrend() {
             </div>
         );
     };
-    
+
     const viewButtons = [
         { type: "bar" as const, icon: RiBarChartBoxLine, label: "Bar" },
         { type: "line" as const, icon: RiLineChartLine, label: "Line" },
@@ -366,17 +391,17 @@ export default function MonthlySalesTrend() {
 
         const peakSalesMonth = data.reduce((prev, current) => (prev.totalSales > current.totalSales) ? prev : current, data[0]);
         const lowestSalesMonth = data.reduce((prev, current) => (prev.totalSales < current.totalSales) ? prev : current, data[0]);
-        
+
         const averageSales = overallSummary.totalSales / data.length;
         const discountImpact = (overallSummary.totalDiscount / overallSummary.totalSales) * 100;
 
         // Calculate year-over-year growth if possible
         const currentYearData = data.filter(d => new Date(d.month).getFullYear() === new Date().getFullYear());
         const previousYearData = data.filter(d => new Date(d.month).getFullYear() === new Date().getFullYear() - 1);
-        
+
         const yoyGrowth = currentYearData.length > 0 && previousYearData.length > 0
-            ? ((currentYearData.reduce((sum, curr) => sum + curr.totalPayableAmount, 0) / 
-               previousYearData.reduce((sum, curr) => sum + curr.totalPayableAmount, 0)) - 1) * 100
+            ? ((currentYearData.reduce((sum, curr) => sum + curr.totalPayableAmount, 0) /
+                previousYearData.reduce((sum, curr) => sum + curr.totalPayableAmount, 0)) - 1) * 100
             : null;
 
         return (
@@ -384,7 +409,7 @@ export default function MonthlySalesTrend() {
                 <div className="card border-0 bg-body-tertiary">
                     <div className="card-body p-4">
                         <h5 className="d-flex align-items-center gap-2 mb-4">
-                            <RiFileList3Line size={24} style={{color: COLOR_ACCENT}}/>
+                            <RiFileList3Line size={24} style={{ color: COLOR_ACCENT }} />
                             <span>Sales Analysis Report</span>
                         </h5>
 
@@ -393,7 +418,7 @@ export default function MonthlySalesTrend() {
                             <div className="col-md-3">
                                 <div className="p-3 bg-white rounded-3 shadow-sm h-100">
                                     <div className="text-muted small mb-1">Total Revenue</div>
-                                    <div className="h5 mb-0" style={{color: COLOR_ACCENT}}>
+                                    <div className="h5 mb-0" style={{ color: COLOR_ACCENT }}>
                                         {currencyFormatter.format(overallSummary.totalPayableAmount)}
                                     </div>
                                 </div>
@@ -401,7 +426,7 @@ export default function MonthlySalesTrend() {
                             <div className="col-md-3">
                                 <div className="p-3 bg-white rounded-3 shadow-sm h-100">
                                     <div className="text-muted small mb-1">Average Monthly Sales</div>
-                                    <div className="h5 mb-0" style={{color: COLOR_ACCENT}}>
+                                    <div className="h5 mb-0" style={{ color: COLOR_ACCENT }}>
                                         {currencyFormatter.format(averageSales)}
                                     </div>
                                 </div>
@@ -507,7 +532,7 @@ export default function MonthlySalesTrend() {
                                     type="button"
                                     className={`btn ${view === btn.type ? 'btn-primary active' : 'btn-outline-secondary'}`}
                                     onClick={() => handleViewToggle(btn.type)}
-                                    style={view === btn.type ? {backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT} : {}}
+                                    style={view === btn.type ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
                                 >
                                     <btn.icon size={16} className="me-1 align-text-bottom" /> {btn.label}
                                 </button>
@@ -545,9 +570,9 @@ export default function MonthlySalesTrend() {
             </div>
 
             {data.length > 0 && (
-                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{borderTop: `1px solid ${COLOR_BORDER}`}}>
+                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                     <h4 className="fs-6 fw-medium mb-3">Monthly Sales Data</h4>
-                     <div className="table-responsive" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         <table className="table table-sm table-hover table-striped small">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
@@ -572,7 +597,7 @@ export default function MonthlySalesTrend() {
                                     );
                                 })}
                             </tbody>
-                             <tfoot>
+                            <tfoot>
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
                                     <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalSales)}</td>

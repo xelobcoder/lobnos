@@ -1,16 +1,13 @@
 'use client';
 import React, { useState, useEffect } from "react";
+import Link from 'next/link';
 import styles from './PrimeLayout.module.css';
-import {
-    RiMenuFoldLine,
-    RiMenuUnfoldLine,
-    RiMoonLine,
-    RiSunLine,
-    RiHomeLine
-} from '@remixicon/react';
+import { RiMenuLine, RiArrowLeftLine, RiArrowRightLine } from '@remixicon/react';
 import { Dropdown } from 'react-bootstrap';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link as LinkType } from "./links/types";
+import { AdminRoleLinks, FrontdeskRoleLinks, LaboratoryScientistRoleLinks, PhelobotomyRoleLinks, SonographerRoleLinks } from "../FrontPageView/RoleLinks";
+
 
 interface PrimeLayoutProps {
     children: React.ReactNode;
@@ -18,39 +15,31 @@ interface PrimeLayoutProps {
 }
 
 const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
-    const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
-    const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
     const { company, user } = useApplicationSettings().applicationsettings;
 
+    const roleViews = {
+        "customer service representative": FrontdeskRoleLinks,
+        admin: AdminRoleLinks,
+        manager: AdminRoleLinks,
+        scientist: LaboratoryScientistRoleLinks,
+        sonographer: SonographerRoleLinks,
+        phelobotomist: PhelobotomyRoleLinks
+    };
+
+    const [isRoleExpanded, setIsRoleExpanded] = useState<boolean>(false);
+    const [isQuickLinksCollapsed, setIsQuickLinksCollapsed] = useState<boolean>(false);
+    const roleLinks = roleViews[user.role] || [];
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
 
     useEffect(() => {
-        setCurrentPath(window.location.pathname + window.location.search + window.location.hash);
-
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            setIsDarkMode(true);
-        }
-
-        const savedSidebarState = localStorage.getItem('sidebarExpanded');
-        if (savedSidebarState !== null) {
-            setIsSidebarExpanded(savedSidebarState === 'true');
-        }
+        setCurrentPath(window.location.pathname);
     }, []);
 
     const handleNavigation = (path: string) => {
-        if (window.location.pathname + window.location.search + window.location.hash !== path) {
+        if (window.location.pathname !== path) {
             window.location.href = path;
         }
-    };
-
-    const toggleSidebar = () => {
-        setIsSidebarExpanded(prev => {
-            const newState = !prev;
-            localStorage.setItem('sidebarExpanded', String(newState));
-            return newState;
-        });
     };
 
 
@@ -65,92 +54,112 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         return (
             <div
                 key={uniqueKey}
-                className={`${styles.navItem} ${isActive ? styles.active : ''}`}
+                className={`list-group-item d-flex mx-2 ${isActive ? 'active' : ''}`}
                 onClick={handleClick}
-                title={!isSidebarExpanded ? item.title : undefined}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleClick(); }}
             >
                 {item.icon && <span className={styles.icon}>{item.icon}</span>}
-                {isSidebarExpanded && <span className={styles.title}>{item.title}</span>}
+                <span className={styles.title}>{item.title}</span>
             </div>
         );
     };
 
 
-    const homeLink: LinkType = {
-        title: "Home",
-        link: "/",
-        icon: <RiHomeLine />
-    };
-
-
     return (
-        <div className={`
-            ${styles.pageContainer} 
-            ${isDarkMode ? styles.darkMode : styles.lightMode} 
-            ${isSidebarExpanded ? styles.sidebarActuallyExpanded : styles.sidebarActuallyCollapsed}
-        `}>
-            <header
-                className={styles.header}
-
-            >
-                <div className={styles.headerContent}>
-                    <h1>{company || "Prime Laboratory System(PLS)"}</h1>
-                    <div className={styles.headerControls}>
-                        <div className={styles.userInfo}>
-                            <span>{user?.username || "User"}</span>
-                            <span className={styles.role}>{user?.role || "Role"}</span>
-                        </div>
-                        <Dropdown align="end">
-                            <Dropdown.Toggle as="div" className={styles.userAvatar} id="user-avatar-dropdown" style={{ cursor: 'pointer' }}>
-                                {(user?.username?.charAt(0) || 'U').toUpperCase()}
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu>
-                                <Dropdown.Item href={`/human-resource/profile?employeeid=${employeeid}`}>Profile</Dropdown.Item>
-                                <Dropdown.Item href="/settings">Settings</Dropdown.Item>
-                                <Dropdown.Divider />
-                                <Dropdown.Item href="/authentication/logout">
-                                    Logout
-                                </Dropdown.Item>
-                            </Dropdown.Menu>
-                        </Dropdown>
-                    </div>
+        <div className={`${styles.gmailContainer} ${isRoleExpanded ? styles.roleExpanded : styles.roleCollapsed} ${isQuickLinksCollapsed ? styles.quickLinksCollapsed : styles.quickLinksExpanded}`}>
+            {/* First Column: Role Component (Gmail-style narrow sidebar) */}
+            <aside className={styles.roleSidebar}>
+                <div className={styles.roleHeader}>
+                    <button
+                        className={styles.roleToggleButton}
+                        onClick={() => setIsRoleExpanded(!isRoleExpanded)}
+                        title="Toggle Role Panel"
+                    >
+                        <RiMenuLine size={20} />
+                    </button>
                 </div>
-            </header>
 
-            <aside
-                className={styles.sidebar}
-            >
+                <nav className={styles.roleNav}>
+                    {roleLinks.map((link, index) => (
+                        <Link
+                            key={index}
+                            href={link.href}
+                            className={styles.roleNavItem}
+                            title={link.label}
+                        >
+                            <div className={styles.roleNavIcon}>
+                                {link.icon}
+                            </div>
+                            {isRoleExpanded && (
+                                <div className={styles.roleNavLabel}>
+                                    {link.label}
+                                </div>
+                            )}
+                        </Link>
+                    ))}
+                </nav>
+
+                {/* User Avatar in First Column */}
+                <div className={styles.roleUserSection}>
+                    <Dropdown align="end">
+                        <Dropdown.Toggle as="div" className={styles.roleUserAvatar} id="role-user-avatar-dropdown" style={{ cursor: 'pointer' }}>
+                            {(user?.username?.charAt(0) || 'U').toUpperCase()}
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                            <Dropdown.Item href={`/human-resource/profile?employeeid=${employeeid}`}>Profile</Dropdown.Item>
+                            <Dropdown.Item href="/settings">Settings</Dropdown.Item>
+                            <Dropdown.Divider />
+                            <Dropdown.Item href="/authentication/logout">
+                                Logout
+                            </Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
+                    {isRoleExpanded && (
+                        <div className={styles.roleUserInfo}>
+                            <span className={styles.roleUserName}>{user?.username || "User"}</span>
+                            <span className={styles.roleUserRole}>{user?.role || "Role"}</span>
+                        </div>
+                    )}
+                </div>
+            </aside>
+
+            {/* Second Column: Quick Links Sidebar */}
+            <aside className={styles.quickLinksSidebar}>
                 <div className={styles.sidebarHeader}>
-                    <div className={styles.companyIcon}>
-                        {(company?.name?.charAt(0) || 'C').toUpperCase()}
+                    <div className={styles.companySection}>
+                        <div className={styles.companyIcon}>
+                            {(company?.name?.charAt(0) || 'C').toUpperCase()}
+                        </div>
+                        <h2 className={styles.companyName}>
+                            {(() => {
+                                const companyName = company || 'Company';
+                                return companyName.length > 10
+                                    ? companyName.substring(0, 15) + '...'
+                                    : companyName;
+                            })()}
+                        </h2>
                     </div>
-                    {isSidebarExpanded && <span className={styles.sidebarCompanyName}>{company}</span>}
                     <div className={styles.sidebarToggleButtons}>
                         <button
-                            onClick={toggleSidebar}
                             className={styles.sidebarActionButton}
-                            aria-label={isSidebarExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
-                            title={isSidebarExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
+                            onClick={() => setIsQuickLinksCollapsed(!isQuickLinksCollapsed)}
+                            title={isQuickLinksCollapsed ? "Expand Quick Links" : "Collapse Quick Links"}
                         >
-                            {isSidebarExpanded ? <RiMenuFoldLine size={20} /> : <RiMenuUnfoldLine size={20} />}
+                            {isQuickLinksCollapsed ? <RiArrowRightLine size={16} /> : <RiArrowLeftLine size={16} />}
                         </button>
                     </div>
                 </div>
 
-                <nav className={`${styles.sidebarNav}`}>
-                    {renderNavItem(homeLink)}
-                    {Array.isArray(links) && links.map(item => renderNavItem(item))}
+                <nav className={styles.sidebarNav}>
+                    <div className="list-group">
+                        {Array.isArray(links) && links.map(item => renderNavItem(item))}
+                    </div>
                 </nav>
-
-                <div className={styles.sidebarFooter}>
-                    {isSidebarExpanded && <span className={styles.footerText}>PLS(version 0.02 Barakah)</span>}
-                    {!isSidebarExpanded && <span className={styles.footerIconPlaceholder}></span>}
-                </div>
             </aside>
 
+            {/* Third Column: Main Content */}
             <main className={styles.mainContent}>
                 <div className={styles.contentWrapper}>
                     {children}

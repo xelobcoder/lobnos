@@ -4,7 +4,8 @@ import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import PrimeToast from '../../accessories/PrimeToast';
 import PrimeTable from '../../accessories/Datatables/PrimeTable';
-import { RiEditLine, RiDeleteBinLine, RiSaveLine, RiCloseLine, RiAddLine } from '@remixicon/react';
+import { RiEditLine, RiDeleteBinLine, RiSaveLine, RiCloseLine, RiAddLine, RiListCheck } from '@remixicon/react';
+import { Tab, Nav } from 'react-bootstrap';
 
 
 interface SampleContainer {
@@ -40,39 +41,39 @@ const SampleContainerForm: FC = () => {
     { value: 'Clear', hex: '#F8F8FF' }
   ];
   const [savedContainers, setSavedContainers] = useState<SavedContainer[]>([]);
-  const [isEditing, setIsEditing] = useState<{isEditing:boolean,containerid:number|null}>({isEditing: false, containerid: null});
+  const [isEditing, setIsEditing] = useState<{ isEditing: boolean, containerid: number | null }>({ isEditing: false, containerid: null });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [selectedColor, setSelectedColor] = useState<string>('');
 
-useEffect(() => {
-  const fetchContainers = async () => {
-    setIsLoading(true);
-    try {
-      const response = await customFetch('sample/containers');
-      if (response && Array.isArray(response)) {
-        setSavedContainers(response);
+  useEffect(() => {
+    const fetchContainers = async () => {
+      setIsLoading(true);
+      try {
+        const response = await customFetch('sample/containers');
+        if (response && Array.isArray(response)) {
+          setSavedContainers(response);
+        }
+      } catch (error) {
+        toast.error('Failed to load containers');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      toast.error('Failed to load containers');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
 
-  fetchContainers();
-}, []);
+    fetchContainers();
+  }, []);
 
 
 
-  const { 
-    register, 
+  const {
+    register,
     handleSubmit,
     control,
     reset,
     setValue,
     watch,
-    formState: { errors } 
+    formState: { errors }
   } = useForm<SampleContainer>({
     defaultValues: {
       name: '',
@@ -83,9 +84,9 @@ useEffect(() => {
       is_reusable: false
     }
   });
-  
+
   const watchedColor = watch('color');
-  
+
   useEffect(() => {
     setSelectedColor(watchedColor);
   }, [watchedColor]);
@@ -94,27 +95,27 @@ useEffect(() => {
     setIsSubmitting(true);
     try {
       const method = isEditing.isEditing ? 'PUT' : 'POST';
-      const url = isEditing.isEditing 
+      const url = isEditing.isEditing
         ? `sample/containers/${isEditing.containerid}`
         : 'sample/containers';
-        
+
       const response = await customPost(url, method, data);
-      
+
       if (response.status === true) {
-        const successMessage = isEditing.isEditing 
-          ? 'Container updated successfully' 
+        const successMessage = isEditing.isEditing
+          ? 'Container updated successfully'
           : 'Container created successfully';
-            
+
         toast.success(successMessage);
-        
+
         setIsLoading(true);
         const updatedContainers = await customFetch('sample/containers');
         if (updatedContainers && Array.isArray(updatedContainers)) {
           setSavedContainers(updatedContainers);
         }
         setIsLoading(false);
-        
-        setIsEditing({isEditing: false, containerid: null});
+
+        setIsEditing({ isEditing: false, containerid: null });
         reset({
           name: '',
           description: '',
@@ -141,7 +142,7 @@ useEffect(() => {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await customPost(`sample/containers/${id}`,'DELETE',{});
+      const response = await customPost(`sample/containers/${id}`, 'DELETE', {});
       if (response.status === true) {
         setSavedContainers(prev => prev.filter(container => container.id !== id));
         toast.success('Container deleted successfully');
@@ -156,8 +157,8 @@ useEffect(() => {
   const handleEdit = async (data: SavedContainer) => {
     try {
       const response = await customFetch(`sample/containers/${data.id}`);
-     reset(response);
-      setIsEditing({isEditing: true, containerid: data.id});
+      reset(response);
+      setIsEditing({ isEditing: true, containerid: data.id });
     } catch (error) {
       toast.error('Error updating container');
     }
@@ -166,7 +167,7 @@ useEffect(() => {
   const columns = [
     {
       Header: 'Name',
-      accessor: 'name', 
+      accessor: 'name',
     },
     {
       Header: 'Material',
@@ -175,7 +176,7 @@ useEffect(() => {
     {
       Header: 'Volume Capacity',
       accessor: 'volume_capacity',
-      Cell: ({ value }) => `${value} ml`, 
+      Cell: ({ value }) => `${value} ml`,
     },
     {
       Header: 'Color',
@@ -184,20 +185,20 @@ useEffect(() => {
     {
       Header: 'Reusable',
       accessor: 'is_reusable',
-      Cell: ({ value }) => (value ? 'Yes' : 'No'), 
+      Cell: ({ value }) => (value ? 'Yes' : 'No'),
     },
     {
       Header: 'Actions',
       accessor: 'id',
       Cell: ({ row }) => (
         <div className="flex gap-2">
-          <button 
+          <button
             className="edit-btn btn-outline btn-sm btn btn-primary"
             onClick={() => handleEdit(row.original)}
           >
             <RiEditLine className="mr-1" /> Edit
           </button>
-          <button 
+          <button
             className="btn btn-outline btn-sm btn-danger mx-1"
             onClick={() => handleDelete(row.original.id)}
           >
@@ -209,176 +210,219 @@ useEffect(() => {
   ];
 
   return (
-    <>
-      <h5 className="mb-4 pls-label bg-secondary-subtle p-3 br-5 col-3 fw-bolder">{isEditing.isEditing ? 'Edit' : 'Add'} Sample Container</h5>
-      <form onSubmit={handleSubmit(onSubmit)} className="row g-3">
-        <div className="col-md-12 col-lg-6">
-          <div className="form-group ">
-            <label className="form-label">Container Name*</label>
-            <input
-              {...register('name', { required: 'Name is required' })}
-              type="text"
-              className={`form-control ${errors.name ? 'is-invalid' : ''}`}
-              placeholder="e.g., Glass Jar 500ml"
-            />
-            {errors.name && <div className="invalid-feedback">{errors.name.message}</div>}
-          </div>
-        </div>
+    <div className="container-fluid">
+      <Tab.Container defaultActiveKey="form">
+        <Nav variant="tabs" className="mb-3">
+          <Nav.Item>
+            <Nav.Link eventKey="form">
+              <RiAddLine className="me-2" />
+              {isEditing.isEditing ? 'Edit' : 'Add'} Sample Container
+            </Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link eventKey="list">
+              <RiListCheck className="me-2" />
+              Container List
+            </Nav.Link>
+          </Nav.Item>
+        </Nav>
 
-        <div className="col-md-12 col-lg-6">
-          <div className="form-group ">
-            <label className="form-label">Volume Capacity (ml)*</label>
-            <input
-              {...register('volume_capacity', { 
-                required: 'Volume capacity is required',
-                min: { value: 0, message: 'Volume must be positive' }
-              })}
-              type="number"
-              className={`form-control ${errors.volume_capacity ? 'is-invalid' : ''}`}
-              step="0.01"
-            />
-            {errors.volume_capacity && <div className="invalid-feedback">{errors.volume_capacity.message}</div>}
-          </div>
-        </div>
+        <Tab.Content>
+          <Tab.Pane eventKey="form">
+            <div className="mx-2 d-flex justify-content-between">
+              <h5 className="text-capitalize pls-label bg-secondary-subtle p-3 pls-color br-5">
+                {isEditing.isEditing ? 'Edit Sample Container' : 'Add Sample Container'}
+              </h5>
+            </div>
 
-        <div className="col-md-12 col-lg-6">
-          <div className="form-group ">
-            <label className="form-label">Material*</label>
-            <input
-              {...register('material', { required: 'Material is required' })}
-              type="text"
-              className={`form-control ${errors.material ? 'is-invalid' : ''}`}
-              placeholder="e.g., Glass, Plastic"
-            />
-            {errors.material && <div className="invalid-feedback">{errors.material.message}</div>}
-          </div>
-        </div>
-
-     
-        <div className="col-md-12 col-lg-6">
-          <div className="form-group">
-            <label className="form-label">Color</label>
-            <Controller
-              name="color"
-              control={control}
-              render={({ field }) => (
-                <>
-                  <select
-                    {...field}
-                    className="form-select mb-2"
-                  >
-                    <option value="">Select a color</option>
-                    {colorOptions.map((color) => (
-                      <option key={color.value} value={color.value}>
-                        {color.value}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="d-flex flex-wrap gap-2 mt-2">
-                    {colorOptions.map((color) => (
-                      <div 
-                        key={color.value}
-                        onClick={() => {
-                          setValue('color', color.value);
-                          setSelectedColor(color.value);
-                        }}
-                        style={{
-                          width: '30px',
-                          height: '30px',
-                          borderRadius: '50%',
-                          backgroundColor: color.hex,
-                          cursor: 'pointer',
-                          border: '1px solid #ddd',
-                          boxShadow: field.value === color.value ? '0 0 0 3px rgba(13, 110, 253, 0.5)' : 'none',
-                          transition: 'all 0.2s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                        title={color.value}
-                      >
-                        {field.value === color.value && (
-                          <span style={{ 
-                            color: ['White', 'Yellow', 'Clear'].includes(color.value) ? '#000' : '#fff',
-                            fontSize: '16px',
-                            fontWeight: 'bold'
-                          }}>✓</span>
-                        )}
-                      </div>
-                    ))}
+            <div className="border bg-white border-secondary-subtle mx-2 p-2">
+              <form className="mx-4">
+                <div className="row">
+                  <div className="col-12">
+                    <div className="form-group">
+                      <label className="form-label">Container Name*</label>
+                      <input
+                        {...register('name', { required: 'Name is required' })}
+                        type="text"
+                        className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+                        placeholder="e.g., Glass Jar 500ml"
+                      />
+                      {errors.name && <div className="invalid-feedback">{errors.name.message}</div>}
+                    </div>
                   </div>
-                </>
-              )}
-            />
-          </div>
-        </div>
 
-        <div className="col-12">
-          <div className="form-group ">
-            <label className="form-label">Description</label>
-            <textarea
-              {...register('description')}
-              className="form-control"
-              rows={3}
-              placeholder="Enter container description"
-            />
-          </div>
-        </div>
+                  <div className="col-12">
+                    <div className="form-group">
+                      <label className="form-label">Volume Capacity (ml)*</label>
+                      <input
+                        {...register('volume_capacity', {
+                          required: 'Volume capacity is required',
+                          min: { value: 0, message: 'Volume must be positive' }
+                        })}
+                        type="number"
+                        className={`form-control ${errors.volume_capacity ? 'is-invalid' : ''}`}
+                        step="0.01"
+                      />
+                      {errors.volume_capacity && <div className="invalid-feedback">{errors.volume_capacity.message}</div>}
+                    </div>
+                  </div>
 
-        <div className="col-12">
-          <div className="form-check">
-            <input
-              {...register('is_reusable')}
-              type="checkbox"
-              className="form-check-input"
-              id="is_reusable"
-            />
-            <label className="form-check-label" htmlFor="is_reusable">
-              Is Reusable
-            </label>
-          </div>
-        </div>
+                  <div className="col-12">
+                    <div className="form-group">
+                      <label className="form-label">Material*</label>
+                      <input
+                        {...register('material', { required: 'Material is required' })}
+                        type="text"
+                        className={`form-control ${errors.material ? 'is-invalid' : ''}`}
+                        placeholder="e.g., Glass, Plastic"
+                      />
+                      {errors.material && <div className="invalid-feedback">{errors.material.message}</div>}
+                    </div>
+                  </div>
 
-        <div className="col-12">
-          <button 
-            type="submit" 
-            className="btn btn-outline-primary btn-sm"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Processing...' : isEditing.isEditing ? 'Update Container' : 'Create Container'}
-          </button>
-          {isEditing.isEditing && (
-            <button 
-              type="button" 
-              className="btn btn-outline-secondary btn-sm ms-2"
-              disabled={isSubmitting}
-              onClick={() => {
-                setIsEditing({isEditing: false, containerid: null});
-                reset({
-                  name: '',
-                  description: '',
-                  volume_capacity: 0,
-                  material: '',
-                  color: '',
-                  is_reusable: false
-                });
-              }}
-            >
-              Cancel
-            </button>
-          )}
-        </div>
-      </form>
-      
-      <PrimeTable 
-        column={columns} 
-        data={savedContainers} 
-        filtering={false}
-        handleSeverSideProcessing={false} 
-        serverSideFiltering={false}
-      />
+                  <div className="col-12">
+                    <div className="form-group">
+                      <label className="form-label">Color</label>
+                      <Controller
+                        name="color"
+                        control={control}
+                        render={({ field }) => (
+                          <>
+                            <select
+                              {...field}
+                              className="form-select mb-2"
+                            >
+                              <option value="">Select a color</option>
+                              {colorOptions.map((color) => (
+                                <option key={color.value} value={color.value}>
+                                  {color.value}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="d-flex flex-wrap gap-2 mt-2">
+                              {colorOptions.map((color) => (
+                                <div
+                                  key={color.value}
+                                  onClick={() => {
+                                    setValue('color', color.value);
+                                    setSelectedColor(color.value);
+                                  }}
+                                  style={{
+                                    width: '30px',
+                                    height: '30px',
+                                    borderRadius: '50%',
+                                    backgroundColor: color.hex,
+                                    cursor: 'pointer',
+                                    border: '1px solid #ddd',
+                                    boxShadow: field.value === color.value ? '0 0 0 3px rgba(13, 110, 253, 0.5)' : 'none',
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                  title={color.value}
+                                >
+                                  {field.value === color.value && (
+                                    <span style={{
+                                      color: ['White', 'Yellow', 'Clear'].includes(color.value) ? '#000' : '#fff',
+                                      fontSize: '16px',
+                                      fontWeight: 'bold'
+                                    }}>✓</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                    <div className="form-group">
+                      <label className="form-label">Description</label>
+                      <textarea
+                        {...register('description')}
+                        className="form-control"
+                        rows={3}
+                        placeholder="Enter container description"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                    <div className="form-check">
+                      <input
+                        {...register('is_reusable')}
+                        type="checkbox"
+                        className="form-check-input"
+                        id="is_reusable"
+                      />
+                      <label className="form-check-label" htmlFor="is_reusable">
+                        Is Reusable
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <hr />
+
+                <div>
+                  <button
+                    type="submit"
+                    className="btn btn-success btn-sm mt-2"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Processing...' : isEditing.isEditing ? 'Update Container' : 'Create Container'}
+                  </button>
+                  {isEditing.isEditing && (
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary btn-sm ms-2 mt-2"
+                      disabled={isSubmitting}
+                      onClick={() => {
+                        setIsEditing({ isEditing: false, containerid: null });
+                        reset({
+                          name: '',
+                          description: '',
+                          volume_capacity: 0,
+                          material: '',
+                          color: '',
+                          is_reusable: false
+                        });
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+          </Tab.Pane>
+
+          <Tab.Pane eventKey="list">
+            <div className="mx-2 d-flex justify-content-between">
+              <h5 className="text-capitalize pls-label bg-secondary-subtle p-3 pls-color br-5">
+                Sample Containers List
+              </h5>
+            </div>
+
+            <div className="border bg-white border-secondary-subtle mx-2 p-2">
+              <div className="mx-4">
+                <PrimeTable
+                  column={columns}
+                  data={savedContainers}
+                  filtering={false}
+                  handleSeverSideProcessing={false}
+                  serverSideFiltering={false}
+                />
+              </div>
+            </div>
+          </Tab.Pane>
+        </Tab.Content>
+      </Tab.Container>
       <PrimeToast />
-    </>
+    </div>
   );
 };
 
