@@ -1,7 +1,8 @@
 "use client"
 import React from 'react';
 import { Form, Col, Row } from 'react-bootstrap';
-import { ResultSettings } from '../../../../components/ResultView/result-settings';
+import { ResultSettings } from '../ResultView/result-settings';
+
 
 interface GeneralTabProps {
      settings: ResultSettings;

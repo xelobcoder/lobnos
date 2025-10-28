@@ -3,7 +3,7 @@ import ReformatTestParamOptions from './FormatOptions';
 import CreateFieldConstraintsModal from './CreateFieldConstraintsModal';
 import styles from './RenderTestCreationParametersTable.module.css';
 
-export default function RenderTestCreationParameters({ data, reorder, setReorder, changeOrdering, editField, removeField ,testid}) {
+export default function RenderTestCreationParameters({ data, reorder, setReorder, changeOrdering, editField, removeField, testid }) {
     const [showConstraintsModal, setShowConstraintsModal] = useState(false);
     const [selectedFieldId, setSelectedFieldId] = useState(null);
 
@@ -24,13 +24,8 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
                     <thead>
                         <tr>
                             <th>Parameter Name</th>
-                            <th title="General Upper Limit">GUL</th>
-                            <th title="General Lower Limit">GLL</th>
-                            <th title="Male Upper Limit">MUL</th>
-                            <th title="Male Lower Limit">MLL</th>
-                            <th title="Female Upper Limit">FUL</th>
-                            <th title="Female Lower Limit">FLL</th>
-                            <th>Alert Value</th>
+                            <th title="General Upper Limit">Upper Limit</th>
+                            <th title="General Lower Limit">Lower Limit</th>
                             <th>Options</th>
                             <th>Plain</th>
                             <th>Ultrasound Type</th>
@@ -43,11 +38,6 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
                                 <td>{item.name}</td>
                                 <td>{item.upperlimit}</td>
                                 <td>{item.lowerlimit}</td>
-                                <td>{item.male?.upperlimit}</td>
-                                <td>{item.male?.lowerlimit}</td>
-                                <td>{item.female?.upperlimit}</td>
-                                <td>{item.female?.lowerlimit}</td>
-                                <td>{item.valueAlert}</td>
                                 <td>{item.options && <ReformatTestParamOptions stringdata={item.options} />}</td>
                                 <td>{item.textReference && <ReformatTestParamOptions stringdata={item.textReference} />}</td>
                                 <td>{item.options === "ultrasoundFields" ? 'Yes' : 'No'}</td>
@@ -86,7 +76,7 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
                 </table>
             </div>
 
-            <CreateFieldConstraintsModal 
+            <CreateFieldConstraintsModal
                 fieldId={selectedFieldId}
                 show={showConstraintsModal}
                 testId={testid}

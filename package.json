@@ -3,13 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node server.js  --experimental-https",
+    "dev": "next dev -p 3000  --experimental-https",
     "next": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next dev  --experimental-https -p 2377",
-    "start": "next start   ",
+    "start": "next start",
     "build": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next build && node --env-file=.env server.js",
     "ns": "node --env-file=.env server.js",
     "clean": "rm -rf .next && rm -rf out && rm -rf package-lock.json  && rm -rf node_modules && rm -rf cache",
-    "build:css": ""
+    "build:css": "",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^40.1.0",
@@ -47,6 +50,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.9.1",
     "@types/node": "22.10.2",
     "autoprefixer": "^10.4.21",
     "cross-env": "^10.0.0",

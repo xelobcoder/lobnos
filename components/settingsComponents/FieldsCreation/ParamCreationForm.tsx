@@ -1,14 +1,8 @@
-import {
-    RiCheckboxCircleFill,
-    RiFileTextLine,
-    RiFileTextFill,
-    RiNumber5,
-    RiFile2Line
-} from '@remixicon/react';
+import dynamic from "next/dynamic";
 import { handleChangeWithState, reactSelectCustomStyles } from "../../Auth/customFetch";
 import { handleCreationMasterRUle } from "./data/testUtil";
-import Select from 'react-select';
-import styles from './ParamCreationForm.module.css';
+
+const Select: any = dynamic(() => import("react-select"), { ssr: false });
 
 interface Category {
     categoryid: string;
@@ -26,13 +20,13 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
     })) || [];
 
     const inputTypes = [
-        { value: 'options', label: 'Dropdown List', Icon: RiCheckboxCircleFill },
-        { value: 'input', label: 'Single Line', Icon: RiFileTextLine },
-        { value: 'textReference', label: 'Text with Ref', Icon: RiFileTextFill },
-        { value: 'limits', label: 'Numeric Range', Icon: RiNumber5 },
-        { value: 'greaterLess', label: 'Greater Than / Less Than Value', Icon: RiNumber5 },
-        { value: 'plain', label: 'Text Area', Icon: RiFile2Line },
-        { value: 'ultrasoundFields', label: 'ultrasound Fields', Icon: RiFileTextFill },
+        { value: 'options', label: 'Dropdown List' },
+        { value: 'input', label: 'Single Line' },
+        { value: 'textReference', label: 'Text with Ref' },
+        { value: 'limits', label: 'Numeric Range' },
+        { value: 'greaterLess', label: 'Greater Than / Less Than Value' },
+        { value: 'plain', label: 'Text Area' },
+        { value: 'ultrasoundFields', label: 'Ultrasound Fields' },
     ];
 
     const handleTypeSelect = (value: string | null) => {
@@ -47,106 +41,103 @@ export default function ParamCreationGForm({ field, setField, fieldConstraintsCa
     };
 
     return (
-        <div className={styles.formBuilder}>
-            <div className={styles.formSectionStatic}>
-                <div className={styles.inputGroup}>
-                    <label htmlFor="fieldName" className={styles.inputLabel}>Field Name</label>
+        <div className="d-flex flex-column gap-3">
+            <div className="mb-3">
+                <label className="pls-label">Field Name</label>
+                <input
+                    type="text"
+                    value={field?.name || ''}
+                    placeholder="Enter field name"
+                    onChange={(ev) => handleChangeWithState(ev, "name", setField, field)}
+                    className="form-control"
+                />
+            </div>
+
+            <div className="mb-3">
+                <label className="pls-label">Input Type</label>
+                <Select
+                    options={inputTypes}
+                    styles={reactSelectCustomStyles}
+                    value={inputTypes.find(option => option.value === field?.plan) || null}
+                    onChange={(selectedOption) => handleTypeSelect(selectedOption?.value || null)}
+                    placeholder="Select input type"
+                    isClearable
+                    classNamePrefix="select"
+                />
+            </div>
+
+            <div className="form-check mb-3">
+                <input
+                    type="checkbox"
+                    id="hasUnits"
+                    checked={!!field?.hasunits || (field?.units && field.units.toString().length > 0)}
+                    onChange={(e) => setField({ ...field, hasunits: e.target.checked, units: e.target.checked ? field.units : '' })}
+                    className="form-check-input"
+                />
+                <label className="form-check-label pls-label" htmlFor="hasUnits">
+                    Has Units
+                </label>
+            </div>
+
+            {(!!field?.hasunits || (field?.units && field.units.toString().length > 0)) && (
+                <div className="mb-3">
+                    <label htmlFor="unitsInput">Units</label>
                     <input
-                        id="fieldName"
-                        value={field?.name || ''}
-                        placeholder="Enter field name"
-                        onChange={(ev) => handleChangeWithState(ev, "name", setField, field)}
-                        className={styles.formInput}
+                        id="unitsInput"
+                        type="text"
+                        onChange={(ev) => {
+                            const newUnits = ev.target.value;
+                            setField({ ...field, units: newUnits, hasunits: newUnits.length > 0 });
+                        }}
+                        value={field?.units || ''}
+                        placeholder="Specify units (e.g., mg/dL)"
+                        className="form-control"
                     />
                 </div>
+            )}
 
-                <div className={styles.inputGroup}>
-                    <label className={styles.inputLabel}>Input Type</label>
+            <div className="form-check mb-3">
+                <input
+                    type="checkbox"
+                    id="assignCategory"
+                    checked={!!field?.undercategory}
+                    onChange={(e) => setField({ ...field, undercategory: e.target.checked })}
+                    className="form-check-input"
+                />
+                <label className="form-check-label pls-label" htmlFor="assignCategory">
+                    Assign Category
+                </label>
+            </div>
+
+            {field?.undercategory && (
+                <div className="mb-3">
+                    <label htmlFor="categorySelect">Category</label>
                     <Select
-                        options={inputTypes}
+                        inputId="categorySelect"
+                        options={categoryOptions}
                         styles={reactSelectCustomStyles}
-                        value={inputTypes.find(option => option.value === field?.plan) || null}
-                        onChange={(selectedOption) => handleTypeSelect(selectedOption?.value || null)}
-                        className={styles.inputTypeSelect}
-                        placeholder="Select Input Type"
+                        value={categoryOptions.find(option => option.value === field?.categoryid) || null}
+                        onChange={(selectedOption) => setField({ ...field, categoryid: selectedOption?.value || null })}
+                        placeholder="Select a category"
                         isClearable
-                        formatOptionLabel={({ value, label, Icon }) => (
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                {Icon && <Icon style={{ marginRight: '8px' }} />}
-                                {label}
-                            </div>
-                        )}
+                        classNamePrefix="select"
                     />
                 </div>
-            </div>
+            )}
 
-            <div className={styles.formSectionScrollable}>
-                <div className={styles.optionsGroup}>
-                    <div className={styles.optionItem}>
-                        <label className={styles.checkboxLabel}>
-                            <input
-                                type="checkbox"
-                                checked={field?.hasunits == 1 || field.hasunits == "1" || field.units.toString().length > 0}
-                                onChange={(e) => setField({ ...field, hasunits: e.target.checked })}
-                                className={styles.checkbox}
-                            />
-                            Has Units
-                        </label>
-                    </div>
-
-                    {field?.hasunits && (
-                        <div className={styles.inputGroup}>
-                            <input
-                                onChange={(ev) => handleChangeWithState(ev, "units", setField, field)}
-                                value={field?.units || ''}
-                                placeholder="Specify units (e.g., mg/dL)"
-                                className={styles.formInput}
-                            />
-                        </div>
-                    )}
+            {field?.plan === 'greaterLess' && (
+                <div className="mb-3">
+                    <label htmlFor="referenceValue">Enter &gt;value or &lt;value</label>
+                    <input
+                        id="referenceValue"
+                        type="text"
+                        value={field?.textReference || ''}
+                        onChange={e => setField({ ...field, textReference: e.target.value })}
+                        placeholder="e.g. >5 or <10"
+                        className="form-control"
+                    />
                 </div>
-
-                <div className={styles.optionsGroup}>
-                    <div className={styles.optionItem}>
-                        <label className={styles.checkboxLabel}>
-                            <input
-                                type="checkbox"
-                                checked={!!field?.undercategory}
-                                onChange={(e) => setField({ ...field, undercategory: e.target.checked })}
-                                className={styles.checkbox}
-                            />
-                            Assign Category
-                        </label>
-                    </div>
-
-                    {field?.undercategory ? (
-                        <div className={styles.inputGroup}>
-                            <Select
-                                options={categoryOptions}
-                                styles={reactSelectCustomStyles}
-                                value={categoryOptions.find(option => option.value === field?.categoryid) || null}
-                                onChange={(selectedOption) => setField({ ...field, categoryid: selectedOption?.value || null })}
-                                className={styles.categorySelect}
-                                placeholder="Select a category"
-                                isClearable
-                            />
-                        </div>
-                    ) : null}
-                </div>
-
-                {field?.plan === 'greaterLess' && (
-                    <div className={styles.inputGroup}>
-                        <label className={styles.inputLabel}>Enter &gt;value or &lt;value</label>
-                        <input
-                            type="text"
-                            value={field?.textReference || ''}
-                            onChange={e => setField({ ...field, textReference: e.target.value })}
-                            placeholder="e.g. >5 or <10"
-                            className={styles.formInput}
-                        />
-                    </div>
-                )}
-            </div>
+            )}
         </div>
     );
 }

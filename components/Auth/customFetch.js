@@ -1045,6 +1045,7 @@ export const reactSelectCustomStyles = {
 		...base,
 		maxHeight: "400px",
 		fontSize: '12px',
+		zIndex: 1060,
 	}),
 	menuList: (base) => ({
 		...base,

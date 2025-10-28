@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { Button, Spinner } from "react-bootstrap";
+import { Button, Spinner, Modal } from "react-bootstrap";
 import CustomParameterTypeSelection from "./CustomParameterTypeSelection";
 import RenderTestCreationParameters from "./RenderTestCreationParametersTable";
 import { defaultCreationRule, parseTextToObject, updateFieldsRules } from "./data/testUtil";
@@ -10,37 +10,57 @@ import ParamCreationGForm from "./ParamCreationForm";
 
 export default function CreateTestFields({ testid, testname, testRules, fieldConstraintsCategorization, testdata }) {
 	const [data, setData] = useState(testRules);
-	const [error, setError] = useState("");
-	const [field, setField] = useState(defaultCreationRule);
 	const [reorder, setReorder] = useState(true);
 	const [isLoading, setIsLoading] = useState(false);
+	const [showModal, setShowModal] = useState(false);
+	const [modalField, setModalField] = useState(defaultCreationRule);
+	const [modalError, setModalError] = useState("");
+	const [sessionFields, setSessionFields] = useState([] as any[]);
 
+	useEffect(() => {
+		setData(testRules);
+	}, [testRules]);
 
 	const handleCreateOrUpdateField = async () => {
-		let _field = { ...field };
-		setError("");
+		let _field = { ...modalField };
+		setModalError("");
 		if (!_field.name) {
-			return setError("Parameter or field name is required.");
+			return setModalError("Parameter or field name is required.");
 		}
 		if (!_field.plan) {
-			return setError("Please select an input type.");
+			return setModalError("Please select an input type.");
 		}
 		if (_field.plan === "plain") {
-			const formattedPlainToObject = parseTextToObject(field.plain);
+			const formattedPlainToObject = parseTextToObject(modalField.plain);
 			_field = { ..._field, ...formattedPlainToObject };
 		}
 
-		const existingFieldIndex = data.findIndex(item => item.name === _field.name);
-		let updatedData;
-
-		if (existingFieldIndex > -1) {
-			updatedData = [...data];
-			updatedData[existingFieldIndex] = _field;
+		if (isEditing) {
+			// For editing, update the field and close
+			const existingFieldIndex = data.findIndex(item => item.name === _field.name);
+			let updatedData = [...data];
+			if (existingFieldIndex > -1) {
+				updatedData[existingFieldIndex] = _field;
+			}
+			setData(updatedData);
+			setShowModal(false);
+			setModalField(defaultCreationRule);
+			toast.success("Field updated successfully!");
 		} else {
-			updatedData = [...data, _field];
+			// For creating, add to session
+			setSessionFields([...sessionFields, _field]);
+			setModalField(defaultCreationRule);
+			setModalError("");
+			toast.success("Field added to session! Add more or save all.");
 		}
-		setData(updatedData);
-		setField(defaultCreationRule);
+	};
+
+	const handleSaveSession = () => {
+		setData([...data, ...sessionFields]);
+		setShowModal(false);
+		setSessionFields([]);
+		setModalField(defaultCreationRule);
+		toast.success(`${sessionFields.length} field(s) added successfully!`);
 	};
 
 	const handleUpdateFields = async () => {
@@ -61,9 +81,6 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 
 	const removeField = (itemToRemove) => {
 		setData(prevData => prevData.filter(item => item.name !== itemToRemove.name));
-		if (field.name === itemToRemove.name) {
-			setField(defaultCreationRule);
-		}
 	};
 
 	const changeOrdering = (item, ev) => {
@@ -74,69 +91,42 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 	};
 
 	const editField = (row) => {
-		setField(row);
-		setError("");
+		setModalField(row);
+		setModalError("");
+		setSessionFields([]);
+		setShowModal(true);
 	};
 
 	const clearForm = () => {
-		setField(defaultCreationRule);
-		setError("");
+		setModalField(defaultCreationRule);
+		setModalError("");
 	};
 
-	const isEditing = Array.isArray(data) && data.length > 0 && data.some(item => item.name === field.name && field.name !== defaultCreationRule.name);
+	const openCreateModal = () => {
+		setModalField(defaultCreationRule);
+		setModalError("");
+		setSessionFields([]);
+		setShowModal(true);
+	};
+
+	const isEditing = Array.isArray(data) && data.length > 0 && data.some(item => item.name === modalField.name && modalField.name !== defaultCreationRule.name);
 
 	return (
 		<div className="container-fluid p-3">
 			<TestFieldsHeader testid={testid} testname={testname} />
 			<div className="row g-3 mt-2">
-				<div className="col-lg-4 d-flex flex-column">
-					<div className="card shadow-sm">
-						<div className="card-body d-flex flex-column">
-							<h2 className="card-title fs-5 fw-bold text-dark pb-3 mb-3 border-bottom">Parameter / Field Configuration</h2>
-							{error && <div className="alert alert-danger" role="alert">{error}</div>}
-
-							<div  >
-								<div>
-									<ParamCreationGForm
-										field={field}
-										setField={setField}
-										fieldConstraintsCategorization={fieldConstraintsCategorization}
-									/>
-								</div>
-
-								<div className="p-3 mx-2" >
-									{
-										field.plan &&
-										<CustomParameterTypeSelection
-											selection={field.plan}
-											field={field}
-											setField={setField}
-										/>
-									}
-								</div>
-							</div>
-
-							<div className="d-flex gap-2 mt-auto pt-3 border-top justify-content-end">
-								<Button variant="outline-secondary" size="sm" onClick={clearForm}>
-									Clear
-								</Button>
-								<Button variant="primary" size="sm" onClick={handleCreateOrUpdateField}>
-									{isEditing ? 'Update Field' : 'Add Field'}
-								</Button>
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<div className="col-lg-8 d-flex flex-column">
+				<div className="col-12 d-flex flex-column">
 					<div className="card shadow-sm h-100">
 						<div className="card-body d-flex flex-column">
 							<div className="d-flex justify-content-between align-items-center mb-3">
 								<h2 className="card-title fs-5 fw-bold text-dark">Current Fields ({data.length})</h2>
+								<Button variant="primary" size="sm" onClick={openCreateModal}>
+									Create Parameter
+								</Button>
 							</div>
 							<div className="flex-grow-1" style={{ minHeight: '200px' }}>
 								{data.length === 0 ? (
-									<p className="text-center text-muted p-4 bg-light rounded border border-dashed d-flex align-items-center justify-content-center" style={{ minHeight: '150px' }}>No fields created yet. Configure and add fields using the form on the left.</p>
+									<p className="text-center text-muted p-4 bg-light rounded border border-dashed d-flex align-items-center justify-content-center" style={{ minHeight: '150px' }}>No fields created yet. Click &#39;Create Parameter&#39; to add fields.</p>
 								) : (
 									<RenderTestCreationParameters
 										data={data}
@@ -172,6 +162,81 @@ export default function CreateTestFields({ testid, testname, testRules, fieldCon
 					</div>
 				</div>
 			</div>
+
+			<Modal show={showModal} onHide={() => setShowModal(false)} fullscreen={true} backdrop="static" scrollable>
+				<Modal.Header closeButton>
+					<Modal.Title>{isEditing ? 'Edit Parameter&#39;' : 'Create Parameter&#39;'}</Modal.Title>
+				</Modal.Header>
+				<Modal.Body >
+					<div className="row g-4 h-100">
+						<div className="col-md-6 d-flex flex-column" >
+							{modalError && <div className="alert alert-danger" role="alert">{modalError}</div>}
+							<div className="mb-3">
+								<ParamCreationGForm
+									field={modalField}
+									setField={setModalField}
+									fieldConstraintsCategorization={fieldConstraintsCategorization}
+								/>
+							</div>
+							{modalField.plan && (
+								<div className="mb-3">
+									<CustomParameterTypeSelection
+										selection={modalField.plan}
+										field={modalField}
+										setField={setModalField}
+									/>
+								</div>
+							)}
+							<div className="mt-3">
+								<Button variant="primary" onClick={handleCreateOrUpdateField}>
+									{isEditing ? 'Update Field' : 'Add to Session'}
+								</Button>
+							</div>
+						</div>
+						<div className="col-md-6 d-flex flex-column">
+							{Array.isArray(sessionFields) && sessionFields.length > 0 && (
+								<div className="flex-grow-1">
+									<h6 className="mb-3">Fields ready to add ({sessionFields.length}):</h6>
+									<div className="list-group flex-grow-1" style={{ maxHeight: '65vh', overflowY: 'auto' }}>
+										{sessionFields.map((f, i) => (
+											<div key={i} className="list-group-item d-flex justify-content-between align-items-center">
+												<div>
+													<strong>{f.name}</strong> <small className="text-muted">({f.plan})</small>
+												</div>
+												<Button
+													variant="outline-danger"
+													size="sm"
+													onClick={() => setSessionFields(sessionFields.filter((_, idx) => idx !== i))}
+												>
+													Remove
+												</Button>
+											</div>
+										))}
+									</div>
+								</div>
+							)}
+							{sessionFields.length === 0 && (
+								<div className="text-center text-muted mt-5 flex-grow-1 d-flex align-items-center justify-content-center">
+									<div>
+										<p className="mb-1">No fields added yet.</p>
+										<p className="mb-0 small">Configure a field on the left and click &#34;Add to Session&#34;.</p>
+									</div>
+								</div>
+							)}
+						</div>
+					</div>
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="outline-secondary" onClick={clearForm}>
+						Clear
+					</Button>
+					{sessionFields.length > 0 && (
+						<Button variant="success" onClick={handleSaveSession}>
+							&#34;Save All&#34; ({sessionFields.length})
+						</Button>
+					)}
+				</Modal.Footer>
+			</Modal>
 		</div>
 	);
 }
