@@ -1,4 +1,4 @@
-import ClinicianCasesVerseTotalCases from "../../../../../components/analytics/clinicians-analytics/ClinicianCasesVerseTotalCases";
+import ClinicianCasesVerseTotalCases from "../../../../components/analytics/clinicians-analytics/ClinicianCasesVerseTotalCases";
 
 export default function Page({ params }: { params: { clinicianid: number } }) {
     return (

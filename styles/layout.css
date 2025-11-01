@@ -1,0 +1,374 @@
+/* ===========================================
+   LAYOUT - Grid Systems, Responsive Design
+   =========================================== */
+
+.grid-2 {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: 50% 50%;
+  grid-gap: 10px;
+  grid-template-columns: 50% 50%;
+}
+
+.grid-70-30 {
+  display: grid;
+  grid-template-columns: 65% auto;
+  grid-gap: 20px;
+}
+
+.grid-reg {
+  display: grid;
+  grid-template-columns: 10% 90% !important;
+  grid-gap: 10px 10px !important;
+}
+
+.grid-20-80 {
+  display: grid;
+  grid-template-columns: 20% 80% !important;
+  grid-gap: 10px 10px !important;
+}
+
+.repeat-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 10px;
+}
+
+.repeat-5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-gap: 10px;
+}
+
+.grid-slide {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: 30% 60%;
+  grid-template-columns: 30% 60%;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.grid-slide>input {
+  border: 1px solid lightgray;
+  border-radius: 0px;
+  height: 30px;
+}
+
+.grid-slide>textarea {
+  border: 1px solid lightgray;
+  border-radius: 0px;
+  padding: 5px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.grid-slide>textarea:focus,
+.grid-slide>input:focus {
+  outline: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.button {
+  border-radius: 0px !important;
+}
+
+#filterer-top input {
+  margin-left: 10px;
+  border: 1px solid lightgray;
+  width: 80%;
+  height: 30px;
+  border-radius: 0px;
+}
+
+#filterer-top {
+  background-color: white;
+  border-bottom: 1px solid lightgray;
+}
+
+#filterer-top button {
+  border-radius: 0px;
+  margin-left: 10px;
+}
+
+#filterer-top input:focus {
+  outline: none;
+}
+
+#filterer-top button:focus {
+  outline: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.grid-split {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: 50% auto;
+  grid-template-columns: 50% auto;
+  grid-gap: 20px 20px;
+  padding: 10px;
+}
+
+a {
+  text-decoration: none !important;
+}
+
+.grid-50,
+.grid-50-responsive {
+  display: grid;
+  grid-template-columns: 50% 50%;
+  grid-gap: 10px;
+}
+
+.grid-30-30-30 {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  grid-gap: 3%;
+}
+
+.grid-6 {
+  display: grid !important;
+  grid-template-columns: repeat(6, 1fr) !important;
+  grid-gap: 10px;
+}
+
+.grid-30-70 {
+  display: grid;
+  grid-template-columns: 30% 65% !important;
+  grid-gap: 5%;
+  height: inherit;
+}
+
+.operations-wrapper {
+  display: grid;
+  grid-template-columns: 20% 25% auto;
+  height: max-content;
+  overflow-y: hidden;
+}
+
+.operations-wrapper>aside {
+  padding: 0px;
+  height: 100vh;
+  overflow-y: auto;
+  margin: 0;
+  border-right: 1px solid lightgray;
+  opacity: 0.9;
+}
+
+.operations-wrapper>aside>div>ul {
+  /* list-style: none; */
+  padding: 0px;
+  margin: 0px;
+}
+
+.operations-wrapper>aside>div>ul>li {
+  padding: 10px;
+  font-weight: 400;
+  font-size: 13px !important;
+  color: #00224f;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-bottom: 1px solid lightgray;
+  background-color: white;
+  cursor: pointer;
+  text-transform: capitalize !important;
+}
+
+.operations-wrapper>aside>div>ul>li>svg {
+  margin-right: 10px;
+  color: red;
+}
+
+.operations-wrapper>aside>div>ul>li:is(:focus) {
+  background-color: red;
+  color: white;
+}
+
+.operations-wrapper>aside>div>ul>li:is(:hover) {
+  background-color: #00224f;
+  color: white;
+}
+
+.group-grid {
+  display: grid;
+  grid-template-columns: 10% 20% 50% auto;
+}
+
+.testpanel {
+  display: grid;
+  grid-template-columns: 15% auto;
+  height: max-content;
+}
+
+.test-setup-layout {
+  display: grid;
+  grid-template-columns: 20% auto;
+}
+
+.test-setup-layout>div:nth-child(1) {
+  border-right: 1px solid lightgray;
+}
+
+.app-partitioner {
+  display: grid;
+  grid-template-columns: 60px auto;
+}
+
+.minimize-creator {
+  display: grid;
+  grid-template-columns: 30% auto;
+  height: inherit;
+  overflow: auto;
+}
+
+.minimize-creator>section:nth-child(1) {
+  border-right: 1px solid lightgray;
+  height: 90vh;
+  overflow: hidden;
+  padding: 10px;
+}
+
+.three-layer-card {
+  display: grid !important;
+  grid-template-columns: 20% 25% 55% !important;
+  height: max-content;
+  overflow-x: hidden;
+  margin: 0;
+  height: 100vh;
+  padding: 0;
+}
+
+.three-layer-card>#patient-data {
+  font-size: 14px;
+  background-color: white !important;
+}
+
+.three-layer-card>div:nth-child(2),
+.three-layer-card>div:nth-child(1),
+.two-layer-card>div:nth-child(1),
+.two-layer-card>div:nth-child(2) {
+  padding: 10px !important;
+  border-right: 1px solid lightgray;
+}
+
+.two-layer-card {
+  display: grid !important;
+  grid-template-columns: 20% 80% !important;
+}
+
+.ready-panel-half {
+  display: grid;
+  grid-template-columns: 20% auto;
+  grid-gap: 20px;
+  margin: 20px;
+}
+
+.ready-panel-three {
+  display: grid;
+  grid-template-columns: 20% 50% auto;
+  grid-gap: 10px;
+  margin: 10px;
+}
+
+.read-result-list {
+  display: grid;
+  grid-template-columns: 10% 40% 20% 20% 10%;
+}
+
+.rejected-view {
+  display: grid;
+  grid-template-columns: 20% auto;
+  grid-gap: 20px;
+}
+
+.rejected-view-main {
+  display: grid;
+  grid-template-columns: 40% auto;
+}
+
+.not-activation-advanced {
+  display: grid;
+  grid-template-columns: 40% auto;
+  margin: 10px 20px 10px 20px;
+  /* place-items: center; */
+}
+
+.not-activation-advanced>div:nth-child(2) {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+#clinician-info-new {
+  display: grid;
+  grid-template-columns: 50% auto;
+  grid-gap: 20px;
+}
+
+#email-draft-list {
+  display: grid;
+  grid-template-columns: 100%;
+  grid-template-rows: auto auto;
+  height: max-content;
+}
+
+#email-draft-list>.first-row {
+  display: grid;
+  grid-template-columns: 3% 50% 7% auto 30%;
+  grid-gap: 10px;
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+#email-draft-list>.second-row {
+  display: grid;
+  font-size: 14px;
+  grid-template-columns: 100%;
+}
+
+#frontpagecards {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-gap: 20px;
+  margin: 20px 20px;
+}
+
+#ready-summary-view {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-gap: 10px;
+}
+
+.organization-chart {
+  display: grid;
+  grid-template-columns: 67% auto;
+  margin-right: 10px;
+  grid-gap: 10px;
+}
+
+#split-8 {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-gap: 10px 10px;
+  color: #00224f;
+  text-transform: capitalize;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.accord-grid {
+  display: grid;
+  grid-template-columns: 5% 5% 20% auto;
+  place-items: center;
+}
+
+.accord-list-child {
+  display: grid;
+  grid-template-columns: 40% 30% 30%;
+}

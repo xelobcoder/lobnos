@@ -1,4 +1,4 @@
-import ClinicianAnalyticsDailyCaseChange from "../../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsDailyCaseChange";
+import ClinicianAnalyticsDailyCaseChange from "../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsDailyCaseChange";
 
 export default function Page({ params }: { params: { clinicianid: number } }) {
     return (

@@ -1,6 +1,6 @@
 'use client'
 import styles from './login.module.css';
-import { RiShieldCrossFill } from '@remixicon/react';
+import { RiShieldCrossFill, RiMailLine, RiLockLine, RiEyeLine, RiEyeOffLine } from '@remixicon/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alert, Spinner } from 'react-bootstrap';
@@ -10,6 +10,7 @@ export default function PrimeLabLoginPage() {
 	const [isSubmitting, setSubmitting] = useState(false);
 	const [isError, setIsError] = useState(false);
 	const [message, setMessage] = useState<string>('');
+	const [showPassword, setShowPassword] = useState(false);
 	const router = useRouter();
 
 	const handleLoginBind = async (formData) => {
@@ -19,7 +20,6 @@ export default function PrimeLabLoginPage() {
 			const password = formData.get("password");
 
 
-			// Collect detailed browser information
 			let browserInfo = {};
 			if (typeof window !== 'undefined') {
 				const nav = window.navigator;
@@ -39,11 +39,9 @@ export default function PrimeLabLoginPage() {
 					appVersion: nav.appVersion || '',
 					appName: nav.appName || '',
 					maxTouchPoints: nav.maxTouchPoints || 0,
-					// Add more fields as needed
 				};
 			}
 
-			// Step 1: Authenticate with backend using customPost
 			const backendResponse = await customPost('prime/login', 'POST', { email, password, browserInfo });
 
 			const { status, accessToken, user } = backendResponse;
@@ -54,7 +52,6 @@ export default function PrimeLabLoginPage() {
 				return;
 			}
 
-			// Step 2: Send authenticated data to Next.js API to set cookies
 			const cookieResponse = await fetch('/api/auth/login', {
 				method: 'POST',
 				headers: {
@@ -77,18 +74,16 @@ export default function PrimeLabLoginPage() {
 				return;
 			}
 
-			// Step 3: Success - redirect based on role
 			setIsError(false);
 			setMessage('Login successful. Redirecting...');
 
-			// After a successful login, remove cached applicationsettings
 			if (typeof window !== 'undefined') {
 				localStorage.removeItem('applicationsettings');
 			}
 
 			const { role } = cookieResult;
 			setTimeout(() => {
-				if (role === "admin" || role === "manager" || role  == "customer service representative") {
+				if (role === "admin" || role === "manager" || role == "customer service representative") {
 					router.push("/");
 				} else if (role === "sonographer") {
 					router.push("/operations/imaging/ultrasound");
@@ -109,10 +104,6 @@ export default function PrimeLabLoginPage() {
 	}
 	return (
 		<div className={styles.pageWrapper}>
-			<header className={styles.pageHeader}>
-				<p className={styles.systemNameGlobal}>Prime Laboratory Diagnostic Laboratory Information Management System(PLS-LIMS)</p>
-			</header>
-
 			<main className={styles.mainContent}>
 				<div className={styles.loginCard}>
 					<div className={styles.loginHeader}>
@@ -121,7 +112,6 @@ export default function PrimeLabLoginPage() {
 						<p className={styles.subtitle}>Welcome back! Please sign in to your account.</p>
 					</div>
 
-					{/* Error display block removed */}
 					{isError && <Alert closeLabel='' variant={isError ? "danger" : "success"}>
 						<div className='text-sm'>
 							{isError ? message : "Login successful.You would be redirected!!!"}
@@ -130,6 +120,7 @@ export default function PrimeLabLoginPage() {
 					<form action={handleLoginBind} className={styles.loginForm}>
 						<div className={styles.formGroup}>
 							<label htmlFor="email" className={styles.formLabel}>
+								<RiMailLine size={16} className={styles.inputIcon} />
 								Email address
 							</label>
 							<input
@@ -139,21 +130,34 @@ export default function PrimeLabLoginPage() {
 								className={styles.formInput}
 								placeholder="you@example.com"
 								required
+								autoComplete="email"
 							/>
 						</div>
 
 						<div className={styles.formGroup}>
 							<label htmlFor="password" className={styles.formLabel}>
+								<RiLockLine size={16} className={styles.inputIcon} />
 								Password
 							</label>
-							<input
-								id="password"
-								name="password"
-								type="password"
-								className={styles.formInput}
-								placeholder="Enter your password"
-								required
-							/>
+							<div className={styles.passwordInputContainer}>
+								<input
+									id="password"
+									name="password"
+									type={showPassword ? "text" : "password"}
+									className={styles.formInput}
+									placeholder="Enter your password"
+									required
+									autoComplete="current-password"
+								/>
+								<button
+									type="button"
+									className={styles.passwordToggle}
+									onClick={() => setShowPassword(!showPassword)}
+									aria-label={showPassword ? "Hide password" : "Show password"}
+								>
+									{showPassword ? <RiEyeOffLine size={20} /> : <RiEyeLine size={20} />}
+								</button>
+							</div>
 							<div className={styles.forgotPasswordContainer}>
 								<a href="#" className={styles.forgotPasswordLink}>
 									Forgot password?
@@ -161,9 +165,9 @@ export default function PrimeLabLoginPage() {
 							</div>
 						</div>
 
-						<button type="submit" className={styles.signInButton}>
+						<button type="submit" className={styles.signInButton} disabled={isSubmitting}>
 							{isSubmitting && <Spinner size='sm' />}
-							{isSubmitting ? 'signing in' : ' Sign In'}
+							{isSubmitting ? 'Signing in...' : 'Sign In'}
 						</button>
 					</form>
 				</div>

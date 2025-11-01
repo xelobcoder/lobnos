@@ -1,13 +1,14 @@
 "use client"
 import { useState, useEffect } from 'react';
-import { Form, Button } from 'react-bootstrap';
+import { Form, Button, Tab, Nav } from 'react-bootstrap';
 import { customFetch, customPost, getResultEntrySettings, ResultEntrydefaultData } from '../../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
 import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import {
     RiLockLine, RiPinDistanceLine, RiHistoryLine, RiFileListLine,
     RiTimeLine, RiLockPasswordLine, RiMailLine, RiAlertLine,
-    RiNotification3Line, RiUserAddLine, RiDeleteBin6Line, RiSave3Line
+    RiNotification3Line, RiUserAddLine, RiDeleteBin6Line, RiSave3Line,
+    RiSettingsLine, RiShieldCheckLine
 } from '@remixicon/react';
 
 
@@ -36,7 +37,7 @@ interface ResultEntrySettings {
     monitorForCriticalValues: number;
     notifyClientOnResultReady: number;
     notificationType: string;
-    staffQualifiedToValidationResult?: number[]; 
+    staffQualifiedToValidationResult?: number[];
 }
 
 const ResultSettingsForm = () => {
@@ -89,7 +90,7 @@ const ResultSettingsForm = () => {
             // Load scientists list
             const { result } = await customFetch("logins") as { result: ScientistType[] };
             setUsers(result);
-            
+
             // Load result entry settings from both sources
             const [settingsResponse, legacySettings] = await Promise.all([
                 customFetch(`applicationsetting/resultsettings/resultentrysettings?tenantId=${tenantId}&employeeid=${user.employeeid}`),
@@ -97,8 +98,8 @@ const ResultSettingsForm = () => {
             ]);
 
             // Prioritize the new endpoint data, fall back to legacy if needed
-            const settings = settingsResponse?.result || 
-                           (typeof legacySettings === "object" ? legacySettings : ResultEntrydefaultData);
+            const settings = settingsResponse?.result ||
+                (typeof legacySettings === "object" ? legacySettings : ResultEntrydefaultData);
 
             const { staffQualifiedToValidationResult } = settings;
             setFormData(settings);
@@ -107,10 +108,10 @@ const ResultSettingsForm = () => {
                 const QualifiedRefined = staffQualifiedToValidationResult
                     .map(item => result.find(s => s.employeeid === item))
                     .filter((s): s is ScientistType => s !== undefined);
-                
+
                 setSelectedScientists(QualifiedRefined);
             }
-            
+
             setLoadingUsers(false);
         } catch (err) {
             console.error("Error loading data:", err);
@@ -144,7 +145,7 @@ const ResultSettingsForm = () => {
                     staffQualifiedToValidationResult: selectedScientists.map(s => s.employeeid)
                 }
             );
-            response.status 
+            response.status
                 ? toast.success("Settings updated successfully")
                 : toast.error("Update failed");
         } catch (err) {
@@ -157,27 +158,39 @@ const ResultSettingsForm = () => {
     }
 
     return (
-        <div>
-            <div className="d-flex bg-secondary-subtle justify-content-between align-items-center mb-4 bg-light rounded-top-3 p-4 border-bottom">
-                <h4 className="mb-2 text-primary">
-                    <RiFileListLine className="me-2" />
-                    Result Entry Settings
-                </h4>
-                <Button 
-                    variant="primary" 
+        <div className="border bg-white border-secondary-subtle mx-2 p-2">
+            <div className="mx-2 d-flex justify-content-between align-items-center mb-3">
+                <h5 className="text-capitalize pls-label bg-secondary-subtle p-3 pls-color br-5 mb-0">Result Entry Settings</h5>
+                <Button
+                    variant="primary"
                     size='sm'
                     onClick={handleSubmit}
                     className="d-flex align-items-center gap-2 px-4 py-2 hover-effect transition-all"
+                    disabled={loadingUsers}
                 >
                     <RiSave3Line className="fs-5" />
-                    <span className="d-none d-sm-inline">Save Settings</span>
+                    <span className="d-none d-sm-inline">{loadingUsers ? "Saving..." : "Save Settings"}</span>
                 </Button>
             </div>
 
-            <div className="row g-4">
-                <div className="col-lg-8">
-                    <div className="bg-white rounded-3 shadow-sm p-4 mb-4">
-                        <h5 className="mb-4 text-uppercase fw-semibold">General Settings</h5>
+            <Tab.Container defaultActiveKey="general">
+                <Nav variant="tabs" className="border-bottom-0 px-3">
+                    <Nav.Item>
+                        <Nav.Link eventKey="general" className="d-flex align-items-center">
+                            <RiSettingsLine size={16} className="me-2" />
+                            General Settings
+                        </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link eventKey="validation" className="d-flex align-items-center">
+                            <RiShieldCheckLine size={16} className="me-2" />
+                            Validation Rules
+                        </Nav.Link>
+                    </Nav.Item>
+                </Nav>
+
+                <Tab.Content className="p-3">
+                    <Tab.Pane eventKey="general">
                         <div className="row g-3">
                             {[
                                 { id: 'resultLockAfter24Hours', label: 'Lock Result After 24 Hours', icon: <RiLockLine /> },
@@ -208,78 +221,79 @@ const ResultSettingsForm = () => {
                                 </div>
                             ))}
                         </div>
-                    </div>
-                </div>
+                    </Tab.Pane>
 
-                <div className="col-lg-4">
-                    <div className="bg-white rounded-3 shadow-sm p-4">
-                        <h5 className="mb-4 text-uppercase fw-semibold">Validation Rules</h5>
-                        <div className="mb-4">
-                            <Form.Group className="mb-3">
-                                <Form.Label className="fw-medium">Maximum Validators</Form.Label>
-                                <Form.Control
-                                    type="number"
-                                    name="maximumResultValidation"
-                                    value={formData.maximumResultValidation}
-                                    onChange={handleChange}
-                                    min="1"
-                                />
-                            </Form.Group>
+                    <Tab.Pane eventKey="validation">
+                        <div className="row g-4">
+                            <div className="col-md-6">
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="fw-medium">Maximum Validators</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        name="maximumResultValidation"
+                                        value={formData.maximumResultValidation}
+                                        onChange={handleChange}
+                                        min="1"
+                                    />
+                                </Form.Group>
 
-                            <Form.Group className="mb-3">
-                                <Form.Label className="fw-medium">Minimum Validators</Form.Label>
-                                <Form.Control
-                                    type="number"
-                                    name="minimumResultValidation"
-                                    value={formData.minimumResultValidation}
-                                    onChange={handleChange}
-                                    min="1"
-                                />
-                            </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="fw-medium">Minimum Validators</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        name="minimumResultValidation"
+                                        value={formData.minimumResultValidation}
+                                        onChange={handleChange}
+                                        min="1"
+                                    />
+                                </Form.Group>
 
-                            <div className="d-flex gap-2">
-                                <Form.Select
-                                    value={currentSelection ?? ""}
-                                    onChange={(e) => setCurrentSelection(Number(e.target.value))}
-                                    disabled={!formData.maximumResultValidation || !formData.minimumResultValidation}
-                                >
-                                    <option value="">Select Scientist</option>
-                                    {scientists.map((item) => (
-                                        <option key={item.employeeid} value={item.employeeid}>
-                                            {item.username}
-                                        </option>
-                                    ))}
-                                </Form.Select>
-                                <Button variant="outline-primary" onClick={addStaffIDField} disabled={!currentSelection}>
-                                    <RiUserAddLine />
-                                </Button>
-                            </div>
-                        </div>
-
-                        <div className="border rounded">
-                            <div className="p-3 border-bottom bg-light">
-                                <h6 className="mb-0 fw-semibold">Selected Scientists</h6>
-                            </div>
-                            <div className="p-3">
-                                {selectedScientists.length === 0 ? (
-                                    <div className="text-center text-muted py-4">No scientists selected</div>
-                                ) : (
-                                    <div className="d-flex flex-column gap-2">
-                                        {selectedScientists.map((scientist, index) => (
-                                            <div key={index} className="d-flex justify-content-between align-items-center p-2 border rounded">
-                                                <span>{scientist.username}</span>
-                                                <Button variant="link" className="text-danger p-0" onClick={() => removeStaffIDField(index)}>
-                                                    <RiDeleteBin6Line />
-                                                </Button>
-                                            </div>
+                                <div className="d-flex gap-2">
+                                    <Form.Select
+                                        value={currentSelection ?? ""}
+                                        onChange={(e) => setCurrentSelection(Number(e.target.value))}
+                                        disabled={!formData.maximumResultValidation || !formData.minimumResultValidation}
+                                    >
+                                        <option value="">Select Scientist</option>
+                                        {scientists.map((item) => (
+                                            <option key={item.employeeid} value={item.employeeid}>
+                                                {item.username}
+                                            </option>
                                         ))}
+                                    </Form.Select>
+                                    <Button variant="outline-primary" onClick={addStaffIDField} disabled={!currentSelection}>
+                                        <RiUserAddLine />
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="col-md-6">
+                                <div className="border rounded">
+                                    <div className="p-3 border-bottom bg-light">
+                                        <h6 className="mb-0 fw-semibold">Selected Scientists</h6>
                                     </div>
-                                )}
+                                    <div className="p-3">
+                                        {selectedScientists.length === 0 ? (
+                                            <div className="text-center text-muted py-4">No scientists selected</div>
+                                        ) : (
+                                            <div className="d-flex flex-column gap-2">
+                                                {selectedScientists.map((scientist, index) => (
+                                                    <div key={index} className="d-flex justify-content-between align-items-center p-2 border rounded">
+                                                        <span>{scientist.username}</span>
+                                                        <Button variant="link" className="text-danger p-0" onClick={() => removeStaffIDField(index)}>
+                                                            <RiDeleteBin6Line />
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
+                    </Tab.Pane>
+                </Tab.Content>
+            </Tab.Container>
         </div>
     );
 };

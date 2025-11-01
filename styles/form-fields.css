@@ -1,0 +1,24 @@
+.custom-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    outline: none ;
+    max-height: 40px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+.custom-select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    outline: none ;
+    max-height: 40px;
+    font-size: 1rem;
+    background-color: #fff;
+    transition: border-color 0.3s;
+}
+.custom-input:required {
+    border-color: #f00;
+}

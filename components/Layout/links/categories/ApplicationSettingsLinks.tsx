@@ -23,25 +23,74 @@ import {
 
 export const ApplicationSettingsLinks: Link[] =
     [
-        { title: "Registration Fields", link: "/settings/applicationsettings/registrationFields", icon: <RiFileListLine /> },
-        { title: "Result Entry Settings", link: "/settings/applicationsettings/resultentrysettings", icon: <RiFileTextLine /> },
-        { title: "Report Settings", link: "/settings/applicationsettings/reportSettings", icon: <RiFileTextLine /> },
-        { title: 'Sample Container', link: '/settings/applicationsettings/sample-containers', icon: <RiSteamLine /> },
-        { title: "Users", link: "/authentication/users", icon: <RiUserSettingsLine /> },
-        { title: "Branches", link: "/settings/branches", icon: <RiBuilding2Line /> },
-        { title: "Sample Types", link: "/settings/applicationsettings/testpanels/sampletypes", icon: <RiTestTubeLine /> },
-        { title: "Company Info", link: "/settings/companyprofile", icon: <RiBuildingLine /> },
-        { title: "Departments", link: "/settings/departments", icon: <RiGroupLine /> },
-        { title: "Taxes", link: "/settings/tax", icon: <RiMoneyDollarCircleLine /> },
-        { title: "Test Panels", link: "/settings/applicationsettings/testpanels/testlist", icon: <RiListCheck2 /> },
-        { title: "Services", link: "/settings/additionalservices", icon: <RiCustomerService2Line /> },
-        { title: 'New Outsourcin Organization', link: '/settings/outsource/new-outsourcing', icon: <RiBuildingFill /> },
-        { title: 'Outsourcing List', link: '/settings/outsource', icon: <RiBuilding2Line /> },
-        { title: "Email Management", link: "/settings/emailsetting", icon: <RiMailSettingsLine /> },
-        { title: 'Billing Strategy', link: '/billing/billing-strategy/strategies', icon: <RiStarHalfLine /> },
-        { title: 'Drug Category', link: '/settings/applicationsettings/drugs/drugCategoryView', icon: <RiMedicineBottleLine /> },
-        { title: 'Drugs List', link: '/settings/applicationsettings/drugs', icon: <RiMedicineBottleFill /> },
-        { title: 'Insurance Companies', link: '/billing/insurance', icon: <RiGitRepositoryFill /> },
-        { title: 'Promo Codes', link: '/settings/promos/promo-code-generation', icon: <RiGift2Line /> },
-        { title: 'Campaigns', link: '/settings/promos/campaign-creation', icon: <RiGift2Line /> }
+        {
+            title: "User Management",
+            link: "",
+            icon: <RiUserSettingsLine />,
+            children: [
+                { title: "Users", link: "/authentication/users", icon: <RiUserSettingsLine /> },
+                { title: "Departments", link: "/settings/departments", icon: <RiGroupLine /> }
+            ]
+        },
+        {
+            title: "Organization",
+            link: "",
+            icon: <RiBuildingLine />,
+            children: [
+                { title: "Company Info", link: "/settings/companyprofile", icon: <RiBuildingLine /> },
+                { title: "Branches", link: "/settings/branches", icon: <RiBuilding2Line /> },
+                { title: "Taxes", link: "/settings/tax", icon: <RiMoneyDollarCircleLine /> }
+            ]
+        },
+        {
+            title: "Laboratory",
+            link: "",
+            icon: <RiTestTubeLine />,
+            children: [
+                { title: "Sample Types", link: "/settings/applicationsettings/testpanels/sampletypes", icon: <RiTestTubeLine /> },
+                { title: "Test Panels", link: "/settings/applicationsettings/testpanels/testlist", icon: <RiListCheck2 /> },
+                { title: 'Sample Container', link: '/settings/applicationsettings/sample-containers', icon: <RiSteamLine /> },
+                { title: "Registration Fields", link: "/settings/applicationsettings/registrationFields", icon: <RiFileListLine /> },
+                { title: "Result Entry Settings", link: "/settings/applicationsettings/resultentrysettings", icon: <RiFileTextLine /> },
+                { title: "Report Settings", link: "/settings/applicationsettings/reportSettings", icon: <RiFileTextLine /> }
+            ]
+        },
+        {
+            title: "Outsourcing",
+            link: "",
+            icon: <RiBuildingFill />,
+            children: [
+                { title: 'New Outsourcing Organization', link: '/settings/outsource/new-outsourcing', icon: <RiBuildingFill /> },
+                { title: 'Outsourcing List', link: '/settings/outsource', icon: <RiBuilding2Line /> }
+            ]
+        },
+        {
+            title: "Billing & Services",
+            link: "",
+            icon: <RiMoneyDollarCircleLine />,
+            children: [
+                { title: "Services", link: "/settings/additionalservices", icon: <RiCustomerService2Line /> },
+                { title: 'Billing Strategy', link: '/billing/billing-strategy/strategies', icon: <RiStarHalfLine /> },
+                { title: 'Insurance Companies', link: '/billing/insurance', icon: <RiGitRepositoryFill /> }
+            ]
+        },
+        {
+            title: "Drugs & Pharmacy",
+            link: "",
+            icon: <RiMedicineBottleLine />,
+            children: [
+                { title: 'Drug Category', link: '/settings/applicationsettings/drugs/drugCategoryView', icon: <RiMedicineBottleLine /> },
+                { title: 'Drugs List', link: '/settings/applicationsettings/drugs', icon: <RiMedicineBottleFill /> }
+            ]
+        },
+        {
+            title: "Marketing",
+            link: "",
+            icon: <RiGift2Line />,
+            children: [
+                { title: 'Promo Codes', link: '/settings/promos/promo-code-generation', icon: <RiGift2Line /> },
+                { title: 'Campaigns', link: '/settings/promos/campaign-creation', icon: <RiGift2Line /> }
+            ]
+        },
+        { title: "Email Management", link: "/crm/customers/send-email", icon: <RiMailSettingsLine /> }
     ];

@@ -1,0 +1,210 @@
+:root{
+  --pls-primary: #3ba341; /* Primary brand color requested */
+  --pls-primary-dark: #2e7d32;
+  --pls-primary-light: #7fd48d;
+  --pls-accent: #ffc107;
+}
+
+/* Hero Section Styles */
+.heroSection {
+  min-height: 90vh;
+  background: linear-gradient(135deg, var(--pls-primary-dark) 0%, var(--pls-primary) 50%, var(--pls-primary-light) 100%);
+}
+
+.heroBackground::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(255, 193, 7, 0.12), transparent 50%),
+              radial-gradient(circle at bottom left, rgba(59, 163, 65, 0.08), transparent 50%);
+}
+
+.logoWrapper {
+  background: rgba(255, 193, 7, 0.06);
+  padding: 15px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.pulseAnimation {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.animateFadeIn {
+  animation: fadeIn 0.8s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.heroImageWrapper {
+  position: relative;
+}
+
+.heroImage {
+  border: 4px solid rgba(255, 255, 255, 0.18);
+  transition: transform 0.3s ease;
+}
+
+.heroImage:hover {
+  transform: scale(1.02);
+}
+
+.shadow2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.floatingBadge {
+  position: absolute;
+  background: white;
+  padding: 12px 20px;
+  border-radius: 50px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  animation: float 3s ease-in-out infinite;
+}
+
+.badge1 { top: 20px; right: -20px; }
+.badge2 { bottom: 20px; left: -20px; }
+
+@keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+
+/* Feature Cards */
+.featureCard { transition: all 0.3s ease; border-radius: 16px; overflow: hidden; }
+.featureCard:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important; }
+.featureIconWrapper { position: relative; }
+.featureIcon { width: 70px; height: 70px; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+
+/* Roles Section */
+.rolesBackground { position: absolute; top:0; left:0; right:0; bottom:0; background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%); }
+.roleCard { transition: all 0.3s ease; border-radius: 16px; }
+.roleCard:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.12) !important; }
+.roleIconWrapper { display:inline-block; }
+.roleIcon { width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; }
+
+.bgGradientSuccess { background: linear-gradient(135deg, var(--pls-primary) 0%, var(--pls-primary-dark) 100%); }
+.bgGradientInfo { background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%); }
+.bgGradientWarning { background: linear-gradient(135deg, var(--pls-accent) 0%, #e0a800 100%); }
+.bgGradientDanger { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); }
+
+.roleFeatures { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+
+/* CTA Section */
+.ctaSection { background: linear-gradient(135deg, var(--pls-primary) 0%, var(--pls-primary-dark) 100%); }
+.ctaBackground::before { content: ''; position:absolute; top:0; left:0; right:0; bottom:0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+
+/* Footer */
+.footerSection { background: linear-gradient(to bottom, #1a1a2e 0%, #16213e 100%); }
+
+.hoverLink:hover { color: var(--pls-accent) !important; transition: color 0.2s ease; }
+
+/* Button Enhancements */
+:global(.btn) { transition: all 0.3s ease; font-weight: 600; }
+:global(.btn:hover) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+/* Use primary color for the prominent CTA (btn-warning used in markup for emphasis) */
+:global(.btn-warning) { 
+  background: linear-gradient(135deg, var(--pls-primary) 0%, var(--pls-primary-dark) 100%); 
+  border: none; 
+  color: white !important;
+}
+:global(.btn-warning:hover) { 
+  background: linear-gradient(135deg, var(--pls-primary-dark) 0%, var(--pls-primary) 100%); 
+}
+
+:global(.btn-success) {
+  background-color: var(--pls-primary) !important;
+  border-color: var(--pls-primary) !important;
+}
+
+/* Ensure .text-success maps to brand */
+:global(.text-success) { color: var(--pls-primary) !important; }
+:global(.bg-success) { background-color: var(--pls-primary) !important; }
+:global(.bg-success-subtle) { background-color: rgba(59, 163, 65, 0.1) !important; }
+:global(.text-success-emphasis) { color: var(--pls-primary-dark) !important; }
+
+
+/* Utility Classes */
+:global(.text-white-50) { color: rgba(255,255,255,0.7); }
+:global(.border-2) { border-width: 2px !important; }
+
+/* Responsive adjustments */
+@media (max-width: 1199px) {
+  :global(.display-3) { font-size: 2.8rem; }
+  :global(.display-4) { font-size: 2.3rem; }
+  :global(.display-5) { font-size: 2rem; }
+}
+
+@media (max-width: 991px) {
+  .heroSection { min-height: auto; padding: 3rem 0 !important; }
+  .floatingBadge { display: none; }
+  :global(.display-3) { font-size: 2.2rem; }
+  :global(.display-4) { font-size: 1.9rem; }
+  :global(.display-5) { font-size: 1.7rem; }
+  :global(.lead) { font-size: 1.1rem; }
+  .heroContent { text-align: center; }
+  :global(.btn-lg) { padding: 0.8rem 2rem; font-size: 0.95rem; }
+  .featureCard, .roleCard { margin-bottom: 1rem; }
+  .heroImageWrapper { margin-top: 2rem; }
+}
+
+@media (max-width: 767px) {
+  :global(.display-3) { font-size: 1.8rem; }
+  :global(.display-4) { font-size: 1.6rem; }
+  :global(.display-5) { font-size: 1.4rem; }
+  :global(.lead) { font-size: 1rem; }
+  .logoWrapper { padding: 10px; }
+  .logoWrapper svg { width: 40px; height: 40px; }
+  :global(.badge.fs-6) { font-size: 0.85rem !important; }
+  :global(.btn-lg) { padding: 0.7rem 1.5rem; font-size: 0.9rem; width: 100%; }
+  :global(.d-flex.gap-3) { gap: 0.75rem !important; }
+  .featureIcon, .roleIcon { width: 55px; height: 55px; }
+  .featureIcon svg, .roleIcon svg { width: 26px; height: 26px; }
+  .heroImage { max-height: 300px; object-fit: cover; }
+  :global(.py-5) { padding-top: 2.5rem !important; padding-bottom: 2.5rem !important; }
+  :global(.py-4) { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+  :global(.mb-5) { margin-bottom: 2rem !important; }
+  .footerSection .row > div { margin-bottom: 1.5rem; }
+}
+
+@media (max-width: 575px) {
+  :global(.display-3) { font-size: 1.5rem; line-height: 1.3; }
+  :global(.display-4) { font-size: 1.4rem; }
+  :global(.display-5) { font-size: 1.25rem; }
+  :global(.lead) { font-size: 0.95rem; }
+  .logoWrapper { padding: 8px; }
+  .logoWrapper svg { width: 36px; height: 36px; }
+  :global(.badge.fs-6) { font-size: 0.75rem !important; padding: 0.35rem 0.65rem; }
+  :global(.btn-lg) { padding: 0.65rem 1.2rem; font-size: 0.85rem; }
+  .featureCard .card-body, .roleCard .card-body { padding: 1.5rem !important; }
+  h5 { font-size: 1rem; }
+  h6 { font-size: 0.9rem; }
+  .small, small { font-size: 0.8rem; }
+  :global(.text-center.mb-5 p.lead) { font-size: 0.9rem; }
+  .animateFadeIn { margin-bottom: 2rem !important; }
+  .heroContent .lead { font-size: 0.95rem; margin-bottom: 1rem !important; }
+  .heroContent .text-white-50 { font-size: 0.85rem; margin-bottom: 1.5rem !important; }
+  .ctaSection .display-4 { font-size: 1.3rem; margin-bottom: 1rem !important; }
+  .ctaSection .lead { font-size: 0.9rem; margin-bottom: 2rem !important; }
+  :global(.d-flex.gap-4) { flex-direction: column; gap: 0.5rem !important; }
+  .footerSection h5, .footerSection h6 { font-size: 1rem; margin-top: 1rem; }
+  .heroSection { padding: 2rem 0 !important; }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  :global(.btn:hover) { transform: none; }
+  :global(.card:hover), .featureCard:hover, .roleCard:hover { transform: none; }
+  :global(.hover-shadow:hover) { transform: none; }
+}

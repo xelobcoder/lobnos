@@ -467,15 +467,17 @@
 
 .sidebarNav .list-group-item {
     border: none;
-    border-radius: 8px;
-    margin: 2px 12px;
+    border-radius: 6px;
+    margin: 1px 8px;
     display: flex;
     align-items: center;
-    padding: 12px 16px;
+    padding: 8px 12px;
     transition: all 0.2s ease;
     cursor: pointer;
     background: transparent;
     color: var(--text-primary);
+    font-size: 0.8rem;
+    min-height: 36px;
 }
 
 .sidebarNav .list-group-item:hover {
@@ -505,6 +507,75 @@
     color: #ffffff !important;
 }
 
+/* Group functionality styles */
+.groupHeader {
+    background-color: var(--bg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    padding: 8px 12px !important;
+    margin: 4px 12px !important;
+    cursor: pointer !important;
+    justify-content: space-between !important;
+}
+
+.groupHeader:hover {
+    background-color: var(--hover-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+.groupTitle {
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.groupToggle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 20px !important;
+    height: 20px !important;
+    color: var(--text-secondary) !important;
+    transition: transform 0.2s ease !important;
+}
+
+.groupHeader:hover .groupToggle {
+    color: var(--text-primary) !important;
+}
+
+.groupChildren {
+    margin-left: 8px !important;
+    border-left: 2px solid var(--border-color) !important;
+    padding-left: 4px !important;
+}
+
+.childItem {
+    font-size: 0.75rem !important;
+    padding: 6px 12px !important;
+    margin: 1px 12px !important;
+    min-height: 32px !important;
+}
+
+.childTitle {
+    font-size: 0.75rem !important;
+    font-weight: 400 !important;
+}
+
+.sidebarCollapsed .groupHeader,
+.sidebarCollapsed .childItem {
+    justify-content: center !important;
+    padding: 8px !important;
+    margin: 2px 8px !important;
+}
+
+.sidebarCollapsed .groupTitle,
+.sidebarCollapsed .childTitle,
+.sidebarCollapsed .groupToggle {
+    display: none !important;
+}
+
 .sidebarCollapsed .navItem {
     justify-content: center;
     padding: 12px 8px;
@@ -526,14 +597,15 @@
 }
 
 .icon {
-    width: 24px;
-    height: 24px;
+    width: 18px;
+    height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 12px;
+    margin-right: 8px;
     color: var(--text-secondary);
     flex-shrink: 0;
+    font-size: 0.8rem;
 }
 
 .sidebarCollapsed .icon {
@@ -551,7 +623,7 @@
 }
 
 .title {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: var(--text-primary);
     letter-spacing: -0.01em;

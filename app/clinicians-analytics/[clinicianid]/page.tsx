@@ -1,5 +1,6 @@
-import ClinicianOverallAnalytics from "../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsOverallTotal";
-import { customFetch } from "../../../../components/Auth/customFetch";
+import ClinicianOverallAnalytics from "../../../components/analytics/clinicians-analytics/ClinicianAnalyticsOverallTotal";
+import { customFetch } from "../../../components/Auth/customFetch";
+
 
 export default async function Page({ params }: { params: { clinicianid: number } }) {
     const { clinicianid } = params;
@@ -21,6 +22,6 @@ export default async function Page({ params }: { params: { clinicianid: number }
                     />
                 </div>
             </div>
-    </div>
+        </div>
     );
 }

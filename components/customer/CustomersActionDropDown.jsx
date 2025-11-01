@@ -6,8 +6,8 @@ import { plsEncryption } from '../../lib/encryption';
 const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, handleBilling }) => {
      return (
           <Dropdown>
-               <Dropdown.Toggle variant="light"  id="archives-dropdown" style={{zIndex:9999,height:'auto'}}>
-               <RiMoreFill size={24} />
+               <Dropdown.Toggle variant="light" id="archives-dropdown" style={{ zIndex: 9999, height: 'auto' }}>
+                    <RiMoreFill size={24} />
                </Dropdown.Toggle>
                <Dropdown.Menu className="m-0 p-0 bg-white">
                     <Dropdown.Item className='text-capitalize' onClick={() => callActivation(item.activation_status, item.patientid, toast)}>
@@ -50,11 +50,10 @@ const CustomersActions = ({ item, callActivation, gotoPrevTrans, toast, router, 
                               <path d="M12 4C10.1 4 8.4 5.4 8 7.2C8.3 7.1 8.7 7 9 7C10.2 7 11 7.8 11 9C11 10.2 10.2 11 9 11H8C6.3 11 5 12.3 5 14C5 15.7 6.3 17 8 17H10C11.7 17 13 15.7 13 14V12C13 10.3 11.7 9 10 9H9C9 8.3 9.4 8 10 8C10.6 8 11 8.4 11 9C11 9.6 10.6 10 10 10C9.4 10 9 10.4 9 11V12C9 12.6 9.4 13 10 13H11C12.1 13 13 13.9 13 15C13 16.1 12.1 17 11 17H10C9.6 17 9 17.4 9 18C9 18.6 9.4 19 10 19H11C12.1 19 13 19.9 13 21C13 22.1 12.1 23 11 23H7C5.9 23 5 22.1 5 21V19H3V21C3 22.1 3.9 23 5 23H11C12.1 23 13 22.1 13 21C13 19.9 12.1 19 11 19H10C9.6 19 9 18.4 9 18C9 17.4 9.4 17 10 17H11C12.1 17 13 16.1 13 15C13 14.2 12.8 13.5 12.5 12.8C12.9 12.5 13.4 12.2 14 12C14.6 11.8 15.2 11.5 15.6 11C16.2 10.5 17 9.7 17 9C17 7.9 16 7 14.5 7C14 7 13.5 7.1 13.2 7.3C12.9 7.5 12.5 7.8 12 8H12C11.5 7.8 11.1 7.5 10.8 7.3C10.5 7.1 10 7 9.5 7C9 7 8.3 7.4 8 8C8.7 6.9 10.1 5.8 12 5.5V4H12Z"></path>
                          </svg> Record Vital Signs
                     </Dropdown.Item>
-                    <Dropdown.Item className='text-capitalize' onClick={() => gotoPrevTrans(item.patientid)}>
+                    <Dropdown.Item className='text-capitalize' onClick={() => router.push(`/crm/customers/send-email?patientid=${plsEncryption(item.patientid.toString())}`)}>
                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                              <path d="M19 1H5C3.89543 1 3 1.89543 3 3V21C3 22.1046 3.89543 23 5 23H19C20.1046 23 21 22.1046 21 21V3C21 1.89543 20.1046 1 19 1ZM19 21H5V3H19V21ZM9 17H15V19H9V17ZM11 7C11 7.553 10.553 8 10 8C9.447 8 9 7.553 9 7C9 6.447 9.447 6 10 6C10.553 6 11 6.447 11 7Z"></path>
-                         </svg>
-                         Previous Transactions
+                              <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 18H4V8L12 13L20 8V18ZM12 11L4 6H20L12 11Z" />
+                         </svg> Send Email
                     </Dropdown.Item>
                </Dropdown.Menu>
           </Dropdown>

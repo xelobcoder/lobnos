@@ -87,179 +87,159 @@ const NewInsuranceCompanyForm: React.FC<{ onSubmit: (data: FormData) => void, cl
 
     return (
         <>
-            <ToastContainer position='top-center' className={'text-sm'} theme='colored' />
-            <Form onSubmit={handleSubmit(submitForm)}>
-                <Row>
-                    <Col sm={12} md={6}>
-                        <Form.Group>
-                            <Form.Label>Insurance Name*</Form.Label>
-                            <Form.Control
-                                type="text"
-                                {...register('insuranceName')}
-                                isInvalid={!!errors.insuranceName}
-                                className="custom-input"
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {errors.insuranceName?.message}
-                            </Form.Control.Feedback>
-                        </Form.Group>
-                    </Col>
-                    <Col sm={12} md={6}>
-                        <Form.Group>
-                            <Form.Label>Insurance Code*</Form.Label>
-                            <Form.Control
-                                type="text"
-                                {...register('insuranceCode')}
-                                isInvalid={!!errors.insuranceCode}
-                                className="custom-input"
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {errors.insuranceCode?.message}
-                            </Form.Control.Feedback>
-                        </Form.Group>
-                    </Col>
-                </Row>
+            <style>
+                {`
+                    .new-insurance-form .grid-reg {
+                        display: grid;
+                        grid-template-columns: 30% 70% !important;
+                        grid-gap: 10px 10px !important;
+                    }
+                `}
+            </style>
+            <Form onSubmit={handleSubmit(submitForm)} className="new-insurance-form mx-3">
+                <h5>Insurance Information</h5>
+                <hr />
 
-                <Row>
-                    <Col sm={12} md={6}>
-                        <Form.Group>
-                            <Form.Label>Insurance Type*</Form.Label>
-                            <Form.Control
-                                as="select"
-                                {...register('insuranceType')}
-                                isInvalid={!!errors.insuranceType}
-                                className="custom-input"
-                            >
-                                <option value="">Select Insurance Type</option>
-                                <option value="Government">Government</option>
-                                <option value="Medicare">Medicare</option>
-                                <option value="Private">Private</option>
-                                <option value="HMO">HMO</option>
-                            </Form.Control>
-                            <Form.Control.Feedback type="invalid">
-                                {errors.insuranceType?.message}
-                            </Form.Control.Feedback>
-                        </Form.Group>
-                    </Col>
-                    <Col sm={12} md={6}>
-                        <Form.Group>
-                            <Form.Label>Search Code*</Form.Label>
-                            <Form.Control
-                                type="text"
-                                {...register('searchCode')}
-                                isInvalid={!!errors.searchCode}
-                                className="custom-input"
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {errors.searchCode?.message}
-                            </Form.Control.Feedback>
-                        </Form.Group>
-                    </Col>
-                </Row>
+                <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">Insurance Name*</label>
+                    <Form.Control
+                        type="text"
+                        {...register('insuranceName')}
+                        isInvalid={!!errors.insuranceName}
 
-                <Row>
-                    <Col sm={12} md={6}>
-                        <Form.Group>
-                            <Form.Label>Network</Form.Label>
-                            <Form.Control
-                                type="text"
-                                {...register('network')}
-                                className="custom-input"
-                            />
-                        </Form.Group>
-                    </Col>
-                    <Col sm={12} md={6}>
-                        <Form.Group>
-                            <Form.Label>Tags</Form.Label>
-                            <Form.Control
-                                type="text"
-                                {...register('tags')}
-                                className="custom-input"
-                            />
-                        </Form.Group>
-                    </Col>
-                </Row>
+                    />
+                    {errors.insuranceName && (
+                        <div className="invalid-feedback d-block">{errors.insuranceName.message}</div>
+                    )}
+                </div>
 
-                <Row>
-                    <Col sm={12} md={6}>
-                        <Form.Group>
-                            <Form.Label>Mailing Address</Form.Label>
-                            <Form.Control
-                                type="text"
-                                {...register('mailingAddress')}
-                                className="custom-input"
-                            />
-                        </Form.Group>
-                    </Col>
-                    <Col sm={12} md={6}>
-                        <Form.Group>
-                            <Form.Label>City</Form.Label>
-                            <Form.Control
-                                type="text"
-                                {...register('city')}
-                                className="custom-input"
-                            />
-                        </Form.Group>
-                    </Col>
-                </Row>
+                <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">Insurance Code*</label>
+                    <Form.Control
+                        type="text"
+                        {...register('insuranceCode')}
+                        isInvalid={!!errors.insuranceCode}
 
-                <Row>
-                    <Col sm={12} md={6}>
-                        <Form.Group>
-                            <Form.Label>State</Form.Label>
-                            <Form.Control
-                                type="text"
-                                {...register('state')}
-                                className="custom-input"
-                            />
-                        </Form.Group>
-                    </Col>
-                    <Col sm={12} md={6}>
-                        <Form.Group>
-                            <Form.Label>County</Form.Label>
-                            <Form.Control
-                                type="text"
-                                {...register('county')}
-                                className="custom-input"
-                            />
-                        </Form.Group>
-                    </Col>
-                </Row>
+                    />
+                    {errors.insuranceCode && (
+                        <div className="invalid-feedback d-block">{errors.insuranceCode.message}</div>
+                    )}
+                </div>
 
-                <Row>
-                    <Col sm={12} md={6}>
-                        <Form.Group>
-                            <Form.Label>Zip Code</Form.Label>
-                            <Form.Control
-                                type="text"
-                                {...register('zipCode')}
-                                isInvalid={!!errors.zipCode}
-                                className="custom-input"
-                            />
-                            <Form.Control.Feedback type="invalid">
-                                {errors.zipCode?.message}
-                            </Form.Control.Feedback>
-                        </Form.Group>
-                    </Col>
-                </Row>
+                <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">Insurance Type*</label>
+                    <Form.Control
+                        as="select"
+                        {...register('insuranceType')}
+                        isInvalid={!!errors.insuranceType}
 
-                <Row>
-                    <Col sm={12}>
-                        <Form.Group>
-                            <Form.Label>Comments</Form.Label>
-                            <Form.Control
-                                as="textarea"
-                                rows={3}
-                                {...register('comments')}
-                                className="custom-input"
-                            />
-                        </Form.Group>
-                    </Col>
-                </Row>
+                    >
+                        <option value="">Select Insurance Type</option>
+                        <option value="Government">Government</option>
+                        <option value="Medicare">Medicare</option>
+                        <option value="Private">Private</option>
+                        <option value="HMO">HMO</option>
+                    </Form.Control>
+                    {errors.insuranceType && (
+                        <div className="invalid-feedback d-block">{errors.insuranceType.message}</div>
+                    )}
+                </div>
 
-                <Button type="submit" variant="primary" className='mt-2' disabled={isLoading}>
+                <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">Search Code*</label>
+                    <Form.Control
+                        type="text"
+                        {...register('searchCode')}
+                        isInvalid={!!errors.searchCode}
+
+                    />
+                    {errors.searchCode && (
+                        <div className="invalid-feedback d-block">{errors.searchCode.message}</div>
+                    )}
+                </div>
+
+                <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">Network</label>
+                    <Form.Control
+                        type="text"
+                        {...register('network')}
+
+                    />
+                </div>
+
+                <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">Tags</label>
+                    <Form.Control
+                        type="text"
+                        {...register('tags')}
+
+                    />
+                </div>
+
+                <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">Mailing Address</label>
+                    <Form.Control
+                        type="text"
+                        {...register('mailingAddress')}
+
+                    />
+                </div>
+
+                <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">City</label>
+                    <Form.Control
+                        type="text"
+                        {...register('city')}
+
+                    />
+                </div>
+
+                <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">State</label>
+                    <Form.Control
+                        type="text"
+                        {...register('state')}
+
+                    />
+                </div>
+
+                <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">County</label>
+                    <Form.Control
+                        type="text"
+                        {...register('county')}
+
+                    />
+                </div>
+
+                <div className="form-row grid-reg mt-2">
+                    <label className="pls-label">Zip Code</label>
+                    <Form.Control
+                        type="text"
+                        {...register('zipCode')}
+                        isInvalid={!!errors.zipCode}
+
+                    />
+                    {errors.zipCode && (
+                        <div className="invalid-feedback d-block">{errors.zipCode.message}</div>
+                    )}
+                </div>
+
+                <hr />
+                <h5>Additional Information</h5>
+                <div className="form-row mt-2">
+                    <Form.Control
+                        as="textarea"
+                        rows={5}
+                        {...register('comments')}
+
+                        placeholder="Enter comments here"
+                    />
+                </div>
+
+                <Button type="submit" variant="success" className='btn-sm mt-3' disabled={isLoading}>
                     {isLoading ? <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> : null}
-                    {isLoading ? 'Submitting...' : 'Submit'}
+                    {isLoading ? ' Saving...' : 'Save Changes'}
                 </Button>
             </Form>
         </>

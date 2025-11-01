@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import styles from './PrimeLayout.module.css';
-import { RiMenuLine, RiArrowLeftLine, RiArrowRightLine } from '@remixicon/react';
+import { RiMenuLine, RiArrowLeftLine, RiArrowRightLine, RiAddLine, RiSubtractLine } from '@remixicon/react';
 import { Dropdown } from 'react-bootstrap';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link as LinkType } from "./links/types";
@@ -28,6 +28,7 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
 
     const [isRoleExpanded, setIsRoleExpanded] = useState<boolean>(false);
     const [isQuickLinksCollapsed, setIsQuickLinksCollapsed] = useState<boolean>(false);
+    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
     const roleLinks = roleViews[user.role] || [];
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
@@ -43,27 +44,68 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
     };
 
 
-    const renderNavItem = (item: LinkType) => {
+    const toggleGroup = (groupTitle: string) => {
+        setExpandedGroups(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(groupTitle)) {
+                newSet.delete(groupTitle);
+            } else {
+                newSet.add(groupTitle);
+            }
+            return newSet;
+        });
+    };
+
+    const renderNavItem = (item: LinkType, isChild: boolean = false) => {
         const uniqueKey = item.title.replace(/\s+/g, '-');
         const isActive = currentPath === item.link;
+        const hasChildren = item.children && item.children.length > 0;
+        const isExpanded = expandedGroups.has(item.title);
 
-        const handleClick = () => {
-            handleNavigation(item.link);
-        };
+        if (hasChildren) {
+            // Render as group header
+            return (
+                <div key={uniqueKey}>
+                    <div
+                        className={`list-group-item d-flex mx-2 ${styles.groupHeader} ${isChild ? styles.childItem : ''}`}
+                        onClick={() => toggleGroup(item.title)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleGroup(item.title); }}
+                    >
+                        {item.icon && <span className={styles.icon}>{item.icon}</span>}
+                        <span className={`${styles.title} ${styles.groupTitle}`}>{item.title}</span>
+                        <span className={styles.groupToggle}>
+                            {isExpanded ? <RiSubtractLine size={14} /> : <RiAddLine size={14} />}
+                        </span>
+                    </div>
+                    {isExpanded && item.children && (
+                        <div className={styles.groupChildren}>
+                            {item.children.map(child => renderNavItem(child, true))}
+                        </div>
+                    )}
+                </div>
+            );
+        } else {
+            // Render as regular link
+            const handleClick = () => {
+                handleNavigation(item.link);
+            };
 
-        return (
-            <div
-                key={uniqueKey}
-                className={`list-group-item d-flex mx-2 ${isActive ? 'active' : ''}`}
-                onClick={handleClick}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleClick(); }}
-            >
-                {item.icon && <span className={styles.icon}>{item.icon}</span>}
-                <span className={styles.title}>{item.title}</span>
-            </div>
-        );
+            return (
+                <div
+                    key={uniqueKey}
+                    className={`list-group-item d-flex mx-2 ${isActive ? 'active' : ''} ${isChild ? styles.childItem : ''}`}
+                    onClick={handleClick}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleClick(); }}
+                >
+                    {item.icon && <span className={styles.icon}>{item.icon}</span>}
+                    <span className={`${styles.title} ${isChild ? styles.childTitle : ''}`}>{item.title}</span>
+                </div>
+            );
+        }
     };
 
 

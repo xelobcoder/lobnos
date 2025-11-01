@@ -1,4 +1,4 @@
-import ClinicianAnalyticsCaseSummaryMonthly from "../../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsCaseSummaryMonthly";
+import ClinicianAnalyticsCaseSummaryMonthly from "../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsCaseSummaryMonthly";
 
 export default function Page({ params }: { params: { clinicianid: number } }) {
     return (

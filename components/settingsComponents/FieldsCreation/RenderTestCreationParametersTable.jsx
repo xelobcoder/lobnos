@@ -33,7 +33,15 @@ export default function RenderTestCreationParameters({ data, reorder, setReorder
                         </tr>
                     </thead>
                     <tbody>
-                        {Array.isArray(data) && data.map((item, index) => (
+                        {Array.isArray(data) && data.length === 0 && (
+                            <tr>
+                                <td colSpan="7" className={styles.noData}>
+                                    No parameters created yet.
+                                </td>
+                            </tr>
+                        )}
+
+                        {Array.isArray(data) && data.length > 0 && data.map((item, index) => (
                             <tr key={index}>
                                 <td>{item.name}</td>
                                 <td>{item.upperlimit}</td>

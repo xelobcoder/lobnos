@@ -1,4 +1,4 @@
-import ClinicianAnalyticsYearlyTotals from "../../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsYearlyTotals";
+import ClinicianAnalyticsYearlyTotals from "../../../../components/analytics/clinicians-analytics/ClinicianAnalyticsYearlyTotals";
 
 export default function Page({ params }: { params: { clinicianid: number } }) {
     return (
