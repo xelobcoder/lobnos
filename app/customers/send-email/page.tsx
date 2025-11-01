@@ -6,11 +6,12 @@ import { Button, Form, Spinner, Row, Col } from 'react-bootstrap';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast, ToastContainer } from 'react-toastify';
-import { customFetch, customPost } from '../../../../components/Auth/customFetch';
+import { RiArrowLeftLine, RiMailLine, RiTimeLine, RiMailSendLine } from '@remixicon/react';
 import { useSearchParams } from 'next/navigation';
-import { RiMailSendLine, RiArrowLeftLine, RiMailLine, RiTimeLine } from '@remixicon/react';
-import { useRouter } from 'next/navigation';
-import MARKDOWN_EDITOR from '../../../../components/accessories/markdownEditor';
+import { useRouter } from 'next/router';
+import MARKDOWN_EDITOR from '../../../components/accessories/markdownEditor';
+import { customPost,customFetch } from '../../../components/Auth/customFetch';
+;
 
 interface EmailFormData {
      subject: string;
