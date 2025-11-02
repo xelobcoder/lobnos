@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 
 const VitalSignLineChart = ({ data, title, dataKey, strokeColor }) => {
     return (
-        <div className="p-4 rounded-xl bg-white text-[hsl(220_70%_20%)] shadow-sm">
+        <div className="p-4 rounded-xl border  bg-white text-[hsl(220_70%_20%)] shadow-sm">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h5 className="fw-semibold m-0">{title}</h5>
                 <small className="text-[hsl(220_20%_50%)]">Last recorded values</small>

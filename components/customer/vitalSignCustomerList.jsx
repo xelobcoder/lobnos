@@ -4,10 +4,11 @@ import VitalSignChartModal from './vitalSignChartModal';
 import VitalSignTable from './VitalSignTable';
 import VitalSignFilterForm from './VitalSignFilterForm';
 import { RiRefreshLine } from '@remixicon/react';
+import PreviewPatientInformation from '../petientsComponent/PreviewPatientInformation';
 
 
 
-export default function VitalSignCustomerListInformation({ searchParams, size = "fullscreen" }) {
+export default function VitalSignCustomerListInformation({ searchParams, size = "xl" }) {
     const { patientid } = searchParams;
     const [vitalSigns, setVitalSigns] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -120,7 +121,7 @@ export default function VitalSignCustomerListInformation({ searchParams, size = 
                     <RiRefreshLine />
                 </button>
             </div>
-
+<PreviewPatientInformation patientid={patientid} />
             <VitalSignTable groupedVitalSigns={groupedVitalSigns} openModal={openModal} />
 
             <VitalSignChartModal

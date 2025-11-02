@@ -42,14 +42,6 @@ const VitalSignChartModal = ({ show, onHide, vitalSigns, date, generateChartData
 							strokeColor="#387908"
 						/>
 					</div>
-					<div className="col-12 col-md-6 mb-4">
-						<VitalSignLineChart
-							data={generateChartData(vitalSigns, 'bp')}
-							title={`Blood Pressure Trends for ${date}`}
-							dataKey="bp"
-							strokeColor="#8884d8"
-						/>
-					</div>
 				</div>
 			</Modal.Body>
 		</Modal>

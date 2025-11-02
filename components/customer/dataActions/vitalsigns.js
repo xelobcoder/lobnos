@@ -3,7 +3,7 @@ import { customPost } from "../../Auth/customFetch";
 export const uploadVitalSign = async function (formdata, method = 'POST', toast = null) {
     try {
         const { patientid, employeeid } = formdata;
-        if (!patientid || !employeeid) return;
+        if (!patientid || !employeeid) return { status: false };
         let parsedObject = {};
         if (typeof formdata === "object" && Object.keys(formdata).length > 0)
             for (const [item, value] of Object.entries(formdata)) {
@@ -13,10 +13,10 @@ export const uploadVitalSign = async function (formdata, method = 'POST', toast 
             }
 
         const response = await customPost(`customers/vitalsigns/create`, method, formdata);
-        const { status } = response;
-        status == true ? toast.success("vital sign recorded successfully") : toast.error("somthing wrong occured. upload failed")
+        return response; // Return the response so caller can check status
     } catch (err) {
         toast ? toast.error('somthing wrong ocurred') : alert('somthing wrong ocurred');
+        return { status: false }; // Return error status on catch
     }
 }
 
