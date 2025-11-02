@@ -5,12 +5,11 @@ import { useForm } from 'react-hook-form';
 import { Button, Form, Spinner, Row, Col } from 'react-bootstrap';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { RiArrowLeftLine, RiMailLine, RiTimeLine, RiMailSendLine } from '@remixicon/react';
-import { useSearchParams } from 'next/navigation';
-import { useRouter } from 'next/router';
-import MARKDOWN_EDITOR from '../../../components/accessories/markdownEditor';
-import { customPost,customFetch } from '../../../components/Auth/customFetch';
+import { useSearchParams, useRouter } from 'next/navigation';
+import MARKDOWN_EDITOR from '../../../../components/accessories/markdownEditor';
+import { customPost, customFetch } from '../../../../components/Auth/customFetch';
 ;
 
 interface EmailFormData {
@@ -45,18 +44,15 @@ const SendEmailPage: React.FC = () => {
      const [isLoadingHistory, setIsLoadingHistory] = useState(false);
      const [messageContent, setMessageContent] = useState('');
 
-     // Fetch patient data and email history
      useEffect(() => {
           if (patientid) {
                setIsLoadingPatient(true);
                setIsLoadingHistory(true);
 
-               // Fetch patient data
                customFetch(`patients/${patientid}`)
                     .then((data) => {
                          if (data) {
                               setPatientData(data);
-                              // Pre-fill recipient email if available
                               if (data.email) {
                                    reset({ recipientEmail: data.email });
                               }
@@ -70,7 +66,6 @@ const SendEmailPage: React.FC = () => {
                          setIsLoadingPatient(false);
                     });
 
-               // Fetch email history
                customFetch(`emails/history/${patientid}`)
                     .then((data) => {
                          if (data && Array.isArray(data)) {
@@ -79,7 +74,6 @@ const SendEmailPage: React.FC = () => {
                     })
                     .catch((err) => {
                          console.log(err);
-                         // Don't show error for email history as it might not be implemented yet
                     })
                     .finally(() => {
                          setIsLoadingHistory(false);
@@ -93,7 +87,6 @@ const SendEmailPage: React.FC = () => {
                return;
           }
 
-          // Validate message content
           if (!messageContent || messageContent.trim().length < 10) {
                toast.error('Message is required and must be at least 10 characters');
                return;
@@ -139,8 +132,6 @@ const SendEmailPage: React.FC = () => {
 
      return (
           <>
-               <ToastContainer position='top-center' className={'text-sm'} theme='colored' />
-
                <div className="d-flex align-items-center gap-3 mb-4">
                     <Button
                          variant="outline-secondary"
@@ -174,7 +165,6 @@ const SendEmailPage: React.FC = () => {
                )}
 
                <Row>
-                    {/* Left Column - Email History */}
                     <Col md={6}>
                          <div className="border bg-white border-secondary-subtle rounded p-3">
                               <h5 className="mb-3 d-flex align-items-center gap-2">
@@ -217,7 +207,6 @@ const SendEmailPage: React.FC = () => {
                          </div>
                     </Col>
 
-                    {/* Right Column - Send Email Form */}
                     <Col md={6}>
                          <div className="border bg-white border-secondary-subtle rounded p-3">
                               <h5 className="mb-3 d-flex align-items-center gap-2">

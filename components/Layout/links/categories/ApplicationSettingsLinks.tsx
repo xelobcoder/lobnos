@@ -18,7 +18,9 @@ import {
     RiGitRepositoryFill,
     RiStarHalfLine,
     RiGift2Line,
-    RiSteamLine
+    RiSteamLine,
+    RiEyeLine,
+    RiShieldCheckLine
 } from '@remixicon/react';
 
 export const ApplicationSettingsLinks: Link[] =
@@ -90,6 +92,19 @@ export const ApplicationSettingsLinks: Link[] =
             children: [
                 { title: 'Promo Codes', link: '/settings/promos/promo-code-generation', icon: <RiGift2Line /> },
                 { title: 'Campaigns', link: '/settings/promos/campaign-creation', icon: <RiGift2Line /> }
+            ]
+        },
+        {
+            title: "Records Settings",
+            link: "",
+            icon: <RiFileListLine />,
+            children: [
+                { title: "Record Management", link: "/settings/records", icon: <RiFileListLine /> },
+                { title: "Data Retention", link: "/settings/records/retention", icon: <RiFileTextLine /> },
+                { title: "Result Accessibility", link: "/settings/records/result-accessible-settings", icon: <RiEyeLine /> },
+                { title: "Result Access Requests", link: "/settings/records/result-access-requests", icon: <RiListCheck2 /> },
+                { title: "Data Backup & Restore", link: "/settings/records/data-backup-restore", icon: <RiShieldCheckLine /> },
+                { title: "Audit Logs", link: "/settings/records/audit", icon: <RiListCheck2 /> }
             ]
         },
         { title: "Email Management", link: "/crm/customers/send-email", icon: <RiMailSettingsLine /> }
