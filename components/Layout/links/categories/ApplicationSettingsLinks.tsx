@@ -20,7 +20,8 @@ import {
     RiGift2Line,
     RiSteamLine,
     RiEyeLine,
-    RiShieldCheckLine
+    RiShieldCheckLine,
+    RiShieldLine
 } from '@remixicon/react';
 
 export const ApplicationSettingsLinks: Link[] =
@@ -104,6 +105,7 @@ export const ApplicationSettingsLinks: Link[] =
                 { title: "Result Accessibility", link: "/settings/records/result-accessible-settings", icon: <RiEyeLine /> },
                 { title: "Result Access Requests", link: "/settings/records/result-access-requests", icon: <RiListCheck2 /> },
                 { title: "Data Backup & Restore", link: "/settings/records/data-backup-restore", icon: <RiShieldCheckLine /> },
+                { title: "Backup Security", link: "/settings/records/backup-security", icon: <RiShieldLine /> },
                 { title: "Audit Logs", link: "/settings/records/audit", icon: <RiListCheck2 /> }
             ]
         },

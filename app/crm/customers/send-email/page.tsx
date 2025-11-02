@@ -8,8 +8,14 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'react-toastify';
 import { RiArrowLeftLine, RiMailLine, RiTimeLine, RiMailSendLine } from '@remixicon/react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import MARKDOWN_EDITOR from '../../../../components/accessories/markdownEditor';
+import dynamic from 'next/dynamic';
 import { customPost, customFetch } from '../../../../components/Auth/customFetch';
+
+// Dynamically import MARKDOWN_EDITOR to avoid SSR issues
+const MARKDOWN_EDITOR = dynamic(() => import('../../../../components/accessories/markdownEditor'), {
+     ssr: false,
+     loading: () => <div className="d-flex justify-content-center p-3"><Spinner animation="border" size="sm" /></div>
+});
 ;
 
 interface EmailFormData {

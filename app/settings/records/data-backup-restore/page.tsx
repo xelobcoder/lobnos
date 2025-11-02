@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Button, Form, Modal, Alert, Card, ProgressBar } from 'react-bootstrap';
 import { RiTimeLine, RiShieldCheckLine, RiSettings4Line, RiSaveLine, RiPlayLine, RiDatabaseLine, RiServerLine, RiCloseLine, RiPauseLine } from '@remixicon/react';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
+import Link from 'next/link';
 
 interface RestorePoint {
      id: string;
@@ -233,6 +234,12 @@ export default function DataBackupRestorePage() {
                                    </>
                               )}
                          </Button>
+                         <Link href="/settings/records/backup-security">
+                              <Button variant="outline-warning" size="sm">
+                                   <RiShieldCheckLine size={16} className="me-2" />
+                                   Security Settings
+                              </Button>
+                         </Link>
                     </div>
                </div>
 
