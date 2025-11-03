@@ -107,21 +107,21 @@ export default function VitalSignCustomerListInformation({ searchParams, size = 
     return (
         <div className="">
             <div className="d-flex justify-content-between align-items-center mb-3">
-                <VitalSignFilterForm 
-                    filterFrom={filterFrom} 
-                    filterTo={filterTo} 
-                    handleFilterChange={handleFilterChange} 
-                    handleFilterSubmit={handleFilterSubmit} 
+                <VitalSignFilterForm
+                    filterFrom={filterFrom}
+                    filterTo={filterTo}
+                    handleFilterChange={handleFilterChange}
+                    handleFilterSubmit={handleFilterSubmit}
                 />
-                <button 
-                    onClick={handleRefresh} 
+                <button
+                    onClick={handleRefresh}
                     className="btn btn-light"
                     title="Refresh Data"
                 >
                     <RiRefreshLine />
                 </button>
             </div>
-<PreviewPatientInformation patientid={patientid} />
+            <PreviewPatientInformation patientid={patientid} />
             <VitalSignTable groupedVitalSigns={groupedVitalSigns} openModal={openModal} />
 
             <VitalSignChartModal

@@ -46,3 +46,12 @@ export interface Service {
   name: string | boolean;
   witnesses: Witness[];
 }
+
+export interface AccessWindow {
+  id?: number;
+  employeeid: number;
+  role: 'admin' | 'manager';
+  edit_window: '1h' | '4h' | '8h' | '12h' | '24h' | '1d' | '1w' | '2w' | '1m';
+  access_window: '1h' | '4h' | '8h' | '12h' | '24h' | '1d' | '1w' | '2w' | '1m';
+  require_approval: boolean;
+}

@@ -1,194 +1,465 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Form, Modal, Alert } from 'react-bootstrap';
 import { RiShieldCheckLine, RiSettings4Line, RiSaveLine } from '@remixicon/react';
+import { customFetch, customPost } from '../../../../components/Auth/customFetch';
+import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
+import { toast } from 'react-toastify';
+
+interface Employee {
+     employeeid: number;
+     username: string;
+     role: string;
+     email: string;
+     branch: number;
+     branchname: string;
+     emailAuthenticated: string;
+     activation: number;
+}
+
+interface AccessWindow {
+     id: number;
+     employeeid: number;
+     category: string;
+     edit_window: string;
+     access_window: string;
+     applicable_role: string;
+     require_approval: number;
+     created_at: string;
+     updated_at: string;
+}
 
 export default function ResultAccessibleSettingsPage() {
+     const [defaultAccessWindow, setDefaultAccessWindow] = useState<'1h' | '4h' | '8h' | '12h' | '24h' | '1d' | '1w' | '2w' | '1m'>('24h');
+     const [defaultEditWindow, setDefaultEditWindow] = useState<'1h' | '4h' | '8h' | '12h' | '24h' | '1d' | '1w' | '2w' | '1m'>('24h');
+     const [defaultRequireApproval, setDefaultRequireApproval] = useState(true);
      const [showModal, setShowModal] = useState(false);
-     const [selectedTestType, setSelectedTestType] = useState('');
-     const [accessWindowHours, setAccessWindowHours] = useState(24);
-     const [requireReApproval, setRequireReApproval] = useState(true);
+     const [showGlobalModal, setShowGlobalModal] = useState(false);
+     const [employees, setEmployees] = useState<Employee[]>([]);
+     const [employeeId, setEmployeeId] = useState<number | ''>('');
+     const [employeeRole, setEmployeeRole] = useState<string>('');
+     const [employeeEditWindow, setEmployeeEditWindow] = useState<'1h' | '4h' | '8h' | '12h' | '24h' | '1d' | '1w' | '2w' | '1m'>('24h');
+     const [employeeAccessWindow, setEmployeeAccessWindow] = useState<'1h' | '4h' | '8h' | '12h' | '24h' | '1d' | '1w' | '2w' | '1m'>('24h');
+     const [employeeRequireApproval, setEmployeeRequireApproval] = useState(true);
 
-     const testTypes = [
-          {
-               id: 'routine',
-               name: 'Routine Tests',
-               description: 'Standard blood work, urinalysis, etc.',
-               accessWindow: 48,
-               requireReApproval: true,
-               approverRole: 'supervisor'
-          },
-          {
-               id: 'specialized',
-               name: 'Specialized Tests',
-               description: 'Genetic testing, biopsies, advanced diagnostics',
-               accessWindow: 72,
-               requireReApproval: true,
-               approverRole: 'manager'
-          },
-          {
-               id: 'urgent',
-               name: 'Urgent Results',
-               description: 'Critical values, emergency results',
-               accessWindow: 12,
-               requireReApproval: true,
-               approverRole: 'supervisor'
-          },
-          {
-               id: 'confidential',
-               name: 'Confidential Tests',
-               description: 'STI testing, mental health screenings',
-               accessWindow: 24,
-               requireReApproval: true,
-               approverRole: 'admin'
+     const [isSavingDefaults, setIsSavingDefaults] = useState(false);
+     const [isSavingIndividual, setIsSavingIndividual] = useState(false);
+
+     const [existingAccesses, setExistingAccesses] = useState<AccessWindow[]>([]);
+     const [editingId, setEditingId] = useState<number | null>(null);
+     const [editingGlobalId, setEditingGlobalId] = useState<number | null>(null);
+
+     useEffect(() => {
+          const fetchEmployees = async () => {
+               try {
+                    const response = await customFetch('logins');
+                    if (response.status === 'success') {
+                         setEmployees(response.result);
+                    }
+               } catch (error) {
+                    console.error('Failed to fetch employees:', error);
+               }
+          };
+          const fetchAllAccessWindows = async () => {
+               try {
+                    const response = await customFetch('security-features/access-windows?page=1&&count=10');
+                    if (response && response.status === true) {
+                         setExistingAccesses(response.data || response); // assuming data contains the array
+                    }
+               } catch (error) {
+                    console.error('Failed to fetch access windows:', error);
+               }
+          };
+          fetchEmployees();
+          fetchAllAccessWindows();
+     }, []);
+
+     useEffect(() => {
+          if (employeeId) {
+               const selectedEmployee = employees.find(emp => emp.employeeid === employeeId);
+               if (selectedEmployee) {
+                    setEmployeeRole(selectedEmployee.role);
+               }
+               // Fetch existing access window
+               fetchExistingAccessWindow(employeeId);
+          } else {
+               // Reset fields when no employee selected
+               setEmployeeRole('');
+               setEmployeeEditWindow('24h');
+               setEmployeeAccessWindow('24h');
+               setEmployeeRequireApproval(true);
           }
-     ];
+     }, [employeeId, employees]);
 
-     const approverRoles = [
-          { id: 'supervisor', name: 'Lab Supervisor', description: 'Department supervisor approval' },
-          { id: 'manager', name: 'Lab Manager', description: 'Laboratory manager approval' },
-          { id: 'admin', name: 'Administrator', description: 'System administrator approval' }
-     ];
+     const fetchExistingAccessWindow = async (id: number) => {
+          try {
+               const response = await customFetch(`security-features/access-windows/employee/${id}`);
+               if (response && response.status === true) {
+                    setEmployeeEditWindow(response.edit_window);
+                    setEmployeeAccessWindow(response.access_window);
+                    setEmployeeRequireApproval(!!response.require_approval);
+                    setEditingId(response.id);
+               } else {
+                    setEditingId(null);
+               }
+          } catch (error) {
+               console.error('Failed to fetch existing access window:', error);
+               setEditingId(null);
+               // Keep default values if no existing data
+          }
+     };
 
-     const handleSaveSettings = () => {
-          console.log('Saving staff access settings:', {
-               selectedTestType,
-               accessWindowHours,
-               requireReApproval
-          });
-          setShowModal(false);
+     const handleSaveDefaults = async () => {
+          setIsSavingDefaults(true);
+          try {
+               const payload = {
+                    ...(editingGlobalId && { id: editingGlobalId }),
+                    employeeid: 0,
+                    category: "global",
+                    edit_window: defaultEditWindow,
+                    access_window: defaultAccessWindow,
+                    applicable_role: "scientist",
+                    require_approval: defaultRequireApproval
+               };
+               const response = await customPost('security-features/access-windows', 'POST', payload);
+               if (response && response.status === true) {
+                    toast.success(editingGlobalId ? 'Global settings updated successfully' : 'Global settings saved successfully');
+                    setShowGlobalModal(false);
+                    // Refresh the list
+                    const updatedResponse = await customFetch('security-features/access-windows?page=1&&count=10');
+                    if (updatedResponse && updatedResponse.status === true) {
+                         setExistingAccesses(updatedResponse.data || updatedResponse);
+                    }
+                    // Reset editing state
+                    setEditingGlobalId(null);
+               } else {
+                    console.error('Failed to save default settings');
+               }
+          } catch (error) {
+               console.error('Error saving default settings:', error);
+          } finally {
+               setIsSavingDefaults(false);
+          }
+     };
+
+     const handleSaveIndividual = async () => {
+          setIsSavingIndividual(true);
+          try {
+               const payload = {
+                    ...(editingId && { id: editingId }),
+                    employeeid: employeeId,
+                    category: "individual",
+                    edit_window: employeeEditWindow,
+                    access_window: employeeAccessWindow,
+                    applicable_role: employeeRole,
+                    require_approval: employeeRequireApproval
+               };
+               const url = editingId ? `security-features/access-windows/${editingId}` : 'security-features/access-windows';
+               const method = editingId ? 'PUT' : 'POST';
+               const response = await customPost(url, method, payload);
+               if (response && response.status === true) {
+                    toast.success(editingId ? 'Individual access settings updated successfully' : 'Individual access settings saved successfully');
+                    setShowModal(false);
+                    // Refresh the list
+                    const updatedResponse = await customFetch('security-features/access-windows?page=1&&count=10');
+                    if (updatedResponse && updatedResponse.status === true) {
+                         setExistingAccesses(updatedResponse.data || updatedResponse);
+                    }
+                    // Reset editing state
+                    setEditingId(null);
+               } else {
+                    console.error('Failed to save individual access settings');
+               }
+          } catch (error) {
+               console.error('Error saving individual access settings:', error);
+          } finally {
+               setIsSavingIndividual(false);
+          }
+     };
+
+     const handleDelete = async (employeeid: number) => {
+          try {
+               const response = await customPost(`security-features/access-windows/employee/${employeeid}`, 'DELETE', {});
+               if (response && response.status === true) {
+                    // Refresh the list
+                    const updatedResponse = await customFetch('security-features/access-windows?page=1&&count=10');
+                    if (updatedResponse && updatedResponse.status === true) {
+                         setExistingAccesses(updatedResponse.data || updatedResponse);
+                    }
+                    toast.success('Access settings deleted successfully');
+               }
+          } catch (error) {
+               console.error('Error deleting access settings:', error);
+          }
      };
 
      return (
-          <div className="container-fluid p-4">
-               <div className="d-flex align-items-center justify-content-between mb-4">
-                    <div>
-                         <h2 className="mb-1">Staff Result Access Permissions</h2>
-                         <p className="text-muted mb-0">Control staff access windows after initial result entry and approval</p>
-                    </div>
-                    <Button variant="primary" onClick={() => setShowModal(true)} className="d-flex align-items-center gap-2">
-                         <RiSettings4Line size={16} />
-                         Configure Permissions
-                    </Button>
-               </div>
-
-               <Alert variant="warning" className="mb-4">
-                    <div className="d-flex align-items-start gap-3">
-                         <RiShieldCheckLine size={20} className="text-warning mt-1" />
+          <>
+               <div className="container-fluid p-4">
+                    <div className="d-flex align-items-center justify-content-between mb-4">
                          <div>
-                              <strong>Quality Control:</strong> These settings ensure result integrity by limiting
-                              unauthorized access after initial approval. Changes affect laboratory workflows and compliance.
+                              <h2 className="mb-1 h5">Staff Result Access Permissions</h2>
+                              <p className="text-muted mb-0 small">Control global staff access windows after initial result entry and approval</p>
+                         </div>
+                         <div className="d-flex gap-2">
+                              <Button variant="outline-primary" onClick={() => { setShowGlobalModal(true); setEditingGlobalId(null); }} className="d-flex align-items-center gap-2">
+                                   <RiSettings4Line size={16} />
+                                   Edit Global Settings
+                              </Button>
+                              <Button variant="primary" onClick={() => { setShowModal(true); setEditingId(null); }} className="d-flex align-items-center gap-2">
+                                   <RiSettings4Line size={16} />
+                                   Add Individual Access
+                              </Button>
                          </div>
                     </div>
-               </Alert>
 
-               <div className="border bg-white border-secondary-subtle mx-2 p-2">
-                    <form className="mx-4">
-                         <div className="mb-3">
-                              <Form.Label className="small fw-semibold">Default Access Window</Form.Label>
-                              <Form.Select defaultValue="24">
-                                   <option value="1">1 hour</option>
-                                   <option value="4">4 hours</option>
-                                   <option value="8">8 hours</option>
-                                   <option value="12">12 hours</option>
-                                   <option value="24">24 hours</option>
-                                   <option value="48">48 hours</option>
-                                   <option value="72">72 hours</option>
-                              </Form.Select>
+                    <Alert variant="warning" className="mb-4">
+                         <div className="d-flex align-items-start gap-3">
+                              <RiShieldCheckLine size={20} className="text-warning mt-1" />
+                              <div className="small">
+                                   <strong>Quality Control:</strong> These settings ensure result integrity by limiting
+                                   unauthorized access after initial approval. Changes affect laboratory workflows and compliance.
+                              </div>
                          </div>
+                    </Alert>
 
-                         <div className="mb-3">
-                              <Form.Label className="small fw-semibold">Default Approver Role</Form.Label>
-                              <Form.Select defaultValue="supervisor">
-                                   <option value="supervisor">Lab Supervisor</option>
-                                   <option value="manager">Lab Manager</option>
-                                   <option value="admin">Administrator</option>
-                              </Form.Select>
-                         </div>
-
-                         <div className="mb-3">
-                              <Form.Check
-                                   type="switch"
-                                   id="audit-edits"
-                                   label="Audit All Edits"
-                                   defaultChecked={true}
+                    <div className="mt-4">
+                         <h5 className="mb-3">Individual Access Settings</h5>
+                         {existingAccesses.length > 0 ? (
+                              <PrimeTable
+                                   column={[
+                                        {
+                                             Header: 'Employee',
+                                             accessor: 'employee',
+                                        },
+                                        {
+                                             Header: 'Role',
+                                             accessor: 'applicable_role',
+                                        },
+                                        {
+                                             Header: 'Access Window',
+                                             accessor: 'access_window',
+                                        },
+                                        {
+                                             Header: 'Edit Window',
+                                             accessor: 'edit_window',
+                                        },
+                                        {
+                                             Header: 'Require Approval',
+                                             accessor: 'require_approval',
+                                             Cell: ({ value }) => value ? 'Yes' : 'No',
+                                        },
+                                        {
+                                             Header: 'Actions',
+                                             Cell: ({ row }) => (
+                                                  <div className="d-flex gap-1">
+                                                       <Button
+                                                            variant="outline-secondary"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                 const access = row.original;
+                                                                 if (access.employeeid === 0 && access.category === 'global') {
+                                                                      // Global settings
+                                                                      setDefaultAccessWindow(access.access_window);
+                                                                      setDefaultEditWindow(access.edit_window);
+                                                                      setDefaultRequireApproval(!!access.require_approval);
+                                                                      setEditingGlobalId(access.id);
+                                                                      setShowGlobalModal(true);
+                                                                 } else {
+                                                                      // Individual settings
+                                                                      setEmployeeId(access.employeeid);
+                                                                      setEmployeeRole(access.applicable_role);
+                                                                      setEmployeeAccessWindow(access.access_window);
+                                                                      setEmployeeEditWindow(access.edit_window);
+                                                                      setEmployeeRequireApproval(!!access.require_approval);
+                                                                      setEditingId(access.id);
+                                                                      setShowModal(true);
+                                                                 }
+                                                            }}
+                                                       >
+                                                            Edit
+                                                       </Button>
+                                                       <Button
+                                                            variant="outline-danger"
+                                                            size="sm"
+                                                            onClick={() => handleDelete(row.original.employeeid)}
+                                                       >
+                                                            Delete
+                                                       </Button>
+                                                  </div>
+                                             ),
+                                        },
+                                   ]}
+                                   data={existingAccesses.map((access) => {
+                                        const employee = employees.find(emp => emp.employeeid === access.employeeid);
+                                        return {
+                                             ...access,
+                                             employee: access.employeeid === 0 ? 'Global' : (employee ? employee.username : 'Unknown'),
+                                        };
+                                   })}
+                                   handleSeverSideProcessing={() => { }}
                               />
-                         </div>
+                         ) : (
+                              <p className="text-muted">No individual access settings configured yet.</p>
+                         )}
+                    </div>
 
-                         <Button variant="outline-primary" size="sm">
-                              <RiSaveLine size={14} className="me-1" />
-                              Save Defaults
-                         </Button>
-                    </form>
+                    <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+                         <Modal.Header closeButton>
+                              <Modal.Title className="h6">{editingId ? 'Edit' : 'Add'} Individual Employee Access</Modal.Title>
+                         </Modal.Header>
+                         <Modal.Body>
+                              <Form>
+                                   <Form.Group className="mb-3">
+                                        <Form.Label>Select Employee</Form.Label>
+                                        <Form.Select
+                                             value={employeeId}
+                                             onChange={(e) => setEmployeeId(e.target.value ? Number(e.target.value) : '')}
+                                        >
+                                             <option value="">Select an employee...</option>
+                                             {employees.map((emp) => (
+                                                  <option key={emp.employeeid} value={emp.employeeid}>{emp.username}</option>
+                                             ))}
+                                        </Form.Select>
+                                   </Form.Group>
+
+                                   <Form.Group className="mb-3">
+                                        <Form.Label>Role</Form.Label>
+                                        <Form.Control
+                                             value={employeeRole}
+                                             readOnly
+                                        />
+                                   </Form.Group>
+
+                                   {editingId && (
+                                        <div className='border br-5 p-2 my-2'>
+                                             <p className="mb-2 small fw-bold">Current Access Settings</p>
+                                             <hr />
+                                             <div className="small fw-light">
+                                                  <p className="mb-1"><strong>Access Window:</strong> {employeeAccessWindow}</p>
+                                                  <p className="mb-1"><strong>Edit Window:</strong> {employeeEditWindow}</p>
+                                                  <p className="mb-0"><strong>Require Approval:</strong> {employeeRequireApproval ? 'Yes' : 'No'}</p>
+                                             </div>
+                                        </div>
+                                   )}
+
+                                   <Form.Group className="mb-3">
+                                        <Form.Check
+                                             type="switch"
+                                             id="employee-require-approval"
+                                             label="Require Approval"
+                                             checked={employeeRequireApproval}
+                                             onChange={(e) => setEmployeeRequireApproval(e.target.checked)}
+                                        />
+                                   </Form.Group>
+
+                                   <Form.Group className="mb-3">
+                                        <Form.Label>Access Window</Form.Label>
+                                        <Form.Select
+                                             value={employeeAccessWindow}
+                                             onChange={(e) => setEmployeeAccessWindow(e.target.value as typeof employeeAccessWindow)}
+                                             disabled={!employeeRequireApproval}
+                                        >
+                                             <option value="1h">1 hour</option>
+                                             <option value="4h">4 hours</option>
+                                             <option value="8h">8 hours</option>
+                                             <option value="12h">12 hours</option>
+                                             <option value="24h">24 hours</option>
+                                             <option value="1d">1 day</option>
+                                             <option value="1w">1 week</option>
+                                             <option value="2w">2 weeks</option>
+                                             <option value="1m">1 month</option>
+                                        </Form.Select>
+                                   </Form.Group>
+
+                                   <Form.Group className="mb-3">
+                                        <Form.Label>Edit Window</Form.Label>
+                                        <Form.Select
+                                             value={employeeEditWindow}
+                                             onChange={(e) => setEmployeeEditWindow(e.target.value as typeof employeeEditWindow)}
+                                             disabled={!employeeRequireApproval}
+                                        >
+                                             <option value="1h">1 hour</option>
+                                             <option value="4h">4 hours</option>
+                                             <option value="8h">8 hours</option>
+                                             <option value="12h">12 hours</option>
+                                             <option value="24h">24 hours</option>
+                                             <option value="1d">1 day</option>
+                                             <option value="1w">1 week</option>
+                                             <option value="2w">2 weeks</option>
+                                             <option value="1m">1 month</option>
+                                        </Form.Select>
+                                   </Form.Group>
+                              </Form>
+                         </Modal.Body>
+                         <Modal.Footer>
+                              <Button variant="secondary" onClick={() => setShowModal(false)}>
+                                   Cancel
+                              </Button>
+                              <Button variant="primary" onClick={handleSaveIndividual} disabled={isSavingIndividual}>
+                                   {isSavingIndividual ? 'Saving...' : <><RiSaveLine size={14} className="me-1" />{editingId ? 'Update' : 'Save'} Individual Access</>}
+                              </Button>
+                         </Modal.Footer>
+                    </Modal>
+
+                    <Modal show={showGlobalModal} onHide={() => setShowGlobalModal(false)} centered>
+                         <Modal.Header closeButton>
+                              <Modal.Title className="h6">{editingGlobalId ? 'Edit' : 'Set'} Global Settings</Modal.Title>
+                         </Modal.Header>
+                         <Modal.Body>
+                              <Form>
+                                   <div className="mb-3">
+                                        <Form.Check
+                                             type="switch"
+                                             id="require-approval-default"
+                                             label="Require Approval"
+                                             checked={defaultRequireApproval}
+                                             onChange={(e) => setDefaultRequireApproval(e.target.checked)}
+                                        />
+                                   </div>
+
+                                   <div className="mb-3">
+                                        <Form.Label className="small fw-semibold">Default Access Window</Form.Label>
+                                        <Form.Select value={defaultAccessWindow} onChange={(e) => setDefaultAccessWindow(e.target.value as typeof defaultAccessWindow)} disabled={!defaultRequireApproval}>
+                                             <option value="1h">1 hour</option>
+                                             <option value="4h">4 hours</option>
+                                             <option value="8h">8 hours</option>
+                                             <option value="12h">12 hours</option>
+                                             <option value="24h">24 hours</option>
+                                             <option value="1d">1 day</option>
+                                             <option value="1w">1 week</option>
+                                             <option value="2w">2 weeks</option>
+                                             <option value="1m">1 month</option>
+                                        </Form.Select>
+                                   </div>
+
+                                   <div className="mb-3">
+                                        <Form.Label className="small fw-semibold">Default Edit Window</Form.Label>
+                                        <Form.Select value={defaultEditWindow} onChange={(e) => setDefaultEditWindow(e.target.value as typeof defaultEditWindow)} disabled={!defaultRequireApproval}>
+                                             <option value="1h">1 hour</option>
+                                             <option value="4h">4 hours</option>
+                                             <option value="8h">8 hours</option>
+                                             <option value="12h">12 hours</option>
+                                             <option value="24h">24 hours</option>
+                                             <option value="1d">1 day</option>
+                                             <option value="1w">1 week</option>
+                                             <option value="2w">2 weeks</option>
+                                             <option value="1m">1 month</option>
+                                        </Form.Select>
+                                   </div>
+                              </Form>
+                         </Modal.Body>
+                         <Modal.Footer>
+                              <Button variant="secondary" onClick={() => setShowGlobalModal(false)}>
+                                   Cancel
+                              </Button>
+                              <Button variant="primary" onClick={handleSaveDefaults} disabled={isSavingDefaults}>
+                                   {isSavingDefaults ? 'Saving...' : <><RiSaveLine size={14} className="me-1" />{editingGlobalId ? 'Update' : 'Save'} Global Settings</>}
+                              </Button>
+                         </Modal.Footer>
+                    </Modal>
                </div>
-
-               <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-                    <Modal.Header closeButton>
-                         <Modal.Title>Configure Staff Access Permissions</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                         <Form>
-                              <Form.Group className="mb-3">
-                                   <Form.Label>Test Type</Form.Label>
-                                   <Form.Select
-                                        value={selectedTestType}
-                                        onChange={(e) => setSelectedTestType(e.target.value)}
-                                   >
-                                        <option value="">Select test type...</option>
-                                        {testTypes.map((test) => (
-                                             <option key={test.id} value={test.id}>{test.name}</option>
-                                        ))}
-                                   </Form.Select>
-                              </Form.Group>
-
-                              <Form.Group className="mb-3">
-                                   <Form.Label>Access Window (Hours)</Form.Label>
-                                   <Form.Control
-                                        type="number"
-                                        value={accessWindowHours}
-                                        onChange={(e) => setAccessWindowHours(Number(e.target.value))}
-                                        min="1"
-                                        max="168"
-                                   />
-                                   <Form.Text className="text-muted">
-                                        Hours from the first approval that staff can access and edit the result before needing subsequent approval from admin or manager
-                                   </Form.Text>
-                              </Form.Group>
-
-                              <Form.Group className="mb-3">
-                                   <Form.Check
-                                        type="switch"
-                                        id="require-reapproval-modal"
-                                        label="Require Re-Approval After Window"
-                                        checked={requireReApproval}
-                                        onChange={(e) => setRequireReApproval(e.target.checked)}
-                                   />
-                                   <Form.Text className="text-muted">
-                                        After the access window expires, changes require admin or manager approval
-                                   </Form.Text>
-                              </Form.Group>
-
-                              <Form.Group className="mb-3">
-                                   <Form.Label>Approver Role</Form.Label>
-                                   <Form.Select defaultValue="supervisor">
-                                        {approverRoles.map((role) => (
-                                             <option key={role.id} value={role.id}>{role.name}</option>
-                                        ))}
-                                   </Form.Select>
-                              </Form.Group>
-                         </Form>
-                    </Modal.Body>
-                    <Modal.Footer>
-                         <Button variant="secondary" onClick={() => setShowModal(false)}>
-                              Cancel
-                         </Button>
-                         <Button variant="primary" onClick={handleSaveSettings}>
-                              <RiSaveLine size={14} className="me-1" />
-                              Save Permissions
-                         </Button>
-                    </Modal.Footer>
-               </Modal>
-          </div>
+          </>
      );
 }
