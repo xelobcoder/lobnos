@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000  --experimental-https",
+    "dev": "next dev -p 2377  --experimental-https",
     "next": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next dev  --experimental-https -p 2377",
     "start": "next start",
     "build": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 next build && node --env-file=.env server.js",

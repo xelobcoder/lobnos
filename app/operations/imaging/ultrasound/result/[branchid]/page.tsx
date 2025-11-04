@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { customPost, customFetch } from '../../../../../../components/Auth/customFetch';
-import Indicator from '../../../../../../components/accessories/Reports/indicator';
+import { customPost, customFetch, validatePin } from '../../../../../../components/Auth/customFetch';
 import dynamic from 'next/dynamic';
+import Indicator from '../../../../../../components/accessories/Reports/indicator';
 import { useSearchParams } from 'next/navigation';
 import Loader from '../../../../../../components/accessories/Loader';
 import { toast } from 'react-toastify';
@@ -12,8 +12,10 @@ import Select from 'react-select';
 import { reactSelectCustomStyles } from '../../../../../../components/Auth/customFetch';
 import { Tabs, Tab, ProgressBar } from 'react-bootstrap';
 import { RiFileTextLine, RiImageLine, RiUploadLine, RiDeleteBinLine, RiEyeLine, RiHistoryLine } from '@remixicon/react';
-import AccessHistoryTable from '../../../../../../components/operations/Ultrasound/AccessHistoryTable';
+import AccessHistoryTab from './AccessHistoryTab';
+import AccessRequestForm from './AccessRequestForm';
 const MARKDOWN_EDITOR = dynamic(() => import('../../../../../../components/accessories/markdownEditor'), { ssr: false });
+
 
 interface Field {
 	name: string;
@@ -35,21 +37,6 @@ interface UploadedImage {
 	size: number;
 	url: string;
 	uploadedAt: string;
-}
-
-interface AccessRequest {
-	id: number;
-	requestType: string;
-	requestReason: string;
-	urgencyLevel: string;
-	additionalNotes?: string;
-	ascensionid: string;
-	testid: string;
-	patientid: string;
-	employeeid: string;
-	requestedAt: string;
-	status: 'pending' | 'approved' | 'rejected';
-	response?: string;
 }
 
 interface ClinicalHistoryResponse {
@@ -77,6 +64,11 @@ export default function EnterResultUltrasound() {
 	const [isLoading, setLoading] = useState(true);
 	const [submitting, setSubmitting] = useState(false);
 	const [entered, setEnteredResult] = useState(false);
+	const [activeTab, setActiveTab] = useState('result');
+
+	// PIN state
+	const [isPinUsed, setIsPinUsed] = useState(true);
+	const [pin, setPin] = useState('');
 
 	// Image upload state
 	const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
@@ -140,6 +132,16 @@ export default function EnterResultUltrasound() {
 					return toast.error("You are not authorized to update this result.");
 				}
 			}
+
+			// Validate PIN if required
+			if (isPinUsed) {
+				const validation = await validatePin(user?.employeeid, pin);
+				if (!validation.status) {
+					toast.error(validation.message || "Invalid PIN");
+					return;
+				}
+			}
+
 			const myFields = fields.map((item: { name: string, value: string, id?: number, fieldid?: string }) => {
 				const fieldid = item?.fieldid ? item.fieldid : item.id;
 				return { field: item.name, value: item.value, fieldid: fieldid, originalvalue: item.value }
@@ -157,14 +159,15 @@ export default function EnterResultUltrasound() {
 				employeeid: user?.employeeid,
 				isScan: true,
 				target: "70,50",
+				...(isPinUsed ? { pin } : {}),
 			});
 
 			const { status, statusCode, message } = pushContent;
 			if (status === 'success' && statusCode === 200) {
 				setEnteredResult(true);
-				toast.success(message, { autoClose: 500 });
+				toast.success(message, { autoClose: 3000 });
 			} else {
-				toast.error(message, { autoClose: 500 });
+				toast.error(message, { autoClose: 3000 });
 			}
 		} catch (error) {
 			console.error(error);
@@ -284,46 +287,6 @@ export default function EnterResultUltrasound() {
 		}
 	};
 
-	const handleAccessRequest = async () => {
-		const requestType = (document.getElementById('requestType') as HTMLSelectElement)?.value;
-		const requestReason = (document.getElementById('requestReason') as HTMLTextAreaElement)?.value;
-		const urgencyLevel = (document.getElementById('urgencyLevel') as HTMLSelectElement)?.value;
-		const additionalNotes = (document.getElementById('additionalNotes') as HTMLTextAreaElement)?.value;
-
-		if (!requestType || !requestReason.trim() || requestReason.trim().length < 5) {
-			toast.error('Please fill in all required fields and ensure the reason is at least 5 characters long');
-			return;
-		}
-
-		try {
-			const response = await customPost('ultrasound/access/request', 'POST', {
-				requestType,
-				requestReason,
-				urgencyLevel,
-				additionalNotes,
-				ascensionid,
-				testid,
-				patientid,
-				employeeid: user?.employeeid,
-				requestedAt: new Date().toISOString(),
-			});
-
-			if (response.status === 'success') {
-				toast.success('Access request submitted successfully');
-				// Clear form
-				(document.getElementById('requestType') as HTMLSelectElement).value = '';
-				(document.getElementById('requestReason') as HTMLTextAreaElement).value = '';
-				(document.getElementById('urgencyLevel') as HTMLSelectElement).value = 'low';
-				(document.getElementById('additionalNotes') as HTMLTextAreaElement).value = '';
-			} else {
-				toast.error(response.message || 'Failed to submit request');
-			}
-		} catch (error) {
-			console.error('Access request failed:', error);
-			toast.error('Failed to submit access request');
-		}
-	};
-
 	const fetchUploadedImages = async () => {
 		try {
 			const response = await customFetch(`ultrasound/images/${ascensionid}`);
@@ -433,12 +396,12 @@ export default function EnterResultUltrasound() {
 				</div>
 			</div>
 			<div className="col-10 px-2">
-				<Tabs defaultActiveKey="result" id="ultrasound-tabs" className="mb-3">
+				<Tabs activeKey={activeTab} onSelect={(k) => k && setActiveTab(k)} id="ultrasound-tabs" className="mb-3">
 					<Tab eventKey="result" title={<span><RiFileTextLine className="me-2" />Result Entry</span>}>
 						<div>
 							<div className="d-flex justify-content-between bg-secondary-subtle br-5 my-2 p-2">
 								<div>
-									<h5 className="d-flex my-2 mx-4 text-uppercase">{testname} <Indicator resultEntered={entered} /></h5>
+									<h5 className="d-flex my-2 mx-4 text-uppercase">{testname}</h5>
 								</div>
 								<div>
 									<div>
@@ -468,13 +431,31 @@ export default function EnterResultUltrasound() {
 										<MARKDOWN_EDITOR updatedata={(ev, data) => setImpression(data)} initialData={impression || "Impression Here"} />
 									</div>
 								</div>
-								<button
-									onClick={handleResult}
-									className="btn btn-primary btn-sm mt-2"
-									disabled={submitting}
-								>
-									{submitting ? "Submitting..." : "Save Result"}
-								</button>
+								<div className="d-flex flex-column flex-md-row justify-content-between mt-2">
+									{isPinUsed && (
+										<div className="mb-2 mb-md-0">
+											<input
+												className="custom-input"
+												type="password"
+												placeholder="Enter pin here"
+												style={{ fontSize: '0.85rem', height: 28, padding: '2px 6px' }}
+												value={pin}
+												autoComplete="off"
+												autoCorrect="off"
+												onChange={e => setPin(e.target.value)}
+											/>
+										</div>
+									)}
+									<div>
+										<button
+											onClick={handleResult}
+											className="btn btn-primary btn-sm"
+											disabled={submitting}
+										>
+											{submitting ? "Submitting..." : "Save Result"}
+										</button>
+									</div>
+								</div>
 							</div>
 						</div>
 					</Tab>
@@ -614,97 +595,15 @@ export default function EnterResultUltrasound() {
 						</div>
 					</Tab>
 					<Tab eventKey="access" title={<span><RiFileTextLine className="me-2" />Access Request</span>}>
-						<div>
-							<div className="d-flex justify-content-between bg-secondary-subtle br-5 my-2 p-2">
-								<div>
-									<h5 className="d-flex my-2 mx-4 text-uppercase">Access Request Form</h5>
-								</div>
-							</div>
-
-							<div className="border br-5 p-3 mb-3" style={{ border: '1px solid #dee2e6' }}>
-								<div className="row mb-3">
-									<div className="col-md-3">
-										<label className="form-label fw-bold">Request Type</label>
-									</div>
-									<div className="col-md-9">
-										<select className="form-select" id="requestType">
-											<option value="">Select Request Type</option>
-											<option value="edit">Request Edit Access</option>
-											<option value="view">Request View Access</option>
-											<option value="delete">Request Delete Permission</option>
-											<option value="export">Request Export Permission</option>
-											<option value="other">Other Request</option>
-										</select>
-									</div>
-								</div>
-
-								<div className="row mb-3">
-									<div className="col-md-3">
-										<label className="form-label fw-bold">Reason for Request</label>
-									</div>
-									<div className="col-md-9">
-										<textarea
-											className="form-control"
-											rows={4}
-											placeholder="Please explain why you need this access or permission..."
-											id="requestReason"
-										></textarea>
-									</div>
-								</div>
-
-								<div className="row mb-3">
-									<div className="col-md-3">
-										<label className="form-label fw-bold">Urgency Level</label>
-									</div>
-									<div className="col-md-9">
-										<select className="form-select" id="urgencyLevel">
-											<option value="low">Low - Can wait</option>
-											<option value="medium">Medium - Within a few days</option>
-											<option value="high">High - Urgent (within 24 hours)</option>
-											<option value="critical">Critical - Emergency</option>
-										</select>
-									</div>
-								</div>
-
-								<div className="row mb-3">
-									<div className="col-md-3">
-										<label className="form-label fw-bold">Additional Notes</label>
-									</div>
-									<div className="col-md-9">
-										<textarea
-											className="form-control"
-											rows={3}
-											placeholder="Any additional information or context..."
-											id="additionalNotes"
-										></textarea>
-									</div>
-								</div>
-
-								<div className="row">
-									<div className="col-md-9 offset-md-3">
-										<div className="d-flex justify-content-between align-items-center">
-											<small className="text-muted">
-												Requests will be reviewed by administrators and you will be notified of the decision.
-											</small>
-											<button className="btn btn-primary" onClick={handleAccessRequest}>
-												Submit Request
-											</button>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
+						<AccessRequestForm
+							ascensionid={ascensionid}
+							testid={testid}
+							patientid={patientid}
+							employeeid={employeeid}
+						/>
 					</Tab>
 					<Tab eventKey="access-history" title={<span><RiHistoryLine className="me-2" />Access History</span>}>
-						<div>
-							<div className="d-flex justify-content-between bg-secondary-subtle br-5 my-2 p-2">
-								<div>
-									<h5 className="d-flex my-2 mx-4 text-uppercase">Access Request History</h5>
-								</div>
-							</div>
-
-							<AccessHistoryTable employeeid={employeeid} />
-						</div>
+						<AccessHistoryTab employeeid={employeeid} ascensionid={ascensionid} shouldLoad={activeTab === 'access-history'} />
 					</Tab>
 				</Tabs>
 			</div>

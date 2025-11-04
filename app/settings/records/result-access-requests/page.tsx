@@ -1,98 +1,76 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Row, Col, Button, Badge, Modal, Alert, Form } from 'react-bootstrap';
-import { RiTimeLine, RiCheckLine, RiShieldCheckLine, RiSettings4Line, RiSaveLine, RiEditLine, RiClockwiseLine, RiUserLine, RiAdminLine, RiEyeLine, RiFileTextLine } from '@remixicon/react';
+import React, { useState, useEffect } from 'react';
+import { Row, Col, Button, Badge, Modal, Alert } from 'react-bootstrap';
+import { RiCheckLine, RiShieldCheckLine, RiClockwiseLine, RiEyeLine, RiFileTextLine, RiCloseLine } from '@remixicon/react';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
+import { customFetch, customPost } from '../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+import { toast } from 'react-toastify';
 interface AccessRequest {
-     id: string;
-     staffName: string;
-     staffRole: string;
-     patientId: string;
-     testType: string;
+     id: number;
+     patientid: number;
+     staffid: number;
      requestType: string;
-     reason: string;
      requestedAt: string;
      status: string;
-     approverRole: string;
-     approvedBy?: string;
-     approvedAt?: string;
-     rejectedBy?: string;
-     rejectedAt?: string;
-     rejectionReason?: string;
+     ascensionid: number;
+     grantedAt: string | null;
+     revokedAt: string | null;
+     expiredAt: string | null;
+     accessedAt: string | null;
+     reason: string;
+     urgency: string;
 }
 
 export default function ResultAccessRequestsPage() {
+     const { user } = useApplicationSettings().applicationsettings;
      const [showModal, setShowModal] = useState(false);
      const [selectedRequest, setSelectedRequest] = useState<AccessRequest | null>(null);
      const [filterStatus, setFilterStatus] = useState('all');
+     const [initialData, setInitialData] = useState<AccessRequest[]>([]);
 
-     const accessRequests = [
-          {
-               id: 'req-001',
-               staffName: 'Dr. Sarah Johnson',
-               staffRole: 'Lab Technician',
-               patientId: 'PAT-12345',
-               testType: 'Routine Blood Work',
-               requestType: 'Edit Result',
-               reason: 'Corrected hemoglobin value based on re-test',
-               requestedAt: '2025-11-02T10:30:00Z',
-               status: 'pending',
-               approverRole: 'supervisor'
-          },
-          {
-               id: 'req-002',
-               staffName: 'Mike Chen',
-               staffRole: 'Lab Assistant',
-               patientId: 'PAT-67890',
-               testType: 'Urinalysis',
-               requestType: 'Access Result',
-               reason: 'Reviewing historical results for comparison',
-               requestedAt: '2025-11-02T09:15:00Z',
-               status: 'approved',
-               approvedBy: 'Dr. Emily Davis',
-               approvedAt: '2025-11-02T09:45:00Z',
-               approverRole: 'manager'
-          },
-          {
-               id: 'req-003',
-               staffName: 'Lisa Wong',
-               staffRole: 'Senior Technician',
-               patientId: 'PAT-54321',
-               testType: 'Specialized Genetic Test',
-               requestType: 'Edit Result',
-               reason: 'Updated interpretation based on new guidelines',
-               requestedAt: '2025-11-01T14:20:00Z',
-               status: 'rejected',
-               rejectedBy: 'Dr. Robert Kim',
-               rejectedAt: '2025-11-01T15:00:00Z',
-               rejectionReason: 'Changes require additional clinical review',
-               approverRole: 'admin'
-          },
-          {
-               id: 'req-004',
-               staffName: 'Tom Anderson',
-               staffRole: 'Lab Supervisor',
-               patientId: 'PAT-98765',
-               testType: 'Urgent CBC',
-               requestType: 'Access Result',
-               reason: 'Emergency review requested by physician',
-               requestedAt: '2025-11-02T11:00:00Z',
-               status: 'pending',
-               approverRole: 'supervisor'
+     useEffect(() => {
+          const loadInitialData = async () => {
+               const result = await handleServerSideProcessing({ page: 1, count: 10, sortby: 'DESC' });
+               if (result.result) {
+                    setInitialData(result.result);
+               }
+          };
+          loadInitialData();
+     }, []);
+
+     const handleServerSideProcessing = async (pagination: { page: number; count: number, sortby: 'ASC' | 'DESC' }) => {
+          const url = `security-features/history?page=${pagination.page}&count=${pagination.count}&sort=${pagination.sortby}`;
+          try {
+               const response = await customFetch(url);
+               if (response && response.status === true) {
+                    return { result: response.data, error: false };
+               } else {
+                    return { result: [], error: false };
+               }
+          } catch (error) {
+               console.error('Failed to fetch access requests:', error);
+               toast.error('Failed to load access requests');
+               return { result: [], error: true };
           }
-     ];
+     };
 
-     const filteredRequests = filterStatus === 'all' ? accessRequests : accessRequests.filter(req => req.status === filterStatus);
+     const filteredRequests = []; // Server-side filtering handled by PrimeTable
 
      const getStatusBadge = (status) => {
           switch (status) {
                case 'pending':
                     return <Badge bg="warning" className="px-1">Pending</Badge>;
                case 'approved':
+               case 'granted':
                     return <Badge bg="success" className="px-1">Approved</Badge>;
                case 'rejected':
                     return <Badge bg="danger" className="px-1">Rejected</Badge>;
+               case 'revoked':
+                    return <Badge bg="secondary" className="px-1">Revoked</Badge>;
+               case 'expired':
+                    return <Badge bg="dark" className="px-1">Expired</Badge>;
                default:
                     return <Badge bg="secondary" className="px-1">{status}</Badge>;
           }
@@ -100,38 +78,37 @@ export default function ResultAccessRequestsPage() {
 
      const columns = [
           {
-               Header: 'Staff Member',
-               accessor: 'staffName',
-               Cell: ({ row }) => (
-                    <div>
-                         <div className="fw-semibold">{row.original.staffName}</div>
-                         <small className="text-muted">{row.original.staffRole}</small>
-                    </div>
-               )
+               Header: 'Patient ID',
+               accessor: 'fullpatientid',
           },
           {
-               Header: 'Patient ID',
-               accessor: 'patientId',
-               Cell: ({ row }) => <span className="fw-mono">{row.original.patientId}</span>
+               Header: "Requested By",
+               accessor: "username",
+          },
+          {
+               Header: "Role",
+               accessor: "employee_role",
           },
           {
                Header: 'Request Type',
                accessor: 'requestType',
-               Cell: ({ row }) => (
-                    <Badge bg={row.original.requestType === 'Edit Result' ? 'primary' : 'info'} className="px-1">
-                         {row.original.requestType}
-                    </Badge>
-               )
+               Cell: ({ value, row }) => value === 'edit' ? 'Edit Result' : `Access Result for test with Ascension ID ${row.original.ascensionid}`
+          },
+
+          {
+               Header: 'Urgency',
+               accessor: 'urgency',
+               Cell: ({ value }) => value
           },
           {
                Header: 'Requested At',
                accessor: 'requestedAt',
-               Cell: ({ row }) => <small>{new Date(row.original.requestedAt).toLocaleString()}</small>
+               Cell: ({ value }) => <small>{new Date(value).toLocaleString()}</small>
           },
           {
                Header: 'Status',
                accessor: 'status',
-               Cell: ({ row }) => getStatusBadge(row.original.status)
+               Cell: ({ value }) => getStatusBadge(value)
           },
           {
                Header: 'Actions',
@@ -163,19 +140,102 @@ export default function ResultAccessRequestsPage() {
                                    </Button>
                               </>
                          )}
+                         {(row.original.status === 'approved' || row.original.status === 'granted') && (
+                              <>
+                                   <Button
+                                        variant="outline-danger"
+                                        size="sm"
+                                        onClick={() => handleRevoke(row.original.id)}
+                                        title="Revoke Access"
+                                   >
+                                        <RiCloseLine size={14} />
+                                   </Button>
+                                   <Button
+                                        variant="outline-warning"
+                                        size="sm"
+                                        onClick={() => handleExpire(row.original.id)}
+                                        title="Expire Access"
+                                   >
+                                        Expire
+                                   </Button>
+                              </>
+                         )}
+                         {(row.original.status === 'revoked' || row.original.status === 'expired') && (
+                              <Button
+                                   variant="outline-success"
+                                   size="sm"
+                                   onClick={() => handleApprove(row.original.id)}
+                                   title="Grant Access Again"
+                              >
+                                   <RiCheckLine size={14} />
+                              </Button>
+                         )}
                     </div>
                )
           }
      ];
 
-     const handleApprove = (requestId) => {
-          console.log('Approving request:', requestId);
-          // In a real app, this would update the backend
+     const handleApprove = async (requestId: number) => {
+          try {
+               const response = await customPost(`security-features/grant/${requestId}`, 'PUT', {
+                    approved_by: user?.employeeid,
+                    approval_notes: 'Approved'
+               });
+               if (response.status === true) {
+                    toast.success('Request approved successfully');
+                    window.location.reload(); // Simple refresh for now
+               } else {
+                    toast.error(response.message || 'Failed to approve request');
+               }
+          } catch (error) {
+               console.error('Error approving request:', error);
+               toast.error('Failed to approve request');
+          }
      };
 
-     const handleReject = (requestId) => {
-          console.log('Rejecting request:', requestId);
-          // In a real app, this would update the backend
+     const handleReject = async (requestId: number) => {
+          try {
+               const response = await customPost(`security-features/revoke/${requestId}`, 'PUT', {});
+               if (response.status === true) {
+                    toast.success('Request rejected successfully');
+                    window.location.reload(); // Simple refresh for now
+               } else {
+                    toast.error(response.message || 'Failed to reject request');
+               }
+          } catch (error) {
+               console.error('Error rejecting request:', error);
+               toast.error('Failed to reject request');
+          }
+     };
+
+     const handleExpire = async (requestId: number) => {
+          try {
+               const response = await customPost('security-features/expire', 'POST', { requestId });
+               if (response.status === true) {
+                    toast.success('Request expired successfully');
+                    window.location.reload(); // Simple refresh for now
+               } else {
+                    toast.error(response.message || 'Failed to expire request');
+               }
+          } catch (error) {
+               console.error('Error expiring request:', error);
+               toast.error('Failed to expire request');
+          }
+     };
+
+     const handleRevoke = async (requestId: number) => {
+          try {
+               const response = await customPost(`security-features/revoke/${requestId}`, 'PUT', {});
+               if (response.status === true) {
+                    toast.success('Access revoked successfully');
+                    window.location.reload(); // Simple refresh for now
+               } else {
+                    toast.error(response.message || 'Failed to revoke access');
+               }
+          } catch (error) {
+               console.error('Error revoking access:', error);
+               toast.error('Failed to revoke access');
+          }
      };
 
      const handleViewDetails = (request) => {
@@ -190,14 +250,14 @@ export default function ResultAccessRequestsPage() {
                          <h2 className="mb-1">Result Access & Edit Requests</h2>
                          <p className="text-muted mb-0">Review and manage staff requests for accessing or editing test results</p>
                     </div>
-                    <Button variant="outline-primary" onClick={() => window.location.reload()}>
+                    <Button variant="outline-primary" size='sm' onClick={() => window.location.reload()}>
                          <RiClockwiseLine size={16} className="me-2" />
                          Refresh
                     </Button>
                </div>
 
                <Alert variant="info" className="mb-4">
-                    <div className="d-flex align-items-start gap-3">
+                    <div className="d-flex align-items-start gap-3 text-sm">
                          <RiShieldCheckLine size={20} className="text-info mt-1" />
                          <div>
                               <strong>Approval Workflow:</strong> Requests are automatically generated when staff attempt to access or edit results outside their permitted window. Review carefully to maintain data integrity and compliance.
@@ -212,93 +272,97 @@ export default function ResultAccessRequestsPage() {
                                    <RiFileTextLine size={20} />
                                    <h5 className="mb-0">Access & Edit Requests</h5>
                               </div>
-                              <Form.Select
-                                   value={filterStatus}
-                                   onChange={(e) => setFilterStatus(e.target.value)}
-                                   style={{ width: 'auto' }}
-                              >
-                                   <option value="all">All Status</option>
-                                   <option value="pending">Pending</option>
-                                   <option value="approved">Approved</option>
-                                   <option value="rejected">Rejected</option>
-                              </Form.Select>
                          </div>
-                         <PrimeTable   column={columns} data={filteredRequests} filtering={true} serverSideFiltering={true} handleSeverSideProcessing={() => { }} />
+                         <PrimeTable column={columns} data={initialData} filtering={true} serverSideFiltering={true} handleSeverSideProcessing={handleServerSideProcessing} />
                     </Col>
                </Row>
 
-               <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg">
+               <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
                     <Modal.Header closeButton>
                          <Modal.Title>Request Details</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                          {selectedRequest && (
                               <div className="row g-3">
-                                   <div className="col-md-6">
+                                   <div className="col-md-3 text-sm border br-5 p-2 mx-1">
                                         <strong>Request ID:</strong> {selectedRequest.id}
                                    </div>
-                                   <div className="col-md-6">
+                                   <div className="col-md-3 text-sm border br-5 p-2 mx-1">
                                         <strong>Status:</strong> {getStatusBadge(selectedRequest.status)}
                                    </div>
-                                   <div className="col-md-6">
-                                        <strong>Staff Member:</strong> {selectedRequest.staffName} ({selectedRequest.staffRole})
+                                   <div className="col-md-3 text-sm border br-5 p-2 mx-1">
+                                        <strong>Staff ID:</strong> {selectedRequest.staffid}
                                    </div>
-                                   <div className="col-md-6">
-                                        <strong>Patient ID:</strong> {selectedRequest.patientId}
+                                   <div className="col-md-3 text-sm border br-5 p-2 text-sm mx-1">
+                                        <strong>Patient ID:</strong> {selectedRequest.patientid}
                                    </div>
-                                   <div className="col-md-6">
-                                        <strong>Request Type:</strong> {selectedRequest.requestType}
+                                   <div className="col-md-3 text-sm border br-5 p-2 text-sm mx-1">
+                                        <strong>Request Type:</strong> {selectedRequest.requestType === 'edit' ? 'Edit Result' : 'Access Result'}
+                                   </div>
+                                   <div className="col-md-3 text-sm border br-5 p-2 text-sm mx-1">
+                                        <strong>Urgency:</strong> {selectedRequest.urgency}
+                                   </div>
+                                   <div className="col-md-3 text-sm border br-5 p-2 text-sm mx-1">
+                                        <strong>Ascension ID:</strong> {selectedRequest.ascensionid}
                                    </div>
                                    <div className="col-12">
                                         <strong>Reason:</strong>
-                                        <p className="mt-1 mb-0">{selectedRequest.reason}</p>
+                                        <p className="mt-1 mb-0 border br-5 p-3 text-sm ">{selectedRequest.reason}</p>
                                    </div>
-                                   <div className="col-md-6">
+                                   <div className="col-md-6 text-sm border br-5 p-2 mx-1">
                                         <strong>Requested At:</strong> {new Date(selectedRequest.requestedAt).toLocaleString()}
                                    </div>
-                                   <div className="col-md-6">
-                                        <strong>Approver Role:</strong> {selectedRequest.approverRole}
-                                   </div>
-                                   {selectedRequest.status === 'approved' && (
-                                        <>
-                                             <div className="col-md-6">
-                                                  <strong>Approved By:</strong> {selectedRequest.approvedBy}
-                                             </div>
-                                             <div className="col-md-6">
-                                                  <strong>Approved At:</strong> {selectedRequest.approvedAt ? new Date(selectedRequest.approvedAt).toLocaleString() : 'N/A'}
-                                             </div>
-                                        </>
+                                   {selectedRequest.grantedAt && (
+                                        <div className="col-md-6 text-sm border br-5 p-2 mx-1">
+                                             <strong>Granted At:</strong> {new Date(selectedRequest.grantedAt).toLocaleString()}
+                                        </div>
                                    )}
-                                   {selectedRequest.status === 'rejected' && (
-                                        <>
-                                             <div className="col-md-6">
-                                                  <strong>Rejected By:</strong> {selectedRequest.rejectedBy}
-                                             </div>
-                                             <div className="col-md-6">
-                                                  <strong>Rejected At:</strong> {selectedRequest.rejectedAt ? new Date(selectedRequest.rejectedAt).toLocaleString() : 'N/A'}
-                                             </div>
-                                             <div className="col-12">
-                                                  <strong>Rejection Reason:</strong>
-                                                  <p className="mt-1 mb-0 text-danger">{selectedRequest.rejectionReason}</p>
-                                             </div>
-                                        </>
+                                   {selectedRequest.revokedAt && (
+                                        <div className="col-md-6 text-sm border br-5 p-2 mx-1">
+                                             <strong>Revoked At:</strong> {new Date(selectedRequest.revokedAt).toLocaleString()}
+                                        </div>
+                                   )}
+                                   {selectedRequest.expiredAt && (
+                                        <div className="col-md-6 text-sm border br-5 p-2 mx-1">
+                                             <strong>Expired At:</strong> {new Date(selectedRequest.expiredAt).toLocaleString()}
+                                        </div>
+                                   )}
+                                   {selectedRequest.accessedAt && (
+                                        <div className="col-md-6 text-sm border br-5 p-2 mx-1">
+                                             <strong>Accessed At:</strong> {new Date(selectedRequest.accessedAt).toLocaleString()}
+                                        </div>
                                    )}
                               </div>
                          )}
                     </Modal.Body>
                     <Modal.Footer>
-                         <Button variant="secondary" onClick={() => setShowModal(false)}>
+                         <Button variant="secondary" size="sm" onClick={() => setShowModal(false)}>
                               Close
                          </Button>
                          {selectedRequest && selectedRequest.status === 'pending' && (
                               <>
-                                   <Button variant="success" onClick={() => { handleApprove(selectedRequest.id); setShowModal(false); }}>
+                                   <Button variant="success" size="sm" onClick={() => { handleApprove(selectedRequest.id); setShowModal(false); }}>
                                         Approve
                                    </Button>
-                                   <Button variant="danger" onClick={() => { handleReject(selectedRequest.id); setShowModal(false); }}>
+                                   <Button variant="danger" size="sm" onClick={() => { handleReject(selectedRequest.id); setShowModal(false); }}>
                                         Reject
                                    </Button>
                               </>
+                         )}
+                         {selectedRequest && (selectedRequest.status === 'approved' || selectedRequest.status === 'granted') && (
+                              <>
+                                   <Button variant="outline-danger" size="sm" onClick={() => { handleRevoke(selectedRequest.id); setShowModal(false); }}>
+                                        Revoke Access
+                                   </Button>
+                                   <Button variant="outline-warning" size="sm" onClick={() => { handleExpire(selectedRequest.id); setShowModal(false); }}>
+                                        Expire Access
+                                   </Button>
+                              </>
+                         )}
+                         {selectedRequest && (selectedRequest.status === 'revoked' || selectedRequest.status === 'expired') && (
+                              <Button variant="success" size="sm" onClick={() => { handleApprove(selectedRequest.id); setShowModal(false); }}>
+                                   Grant Access Again
+                              </Button>
                          )}
                     </Modal.Footer>
                </Modal>

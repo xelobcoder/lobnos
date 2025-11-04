@@ -28,6 +28,9 @@ interface AccessWindow {
      require_approval: number;
      created_at: string;
      updated_at: string;
+     username?: string;
+     email?: string;
+     employee_role?: string;
 }
 
 export default function ResultAccessibleSettingsPage() {
@@ -65,7 +68,7 @@ export default function ResultAccessibleSettingsPage() {
                try {
                     const response = await customFetch('security-features/access-windows?page=1&&count=10');
                     if (response && response.status === true) {
-                         setExistingAccesses(response.data || response); // assuming data contains the array
+                         setExistingAccesses(response.data)
                     }
                } catch (error) {
                     console.error('Failed to fetch access windows:', error);
@@ -194,6 +197,85 @@ export default function ResultAccessibleSettingsPage() {
           }
      };
 
+     const columns = [
+          {
+               Header: 'Employee',
+               accessor: 'username',
+               Cell: ({ value, row }) => row.original.employeeid === 0 ? 'Global Default' : value || 'N/A',
+          },
+          {
+               Header: 'Role',
+               accessor: 'applicable_role',
+          },
+          {
+               Header: 'Access Window',
+               accessor: 'access_window',
+          },
+          {
+               Header: 'Edit Window',
+               accessor: 'edit_window',
+          },
+          {
+               Header: 'Require Approval',
+               accessor: 'require_approval',
+               Cell: ({ value }) => value ? 'Yes' : 'No',
+          },
+          {
+               Header: 'Actions',
+               Cell: ({ row }) => (
+                    <div className="d-flex gap-1">
+                         <Button
+                              variant="outline-secondary"
+                              size="sm"
+                              onClick={() => {
+                                   const access = row.original;
+                                   if (access.employeeid === 0 && access.category === 'global') {
+                                        // Global settings
+                                        setDefaultAccessWindow(access.access_window);
+                                        setDefaultEditWindow(access.edit_window);
+                                        setDefaultRequireApproval(!!access.require_approval);
+                                        setEditingGlobalId(access.id);
+                                        setShowGlobalModal(true);
+                                   } else {
+                                        // Individual settings
+                                        setEmployeeId(access.employeeid);
+                                        setEmployeeRole(access.applicable_role);
+                                        setEmployeeAccessWindow(access.access_window);
+                                        setEmployeeEditWindow(access.edit_window);
+                                        setEmployeeRequireApproval(!!access.require_approval);
+                                        setEditingId(access.id);
+                                        setShowModal(true);
+                                   }
+                              }}
+                         >
+                              Edit
+                         </Button>
+                         <Button
+                              variant="outline-danger"
+                              size="sm"
+                              onClick={() => handleDelete(row.original.employeeid)}
+                         >
+                              Delete
+                         </Button>
+                    </div>
+               ),
+          },
+     ];
+
+     const handleServerSideProcessing = async (pagination: { page: number; count: number }) => {
+          const url = `security-features/access-windows?page=${pagination.page}&&count=${pagination.count}`;
+          try {
+               const response = await customFetch(url);
+               if (Array.isArray(response.data) && response.status === true) {
+                    return { result: response.data, error: false };
+               } else {
+                    return { result: [], error: false }
+               }
+          } catch (error) {
+               return { result: [], error: true }
+          }
+     }
+
      return (
           <>
                <div className="container-fluid p-4">
@@ -228,84 +310,18 @@ export default function ResultAccessibleSettingsPage() {
                          <h5 className="mb-3">Individual Access Settings</h5>
                          {existingAccesses.length > 0 ? (
                               <PrimeTable
-                                   column={[
-                                        {
-                                             Header: 'Employee',
-                                             accessor: 'employee',
-                                        },
-                                        {
-                                             Header: 'Role',
-                                             accessor: 'applicable_role',
-                                        },
-                                        {
-                                             Header: 'Access Window',
-                                             accessor: 'access_window',
-                                        },
-                                        {
-                                             Header: 'Edit Window',
-                                             accessor: 'edit_window',
-                                        },
-                                        {
-                                             Header: 'Require Approval',
-                                             accessor: 'require_approval',
-                                             Cell: ({ value }) => value ? 'Yes' : 'No',
-                                        },
-                                        {
-                                             Header: 'Actions',
-                                             Cell: ({ row }) => (
-                                                  <div className="d-flex gap-1">
-                                                       <Button
-                                                            variant="outline-secondary"
-                                                            size="sm"
-                                                            onClick={() => {
-                                                                 const access = row.original;
-                                                                 if (access.employeeid === 0 && access.category === 'global') {
-                                                                      // Global settings
-                                                                      setDefaultAccessWindow(access.access_window);
-                                                                      setDefaultEditWindow(access.edit_window);
-                                                                      setDefaultRequireApproval(!!access.require_approval);
-                                                                      setEditingGlobalId(access.id);
-                                                                      setShowGlobalModal(true);
-                                                                 } else {
-                                                                      // Individual settings
-                                                                      setEmployeeId(access.employeeid);
-                                                                      setEmployeeRole(access.applicable_role);
-                                                                      setEmployeeAccessWindow(access.access_window);
-                                                                      setEmployeeEditWindow(access.edit_window);
-                                                                      setEmployeeRequireApproval(!!access.require_approval);
-                                                                      setEditingId(access.id);
-                                                                      setShowModal(true);
-                                                                 }
-                                                            }}
-                                                       >
-                                                            Edit
-                                                       </Button>
-                                                       <Button
-                                                            variant="outline-danger"
-                                                            size="sm"
-                                                            onClick={() => handleDelete(row.original.employeeid)}
-                                                       >
-                                                            Delete
-                                                       </Button>
-                                                  </div>
-                                             ),
-                                        },
-                                   ]}
-                                   data={existingAccesses.map((access) => {
-                                        const employee = employees.find(emp => emp.employeeid === access.employeeid);
-                                        return {
-                                             ...access,
-                                             employee: access.employeeid === 0 ? 'Global' : (employee ? employee.username : 'Unknown'),
-                                        };
-                                   })}
-                                   handleSeverSideProcessing={() => { }}
+                                   column={columns}
+                                   data={existingAccesses}
+                                   filtering={true}
+                                   serverSideFiltering={true}
+                                   handleSeverSideProcessing={handleServerSideProcessing}
                               />
                          ) : (
                               <p className="text-muted">No individual access settings configured yet.</p>
                          )}
                     </div>
 
-                    <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+                    <Modal show={showModal} onHide={() => setShowModal(false)} >
                          <Modal.Header closeButton>
                               <Modal.Title className="h6">{editingId ? 'Edit' : 'Add'} Individual Employee Access</Modal.Title>
                          </Modal.Header>
@@ -403,7 +419,7 @@ export default function ResultAccessibleSettingsPage() {
                          </Modal.Footer>
                     </Modal>
 
-                    <Modal show={showGlobalModal} onHide={() => setShowGlobalModal(false)} centered>
+                    <Modal show={showGlobalModal} onHide={() => setShowGlobalModal(false)}>
                          <Modal.Header closeButton>
                               <Modal.Title className="h6">{editingGlobalId ? 'Edit' : 'Set'} Global Settings</Modal.Title>
                          </Modal.Header>
