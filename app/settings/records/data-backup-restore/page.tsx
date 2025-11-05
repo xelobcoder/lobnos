@@ -1,238 +1,447 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Button, Form, Modal, Alert, Card, ProgressBar } from 'react-bootstrap';
-import { RiTimeLine, RiShieldCheckLine, RiSettings4Line, RiSaveLine, RiPlayLine, RiDatabaseLine, RiServerLine, RiCloseLine, RiPauseLine } from '@remixicon/react';
-import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
+import { Row, Col, Button, Alert } from 'react-bootstrap';
+import { RiShieldCheckLine, RiAddLine, RiDatabaseLine } from '@remixicon/react';
 import Link from 'next/link';
+import { customFetch, customPost } from '../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
+import { toast } from 'react-toastify';
 
-interface RestorePoint {
-     id: string;
-     name: string;
-     createdAt: string;
-     size: string;
-     status: string;
-     type: string;
+import {
+     BackupStatsCards,
+     BackupProgressSection,
+     BackupSchedulesTable,
+     BackupLogsTable,
+     BackupScheduleModal
+} from '../../../../components/settings/backup';
+
+const API_BASE = 'security-features/backup';
+
+interface BackupSchedule {
+     id: number;
+     schedule_name: string;
+     frequency: 'hourly' | 'daily' | 'weekly' | 'monthly';
+     backup_time: string;
+     retention_days: number;
+     employeeid: number;
+     backup_type: 'database' | 'files' | 'full_system';
+     is_active: boolean;
+     last_run?: string;
+     created_at: string;
+     updated_at: string;
+     username: string;
+     email: string;
 }
 
+interface BackupLog {
+     id: number;
+     backup_name: string;
+     is_successful: boolean;
+     is_full_backup: boolean;
+     backup_size_bytes: number;
+     backup_type: string;
+     backup_mode: 'automated' | 'manual';
+     backup_date: string;
+     backup_path: string;
+     error_message?: string;
+     duration_seconds: number;
+     created_by: string;
+     created_at: string;
+     updated_at: string;
+}
+
+interface BackupStats {
+     total_backups: number;
+     successful_backups: number;
+     failed_backups: number;
+     total_size: number;
+     last_backup_date: string;
+}
+
+const FREQUENCY_OPTIONS = [
+     { value: 'hourly', label: 'Hourly' },
+     { value: 'daily', label: 'Daily' },
+     { value: 'weekly', label: 'Weekly' },
+     { value: 'monthly', label: 'Monthly' }
+];
+
+const BACKUP_TYPE_OPTIONS = [
+     { value: 'database', label: 'Database Only' },
+     { value: 'files', label: 'Files Only' },
+     { value: 'full_system', label: 'Full System' }
+];
+
 export default function DataBackupRestorePage() {
-     const [showScheduleModal, setShowScheduleModal] = useState(false);
-     const [showStorageModal, setShowStorageModal] = useState(false);
-     const [backupFrequency, setBackupFrequency] = useState('daily');
-     const [backupTime, setBackupTime] = useState('02:00');
-     const [retentionDays, setRetentionDays] = useState(30);
-     const [storageType, setStorageType] = useState('local');
-     const [storagePath, setStoragePath] = useState('/backups');
-     const [cloudProvider, setCloudProvider] = useState('aws');
-     const [bucketName, setBucketName] = useState('');
+     const { user } = useApplicationSettings().applicationsettings;
+     const employeeid = user?.employeeid;
 
-     // Backup progress state
-     const [isBackupRunning, setIsBackupRunning] = useState(false);
-     const [backupProgress, setBackupProgress] = useState(0);
-     const [backupStatus, setBackupStatus] = useState('');
-     const [estimatedTime, setEstimatedTime] = useState('');
-     const [currentOperation, setCurrentOperation] = useState('');
+     // New backup scheduling states
+     const [showCreateScheduleModal, setShowCreateScheduleModal] = useState(false);
+     const [showEditScheduleModal, setShowEditScheduleModal] = useState(false);
+     const [editingSchedule, setEditingSchedule] = useState<BackupSchedule | null>(null);
+     const [backupSchedules, setBackupSchedules] = useState<BackupSchedule[]>([]);
+     const [backupLogs, setBackupLogs] = useState<BackupLog[]>([]);
+     const [backupStats, setBackupStats] = useState<BackupStats | null>(null);
+     const [loading, setLoading] = useState(false);
 
-     const restorePoints: RestorePoint[] = [
-          {
-               id: 'bk-001',
-               name: 'Daily Backup - 2025-11-02',
-               createdAt: '2025-11-02T02:00:00Z',
-               size: '2.4 GB',
-               status: 'completed',
-               type: 'automated'
-          },
-          {
-               id: 'bk-002',
-               name: 'Manual Backup - Pre-Update',
-               createdAt: '2025-11-01T14:30:00Z',
-               size: '2.2 GB',
-               status: 'completed',
-               type: 'manual'
-          },
-          {
-               id: 'bk-003',
-               name: 'Weekly Backup - 2025-10-26',
-               createdAt: '2025-10-26T02:00:00Z',
-               size: '2.1 GB',
-               status: 'completed',
-               type: 'automated'
-          },
-          {
-               id: 'bk-004',
-               name: 'Emergency Backup',
-               createdAt: '2025-10-25T10:15:00Z',
-               size: '2.3 GB',
-               status: 'failed',
-               type: 'manual'
+     const [executingSchedules, setExecutingSchedules] = useState<Set<number>>(new Set());
+
+     // Form states for schedule creation/editing
+     const [scheduleForm, setScheduleForm] = useState({
+          schedule_name: '',
+          frequency: 'daily' as 'hourly' | 'daily' | 'weekly' | 'monthly',
+          backup_time: '02:00',
+          retention_days: 30,
+          backup_type: 'database' as 'database' | 'files' | 'full_system',
+          is_active: true
+     });
+
+     useEffect(() => {
+          Promise.all([
+               loadBackupSchedules(),
+               loadBackupLogs(),
+               loadBackupStats()
+          ]).catch((error) => {
+               console.error('Error loading backup data:', error);
+          });
+     }, []);
+
+     const loadBackupSchedules = async (count: number = 50, page: number = 1, sortby: string = '') => {
+          try {
+               const queryParams = new URLSearchParams({
+                    page: page.toString(),
+                    count: count.toString(),
+                    ...(sortby && { sortby })
+               });
+               const response = await customFetch(`${API_BASE}/schedules?${queryParams}`);
+               if (response.status) {
+                    setBackupSchedules(response.data);
+                    return { result: response.data, error: false };
+               } else {
+                    return { result: [], error: true };
+               }
+          } catch (error) {
+               console.error('Failed to load backup schedules:', error);
+               toast.error('Failed to load backup schedules');
+               return { result: [], error: true };
           }
-     ];
+     };
 
-     const columns = [
-          {
-               Header: 'Backup Name',
-               accessor: 'name',
-               Cell: ({ row }) => <span className="fw-semibold">{row.original.name}</span>
-          },
-          {
-               Header: 'Created At',
-               accessor: 'createdAt',
-               Cell: ({ row }) => <small>{new Date(row.original.createdAt).toLocaleString()}</small>
-          },
-          {
-               Header: 'Size',
-               accessor: 'size',
-               Cell: ({ row }) => <span>{row.original.size}</span>
-          },
-          {
-               Header: 'Type',
-               accessor: 'type',
-               Cell: ({ row }) => <span>{row.original.type}</span>
-          },
-          {
-               Header: 'Status',
-               accessor: 'status',
-               Cell: ({ row }) => <span>{row.original.status}</span>
-          },
-          {
-               Header: 'Actions',
-               accessor: 'actions',
-               Cell: ({ row }) => (
-                    <div className="d-flex gap-1">
-                         <Button
-                              variant="outline-success"
-                              size="sm"
-                              onClick={() => handleRestore(row.original.id)}
-                              disabled={row.original.status !== 'completed'}
-                         >
-                              Restore
-                         </Button>
-                         <Button
-                              variant="outline-info"
-                              size="sm"
-                              onClick={() => handleDownload(row.original.id)}
-                              disabled={row.original.status !== 'completed'}
-                         >
-                              Download
-                         </Button>
-                    </div>
-               )
+     const loadBackupLogs = async (count: number = 50, page: number = 1, sortby: string = '') => {
+          try {
+               const queryParams = new URLSearchParams({
+                    page: page.toString(),
+                    count: count.toString(),
+                    ...(sortby && { sortby })
+               });
+               const response = await customFetch(`${API_BASE}/logs?${queryParams}`);
+               if (response.status) {
+                    setBackupLogs(response.data);
+                    return { result: response.data, error: false };
+               } else {
+                    return { result: [], error: true };
+               }
+          } catch (error) {
+               console.error('Failed to load backup logs:', error);
+               toast.error('Failed to load backup logs');
+               return { result: [], error: true };
           }
-     ];
+     };
 
-     const handleManualBackup = () => {
-          if (isBackupRunning) return; // Prevent multiple backups
+     const loadBackupStats = async () => {
+          try {
+               const response = await customFetch(`${API_BASE}/stats?tenantId=1`);
+               if (response.status) {
+                    setBackupStats(response.data);
+               }
+          } catch (error) {
+               console.error('Failed to load backup stats:', error);
+               toast.error('Failed to load backup statistics');
+          }
+     };
 
-          setIsBackupRunning(true);
-          setBackupProgress(0);
-          setBackupStatus('Starting backup...');
-          setCurrentOperation('Initializing backup process');
-          setEstimatedTime('Calculating...');
+     const validateForm = (form: any) => {
+          const errors: string[] = [];
 
-          // Simulate backup process with different stages
-          const backupStages = [
-               { progress: 5, status: 'Connecting to database...', operation: 'Database connection', time: '2 min' },
-               { progress: 15, status: 'Analyzing data...', operation: 'Data analysis', time: '1 min 45 sec' },
-               { progress: 30, status: 'Backing up patient records...', operation: 'Patient data backup', time: '1 min 30 sec' },
-               { progress: 45, status: 'Backing up test results...', operation: 'Test results backup', time: '1 min 15 sec' },
-               { progress: 60, status: 'Backing up configurations...', operation: 'Configuration backup', time: '1 min' },
-               { progress: 75, status: 'Compressing files...', operation: 'File compression', time: '45 sec' },
-               { progress: 90, status: 'Verifying integrity...', operation: 'Integrity check', time: '30 sec' },
-               { progress: 100, status: 'Backup completed successfully!', operation: 'Backup complete', time: '0 sec' }
-          ];
+          if (!form.schedule_name || form.schedule_name.trim() === '') {
+               errors.push('Schedule name is required');
+          } else if (form.schedule_name.length > 255) {
+               errors.push('Schedule name must be at most 255 characters');
+          }
 
-          let stageIndex = 0;
+          if (!form.frequency || !['hourly', 'daily', 'weekly', 'monthly'].includes(form.frequency)) {
+               errors.push('Frequency must be one of: hourly, daily, weekly, monthly');
+          }
 
-          const runStage = () => {
-               if (stageIndex >= backupStages.length) {
-                    setIsBackupRunning(false);
+          if (!form.backup_time || !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(form.backup_time)) {
+               errors.push('Time must be in HH:MM format (24-hour)');
+          }
+
+          const retentionDays = Number(form.retention_days);
+          if (!form.retention_days || isNaN(retentionDays) || retentionDays < 1 || retentionDays > 3650) {
+               errors.push('Retention days must be between 1 and 3650');
+          }
+
+          if (!form.backup_type || !['database', 'files', 'full_system'].includes(form.backup_type)) {
+               errors.push('Backup type must be one of: database, files, full_system');
+          }
+
+          return errors;
+     };
+
+     const handleCreateSchedule = async () => {
+          const errors = validateForm(scheduleForm);
+          if (errors.length > 0) {
+               toast.error(errors.join(', '));
+               return;
+          }
+
+          setLoading(true);
+          try {
+               const payload = {
+                    schedule_name: scheduleForm.schedule_name,
+                    frequency: scheduleForm.frequency,
+                    backup_time: scheduleForm.backup_time,
+                    retention_days: scheduleForm.retention_days,
+                    backup_type: scheduleForm.backup_type,
+                    is_active: scheduleForm.is_active ? true : false,
+                    employeeid: employeeid
+               };
+
+               const response = await customPost(`${API_BASE}/schedules`, 'POST', payload);
+               if (response.status) {
+                    toast.success('Backup schedule created successfully');
+                    setShowCreateScheduleModal(false);
+                    resetScheduleForm();
+                    loadBackupSchedules();
+               } else {
+                    toast.error(response.error || 'Failed to create schedule');
+               }
+          } catch (error) {
+               console.error('Create schedule error:', error);
+               toast.error('Failed to create backup schedule');
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleUpdateSchedule = async () => {
+          if (!editingSchedule) return;
+
+          const errors = validateForm(scheduleForm);
+          const isActive = !!scheduleForm.is_active;
+
+          if (errors.length > 0) {
+               toast.error(errors.join(', '));
+               return;
+          }
+
+          setLoading(true);
+          try {
+               const payload = {
+                    schedule_name: scheduleForm.schedule_name,
+                    frequency: scheduleForm.frequency,
+                    backup_time: scheduleForm.backup_time,
+                    retention_days: scheduleForm.retention_days,
+                    backup_type: scheduleForm.backup_type,
+                    is_active: isActive,
+                    employeeid: employeeid
+               };
+
+               const response = await customPost(`${API_BASE}/schedules/${editingSchedule.id}`, 'PUT', payload);
+               if (response.status) {
+                    toast.success('Backup schedule updated successfully');
+                    setShowEditScheduleModal(false);
+                    setEditingSchedule(null);
+                    resetScheduleForm();
+                    loadBackupSchedules();
+               } else {
+                    toast.error(response.error || 'Failed to update schedule');
+               }
+          } catch (error) {
+               console.error('Update schedule error:', error);
+               toast.error('Failed to update backup schedule');
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleDeleteSchedule = async (scheduleId: number) => {
+          if (!confirm('Are you sure you want to delete this backup schedule?')) return;
+
+          try {
+               const response = await customPost(`${API_BASE}/schedules/${scheduleId}`, 'DELETE', {});
+               if (response.status) {
+                    toast.success('Backup schedule deleted successfully');
+                    loadBackupSchedules();
+               } else {
+                    toast.error(response.error || 'Failed to delete schedule');
+               }
+          } catch (error) {
+               console.error('Delete schedule error:', error);
+               toast.error('Failed to delete backup schedule');
+          }
+     };
+
+     const handleExecuteSchedule = async (scheduleId: number) => {
+          if (executingSchedules.has(scheduleId)) {
+               return;
+          }
+
+          setExecutingSchedules(prev => new Set(prev).add(scheduleId));
+
+          try {
+               const response = await customPost(`${API_BASE}/schedules/${scheduleId}/execute`, 'POST', {});
+               if (response.status) {
+                    toast.success('Backup execution started');
+                    loadBackupLogs();
+
                     setTimeout(() => {
-                         setBackupStatus('');
-                         setCurrentOperation('');
-                         setEstimatedTime('');
-                         setBackupProgress(0);
-                    }, 3000); // Clear status after 3 seconds
-                    return;
+                         setExecutingSchedules(prev => {
+                              const newSet = new Set(prev);
+                              newSet.delete(scheduleId);
+                              return newSet;
+                         });
+                         toast.success('Backup execution completed');
+                    }, 3000);
+               } else {
+                    toast.error(response.error || 'Failed to execute schedule');
+                    setExecutingSchedules(prev => {
+                         const newSet = new Set(prev);
+                         newSet.delete(scheduleId);
+                         return newSet;
+                    });
+               }
+          } catch (error) {
+               console.error('Execute schedule error:', error);
+               toast.error('Failed to execute backup schedule');
+               setExecutingSchedules(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(scheduleId);
+                    return newSet;
+               });
+          }
+     };
+
+     const resetScheduleForm = () => {
+          setScheduleForm({
+               schedule_name: '',
+               frequency: 'daily',
+               backup_time: '02:00',
+               retention_days: 30,
+               backup_type: 'database',
+               is_active: true
+          });
+     };
+
+     const openEditModal = (schedule: BackupSchedule) => {
+          setEditingSchedule(schedule);
+          setScheduleForm({
+               schedule_name: schedule.schedule_name,
+               frequency: schedule.frequency,
+               backup_time: schedule.backup_time,
+               retention_days: schedule.retention_days,
+               backup_type: schedule.backup_type,
+               // coerce to boolean in case API returns 1/0
+               is_active: !!(schedule as any).is_active
+          });
+          setShowEditScheduleModal(true);
+     };
+
+     const handleRestoreFromLog = (backupLog: BackupLog) => {
+          toast.info(`Restore initiated from backup: ${backupLog.backup_name}`);
+     };
+
+     const handleDownloadFromLog = async (backupLog: BackupLog) => {
+          try {
+               const baseUrl = process.env.NEXT_PUBLIC_BASEURL
+               const url = new URL(`${API_BASE}/logs/${backupLog.id}/download`, baseUrl);
+               if (process.env.NEXT_PUBLIC_TENANTID) {
+                    url.searchParams.append("tenantId", process.env.NEXT_PUBLIC_TENANTID);
                }
 
-               const stage = backupStages[stageIndex];
-               setBackupProgress(stage.progress);
-               setBackupStatus(stage.status);
-               setCurrentOperation(stage.operation);
-               setEstimatedTime(stage.time);
+               const response = await fetch(url.toString(), {
+                    method: 'GET',
+                    headers: {
+                         'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ACCESS_TOKEN}`,
+                         'cache': 'no-cache,must-revalidate,no-store,max-age=60,s-maxage=0'
+                    },
+                    cache: 'no-cache',
+                    credentials: 'include'
+               });
 
-               stageIndex++;
+               if (!response.ok) {
+                    throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+               }
 
-               // Random delay between 1-3 seconds for each stage
-               const delay = Math.random() * 2000 + 1000;
-               setTimeout(runStage, delay);
-          };
+               const blob = await response.blob();
+               const downloadUrl = window.URL.createObjectURL(blob);
 
-          runStage();
+               const link = document.createElement('a');
+               link.href = downloadUrl;
+               link.download = `${backupLog.backup_name}.encrypted.bin`;
+               link.style.display = 'none';
+
+               document.body.appendChild(link);
+               link.click();
+
+               window.URL.revokeObjectURL(downloadUrl);
+               document.body.removeChild(link);
+
+               toast.success(`Download completed for backup: ${backupLog.backup_name}`);
+          } catch (error) {
+               console.error('Download backup error:', error);
+               toast.error(`Failed to download backup file: ${error.message}`);
+          }
      };
 
-     const handleCancelBackup = () => {
-          setIsBackupRunning(false);
-          setBackupProgress(0);
-          setBackupStatus('Backup cancelled by user');
-          setCurrentOperation('Operation cancelled');
-          setEstimatedTime('');
+     const handleDeleteFromLog = async (backupLog: BackupLog) => {
+          if (!confirm(`Are you sure you want to delete the backup "${backupLog.backup_name}"? This action cannot be undone.`)) return;
 
-          setTimeout(() => {
-               setBackupStatus('');
-               setCurrentOperation('');
-          }, 3000);
+          try {
+               const response = await customPost(`security-features/backup/${backupLog.id}?tenantId=1`, 'DELETE', {});
+               if (response.status) {
+                    toast.success('Backup deleted successfully');
+                    loadBackupLogs(); // Refresh logs
+               } else {
+                    toast.error(response.error || 'Failed to delete backup');
+               }
+          } catch (error) {
+               console.error('Delete backup error:', error);
+               toast.error('Failed to delete backup');
+          }
      };
 
-     const handleRestore = (backupId: string) => {
-          console.log('Restoring from backup:', backupId);
-          // In a real app, this would initiate restore process
+     const handleSchedulesServerFilter = async (pagination: { count: number, page: number, sortby: string }) => {
+          try {
+               return await loadBackupSchedules(pagination.count, pagination.page, pagination.sortby);
+          } catch (error) {
+               console.error('Error in schedules server filter:', error);
+               return { result: [], error: true };
+          }
      };
 
-     const handleDownload = (backupId: string) => {
-          console.log('Downloading backup:', backupId);
-          // In a real app, this would download the backup file
-     };
-
-     const handleSaveSchedule = () => {
-          console.log('Saving backup schedule:', { backupFrequency, backupTime, retentionDays });
-          setShowScheduleModal(false);
-     };
-
-     const handleSaveStorage = () => {
-          console.log('Saving storage config:', { storageType, storagePath, cloudProvider, bucketName });
-          setShowStorageModal(false);
+     const handleLogsServerFilter = async (pagination: { count: number, page: number, sortby: string }) => {
+          try {
+               return await loadBackupLogs(pagination.count, pagination.page, pagination.sortby);
+          } catch (error) {
+               console.error('Error in logs server filter:', error);
+               return { result: [], error: true };
+          }
      };
 
      return (
           <div className="container-fluid p-4">
                <div className="d-flex align-items-center justify-content-between mb-4">
                     <div>
-                         <h2 className="mb-1">Data Backup & Restore</h2>
-                         <p className="text-muted mb-0">Manage automated backups and restore points for data protection</p>
+                         <h4 className="mb-1" style={{ fontSize: '1.5rem' }}>Data Backup & Restore</h4>
+                         <p className="text-muted mb-0" style={{ fontSize: '0.875rem' }}>Manage automated backups and restore points for data protection</p>
                     </div>
                     <div className="d-flex gap-2">
-                         <Button variant="outline-primary" size="sm" onClick={() => setShowScheduleModal(true)}>
-                              <RiSettings4Line size={16} className="me-2" />
-                              Schedule Settings
-                         </Button>
-                         <Button
-                              variant="outline-success"
-                              size="sm"
-                              onClick={handleManualBackup}
-                              disabled={isBackupRunning}
-                         >
-                              {isBackupRunning ? (
-                                   <>
-                                        <RiPauseLine size={16} className="me-2" />
-                                        Backup Running...
-                                   </>
-                              ) : (
-                                   <>
-                                        <RiPlayLine size={16} className="me-2" />
-                                        Manual Backup
-                                   </>
-                              )}
+                         <Button variant="outline-info" size="sm" onClick={() => setShowCreateScheduleModal(true)}>
+                              <RiAddLine size={16} className="me-2" />
+                              Create Schedule
                          </Button>
                          <Link href="/settings/records/backup-security">
                               <Button variant="outline-warning" size="sm">
@@ -243,50 +452,10 @@ export default function DataBackupRestorePage() {
                     </div>
                </div>
 
-               {/* Backup Progress Section */}
-               {isBackupRunning && (
-                    <div className="border bg-white border-secondary-subtle mx-2 p-3 mb-4">
-                         <div className="d-flex justify-content-between align-items-center mb-3">
-                              <div className="d-flex align-items-center gap-2">
-                                   <RiDatabaseLine size={20} className="text-primary" />
-                                   <h5 className="mb-0">Backup in Progress</h5>
-                              </div>
-                              <Button
-                                   variant="outline-danger"
-                                   size="sm"
-                                   onClick={handleCancelBackup}
-                                   className="d-flex align-items-center gap-1"
-                              >
-                                   <RiCloseLine size={14} />
-                                   Cancel Backup
-                              </Button>
-                         </div>
-
-                         <div className="mb-3">
-                              <div className="d-flex justify-content-between align-items-center mb-2">
-                                   <span className="fw-semibold">{currentOperation}</span>
-                                   <small className="text-muted">{backupProgress}% complete</small>
-                              </div>
-                              <ProgressBar
-                                   now={backupProgress}
-                                   variant={backupProgress < 100 ? "primary" : "success"}
-                                   animated={backupProgress < 100}
-                                   className="mb-2"
-                              />
-                              <div className="d-flex justify-content-between align-items-center">
-                                   <small className="text-muted">{backupStatus}</small>
-                                   <small className="text-muted">
-                                        {estimatedTime && `Estimated time: ${estimatedTime}`}
-                                   </small>
-                              </div>
-                         </div>
-                    </div>
-               )}
-
                <Alert variant="info" className="mb-4">
                     <div className="d-flex align-items-start gap-3">
                          <RiShieldCheckLine size={20} className="text-info mt-1" />
-                         <div>
+                         <div style={{ fontSize: '0.875rem' }}>
                               <strong>Data Protection:</strong> Regular backups ensure business continuity and data recovery. Configure automated schedules and monitor backup status to maintain compliance and minimize data loss risks.
                          </div>
                     </div>
@@ -295,176 +464,64 @@ export default function DataBackupRestorePage() {
                <Row className="g-4">
                     <Col lg={12}>
                          <div className="border bg-white border-secondary-subtle mx-2 p-2 mb-4">
-                              <div className="d-flex justify-content-between align-items-center mb-3">
-                                   <div className="d-flex align-items-center gap-2">
-                                        <RiDatabaseLine size={20} />
-                                        <h5 className="mb-0">Backup Overview</h5>
-                                   </div>
-                                   <Button variant="outline-secondary" size="sm" onClick={() => setShowStorageModal(true)}>
-                                        <RiServerLine size={16} className="me-2" />
-                                        Storage Config
-                                   </Button>
+                              <div className="d-flex align-items-center gap-2 mb-3">
+                                   <RiDatabaseLine size={20} />
+                                   <h5 className="mb-0">Backup Overview</h5>
                               </div>
-                              <Row className="g-3">
-                                   <Col md={3}>
-                                        <Card className="text-center">
-                                             <Card.Body>
-                                                  <div className="h3 text-success mb-1">24</div>
-                                                  <small className="text-muted">Successful Backups</small>
-                                             </Card.Body>
-                                        </Card>
-                                   </Col>
-                                   <Col md={3}>
-                                        <Card className="text-center">
-                                             <Card.Body>
-                                                  <div className="h3 text-warning mb-1">2</div>
-                                                  <small className="text-muted">Failed Backups</small>
-                                             </Card.Body>
-                                        </Card>
-                                   </Col>
-                                   <Col md={3}>
-                                        <Card className="text-center">
-                                             <Card.Body>
-                                                  <div className="h3 text-info mb-1">2.4 GB</div>
-                                                  <small className="text-muted">Latest Backup Size</small>
-                                             </Card.Body>
-                                        </Card>
-                                   </Col>
-                                   <Col md={3}>
-                                        <Card className="text-center">
-                                             <Card.Body>
-                                                  <div className="h3 text-primary mb-1">98.5%</div>
-                                                  <small className="text-muted">Success Rate</small>
-                                             </Card.Body>
-                                        </Card>
-                                   </Col>
-                              </Row>
+                              <BackupStatsCards backupStats={backupStats} />
                          </div>
 
-                         <div className="border bg-white border-secondary-subtle mx-2 p-2">
-                              <div className="d-flex align-items-center gap-2 mb-3">
-                                   <RiTimeLine size={20} />
-                                   <h5 className="mb-0">Restore Points</h5>
-                              </div>
-                              <PrimeTable column={columns} data={restorePoints} filtering={true} serverSideFiltering={false} handleSeverSideProcessing={() => { }} />
-                         </div>
                     </Col>
                </Row>
 
-               {/* Schedule Settings Modal */}
-               <Modal show={showScheduleModal} onHide={() => setShowScheduleModal(false)} centered>
-                    <Modal.Header closeButton>
-                         <Modal.Title>Backup Schedule Settings</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                         <Form>
-                              <Form.Group className="mb-3">
-                                   <Form.Label>Backup Frequency</Form.Label>
-                                   <Form.Select value={backupFrequency} onChange={(e) => setBackupFrequency(e.target.value)}>
-                                        <option value="hourly">Hourly</option>
-                                        <option value="daily">Daily</option>
-                                        <option value="weekly">Weekly</option>
-                                        <option value="monthly">Monthly</option>
-                                   </Form.Select>
-                              </Form.Group>
+               <Row className="g-4 mt-2">
+                    <Col lg={12}>
+                         <BackupSchedulesTable
+                              backupSchedules={backupSchedules}
+                              onExecuteSchedule={handleExecuteSchedule}
+                              onEditSchedule={openEditModal}
+                              onDeleteSchedule={handleDeleteSchedule}
+                              onServerFilter={handleSchedulesServerFilter}
+                              executingSchedules={executingSchedules}
+                         />
 
-                              <Form.Group className="mb-3">
-                                   <Form.Label>Backup Time</Form.Label>
-                                   <Form.Control
-                                        type="time"
-                                        value={backupTime}
-                                        onChange={(e) => setBackupTime(e.target.value)}
-                                   />
-                              </Form.Group>
+                         <BackupLogsTable
+                              backupLogs={backupLogs}
+                              onRestoreBackup={handleRestoreFromLog}
+                              onDownloadBackup={handleDownloadFromLog}
+                              onDeleteBackup={handleDeleteFromLog}
+                              onServerFilter={handleLogsServerFilter}
+                         />
+                    </Col>
+               </Row>
 
-                              <Form.Group className="mb-3">
-                                   <Form.Label>Retention Period (Days)</Form.Label>
-                                   <Form.Control
-                                        type="number"
-                                        value={retentionDays}
-                                        onChange={(e) => setRetentionDays(Number(e.target.value))}
-                                        min="1"
-                                        max="365"
-                                   />
-                                   <Form.Text className="text-muted">
-                                        Backups older than this period will be automatically deleted
-                                   </Form.Text>
-                              </Form.Group>
-                         </Form>
-                    </Modal.Body>
-                    <Modal.Footer>
-                         <Button variant="secondary" size="sm" onClick={() => setShowScheduleModal(false)}>
-                              Cancel
-                         </Button>
-                         <Button variant="primary" size="sm" onClick={handleSaveSchedule}>
-                              <RiSaveLine size={14} className="me-1" />
-                              Save Schedule
-                         </Button>
-                    </Modal.Footer>
-               </Modal>
+               <BackupScheduleModal
+                    show={showCreateScheduleModal}
+                    onHide={() => {
+                         setShowCreateScheduleModal(false);
+                         resetScheduleForm();
+                    }}
+                    title="Create Backup Schedule"
+                    scheduleForm={scheduleForm}
+                    setScheduleForm={setScheduleForm}
+                    onSubmit={handleCreateSchedule}
+                    loading={loading}
+               />
 
-               {/* Storage Configuration Modal */}
-               <Modal show={showStorageModal} onHide={() => setShowStorageModal(false)} centered size="lg">
-                    <Modal.Header closeButton>
-                         <Modal.Title>Backup Storage Configuration</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                         <Form>
-                              <Form.Group className="mb-3">
-                                   <Form.Label>Storage Type</Form.Label>
-                                   <Form.Select value={storageType} onChange={(e) => setStorageType(e.target.value)}>
-                                        <option value="local">Local Storage</option>
-                                        <option value="network">Network Drive</option>
-                                        <option value="cloud">Cloud Storage</option>
-                                   </Form.Select>
-                              </Form.Group>
-
-                              {(storageType === 'local' || storageType === 'network') && (
-                                   <Form.Group className="mb-3">
-                                        <Form.Label>Storage Path</Form.Label>
-                                        <Form.Control
-                                             type="text"
-                                             value={storagePath}
-                                             onChange={(e) => setStoragePath(e.target.value)}
-                                             placeholder="/path/to/backups"
-                                        />
-                                   </Form.Group>
-                              )}
-
-                              {storageType === 'cloud' && (
-                                   <>
-                                        <Form.Group className="mb-3">
-                                             <Form.Label>Cloud Provider</Form.Label>
-                                             <Form.Select value={cloudProvider} onChange={(e) => setCloudProvider(e.target.value)}>
-                                                  <option value="aws">Amazon S3</option>
-                                                  <option value="azure">Azure Blob Storage</option>
-                                                  <option value="gcp">Google Cloud Storage</option>
-                                             </Form.Select>
-                                        </Form.Group>
-
-                                        <Form.Group className="mb-3">
-                                             <Form.Label>Bucket/Container Name</Form.Label>
-                                             <Form.Control
-                                                  type="text"
-                                                  value={bucketName}
-                                                  onChange={(e) => setBucketName(e.target.value)}
-                                                  placeholder="my-backup-bucket"
-                                             />
-                                        </Form.Group>
-                                   </>
-                              )}
-                         </Form>
-                    </Modal.Body>
-                    <Modal.Footer>
-                         <Button variant="secondary" size="sm" onClick={() => setShowStorageModal(false)}>
-                              Cancel
-                         </Button>
-                         <Button variant="primary" size="sm" onClick={handleSaveStorage}>
-                              <RiSaveLine size={14} className="me-1" />
-                              Save Configuration
-                         </Button>
-                    </Modal.Footer>
-               </Modal>
+               <BackupScheduleModal
+                    show={showEditScheduleModal}
+                    onHide={() => {
+                         setShowEditScheduleModal(false);
+                         setEditingSchedule(null);
+                         resetScheduleForm();
+                    }}
+                    title="Edit Backup Schedule"
+                    scheduleForm={scheduleForm}
+                    setScheduleForm={setScheduleForm}
+                    onSubmit={handleUpdateSchedule}
+                    loading={loading}
+                    isEdit={true}
+               />
           </div>
      );
 }
