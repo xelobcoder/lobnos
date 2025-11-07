@@ -71,11 +71,12 @@ export default function ValidatedResultTable({ employeeid }) {
      const [isClient, setIsClient] = useState(false);
      const branchid = useApplication().branchid;
 
+
      const viewResultHandler = (item, multiple = false) => {
           const { testid, name, patientid, ascensionid, billingid } = item;
           const csvid = `${generateRandomTextAndNumbers(70)}${billingid}`;
           const ptid = `${generateRandomTextAndNumbers(50)}${patientid}`;
-          const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=${multiple}&&isUltrasound=false&&is_password_encrypted=false&&password=`;
+          const url = `csvid=${csvid}&&testid=${testid}&&testname=${name}&&employeeid=${employeeid}&&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=${multiple}&&isUltrasound=false&&is_password_encrypted=false&&password=`;
           window.open(`/result/labreport?${url}`);
      };
 

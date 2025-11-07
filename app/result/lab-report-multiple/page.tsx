@@ -30,13 +30,19 @@ export default function LabReportPrintingMultiple() {
 	const testid = searchParams?.get('testid');
 	const csvid = searchParams?.get('csvid');
 
-	const url = `result/printout/ascension/multiple/getResult?csvid=${csvid}&&testid=${testid}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1&&employeeid=${employeeid}`;
+	const url = `result/printout/ascension/multiple/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1&&employeeid=${employeeid}`;
 
 	useEffect(() => {
 		if (billingid && testid && ascensionid && employeeid) {
 			setLoader(true);
 			customFetch(url)
 				.then((data) => {
+					// Check for access expired error
+					if (data && data.status === "error" && data.message === "Access window period has expired.") {
+						window.location.href = '/operations/laboratory/unauthorized?multiple=true';
+						return;
+					}
+
 					if (data && data.resultsettings) {
 						setResultSettings(data.resultsettings);
 					}

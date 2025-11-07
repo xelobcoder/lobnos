@@ -5,7 +5,7 @@ import MdsCompanyInformation from '../../../../components/ResultView/MdsCompanyI
 import MdsPersonalInformation from '../../../../components/ResultView/MdsPersonalInformation';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { customFetch } from '../../../../components/Auth/customFetch';
 import { useApplication } from '../../../../components/Auth/useApplicationContext';
 import { trackReportView, trackReportPrint } from '../../../../lib/printingTracker';
@@ -29,6 +29,7 @@ const MDSLancetTemplate: React.FC = () => {
     const [showPdf, setShowPdf] = useState(false);
     const [showPdfControls, setShowPdfControls] = useState(false);
     const searchParams = useSearchParams();
+    const router = useRouter();
     const billingid = searchParams?.get('csvid') || '';
     const test = searchParams?.get('testname') || '';
     const target = searchParams?.get('target') || '';
@@ -42,22 +43,28 @@ const MDSLancetTemplate: React.FC = () => {
 
     const url = `result/printout/ascension/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&isScan=${isScan}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
 
-
+console.log("url for fetching result:", url,employeeid);
     useEffect(() => {
-        setLoader(true);
-        customFetch(url)
-            .then((data) => {
-                if (data && data.resultsettings) {
-                    setResultSettings(data.resultsettings);
-                }
-                setResultData(data)
-                if (ascensionid && employeeid) {
-                    trackReportView(ascensionid, employeeid);
-                }
-            })
-            .catch((err) => console.error(err))
-            .finally(() => { setLoader(false); });
-    }, []);
+        if (employeeid && ascensionid && billingid) {
+            setLoader(true);
+            customFetch(url)
+                .then((data) => {
+                    if (data && data.status === 'error' && data.message && data.message.includes('Access window period has expired')) {
+                        isScan ? router.push(`/operations/imaging/ultrasound/unauthorized?ascensionid=${ascensionid}&&patientid=${ptid}`) : router.push(`/operations/laboratory/unauthorized?ascensionid=${ascensionid}&&patientid=${ptid}`);
+                        return;
+                    }
+                    if (data && data.resultsettings) {
+                        setResultSettings(data.resultsettings);
+                    }
+                    setResultData(data)
+                    if (ascensionid && employeeid) {
+                        trackReportView(ascensionid, employeeid);
+                    }
+                })
+                .catch((err) => console.error(err))
+                .finally(() => { setLoader(false); });
+        }
+    }, [employeeid, ascensionid, billingid]);
 
     useEffect(() => {
         if (!loader && resultdata?.records) {
@@ -255,7 +262,7 @@ const MDSLancetTemplate: React.FC = () => {
 
     return (
         <>
-            {isScan &&<div className='bg-secondary-subtle p-3 d-flex  justify-content-between no-print'>
+            {isScan && <div className='bg-secondary-subtle p-3 d-flex  justify-content-between no-print'>
                 <div>
                     <label>Replace Ultrasound Scan Report Name </label>
                     {isScan && <input type='checkbox' className='form-check-input' checked={isReplaceUltrasoundTestname} onChange={(e) => setIsReplaceUltrasoundTestname(e.target.checked)} />}

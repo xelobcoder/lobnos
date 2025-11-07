@@ -14,6 +14,7 @@ import UseDisclaimer from '../../../components/ResutlUI/useDisclaimer';
 import UseResultEntryScientist from '../../../components/ResutlUI/UseResultEntryFormat';
 import styles from './5/vitalscan.module.css';
 import { defaultResultSettings, ResultSettings } from '../../../components/ResultView/result-settings';
+import { useApplication } from '../../../components/Auth/useApplicationContext';
 
 
 
@@ -119,13 +120,14 @@ export default function RESULT_FOR_PRINTING() {
     const searchParams = useSearchParams();
     const billingid = searchParams?.get('csvid') || '';
     const test = searchParams?.get('testname') || '';
+    const employeeid = useApplication().user?.employeeid || '';
     const target = searchParams?.get('target') || '';
     const ascensionid = searchParams?.get('ascensionId') || '';
     const ptid = searchParams?.get('ptid') || '';
     const testid = searchParams?.get('testid');
     const csvid = searchParams?.get('csvid');
 
-    const url = `result/printout/ascension/getResult?csvid=${csvid}&&testid=${testid}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
+    const url = `result/printout/ascension/getResult?csvid=${csvid}&&employeeid=${employeeid}&&testid=${testid}&&testname=${test}&tenantId=3&ptid=${ptid}&&ascensionId=${ascensionid}&&isMultiple=false&&isUltrasound=false&&is_password_encrypted=false&target=${target}&password=&&isBrowserPrintout=1`;
 
     useEffect(() => {
         setLoader(true);
