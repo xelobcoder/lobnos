@@ -1056,36 +1056,6 @@ textarea:required:focus:invalid {
 
 }
 
-.container-fluid {
-  overflow-x: auto;
-  /* Ensure horizontal scroll for small screens */
-}
-
-.table-header {
-  background-color: #f8f9fa;
-  /* Light gray background for headers */
-}
-
-.table-cell {
-  padding: 10px;
-  /* Consistent padding for cells */
-  text-align: left;
-  /* Align text to the left */
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  /* Vertically center align the contents */
-}
-
-.dropdown-menu {
-  position: absolute;
-  /* Positioning dropdown */
-  z-index: 1000;
-  /* Ensure dropdown appears above other content */
-}
 
 .nav.nav-tabs>.nav-item {
   font-size: 12px !important;
@@ -1113,4 +1083,64 @@ textarea:required:focus:invalid {
   .no-print {
     display: none !important;
   }
+}
+
+/* Timeline Styles for Audit Trails */
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #e9ecef;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -22px;
+  top: 5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #007bff;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #e9ecef;
+}
+
+.timeline-content {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 5px;
+  border-left: 3px solid #007bff;
+}
+
+.timeline-content strong {
+  color: #495057;
+  font-size: 14px;
+}
+
+.timeline-content p {
+  margin: 5px 0 10px 0;
+  color: #6c757d;
+  font-size: 13px;
+}
+
+.timeline-content .text-muted {
+  font-size: 12px;
+  color: #adb5bd !important;
 }
