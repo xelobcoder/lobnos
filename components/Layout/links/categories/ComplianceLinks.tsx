@@ -5,7 +5,8 @@ import {
      RiAlertLine,
      RiFileTextLine,
      RiGovernmentLine,
-     RiClipboardLine
+     RiClipboardLine,
+     RiBarChartLine
 } from '@remixicon/react';
 
 export const ComplianceLinks: Link[] = [
@@ -20,9 +21,9 @@ export const ComplianceLinks: Link[] = [
                     icon: <RiAlertLine />
                },
                {
-                    title: "Regulatory Submissions",
-                    link: "/compliance/regulatory-submissions",
-                    icon: <RiFileTextLine />
+                    title: "Compliance Analytics",
+                    link: "/analytics/compliance",
+                    icon: <RiBarChartLine />
                }
           ]
      },

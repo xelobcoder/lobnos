@@ -19,6 +19,7 @@ import {
 export const AnalyticsLinks: Link[] = [
     { title: 'Patient Analytics', link: '/analytics/patients', icon: <RiUserHeartLine /> },
     { title: 'Leads Analytics', link: "/analytics/leads", icon: <RiUserAddLine /> },
+    { title: 'Compliance Analytics', link: "/analytics/compliance", icon: <RiBarChart2Line /> },
     {
         title: 'Sales Analytics',
         link: "/analytics/sales",
