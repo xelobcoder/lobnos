@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form } from 'react-bootstrap';
+import { Button, Form, Offcanvas } from 'react-bootstrap';
 import { customFetch } from '../../../components/Auth/customFetch';
 
 interface AuditTrailEntry {
@@ -36,6 +36,7 @@ export default function AuditTrailTab({ }: AuditTrailTabProps) {
           total: 0,
           totalPages: 1
      });
+     const [showFilters, setShowFilters] = useState(false);
 
      const fetchAuditTrail = async (filters: typeof auditTrailFilters = auditTrailFilters) => {
           try {
@@ -80,9 +81,16 @@ export default function AuditTrailTab({ }: AuditTrailTabProps) {
 
      const formatChanges = (oldValue: string, newValue: string) => {
           try {
-               const oldObj = JSON.parse(oldValue);
-               const newObj = JSON.parse(newValue);
+               const oldObj = oldValue ? JSON.parse(oldValue) : {};
+               const newObj = newValue ? JSON.parse(newValue) : {};
                const changes: string[] = [];
+
+               const renderValue = (v: any) => {
+                    if (v === null || v === undefined || v === '') return '(empty)';
+                    if (Array.isArray(v)) return v.join(', ');
+                    if (typeof v === 'object') return JSON.stringify(v, null, 0);
+                    return String(v);
+               };
 
                // Define field labels for better readability
                const fieldLabels: { [key: string]: string } = {
@@ -134,57 +142,44 @@ export default function AuditTrailTab({ }: AuditTrailTabProps) {
 
                // Compare all fields
                Object.keys(newObj).forEach(key => {
-                    if (oldObj[key] !== newObj[key]) {
+                    const oldVal = oldObj[key];
+                    const newVal = newObj[key];
+                    if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
                          const label = fieldLabels[key] || key.charAt(0).toUpperCase() + key.slice(1);
 
-                         let oldDisplay = oldObj[key];
-                         let newDisplay = newObj[key];
+                         let oldDisplay: any = oldVal;
+                         let newDisplay: any = newVal;
 
                          // Format specific field types
                          if (key === 'status') {
-                              oldDisplay = statusLabels[oldObj[key]] || oldObj[key];
-                              newDisplay = statusLabels[newObj[key]] || newObj[key];
+                              oldDisplay = statusLabels[oldVal] || oldVal;
+                              newDisplay = statusLabels[newVal] || newVal;
                          } else if (key === 'severity') {
-                              oldDisplay = severityLabels[oldObj[key]] || oldObj[key];
-                              newDisplay = severityLabels[newObj[key]] || newObj[key];
+                              oldDisplay = severityLabels[oldVal] || oldVal;
+                              newDisplay = severityLabels[newVal] || newVal;
                          } else if (key === 'type') {
-                              oldDisplay = typeLabels[oldObj[key]] || oldObj[key];
-                              newDisplay = typeLabels[newObj[key]] || newObj[key];
+                              oldDisplay = typeLabels[oldVal] || oldVal;
+                              newDisplay = typeLabels[newVal] || newVal;
                          } else if (key === 'regulatoryReporting') {
-                              oldDisplay = oldObj[key] ? 'Yes' : 'No';
-                              newDisplay = newObj[key] ? 'Yes' : 'No';
-                         } else if (key.includes('Date') && oldObj[key]) {
-                              oldDisplay = new Date(oldObj[key]).toLocaleDateString();
-                         } else if (key.includes('Date') && newObj[key]) {
-                              newDisplay = new Date(newObj[key]).toLocaleDateString();
+                              oldDisplay = oldVal ? 'Yes' : 'No';
+                              newDisplay = newVal ? 'Yes' : 'No';
+                         } else if (key.includes('Date')) {
+                              if (oldVal) oldDisplay = new Date(oldVal).toLocaleDateString();
+                              if (newVal) newDisplay = new Date(newVal).toLocaleDateString();
                          }
 
-                         // Handle complex objects that shouldn't be displayed as strings
-                         if (key === 'rootCauseAnalysis' || key === 'correctiveActionPlan' || key === 'investigationNotes' || key === 'attachments') {
-                              oldDisplay = '(complex data updated)';
-                              newDisplay = '(complex data updated)';
-                         } else if (key === 'updatedAt' || key === 'createdAt') {
-                              // Format timestamps properly
-                              oldDisplay = oldObj[key] ? new Date(oldObj[key]).toLocaleString() : '(empty)';
-                              newDisplay = newObj[key] ? new Date(newObj[key]).toLocaleString() : '(empty)';
-                         } else if (typeof oldObj[key] === 'object' && oldObj[key] !== null) {
-                              oldDisplay = '(object data)';
-                         } else if (typeof newObj[key] === 'object' && newObj[key] !== null) {
-                              newDisplay = '(object data)';
-                         }
-
-                         changes.push(`${label}: "${oldDisplay}" → "${newDisplay}"`);
+                         changes.push(`${label}: "${renderValue(oldDisplay)}" → "${renderValue(newDisplay)}"`);
                     }
                });
 
                // Handle root cause analysis changes
-               if (oldObj.rootCauseAnalysis && newObj.rootCauseAnalysis) {
-                    const oldAnalysis = oldObj.rootCauseAnalysis;
-                    const newAnalysis = newObj.rootCauseAnalysis;
+               if (oldObj.rootCauseAnalysis || newObj.rootCauseAnalysis) {
+                    const oldAnalysis = oldObj.rootCauseAnalysis || {};
+                    const newAnalysis = newObj.rootCauseAnalysis || {};
 
                     ['what', 'why', 'when', 'where', 'who', 'how'].forEach(field => {
-                         if (oldAnalysis[field] !== newAnalysis[field]) {
-                              const fieldLabels: { [key: string]: string } = {
+                         if (JSON.stringify(oldAnalysis[field]) !== JSON.stringify(newAnalysis[field])) {
+                              const subLabels: { [key: string]: string } = {
                                    what: 'What happened',
                                    why: 'Why it happened',
                                    when: 'When it happened',
@@ -192,17 +187,16 @@ export default function AuditTrailTab({ }: AuditTrailTabProps) {
                                    who: 'Who was involved',
                                    how: 'How it happened'
                               };
-                              const label = fieldLabels[field] || field;
-                              changes.push(`${label}: "${oldAnalysis[field] || '(empty)'}" → "${newAnalysis[field] || '(empty)'}"`);
+                              const label = subLabels[field] || field;
+                              changes.push(`${label}: "${renderValue(oldAnalysis[field])}" → "${renderValue(newAnalysis[field])}"`);
                          }
                     });
                }
 
                // Handle corrective action plan changes
-               if (oldObj.correctiveActionPlan && newObj.correctiveActionPlan) {
-                    const oldPlan = oldObj.correctiveActionPlan;
-                    const newPlan = newObj.correctiveActionPlan;
-
+               if (oldObj.correctiveActionPlan || newObj.correctiveActionPlan) {
+                    const oldPlan = oldObj.correctiveActionPlan || {};
+                    const newPlan = newObj.correctiveActionPlan || {};
                     if (JSON.stringify(oldPlan.actions) !== JSON.stringify(newPlan.actions)) {
                          changes.push('Corrective action plan was updated');
                     }
@@ -215,210 +209,233 @@ export default function AuditTrailTab({ }: AuditTrailTabProps) {
      };
 
      return (
-          <div className="row g-3">
-               <div className="col-12">
-                    <div className="card">
-                         <div className="card-header">
-                              <h5 className="card-title mb-0">Audit Trail</h5>
-                         </div>
-                         <div className="card-body">
-                              {/* Filters */}
-                              <div className="row g-3 mb-4">
-                                   <div className="col-md-3">
-                                        <Form.Group>
-                                             <Form.Label className="fw-semibold">Action Type</Form.Label>
-                                             <Form.Select
-                                                  value={auditTrailFilters.action}
-                                                  onChange={(e) => setAuditTrailFilters(prev => ({ ...prev, action: e.target.value }))}
-                                             >
-                                                  <option value="">All Actions</option>
-                                                  <option value="CREATE">CREATE</option>
-                                                  <option value="UPDATE">UPDATE</option>
-                                                  <option value="DELETE">DELETE</option>
-                                             </Form.Select>
-                                        </Form.Group>
-                                   </div>
-                                   <div className="col-md-3">
-                                        <Form.Group>
-                                             <Form.Label className="fw-semibold">Employee ID</Form.Label>
-                                             <Form.Control
-                                                  type="number"
-                                                  value={auditTrailFilters.employeeId}
-                                                  onChange={(e) => setAuditTrailFilters(prev => ({ ...prev, employeeId: e.target.value }))}
-                                                  placeholder="Filter by employee ID"
-                                             />
-                                        </Form.Group>
-                                   </div>
-                                   <div className="col-md-3">
-                                        <Form.Group>
-                                             <Form.Label className="fw-semibold">Start Date</Form.Label>
-                                             <Form.Control
-                                                  type="date"
-                                                  value={auditTrailFilters.start_date}
-                                                  onChange={(e) => setAuditTrailFilters(prev => ({ ...prev, start_date: e.target.value }))}
-                                             />
-                                        </Form.Group>
-                                   </div>
-                                   <div className="col-md-3">
-                                        <Form.Group>
-                                             <Form.Label className="fw-semibold">End Date</Form.Label>
-                                             <Form.Control
-                                                  type="date"
-                                                  value={auditTrailFilters.end_date}
-                                                  onChange={(e) => setAuditTrailFilters(prev => ({ ...prev, end_date: e.target.value }))}
-                                             />
-                                        </Form.Group>
-                                   </div>
-                              </div>
-
-                              <div className="d-flex gap-2 mb-4">
+          <>
+               <div>
+                    <div className="row g-3">
+                         <div className="col-12">
+                              <div className="d-flex justify-content-between align-items-center mb-3">
+                                   <h5 className="mb-0">Audit Trail</h5>
                                    <Button
-                                        variant="primary"
-                                        onClick={() => fetchAuditTrail()}
-                                        disabled={auditTrailLoading}
+                                        variant="outline-primary"
+                                        size="sm"
+                                        onClick={() => setShowFilters(true)}
                                    >
-                                        {auditTrailLoading ? 'Loading...' : 'Apply Filters'}
-                                   </Button>
-                                   <Button
-                                        variant="outline-secondary"
-                                        onClick={() => {
-                                             setAuditTrailFilters({
-                                                  action: '',
-                                                  employeeId: '',
-                                                  start_date: '',
-                                                  end_date: '',
-                                                  page: 1,
-                                                  count: 10
-                                             });
-                                             fetchAuditTrail({
-                                                  action: '',
-                                                  employeeId: '',
-                                                  start_date: '',
-                                                  end_date: '',
-                                                  page: 1,
-                                                  count: 10
-                                             });
-                                        }}
-                                   >
-                                        Clear Filters
+                                        Filters
                                    </Button>
                               </div>
-
-                              {/* Audit Trail Table */}
-                              <div className="table-responsive">
-                                   <table className="table table-striped table-hover">
-                                        <thead className="table-dark">
-                                             <tr>
-                                                  <th>Timestamp</th>
-                                                  <th>Action</th>
-                                                  <th>Employee</th>
-                                                  <th>Incident ID</th>
-                                                  <th>Details</th>
-                                                  <th>Changes</th>
-                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                             {auditTrailLoading ? (
+                              <div>
+                                   {/* Audit Trail Table */}
+                                   <div className="table-responsive">
+                                        <table className="table table-striped table-hover">
+                                             <thead className="table-dark">
                                                   <tr>
-                                                       <td colSpan={6} className="text-center py-4">
-                                                            <div className="d-flex justify-content-center">
-                                                                 <div className="spinner-border spinner-border-sm" role="status">
-                                                                      <span className="visually-hidden">Loading...</span>
+                                                       <th>Timestamp</th>
+                                                       <th>Action</th>
+                                                       <th>Employee</th>
+                                                       <th>Incident ID</th>
+                                                       <th>Details</th>
+                                                       <th>Changes</th>
+                                                  </tr>
+                                             </thead>
+                                             <tbody>
+                                                  {auditTrailLoading ? (
+                                                       <tr>
+                                                            <td colSpan={6} className="text-center py-4">
+                                                                 <div className="d-flex justify-content-center">
+                                                                      <div className="spinner-border spinner-border-sm" role="status">
+                                                                           <span className="visually-hidden">Loading...</span>
+                                                                      </div>
+                                                                      <span className="ms-2">Loading audit trail...</span>
                                                                  </div>
-                                                                 <span className="ms-2">Loading audit trail...</span>
-                                                            </div>
-                                                       </td>
-                                                  </tr>
-                                             ) : auditTrail.length === 0 ? (
-                                                  <tr>
-                                                       <td colSpan={6} className="text-center py-4 text-muted">
-                                                            No audit trail entries found
-                                                       </td>
-                                                  </tr>
-                                             ) : (
-                                                  auditTrail.map((entry) => (
-                                                       <tr key={entry.id}>
-                                                            <td className="text-nowrap">
-                                                                 {new Date(entry.timestamp).toLocaleString()}
-                                                            </td>
-                                                            <td>
-                                                                 <span className={`badge ${entry.action === 'CREATE' ? 'bg-success' :
-                                                                      entry.action === 'UPDATE' ? 'bg-warning' :
-                                                                           'bg-danger'
-                                                                      }`}>
-                                                                      {entry.action}
-                                                                 </span>
-                                                            </td>
-                                                            <td>{entry.employeeUsername || entry.employeeId} {entry.employeeRole && `(${entry.employeeRole})`}</td>
-                                                            <td className="text-nowrap">{entry.incidentId}</td>
-                                                            <td style={{ maxWidth: '300px' }}>
-                                                                 <small className="text-muted">{entry.details}</small>
-                                                            </td>
-                                                            <td style={{ maxWidth: '400px' }}>
-                                                                 {entry.oldValue && entry.newValue && (
-                                                                      <details>
-                                                                           <summary className="text-primary" style={{ cursor: 'pointer' }}>
-                                                                                View Changes ({formatChanges(entry.oldValue, entry.newValue).length} change{formatChanges(entry.oldValue, entry.newValue).length !== 1 ? 's' : ''})
-                                                                           </summary>
-                                                                           <div className="mt-2">
-                                                                                <div className="bg-light p-2 rounded small">
-                                                                                     <ul className="mb-0" style={{ fontSize: '0.85rem' }}>
-                                                                                          {formatChanges(entry.oldValue, entry.newValue).map((change, index) => (
-                                                                                               <li key={index} className="mb-1">{change}</li>
-                                                                                          ))}
-                                                                                     </ul>
-                                                                                </div>
-                                                                           </div>
-                                                                      </details>
-                                                                 )}
                                                             </td>
                                                        </tr>
-                                                  ))
-                                             )}
-                                        </tbody>
-                                   </table>
-                              </div>
-
-                              {/* Pagination */}
-                              {auditTrailPagination.totalPages > 1 && (
-                                   <div className="d-flex justify-content-between align-items-center mt-3">
-                                        <div className="text-muted">
-                                             Showing {((auditTrailPagination.page - 1) * auditTrailPagination.count) + 1} to {Math.min(auditTrailPagination.page * auditTrailPagination.count, auditTrailPagination.total)} of {auditTrailPagination.total} entries
-                                        </div>
-                                        <div className="d-flex gap-2">
-                                             <Button
-                                                  variant="outline-secondary"
-                                                  size="sm"
-                                                  disabled={auditTrailPagination.page === 1}
-                                                  onClick={() => {
-                                                       const newPage = auditTrailPagination.page - 1;
-                                                       setAuditTrailFilters(prev => ({ ...prev, page: newPage }));
-                                                       fetchAuditTrail({ ...auditTrailFilters, page: newPage });
-                                                  }}
-                                             >
-                                                  Previous
-                                             </Button>
-                                             <span className="align-self-center px-3">
-                                                  Page {auditTrailPagination.page} of {auditTrailPagination.totalPages}
-                                             </span>
-                                             <Button
-                                                  variant="outline-secondary"
-                                                  size="sm"
-                                                  disabled={auditTrailPagination.page === auditTrailPagination.totalPages}
-                                                  onClick={() => {
-                                                       const newPage = auditTrailPagination.page + 1;
-                                                       setAuditTrailFilters(prev => ({ ...prev, page: newPage }));
-                                                       fetchAuditTrail({ ...auditTrailFilters, page: newPage });
-                                                  }}
-                                             >
-                                                  Next
-                                             </Button>
-                                        </div>
+                                                  ) : auditTrail.length === 0 ? (
+                                                       <tr>
+                                                            <td colSpan={6} className="text-center py-4 text-muted">
+                                                                 No audit trail entries found
+                                                            </td>
+                                                       </tr>
+                                                  ) : (
+                                                       auditTrail.map((entry) => {
+                                                            const changes = entry.oldValue && entry.newValue ? formatChanges(entry.oldValue, entry.newValue) : [];
+                                                            return (
+                                                                 <tr key={entry.id}>
+                                                                      <td className="text-nowrap">
+                                                                           {new Date(entry.timestamp).toLocaleString()}
+                                                                      </td>
+                                                                      <td>
+                                                                           <span className={`badge ${entry.action === 'CREATE' ? 'bg-success' :
+                                                                                entry.action === 'UPDATE' ? 'bg-warning' :
+                                                                                     'bg-danger'
+                                                                                }`}>
+                                                                                {entry.action}
+                                                                           </span>
+                                                                      </td>
+                                                                      <td>{entry.employeeUsername || entry.employeeId} {entry.employeeRole && `(${entry.employeeRole})`}</td>
+                                                                      <td className="text-nowrap">{entry.incidentId}</td>
+                                                                      <td style={{ maxWidth: '300px' }}>
+                                                                           <small className="text-muted">{entry.details}</small>
+                                                                      </td>
+                                                                      <td style={{ maxWidth: '400px' }}>
+                                                                           {changes.length > 0 && (
+                                                                                <details>
+                                                                                     <summary className="text-primary" style={{ cursor: 'pointer' }}>
+                                                                                          View Changes ({changes.length} change{changes.length !== 1 ? 's' : ''})
+                                                                                     </summary>
+                                                                                     <div className="mt-2">
+                                                                                          <div className="bg-light p-2 rounded small">
+                                                                                               <ul className="mb-0" style={{ fontSize: '0.85rem' }}>
+                                                                                                    {changes.map((change, index) => (
+                                                                                                         <li key={index} className="mb-1">{change}</li>
+                                                                                                    ))}
+                                                                                               </ul>
+                                                                                          </div>
+                                                                                     </div>
+                                                                                </details>
+                                                                           )}
+                                                                      </td>
+                                                                 </tr>
+                                                            );
+                                                       })
+                                                  )}
+                                             </tbody>
+                                        </table>
                                    </div>
-                              )}
+
+                                   {/* Pagination */}
+                                   {auditTrailPagination.totalPages > 1 && (
+                                        <div className="d-flex justify-content-between align-items-center mt-3">
+                                             <div className="text-muted">
+                                                  Showing {((auditTrailPagination.page - 1) * auditTrailPagination.count) + 1} to {Math.min(auditTrailPagination.page * auditTrailPagination.count, auditTrailPagination.total)} of {auditTrailPagination.total} entries
+                                             </div>
+                                             <div className="d-flex gap-2">
+                                                  <Button
+                                                       variant="outline-secondary"
+                                                       size="sm"
+                                                       disabled={auditTrailPagination.page === 1}
+                                                       onClick={() => {
+                                                            const newPage = auditTrailPagination.page - 1;
+                                                            setAuditTrailFilters(prev => ({ ...prev, page: newPage }));
+                                                            fetchAuditTrail({ ...auditTrailFilters, page: newPage });
+                                                       }}
+                                                  >
+                                                       Previous
+                                                  </Button>
+                                                  <span className="align-self-center px-3">
+                                                       Page {auditTrailPagination.page} of {auditTrailPagination.totalPages}
+                                                  </span>
+                                                  <Button
+                                                       variant="outline-secondary"
+                                                       size="sm"
+                                                       disabled={auditTrailPagination.page === auditTrailPagination.totalPages}
+                                                       onClick={() => {
+                                                            const newPage = auditTrailPagination.page + 1;
+                                                            setAuditTrailFilters(prev => ({ ...prev, page: newPage }));
+                                                            fetchAuditTrail({ ...auditTrailFilters, page: newPage });
+                                                       }}
+                                                  >
+                                                       Next
+                                                  </Button>
+                                             </div>
+                                        </div>
+                                   )}
+                              </div>
                          </div>
                     </div>
                </div>
-          </div>
+               <Offcanvas show={showFilters} onHide={() => setShowFilters(false)} placement="end">
+                    <Offcanvas.Header closeButton>
+                         <Offcanvas.Title>Filter Audit Trail</Offcanvas.Title>
+                    </Offcanvas.Header>
+                    <Offcanvas.Body>
+                         <div className="row g-3">
+                              <div className="col-12">
+                                   <Form.Group>
+                                        <Form.Label className="fw-semibold">Action Type</Form.Label>
+                                        <Form.Select
+                                             value={auditTrailFilters.action}
+                                             onChange={(e) => setAuditTrailFilters(prev => ({ ...prev, action: e.target.value }))}
+                                        >
+                                             <option value="">All Actions</option>
+                                             <option value="CREATE">CREATE</option>
+                                             <option value="UPDATE">UPDATE</option>
+                                             <option value="DELETE">DELETE</option>
+                                        </Form.Select>
+                                   </Form.Group>
+                              </div>
+                              <div className="col-12">
+                                   <Form.Group>
+                                        <Form.Label className="fw-semibold">Employee ID</Form.Label>
+                                        <Form.Control
+                                             type="number"
+                                             value={auditTrailFilters.employeeId}
+                                             onChange={(e) => setAuditTrailFilters(prev => ({ ...prev, employeeId: e.target.value }))}
+                                             placeholder="Filter by employee ID"
+                                        />
+                                   </Form.Group>
+                              </div>
+                              <div className="col-12">
+                                   <Form.Group>
+                                        <Form.Label className="fw-semibold">Start Date</Form.Label>
+                                        <Form.Control
+                                             type="date"
+                                             value={auditTrailFilters.start_date}
+                                             onChange={(e) => setAuditTrailFilters(prev => ({ ...prev, start_date: e.target.value }))}
+                                        />
+                                   </Form.Group>
+                              </div>
+                              <div className="col-12">
+                                   <Form.Group>
+                                        <Form.Label className="fw-semibold">End Date</Form.Label>
+                                        <Form.Control
+                                             type="date"
+                                             value={auditTrailFilters.end_date}
+                                             onChange={(e) => setAuditTrailFilters(prev => ({ ...prev, end_date: e.target.value }))}
+                                        />
+                                   </Form.Group>
+                              </div>
+                         </div>
+                    </Offcanvas.Body>
+                    <div className="p-3 border-top d-flex gap-2">
+                         <Button
+                              variant="primary"
+                              size="sm"
+                              className="flex-grow-1"
+                              onClick={() => {
+                                   fetchAuditTrail();
+                                   setShowFilters(false);
+                              }}
+                              disabled={auditTrailLoading}
+                         >
+                              {auditTrailLoading ? 'Loading...' : 'Apply Filters'}
+                         </Button>
+                         <Button
+                              variant="outline-secondary"
+                              size="sm"
+                              className="flex-grow-1"
+                              onClick={() => {
+                                   setAuditTrailFilters({
+                                        action: '',
+                                        employeeId: '',
+                                        start_date: '',
+                                        end_date: '',
+                                        page: 1,
+                                        count: 10
+                                   });
+                                   fetchAuditTrail({
+                                        action: '',
+                                        employeeId: '',
+                                        start_date: '',
+                                        end_date: '',
+                                        page: 1,
+                                        count: 10
+                                   });
+                              }}
+                         >
+                              Clear Filters
+                         </Button>
+                    </div>
+               </Offcanvas>
+          </>
      );
 }

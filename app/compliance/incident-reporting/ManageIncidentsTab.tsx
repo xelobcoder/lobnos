@@ -150,7 +150,7 @@ export default function ManageIncidentsTab({ incidents, onIncidentsUpdate, onSta
           {
                Header: 'Reported By',
                accessor: 'reportedByUsername',
-               Cell: ({ row }: any) => `${row.original.reportedByUsername || 'N/A'} ${row.original.reportedByRole ? `(${row.original.reportedByRole})` : ''}`
+               Cell: ({ row }: any) => `${row.original.reportedByUsername || row.original.employeeId || 'N/A'} ${row.original.reportedByRole ? `(${row.original.reportedByRole})` : ''}`
           },
           {
                Header: 'Status',
