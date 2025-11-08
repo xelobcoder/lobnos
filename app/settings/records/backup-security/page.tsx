@@ -24,6 +24,11 @@ export default function BackupSecurityPage() {
      const [saving, setSaving] = useState(false);
      const [rotating, setRotating] = useState(false);
 
+     // Load security settings on component mount
+     useEffect(() => {
+          loadSecuritySettings();
+     }, []);
+
      // Admin access control
      if (!user || user.role !== 'admin') {
           return (
@@ -36,7 +41,7 @@ export default function BackupSecurityPage() {
                               <h1 className="display-4 fw-bold text-danger mb-4">401</h1>
                               <h2 className="h4 fw-semibold text-dark mb-4">Unauthorized Access</h2>
                               <p className="text-muted mb-4">
-                                   Sorry, you don't have permission to access this page. Please contact your administrator if you believe this is a mistake.
+                                   Sorry, you don&apos;t have permission to access this page. Please contact your administrator if you believe this is a mistake.
                               </p>
                               <Link
                                    href="/"
@@ -50,11 +55,6 @@ export default function BackupSecurityPage() {
                </div>
           );
      }
-
-     // Load security settings on component mount
-     useEffect(() => {
-          loadSecuritySettings();
-     }, []);
 
      const loadSecuritySettings = async () => {
           try {

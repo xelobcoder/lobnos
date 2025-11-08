@@ -130,6 +130,7 @@ export default function CompanyProfile() {
 				URL.revokeObjectURL(selectedImage);
 			}
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	const { getRootProps, getInputProps } = useDropzone({
@@ -142,7 +143,7 @@ export default function CompanyProfile() {
 		<div className="container-fluid p-4">
 			<div className="mb-4">
 				<h2 className="mb-1">Company Profile & Settings</h2>
-				<p className="text-muted mb-0">Manage your company's basic information, logo, and contact details</p>
+				<p className="text-muted mb-0">Manage your company&apos;s basic information, logo, and contact details</p>
 			</div>
 			<Row className="g-4">
 				<Col md={4} className="mb-4 mb-md-0">
@@ -202,37 +203,37 @@ export default function CompanyProfile() {
 								</InputGroup>
 							</Form.Group>
 
-						<Form.Group className='mb-3' controlId="formGridEmail">
-							<Form.Label>Email Address</Form.Label>
-							<InputGroup>
-								<InputGroup.Text><RiMailLine size={20} /></InputGroup.Text>
-								<Form.Control
-									type="email"
-									placeholder="Enter contact email"
-									value={companyData.email}
-									onChange={(e) => setCompanyData({ ...companyData, email: e.target.value })}
-									required
-								/>
-								<Form.Control.Feedback type="invalid">Please provide a valid email address.</Form.Control.Feedback>
-							</InputGroup>
-						</Form.Group>
+							<Form.Group className='mb-3' controlId="formGridEmail">
+								<Form.Label>Email Address</Form.Label>
+								<InputGroup>
+									<InputGroup.Text><RiMailLine size={20} /></InputGroup.Text>
+									<Form.Control
+										type="email"
+										placeholder="Enter contact email"
+										value={companyData.email}
+										onChange={(e) => setCompanyData({ ...companyData, email: e.target.value })}
+										required
+									/>
+									<Form.Control.Feedback type="invalid">Please provide a valid email address.</Form.Control.Feedback>
+								</InputGroup>
+							</Form.Group>
 
-						<Form.Group className='mb-3' controlId="formGridPhoneNumber">
-							<Form.Label>Phone Number</Form.Label>
-							<InputGroup>
-								<InputGroup.Text><RiPhoneLine size={20} /></InputGroup.Text>
-								<Form.Control
-									type="tel"
-									placeholder="0xxxxxxxxx"
-									value={companyData.phonenumber}
-									onChange={(e) => setCompanyData({ ...companyData, phonenumber: e.target.value })}
-									maxLength={10}
-									pattern="0[0-9]{9}"
-									required
-								/>
-								<Form.Control.Feedback type="invalid">Please provide a 10-digit phone number starting with 0.</Form.Control.Feedback>
-							</InputGroup>
-						</Form.Group>							<Form.Group className='mb-3' controlId="formGridMotto">
+							<Form.Group className='mb-3' controlId="formGridPhoneNumber">
+								<Form.Label>Phone Number</Form.Label>
+								<InputGroup>
+									<InputGroup.Text><RiPhoneLine size={20} /></InputGroup.Text>
+									<Form.Control
+										type="tel"
+										placeholder="0xxxxxxxxx"
+										value={companyData.phonenumber}
+										onChange={(e) => setCompanyData({ ...companyData, phonenumber: e.target.value })}
+										maxLength={10}
+										pattern="0[0-9]{9}"
+										required
+									/>
+									<Form.Control.Feedback type="invalid">Please provide a 10-digit phone number starting with 0.</Form.Control.Feedback>
+								</InputGroup>
+							</Form.Group>							<Form.Group className='mb-3' controlId="formGridMotto">
 								<Form.Label>Motto / Slogan</Form.Label>
 								<InputGroup>
 									<InputGroup.Text><RiQuillPenLine size={20} /></InputGroup.Text>
