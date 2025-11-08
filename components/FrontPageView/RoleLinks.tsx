@@ -1,4 +1,4 @@
-import { RiMoneyDollarCircleLine, RiFileList3Line, RiMessage2Line, RiStethoscopeLine, RiBarChartBoxLine, RiFileTextLine, RiSyringeLine, RiTestTubeLine, RiMicroscopeLine, RiPulseLine, RiDashboardLine, RiUserLine, RiSettingsLine } from "@remixicon/react";
+import { RiMoneyDollarCircleLine, RiFileList3Line, RiMessage2Line, RiStethoscopeLine, RiBarChartBoxLine, RiFileTextLine, RiSyringeLine, RiTestTubeLine, RiMicroscopeLine, RiPulseLine, RiDashboardLine, RiUserLine, RiSettingsLine, RiShieldCheckLine } from "@remixicon/react";
 
 export const AdminRoleLinks = [
      {
@@ -112,6 +112,14 @@ export const FrontdeskRoleLinks = [
           label: 'Appointments',
           category: 'Core Operations',
           description: 'Patient appointment scheduling and management'
+     },
+     {
+          href: '/compliance/incident-reporting',
+          icon: <RiShieldCheckLine size={24} />,
+          text: "Report and manage incidents for quality and compliance tracking",
+          label: 'Incident Reporting',
+          category: 'Quality & Compliance',
+          description: 'Incident reporting and management system'
      },
 ];
 

@@ -26,7 +26,8 @@ export const LaboratoryOperationsLinks: Link[] = [
     { title: "Critical Values Alert", link: `/operations/laboratory/criticalvaluesAlert`, icon: <RiAlarmWarningLine /> },
     { title: "Turn around Time", link: `/operations/laboratory/turnaroundtime`, icon: <RiTimeLine /> },
     { title: "Stock Management", link: `/operations/laboratory/stockmanagement`, icon: <RiStore2Line /> },
-    { title: 'Quality Control', link: '/operations/laboratory/quality-control', icon: <RiQuestionMark /> }
+    { title: 'Quality Control', link: '/operations/laboratory/quality-control', icon: <RiQuestionMark /> },
+    { title: 'Incident Reporting', link: '/compliance/incident-reporting', icon: <RiShieldCheckLine /> }
 ];
 
 

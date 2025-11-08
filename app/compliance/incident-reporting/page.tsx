@@ -8,6 +8,7 @@ import Loader from '../../../components/isLoading';
 import ReportIncidentTab from './ReportIncidentTab';
 import ManageIncidentsTab from './ManageIncidentsTab';
 import AuditTrailTab from './AuditTrailTab';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 
 interface Incident {
      id: string;
@@ -89,6 +90,8 @@ const statusOptions = [
 ];
 
 export default function IncidentReportingPage() {
+     const { user } = useApplicationSettings().applicationsettings;
+     const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'manager';
      const [incidents, setIncidents] = useState<Incident[]>([]);
      const [loading, setLoading] = useState(true);
      const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
@@ -178,6 +181,13 @@ export default function IncidentReportingPage() {
      const saveInvestigation = async () => {
           if (!selectedIncident) return;
 
+          // Validate that all 5-why fields are filled
+          const { what, why, when, where, who, how } = investigationData;
+          if (!what.trim() || !why.trim() || !when.trim() || !where.trim() || !who.trim() || !how.trim()) {
+               toast.error('All 5-Why analysis fields must be completed before saving the investigation.');
+               return;
+          }
+
           try {
                const updateData = {
                     status: 'corrective-actions',
@@ -266,21 +276,25 @@ export default function IncidentReportingPage() {
                                                   />
                                              </Tab>
 
-                                             <Tab eventKey="manage" title="Manage Incidents">
-                                                  <ManageIncidentsTab
-                                                       incidents={incidents}
-                                                       onIncidentsUpdate={setIncidents}
-                                                       onStartInvestigation={startInvestigation}
-                                                       onViewIncident={(incident) => {
-                                                            setSelectedIncident(incident);
-                                                            setShowModal(true);
-                                                       }}
-                                                  />
-                                             </Tab>
+                                             {isAdmin && (
+                                                  <Tab eventKey="manage" title="Manage Incidents">
+                                                       <ManageIncidentsTab
+                                                            incidents={incidents}
+                                                            onIncidentsUpdate={setIncidents}
+                                                            onStartInvestigation={startInvestigation}
+                                                            onViewIncident={(incident) => {
+                                                                 setSelectedIncident(incident);
+                                                                 setShowModal(true);
+                                                            }}
+                                                       />
+                                                  </Tab>
+                                             )}
 
-                                             <Tab eventKey="audit" title="Audit Trail">
-                                                  <AuditTrailTab />
-                                             </Tab>
+                                             {isAdmin && (
+                                                  <Tab eventKey="audit" title="Audit Trail">
+                                                       <AuditTrailTab />
+                                                  </Tab>
+                                             )}
                                         </Tabs>
                                    </div>
                               </div>
