@@ -365,7 +365,7 @@ export default function SampleAssessmentModal({
 				<Modal.Body className="p-0">
 					<div className="d-flex h-100">
 						{/* Left Column - Table and Controls */}
-						<div className="flex-fill border-end" style={{ width: '60%', overflowY: 'auto' }}>
+						<div className="flex-fill border-end" style={{ width: '70%', overflowY: 'auto' }}>
 							<div className="p-4">
 								{testcollection.length > 0 && showInstructions && (
 									<div className="alert alert-light mb-3 border pls-color p-2 p-md-3">
@@ -418,7 +418,7 @@ export default function SampleAssessmentModal({
 						</div>
 
 						{/* Right Column - Rejection Details */}
-						<div className="flex-fill" style={{ width: '40%', overflowY: 'auto' }}>
+						<div className="flex-fill" style={{ width: '30%', overflowY: 'auto' }}>
 							<div className="p-4">
 								{testcollection.some(item => item.approvalstatus === 0 && item.showRejectionForm) ? (
 									<>
@@ -433,130 +433,169 @@ export default function SampleAssessmentModal({
 													<h6 className="mb-3 fw-bold">
 														{item.name} - {item.patientname || item.fullname}
 													</h6>
-														<div className="row">
-															<div className="col-12">
-																<div className="mb-3">
-																	<label className="form-label fw-bold">Rejection Reason</label>
-																	<select
-																		className="form-select"
-																		value={item.rejectionDetails?.reason || ''}
-																		onChange={(e) => {
-																			const selectedReason = REJECTION_REASONS.find(r => r.id === e.target.value);
-																			handleRejectionDetailsChange(item.testid, 'reason', e.target.value);
-																			handleRejectionDetailsChange(item.testid, 'reasonLabel', selectedReason?.label);
-																			handleRejectionDetailsChange(item.testid, 'severity', selectedReason?.severity);
-																			handleRejectionDetailsChange(item.testid, 'correctiveActions', []);
-																		}}
-																	>
-																		<option value="">Select a reason...</option>
-																		{REJECTION_REASONS.map(reason => (
-																			<option key={reason.id} value={reason.id}>
-																				{reason.label}
-																			</option>
-																		))}
-																	</select>
-																</div>
 
-																{item.rejectionDetails?.reason === 'other' && (
-																	<div className="mb-3">
-																		<label className="form-label">Specify Other Reason</label>
-																		<textarea
-																			className="form-control"
-																			rows="2"
-																			placeholder="Please specify the rejection reason..."
-																			value={item.rejectionDetails?.customReason || ''}
-																			onChange={(e) => handleRejectionDetailsChange(item.testid, 'customReason', e.target.value)}
-																		/>
-																	</div>
-																)}
+													<div className="mb-3">
+														<label className="form-label fw-bold">Rejection Reason</label>
+														<select
+															className="form-select"
+															value={item.rejectionDetails?.reason || ''}
+															onChange={(e) => {
+																const selectedReason = REJECTION_REASONS.find(r => r.id === e.target.value);
+																handleRejectionDetailsChange(item.testid, 'reason', e.target.value);
+																handleRejectionDetailsChange(item.testid, 'reasonLabel', selectedReason?.label);
+																handleRejectionDetailsChange(item.testid, 'severity', selectedReason?.severity);
+																handleRejectionDetailsChange(item.testid, 'correctiveActions', []);
+															}}
+														>
+															<option value="">Select a reason...</option>
+															{REJECTION_REASONS.map(reason => (
+																<option key={reason.id} value={reason.id}>
+																	{reason.label}
+																</option>
+															))}
+														</select>
+													</div>
 
-											<div className="mb-3">
-												<label className="form-label">Additional Notes</label>
-												<textarea
-													className="form-control"
-													rows="2"
-													placeholder="Any additional information about this rejection..."
-													value={item.rejectionDetails?.additionalNotes || ''}
-													onChange={(e) => handleRejectionDetailsChange(item.testid, 'additionalNotes', e.target.value)}
-												/>
-											</div>
-
-											<div className="mb-3">
-												<label className="form-label fw-bold">Mode of Communication</label>
-												<div className="d-flex gap-2 flex-wrap">
-													{['Email', 'SMS', 'Phone', 'In-Person'].map(mode => (
-														<div key={mode} className="form-check">
-															<input
-																className="form-check-input"
-																type="checkbox"
-																id={`comm-${item.testid}-${mode}`}
-																checked={item.rejectionDetails?.communicationModes?.includes(mode) || false}
-																onChange={(e) => {
-																	const currentModes = item.rejectionDetails?.communicationModes || [];
-																	const newModes = e.target.checked
-																		? [...currentModes, mode]
-																		: currentModes.filter(m => m !== mode);
-																	handleRejectionDetailsChange(item.testid, 'communicationModes', newModes);
-																}}
+													{item.rejectionDetails?.reason === 'other' && (
+														<div className="mb-3">
+															<label className="form-label">Specify Other Reason</label>
+															<textarea
+																className="form-control"
+																rows="2"
+																placeholder="Please specify the rejection reason..."
+																value={item.rejectionDetails?.customReason || ''}
+																onChange={(e) => handleRejectionDetailsChange(item.testid, 'customReason', e.target.value)}
 															/>
-															<label className="form-check-label" htmlFor={`comm-${item.testid}-${mode}`}>
-																{mode}
-															</label>
 														</div>
-													))}
-												</div>
-											</div>
+													)}
 
-											<div className="mb-3">
-												<label className="form-label">Additional Corrective Actions</label>
-												<textarea
-													className="form-control"
-													rows="3"
-													placeholder="Specify any additional corrective actions not listed above..."
-													value={item.rejectionDetails?.additionalCorrectiveActions || ''}
-													onChange={(e) => handleRejectionDetailsChange(item.testid, 'additionalCorrectiveActions', e.target.value)}
-												/>
-											</div>
-										</div>
-									</div>														{item.rejectionDetails?.reason && (
-															<div className="row">
-																<div className="col-md-6">
-																	<div className="mb-3">
-																		<label className="form-label fw-bold">Severity</label>
-																		<div>
-																			<span className="badge bg-secondary fs-6 p-2">
-																				{REJECTION_REASONS.find(r => r.id === item.rejectionDetails.reason)?.severity?.toUpperCase()}
-																			</span>
-																		</div>
-																	</div>
+													<div className="mb-3">
+														<label className="form-label">Additional Notes</label>
+														<textarea
+															className="form-control"
+															rows="2"
+															placeholder="Any additional information about this rejection..."
+															value={item.rejectionDetails?.additionalNotes || ''}
+															onChange={(e) => handleRejectionDetailsChange(item.testid, 'additionalNotes', e.target.value)}
+														/>
+													</div>
+
+													<div className="mb-3">
+														<label className="form-label fw-bold">Mode of Communication</label>
+														<div className="d-flex gap-2 flex-wrap">
+															{['Email', 'SMS', 'Phone', 'In-Person'].map(mode => (
+																<div key={mode} className="form-check">
+																	<input
+																		className="form-check-input"
+																		type="checkbox"
+																		id={`comm-${item.testid}-${mode}`}
+																		checked={item.rejectionDetails?.communicationModes?.includes(mode) || false}
+																		onChange={(e) => {
+																			const currentModes = item.rejectionDetails?.communicationModes || [];
+																			const newModes = e.target.checked
+																				? [...currentModes, mode]
+																				: currentModes.filter(m => m !== mode);
+																			handleRejectionDetailsChange(item.testid, 'communicationModes', newModes);
+																		}}
+																	/>
+																	<label className="form-check-label" htmlFor={`comm-${item.testid}-${mode}`}>
+																		{mode}
+																	</label>
 																</div>
-																<div className="col-md-6">
-																	<div className="mb-3">
-																		<label className="form-label fw-bold">Suggested Corrective Actions</label>
-																		<div className="border rounded p-2" style={{ maxHeight: '150px', overflowY: 'auto' }}>
-																			{REJECTION_REASONS.find(r => r.id === item.rejectionDetails.reason)?.correctiveActions.map((action, idx) => (
-																				<div key={idx} className="form-check">
-																					<input
-																						className="form-check-input"
-																						type="checkbox"
-																						id={`action-${item.testid}-${idx}`}
-																						checked={item.rejectionDetails?.correctiveActions?.includes(action) || false}
+															))}
+														</div>
+													</div>
+
+													{item.rejectionDetails?.reason && (
+														<div>
+															<div className="mb-3">
+																<label className="form-label fw-bold">Severity</label>
+																<div>
+																	<span className="badge bg-secondary fs-6 p-2">
+																		{REJECTION_REASONS.find(r => r.id === item.rejectionDetails.reason)?.severity?.toUpperCase()}
+																	</span>
+																</div>
+															</div>
+
+															<div className="mb-3">
+																<label className="form-label fw-bold">Suggested Corrective Actions</label>
+																<div className="border rounded p-2">
+																	{REJECTION_REASONS.find(r => r.id === item.rejectionDetails.reason)?.correctiveActions.map((action, idx) => (
+																		<div key={idx} className="mb-3">
+																			<div className="form-check">
+																				<input
+																					className="form-check-input"
+																					type="checkbox"
+																					id={`action-${item.testid}-${idx}`}
+																					checked={item.rejectionDetails?.correctiveActions?.includes(action) || false}
+																					onChange={(e) => {
+																						const currentActions = item.rejectionDetails?.correctiveActions || [];
+																						const newActions = e.target.checked
+																							? [...currentActions, action]
+																							: currentActions.filter(a => a !== action);
+																						handleRejectionDetailsChange(item.testid, 'correctiveActions', newActions);
+																					}}
+																				/>
+																				<label className="form-check-label small fw-bold" htmlFor={`action-${item.testid}-${idx}`}>
+																					{action}
+																				</label>
+																			</div>
+																			{item.rejectionDetails?.correctiveActions?.includes(action) && (
+																				<div className="ms-3 mt-2">
+																					<label className="form-label small text-muted">Assign to:</label>
+																					<select
+																						className="form-select form-select-sm"
+																						value={item.rejectionDetails?.actionAssignees?.[action] || ''}
 																						onChange={(e) => {
-																							const currentActions = item.rejectionDetails?.correctiveActions || [];
-																							const newActions = e.target.checked
-																								? [...currentActions, action]
-																								: currentActions.filter(a => a !== action);
-																							handleRejectionDetailsChange(item.testid, 'correctiveActions', newActions);
+																							const currentAssignees = item.rejectionDetails?.actionAssignees || {};
+																							handleRejectionDetailsChange(item.testid, 'actionAssignees', {
+																								...currentAssignees,
+																								[action]: e.target.value
+																							});
 																						}}
-																					/>
-																					<label className="form-check-label small" htmlFor={`action-${item.testid}-${idx}`}>
-																						{action}
-																					</label>
+																					>
+																						<option value="">Select assignee...</option>
+																						<option value="lab_manager">Lab Manager</option>
+																						<option value="quality_officer">Quality Officer</option>
+																						<option value="phlebotomist">Phlebotomist</option>
+																						<option value="technician">Lab Technician</option>
+																						<option value="supervisor">Supervisor</option>
+																						<option value="other">Other</option>
+																					</select>
 																				</div>
-																			))}
+																			)}
 																		</div>
-																	</div>
+																	))}
 																</div>
+															</div>
+														</div>
+													)}
+
+													<div className="mb-3">
+														<label className="form-label">Additional Corrective Actions</label>
+														<textarea
+															className="form-control"
+															rows="3"
+															placeholder="Specify any additional corrective actions not listed above..."
+															value={item.rejectionDetails?.additionalCorrectiveActions || ''}
+															onChange={(e) => handleRejectionDetailsChange(item.testid, 'additionalCorrectiveActions', e.target.value)}
+														/>
+														{item.rejectionDetails?.additionalCorrectiveActions && (
+															<div className="mt-2">
+																<label className="form-label small text-muted">Assign to:</label>
+																<select
+																	className="form-select form-select-sm"
+																	value={item.rejectionDetails?.additionalCorrectiveActionsAssignee || ''}
+																	onChange={(e) => handleRejectionDetailsChange(item.testid, 'additionalCorrectiveActionsAssignee', e.target.value)}
+																>
+																	<option value="">Select assignee...</option>
+																	<option value="lab_manager">Lab Manager</option>
+																	<option value="quality_officer">Quality Officer</option>
+																	<option value="phlebotomist">Phlebotomist</option>
+																	<option value="technician">Lab Technician</option>
+																	<option value="supervisor">Supervisor</option>
+																	<option value="other">Other</option>
+																</select>
 															</div>
 														)}
 													</div>
