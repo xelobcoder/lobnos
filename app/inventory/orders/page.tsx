@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RiShoppingCartLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSendPlaneLine, RiCheckLine, RiMailLine, RiDownloadLine, RiFilterLine } from '@remixicon/react';
+import { useRouter } from 'next/navigation';
+import { RiShoppingCartLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSendPlaneLine, RiCheckLine, RiMailLine, RiDownloadLine, RiFilterLine, RiCloseLine, RiInboxArchiveLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
-import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { currencyFormatter, customFetch, customPost } from '../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
 
 interface Supplier {
@@ -50,6 +52,33 @@ interface InventoryItem {
 }
 
 interface OrderItem {
+     id: string;
+     order_id: string;
+     inventory_item_id: string;
+     item_name: string;
+     item_description?: string;
+     sku: string;
+     category_name?: string;
+     brand_name?: string;
+     supplier_sku?: string;
+     quantity_ordered: number;
+     quantity_received: number;
+     quantity_rejected: number;
+     unit_price: number;
+     tax_rate: number;
+     discount_rate: number;
+     line_total: number;
+     unit: string;
+     batch_number?: string;
+     expiry_date?: string;
+     status: string;
+     received_at?: string;
+     notes?: string;
+     created_at: string;
+     updated_at: string;
+}
+
+interface FormOrderItem {
      itemId: string;
      itemName: string;
      brand?: string;
@@ -83,7 +112,7 @@ interface PurchaseOrder {
      supplierPhone?: string;
      supplierAddress?: string;
      items: OrderItem[];
-     status: 'draft' | 'ordered' | 'partially_received' | 'received' | 'cancelled';
+     status: 'ordering' | 'received' | 'cancelled';
      orderDate: string;
      expectedDeliveryDate?: string;
      actualDeliveryDate?: string;
@@ -110,19 +139,19 @@ interface PurchaseOrder {
 }
 
 const STATUS_BADGES = {
-     draft: { label: 'Draft', color: 'secondary' },
-     ordered: { label: 'Ordered', color: 'primary' },
-     partially_received: { label: 'Partially Received', color: 'warning' },
+     '': { label: 'Ordering', color: 'secondary' },
+     ordering: { label: 'Ordering', color: 'secondary' },
      received: { label: 'Received', color: 'success' },
      cancelled: { label: 'Cancelled', color: 'danger' }
 };
 
 export default function PurchaseOrdersPage() {
+     const router = useRouter();
+     const { applicationsettings } = useApplicationSettings();
+     const employeeid = applicationsettings?.user?.employeeid;
      const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
      const [suppliers, setSuppliers] = useState<Supplier[]>([]);
      const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-     const [showReceiveModal, setShowReceiveModal] = useState(false);
-     const [receivingOrder, setReceivingOrder] = useState<PurchaseOrder | null>(null);
      const [searchTerm, setSearchTerm] = useState('');
      const [filterStatus, setFilterStatus] = useState<string>('all');
      const [loading, setLoading] = useState(false);
@@ -131,25 +160,16 @@ export default function PurchaseOrdersPage() {
      const [showOrderModal, setShowOrderModal] = useState(false);
      const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null);
 
-     // Receiving form state
-     const [receiveForm, setReceiveForm] = useState({
-          invoiceNumber: '',
-          receivedDate: new Date().toISOString().split('T')[0],
-          receivedTime: new Date().toTimeString().slice(0, 5),
-          items: [] as ReceivedItem[],
-          notes: ''
-     });
-
      // Form states
      const [orderForm, setOrderForm] = useState({
           supplierId: '',
           supplierName: '',
           supplierEmail: '',
           supplierContact: '',
-          items: [] as OrderItem[],
+          items: [] as FormOrderItem[],
           expectedDeliveryDate: '',
           notes: '',
-          status: 'draft' as 'draft' | 'ordered' | 'partially_received' | 'received' | 'cancelled',
+          status: 'ordering' as 'ordering' | 'received' | 'cancelled',
           communicationMethod: 'email' as 'email' | 'phone_call' | 'whatsapp' | 'pdf_attachment' | 'in_person' | 'fax' | 'other',
           communicationNotes: ''
      });
@@ -182,7 +202,6 @@ export default function PurchaseOrdersPage() {
                setLoading(true);
                const response = await customFetch('inventory/orders');
                if (response.success) {
-                    // Transform API response to match interface
                     const transformedOrders = response.data.orders.map((order: any) => ({
                          id: order.id,
                          orderNumber: order.order_number,
@@ -192,7 +211,7 @@ export default function PurchaseOrdersPage() {
                          supplierContact: order.supplier_contact,
                          supplierPhone: order.supplier_phone,
                          supplierAddress: order.supplier_address,
-                         items: [], // Not provided in current API response
+                         items: order.items || [],
                          status: order.status,
                          orderDate: order.order_date,
                          expectedDeliveryDate: order.expected_delivery_date,
@@ -209,10 +228,10 @@ export default function PurchaseOrdersPage() {
                          approvedBy: order.approved_by,
                          approvedAt: order.approved_at,
                          sentAt: order.sent_at,
-                         emailSent: false, // Will be determined by sent_at
+                         emailSent: false,
                          emailSentDate: order.sent_at,
-                         communicationMethod: 'email', // Default
-                         communicationNotes: '',
+                         communicationMethod: order.communication_method,
+                         communicationNotes: order.communication_notes || '',
                          items_count: order.items_count,
                          received_items_count: order.received_items_count,
                          createdAt: order.created_at,
@@ -229,7 +248,6 @@ export default function PurchaseOrdersPage() {
 
      const handleServerSideProcessing = async ({ page, count, sortby = 'DESC' }: { page: number; count: number; sortby?: string }) => {
           try {
-               // Build query parameters for server-side filtering
                const params = new URLSearchParams({
                     page: page.toString(),
                     count: count.toString(),
@@ -240,7 +258,6 @@ export default function PurchaseOrdersPage() {
                const response = await customFetch(endpoint);
 
                if (response.success) {
-                    // Transform API response to match interface
                     const transformedOrders = response.data.orders.map((order: any) => ({
                          id: order.id,
                          orderNumber: order.order_number,
@@ -250,7 +267,7 @@ export default function PurchaseOrdersPage() {
                          supplierContact: order.supplier_contact,
                          supplierPhone: order.supplier_phone,
                          supplierAddress: order.supplier_address,
-                         items: [], // Not provided in current API response
+                         items: order.items || [],
                          status: order.status,
                          orderDate: order.order_date,
                          expectedDeliveryDate: order.expected_delivery_date,
@@ -267,9 +284,9 @@ export default function PurchaseOrdersPage() {
                          approvedBy: order.approved_by,
                          approvedAt: order.approved_at,
                          sentAt: order.sent_at,
-                         emailSent: false, // Will be determined by sent_at
+                         emailSent: false,
                          emailSentDate: order.sent_at,
-                         communicationMethod: 'email', // Default
+                         communicationMethod: 'email',
                          communicationNotes: '',
                          items_count: order.items_count,
                          received_items_count: order.received_items_count,
@@ -311,11 +328,14 @@ export default function PurchaseOrdersPage() {
           {
                Header: 'Status',
                accessor: 'status',
-               Cell: ({ value }) => (
-                    <span className={`badge bg-${STATUS_BADGES[value].color}`}>
-                         {STATUS_BADGES[value].label}
-                    </span>
-               )
+               Cell: ({ value }) => {
+                    const badge = STATUS_BADGES[value as keyof typeof STATUS_BADGES] || STATUS_BADGES[''];
+                    return (
+                         <span className={`badge bg-${badge.color}`}>
+                              {badge.label}
+                         </span>
+                    );
+               }
           },
           {
                Header: 'Items',
@@ -325,7 +345,7 @@ export default function PurchaseOrdersPage() {
                          <div>{row.original.items_count || (value && value.length) || 0} item(s)</div>
                          {value && value.length > 0 && (
                               <small className="text-muted">
-                                   {value.map((item: OrderItem) => `${item.itemName}${item.brand ? ` (${item.brand})` : ''} (${item.quantity})`).join(', ')}
+                                   {value.map((item: any) => `${item.item_name}${item.brand_name ? ` (${item.brand_name})` : ''} (${item.quantity_ordered})`).join(', ')}
                               </small>
                          )}
                     </div>
@@ -352,9 +372,17 @@ export default function PurchaseOrdersPage() {
                )
           },
           {
-               Header: 'Expected Delivery',
-               accessor: 'expectedDeliveryDate',
-               Cell: ({ value }) => value ? new Date(value).toLocaleDateString() : 'Not set'
+               Header: 'Total Amount',
+               accessor: 'totalAmount',
+               Cell: ({ value, row }) => (
+                    <span>{row.original.currency} {currencyFormatter.format(value.toFixed(2))}</span>
+               )
+          },
+          {
+               Header: 'Final Amount',
+               accessor: 'finalAmount',
+               Cell: ({ value, row }) => <span className="fw-bold"> {(currencyFormatter.format(value.toFixed(2)))}</span>
+
           },
           {
                Header: 'Actions',
@@ -372,10 +400,20 @@ export default function PurchaseOrdersPage() {
                               className="btn btn-sm btn-outline-primary"
                               title="Edit Order"
                               onClick={() => handleEditOrder(row.original)}
+                              disabled={row.original.status === 'received' || row.original.status === 'cancelled'}
                          >
                               <RiEditLine size={14} />
                          </button>
-                         {row.original.status === 'draft' && (
+                         {row.original.status !== 'received' && row.original.status !== 'cancelled' && (
+                              <button
+                                   className="btn btn-sm btn-outline-success"
+                                   title="Receive Order"
+                                   onClick={() => handleReceiveOrder(row.original)}
+                              >
+                                   <RiInboxArchiveLine size={14} />
+                              </button>
+                         )}
+                         {row.original.status !== 'received' && row.original.status !== 'cancelled' && (
                               <button
                                    className="btn btn-sm btn-outline-success"
                                    title="Send Email"
@@ -384,13 +422,14 @@ export default function PurchaseOrdersPage() {
                                    <RiMailLine size={14} />
                               </button>
                          )}
-                         {row.original.status === 'ordered' && (
+                         {row.original.status !== 'received' && row.original.status !== 'cancelled' && (
                               <button
-                                   className="btn btn-sm btn-outline-success"
-                                   title="Mark as Received"
-                                   onClick={() => handleReceiveOrder(row.original)}
+                                   className="btn btn-sm btn-outline-warning"
+                                   title="Cancel Order"
+                                   onClick={() => handleCancelOrder(row.original)}
                               >
-                                   <RiCheckLine size={14} />
+                                   <RiCloseLine size={14} className="me-1" />
+
                               </button>
                          )}
                          <button
@@ -415,22 +454,19 @@ export default function PurchaseOrdersPage() {
                setLoading(true);
                const orderData = {
                     supplier_id: orderForm.supplierId,
+                    expected_delivery_date: orderForm.expectedDeliveryDate || undefined,
                     items: orderForm.items.map(item => ({
-                         item_id: item.itemId,
-                         quantity: item.quantity,
+                         inventory_item_id: item.itemId,
+                         quantity_ordered: item.quantity,
                          notes: item.notes
                     })),
-                    expected_delivery_date: orderForm.expectedDeliveryDate || undefined,
-                    notes: orderForm.notes,
-                    status: orderForm.status,
-                    communication_method: orderForm.communicationMethod,
-                    communication_notes: orderForm.communicationNotes
+                    notes: orderForm.notes
                };
 
                const response = await customPost('inventory/orders', 'POST', orderData);
 
                if (response.success) {
-                    await loadPurchaseOrders(); // Reload orders
+                    await loadPurchaseOrders();
                     setShowOrderModal(false);
                     resetOrderForm();
                     toast.success('Order created successfully!');
@@ -446,17 +482,34 @@ export default function PurchaseOrdersPage() {
      };
 
      const handleEditOrder = (order: PurchaseOrder) => {
-          // Note: Full order items are not available in the current API response
-          // Only summary information (items_count) is provided
-          toast.warning('Order editing is limited. Full item details are not available in the current view.');
+          // Prevent editing orders that are received or cancelled
+          if (order.status === 'received' || order.status === 'cancelled') {
+               toast.error(`Cannot edit orders with ${order.status} status`);
+               return;
+          }
+
+          // Format dates for input fields (YYYY-MM-DD)
+          const formatDateForInput = (dateString: string | null | undefined): string => {
+               if (!dateString) return '';
+               const date = new Date(dateString);
+               return date.toISOString().split('T')[0];
+          };
 
           setOrderForm({
                supplierId: order.supplierId,
                supplierName: order.supplierName,
                supplierEmail: order.supplierEmail,
                supplierContact: order.supplierContact,
-               items: [], // Items not available in current API response
-               expectedDeliveryDate: order.expectedDeliveryDate || '',
+               items: order.items.map((item: any) => ({
+                    itemId: item.inventory_item_id,
+                    itemName: item.item_name,
+                    brand: item.brand_name,
+                    sku: item.sku,
+                    quantity: item.quantity_ordered,
+                    unit: item.unit,
+                    notes: item.notes
+               })),
+               expectedDeliveryDate: formatDateForInput(order.expectedDeliveryDate),
                notes: order.notes || '',
                status: order.status,
                communicationMethod: order.communicationMethod || 'email',
@@ -472,15 +525,8 @@ export default function PurchaseOrdersPage() {
           try {
                const orderData = {
                     supplier_id: orderForm.supplierId,
-                    items: orderForm.items.map(item => ({
-                         item_id: item.itemId,
-                         quantity: item.quantity
-                    })),
-                    status: orderForm.status,
                     expected_delivery_date: orderForm.expectedDeliveryDate || null,
-                    notes: orderForm.notes,
-                    communication_method: orderForm.communicationMethod,
-                    communication_notes: orderForm.communicationNotes
+                    notes: orderForm.notes
                };
 
                const response = await customPost(`inventory/orders/${selectedOrder.id}`, 'PUT', orderData as any);
@@ -505,10 +551,10 @@ export default function PurchaseOrdersPage() {
           const emailBody = generateOrderEmail(order);
           const mailtoLink = `mailto:${order.supplierEmail}?subject=Purchase Order ${order.orderNumber}&body=${encodeURIComponent(emailBody)}`;
 
-          // Update order status and email sent flag
+          // Update order email sent flag (keep status as ordering)
           setPurchaseOrders(prev => prev.map(o =>
                o.id === order.id
-                    ? { ...o, status: 'ordered', emailSent: true, emailSentDate: new Date().toISOString(), communicationMethod: 'email' }
+                    ? { ...o, emailSent: true, emailSentDate: new Date().toISOString(), communicationMethod: 'email' }
                     : o
           ));
 
@@ -519,128 +565,7 @@ export default function PurchaseOrdersPage() {
      };
 
      const handleReceiveOrder = (order: PurchaseOrder) => {
-          // Note: Full order items are not available in the current API response
-          // Only summary information (items_count, received_items_count) is provided
-          toast.warning('Receiving items is not available. Full item details are not provided in the current API response.');
-          // In a real implementation, you would need to fetch the full order details first
-     };
-
-     const handleProcessReceiving = () => {
-          if (!receivingOrder) return;
-
-          // Validate form
-          if (!receiveForm.invoiceNumber.trim()) {
-               toast.error('Please enter an invoice number');
-               return;
-          }
-
-          const hasIncompleteItems = receiveForm.items.some(item =>
-               item.receivedQuantity <= 0 || item.unitPrice <= 0 ||
-               !item.batchNumber.trim() || !item.expiryDate.trim()
-          );
-
-          if (hasIncompleteItems) {
-               toast.error('Please complete all item details (quantity, price, batch number, expiry date)');
-               return;
-          }
-
-          // Calculate if this is a partial receive
-          const totalOrdered = receiveForm.items.reduce((sum, item) => sum + item.orderedQuantity, 0);
-          const totalReceived = receiveForm.items.reduce((sum, item) => sum + item.receivedQuantity, 0);
-          const isPartialReceive = totalReceived < totalOrdered;
-
-          // Update order status
-          const newStatus = isPartialReceive ? 'partially_received' : 'received';
-          const receivedDateTime = `${receiveForm.receivedDate}T${receiveForm.receivedTime}:00Z`;
-
-          setPurchaseOrders(prev => prev.map(order =>
-               order.id === receivingOrder.id
-                    ? {
-                         ...order,
-                         status: newStatus,
-                         actualDeliveryDate: receivedDateTime,
-                         invoiceNumber: receiveForm.invoiceNumber,
-                         receivedNotes: receiveForm.notes
-                    }
-                    : order
-          ));
-
-          // Update inventory stock levels with batch tracking
-          setInventoryItems(prev => prev.map(item => {
-               const receivedItem = receiveForm.items.find(ri => ri.itemId === item.id);
-               if (receivedItem) {
-                    // Create new batch entry
-                    const newBatch: Batch = {
-                         id: `batch-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                         batchNumber: receivedItem.batchNumber,
-                         quantity: receivedItem.receivedQuantity,
-                         unitPrice: receivedItem.unitPrice,
-                         totalValue: receivedItem.totalValue,
-                         expiryDate: receivedItem.expiryDate,
-                         supplierId: receivingOrder.supplierId,
-                         supplierName: receivingOrder.supplierName,
-                         receivedDate: `${receiveForm.receivedDate}T${receiveForm.receivedTime}:00Z`,
-                         purchaseOrderNumber: receivingOrder.orderNumber,
-                         invoiceNumber: receiveForm.invoiceNumber
-                    };
-
-                    // Add batch to existing batches
-                    const updatedBatches = [...item.batches, newBatch];
-
-                    // Calculate totals from all batches
-                    const totalStock = updatedBatches.reduce((sum, batch) => sum + batch.quantity, 0);
-                    const totalValue = updatedBatches.reduce((sum, batch) => sum + batch.totalValue, 0);
-                    const avgPrice = totalStock > 0 ? totalValue / totalStock : 0;
-
-                    // Find earliest expiry date
-                    const earliestExpiry = updatedBatches.length > 0 ?
-                         updatedBatches
-                              .filter(batch => batch.expiryDate)
-                              .sort((a, b) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime())[0]?.expiryDate
-                         : undefined;
-
-                    return {
-                         ...item,
-                         batches: updatedBatches,
-                         currentStock: totalStock,
-                         unitPrice: avgPrice,
-                         totalValue: totalValue,
-                         expiryDate: earliestExpiry,
-                         lastUpdated: new Date().toISOString(),
-                         status: totalStock === 0 ? 'out_of_stock' :
-                              totalStock <= item.minStock ? 'low_stock' : 'in_stock'
-                    };
-               }
-               return item;
-          }));
-
-          // Create transaction record (simulate adding to transactions)
-          // In a real app, this would call an API to create the transaction
-          const transactionItems = receiveForm.items.map(item => ({
-               itemId: item.itemId,
-               itemName: item.itemName,
-               quantity: item.receivedQuantity,
-               unit: item.unit,
-               unitPrice: item.unitPrice,
-               totalValue: item.totalValue
-          }));
-
-          // Here you would typically dispatch to a global state or API
-          console.log('Creating transaction:', {
-               type: 'addition',
-               items: transactionItems,
-               supplier: receivingOrder.supplierName,
-               purchaseOrderNumber: receivingOrder.orderNumber,
-               invoiceNumber: receiveForm.invoiceNumber,
-               receivedDate: receivedDateTime,
-               batchNumber: receiveForm.items[0]?.batchNumber, // Use first batch as primary
-               expiryDate: receiveForm.items[0]?.expiryDate, // Use first expiry as primary
-               notes: `Received items for PO ${receivingOrder.orderNumber}. ${receiveForm.notes}`
-          });
-
-          setShowReceiveModal(false);
-          setReceivingOrder(null);
-          toast.success(`Order ${receivingOrder.orderNumber} ${isPartialReceive ? 'partially ' : ''}received successfully!`);
+          router.push(`/inventory/orders/receive-ordered-items/${order.id}`);
      };
 
      const handleDeleteOrder = async (orderId: string) => {
@@ -661,6 +586,38 @@ export default function PurchaseOrdersPage() {
           }
      };
 
+     const handleCancelOrder = async (order: PurchaseOrder) => {
+          const reason = prompt('Please enter the reason for cancelling this order:');
+          if (!reason || !reason.trim()) {
+               toast.error('Cancellation reason is required');
+               return;
+          }
+
+          try {
+               const cancelData = {
+                    cancelled_by: employeeid,
+                    reason: reason.trim()
+               };
+
+               const response = await customPost(`inventory/orders/${order.id}/cancel`, 'POST', cancelData);
+
+               if (response.success) {
+                    // Update the order status locally
+                    setPurchaseOrders(prev => prev.map(o =>
+                         o.id === order.id
+                              ? { ...o, status: 'cancelled' }
+                              : o
+                    ));
+                    toast.success('Order cancelled successfully!');
+               } else {
+                    toast.error(`Failed to cancel order: ${response.error?.message || 'Unknown error'}`);
+               }
+          } catch (error) {
+               console.error('Error cancelling order:', error);
+               toast.error('Failed to cancel order. Please try again.');
+          }
+     };
+
      const generateOrderEmail = (order: PurchaseOrder): string => {
           let emailBody = `Dear ${order.supplierContact},\n\n`;
           emailBody += `Please find below our purchase order details:\n\n`;
@@ -668,21 +625,25 @@ export default function PurchaseOrdersPage() {
           emailBody += `Order Date: ${new Date(order.orderDate).toLocaleDateString()}\n`;
           emailBody += `Expected Delivery: ${order.expectedDeliveryDate ? new Date(order.expectedDeliveryDate).toLocaleDateString() : 'TBD'}\n\n`;
 
-          // Check if full items are available
           if (order.items && order.items.length > 0) {
                emailBody += `Items Ordered:\n`;
-               order.items.forEach((item, index) => {
-                    emailBody += `${index + 1}. ${item.itemName}\n`;
-                    if (item.brand) emailBody += `   Brand: ${item.brand}\n`;
+               order.items.forEach((item: any, index) => {
+                    emailBody += `${index + 1}. ${item.item_name}\n`;
+                    if (item.brand_name) emailBody += `   Brand: ${item.brand_name}\n`;
                     emailBody += `   SKU: ${item.sku}\n`;
-                    emailBody += `   Quantity: ${item.quantity} ${item.unit}\n\n`;
+                    emailBody += `   Quantity: ${item.quantity_ordered} ${item.unit}\n`;
+                    emailBody += `   Unit Price: ${item.unit_price}\n\n`;
                });
           } else {
                emailBody += `Items Ordered: ${order.items_count || 0} item(s) total\n\n`;
-               emailBody += `Note: Detailed item list is not available in this view.\n\n`;
           }
 
-          emailBody += `Please provide pricing and availability information.\n\n`;
+          emailBody += `Total Amount: ${order.currency} ${order.totalAmount.toFixed(2)}\n`;
+          emailBody += `Tax: ${order.currency} ${order.taxAmount.toFixed(2)}\n`;
+          emailBody += `Discount: ${order.currency} ${order.discountAmount.toFixed(2)}\n`;
+          emailBody += `Shipping: ${order.currency} ${order.shippingCost.toFixed(2)}\n`;
+          emailBody += `Final Amount: ${order.currency} ${order.finalAmount.toFixed(2)}\n\n`;
+
           if (order.notes) {
                emailBody += `Notes: ${order.notes}\n\n`;
           }
@@ -701,7 +662,7 @@ export default function PurchaseOrdersPage() {
                items: [],
                expectedDeliveryDate: '',
                notes: '',
-               status: 'draft',
+               status: 'ordering',
                communicationMethod: 'email',
                communicationNotes: ''
           });
@@ -709,12 +670,12 @@ export default function PurchaseOrdersPage() {
      };
 
      const getOrderStats = () => {
-          const draftCount = purchaseOrders.filter(o => o.status === 'draft').length;
-          const orderedCount = purchaseOrders.filter(o => o.status === 'ordered').length;
+          const orderingCount = purchaseOrders.filter(o => o.status === 'ordering').length;
           const receivedCount = purchaseOrders.filter(o => o.status === 'received').length;
+          const cancelledCount = purchaseOrders.filter(o => o.status === 'cancelled').length;
           const totalItems = purchaseOrders.reduce((sum, order) => sum + (order.items_count || 0), 0);
 
-          return { draftCount, orderedCount, receivedCount, totalItems };
+          return { orderingCount, receivedCount, cancelledCount, totalItems };
      };
 
      const stats = getOrderStats();
@@ -751,17 +712,8 @@ export default function PurchaseOrdersPage() {
                          <div className="card h-100">
                               <div className="card-body text-center">
                                    <RiShoppingCartLine size={32} className="text-secondary mb-2" />
-                                   <h5 className="card-title">{stats.draftCount}</h5>
-                                   <p className="card-text text-muted small">Draft Orders</p>
-                              </div>
-                         </div>
-                    </div>
-                    <div className="col-md-3 mb-3">
-                         <div className="card h-100">
-                              <div className="card-body text-center">
-                                   <RiSendPlaneLine size={32} className="text-primary mb-2" />
-                                   <h5 className="card-title">{stats.orderedCount}</h5>
-                                   <p className="card-text text-muted small">Ordered</p>
+                                   <h5 className="card-title">{stats.orderingCount}</h5>
+                                   <p className="card-text text-muted small">Ordering</p>
                               </div>
                          </div>
                     </div>
@@ -777,30 +729,18 @@ export default function PurchaseOrdersPage() {
                     <div className="col-md-3 mb-3">
                          <div className="card h-100">
                               <div className="card-body text-center">
-                                   <div className="text-info mb-2" style={{ fontSize: '32px' }}>📦</div>
-                                   <h5 className="card-title">{stats.totalItems}</h5>
-                                   <p className="card-text text-muted small">Total Items Ordered</p>
+                                   <div className="text-danger mb-2" style={{ fontSize: '32px' }}>❌</div>
+                                   <h5 className="card-title">{stats.cancelledCount}</h5>
+                                   <p className="card-text text-muted small">Cancelled</p>
                               </div>
                          </div>
                     </div>
-               </div>
-
-               {/* Filters */}
-               <div className="card mb-4">
-                    <div className="card-body">
-                         <div className="row">
-                              <div className="col-md-6">
-                                   <div className="d-flex gap-2">
-                                        <button className="btn btn-outline-secondary btn-sm">
-                                             <RiFilterLine className="me-1" />
-                                             Filter
-                                        </button>
-                                        <div className="ms-auto">
-                                             <span className="text-muted">
-                                                  Orders loaded
-                                             </span>
-                                        </div>
-                                   </div>
+                    <div className="col-md-3 mb-3">
+                         <div className="card h-100">
+                              <div className="card-body text-center">
+                                   <div className="text-info mb-2" style={{ fontSize: '32px' }}>📦</div>
+                                   <h5 className="card-title">{stats.totalItems}</h5>
+                                   <p className="card-text text-muted small">Total Items Ordered</p>
                               </div>
                          </div>
                     </div>
@@ -879,18 +819,6 @@ export default function PurchaseOrdersPage() {
                                                             value={orderForm.expectedDeliveryDate}
                                                             onChange={(e) => setOrderForm(prev => ({ ...prev, expectedDeliveryDate: e.target.value }))}
                                                        />
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Order Status</label>
-                                                       <select
-                                                            className="form-select"
-                                                            value={orderForm.status}
-                                                            onChange={(e) => setOrderForm(prev => ({ ...prev, status: e.target.value as any }))}
-                                                       >
-                                                            <option value="draft">Draft</option>
-                                                            <option value="ordered">Ordered</option>
-                                                            <option value="cancelled">Cancelled</option>
-                                                       </select>
                                                   </div>
                                              </div>
                                              <div className="col-md-6">
@@ -1055,10 +983,17 @@ export default function PurchaseOrdersPage() {
                                                   <p><strong>Supplier:</strong> {selectedOrder.supplierName}</p>
                                                   <p><strong>Contact:</strong> {selectedOrder.supplierContact}</p>
                                                   <p><strong>Email:</strong> {selectedOrder.supplierEmail}</p>
+                                                  {selectedOrder.supplierPhone && <p><strong>Phone:</strong> {selectedOrder.supplierPhone}</p>}
                                                   <p><strong>Status:</strong>
-                                                       <span className={`badge bg-${STATUS_BADGES[selectedOrder.status].color} ms-2`}>
-                                                            {STATUS_BADGES[selectedOrder.status].label}
-                                                       </span>
+                                                       {(() => {
+                                                            const badge = STATUS_BADGES[selectedOrder.status as keyof typeof STATUS_BADGES] || STATUS_BADGES[''];
+                                                            return (
+                                                                 <span className={`badge bg-${badge.color} ms-2`}>
+                                                                      {badge.label}
+                                                                 </span>
+                                                            );
+                                                       })()}
+
                                                   </p>
                                                   <p><strong>Order Date:</strong> {new Date(selectedOrder.orderDate).toLocaleString()}</p>
                                                   <p><strong>Expected Delivery:</strong> {selectedOrder.expectedDeliveryDate ? new Date(selectedOrder.expectedDeliveryDate).toLocaleDateString() : 'Not set'}</p>
@@ -1067,12 +1002,18 @@ export default function PurchaseOrdersPage() {
                                                   )}
                                              </div>
                                              <div className="col-md-6">
+                                                  <p><strong>Total Amount:</strong> {selectedOrder.currency} {selectedOrder.totalAmount.toFixed(2)}</p>
+                                                  <p><strong>Tax Amount:</strong> {selectedOrder.currency} {selectedOrder.taxAmount.toFixed(2)}</p>
+                                                  <p><strong>Discount:</strong> {selectedOrder.currency} {selectedOrder.discountAmount.toFixed(2)}</p>
+                                                  <p><strong>Shipping Cost:</strong> {selectedOrder.currency} {selectedOrder.shippingCost.toFixed(2)}</p>
+                                                  <p><strong>Final Amount:</strong> {selectedOrder.currency} {selectedOrder.finalAmount.toFixed(2)}</p>
                                                   <p><strong>Created By:</strong> {selectedOrder.createdBy}</p>
+                                                  {selectedOrder.approvedBy && <p><strong>Approved By:</strong> {selectedOrder.approvedBy}</p>}
                                                   <p><strong>Email Sent:</strong>
-                                                       {selectedOrder.emailSent ? (
+                                                       {selectedOrder.sentAt ? (
                                                             <span className="text-success">
                                                                  <RiCheckLine size={16} className="me-1" />
-                                                                 {selectedOrder.emailSentDate ? new Date(selectedOrder.emailSentDate).toLocaleString() : 'Yes'}
+                                                                 {new Date(selectedOrder.sentAt).toLocaleString()}
                                                             </span>
                                                        ) : (
                                                             <span className="text-warning">Not sent</span>
@@ -1097,18 +1038,24 @@ export default function PurchaseOrdersPage() {
                                                                       <th>Item Name</th>
                                                                       <th>Brand</th>
                                                                       <th>SKU</th>
-                                                                      <th>Quantity</th>
-                                                                      <th>Unit</th>
+                                                                      <th>Qty Ordered</th>
+                                                                      <th>Qty Received</th>
+                                                                      <th>Unit Price</th>
+                                                                      <th>Line Total</th>
+                                                                      <th>Status</th>
                                                                  </tr>
                                                             </thead>
                                                             <tbody>
-                                                                 {selectedOrder.items.map((item, index) => (
+                                                                 {selectedOrder.items.map((item: any, index) => (
                                                                       <tr key={index}>
-                                                                           <td>{item.itemName}</td>
-                                                                           <td>{item.brand || 'Not specified'}</td>
+                                                                           <td>{item.item_name}</td>
+                                                                           <td>{item.brand_name || 'Not specified'}</td>
                                                                            <td>{item.sku}</td>
-                                                                           <td>{item.quantity}</td>
-                                                                           <td>{item.unit}</td>
+                                                                           <td>{item.quantity_ordered}</td>
+                                                                           <td>{item.quantity_received}</td>
+                                                                           <td>{item.unit_price}</td>
+                                                                           <td>{item.line_total}</td>
+                                                                           <td><span className="badge bg-info">{item.status}</span></td>
                                                                       </tr>
                                                                  ))}
                                                             </tbody>
@@ -1116,7 +1063,7 @@ export default function PurchaseOrdersPage() {
                                                   </div>
                                              ) : (
                                                   <div className="alert alert-info">
-                                                       <small>Full item details are not available in the current view. Total items: {selectedOrder.items_count || 0}</small>
+                                                       <small>No item details available. Total items: {selectedOrder.items_count || 0}</small>
                                                   </div>
                                              )}
                                         </div>
@@ -1129,7 +1076,7 @@ export default function PurchaseOrdersPage() {
                                         >
                                              Close
                                         </button>
-                                        {selectedOrder.status === 'draft' && (
+                                        {selectedOrder.status !== 'received' && selectedOrder.status !== 'cancelled' && (
                                              <button
                                                   type="button"
                                                   className="btn btn-success btn-sm"
@@ -1142,220 +1089,12 @@ export default function PurchaseOrdersPage() {
                                                   Send Email
                                              </button>
                                         )}
-                                        {selectedOrder.status === 'ordered' && (
-                                             <button
-                                                  type="button"
-                                                  className="btn btn-success btn-sm"
-                                                  onClick={() => {
-                                                       handleReceiveOrder(selectedOrder);
-                                                       setSelectedOrder(null);
-                                                  }}
-                                             >
-                                                  <RiCheckLine size={14} className="me-1" />
-                                                  Mark as Received
-                                             </button>
-                                        )}
                                    </div>
                               </div>
                          </div>
                     </div>
                )}
 
-               {/* Receive Items Modal */}
-               {showReceiveModal && receivingOrder && (
-                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                         <div className="modal-dialog modal-xl">
-                              <div className="modal-content">
-                                   <div className="modal-header">
-                                        <h5 className="modal-title">
-                                             Receive Items - {receivingOrder.orderNumber}
-                                        </h5>
-                                        <button
-                                             type="button"
-                                             className="btn-close"
-                                             onClick={() => {
-                                                  setShowReceiveModal(false);
-                                                  setReceivingOrder(null);
-                                             }}
-                                        ></button>
-                                   </div>
-                                   <div className="modal-body">
-                                        <div className="row">
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Invoice Number *</label>
-                                                       <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={receiveForm.invoiceNumber}
-                                                            onChange={(e) => setReceiveForm(prev => ({ ...prev, invoiceNumber: e.target.value }))}
-                                                            placeholder="e.g., INV-2025-0456"
-                                                       />
-                                                  </div>
-                                                  <div className="row">
-                                                       <div className="col-md-6">
-                                                            <div className="mb-3">
-                                                                 <label className="form-label">Received Date *</label>
-                                                                 <input
-                                                                      type="date"
-                                                                      className="form-control"
-                                                                      value={receiveForm.receivedDate}
-                                                                      onChange={(e) => setReceiveForm(prev => ({ ...prev, receivedDate: e.target.value }))}
-                                                                 />
-                                                            </div>
-                                                       </div>
-                                                       <div className="col-md-6">
-                                                            <div className="mb-3">
-                                                                 <label className="form-label">Received Time *</label>
-                                                                 <input
-                                                                      type="time"
-                                                                      className="form-control"
-                                                                      value={receiveForm.receivedTime}
-                                                                      onChange={(e) => setReceiveForm(prev => ({ ...prev, receivedTime: e.target.value }))}
-                                                                 />
-                                                            </div>
-                                                       </div>
-                                                  </div>
-                                             </div>
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Receiving Notes</label>
-                                                       <textarea
-                                                            className="form-control"
-                                                            rows={3}
-                                                            value={receiveForm.notes}
-                                                            onChange={(e) => setReceiveForm(prev => ({ ...prev, notes: e.target.value }))}
-                                                            placeholder="Notes about the delivery, condition of items, etc."
-                                                       />
-                                                  </div>
-                                             </div>
-                                        </div>
-
-                                        <div className="mb-3">
-                                             <label className="form-label">Items Received</label>
-                                             <div className="table-responsive">
-                                                  <table className="table table-sm">
-                                                       <thead>
-                                                            <tr>
-                                                                 <th>Item</th>
-                                                                 <th>Ordered</th>
-                                                                 <th>Received</th>
-                                                                 <th>Unit Price</th>
-                                                                 <th>Batch Number</th>
-                                                                 <th>Expiry Date</th>
-                                                                 <th>Total Value</th>
-                                                            </tr>
-                                                       </thead>
-                                                       <tbody>
-                                                            {receiveForm.items.map((item, index) => (
-                                                                 <tr key={index}>
-                                                                      <td>
-                                                                           <div>
-                                                                                <div className="fw-bold">{item.itemName}</div>
-                                                                                {item.brand && <small className="text-muted">Brand: {item.brand}</small>}
-                                                                                <br />
-                                                                                <small className="text-muted">{item.sku}</small>
-                                                                           </div>
-                                                                      </td>
-                                                                      <td>{item.orderedQuantity} {item.unit}</td>
-                                                                      <td>
-                                                                           <input
-                                                                                type="number"
-                                                                                className="form-control form-control-sm"
-                                                                                style={{ width: '80px' }}
-                                                                                value={item.receivedQuantity}
-                                                                                onChange={(e) => {
-                                                                                     const updatedItems = [...receiveForm.items];
-                                                                                     updatedItems[index].receivedQuantity = parseInt(e.target.value) || 0;
-                                                                                     updatedItems[index].totalValue = updatedItems[index].receivedQuantity * updatedItems[index].unitPrice;
-                                                                                     setReceiveForm(prev => ({ ...prev, items: updatedItems }));
-                                                                                }}
-                                                                                min="0"
-                                                                           />
-                                                                      </td>
-                                                                      <td>
-                                                                           <input
-                                                                                type="number"
-                                                                                className="form-control form-control-sm"
-                                                                                style={{ width: '100px' }}
-                                                                                value={item.unitPrice}
-                                                                                onChange={(e) => {
-                                                                                     const updatedItems = [...receiveForm.items];
-                                                                                     updatedItems[index].unitPrice = parseFloat(e.target.value) || 0;
-                                                                                     updatedItems[index].totalValue = updatedItems[index].receivedQuantity * updatedItems[index].unitPrice;
-                                                                                     setReceiveForm(prev => ({ ...prev, items: updatedItems }));
-                                                                                }}
-                                                                                min="0"
-                                                                                step="0.01"
-                                                                           />
-                                                                      </td>
-                                                                      <td>
-                                                                           <input
-                                                                                type="text"
-                                                                                className="form-control form-control-sm"
-                                                                                style={{ width: '120px' }}
-                                                                                value={item.batchNumber}
-                                                                                onChange={(e) => {
-                                                                                     const updatedItems = [...receiveForm.items];
-                                                                                     updatedItems[index].batchNumber = e.target.value;
-                                                                                     setReceiveForm(prev => ({ ...prev, items: updatedItems }));
-                                                                                }}
-                                                                                placeholder="Batch-001"
-                                                                           />
-                                                                      </td>
-                                                                      <td>
-                                                                           <input
-                                                                                type="date"
-                                                                                className="form-control form-control-sm"
-                                                                                style={{ width: '130px' }}
-                                                                                value={item.expiryDate}
-                                                                                onChange={(e) => {
-                                                                                     const updatedItems = [...receiveForm.items];
-                                                                                     updatedItems[index].expiryDate = e.target.value;
-                                                                                     setReceiveForm(prev => ({ ...prev, items: updatedItems }));
-                                                                                }}
-                                                                           />
-                                                                      </td>
-                                                                      <td className="fw-bold">
-                                                                           ${item.totalValue.toFixed(2)}
-                                                                      </td>
-                                                                 </tr>
-                                                            ))}
-                                                       </tbody>
-                                                       <tfoot>
-                                                            <tr>
-                                                                 <td colSpan={6} className="text-end fw-bold">Total Value:</td>
-                                                                 <td className="fw-bold">${receiveForm.items.reduce((sum, item) => sum + item.totalValue, 0).toFixed(2)}</td>
-                                                            </tr>
-                                                       </tfoot>
-                                                  </table>
-                                             </div>
-                                        </div>
-                                   </div>
-                                   <div className="modal-footer">
-                                        <button
-                                             type="button"
-                                             className="btn btn-secondary btn-sm"
-                                             onClick={() => {
-                                                  setShowReceiveModal(false);
-                                                  setReceivingOrder(null);
-                                             }}
-                                        >
-                                             Cancel
-                                        </button>
-                                        <button
-                                             type="button"
-                                             className="btn btn-success btn-sm"
-                                             onClick={handleProcessReceiving}
-                                        >
-                                             <RiCheckLine size={14} className="me-1" />
-                                             Process Receiving
-                                        </button>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               )}
           </div>
      );
 }
