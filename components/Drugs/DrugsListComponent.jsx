@@ -32,7 +32,7 @@ export default function DrugsListPLSMASTER({ resetEditDrug, handleEditDrug, }) {
 
     const handleDelete = async (id) => {
         try {
-            const response = await customPost(`drugs?id=${id}&&employeeid=${employeeid}`, 'DELETE');
+            const response = await customPost(`drugs?id=${id}&&employeeid=${employeeid}`, 'DELETE', {});
             const { status, message } = response;
 
             if (status) {
@@ -102,14 +102,14 @@ export default function DrugsListPLSMASTER({ resetEditDrug, handleEditDrug, }) {
                     type='button'
                     onClick={fetchDrugs}
                     className='btn btn-outline-light bg-white text-primary border-2'>
-                 <RiRefreshFill/>
+                    <RiRefreshFill />
                 </button>
             </div>
-            <PrimeTable column={columns} 
-               data={drugs}
-               filtering={true}
-               serverSideFiltering={true} 
-               handleSeverSideProcessing={null} />
+            <PrimeTable column={columns}
+                data={drugs}
+                filtering={true}
+                serverSideFiltering={true}
+                handleSeverSideProcessing={null} />
         </div>
     );
 }

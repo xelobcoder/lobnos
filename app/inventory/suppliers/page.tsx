@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { RiTruckLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSearchLine, RiFilterLine, RiDownloadLine, RiUploadLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { toast } from 'react-toastify';
 
 interface Supplier {
      id: string;
@@ -16,7 +18,6 @@ export default function SuppliersPage() {
      const [suppliers, setSuppliers] = useState<Supplier[]>([]);
      const [showAddModal, setShowAddModal] = useState(false);
      const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
-     const [searchTerm, setSearchTerm] = useState('');
      const [loading, setLoading] = useState(false);
 
      // Form states
@@ -27,24 +28,63 @@ export default function SuppliersPage() {
           phone: ''
      });
 
-     // Mock data for demonstration
+     // Load suppliers from API
      useEffect(() => {
-          const mockSuppliers: Supplier[] = [
-               { id: '1', name: 'LabCorp Supplies', contact: 'John Smith', email: 'orders@labcorp.com', phone: '+1-555-0101' },
-               { id: '2', name: 'MediTech Inc', contact: 'Sarah Johnson', email: 'sales@meditech.com', phone: '+1-555-0102' },
-               { id: '3', name: 'ChemSolutions Ltd', contact: 'Mike Davis', email: 'info@chemsolutions.com', phone: '+1-555-0103' },
-               { id: '4', name: 'BioReagents Corp', contact: 'Lisa Chen', email: 'contact@bioreagents.com', phone: '+1-555-0104' },
-               { id: '5', name: 'MedEquip Solutions', contact: 'David Wilson', email: 'orders@medequip.com', phone: '+1-555-0105' }
-          ];
-
-          setSuppliers(mockSuppliers);
+          loadSuppliers();
      }, []);
 
-     const filteredSuppliers = suppliers.filter(supplier =>
-          supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          supplier.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          supplier.email.toLowerCase().includes(searchTerm.toLowerCase())
-     );
+     const loadSuppliers = async () => {
+          try {
+               setLoading(true);
+               const response = await customFetch('inventory/suppliers');
+               // customFetch returns parsed JSON. Normalize possible shapes.
+               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
+               const mappedSuppliers = (data || []).map((sup: any) => ({
+                    id: sup.id?.toString() || String(sup.id),
+                    name: sup.name,
+                    contact: sup.contact_person || sup.contact,
+                    email: sup.email,
+                    phone: sup.phone
+               }));
+               setSuppliers(mappedSuppliers);
+          } catch (error) {
+               console.error('Error loading suppliers:', error);
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleServerSideProcessing = async ({ page, count, sortby = 'ASC' }: { page: number; count: number; sortby?: string }) => {
+          try {
+               // Build query parameters for server-side filtering
+               const params = new URLSearchParams({
+                    page: page.toString(),
+                    count: count.toString(),
+               });
+
+               if (sortby) {
+                    params.append('sortby', sortby);
+               }
+
+               const endpoint = `inventory/suppliers?${params.toString()}`;
+               const response = await customFetch(endpoint);
+
+               // Normalize response format
+               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
+               const mappedSuppliers = (data || []).map((sup: any) => ({
+                    id: sup.id?.toString() || String(sup.id),
+                    name: sup.name,
+                    contact: sup.contact_person || sup.contact,
+                    email: sup.email,
+                    phone: sup.phone
+               }));
+
+               return { result: mappedSuppliers, error: false };
+          } catch (error) {
+               console.error('Error in server-side processing:', error);
+               return { result: [], error: true };
+          }
+     };
 
      const supplierColumns = [
           {
@@ -104,23 +144,38 @@ export default function SuppliersPage() {
           }
      ];
 
-     const handleAddSupplier = () => {
+     const handleAddSupplier = async () => {
           if (!supplierForm.name || !supplierForm.email) {
                alert('Please fill in name and email');
                return;
           }
 
-          const newSupplier: Supplier = {
-               id: Date.now().toString(),
-               name: supplierForm.name,
-               contact: supplierForm.contact,
-               email: supplierForm.email,
-               phone: supplierForm.phone
-          };
+          try {
+               setLoading(true);
+               const supplierData = {
+                    name: supplierForm.name,
+                    contact: supplierForm.contact,
+                    email: supplierForm.email,
+                    phone: supplierForm.phone
+               };
 
-          setSuppliers(prev => [...prev, newSupplier]);
-          setShowAddModal(false);
-          setSupplierForm({ name: '', contact: '', email: '', phone: '' });
+               const resp = await customPost('inventory/suppliers', 'POST', supplierData);
+               // API may return { success: boolean, error: { message } } or { status: 'success' }
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Supplier added');
+                    await loadSuppliers(); // Reload suppliers
+                    setShowAddModal(false);
+                    setSupplierForm({ name: '', contact: '', email: '', phone: '' });
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to add supplier';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error adding supplier:', error);
+               alert('Error adding supplier');
+          } finally {
+               setLoading(false);
+          }
      };
 
      const handleEditSupplier = (supplier: Supplier) => {
@@ -134,33 +189,58 @@ export default function SuppliersPage() {
           setShowAddModal(true);
      };
 
-     const handleUpdateSupplier = () => {
-          if (!supplierForm.name || !supplierForm.email) {
-               alert('Please fill in name and email');
+     const handleUpdateSupplier = async () => {
+          if (!supplierForm.name || !supplierForm.email || !selectedSupplier) {
+               alert('Please fill in all required fields');
                return;
           }
 
-          if (!selectedSupplier) return;
+          try {
+               setLoading(true);
+               const supplierData = {
+                    name: supplierForm.name,
+                    contact: supplierForm.contact,
+                    email: supplierForm.email,
+                    phone: supplierForm.phone
+               };
 
-          const updatedSupplier: Supplier = {
-               ...selectedSupplier,
-               name: supplierForm.name,
-               contact: supplierForm.contact,
-               email: supplierForm.email,
-               phone: supplierForm.phone
-          };
-
-          setSuppliers(prev => prev.map(sup =>
-               sup.id === selectedSupplier.id ? updatedSupplier : sup
-          ));
-          setShowAddModal(false);
-          setSelectedSupplier(null);
-          setSupplierForm({ name: '', contact: '', email: '', phone: '' });
+               const resp = await customPost(`inventory/suppliers/${selectedSupplier.id}`, 'PUT', supplierData);
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Supplier updated');
+                    await loadSuppliers(); // Reload suppliers
+                    setShowAddModal(false);
+                    setSelectedSupplier(null);
+                    setSupplierForm({ name: '', contact: '', email: '', phone: '' });
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to update supplier';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error updating supplier:', error);
+               alert('Error updating supplier');
+          } finally {
+               setLoading(false);
+          }
      };
 
-     const handleDeleteSupplier = (supplierId: string) => {
-          if (confirm('Are you sure you want to delete this supplier?')) {
-               setSuppliers(prev => prev.filter(sup => sup.id !== supplierId));
+     const handleDeleteSupplier = async (supplierId: string) => {
+          if (!confirm('Are you sure you want to delete this supplier?')) return;
+
+          try {
+               setLoading(true);
+               const resp = await customPost(`inventory/suppliers/${supplierId}`, 'DELETE', {});
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Supplier deleted');
+                    await loadSuppliers(); // Reload suppliers
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to delete supplier';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error deleting supplier:', error);
+               alert('Error deleting supplier');
+          } finally {
+               setLoading(false);
           }
      };
 
@@ -199,48 +279,13 @@ export default function SuppliersPage() {
                     </div>
                </div>
 
-               {/* Search and Filter Bar */}
-               <div className="card mb-4">
-                    <div className="card-body">
-                         <div className="row g-3">
-                              <div className="col-md-6">
-                                   <div className="input-group">
-                                        <span className="input-group-text">
-                                             <RiSearchLine />
-                                        </span>
-                                        <input
-                                             type="text"
-                                             className="form-control"
-                                             placeholder="Search suppliers..."
-                                             value={searchTerm}
-                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
-                                   </div>
-                              </div>
-                              <div className="col-md-6">
-                                   <div className="d-flex gap-2">
-                                        <button className="btn btn-outline-secondary btn-sm">
-                                             <RiFilterLine className="me-1" />
-                                             Filter
-                                        </button>
-                                        <div className="ms-auto">
-                                             <span className="text-muted">
-                                                  Showing {filteredSuppliers.length} of {suppliers.length} suppliers
-                                             </span>
-                                        </div>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               </div>
-
-               {/* Suppliers Table */}
+             
                <PrimeTable
                     column={supplierColumns}
-                    data={filteredSuppliers}
+                    data={suppliers}
                     filtering={true}
-                    handleSeverSideProcessing={false}
-                    serverSideFiltering={false}
+                    handleSeverSideProcessing={handleServerSideProcessing}
+                    serverSideFiltering={true}
                />
 
                {/* Empty State */}
@@ -366,42 +411,22 @@ export default function SuppliersPage() {
                                         <div className="row">
                                              <div className="col-md-6">
                                                   <div className="mb-3">
-                                                       <label className="form-label">Supplier Name</label>
-                                                       <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={selectedSupplier.name}
-                                                            readOnly
-                                                       />
+                                                       <label className="form-label fw-bold small">Supplier Name</label>
+                                                       <p className="mb-0 small text-muted">{selectedSupplier.name}</p>
                                                   </div>
                                                   <div className="mb-3">
-                                                       <label className="form-label">Contact Person</label>
-                                                       <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={selectedSupplier.contact}
-                                                            readOnly
-                                                       />
+                                                       <label className="form-label fw-bold small">Contact Person</label>
+                                                       <p className="mb-0 small text-muted">{selectedSupplier.contact || 'Not specified'}</p>
                                                   </div>
                                              </div>
                                              <div className="col-md-6">
                                                   <div className="mb-3">
-                                                       <label className="form-label">Email</label>
-                                                       <input
-                                                            type="email"
-                                                            className="form-control"
-                                                            value={selectedSupplier.email}
-                                                            readOnly
-                                                       />
+                                                       <label className="form-label fw-bold small">Email</label>
+                                                       <p className="mb-0 small text-muted">{selectedSupplier.email}</p>
                                                   </div>
                                                   <div className="mb-3">
-                                                       <label className="form-label">Phone</label>
-                                                       <input
-                                                            type="tel"
-                                                            className="form-control"
-                                                            value={selectedSupplier.phone}
-                                                            readOnly
-                                                       />
+                                                       <label className="form-label fw-bold small">Phone</label>
+                                                       <p className="mb-0 small text-muted">{selectedSupplier.phone || 'Not specified'}</p>
                                                   </div>
                                              </div>
                                         </div>
@@ -423,17 +448,6 @@ export default function SuppliersPage() {
                                              onClick={() => setSelectedSupplier(null)}
                                         >
                                              Close
-                                        </button>
-                                        <button
-                                             type="button"
-                                             className="btn btn-primary btn-sm"
-                                             onClick={() => {
-                                                  setSelectedSupplier(null);
-                                                  handleEditSupplier(selectedSupplier);
-                                             }}
-                                        >
-                                             <RiEditLine size={14} className="me-1" />
-                                             Edit Supplier
                                         </button>
                                    </div>
                               </div>

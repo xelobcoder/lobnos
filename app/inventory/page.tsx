@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { RiArchiveLine, RiSearchLine, RiFilterLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiDownloadLine, RiUploadLine, RiAlertLine, RiCheckLine, RiCloseLine, RiTimeLine, RiShoppingCartLine, RiStoreLine, RiBox3Line, RiPriceTagLine, RiTruckLine, RiCameraLine, RiTestTubeLine, RiFileTextLine, RiHistoryLine, RiSubtractLine } from '@remixicon/react';
+import { RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiDownloadLine, RiUploadLine, RiAlertLine, RiCheckLine, RiCloseLine, RiStoreLine, RiBox3Line, RiPriceTagLine, RiCameraLine } from '@remixicon/react';
 import PrimeTable from '../../components/accessories/Datatables/PrimeTable';
+import { customFetch, customPost } from '../../components/Auth/customFetch';
+import { toast } from 'react-toastify';
 
 
 interface InventoryItem {
@@ -46,17 +48,6 @@ const STATUS_BADGES = {
      expired: { label: 'Expired', color: 'secondary' }
 };
 
-const CATEGORIES = [
-     'Reagents & Chemicals',
-     'Consumables',
-     'Equipment',
-     'Glassware',
-     'PPE',
-     'Media & Buffers',
-     'Standards & Controls',
-     'Other'
-];
-
 export default function InventoryPage() {
      const [activeTab, setActiveTab] = useState<'overview' | 'items' | 'categories'>('overview');
      const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
@@ -99,99 +90,76 @@ export default function InventoryPage() {
           phone: ''
      });
 
-     // Mock data for demonstration
+     // Load data from API
      useEffect(() => {
-          const mockItems: InventoryItem[] = [
-               {
-                    id: '1',
-                    name: 'Blood Collection Tubes (EDTA)',
-                    category: 'Consumables',
-                    supplier: 'LabCorp Supplies',
-                    sku: 'BCT-001-EDTA',
-                    description: '10mL EDTA blood collection tubes',
-                    unit: 'boxes',
-                    currentStock: 25,
-                    minStock: 10,
-                    maxStock: 100,
-                    unitPrice: 45.50,
-                    totalValue: 1142.50,
-                    location: 'Storage Room A',
-                    expiryDate: '2026-06-15',
-                    lastUpdated: '2025-11-09T10:00:00Z',
-                    status: 'in_stock'
-               },
-               {
-                    id: '2',
-                    name: 'Glucose Test Strips',
-                    category: 'Consumables',
-                    supplier: 'MediTech Inc',
-                    sku: 'GTS-050',
-                    description: 'Glucose test strips - 50 count',
-                    unit: 'boxes',
-                    currentStock: 5,
-                    minStock: 15,
-                    maxStock: 50,
-                    unitPrice: 25.00,
-                    totalValue: 125.00,
-                    location: 'Storage Room B',
-                    expiryDate: '2025-12-01',
-                    lastUpdated: '2025-11-08T14:30:00Z',
-                    status: 'low_stock'
-               },
-               {
-                    id: '3',
-                    name: 'Sodium Chloride 0.9%',
-                    category: 'Reagents & Chemicals',
-                    supplier: 'ChemSolutions Ltd',
-                    sku: 'NaCl-09-500',
-                    description: '500mL bottles of 0.9% NaCl solution',
-                    unit: 'bottles',
-                    currentStock: 0,
-                    minStock: 20,
-                    maxStock: 200,
-                    unitPrice: 8.75,
-                    totalValue: 0,
-                    location: 'Chemical Storage',
-                    expiryDate: '2026-03-20',
-                    lastUpdated: '2025-11-07T09:15:00Z',
-                    status: 'out_of_stock'
-               },
-               {
-                    id: '4',
-                    name: 'Microcentrifuge Tubes',
-                    category: 'Consumables',
-                    supplier: 'LabEssentials',
-                    sku: 'MCT-15-500',
-                    description: '1.5mL microcentrifuge tubes, 500 pack',
-                    unit: 'packs',
-                    currentStock: 8,
-                    minStock: 5,
-                    maxStock: 30,
-                    unitPrice: 12.50,
-                    totalValue: 100.00,
-                    location: 'Storage Room A',
-                    lastUpdated: '2025-11-06T16:45:00Z',
-                    status: 'in_stock'
-               }
-          ];
-
-          const mockCategories: InventoryCategory[] = [
-               { id: '1', name: 'Consumables', description: 'Disposable lab supplies', itemCount: 25 },
-               { id: '2', name: 'Reagents & Chemicals', description: 'Chemical reagents and solutions', itemCount: 15 },
-               { id: '3', name: 'Equipment', description: 'Lab equipment and instruments', itemCount: 8 },
-               { id: '4', name: 'PPE', description: 'Personal protective equipment', itemCount: 12 }
-          ];
-
-          const mockSuppliers: Supplier[] = [
-               { id: '1', name: 'LabCorp Supplies', contact: 'John Smith', email: 'orders@labcorp.com', phone: '+1-555-0101' },
-               { id: '2', name: 'MediTech Inc', contact: 'Sarah Johnson', email: 'sales@meditech.com', phone: '+1-555-0102' },
-               { id: '3', name: 'ChemSolutions Ltd', contact: 'Mike Davis', email: 'info@chemsolutions.com', phone: '+1-555-0103' }
-          ];
-
-          setInventoryItems(mockItems);
-          setCategories(mockCategories);
-          setSuppliers(mockSuppliers);
+          loadInventoryItems();
+          loadCategories();
+          loadSuppliers();
      }, []);
+
+     const loadInventoryItems = async () => {
+          try {
+               setLoading(true);
+               const response = await customFetch('inventory/items');
+               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
+               const mappedItems = (data || []).map((item: any) => ({
+                    id: item.id?.toString() || String(item.id),
+                    name: item.name,
+                    category: item.category_name || item.category,
+                    supplier: item.supplier_name || item.supplier,
+                    sku: item.sku,
+                    description: item.description,
+                    unit: item.unit,
+                    currentStock: item.current_stock || item.currentStock || 0,
+                    minStock: item.min_stock || item.minStock || 0,
+                    maxStock: item.max_stock || item.maxStock || 0,
+                    unitPrice: item.unit_price || item.unitPrice || 0,
+                    totalValue: item.total_value || item.totalValue || 0,
+                    location: item.location,
+                    expiryDate: item.expiry_date,
+                    lastUpdated: item.updated_at,
+                    status: item.status
+               }));
+               setInventoryItems(mappedItems);
+          } catch (error) {
+               console.error('Error loading inventory items:', error);
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const loadCategories = async () => {
+          try {
+               const response = await customFetch('inventory/categories');
+               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
+               const mappedCategories = (data || []).map((cat: any) => ({
+                    id: cat.id?.toString() || String(cat.id),
+                    name: cat.name,
+                    description: cat.description,
+                    itemCount: cat.item_count || cat.itemCount || 0
+               }));
+               setCategories(mappedCategories);
+          } catch (error) {
+               console.error('Error loading categories:', error);
+          }
+     };
+
+     const loadSuppliers = async () => {
+          try {
+               const response = await customFetch('inventory/suppliers');
+               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
+               const mappedSuppliers = (data || []).map((sup: any) => ({
+                    id: sup.id?.toString() || String(sup.id),
+                    name: sup.name,
+                    contact: sup.contact_person || sup.contact,
+                    email: sup.email,
+                    phone: sup.phone
+               }));
+               setSuppliers(mappedSuppliers);
+          } catch (error) {
+               console.error('Error loading suppliers:', error);
+          }
+     };
 
      const inventoryColumns = [
           {
@@ -283,35 +251,45 @@ export default function InventoryPage() {
           return { totalItems, totalValue, lowStockItems, outOfStockItems, expiredItems };
      };
 
-     const handleAddItem = () => {
+     const handleAddItem = async () => {
           if (!itemForm.name || !itemForm.category || !itemForm.sku) {
                alert('Please fill in all required fields');
                return;
           }
 
-          const newItem: InventoryItem = {
-               id: Date.now().toString(),
-               name: itemForm.name,
-               category: itemForm.category,
-               supplier: itemForm.supplier,
-               sku: itemForm.sku,
-               description: itemForm.description,
-               unit: itemForm.unit,
-               currentStock: itemForm.currentStock,
-               minStock: itemForm.minStock,
-               maxStock: itemForm.maxStock,
-               unitPrice: itemForm.unitPrice,
-               totalValue: itemForm.currentStock * itemForm.unitPrice,
-               location: itemForm.location,
-               expiryDate: itemForm.expiryDate || undefined,
-               lastUpdated: new Date().toISOString(),
-               status: itemForm.currentStock === 0 ? 'out_of_stock' :
-                    itemForm.currentStock <= itemForm.minStock ? 'low_stock' : 'in_stock'
-          };
+          try {
+               setLoading(true);
+               const itemData = {
+                    name: itemForm.name,
+                    category_name: itemForm.category,
+                    supplier_name: itemForm.supplier,
+                    sku: itemForm.sku,
+                    description: itemForm.description,
+                    unit: itemForm.unit,
+                    current_stock: itemForm.currentStock,
+                    min_stock: itemForm.minStock,
+                    max_stock: itemForm.maxStock,
+                    unit_price: itemForm.unitPrice,
+                    location: itemForm.location,
+                    expiry_date: itemForm.expiryDate || null
+               };
 
-          setInventoryItems(prev => [...prev, newItem]);
-          setShowAddModal(false);
-          resetItemForm();
+               const resp = await customPost('inventory/items', 'POST', itemData);
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Item added');
+                    await loadInventoryItems(); // Reload items
+                    setShowAddModal(false);
+                    resetItemForm();
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to add item';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error adding item:', error);
+               alert('Error adding item');
+          } finally {
+               setLoading(false);
+          }
      };
 
      const handleEditItem = (item: InventoryItem) => {
@@ -329,50 +307,135 @@ export default function InventoryPage() {
                location: item.location,
                expiryDate: item.expiryDate || ''
           });
+          setSelectedItem(item);
           setShowAddModal(true);
      };
 
-     const handleDeleteItem = (itemId: string) => {
-          if (confirm('Are you sure you want to delete this item?')) {
-               setInventoryItems(prev => prev.filter(item => item.id !== itemId));
+     const handleUpdateItem = async () => {
+          if (!selectedItem || !itemForm.name || !itemForm.category || !itemForm.sku) {
+               alert('Please fill in all required fields');
+               return;
+          }
+
+          try {
+               setLoading(true);
+               const itemData = {
+                    name: itemForm.name,
+                    category_name: itemForm.category,
+                    supplier_name: itemForm.supplier,
+                    sku: itemForm.sku,
+                    description: itemForm.description,
+                    unit: itemForm.unit,
+                    current_stock: itemForm.currentStock,
+                    min_stock: itemForm.minStock,
+                    max_stock: itemForm.maxStock,
+                    unit_price: itemForm.unitPrice,
+                    location: itemForm.location,
+                    expiry_date: itemForm.expiryDate || null
+               };
+
+               const resp = await customPost(`inventory/items/${selectedItem.id}`, 'PUT', itemData);
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Item updated');
+                    await loadInventoryItems(); // Reload items
+                    setShowAddModal(false);
+                    setSelectedItem(null);
+                    resetItemForm();
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to update item';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error updating item:', error);
+               alert('Error updating item');
+          } finally {
+               setLoading(false);
           }
      };
 
-     const handleAddCategory = () => {
+     const handleDeleteItem = async (itemId: string) => {
+          if (!confirm('Are you sure you want to delete this item?')) return;
+
+          try {
+               setLoading(true);
+               const resp = await customPost(`inventory/items/${itemId}`, 'DELETE', {});
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Item deleted');
+                    await loadInventoryItems(); // Reload items
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to delete item';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error deleting item:', error);
+               alert('Error deleting item');
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleAddCategory = async () => {
           if (!categoryForm.name) {
                alert('Please enter a category name');
                return;
           }
 
-          const newCategory: InventoryCategory = {
-               id: Date.now().toString(),
-               name: categoryForm.name,
-               description: categoryForm.description,
-               itemCount: 0
-          };
+          try {
+               setLoading(true);
+               const categoryData = {
+                    name: categoryForm.name,
+                    description: categoryForm.description
+               };
 
-          setCategories(prev => [...prev, newCategory]);
-          setShowCategoryModal(false);
-          setCategoryForm({ name: '', description: '' });
+               const resp = await customPost('inventory/categories', 'POST', categoryData);
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Category added');
+                    await loadCategories(); // Reload categories
+                    setShowCategoryModal(false);
+                    setCategoryForm({ name: '', description: '' });
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to add category';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error adding category:', error);
+               alert('Error adding category');
+          } finally {
+               setLoading(false);
+          }
      };
 
-     const handleAddSupplier = () => {
+     const handleAddSupplier = async () => {
           if (!supplierForm.name || !supplierForm.email) {
                alert('Please fill in name and email');
                return;
           }
 
-          const newSupplier: Supplier = {
-               id: Date.now().toString(),
-               name: supplierForm.name,
-               contact: supplierForm.contact,
-               email: supplierForm.email,
-               phone: supplierForm.phone
-          };
+          try {
+               setLoading(true);
+               const supplierData = {
+                    name: supplierForm.name,
+                    contact: supplierForm.contact,
+                    email: supplierForm.email,
+                    phone: supplierForm.phone
+               };
 
-          setSuppliers(prev => [...prev, newSupplier]);
-          setShowSupplierModal(false);
-          setSupplierForm({ name: '', contact: '', email: '', phone: '' });
+               const resp = await customPost('inventory/suppliers', 'POST', supplierData);
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Supplier added');
+                    await loadSuppliers(); // Reload suppliers
+                    setShowSupplierModal(false);
+                    setSupplierForm({ name: '', contact: '', email: '', phone: '' });
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to add supplier';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error adding supplier:', error);
+               alert('Error adding supplier');
+          } finally {
+               setLoading(false);
+          }
      };
 
      const resetItemForm = () => {
@@ -581,8 +644,8 @@ export default function InventoryPage() {
                                    column={inventoryColumns}
                                    data={inventoryItems}
                                    filtering={true}
-                                   handleSeverSideProcessing={false}
-                                   serverSideFiltering={false}
+                                   handleSeverSideProcessing={true}
+                                   serverSideFiltering={true}
                               />
                          </div>
                     </div>
@@ -655,8 +718,8 @@ export default function InventoryPage() {
                                                             onChange={(e) => setItemForm(prev => ({ ...prev, category: e.target.value }))}
                                                        >
                                                             <option value="">Select category</option>
-                                                            {CATEGORIES.map(category => (
-                                                                 <option key={category} value={category}>{category}</option>
+                                                            {categories.map(category => (
+                                                                 <option key={category.id} value={category.name}>{category.name}</option>
                                                             ))}
                                                        </select>
                                                   </div>
@@ -781,16 +844,21 @@ export default function InventoryPage() {
                                         <button
                                              type="button"
                                              className="btn btn-secondary btn-sm"
-                                             onClick={() => setShowAddModal(false)}
+                                             onClick={() => {
+                                                  setShowAddModal(false);
+                                                  setSelectedItem(null);
+                                                  resetItemForm();
+                                             }}
                                         >
                                              Cancel
                                         </button>
                                         <button
                                              type="button"
                                              className="btn btn-primary btn-sm"
-                                             onClick={handleAddItem}
+                                             onClick={selectedItem ? handleUpdateItem : handleAddItem}
+                                             disabled={loading}
                                         >
-                                             Add Item
+                                             {loading ? 'Saving...' : selectedItem ? 'Update Item' : 'Add Item'}
                                         </button>
                                    </div>
                               </div>

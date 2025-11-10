@@ -40,11 +40,6 @@ export const InventoryLinks: Link[] = [
           icon: <RiTruckLine />
      },
      {
-          title: "Brands",
-          link: "/inventory/brands",
-          icon: <RiTrademarkLine />
-     },
-     {
           title: "Purchase Orders",
           link: "/inventory/orders",
           icon: <RiShoppingCartLine />
@@ -63,19 +58,6 @@ export const InventoryLinks: Link[] = [
           title: "Transactions",
           link: "/inventory/transactions",
           icon: <RiHistoryLine />
-     },
-     {
-          title: "Management",
-          link: "",
-          icon: <RiStoreLine />,
-          children: [
-               { title: "Add Item", link: "/inventory/add-item", icon: <RiAddLine /> },
-               { title: "Add Category", link: "/inventory/add-category", icon: <RiPriceTagLine /> },
-               { title: "Add Supplier", link: "/inventory/add-supplier", icon: <RiTruckLine /> },
-               { title: "Add Brand", link: "/inventory/add-brand", icon: <RiTrademarkLine /> },
-               { title: "Create Template", link: "/inventory/create-template", icon: <RiTestTubeLine /> },
-               { title: "Record Transaction", link: "/inventory/record-transaction", icon: <RiSubtractLine /> }
-          ]
      },
      {
           title: "Data Operations",

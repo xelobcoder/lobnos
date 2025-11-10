@@ -32,7 +32,7 @@ export default function DrugCategoryTable({ handleEditCategory }) {
             setLoading(true);
             setError(null);
             try {
-                await customPost(`drugsCategory/:${id}`, 'DELETE');
+                await customPost(`drugsCategory/:${id}`, 'DELETE', {});
                 fetchDrugCategories();
             } catch (error) {
                 console.error('Error deleting drug category:', error);

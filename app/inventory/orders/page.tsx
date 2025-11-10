@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { RiShoppingCartLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSendPlaneLine, RiCheckLine, RiMailLine, RiDownloadLine, RiFilterLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { toast } from 'react-toastify';
 
 interface Supplier {
      id: string;
@@ -78,17 +80,33 @@ interface PurchaseOrder {
      supplierName: string;
      supplierEmail: string;
      supplierContact: string;
+     supplierPhone?: string;
+     supplierAddress?: string;
      items: OrderItem[];
      status: 'draft' | 'ordered' | 'partially_received' | 'received' | 'cancelled';
      orderDate: string;
      expectedDeliveryDate?: string;
      actualDeliveryDate?: string;
+     totalAmount: number;
+     taxAmount: number;
+     discountAmount: number;
+     shippingCost: number;
+     finalAmount: number;
+     currency: string;
+     paymentTerms?: string;
      notes?: string;
      createdBy: string;
+     approvedBy?: string;
+     approvedAt?: string;
+     sentAt?: string;
      emailSent: boolean;
      emailSentDate?: string;
      communicationMethod?: 'email' | 'phone_call' | 'whatsapp' | 'pdf_attachment' | 'in_person' | 'fax' | 'other';
      communicationNotes?: string;
+     items_count?: number;
+     received_items_count?: number;
+     createdAt: string;
+     updatedAt: string;
 }
 
 const STATUS_BADGES = {
@@ -136,174 +154,144 @@ export default function PurchaseOrdersPage() {
           communicationNotes: ''
      });
 
-     // Mock data for demonstration
+     // Load data from APIs
+     const loadSuppliers = async () => {
+          try {
+               const response = await customFetch('inventory/suppliers');
+               if (response.success) {
+                    setSuppliers(response.data || []);
+               }
+          } catch (err) {
+               console.error('Error loading suppliers:', err);
+          }
+     };
+
+     const loadInventoryItems = async () => {
+          try {
+               const response = await customFetch('inventory/items');
+               if (response.success) {
+                    setInventoryItems(response.data || []);
+               }
+          } catch (err) {
+               console.error('Error loading inventory items:', err);
+          }
+     };
+
+     const loadPurchaseOrders = async () => {
+          try {
+               setLoading(true);
+               const response = await customFetch('inventory/orders');
+               if (response.success) {
+                    // Transform API response to match interface
+                    const transformedOrders = response.data.orders.map((order: any) => ({
+                         id: order.id,
+                         orderNumber: order.order_number,
+                         supplierId: order.supplier_id,
+                         supplierName: order.supplier_name,
+                         supplierEmail: order.supplier_email,
+                         supplierContact: order.supplier_contact,
+                         supplierPhone: order.supplier_phone,
+                         supplierAddress: order.supplier_address,
+                         items: [], // Not provided in current API response
+                         status: order.status,
+                         orderDate: order.order_date,
+                         expectedDeliveryDate: order.expected_delivery_date,
+                         actualDeliveryDate: order.actual_delivery_date,
+                         totalAmount: order.total_amount,
+                         taxAmount: order.tax_amount,
+                         discountAmount: order.discount_amount,
+                         shippingCost: order.shipping_cost,
+                         finalAmount: order.final_amount,
+                         currency: order.currency,
+                         paymentTerms: order.payment_terms,
+                         notes: order.notes,
+                         createdBy: order.created_by,
+                         approvedBy: order.approved_by,
+                         approvedAt: order.approved_at,
+                         sentAt: order.sent_at,
+                         emailSent: false, // Will be determined by sent_at
+                         emailSentDate: order.sent_at,
+                         communicationMethod: 'email', // Default
+                         communicationNotes: '',
+                         items_count: order.items_count,
+                         received_items_count: order.received_items_count,
+                         createdAt: order.created_at,
+                         updatedAt: order.updated_at
+                    }));
+                    setPurchaseOrders(transformedOrders);
+               }
+          } catch (err) {
+               console.error('Error loading purchase orders:', err);
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleServerSideProcessing = async ({ page, count, sortby = 'DESC' }: { page: number; count: number; sortby?: string }) => {
+          try {
+               // Build query parameters for server-side filtering
+               const params = new URLSearchParams({
+                    page: page.toString(),
+                    count: count.toString(),
+                    sortby: sortby
+               });
+
+               const endpoint = `inventory/orders?${params.toString()}`;
+               const response = await customFetch(endpoint);
+
+               if (response.success) {
+                    // Transform API response to match interface
+                    const transformedOrders = response.data.orders.map((order: any) => ({
+                         id: order.id,
+                         orderNumber: order.order_number,
+                         supplierId: order.supplier_id,
+                         supplierName: order.supplier_name,
+                         supplierEmail: order.supplier_email,
+                         supplierContact: order.supplier_contact,
+                         supplierPhone: order.supplier_phone,
+                         supplierAddress: order.supplier_address,
+                         items: [], // Not provided in current API response
+                         status: order.status,
+                         orderDate: order.order_date,
+                         expectedDeliveryDate: order.expected_delivery_date,
+                         actualDeliveryDate: order.actual_delivery_date,
+                         totalAmount: order.total_amount,
+                         taxAmount: order.tax_amount,
+                         discountAmount: order.discount_amount,
+                         shippingCost: order.shipping_cost,
+                         finalAmount: order.final_amount,
+                         currency: order.currency,
+                         paymentTerms: order.payment_terms,
+                         notes: order.notes,
+                         createdBy: order.created_by,
+                         approvedBy: order.approved_by,
+                         approvedAt: order.approved_at,
+                         sentAt: order.sent_at,
+                         emailSent: false, // Will be determined by sent_at
+                         emailSentDate: order.sent_at,
+                         communicationMethod: 'email', // Default
+                         communicationNotes: '',
+                         items_count: order.items_count,
+                         received_items_count: order.received_items_count,
+                         createdAt: order.created_at,
+                         updatedAt: order.updated_at
+                    }));
+                    return { result: transformedOrders, error: false };
+               } else {
+                    return { result: [], error: true };
+               }
+          } catch (error) {
+               console.error('Error in server-side processing:', error);
+               return { result: [], error: true };
+          }
+     };
+
+     // Load all data on component mount
      useEffect(() => {
-          const mockSuppliers: Supplier[] = [
-               { id: '1', name: 'LabCorp Supplies', contact: 'John Smith', email: 'orders@labcorp.com', phone: '+1-555-0101' },
-               { id: '2', name: 'MediTech Inc', contact: 'Sarah Johnson', email: 'sales@meditech.com', phone: '+1-555-0102' },
-               { id: '3', name: 'ChemSolutions Ltd', contact: 'Mike Davis', email: 'info@chemsolutions.com', phone: '+1-555-0103' },
-               { id: '4', name: 'BioReagents Corp', contact: 'Lisa Chen', email: 'contact@bioreagents.com', phone: '+1-555-0104' },
-               { id: '5', name: 'MedEquip Solutions', contact: 'David Wilson', email: 'orders@medequip.com', phone: '+1-555-0105' }
-          ];
-
-          const mockItems: InventoryItem[] = [
-               {
-                    id: '1',
-                    name: 'Blood Collection Tubes (EDTA)',
-                    category: 'Consumables',
-                    brand: 'Vacuette', // Brand example
-                    supplier: 'LabCorp Supplies',
-                    sku: 'BCT-001-EDTA',
-                    description: '10mL EDTA blood collection tubes',
-                    unit: 'boxes',
-                    batches: [
-                         {
-                              id: 'batch-1',
-                              batchNumber: 'BCT-EDTA-001',
-                              quantity: 15,
-                              unitPrice: 45.50,
-                              totalValue: 682.50,
-                              expiryDate: '2026-06-15',
-                              supplierId: '1',
-                              supplierName: 'LabCorp Supplies',
-                              receivedDate: '2025-10-15T10:00:00Z',
-                              purchaseOrderNumber: 'PO-2025-001',
-                              invoiceNumber: 'INV-2025-001'
-                         },
-                         {
-                              id: 'batch-2',
-                              batchNumber: 'BCT-EDTA-002',
-                              quantity: 10,
-                              unitPrice: 46.00,
-                              totalValue: 460.00,
-                              expiryDate: '2026-08-20',
-                              supplierId: '2',
-                              supplierName: 'MediTech Inc',
-                              receivedDate: '2025-11-01T14:30:00Z',
-                              purchaseOrderNumber: 'PO-2025-003',
-                              invoiceNumber: 'INV-2025-003'
-                         }
-                    ],
-                    currentStock: 25, // Calculated from batches
-                    minStock: 10,
-                    maxStock: 100,
-                    unitPrice: 45.75, // Average price
-                    totalValue: 1142.50, // Calculated from batches
-                    location: 'Storage Room A',
-                    expiryDate: '2026-06-15', // Earliest expiry
-                    lastUpdated: '2025-11-09T10:00:00Z',
-                    status: 'in_stock'
-               },
-               {
-                    id: '2',
-                    name: 'Glucose Test Strips',
-                    category: 'Consumables',
-                    brand: 'Accu-Chek', // Brand example
-                    supplier: 'MediTech Inc',
-                    sku: 'GTS-050',
-                    description: 'Glucose test strips - 50 count',
-                    unit: 'boxes',
-                    batches: [
-                         {
-                              id: 'batch-3',
-                              batchNumber: 'GTS-050-A1',
-                              quantity: 5,
-                              unitPrice: 25.00,
-                              totalValue: 125.00,
-                              expiryDate: '2025-12-01',
-                              supplierId: '2',
-                              supplierName: 'MediTech Inc',
-                              receivedDate: '2025-10-20T09:15:00Z',
-                              purchaseOrderNumber: 'PO-2025-002',
-                              invoiceNumber: 'INV-2025-002'
-                         }
-                    ],
-                    currentStock: 5, // Calculated from batches
-                    minStock: 15,
-                    maxStock: 50,
-                    unitPrice: 25.00,
-                    totalValue: 125.00,
-                    location: 'Storage Room B',
-                    expiryDate: '2025-12-01',
-                    lastUpdated: '2025-11-08T14:30:00Z',
-                    status: 'low_stock'
-               },
-               {
-                    id: '3',
-                    name: 'Sodium Chloride 0.9%',
-                    category: 'Reagents & Chemicals',
-                    brand: 'Baxter', // Brand example
-                    supplier: 'ChemSolutions Ltd',
-                    sku: 'NaCl-09-500',
-                    description: '500mL bottles of 0.9% NaCl solution',
-                    unit: 'bottles',
-                    batches: [], // No stock
-                    currentStock: 0,
-                    minStock: 20,
-                    maxStock: 200,
-                    unitPrice: 8.75,
-                    totalValue: 0,
-                    location: 'Chemical Storage',
-                    expiryDate: '2026-03-20',
-                    lastUpdated: '2025-11-07T09:15:00Z',
-                    status: 'out_of_stock'
-               }
-          ];
-
-          const mockOrders: PurchaseOrder[] = [
-               {
-                    id: '1',
-                    orderNumber: 'PO-2025-001',
-                    supplierId: '1',
-                    supplierName: 'LabCorp Supplies',
-                    supplierEmail: 'orders@labcorp.com',
-                    supplierContact: 'John Smith',
-                    items: [
-                         { itemId: '1', itemName: 'Blood Collection Tubes (EDTA)', sku: 'BCT-001-EDTA', quantity: 20, unit: 'boxes' }
-                    ],
-                    status: 'ordered',
-                    orderDate: '2025-11-08T09:00:00Z',
-                    expectedDeliveryDate: '2025-11-15T00:00:00Z',
-                    notes: 'Urgent restock required',
-                    createdBy: 'Lab Manager',
-                    emailSent: true,
-                    emailSentDate: '2025-11-08T09:15:00Z',
-                    communicationMethod: 'email',
-                    communicationNotes: 'Email sent with PDF attachment of order details'
-               },
-               {
-                    id: '2',
-                    orderNumber: 'PO-2025-002',
-                    supplierId: '2',
-                    supplierName: 'MediTech Inc',
-                    supplierEmail: 'sales@meditech.com',
-                    supplierContact: 'Sarah Johnson',
-                    items: [
-                         { itemId: '2', itemName: 'Glucose Test Strips', sku: 'GTS-050', quantity: 30, unit: 'boxes' }
-                    ],
-                    status: 'draft',
-                    orderDate: '2025-11-09T14:30:00Z',
-                    expectedDeliveryDate: '2025-11-20T00:00:00Z',
-                    notes: 'Monthly restock',
-                    createdBy: 'Inventory Clerk',
-                    emailSent: false,
-                    communicationMethod: 'phone_call',
-                    communicationNotes: 'Called supplier directly, confirmed availability'
-               }
-          ];
-
-          setSuppliers(mockSuppliers);
-          setInventoryItems(mockItems);
-          setPurchaseOrders(mockOrders);
+          loadSuppliers();
+          loadInventoryItems();
+          loadPurchaseOrders();
      }, []);
-
-     const filteredOrders = purchaseOrders.filter(order => {
-          const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               order.supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               order.supplierEmail.toLowerCase().includes(searchTerm.toLowerCase());
-          const matchesFilter = filterStatus === 'all' || order.status === filterStatus;
-          return matchesSearch && matchesFilter;
-     });
 
      const orderColumns = [
           {
@@ -332,12 +320,14 @@ export default function PurchaseOrdersPage() {
           {
                Header: 'Items',
                accessor: 'items',
-               Cell: ({ value }) => (
+               Cell: ({ value, row }) => (
                     <div>
-                         <div>{value.length} item(s)</div>
-                         <small className="text-muted">
-                              {value.map((item: OrderItem) => `${item.itemName}${item.brand ? ` (${item.brand})` : ''} (${item.quantity})`).join(', ')}
-                         </small>
+                         <div>{row.original.items_count || (value && value.length) || 0} item(s)</div>
+                         {value && value.length > 0 && (
+                              <small className="text-muted">
+                                   {value.map((item: OrderItem) => `${item.itemName}${item.brand ? ` (${item.brand})` : ''} (${item.quantity})`).join(', ')}
+                              </small>
+                         )}
                     </div>
                )
           },
@@ -415,45 +405,57 @@ export default function PurchaseOrdersPage() {
           }
      ];
 
-     const handleCreateOrder = () => {
+     const handleCreateOrder = async () => {
           if (!orderForm.supplierId || orderForm.items.length === 0) {
-               alert('Please select a supplier and add at least one item');
+               toast.error('Please select a supplier and add at least one item');
                return;
           }
 
-          const orderNumber = `PO-${new Date().getFullYear()}-${String(purchaseOrders.length + 1).padStart(3, '0')}`;
-          const totalValue = 0; // Will be calculated when receiving items
+          try {
+               setLoading(true);
+               const orderData = {
+                    supplier_id: orderForm.supplierId,
+                    items: orderForm.items.map(item => ({
+                         item_id: item.itemId,
+                         quantity: item.quantity,
+                         notes: item.notes
+                    })),
+                    expected_delivery_date: orderForm.expectedDeliveryDate || undefined,
+                    notes: orderForm.notes,
+                    status: orderForm.status,
+                    communication_method: orderForm.communicationMethod,
+                    communication_notes: orderForm.communicationNotes
+               };
 
-          const newOrder: PurchaseOrder = {
-               id: Date.now().toString(),
-               orderNumber,
-               supplierId: orderForm.supplierId,
-               supplierName: orderForm.supplierName,
-               supplierEmail: orderForm.supplierEmail,
-               supplierContact: orderForm.supplierContact,
-               items: orderForm.items,
-               status: orderForm.status,
-               orderDate: new Date().toISOString(),
-               expectedDeliveryDate: orderForm.expectedDeliveryDate || undefined,
-               notes: orderForm.notes,
-               createdBy: 'Current User',
-               emailSent: false,
-               communicationMethod: orderForm.communicationMethod,
-               communicationNotes: orderForm.communicationNotes
-          };
+               const response = await customPost('inventory/orders', 'POST', orderData);
 
-          setPurchaseOrders(prev => [newOrder, ...prev]);
-          setShowOrderModal(false);
-          resetOrderForm();
+               if (response.success) {
+                    await loadPurchaseOrders(); // Reload orders
+                    setShowOrderModal(false);
+                    resetOrderForm();
+                    toast.success('Order created successfully!');
+               } else {
+                    toast.error(`Failed to create order: ${response.error?.message || 'Unknown error'}`);
+               }
+          } catch (err) {
+               console.error('Error creating order:', err);
+               toast.error('Failed to create order');
+          } finally {
+               setLoading(false);
+          }
      };
 
      const handleEditOrder = (order: PurchaseOrder) => {
+          // Note: Full order items are not available in the current API response
+          // Only summary information (items_count) is provided
+          toast.warning('Order editing is limited. Full item details are not available in the current view.');
+
           setOrderForm({
                supplierId: order.supplierId,
                supplierName: order.supplierName,
                supplierEmail: order.supplierEmail,
                supplierContact: order.supplierContact,
-               items: order.items,
+               items: [], // Items not available in current API response
                expectedDeliveryDate: order.expectedDeliveryDate || '',
                notes: order.notes || '',
                status: order.status,
@@ -464,31 +466,38 @@ export default function PurchaseOrdersPage() {
           setShowOrderModal(true);
      };
 
-     const handleUpdateOrder = () => {
+     const handleUpdateOrder = async () => {
           if (!selectedOrder) return;
 
-          const totalValue = 0; // Will be calculated when receiving items
+          try {
+               const orderData = {
+                    supplier_id: orderForm.supplierId,
+                    items: orderForm.items.map(item => ({
+                         item_id: item.itemId,
+                         quantity: item.quantity
+                    })),
+                    status: orderForm.status,
+                    expected_delivery_date: orderForm.expectedDeliveryDate || null,
+                    notes: orderForm.notes,
+                    communication_method: orderForm.communicationMethod,
+                    communication_notes: orderForm.communicationNotes
+               };
 
-          const updatedOrder: PurchaseOrder = {
-               ...selectedOrder,
-               supplierId: orderForm.supplierId,
-               supplierName: orderForm.supplierName,
-               supplierEmail: orderForm.supplierEmail,
-               supplierContact: orderForm.supplierContact,
-               items: orderForm.items,
-               status: orderForm.status,
-               expectedDeliveryDate: orderForm.expectedDeliveryDate || undefined,
-               notes: orderForm.notes,
-               communicationMethod: orderForm.communicationMethod,
-               communicationNotes: orderForm.communicationNotes
-          };
+               const response = await customPost(`inventory/orders/${selectedOrder.id}`, 'PUT', orderData as any);
 
-          setPurchaseOrders(prev => prev.map(order =>
-               order.id === selectedOrder.id ? updatedOrder : order
-          ));
-          setShowOrderModal(false);
-          setSelectedOrder(null);
-          resetOrderForm();
+               if (response.success) {
+                    toast.success('Order updated successfully!');
+                    await loadPurchaseOrders();
+                    setShowOrderModal(false);
+                    setSelectedOrder(null);
+                    resetOrderForm();
+               } else {
+                    toast.error('Failed to update order: ' + (response.message || 'Unknown error'));
+               }
+          } catch (error) {
+               console.error('Error updating order:', error);
+               toast.error('Failed to update order. Please try again.');
+          }
      };
 
      const handleSendEmail = (order: PurchaseOrder) => {
@@ -506,37 +515,14 @@ export default function PurchaseOrdersPage() {
           // Open email client
           window.open(mailtoLink, '_blank');
 
-          alert(`Email sent to ${order.supplierEmail} for order ${order.orderNumber}`);
+          toast.success(`Email sent to ${order.supplierEmail} for order ${order.orderNumber}`);
      };
 
      const handleReceiveOrder = (order: PurchaseOrder) => {
-          // Initialize receiving form with order items
-          const initialReceivedItems: ReceivedItem[] = order.items.map(item => {
-               const inventoryItem = inventoryItems.find(inv => inv.id === item.itemId);
-               return {
-                    itemId: item.itemId,
-                    itemName: item.itemName,
-                    brand: item.brand || inventoryItem?.brand,
-                    sku: item.sku,
-                    orderedQuantity: item.quantity,
-                    receivedQuantity: item.quantity, // Default to ordered quantity
-                    unitPrice: 0, // Will be filled by user
-                    batchNumber: '',
-                    expiryDate: '',
-                    unit: item.unit,
-                    totalValue: 0
-               };
-          });
-
-          setReceiveForm({
-               invoiceNumber: '',
-               receivedDate: new Date().toISOString().split('T')[0],
-               receivedTime: new Date().toTimeString().slice(0, 5),
-               items: initialReceivedItems,
-               notes: ''
-          });
-          setReceivingOrder(order);
-          setShowReceiveModal(true);
+          // Note: Full order items are not available in the current API response
+          // Only summary information (items_count, received_items_count) is provided
+          toast.warning('Receiving items is not available. Full item details are not provided in the current API response.');
+          // In a real implementation, you would need to fetch the full order details first
      };
 
      const handleProcessReceiving = () => {
@@ -544,7 +530,7 @@ export default function PurchaseOrdersPage() {
 
           // Validate form
           if (!receiveForm.invoiceNumber.trim()) {
-               alert('Please enter an invoice number');
+               toast.error('Please enter an invoice number');
                return;
           }
 
@@ -554,7 +540,7 @@ export default function PurchaseOrdersPage() {
           );
 
           if (hasIncompleteItems) {
-               alert('Please complete all item details (quantity, price, batch number, expiry date)');
+               toast.error('Please complete all item details (quantity, price, batch number, expiry date)');
                return;
           }
 
@@ -654,12 +640,24 @@ export default function PurchaseOrdersPage() {
 
           setShowReceiveModal(false);
           setReceivingOrder(null);
-          alert(`Order ${receivingOrder.orderNumber} ${isPartialReceive ? 'partially ' : ''}received successfully!`);
+          toast.success(`Order ${receivingOrder.orderNumber} ${isPartialReceive ? 'partially ' : ''}received successfully!`);
      };
 
-     const handleDeleteOrder = (orderId: string) => {
+     const handleDeleteOrder = async (orderId: string) => {
           if (confirm('Are you sure you want to delete this order?')) {
-               setPurchaseOrders(prev => prev.filter(order => order.id !== orderId));
+               try {
+                    const response = await customPost(`inventory/orders/${orderId}`, 'DELETE', {} as any);
+
+                    if (response.success) {
+                         toast.success('Order deleted successfully!');
+                         await loadPurchaseOrders();
+                    } else {
+                         toast.error('Failed to delete order: ' + (response.message || 'Unknown error'));
+                    }
+               } catch (error) {
+                    console.error('Error deleting order:', error);
+                    toast.error('Failed to delete order. Please try again.');
+               }
           }
      };
 
@@ -669,14 +667,20 @@ export default function PurchaseOrdersPage() {
           emailBody += `Order Number: ${order.orderNumber}\n`;
           emailBody += `Order Date: ${new Date(order.orderDate).toLocaleDateString()}\n`;
           emailBody += `Expected Delivery: ${order.expectedDeliveryDate ? new Date(order.expectedDeliveryDate).toLocaleDateString() : 'TBD'}\n\n`;
-          emailBody += `Items Ordered:\n`;
 
-          order.items.forEach((item, index) => {
-               emailBody += `${index + 1}. ${item.itemName}\n`;
-               if (item.brand) emailBody += `   Brand: ${item.brand}\n`;
-               emailBody += `   SKU: ${item.sku}\n`;
-               emailBody += `   Quantity: ${item.quantity} ${item.unit}\n\n`;
-          });
+          // Check if full items are available
+          if (order.items && order.items.length > 0) {
+               emailBody += `Items Ordered:\n`;
+               order.items.forEach((item, index) => {
+                    emailBody += `${index + 1}. ${item.itemName}\n`;
+                    if (item.brand) emailBody += `   Brand: ${item.brand}\n`;
+                    emailBody += `   SKU: ${item.sku}\n`;
+                    emailBody += `   Quantity: ${item.quantity} ${item.unit}\n\n`;
+               });
+          } else {
+               emailBody += `Items Ordered: ${order.items_count || 0} item(s) total\n\n`;
+               emailBody += `Note: Detailed item list is not available in this view.\n\n`;
+          }
 
           emailBody += `Please provide pricing and availability information.\n\n`;
           if (order.notes) {
@@ -708,7 +712,7 @@ export default function PurchaseOrdersPage() {
           const draftCount = purchaseOrders.filter(o => o.status === 'draft').length;
           const orderedCount = purchaseOrders.filter(o => o.status === 'ordered').length;
           const receivedCount = purchaseOrders.filter(o => o.status === 'received').length;
-          const totalItems = purchaseOrders.reduce((sum, order) => sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0);
+          const totalItems = purchaseOrders.reduce((sum, order) => sum + (order.items_count || 0), 0);
 
           return { draftCount, orderedCount, receivedCount, totalItems };
      };
@@ -786,32 +790,17 @@ export default function PurchaseOrdersPage() {
                     <div className="card-body">
                          <div className="row">
                               <div className="col-md-6">
-                                   <div className="input-group">
-                                        <span className="input-group-text">
-                                             <RiFilterLine />
-                                        </span>
-                                        <input
-                                             type="text"
-                                             className="form-control"
-                                             placeholder="Search orders..."
-                                             value={searchTerm}
-                                             onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
+                                   <div className="d-flex gap-2">
+                                        <button className="btn btn-outline-secondary btn-sm">
+                                             <RiFilterLine className="me-1" />
+                                             Filter
+                                        </button>
+                                        <div className="ms-auto">
+                                             <span className="text-muted">
+                                                  Orders loaded
+                                             </span>
+                                        </div>
                                    </div>
-                              </div>
-                              <div className="col-md-6">
-                                   <select
-                                        className="form-select"
-                                        value={filterStatus}
-                                        onChange={(e) => setFilterStatus(e.target.value)}
-                                   >
-                                        <option value="all">All Statuses</option>
-                                        <option value="draft">Draft</option>
-                                        <option value="ordered">Ordered</option>
-                                        <option value="partially_received">Partially Received</option>
-                                        <option value="received">Received</option>
-                                        <option value="cancelled">Cancelled</option>
-                                   </select>
                               </div>
                          </div>
                     </div>
@@ -820,10 +809,10 @@ export default function PurchaseOrdersPage() {
                {/* Orders Table */}
                <PrimeTable
                     column={orderColumns}
-                    data={filteredOrders}
+                    data={purchaseOrders}
                     filtering={true}
-                    handleSeverSideProcessing={false}
-                    serverSideFiltering={false}
+                    handleSeverSideProcessing={handleServerSideProcessing}
+                    serverSideFiltering={true}
                />
 
                {/* Create/Edit Order Modal */}
@@ -1100,30 +1089,36 @@ export default function PurchaseOrdersPage() {
                                         </div>
                                         <div className="mt-3">
                                              <h6>Order Items:</h6>
-                                             <div className="table-responsive">
-                                                  <table className="table table-sm">
-                                                       <thead>
-                                                            <tr>
-                                                                 <th>Item Name</th>
-                                                                 <th>Brand</th>
-                                                                 <th>SKU</th>
-                                                                 <th>Quantity</th>
-                                                                 <th>Unit</th>
-                                                            </tr>
-                                                       </thead>
-                                                       <tbody>
-                                                            {selectedOrder.items.map((item, index) => (
-                                                                 <tr key={index}>
-                                                                      <td>{item.itemName}</td>
-                                                                      <td>{item.brand || 'Not specified'}</td>
-                                                                      <td>{item.sku}</td>
-                                                                      <td>{item.quantity}</td>
-                                                                      <td>{item.unit}</td>
+                                             {selectedOrder.items && selectedOrder.items.length > 0 ? (
+                                                  <div className="table-responsive">
+                                                       <table className="table table-sm">
+                                                            <thead>
+                                                                 <tr>
+                                                                      <th>Item Name</th>
+                                                                      <th>Brand</th>
+                                                                      <th>SKU</th>
+                                                                      <th>Quantity</th>
+                                                                      <th>Unit</th>
                                                                  </tr>
-                                                            ))}
-                                                       </tbody>
-                                                  </table>
-                                             </div>
+                                                            </thead>
+                                                            <tbody>
+                                                                 {selectedOrder.items.map((item, index) => (
+                                                                      <tr key={index}>
+                                                                           <td>{item.itemName}</td>
+                                                                           <td>{item.brand || 'Not specified'}</td>
+                                                                           <td>{item.sku}</td>
+                                                                           <td>{item.quantity}</td>
+                                                                           <td>{item.unit}</td>
+                                                                      </tr>
+                                                                 ))}
+                                                            </tbody>
+                                                       </table>
+                                                  </div>
+                                             ) : (
+                                                  <div className="alert alert-info">
+                                                       <small>Full item details are not available in the current view. Total items: {selectedOrder.items_count || 0}</small>
+                                                  </div>
+                                             )}
                                         </div>
                                    </div>
                                    <div className="modal-footer">

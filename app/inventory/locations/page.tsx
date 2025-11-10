@@ -3,18 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import { RiMapPinLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { toast } from 'react-toastify';
 
 interface StorageLocation {
      id: string;
      name: string;
      description: string;
-     type: 'room' | 'shelf' | 'cabinet' | 'freezer' | 'refrigerator' | 'other';
-     temperature?: string;
      capacity?: number;
-     currentItems: number;
-     status: 'active' | 'maintenance' | 'inactive';
-     createdDate: string;
-     lastUpdated: string;
+     temperature_controlled?: boolean;
+     hazardous_materials?: boolean;
+     is_active?: boolean;
+     temperature_range?: string;
+     current_items?: number;
+     created_at: string;
+     updated_at: string;
 }
 
 export default function StorageLocationsPage() {
@@ -27,66 +30,80 @@ export default function StorageLocationsPage() {
      const [locationForm, setLocationForm] = useState({
           name: '',
           description: '',
-          type: 'room' as 'room' | 'shelf' | 'cabinet' | 'freezer' | 'refrigerator' | 'other',
-          temperature: '',
-          capacity: 0
+          capacity: 0,
+          temperature_controlled: false,
+          hazardous_materials: false,
+          is_active: true,
+          temperature_range: ''
      });
 
-     // Mock data for demonstration
+     // Load locations from API
      useEffect(() => {
-          const mockLocations: StorageLocation[] = [
-               {
-                    id: '1',
-                    name: 'Storage Room A',
-                    description: 'Main storage room for general laboratory supplies',
-                    type: 'room',
-                    temperature: 'Room temperature (15-25°C)',
-                    capacity: 500,
-                    currentItems: 45,
-                    status: 'active',
-                    createdDate: '2025-01-15T10:00:00Z',
-                    lastUpdated: '2025-11-09T10:00:00Z'
-               },
-               {
-                    id: '2',
-                    name: 'Chemical Storage',
-                    description: 'Dedicated storage for chemicals and reagents',
-                    type: 'cabinet',
-                    temperature: 'Room temperature (15-25°C)',
-                    capacity: 200,
-                    currentItems: 23,
-                    status: 'active',
-                    createdDate: '2025-02-20T09:15:00Z',
-                    lastUpdated: '2025-11-08T14:30:00Z'
-               },
-               {
-                    id: '3',
-                    name: 'Refrigerator Unit 1',
-                    description: 'Temperature-controlled storage for sensitive materials',
-                    type: 'refrigerator',
-                    temperature: '2-8°C',
-                    capacity: 100,
-                    currentItems: 12,
-                    status: 'active',
-                    createdDate: '2025-03-10T11:45:00Z',
-                    lastUpdated: '2025-11-07T16:20:00Z'
-               },
-               {
-                    id: '4',
-                    name: 'Freezer Unit A',
-                    description: 'Ultra-low temperature storage for biological samples',
-                    type: 'freezer',
-                    temperature: '-80°C',
-                    capacity: 150,
-                    currentItems: 8,
-                    status: 'maintenance',
-                    createdDate: '2025-04-05T13:30:00Z',
-                    lastUpdated: '2025-11-06T09:45:00Z'
-               }
-          ];
-
-          setLocations(mockLocations);
+          loadLocations();
      }, []);
+
+     const loadLocations = async () => {
+          try {
+               setLoading(true);
+               const response = await customFetch('inventory/storage-locations');
+               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
+               const mappedLocations = (data || []).map((loc: any) => ({
+                    id: loc.id?.toString() || String(loc.id),
+                    name: loc.name,
+                    description: loc.description,
+                    capacity: loc.capacity,
+                    temperature_controlled: loc.temperature_controlled,
+                    hazardous_materials: loc.hazardous_materials,
+                    is_active: loc.is_active,
+                    temperature_range: loc.temperature_range,
+                    current_items: loc.current_items || 0,
+                    created_at: loc.created_at,
+                    updated_at: loc.updated_at
+               }));
+               setLocations(mappedLocations);
+          } catch (error) {
+               console.error('Error loading locations:', error);
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleServerSideProcessing = async ({ page, count, sortby = 'ASC' }: { page: number; count: number; sortby?: string }) => {
+          try {
+               // Build query parameters for server-side filtering
+               const params = new URLSearchParams({
+                    page: page.toString(),
+                    count: count.toString(),
+               });
+
+               if (sortby) {
+                    params.append('sortby', sortby);
+               }
+
+               const endpoint = `inventory/storage-locations?${params.toString()}`;
+               const response = await customFetch(endpoint);
+
+               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
+               const mappedLocations = (data || []).map((loc: any) => ({
+                    id: loc.id?.toString() || String(loc.id),
+                    name: loc.name,
+                    description: loc.description,
+                    capacity: loc.capacity,
+                    temperature_controlled: loc.temperature_controlled,
+                    hazardous_materials: loc.hazardous_materials,
+                    is_active: loc.is_active,
+                    temperature_range: loc.temperature_range,
+                    current_items: loc.current_items || 0,
+                    created_at: loc.created_at,
+                    updated_at: loc.updated_at
+               }));
+
+               return { result: mappedLocations, error: false };
+          } catch (error) {
+               console.error('Error in server-side processing:', error);
+               return { result: [], error: true };
+          }
+     };
 
      const locationColumns = [
           {
@@ -95,23 +112,8 @@ export default function StorageLocationsPage() {
           },
           {
                Header: 'Type',
-               accessor: 'type',
-               Cell: ({ value }) => (
-                    <span className="text-capitalize">
-                         {value === 'room' && '🏢 '}
-                         {value === 'shelf' && '📚 '}
-                         {value === 'cabinet' && '🗄️ '}
-                         {value === 'freezer' && '🧊 '}
-                         {value === 'refrigerator' && '❄️ '}
-                         {value === 'other' && '📦 '}
-                         {value}
-                    </span>
-               )
-          },
-          {
-               Header: 'Temperature',
-               accessor: 'temperature',
-               Cell: ({ value }) => value || 'Not specified'
+               accessor: 'temperature_controlled',
+               Cell: ({ value }) => value ? '❄️ Temperature Controlled' : '🏢 Standard Storage'
           },
           {
                Header: 'Capacity',
@@ -120,24 +122,13 @@ export default function StorageLocationsPage() {
           },
           {
                Header: 'Current Items',
-               accessor: 'currentItems',
+               accessor: 'current_items',
                Cell: ({ value }) => `${value} items`
           },
           {
                Header: 'Status',
-               accessor: 'status',
-               Cell: ({ value }) => {
-                    switch (value) {
-                         case 'active':
-                              return <span className="badge bg-success">Active</span>;
-                         case 'maintenance':
-                              return <span className="badge bg-warning">Maintenance</span>;
-                         case 'inactive':
-                              return <span className="badge bg-secondary">Inactive</span>;
-                         default:
-                              return <span className="badge bg-secondary">Unknown</span>;
-                    }
-               }
+               accessor: 'is_active',
+               Cell: ({ value }) => value ? <span className="badge bg-success">Active</span> : <span className="badge bg-secondary">Inactive</span>
           },
           {
                Header: 'Description',
@@ -179,44 +170,111 @@ export default function StorageLocationsPage() {
           }
      ];
 
-     const handleAddLocation = () => {
+     const handleAddLocation = async () => {
           if (!locationForm.name) {
-               alert('Please enter a location name');
+               toast.error('Please enter a location name');
                return;
           }
 
-          const newLocation: StorageLocation = {
-               id: Date.now().toString(),
-               name: locationForm.name,
-               description: locationForm.description,
-               type: locationForm.type,
-               temperature: locationForm.temperature || undefined,
-               capacity: locationForm.capacity || undefined,
-               currentItems: 0,
-               status: 'active',
-               createdDate: new Date().toISOString(),
-               lastUpdated: new Date().toISOString()
-          };
+          try {
+               setLoading(true);
+               const locationData = {
+                    name: locationForm.name,
+                    description: locationForm.description,
+                    capacity: locationForm.capacity || null,
+                    temperature_controlled: locationForm.temperature_controlled,
+                    hazardous_materials: locationForm.hazardous_materials,
+                    is_active: locationForm.is_active,
+                    temperature_range: locationForm.temperature_range
+               };
 
-          setLocations(prev => [...prev, newLocation]);
-          setShowAddModal(false);
-          resetLocationForm();
+               const resp = await customPost('inventory/storage-locations', 'POST', locationData);
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Location added');
+                    await loadLocations(); // Reload locations
+                    setShowAddModal(false);
+                    resetLocationForm();
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to add location';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error adding location:', error);
+               toast.error('Error adding location');
+          } finally {
+               setLoading(false);
+          }
      };
 
      const handleEditLocation = (location: StorageLocation) => {
           setLocationForm({
                name: location.name,
                description: location.description,
-               type: location.type,
-               temperature: location.temperature || '',
-               capacity: location.capacity || 0
+               capacity: location.capacity || 0,
+               temperature_controlled: location.temperature_controlled || false,
+               hazardous_materials: location.hazardous_materials || false,
+               is_active: location.is_active !== undefined ? location.is_active : true,
+               temperature_range: location.temperature_range || ''
           });
+          setSelectedLocation(location);
           setShowAddModal(true);
      };
 
-     const handleDeleteLocation = (locationId: string) => {
-          if (confirm('Are you sure you want to delete this storage location?')) {
-               setLocations(prev => prev.filter(location => location.id !== locationId));
+     const handleUpdateLocation = async () => {
+          if (!locationForm.name || !selectedLocation) {
+               toast.error('Please enter a location name');
+               return;
+          }
+
+          try {
+               setLoading(true);
+               const locationData = {
+                    name: locationForm.name,
+                    description: locationForm.description,
+                    capacity: locationForm.capacity || null,
+                    temperature_controlled: locationForm.temperature_controlled,
+                    hazardous_materials: locationForm.hazardous_materials,
+                    is_active: locationForm.is_active,
+                    temperature_range: locationForm.temperature_range
+               };
+
+               const resp = await customPost(`inventory/storage-locations/${selectedLocation.id}`, 'PUT', locationData);
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Location updated');
+                    await loadLocations(); // Reload locations
+                    setShowAddModal(false);
+                    setSelectedLocation(null);
+                    resetLocationForm();
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to update location';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error updating location:', error);
+               toast.error('Error updating location');
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleDeleteLocation = async (locationId: string) => {
+          if (!confirm('Are you sure you want to delete this storage location?')) return;
+
+          try {
+               setLoading(true);
+               const resp = await customPost(`inventory/storage-locations/${locationId}`, 'DELETE', {});
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Location deleted');
+                    await loadLocations(); // Reload locations
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to delete location';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error deleting location:', error);
+               toast.error('Error deleting location');
+          } finally {
+               setLoading(false);
           }
      };
 
@@ -224,9 +282,11 @@ export default function StorageLocationsPage() {
           setLocationForm({
                name: '',
                description: '',
-               type: 'room',
-               temperature: '',
-               capacity: 0
+               capacity: 0,
+               temperature_controlled: false,
+               hazardous_materials: false,
+               is_active: true,
+               temperature_range: ''
           });
      };
 
@@ -257,8 +317,8 @@ export default function StorageLocationsPage() {
                     column={locationColumns}
                     data={locations}
                     filtering={true}
-                    handleSeverSideProcessing={false}
-                    serverSideFiltering={false}
+                    handleSeverSideProcessing={handleServerSideProcessing}
+                    serverSideFiltering={true}
                />
 
                {/* Add Location Modal */}
@@ -267,7 +327,7 @@ export default function StorageLocationsPage() {
                          <div className="modal-dialog modal-lg">
                               <div className="modal-content">
                                    <div className="modal-header">
-                                        <h5 className="modal-title">Add Storage Location</h5>
+                                        <h5 className="modal-title">{selectedLocation ? 'Edit Storage Location' : 'Add Storage Location'}</h5>
                                         <button
                                              type="button"
                                              className="btn-close"
@@ -288,21 +348,6 @@ export default function StorageLocationsPage() {
                                                        />
                                                   </div>
                                                   <div className="mb-3">
-                                                       <label className="form-label">Type</label>
-                                                       <select
-                                                            className="form-select"
-                                                            value={locationForm.type}
-                                                            onChange={(e) => setLocationForm(prev => ({ ...prev, type: e.target.value as any }))}
-                                                       >
-                                                            <option value="room">Room</option>
-                                                            <option value="shelf">Shelf</option>
-                                                            <option value="cabinet">Cabinet</option>
-                                                            <option value="freezer">Freezer</option>
-                                                            <option value="refrigerator">Refrigerator</option>
-                                                            <option value="other">Other</option>
-                                                       </select>
-                                                  </div>
-                                                  <div className="mb-3">
                                                        <label className="form-label">Capacity (items)</label>
                                                        <input
                                                             type="number"
@@ -313,17 +358,59 @@ export default function StorageLocationsPage() {
                                                             min="0"
                                                        />
                                                   </div>
-                                             </div>
-                                             <div className="col-md-6">
                                                   <div className="mb-3">
                                                        <label className="form-label">Temperature Range</label>
                                                        <input
                                                             type="text"
                                                             className="form-control"
-                                                            value={locationForm.temperature}
-                                                            onChange={(e) => setLocationForm(prev => ({ ...prev, temperature: e.target.value }))}
-                                                            placeholder="e.g., Room temperature (15-25°C)"
+                                                            value={locationForm.temperature_range}
+                                                            onChange={(e) => setLocationForm(prev => ({ ...prev, temperature_range: e.target.value }))}
+                                                            placeholder="e.g., -20°C to 25°C"
                                                        />
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <div className="form-check">
+                                                            <input
+                                                                 className="form-check-input"
+                                                                 type="checkbox"
+                                                                 id="temperature_controlled"
+                                                                 checked={locationForm.temperature_controlled}
+                                                                 onChange={(e) => setLocationForm(prev => ({ ...prev, temperature_controlled: e.target.checked }))}
+                                                            />
+                                                            <label className="form-check-label" htmlFor="temperature_controlled">
+                                                                 Temperature Controlled
+                                                            </label>
+                                                       </div>
+                                                  </div>
+                                             </div>
+                                             <div className="col-md-6">
+                                                  <div className="mb-3">
+                                                       <div className="form-check">
+                                                            <input
+                                                                 className="form-check-input"
+                                                                 type="checkbox"
+                                                                 id="hazardous_materials"
+                                                                 checked={locationForm.hazardous_materials}
+                                                                 onChange={(e) => setLocationForm(prev => ({ ...prev, hazardous_materials: e.target.checked }))}
+                                                            />
+                                                            <label className="form-check-label" htmlFor="hazardous_materials">
+                                                                 Hazardous Materials Storage
+                                                            </label>
+                                                       </div>
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <div className="form-check">
+                                                            <input
+                                                                 className="form-check-input"
+                                                                 type="checkbox"
+                                                                 id="is_active"
+                                                                 checked={locationForm.is_active}
+                                                                 onChange={(e) => setLocationForm(prev => ({ ...prev, is_active: e.target.checked }))}
+                                                            />
+                                                            <label className="form-check-label" htmlFor="is_active">
+                                                                 Active
+                                                            </label>
+                                                       </div>
                                                   </div>
                                              </div>
                                         </div>
@@ -342,16 +429,21 @@ export default function StorageLocationsPage() {
                                         <button
                                              type="button"
                                              className="btn btn-secondary btn-sm"
-                                             onClick={() => setShowAddModal(false)}
+                                             onClick={() => {
+                                                  setShowAddModal(false);
+                                                  setSelectedLocation(null);
+                                                  resetLocationForm();
+                                             }}
                                         >
                                              Cancel
                                         </button>
                                         <button
                                              type="button"
                                              className="btn btn-success btn-sm"
-                                             onClick={handleAddLocation}
+                                             onClick={selectedLocation ? handleUpdateLocation : handleAddLocation}
+                                             disabled={loading}
                                         >
-                                             Add Location
+                                             {loading ? 'Saving...' : selectedLocation ? 'Update Location' : 'Add Location'}
                                         </button>
                                    </div>
                               </div>
@@ -360,7 +452,7 @@ export default function StorageLocationsPage() {
                )}
 
                {/* Location Details Modal */}
-               {selectedLocation && (
+               {selectedLocation && !showAddModal && (
                     <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
                          <div className="modal-dialog modal-lg">
                               <div className="modal-content">
@@ -384,37 +476,33 @@ export default function StorageLocationsPage() {
                                                   </div>
                                                   <div className="mb-3">
                                                        <label className="form-label fw-bold">Type</label>
-                                                       <p className="form-control-plaintext text-capitalize">
-                                                            {selectedLocation.type === 'room' && '🏢 '}
-                                                            {selectedLocation.type === 'shelf' && '📚 '}
-                                                            {selectedLocation.type === 'cabinet' && '🗄️ '}
-                                                            {selectedLocation.type === 'freezer' && '🧊 '}
-                                                            {selectedLocation.type === 'refrigerator' && '❄️ '}
-                                                            {selectedLocation.type === 'other' && '📦 '}
-                                                            {selectedLocation.type}
+                                                       <p className="form-control-plaintext">
+                                                            {selectedLocation.temperature_controlled ? '❄️ Temperature Controlled' : '🏢 Standard Storage'}
                                                        </p>
                                                   </div>
                                                   <div className="mb-3">
                                                        <label className="form-label fw-bold">Status</label>
                                                        <p className="form-control-plaintext">
-                                                            {selectedLocation.status === 'active' && <span className="badge bg-success">Active</span>}
-                                                            {selectedLocation.status === 'maintenance' && <span className="badge bg-warning">Maintenance</span>}
-                                                            {selectedLocation.status === 'inactive' && <span className="badge bg-secondary">Inactive</span>}
+                                                            {selectedLocation.is_active ? <span className="badge bg-success">Active</span> : <span className="badge bg-secondary">Inactive</span>}
                                                        </p>
                                                   </div>
                                              </div>
                                              <div className="col-md-6">
                                                   <div className="mb-3">
-                                                       <label className="form-label fw-bold">Temperature Range</label>
-                                                       <p className="form-control-plaintext">{selectedLocation.temperature || 'Not specified'}</p>
-                                                  </div>
-                                                  <div className="mb-3">
                                                        <label className="form-label fw-bold">Capacity</label>
                                                        <p className="form-control-plaintext">{selectedLocation.capacity ? `${selectedLocation.capacity} items` : 'Unlimited'}</p>
                                                   </div>
                                                   <div className="mb-3">
+                                                       <label className="form-label fw-bold">Temperature Range</label>
+                                                       <p className="form-control-plaintext">{selectedLocation.temperature_range || 'Not specified'}</p>
+                                                  </div>
+                                                  <div className="mb-3">
                                                        <label className="form-label fw-bold">Current Items</label>
-                                                       <p className="form-control-plaintext">{selectedLocation.currentItems} items</p>
+                                                       <p className="form-control-plaintext">{selectedLocation.current_items} items</p>
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <label className="form-label fw-bold">Hazardous Materials</label>
+                                                       <p className="form-control-plaintext">{selectedLocation.hazardous_materials ? 'Yes' : 'No'}</p>
                                                   </div>
                                              </div>
                                         </div>
@@ -427,13 +515,13 @@ export default function StorageLocationsPage() {
                                              <div className="col-md-6">
                                                   <div className="mb-3">
                                                        <label className="form-label fw-bold">Created Date</label>
-                                                       <p className="form-control-plaintext">{new Date(selectedLocation.createdDate).toLocaleDateString()}</p>
+                                                       <p className="form-control-plaintext">{new Date(selectedLocation.created_at).toLocaleDateString()}</p>
                                                   </div>
                                              </div>
                                              <div className="col-md-6">
                                                   <div className="mb-3">
                                                        <label className="form-label fw-bold">Last Updated</label>
-                                                       <p className="form-control-plaintext">{new Date(selectedLocation.lastUpdated).toLocaleDateString()}</p>
+                                                       <p className="form-control-plaintext">{new Date(selectedLocation.updated_at).toLocaleDateString()}</p>
                                                   </div>
                                              </div>
                                         </div>

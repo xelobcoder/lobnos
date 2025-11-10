@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { RiTestTubeLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSearchLine, RiFilterLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { toast } from 'react-toastify';
 
 interface TestTemplate {
      id: string;
@@ -43,55 +45,46 @@ export default function TemplatesPage() {
           items: [] as TestTemplateItem[]
      });
 
-     // Mock data for demonstration
+     // Load data from API
      useEffect(() => {
-          const mockItems: InventoryItem[] = [
-               { id: '1', name: 'Blood Collection Tubes (EDTA)', sku: 'BCT-001-EDTA', unit: 'tubes', unitPrice: 45.50 },
-               { id: '2', name: 'Glucose Test Strips', sku: 'GTS-050', unit: 'strips', unitPrice: 25.00 },
-               { id: '3', name: 'Sodium Chloride 0.9%', sku: 'NaCl-09-500', unit: 'bottles', unitPrice: 8.75 },
-               { id: '4', name: 'Microcentrifuge Tubes', sku: 'MCT-15-500', unit: 'tubes', unitPrice: 12.50 }
-          ];
-
-          const mockTemplates: TestTemplate[] = [
-               {
-                    id: '1',
-                    name: 'Complete Blood Count (CBC)',
-                    description: 'Standard CBC test template with essential blood collection and processing items',
-                    items: [
-                         { itemId: '1', itemName: 'Blood Collection Tubes (EDTA)', quantity: 1, unit: 'tubes' },
-                         { itemId: '4', itemName: 'Microcentrifuge Tubes', quantity: 2, unit: 'tubes' }
-                    ],
-                    createdDate: '2025-01-15T10:00:00Z',
-                    lastModified: '2025-11-01T14:30:00Z'
-               },
-               {
-                    id: '2',
-                    name: 'Glucose Tolerance Test',
-                    description: 'Oral glucose tolerance test template for diabetes screening',
-                    items: [
-                         { itemId: '2', itemName: 'Glucose Test Strips', quantity: 5, unit: 'strips' },
-                         { itemId: '3', itemName: 'Sodium Chloride 0.9%', quantity: 1, unit: 'bottles' }
-                    ],
-                    createdDate: '2025-02-20T09:15:00Z',
-                    lastModified: '2025-10-15T16:45:00Z'
-               },
-               {
-                    id: '3',
-                    name: 'Liver Function Test (LFT)',
-                    description: 'Comprehensive liver function panel template',
-                    items: [
-                         { itemId: '1', itemName: 'Blood Collection Tubes (EDTA)', quantity: 2, unit: 'tubes' },
-                         { itemId: '4', itemName: 'Microcentrifuge Tubes', quantity: 4, unit: 'tubes' },
-                         { itemId: '3', itemName: 'Sodium Chloride 0.9%', quantity: 1, unit: 'bottles' }
-                    ],
-                    createdDate: '2025-03-10T11:20:00Z',
-                    lastModified: '2025-11-05T13:15:00Z'
-               }
-          ];
-
-          setInventoryItems(mockItems);
-          setTestTemplates(mockTemplates);
+          loadInventoryItems();
+          loadTemplates();
      }, []);
+
+     const loadInventoryItems = async () => {
+          try {
+               const response = await customFetch('inventory/items');
+               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
+               const mappedItems = (data || []).map((item: any) => ({
+                    id: item.id?.toString() || String(item.id),
+                    name: item.name,
+                    sku: item.sku,
+                    unit: item.unit,
+                    unitPrice: item.unit_price || item.unitPrice || 0
+               }));
+               setInventoryItems(mappedItems);
+          } catch (error) {
+               console.error('Error loading inventory items:', error);
+          }
+     };
+
+     const loadTemplates = async () => {
+          try {
+               const response = await customFetch('inventory/templates');
+               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
+               const mappedTemplates = (data || []).map((template: any) => ({
+                    id: template.id?.toString() || String(template.id),
+                    name: template.name,
+                    description: template.description,
+                    items: template.items || [],
+                    createdDate: template.created_at,
+                    lastModified: template.updated_at
+               }));
+               setTestTemplates(mappedTemplates);
+          } catch (error) {
+               console.error('Error loading templates:', error);
+          }
+     };
 
      const filteredTemplates = testTemplates.filter(template => {
           const matchesSearch = template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -161,24 +154,33 @@ export default function TemplatesPage() {
           }
      ];
 
-     const handleAddTemplate = () => {
+     const handleAddTemplate = async () => {
           if (!templateForm.name) {
                alert('Please enter a template name');
                return;
           }
 
-          const newTemplate: TestTemplate = {
-               id: Date.now().toString(),
-               name: templateForm.name,
-               description: templateForm.description,
-               items: templateForm.items,
-               createdDate: new Date().toISOString(),
-               lastModified: new Date().toISOString()
-          };
+          try {
+               const templateData = {
+                    name: templateForm.name,
+                    description: templateForm.description,
+                    items: templateForm.items
+               };
 
-          setTestTemplates(prev => [...prev, newTemplate]);
-          setShowAddModal(false);
-          resetTemplateForm();
+               const resp = await customPost('inventory/templates', 'POST', templateData);
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Template created');
+                    await loadTemplates(); // Reload templates
+                    setShowAddModal(false);
+                    resetTemplateForm();
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to create template';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error creating template:', error);
+               alert('Error creating template');
+          }
      };
 
      const handleEditTemplate = (template: TestTemplate) => {
@@ -191,29 +193,51 @@ export default function TemplatesPage() {
           setShowAddModal(true);
      };
 
-     const handleUpdateTemplate = () => {
+     const handleUpdateTemplate = async () => {
           if (!selectedTemplate || !templateForm.name) {
                alert('Please enter a template name');
                return;
           }
 
-          const updatedTemplate: TestTemplate = {
-               ...selectedTemplate,
-               name: templateForm.name,
-               description: templateForm.description,
-               items: templateForm.items,
-               lastModified: new Date().toISOString()
-          };
+          try {
+               const templateData = {
+                    name: templateForm.name,
+                    description: templateForm.description,
+                    items: templateForm.items
+               };
 
-          setTestTemplates(prev => prev.map(t => t.id === selectedTemplate.id ? updatedTemplate : t));
-          setShowAddModal(false);
-          setSelectedTemplate(null);
-          resetTemplateForm();
+               const resp = await customPost(`inventory/templates/${selectedTemplate.id}`, 'PUT', templateData);
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Template updated');
+                    await loadTemplates(); // Reload templates
+                    setShowAddModal(false);
+                    setSelectedTemplate(null);
+                    resetTemplateForm();
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to update template';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error updating template:', error);
+               alert('Error updating template');
+          }
      };
 
-     const handleDeleteTemplate = (templateId: string) => {
-          if (confirm('Are you sure you want to delete this template?')) {
-               setTestTemplates(prev => prev.filter(t => t.id !== templateId));
+     const handleDeleteTemplate = async (templateId: string) => {
+          if (!confirm('Are you sure you want to delete this template?')) return;
+
+          try {
+               const resp = await customPost(`inventory/templates/${templateId}`, 'DELETE', {});
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Template deleted');
+                    await loadTemplates(); // Reload templates
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to delete template';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error deleting template:', error);
+               alert('Error deleting template');
           }
      };
 
@@ -280,8 +304,8 @@ export default function TemplatesPage() {
                     column={templateColumns}
                     data={filteredTemplates}
                     filtering={true}
-                    handleSeverSideProcessing={false}
-                    serverSideFiltering={false}
+                    handleSeverSideProcessing={true}
+                    serverSideFiltering={true}
                />
 
                {testTemplates.length === 0 && (

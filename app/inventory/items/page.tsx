@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { RiBox3Line, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiDownloadLine, RiUploadLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { toast } from 'react-toastify';
 
 
 interface InventoryItem {
@@ -24,13 +26,26 @@ interface InventoryItem {
      expiryDate?: string;
      lastUpdated: string;
      status: 'in_stock' | 'low_stock' | 'out_of_stock' | 'expired';
+     // Additional fields from API
+     category_id?: string;
+     brand_id?: string;
+     supplier_id?: string;
+     location_id?: string;
+     batch_number?: string;
+     is_active?: boolean;
+     created_at?: string;
+     updated_at?: string;
+     category_name?: string;
+     brand_name?: string;
+     supplier_name?: string;
+     location_name?: string;
 }
 
 interface InventoryCategory {
      id: string;
      name: string;
      description: string;
-     itemCount: number;
+     item_count: number;
 }
 
 interface Supplier {
@@ -48,6 +63,20 @@ interface Brand {
      itemCount: number;
 }
 
+interface StorageLocation {
+     id: string;
+     name: string;
+     description: string;
+     capacity?: number;
+     temperature_controlled?: boolean;
+     hazardous_materials?: boolean;
+     is_active?: boolean;
+     temperature_range?: string;
+     current_items?: number;
+     created_at: string;
+     updated_at: string;
+}
+
 const STATUS_BADGES = {
      in_stock: { label: 'In Stock', color: 'success' },
      low_stock: { label: 'Low Stock', color: 'warning' },
@@ -55,41 +84,35 @@ const STATUS_BADGES = {
      expired: { label: 'Expired', color: 'secondary' }
 };
 
-const CATEGORIES = [
-     'Reagents & Chemicals',
-     'Consumables',
-     'Equipment',
-     'Glassware',
-     'PPE',
-     'Media & Buffers',
-     'Standards & Controls',
-     'Other'
-];
-
 export default function InventoryItemsPage() {
      const router = useRouter();
      const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
      const [categories, setCategories] = useState<InventoryCategory[]>([]);
      const [suppliers, setSuppliers] = useState<Supplier[]>([]);
      const [brands, setBrands] = useState<Brand[]>([]);
+     const [storageLocations, setStorageLocations] = useState<StorageLocation[]>([]);
      const [showAddModal, setShowAddModal] = useState(false);
      const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+     const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
      const [showAddBrandModal, setShowAddBrandModal] = useState(false);
+     const [selectedItemForBrand, setSelectedItemForBrand] = useState<InventoryItem | null>(null);
+     const [existingBrandsForItem, setExistingBrandsForItem] = useState<any[]>([]);
      const [loading, setLoading] = useState(false);
+     const [error, setError] = useState<string | null>(null);
 
      // Form states
      const [itemForm, setItemForm] = useState({
           name: '',
           category: '',
-          brand: '',
           sku: '',
           description: '',
           unit: 'pieces',
           currentStock: 0,
           minStock: 0,
           maxStock: 0,
-          unitPrice: 0,
-          location: ''
+          location_id: '',
+          expiryDate: '',
+          batchNumber: ''
      });
 
      const [brandForm, setBrandForm] = useState({
@@ -97,124 +120,147 @@ export default function InventoryItemsPage() {
           addedBrands: [] as string[]
      });
 
-     // Mock data for demonstration
-     useEffect(() => {
-          const mockItems: InventoryItem[] = [
-               {
-                    id: '1',
-                    name: 'Blood Collection Tubes (EDTA)',
-                    category: 'Consumables',
-                    brand: 'Vacuette',
-                    supplier: 'LabCorp Supplies',
-                    sku: 'BCT-001-EDTA',
-                    description: '10mL EDTA blood collection tubes',
-                    unit: 'boxes',
-                    currentStock: 25,
-                    minStock: 10,
-                    maxStock: 100,
-                    unitPrice: 45.50,
-                    totalValue: 1142.50,
-                    location: 'Storage Room A',
-                    expiryDate: '2026-06-15',
-                    lastUpdated: '2025-11-09T10:00:00Z',
-                    status: 'in_stock'
-               },
-               {
-                    id: '2',
-                    name: 'Glucose Test Strips',
-                    category: 'Consumables',
-                    brand: 'Accu-Chek',
-                    supplier: 'MediTech Inc',
-                    sku: 'GTS-050',
-                    description: 'Glucose test strips - 50 count',
-                    unit: 'boxes',
-                    currentStock: 5,
-                    minStock: 15,
-                    maxStock: 50,
-                    unitPrice: 25.00,
-                    totalValue: 125.00,
-                    location: 'Storage Room B',
-                    expiryDate: '2025-12-01',
-                    lastUpdated: '2025-11-08T14:30:00Z',
-                    status: 'low_stock'
-               },
-               {
-                    id: '3',
-                    name: 'Sodium Chloride 0.9%',
-                    category: 'Reagents & Chemicals',
-                    brand: 'Baxter',
-                    supplier: 'ChemSolutions Ltd',
-                    sku: 'NaCl-09-500',
-                    description: '500mL bottles of 0.9% NaCl solution',
-                    unit: 'bottles',
-                    currentStock: 0,
-                    minStock: 20,
-                    maxStock: 200,
-                    unitPrice: 8.75,
-                    totalValue: 0,
-                    location: 'Chemical Storage',
-                    expiryDate: '2026-03-20',
-                    lastUpdated: '2025-11-07T09:15:00Z',
-                    status: 'out_of_stock'
-               },
-               {
-                    id: '4',
-                    name: 'Microcentrifuge Tubes',
-                    category: 'Consumables',
-                    brand: 'Eppendorf',
-                    supplier: 'LabEssentials',
-                    sku: 'MCT-15-500',
-                    description: '1.5mL microcentrifuge tubes, 500 pack',
-                    unit: 'packs',
-                    currentStock: 8,
-                    minStock: 5,
-                    maxStock: 30,
-                    unitPrice: 12.50,
-                    totalValue: 100.00,
-                    location: 'Storage Room A',
-                    lastUpdated: '2025-11-06T16:45:00Z',
-                    status: 'in_stock'
+     // Load data from APIs
+     const loadInventoryItems = async () => {
+          try {
+               setLoading(true);
+               setError(null);
+               const response = await customFetch('inventory/items');
+               if (response.success) {
+                    // Transform API data to match interface
+                    const transformedData = (response.data || []).map((item: any) => ({
+                         ...item,
+                         currentStock: item.current_stock,
+                         minStock: item.min_stock,
+                         maxStock: item.max_stock,
+                         lastUpdated: item.last_updated,
+                         category: item.category_name,
+                         location: item.location_name,
+                         brand: item.brand_name,
+                         supplier: item.supplier_name
+                    }));
+                    setInventoryItems(transformedData);
+               } else {
+                    setError(response.error?.message || 'Failed to load inventory items');
                }
-          ];
+          } catch (err) {
+               setError('Failed to load inventory items');
+               console.error('Error loading inventory items:', err);
+          } finally {
+               setLoading(false);
+          }
+     };
 
-          const mockCategories: InventoryCategory[] = [
-               { id: '1', name: 'Consumables', description: 'Disposable lab supplies', itemCount: 25 },
-               { id: '2', name: 'Reagents & Chemicals', description: 'Chemical reagents and solutions', itemCount: 15 },
-               { id: '3', name: 'Equipment', description: 'Lab equipment and instruments', itemCount: 8 },
-               { id: '4', name: 'PPE', description: 'Personal protective equipment', itemCount: 12 }
-          ];
+     const loadCategories = async () => {
+          try {
+               const response = await customFetch('inventory/categories');
+               if (response.success) {
+                    setCategories(response.data || []);
+               }
+          } catch (err) {
+               console.error('Error loading categories:', err);
+          }
+     };
 
-          const mockSuppliers: Supplier[] = [
-               { id: '1', name: 'LabCorp Supplies', contact: 'John Smith', email: 'orders@labcorp.com', phone: '+1-555-0101' },
-               { id: '2', name: 'MediTech Inc', contact: 'Sarah Johnson', email: 'sales@meditech.com', phone: '+1-555-0102' },
-               { id: '3', name: 'ChemSolutions Ltd', contact: 'Mike Davis', email: 'info@chemsolutions.com', phone: '+1-555-0103' }
-          ];
+     const loadSuppliers = async () => {
+          try {
+               const response = await customFetch('inventory/suppliers');
+               if (response.success) {
+                    setSuppliers(response.data || []);
+               }
+          } catch (err) {
+               console.error('Error loading suppliers:', err);
+          }
+     };
 
-          const mockBrands: Brand[] = [
-               { id: '1', name: 'Vacuette', createdDate: '2025-01-15', itemCount: 5 },
-               { id: '2', name: 'Accu-Chek', createdDate: '2025-02-20', itemCount: 3 },
-               { id: '3', name: 'Baxter', createdDate: '2025-03-10', itemCount: 8 },
-               { id: '4', name: 'Eppendorf', createdDate: '2025-04-05', itemCount: 12 },
-               { id: '5', name: 'BD Biosciences', createdDate: '2025-05-12', itemCount: 6 },
-               { id: '6', name: 'Thermo Fisher', createdDate: '2025-06-18', itemCount: 15 }
-          ];
+     const loadBrands = async () => {
+          try {
+               const response = await customFetch('inventory/brands');
+               if (response.success) {
+                    setBrands(response.data || []);
+               }
+          } catch (err) {
+               console.error('Error loading brands:', err);
+          }
+     };
 
-          setInventoryItems(mockItems);
-          setCategories(mockCategories);
-          setSuppliers(mockSuppliers);
-          setBrands(mockBrands);
+     const loadStorageLocations = async () => {
+          try {
+               const response = await customFetch('inventory/storage-locations');
+               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
+               const mappedLocations = (data || []).map((loc: any) => ({
+                    id: loc.id?.toString() || String(loc.id),
+                    name: loc.name,
+                    description: loc.description,
+                    capacity: loc.capacity,
+                    temperature_controlled: loc.temperature_controlled,
+                    hazardous_materials: loc.hazardous_materials,
+                    is_active: loc.is_active,
+                    temperature_range: loc.temperature_range,
+                    current_items: loc.current_items || 0,
+                    created_at: loc.created_at,
+                    updated_at: loc.updated_at
+               }));
+               setStorageLocations(mappedLocations);
+          } catch (err) {
+               console.error('Error loading storage locations:', err);
+          }
+     };
+
+     // Load all data on component mount
+     useEffect(() => {
+          loadInventoryItems();
+          loadCategories();
+          loadSuppliers();
+          loadBrands();
+          loadStorageLocations();
      }, []);
+
+     const handleServerSideProcessing = async ({ page, count, sortby = 'ASC' }: { page: number; count: number; sortby?: string }) => {
+          try {
+               // Build query parameters for server-side filtering
+               const params = new URLSearchParams({
+                    page: page.toString(),
+                    count: count.toString(),
+               });
+
+               if (sortby) {
+                    params.append('sortby', sortby);
+               }
+
+               const endpoint = `inventory/items?${params.toString()}`;
+               const response = await customFetch(endpoint);
+
+               if (response.success) {
+                    // Transform API data to match interface
+                    const transformedData = (response.data || []).map((item: any) => ({
+                         ...item,
+                         currentStock: item.current_stock,
+                         minStock: item.min_stock,
+                         maxStock: item.max_stock,
+                         lastUpdated: item.last_updated,
+                         category: item.category_name,
+                         location: item.location_name,
+                         brand: item.brand_name,
+                         supplier: item.supplier_name
+                    }));
+
+                    return { result: transformedData, error: false };
+               } else {
+                    return { result: [], error: true };
+               }
+          } catch (error) {
+               console.error('Error in server-side processing:', error);
+               return { result: [], error: true };
+          }
+     };
 
      const inventoryColumns = [
           {
                Header: 'Item Name',
                accessor: 'name',
           },
-          {
-               Header: 'Brand',
-               accessor: 'brand',
-               Cell: ({ value }) => value || 'Not specified'
-          },
+
           {
                Header: 'Category',
                accessor: 'category',
@@ -246,18 +292,9 @@ export default function InventoryItemsPage() {
                )
           },
           {
-               Header: 'Unit Price',
-               accessor: 'unitPrice',
-               Cell: ({ value }) => `$${value.toFixed(2)}`
-          },
-          {
-               Header: 'Total Value',
-               accessor: 'totalValue',
-               Cell: ({ value }) => `$${value.toFixed(2)}`
-          },
-          {
                Header: 'Location',
-               accessor: 'location',
+               accessor: 'location_name',
+               Cell: ({ value }) => value || 'Not assigned'
           },
           {
                Header: 'Actions',
@@ -267,7 +304,7 @@ export default function InventoryItemsPage() {
                          <button
                               className="btn btn-sm btn-outline-success"
                               title="Add Brand"
-                              onClick={handleAddBrand}
+                              onClick={() => handleAddBrand(row.original)}
                          >
                               <RiAddLine size={14} />
                          </button>
@@ -297,102 +334,175 @@ export default function InventoryItemsPage() {
           }
      ];
 
-     const handleAddItem = () => {
-          if (!itemForm.name || !itemForm.category || !itemForm.sku) {
-               alert('Please fill in all required fields');
+     const handleAddItem = async () => {
+          if (!itemForm.name || !itemForm.sku) {
+               toast.error('Please fill in all required fields (name and SKU)');
                return;
           }
 
-          const newItem: InventoryItem = {
-               id: Date.now().toString(),
-               name: itemForm.name,
-               category: itemForm.category,
-               brand: itemForm.brand || undefined,
-               sku: itemForm.sku,
-               description: itemForm.description,
-               unit: itemForm.unit,
-               currentStock: itemForm.currentStock,
-               minStock: itemForm.minStock,
-               maxStock: itemForm.maxStock,
-               unitPrice: itemForm.unitPrice,
-               totalValue: itemForm.currentStock * itemForm.unitPrice,
-               location: itemForm.location,
-               lastUpdated: new Date().toISOString(),
-               status: itemForm.currentStock === 0 ? 'out_of_stock' :
-                    itemForm.currentStock <= itemForm.minStock ? 'low_stock' : 'in_stock'
-          };
+          try {
+               setLoading(true);
+               setError(null);
 
-          setInventoryItems(prev => [...prev, newItem]);
-          setShowAddModal(false);
-          resetItemForm();
+               // Find IDs for selected references
+               const selectedCategory = categories.find(c => c.name === itemForm.category);
+
+               const itemData = {
+                    name: itemForm.name,
+                    sku: itemForm.sku,
+                    description: itemForm.description,
+                    category_id: selectedCategory?.id,
+                    unit: itemForm.unit,
+                    current_stock: itemForm.currentStock,
+                    min_stock: itemForm.minStock,
+                    max_stock: itemForm.maxStock,
+                    location_id: itemForm.location_id || undefined,
+                    expiry_date: itemForm.expiryDate || undefined,
+                    batch_number: itemForm.batchNumber || undefined
+               };
+
+               const response = await customPost('inventory/items', 'POST', itemData);
+
+               if (response.success) {
+                    setInventoryItems(prev => [response.data, ...prev]);
+                    setShowAddModal(false);
+                    resetItemForm();
+                    toast.success('Item added successfully!');
+               } else {
+                    setError(response.error?.message || 'Failed to add item');
+                    toast.error(response.error?.message || 'Failed to add item');
+                    if (response.error?.details) {
+                         toast.error(`Validation errors: ${response.error.details.map(d => d.message).join(', ')}`);
+                    }
+               }
+          } catch (err) {
+               setError('Failed to add item');
+               console.error('Error adding item:', err);
+               toast.error('Failed to add item');
+          } finally {
+               setLoading(false);
+          }
      };
 
-     const handleEditItem = (item: InventoryItem) => {
-          setSelectedItem(item);
+     const handleUpdateItem = async () => {
+          if (!editingItem) return;
+
+          if (!itemForm.name || !itemForm.sku) {
+               toast.error('Please fill in all required fields (name and SKU)');
+               return;
+          }
+
+          try {
+               setLoading(true);
+               setError(null);
+
+               // Find IDs for selected references
+               const selectedCategory = categories.find(c => c.name === itemForm.category);
+
+               const itemData = {
+                    name: itemForm.name,
+                    sku: itemForm.sku,
+                    description: itemForm.description,
+                    category_id: selectedCategory?.id,
+                    unit: itemForm.unit,
+                    min_stock: itemForm.minStock,
+                    max_stock: itemForm.maxStock,
+                    location_id: itemForm.location_id || undefined,
+                    expiry_date: itemForm.expiryDate || undefined,
+                    batch_number: itemForm.batchNumber || undefined
+               };
+
+               const response = await customPost(`inventory/items/${editingItem.id}`, 'PUT', itemData);
+
+               if (response.success) {
+                    setInventoryItems(prev => prev.map(item =>
+                         item.id === editingItem.id ? response.data : item
+                    ));
+                    setShowAddModal(false);
+                    setEditingItem(null);
+                    resetItemForm();
+                    toast.success('Item updated successfully!');
+               } else {
+                    setError(response.error?.message || 'Failed to update item');
+                    toast.error(response.error?.message || 'Failed to update item');
+                    if (response.error?.details) {
+                         toast.error(`Validation errors: ${response.error.details.map(d => d.message).join(', ')}`);
+                    }
+               }
+          } catch (err) {
+               setError('Failed to update item');
+               console.error('Error updating item:', err);
+               toast.error('Failed to update item');
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleDeleteItem = async (itemId: string) => {
+          if (!confirm('Are you sure you want to delete this item?')) return;
+
+          try {
+               setLoading(true);
+               setError(null);
+
+               const response = await customPost(`inventory/items/${itemId}`, 'DELETE', {});
+
+               if (response.success) {
+                    setInventoryItems(prev => prev.filter(item => item.id !== itemId));
+                    toast.success('Item deleted successfully!');
+               } else {
+                    setError(response.error?.message || 'Failed to delete item');
+                    toast.error(`Failed to delete item: ${response.error?.message}`);
+               }
+          } catch (err) {
+               setError('Failed to delete item');
+               console.error('Error deleting item:', err);
+               toast.error('Failed to delete item');
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleEditItem = (item: any) => {
           setItemForm({
-               name: item.name,
-               category: item.category,
-               brand: item.brand || '',
-               sku: item.sku,
-               description: item.description,
-               unit: item.unit,
-               currentStock: item.currentStock,
-               minStock: item.minStock,
-               maxStock: item.maxStock,
-               unitPrice: item.unitPrice,
-               location: item.location
+               name: item.name || '',
+               category: item.category || '',
+               sku: item.sku || '',
+               description: item.description || '',
+               unit: item.unit || 'pieces',
+               currentStock: item.currentStock || 0,
+               minStock: item.minStock || 0,
+               maxStock: item.maxStock || 0,
+               location_id: item.location_id || '',
+               expiryDate: item.expiryDate || '',
+               batchNumber: item.batchNumber || ''
           });
+          setEditingItem(item);
           setShowAddModal(true);
      };
 
-     const handleUpdateItem = () => {
-          if (!selectedItem) return;
+     const handleAddBrand = async (item: InventoryItem) => {
+          setSelectedItemForBrand(item);
 
-          if (!itemForm.name || !itemForm.category || !itemForm.sku) {
-               alert('Please fill in all required fields');
-               return;
+          try {
+               // Load existing brands for this item
+               const response = await customFetch(`inventory/brands?inventory_item_id=${item.id}`);
+               if (response.success) {
+                    setExistingBrandsForItem(response.data || []);
+               } else {
+                    setExistingBrandsForItem([]);
+               }
+          } catch (err) {
+               console.error('Error loading existing brands:', err);
+               setExistingBrandsForItem([]);
           }
 
-          const updatedItem: InventoryItem = {
-               ...selectedItem,
-               name: itemForm.name,
-               category: itemForm.category,
-               brand: itemForm.brand || undefined,
-               sku: itemForm.sku,
-               description: itemForm.description,
-               unit: itemForm.unit,
-               currentStock: itemForm.currentStock,
-               minStock: itemForm.minStock,
-               maxStock: itemForm.maxStock,
-               unitPrice: itemForm.unitPrice,
-               totalValue: itemForm.currentStock * itemForm.unitPrice,
-               location: itemForm.location,
-               lastUpdated: new Date().toISOString(),
-               status: itemForm.currentStock === 0 ? 'out_of_stock' :
-                    itemForm.currentStock <= itemForm.minStock ? 'low_stock' : 'in_stock'
-          };
-
-          setInventoryItems(prev => prev.map(item =>
-               item.id === selectedItem.id ? updatedItem : item
-          ));
-          setShowAddModal(false);
-          setSelectedItem(null);
-          resetItemForm();
-     };
-
-     const handleDeleteItem = (itemId: string) => {
-          if (confirm('Are you sure you want to delete this item?')) {
-               setInventoryItems(prev => prev.filter(item => item.id !== itemId));
-          }
-     };
-
-     const handleAddBrand = () => {
           setShowAddBrandModal(true);
      };
 
      const handleAddSingleBrand = () => {
           if (!brandForm.currentName.trim()) {
-               alert('Please enter a brand name');
+               toast.error('Please enter a brand name');
                return;
           }
 
@@ -400,14 +510,14 @@ export default function InventoryItemsPage() {
 
           // Check if already in the added list
           if (brandForm.addedBrands.includes(brandName)) {
-               alert('This brand is already in the list');
+               toast.error('This brand is already in the list');
                return;
           }
 
           // Check if already exists in global brands
           const existingNames = brands.map(b => b.name.toLowerCase());
           if (existingNames.includes(brandName.toLowerCase())) {
-               alert('This brand already exists');
+               toast.error('This brand already exists');
                return;
           }
 
@@ -425,39 +535,91 @@ export default function InventoryItemsPage() {
           }));
      };
 
-     const handleSaveBrands = () => {
+     const handleDeleteBrand = async (brandId: string) => {
+          if (!confirm('Are you sure you want to delete this brand?')) return;
+
+          try {
+               setLoading(true);
+               const response = await customPost(`inventory/brands/${brandId}`, 'DELETE', {});
+
+               if (response.success) {
+                    // Remove from existing brands list
+                    setExistingBrandsForItem(prev => prev.filter(brand => brand.id !== brandId));
+                    toast.success('Brand deleted successfully!');
+               } else {
+                    toast.error(response.error?.message || 'Failed to delete brand');
+               }
+          } catch (err) {
+               console.error('Error deleting brand:', err);
+               toast.error('Failed to delete brand');
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleSaveBrands = async () => {
           if (brandForm.addedBrands.length === 0) {
-               alert('Please add at least one brand');
+               toast.error('Please add at least one brand');
                return;
           }
 
-          // Create new brands
-          const newBrands: Brand[] = brandForm.addedBrands.map(name => ({
-               id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-               name: name,
-               createdDate: new Date().toISOString(),
-               itemCount: 0
-          }));
+          if (!selectedItemForBrand) {
+               toast.error('No inventory item selected');
+               return;
+          }
 
-          setBrands(prev => [...prev, ...newBrands]);
-          setShowAddBrandModal(false);
-          setBrandForm({ currentName: '', addedBrands: [] });
-          alert(`Successfully added ${newBrands.length} brand(s)!`);
+          try {
+               setLoading(true);
+
+               // Save each brand with inventory_item_id
+               const brandPromises = brandForm.addedBrands.map(brandName =>
+                    customPost('inventory/brands', 'POST', {
+                         name: brandName,
+                         inventory_item_id: selectedItemForBrand.id
+                    })
+               );
+
+               const results = await Promise.all(brandPromises);
+
+               // Check if all brands were saved successfully
+               const successCount = results.filter(result => result.success).length;
+
+               if (successCount === brandForm.addedBrands.length) {
+                    setBrands(prev => [...prev, ...brandForm.addedBrands.map((name, index) => ({
+                         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                         name: name,
+                         createdDate: new Date().toISOString(),
+                         itemCount: 1
+                    }))]);
+                    setShowAddBrandModal(false);
+                    setBrandForm({ currentName: '', addedBrands: [] });
+                    setSelectedItemForBrand(null);
+                    setExistingBrandsForItem([]);
+                    toast.success(`Successfully added ${successCount} brand(s)!`);
+               } else {
+                    toast.error(`Failed to save some brands. ${successCount} saved, ${brandForm.addedBrands.length - successCount} failed.`);
+               }
+          } catch (err) {
+               console.error('Error saving brands:', err);
+               toast.error('Failed to save brands');
+          } finally {
+               setLoading(false);
+          }
      };
 
      const resetItemForm = () => {
           setItemForm({
                name: '',
                category: '',
-               brand: '',
                sku: '',
                description: '',
                unit: 'pieces',
                currentStock: 0,
                minStock: 0,
                maxStock: 0,
-               unitPrice: 0,
-               location: ''
+               location_id: '',
+               expiryDate: '',
+               batchNumber: ''
           });
      };
 
@@ -483,7 +645,10 @@ export default function InventoryItemsPage() {
                          </button>
                          <button
                               className="btn btn-primary btn-sm"
-                              onClick={() => setShowAddModal(true)}
+                              onClick={() => {
+                                   setEditingItem(null);
+                                   setShowAddModal(true);
+                              }}
                          >
                               <RiAddLine className="me-1" />
                               Add Item
@@ -496,8 +661,8 @@ export default function InventoryItemsPage() {
                     column={inventoryColumns}
                     data={inventoryItems}
                     filtering={true}
-                    handleSeverSideProcessing={false}
-                    serverSideFiltering={false}
+                    handleSeverSideProcessing={handleServerSideProcessing}
+                    serverSideFiltering={true}
                />
 
                {/* Add Item Modal */}
@@ -507,14 +672,14 @@ export default function InventoryItemsPage() {
                               <div className="modal-content">
                                    <div className="modal-header">
                                         <h5 className="modal-title">
-                                             {selectedItem ? 'Edit Inventory Item' : 'Add Inventory Item'}
+                                             {editingItem ? `Edit Inventory Item: ${editingItem.name}` : 'Add Inventory Item'}
                                         </h5>
                                         <button
                                              type="button"
                                              className="btn-close"
                                              onClick={() => {
                                                   setShowAddModal(false);
-                                                  setSelectedItem(null);
+                                                  setEditingItem(null);
                                                   resetItemForm();
                                              }}
                                         ></button>
@@ -550,21 +715,8 @@ export default function InventoryItemsPage() {
                                                             onChange={(e) => setItemForm(prev => ({ ...prev, category: e.target.value }))}
                                                        >
                                                             <option value="">Select category</option>
-                                                            {CATEGORIES.map(category => (
-                                                                 <option key={category} value={category}>{category}</option>
-                                                            ))}
-                                                       </select>
-                                                  </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Brand</label>
-                                                       <select
-                                                            className="form-select"
-                                                            value={itemForm.brand}
-                                                            onChange={(e) => setItemForm(prev => ({ ...prev, brand: e.target.value }))}
-                                                       >
-                                                            <option value="">Select brand (optional)</option>
-                                                            {brands.map(brand => (
-                                                                 <option key={brand.id} value={brand.name}>{brand.name}</option>
+                                                            {categories.map(category => (
+                                                                 <option key={category.id} value={category.name}>{category.name}</option>
                                                             ))}
                                                        </select>
                                                   </div>
@@ -586,18 +738,31 @@ export default function InventoryItemsPage() {
                                                        </select>
                                                   </div>
                                                   <div className="row">
-                                                       <div className="col-4">
-                                                            <div className="mb-3">
-                                                                 <label className="form-label">Current Stock</label>
-                                                                 <input
-                                                                      type="number"
-                                                                      className="form-control"
-                                                                      value={itemForm.currentStock}
-                                                                      onChange={(e) => setItemForm(prev => ({ ...prev, currentStock: parseInt(e.target.value) || 0 }))}
-                                                                      min="0"
-                                                                 />
+                                                       {!editingItem && (
+                                                            <div className="col-4">
+                                                                 <div className="mb-3">
+                                                                      <label className="form-label">Current Stock</label>
+                                                                      <input
+                                                                           type="number"
+                                                                           className="form-control"
+                                                                           value={itemForm.currentStock}
+                                                                           onChange={(e) => setItemForm(prev => ({ ...prev, currentStock: parseInt(e.target.value) || 0 }))}
+                                                                           min="0"
+                                                                      />
+                                                                 </div>
                                                             </div>
-                                                       </div>
+                                                       )}
+                                                       {editingItem && (
+                                                            <div className="col-4">
+                                                                 <div className="mb-3">
+                                                                      <label className="form-label">Current Stock</label>
+                                                                      <div className="form-control bg-light">
+                                                                           {itemForm.currentStock} {itemForm.unit}
+                                                                      </div>
+                                                                      <small className="text-muted">Stock quantity cannot be edited directly</small>
+                                                                 </div>
+                                                            </div>
+                                                       )}
                                                        <div className="col-4">
                                                             <div className="mb-3">
                                                                  <label className="form-label">Min Stock</label>
@@ -623,30 +788,24 @@ export default function InventoryItemsPage() {
                                                             </div>
                                                        </div>
                                                   </div>
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Unit Price ($)</label>
-                                                       <input
-                                                            type="number"
-                                                            className="form-control"
-                                                            value={itemForm.unitPrice}
-                                                            onChange={(e) => setItemForm(prev => ({ ...prev, unitPrice: parseFloat(e.target.value) || 0 }))}
-                                                            step="0.01"
-                                                            min="0"
-                                                       />
-                                                  </div>
                                              </div>
                                         </div>
                                         <div className="row">
                                              <div className="col-md-6">
                                                   <div className="mb-3">
-                                                       <label className="form-label">Location</label>
-                                                       <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={itemForm.location}
-                                                            onChange={(e) => setItemForm(prev => ({ ...prev, location: e.target.value }))}
-                                                            placeholder="Storage location"
-                                                       />
+                                                       <label className="form-label">Storage Location</label>
+                                                       <select
+                                                            className="form-select"
+                                                            value={itemForm.location_id}
+                                                            onChange={(e) => setItemForm(prev => ({ ...prev, location_id: e.target.value }))}
+                                                       >
+                                                            <option value="">Select storage location</option>
+                                                            {storageLocations.filter(loc => loc.is_active !== false).map(location => (
+                                                                 <option key={location.id} value={location.id}>
+                                                                      {location.name} {location.temperature_controlled ? '(Temp. Controlled)' : ''}
+                                                                 </option>
+                                                            ))}
+                                                       </select>
                                                   </div>
                                              </div>
                                         </div>
@@ -667,7 +826,7 @@ export default function InventoryItemsPage() {
                                              className="btn btn-secondary btn-sm"
                                              onClick={() => {
                                                   setShowAddModal(false);
-                                                  setSelectedItem(null);
+                                                  setEditingItem(null);
                                                   resetItemForm();
                                              }}
                                         >
@@ -676,9 +835,9 @@ export default function InventoryItemsPage() {
                                         <button
                                              type="button"
                                              className="btn btn-primary btn-sm"
-                                             onClick={selectedItem ? handleUpdateItem : handleAddItem}
+                                             onClick={editingItem ? handleUpdateItem : handleAddItem}
                                         >
-                                             {selectedItem ? 'Update Item' : 'Add Item'}
+                                             {editingItem ? 'Update Item' : 'Add Item'}
                                         </button>
                                    </div>
                               </div>
@@ -692,19 +851,58 @@ export default function InventoryItemsPage() {
                          <div className="modal-dialog modal-lg">
                               <div className="modal-content">
                                    <div className="modal-header">
-                                        <h5 className="modal-title">Add Brands</h5>
+                                        <h5 className="modal-title">
+                                             Add Brands for {selectedItemForBrand?.name}
+                                        </h5>
                                         <button
                                              type="button"
                                              className="btn-close"
                                              onClick={() => {
                                                   setShowAddBrandModal(false);
                                                   setBrandForm({ currentName: '', addedBrands: [] });
+                                                  setSelectedItemForBrand(null);
+                                                  setExistingBrandsForItem([]);
                                              }}
                                         ></button>
                                    </div>
                                    <div className="modal-body">
+                                        {/* Existing Brands Section */}
+                                        {existingBrandsForItem.length > 0 && (
+                                             <div className="mb-4">
+                                                  <h6 className="text-primary mb-3">Existing Brands ({existingBrandsForItem.length})</h6>
+                                                  <div className="row">
+                                                       {existingBrandsForItem.map((brand, index) => (
+                                                            <div key={brand.id || index} className="col-md-6 mb-2">
+                                                                 <div className="card border-primary">
+                                                                      <div className="card-body py-2 px-3">
+                                                                           <div className="d-flex justify-content-between align-items-center">
+                                                                                <span className="fw-medium">{brand.name}</span>
+                                                                                <div className="d-flex gap-1">
+                                                                                     <small className="text-muted me-2">
+                                                                                          {brand.created_at ? new Date(brand.created_at).toLocaleDateString() : ''}
+                                                                                     </small>
+                                                                                     <button
+                                                                                          className="btn btn-sm btn-outline-danger"
+                                                                                          onClick={() => handleDeleteBrand(brand.id)}
+                                                                                          title="Delete brand"
+                                                                                          disabled={loading}
+                                                                                     >
+                                                                                          <RiDeleteBinLine size={12} />
+                                                                                     </button>
+                                                                                </div>
+                                                                           </div>
+                                                                      </div>
+                                                                 </div>
+                                                            </div>
+                                                       ))}
+                                                  </div>
+                                                  <hr className="my-4" />
+                                             </div>
+                                        )}
+
+                                        {/* Add New Brands Section */}
                                         <div className="mb-3">
-                                             <label className="form-label">Brand Name</label>
+                                             <label className="form-label">Add New Brand</label>
                                              <div className="input-group">
                                                   <input
                                                        type="text"
@@ -752,6 +950,8 @@ export default function InventoryItemsPage() {
                                              onClick={() => {
                                                   setShowAddBrandModal(false);
                                                   setBrandForm({ currentName: '', addedBrands: [] });
+                                                  setSelectedItemForBrand(null);
+                                                  setExistingBrandsForItem([]);
                                              }}
                                         >
                                              Cancel
@@ -760,9 +960,9 @@ export default function InventoryItemsPage() {
                                              type="button"
                                              className="btn btn-primary btn-sm"
                                              onClick={handleSaveBrands}
-                                             disabled={brandForm.addedBrands.length === 0}
+                                             disabled={brandForm.addedBrands.length === 0 || loading}
                                         >
-                                             Save Brands ({brandForm.addedBrands.length})
+                                             {loading ? 'Saving...' : `Save Brands (${brandForm.addedBrands.length})`}
                                         </button>
                                    </div>
                               </div>
@@ -789,7 +989,7 @@ export default function InventoryItemsPage() {
                                                   <p><strong>SKU:</strong> {selectedItem.sku}</p>
                                                   <p><strong>Brand:</strong> {selectedItem.brand || 'Not specified'}</p>
                                                   <p><strong>Category:</strong> {selectedItem.category}</p>
-                                                  <p><strong>Location:</strong> {selectedItem.location}</p>
+                                                  <p><strong>Location:</strong> {selectedItem.location_name || 'Not assigned'}</p>
                                                   <p><strong>Status:</strong>
                                                        <span className={`badge bg-${STATUS_BADGES[selectedItem.status].color} ms-2`}>
                                                             {STATUS_BADGES[selectedItem.status].label}
@@ -799,8 +999,6 @@ export default function InventoryItemsPage() {
                                              <div className="col-md-6">
                                                   <p><strong>Current Stock:</strong> {selectedItem.currentStock} {selectedItem.unit}</p>
                                                   <p><strong>Min/Max Stock:</strong> {selectedItem.minStock} / {selectedItem.maxStock} {selectedItem.unit}</p>
-                                                  <p><strong>Unit Price:</strong> ${selectedItem.unitPrice.toFixed(2)}</p>
-                                                  <p><strong>Total Value:</strong> ${selectedItem.totalValue.toFixed(2)}</p>
                                              </div>
                                         </div>
                                         {selectedItem.description && (

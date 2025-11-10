@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { RiHistoryLine, RiEyeLine, RiSubtractLine, RiCameraLine, RiAddLine, RiDeleteBinLine, RiSearchLine, RiFilterLine, RiDownloadLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { toast } from 'react-toastify';
 
 interface Batch {
      id: string;
@@ -92,279 +94,88 @@ export default function TransactionsPage() {
           cameraImage: ''
      });
 
-     // Mock data for demonstration
+     // Load data from API
      useEffect(() => {
-          const mockItems: InventoryItem[] = [
-               {
-                    id: '1',
-                    name: 'Blood Collection Tubes (EDTA)',
-                    category: 'Consumables',
-                    supplier: 'LabCorp Supplies',
-                    sku: 'BCT-001-EDTA',
-                    description: '10mL EDTA blood collection tubes',
-                    unit: 'boxes',
-                    batches: [
-                         {
-                              id: 'batch-1',
-                              batchNumber: 'BCT-EDTA-001',
-                              quantity: 15,
-                              unitPrice: 45.50,
-                              totalValue: 682.50,
-                              expiryDate: '2026-06-15',
-                              supplierId: '1',
-                              supplierName: 'LabCorp Supplies',
-                              receivedDate: '2025-10-15T10:00:00Z',
-                              purchaseOrderNumber: 'PO-2025-001',
-                              invoiceNumber: 'INV-2025-001'
-                         },
-                         {
-                              id: 'batch-2',
-                              batchNumber: 'BCT-EDTA-002',
-                              quantity: 10,
-                              unitPrice: 46.00,
-                              totalValue: 460.00,
-                              expiryDate: '2026-08-20',
-                              supplierId: '2',
-                              supplierName: 'MediTech Inc',
-                              receivedDate: '2025-11-01T14:30:00Z',
-                              purchaseOrderNumber: 'PO-2025-003',
-                              invoiceNumber: 'INV-2025-003'
-                         }
-                    ],
-                    currentStock: 25, // Calculated from batches
-                    minStock: 10,
-                    maxStock: 100,
-                    unitPrice: 45.75, // Average price
-                    totalValue: 1142.50, // Calculated from batches
-                    location: 'Storage Room A',
-                    expiryDate: '2026-06-15', // Earliest expiry
-                    lastUpdated: '2025-11-09T10:00:00Z',
-                    status: 'in_stock'
-               },
-               {
-                    id: '2',
-                    name: 'Glucose Test Strips',
-                    category: 'Consumables',
-                    supplier: 'MediTech Inc',
-                    sku: 'GTS-050',
-                    description: 'Glucose test strips - 50 count',
-                    unit: 'boxes',
-                    batches: [
-                         {
-                              id: 'batch-3',
-                              batchNumber: 'GTS-050-A1',
-                              quantity: 5,
-                              unitPrice: 25.00,
-                              totalValue: 125.00,
-                              expiryDate: '2025-12-01',
-                              supplierId: '2',
-                              supplierName: 'MediTech Inc',
-                              receivedDate: '2025-10-20T09:15:00Z',
-                              purchaseOrderNumber: 'PO-2025-002',
-                              invoiceNumber: 'INV-2025-002'
-                         }
-                    ],
-                    currentStock: 5, // Calculated from batches
-                    minStock: 15,
-                    maxStock: 50,
-                    unitPrice: 25.00,
-                    totalValue: 125.00,
-                    location: 'Storage Room B',
-                    expiryDate: '2025-12-01',
-                    lastUpdated: '2025-11-08T14:30:00Z',
-                    status: 'low_stock'
-               },
-               {
-                    id: '3',
-                    name: 'Sodium Chloride 0.9%',
-                    category: 'Reagents & Chemicals',
-                    supplier: 'ChemSolutions Ltd',
-                    sku: 'NaCl-09-500',
-                    description: '500mL bottles of 0.9% NaCl solution',
-                    unit: 'bottles',
-                    batches: [], // No stock
-                    currentStock: 0,
-                    minStock: 20,
-                    maxStock: 200,
-                    unitPrice: 8.75,
-                    totalValue: 0,
-                    location: 'Chemical Storage',
-                    expiryDate: '2026-03-20',
-                    lastUpdated: '2025-11-07T09:15:00Z',
-                    status: 'out_of_stock'
-               },
-               {
-                    id: '4',
-                    name: 'Microcentrifuge Tubes',
-                    category: 'Consumables',
-                    supplier: 'LabEssentials',
-                    sku: 'MCT-15-500',
-                    description: '1.5mL microcentrifuge tubes, 500 pack',
-                    unit: 'packs',
-                    batches: [
-                         {
-                              id: 'batch-4',
-                              batchNumber: 'MCT-15-001',
-                              quantity: 8,
-                              unitPrice: 12.50,
-                              totalValue: 100.00,
-                              expiryDate: '2026-12-15',
-                              supplierId: '4',
-                              supplierName: 'LabEssentials',
-                              receivedDate: '2025-11-05T11:20:00Z',
-                              purchaseOrderNumber: 'PO-2025-004',
-                              invoiceNumber: 'INV-2025-004'
-                         }
-                    ],
-                    currentStock: 8,
-                    minStock: 5,
-                    maxStock: 30,
-                    unitPrice: 12.50,
-                    totalValue: 100.00,
-                    location: 'Storage Room A',
-                    lastUpdated: '2025-11-06T16:45:00Z',
-                    status: 'in_stock'
-               }
-          ];
-
-          const mockTransactions: InventoryTransaction[] = [
-               {
-                    id: '1',
-                    type: 'consumption',
-                    items: [
-                         { itemId: '1', itemName: 'Blood Collection Tubes (EDTA)', quantity: 1, unit: 'tubes', unitPrice: 45.50, totalValue: 45.50 },
-                         { itemId: '4', itemName: 'Microcentrifuge Tubes', quantity: 2, unit: 'tubes', unitPrice: 12.50, totalValue: 25.00 }
-                    ],
-                    performedBy: 'Dr. Smith',
-                    timestamp: '2025-11-08T10:30:00Z',
-                    notes: 'Patient ID: P001'
-               },
-               {
-                    id: '3',
-                    type: 'adjustment',
-                    items: [
-                         { itemId: '2', itemName: 'Glucose Test Strips', quantity: -2, unit: 'boxes', unitPrice: 25.00, totalValue: -50.00 }
-                    ],
-                    performedBy: 'Inventory Clerk',
-                    timestamp: '2025-11-06T11:15:00Z',
-                    notes: 'Physical count discrepancy'
-               },
-               {
-                    id: '4',
-                    type: 'return',
-                    items: [
-                         { itemId: '3', itemName: 'Sodium Chloride 0.9%', quantity: 5, unit: 'bottles', unitPrice: 8.75, totalValue: 43.75 }
-                    ],
-                    performedBy: 'Quality Control',
-                    timestamp: '2025-11-05T09:45:00Z',
-                    notes: 'Expired batch return to supplier'
-               }
-          ];
-
-          setInventoryItems(mockItems);
-          setTransactions(mockTransactions);
+          loadInventoryItems();
+          loadTransactions();
      }, []);
 
-     const handleAddTransaction = () => {
+     const loadInventoryItems = async () => {
+          try {
+               const response = await customFetch('inventory/items');
+               if (response.success) {
+                    setInventoryItems(response.data || []);
+               } else {
+                    console.error('Failed to load inventory items:', response.message);
+                    setInventoryItems([]);
+               }
+          } catch (error) {
+               console.error('Error loading inventory items:', error);
+               setInventoryItems([]);
+          }
+     };
+
+     const loadTransactions = async () => {
+          try {
+               const response = await customFetch('inventory/transactions');
+               if (response.success) {
+                    setTransactions(response.data || []);
+               } else {
+                    console.error('Failed to load transactions:', response.message);
+                    setTransactions([]);
+               }
+          } catch (error) {
+               console.error('Error loading transactions:', error);
+               setTransactions([]);
+          }
+     };
+
+     const handleAddTransaction = async () => {
           if (transactionForm.items.length === 0) {
-               alert('Please add at least one item to the transaction');
+               toast.error('Please add at least one item to the transaction');
                return;
           }
 
-          const newTransaction: InventoryTransaction = {
-               id: Date.now().toString(),
-               type: transactionForm.type,
-               testId: transactionForm.testId || undefined,
-               testName: transactionForm.testName || undefined,
-               items: transactionForm.items,
-               performedBy: transactionForm.performedBy,
-               timestamp: new Date().toISOString(),
-               notes: transactionForm.notes,
-               cameraImage: transactionForm.cameraImage
-          };
+          try {
+               const transactionData = {
+                    type: transactionForm.type,
+                    test_id: transactionForm.testId || null,
+                    test_name: transactionForm.testName || null,
+                    items: transactionForm.items.map(item => ({
+                         item_id: item.itemId,
+                         quantity: item.quantity,
+                         unit_price: item.unitPrice,
+                         batch_id: item.batchId || null,
+                         batch_number: item.batchNumber || null
+                    })),
+                    performed_by: transactionForm.performedBy,
+                    notes: transactionForm.notes,
+                    camera_image: transactionForm.cameraImage || null
+               };
 
-          // Process inventory changes for consumption transactions
-          if (transactionForm.type === 'consumption') {
-               setInventoryItems(prev => prev.map(item => {
-                    const transactionItem = transactionForm.items.find(ti => ti.itemId === item.id);
-                    if (transactionItem) {
-                         let updatedBatches = [...item.batches];
-                         let remainingQuantity = transactionItem.quantity;
+               const response = await customPost('inventory/transactions', 'POST', transactionData as any);
 
-                         // If batch is specified, consume from that specific batch
-                         if (transactionItem.batchId) {
-                              updatedBatches = updatedBatches.map(batch => {
-                                   if (batch.id === transactionItem.batchId && remainingQuantity > 0) {
-                                        const consumeQuantity = Math.min(batch.quantity, remainingQuantity);
-                                        remainingQuantity -= consumeQuantity;
-                                        return {
-                                             ...batch,
-                                             quantity: batch.quantity - consumeQuantity,
-                                             totalValue: (batch.quantity - consumeQuantity) * batch.unitPrice
-                                        };
-                                   }
-                                   return batch;
-                              });
-                         } else {
-                              // FIFO: consume from oldest batches first
-                              updatedBatches = updatedBatches
-                                   .sort((a, b) => new Date(a.receivedDate).getTime() - new Date(b.receivedDate).getTime())
-                                   .map(batch => {
-                                        if (remainingQuantity > 0) {
-                                             const consumeQuantity = Math.min(batch.quantity, remainingQuantity);
-                                             remainingQuantity -= consumeQuantity;
-                                             return {
-                                                  ...batch,
-                                                  quantity: batch.quantity - consumeQuantity,
-                                                  totalValue: (batch.quantity - consumeQuantity) * batch.unitPrice
-                                             };
-                                        }
-                                        return batch;
-                                   });
-                         }
-
-                         // Remove empty batches
-                         updatedBatches = updatedBatches.filter(batch => batch.quantity > 0);
-
-                         // Calculate totals from remaining batches
-                         const totalStock = updatedBatches.reduce((sum, batch) => sum + batch.quantity, 0);
-                         const totalValue = updatedBatches.reduce((sum, batch) => sum + batch.totalValue, 0);
-                         const avgPrice = totalStock > 0 ? totalValue / totalStock : 0;
-
-                         // Find earliest expiry date
-                         const earliestExpiry = updatedBatches.length > 0 ?
-                              updatedBatches
-                                   .filter(batch => batch.expiryDate)
-                                   .sort((a, b) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime())[0]?.expiryDate
-                              : undefined;
-
-                         return {
-                              ...item,
-                              batches: updatedBatches,
-                              currentStock: totalStock,
-                              unitPrice: avgPrice,
-                              totalValue: totalValue,
-                              expiryDate: earliestExpiry,
-                              lastUpdated: new Date().toISOString(),
-                              status: totalStock === 0 ? 'out_of_stock' :
-                                   totalStock <= item.minStock ? 'low_stock' : 'in_stock'
-                         };
-                    }
-                    return item;
-               }));
+               if (response.success) {
+                    toast.success('Transaction recorded successfully!');
+                    await loadTransactions();
+                    await loadInventoryItems(); // Reload inventory to reflect stock changes
+                    setShowTransactionModal(false);
+                    setTransactionForm({
+                         type: 'consumption',
+                         testId: '',
+                         testName: '',
+                         items: [],
+                         performedBy: 'Current User',
+                         notes: '',
+                         cameraImage: ''
+                    });
+               } else {
+                    toast.error('Failed to record transaction: ' + (response.message || 'Unknown error'));
+               }
+          } catch (error) {
+               console.error('Error recording transaction:', error);
+               toast.error('Failed to record transaction. Please try again.');
           }
-
-          setTransactions(prev => [newTransaction, ...prev]);
-          setShowTransactionModal(false);
-          setTransactionForm({
-               type: 'consumption',
-               testId: '',
-               testName: '',
-               items: [],
-               performedBy: 'Current User',
-               notes: '',
-               cameraImage: ''
-          });
      };
 
      const handleCameraCapture = async () => {
@@ -375,7 +186,7 @@ export default function TransactionsPage() {
                     setShowCameraModal(true);
                }
           } catch (error) {
-               alert('Camera access denied or not available');
+               toast.error('Camera access denied or not available');
           }
      };
 
@@ -581,8 +392,8 @@ export default function TransactionsPage() {
                     column={transactionColumns}
                     data={filteredTransactions}
                     filtering={true}
-                    handleSeverSideProcessing={false}
-                    serverSideFiltering={false}
+                    handleSeverSideProcessing={true}
+                    serverSideFiltering={true}
                />
 
                {/* Transaction Details Modal */}

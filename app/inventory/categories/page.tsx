@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { RiPriceTagLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { toast } from 'react-toastify';
 
 
 interface InventoryCategory {
@@ -24,17 +26,59 @@ export default function InventoryCategoriesPage() {
           description: ''
      });
 
-     // Mock data for demonstration
+     // Load categories from API
      useEffect(() => {
-          const mockCategories: InventoryCategory[] = [
-               { id: '1', name: 'Consumables', description: 'Disposable lab supplies', itemCount: 25 },
-               { id: '2', name: 'Reagents & Chemicals', description: 'Chemical reagents and solutions', itemCount: 15 },
-               { id: '3', name: 'Equipment', description: 'Lab equipment and instruments', itemCount: 8 },
-               { id: '4', name: 'PPE', description: 'Personal protective equipment', itemCount: 12 }
-          ];
-
-          setCategories(mockCategories);
+          loadCategories();
      }, []);
+
+     const loadCategories = async () => {
+          try {
+               setLoading(true);
+               const response = await customFetch('inventory/categories');
+               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
+               const mappedCategories = (data || []).map((cat: any) => ({
+                    id: cat.id?.toString() || String(cat.id),
+                    name: cat.name,
+                    description: cat.description,
+                    itemCount: cat.item_count || cat.itemCount || 0
+               }));
+               setCategories(mappedCategories);
+          } catch (error) {
+               console.error('Error loading categories:', error);
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleServerSideProcessing = async ({ page, count, sortby = 'ASC' }: { page: number; count: number; sortby?: string }) => {
+          try {
+               // Build query parameters for server-side filtering
+               const params = new URLSearchParams({
+                    page: page.toString(),
+                    count: count.toString(),
+               });
+
+               if (sortby) {
+                    params.append('sortby', sortby);
+               }
+
+               const endpoint = `inventory/categories?${params.toString()}`;
+               const response = await customFetch(endpoint);
+
+               const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
+               const mappedCategories = (data || []).map((cat: any) => ({
+                    id: cat.id?.toString() || String(cat.id),
+                    name: cat.name,
+                    description: cat.description,
+                    itemCount: cat.item_count || cat.itemCount || 0
+               }));
+
+               return { result: mappedCategories, error: false };
+          } catch (error) {
+               console.error('Error in server-side processing:', error);
+               return { result: [], error: true };
+          }
+     };
 
      const categoryColumns = [
           {
@@ -88,22 +132,35 @@ export default function InventoryCategoriesPage() {
           }
      ];
 
-     const handleAddCategory = () => {
+     const handleAddCategory = async () => {
           if (!categoryForm.name) {
-               alert('Please enter a category name');
+               toast.error('Please enter a category name');
                return;
           }
 
-          const newCategory: InventoryCategory = {
-               id: Date.now().toString(),
-               name: categoryForm.name,
-               description: categoryForm.description,
-               itemCount: 0
-          };
+          try {
+               setLoading(true);
+               const categoryData = {
+                    name: categoryForm.name,
+                    description: categoryForm.description
+               };
 
-          setCategories(prev => [...prev, newCategory]);
-          setShowAddModal(false);
-          setCategoryForm({ name: '', description: '' });
+               const resp = await customPost('inventory/categories', 'POST', categoryData);
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Category added');
+                    await loadCategories(); // Reload categories
+                    setShowAddModal(false);
+                    setCategoryForm({ name: '', description: '' });
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to add category';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error adding category:', error);
+               toast.error('Error adding category');
+          } finally {
+               setLoading(false);
+          }
      };
 
      const handleEditCategory = (category: InventoryCategory) => {
@@ -111,12 +168,60 @@ export default function InventoryCategoriesPage() {
                name: category.name,
                description: category.description
           });
+          setSelectedCategory(category);
           setShowAddModal(true);
      };
 
-     const handleDeleteCategory = (categoryId: string) => {
-          if (confirm('Are you sure you want to delete this category?')) {
-               setCategories(prev => prev.filter(category => category.id !== categoryId));
+     const handleUpdateCategory = async () => {
+          if (!categoryForm.name || !selectedCategory) {
+               toast.error('Please enter a category name');
+               return;
+          }
+
+          try {
+               setLoading(true);
+               const categoryData = {
+                    name: categoryForm.name,
+                    description: categoryForm.description
+               };
+
+               const resp = await customPost(`inventory/categories/${selectedCategory.id}`, 'PUT', categoryData);
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Category updated');
+                    await loadCategories(); // Reload categories
+                    setShowAddModal(false);
+                    setSelectedCategory(null);
+                    setCategoryForm({ name: '', description: '' });
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to update category';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error updating category:', error);
+               toast.error('Error updating category');
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const handleDeleteCategory = async (categoryId: string) => {
+          if (!confirm('Are you sure you want to delete this category?')) return;
+
+          try {
+               setLoading(true);
+               const resp = await customPost(`inventory/categories/${categoryId}`, 'DELETE', {});
+               if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
+                    toast.success(resp.message || 'Category deleted');
+                    await loadCategories(); // Reload categories
+               } else {
+                    const errMsg = resp?.error?.message || resp?.message || 'Failed to delete category';
+                    toast.error(errMsg);
+               }
+          } catch (error) {
+               console.error('Error deleting category:', error);
+               toast.error('Error deleting category');
+          } finally {
+               setLoading(false);
           }
      };
 
@@ -147,8 +252,8 @@ export default function InventoryCategoriesPage() {
                     column={categoryColumns}
                     data={categories}
                     filtering={true}
-                    handleSeverSideProcessing={false}
-                    serverSideFiltering={false}
+                    handleSeverSideProcessing={handleServerSideProcessing}
+                    serverSideFiltering={true}
                />
 
                {/* Add Category Modal */}
@@ -157,7 +262,7 @@ export default function InventoryCategoriesPage() {
                          <div className="modal-dialog">
                               <div className="modal-content">
                                    <div className="modal-header">
-                                        <h5 className="modal-title">Add Category</h5>
+                                        <h5 className="modal-title">{selectedCategory ? 'Edit Category' : 'Add Category'}</h5>
                                         <button
                                              type="button"
                                              className="btn-close"
@@ -190,16 +295,21 @@ export default function InventoryCategoriesPage() {
                                         <button
                                              type="button"
                                              className="btn btn-secondary btn-sm"
-                                             onClick={() => setShowAddModal(false)}
+                                             onClick={() => {
+                                                  setShowAddModal(false);
+                                                  setSelectedCategory(null);
+                                                  setCategoryForm({ name: '', description: '' });
+                                             }}
                                         >
                                              Cancel
                                         </button>
                                         <button
                                              type="button"
                                              className="btn btn-success btn-sm"
-                                             onClick={handleAddCategory}
+                                             onClick={selectedCategory ? handleUpdateCategory : handleAddCategory}
+                                             disabled={loading}
                                         >
-                                             Add Category
+                                             {loading ? 'Saving...' : selectedCategory ? 'Update Category' : 'Add Category'}
                                         </button>
                                    </div>
                               </div>
@@ -208,7 +318,7 @@ export default function InventoryCategoriesPage() {
                )}
 
                {/* Category Details Modal */}
-               {selectedCategory && (
+               {selectedCategory && !showAddModal && (
                     <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
                          <div className="modal-dialog">
                               <div className="modal-content">
