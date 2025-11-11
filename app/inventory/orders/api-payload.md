@@ -62,7 +62,7 @@ All requests require a valid tenant ID passed as a query parameter: `?tenantId=<
     {
       "inventory_item_id": "string (required)",
       "quantity_ordered": "number (required, positive)",
-      "unit_price": "number (required, non-negative)",
+      "unit_price": "number (optional, non-negative, defaults to 0)",
       "tax_rate": "number (optional, 0-100)",
       "discount_rate": "number (optional, 0-100)",
       "notes": "string (optional)"
@@ -89,7 +89,6 @@ All requests require a valid tenant ID passed as a query parameter: `?tenantId=<
     {
       "inventory_item_id": "INV-002",
       "quantity_ordered": 50,
-      "unit_price": 12.00,
       "tax_rate": 8.25
     }
   ],
@@ -125,7 +124,7 @@ All requests require a valid tenant ID passed as a query parameter: `?tenantId=<
 - `items`: Must contain at least one item
 - `inventory_item_id`: Must exist and be active
 - `quantity_ordered`: Must be positive number
-- `unit_price`: Must be non-negative
+- `unit_price`: Must be non-negative if provided (optional)
 - `tax_rate` & `discount_rate`: Must be 0-100 if provided
 
 ---

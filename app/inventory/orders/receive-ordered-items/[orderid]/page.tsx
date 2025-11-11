@@ -6,58 +6,7 @@ import { RiArrowLeftLine, RiFileTextLine } from '@remixicon/react';
 import { toast } from 'react-toastify';
 import { customPost, customFetch, customFile, currencyFormatter } from '../../../../../components/Auth/customFetch';
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
-
-
-interface ReceivedItem {
-     id: string;
-     itemId: string;
-     itemName: string;
-     brand?: string;
-     selectedBrand?: string;
-     sku: string;
-     orderedQuantity: number;
-     receivedQuantity: number;
-     unitPrice: number;
-     batchNumber: string;
-     expiryDate: string;
-     unit: string;
-     totalValue: number;
-     availableBrands?: string[];
-}
-
-interface PurchaseOrder {
-     id: string;
-     orderNumber: string;
-     supplierId: string;
-     supplierName: string;
-     supplierEmail: string;
-     supplierContact: string;
-     supplierPhone?: string;
-     supplierAddress?: string;
-     items: any[];
-     status: string;
-     orderDate: string;
-     expectedDeliveryDate?: string;
-     actualDeliveryDate?: string;
-     totalAmount: number;
-     taxAmount: number;
-     discountAmount: number;
-     shippingCost: number;
-     finalAmount: number;
-     currency: string;
-     paymentTerms?: string;
-     notes?: string;
-     createdBy?: string;
-     approvedBy?: string;
-     approvedAt?: string;
-     sentAt?: string;
-     communicationMethod?: string;
-     communicationNotes?: string;
-     createdAt: string;
-     updatedAt?: string;
-     itemsCount?: number;
-     receivedItemsCount?: number;
-}
+import { InventoryItem, ReceivedItem, PurchaseOrder } from './types';
 
 export default function ReceiveOrderedItemsPage() {
      const params = useParams();
@@ -68,6 +17,7 @@ export default function ReceiveOrderedItemsPage() {
      const [order, setOrder] = useState<PurchaseOrder | null>(null);
      const [loading, setLoading] = useState(true);
      const [submitting, setSubmitting] = useState(false);
+     const [viewMode, setViewMode] = useState<'list' | 'table'>('table');
 
      const [receiveForm, setReceiveForm] = useState({
           invoiceNumber: '',
@@ -90,41 +40,41 @@ export default function ReceiveOrderedItemsPage() {
                const response = await customFetch(`inventory/orders/${orderId}`);
 
                if (response.success) {
-                    const apiOrderData = response.data.order;
+                    const apiOrderData = response.data;
 
                     // Map API response (snake_case) to our interface (camelCase)
                     const orderData: PurchaseOrder = {
                          id: apiOrderData.id,
-                         orderNumber: apiOrderData.order_number,
+                         orderNumber: apiOrderData.order_number || apiOrderData.id,
                          supplierId: apiOrderData.supplier_id,
-                         supplierName: apiOrderData.supplier_name,
-                         supplierEmail: apiOrderData.supplier_email,
-                         supplierContact: apiOrderData.supplier_contact,
-                         supplierPhone: apiOrderData.supplier_phone,
-                         supplierAddress: apiOrderData.supplier_address,
-                         items: apiOrderData.items,
+                         supplierName: apiOrderData.supplier?.name || apiOrderData.supplier_name || 'Unknown Supplier',
+                         supplierEmail: apiOrderData.supplier?.email || apiOrderData.supplier_email || '',
+                         supplierContact: apiOrderData.supplier?.contact || apiOrderData.supplier_contact || '',
+                         supplierPhone: apiOrderData.supplier?.phone || apiOrderData.supplier_phone || '',
+                         supplierAddress: apiOrderData.supplier?.address || apiOrderData.supplier_address || '',
+                         items: apiOrderData.items || [],
                          status: apiOrderData.status,
                          orderDate: apiOrderData.order_date,
                          expectedDeliveryDate: apiOrderData.expected_delivery_date,
-                         actualDeliveryDate: apiOrderData.actual_delivery_date,
-                         totalAmount: apiOrderData.total_amount,
-                         taxAmount: apiOrderData.tax_amount,
-                         discountAmount: apiOrderData.discount_amount,
-                         shippingCost: apiOrderData.shipping_cost,
-                         finalAmount: apiOrderData.final_amount,
-                         currency: apiOrderData.currency,
+                         actualDeliveryDate: apiOrderData.actual_delivery_date || null,
+                         totalAmount: apiOrderData.total_amount || 0,
+                         taxAmount: apiOrderData.tax_amount || 0,
+                         discountAmount: apiOrderData.discount_amount || 0,
+                         shippingCost: apiOrderData.shipping_cost || 0,
+                         finalAmount: apiOrderData.final_amount || 0,
+                         currency: apiOrderData.currency || 'GHS',
                          paymentTerms: apiOrderData.payment_terms,
                          notes: apiOrderData.notes,
                          createdBy: apiOrderData.created_by,
-                         approvedBy: apiOrderData.approved_by,
-                         approvedAt: apiOrderData.approved_at,
-                         sentAt: apiOrderData.sent_at,
+                         approvedBy: apiOrderData.approved_by || null,
+                         approvedAt: apiOrderData.approved_at || null,
+                         sentAt: apiOrderData.sent_at || null,
                          communicationMethod: apiOrderData.communication_method,
                          communicationNotes: apiOrderData.communication_notes,
                          createdAt: apiOrderData.created_at,
                          updatedAt: apiOrderData.updated_at,
-                         itemsCount: apiOrderData.items_count,
-                         receivedItemsCount: apiOrderData.received_items_count
+                         itemsCount: apiOrderData.items_count || 0,
+                         receivedItemsCount: apiOrderData.received_items_count || 0
                     };
 
                     setOrder(orderData);
@@ -134,15 +84,20 @@ export default function ReceiveOrderedItemsPage() {
                          itemName: item.item_name,
                          brand: item.brand_name,
                          selectedBrand: item.brand_name || '',
-                         sku: item.sku,
+                         sku: item.item_sku,
                          orderedQuantity: item.quantity_ordered,
+                         quantityReceived: item.quantity_received || 0,
                          receivedQuantity: 0,
+                         remainingQuantity: item.quantity_ordered - (item.quantity_received || 0),
                          unitPrice: item.unit_price || 0,
+                         discountRate: item.discount_rate || 0,
+                         taxRate: item.tax_rate || 0,
                          batchNumber: '',
                          expiryDate: '',
                          unit: item.unit || 'units',
                          totalValue: 0,
-                         availableBrands: []
+                         availableBrands: [],
+                         status: item.status || 'ordered'
                     }));
                     setReceiveForm(prev => ({ ...prev, items: initialItems }));
 
@@ -222,11 +177,12 @@ export default function ReceiveOrderedItemsPage() {
                return;
           }
 
-          const completedItems = receiveForm.items.filter(item =>
+          const itemsToReceive = receiveForm.items.filter(item => item.status !== 'received');
+          const completedItems = itemsToReceive.filter(item =>
                item.receivedQuantity > 0 && item.unitPrice > 0 && item.batchNumber && item.expiryDate
           );
 
-          if (completedItems.length !== receiveForm.items.length) {
+          if (completedItems.length !== itemsToReceive.length) {
                toast.error('Please complete all item details before processing');
                return;
           }
@@ -239,6 +195,8 @@ export default function ReceiveOrderedItemsPage() {
                     receipts: receiveForm.items.map(item => ({
                          order_item_id: item.id,
                          quantity_received: item.receivedQuantity,
+                         discount_rate: item.discountRate,
+                         tax_rate: item.taxRate,
                          batch_number: item.batchNumber,
                          expiry_date: item.expiryDate,
                          unit_price: item.unitPrice,
@@ -356,7 +314,9 @@ export default function ReceiveOrderedItemsPage() {
      const totalReceived = receiveForm.items.reduce((sum, item) => sum + item.totalValue, 0);
      const completedItems = receiveForm.items.filter(item =>
           item.receivedQuantity > 0 && item.unitPrice > 0 && item.batchNumber && item.expiryDate
-     ).length; return (
+     ).length;
+     const fullyReceivedItems = receiveForm.items.filter(item => item.status === 'received').length;
+     const totalItemsToReceive = receiveForm.items.length - fullyReceivedItems; return (
           <div className="container-fluid py-4">
                <div className="row">
                     <div className="col-12">
@@ -376,7 +336,7 @@ export default function ReceiveOrderedItemsPage() {
                                              </small>
                                         </div>
                                         <div className="badge bg-info me-2">
-                                             <strong>Progress:</strong> {completedItems} / {receiveForm.items.length} items completed
+                                             <strong>Progress:</strong> {completedItems} / {totalItemsToReceive} items completed
                                         </div>
                                         <div className="border border-success fw-bold px-2 py-1">
                                              <strong>Total:</strong> {currencyFormatter.format(totalReceived)}
@@ -392,7 +352,7 @@ export default function ReceiveOrderedItemsPage() {
                                         <button
                                              className="btn btn-primary btn-sm"
                                              onClick={handleProcessReceiving}
-                                             disabled={submitting || completedItems !== receiveForm.items.length}
+                                             disabled={submitting || totalItemsToReceive === 0 || (totalItemsToReceive > 0 && completedItems !== totalItemsToReceive)}
                                         >
                                              {submitting ? (
                                                   <>
@@ -411,7 +371,7 @@ export default function ReceiveOrderedItemsPage() {
                                    <div className="d-flex flex-wrap align-items-center gap-3">
                                         <div>
                                              <strong className="small">Status:</strong>
-                                             <span className={`badge ms-2 small ${order.status === 'ordering' ? 'bg-warning' : 'bg-secondary'}`}>
+                                             <span className={`badge ms-2 small ${order.status === 'ordered' ? 'bg-warning' : 'bg-secondary'}`}>
                                                   {order.status}
                                              </span>
                                         </div>
@@ -439,163 +399,291 @@ export default function ReceiveOrderedItemsPage() {
                                    </div>
                               </div>
                               <div className="card-body">
-                                   <div className="row">
-                                        {/* Left Column - Receiving Information */}
-                                        <div className="col-md-3">
-                                             {/* Receiving Information */}
-                                             <div className="mb-4">
-                                                  <h6 className="text-muted">Receiving Information</h6>
-                                                  <div className="border rounded p-3">
-                                                       <div className="mb-3">
-                                                            <label className="form-label">Invoice Number <span className="text-danger">*</span></label>
-                                                            <input
-                                                                 type="text"
-                                                                 className="form-control"
-                                                                 value={receiveForm.invoiceNumber}
-                                                                 onChange={(e) => setReceiveForm(prev => ({ ...prev, invoiceNumber: e.target.value }))}
-                                                                 placeholder="Enter invoice number"
-                                                            />
-                                                       </div>
-                                                       <div className="row">
-                                                            <div className="col-sm-6">
-                                                                 <label className="form-label">Received Date <span className="text-danger">*</span></label>
-                                                                 <input
-                                                                      type="date"
-                                                                      className="form-control"
-                                                                      value={receiveForm.receivedDate}
-                                                                      onChange={(e) => setReceiveForm(prev => ({ ...prev, receivedDate: e.target.value }))}
-                                                                 />
-                                                            </div>
-                                                            <div className="col-sm-6">
-                                                                 <label className="form-label">Received Time <span className="text-danger">*</span></label>
-                                                                 <input
-                                                                      type="time"
-                                                                      className="form-control"
-                                                                      value={receiveForm.receivedTime}
-                                                                      onChange={(e) => setReceiveForm(prev => ({ ...prev, receivedTime: e.target.value }))}
-                                                                 />
-                                                            </div>
-                                                       </div>
-                                                       <div className="mt-3">
-                                                            <label className="form-label">Notes</label>
-                                                            <textarea
-                                                                 className="form-control"
-                                                                 rows={3}
-                                                                 value={receiveForm.notes}
-                                                                 onChange={(e) => setReceiveForm(prev => ({ ...prev, notes: e.target.value }))}
-                                                                 placeholder="Additional notes..."
-                                                            />
-                                                       </div>
-                                                       <div className="mt-3">
-                                                            <label className="form-label">Condition Status</label>
-                                                            <select
-                                                                 className="form-select"
-                                                                 value={receiveForm.conditionStatus}
-                                                                 onChange={(e) => setReceiveForm(prev => ({ ...prev, conditionStatus: e.target.value }))}
-                                                            >
-                                                                 <option value="good">Good</option>
-                                                                 <option value="acceptable">Acceptable</option>
-                                                                 <option value="damaged">Damaged</option>
-                                                                 <option value="expired">Expired</option>
-                                                            </select>
-                                                       </div>
-                                                       <div className="mt-3">
-                                                            <div className="form-check">
-                                                                 <input
-                                                                      className="form-check-input"
-                                                                      type="checkbox"
-                                                                      id="qualityCheckPassed"
-                                                                      checked={receiveForm.qualityCheckPassed}
-                                                                      onChange={(e) => setReceiveForm(prev => ({ ...prev, qualityCheckPassed: e.target.checked }))}
-                                                                 />
-                                                                 <label className="form-check-label" htmlFor="qualityCheckPassed">
-                                                                      Quality Check Passed
-                                                                 </label>
-                                                            </div>
-                                                       </div>
-                                                       <div className="mt-3">
-                                                            <label className="form-label">Receipt Images</label>
-                                                            <input
-                                                                 type="file"
-                                                                 className="form-control"
-                                                                 multiple
-                                                                 accept="image/*"
-                                                                 onChange={(e) => {
-                                                                      const files = Array.from(e.target.files || []);
-                                                                      // Validate file types and sizes
-                                                                      const validFiles = files.filter(file => {
-                                                                           const isValidType = file.type.startsWith('image/');
-                                                                           const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB limit
-                                                                           return isValidType && isValidSize;
-                                                                      });
-
-                                                                      if (validFiles.length !== files.length) {
-                                                                           toast.warning('Some files were skipped. Only images under 5MB are allowed.');
-                                                                      }
-
-                                                                      setReceiveForm(prev => ({ ...prev, receiptImages: validFiles }));
-                                                                 }}
-                                                            />
-                                                            <small className="text-muted">Upload receipt images from supplier (max 5MB each, images only)</small>
-                                                            {receiveForm.receiptImages.length > 0 && (
-                                                                 <div className="mt-2">
-                                                                      <small className="text-success">
-                                                                           {receiveForm.receiptImages.length} file(s) selected:
-                                                                      </small>
-                                                                      <div className="mt-1">
-                                                                           {receiveForm.receiptImages.map((file, index) => (
-                                                                                <small key={index} className="text-muted d-block">
-                                                                                     • {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                                                                                </small>
-                                                                           ))}
-                                                                      </div>
-                                                                 </div>
-                                                            )}
-                                                       </div>
-                                                  </div>
+                                   <div className="mb-4">
+                                        <div className="d-flex justify-content-between align-items-center mb-3">
+                                             <h6 className="text-muted mb-0">Items to Receive</h6>
+                                             <div className="btn-group btn-group-sm" role="group">
+                                                  <button
+                                                       type="button"
+                                                       className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                                       onClick={() => setViewMode('list')}
+                                                  >
+                                                       List
+                                                  </button>
+                                                  <button
+                                                       type="button"
+                                                       className={`btn ${viewMode === 'table' ? 'btn-primary' : 'btn-outline-primary'}`}
+                                                       onClick={() => setViewMode('table')}
+                                                  >
+                                                       Table
+                                                  </button>
                                              </div>
                                         </div>
 
-                                        {/* Middle Column - Items List */}
-                                        <div className="col-md-9">
-                                             <div className="mb-4">
-                                                  <h6 className="text-muted">Items to Receive</h6>
-                                                  <div className="list-group">
-                                                       {receiveForm.items.map((item, index) => (
-                                                            <div key={item.itemId} className="list-group-item">
-                                                                 <div className="d-flex justify-content-between align-items-start mb-3">
-                                                                      <div>
-                                                                           <h6 className="mb-1">
-                                                                                <strong>{item.itemName}</strong>
-                                                                                <small className="text-muted ms-2">({item.unit})</small>
-                                                                           </h6>
-                                                                           <small className="text-muted">Ordered Brand: {item.brand || 'N/A'} | SKU: {item.sku} | Ordered: {item.orderedQuantity}</small>
-                                                                           {item.selectedBrand && (
-                                                                                <div className="mt-1">
-                                                                                     <small className="text-primary fw-medium">
-                                                                                          Selected Brand: {item.selectedBrand}
-                                                                                     </small>
-                                                                                </div>
-                                                                           )}
-                                                                           {item.availableBrands && item.availableBrands.length > 0 && (
-                                                                                <div className="mt-1">
-                                                                                     <small className="text-info">
-                                                                                          Available Brands: {item.availableBrands.join(', ')}
-                                                                                     </small>
-                                                                                </div>
-                                                                           )}
-                                                                      </div>
-                                                                      <div className="text-end">
-                                                                           <strong className="text-success">{currencyFormatter.format(item.totalValue)}</strong>
+                                        {viewMode === 'list' ? (
+                                             <div className="list-group">
+                                                  {receiveForm.items.map((item, index) => (
+                                                       <div key={item.itemId} className="list-group-item">
+                                                            <div className="d-flex justify-content-between align-items-start mb-2">
+                                                                 <div className="flex-grow-1">
+                                                                      <h6 className="mb-1">
+                                                                           <strong>{item.itemName}</strong>
+                                                                           <small className="text-muted ms-2">({item.unit})</small>
+                                                                           <span className={`badge ms-2 small ${item.status === 'received' ? 'bg-success' : item.status === 'partially_received' ? 'bg-warning' : 'bg-secondary'}`}>
+                                                                                {item.status.replace('_', ' ')}
+                                                                           </span>
+                                                                      </h6>
+                                                                      <small className="text-muted">SKU: {item.sku} | Ordered: {item.orderedQuantity}</small>
+                                                                      <div className="mt-1">
+                                                                           <small className="text-info">Received: {item.quantityReceived} | Remaining: {item.remainingQuantity}</small>
                                                                       </div>
                                                                  </div>
+                                                                 <div className="text-end">
+                                                                      <strong className="text-success">{currencyFormatter.format(item.totalValue)}</strong>
+                                                                 </div>
+                                                            </div>
 
-                                                                 <div className="row g-2">
-                                                                      <div className="col-md-2">
-                                                                           <label className="form-label small">Brand</label>
+                                                            <div className="row g-1">
+                                                                 <div className="col-3">
+                                                                      <label className="form-label small">Brand</label>
+                                                                      <select
+                                                                           className="form-select form-select-sm"
+                                                                           value={item.selectedBrand || ''}
+                                                                           disabled={item.status === 'received'}
+                                                                           onChange={(e) => {
+                                                                                const value = e.target.value;
+                                                                                setReceiveForm(prev => {
+                                                                                     const newItems = [...prev.items];
+                                                                                     newItems[index].selectedBrand = value;
+                                                                                     return { ...prev, items: newItems };
+                                                                                });
+                                                                           }}
+                                                                      >
+                                                                           <option value="">Select Brand</option>
+                                                                           {item.availableBrands && item.availableBrands.map((brand, brandIndex) => (
+                                                                                <option key={brandIndex} value={brand}>{brand}</option>
+                                                                           ))}
+                                                                      </select>
+                                                                 </div>
+                                                                 <div className="col-2">
+                                                                      <label className="form-label small">Qty <span className="text-danger">*</span></label>
+                                                                      <input
+                                                                           type="number"
+                                                                           className="form-control form-control-sm"
+                                                                           min="0"
+                                                                           max={item.remainingQuantity}
+                                                                           value={item.receivedQuantity}
+                                                                           disabled={item.status === 'received'}
+                                                                           onChange={(e) => {
+                                                                                const value = parseInt(e.target.value) || 0;
+                                                                                setReceiveForm(prev => {
+                                                                                     const newItems = [...prev.items];
+                                                                                     newItems[index].receivedQuantity = value;
+                                                                                     newItems[index].totalValue = value * newItems[index].unitPrice;
+                                                                                     return { ...prev, items: newItems };
+                                                                                });
+                                                                           }}
+                                                                      />
+                                                                 </div>
+                                                                 <div className="col-2">
+                                                                      <label className="form-label small">Price <span className="text-danger">*</span></label>
+                                                                      <input
+                                                                           type="number"
+                                                                           className="form-control form-control-sm"
+                                                                           min="0"
+                                                                           step="0.01"
+                                                                           value={item.unitPrice}
+                                                                           disabled={item.status === 'received'}
+                                                                           onChange={(e) => {
+                                                                                const value = parseFloat(e.target.value) || 0;
+                                                                                setReceiveForm(prev => {
+                                                                                     const newItems = [...prev.items];
+                                                                                     newItems[index].unitPrice = value;
+                                                                                     newItems[index].totalValue = newItems[index].receivedQuantity * value;
+                                                                                     return { ...prev, items: newItems };
+                                                                                });
+                                                                           }}
+                                                                      />
+                                                                 </div>
+                                                                 <div className="col-1">
+                                                                      <label className="form-label small">Disc %</label>
+                                                                      <input
+                                                                           type="number"
+                                                                           className="form-control form-control-sm"
+                                                                           min="0"
+                                                                           step="0.01"
+                                                                           value={item.discountRate}
+                                                                           disabled={item.status === 'received'}
+                                                                           onChange={(e) => {
+                                                                                const value = parseFloat(e.target.value) || 0;
+                                                                                setReceiveForm(prev => {
+                                                                                     const newItems = [...prev.items];
+                                                                                     newItems[index].discountRate = value;
+                                                                                     return { ...prev, items: newItems };
+                                                                                });
+                                                                           }}
+                                                                      />
+                                                                 </div>
+                                                                 <div className="col-1">
+                                                                      <label className="form-label small">Tax %</label>
+                                                                      <input
+                                                                           type="number"
+                                                                           className="form-control form-control-sm"
+                                                                           min="0"
+                                                                           step="0.01"
+                                                                           value={item.taxRate}
+                                                                           disabled={item.status === 'received'}
+                                                                           onChange={(e) => {
+                                                                                const value = parseFloat(e.target.value) || 0;
+                                                                                setReceiveForm(prev => {
+                                                                                     const newItems = [...prev.items];
+                                                                                     newItems[index].taxRate = value;
+                                                                                     return { ...prev, items: newItems };
+                                                                                });
+                                                                           }}
+                                                                      />
+                                                                 </div>
+                                                                 <div className="col-2">
+                                                                      <label className="form-label small">Batch <span className="text-danger">*</span></label>
+                                                                      <input
+                                                                           type="text"
+                                                                           className="form-control form-control-sm"
+                                                                           value={item.batchNumber}
+                                                                           disabled={item.status === 'received'}
+                                                                           onChange={(e) => {
+                                                                                const value = e.target.value;
+                                                                                setReceiveForm(prev => {
+                                                                                     const newItems = [...prev.items];
+                                                                                     newItems[index].batchNumber = value;
+                                                                                     return { ...prev, items: newItems };
+                                                                                });
+                                                                           }}
+                                                                           placeholder="Batch #"
+                                                                      />
+                                                                 </div>
+                                                                 <div className="col-1">
+                                                                      <label className="form-label small">Expiry <span className="text-danger">*</span></label>
+                                                                      <input
+                                                                           type="date"
+                                                                           className="form-control form-control-sm"
+                                                                           value={item.expiryDate}
+                                                                           disabled={item.status === 'received'}
+                                                                           onChange={(e) => {
+                                                                                const value = e.target.value;
+                                                                                setReceiveForm(prev => {
+                                                                                     const newItems = [...prev.items];
+                                                                                     newItems[index].expiryDate = value;
+                                                                                     return { ...prev, items: newItems };
+                                                                                });
+                                                                           }}
+                                                                      />
+                                                                 </div>
+                                                            </div>
+                                                            <div className="row g-1 mt-2">
+                                                                 <div className="col-8">
+                                                                      {item.availableBrands && item.availableBrands.length > 0 && (
+                                                                           <small className="text-info">
+                                                                                Brands: {item.availableBrands.join(', ')}
+                                                                           </small>
+                                                                      )}
+                                                                 </div>
+                                                                 <div className="col-4 text-end">
+                                                                      <div className="d-flex gap-1 justify-content-end">
+                                                                           <button
+                                                                                className="btn btn-outline-secondary btn-sm"
+                                                                                disabled={item.status === 'received'}
+                                                                                onClick={() => {
+                                                                                     setReceiveForm(prev => {
+                                                                                          const newItems = [...prev.items];
+                                                                                          newItems[index].receivedQuantity = item.remainingQuantity;
+                                                                                          newItems[index].totalValue = item.remainingQuantity * newItems[index].unitPrice;
+                                                                                          return { ...prev, items: newItems };
+                                                                                     });
+                                                                                }}
+                                                                                title="Receive remaining quantity"
+                                                                           >
+                                                                                Receive All
+                                                                           </button>
+                                                                           <button
+                                                                                className="btn btn-outline-danger btn-sm"
+                                                                                disabled={item.status === 'received'}
+                                                                                onClick={() => {
+                                                                                     setReceiveForm(prev => {
+                                                                                          const newItems = [...prev.items];
+                                                                                          newItems[index].receivedQuantity = 0;
+                                                                                          newItems[index].unitPrice = 0;
+                                                                                          newItems[index].discountRate = 0;
+                                                                                          newItems[index].taxRate = 0;
+                                                                                          newItems[index].batchNumber = '';
+                                                                                          newItems[index].expiryDate = '';
+                                                                                          newItems[index].totalValue = 0;
+                                                                                          return { ...prev, items: newItems };
+                                                                                     });
+                                                                                }}
+                                                                                title="Clear all fields"
+                                                                           >
+                                                                                Clear
+                                                                           </button>
+                                                                      </div>
+                                                                 </div>
+                                                            </div>
+                                                       </div>
+                                                  ))}
+                                             </div>
+                                        ) : (
+                                             <div className="table-responsive">
+                                                  <table className="table table-striped table-hover">
+                                                       <thead className="table-light">
+                                                            <tr>
+                                                                 <th style={{ width: '20%' }}>Item</th>
+                                                                 <th style={{ width: '5%' }}>Status</th>
+                                                                 <th style={{ width: '8%' }}>Progress</th>
+                                                                 <th style={{ width: '12%' }}>Brand</th>
+                                                                 <th style={{ width: '8%' }}>Receive Qty</th>
+                                                                 <th style={{ width: '8%' }}>Unit Price</th>
+                                                                 <th style={{ width: '6%' }}>Discount</th>
+                                                                 <th style={{ width: '6%' }}>Tax</th>
+                                                                 <th style={{ width: '10%' }}>Batch</th>
+                                                                 <th style={{ width: '10%' }}>Expiry</th>
+                                                                 <th style={{ width: '8%' }}>Total</th>
+                                                            </tr>
+                                                       </thead>
+                                                       <tbody>
+                                                            {receiveForm.items.map((item, index) => (
+                                                                 <tr key={item.itemId}>
+                                                                      <td>
+                                                                           <div>
+                                                                                <strong>{item.itemName}</strong>
+                                                                                <br />
+                                                                                <small className="text-muted">
+                                                                                     {item.unit} | SKU: {item.sku}
+                                                                                </small>
+                                                                                {item.availableBrands && item.availableBrands.length > 0 && (
+                                                                                     <>
+                                                                                          <br />
+                                                                                          <small className="text-info">
+                                                                                               {item.availableBrands.length} brand{item.availableBrands.length > 1 ? 's' : ''} available
+                                                                                          </small>
+                                                                                     </>
+                                                                                )}
+                                                                           </div>
+                                                                      </td>
+                                                                      <td>
+                                                                           <span className={`badge ${item.status === 'received' ? 'bg-success' : item.status === 'partially_received' ? 'bg-warning' : 'bg-secondary'}`}>
+                                                                                {item.status === 'partially_received' ? 'Partial' : item.status === 'received' ? 'Done' : 'Pending'}
+                                                                           </span>
+                                                                      </td>
+                                                                      <td className="text-center">
+                                                                           <div className="small">
+                                                                                <div className="fw-bold">{item.quantityReceived}/{item.orderedQuantity}</div>
+                                                                                <div className="text-muted">({item.remainingQuantity} left)</div>
+                                                                           </div>
+                                                                      </td>
+                                                                      <td>
                                                                            <select
                                                                                 className="form-select form-select-sm"
                                                                                 value={item.selectedBrand || ''}
+                                                                                disabled={item.status === 'received'}
                                                                                 onChange={(e) => {
                                                                                      const value = e.target.value;
                                                                                      setReceiveForm(prev => {
@@ -610,15 +698,15 @@ export default function ReceiveOrderedItemsPage() {
                                                                                      <option key={brandIndex} value={brand}>{brand}</option>
                                                                                 ))}
                                                                            </select>
-                                                                      </div>
-                                                                      <div className="col-md-2">
-                                                                           <label className="form-label small">Received Qty <span className="text-danger">*</span></label>
+                                                                      </td>
+                                                                      <td>
                                                                            <input
                                                                                 type="number"
                                                                                 className="form-control form-control-sm"
                                                                                 min="0"
-                                                                                max={item.orderedQuantity}
+                                                                                max={item.remainingQuantity}
                                                                                 value={item.receivedQuantity}
+                                                                                disabled={item.status === 'received'}
                                                                                 onChange={(e) => {
                                                                                      const value = parseInt(e.target.value) || 0;
                                                                                      setReceiveForm(prev => {
@@ -629,15 +717,15 @@ export default function ReceiveOrderedItemsPage() {
                                                                                      });
                                                                                 }}
                                                                            />
-                                                                      </div>
-                                                                      <div className="col-md-2">
-                                                                           <label className="form-label small">Unit Price <span className="text-danger">*</span></label>
+                                                                      </td>
+                                                                      <td>
                                                                            <input
                                                                                 type="number"
                                                                                 className="form-control form-control-sm"
                                                                                 min="0"
                                                                                 step="0.01"
                                                                                 value={item.unitPrice}
+                                                                                disabled={item.status === 'received'}
                                                                                 onChange={(e) => {
                                                                                      const value = parseFloat(e.target.value) || 0;
                                                                                      setReceiveForm(prev => {
@@ -648,13 +736,49 @@ export default function ReceiveOrderedItemsPage() {
                                                                                      });
                                                                                 }}
                                                                            />
-                                                                      </div>
-                                                                      <div className="col-md-3">
-                                                                           <label className="form-label small">Batch Number <span className="text-danger">*</span></label>
+                                                                      </td>
+                                                                      <td>
+                                                                           <input
+                                                                                type="number"
+                                                                                className="form-control form-control-sm"
+                                                                                min="0"
+                                                                                step="0.01"
+                                                                                value={item.discountRate}
+                                                                                disabled={item.status === 'received'}
+                                                                                onChange={(e) => {
+                                                                                     const value = parseFloat(e.target.value) || 0;
+                                                                                     setReceiveForm(prev => {
+                                                                                          const newItems = [...prev.items];
+                                                                                          newItems[index].discountRate = value;
+                                                                                          return { ...prev, items: newItems };
+                                                                                     });
+                                                                                }}
+                                                                           />
+                                                                      </td>
+                                                                      <td>
+                                                                           <input
+                                                                                type="number"
+                                                                                className="form-control form-control-sm"
+                                                                                min="0"
+                                                                                step="0.01"
+                                                                                value={item.taxRate}
+                                                                                disabled={item.status === 'received'}
+                                                                                onChange={(e) => {
+                                                                                     const value = parseFloat(e.target.value) || 0;
+                                                                                     setReceiveForm(prev => {
+                                                                                          const newItems = [...prev.items];
+                                                                                          newItems[index].taxRate = value;
+                                                                                          return { ...prev, items: newItems };
+                                                                                     });
+                                                                                }}
+                                                                           />
+                                                                      </td>
+                                                                      <td>
                                                                            <input
                                                                                 type="text"
                                                                                 className="form-control form-control-sm"
                                                                                 value={item.batchNumber}
+                                                                                disabled={item.status === 'received'}
                                                                                 onChange={(e) => {
                                                                                      const value = e.target.value;
                                                                                      setReceiveForm(prev => {
@@ -665,13 +789,13 @@ export default function ReceiveOrderedItemsPage() {
                                                                                 }}
                                                                                 placeholder="Batch #"
                                                                            />
-                                                                      </div>
-                                                                      <div className="col-md-3">
-                                                                           <label className="form-label small">Expiry Date <span className="text-danger">*</span></label>
+                                                                      </td>
+                                                                      <td>
                                                                            <input
                                                                                 type="date"
                                                                                 className="form-control form-control-sm"
                                                                                 value={item.expiryDate}
+                                                                                disabled={item.status === 'received'}
                                                                                 onChange={(e) => {
                                                                                      const value = e.target.value;
                                                                                      setReceiveForm(prev => {
@@ -681,11 +805,120 @@ export default function ReceiveOrderedItemsPage() {
                                                                                      });
                                                                                 }}
                                                                            />
-                                                                      </div>
-                                                                 </div>
-                                                            </div>
-                                                       ))}
+                                                                      </td>
+                                                                      <td className="text-end">
+                                                                           <strong className="text-success">{currencyFormatter.format(item.totalValue)}</strong>
+                                                                      </td>
+                                                                 </tr>
+                                                            ))}
+                                                       </tbody>
+                                                  </table>
+                                             </div>
+                                        )}
+                                   </div>
+                              </div>
+                              <div className='border-top p-2'>
+                                   <div className=''>Receiving Details</div>
+                              </div>
+                              <div className="card-body border-top">
+                                   <div className="row g-3">
+                                        <div className="col-md-3">
+                                             <label className="form-label">Invoice Number <span className="text-danger">*</span></label>
+                                             <input
+                                                  type="text"
+                                                  className="form-control"
+                                                  value={receiveForm.invoiceNumber}
+                                                  onChange={(e) => setReceiveForm(prev => ({ ...prev, invoiceNumber: e.target.value }))}
+                                                  placeholder="Enter invoice number"
+                                             />
+                                        </div>
+                                        <div className="col-md-2">
+                                             <label className="form-label">Received Date <span className="text-danger">*</span></label>
+                                             <input
+                                                  type="date"
+                                                  className="form-control"
+                                                  value={receiveForm.receivedDate}
+                                                  onChange={(e) => setReceiveForm(prev => ({ ...prev, receivedDate: e.target.value }))}
+                                             />
+                                        </div>
+                                        <div className="col-md-2">
+                                             <label className="form-label">Received Time <span className="text-danger">*</span></label>
+                                             <input
+                                                  type="time"
+                                                  className="form-control"
+                                                  value={receiveForm.receivedTime}
+                                                  onChange={(e) => setReceiveForm(prev => ({ ...prev, receivedTime: e.target.value }))}
+                                             />
+                                        </div>
+                                        <div className="col-md-2">
+                                             <label className="form-label">Condition Status</label>
+                                             <select
+                                                  className="form-select"
+                                                  value={receiveForm.conditionStatus}
+                                                  onChange={(e) => setReceiveForm(prev => ({ ...prev, conditionStatus: e.target.value }))}
+                                             >
+                                                  <option value="good">Good</option>
+                                                  <option value="acceptable">Acceptable</option>
+                                                  <option value="damaged">Damaged</option>
+                                                  <option value="expired">Expired</option>
+                                             </select>
+                                        </div>
+                                        <div className="col-md-3">
+                                             <label className="form-label">Receipt Images</label>
+                                             <input
+                                                  type="file"
+                                                  className="form-control"
+                                                  multiple
+                                                  accept="image/*"
+                                                  onChange={(e) => {
+                                                       const files = Array.from(e.target.files || []);
+                                                       // Validate file types and sizes
+                                                       const validFiles = files.filter(file => {
+                                                            const isValidType = file.type.startsWith('image/');
+                                                            const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB limit
+                                                            return isValidType && isValidSize;
+                                                       });
+
+                                                       if (validFiles.length !== files.length) {
+                                                            toast.warning('Some files were skipped. Only images under 5MB are allowed.');
+                                                       }
+
+                                                       setReceiveForm(prev => ({ ...prev, receiptImages: validFiles }));
+                                                  }}
+                                             />
+                                             <small className="text-muted">Upload receipt images (max 5MB each)</small>
+                                             {receiveForm.receiptImages.length > 0 && (
+                                                  <div className="mt-1">
+                                                       <small className="text-success">
+                                                            {receiveForm.receiptImages.length} file(s) selected
+                                                       </small>
                                                   </div>
+                                             )}
+                                        </div>
+                                   </div>
+                                   <div className="row mt-3">
+                                        <div className="col-md-6">
+                                             <label className="form-label">Notes</label>
+                                             <textarea
+                                                  className="form-control"
+                                                  rows={3}
+                                                  value={receiveForm.notes}
+                                                  onChange={(e) => setReceiveForm(prev => ({ ...prev, notes: e.target.value }))}
+                                                  placeholder="Additional notes..."
+                                             />
+                                        </div>
+                                        <div className="col-md-6 d-flex align-items-center">
+                                             <div className="form-check">
+                                                  <input
+                                                       className="form-check-input"
+                                                       type="checkbox"
+                                                       id="qualityCheckPassed"
+                                                       checked={receiveForm.qualityCheckPassed}
+                                                       onChange={(e) => setReceiveForm(prev => ({ ...prev, qualityCheckPassed: e.target.checked }))}
+                                                  />
+                                                  <label className="form-check-label" htmlFor="qualityCheckPassed">
+                                                       Quality Check Passed
+                                                  </label>
                                              </div>
                                         </div>
                                    </div>
@@ -693,6 +926,7 @@ export default function ReceiveOrderedItemsPage() {
                          </div>
                     </div>
                </div>
+
           </div>
      );
 }

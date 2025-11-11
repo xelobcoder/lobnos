@@ -14,6 +14,7 @@ interface Supplier {
      contact: string;
      email: string;
      phone: string;
+     address?: string;
 }
 
 interface Batch {
@@ -85,6 +86,8 @@ interface FormOrderItem {
      sku: string;
      quantity: number;
      unit: string;
+     discountRate: number;
+     taxRate: number;
      notes?: string;
 }
 
@@ -112,7 +115,7 @@ interface PurchaseOrder {
      supplierPhone?: string;
      supplierAddress?: string;
      items: OrderItem[];
-     status: 'ordering' | 'received' | 'cancelled';
+     status: 'ordered' | 'partially_received' | 'received' | 'cancelled';
      orderDate: string;
      expectedDeliveryDate?: string;
      actualDeliveryDate?: string;
@@ -139,8 +142,9 @@ interface PurchaseOrder {
 }
 
 const STATUS_BADGES = {
-     '': { label: 'Ordering', color: 'secondary' },
-     ordering: { label: 'Ordering', color: 'secondary' },
+     '': { label: 'Ordered', color: 'secondary' },
+     ordered: { label: 'Ordered', color: 'secondary' },
+     partially_received: { label: 'Partially Received', color: 'warning' },
      received: { label: 'Received', color: 'success' },
      cancelled: { label: 'Cancelled', color: 'danger' }
 };
@@ -169,7 +173,7 @@ export default function PurchaseOrdersPage() {
           items: [] as FormOrderItem[],
           expectedDeliveryDate: '',
           notes: '',
-          status: 'ordering' as 'ordering' | 'received' | 'cancelled',
+          status: 'ordered' as 'ordered' | 'partially_received' | 'received' | 'cancelled',
           communicationMethod: 'email' as 'email' | 'phone_call' | 'whatsapp' | 'pdf_attachment' | 'in_person' | 'fax' | 'other',
           communicationNotes: ''
      });
@@ -202,41 +206,49 @@ export default function PurchaseOrdersPage() {
                setLoading(true);
                const response = await customFetch('inventory/orders');
                if (response.success) {
-                    const transformedOrders = response.data.orders.map((order: any) => ({
-                         id: order.id,
-                         orderNumber: order.order_number,
-                         supplierId: order.supplier_id,
-                         supplierName: order.supplier_name,
-                         supplierEmail: order.supplier_email,
-                         supplierContact: order.supplier_contact,
-                         supplierPhone: order.supplier_phone,
-                         supplierAddress: order.supplier_address,
-                         items: order.items || [],
-                         status: order.status,
-                         orderDate: order.order_date,
-                         expectedDeliveryDate: order.expected_delivery_date,
-                         actualDeliveryDate: order.actual_delivery_date,
-                         totalAmount: order.total_amount,
-                         taxAmount: order.tax_amount,
-                         discountAmount: order.discount_amount,
-                         shippingCost: order.shipping_cost,
-                         finalAmount: order.final_amount,
-                         currency: order.currency,
-                         paymentTerms: order.payment_terms,
-                         notes: order.notes,
-                         createdBy: order.created_by,
-                         approvedBy: order.approved_by,
-                         approvedAt: order.approved_at,
-                         sentAt: order.sent_at,
-                         emailSent: false,
-                         emailSentDate: order.sent_at,
-                         communicationMethod: order.communication_method,
-                         communicationNotes: order.communication_notes || '',
-                         items_count: order.items_count,
-                         received_items_count: order.received_items_count,
-                         createdAt: order.created_at,
-                         updatedAt: order.updated_at
-                    }));
+                    // Load suppliers first to enrich order data
+                    await loadSuppliers();
+
+                    const transformedOrders = response.data.map((order: any) => {
+                         // Find supplier details by matching supplier_id
+                         const supplier = suppliers.find(s => s.id === order.supplier_id);
+
+                         return {
+                              id: order.id,
+                              orderNumber: order.id,
+                              supplierId: order.supplier_id,
+                              supplierName: order.supplier_name || supplier?.name || 'Unknown Supplier',
+                              supplierEmail: order.supplier_email || supplier?.email || '',
+                              supplierContact: order.supplier_contact || supplier?.contact || '',
+                              supplierPhone: order.supplier_phone || supplier?.phone || '',
+                              supplierAddress: order.supplier_address || supplier?.address || '',
+                              items: order.items || [],
+                              status: order.status,
+                              orderDate: order.order_date,
+                              expectedDeliveryDate: order.expected_delivery_date,
+                              actualDeliveryDate: order.actual_delivery_date || null,
+                              totalAmount: order.total_amount || 0,
+                              taxAmount: order.tax_amount || 0,
+                              discountAmount: order.discount_amount || 0,
+                              shippingCost: order.shipping_cost || 0,
+                              finalAmount: order.final_amount || 0,
+                              currency: order.currency || 'GHS',
+                              paymentTerms: order.payment_terms || '',
+                              notes: order.notes || '',
+                              createdBy: order.created_by,
+                              approvedBy: order.approved_by || null,
+                              approvedAt: order.approved_at || null,
+                              sentAt: order.sent_at || null,
+                              emailSent: false,
+                              emailSentDate: order.sent_at || null,
+                              communicationMethod: order.communication_method,
+                              communicationNotes: order.communication_notes,
+                              items_count: order.items_count || 0,
+                              received_items_count: order.received_items_count || 0,
+                              createdAt: order.created_at,
+                              updatedAt: order.updated_at
+                         };
+                    });
                     setPurchaseOrders(transformedOrders);
                }
           } catch (err) {
@@ -258,41 +270,46 @@ export default function PurchaseOrdersPage() {
                const response = await customFetch(endpoint);
 
                if (response.success) {
-                    const transformedOrders = response.data.orders.map((order: any) => ({
-                         id: order.id,
-                         orderNumber: order.order_number,
-                         supplierId: order.supplier_id,
-                         supplierName: order.supplier_name,
-                         supplierEmail: order.supplier_email,
-                         supplierContact: order.supplier_contact,
-                         supplierPhone: order.supplier_phone,
-                         supplierAddress: order.supplier_address,
-                         items: order.items || [],
-                         status: order.status,
-                         orderDate: order.order_date,
-                         expectedDeliveryDate: order.expected_delivery_date,
-                         actualDeliveryDate: order.actual_delivery_date,
-                         totalAmount: order.total_amount,
-                         taxAmount: order.tax_amount,
-                         discountAmount: order.discount_amount,
-                         shippingCost: order.shipping_cost,
-                         finalAmount: order.final_amount,
-                         currency: order.currency,
-                         paymentTerms: order.payment_terms,
-                         notes: order.notes,
-                         createdBy: order.created_by,
-                         approvedBy: order.approved_by,
-                         approvedAt: order.approved_at,
-                         sentAt: order.sent_at,
-                         emailSent: false,
-                         emailSentDate: order.sent_at,
-                         communicationMethod: 'email',
-                         communicationNotes: '',
-                         items_count: order.items_count,
-                         received_items_count: order.received_items_count,
-                         createdAt: order.created_at,
-                         updatedAt: order.updated_at
-                    }));
+                    const transformedOrders = response.data.data.map((order: any) => {
+                         // Find supplier details by matching supplier_id
+                         const supplier = suppliers.find(s => s.id === order.supplier_id);
+
+                         return {
+                              id: order.id,
+                              orderNumber: order.id, // Using id as order number since order_number field may not exist
+                              supplierId: order.supplier_id,
+                              supplierName: order.supplier_name || supplier?.name || 'Unknown Supplier',
+                              supplierEmail: order.supplier_email || supplier?.email || '',
+                              supplierContact: order.supplier_contact || supplier?.contact || '',
+                              supplierPhone: order.supplier_phone || supplier?.phone || '',
+                              supplierAddress: order.supplier_address || supplier?.address || '',
+                              items: order.items || [],
+                              status: order.status,
+                              orderDate: order.order_date,
+                              expectedDeliveryDate: order.expected_delivery_date,
+                              actualDeliveryDate: order.actual_delivery_date || null,
+                              totalAmount: order.total_amount || 0,
+                              taxAmount: order.tax_amount || 0,
+                              discountAmount: order.discount_amount || 0,
+                              shippingCost: order.shipping_cost || 0,
+                              finalAmount: order.final_amount || 0,
+                              currency: order.currency || 'GHS',
+                              paymentTerms: order.payment_terms || '',
+                              notes: order.notes || '',
+                              createdBy: order.created_by,
+                              approvedBy: order.approved_by || null,
+                              approvedAt: order.approved_at || null,
+                              sentAt: order.sent_at || null,
+                              emailSent: false,
+                              emailSentDate: order.sent_at || null,
+                              communicationMethod: order.communication_method,
+                              communicationNotes: order.communication_notes,
+                              items_count: order.items_count || 0,
+                              received_items_count: order.received_items_count || 0,
+                              createdAt: order.created_at,
+                              updatedAt: order.updated_at
+                         };
+                    });
                     return { result: transformedOrders, error: false };
                } else {
                     return { result: [], error: true };
@@ -458,6 +475,8 @@ export default function PurchaseOrdersPage() {
                     items: orderForm.items.map(item => ({
                          inventory_item_id: item.itemId,
                          quantity_ordered: item.quantity,
+                         discount_rate: item.discountRate,
+                         tax_rate: item.taxRate,
                          notes: item.notes
                     })),
                     notes: orderForm.notes
@@ -481,42 +500,100 @@ export default function PurchaseOrdersPage() {
           }
      };
 
-     const handleEditOrder = (order: PurchaseOrder) => {
+     const handleEditOrder = async (order: PurchaseOrder) => {
           // Prevent editing orders that are received or cancelled
           if (order.status === 'received' || order.status === 'cancelled') {
                toast.error(`Cannot edit orders with ${order.status} status`);
                return;
           }
 
-          // Format dates for input fields (YYYY-MM-DD)
-          const formatDateForInput = (dateString: string | null | undefined): string => {
-               if (!dateString) return '';
-               const date = new Date(dateString);
-               return date.toISOString().split('T')[0];
-          };
+          try {
+               setLoading(true);
 
-          setOrderForm({
-               supplierId: order.supplierId,
-               supplierName: order.supplierName,
-               supplierEmail: order.supplierEmail,
-               supplierContact: order.supplierContact,
-               items: order.items.map((item: any) => ({
-                    itemId: item.inventory_item_id,
-                    itemName: item.item_name,
-                    brand: item.brand_name,
-                    sku: item.sku,
-                    quantity: item.quantity_ordered,
-                    unit: item.unit,
-                    notes: item.notes
-               })),
-               expectedDeliveryDate: formatDateForInput(order.expectedDeliveryDate),
-               notes: order.notes || '',
-               status: order.status,
-               communicationMethod: order.communicationMethod || 'email',
-               communicationNotes: order.communicationNotes || ''
-          });
-          setSelectedOrder(order);
-          setShowOrderModal(true);
+               // Fetch fresh order data from the API
+               const response = await customFetch(`inventory/orders/${order.id}`);
+
+               if (response.success) {
+                    const apiOrderData = response.data;
+
+                    // Format dates for input fields (YYYY-MM-DD)
+                    const formatDateForInput = (dateString: string | null | undefined): string => {
+                         if (!dateString) return '';
+                         const date = new Date(dateString);
+                         return date.toISOString().split('T')[0];
+                    };
+
+                    setOrderForm({
+                         supplierId: apiOrderData.supplier_id,
+                         supplierName: apiOrderData.supplier_name || '',
+                         supplierEmail: apiOrderData.supplier_email || '',
+                         supplierContact: apiOrderData.supplier_contact || '',
+                         items: apiOrderData.items ? apiOrderData.items.map((item: any) => ({
+                              itemId: item.inventory_item_id,
+                              itemName: item.item_name,
+                              brand: item.brand_name,
+                              sku: item.sku,
+                              quantity: item.quantity_ordered,
+                              unit: item.unit,
+                              discountRate: item.discount_rate || 0,
+                              taxRate: item.tax_rate || 0,
+                              notes: item.notes
+                         })) : [],
+                         expectedDeliveryDate: formatDateForInput(apiOrderData.expected_delivery_date),
+                         notes: apiOrderData.notes || '',
+                         status: apiOrderData.status,
+                         communicationMethod: apiOrderData.communication_method || 'email',
+                         communicationNotes: apiOrderData.communication_notes || ''
+                    });
+
+                    // Create a fresh order object for selectedOrder
+                    const freshOrder: PurchaseOrder = {
+                         id: apiOrderData.id,
+                         orderNumber: apiOrderData.id, // Using id as order number
+                         supplierId: apiOrderData.supplier_id,
+                         supplierName: apiOrderData.supplier_name || '',
+                         supplierEmail: apiOrderData.supplier_email || '',
+                         supplierContact: apiOrderData.supplier_contact || '',
+                         supplierPhone: apiOrderData.supplier_phone || '',
+                         supplierAddress: apiOrderData.supplier_address || '',
+                         items: apiOrderData.items || [],
+                         status: apiOrderData.status,
+                         orderDate: apiOrderData.order_date,
+                         expectedDeliveryDate: apiOrderData.expected_delivery_date,
+                         actualDeliveryDate: apiOrderData.actual_delivery_date || null,
+                         totalAmount: apiOrderData.total_amount || 0,
+                         taxAmount: apiOrderData.tax_amount || 0,
+                         discountAmount: apiOrderData.discount_amount || 0,
+                         shippingCost: apiOrderData.shipping_cost || 0,
+                         finalAmount: apiOrderData.final_amount || 0,
+                         currency: apiOrderData.currency || 'GHS',
+                         paymentTerms: apiOrderData.payment_terms || '',
+                         notes: apiOrderData.notes || '',
+                         createdBy: apiOrderData.created_by,
+                         approvedBy: apiOrderData.approved_by || null,
+                         approvedAt: apiOrderData.approved_at || null,
+                         sentAt: apiOrderData.sent_at || null,
+                         emailSent: false,
+                         emailSentDate: apiOrderData.sent_at || null,
+                         communicationMethod: apiOrderData.communication_method || 'email',
+                         communicationNotes: apiOrderData.communication_notes || '',
+                         items_count: apiOrderData.items_count || 0,
+                         received_items_count: apiOrderData.received_items_count || 0,
+                         createdAt: apiOrderData.created_at,
+                         updatedAt: apiOrderData.updated_at
+                    };
+
+                    setSelectedOrder(freshOrder);
+                    setShowOrderModal(true);
+               } else {
+                    toast.error('Failed to load order details for editing');
+               }
+          } catch (error) {
+               console.error('Error loading order for editing:', error);
+               toast.error('Failed to load order details for editing');
+          } finally {
+               setLoading(false);
+          }
      };
 
      const handleUpdateOrder = async () => {
@@ -526,7 +603,16 @@ export default function PurchaseOrdersPage() {
                const orderData = {
                     supplier_id: orderForm.supplierId,
                     expected_delivery_date: orderForm.expectedDeliveryDate || null,
-                    notes: orderForm.notes
+                    items: orderForm.items.map(item => ({
+                         inventory_item_id: item.itemId,
+                         quantity_ordered: item.quantity,
+                         discount_rate: item.discountRate,
+                         tax_rate: item.taxRate,
+                         notes: item.notes
+                    })),
+                    notes: orderForm.notes,
+                    communication_method: orderForm.communicationMethod,
+                    communication_notes: orderForm.communicationNotes
                };
 
                const response = await customPost(`inventory/orders/${selectedOrder.id}`, 'PUT', orderData as any);
@@ -551,7 +637,7 @@ export default function PurchaseOrdersPage() {
           const emailBody = generateOrderEmail(order);
           const mailtoLink = `mailto:${order.supplierEmail}?subject=Purchase Order ${order.orderNumber}&body=${encodeURIComponent(emailBody)}`;
 
-          // Update order email sent flag (keep status as ordering)
+          // Update order email sent flag (keep status as ordered)
           setPurchaseOrders(prev => prev.map(o =>
                o.id === order.id
                     ? { ...o, emailSent: true, emailSentDate: new Date().toISOString(), communicationMethod: 'email' }
@@ -662,7 +748,7 @@ export default function PurchaseOrdersPage() {
                items: [],
                expectedDeliveryDate: '',
                notes: '',
-               status: 'ordering',
+               status: 'ordered',
                communicationMethod: 'email',
                communicationNotes: ''
           });
@@ -670,7 +756,7 @@ export default function PurchaseOrdersPage() {
      };
 
      const getOrderStats = () => {
-          const orderingCount = purchaseOrders.filter(o => o.status === 'ordering').length;
+          const orderingCount = purchaseOrders.filter(o => o.status === 'ordered' || o.status === 'partially_received').length;
           const receivedCount = purchaseOrders.filter(o => o.status === 'received').length;
           const cancelledCount = purchaseOrders.filter(o => o.status === 'cancelled').length;
           const totalItems = purchaseOrders.reduce((sum, order) => sum + (order.items_count || 0), 0);
@@ -713,7 +799,7 @@ export default function PurchaseOrdersPage() {
                               <div className="card-body text-center">
                                    <RiShoppingCartLine size={32} className="text-secondary mb-2" />
                                    <h5 className="card-title">{stats.orderingCount}</h5>
-                                   <p className="card-text text-muted small">Ordering</p>
+                                   <p className="card-text text-muted small">Ordered</p>
                               </div>
                          </div>
                     </div>
@@ -916,7 +1002,9 @@ export default function PurchaseOrdersPage() {
                                                                                 itemName: '',
                                                                                 sku: '',
                                                                                 quantity: 1,
-                                                                                unit: 'pieces'
+                                                                                unit: 'pieces',
+                                                                                discountRate: 0,
+                                                                                taxRate: 0
                                                                            }]
                                                                       }));
                                                                  }}

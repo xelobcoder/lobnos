@@ -42,7 +42,12 @@ export const InventoryLinks: Link[] = [
      {
           title: "Purchase Orders",
           link: "/inventory/orders",
-          icon: <RiShoppingCartLine />
+          icon: <RiShoppingCartLine />,
+          children: [
+               { title: "All Orders", link: "/inventory/orders", icon: <RiFileListLine /> },
+               { title: "Receive Items", link: "/inventory/orders/receive-ordered-items", icon: <RiDownloadLine /> },
+               { title: "Received Items History", link: "/inventory/orders/received-items-history", icon: <RiHistoryLine /> }
+          ]
      },
      {
           title: "Storage Locations",
