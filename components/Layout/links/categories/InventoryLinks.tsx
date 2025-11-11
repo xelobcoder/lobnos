@@ -15,7 +15,8 @@ import {
      RiMapPinLine,
      RiSubtractLine,
      RiShoppingCartLine,
-     RiTrademarkLine
+     RiTrademarkLine,
+     RiDeleteBinLine
 } from '@remixicon/react';
 
 export const InventoryLinks: Link[] = [
@@ -45,7 +46,6 @@ export const InventoryLinks: Link[] = [
           icon: <RiShoppingCartLine />,
           children: [
                { title: "All Orders", link: "/inventory/orders", icon: <RiFileListLine /> },
-               { title: "Receive Items", link: "/inventory/orders/receive-ordered-items", icon: <RiDownloadLine /> },
                { title: "Received Items History", link: "/inventory/orders/received-items-history", icon: <RiHistoryLine /> }
           ]
      },
@@ -63,6 +63,16 @@ export const InventoryLinks: Link[] = [
           title: "Transactions",
           link: "/inventory/transactions",
           icon: <RiHistoryLine />
+     },
+     {
+          title: "Stock Consumption",
+          link: "/inventory/consumption",
+          icon: <RiSubtractLine />
+     },
+     {
+          title: "Stock Wastage",
+          link: "/inventory/wastage",
+          icon: <RiDeleteBinLine />
      },
      {
           title: "Data Operations",

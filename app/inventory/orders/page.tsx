@@ -258,25 +258,42 @@ export default function PurchaseOrdersPage() {
           }
      };
 
-     const handleServerSideProcessing = async ({ page, count, sortby = 'DESC' }: { page: number; count: number; sortby?: string }) => {
+     const handleServerSideProcessing = async (params: { page: number; count: number; sortby?: string; filters?: any }) => {
           try {
-               const params = new URLSearchParams({
+               const { page, count, sortby = 'DESC', filters = {} } = params;
+
+               // Build query parameters
+               const queryParams = new URLSearchParams({
                     page: page.toString(),
                     count: count.toString(),
                     sortby: sortby
                });
 
-               const endpoint = `inventory/orders?${params.toString()}`;
+               // Add filter parameters if they exist
+               Object.keys(filters).forEach(key => {
+                    if (filters[key] && filters[key] !== '') {
+                         queryParams.append(key, filters[key]);
+                    }
+               });
+
+               const endpoint = `inventory/orders?${queryParams.toString()}`;
                const response = await customFetch(endpoint);
 
                if (response.success) {
-                    const transformedOrders = response.data.data.map((order: any) => {
-                         // Find supplier details by matching supplier_id
+                    // Ensure suppliers are loaded for data enrichment
+                    if (suppliers.length === 0) {
+                         await loadSuppliers();
+                    }
+
+                    // Handle different response structures
+                    const ordersData = response?.data ||[];
+
+                    const transformedOrders = ordersData.map((order: any) => {
                          const supplier = suppliers.find(s => s.id === order.supplier_id);
 
                          return {
                               id: order.id,
-                              orderNumber: order.id, // Using id as order number since order_number field may not exist
+                              orderNumber: order.id,
                               supplierId: order.supplier_id,
                               supplierName: order.supplier_name || supplier?.name || 'Unknown Supplier',
                               supplierEmail: order.supplier_email || supplier?.email || '',
@@ -310,13 +327,27 @@ export default function PurchaseOrdersPage() {
                               updatedAt: order.updated_at
                          };
                     });
-                    return { result: transformedOrders, error: false };
+
+                    // Return the expected format for PrimeTable
+                    return {
+                         result: transformedOrders,
+                         error: false,
+                         totalRecords: response.data?.total || response.data?.totalRecords || transformedOrders.length
+                    };
                } else {
-                    return { result: [], error: true };
+                    return {
+                         result: [],
+                         error: true,
+                         totalRecords: 0
+                    };
                }
           } catch (error) {
                console.error('Error in server-side processing:', error);
-               return { result: [], error: true };
+               return {
+                    result: [],
+                    error: true,
+                    totalRecords: 0
+               };
           }
      };
 
@@ -405,58 +436,47 @@ export default function PurchaseOrdersPage() {
                Header: 'Actions',
                accessor: 'id',
                Cell: ({ row }) => (
-                    <div className="d-flex gap-1">
-                         <button
-                              className="btn btn-sm btn-outline-info"
-                              title="View Details"
-                              onClick={() => setSelectedOrder(row.original)}
-                         >
-                              <RiEyeLine size={14} />
-                         </button>
-                         <button
-                              className="btn btn-sm btn-outline-primary"
-                              title="Edit Order"
-                              onClick={() => handleEditOrder(row.original)}
-                              disabled={row.original.status === 'received' || row.original.status === 'cancelled'}
-                         >
-                              <RiEditLine size={14} />
-                         </button>
-                         {row.original.status !== 'received' && row.original.status !== 'cancelled' && (
+                    row.original.status !== 'received' ? (
+                         <div className="d-flex gap-1">
                               <button
-                                   className="btn btn-sm btn-outline-success"
-                                   title="Receive Order"
-                                   onClick={() => handleReceiveOrder(row.original)}
+                                   className="btn btn-sm btn-outline-primary"
+                                   title="Edit Order"
+                                   onClick={() => handleEditOrder(row.original)}
+                                   disabled={row.original.status === 'received' || row.original.status === 'cancelled'}
                               >
-                                   <RiInboxArchiveLine size={14} />
+                                   <RiEditLine size={14} />
                               </button>
-                         )}
-                         {row.original.status !== 'received' && row.original.status !== 'cancelled' && (
-                              <button
-                                   className="btn btn-sm btn-outline-success"
-                                   title="Send Email"
-                                   onClick={() => handleSendEmail(row.original)}
-                              >
-                                   <RiMailLine size={14} />
-                              </button>
-                         )}
-                         {row.original.status !== 'received' && row.original.status !== 'cancelled' && (
-                              <button
-                                   className="btn btn-sm btn-outline-warning"
-                                   title="Cancel Order"
-                                   onClick={() => handleCancelOrder(row.original)}
-                              >
-                                   <RiCloseLine size={14} className="me-1" />
-
-                              </button>
-                         )}
-                         <button
-                              className="btn btn-sm btn-outline-danger"
-                              title="Delete Order"
-                              onClick={() => handleDeleteOrder(row.original.id)}
-                         >
-                              <RiDeleteBinLine size={14} />
-                         </button>
-                    </div>
+                              {row.original.status !== 'received' && row.original.status !== 'cancelled' && (
+                                   <button
+                                        className="btn btn-sm btn-outline-success"
+                                        title="Receive Order"
+                                        onClick={() => handleReceiveOrder(row.original)}
+                                   >
+                                        <RiInboxArchiveLine size={14} />
+                                   </button>
+                              )}
+                              {row.original.status !== 'received' && row.original.status !== 'cancelled' && (
+                                   <button
+                                        className="btn btn-sm btn-outline-success"
+                                        title="Send Email"
+                                        onClick={() => handleSendEmail(row.original)}
+                                   >
+                                        <RiMailLine size={14} />
+                                   </button>
+                              )}
+                              {row.original.status !== 'received' && (
+                                   <button
+                                        className="btn btn-sm btn-outline-danger"
+                                        title="Delete Order"
+                                        onClick={() => handleDeleteOrder(row.original.id)}
+                                   >
+                                        <RiDeleteBinLine size={14} />
+                                   </button>
+                              )}
+                         </div>
+                    ) : (
+                         <span className="text-muted small">Completed</span>
+                    )
                )
           }
      ];
