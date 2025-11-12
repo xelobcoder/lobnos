@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { RiSubtractLine, RiEyeLine, RiAddLine, RiSearchLine, RiFilterLine, RiDownloadLine, RiCalendarLine } from '@remixicon/react';
+import React, { useState, useEffect } from 'react';
+import { RiSubtractLine, RiEyeLine, RiAddLine, RiDownloadLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
-import { customFetch, customPost, currencyFormatter } from '../../../components/Auth/customFetch';
+import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
 
@@ -24,22 +24,30 @@ interface Batch {
 interface InventoryItem {
      id: string;
      name: string;
-     category: string;
-     brand?: string;
-     supplier: string;
      sku: string;
      description: string;
+     category_id: string;
      unit: string;
-     batches: Batch[];
-     currentStock: number;
-     minStock: number;
-     maxStock: number;
-     unitPrice: number;
-     totalValue: number;
-     location: string;
-     expiryDate?: string;
-     lastUpdated: string;
+     current_stock: number;
+     min_stock: number;
+     max_stock: number;
+     location_id: string;
      status: 'in_stock' | 'low_stock' | 'out_of_stock' | 'expired';
+     is_active: number;
+     last_updated: string;
+     created_at: string;
+     updated_at: string;
+     category_name: string;
+     location_name: string;
+     // Optional fields that might not always be present
+     category?: string;
+     brand?: string;
+     supplier?: string;
+     batches?: Batch[];
+     unitPrice?: number;
+     totalValue?: number;
+     location?: string;
+     expiryDate?: string;
 }
 
 interface TransactionItem {
@@ -49,9 +57,9 @@ interface TransactionItem {
      sku: string;
      batchId?: string;
      batchNumber?: string;
+     brandName?: string;
      quantity: number;
      unitPrice: number;
-     totalValue: number;
      unit: string;
      expiryDate?: string;
      notes?: string;
@@ -59,23 +67,49 @@ interface TransactionItem {
 
 interface ConsumptionRecord {
      id: string;
-     testId?: string;
-     testName?: string;
-     patientId?: string;
-     patientName?: string;
-     items: TransactionItem[];
-     performedBy: string;
-     performedByName: string;
-     timestamp: string;
+     item_id: string;
+     item_name: string;
+     item_sku: string;
+     consumption_type: 'manual';
+     quantity: number;
+     reason: string;
+     batch_number?: string;
+     performed_by: number;
+     transaction_date: string;
      notes?: string;
-     totalValue: number;
+}
+
+interface AvailableBatch {
+     batch_number: string;
+     brand_name: string | null;
+     total_received: number;
+     total_consumed: number;
+     available_quantity: number;
+     expiry_date: string;
+     last_received: string;
+}
+
+interface FifoBatch {
+     batch_number: string;
+     brand_name: string | null;
+     available_quantity: number;
+     expiry_date: string;
+}
+
+interface AvailableStockDetail {
+     item: {
+          id: string;
+          name: string;
+          sku: string;
+          current_stock: number;
+          unit: string;
+     };
+     available_batches: AvailableBatch[];
+     fifo_batch: FifoBatch;
 }
 
 const CONSUMPTION_TYPES = {
-     test: { label: 'Laboratory Test', color: 'primary' },
-     manual: { label: 'Manual Consumption', color: 'warning' },
-     waste: { label: 'Waste/Expired', color: 'danger' },
-     other: { label: 'Other', color: 'secondary' }
+     manual: { label: 'Manual Consumption', color: 'primary' }
 };
 
 export default function StockConsumptionPage() {
@@ -83,17 +117,14 @@ export default function StockConsumptionPage() {
      const employeeid = applicationsettings?.user?.employeeid;
      const [consumptionRecords, setConsumptionRecords] = useState<ConsumptionRecord[]>([]);
      const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+     const [availableStockDetails, setAvailableStockDetails] = useState<AvailableStockDetail | null>(null);
      const [loading, setLoading] = useState(false);
      const [showConsumptionModal, setShowConsumptionModal] = useState(false);
      const [selectedRecord, setSelectedRecord] = useState<ConsumptionRecord | null>(null);
 
      // Consumption form state
-     const [consumptionForm, setConsumptionForm] = useState({
-          type: 'manual' as 'test' | 'manual' | 'waste' | 'other',
-          testId: '',
-          testName: '',
-          patientId: '',
-          patientName: '',
+     const [wastageForm, setWastageForm] = useState({
+          type: 'manual' as 'manual',
           items: [] as TransactionItem[],
           notes: ''
      });
@@ -118,9 +149,9 @@ export default function StockConsumptionPage() {
      const loadConsumptionRecords = async () => {
           try {
                setLoading(true);
-               const response = await customFetch('inventory/consumption');
+               const response = await customFetch('inventory/transactions/consumption/report');
                if (response.success) {
-                    const records = response.data || [];
+                    const records = response.data?.consumptions || response.data?.data || [];
                     setConsumptionRecords(records);
                }
           } catch (error) {
@@ -128,6 +159,20 @@ export default function StockConsumptionPage() {
                toast.error('Failed to load consumption records');
           } finally {
                setLoading(false);
+          }
+     };
+
+     const loadAvailableStockDetails = async (itemId: string) => {
+          try {
+               const response = await customFetch(`inventory/transactions/available-stock/${itemId}`);
+               if (response.success) {
+                    setAvailableStockDetails(response.data);
+               } else {
+                    setAvailableStockDetails(null);
+               }
+          } catch (error) {
+               console.error('Error loading available stock details:', error);
+               setAvailableStockDetails(null);
           }
      };
 
@@ -147,15 +192,15 @@ export default function StockConsumptionPage() {
                     }
                });
 
-               const endpoint = `inventory/consumption?${queryParams.toString()}`;
+               const endpoint = `inventory/transactions/consumption/report?${queryParams.toString()}`;
                const response = await customFetch(endpoint);
 
                if (response.success) {
-                    const records = response.data?.data || response.data || [];
+                    const records = response.data?.consumptions || response.data?.data || [];
                     return {
                          result: records,
                          error: false,
-                         totalRecords: response.data?.total || response.data?.totalRecords || records.length
+                         totalRecords: response.data?.total || response.data?.pagination?.total || records.length
                     };
                } else {
                     return { result: [], error: true, totalRecords: 0 };
@@ -167,48 +212,75 @@ export default function StockConsumptionPage() {
      };
 
      const handleRecordConsumption = async () => {
-          if (consumptionForm.items.length === 0) {
+          if (wastageForm.items.length === 0) {
                toast.error('Please add at least one item to consume');
                return;
           }
 
-          // Validate quantities
-          const invalidItems = consumptionForm.items.filter(item => {
+          // Validate quantities and check for out-of-stock items
+          const invalidItems = wastageForm.items.filter(item => {
                const inventoryItem = inventoryItems.find(i => i.id === item.inventoryItemId);
-               return !inventoryItem || item.quantity > inventoryItem.currentStock;
+               if (!inventoryItem) return true;
+
+               // Check if item is out of stock
+               const availableStock = inventoryItem.current_stock ||
+                    (inventoryItem as any).stock ||
+                    (inventoryItem as any).quantity ||
+                    (inventoryItem.batches ? inventoryItem.batches.reduce((sum, batch) => sum + (batch.quantity || 0), 0) : 0);
+
+               if (availableStock === 0) return true; // Out of stock items are invalid
+
+               // Find the selected batch if one is chosen
+               const selectedBatch = availableStockDetails?.available_batches.find(b => b.batch_number === item.batchId);
+
+               // Use batch-specific quantity if batch is selected, otherwise use total available stock
+               const maxAllowedQuantity = selectedBatch ? selectedBatch.available_quantity : availableStock;
+
+               return item.quantity > maxAllowedQuantity || item.quantity <= 0;
           });
 
           if (invalidItems.length > 0) {
-               toast.error('Some items have insufficient stock or invalid quantities');
+               toast.error('Some items are out of stock or have insufficient stock for the selected batch or invalid quantities');
                return;
           }
 
           try {
                setLoading(true);
-               const consumptionData = {
-                    type: consumptionForm.type,
-                    testId: consumptionForm.testId || null,
-                    testName: consumptionForm.testName || null,
-                    patientId: consumptionForm.patientId || null,
-                    patientName: consumptionForm.patientName || null,
-                    items: consumptionForm.items.map(item => ({
-                         inventory_item_id: item.inventoryItemId,
-                         batch_id: item.batchId || null,
-                         quantity: item.quantity,
-                         unit_price: item.unitPrice,
-                         notes: item.notes
-                    })),
-                    performed_by: employeeid,
-                    notes: consumptionForm.notes
-               };
 
-               const response = await customPost('inventory/consumption', 'POST', consumptionData);
+               // Prepare consumption data according to new unified API spec
+               const consumptions = wastageForm.items.map(item => {
+                    const selectedBatch = availableStockDetails?.available_batches.find(b => b.batch_number === item.batchId);
+
+                    const consumptionData: any = {
+                         item_id: item.inventoryItemId,
+                         quantity: item.quantity,
+                         performed_by: employeeid,
+                         reason: 'Manual consumption'
+                    };
+
+                    // Add batch information if a specific batch is selected (manual consumption)
+                    if (item.batchId) {
+                         consumptionData.batch_number = item.batchNumber;
+                         consumptionData.brand_name = item.brandName;
+                    }
+                    // If no batch selected, API will use FIFO automatically
+
+                    // Add general notes if provided
+                    if (wastageForm.notes) {
+                         consumptionData.notes = wastageForm.notes;
+                    }
+
+                    return consumptionData;
+               });
+
+               const consumptionData = { consumptions };
+               const response = await customPost('inventory/transactions/consume', 'POST', consumptionData);
 
                if (response.success) {
                     toast.success('Consumption recorded successfully!');
                     await loadConsumptionRecords();
                     setShowConsumptionModal(false);
-                    resetConsumptionForm();
+                    resetWastageForm();
                } else {
                     toast.error(`Failed to record consumption: ${response.message || 'Unknown error'}`);
                }
@@ -220,20 +292,17 @@ export default function StockConsumptionPage() {
           }
      };
 
-     const resetConsumptionForm = () => {
-          setConsumptionForm({
+     const resetWastageForm = () => {
+          setWastageForm({
                type: 'manual',
-               testId: '',
-               testName: '',
-               patientId: '',
-               patientName: '',
                items: [],
                notes: ''
           });
+          setAvailableStockDetails(null);
      };
 
      const addConsumptionItem = () => {
-          setConsumptionForm(prev => ({
+          setWastageForm(prev => ({
                ...prev,
                items: [...prev.items, {
                     inventoryItemId: '',
@@ -241,14 +310,14 @@ export default function StockConsumptionPage() {
                     sku: '',
                     quantity: 1,
                     unitPrice: 0,
-                    totalValue: 0,
-                    unit: 'units'
+                    unit: 'units',
+                    brandName: ''
                }]
           }));
      };
 
      const updateConsumptionItem = (index: number, field: string, value: any) => {
-          setConsumptionForm(prev => {
+          setWastageForm(prev => {
                const updatedItems = [...prev.items];
                updatedItems[index] = { ...updatedItems[index], [field]: value };
 
@@ -256,20 +325,36 @@ export default function StockConsumptionPage() {
                if (field === 'inventoryItemId' && value) {
                     const selectedItem = inventoryItems.find(item => item.id === value);
                     if (selectedItem) {
+                         const itemStock = selectedItem.current_stock || (selectedItem as any).stock || (selectedItem as any).quantity ||
+                              (selectedItem.batches ? selectedItem.batches.reduce((sum, batch) => sum + (batch.quantity || 0), 0) : 0);
+
+                         if (itemStock === 0) {
+                              toast.warning(`"${selectedItem.name}" is out of stock and cannot be consumed`);
+                              // Reset the item selection for out-of-stock items
+                              updatedItems[index] = {
+                                   ...updatedItems[index],
+                                   inventoryItemId: '',
+                                   itemName: '',
+                                   sku: '',
+                                   unit: 'units',
+                                   batchId: undefined,
+                                   batchNumber: undefined,
+                                   brandName: ''
+                              };
+                              return { ...prev, items: updatedItems };
+                         }
+
                          updatedItems[index] = {
                               ...updatedItems[index],
                               itemName: selectedItem.name,
                               sku: selectedItem.sku,
                               unit: selectedItem.unit,
-                              unitPrice: selectedItem.unitPrice,
-                              totalValue: updatedItems[index].quantity * selectedItem.unitPrice
+                              unitPrice: selectedItem.unitPrice || 0,
+                              quantity: updatedItems[index].quantity || 1 // Ensure quantity is at least 1
                          };
+                         // Load available stock details for this item
+                         loadAvailableStockDetails(value);
                     }
-               }
-
-               // Recalculate total value when quantity changes
-               if (field === 'quantity') {
-                    updatedItems[index].totalValue = value * updatedItems[index].unitPrice;
                }
 
                return { ...prev, items: updatedItems };
@@ -277,7 +362,7 @@ export default function StockConsumptionPage() {
      };
 
      const removeConsumptionItem = (index: number) => {
-          setConsumptionForm(prev => ({
+          setWastageForm(prev => ({
                ...prev,
                items: prev.items.filter((_, i) => i !== index)
           }));
@@ -286,14 +371,14 @@ export default function StockConsumptionPage() {
      const consumptionColumns = [
           {
                Header: 'Date & Time',
-               accessor: 'timestamp',
+               accessor: 'transaction_date',
                Cell: ({ value }) => new Date(value).toLocaleString()
           },
           {
                Header: 'Type',
-               accessor: 'type',
+               accessor: 'consumption_type',
                Cell: ({ value }) => {
-                    const typeInfo = CONSUMPTION_TYPES[value as keyof typeof CONSUMPTION_TYPES] || CONSUMPTION_TYPES.other;
+                    const typeInfo = CONSUMPTION_TYPES[value as keyof typeof CONSUMPTION_TYPES] || CONSUMPTION_TYPES.manual;
                     return (
                          <span className={`badge bg-${typeInfo.color}`}>
                               {typeInfo.label}
@@ -302,56 +387,31 @@ export default function StockConsumptionPage() {
                }
           },
           {
-               Header: 'Test/Patient',
-               accessor: 'testName',
+               Header: 'Item',
+               accessor: 'item_name',
                Cell: ({ row }) => (
                     <div>
-                         {row.original.testName && (
-                              <div>
-                                   <RiTestTubeLine size={14} className="me-1" />
-                                   {row.original.testName}
-                              </div>
-                         )}
-                         {row.original.patientName && (
-                              <div>
-                                   <RiUserLine size={14} className="me-1" />
-                                   {row.original.patientName}
-                              </div>
-                         )}
-                         {!row.original.testName && !row.original.patientName && (
-                              <span className="text-muted">Manual Entry</span>
-                         )}
+                         <div className="fw-bold">{row.original.item_name}</div>
+                         <small className="text-muted">{row.original.item_sku}</small>
                     </div>
                )
           },
           {
-               Header: 'Items Consumed',
-               accessor: 'items',
+               Header: 'Quantity',
+               accessor: 'quantity',
                Cell: ({ value }) => (
-                    <div>
-                         <div>{value?.length || 0} item(s)</div>
-                         {value && value.length > 0 && (
-                              <small className="text-muted">
-                                   {value.slice(0, 2).map((item: any) => `${item.itemName} (${item.quantity})`).join(', ')}
-                                   {value.length > 2 && ` +${value.length - 2} more`}
-                              </small>
-                         )}
-                    </div>
+                    <span className="text-danger fw-bold">-{value}</span>
                )
           },
           {
-               Header: 'Total Value',
-               accessor: 'totalValue',
-               Cell: ({ value }) => (
-                    <span className="text-danger fw-bold">
-                         -{currencyFormatter.format(value || 0)}
-                    </span>
-               )
+               Header: 'Reason',
+               accessor: 'reason',
+               Cell: ({ value }) => value || 'N/A'
           },
           {
-               Header: 'Performed By',
-               accessor: 'performedByName',
-               Cell: ({ value }) => value || 'Unknown'
+               Header: 'Batch',
+               accessor: 'batch_number',
+               Cell: ({ value }) => value || 'N/A'
           },
           {
                Header: 'Actions',
@@ -405,9 +465,9 @@ export default function StockConsumptionPage() {
 
                {/* Record Consumption Modal */}
                {showConsumptionModal && (
-                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                         <div className="modal-dialog modal-xl">
-                              <div className="modal-content">
+                    <div className="modal show d-block">
+                         <div className="modal-dialog modal-fullscreen">
+                              <div className="modal-content" >
                                    <div className="modal-header">
                                         <h5 className="modal-title">Record Stock Consumption</h5>
                                         <button
@@ -415,121 +475,153 @@ export default function StockConsumptionPage() {
                                              className="btn-close"
                                              onClick={() => {
                                                   setShowConsumptionModal(false);
-                                                  resetConsumptionForm();
+                                                  resetWastageForm();
                                              }}
                                         ></button>
                                    </div>
                                    <div className="modal-body">
                                         <div className="row">
-                                             <div className="col-md-6">
-                                                  <div className="mb-3">
-                                                       <label className="form-label">Consumption Type *</label>
-                                                       <select
-                                                            className="form-select"
-                                                            value={consumptionForm.type}
-                                                            onChange={(e) => setConsumptionForm(prev => ({
-                                                                 ...prev,
-                                                                 type: e.target.value as 'test' | 'manual' | 'waste' | 'other'
-                                                            }))}
-                                                       >
-                                                            <option value="manual">Manual Consumption</option>
-                                                            <option value="test">Laboratory Test</option>
-                                                            <option value="waste">Waste/Expired</option>
-                                                            <option value="other">Other</option>
-                                                       </select>
-                                                  </div>
-
-                                                  {consumptionForm.type === 'test' && (
-                                                       <>
-                                                            <div className="mb-3">
-                                                                 <label className="form-label">Test ID</label>
-                                                                 <input
-                                                                      type="text"
-                                                                      className="form-control"
-                                                                      value={consumptionForm.testId}
-                                                                      onChange={(e) => setConsumptionForm(prev => ({ ...prev, testId: e.target.value }))}
-                                                                      placeholder="Enter test ID"
-                                                                 />
-                                                            </div>
-                                                            <div className="mb-3">
-                                                                 <label className="form-label">Test Name</label>
-                                                                 <input
-                                                                      type="text"
-                                                                      className="form-control"
-                                                                      value={consumptionForm.testName}
-                                                                      onChange={(e) => setConsumptionForm(prev => ({ ...prev, testName: e.target.value }))}
-                                                                      placeholder="Enter test name"
-                                                                 />
-                                                            </div>
-                                                            <div className="mb-3">
-                                                                 <label className="form-label">Patient ID</label>
-                                                                 <input
-                                                                      type="text"
-                                                                      className="form-control"
-                                                                      value={consumptionForm.patientId}
-                                                                      onChange={(e) => setConsumptionForm(prev => ({ ...prev, patientId: e.target.value }))}
-                                                                      placeholder="Enter patient ID"
-                                                                 />
-                                                            </div>
-                                                            <div className="mb-3">
-                                                                 <label className="form-label">Patient Name</label>
-                                                                 <input
-                                                                      type="text"
-                                                                      className="form-control"
-                                                                      value={consumptionForm.patientName}
-                                                                      onChange={(e) => setConsumptionForm(prev => ({ ...prev, patientName: e.target.value }))}
-                                                                      placeholder="Enter patient name"
-                                                                 />
-                                                            </div>
-                                                       </>
-                                                  )}
-                                             </div>
-                                             <div className="col-md-6">
+                                             <div className="col-md-12">
                                                   <div className="mb-3">
                                                        <label className="form-label">Items to Consume</label>
-                                                       <div className="border rounded p-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                                                            {consumptionForm.items.map((item, index) => (
-                                                                 <div key={index} className="d-flex gap-2 mb-2 align-items-center">
-                                                                      <select
-                                                                           className="form-select form-select-sm"
-                                                                           value={item.inventoryItemId}
-                                                                           onChange={(e) => updateConsumptionItem(index, 'inventoryItemId', e.target.value)}
-                                                                      >
-                                                                           <option value="">Select item</option>
-                                                                           {inventoryItems.map(invItem => (
-                                                                                <option key={invItem.id} value={invItem.id}>
-                                                                                     {invItem.name} ({invItem.sku}) - {invItem.currentStock} {invItem.unit} available
-                                                                                </option>
-                                                                           ))}
-                                                                      </select>
-                                                                      <input
-                                                                           type="number"
-                                                                           className="form-control form-control-sm"
-                                                                           style={{ width: '80px' }}
-                                                                           placeholder="Qty"
-                                                                           value={item.quantity}
-                                                                           onChange={(e) => updateConsumptionItem(index, 'quantity', parseInt(e.target.value) || 0)}
-                                                                           min="1"
-                                                                      />
-                                                                      <span className="text-muted small">{item.unit}</span>
-                                                                      <span className="fw-bold text-danger">
-                                                                           {currencyFormatter.format(item.totalValue)}
-                                                                      </span>
-                                                                      <button
-                                                                           className="btn btn-sm btn-outline-danger"
-                                                                           onClick={() => removeConsumptionItem(index)}
-                                                                      >
-                                                                           <RiSubtractLine size={12} />
-                                                                      </button>
-                                                                 </div>
-                                                            ))}
-                                                            <button
-                                                                 className="btn btn-sm btn-outline-primary"
-                                                                 onClick={addConsumptionItem}
-                                                            >
-                                                                 <RiAddLine size={14} className="me-1" />
-                                                                 Add Item
-                                                            </button>
+                                                       <div className="border rounded p-3">
+                                                            <table className="table table-hover">
+                                                                 <thead className="table-light">
+                                                                      <tr>
+                                                                           <th style={{ width: '35%' }}>Item</th>
+                                                                           <th style={{ width: '10%' }}>Quantity</th>
+                                                                           <th style={{ width: '8%' }}>Unit</th>
+                                                                           <th style={{ width: '25%' }}>Batch (Optional)</th>
+                                                                           <th style={{ width: '15%' }}>Stock Info</th>
+                                                                           <th style={{ width: '7%' }}>Actions</th>
+                                                                      </tr>
+                                                                 </thead>
+                                                                 <tbody>
+                                                                      {wastageForm.items.map((item, index) => {
+                                                                           const selectedItem = inventoryItems.find(inv => inv.id === item.inventoryItemId);
+                                                                           const availableStock = selectedItem ?
+                                                                                (selectedItem.current_stock ||
+                                                                                     (selectedItem as any).stock ||
+                                                                                     (selectedItem as any).quantity ||
+                                                                                     (selectedItem.batches ? selectedItem.batches.reduce((sum, batch) => sum + (batch.quantity || 0), 0) : 0)) : 0;
+
+                                                                           // Calculate max quantity based on batch selection
+                                                                           const selectedBatch = availableStockDetails?.available_batches.find(b => b.batch_number === item.batchId);
+                                                                           const maxQuantity = selectedBatch ? selectedBatch.available_quantity : availableStock;
+
+                                                                           // Check if selected item has zero stock
+                                                                           const isOutOfStock = selectedItem && availableStock === 0;
+
+                                                                           return (
+                                                                                <tr key={index} className={isOutOfStock ? 'table-secondary' : ''}>
+                                                                                     <td>
+                                                                                          <select
+                                                                                               className="form-select form-select-sm"
+                                                                                               value={item.inventoryItemId}
+                                                                                               onChange={(e) => updateConsumptionItem(index, 'inventoryItemId', e.target.value)}
+                                                                                               disabled={isOutOfStock}
+                                                                                          >
+                                                                                               <option value="">Select item</option>
+                                                                                               {inventoryItems.map(invItem => {
+                                                                                                    const itemStock = invItem.current_stock || (invItem as any).stock || (invItem as any).quantity ||
+                                                                                                         (invItem.batches ? invItem.batches.reduce((sum, batch) => sum + (batch.quantity || 0), 0) : 0);
+                                                                                                    const itemOutOfStock = itemStock === 0;
+                                                                                                    return (
+                                                                                                         <option key={invItem.id} value={invItem.id} disabled={itemOutOfStock}>
+                                                                                                              {invItem.name} ({invItem.sku}) - {itemStock} {invItem.unit || 'units'} available
+                                                                                                              {itemOutOfStock && ' (OUT OF STOCK)'}
+                                                                                                         </option>
+                                                                                                    );
+                                                                                               })}
+                                                                                          </select>
+                                                                                     </td>
+                                                                                     <td>
+                                                                                          <input
+                                                                                               type="number"
+                                                                                               className="form-control form-control-sm"
+                                                                                               placeholder="Qty"
+                                                                                               value={item.quantity}
+                                                                                               onChange={(e) => updateConsumptionItem(index, 'quantity', parseInt(e.target.value) || 0)}
+                                                                                               min="1"
+                                                                                               max={maxQuantity || undefined}
+                                                                                               disabled={isOutOfStock}
+                                                                                          />
+                                                                                     </td>
+                                                                                     <td>
+                                                                                          <span className="text-muted small">{item.unit || 'units'}</span>
+                                                                                     </td>
+                                                                                     <td>
+                                                                                          {availableStockDetails && availableStockDetails.available_batches.length > 0 ? (
+                                                                                               <select
+                                                                                                    className="form-select form-select-sm"
+                                                                                                    value={item.batchId || ''}
+                                                                                                    onChange={(e) => {
+                                                                                                         const batchNumber = e.target.value;
+                                                                                                         const selectedBatch = availableStockDetails.available_batches.find(b => b.batch_number === batchNumber);
+                                                                                                         updateConsumptionItem(index, 'batchId', batchNumber);
+                                                                                                         updateConsumptionItem(index, 'batchNumber', batchNumber);
+                                                                                                         updateConsumptionItem(index, 'brandName', selectedBatch?.brand_name || '');
+                                                                                                    }}
+                                                                                                    disabled={isOutOfStock}
+                                                                                               >
+                                                                                                    <option value="">Any available batch (FIFO)</option>
+                                                                                                    {availableStockDetails.available_batches.map(batch => (
+                                                                                                         <option key={batch.batch_number} value={batch.batch_number}>
+                                                                                                              {batch.batch_number} - {batch.available_quantity} {availableStockDetails.item.unit}
+                                                                                                              (Exp: {new Date(batch.expiry_date).toLocaleDateString()})
+                                                                                                              {batch.brand_name && ` - ${batch.brand_name}`}
+                                                                                                         </option>
+                                                                                                    ))}
+                                                                                               </select>
+                                                                                          ) : (
+                                                                                               <span className="text-muted small">No batches available</span>
+                                                                                          )}
+                                                                                     </td>
+                                                                                     <td>
+                                                                                          {selectedItem && (
+                                                                                               <div className="small">
+                                                                                                    <div className={`fw-bold ${isOutOfStock ? 'text-danger' : 'text-success'}`}>
+                                                                                                         Available: {selectedBatch ? selectedBatch.available_quantity : availableStock} {selectedItem.unit || 'units'}
+                                                                                                         {selectedBatch && <span className="text-muted"> (Batch: {selectedBatch.batch_number})</span>}
+                                                                                                         {isOutOfStock && <div className="text-danger fw-bold">OUT OF STOCK</div>}
+                                                                                                    </div>
+                                                                                                    {availableStockDetails && (
+                                                                                                         <div className="text-info">
+                                                                                                              {availableStockDetails.available_batches.length} batches
+                                                                                                              {availableStockDetails.fifo_batch && !selectedBatch && (
+                                                                                                                   <div className="badge bg-primary mt-1">
+                                                                                                                        FIFO: {availableStockDetails.fifo_batch.batch_number}
+                                                                                                                   </div>
+                                                                                                              )}
+                                                                                                         </div>
+                                                                                                    )}
+                                                                                               </div>
+                                                                                          )}
+                                                                                     </td>
+                                                                                     <td>
+                                                                                          <button
+                                                                                               className="btn btn-sm btn-outline-danger"
+                                                                                               onClick={() => removeConsumptionItem(index)}
+                                                                                               title="Remove item"
+                                                                                               disabled={isOutOfStock}
+                                                                                          >
+                                                                                               <RiSubtractLine size={14} />
+                                                                                          </button>
+                                                                                     </td>
+                                                                                </tr>
+                                                                           );
+                                                                      })}
+                                                                 </tbody>
+                                                            </table>
+                                                            <div className="mt-3">
+                                                                 <button
+                                                                      className="btn btn-sm btn-outline-primary"
+                                                                      onClick={addConsumptionItem}
+                                                                 >
+                                                                      <RiAddLine size={14} className="me-1" />
+                                                                      Add Item
+                                                                 </button>
+                                                            </div>
                                                        </div>
                                                   </div>
                                              </div>
@@ -539,8 +631,8 @@ export default function StockConsumptionPage() {
                                              <textarea
                                                   className="form-control"
                                                   rows={3}
-                                                  value={consumptionForm.notes}
-                                                  onChange={(e) => setConsumptionForm(prev => ({ ...prev, notes: e.target.value }))}
+                                                  value={wastageForm.notes}
+                                                  onChange={(e) => setWastageForm(prev => ({ ...prev, notes: e.target.value }))}
                                                   placeholder="Additional notes about this consumption..."
                                              />
                                         </div>
@@ -551,7 +643,7 @@ export default function StockConsumptionPage() {
                                              className="btn btn-secondary btn-sm"
                                              onClick={() => {
                                                   setShowConsumptionModal(false);
-                                                  resetConsumptionForm();
+                                                  resetWastageForm();
                                              }}
                                         >
                                              Cancel
@@ -577,7 +669,7 @@ export default function StockConsumptionPage() {
                               <div className="modal-content">
                                    <div className="modal-header">
                                         <h5 className="modal-title">
-                                             Consumption Details - {new Date(selectedRecord.timestamp).toLocaleString()}
+                                             Consumption Details - {new Date(selectedRecord.transaction_date).toLocaleString()}
                                         </h5>
                                         <button
                                              type="button"
@@ -590,7 +682,7 @@ export default function StockConsumptionPage() {
                                              <div className="col-md-6">
                                                   <p><strong>Type:</strong>
                                                        {(() => {
-                                                            const typeInfo = CONSUMPTION_TYPES[selectedRecord.type as keyof typeof CONSUMPTION_TYPES] || CONSUMPTION_TYPES.other;
+                                                            const typeInfo = CONSUMPTION_TYPES[selectedRecord.consumption_type as keyof typeof CONSUMPTION_TYPES] || CONSUMPTION_TYPES.manual;
                                                             return (
                                                                  <span className={`badge bg-${typeInfo.color} ms-2`}>
                                                                       {typeInfo.label}
@@ -598,56 +690,21 @@ export default function StockConsumptionPage() {
                                                             );
                                                        })()}
                                                   </p>
-                                                  {selectedRecord.testName && <p><strong>Test:</strong> {selectedRecord.testName}</p>}
-                                                  {selectedRecord.patientName && <p><strong>Patient:</strong> {selectedRecord.patientName}</p>}
-                                                  <p><strong>Performed By:</strong> {selectedRecord.performedByName}</p>
-                                                  <p><strong>Timestamp:</strong> {new Date(selectedRecord.timestamp).toLocaleString()}</p>
+                                                  <p><strong>Item:</strong> {selectedRecord.item_name}</p>
+                                                  <p><strong>SKU:</strong> {selectedRecord.item_sku}</p>
+                                                  <p><strong>Performed By:</strong> {selectedRecord.performed_by}</p>
+                                                  <p><strong>Transaction Date:</strong> {new Date(selectedRecord.transaction_date).toLocaleString()}</p>
                                              </div>
                                              <div className="col-md-6">
-                                                  <p><strong>Total Value:</strong>
+                                                  <p><strong>Quantity:</strong>
                                                        <span className="text-danger fw-bold ms-2">
-                                                            -{currencyFormatter.format(selectedRecord.totalValue || 0)}
+                                                            -{selectedRecord.quantity}
                                                        </span>
                                                   </p>
+                                                  <p><strong>Reason:</strong> {selectedRecord.reason}</p>
+                                                  {selectedRecord.batch_number && <p><strong>Batch:</strong> {selectedRecord.batch_number}</p>}
                                                   {selectedRecord.notes && <p><strong>Notes:</strong> {selectedRecord.notes}</p>}
                                              </div>
-                                        </div>
-                                        <div className="mt-3">
-                                             <h6>Consumed Items:</h6>
-                                             {selectedRecord.items && selectedRecord.items.length > 0 ? (
-                                                  <div className="table-responsive">
-                                                       <table className="table table-sm">
-                                                            <thead>
-                                                                 <tr>
-                                                                      <th>Item Name</th>
-                                                                      <th>SKU</th>
-                                                                      <th>Batch</th>
-                                                                      <th>Quantity</th>
-                                                                      <th>Unit Price</th>
-                                                                      <th>Total Value</th>
-                                                                 </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                 {selectedRecord.items.map((item: any, index) => (
-                                                                      <tr key={index}>
-                                                                           <td>{item.itemName}</td>
-                                                                           <td>{item.sku}</td>
-                                                                           <td>{item.batchNumber || 'N/A'}</td>
-                                                                           <td className="text-danger">-{item.quantity} {item.unit}</td>
-                                                                           <td>{currencyFormatter.format(item.unitPrice)}</td>
-                                                                           <td className="text-danger fw-bold">
-                                                                                -{currencyFormatter.format(item.totalValue)}
-                                                                           </td>
-                                                                      </tr>
-                                                                 ))}
-                                                            </tbody>
-                                                       </table>
-                                                  </div>
-                                             ) : (
-                                                  <div className="alert alert-info">
-                                                       <small>No items found in this consumption record.</small>
-                                                  </div>
-                                             )}
                                         </div>
                                    </div>
                                    <div className="modal-footer">
