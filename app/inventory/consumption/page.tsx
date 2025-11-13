@@ -109,8 +109,15 @@ interface AvailableStockDetail {
 }
 
 const CONSUMPTION_TYPES = {
-     manual: { label: 'Manual Consumption', color: 'primary' }
+     manual: { label: 'Manual Consumption', color: 'primary' },
+     wastage: { label: 'Wastage', color: 'warning' }
 };
+
+const WASTAGE_REASONS = [
+     'damaged',
+     'broken',
+     'contamination'
+];
 
 export default function StockConsumptionPage() {
      const { applicationsettings } = useApplicationSettings();
@@ -124,7 +131,8 @@ export default function StockConsumptionPage() {
 
      // Consumption form state
      const [wastageForm, setWastageForm] = useState({
-          type: 'manual' as 'manual',
+          type: 'manual' as 'manual' | 'wastage',
+          wastageReason: '' as string,
           items: [] as TransactionItem[],
           notes: ''
      });
@@ -217,6 +225,12 @@ export default function StockConsumptionPage() {
                return;
           }
 
+          // Validate wastage reason if type is wastage
+          if (wastageForm.type === 'wastage' && !wastageForm.wastageReason) {
+               toast.error('Please select a wastage reason');
+               return;
+          }
+
           // Validate quantities and check for out-of-stock items
           const invalidItems = wastageForm.items.filter(item => {
                const inventoryItem = inventoryItems.find(i => i.id === item.inventoryItemId);
@@ -255,8 +269,16 @@ export default function StockConsumptionPage() {
                          item_id: item.inventoryItemId,
                          quantity: item.quantity,
                          performed_by: employeeid,
-                         reason: 'Manual consumption'
+                         consumption_type: wastageForm.type,
+                         transaction_type: 'consumption',
+                         reason: wastageForm.type === 'wastage' ? wastageForm.wastageReason : 'Manual consumption'
                     };
+
+                    // Add wastage_type if consumption type is wastage
+                    if (wastageForm.type === 'wastage') {
+                         consumptionData.wastage_type = wastageForm.wastageReason;
+                         consumptionData.transaction_type = 'wastage';
+                    }
 
                     // Add batch information if a specific batch is selected (manual consumption)
                     if (item.batchId) {
@@ -295,6 +317,7 @@ export default function StockConsumptionPage() {
      const resetWastageForm = () => {
           setWastageForm({
                type: 'manual',
+               wastageReason: '',
                items: [],
                notes: ''
           });
@@ -480,6 +503,44 @@ export default function StockConsumptionPage() {
                                         ></button>
                                    </div>
                                    <div className="modal-body">
+                                        <div className="row mb-3">
+                                             <div className="col-md-6">
+                                                  <div className="mb-3">
+                                                       <label className="form-label">Consumption Type *</label>
+                                                       <select
+                                                            className="form-select"
+                                                            value={wastageForm.type}
+                                                            onChange={(e) => setWastageForm(prev => ({
+                                                                 ...prev,
+                                                                 type: e.target.value as 'manual' | 'wastage',
+                                                                 wastageReason: e.target.value === 'manual' ? '' : prev.wastageReason
+                                                            }))}
+                                                       >
+                                                            <option value="manual">Manual Consumption</option>
+                                                            <option value="wastage">Wastage</option>
+                                                       </select>
+                                                  </div>
+                                             </div>
+                                             {wastageForm.type === 'wastage' && (
+                                                  <div className="col-md-6">
+                                                       <div className="mb-3">
+                                                            <label className="form-label">Wastage Reason *</label>
+                                                            <select
+                                                                 className="form-select"
+                                                                 value={wastageForm.wastageReason}
+                                                                 onChange={(e) => setWastageForm(prev => ({ ...prev, wastageReason: e.target.value }))}
+                                                            >
+                                                                 <option value="">Select reason</option>
+                                                                 {WASTAGE_REASONS.map(reason => (
+                                                                      <option key={reason} value={reason}>
+                                                                           {reason.charAt(0).toUpperCase() + reason.slice(1)}
+                                                                      </option>
+                                                                 ))}
+                                                            </select>
+                                                       </div>
+                                                  </div>
+                                             )}
+                                        </div>
                                         <div className="row">
                                              <div className="col-md-12">
                                                   <div className="mb-3">
