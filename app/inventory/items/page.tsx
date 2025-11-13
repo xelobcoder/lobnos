@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RiBox3Line, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiDownloadLine, RiUploadLine } from '@remixicon/react';
+import { RiBox3Line, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiDownloadLine, RiUploadLine, RiInboxLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
@@ -99,6 +99,8 @@ export default function InventoryItemsPage() {
      const [existingBrandsForItem, setExistingBrandsForItem] = useState<any[]>([]);
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
+     const [availableStock, setAvailableStock] = useState<any>(null);
+     const [loadingStock, setLoadingStock] = useState(false);
 
      // Form states
      const [itemForm, setItemForm] = useState({
@@ -311,7 +313,7 @@ export default function InventoryItemsPage() {
                          <button
                               className="btn btn-sm btn-outline-info"
                               title="View Details"
-                              onClick={() => setSelectedItem(row.original)}
+                              onClick={() => handleViewItem(row.original)}
                          >
                               <RiEyeLine size={14} />
                          </button>
@@ -500,6 +502,29 @@ export default function InventoryItemsPage() {
           setShowAddBrandModal(true);
      };
 
+     const handleViewItem = async (item: InventoryItem) => {
+          setSelectedItem(item);
+          setAvailableStock(null);
+
+          // Load available stock data
+          try {
+               setLoadingStock(true);
+               const response = await customFetch(`inventory/transactions/available-stock/${item.id}?tenantId=3`);
+
+               if (response.success) {
+                    setAvailableStock(response.data);
+               } else {
+                    console.error('Failed to load available stock:', response.error);
+                    toast.error('Failed to load batch information');
+               }
+          } catch (error) {
+               console.error('Error loading available stock:', error);
+               toast.error('Failed to load batch information');
+          } finally {
+               setLoadingStock(false);
+          }
+     };
+
      const handleAddSingleBrand = () => {
           if (!brandForm.currentName.trim()) {
                toast.error('Please enter a brand name');
@@ -667,8 +692,8 @@ export default function InventoryItemsPage() {
 
                {/* Add Item Modal */}
                {showAddModal && (
-                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                         <div className="modal-dialog modal-lg">
+                    <div className="modal show d-block" >
+                         <div className="modal-dialog modal-xl">
                               <div className="modal-content">
                                    <div className="modal-header">
                                         <h5 className="modal-title">
@@ -973,46 +998,168 @@ export default function InventoryItemsPage() {
                {/* Item Details Modal */}
                {selectedItem && (
                     <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                         <div className="modal-dialog modal-lg">
+                         <div className="modal-dialog modal-xl">
                               <div className="modal-content">
                                    <div className="modal-header">
                                         <h5 className="modal-title">Item Details - {selectedItem.name}</h5>
                                         <button
                                              type="button"
                                              className="btn-close"
-                                             onClick={() => setSelectedItem(null)}
+                                             onClick={() => {
+                                                  setSelectedItem(null);
+                                                  setAvailableStock(null);
+                                             }}
                                         ></button>
                                    </div>
                                    <div className="modal-body">
-                                        <div className="row">
+                                        <div className="row mb-3">
                                              <div className="col-md-6">
-                                                  <p><strong>SKU:</strong> {selectedItem.sku}</p>
-                                                  <p><strong>Brand:</strong> {selectedItem.brand || 'Not specified'}</p>
-                                                  <p><strong>Category:</strong> {selectedItem.category}</p>
-                                                  <p><strong>Location:</strong> {selectedItem.location_name || 'Not assigned'}</p>
-                                                  <p><strong>Status:</strong>
-                                                       <span className={`badge bg-${STATUS_BADGES[selectedItem.status].color} ms-2`}>
-                                                            {STATUS_BADGES[selectedItem.status].label}
-                                                       </span>
-                                                  </p>
+                                                  <div className="card bg-light">
+                                                       <div className="card-body">
+                                                            <h6 className="card-title">Item Information</h6>
+                                                            <p className="mb-1 small"><strong>SKU:</strong> {selectedItem.sku}</p>
+                                                            <p className="mb-1 small"><strong>Brand:</strong> {selectedItem.brand || 'Not specified'}</p>
+                                                            <p className="mb-1 small"><strong>Category:</strong> {selectedItem.category}</p>
+                                                            <p className="mb-1 small"><strong>Location:</strong> {selectedItem.location_name || 'Not assigned'}</p>
+                                                            <p className="mb-0 small"><strong>Status:</strong>
+                                                                 <span className={`badge bg-${STATUS_BADGES[selectedItem.status].color} ms-2`}>
+                                                                      {STATUS_BADGES[selectedItem.status].label}
+                                                                 </span>
+                                                            </p>
+                                                       </div>
+                                                  </div>
                                              </div>
                                              <div className="col-md-6">
-                                                  <p><strong>Current Stock:</strong> {selectedItem.currentStock} {selectedItem.unit}</p>
-                                                  <p><strong>Min/Max Stock:</strong> {selectedItem.minStock} / {selectedItem.maxStock} {selectedItem.unit}</p>
+                                                  <div className="card bg-light">
+                                                       <div className="card-body">
+                                                            <h6 className="card-title">Stock Information</h6>
+                                                            <p className="mb-1 small"><strong>Current Stock:</strong> {selectedItem.currentStock} {selectedItem.unit}</p>
+                                                            <p className="mb-0 small"><strong>Stock Range:</strong> {selectedItem.minStock} - {selectedItem.maxStock} {selectedItem.unit}</p>
+                                                       </div>
+                                                  </div>
                                              </div>
                                         </div>
                                         {selectedItem.description && (
-                                             <div className="mt-3">
-                                                  <strong>Description:</strong>
-                                                  <p className="mt-1">{selectedItem.description}</p>
+                                             <div className="card bg-light mb-3">
+                                                  <div className="card-body">
+                                                       <h6 className="card-title">Description</h6>
+                                                       <p className="mb-0 small">{selectedItem.description}</p>
+                                                  </div>
                                              </div>
                                         )}
+
+                                        {/* Available Stock/Batches Section */}
+                                        <div className="mt-4">
+                                             <h6 className="text-primary mb-3">
+                                                  <span className="fas fa-boxes me-2"></span>
+                                                  Available Stock & Batches
+                                             </h6>
+
+                                             {loadingStock ? (
+                                                  <div className="text-center py-4">
+                                                       <div className="text-muted">
+                                                            <div className="spinner-border spinner-border-sm mb-2" role="status">
+                                                                 <span className="visually-hidden">Loading...</span>
+                                                            </div>
+                                                            <p className="mb-0 small">Loading batch information...</p>
+                                                       </div>
+                                                  </div>
+                                             ) : availableStock ? (
+                                                  <div>
+                                                       {/* Item Summary */}
+                                                       <div className="card mb-3">
+                                                            <div className="card-body py-2">
+                                                                 <div className="row text-center">
+                                                                      <div className="col-6">
+                                                                           <strong className="text-info">{availableStock.item?.current_stock || 0}</strong>
+                                                                           <br />
+                                                                           <small className="text-muted">Total Stock ({availableStock.item?.unit || 'units'})</small>
+                                                                      </div>
+                                                                      <div className="col-6">
+                                                                           <strong className="text-success">{availableStock.available_batches?.length || 0}</strong>
+                                                                           <br />
+                                                                           <small className="text-muted">Active Batches</small>
+                                                                      </div>
+                                                                 </div>
+                                                            </div>
+                                                       </div>
+
+                                                       {/* Batches Table */}
+                                                       {availableStock.available_batches && availableStock.available_batches.length > 0 ? (
+                                                            <div className="table-responsive">
+                                                                 <table className="table table-sm">
+                                                                      <thead>
+                                                                           <tr>
+                                                                                <th>Batch Details</th>
+                                                                                <th>Available Qty</th>
+                                                                                <th>Received</th>
+                                                                                <th>Consumed</th>
+                                                                                <th>Dates</th>
+                                                                           </tr>
+                                                                      </thead>
+                                                                      <tbody>
+                                                                           {availableStock.available_batches.map((batch: any, index: number) => (
+                                                                                <tr key={index}>
+                                                                                     <td className="text-start">
+                                                                                          <div className="small">
+                                                                                               <div className="fw-bold">{batch.batch_number}</div>
+                                                                                               <div className="text-muted">Brand: {batch.brand_name || 'N/A'}</div>
+                                                                                          </div>
+                                                                                     </td>
+                                                                                     <td className="text-start">
+                                                                                          <div className="small">
+                                                                                               <div className="fw-bold text-success">{batch.available_quantity}</div>
+                                                                                               <div className="text-muted">{availableStock.item?.unit || 'units'}</div>
+                                                                                          </div>
+                                                                                     </td>
+                                                                                     <td className="text-start">
+                                                                                          <div className="small fw-bold">{batch.total_received}</div>
+                                                                                     </td>
+                                                                                     <td className="text-start">
+                                                                                          <div className="small fw-bold">{batch.total_consumed}</div>
+                                                                                     </td>
+                                                                                     <td className="text-start">
+                                                                                          <div className="small">
+                                                                                               <div className="fw-bold">
+                                                                                                    {batch.expiry_date ? new Date(batch.expiry_date).toLocaleDateString() : 'N/A'}
+                                                                                               </div>
+                                                                                               <div className="text-muted">
+                                                                                                    Last Received: {batch.last_received ? new Date(batch.last_received).toLocaleDateString() : 'N/A'}
+                                                                                               </div>
+                                                                                          </div>
+                                                                                     </td>
+                                                                                </tr>
+                                                                           ))}
+                                                                      </tbody>
+                                                                 </table>
+                                                            </div>
+                                                       ) : (
+                                                            <div className="text-center py-4">
+                                                                 <div className="text-muted">
+                                                                      <RiInboxLine className="fs-1 mb-2" />
+                                                                      <p className="mb-0 small">No batch information available</p>
+                                                                 </div>
+                                                            </div>
+                                                       )}
+                                                  </div>
+                                             ) : (
+                                                  <div className="text-center py-4">
+                                                       <div className="text-muted">
+                                                            <RiInboxLine className="fs-1 mb-2" />
+                                                            <p className="mb-0 small">Failed to load batch information</p>
+                                                       </div>
+                                                  </div>
+                                             )}
+                                        </div>
                                    </div>
                                    <div className="modal-footer">
                                         <button
                                              type="button"
                                              className="btn btn-secondary btn-sm"
-                                             onClick={() => setSelectedItem(null)}
+                                             onClick={() => {
+                                                  setSelectedItem(null);
+                                                  setAvailableStock(null);
+                                             }}
                                         >
                                              Close
                                         </button>
