@@ -5,7 +5,7 @@ import { RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiDownloadLine, RiUp
 import PrimeTable from '../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
-
+import Link from 'next/link';
 
 interface InventoryItem {
      id: string;
@@ -499,6 +499,10 @@ export default function InventoryPage() {
                          <p className="text-muted mb-0">Manage laboratory supplies, equipment, and consumables</p>
                     </div>
                     <div className="d-flex gap-2">
+                         <Link href="/inventory/analytics" className="btn btn-outline-success btn-sm">
+                              <RiBarChartLine className="me-1" />
+                              View Analytics
+                         </Link>
                          <button className="btn btn-outline-primary btn-sm">
                               <RiDownloadLine className="me-1" />
                               Export Data

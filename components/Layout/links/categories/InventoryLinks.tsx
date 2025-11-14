@@ -105,5 +105,25 @@ export const InventoryLinks: Link[] = [
                { title: "Consumption History", link: "/inventory/expired-products/consumption-history", icon: <RiHistoryLine /> }
           ]
      },
+     {
+          title: "Analytics Dashboard",
+          link: "/inventory/analytics",
+          icon: <RiDashboardLine />,
+          children: [
+               { title: "Overview", link: "/inventory/analytics", icon: <RiBarChartBoxLine /> },
+               { title: "Stock Status", link: "/inventory/analytics/stock-status", icon: <RiBox3Line /> },
+               { title: "Purchase Orders", link: "/inventory/analytics/purchase-orders", icon: <RiShoppingCartLine /> },
+               { title: "Transactions", link: "/inventory/analytics/transactions", icon: <RiHistoryLine /> },
+               { title: "Payments", link: "/inventory/analytics/payments", icon: <RiMoneyDollarCircleLine /> },
+               { title: "Costs", link: "/inventory/analytics/costs", icon: <RiCalculatorLine /> },
+               { title: "Suppliers", link: "/inventory/analytics/suppliers", icon: <RiTruckLine /> },
+               { title: "Stock Levels", link: "/inventory/analytics/stock-levels", icon: <RiBarChartBoxLine /> },
+               { title: "Movement", link: "/inventory/analytics/movement", icon: <RiHistoryLine /> },
+               { title: "Batch Expiry", link: "/inventory/analytics/batch-expiry", icon: <RiAlertLine /> },
+               { title: "Procurement", link: "/inventory/analytics/procurement", icon: <RiShoppingCartLine /> },
+               { title: "Cost Valuation", link: "/inventory/analytics/cost-valuation", icon: <RiCalculatorLine /> },
+               { title: "Usage", link: "/inventory/analytics/usage", icon: <RiBarChartBoxLine /> }
+          ]
+     },
 
 ];
