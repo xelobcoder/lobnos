@@ -182,8 +182,13 @@ export default function ReceiveOrderedItemsPage() {
                item.receivedQuantity > 0 && item.unitPrice > 0 && item.batchNumber && item.expiryDate
           );
 
-          if (completedItems.length !== itemsToReceive.length) {
-               toast.error('Please complete all item details before processing');
+          const itemsWithQuantity = itemsToReceive.filter(item => item.receivedQuantity > 0);
+          const invalidItems = itemsWithQuantity.filter(item =>
+               !item.unitPrice || !item.batchNumber || !item.expiryDate
+          );
+
+          if (invalidItems.length > 0) {
+               toast.error('Please complete all required fields for items with received quantity > 0');
                return;
           }
 
@@ -203,8 +208,14 @@ export default function ReceiveOrderedItemsPage() {
                          condition_status: receiveForm.conditionStatus,
                          quality_check_passed: receiveForm.qualityCheckPassed,
                          notes: receiveForm.notes || "Received in good condition"
-                    }))
+                    })).filter(item => item.quantity_received > 0),
                };
+
+               if (payload.receipts.length === 0) {
+                    toast.error('No items to receive. Please enter received quantities.');
+                    setSubmitting(false);
+                    return;
+               }
 
                const response = await customPost(`inventory/orders/${orderId}/receive`, 'POST', payload);
                if (response.success) {
@@ -312,9 +323,13 @@ export default function ReceiveOrderedItemsPage() {
      }
 
      const totalReceived = receiveForm.items.reduce((sum, item) => sum + item.totalValue, 0);
-     const completedItems = receiveForm.items.filter(item =>
-          item.receivedQuantity > 0 && item.unitPrice > 0 && item.batchNumber && item.expiryDate
-     ).length;
+     const completedItems = receiveForm.items.filter(item => {
+          // Items with quantity_received = 0 are considered completed
+          const remaining = item.orderedQuantity - item.quantityReceived;
+          if (item.receivedQuantity === 0 && remaining === 0) return true;
+          // Items with quantity_received > 0 must have all required fields
+          return item.receivedQuantity > 0 && item.unitPrice > 0 && item.batchNumber && item.expiryDate;
+     }).length;
      const fullyReceivedItems = receiveForm.items.filter(item => item.status === 'received').length;
      const totalItemsToReceive = receiveForm.items.length - fullyReceivedItems; return (
           <div className="container-fluid py-4">
@@ -352,7 +367,13 @@ export default function ReceiveOrderedItemsPage() {
                                         <button
                                              className="btn btn-primary btn-sm"
                                              onClick={handleProcessReceiving}
-                                             disabled={submitting || totalItemsToReceive === 0 || (totalItemsToReceive > 0 && completedItems !== totalItemsToReceive)}
+                                             disabled={submitting || totalItemsToReceive === 0 || (() => {
+                                                  const itemsWithQuantity = receiveForm.items.filter(item => item.receivedQuantity > 0 && item.status !== 'received');
+                                                  const invalidItems = itemsWithQuantity.filter(item =>
+                                                       !item.unitPrice || !item.batchNumber || !item.expiryDate
+                                                  );
+                                                  return invalidItems.length > 0;
+                                             })()}
                                         >
                                              {submitting ? (
                                                   <>

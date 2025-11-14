@@ -17,7 +17,19 @@ import {
      RiShoppingCartLine,
      RiTrademarkLine,
      RiDeleteBinLine,
-     RiAlertLine
+     RiAlertLine,
+     RiBookOpenLine,
+     RiCalculatorLine,
+     RiBillLine,
+     RiMoneyDollarCircleLine,
+     RiWalletLine,
+     RiDashboardLine,
+     RiAccountBoxLine,
+     RiFileChartLine,
+     RiCheckDoubleLine,
+     RiShieldCheckLine,
+     RiLink,
+     RiEyeLine
 } from '@remixicon/react';
 
 export const InventoryLinks: Link[] = [
@@ -48,6 +60,16 @@ export const InventoryLinks: Link[] = [
           children: [
                { title: "All Orders", link: "/inventory/orders", icon: <RiFileListLine /> },
                { title: "Received Items History", link: "/inventory/orders/received-items-history", icon: <RiHistoryLine /> }
+          ]
+     },
+     {
+          title: "Payments",
+          link: "/inventory/payments",
+          icon: <RiMoneyDollarCircleLine />,
+          children: [
+               { title: "All Payments", link: "/inventory/payments", icon: <RiWalletLine /> },
+               { title: "Payment Approvals", link: "/inventory/payments/approvals", icon: <RiShieldCheckLine /> },
+               { title: "Payment History", link: "/inventory/payments/history", icon: <RiHistoryLine /> }
           ]
      },
      {
@@ -84,14 +106,5 @@ export const InventoryLinks: Link[] = [
                { title: "Consumption History", link: "/inventory/expired-products/consumption-history", icon: <RiHistoryLine /> }
           ]
      },
-     {
-          title: "Data Operations",
-          link: "",
-          icon: <RiFileListLine />,
-          children: [
-               { title: "Export Data", link: "/inventory/export", icon: <RiDownloadLine /> },
-               { title: "Import Data", link: "/inventory/import", icon: <RiUploadLine /> },
-               { title: "Camera Capture", link: "/inventory/camera", icon: <RiCameraLine /> }
-          ]
-     }
+
 ];

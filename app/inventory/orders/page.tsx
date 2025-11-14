@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RiShoppingCartLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSendPlaneLine, RiCheckLine, RiMailLine, RiDownloadLine, RiFilterLine, RiCloseLine, RiInboxArchiveLine } from '@remixicon/react';
+import { RiShoppingCartLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSendPlaneLine, RiCheckLine, RiMailLine, RiDownloadLine, RiFilterLine, RiCloseLine, RiInboxArchiveLine, RiMoneyDollarCircleLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { currencyFormatter, customFetch, customPost } from '../../../components/Auth/customFetch';
-import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
+import { useApplication, useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
 
 interface Supplier {
@@ -119,11 +119,11 @@ interface PurchaseOrder {
      orderDate: string;
      expectedDeliveryDate?: string;
      actualDeliveryDate?: string;
-     totalAmount: number;
-     taxAmount: number;
-     discountAmount: number;
-     shippingCost: number;
-     finalAmount: number;
+     totalAmount: number | undefined;
+     taxAmount: number | undefined;
+     discountAmount: number | undefined;
+     shippingCost: number | undefined;
+     finalAmount: number | undefined;
      currency: string;
      paymentTerms?: string;
      notes?: string;
@@ -137,6 +137,10 @@ interface PurchaseOrder {
      communicationNotes?: string;
      items_count?: number;
      received_items_count?: number;
+     paymentHistory?: any[];
+     totalPaid?: number;
+     totalPending?: number;
+     remainingBalance?: number;
      createdAt: string;
      updatedAt: string;
 }
@@ -160,11 +164,12 @@ export default function PurchaseOrdersPage() {
      const [filterStatus, setFilterStatus] = useState<string>('all');
      const [loading, setLoading] = useState(false);
 
-     // Order modal states
      const [showOrderModal, setShowOrderModal] = useState(false);
      const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null);
 
-     // Form states
+     const [showPaymentModal, setShowPaymentModal] = useState(false);
+     const [selectedOrderForPayment, setSelectedOrderForPayment] = useState<PurchaseOrder | null>(null);
+
      const [orderForm, setOrderForm] = useState({
           supplierId: '',
           supplierName: '',
@@ -178,7 +183,17 @@ export default function PurchaseOrdersPage() {
           communicationNotes: ''
      });
 
-     // Load data from APIs
+     const [paymentForm, setPaymentForm] = useState({
+          supplier_id: '',
+          purchase_order_id: '',
+          created_by: '',
+          payment_amount: 0,
+          payment_date: new Date().toISOString().split('T')[0],
+          payment_method: 'bank_transfer',
+          reference_number: '',
+          payment_notes: ''
+     });
+
      const loadSuppliers = async () => {
           try {
                const response = await customFetch('inventory/suppliers');
@@ -206,16 +221,14 @@ export default function PurchaseOrdersPage() {
                setLoading(true);
                const response = await customFetch('inventory/orders');
                if (response.success) {
-                    // Load suppliers first to enrich order data
                     await loadSuppliers();
 
                     const transformedOrders = response.data.map((order: any) => {
-                         // Find supplier details by matching supplier_id
                          const supplier = suppliers.find(s => s.id === order.supplier_id);
 
                          return {
                               id: order.id,
-                              orderNumber: order.id,
+                              orderNumber: order.order_number || order.id,
                               supplierId: order.supplier_id,
                               supplierName: order.supplier_name || supplier?.name || 'Unknown Supplier',
                               supplierEmail: order.supplier_email || supplier?.email || '',
@@ -245,6 +258,10 @@ export default function PurchaseOrdersPage() {
                               communicationNotes: order.communication_notes,
                               items_count: order.items_count || 0,
                               received_items_count: order.received_items_count || 0,
+                              paymentHistory: order.payment_history || [],
+                              totalPaid: order.total_paid || 0,
+                              totalPending: order.total_pending || 0,
+                              remainingBalance: order.remaining_balance || 0,
                               createdAt: order.created_at,
                               updatedAt: order.updated_at
                          };
@@ -262,14 +279,12 @@ export default function PurchaseOrdersPage() {
           try {
                const { page, count, sortby = 'DESC', filters = {} } = params;
 
-               // Build query parameters
                const queryParams = new URLSearchParams({
                     page: page.toString(),
                     count: count.toString(),
                     sortby: sortby
                });
 
-               // Add filter parameters if they exist
                Object.keys(filters).forEach(key => {
                     if (filters[key] && filters[key] !== '') {
                          queryParams.append(key, filters[key]);
@@ -280,20 +295,18 @@ export default function PurchaseOrdersPage() {
                const response = await customFetch(endpoint);
 
                if (response.success) {
-                    // Ensure suppliers are loaded for data enrichment
                     if (suppliers.length === 0) {
                          await loadSuppliers();
                     }
 
-                    // Handle different response structures
-                    const ordersData = response?.data ||[];
+                    const ordersData = response?.data || [];
 
                     const transformedOrders = ordersData.map((order: any) => {
                          const supplier = suppliers.find(s => s.id === order.supplier_id);
 
                          return {
                               id: order.id,
-                              orderNumber: order.id,
+                              orderNumber: order.order_number || order.id,
                               supplierId: order.supplier_id,
                               supplierName: order.supplier_name || supplier?.name || 'Unknown Supplier',
                               supplierEmail: order.supplier_email || supplier?.email || '',
@@ -323,12 +336,14 @@ export default function PurchaseOrdersPage() {
                               communicationNotes: order.communication_notes,
                               items_count: order.items_count || 0,
                               received_items_count: order.received_items_count || 0,
+                              paymentHistory: order.payment_history || [],
+                              totalPaid: order.total_paid || 0,
+                              totalPending: order.total_pending || 0,
+                              remainingBalance: order.remaining_balance || 0,
                               createdAt: order.created_at,
                               updatedAt: order.updated_at
                          };
                     });
-
-                    // Return the expected format for PrimeTable
                     return {
                          result: transformedOrders,
                          error: false,
@@ -351,7 +366,6 @@ export default function PurchaseOrdersPage() {
           }
      };
 
-     // Load all data on component mount
      useEffect(() => {
           loadSuppliers();
           loadInventoryItems();
@@ -423,14 +437,26 @@ export default function PurchaseOrdersPage() {
                Header: 'Total Amount',
                accessor: 'totalAmount',
                Cell: ({ value, row }) => (
-                    <span>{row.original.currency} {currencyFormatter.format(value.toFixed(2))}</span>
+                    <span>{row.original.currency} {currencyFormatter.format((value || 0).toFixed(2))}</span>
                )
           },
           {
-               Header: 'Final Amount',
-               accessor: 'finalAmount',
-               Cell: ({ value, row }) => <span className="fw-bold"> {(currencyFormatter.format(value.toFixed(2)))}</span>
-
+               Header: 'Remaining Balance',
+               accessor: 'remainingBalance',
+               Cell: ({ value, row }) => (
+                    <span className={`fw-bold ${value > 0 ? 'text-danger' : 'text-success'}`}>
+                         {row.original.currency} {currencyFormatter.format((value || 0).toFixed(2))}
+                    </span>
+               )
+          },
+          {
+               Header: 'Pending Approvals',
+               accessor: 'totalPending',
+               Cell: ({ value, row }) => (
+                    <span className={`fw-bold ${value > 0 ? 'text-warning' : 'text-muted'}`}>
+                         {row.original.currency} {currencyFormatter.format((value || 0).toFixed(2))}
+                    </span>
+               )
           },
           {
                Header: 'Actions',
@@ -475,7 +501,20 @@ export default function PurchaseOrdersPage() {
                               )}
                          </div>
                     ) : (
-                         <span className="text-muted small">Completed</span>
+                         <div className="d-flex gap-1">
+                              {(row.original.totalPending || 0) < (row.original.totalAmount || 0) && (
+                                   <button
+                                        className="btn btn-sm btn-outline-info"
+                                        title="Make Payment"
+                                        onClick={() => handleMakePayment(row.original)}
+                                   >
+                                        Make Payment       <RiMoneyDollarCircleLine size={14} />
+                                   </button>
+                              )}
+                              <span className="text-muted small">
+                                   {(row.original.totalPending || 0) >= (row.original.totalAmount || 0) ? 'All payments pending' : 'Completed'}
+                              </span>
+                         </div>
                     )
                )
           }
@@ -521,7 +560,6 @@ export default function PurchaseOrdersPage() {
      };
 
      const handleEditOrder = async (order: PurchaseOrder) => {
-          // Prevent editing orders that are received or cancelled
           if (order.status === 'received' || order.status === 'cancelled') {
                toast.error(`Cannot edit orders with ${order.status} status`);
                return;
@@ -530,13 +568,11 @@ export default function PurchaseOrdersPage() {
           try {
                setLoading(true);
 
-               // Fetch fresh order data from the API
                const response = await customFetch(`inventory/orders/${order.id}`);
 
                if (response.success) {
                     const apiOrderData = response.data;
 
-                    // Format dates for input fields (YYYY-MM-DD)
                     const formatDateForInput = (dateString: string | null | undefined): string => {
                          if (!dateString) return '';
                          const date = new Date(dateString);
@@ -566,10 +602,9 @@ export default function PurchaseOrdersPage() {
                          communicationNotes: apiOrderData.communication_notes || ''
                     });
 
-                    // Create a fresh order object for selectedOrder
                     const freshOrder: PurchaseOrder = {
                          id: apiOrderData.id,
-                         orderNumber: apiOrderData.id, // Using id as order number
+                         orderNumber: apiOrderData.order_number || apiOrderData.id,
                          supplierId: apiOrderData.supplier_id,
                          supplierName: apiOrderData.supplier_name || '',
                          supplierEmail: apiOrderData.supplier_email || '',
@@ -599,6 +634,10 @@ export default function PurchaseOrdersPage() {
                          communicationNotes: apiOrderData.communication_notes || '',
                          items_count: apiOrderData.items_count || 0,
                          received_items_count: apiOrderData.received_items_count || 0,
+                         paymentHistory: apiOrderData.payment_history || [],
+                         totalPaid: apiOrderData.total_paid || 0,
+                         totalPending: apiOrderData.total_pending || 0,
+                         remainingBalance: apiOrderData.remaining_balance || 0,
                          createdAt: apiOrderData.created_at,
                          updatedAt: apiOrderData.updated_at
                     };
@@ -653,18 +692,15 @@ export default function PurchaseOrdersPage() {
      };
 
      const handleSendEmail = (order: PurchaseOrder) => {
-          // Simulate email sending
           const emailBody = generateOrderEmail(order);
           const mailtoLink = `mailto:${order.supplierEmail}?subject=Purchase Order ${order.orderNumber}&body=${encodeURIComponent(emailBody)}`;
 
-          // Update order email sent flag (keep status as ordered)
           setPurchaseOrders(prev => prev.map(o =>
                o.id === order.id
                     ? { ...o, emailSent: true, emailSentDate: new Date().toISOString(), communicationMethod: 'email' }
                     : o
           ));
 
-          // Open email client
           window.open(mailtoLink, '_blank');
 
           toast.success(`Email sent to ${order.supplierEmail} for order ${order.orderNumber}`);
@@ -672,6 +708,53 @@ export default function PurchaseOrdersPage() {
 
      const handleReceiveOrder = (order: PurchaseOrder) => {
           router.push(`/inventory/orders/receive-ordered-items/${order.id}`);
+     };
+
+     const handleMakePayment = (order: PurchaseOrder) => {
+          setSelectedOrderForPayment(order);
+          setPaymentForm({
+               supplier_id: order.supplierId,
+               purchase_order_id: order.id,
+               created_by: employeeid,
+               payment_amount: order.totalPending || 0,
+               payment_date: new Date().toISOString().split('T')[0],
+               payment_method: 'bank_transfer',
+               reference_number: '',
+               payment_notes: `Payment for purchase order ${order.orderNumber}`
+          });
+          setShowPaymentModal(true);
+     };
+
+     const handleCreatePayment = async () => {
+          if (!paymentForm.supplier_id || !paymentForm.purchase_order_id || paymentForm.payment_amount <= 0) {
+               toast.error('Please fill in all required payment details');
+               return;
+          }
+
+          const maxAllowed = selectedOrderForPayment?.totalPending || 0;
+          const tentativeRemainingAmount = (selectedOrderForPayment?.totalAmount || 0) - (selectedOrderForPayment?.totalPending || 0);
+          if (paymentForm.payment_amount > tentativeRemainingAmount) {
+               toast.error(`Payment amount cannot exceed pending payments (${tentativeRemainingAmount.toFixed(2)})`);
+               return;
+          }
+
+          try {
+               setLoading(true);
+               const response = await customPost('inventory/supplier-payments/payments', 'POST', paymentForm);
+
+               if (response.success) {
+                    toast.success('Payment created successfully!');
+                    setShowPaymentModal(false);
+                    resetPaymentForm();
+               } else {
+                    toast.error(`Failed to create payment: ${response.error?.message || 'Unknown error'}`);
+               }
+          } catch (err) {
+               console.error('Error creating payment:', err);
+               toast.error('Failed to create payment');
+          } finally {
+               setLoading(false);
+          }
      };
 
      const handleDeleteOrder = async (orderId: string) => {
@@ -708,7 +791,6 @@ export default function PurchaseOrdersPage() {
                const response = await customPost(`inventory/orders/${order.id}/cancel`, 'POST', cancelData);
 
                if (response.success) {
-                    // Update the order status locally
                     setPurchaseOrders(prev => prev.map(o =>
                          o.id === order.id
                               ? { ...o, status: 'cancelled' }
@@ -744,11 +826,11 @@ export default function PurchaseOrdersPage() {
                emailBody += `Items Ordered: ${order.items_count || 0} item(s) total\n\n`;
           }
 
-          emailBody += `Total Amount: ${order.currency} ${order.totalAmount.toFixed(2)}\n`;
-          emailBody += `Tax: ${order.currency} ${order.taxAmount.toFixed(2)}\n`;
-          emailBody += `Discount: ${order.currency} ${order.discountAmount.toFixed(2)}\n`;
-          emailBody += `Shipping: ${order.currency} ${order.shippingCost.toFixed(2)}\n`;
-          emailBody += `Final Amount: ${order.currency} ${order.finalAmount.toFixed(2)}\n\n`;
+          emailBody += `Total Amount: ${order.currency} ${(order.totalAmount || 0).toFixed(2)}\n`;
+          emailBody += `Tax: ${order.currency} ${(order.taxAmount || 0).toFixed(2)}\n`;
+          emailBody += `Discount: ${order.currency} ${(order.discountAmount || 0).toFixed(2)}\n`;
+          emailBody += `Shipping: ${order.currency} ${(order.shippingCost || 0).toFixed(2)}\n`;
+          emailBody += `Final Amount: ${order.currency} ${(order.finalAmount || 0).toFixed(2)}\n\n`;
 
           if (order.notes) {
                emailBody += `Notes: ${order.notes}\n\n`;
@@ -773,6 +855,20 @@ export default function PurchaseOrdersPage() {
                communicationNotes: ''
           });
           setSelectedOrder(null);
+     };
+
+     const resetPaymentForm = () => {
+          setPaymentForm({
+               supplier_id: '',
+               purchase_order_id: '',
+               created_by: '',
+               payment_amount: 0,
+               payment_date: new Date().toISOString().split('T')[0],
+               payment_method: 'bank_transfer',
+               reference_number: '',
+               payment_notes: ''
+          });
+          setSelectedOrderForPayment(null);
      };
 
      const getOrderStats = () => {
@@ -1110,11 +1206,11 @@ export default function PurchaseOrdersPage() {
                                                   )}
                                              </div>
                                              <div className="col-md-6">
-                                                  <p><strong>Total Amount:</strong> {selectedOrder.currency} {selectedOrder.totalAmount.toFixed(2)}</p>
-                                                  <p><strong>Tax Amount:</strong> {selectedOrder.currency} {selectedOrder.taxAmount.toFixed(2)}</p>
-                                                  <p><strong>Discount:</strong> {selectedOrder.currency} {selectedOrder.discountAmount.toFixed(2)}</p>
-                                                  <p><strong>Shipping Cost:</strong> {selectedOrder.currency} {selectedOrder.shippingCost.toFixed(2)}</p>
-                                                  <p><strong>Final Amount:</strong> {selectedOrder.currency} {selectedOrder.finalAmount.toFixed(2)}</p>
+                                                  <p><strong>Total Amount:</strong> {selectedOrder.currency} {(selectedOrder.totalAmount || 0).toFixed(2)}</p>
+                                                  <p><strong>Tax Amount:</strong> {selectedOrder.currency} {(selectedOrder.taxAmount || 0).toFixed(2)}</p>
+                                                  <p><strong>Discount:</strong> {selectedOrder.currency} {(selectedOrder.discountAmount || 0).toFixed(2)}</p>
+                                                  <p><strong>Shipping Cost:</strong> {selectedOrder.currency} {(selectedOrder.shippingCost || 0).toFixed(2)}</p>
+                                                  <p><strong>Final Amount:</strong> {selectedOrder.currency} {(selectedOrder.finalAmount || 0).toFixed(2)}</p>
                                                   <p><strong>Created By:</strong> {selectedOrder.createdBy}</p>
                                                   {selectedOrder.approvedBy && <p><strong>Approved By:</strong> {selectedOrder.approvedBy}</p>}
                                                   <p><strong>Email Sent:</strong>
@@ -1197,6 +1293,259 @@ export default function PurchaseOrdersPage() {
                                                   Send Email
                                              </button>
                                         )}
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               )}
+
+               {/* Payment Modal */}
+               {showPaymentModal && selectedOrderForPayment && (
+                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                         <div className="modal-dialog modal-lg">
+                              <div className="modal-content">
+                                   <div className="modal-header">
+                                        <h5 className="modal-title">
+                                             <RiMoneyDollarCircleLine className="me-2" />
+                                             Make Payment - Order {selectedOrderForPayment.orderNumber}
+                                        </h5>
+                                        <button
+                                             type="button"
+                                             className="btn-close"
+                                             onClick={() => {
+                                                  setShowPaymentModal(false);
+                                                  resetPaymentForm();
+                                             }}
+                                        ></button>
+                                   </div>
+                                   <div className="modal-body">
+                                        {/* Full Payment Notice */}
+                                        {(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0) && (
+                                             <div className="alert alert-success mb-4">
+                                                  <h6 className="alert-heading mb-2">
+                                                       <RiCheckLine size={20} className="me-2" />
+                                                       Payment Complete
+                                                  </h6>
+                                                  <p className="mb-0">
+                                                       This order has been fully paid. All payment fields have been disabled.
+                                                  </p>
+                                             </div>
+                                        )}
+
+                                        {/* Payment History */}
+                                        {selectedOrderForPayment.paymentHistory && selectedOrderForPayment.paymentHistory.length > 0 && (
+                                             <div className="mb-4">
+                                                  <h6 className="text-primary mb-3">
+                                                       <RiMoneyDollarCircleLine className="me-2" />
+                                                       Payment History
+                                                  </h6>
+                                                  <div className="table-responsive">
+                                                       <table className="table table-sm table-striped">
+                                                            <thead>
+                                                                 <tr>
+                                                                      <th>Date</th>
+                                                                      <th>Amount</th>
+                                                                      <th>Method</th>
+                                                                      <th>Status</th>
+                                                                      <th>Reference</th>
+                                                                 </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                 {selectedOrderForPayment.paymentHistory.map((payment: any, index: number) => (
+                                                                      <tr key={index}>
+                                                                           <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
+                                                                           <td className="fw-bold">{selectedOrderForPayment.currency} {payment.payment_amount.toFixed(2)}</td>
+                                                                           <td>{payment.payment_method.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
+                                                                           <td>
+                                                                                <span className={`badge bg-${payment.payment_status === 'pending' ? 'warning' : 'success'}`}>
+                                                                                     {payment.payment_status}
+                                                                                </span>
+                                                                           </td>
+                                                                           <td>{payment.reference_number || 'N/A'}</td>
+                                                                      </tr>
+                                                                 ))}
+                                                            </tbody>
+                                                       </table>
+                                                  </div>
+                                             </div>
+                                        )}
+
+                                        <div className="row">
+                                             <div className="col-md-6">
+                                                  <div className="mb-3">
+                                                       <label className="form-label">Supplier</label>
+                                                       <input
+                                                            type="text"
+                                                            className="form-control"
+                                                            value={selectedOrderForPayment.supplierName}
+                                                            readOnly
+                                                       />
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <label className="form-label">Purchase Order</label>
+                                                       <input
+                                                            type="text"
+                                                            className="form-control"
+                                                            value={selectedOrderForPayment.orderNumber}
+                                                            readOnly
+                                                       />
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <label className="form-label">Order Total</label>
+                                                       <div className="input-group">
+                                                            <span className="input-group-text">{selectedOrderForPayment.currency}</span>
+                                                            <input
+                                                                 type="text"
+                                                                 className="form-control"
+                                                                 value={(selectedOrderForPayment.finalAmount || 0).toFixed(2)}
+                                                                 readOnly
+                                                                 disabled
+                                                            />
+                                                       </div>
+                                                       <small className="text-muted">
+                                                            Total: {selectedOrderForPayment.currency} {(selectedOrderForPayment.totalAmount! || 0).toFixed(2)} +
+                                                            Tax: {selectedOrderForPayment.currency} {(selectedOrderForPayment.taxAmount! || 0).toFixed(2)} -
+                                                            Discount: {selectedOrderForPayment.currency} {(selectedOrderForPayment.discountAmount! || 0).toFixed(2)} +
+                                                            Shipping: {selectedOrderForPayment.currency} {(selectedOrderForPayment.shippingCost! || 0).toFixed(2)}
+                                                       </small>
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <label className="form-label">Total Paid</label>
+                                                       <div className="input-group">
+                                                            <span className="input-group-text">{selectedOrderForPayment.currency}</span>
+                                                            <input
+                                                                 type="text"
+                                                                 className="form-control text-success"
+                                                                 value={(selectedOrderForPayment.totalPaid || 0).toFixed(2)}
+                                                                 readOnly
+                                                                 disabled
+                                                            />
+                                                       </div>
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <label className="form-label">Total Pending Payments Awaiting Approval</label>
+                                                       <div className="input-group">
+                                                            <span className="input-group-text">{selectedOrderForPayment.currency}</span>
+                                                            <input
+                                                                 type="text"
+                                                                 className="form-control text-warning"
+                                                                 value={(selectedOrderForPayment.totalPending || 0).toFixed(2)}
+                                                                 readOnly
+                                                                 disabled
+                                                            />
+                                                       </div>
+                                                       <small className="text-muted">Payments awaiting approval/processing</small>
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <label className="form-label fw-bold">Remaining Balance to be Paid</label>
+                                                       <div className="input-group">
+                                                            <span className="input-group-text">{selectedOrderForPayment.currency}</span>
+                                                            <input
+                                                                 type="text"
+                                                                 className="form-control fw-bold text-danger"
+                                                                 value={(((selectedOrderForPayment.totalAmount ?? 0) - (selectedOrderForPayment.totalPending ?? 0)) || (selectedOrderForPayment.finalAmount ?? 0)).toFixed(2)}
+                                                                 readOnly
+                                                                 disabled
+                                                            />
+                                                       </div>
+                                                       <small className="text-muted">
+                                                            Amount still owed for this order
+                                                       </small>
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <label className="form-label">Payment Amount *</label>
+                                                       <div className="input-group">
+                                                            <span className="input-group-text">{selectedOrderForPayment.currency}</span>
+                                                            <input
+                                                                 type="number"
+                                                                 className="form-control"
+                                                                 value={paymentForm.payment_amount}
+                                                                 onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_amount: parseFloat(e.target.value) || 0 }))}
+                                                                 min="0"
+                                                                 step="0.01"
+                                                                 max={selectedOrderForPayment.totalPending || 0}
+                                                                 required
+                                                                 disabled={(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
+                                                            />
+                                                       </div>
+                                                       <small className="text-muted">Enter the amount you want to pay now (max: {(selectedOrderForPayment.totalPending || 0).toFixed(2)})</small>
+                                                  </div>
+                                             </div>
+                                             <div className="col-md-6">
+                                                  <div className="mb-3">
+                                                       <label className="form-label">Payment Date</label>
+                                                       <input
+                                                            type="date"
+                                                            className="form-control"
+                                                            value={paymentForm.payment_date}
+                                                            disabled
+                                                       />
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <label className="form-label">Payment Method *</label>
+                                                       <select
+                                                            className="form-select"
+                                                            value={paymentForm.payment_method}
+                                                            onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_method: e.target.value }))}
+                                                            required
+                                                            disabled={(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
+                                                       >
+                                                            <option value="bank_transfer">Bank Transfer</option>
+                                                            <option value="cash">Cash</option>
+                                                            <option value="check">Check</option>
+                                                            <option value="credit_card">Credit Card</option>
+                                                            <option value="debit_card">Debit Card</option>
+                                                            <option value="wire_transfer">Wire Transfer</option>
+                                                            <option value="other">Other</option>
+                                                       </select>
+                                                  </div>
+                                                  <div className="mb-3">
+                                                       <label className="form-label">Reference Number</label>
+                                                       <input
+                                                            type="text"
+                                                            className="form-control"
+                                                            value={paymentForm.reference_number}
+                                                            onChange={(e) => setPaymentForm(prev => ({ ...prev, reference_number: e.target.value }))}
+                                                            placeholder="Check number, transaction ID, etc."
+                                                            disabled={(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
+                                                       />
+                                                  </div>
+                                             </div>
+                                             <div className="col-md-12">
+                                                  <div className="mb-3">
+                                                       <label className="form-label">Payment Notes</label>
+                                                       <textarea
+                                                            className="form-control"
+                                                            rows={3}
+                                                            value={paymentForm.payment_notes}
+                                                            onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_notes: e.target.value }))}
+                                                            placeholder="Additional payment details..."
+                                                            disabled={(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
+                                                       />
+                                                  </div>
+                                             </div>
+                                        </div>
+                                   </div>
+                                   <div className="modal-footer">
+                                        <button
+                                             type="button"
+                                             className="btn btn-secondary btn-sm"
+                                             onClick={() => {
+                                                  setShowPaymentModal(false);
+                                                  resetPaymentForm();
+                                             }}
+                                             disabled={(selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
+                                        >
+                                             Cancel
+                                        </button>
+                                        <button
+                                             type="button"
+                                             className="btn btn-success btn-sm"
+                                             onClick={handleCreatePayment}
+                                             disabled={loading || (selectedOrderForPayment?.totalPaid || 0) >= (selectedOrderForPayment?.totalAmount || 0)}
+                                        >
+                                             {loading ? 'Creating Payment...' : 'Create Payment'}
+                                        </button>
                                    </div>
                               </div>
                          </div>
