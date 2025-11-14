@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
-import { RiMoneyDollarCircleLine, RiEyeLine, RiFilterLine, RiSearchLine, RiCheckboxCircleLine, RiTimeLine, RiCloseCircleLine, RiDeleteBinLine } from '@remixicon/react';
+import { Offcanvas } from 'react-bootstrap';
 import { currencyFormatter, customFetch, customPost } from '../../../components/Auth/customFetch';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { useApplication } from '../../../components/Auth/useApplicationContext';
@@ -58,6 +58,9 @@ export default function PaymentsPage() {
      const [showCancelModal, setShowCancelModal] = useState(false);
      const [selectedPaymentForCancel, setSelectedPaymentForCancel] = useState<Payment | null>(null);
      const [cancelReason, setCancelReason] = useState('');
+     const [showDetailsModal, setShowDetailsModal] = useState(false);
+     const [selectedPaymentDetails, setSelectedPaymentDetails] = useState<any>(null);
+     const [loadingDetails, setLoadingDetails] = useState(false);
 
      useEffect(() => {
           loadPayments();
@@ -188,6 +191,25 @@ export default function PaymentsPage() {
           }
      };
 
+     const handleViewPaymentDetails = async (paymentId: string) => {
+          try {
+               setLoadingDetails(true);
+               const response = await customFetch(`inventory/supplier-payments/payments/${paymentId}`);
+
+               if (response.success) {
+                    setSelectedPaymentDetails(response.data);
+                    setShowDetailsModal(true);
+               } else {
+                    toast.error(response.message || 'Failed to load payment details');
+               }
+          } catch (error) {
+               console.error('Error loading payment details:', error);
+               toast.error('Failed to load payment details');
+          } finally {
+               setLoadingDetails(false);
+          }
+     };
+
      const handleServerSideProcessing = async (params: any) => {
           try {
                const { count, page, sortby = "DESC", supplier_id, payment_status, payment_method, start_date, end_date, search } = params;
@@ -236,8 +258,8 @@ export default function PaymentsPage() {
           {
                Header: 'Order #',
                accessor: 'po_order_number',
-               Cell: ({ value }) => (
-                    <Link href={`/inventory/orders/${value}`} className="text-decoration-none">
+               Cell: ({ value, row }) => (
+                    <Link href={`/inventory/payments/${row.original.id}`} className="text-decoration-none">
                          {value}
                     </Link>
                )
@@ -289,26 +311,33 @@ export default function PaymentsPage() {
                                         title="Approve Payment"
                                         onClick={() => handleApprovePayment(row.original.id)}
                                    >
-                                        <RiCheckboxCircleLine size={14} className="me-1" />
-                                        Approve
+                                        ✓ Approve
                                    </button>
                                    <button
                                         className="btn btn-sm btn-warning"
                                         title="Cancel Payment"
                                         onClick={() => handleCancelPayment(row.original)}
                                    >
-                                        <RiDeleteBinLine size={14} className="me-1" />
-                                        Cancel
+                                        ✕ Cancel
                                    </button>
                                    <button
                                         className="btn btn-sm btn-danger"
                                         title="Reject Payment"
                                         onClick={() => handleRejectPayment(row.original)}
                                    >
-                                        <RiCloseCircleLine size={14} className="me-1" />
-                                        Reject
+                                        ✗ Reject
                                    </button>
                               </>
+                         )}
+                         {row.original.payment_status !== 'pending' && (
+                              <button
+                                   className="btn btn-sm btn-info"
+                                   title="View Payment Details"
+                                   onClick={() => handleViewPaymentDetails(row.original.id)}
+                                   disabled={loadingDetails}
+                              >
+                                   👁 {loadingDetails ? 'Loading...' : 'View Details'}
+                              </button>
                          )}
                     </div>
                )
@@ -332,109 +361,113 @@ export default function PaymentsPage() {
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
                          <h2 className="mb-1">
-                              <RiMoneyDollarCircleLine className="me-2" />
-                              Supplier Payments
+                              💰 Supplier Payments
                          </h2>
                          <p className="text-muted mb-0">Manage supplier payments and transactions</p>
                     </div>
                     <div className="btn-group">
                          <button
                               className="btn btn-outline-secondary"
-                              onClick={() => setShowFilters(!showFilters)}
+                              onClick={() => setShowFilters(true)}
                          >
-                              <RiFilterLine className="me-1" />
-                              Filters
+                              🔍 Filters
                          </button>
                          <button
                               className="btn btn-outline-primary"
                               onClick={loadPayments}
                          >
-                              <RiSearchLine className="me-1" />
-                              Refresh
+                              ↻ Refresh
                          </button>
                     </div>
                </div>
 
-               {/* Filters Panel */}
-               {showFilters && (
-                    <div className="card mb-4">
-                         <div className="card-header">
-                              <h6 className="mb-0">
-                                   <RiFilterLine className="me-1" />
-                                   Filters
-                              </h6>
-                         </div>
-                         <div className="card-body">
-                              <div className="row">
-                                   <div className="col-md-3">
-                                        <label className="form-label">Status</label>
-                                        <select
-                                             className="form-select form-select-sm"
-                                             value={filters.payment_status}
-                                             onChange={(e) => setFilters({ ...filters, payment_status: e.target.value })}
-                                        >
-                                             <option value="">All Statuses</option>
-                                             <option value="pending">Pending</option>
-                                             <option value="completed">Completed</option>
-                                             <option value="failed">Failed</option>
-                                             <option value="cancelled">Cancelled</option>
-                                             <option value="refunded">Refunded</option>
-                                             <option value="reject">Rejected</option>
-                                        </select>
-                                   </div>
-                                   <div className="col-md-3">
-                                        <label className="form-label">Payment Method</label>
-                                        <select
-                                             className="form-select form-select-sm"
-                                             value={filters.payment_method}
-                                             onChange={(e) => setFilters({ ...filters, payment_method: e.target.value })}
-                                        >
-                                             <option value="">All Methods</option>
-                                             <option value="bank_transfer">Bank Transfer</option>
-                                             <option value="cash">Cash</option>
-                                             <option value="check">Check</option>
-                                             <option value="credit_card">Credit Card</option>
-                                             <option value="wire_transfer">Wire Transfer</option>
-                                        </select>
-                                   </div>
-                                   <div className="col-md-3">
-                                        <label className="form-label">Search</label>
-                                        <input
-                                             type="text"
-                                             className="form-control form-control-sm"
-                                             placeholder="Payment ID, supplier..."
-                                             value={filters.search}
-                                             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                                        />
-                                   </div>
-                                   <div className="col-md-3 d-flex align-items-end">
-                                        <button
-                                             className="btn btn-primary btn-sm me-2"
-                                             onClick={loadPayments}
-                                        >
-                                             Apply Filters
-                                        </button>
-                                        <button
-                                             className="btn btn-outline-secondary btn-sm"
-                                             onClick={() => {
-                                                  setFilters({
-                                                       supplier_id: '',
-                                                       payment_status: '',
-                                                       payment_method: '',
-                                                       start_date: '',
-                                                       end_date: '',
-                                                       search: ''
-                                                  });
-                                                  loadPayments();
-                                             }}
-                                        >
-                                             Clear
-                                        </button>
-                                   </div>
+               {/* Filters Offcanvas */}
+               <Offcanvas
+                    show={showFilters}
+                    onHide={() => setShowFilters(false)}
+                    placement="end"
+               >
+                    <Offcanvas.Header closeButton>
+                         <Offcanvas.Title>
+                              🔍 Payment Filters
+                         </Offcanvas.Title>
+                    </Offcanvas.Header>
+                    <Offcanvas.Body>
+                         <div className="row g-3">
+                              <div className="col-12">
+                                   <label className="form-label">Status</label>
+                                   <select
+                                        className="form-select"
+                                        value={filters.payment_status}
+                                        onChange={(e) => setFilters({ ...filters, payment_status: e.target.value })}
+                                   >
+                                        <option value="">All Statuses</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="failed">Failed</option>
+                                        <option value="cancelled">Cancelled</option>
+                                        <option value="refunded">Refunded</option>
+                                        <option value="reject">Rejected</option>
+                                   </select>
+                              </div>
+                              <div className="col-12">
+                                   <label className="form-label">Payment Method</label>
+                                   <select
+                                        className="form-select"
+                                        value={filters.payment_method}
+                                        onChange={(e) => setFilters({ ...filters, payment_method: e.target.value })}
+                                   >
+                                        <option value="">All Methods</option>
+                                        <option value="bank_transfer">Bank Transfer</option>
+                                        <option value="cash">Cash</option>
+                                        <option value="check">Check</option>
+                                        <option value="credit_card">Credit Card</option>
+                                        <option value="wire_transfer">Wire Transfer</option>
+                                   </select>
+                              </div>
+                              <div className="col-12">
+                                   <label className="form-label">Search</label>
+                                   <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Payment ID, supplier..."
+                                        value={filters.search}
+                                        onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                                   />
                               </div>
                          </div>
+                    </Offcanvas.Body>
+                    <div className="offcanvas-footer p-3 border-top">
+                         <div className="d-flex gap-2 w-100">
+                              <button
+                                   className="btn btn-primary flex-fill"
+                                   onClick={() => {
+                                        loadPayments();
+                                        setShowFilters(false);
+                                   }}
+                              >
+                                   Apply Filters
+                              </button>
+                              <button
+                                   className="btn btn-outline-secondary flex-fill"
+                                   onClick={() => {
+                                        setFilters({
+                                             supplier_id: '',
+                                             payment_status: '',
+                                             payment_method: '',
+                                             start_date: '',
+                                             end_date: '',
+                                             search: ''
+                                        });
+                                        loadPayments();
+                                        setShowFilters(false);
+                                   }}
+                              >
+                                   Clear
+                              </button>
+                         </div>
                     </div>
-               )}
+               </Offcanvas>
 
                {/* Payments Table */}
                <PrimeTable
@@ -453,8 +486,7 @@ export default function PaymentsPage() {
                               <div className="modal-content">
                                    <div className="modal-header">
                                         <h5 className="modal-title">
-                                             <RiCloseCircleLine className="me-2 text-danger" />
-                                             Reject Payment
+                                             ✗ Reject Payment
                                         </h5>
                                         <button
                                              type="button"
@@ -519,8 +551,7 @@ export default function PaymentsPage() {
                               <div className="modal-content">
                                    <div className="modal-header">
                                         <h5 className="modal-title">
-                                             <RiDeleteBinLine className="me-2 text-warning" />
-                                             Cancel Payment
+                                             ✕ Cancel Payment
                                         </h5>
                                         <button
                                              type="button"
@@ -571,6 +602,170 @@ export default function PaymentsPage() {
                                              disabled={loading || !cancelReason.trim()}
                                         >
                                              {loading ? 'Cancelling...' : 'Cancel Payment'}
+                                        </button>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               )}
+
+               {/* Payment Details Modal */}
+               {showDetailsModal && selectedPaymentDetails && (
+                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                         <div className="modal-dialog modal-lg">
+                              <div className="modal-content">
+                                   <div className="modal-header">
+                                        <h5 className="modal-title">
+                                             👁 Payment Details - {selectedPaymentDetails.payment_id}
+                                        </h5>
+                                        <button
+                                             type="button"
+                                             className="btn-close"
+                                             onClick={() => {
+                                                  setShowDetailsModal(false);
+                                                  setSelectedPaymentDetails(null);
+                                             }}
+                                        ></button>
+                                   </div>
+                                   <div className="modal-body">
+                                        <div className="row">
+                                             <div className="col-md-6">
+                                                  <h6 className="text-primary mb-3">Payment Information</h6>
+                                                  <table className="table table-sm">
+                                                       <tbody>
+                                                            <tr>
+                                                                 <td className="fw-bold">Payment ID:</td>
+                                                                 <td>{selectedPaymentDetails.payment_id}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                 <td className="fw-bold">Amount:</td>
+                                                                 <td className="fw-bold text-success">{currencyFormatter.format(selectedPaymentDetails.payment_amount)}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                 <td className="fw-bold">Payment Date:</td>
+                                                                 <td>{formatDate(selectedPaymentDetails.payment_date)}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                 <td className="fw-bold">Payment Method:</td>
+                                                                 <td>{selectedPaymentDetails.payment_method?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                 <td className="fw-bold">Status:</td>
+                                                                 <td>
+                                                                      <span className={`badge bg-${STATUS_BADGES[selectedPaymentDetails.payment_status as keyof typeof STATUS_BADGES]?.color || 'secondary'}`}>
+                                                                           {STATUS_BADGES[selectedPaymentDetails.payment_status as keyof typeof STATUS_BADGES]?.label || selectedPaymentDetails.payment_status}
+                                                                      </span>
+                                                                 </td>
+                                                            </tr>
+                                                            <tr>
+                                                                 <td className="fw-bold">Reference Number:</td>
+                                                                 <td>{selectedPaymentDetails.reference_number || 'N/A'}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                 <td className="fw-bold">Total Allocated:</td>
+                                                                 <td>{currencyFormatter.format(selectedPaymentDetails.total_allocated || 0)}</td>
+                                                            </tr>
+                                                       </tbody>
+                                                  </table>
+                                             </div>
+                                             <div className="col-md-6">
+                                                  <h6 className="text-primary mb-3">Related Information</h6>
+                                                  <table className="table table-sm">
+                                                       <tbody>
+                                                            <tr>
+                                                                 <td className="fw-bold">Supplier:</td>
+                                                                 <td>
+                                                                      <div>
+                                                                           <div className="fw-bold">{selectedPaymentDetails.supplier?.name}</div>
+                                                                           <small className="text-muted">{selectedPaymentDetails.supplier?.contact}</small><br />
+                                                                           <small className="text-muted">{selectedPaymentDetails.supplier?.email}</small>
+                                                                      </div>
+                                                                 </td>
+                                                            </tr>
+                                                            <tr>
+                                                                 <td className="fw-bold">Purchase Order:</td>
+                                                                 <td>
+                                                                      <div>
+                                                                           <div className="fw-bold">{selectedPaymentDetails.purchase_order?.order_number}</div>
+                                                                           <small className="text-muted">Total: {currencyFormatter.format(selectedPaymentDetails.purchase_order?.total_amount || 0)}</small><br />
+                                                                           <small className="text-muted">Status: {selectedPaymentDetails.purchase_order?.status}</small>
+                                                                      </div>
+                                                                 </td>
+                                                            </tr>
+                                                       </tbody>
+                                                  </table>
+
+                                                  <h6 className="text-primary mb-3">Timestamps</h6>
+                                                  <table className="table table-sm">
+                                                       <tbody>
+                                                            <tr>
+                                                                 <td className="fw-bold">Created:</td>
+                                                                 <td>{selectedPaymentDetails.created_at ? formatDate(selectedPaymentDetails.created_at) : 'N/A'}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                 <td className="fw-bold">Updated:</td>
+                                                                 <td>{selectedPaymentDetails.updated_at ? formatDate(selectedPaymentDetails.updated_at) : 'N/A'}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                 <td className="fw-bold">Approved:</td>
+                                                                 <td>{selectedPaymentDetails.approved_at ? formatDate(selectedPaymentDetails.approved_at) : 'N/A'}</td>
+                                                            </tr>
+                                                            <tr>
+                                                                 <td className="fw-bold">Processed:</td>
+                                                                 <td>{selectedPaymentDetails.processed_at ? formatDate(selectedPaymentDetails.processed_at) : 'N/A'}</td>
+                                                            </tr>
+                                                       </tbody>
+                                                  </table>
+                                             </div>
+                                        </div>
+
+                                        {selectedPaymentDetails.payment_notes && (
+                                             <div className="mt-3">
+                                                  <h6 className="text-primary mb-2">Payment Notes</h6>
+                                                  <div className="alert alert-light">
+                                                       <pre className="mb-0" style={{ whiteSpace: 'pre-wrap', fontSize: '0.875rem' }}>
+                                                            {selectedPaymentDetails.payment_notes}
+                                                       </pre>
+                                                  </div>
+                                             </div>
+                                        )}
+
+                                        {selectedPaymentDetails.allocations && selectedPaymentDetails.allocations.length > 0 && (
+                                             <div className="mt-3">
+                                                  <h6 className="text-primary mb-2">Allocations</h6>
+                                                  <div className="table-responsive">
+                                                       <table className="table table-sm table-striped">
+                                                            <thead>
+                                                                 <tr>
+                                                                      <th>Allocation ID</th>
+                                                                      <th>Amount</th>
+                                                                      <th>Status</th>
+                                                                 </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                 {selectedPaymentDetails.allocations.map((allocation: any, index: number) => (
+                                                                      <tr key={index}>
+                                                                           <td>{allocation.id || `Allocation ${index + 1}`}</td>
+                                                                           <td>{currencyFormatter.format(allocation.amount || 0)}</td>
+                                                                           <td>{allocation.status || 'N/A'}</td>
+                                                                      </tr>
+                                                                 ))}
+                                                            </tbody>
+                                                       </table>
+                                                  </div>
+                                             </div>
+                                        )}
+                                   </div>
+                                   <div className="modal-footer">
+                                        <button
+                                             type="button"
+                                             className="btn btn-secondary btn-sm"
+                                             onClick={() => {
+                                                  setShowDetailsModal(false);
+                                                  setSelectedPaymentDetails(null);
+                                             }}
+                                        >
+                                             Close
                                         </button>
                                    </div>
                               </div>

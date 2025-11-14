@@ -67,9 +67,7 @@ export const InventoryLinks: Link[] = [
           link: "/inventory/payments",
           icon: <RiMoneyDollarCircleLine />,
           children: [
-               { title: "All Payments", link: "/inventory/payments", icon: <RiWalletLine /> },
-               { title: "Payment Approvals", link: "/inventory/payments/approvals", icon: <RiShieldCheckLine /> },
-               { title: "Payment History", link: "/inventory/payments/history", icon: <RiHistoryLine /> }
+               { title: "All Payments", link: "/inventory/payments", icon: <RiWalletLine /> }
           ]
      },
      {
