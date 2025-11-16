@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiDownloadLine, RiUploadLine, RiAlertLine, RiCheckLine, RiCloseLine, RiStoreLine, RiBox3Line, RiPriceTagLine, RiCameraLine } from '@remixicon/react';
+import { RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiDownloadLine, RiUploadLine, RiAlertLine, RiCheckLine, RiCloseLine, RiStoreLine, RiBox3Line, RiPriceTagLine, RiCameraLine, RiBarChartLine } from '@remixicon/react';
 import PrimeTable from '../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import { toast } from 'react-toastify';

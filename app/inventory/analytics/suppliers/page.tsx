@@ -4,23 +4,34 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
+import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
 
-interface SupplierAnalytics {
-     total_suppliers: number;
-     active_suppliers: number;
-     supplier_performance: Array<{
-          supplier_id: string;
-          supplier_name: string;
-          total_orders: number;
-          total_value: number;
-          on_time_delivery_rate: number;
-          average_delivery_days: number;
-          payment_terms: string;
-     }>;
+interface Supplier {
+     id: string;
+     name: string;
+     contact: string;
+     email: string;
+     phone: string;
+     address: string | null;
+     is_active: number;
+     created_at: string;
+     updated_at: string;
+}
+
+interface SupplierResponse {
+     data: Supplier[];
+     pagination: {
+          page: number;
+          count: number;
+          total: number;
+          totalPages: number;
+          sortby: string;
+     };
 }
 
 export default function SupplierAnalyticsPage() {
-     const [analytics, setAnalytics] = useState<SupplierAnalytics | null>(null);
+     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+     const [pagination, setPagination] = useState<SupplierResponse['pagination'] | null>(null);
      const [loading, setLoading] = useState(true);
 
      useEffect(() => {
@@ -29,25 +40,89 @@ export default function SupplierAnalyticsPage() {
 
      const loadSupplierAnalytics = async () => {
           try {
-               const response = await customFetch('inventory/analytics/suppliers');
+               const response = await customFetch('inventory/suppliers?page=1&count=10');
                if (response.success) {
-                    setAnalytics(response.data);
+                    setSuppliers(response.data);
+                    setPagination(response.pagination);
                } else {
-                    toast.error('Failed to load supplier analytics');
+                    toast.error('Failed to load suppliers');
                }
           } catch (error) {
-               console.error('Error loading supplier analytics:', error);
-               toast.error('Error loading supplier analytics');
+               console.error('Error loading suppliers:', error);
+               toast.error('Error loading suppliers');
           } finally {
                setLoading(false);
           }
      };
 
-     const getDeliveryRateColor = (rate: number) => {
-          if (rate >= 95) return 'success';
-          if (rate >= 80) return 'warning';
-          return 'danger';
+     const handleServerSideProcessing = async (pagination: { page: number, count: number }) => {
+          try {
+               const { page, count } = pagination;
+               const response = await customFetch(`inventory/suppliers?page=${page}&count=${count}`);
+               if (response.success && response.data) {
+                    return { result: response.data, error: false };
+               } else {
+                    return { result: [], error: false };
+               }
+          } catch (error) {
+               console.error('Error loading suppliers:', error);
+               setSuppliers([]);
+               setPagination(null);
+               return { result: [], error: true };
+          }
      };
+
+     const columns = [
+          {
+               Header: 'Supplier Name',
+               accessor: 'name',
+               style: { minWidth: '200px' }
+          },
+          {
+               Header: 'Contact Person',
+               accessor: 'contact',
+               style: { minWidth: '150px' }
+          },
+          {
+               Header: 'Email',
+               accessor: 'email',
+               style: { minWidth: '200px' }
+          },
+          {
+               Header: 'Phone',
+               accessor: 'phone',
+               style: { minWidth: '150px' }
+          },
+          {
+               Header: 'Status',
+               accessor: 'is_active',
+               Cell: ({ value }) => (
+                    <span className={`badge ${value ? 'bg-success' : 'bg-danger'}`}>
+                         {value ? 'Active' : 'Inactive'}
+                    </span>
+               ),
+               style: { minWidth: '100px' }
+          },
+          {
+               Header: 'Created',
+               accessor: 'created_at',
+               Cell: ({ value }) => new Date(value).toLocaleDateString(),
+               style: { minWidth: '120px' }
+          },
+          {
+               Header: 'Actions',
+               accessor: '',
+               Cell: ({ row }) => (
+                    <Link
+                         href={`/inventory/analytics/suppliers/${row.original.id}`}
+                         className="btn btn-primary btn-sm"
+                    >
+                         View Details
+                    </Link>
+               ),
+               style: { minWidth: '120px', textAlign: 'center' }
+          }
+     ];
 
      if (loading) {
           return (
@@ -69,150 +144,34 @@ export default function SupplierAnalyticsPage() {
                          <Link href="/inventory/analytics" className="text-decoration-none">
                               <span className="text-muted">← Back to Analytics Dashboard</span>
                          </Link>
-                         <h2 className="mb-1">🏢 Supplier Analytics</h2>
-                         <p className="text-muted mb-0">Supplier performance metrics</p>
+                         <h2 className="mb-1">🏢 Suppliers</h2>
+                         <p className="text-muted mb-0">Select a supplier to view detailed analytics</p>
                     </div>
                     <button
-                         className="btn btn-outline-primary"
+                         className="btn btn-outline-primary btn-sm"
                          onClick={loadSupplierAnalytics}
                     >
                          ↻ Refresh
                     </button>
                </div>
 
-               {/* Supplier Overview Cards */}
-               {analytics && (
-                    <div className="row g-3 mb-4">
-                         <div className="col-md-6">
-                              <div className="card h-100">
-                                   <div className="card-body text-center">
-                                        <h3 className="text-primary">{analytics.total_suppliers.toLocaleString()}</h3>
-                                        <p className="text-muted mb-0">Total Suppliers</p>
-                                   </div>
-                              </div>
-                         </div>
-                         <div className="col-md-6">
-                              <div className="card h-100">
-                                   <div className="card-body text-center">
-                                        <h3 className="text-success">{analytics.active_suppliers.toLocaleString()}</h3>
-                                        <p className="text-muted mb-0">Active Suppliers</p>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               )}
-
-               {/* Supplier Performance Table */}
+               {/* Suppliers List */}
                <div className="row g-3">
                     <div className="col-12">
-                         <div className="card">
-                              <div className="card-header">
-                                   <h5 className="mb-0">Supplier Performance Metrics</h5>
+                         <h5 className="mb-3">Supplier List ({pagination?.total || 0} total)</h5>
+                         {suppliers.length > 0 ? (
+                              <PrimeTable
+                                   column={columns}
+                                   data={suppliers}
+                                   filtering={true}
+                                   serverSideFiltering={true}
+                                   handleSeverSideProcessing={handleServerSideProcessing}
+                              />
+                         ) : (
+                              <div className="text-center py-4">
+                                   <p className="text-muted">No suppliers found</p>
                               </div>
-                              <div className="card-body">
-                                   {analytics && analytics.supplier_performance.length > 0 ? (
-                                        <div className="table-responsive">
-                                             <table className="table table-striped">
-                                                  <thead>
-                                                       <tr>
-                                                            <th>Supplier</th>
-                                                            <th>Total Orders</th>
-                                                            <th>Total Value</th>
-                                                            <th>On-Time Delivery</th>
-                                                            <th>Avg Delivery Days</th>
-                                                            <th>Payment Terms</th>
-                                                       </tr>
-                                                  </thead>
-                                                  <tbody>
-                                                       {analytics.supplier_performance.map((supplier) => (
-                                                            <tr key={supplier.supplier_id}>
-                                                                 <td>
-                                                                      <div className="fw-bold">{supplier.supplier_name}</div>
-                                                                 </td>
-                                                                 <td className="text-center">{supplier.total_orders.toLocaleString()}</td>
-                                                                 <td className="text-primary fw-bold">
-                                                                      {currencyFormatter.format(supplier.total_value)}
-                                                                 </td>
-                                                                 <td>
-                                                                      <span className={`badge bg-${getDeliveryRateColor(supplier.on_time_delivery_rate)}`}>
-                                                                           {supplier.on_time_delivery_rate.toFixed(1)}%
-                                                                      </span>
-                                                                 </td>
-                                                                 <td className="text-center">{supplier.average_delivery_days.toFixed(1)} days</td>
-                                                                 <td>
-                                                                      <small className="text-muted">{supplier.payment_terms}</small>
-                                                                 </td>
-                                                            </tr>
-                                                       ))}
-                                                  </tbody>
-                                             </table>
-                                        </div>
-                                   ) : (
-                                        <div className="text-center py-4">
-                                             <p className="text-muted">No supplier performance data available</p>
-                                        </div>
-                                   )}
-                              </div>
-                         </div>
-                    </div>
-               </div>
-
-               {/* Performance Insights */}
-               <div className="row g-3 mt-3">
-                    <div className="col-12">
-                         <div className="card">
-                              <div className="card-header">
-                                   <h5 className="mb-0">📊 Performance Insights</h5>
-                              </div>
-                              <div className="card-body">
-                                   {analytics && analytics.supplier_performance.length > 0 && (
-                                        <div className="row g-3">
-                                             <div className="col-md-4">
-                                                  <div className="alert alert-success">
-                                                       <strong>Best Delivery Performance:</strong><br />
-                                                       {analytics.supplier_performance.reduce((best, supplier) =>
-                                                            supplier.on_time_delivery_rate > best.on_time_delivery_rate ? supplier : best
-                                                       ).supplier_name}
-                                                       <br />
-                                                       <small>
-                                                            {analytics.supplier_performance.reduce((best, supplier) =>
-                                                                 supplier.on_time_delivery_rate > best.on_time_delivery_rate ? supplier : best
-                                                            ).on_time_delivery_rate.toFixed(1)}% on-time
-                                                       </small>
-                                                  </div>
-                                             </div>
-                                             <div className="col-md-4">
-                                                  <div className="alert alert-info">
-                                                       <strong>Highest Order Volume:</strong><br />
-                                                       {analytics.supplier_performance.reduce((max, supplier) =>
-                                                            supplier.total_orders > max.total_orders ? supplier : max
-                                                       ).supplier_name}
-                                                       <br />
-                                                       <small>
-                                                            {analytics.supplier_performance.reduce((max, supplier) =>
-                                                                 supplier.total_orders > max.total_orders ? supplier : max
-                                                            ).total_orders} orders
-                                                       </small>
-                                                  </div>
-                                             </div>
-                                             <div className="col-md-4">
-                                                  <div className="alert alert-primary">
-                                                       <strong>Highest Value Supplier:</strong><br />
-                                                       {analytics.supplier_performance.reduce((max, supplier) =>
-                                                            supplier.total_value > max.total_value ? supplier : max
-                                                       ).supplier_name}
-                                                       <br />
-                                                       <small>
-                                                            {currencyFormatter.format(analytics.supplier_performance.reduce((max, supplier) =>
-                                                                 supplier.total_value > max.total_value ? supplier : max
-                                                            ).total_value)}
-                                                       </small>
-                                                  </div>
-                                             </div>
-                                        </div>
-                                   )}
-                              </div>
-                         </div>
+                         )}
                     </div>
                </div>
           </div>

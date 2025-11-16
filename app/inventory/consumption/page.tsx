@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RiSubtractLine, RiEyeLine, RiAddLine, RiDownloadLine } from '@remixicon/react';
+import { RiSubtractLine, RiEyeLine, RiAddLine, RiDownloadLine, RiFilterLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
@@ -79,6 +79,16 @@ interface ConsumptionRecord {
      notes?: string;
 }
 
+interface ConsumptionSummary {
+     total_consumptions: number;
+     manual_consumptions: number;
+     test_consumptions: number;
+     wastage_consumptions: number;
+     total_quantity_consumed: number;
+     period_start: string;
+     period_end: string;
+}
+
 interface AvailableBatch {
      batch_number: string;
      brand_name: string | null;
@@ -123,11 +133,18 @@ export default function StockConsumptionPage() {
      const { applicationsettings } = useApplicationSettings();
      const employeeid = applicationsettings?.user?.employeeid;
      const [consumptionRecords, setConsumptionRecords] = useState<ConsumptionRecord[]>([]);
+     const [consumptionSummary, setConsumptionSummary] = useState<ConsumptionSummary | null>(null);
      const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
      const [availableStockDetails, setAvailableStockDetails] = useState<AvailableStockDetail | null>(null);
      const [loading, setLoading] = useState(false);
      const [showConsumptionModal, setShowConsumptionModal] = useState(false);
      const [selectedRecord, setSelectedRecord] = useState<ConsumptionRecord | null>(null);
+     const [showFilterOffcanvas, setShowFilterOffcanvas] = useState(false);
+     const [appliedFilters, setAppliedFilters] = useState<{ performed_by: string | number; startDate: string; endDate: string }>({
+          performed_by: '',
+          startDate: '',
+          endDate: ''
+     })
 
      // Consumption form state
      const [wastageForm, setWastageForm] = useState({
@@ -157,10 +174,17 @@ export default function StockConsumptionPage() {
      const loadConsumptionRecords = async () => {
           try {
                setLoading(true);
-               const response = await customFetch('inventory/transactions/consumption/report');
+               const params = new URLSearchParams();
+               if (appliedFilters.performed_by) params.append('performed_by', appliedFilters.performed_by.toString());
+               if (appliedFilters.startDate) params.append('startDate', appliedFilters.startDate);
+               if (appliedFilters.endDate) params.append('endDate', appliedFilters.endDate);
+
+               const response = await customFetch(`inventory/transactions/consumption/report?${params.toString()}`);
                if (response.success) {
                     const records = response.data?.consumptions || response.data?.data || [];
+                    const summary = response.data?.summary || null;
                     setConsumptionRecords(records);
+                    setConsumptionSummary(summary);
                }
           } catch (error) {
                console.error('Error loading consumption records:', error);
@@ -184,20 +208,17 @@ export default function StockConsumptionPage() {
           }
      };
 
-     const handleServerSideProcessing = async (params: { page: number; count: number; sortby?: string; filters?: any }) => {
+     const handleServerSideProcessing = async (params: { page: number; count: number; sortby?: string; performedby?: string; endDate?: string; startDate?: string }) => {
           try {
-               const { page, count, sortby = 'DESC', filters = {} } = params;
+               const { page, count, sortby = 'DESC', performedby, endDate, startDate } = params;
 
                const queryParams = new URLSearchParams({
                     page: page.toString(),
                     count: count.toString(),
-                    sortby: sortby
-               });
-
-               Object.keys(filters).forEach(key => {
-                    if (filters[key] && filters[key] !== '') {
-                         queryParams.append(key, filters[key]);
-                    }
+                    sortby: sortby,
+                    performed_by: performedby ? performedby.toString() : '',
+                    endDate: endDate ? endDate.toString() : '',
+                    startDate: startDate ? startDate.toString() : ''
                });
 
                const endpoint = `inventory/transactions/consumption/report?${queryParams.toString()}`;
@@ -205,6 +226,8 @@ export default function StockConsumptionPage() {
 
                if (response.success) {
                     const records = response.data?.consumptions || response.data?.data || [];
+                    const summary = response.data?.summary || null;
+                    setConsumptionSummary(summary);
                     return {
                          result: records,
                          error: false,
@@ -391,6 +414,32 @@ export default function StockConsumptionPage() {
           }));
      };
 
+     const handleFilterChange = (field: string, value: string) => {
+          setAppliedFilters(prev => ({
+               ...prev,
+               [field]: value
+          }));
+     };
+
+     const applyFilters = async () => {
+          await loadConsumptionRecords();
+          setShowFilterOffcanvas(false);
+     };
+
+     const clearFilters = () => {
+          setAppliedFilters({
+               performed_by: '',
+               startDate: '',
+               endDate: ''
+          });
+          setAppliedFilters({
+               performed_by: '',
+               startDate: '',
+               endDate: ''
+          });
+          setShowFilterOffcanvas(false);
+     };
+
      const consumptionColumns = [
           {
                Header: 'Date & Time',
@@ -456,13 +505,23 @@ export default function StockConsumptionPage() {
                {/* Header */}
                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                         <h2 className="mb-1">
+                         <h4 className="mb-1">
                               <RiSubtractLine className="me-2" />
-                              Stock Consumption
-                         </h2>
+                              Stock Consumption{consumptionSummary && (
+                                   <span>({new Date(consumptionSummary.period_start).toLocaleDateString()} - {new Date(consumptionSummary.period_end).toLocaleDateString()})
+                                   </span>
+                              )}
+                         </h4>
                          <p className="text-muted mb-0">Track and manage inventory consumption for tests and operations</p>
                     </div>
                     <div className="d-flex gap-2">
+                         <button
+                              className="btn btn-outline-secondary btn-sm"
+                              onClick={() => setShowFilterOffcanvas(true)}
+                         >
+                              <RiFilterLine className="me-1" />
+                              Filters
+                         </button>
                          <button className="btn btn-outline-primary btn-sm">
                               <RiDownloadLine className="me-1" />
                               Export Records
@@ -477,14 +536,106 @@ export default function StockConsumptionPage() {
                     </div>
                </div>
 
+               {/* Consumption Summary */}
+               {consumptionSummary && (
+                    <div className="row mb-4">
+                         <div className="col-12">
+                              <div className="bg-light rounded">
+                                   <div className="d-flex justify-content-between gap-3 p-3">
+                                        <span className="text-decoration-underline">
+                                             Total Consumption: {consumptionSummary.total_consumptions}
+                                        </span>
+                                        <span className="text-decoration-underline">
+                                             Manual Consumptions: {consumptionSummary.manual_consumptions}
+                                        </span>
+                                        <span className="text-decoration-underline">
+                                             Test Consumptions: {consumptionSummary.test_consumptions}
+                                        </span>
+                                        <span className="text-decoration-underline">
+                                             Wastage Consumptions: {consumptionSummary.wastage_consumptions}
+                                        </span>
+                                        <span className="text-decoration-underline">
+                                             Total Quantity Consumed: {consumptionSummary.total_quantity_consumed.toLocaleString()}
+                                        </span>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               )}
+
                {/* Consumption Records Table */}
                <PrimeTable
+                    urlparams={appliedFilters}
                     column={consumptionColumns}
                     data={consumptionRecords}
                     filtering={true}
                     handleSeverSideProcessing={handleServerSideProcessing}
                     serverSideFiltering={true}
                />
+
+               {/* Filter Offcanvas */}
+               <div className={`offcanvas offcanvas-end ${showFilterOffcanvas ? 'show' : ''}`} style={{ visibility: showFilterOffcanvas ? 'visible' : 'hidden' }}>
+                    <div className="offcanvas-header">
+                         <h5 className="offcanvas-title">Filter Consumption Records</h5>
+                         <button
+                              type="button"
+                              className="btn-close"
+                              onClick={() => setShowFilterOffcanvas(false)}
+                         ></button>
+                    </div>
+                    <div className="offcanvas-body">
+                         <div className="mb-3">
+                              <label className="form-label">Performed By (Employee ID)</label>
+                              <input
+                                   type="text"
+                                   className="form-control"
+                                   placeholder="Enter employee ID"
+                                   value={appliedFilters.performed_by}
+                                   onChange={(e) => handleFilterChange('performed_by', e.target.value)}
+                              />
+                         </div>
+                         <div className="mb-3">
+                              <label className="form-label">Start Date</label>
+                              <input
+                                   type="date"
+                                   className="form-control"
+                                   value={appliedFilters.startDate}
+                                   onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                              />
+                         </div>
+                         <div className="mb-3">
+                              <label className="form-label">End Date</label>
+                              <input
+                                   type="date"
+                                   className="form-control"
+                                   value={appliedFilters.endDate}
+                                   onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                              />
+                         </div>
+                         <div className="d-grid gap-2">
+                              <button
+                                   className="btn btn-primary"
+                                   onClick={applyFilters}
+                              >
+                                   Apply Filters
+                              </button>
+                              <button
+                                   className="btn btn-outline-secondary"
+                                   onClick={clearFilters}
+                              >
+                                   Clear Filters
+                              </button>
+                         </div>
+                    </div>
+               </div>
+
+               {/* Offcanvas Backdrop */}
+               {showFilterOffcanvas && (
+                    <div
+                         className="offcanvas-backdrop show"
+                         onClick={() => setShowFilterOffcanvas(false)}
+                    ></div>
+               )}
 
                {/* Record Consumption Modal */}
                {showConsumptionModal && (
