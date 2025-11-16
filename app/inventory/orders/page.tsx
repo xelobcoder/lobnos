@@ -161,8 +161,15 @@ export default function PurchaseOrdersPage() {
      const [suppliers, setSuppliers] = useState<Supplier[]>([]);
      const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
      const [searchTerm, setSearchTerm] = useState('');
+     const [supplierIdFilter, setSupplierIdFilter] = useState('');
+     const [orderIdFilter, setOrderIdFilter] = useState('');
+     const [showFilterOffcanvas, setShowFilterOffcanvas] = useState(false);
      const [filterStatus, setFilterStatus] = useState<string>('all');
+     const [startDateFilter, setStartDateFilter] = useState('');
+     const [endDateFilter, setEndDateFilter] = useState('');
+     const [refreshTrigger, setRefreshTrigger] = useState(0);
      const [loading, setLoading] = useState(false);
+     const [tableRef, setTableRef] = useState(null);
 
      const [showOrderModal, setShowOrderModal] = useState(false);
      const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null);
@@ -285,11 +292,20 @@ export default function PurchaseOrdersPage() {
                     sortby: sortby
                });
 
+               // Add existing filters
                Object.keys(filters).forEach(key => {
                     if (filters[key] && filters[key] !== '') {
                          queryParams.append(key, filters[key]);
                     }
                });
+
+               // Add custom filters
+               if (searchTerm) queryParams.append('search', searchTerm);
+               if (supplierIdFilter) queryParams.append('supplier_id', supplierIdFilter);
+               if (orderIdFilter) queryParams.append('order_id', orderIdFilter);
+               if (filterStatus !== 'all') queryParams.append('status', filterStatus);
+               if (startDateFilter) queryParams.append('start_date', startDateFilter);
+               if (endDateFilter) queryParams.append('end_date', endDateFilter);
 
                const endpoint = `inventory/orders?${queryParams.toString()}`;
                const response = await customFetch(endpoint);
@@ -371,6 +387,24 @@ export default function PurchaseOrdersPage() {
           loadInventoryItems();
           loadPurchaseOrders();
      }, []);
+
+     // Trigger table refresh when filters change
+     useEffect(() => {
+          if (refreshTrigger > 0) {
+               // Force table to refresh with new filters
+               const refreshTable = async () => {
+                    try {
+                         const result = await handleServerSideProcessing({ page: 1, count: 10, sortby: 'DESC' });
+                         if (result && result.result) {
+                              setPurchaseOrders(result.result);
+                         }
+                    } catch (error) {
+                         console.error('Error refreshing table with filters:', error);
+                    }
+               };
+               refreshTable();
+          }
+     }, [refreshTrigger]);
 
      const orderColumns = [
           {
@@ -894,9 +928,12 @@ export default function PurchaseOrdersPage() {
                          <p className="text-muted mb-0">Manage purchase orders and supplier communications</p>
                     </div>
                     <div className="d-flex gap-2">
-                         <button className="btn btn-outline-primary btn-sm">
-                              <RiDownloadLine className="me-1" />
-                              Export Orders
+                         <button
+                              className="btn btn-outline-primary btn-sm"
+                              onClick={() => setShowFilterOffcanvas(true)}
+                         >
+                              <RiFilterLine className="me-1" />
+                              Filters
                          </button>
                          <button
                               className="btn btn-primary btn-sm"
@@ -908,46 +945,6 @@ export default function PurchaseOrdersPage() {
                     </div>
                </div>
 
-               {/* Statistics Cards */}
-               <div className="row mb-4">
-                    <div className="col-md-3 mb-3">
-                         <div className="card h-100">
-                              <div className="card-body text-center">
-                                   <RiShoppingCartLine size={32} className="text-secondary mb-2" />
-                                   <h5 className="card-title">{stats.orderingCount}</h5>
-                                   <p className="card-text text-muted small">Ordered</p>
-                              </div>
-                         </div>
-                    </div>
-                    <div className="col-md-3 mb-3">
-                         <div className="card h-100">
-                              <div className="card-body text-center">
-                                   <RiCheckLine size={32} className="text-success mb-2" />
-                                   <h5 className="card-title">{stats.receivedCount}</h5>
-                                   <p className="card-text text-muted small">Received</p>
-                              </div>
-                         </div>
-                    </div>
-                    <div className="col-md-3 mb-3">
-                         <div className="card h-100">
-                              <div className="card-body text-center">
-                                   <div className="text-danger mb-2" style={{ fontSize: '32px' }}>❌</div>
-                                   <h5 className="card-title">{stats.cancelledCount}</h5>
-                                   <p className="card-text text-muted small">Cancelled</p>
-                              </div>
-                         </div>
-                    </div>
-                    <div className="col-md-3 mb-3">
-                         <div className="card h-100">
-                              <div className="card-body text-center">
-                                   <div className="text-info mb-2" style={{ fontSize: '32px' }}>📦</div>
-                                   <h5 className="card-title">{stats.totalItems}</h5>
-                                   <p className="card-text text-muted small">Total Items Ordered</p>
-                              </div>
-                         </div>
-                    </div>
-               </div>
-
                {/* Orders Table */}
                <PrimeTable
                     column={orderColumns}
@@ -956,6 +953,120 @@ export default function PurchaseOrdersPage() {
                     handleSeverSideProcessing={handleServerSideProcessing}
                     serverSideFiltering={true}
                />
+
+               {/* Filter Offcanvas */}
+               <div className={`offcanvas offcanvas-end ${showFilterOffcanvas ? 'show' : ''}`} style={{ visibility: showFilterOffcanvas ? 'visible' : 'hidden' }}>
+                    <div className="offcanvas-header">
+                         <h5 className="offcanvas-title">
+                              <RiFilterLine className="me-2" />
+                              Filter Purchase Orders
+                         </h5>
+                         <button
+                              type="button"
+                              className="btn-close"
+                              onClick={() => setShowFilterOffcanvas(false)}
+                         ></button>
+                    </div>
+                    <div className="offcanvas-body">
+                         <div className="mb-3">
+                              <label className="form-label">Search</label>
+                              <input
+                                   type="text"
+                                   className="form-control"
+                                   placeholder="Search orders..."
+                                   value={searchTerm}
+                                   onChange={(e) => setSearchTerm(e.target.value.trim())}
+                              />
+                         </div>
+                         <div className="mb-3">
+                              <label className="form-label">Supplier ID</label>
+                              <input
+                                   type="text"
+                                   className="form-control"
+                                   placeholder="Enter supplier ID..."
+                                   value={supplierIdFilter}
+                                   onChange={(e) => setSupplierIdFilter(e.target.value.trim())}
+                              />
+                         </div>
+                         <div className="mb-3">
+                              <label className="form-label">Order ID</label>
+                              <input
+                                   type="text"
+                                   className="form-control"
+                                   placeholder="Enter order ID..."
+                                   value={orderIdFilter}
+                                   onChange={(e) => setOrderIdFilter(e.target.value.trim())}
+                              />
+                         </div>
+                         <div className="mb-3">
+                              <label className="form-label">Status</label>
+                              <select
+                                   className="form-select"
+                                   value={filterStatus}
+                                   onChange={(e) => setFilterStatus(e.target.value)}
+                              >
+                                   <option value="all">All Status</option>
+                                   <option value="ordered">Ordered</option>
+                                   <option value="partially_received">Partially Received</option>
+                                   <option value="received">Received</option>
+                                   <option value="cancelled">Cancelled</option>
+                              </select>
+                         </div>
+                         <div className="mb-3">
+                              <label className="form-label">Start Date</label>
+                              <input
+                                   type="date"
+                                   className="form-control"
+                                   value={startDateFilter}
+                                   onChange={(e) => setStartDateFilter(e.target.value)}
+                              />
+                         </div>
+                         <div className="mb-3">
+                              <label className="form-label">End Date</label>
+                              <input
+                                   type="date"
+                                   className="form-control"
+                                   value={endDateFilter}
+                                   onChange={(e) => setEndDateFilter(e.target.value)}
+                              />
+                         </div>
+                    </div>
+                    <div className="offcanvas-footer mx-3 py-2">
+                         <button
+                              type="button"
+                              className="btn btn-secondary btn-sm mx-2"
+                              onClick={() => {
+                                   setSearchTerm('');
+                                   setSupplierIdFilter('');
+                                   setOrderIdFilter('');
+                                   setFilterStatus('all');
+                                   setStartDateFilter('');
+                                   setEndDateFilter('');
+                                   setRefreshTrigger(prev => prev + 1);
+                              }}
+                         >
+                              Clear Filters
+                         </button>
+                         <button
+                              type="button"
+                              className="btn btn-primary btn-sm"
+                              onClick={() => {
+                                   setShowFilterOffcanvas(false);
+                                   setRefreshTrigger(prev => prev + 1);
+                              }}
+                         >
+                              Apply Filters
+                         </button>
+                    </div>
+               </div>
+
+               {/* Backdrop for Offcanvas */}
+               {showFilterOffcanvas && (
+                    <div
+                         className="offcanvas-backdrop show"
+                         onClick={() => setShowFilterOffcanvas(false)}
+                    ></div>
+               )}
 
                {/* Create/Edit Order Modal */}
                {showOrderModal && (

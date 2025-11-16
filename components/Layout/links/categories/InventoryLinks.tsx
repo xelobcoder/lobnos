@@ -1,6 +1,5 @@
 import { Link } from '../types';
 import {
-     RiStoreLine,
      RiBox3Line,
      RiPriceTagLine,
      RiTruckLine,
@@ -8,29 +7,16 @@ import {
      RiHistoryLine,
      RiBarChartBoxLine,
      RiFileListLine,
-     RiAddLine,
-     RiDownloadLine,
-     RiUploadLine,
-     RiCameraLine,
      RiMapPinLine,
      RiSubtractLine,
      RiShoppingCartLine,
-     RiTrademarkLine,
      RiDeleteBinLine,
      RiAlertLine,
-     RiBookOpenLine,
      RiCalculatorLine,
-     RiBillLine,
      RiMoneyDollarCircleLine,
      RiWalletLine,
      RiDashboardLine,
-     RiAccountBoxLine,
-     RiFileChartLine,
-     RiCheckDoubleLine,
-     RiShieldCheckLine,
-     RiLink,
-     RiEyeLine
-} from '@remixicon/react';
+     RiFileChartLine} from '@remixicon/react';
 
 export const InventoryLinks: Link[] = [
        {
@@ -39,7 +25,6 @@ export const InventoryLinks: Link[] = [
           icon: <RiDashboardLine />,
           children: [
                { title: "Overview", link: "/inventory/analytics", icon: <RiBarChartBoxLine /> },
-               { title: "Stock Status", link: "/inventory/analytics/stock-status", icon: <RiBox3Line /> },
                { title: "Purchase Orders", link: "/inventory/analytics/purchase-orders", icon: <RiShoppingCartLine /> },
                { title: "Transactions", link: "/inventory/analytics/transactions", icon: <RiHistoryLine /> },
                { title: "Payments", link: "/inventory/analytics/payments", icon: <RiMoneyDollarCircleLine /> },
