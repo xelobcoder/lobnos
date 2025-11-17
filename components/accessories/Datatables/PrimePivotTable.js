@@ -86,8 +86,50 @@ export default function PrimeTable({
 	});
 	const virtualListRef = useRef(null);
 
+	// NEW FEATURES STATE
+	// Column freezing/pinning
+	const [frozenColumns, setFrozenColumns] = useState({
+		left: [], // Array of column IDs to freeze on left
+		right: [] // Array of column IDs to freeze on right
+	});
+
+	// Column widths
+	const [columnWidths, setColumnWidths] = useState({});
+	const [resizingColumn, setResizingColumn] = useState(null);
+	const resizeStartX = useRef(null);
+	const resizeStartWidth = useRef(null);
+
+	// Column visibility
+	const [hiddenColumns, setHiddenColumns] = useState([]);
+	const [showColumnVisibilityMenu, setShowColumnVisibilityMenu] = useState(false);
+
+	// Sticky rows
+	const [stickyRows, setStickyRows] = useState([]); // Array of row indices to keep visible
+
+	// Dark mode
+	const [isDarkMode, setIsDarkMode] = useState(false);
+
+	// Context menu
+	const [contextMenu, setContextMenu] = useState({
+		visible: false,
+		x: 0,
+		y: 0,
+		rowIndex: null,
+		columnId: null,
+		cellValue: null
+	});
+
+	// Keyboard shortcuts
+	const [selectedCell, setSelectedCell] = useState({ rowIndex: null, columnId: null });
+	const [copiedData, setCopiedData] = useState(null);
+	const [showShortcutsPanel, setShowShortcutsPanel] = useState(false);
+
 	const toggleFullscreen = () => {
 		setIsFullscreen(!isFullscreen);
+	};
+
+	const toggleDarkMode = () => {
+		setIsDarkMode(!isDarkMode);
 	};
 
 	// Close format popup when clicking outside
@@ -113,6 +155,104 @@ export default function PrimeTable({
 			RunServerAction(queryParams.page, queryParams.count);
 		}
 	}, [serverSideFiltering, handleSeverSideProcessing]);
+
+	// Keyboard shortcuts
+	useEffect(() => {
+		const handleKeyDown = (e) => {
+			// Ctrl+K or Cmd+K: Show shortcuts panel
+			if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+				e.preventDefault();
+				setShowShortcutsPanel(prev => !prev);
+				return;
+			}
+
+			// Ctrl+C or Cmd+C: Copy selected cell
+			if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedCell.rowIndex !== null) {
+				e.preventDefault();
+				setCopiedData(selectedCell.cellValue);
+				// Show toast notification
+				console.log('Copied:', selectedCell.cellValue);
+				return;
+			}
+
+			// Escape: Close menus
+			if (e.key === 'Escape') {
+				setContextMenu({ ...contextMenu, visible: false });
+				setShowShortcutsPanel(false);
+				setShowColumnVisibilityMenu(false);
+				return;
+			}
+
+			// Arrow navigation (only if a cell is selected)
+			if (selectedCell.rowIndex !== null && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+				e.preventDefault();
+				// Use column directly instead of orderedColumns to avoid initialization issues
+				const visibleColumns = column.filter(col => !hiddenColumns.includes(col.accessor || col.id));
+				const currentColIndex = visibleColumns.findIndex(col => (col.accessor || col.id) === selectedCell.columnId);
+
+				let newRowIndex = selectedCell.rowIndex;
+				let newColIndex = currentColIndex;
+
+				if (e.key === 'ArrowUp') newRowIndex = Math.max(0, selectedCell.rowIndex - 1);
+				if (e.key === 'ArrowDown') newRowIndex = Math.min(filteredData.length - 1, selectedCell.rowIndex + 1);
+				if (e.key === 'ArrowLeft') newColIndex = Math.max(0, currentColIndex - 1);
+				if (e.key === 'ArrowRight') newColIndex = Math.min(visibleColumns.length - 1, currentColIndex + 1);
+
+				const newColumnId = visibleColumns[newColIndex]?.accessor || visibleColumns[newColIndex]?.id;
+				if (newColumnId && filteredData[newRowIndex]) {
+					setSelectedCell({
+						rowIndex: newRowIndex,
+						columnId: newColumnId,
+						cellValue: filteredData[newRowIndex][newColumnId]
+					});
+				}
+			}
+		};
+
+		document.addEventListener('keydown', handleKeyDown);
+		return () => document.removeEventListener('keydown', handleKeyDown);
+	}, [selectedCell, contextMenu, column, hiddenColumns, filteredData]);
+
+	// Close context menu on click outside
+	useEffect(() => {
+		const handleClickOutside = () => {
+			if (contextMenu.visible) {
+				setContextMenu({ ...contextMenu, visible: false });
+			}
+		};
+		document.addEventListener('click', handleClickOutside);
+		return () => document.removeEventListener('click', handleClickOutside);
+	}, [contextMenu.visible]);
+
+	// Column resize handlers
+	const handleResizeStart = (e, columnId) => {
+		e.preventDefault();
+		setResizingColumn(columnId);
+		resizeStartX.current = e.clientX;
+		resizeStartWidth.current = columnWidths[columnId] || 150;
+	};
+
+	useEffect(() => {
+		if (!resizingColumn) return;
+
+		const handleMouseMove = (e) => {
+			const diff = e.clientX - resizeStartX.current;
+			const newWidth = Math.max(50, resizeStartWidth.current + diff);
+			setColumnWidths(prev => ({ ...prev, [resizingColumn]: newWidth }));
+		};
+
+		const handleMouseUp = () => {
+			setResizingColumn(null);
+		};
+
+		document.addEventListener('mousemove', handleMouseMove);
+		document.addEventListener('mouseup', handleMouseUp);
+
+		return () => {
+			document.removeEventListener('mousemove', handleMouseMove);
+			document.removeEventListener('mouseup', handleMouseUp);
+		};
+	}, [resizingColumn]);
 
 	// Auto-refresh effect
 	useEffect(() => {
@@ -458,6 +598,162 @@ export default function PrimeTable({
 	// Close drill down modal
 	const closeDrillDown = () => {
 		setDrillDownData(null);
+	};
+
+	// NEW FEATURE FUNCTIONS
+
+	// Column freezing functions
+	const freezeColumn = (columnId, side = 'left') => {
+		setFrozenColumns(prev => ({
+			...prev,
+			[side]: [...prev[side], columnId]
+		}));
+	};
+
+	const unfreezeColumn = (columnId) => {
+		setFrozenColumns(prev => ({
+			left: prev.left.filter(id => id !== columnId),
+			right: prev.right.filter(id => id !== columnId)
+		}));
+	};
+
+	// Column visibility functions
+	const toggleColumnVisibility = (columnId) => {
+		setHiddenColumns(prev =>
+			prev.includes(columnId)
+				? prev.filter(id => id !== columnId)
+				: [...prev, columnId]
+		);
+	};
+
+	const showAllColumns = () => {
+		setHiddenColumns([]);
+	};
+
+	const hideAllColumns = () => {
+		setHiddenColumns(column.map(col => col.accessor || col.id));
+	};
+
+	// Sticky row functions
+	const toggleStickyRow = (rowIndex) => {
+		setStickyRows(prev =>
+			prev.includes(rowIndex)
+				? prev.filter(idx => idx !== rowIndex)
+				: [...prev, rowIndex]
+		);
+	};
+
+	// Context menu handlers
+	const handleContextMenu = (e, rowIndex, columnId, cellValue) => {
+		e.preventDefault();
+
+		// Calculate menu dimensions (approximate)
+		const menuWidth = 140;
+		const menuHeight = 300;
+
+		// Get viewport dimensions
+		const viewportWidth = window.innerWidth;
+		const viewportHeight = window.innerHeight;
+
+		// Calculate position, ensuring menu stays within viewport
+		let x = e.clientX;
+		let y = e.clientY;
+
+		// Adjust horizontal position if menu would overflow right edge
+		if (x + menuWidth > viewportWidth) {
+			x = viewportWidth - menuWidth - 10;
+		}
+
+		// Adjust vertical position if menu would overflow bottom edge
+		if (y + menuHeight > viewportHeight) {
+			y = viewportHeight - menuHeight - 10;
+		}
+
+		setContextMenu({
+			visible: true,
+			x,
+			y,
+			rowIndex,
+			columnId,
+			cellValue
+		});
+	};
+
+	const handleContextMenuAction = (action) => {
+		const { rowIndex, columnId, cellValue } = contextMenu;
+
+		switch (action) {
+			case 'copy':
+				navigator.clipboard.writeText(cellValue || '');
+				console.log('Copied:', cellValue);
+				break;
+			case 'freeze-left':
+				freezeColumn(columnId, 'left');
+				break;
+			case 'freeze-right':
+				freezeColumn(columnId, 'right');
+				break;
+			case 'unfreeze':
+				unfreezeColumn(columnId);
+				break;
+			case 'hide-column':
+				toggleColumnVisibility(columnId);
+				break;
+			case 'sticky-row':
+				toggleStickyRow(rowIndex);
+				break;
+			case 'sort-asc':
+				// Trigger sort ascending
+				console.log('Sort ascending:', columnId);
+				break;
+			case 'sort-desc':
+				// Trigger sort descending
+				console.log('Sort descending:', columnId);
+				break;
+		}
+
+		setContextMenu({ ...contextMenu, visible: false });
+	};
+
+	// Get column position for frozen columns
+	const getColumnStyle = (columnId) => {
+		const style = {};
+
+		// Apply custom width if set
+		if (columnWidths[columnId]) {
+			style.width = `${columnWidths[columnId]}px`;
+			style.minWidth = `${columnWidths[columnId]}px`;
+			style.maxWidth = `${columnWidths[columnId]}px`;
+		}
+
+		// Apply frozen positioning
+		if (frozenColumns.left.includes(columnId)) {
+			const index = frozenColumns.left.indexOf(columnId);
+			const leftOffset = frozenColumns.left.slice(0, index).reduce((sum, id) => {
+				return sum + (columnWidths[id] || 150);
+			}, 0);
+
+			style.position = 'sticky';
+			style.left = `${leftOffset}px`;
+			style.zIndex = 10;
+			style.backgroundColor = isDarkMode ? '#2d3748' : 'white';
+			style.boxShadow = '2px 0 4px rgba(0,0,0,0.1)';
+		}
+
+		if (frozenColumns.right.includes(columnId)) {
+			const index = frozenColumns.right.indexOf(columnId);
+			const rightOffset = frozenColumns.right.slice(index + 1).reduce((sum, id) => {
+				return sum + (columnWidths[id] || 150);
+			}, 0);
+
+			style.position = 'sticky';
+			style.right = `${rightOffset}px`;
+			style.zIndex = 10;
+			style.backgroundColor = isDarkMode ? '#2d3748' : 'white';
+			style.boxShadow = '-2px 0 4px rgba(0,0,0,0.1)';
+		}
+
+		return style;
 	};
 
 	const handleDragStart = (e, field) => {
@@ -961,6 +1257,9 @@ export default function PrimeTable({
 						const columnId = column.id || column.accessor;
 						const groupInfo = columnGroupMap[columnId];
 
+						// Skip hidden columns
+						if (hiddenColumns.includes(columnId)) return null;
+
 						return (
 							<th
 								key={index}
@@ -971,9 +1270,10 @@ export default function PrimeTable({
 								onDragOver={handleColumnDragOver}
 								onDrop={(e) => handleColumnDrop(e, columnId)}
 								style={{
-									cursor: isPivotMode ? 'pointer' : 'grab',
+									...getColumnStyle(columnId),
+									cursor: resizingColumn === columnId ? 'col-resize' : (isPivotMode ? 'pointer' : 'grab'),
 									userSelect: 'none',
-									position: 'relative'
+									position: frozenColumns.left.includes(columnId) || frozenColumns.right.includes(columnId) ? 'sticky' : 'relative'
 								}}
 								title={groupInfo ? `Group: ${groupInfo.groupName}` : undefined}
 							>
@@ -1003,11 +1303,41 @@ export default function PrimeTable({
 								)}
 								<div className="d-flex justify-content-between align-items-center" style={{ paddingTop: groupInfo ? '18px' : '0' }}>
 									<span className="text-sm fw-bold text-capitalize align-items-center">
+										{/* Frozen indicator */}
+										{frozenColumns.left.includes(columnId) && (
+											<span title="Frozen left" style={{ fontSize: '10px', marginRight: '4px' }}>📌</span>
+										)}
+										{frozenColumns.right.includes(columnId) && (
+											<span title="Frozen right" style={{ fontSize: '10px', marginRight: '4px' }}>📌</span>
+										)}
 										{column.render("Header")}
 										<span className="mx-1">{sortIndicator}</span>
 									</span>
 									{!isPivotMode && (
-										<span className="text-muted" style={{ fontSize: '12px' }}>⋮⋮</span>
+										<div className="d-flex align-items-center gap-1">
+											<span className="text-muted" style={{ fontSize: '12px' }}>⋮⋮</span>
+											{/* Column resize handle */}
+											<div
+												onMouseDown={(e) => handleResizeStart(e, columnId)}
+												style={{
+													width: '4px',
+													height: '100%',
+													cursor: 'col-resize',
+													position: 'absolute',
+													right: 0,
+													top: 0,
+													bottom: 0,
+													backgroundColor: resizingColumn === columnId ? '#2196f3' : 'transparent',
+													transition: 'background-color 0.2s'
+												}}
+												onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2196f3'}
+												onMouseLeave={(e) => {
+													if (resizingColumn !== columnId) {
+														e.currentTarget.style.backgroundColor = 'transparent';
+													}
+												}}
+											/>
+										</div>
 									)}
 								</div>
 							</th>
@@ -1032,6 +1362,9 @@ export default function PrimeTable({
 
 					const columnId = column.id || column.accessor;
 
+					// Skip hidden columns
+					if (hiddenColumns.includes(columnId)) return null;
+
 					return (
 						<th
 							key={index}
@@ -1042,17 +1375,48 @@ export default function PrimeTable({
 							onDragOver={handleColumnDragOver}
 							onDrop={(e) => handleColumnDrop(e, columnId)}
 							style={{
-								cursor: isPivotMode ? 'pointer' : 'grab',
+								...getColumnStyle(columnId),
+								cursor: resizingColumn === columnId ? 'col-resize' : (isPivotMode ? 'pointer' : 'grab'),
 								userSelect: 'none'
 							}}
 						>
-							<div className="d-flex justify-content-between align-items-center">
+							<div className="d-flex justify-content-between align-items-center position-relative">
 								<span className="text-sm fw-bold text-capitalize align-items-center">
+									{/* Frozen indicator */}
+									{frozenColumns.left.includes(columnId) && (
+										<span title="Frozen left" style={{ fontSize: '10px', marginRight: '4px' }}>📌</span>
+									)}
+									{frozenColumns.right.includes(columnId) && (
+										<span title="Frozen right" style={{ fontSize: '10px', marginRight: '4px' }}>📌</span>
+									)}
 									{column.render("Header")}
 									<span className="mx-1">{sortIndicator}</span>
 								</span>
 								{!isPivotMode && (
-									<span className="text-muted" style={{ fontSize: '12px' }}>⋮⋮</span>
+									<div className="d-flex align-items-center gap-1">
+										<span className="text-muted" style={{ fontSize: '12px' }}>⋮⋮</span>
+										{/* Column resize handle */}
+										<div
+											onMouseDown={(e) => handleResizeStart(e, columnId)}
+											style={{
+												width: '4px',
+												height: '100%',
+												cursor: 'col-resize',
+												position: 'absolute',
+												right: 0,
+												top: 0,
+												bottom: 0,
+												backgroundColor: resizingColumn === columnId ? '#2196f3' : 'transparent',
+												transition: 'background-color 0.2s'
+											}}
+											onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#2196f3'}
+											onMouseLeave={(e) => {
+												if (resizingColumn !== columnId) {
+													e.currentTarget.style.backgroundColor = 'transparent';
+												}
+											}}
+										/>
+									</div>
 								)}
 							</div>
 						</th>
@@ -1290,12 +1654,24 @@ export default function PrimeTable({
 							);
 						}
 
+						// Check if this row should be sticky
+						const isSticky = stickyRows.includes(index);
+
 						return (
 							<tr
 								{...row.getRowProps()}
 								key={index}
 								className={`${style.tableRow} ${zebraClass}`}
-								style={{ transition: "background 0.2s" }}
+								style={{
+									transition: "background 0.2s",
+									...(isSticky ? {
+										position: 'sticky',
+										top: '40px', // Adjust based on header height
+										zIndex: 5,
+										backgroundColor: isDarkMode ? '#4a5568' : '#f0f0f0',
+										boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+									} : {})
+								}}
 							>
 								{row.cells.map((cell) => {
 									// Apply column grouping styling to cells
@@ -1343,6 +1719,11 @@ export default function PrimeTable({
 
 									// Apply conditional formatting
 									const cellValue = cell.value;
+									const columnId = cell.column.id || cell.column.accessor;
+
+									// Skip hidden columns
+									if (hiddenColumns.includes(columnId)) return null;
+
 									const allColumnValues = rows.map(r => r.values[cell.column.id]);
 									const conditionalColor = getCellColor(cellValue, cell.column.id, allColumnValues);
 									const dataBarWidth = getDataBarWidth(cellValue, cell.column.id, allColumnValues);
@@ -1351,12 +1732,32 @@ export default function PrimeTable({
 										cellStyle = { ...cellStyle, backgroundColor: conditionalColor };
 									}
 
+									// Apply frozen column styles
+									cellStyle = { ...cellStyle, ...getColumnStyle(columnId) };
+
+									// Highlight selected cell
+									const isSelected = selectedCell.rowIndex === index && selectedCell.columnId === columnId;
+									if (isSelected) {
+										cellStyle = {
+											...cellStyle,
+											outline: '2px solid #2196f3',
+											outlineOffset: '-2px',
+											backgroundColor: isDarkMode ? 'rgba(33, 150, 243, 0.3)' : 'rgba(33, 150, 243, 0.1)'
+										};
+									}
+
 									return (
 										<td
 											{...cell.getCellProps()}
 											key={cell.column.id}
 											className={cellClass}
-											style={{ ...cellStyle, position: 'relative' }}
+											style={{ ...cellStyle, position: frozenColumns.left.includes(columnId) || frozenColumns.right.includes(columnId) ? 'sticky' : 'relative' }}
+											onClick={() => setSelectedCell({ rowIndex: index, columnId, cellValue })}
+											onContextMenu={(e) => handleContextMenu(e, index, columnId, cellValue)}
+											onDoubleClick={() => {
+												// TODO: Implement inline editing
+												console.log('Double click to edit:', cellValue);
+											}}
 										>
 											{dataBarWidth > 0 && (
 												<div style={{
@@ -1373,6 +1774,17 @@ export default function PrimeTable({
 												{cell.render("Cell")}
 												{showSparklines && renderSparkline(getSparklineData(cell.column.id))}
 											</div>
+											{/* Sticky row indicator */}
+											{isSticky && (
+												<span style={{
+													position: 'absolute',
+													top: '2px',
+													right: '2px',
+													fontSize: '10px'
+												}} title="Sticky row">
+													📍
+												</span>
+											)}
 										</td>
 									);
 								})}
@@ -1465,19 +1877,23 @@ export default function PrimeTable({
 			`}</style>
 			<div
 				className="row border border-1 br-5 mx-2"
-				style={isFullscreen ? {
-					position: 'fixed',
-					top: 0,
-					left: 0,
-					right: 0,
-					bottom: 0,
-					width: '100vw',
-					height: '100vh',
-					zIndex: 9999,
-					margin: 0,
-					backgroundColor: 'white',
-					overflow: 'auto'
-				} : {}}
+				style={{
+					...(isFullscreen ? {
+						position: 'fixed',
+						top: 0,
+						left: 0,
+						right: 0,
+						bottom: 0,
+						width: '100vw',
+						height: '100vh',
+						zIndex: 9999,
+						margin: 0,
+						overflow: 'auto'
+					} : {}),
+					backgroundColor: isDarkMode ? '#1a202c' : 'white',
+					color: isDarkMode ? '#e2e8f0' : 'inherit',
+					transition: 'background-color 0.3s, color 0.3s'
+				}}
 			>
 				<div className="d-flex m-0 p-0  border-bottom border">
 					<div className="col-9 d-flex justify-content-between  p-2 ">
@@ -1627,6 +2043,95 @@ export default function PrimeTable({
 										title="Toggle Sparklines"
 									>
 										📈 Sparklines
+									</button>
+
+									{/* NEW FEATURE BUTTONS */}
+
+									{/* Column Visibility */}
+									<div style={{ position: 'relative' }}>
+										<button
+											onClick={() => setShowColumnVisibilityMenu(!showColumnVisibilityMenu)}
+											className="btn btn-sm btn-outline-secondary"
+											style={{ fontSize: '11px', padding: '4px 10px', whiteSpace: 'nowrap' }}
+											title="Show/Hide Columns"
+										>
+											👁️ Columns
+										</button>
+										{showColumnVisibilityMenu && (
+											<div
+												style={{
+													position: 'absolute',
+													top: '100%',
+													right: 0,
+													marginTop: '4px',
+													backgroundColor: isDarkMode ? '#2d3748' : 'white',
+													color: isDarkMode ? 'white' : 'black',
+													border: '1px solid #ddd',
+													borderRadius: '6px',
+													padding: '12px',
+													boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+													zIndex: 1000,
+													minWidth: '200px',
+													maxHeight: '300px',
+													overflowY: 'auto'
+												}}
+											>
+												<div className="mb-2 d-flex justify-content-between">
+													<button
+														onClick={showAllColumns}
+														className="btn btn-xs btn-success"
+														style={{ fontSize: '10px', padding: '2px 8px' }}
+													>
+														Show All
+													</button>
+													<button
+														onClick={hideAllColumns}
+														className="btn btn-xs btn-danger"
+														style={{ fontSize: '10px', padding: '2px 8px' }}
+													>
+														Hide All
+													</button>
+												</div>
+												{availableFields.map(field => (
+													<div key={field.key} className="form-check mb-1">
+														<input
+															className="form-check-input"
+															type="checkbox"
+															checked={!hiddenColumns.includes(field.key)}
+															onChange={() => toggleColumnVisibility(field.key)}
+															id={`col-vis-${field.key}`}
+														/>
+														<label
+															className="form-check-label"
+															htmlFor={`col-vis-${field.key}`}
+															style={{ fontSize: '11px', cursor: 'pointer' }}
+														>
+															{field.header}
+														</label>
+													</div>
+												))}
+											</div>
+										)}
+									</div>
+
+									{/* Dark Mode */}
+									<button
+										onClick={toggleDarkMode}
+										className={`btn btn-sm ${isDarkMode ? 'btn-dark' : 'btn-outline-dark'}`}
+										style={{ fontSize: '11px', padding: '4px 10px', whiteSpace: 'nowrap' }}
+										title="Toggle Dark Mode"
+									>
+										{isDarkMode ? '🌙' : '☀️'}
+									</button>
+
+									{/* Keyboard Shortcuts */}
+									<button
+										onClick={() => setShowShortcutsPanel(!showShortcutsPanel)}
+										className="btn btn-sm btn-outline-secondary"
+										style={{ fontSize: '11px', padding: '4px 10px', whiteSpace: 'nowrap' }}
+										title="Keyboard Shortcuts (Ctrl+K)"
+									>
+										⌨️ Shortcuts
 									</button>
 
 									<button
@@ -3090,6 +3595,240 @@ export default function PrimeTable({
 									</>
 								)}
 							</div>
+						</div>
+					</div>
+				)}
+
+				{/* Context Menu */}
+				{contextMenu.visible && (
+					<div
+						style={{
+							position: 'fixed',
+							left: `${contextMenu.x}px`,
+							top: `${contextMenu.y}px`,
+							backgroundColor: isDarkMode ? '#2d3748' : 'white',
+							color: isDarkMode ? 'white' : 'black',
+							border: '1px solid #ddd',
+							borderRadius: '6px',
+							boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+							zIndex: 10001,
+							width: '200px',
+							padding: '2px'
+						}}
+						onClick={(e) => e.stopPropagation()}
+					>
+						<div
+							onClick={() => handleContextMenuAction('copy')}
+							style={{
+								padding: '6px 10px',
+								cursor: 'pointer',
+								borderRadius: '4px',
+								fontSize: '12px',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '6px'
+							}}
+							onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDarkMode ? '#4a5568' : '#f0f0f0'}
+							onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+						>
+							📋 Copy Cell Value
+						</div>
+						<div
+							onClick={() => handleContextMenuAction('freeze-left')}
+							style={{
+								padding: '6px 10px',
+								cursor: 'pointer',
+								borderRadius: '4px',
+								fontSize: '12px',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '6px'
+							}}
+							onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDarkMode ? '#4a5568' : '#f0f0f0'}
+							onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+						>
+							📌 Freeze Column (Left)
+						</div>
+						<div
+							onClick={() => handleContextMenuAction('freeze-right')}
+							style={{
+								padding: '6px 10px',
+								cursor: 'pointer',
+								borderRadius: '4px',
+								fontSize: '12px',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '6px'
+							}}
+							onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDarkMode ? '#4a5568' : '#f0f0f0'}
+							onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+						>
+							📌 Freeze Column (Right)
+						</div>
+						{(frozenColumns.left.includes(contextMenu.columnId) || frozenColumns.right.includes(contextMenu.columnId)) && (
+							<div
+								onClick={() => handleContextMenuAction('unfreeze')}
+								style={{
+									padding: '6px 10px',
+									cursor: 'pointer',
+									borderRadius: '4px',
+									fontSize: '12px',
+									display: 'flex',
+									alignItems: 'center',
+									gap: '6px'
+								}}
+								onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDarkMode ? '#4a5568' : '#f0f0f0'}
+								onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+							>
+								🔓 Unfreeze Column
+							</div>
+						)}
+						<div
+							onClick={() => handleContextMenuAction('hide-column')}
+							style={{
+								padding: '6px 10px',
+								cursor: 'pointer',
+								borderRadius: '4px',
+								fontSize: '12px',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '6px'
+							}}
+							onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDarkMode ? '#4a5568' : '#f0f0f0'}
+							onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+						>
+							👁️ Hide Column
+						</div>
+						<div
+							onClick={() => handleContextMenuAction('sticky-row')}
+							style={{
+								padding: '6px 10px',
+								cursor: 'pointer',
+								borderRadius: '4px',
+								fontSize: '12px',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '6px',
+								borderTop: '1px solid #ddd',
+								marginTop: '2px',
+								paddingTop: '6px'
+							}}
+							onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDarkMode ? '#4a5568' : '#f0f0f0'}
+							onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+						>
+							📍 {stickyRows.includes(contextMenu.rowIndex) ? 'Unstick Row' : 'Stick Row'}
+						</div>
+						<div
+							onClick={() => handleContextMenuAction('sort-asc')}
+							style={{
+								padding: '6px 10px',
+								cursor: 'pointer',
+								borderRadius: '4px',
+								fontSize: '12px',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '6px'
+							}}
+							onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDarkMode ? '#4a5568' : '#f0f0f0'}
+							onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+						>
+							↑ Sort Ascending
+						</div>
+						<div
+							onClick={() => handleContextMenuAction('sort-desc')}
+							style={{
+								padding: '6px 10px',
+								cursor: 'pointer',
+								borderRadius: '4px',
+								fontSize: '12px',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '6px'
+							}}
+							onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDarkMode ? '#4a5568' : '#f0f0f0'}
+							onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+						>
+							↓ Sort Descending
+						</div>
+					</div>
+				)}
+
+				{/* Keyboard Shortcuts Panel */}
+				{showShortcutsPanel && (
+					<div
+						style={{
+							position: 'fixed',
+							top: '50%',
+							left: '50%',
+							transform: 'translate(-50%, -50%)',
+							backgroundColor: isDarkMode ? '#2d3748' : 'white',
+							color: isDarkMode ? 'white' : 'black',
+							border: '1px solid #ddd',
+							borderRadius: '8px',
+							padding: '25px',
+							boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+							zIndex: 10000,
+							maxWidth: '500px',
+							width: '90%'
+						}}
+						onClick={(e) => e.stopPropagation()}
+					>
+						<div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+							<h5 className="mb-0">⌨️ Keyboard Shortcuts</h5>
+							<button
+								onClick={() => setShowShortcutsPanel(false)}
+								className="btn btn-sm btn-outline-danger"
+								style={{ fontSize: '12px' }}
+							>
+								✕ Close
+							</button>
+						</div>
+						<div style={{ fontSize: '13px' }}>
+							<table style={{ width: '100%' }}>
+								<tbody>
+									<tr>
+										<td style={{ padding: '8px', fontWeight: '500' }}>
+											<kbd style={{ padding: '2px 6px', backgroundColor: '#e0e0e0', borderRadius: '3px', color: '#000' }}>Ctrl</kbd> +
+											<kbd style={{ padding: '2px 6px', backgroundColor: '#e0e0e0', borderRadius: '3px', margin: '0 4px', color: '#000' }}>K</kbd>
+										</td>
+										<td style={{ padding: '8px' }}>Toggle this shortcuts panel</td>
+									</tr>
+									<tr>
+										<td style={{ padding: '8px', fontWeight: '500' }}>
+											<kbd style={{ padding: '2px 6px', backgroundColor: '#e0e0e0', borderRadius: '3px', color: '#000' }}>Ctrl</kbd> +
+											<kbd style={{ padding: '2px 6px', backgroundColor: '#e0e0e0', borderRadius: '3px', margin: '0 4px', color: '#000' }}>C</kbd>
+										</td>
+										<td style={{ padding: '8px' }}>Copy selected cell</td>
+									</tr>
+									<tr>
+										<td style={{ padding: '8px', fontWeight: '500' }}>
+											<kbd style={{ padding: '2px 6px', backgroundColor: '#e0e0e0', borderRadius: '3px', color: '#000' }}>↑</kbd>
+											<kbd style={{ padding: '2px 6px', backgroundColor: '#e0e0e0', borderRadius: '3px', margin: '0 4px', color: '#000' }}>↓</kbd>
+											<kbd style={{ padding: '2px 6px', backgroundColor: '#e0e0e0', borderRadius: '3px', color: '#000' }}>←</kbd>
+											<kbd style={{ padding: '2px 6px', backgroundColor: '#e0e0e0', borderRadius: '3px', margin: '0 4px', color: '#000' }}>→</kbd>
+										</td>
+										<td style={{ padding: '8px' }}>Navigate cells</td>
+									</tr>
+									<tr>
+										<td style={{ padding: '8px', fontWeight: '500' }}>
+											<kbd style={{ padding: '2px 6px', backgroundColor: '#e0e0e0', borderRadius: '3px', color: '#000' }}>Esc</kbd>
+										</td>
+										<td style={{ padding: '8px' }}>Close menus/modals</td>
+									</tr>
+									<tr>
+										<td style={{ padding: '8px', fontWeight: '500' }}>
+											<kbd style={{ padding: '2px 6px', backgroundColor: '#e0e0e0', borderRadius: '3px', color: '#000' }}>Right Click</kbd>
+										</td>
+										<td style={{ padding: '8px' }}>Open context menu</td>
+									</tr>
+									<tr>
+										<td style={{ padding: '8px', fontWeight: '500' }}>
+											<kbd style={{ padding: '2px 6px', backgroundColor: '#e0e0e0', borderRadius: '3px', color: '#000' }}>Double Click</kbd>
+										</td>
+										<td style={{ padding: '8px' }}>Edit cell (coming soon)</td>
+									</tr>
+								</tbody>
+							</table>
 						</div>
 					</div>
 				)}
