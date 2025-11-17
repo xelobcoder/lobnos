@@ -1,11 +1,11 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useTable, useGlobalFilter, useFilters, useSortBy } from "react-table";
+import { FixedSizeList as List } from 'react-window';
 import GlobalFilter from "./GlobalFilter";
 import ShowTableDisplayCount from "./TableDisplayShowCount";
 import TableLoading from "./TableLoading";
 import style from "../../../styles/SmsTemplateList.module.css";
-import { ButtonGroup } from "react-bootstrap";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ScatterChart, Scatter, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function PrimeTable({
@@ -60,6 +60,31 @@ export default function PrimeTable({
 		enabled: false
 	});
 
+	// Auto-refresh feature
+	const [autoRefresh, setAutoRefresh] = useState({
+		enabled: false,
+		interval: 30000, // milliseconds (default 30 seconds)
+		isPaused: false,
+		lastRefresh: null
+	});
+	const [refreshTimer, setRefreshTimer] = useState(null);
+
+	// Data caching
+	const [dataCache, setDataCache] = useState({
+		pivotData: null,
+		pivotDataKey: null,
+		filters: null,
+		timestamp: null
+	});
+
+	// Virtual scrolling with react-window
+	const [virtualScrolling, setVirtualScrolling] = useState({
+		enabled: false,
+		rowHeight: 40,
+		overscanCount: 5
+	});
+	const virtualListRef = useRef(null);
+
 	const toggleFullscreen = () => {
 		setIsFullscreen(!isFullscreen);
 	};
@@ -81,7 +106,95 @@ export default function PrimeTable({
 		loadSharedConfig();
 	}, []);
 
-	// Export to CSV
+	// Auto-refresh effect
+	useEffect(() => {
+		if (autoRefresh.enabled && !autoRefresh.isPaused && serverSideFiltering) {
+			const timer = setInterval(() => {
+				console.log('Auto-refreshing data...');
+				setAutoRefresh(prev => ({ ...prev, lastRefresh: new Date() }));
+				// Trigger data refresh
+				if (handleSeverSideProcessing) {
+					handleSeverSideProcessing(queryParams);
+				}
+			}, autoRefresh.interval);
+
+			setRefreshTimer(timer);
+
+			return () => {
+				if (timer) clearInterval(timer);
+			};
+		} else {
+			if (refreshTimer) {
+				clearInterval(refreshTimer);
+				setRefreshTimer(null);
+			}
+		}
+	}, [autoRefresh.enabled, autoRefresh.isPaused, autoRefresh.interval, serverSideFiltering]);
+
+	// Data caching effect - generate cache key and check cache
+	const generateCacheKey = (config, filters, sort) => {
+		return JSON.stringify({ config, filters, sort });
+	};
+
+	// Function to get cached data
+	const getCachedData = (key) => {
+		if (dataCache.pivotDataKey === key && dataCache.timestamp) {
+			const cacheAge = Date.now() - dataCache.timestamp;
+			// Cache valid for 5 minutes
+			if (cacheAge < 5 * 60 * 1000) {
+				console.log('Using cached data');
+				return dataCache.pivotData;
+			}
+		}
+		return null;
+	};
+
+	// Function to set cached data
+	const setCachedData = (key, data) => {
+		setDataCache({
+			pivotData: data,
+			pivotDataKey: key,
+			timestamp: Date.now()
+		});
+	};
+
+	// Virtual Row Component for react-window
+	const VirtualRow = ({ index, style, data }) => {
+		const { rows, prepareRow } = data;
+		const row = rows[index];
+
+		if (!row) return null;
+
+		prepareRow(row);
+
+		return (
+			<tr {...row.getRowProps({ style })} className={style.tableRow}>
+				{row.cells.map((cell) => (
+					<td {...cell.getCellProps()} style={{ padding: '8px', borderBottom: '1px solid #dee2e6' }}>
+						{cell.render("Cell")}
+					</td>
+				))}
+			</tr>
+		);
+	};
+
+	// Pivot Virtual Row Component
+	const PivotVirtualRow = ({ index, style, data }) => {
+		const { rows, columns } = data;
+		const row = rows[index];
+
+		if (!row) return null;
+
+		return (
+			<tr style={style}>
+				{columns.map((col, colIndex) => (
+					<td key={colIndex} style={{ padding: '8px', borderBottom: '1px solid #dee2e6' }}>
+						{row[col] !== undefined ? row[col] : ''}
+					</td>
+				))}
+			</tr>
+		);
+	};	// Export to CSV
 	const exportToCSV = () => {
 		const dataToExport = isPivotMode ? pivotData : groupedData;
 		if (!dataToExport || dataToExport.length === 0) {
@@ -656,7 +769,7 @@ export default function PrimeTable({
 		}
 
 		return result;
-	}, [isPivotMode, pivotConfig, filteredData, availableFields]);
+	}, [isPivotMode, pivotConfig, filteredData, availableFields, pivotSort, pivotFilter]);
 
 	// Prepare chart data from pivot data
 	const chartData = useMemo(() => {
@@ -932,23 +1045,46 @@ export default function PrimeTable({
 			serverSideFiltering
 		) {
 			setIsLoading(true);
-			const processedResponse = await handleSeverSideProcessing({
-				page: currentPage,
-				count: currentCount,
-				...urlparams,
-				sortby
-			});
 
-			if (processedResponse) {
-				const { result, error } = processedResponse;
-				setTimeout(() => {
-					if (result) {
-						setFilteredData(result);
-					} else {
-						alert(error);
-					}
-					setIsLoading(false);
-				}, 300);
+			try {
+				const processedResponse = await handleSeverSideProcessing({
+					page: currentPage,
+					count: currentCount,
+					...urlparams,
+					sortby,
+					// Enhanced server-side parameters
+					filter: pivotFilter || globalFilter,
+					pivotMode: isPivotMode,
+					pivotConfig: isPivotMode ? pivotConfig : null
+				});
+
+				if (processedResponse) {
+					const { result, error, totalCount, metadata } = processedResponse;
+					setTimeout(() => {
+						if (result) {
+							setFilteredData(result);
+
+							// Update cache with new data
+							if (isPivotMode) {
+								const cacheKey = generateCacheKey(pivotConfig, pivotFilter, sortby);
+								setCachedData(cacheKey, result);
+							}
+
+							// Store metadata if provided (for stats/analytics)
+							if (metadata) {
+								console.log('Server metadata:', metadata);
+							}
+						} else {
+							console.error('Server error:', error);
+							alert(error || 'Failed to fetch data');
+						}
+						setIsLoading(false);
+					}, 300);
+				}
+			} catch (err) {
+				console.error('Error in RunServerAction:', err);
+				alert('Network error: Unable to fetch data');
+				setIsLoading(false);
 			}
 		}
 	}
@@ -1023,6 +1159,31 @@ export default function PrimeTable({
 					</tbody>
 				);
 			}
+
+			// Virtual scrolling for pivot mode
+			if (virtualScrolling.enabled && pivotData.length > 100) {
+				const pivotColumns = Object.keys(pivotData[0] || {});
+				return (
+					<tbody>
+						<tr>
+							<td colSpan={pivotColumns.length} style={{ padding: 0 }}>
+								<List
+									ref={virtualListRef}
+									height={600}
+									itemCount={pivotData.length}
+									itemSize={virtualScrolling.rowHeight}
+									width="100%"
+									overscanCount={virtualScrolling.overscanCount}
+									itemData={{ rows: pivotData, columns: pivotColumns }}
+								>
+									{PivotVirtualRow}
+								</List>
+							</td>
+						</tr>
+					</tbody>
+				);
+			}
+
 			return (
 				<tbody>
 					{pivotData.map((row, index) => (
@@ -1041,6 +1202,29 @@ export default function PrimeTable({
 		if (isLoading) return <TableLoading span={column.length} />;
 		else if (groupedData.length == 0) return <NoDataAvailable />;
 		else {
+			// Virtual scrolling for normal mode
+			if (virtualScrolling.enabled && rows.length > 100) {
+				return (
+					<tbody>
+						<tr>
+							<td colSpan={column.length} style={{ padding: 0 }}>
+								<List
+									ref={virtualListRef}
+									height={600}
+									itemCount={rows.length}
+									itemSize={virtualScrolling.rowHeight}
+									width="100%"
+									overscanCount={virtualScrolling.overscanCount}
+									itemData={{ rows, prepareRow }}
+								>
+									{VirtualRow}
+								</List>
+							</td>
+						</tr>
+					</tbody>
+				);
+			}
+
 			return (
 				<tbody {...getTableBodyProps()}>
 					{rows.map((row, index) => {
@@ -1501,40 +1685,144 @@ export default function PrimeTable({
 						</div>
 					</div>
 					<div className="col-3 border-1 border-start p-2 ">
-						<div className="d-flex justify-content-between align-items-center my-2">
-							<div className="form-check form-switch">
-								<input className="form-check-input" type="checkbox" role="switch" id="pivotModeSwitch" onChange={e => setIsPivotMode(e.target.checked)} />
-								<label className="form-check-label" htmlFor="pivotModeSwitch">Pivot Mode</label>
+						<div className="d-flex flex-column gap-2 my-2">
+							<div className="d-flex justify-content-between align-items-center">
+								<div className="form-check form-switch">
+									<input className="form-check-input" type="checkbox" role="switch" id="pivotModeSwitch" onChange={e => setIsPivotMode(e.target.checked)} />
+									<label className="form-check-label" htmlFor="pivotModeSwitch">Pivot Mode</label>
+								</div>
+								{isPivotMode && (
+									<button
+										onClick={() => setIsPivotSectionCollapsed(!isPivotSectionCollapsed)}
+										className="btn btn-sm"
+										style={{
+											fontSize: '16px',
+											padding: '4px 8px',
+											lineHeight: '1',
+											border: '1px solid #0d6efd',
+											background: '#e7f1ff',
+											color: '#0d6efd',
+											fontWeight: 'bold',
+											borderRadius: '4px',
+											cursor: 'pointer',
+											transition: 'all 0.2s'
+										}}
+										onMouseEnter={(e) => {
+											e.target.style.background = '#0d6efd';
+											e.target.style.color = 'white';
+										}}
+										onMouseLeave={(e) => {
+											e.target.style.background = '#e7f1ff';
+											e.target.style.color = '#0d6efd';
+										}}
+										title={isPivotSectionCollapsed ? 'Expand Pivot Config' : 'Collapse Pivot Config'}
+									>
+										{isPivotSectionCollapsed ? '◀' : '▶'}
+									</button>
+								)}
 							</div>
-							{isPivotMode && (
-								<button
-									onClick={() => setIsPivotSectionCollapsed(!isPivotSectionCollapsed)}
-									className="btn btn-sm"
-									style={{
-										fontSize: '16px',
-										padding: '4px 8px',
-										lineHeight: '1',
-										border: '1px solid #0d6efd',
-										background: '#e7f1ff',
-										color: '#0d6efd',
-										fontWeight: 'bold',
-										borderRadius: '4px',
-										cursor: 'pointer',
-										transition: 'all 0.2s'
-									}}
-									onMouseEnter={(e) => {
-										e.target.style.background = '#0d6efd';
-										e.target.style.color = 'white';
-									}}
-									onMouseLeave={(e) => {
-										e.target.style.background = '#e7f1ff';
-										e.target.style.color = '#0d6efd';
-									}}
-									title={isPivotSectionCollapsed ? 'Expand Pivot Config' : 'Collapse Pivot Config'}
-								>
-									{isPivotSectionCollapsed ? '◀' : '▶'}
-								</button>
-							)}
+
+							{/* Performance Controls */}
+							<div className="d-flex align-items-center gap-3 flex-wrap" style={{ fontSize: '12px' }}>
+								{/* Virtual Scrolling Toggle */}
+								<div className="d-flex align-items-center gap-2">
+									<div className="form-check form-switch mb-0">
+										<input
+											className="form-check-input"
+											type="checkbox"
+											role="switch"
+											id="virtualScrollSwitch"
+											checked={virtualScrolling.enabled}
+											onChange={e => setVirtualScrolling(prev => ({ ...prev, enabled: e.target.checked }))}
+											title="Enable for 1000+ rows"
+										/>
+										<label className="form-check-label" htmlFor="virtualScrollSwitch">
+											⚡ Virtual Scroll
+										</label>
+									</div>
+									{virtualScrolling.enabled && (
+										<span
+											className="badge"
+											style={{
+												background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+												fontSize: '9px',
+												padding: '3px 6px'
+											}}
+										>
+											{isPivotMode ? pivotData?.length || 0 : filteredData?.length || 0} rows
+										</span>
+									)}
+								</div>
+
+								{/* Auto-Refresh Controls */}
+								{serverSideFiltering && (
+									<>
+										<div className="form-check form-switch mb-0">
+											<input
+												className="form-check-input"
+												type="checkbox"
+												role="switch"
+												id="autoRefreshSwitch"
+												checked={autoRefresh.enabled}
+												onChange={e => setAutoRefresh(prev => ({ ...prev, enabled: e.target.checked }))}
+											/>
+											<label className="form-check-label" htmlFor="autoRefreshSwitch">
+												🔄 Auto-Refresh
+											</label>
+										</div>
+
+										{autoRefresh.enabled && (
+											<>
+												<select
+													className="form-select form-select-sm"
+													style={{ width: '90px', fontSize: '11px' }}
+													value={autoRefresh.interval}
+													onChange={e => setAutoRefresh(prev => ({ ...prev, interval: parseInt(e.target.value) }))}
+												>
+													<option value="10000">10s</option>
+													<option value="30000">30s</option>
+													<option value="60000">1m</option>
+													<option value="300000">5m</option>
+													<option value="600000">10m</option>
+												</select>
+
+												<button
+													className="btn btn-sm"
+													style={{
+														fontSize: '11px',
+														padding: '2px 8px',
+														background: autoRefresh.isPaused ? '#ffc107' : '#198754',
+														color: 'white',
+														border: 'none',
+														borderRadius: '4px'
+													}}
+													onClick={() => setAutoRefresh(prev => ({ ...prev, isPaused: !prev.isPaused }))}
+													title={autoRefresh.isPaused ? 'Resume' : 'Pause'}
+												>
+													{autoRefresh.isPaused ? '▶' : '⏸'}
+												</button>
+
+												{autoRefresh.lastRefresh && (
+													<span style={{ fontSize: '10px', color: '#6c757d' }}>
+														Last: {autoRefresh.lastRefresh.toLocaleTimeString()}
+													</span>
+												)}
+											</>
+										)}
+									</>
+								)}
+
+								{/* Cache Status Indicator */}
+								{dataCache.timestamp && (
+									<span
+										className="badge bg-info"
+										style={{ fontSize: '9px', padding: '3px 6px' }}
+										title={`Cached ${Math.floor((Date.now() - dataCache.timestamp) / 1000)}s ago`}
+									>
+										💾 Cached
+									</span>
+								)}
+							</div>
 						</div>
 					</div>
 				</div>
