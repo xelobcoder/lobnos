@@ -7,8 +7,6 @@ import TableLoading from "./TableLoading";
 import style from "../../../styles/SmsTemplateList.module.css";
 import { ButtonGroup } from "react-bootstrap";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ScatterChart, Scatter, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 export default function PrimeTable({
 	column,
@@ -53,11 +51,12 @@ export default function PrimeTable({
 	const [showShareModal, setShowShareModal] = useState(false);
 	const [shareConfig, setShareConfig] = useState(null);
 	const [showScheduleModal, setShowScheduleModal] = useState(false);
+	const [isPivotSectionCollapsed, setIsPivotSectionCollapsed] = useState(false);
 	const [scheduleConfig, setScheduleConfig] = useState({
 		frequency: 'daily',
 		time: '09:00',
 		email: '',
-		format: 'pdf',
+		format: 'excel',
 		enabled: false
 	});
 
@@ -144,110 +143,6 @@ export default function PrimeTable({
 		link.href = URL.createObjectURL(blob);
 		link.download = `table_export_${new Date().toISOString().split('T')[0]}.xls`;
 		link.click();
-	};
-
-	// Export to PDF
-	const exportToPDF = () => {
-		const dataToExport = isPivotMode ? pivotData : groupedData;
-		if (!dataToExport || dataToExport.length === 0) {
-			alert('No data to export');
-			return;
-		}
-
-		const doc = new jsPDF({
-			orientation: 'landscape',
-			unit: 'mm',
-			format: 'a4'
-		});
-
-		// Add title
-		doc.setFontSize(18);
-		doc.setFont(undefined, 'bold');
-		doc.text('Data Export Report', 14, 15);
-
-		// Add date
-		doc.setFontSize(10);
-		doc.setFont(undefined, 'normal');
-		doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 22);
-
-		// Prepare table data
-		const headers = Object.keys(dataToExport[0]);
-		const rows = dataToExport.map(row =>
-			headers.map(header => {
-				const value = row[header];
-				return value !== null && value !== undefined ? String(value) : '';
-			})
-		);
-
-		// Calculate optimal font size based on number of columns
-		const columnCount = headers.length;
-		let fontSize = 10;
-		if (columnCount > 15) fontSize = 7;
-		else if (columnCount > 10) fontSize = 8;
-		else if (columnCount > 6) fontSize = 9;
-
-		// Add table with autoTable
-		autoTable(doc, {
-			head: [headers],
-			body: rows,
-			startY: 28,
-			styles: {
-				fontSize: fontSize,
-				cellPadding: 3,
-				overflow: 'linebreak',
-				halign: 'left',
-				valign: 'middle',
-				lineColor: [200, 200, 200],
-				lineWidth: 0.1,
-				minCellHeight: 8
-			},
-			headStyles: {
-				fillColor: [41, 128, 185],
-				textColor: [255, 255, 255],
-				fontStyle: 'bold',
-				halign: 'center',
-				fontSize: fontSize + 1,
-				cellPadding: 4
-			},
-			bodyStyles: {
-				textColor: [50, 50, 50]
-			},
-			alternateRowStyles: {
-				fillColor: [248, 249, 250]
-			},
-			columnStyles: {
-				// Auto-fit columns
-			},
-			margin: { top: 28, left: 10, right: 10, bottom: 20 },
-			theme: 'grid',
-			tableWidth: 'auto',
-			// Add page numbers
-			didDrawPage: function (data) {
-				// Header on each page (except first)
-				const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
-
-				// Footer with page numbers
-				doc.setFontSize(9);
-				doc.setTextColor(100);
-				doc.text(
-					`Page ${pageNumber}`,
-					doc.internal.pageSize.width / 2,
-					doc.internal.pageSize.height - 10,
-					{ align: 'center' }
-				);
-
-				// Add report name in footer
-				doc.setFontSize(8);
-				doc.text(
-					'Data Export Report',
-					10,
-					doc.internal.pageSize.height - 10
-				);
-			}
-		});
-
-		// Save the PDF
-		doc.save(`table_export_${new Date().toISOString().split('T')[0]}.pdf`);
 	};
 
 	// Generate shareable configuration
@@ -1421,14 +1316,6 @@ export default function PrimeTable({
 										📊 Excel
 									</button>
 									<button
-										onClick={exportToPDF}
-										className="btn btn-sm btn-outline-danger"
-										style={{ fontSize: '11px', padding: '4px 10px', whiteSpace: 'nowrap' }}
-										title="Export to PDF"
-									>
-										📑 PDF
-									</button>
-									<button
 										onClick={handlePrintOptimized}
 										className="btn btn-sm btn-outline-secondary"
 										style={{ fontSize: '11px', padding: '4px 10px', whiteSpace: 'nowrap' }}
@@ -1614,14 +1501,45 @@ export default function PrimeTable({
 						</div>
 					</div>
 					<div className="col-3 border-1 border-start p-2 ">
-						<div className="form-check form-switch my-2 " >
-							<input className="form-check-input" type="checkbox" role="switch" id="pivotModeSwitch" onChange={e => setIsPivotMode(e.target.checked)} />
-							<label className="form-check-label" htmlFor="pivotModeSwitch">Pivot Mode</label>
+						<div className="d-flex justify-content-between align-items-center my-2">
+							<div className="form-check form-switch">
+								<input className="form-check-input" type="checkbox" role="switch" id="pivotModeSwitch" onChange={e => setIsPivotMode(e.target.checked)} />
+								<label className="form-check-label" htmlFor="pivotModeSwitch">Pivot Mode</label>
+							</div>
+							{isPivotMode && (
+								<button
+									onClick={() => setIsPivotSectionCollapsed(!isPivotSectionCollapsed)}
+									className="btn btn-sm"
+									style={{
+										fontSize: '16px',
+										padding: '4px 8px',
+										lineHeight: '1',
+										border: '1px solid #0d6efd',
+										background: '#e7f1ff',
+										color: '#0d6efd',
+										fontWeight: 'bold',
+										borderRadius: '4px',
+										cursor: 'pointer',
+										transition: 'all 0.2s'
+									}}
+									onMouseEnter={(e) => {
+										e.target.style.background = '#0d6efd';
+										e.target.style.color = 'white';
+									}}
+									onMouseLeave={(e) => {
+										e.target.style.background = '#e7f1ff';
+										e.target.style.color = '#0d6efd';
+									}}
+									title={isPivotSectionCollapsed ? 'Expand Pivot Config' : 'Collapse Pivot Config'}
+								>
+									{isPivotSectionCollapsed ? '◀' : '▶'}
+								</button>
+							)}
 						</div>
 					</div>
 				</div>
-				<div className="row m-0 p-0">
-					<div className="col-9" style={{ overflowY: 'auto', overflowX: 'auto', maxHeight: '70vh' }}>
+				<div className="row m-0 p-0 flex-nowrap">
+					<div className={isPivotMode && !isPivotSectionCollapsed ? "col-9" : "col-12"} style={{ overflowY: 'auto', overflowX: 'auto', maxHeight: '70vh' }}>
 						{isPivotMode && showChart && pivotData && pivotData.length > 0 && (
 							<>
 								<div className="p-3 border-bottom" style={{ backgroundColor: '#f8f9fa' }}>
@@ -1840,265 +1758,268 @@ export default function PrimeTable({
 
 						</table>
 					</div>
-					<div className="col-3 border-1 border-start p-2 " style={{ overflowY: 'auto', maxHeight: '70vh', backgroundColor: '#fafbfc' }}>					{isPivotMode && (
-						<div className="mt-3">
-							<div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-								<h6 className="mb-0 fw-bold text-primary">⚙️ Pivot Config</h6>
-								<button onClick={clearPivotConfig} className="btn btn-sm btn-outline-danger" style={{ fontSize: '11px' }}>
-									<span style={{ fontSize: '13px' }}>🗑️</span> Clear
-								</button>
-							</div>
+					{isPivotMode && !isPivotSectionCollapsed && (
+						<div className="col-3 border-1 border-start p-2 " style={{ overflowY: 'auto', maxHeight: '70vh', backgroundColor: '#fafbfc' }}>
+							<div className="mt-3">
+								<div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+									<h6 className="mb-0 fw-bold text-primary">⚙️ Pivot Config</h6>
+									<button onClick={clearPivotConfig} className="btn btn-sm btn-outline-danger" style={{ fontSize: '11px' }}>
+										<span style={{ fontSize: '13px' }}>🗑️</span> Clear
+									</button>
+								</div>
 
-							{/* Available Fields */}
-							<div className="mb-3">
-								<div className="d-flex align-items-center mb-2">
-									<span style={{ fontSize: '11px', fontWeight: '600', color: '#6c757d', letterSpacing: '0.5px' }}>📋 AVAILABLE FIELDS</span>
-									<span className="badge bg-secondary ms-2" style={{ fontSize: '9px' }}>{unusedFields.length}</span>
+								{/* Available Fields */}
+								<div className="mb-3">
+									<div className="d-flex align-items-center mb-2">
+										<span style={{ fontSize: '11px', fontWeight: '600', color: '#6c757d', letterSpacing: '0.5px' }}>📋 AVAILABLE FIELDS</span>
+										<span className="badge bg-secondary ms-2" style={{ fontSize: '9px' }}>{unusedFields.length}</span>
+									</div>
+									<div
+										className="mb-2 rounded-2 shadow-sm"
+										style={{
+											minHeight: '70px',
+											border: '2px dashed #d1d5db',
+											padding: '10px',
+											backgroundColor: '#ffffff',
+											transition: 'all 0.2s ease'
+										}}
+									>
+										{unusedFields.length === 0 ? (
+											<div className="text-center text-muted py-3" style={{ fontSize: '11px' }}>
+												<div style={{ fontSize: '24px', opacity: 0.5 }}>📦</div>
+												<div className="mt-1">All fields in use</div>
+											</div>
+										) : (
+											<div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+												{unusedFields.map(field => (
+													<div
+														key={field.key}
+														draggable
+														onDragStart={(e) => handleDragStart(e, field.key)}
+														className="badge"
+														style={{
+															padding: '6px 10px',
+															background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+															color: 'white',
+															border: 'none',
+															borderRadius: '6px',
+															cursor: 'grab',
+															fontSize: '11px',
+															fontWeight: '500',
+															boxShadow: '0 2px 4px rgba(102, 126, 234, 0.3)',
+															transition: 'all 0.2s ease',
+															userSelect: 'none'
+														}}
+														onMouseEnter={(e) => {
+															e.target.style.transform = 'translateY(-2px) scale(1.02)';
+															e.target.style.boxShadow = '0 4px 8px rgba(102, 126, 234, 0.4)';
+														}}
+														onMouseLeave={(e) => {
+															e.target.style.transform = 'translateY(0) scale(1)';
+															e.target.style.boxShadow = '0 2px 4px rgba(102, 126, 234, 0.3)';
+														}}
+													>
+														⋮⋮ {field.header}
+													</div>
+												))}
+											</div>
+										)}
+									</div>
+									<div className="text-center">
+										<small className="text-muted" style={{ fontSize: '10px' }}>👆 Drag fields to configure pivot</small>
+									</div>
 								</div>
-								<div
-									className="mb-2 rounded-2 shadow-sm"
-									style={{
-										minHeight: '70px',
-										border: '2px dashed #d1d5db',
-										padding: '10px',
-										backgroundColor: '#ffffff',
-										transition: 'all 0.2s ease'
-									}}
-								>
-									{unusedFields.length === 0 ? (
-										<div className="text-center text-muted py-3" style={{ fontSize: '11px' }}>
-											<div style={{ fontSize: '24px', opacity: 0.5 }}>📦</div>
-											<div className="mt-1">All fields in use</div>
-										</div>
-									) : (
-										<div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-											{unusedFields.map(field => (
-												<div
-													key={field.key}
-													draggable
-													onDragStart={(e) => handleDragStart(e, field.key)}
-													className="badge"
-													style={{
-														padding: '6px 10px',
-														background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-														color: 'white',
-														border: 'none',
-														borderRadius: '6px',
-														cursor: 'grab',
-														fontSize: '11px',
-														fontWeight: '500',
-														boxShadow: '0 2px 4px rgba(102, 126, 234, 0.3)',
-														transition: 'all 0.2s ease',
-														userSelect: 'none'
-													}}
-													onMouseEnter={(e) => {
-														e.target.style.transform = 'translateY(-2px) scale(1.02)';
-														e.target.style.boxShadow = '0 4px 8px rgba(102, 126, 234, 0.4)';
-													}}
-													onMouseLeave={(e) => {
-														e.target.style.transform = 'translateY(0) scale(1)';
-														e.target.style.boxShadow = '0 2px 4px rgba(102, 126, 234, 0.3)';
-													}}
-												>
-													⋮⋮ {field.header}
-												</div>
-											))}
-										</div>
-									)}
-								</div>
-								<div className="text-center">
-									<small className="text-muted" style={{ fontSize: '10px' }}>👆 Drag fields to configure pivot</small>
-								</div>
-							</div>
 
-							{/* Row Groups */}
-							<div className="mb-3">
-								<div className="d-flex align-items-center mb-2">
-									<span style={{ fontSize: '11px', fontWeight: '600', color: '#0d6efd', letterSpacing: '0.5px' }}>📊 ROW GROUPS</span>
-									<span className="badge bg-primary ms-2" style={{ fontSize: '9px' }}>{pivotConfig.rowGroups.length}</span>
-								</div>
-								<div
-									className="rounded-2 shadow-sm"
-									style={{
-										minHeight: '65px',
-										border: '2px dashed #0d6efd',
-										padding: '10px',
-										backgroundColor: 'rgba(13, 110, 253, 0.03)',
-										transition: 'all 0.3s ease'
-									}}
-									onDrop={(e) => {
-										handleDrop(e, 'rowGroups');
-										e.currentTarget.style.backgroundColor = 'rgba(13, 110, 253, 0.03)';
-										e.currentTarget.style.borderColor = '#0d6efd';
-									}}
-									onDragOver={handleDragOver}
-									onDragEnter={(e) => {
-										e.currentTarget.style.backgroundColor = 'rgba(13, 110, 253, 0.1)';
-										e.currentTarget.style.borderColor = '#0a58ca';
-										e.currentTarget.style.borderWidth = '3px';
-									}}
-									onDragLeave={(e) => {
-										e.currentTarget.style.backgroundColor = 'rgba(13, 110, 253, 0.03)';
-										e.currentTarget.style.borderColor = '#0d6efd';
-										e.currentTarget.style.borderWidth = '2px';
-									}}
-								>
-									{pivotConfig.rowGroups.length === 0 ? (
-										<div className="text-center text-muted py-2" style={{ fontSize: '11px' }}>
-											<div style={{ fontSize: '20px', opacity: 0.5 }}>⬇️</div>
-											<div className="mt-1">Drop here</div>
-										</div>
-									) : (
-										<div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-											{pivotConfig.rowGroups.map(field => (
-												<div key={field} className="badge bg-primary" style={{ padding: '6px 10px', fontSize: '11px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', borderRadius: '6px' }}>
-													🏷️ {availableFields.find(f => f.key === field)?.header}
-													<button
-														onClick={() => removeField('rowGroups', field)}
-														className="btn-close btn-close-white"
-														style={{ fontSize: '8px', padding: '0', width: '12px', height: '12px' }}
-														title="Remove"
-													/>
-												</div>
-											))}
-										</div>
-									)}
-								</div>
-							</div>
-
-							{/* Values */}
-							<div className="mb-3">
-								<div className="d-flex align-items-center mb-2">
-									<span style={{ fontSize: '11px', fontWeight: '600', color: '#198754', letterSpacing: '0.5px' }}>🔢 VALUES</span>
-									<span className="badge bg-success ms-2" style={{ fontSize: '9px' }}>{pivotConfig.valueFields.length}</span>
-								</div>
-								<div
-									className="rounded-2 shadow-sm"
-									style={{
-										minHeight: '65px',
-										border: '2px dashed #198754',
-										padding: '10px',
-										backgroundColor: 'rgba(25, 135, 84, 0.03)',
-										transition: 'all 0.3s ease'
-									}}
-									onDrop={(e) => {
-										handleDrop(e, 'valueFields');
-										e.currentTarget.style.backgroundColor = 'rgba(25, 135, 84, 0.03)';
-										e.currentTarget.style.borderColor = '#198754';
-									}}
-									onDragOver={handleDragOver}
-									onDragEnter={(e) => {
-										e.currentTarget.style.backgroundColor = 'rgba(25, 135, 84, 0.1)';
-										e.currentTarget.style.borderColor = '#146c43';
-										e.currentTarget.style.borderWidth = '3px';
-									}}
-									onDragLeave={(e) => {
-										e.currentTarget.style.backgroundColor = 'rgba(25, 135, 84, 0.03)';
-										e.currentTarget.style.borderColor = '#198754';
-										e.currentTarget.style.borderWidth = '2px';
-									}}
-								>
-									{pivotConfig.valueFields.length === 0 ? (
-										<div className="text-center text-muted py-2" style={{ fontSize: '11px' }}>
-											<div style={{ fontSize: '20px', opacity: 0.5 }}>⬇️</div>
-											<div className="mt-1">Drop numeric fields</div>
-										</div>
-									) : (
-										<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-											{pivotConfig.valueFields.map(field => (
-												<div key={field} className="badge bg-success" style={{ padding: '8px 10px', fontSize: '11px', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '6px' }}>
-													<span>📈 {availableFields.find(f => f.key === field)?.header}</span>
-													<div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-														<select
-															value={pivotConfig.aggregations[field] || 'Sum'}
-															onChange={(e) => setAggregation(field, e.target.value)}
-															className="form-select form-select-sm"
-															style={{
-																fontSize: '10px',
-																padding: '2px 6px',
-																height: '22px',
-																width: '65px',
-																backgroundColor: 'rgba(255,255,255,0.95)',
-																border: '1px solid rgba(255,255,255,0.3)',
-																color: '#000',
-																fontWeight: '500'
-															}}
-														>
-															{aggregationTypes.map(type => (
-																<option key={type} value={type}>{type}</option>
-															))}
-														</select>
+								{/* Row Groups */}
+								<div className="mb-3">
+									<div className="d-flex align-items-center mb-2">
+										<span style={{ fontSize: '11px', fontWeight: '600', color: '#0d6efd', letterSpacing: '0.5px' }}>📊 ROW GROUPS</span>
+										<span className="badge bg-primary ms-2" style={{ fontSize: '9px' }}>{pivotConfig.rowGroups.length}</span>
+									</div>
+									<div
+										className="rounded-2 shadow-sm"
+										style={{
+											minHeight: '65px',
+											border: '2px dashed #0d6efd',
+											padding: '10px',
+											backgroundColor: 'rgba(13, 110, 253, 0.03)',
+											transition: 'all 0.3s ease'
+										}}
+										onDrop={(e) => {
+											handleDrop(e, 'rowGroups');
+											e.currentTarget.style.backgroundColor = 'rgba(13, 110, 253, 0.03)';
+											e.currentTarget.style.borderColor = '#0d6efd';
+										}}
+										onDragOver={handleDragOver}
+										onDragEnter={(e) => {
+											e.currentTarget.style.backgroundColor = 'rgba(13, 110, 253, 0.1)';
+											e.currentTarget.style.borderColor = '#0a58ca';
+											e.currentTarget.style.borderWidth = '3px';
+										}}
+										onDragLeave={(e) => {
+											e.currentTarget.style.backgroundColor = 'rgba(13, 110, 253, 0.03)';
+											e.currentTarget.style.borderColor = '#0d6efd';
+											e.currentTarget.style.borderWidth = '2px';
+										}}
+									>
+										{pivotConfig.rowGroups.length === 0 ? (
+											<div className="text-center text-muted py-2" style={{ fontSize: '11px' }}>
+												<div style={{ fontSize: '20px', opacity: 0.5 }}>⬇️</div>
+												<div className="mt-1">Drop here</div>
+											</div>
+										) : (
+											<div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+												{pivotConfig.rowGroups.map(field => (
+													<div key={field} className="badge bg-primary" style={{ padding: '6px 10px', fontSize: '11px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', borderRadius: '6px' }}>
+														🏷️ {availableFields.find(f => f.key === field)?.header}
 														<button
-															onClick={() => removeField('valueFields', field)}
+															onClick={() => removeField('rowGroups', field)}
 															className="btn-close btn-close-white"
 															style={{ fontSize: '8px', padding: '0', width: '12px', height: '12px' }}
 															title="Remove"
 														/>
 													</div>
-												</div>
-											))}
-										</div>
-									)}
+												))}
+											</div>
+										)}
+									</div>
 								</div>
-							</div>
 
-							{/* Column Labels */}
-							<div className="mb-3">
-								<div className="d-flex align-items-center mb-2">
-									<span style={{ fontSize: '11px', fontWeight: '600', color: '#fd7e14', letterSpacing: '0.5px' }}>📑 COLUMN LABELS</span>
-									<span className="badge bg-warning text-dark ms-2" style={{ fontSize: '9px' }}>{pivotConfig.columnLabels.length}</span>
+								{/* Values */}
+								<div className="mb-3">
+									<div className="d-flex align-items-center mb-2">
+										<span style={{ fontSize: '11px', fontWeight: '600', color: '#198754', letterSpacing: '0.5px' }}>🔢 VALUES</span>
+										<span className="badge bg-success ms-2" style={{ fontSize: '9px' }}>{pivotConfig.valueFields.length}</span>
+									</div>
+									<div
+										className="rounded-2 shadow-sm"
+										style={{
+											minHeight: '65px',
+											border: '2px dashed #198754',
+											padding: '10px',
+											backgroundColor: 'rgba(25, 135, 84, 0.03)',
+											transition: 'all 0.3s ease'
+										}}
+										onDrop={(e) => {
+											handleDrop(e, 'valueFields');
+											e.currentTarget.style.backgroundColor = 'rgba(25, 135, 84, 0.03)';
+											e.currentTarget.style.borderColor = '#198754';
+										}}
+										onDragOver={handleDragOver}
+										onDragEnter={(e) => {
+											e.currentTarget.style.backgroundColor = 'rgba(25, 135, 84, 0.1)';
+											e.currentTarget.style.borderColor = '#146c43';
+											e.currentTarget.style.borderWidth = '3px';
+										}}
+										onDragLeave={(e) => {
+											e.currentTarget.style.backgroundColor = 'rgba(25, 135, 84, 0.03)';
+											e.currentTarget.style.borderColor = '#198754';
+											e.currentTarget.style.borderWidth = '2px';
+										}}
+									>
+										{pivotConfig.valueFields.length === 0 ? (
+											<div className="text-center text-muted py-2" style={{ fontSize: '11px' }}>
+												<div style={{ fontSize: '20px', opacity: 0.5 }}>⬇️</div>
+												<div className="mt-1">Drop numeric fields</div>
+											</div>
+										) : (
+											<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+												{pivotConfig.valueFields.map(field => (
+													<div key={field} className="badge bg-success" style={{ padding: '8px 10px', fontSize: '11px', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '6px' }}>
+														<span>📈 {availableFields.find(f => f.key === field)?.header}</span>
+														<div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+															<select
+																value={pivotConfig.aggregations[field] || 'Sum'}
+																onChange={(e) => setAggregation(field, e.target.value)}
+																className="form-select form-select-sm"
+																style={{
+																	fontSize: '10px',
+																	padding: '2px 6px',
+																	height: '22px',
+																	width: '65px',
+																	backgroundColor: 'rgba(255,255,255,0.95)',
+																	border: '1px solid rgba(255,255,255,0.3)',
+																	color: '#000',
+																	fontWeight: '500'
+																}}
+															>
+																{aggregationTypes.map(type => (
+																	<option key={type} value={type}>{type}</option>
+																))}
+															</select>
+															<button
+																onClick={() => removeField('valueFields', field)}
+																className="btn-close btn-close-white"
+																style={{ fontSize: '8px', padding: '0', width: '12px', height: '12px' }}
+																title="Remove"
+															/>
+														</div>
+													</div>
+												))}
+											</div>
+										)}
+									</div>
 								</div>
-								<div
-									className="rounded-2 shadow-sm"
-									style={{
-										minHeight: '65px',
-										border: '2px dashed #fd7e14',
-										padding: '10px',
-										backgroundColor: 'rgba(253, 126, 20, 0.03)',
-										transition: 'all 0.3s ease'
-									}}
-									onDrop={(e) => {
-										handleDrop(e, 'columnLabels');
-										e.currentTarget.style.backgroundColor = 'rgba(253, 126, 20, 0.03)';
-										e.currentTarget.style.borderColor = '#fd7e14';
-									}}
-									onDragOver={handleDragOver}
-									onDragEnter={(e) => {
-										e.currentTarget.style.backgroundColor = 'rgba(253, 126, 20, 0.1)';
-										e.currentTarget.style.borderColor = '#ca6510';
-										e.currentTarget.style.borderWidth = '3px';
-									}}
-									onDragLeave={(e) => {
-										e.currentTarget.style.backgroundColor = 'rgba(253, 126, 20, 0.03)';
-										e.currentTarget.style.borderColor = '#fd7e14';
-										e.currentTarget.style.borderWidth = '2px';
-									}}
-								>
-									{pivotConfig.columnLabels.length === 0 ? (
-										<div className="text-center text-muted py-2" style={{ fontSize: '11px' }}>
-											<div style={{ fontSize: '20px', opacity: 0.5 }}>⬇️</div>
-											<div className="mt-1">Drop here</div>
-										</div>
-									) : (
-										<div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-											{pivotConfig.columnLabels.map(field => (
-												<div key={field} className="badge bg-warning text-dark" style={{ padding: '6px 10px', fontSize: '11px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', borderRadius: '6px' }}>
-													🏷️ {availableFields.find(f => f.key === field)?.header}
-													<button
-														onClick={() => removeField('columnLabels', field)}
-														className="btn-close"
-														style={{ fontSize: '8px', padding: '0', width: '12px', height: '12px' }}
-														title="Remove"
-													/>
-												</div>
-											))}
-										</div>
-									)}
+
+								{/* Column Labels */}
+								<div className="mb-3">
+									<div className="d-flex align-items-center mb-2">
+										<span style={{ fontSize: '11px', fontWeight: '600', color: '#fd7e14', letterSpacing: '0.5px' }}>📑 COLUMN LABELS</span>
+										<span className="badge bg-warning text-dark ms-2" style={{ fontSize: '9px' }}>{pivotConfig.columnLabels.length}</span>
+									</div>
+									<div
+										className="rounded-2 shadow-sm"
+										style={{
+											minHeight: '65px',
+											border: '2px dashed #fd7e14',
+											padding: '10px',
+											backgroundColor: 'rgba(253, 126, 20, 0.03)',
+											transition: 'all 0.3s ease'
+										}}
+										onDrop={(e) => {
+											handleDrop(e, 'columnLabels');
+											e.currentTarget.style.backgroundColor = 'rgba(253, 126, 20, 0.03)';
+											e.currentTarget.style.borderColor = '#fd7e14';
+										}}
+										onDragOver={handleDragOver}
+										onDragEnter={(e) => {
+											e.currentTarget.style.backgroundColor = 'rgba(253, 126, 20, 0.1)';
+											e.currentTarget.style.borderColor = '#ca6510';
+											e.currentTarget.style.borderWidth = '3px';
+										}}
+										onDragLeave={(e) => {
+											e.currentTarget.style.backgroundColor = 'rgba(253, 126, 20, 0.03)';
+											e.currentTarget.style.borderColor = '#fd7e14';
+											e.currentTarget.style.borderWidth = '2px';
+										}}
+									>
+										{pivotConfig.columnLabels.length === 0 ? (
+											<div className="text-center text-muted py-2" style={{ fontSize: '11px' }}>
+												<div style={{ fontSize: '20px', opacity: 0.5 }}>⬇️</div>
+												<div className="mt-1">Drop here</div>
+											</div>
+										) : (
+											<div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+												{pivotConfig.columnLabels.map(field => (
+													<div key={field} className="badge bg-warning text-dark" style={{ padding: '6px 10px', fontSize: '11px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px', borderRadius: '6px' }}>
+														🏷️ {availableFields.find(f => f.key === field)?.header}
+														<button
+															onClick={() => removeField('columnLabels', field)}
+															className="btn-close"
+															style={{ fontSize: '8px', padding: '0', width: '12px', height: '12px' }}
+															title="Remove"
+														/>
+													</div>
+												))}
+											</div>
+										)}
+									</div>
 								</div>
 							</div>
 						</div>
 					)}
-						{!isPivotMode && (
+					{!isPivotMode && (
+						<div className="col-3 border-1 border-start p-2 " style={{ overflowY: 'auto', maxHeight: '70vh', backgroundColor: '#fafbfc' }}>
 							<div className="mt-3">
 								<div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
 									<h6 className="mb-0 fw-bold" style={{ color: '#198754' }}>🎛️ Table Controls</h6>
@@ -2261,53 +2182,153 @@ export default function PrimeTable({
 									</div>
 								</div>
 							</div>
-						)}
-
-					</div>
+						</div>
+					)}
 				</div>
 				<div className="p-2">
 					{serverSideFiltering && (
-						<tfoot>
-							<tr>
-								<td colSpan={2} className="text-secondary-emphasis">
-									<span>Current Page: {queryParams.page} </span>
-									<span className={style.paginationSeparator}>|</span>
-									<span>Item Count: {filteredData.length || 0}</span>
-								</td>
-								<td colSpan={column.length - 1}>
-									<div className={style.paginationContainer}>
-										{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "Next", "Previous"].map(
-											(item, index) => {
-												const isActive = queryParams.page === item;
-												const isNav = typeof item === "string";
-												return (
-													<button
-														type="button"
-														onClick={() => handlePagination(item)}
-														key={index}
-														className={`
-																 ${style.paginationBtn
-															}
-																 ${isActive
-																? style.paginationBtnActive
-																: ""
-															}
-																 ${isNav
-																? style.paginationBtnNav
-																: ""
-															}
-															`}
-														aria-current={isActive ? "page" : undefined}
-													>
-														{item}
-													</button>
-												);
-											}
-										)}
-									</div>
-								</td>
-							</tr>
-						</tfoot>
+						<div
+							className="d-flex justify-content-between align-items-center py-3 px-3 border-top"
+							style={{
+								backgroundColor: '#f8f9fa',
+								borderRadius: '0 0 8px 8px'
+							}}
+						>
+							{/* Info Section */}
+							<div className="d-flex align-items-center gap-3">
+								<div style={{ fontSize: '14px', fontWeight: '500', color: '#212529' }}>
+									<span style={{ color: '#198754' }}>Page {queryParams.page}</span>
+								</div>
+								<div
+									className="vr"
+									style={{
+										height: '24px',
+										width: '2px',
+										backgroundColor: '#dee2e6'
+									}}
+								></div>
+								<div style={{ fontSize: '13px', color: '#6c757d' }}>
+									<span className="fw-semibold" style={{ color: '#495057' }}>
+										{filteredData.length || 0}
+									</span>
+									<span> records</span>
+								</div>
+							</div>
+
+							{/* Pagination Controls */}
+							<div className="d-flex align-items-center gap-2">
+								{/* Previous */}
+								<button
+									type="button"
+									onClick={() => handlePagination("Previous")}
+									disabled={queryParams.page === 1}
+									style={{
+										padding: '6px 14px',
+										fontSize: '13px',
+										fontWeight: '500',
+										border: '1px solid #198754',
+										borderRadius: '6px',
+										backgroundColor: 'white',
+										color: queryParams.page === 1 ? '#adb5bd' : '#198754',
+										cursor: queryParams.page === 1 ? 'not-allowed' : 'pointer',
+										transition: 'all 0.2s ease',
+										display: 'flex',
+										alignItems: 'center',
+										gap: '6px',
+										opacity: queryParams.page === 1 ? 0.6 : 1
+									}}
+									onMouseEnter={(e) => {
+										if (queryParams.page !== 1) {
+											e.currentTarget.style.backgroundColor = '#d1e7dd';
+											e.currentTarget.style.borderColor = '#198754';
+										}
+									}}
+									onMouseLeave={(e) => {
+										e.currentTarget.style.backgroundColor = 'white';
+										e.currentTarget.style.borderColor = '#198754';
+									}}
+								>
+									<span>←</span>
+									<span>Previous</span>
+								</button>
+
+								{/* Page Numbers */}
+								<div className="d-flex gap-1">
+									{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((item) => {
+										const isActive = queryParams.page === item;
+										return (
+											<button
+												type="button"
+												onClick={() => handlePagination(item)}
+												key={item}
+												aria-current={isActive ? "page" : undefined}
+												style={{
+													minWidth: '38px',
+													height: '38px',
+													padding: '6px',
+													fontSize: '13px',
+													fontWeight: isActive ? '600' : '500',
+													border: `1.5px solid ${isActive ? '#198754' : '#dee2e6'}`,
+													borderRadius: '6px',
+													backgroundColor: isActive ? '#198754' : 'white',
+													color: isActive ? 'white' : '#495057',
+													cursor: 'pointer',
+													transition: 'all 0.2s ease',
+													boxShadow: isActive ? '0 2px 6px rgba(25, 135, 84, 0.25)' : 'none'
+												}}
+												onMouseEnter={(e) => {
+													if (!isActive) {
+														e.currentTarget.style.backgroundColor = '#d1e7dd';
+														e.currentTarget.style.borderColor = '#198754';
+														e.currentTarget.style.transform = 'translateY(-1px)';
+													}
+												}}
+												onMouseLeave={(e) => {
+													if (!isActive) {
+														e.currentTarget.style.backgroundColor = 'white';
+														e.currentTarget.style.borderColor = '#dee2e6';
+														e.currentTarget.style.transform = 'translateY(0)';
+													}
+												}}
+											>
+												{item}
+											</button>
+										);
+									})}
+								</div>
+
+								{/* Next */}
+								<button
+									type="button"
+									onClick={() => handlePagination("Next")}
+									style={{
+										padding: '6px 14px',
+										fontSize: '13px',
+										fontWeight: '500',
+										border: '1px solid #198754',
+										borderRadius: '6px',
+										backgroundColor: 'white',
+										color: '#198754',
+										cursor: 'pointer',
+										transition: 'all 0.2s ease',
+										display: 'flex',
+										alignItems: 'center',
+										gap: '6px'
+									}}
+									onMouseEnter={(e) => {
+										e.currentTarget.style.backgroundColor = '#d1e7dd';
+										e.currentTarget.style.borderColor = '#198754';
+									}}
+									onMouseLeave={(e) => {
+										e.currentTarget.style.backgroundColor = 'white';
+										e.currentTarget.style.borderColor = '#198754';
+									}}
+								>
+									<span>Next</span>
+									<span>→</span>
+								</button>
+							</div>
+						</div>
 					)}
 				</div>
 
@@ -2579,19 +2600,6 @@ export default function PrimeTable({
 										<div className="mb-3">
 											<label className="form-label" style={{ fontSize: '12px' }}>Export Format:</label>
 											<div>
-												<div className="form-check form-check-inline">
-													<input
-														className="form-check-input"
-														type="radio"
-														id="formatPDF"
-														value="pdf"
-														checked={scheduleConfig.format === 'pdf'}
-														onChange={(e) => setScheduleConfig({ ...scheduleConfig, format: e.target.value })}
-													/>
-													<label className="form-check-label" htmlFor="formatPDF">
-														📑 PDF
-													</label>
-												</div>
 												<div className="form-check form-check-inline">
 													<input
 														className="form-check-input"
