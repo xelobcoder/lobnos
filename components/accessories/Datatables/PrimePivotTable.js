@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useTable, useGlobalFilter, useFilters, useSortBy } from "react-table";
-import { FixedSizeList as List } from 'react-window';
+import { List } from 'react-window';
 import GlobalFilter from "./GlobalFilter";
 import ShowTableDisplayCount from "./TableDisplayShowCount";
 import TableLoading from "./TableLoading";
@@ -158,9 +158,8 @@ export default function PrimeTable({
 		});
 	};
 
-	// Virtual Row Component for react-window
-	const VirtualRow = ({ index, style, data }) => {
-		const { rows, prepareRow } = data;
+	// Virtual Row Component for react-window (new API)
+	const VirtualRow = ({ index, style, rows, prepareRow }) => {
 		const row = rows[index];
 
 		if (!row) return null;
@@ -178,9 +177,8 @@ export default function PrimeTable({
 		);
 	};
 
-	// Pivot Virtual Row Component
-	const PivotVirtualRow = ({ index, style, data }) => {
-		const { rows, columns } = data;
+	// Pivot Virtual Row Component (new API)
+	const PivotVirtualRow = ({ index, style, rows, columns }) => {
 		const row = rows[index];
 
 		if (!row) return null;
@@ -1160,29 +1158,26 @@ export default function PrimeTable({
 				);
 			}
 
-			// Virtual scrolling for pivot mode
-			if (virtualScrolling.enabled && pivotData.length > 100) {
-				const pivotColumns = Object.keys(pivotData[0] || {});
-				return (
-					<tbody>
-						<tr>
-							<td colSpan={pivotColumns.length} style={{ padding: 0 }}>
-								<List
-									ref={virtualListRef}
-									height={600}
-									itemCount={pivotData.length}
-									itemSize={virtualScrolling.rowHeight}
-									width="100%"
-									overscanCount={virtualScrolling.overscanCount}
-									itemData={{ rows: pivotData, columns: pivotColumns }}
-								>
-									{PivotVirtualRow}
-								</List>
-							</td>
-						</tr>
-					</tbody>
-				);
-			}
+			// Virtual scrolling for pivot mode - DISABLED (breaks table layout)
+			// React-window uses div-based layout which doesn't work inside <table>
+			// if (virtualScrolling.enabled && pivotData.length > 100) {
+			// 	const pivotColumns = Object.keys(pivotData[0] || {});
+			// 	return (
+			// 		<tbody>
+			// 			<tr>
+			// 				<td colSpan={pivotColumns.length} style={{ padding: 0, height: '600px' }}>
+			// 					<List
+			// 						rowComponent={PivotVirtualRow}
+			// 						rowCount={pivotData.length}
+			// 						rowHeight={virtualScrolling.rowHeight}
+			// 						rowProps={{ rows: pivotData, columns: pivotColumns }}
+			// 						style={{ height: '600px', width: '100%' }}
+			// 					/>
+			// 				</td>
+			// 			</tr>
+			// 		</tbody>
+			// 	);
+			// }
 
 			return (
 				<tbody>
@@ -1202,28 +1197,25 @@ export default function PrimeTable({
 		if (isLoading) return <TableLoading span={column.length} />;
 		else if (groupedData.length == 0) return <NoDataAvailable />;
 		else {
-			// Virtual scrolling for normal mode
-			if (virtualScrolling.enabled && rows.length > 100) {
-				return (
-					<tbody>
-						<tr>
-							<td colSpan={column.length} style={{ padding: 0 }}>
-								<List
-									ref={virtualListRef}
-									height={600}
-									itemCount={rows.length}
-									itemSize={virtualScrolling.rowHeight}
-									width="100%"
-									overscanCount={virtualScrolling.overscanCount}
-									itemData={{ rows, prepareRow }}
-								>
-									{VirtualRow}
-								</List>
-							</td>
-						</tr>
-					</tbody>
-				);
-			}
+			// Virtual scrolling for normal mode - DISABLED (breaks table layout)
+			// React-window uses div-based layout which doesn't work inside <table>
+			// if (virtualScrolling.enabled && rows.length > 100) {
+			// 	return (
+			// 		<tbody>
+			// 			<tr>
+			// 				<td colSpan={column.length} style={{ padding: 0, height: '600px' }}>
+			// 					<List
+			// 						rowComponent={VirtualRow}
+			// 						rowCount={rows.length}
+			// 						rowHeight={virtualScrolling.rowHeight}
+			// 						rowProps={{ rows, prepareRow }}
+			// 						style={{ height: '600px', width: '100%' }}
+			// 					/>
+			// 				</td>
+			// 			</tr>
+			// 		</tbody>
+			// 	);
+			// }
 
 			return (
 				<tbody {...getTableBodyProps()}>
@@ -1724,35 +1716,37 @@ export default function PrimeTable({
 
 							{/* Performance Controls */}
 							<div className="d-flex align-items-center gap-3 flex-wrap" style={{ fontSize: '12px' }}>
-								{/* Virtual Scrolling Toggle */}
-								<div className="d-flex align-items-center gap-2">
-									<div className="form-check form-switch mb-0">
-										<input
-											className="form-check-input"
-											type="checkbox"
-											role="switch"
-											id="virtualScrollSwitch"
-											checked={virtualScrolling.enabled}
-											onChange={e => setVirtualScrolling(prev => ({ ...prev, enabled: e.target.checked }))}
-											title="Enable for 1000+ rows"
-										/>
-										<label className="form-check-label" htmlFor="virtualScrollSwitch">
-											⚡ Virtual Scroll
-										</label>
+								{/* Virtual Scrolling Toggle - DISABLED (incompatible with table layout) */}
+								{false && (
+									<div className="d-flex align-items-center gap-2">
+										<div className="form-check form-switch mb-0">
+											<input
+												className="form-check-input"
+												type="checkbox"
+												role="switch"
+												id="virtualScrollSwitch"
+												checked={virtualScrolling.enabled}
+												onChange={e => setVirtualScrolling(prev => ({ ...prev, enabled: e.target.checked }))}
+												title="Enable for 1000+ rows"
+											/>
+											<label className="form-check-label" htmlFor="virtualScrollSwitch">
+												⚡ Virtual Scroll
+											</label>
+										</div>
+										{virtualScrolling.enabled && (
+											<span
+												className="badge"
+												style={{
+													background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+													fontSize: '9px',
+													padding: '3px 6px'
+												}}
+											>
+												{isPivotMode ? pivotData?.length || 0 : filteredData?.length || 0} rows
+											</span>
+										)}
 									</div>
-									{virtualScrolling.enabled && (
-										<span
-											className="badge"
-											style={{
-												background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-												fontSize: '9px',
-												padding: '3px 6px'
-											}}
-										>
-											{isPivotMode ? pivotData?.length || 0 : filteredData?.length || 0} rows
-										</span>
-									)}
-								</div>
+								)}
 
 								{/* Auto-Refresh Controls */}
 								{serverSideFiltering && (
@@ -1826,8 +1820,8 @@ export default function PrimeTable({
 						</div>
 					</div>
 				</div>
-				<div className="row m-0 p-0 flex-nowrap">
-					<div className={isPivotMode && !isPivotSectionCollapsed ? "col-9" : "col-12"} style={{ overflowY: 'auto', overflowX: 'auto', maxHeight: '70vh' }}>
+				<div className="row m-0 p-0 flex-nowrap" style={{ overflow: 'hidden' }}>
+					<div className={isPivotMode && !isPivotSectionCollapsed ? "col-9" : "col-12"} style={{ overflowY: 'auto', overflowX: 'auto', maxHeight: '70vh', minWidth: 0 }}>
 						{isPivotMode && showChart && pivotData && pivotData.length > 0 && (
 							<>
 								<div className="p-3 border-bottom" style={{ backgroundColor: '#f8f9fa' }}>
@@ -2047,7 +2041,7 @@ export default function PrimeTable({
 						</table>
 					</div>
 					{isPivotMode && !isPivotSectionCollapsed && (
-						<div className="col-3 border-1 border-start p-2 " style={{ overflowY: 'auto', maxHeight: '70vh', backgroundColor: '#fafbfc' }}>
+						<div className="col-3 border-1 border-start p-2 " style={{ overflowY: 'auto', overflowX: 'hidden', maxHeight: '70vh', backgroundColor: '#fafbfc', minWidth: 0, maxWidth: '25%' }}>
 							<div className="mt-3">
 								<div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
 									<h6 className="mb-0 fw-bold text-primary">⚙️ Pivot Config</h6>
@@ -2303,11 +2297,142 @@ export default function PrimeTable({
 										)}
 									</div>
 								</div>
+
+								{/* Table Row Grouping */}
+								<div className="mb-3">
+									<div className="d-flex align-items-center justify-content-between mb-2">
+										<div className="d-flex align-items-center">
+											<span style={{ fontSize: '11px', fontWeight: '600', color: '#198754', letterSpacing: '0.5px' }}>📊 TABLE ROW GROUPS</span>
+											<span className="badge bg-success ms-2" style={{ fontSize: '9px' }}>{rowGroups.length}</span>
+										</div>
+										{rowGroups.length > 0 && (
+											<button onClick={clearRowGroups} className="btn btn-sm" style={{ fontSize: '10px', padding: '2px 8px', color: '#dc3545', background: 'none', border: 'none' }}>
+												🗑️
+											</button>
+										)}
+									</div>
+									<div className="rounded-2 p-3 shadow-sm" style={{ backgroundColor: 'rgba(25, 135, 84, 0.03)', border: '1px solid rgba(25, 135, 84, 0.2)' }}>
+										<select
+											className="form-select form-select-sm mb-3"
+											onChange={(e) => {
+												if (e.target.value) {
+													addRowGroup(e.target.value);
+													e.target.value = '';
+												}
+											}}
+											style={{ fontSize: '11px', borderRadius: '6px', border: '1px solid #198754' }}
+										>
+											<option value="">➕ Add group field...</option>
+											{availableFields.filter(field => !rowGroups.includes(field.key)).map(field => (
+												<option key={field.key} value={field.key}>{field.header}</option>
+											))}
+										</select>
+										{rowGroups.length === 0 ? (
+											<div className="text-center text-muted py-2" style={{ fontSize: '11px' }}>
+												<div style={{ fontSize: '20px', opacity: 0.5 }}>📋</div>
+												<div className="mt-1">No groups</div>
+											</div>
+										) : (
+											<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+												{rowGroups.map(field => (
+													<div key={field} className="badge bg-success text-white" style={{ padding: '8px 10px', fontSize: '11px', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '6px' }}>
+														<span>🏷️ {availableFields.find(f => f.key === field)?.header}</span>
+														<button
+															onClick={() => removeRowGroup(field)}
+															className="btn-close btn-close-white"
+															style={{ fontSize: '8px', padding: '0', width: '12px', height: '12px' }}
+															title="Remove"
+														/>
+													</div>
+												))}
+											</div>
+										)}
+									</div>
+								</div>
+
+								{/* Table Column Grouping */}
+								<div className="mb-3">
+									<div className="d-flex align-items-center mb-2">
+										<span style={{ fontSize: '11px', fontWeight: '600', color: '#0d6efd', letterSpacing: '0.5px' }}>📁 TABLE COLUMN GROUPS</span>
+										<span className="badge bg-primary ms-2" style={{ fontSize: '9px' }}>{Object.keys(columnGroups).length}</span>
+									</div>
+									<div className="rounded-2 p-3 shadow-sm" style={{ backgroundColor: 'rgba(13, 110, 253, 0.03)', border: '1px solid rgba(13, 110, 253, 0.2)' }}>
+										<input
+											type="text"
+											placeholder="Group name"
+											className="form-control form-control-sm mb-2"
+											value={groupNameInput}
+											onChange={(e) => setGroupNameInput(e.target.value)}
+											style={{ fontSize: '11px', borderRadius: '6px' }}
+										/>
+										<select
+											className="form-select form-select-sm mb-2"
+											multiple
+											value={selectedColumns}
+											onChange={(e) => {
+												const values = Array.from(e.target.selectedOptions, option => option.value);
+												setSelectedColumns(values);
+											}}
+											style={{ fontSize: '11px', borderRadius: '6px', minHeight: '80px' }}
+										>
+											{availableFields.map(field => (
+												<option key={field.key} value={field.key}>{field.header}</option>
+											))}
+										</select>
+										<button
+											className="btn btn-sm w-100 mb-3"
+											style={{
+												background: 'linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%)',
+												color: 'white',
+												border: 'none',
+												fontSize: '11px',
+												fontWeight: '500',
+												borderRadius: '6px',
+												padding: '6px 12px'
+											}}
+											onClick={() => {
+												if (groupNameInput && selectedColumns.length > 0) {
+													createColumnGroup(groupNameInput, selectedColumns);
+													setGroupNameInput('');
+													setSelectedColumns([]);
+												}
+											}}
+										>
+											➕ Create Group
+										</button>
+										{Object.keys(columnGroups).length === 0 ? (
+											<div className="text-center text-muted py-2" style={{ fontSize: '11px' }}>
+												<div style={{ fontSize: '20px', opacity: 0.5 }}>📂</div>
+												<div className="mt-1">No groups</div>
+											</div>
+										) : (
+											<div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+												{Object.entries(columnGroups).map(([groupName, groupData]) => (
+													<div key={groupName} className="badge bg-primary text-white" style={{ padding: '8px 10px', fontSize: '11px', fontWeight: '500', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '6px' }}>
+														<span
+															style={{ cursor: 'pointer', flex: 1 }}
+															onClick={() => toggleColumnGroup(groupName)}
+														>
+															{groupData.collapsed ? '📁' : '📂'} {groupName}
+														</span>
+														<button
+															onClick={() => removeColumnGroup(groupName)}
+															className="btn-close btn-close-white"
+															style={{ fontSize: '8px', padding: '0', width: '12px', height: '12px' }}
+															title="Remove"
+														/>
+													</div>
+												))}
+											</div>
+										)}
+									</div>
+								</div>
 							</div>
 						</div>
 					)}
-					{!isPivotMode && (
-						<div className="col-3 border-1 border-start p-2 " style={{ overflowY: 'auto', maxHeight: '70vh', backgroundColor: '#fafbfc' }}>
+					{/* Normal mode controls removed - table takes full width when pivot is off */}
+					{false && !isPivotMode && (
+						<div className="col-3 border-1 border-start p-2 " style={{ overflowY: 'auto', overflowX: 'hidden', maxHeight: '70vh', backgroundColor: '#fafbfc', minWidth: 0, maxWidth: '25%' }}>
 							<div className="mt-3">
 								<div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
 									<h6 className="mb-0 fw-bold" style={{ color: '#198754' }}>🎛️ Table Controls</h6>
