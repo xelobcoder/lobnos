@@ -30,6 +30,7 @@ export default function PrimeTable({
 	const [columnOrder, setColumnOrder] = useState([]);
 	const [columnGroups, setColumnGroups] = useState({});
 	const [rowGroups, setRowGroups] = useState([]);
+	const [groupExpansions, setGroupExpansions] = useState({}); // Track which groups are expanded/collapsed
 	const [draggedColumn, setDraggedColumn] = useState(null);
 	const [showChart, setShowChart] = useState(false);
 	const [chartType, setChartType] = useState('bar'); // 'bar', 'line', 'pie', 'area', 'radar', 'scatter', 'composed'
@@ -105,6 +106,13 @@ export default function PrimeTable({
 	useEffect(() => {
 		loadSharedConfig();
 	}, []);
+
+	// Initial data load for server-side filtering
+	useEffect(() => {
+		if (serverSideFiltering && typeof handleSeverSideProcessing === "function") {
+			RunServerAction(queryParams.page, queryParams.count);
+		}
+	}, [serverSideFiltering, handleSeverSideProcessing]);
 
 	// Auto-refresh effect
 	useEffect(() => {
@@ -607,44 +615,61 @@ export default function PrimeTable({
 
 	// Grouped data for row grouping
 	const groupedData = useMemo(() => {
-		if (isPivotMode || rowGroups.length === 0) return filteredData;
+		if (rowGroups.length === 0) {
+			return filteredData;
+		}
 
-		const groupData = (data, groupFields, level = 0) => {
-			if (level >= groupFields.length) return data;
+		// Create hierarchical groups
+		const result = [];
 
-			const field = groupFields[level];
+		const processRowGroups = (data, groupFields, level = 0, parentPath = '') => {
+			if (groupFields.length === 0) {
+				// No more groups, add the actual data rows
+				return data;
+			}
+
+			const currentField = groupFields[0];
+			const remainingFields = groupFields.slice(1);
+
+			// Group data by current field
 			const grouped = {};
-
 			data.forEach(row => {
-				const key = row[field] || 'N/A';
-				if (!grouped[key]) {
-					grouped[key] = [];
-				}
+				const key = row[currentField] !== undefined && row[currentField] !== null
+					? String(row[currentField])
+					: 'N/A';
+				if (!grouped[key]) grouped[key] = [];
 				grouped[key].push(row);
 			});
 
-			const result = [];
-			Object.keys(grouped).forEach(key => {
-				result.push({
+			// Create group rows
+			const groupedResult = [];
+			Object.keys(grouped).sort().forEach(key => {
+				const groupPath = parentPath ? `${parentPath}.${key}` : key;
+				const isExpanded = groupExpansions[groupPath] !== false; // Default to expanded
+
+				// Add group header row
+				groupedResult.push({
 					_isGroup: true,
-					_groupKey: key,
-					_groupField: field,
 					_groupLevel: level,
+					_groupField: currentField,
+					_groupKey: key,
+					_groupPath: groupPath,
 					_groupData: grouped[key],
-					_expanded: true
+					_expanded: isExpanded
 				});
-				if (level < groupFields.length - 1) {
-					result.push(...groupData(grouped[key], groupFields, level + 1));
-				} else {
-					result.push(...grouped[key]);
+
+				// Add child rows if expanded
+				if (isExpanded) {
+					const childRows = processRowGroups(grouped[key], remainingFields, level + 1, groupPath);
+					groupedResult.push(...childRows);
 				}
 			});
 
-			return result;
+			return groupedResult;
 		};
 
-		return groupData(filteredData, rowGroups);
-	}, [filteredData, rowGroups, isPivotMode]);
+		return processRowGroups(filteredData, rowGroups);
+	}, [filteredData, rowGroups, groupExpansions]);
 
 	const usedFields = useMemo(() => {
 		return [...pivotConfig.rowGroups, ...pivotConfig.valueFields, ...pivotConfig.columnLabels];
@@ -798,10 +823,10 @@ export default function PrimeTable({
 	const [groupNameInput, setGroupNameInput] = useState('');
 	const [selectedColumns, setSelectedColumns] = useState([]);
 
+	// Reset group expansions when rowGroups change
 	useEffect(() => {
-		console.warn("Rendering Table client Side.Please wait ");
-		setFilteredData(data);
-	}, [data]);
+		setGroupExpansions({});
+	}, [rowGroups]);
 
 	let debounceTimeout;
 	const debounce = (func, delay) => {
@@ -1236,13 +1261,11 @@ export default function PrimeTable({
 													className="btn btn-sm btn-outline-secondary me-2"
 													onClick={() => {
 														// Toggle group expansion
-														const newData = [...groupedData];
-														const groupIndex = groupedData.indexOf(row.original);
-														if (groupIndex !== -1) {
-															newData[groupIndex]._expanded = !newData[groupIndex]._expanded;
-															// Here we would need to update the groupedData state
-															// For now, this is a placeholder
-														}
+														const groupPath = row.original._groupPath;
+														setGroupExpansions(prev => ({
+															...prev,
+															[groupPath]: !row.original._expanded
+														}));
 													}}
 													style={{ width: '20px', height: '20px', padding: '0' }}
 												>
