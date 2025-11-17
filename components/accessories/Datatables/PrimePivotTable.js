@@ -161,11 +161,13 @@ export default function PrimeTable({
 		});
 
 		// Add title
-		doc.setFontSize(16);
+		doc.setFontSize(18);
+		doc.setFont(undefined, 'bold');
 		doc.text('Data Export Report', 14, 15);
 
 		// Add date
 		doc.setFontSize(10);
+		doc.setFont(undefined, 'normal');
 		doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 22);
 
 		// Prepare table data
@@ -177,37 +179,69 @@ export default function PrimeTable({
 			})
 		);
 
+		// Calculate optimal font size based on number of columns
+		const columnCount = headers.length;
+		let fontSize = 10;
+		if (columnCount > 15) fontSize = 7;
+		else if (columnCount > 10) fontSize = 8;
+		else if (columnCount > 6) fontSize = 9;
+
 		// Add table with autoTable
 		autoTable(doc, {
 			head: [headers],
 			body: rows,
 			startY: 28,
 			styles: {
-				fontSize: 8,
-				cellPadding: 2,
+				fontSize: fontSize,
+				cellPadding: 3,
 				overflow: 'linebreak',
-				halign: 'left'
+				halign: 'left',
+				valign: 'middle',
+				lineColor: [200, 200, 200],
+				lineWidth: 0.1,
+				minCellHeight: 8
 			},
 			headStyles: {
 				fillColor: [41, 128, 185],
-				textColor: 255,
+				textColor: [255, 255, 255],
 				fontStyle: 'bold',
-				halign: 'center'
+				halign: 'center',
+				fontSize: fontSize + 1,
+				cellPadding: 4
+			},
+			bodyStyles: {
+				textColor: [50, 50, 50]
 			},
 			alternateRowStyles: {
-				fillColor: [245, 245, 245]
+				fillColor: [248, 249, 250]
 			},
-			margin: { top: 28, left: 14, right: 14 },
-			theme: 'striped',
+			columnStyles: {
+				// Auto-fit columns
+			},
+			margin: { top: 28, left: 10, right: 10, bottom: 20 },
+			theme: 'grid',
+			tableWidth: 'auto',
 			// Add page numbers
 			didDrawPage: function (data) {
-				// Footer
-				doc.setFontSize(8);
+				// Header on each page (except first)
+				const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
+
+				// Footer with page numbers
+				doc.setFontSize(9);
+				doc.setTextColor(100);
 				doc.text(
-					`Page ${doc.internal.getCurrentPageInfo().pageNumber}`,
+					`Page ${pageNumber}`,
 					doc.internal.pageSize.width / 2,
 					doc.internal.pageSize.height - 10,
 					{ align: 'center' }
+				);
+
+				// Add report name in footer
+				doc.setFontSize(8);
+				doc.text(
+					'Data Export Report',
+					10,
+					doc.internal.pageSize.height - 10
 				);
 			}
 		});
