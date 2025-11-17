@@ -34,9 +34,216 @@ export default function PrimeTable({
 	const [showChart, setShowChart] = useState(false);
 	const [chartType, setChartType] = useState('bar'); // 'bar', 'line', 'pie', 'area', 'radar', 'scatter', 'composed'
 	const [isFullscreen, setIsFullscreen] = useState(false);
+	const [conditionalFormatting, setConditionalFormatting] = useState({
+		enabled: false,
+		type: 'heatmap', // 'heatmap', 'databar', 'colorscale'
+		column: null
+	});
+	const [showSparklines, setShowSparklines] = useState(false);
+	const [comparisonMode, setComparisonMode] = useState({
+		enabled: false,
+		field: null,
+		value1: null,
+		value2: null
+	});
+	const [drillDownData, setDrillDownData] = useState(null);
+	const [showFormatPopup, setShowFormatPopup] = useState(false);
 
 	const toggleFullscreen = () => {
 		setIsFullscreen(!isFullscreen);
+	};
+
+	// Close format popup when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (e) => {
+			if (showFormatPopup && !e.target.closest('.format-popup-container')) {
+				setShowFormatPopup(false);
+			}
+		};
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, [showFormatPopup]);
+
+	// Export to CSV
+	const exportToCSV = () => {
+		const dataToExport = isPivotMode ? pivotData : groupedData;
+		if (!dataToExport || dataToExport.length === 0) {
+			alert('No data to export');
+			return;
+		}
+
+		const headers = Object.keys(dataToExport[0]);
+		const csvContent = [
+			headers.join(','),
+			...dataToExport.map(row =>
+				headers.map(header => {
+					const value = row[header];
+					// Escape quotes and wrap in quotes if contains comma
+					if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+						return `"${value.replace(/"/g, '""')}"`;
+					}
+					return value;
+				}).join(',')
+			)
+		].join('\n');
+
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = `table_export_${new Date().toISOString().split('T')[0]}.csv`;
+		link.click();
+	};
+
+	// Export to Excel (using HTML table format that Excel can read)
+	const exportToExcel = () => {
+		const dataToExport = isPivotMode ? pivotData : groupedData;
+		if (!dataToExport || dataToExport.length === 0) {
+			alert('No data to export');
+			return;
+		}
+
+		const headers = Object.keys(dataToExport[0]);
+		const htmlTable = `
+			<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+			<head><meta charset="UTF-8"></head>
+			<body>
+				<table>
+					<thead>
+						<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
+					</thead>
+					<tbody>
+						${dataToExport.map(row =>
+			`<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`
+		).join('')}
+					</tbody>
+				</table>
+			</body>
+			</html>
+		`;
+
+		const blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel' });
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = `table_export_${new Date().toISOString().split('T')[0]}.xls`;
+		link.click();
+	};
+
+	// Get cell color based on value for conditional formatting
+	const getCellColor = (value, columnId, allValues) => {
+		if (!conditionalFormatting.enabled || conditionalFormatting.column !== columnId) {
+			return null;
+		}
+
+		const numericValue = parseFloat(value);
+		if (isNaN(numericValue)) return null;
+
+		const numericValues = allValues
+			.map(v => parseFloat(v))
+			.filter(v => !isNaN(v));
+
+		const min = Math.min(...numericValues);
+		const max = Math.max(...numericValues);
+		const range = max - min;
+		const normalized = range === 0 ? 0.5 : (numericValue - min) / range;
+
+		if (conditionalFormatting.type === 'heatmap') {
+			// Red (low) to Yellow (mid) to Green (high)
+			if (normalized < 0.5) {
+				const r = 255;
+				const g = Math.round(255 * (normalized * 2));
+				return `rgba(${r}, ${g}, 0, 0.3)`;
+			} else {
+				const r = Math.round(255 * (2 - normalized * 2));
+				const g = 255;
+				return `rgba(${r}, ${g}, 0, 0.3)`;
+			}
+		} else if (conditionalFormatting.type === 'colorscale') {
+			// Blue (low) to White (mid) to Red (high)
+			if (normalized < 0.5) {
+				const intensity = Math.round(255 * (1 - normalized * 2));
+				return `rgba(0, ${255 - intensity}, 255, 0.4)`;
+			} else {
+				const intensity = Math.round(255 * ((normalized - 0.5) * 2));
+				return `rgba(255, ${255 - intensity}, ${255 - intensity}, 0.4)`;
+			}
+		}
+
+		return null;
+	};
+
+	// Get data bar width percentage
+	const getDataBarWidth = (value, columnId, allValues) => {
+		if (!conditionalFormatting.enabled ||
+			conditionalFormatting.type !== 'databar' ||
+			conditionalFormatting.column !== columnId) {
+			return 0;
+		}
+
+		const numericValue = parseFloat(value);
+		if (isNaN(numericValue)) return 0;
+
+		const numericValues = allValues
+			.map(v => parseFloat(v))
+			.filter(v => !isNaN(v));
+
+		const max = Math.max(...numericValues);
+		return max === 0 ? 0 : (numericValue / max) * 100;
+	};
+
+	// Generate sparkline data for a column
+	const getSparklineData = (columnId) => {
+		if (!showSparklines) return null;
+
+		const values = groupedData
+			.map(row => parseFloat(row[columnId]))
+			.filter(v => !isNaN(v))
+			.slice(0, 20); // Limit to recent 20 values
+
+		if (values.length < 2) return null;
+
+		return values;
+	};
+
+	// Render mini sparkline
+	const renderSparkline = (data) => {
+		if (!data || data.length < 2) return null;
+
+		const max = Math.max(...data);
+		const min = Math.min(...data);
+		const range = max - min;
+		const width = 60;
+		const height = 20;
+
+		const points = data.map((val, idx) => {
+			const x = (idx / (data.length - 1)) * width;
+			const y = range === 0 ? height / 2 : height - ((val - min) / range) * height;
+			return `${x},${y}`;
+		}).join(' ');
+
+		return (
+			<svg width={width} height={height} style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '8px' }}>
+				<polyline
+					points={points}
+					fill="none"
+					stroke="#2196f3"
+					strokeWidth="1.5"
+				/>
+			</svg>
+		);
+	};
+
+	// Handle drill down into aggregated data
+	const handleDrillDown = (groupKey, groupField, groupData) => {
+		setDrillDownData({
+			groupKey,
+			groupField,
+			data: groupData
+		});
+	};
+
+	// Close drill down modal
+	const closeDrillDown = () => {
+		setDrillDownData(null);
 	};
 
 	const handleDragStart = (e, field) => {
@@ -750,29 +957,39 @@ export default function PrimeTable({
 							const groupLevel = row.original._groupLevel;
 							const indent = groupLevel * 20;
 							return (
-								<tr key={index} className="table-group-header" style={{ backgroundColor: '#f8f9fa' }}>
+								<tr key={index} className="table-group-header" style={{ backgroundColor: '#f8f9fa', cursor: 'pointer' }}>
 									<td colSpan={column.length} className={style.td} style={{ paddingLeft: `${indent + 10}px` }}>
-										<div className="d-flex align-items-center">
+										<div className="d-flex align-items-center justify-content-between">
+											<div className="d-flex align-items-center">
+												<button
+													className="btn btn-sm btn-outline-secondary me-2"
+													onClick={() => {
+														// Toggle group expansion
+														const newData = [...groupedData];
+														const groupIndex = groupedData.indexOf(row.original);
+														if (groupIndex !== -1) {
+															newData[groupIndex]._expanded = !newData[groupIndex]._expanded;
+															// Here we would need to update the groupedData state
+															// For now, this is a placeholder
+														}
+													}}
+													style={{ width: '20px', height: '20px', padding: '0' }}
+												>
+													{row.original._expanded ? '−' : '+'}
+												</button>
+												<strong>
+													{availableFields.find(f => f.key === row.original._groupField)?.header || row.original._groupField}: {row.original._groupKey}
+													<span className="text-muted ms-2">({row.original._groupData.length} items)</span>
+												</strong>
+											</div>
 											<button
-												className="btn btn-sm btn-outline-secondary me-2"
-												onClick={() => {
-													// Toggle group expansion
-													const newData = [...groupedData];
-													const groupIndex = groupedData.indexOf(row.original);
-													if (groupIndex !== -1) {
-														newData[groupIndex]._expanded = !newData[groupIndex]._expanded;
-														// Here we would need to update the groupedData state
-														// For now, this is a placeholder
-													}
-												}}
-												style={{ width: '20px', height: '20px', padding: '0' }}
+												className="btn btn-sm btn-outline-info"
+												onClick={() => handleDrillDown(row.original._groupKey, row.original._groupField, row.original._groupData)}
+												style={{ fontSize: '10px', padding: '2px 8px' }}
+												title="View Details"
 											>
-												{row.original._expanded ? '−' : '+'}
+												🔍 Drill Down
 											</button>
-											<strong>
-												{availableFields.find(f => f.key === row.original._groupField)?.header || row.original._groupField}: {row.original._groupKey}
-												<span className="text-muted ms-2">({row.original._groupData.length} items)</span>
-											</strong>
 										</div>
 									</td>
 								</tr>
@@ -828,14 +1045,40 @@ export default function PrimeTable({
 												transition: 'all 0.2s ease'
 											};
 										}
-									} return (
+									}
+
+									// Apply conditional formatting
+									const cellValue = cell.value;
+									const allColumnValues = rows.map(r => r.values[cell.column.id]);
+									const conditionalColor = getCellColor(cellValue, cell.column.id, allColumnValues);
+									const dataBarWidth = getDataBarWidth(cellValue, cell.column.id, allColumnValues);
+
+									if (conditionalColor) {
+										cellStyle = { ...cellStyle, backgroundColor: conditionalColor };
+									}
+
+									return (
 										<td
 											{...cell.getCellProps()}
 											key={cell.column.id}
 											className={cellClass}
-											style={cellStyle}
+											style={{ ...cellStyle, position: 'relative' }}
 										>
-											{cell.render("Cell")}
+											{dataBarWidth > 0 && (
+												<div style={{
+													position: 'absolute',
+													left: 0,
+													top: 0,
+													bottom: 0,
+													width: `${dataBarWidth}%`,
+													backgroundColor: 'rgba(33, 150, 243, 0.3)',
+													zIndex: 0
+												}} />
+											)}
+											<div style={{ position: 'relative', zIndex: 1 }}>
+												{cell.render("Cell")}
+												{showSparklines && renderSparkline(getSparklineData(cell.column.id))}
+											</div>
 										</td>
 									);
 								})}
@@ -877,10 +1120,119 @@ export default function PrimeTable({
 							/>
 						)}
 					</div>
-					<div className="d-flex gap-2 align-items-center">
+					<div className="d-flex gap-2 align-items-center flex-wrap">
 						{!isPivotMode ? (
 							<>
 								<GlobalFilter filter={globalFilter} setFilter={setGlobalFilter} />
+
+								{/* Export Buttons */}
+								<button
+									onClick={exportToCSV}
+									className="btn btn-sm btn-outline-success"
+									style={{ fontSize: '11px', padding: '4px 10px', whiteSpace: 'nowrap' }}
+									title="Export to CSV"
+								>
+									� CSV
+								</button>
+								<button
+									onClick={exportToExcel}
+									className="btn btn-sm btn-outline-success"
+									style={{ fontSize: '11px', padding: '4px 10px', whiteSpace: 'nowrap' }}
+									title="Export to Excel"
+								>
+									📊 Excel
+								</button>
+
+								{/* Conditional Formatting Toggle */}
+								<div style={{ position: 'relative' }} className="format-popup-container">
+									<button
+										onClick={() => {
+											setShowFormatPopup(!showFormatPopup);
+											if (!conditionalFormatting.enabled) {
+												setConditionalFormatting(prev => ({ ...prev, enabled: true }));
+											}
+										}}
+										className={`btn btn-sm ${conditionalFormatting.enabled ? 'btn-warning' : 'btn-outline-warning'}`}
+										style={{ fontSize: '11px', padding: '4px 10px', whiteSpace: 'nowrap' }}
+										title="Configure Conditional Formatting"
+									>
+										🎨 Format
+									</button>
+									{showFormatPopup && (
+										<div
+											style={{
+												position: 'absolute',
+												top: '100%',
+												left: 0,
+												marginTop: '4px',
+												backgroundColor: 'white',
+												border: '1px solid #ddd',
+												borderRadius: '6px',
+												padding: '12px',
+												boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+												zIndex: 1000,
+												minWidth: '220px'
+											}}
+										>
+											<div className="mb-2">
+												<div className="form-check mb-2">
+													<input
+														className="form-check-input"
+														type="checkbox"
+														checked={conditionalFormatting.enabled}
+														onChange={(e) => setConditionalFormatting({ ...conditionalFormatting, enabled: e.target.checked })}
+														id="enableFormatting"
+													/>
+													<label className="form-check-label" htmlFor="enableFormatting" style={{ fontSize: '11px' }}>
+														Enable Formatting
+													</label>
+												</div>
+											</div>
+											{conditionalFormatting.enabled && (
+												<>
+													<div className="mb-2">
+														<small className="text-muted d-block mb-1" style={{ fontSize: '10px' }}>Format Type:</small>
+														<select
+															className="form-select form-select-sm"
+															value={conditionalFormatting.type}
+															onChange={(e) => setConditionalFormatting({ ...conditionalFormatting, type: e.target.value })}
+															style={{ fontSize: '11px' }}
+														>
+															<option value="heatmap">🔥 Heat Map</option>
+															<option value="databar">📊 Data Bars</option>
+															<option value="colorscale">🌈 Color Scale</option>
+														</select>
+													</div>
+													<div>
+														<small className="text-muted d-block mb-1" style={{ fontSize: '10px' }}>Apply to Column:</small>
+														<select
+															className="form-select form-select-sm"
+															value={conditionalFormatting.column || ''}
+															onChange={(e) => setConditionalFormatting({ ...conditionalFormatting, column: e.target.value })}
+															style={{ fontSize: '11px' }}
+														>
+															<option value="">Select column...</option>
+															{availableFields.map(field => (
+																<option key={field.key} value={field.key}>{field.header}</option>
+															))}
+														</select>
+													</div>
+												</>
+											)}
+										</div>
+									)}
+								</div>
+
+								{/* Sparklines Toggle */}
+								<button
+									onClick={() => setShowSparklines(!showSparklines)}
+									className={`btn btn-sm ${showSparklines ? 'btn-info' : 'btn-outline-info'}`}
+									style={{ fontSize: '11px', padding: '4px 10px', whiteSpace: 'nowrap' }}
+									title="Toggle Sparklines"
+								>
+									📈 Sparklines
+								</button>
+
 								<button
 									onClick={toggleFullscreen}
 									className="btn btn-sm btn-outline-secondary"
@@ -1648,6 +2000,82 @@ export default function PrimeTable({
 					</tfoot>
 				)}
 			</div>
+
+			{/* Drill Down Modal */}
+			{drillDownData && (
+				<div
+					style={{
+						position: 'fixed',
+						top: 0,
+						left: 0,
+						right: 0,
+						bottom: 0,
+						backgroundColor: 'rgba(0,0,0,0.5)',
+						zIndex: 10000,
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center'
+					}}
+					onClick={closeDrillDown}
+				>
+					<div
+						style={{
+							backgroundColor: 'white',
+							borderRadius: '8px',
+							padding: '20px',
+							maxWidth: '90vw',
+							maxHeight: '90vh',
+							overflow: 'auto',
+							boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+						}}
+						onClick={(e) => e.stopPropagation()}
+					>
+						<div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+							<h5 className="mb-0">
+								🔍 Drill Down: {drillDownData.groupField} = {drillDownData.groupKey}
+							</h5>
+							<button
+								onClick={closeDrillDown}
+								className="btn btn-sm btn-outline-danger"
+								style={{ fontSize: '12px' }}
+							>
+								✕ Close
+							</button>
+						</div>
+
+						<div style={{ fontSize: '12px' }}>
+							<p className="text-muted mb-3">
+								Showing {drillDownData.data.length} records
+							</p>
+
+							<div style={{ overflowX: 'auto' }}>
+								<table className="table table-sm table-bordered table-hover" style={{ fontSize: '11px' }}>
+									<thead style={{ backgroundColor: '#f8f9fa' }}>
+										<tr>
+											{drillDownData.data.length > 0 && Object.keys(drillDownData.data[0]).map(key => (
+												<th key={key} style={{ padding: '8px', whiteSpace: 'nowrap' }}>
+													{availableFields.find(f => f.key === key)?.header || key}
+												</th>
+											))}
+										</tr>
+									</thead>
+									<tbody>
+										{drillDownData.data.map((row, idx) => (
+											<tr key={idx}>
+												{Object.keys(row).map(key => (
+													<td key={key} style={{ padding: '6px' }}>
+														{row[key]}
+													</td>
+												))}
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
