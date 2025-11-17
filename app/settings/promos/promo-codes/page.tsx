@@ -45,7 +45,7 @@ export default function PromoCodesListPage() {
   // Define columns for PrimeTable
   const columns = [
     { Header: "Code", accessor: "code" },
-    { Header: "Description", accessor: "description", Cell: ({ row }: any) => <span style={{whiteSpace: 'pre-line'}}>{row.original.description}</span> },
+    { Header: "Description", accessor: "description", Cell: ({ row }: any) => <span style={{ whiteSpace: 'pre-line' }}>{row.original.description}</span> },
     { Header: "Discount", accessor: "discount_value", Cell: ({ row }: any) => `${row.original.discount_value} (${row.original.discount_type})` },
     { Header: "Max Uses", accessor: "max_uses" },
     { Header: "Times Used", accessor: "times_used" },

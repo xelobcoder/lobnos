@@ -120,7 +120,7 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 		{
 			Header: "Billing ID",
 			accessor: "billingid",
-			Cell: function ({row}) {
+			Cell: function ({ row }) {
 				return <div className="text-monospace">
 					<span className="text-muted">BillingId:{row.original.billingid}</span>
 					<br />
@@ -201,7 +201,7 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 							style={{ maxWidth: '150px' }}
 							value={endDate}
 							onChange={(e) => setEndDate(e.target.value)}
-							min={startDate} 
+							min={startDate}
 						/>
 					</div>
 					<div>
@@ -270,7 +270,7 @@ export default function SampleValidationComponent({ data: initialData, initialSt
 							handleSeverSideProcessing={handleServerSideProcessingSampleValidation}
 							data={data}
 							filtering={false}
-							urlparams={{ startDate, endDate , sortBy }}
+							urlparams={{ startDate, endDate, sortBy }}
 							serverSideFiltering={true}
 							className="table-striped table-hover"
 						/>

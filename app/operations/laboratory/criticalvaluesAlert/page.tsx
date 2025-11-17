@@ -116,7 +116,7 @@ export default function CriticalValuesAlert() {
 					View
 				</span>
 			),
-			id: "view", 
+			id: "view",
 			Cell: ({ row }) => (
 				<button className="br-5 border-success border-1 p-2"
 					onClick={() => handleViewMore(row.original.crkeyId)}
@@ -152,8 +152,8 @@ export default function CriticalValuesAlert() {
 		alert(`Marked alert with ID ${crkeyId} as seen!`);
 	}
 
-	const handleViewMore = (crKeyId:number) => {
-		if(crKeyId && typeof crKeyId  == "number"){
+	const handleViewMore = (crKeyId: number) => {
+		if (crKeyId && typeof crKeyId == "number") {
 			router.push(`/operations/laboratory/criticalvaluesAlert/critical-value-event/${crKeyId}`)
 		}
 	}
@@ -163,7 +163,7 @@ export default function CriticalValuesAlert() {
 	}
 
 	if (isLoading) {
-		return <LoadingCard/>
+		return <LoadingCard />
 	}
 
 
@@ -189,5 +189,5 @@ export default function CriticalValuesAlert() {
 }
 
 
-	
+
 

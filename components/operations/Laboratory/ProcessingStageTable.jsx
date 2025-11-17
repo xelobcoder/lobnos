@@ -70,14 +70,14 @@ export default function AscensionProcessingTable() {
             const { status, error } = await customPost("ascension/collection/update/stage", 'POST', selectedItem);
             if (error) toast.error(`Error updating test: ${error.message}`);
             if (status === true) successAscensions.push(ascensionid);
-            
+
             setCurrentBulkStatus({ action: null, target: null });
         };
 
         await Promise.all(bulkselection.map(item => handleProcessing(item)));
 
         if (successAscensions.length > 0) {
-            const updatedCollection = collection.map(item => 
+            const updatedCollection = collection.map(item =>
                 successAscensions.includes(item.ascensionid) ? { ...item, [stage]: value } : item
             );
             setCollection(updatedCollection);
@@ -164,8 +164,8 @@ export default function AscensionProcessingTable() {
                     _dateEnd: queryParams._dateEnd,
                     isUltrasound: queryParams.isUltrasound,
                     employeeid, ascension_stage: 'PROCESSING',
-				branchid: queryParams.branchid,
-				sortby: queryParams.sortby
+                    branchid: queryParams.branchid,
+                    sortby: queryParams.sortby
                 }}
                 handleSeverSideProcessing={handleServerSideProcessingAscensionData}
                 serverSideFiltering={true} />

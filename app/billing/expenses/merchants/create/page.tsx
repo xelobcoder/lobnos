@@ -206,7 +206,7 @@ export default function AddMerchant() {
                     <div className="d-flex justify-content-between align-items-center mb-4">
                         <h4 className="mb-0">Add New Merchant</h4>
                         <button className="btn btn-primary btn-sm" onClick={() => setShowModal(true)}>
-                         <RiAddBoxFill/> New Merchant
+                            <RiAddBoxFill /> New Merchant
                         </button>
                     </div>
                     <Modal show={showModal} onHide={() => { setShowModal(false); setEditMerchant(null); }}>
@@ -300,11 +300,11 @@ export default function AddMerchant() {
                     {Array.isArray(merchants) && merchants.length > 0 && (
                         <div className="mt-5">
                             <PrimeTable column={columns}
-                             data={merchants} 
-                             filtering={true} 
-                             urlparams={{employeeid, branchid}}
-                             serverSideFiltering={true}
-                             handleSeverSideProcessing={noopServerSideHandle} />
+                                data={merchants}
+                                filtering={true}
+                                urlparams={{ employeeid, branchid }}
+                                serverSideFiltering={true}
+                                handleSeverSideProcessing={noopServerSideHandle} />
                         </div>
                     )}
                 </>

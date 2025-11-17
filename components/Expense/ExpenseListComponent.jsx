@@ -43,7 +43,7 @@ const ExpenseList = ({ expenses, setSelected, selected, filter, setFilter, handl
 	}
 
 	const columns = [
-	
+
 		{
 			Header: 'Expense Name',
 			accessor: 'name',
@@ -113,7 +113,7 @@ const ExpenseList = ({ expenses, setSelected, selected, filter, setFilter, handl
 				</span>
 			)
 		},
-			{
+		{
 			Header: 'Description',
 			accessor: 'description',
 			Cell: ({ cell: { value }, row }) => (

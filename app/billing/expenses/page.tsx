@@ -22,13 +22,13 @@ interface Expense {
 }
 
 export default function ExpenseList() {
-	const from= useSearchParams()?.get('from') || ''
-	const to = useSearchParams()?.get('to')|| ''
+	const from = useSearchParams()?.get('from') || ''
+	const to = useSearchParams()?.get('to') || ''
 	const status = useSearchParams()?.get('status') || ''
 	const [expenses, setExpenses] = useState<Expense[]>([]);
 	const [filter, setFiltering] = useState({ page: 1, count: 10 });
 	const [shouldLoad, setLoad] = useState(false);
-	const [filtering, setUserFiltering] = useState({ from: from, to, status});
+	const [filtering, setUserFiltering] = useState({ from: from, to, status });
 	const { applicationsettings } = useApplicationSettings();
 	const { employeeid, username, role } = applicationsettings.user;
 	const branchid = applicationsettings.branchid;

@@ -7,7 +7,7 @@ import TemplateFormModal from './TemplateFormModal';
 import { toast } from 'react-toastify';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
 import Loader from '../../../../components/accessories/Loader';
-import { customPost,customFetch } from '../../../../components/Auth/customFetch';
+import { customPost, customFetch } from '../../../../components/Auth/customFetch';
 import { handleServerProcessingSmsTemplates } from '../../../../components/serverActions/ActionFiltering';
 
 
@@ -221,7 +221,7 @@ const SmsTemplatesPage: React.FC = () => {
                     initialValues={editingTemplate || undefined}
                     loading={formLoading}
                />
-               
+
                {/* Delete Confirmation Modal */}
                <Modal show={confirmDelete.show} onHide={handleCancelDelete} centered size="sm">
                     <Modal.Header closeButton>

@@ -44,7 +44,7 @@ const SmsJobRecipientsPage: React.FC<{ params: { jobid: string } }> = ({ params 
      const handleRetry = async (refid: string) => {
           setRetrying(prev => ({ ...prev, [refid]: true }));
           try {
-               const response = await customFetch(`prime/sms/failed/transaction/retry/${jobid}/${refid}`);       
+               const response = await customFetch(`prime/sms/failed/transaction/retry/${jobid}/${refid}`);
                if (response && response.status === 'success') {
                     // Refresh the data after successful retry
                     const data = await customFetch(`prime/sms-job-recipients/by-job/${jobid}`);

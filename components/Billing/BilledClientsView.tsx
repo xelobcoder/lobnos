@@ -2,7 +2,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Dropdown } from "react-bootstrap";
 import { RiEdit2Line, RiFileAddLine, RiDeleteBinLine, RiPrinterLine, RiRefund2Line, RiFileList2Line } from '@remixicon/react';
-import PrimeTable from "../accessories/Datatables/PrimeTable";
 import { currencyFormatter } from "../Auth/customFetch";
 import { plsEncryption } from "../../lib/encryption";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -13,6 +12,7 @@ import { RiSearchLine } from "@remixicon/react";
 import styles from './../../styles/SmsTemplateList.module.css'
 import { billingSource } from "../../lib/billingLib";
 import AdjustBillingSourceModal from './AdjustBillingSourceModal';
+import PrimeTablePivot from '../accessories/Datatables/PrimePivotTable'
 
 export interface BillingSourceOption {
 	value: number;
@@ -61,7 +61,7 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 	const [datequery, setDatequery] = useState<DateQuery>({
 		from: pquery.from || '', to: pquery.to || ''
 	});
-	
+
 
 	useEffect(() => {
 		if (pquery.from || pquery.to) {
@@ -72,9 +72,9 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 			});
 		}
 	}, [pquery]);
-	
 
-	
+
+
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const { employeeid } = useApplicationSettings().applicationsettings.user;
 	const router = useRouter();
@@ -371,11 +371,11 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 						className="btn btn-outline-secondary btn-sm mx-2"
 						onClick={() => {
 							console.log("Search button clicked with dates:", datequery);
-							handleDatePicker({ 
-								branchid, 
-								date: datequery.from, 
-								from: datequery.from, 
-								to: datequery.to 
+							handleDatePicker({
+								branchid,
+								date: datequery.from,
+								from: datequery.from,
+								to: datequery.to
 							}, router);
 						}}
 					>
@@ -383,7 +383,9 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 					</button>
 				</div>
 			</div>
-			<PrimeTable
+
+
+			<PrimeTablePivot
 				column={coreColumns}
 				urlparams={{ ...datequery, branchid }}
 				data={data || []}

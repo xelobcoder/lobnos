@@ -78,130 +78,130 @@ export default function RefundPageAllView({ initData, employeeid }) {
 		setShowModal(true);
 	};
 
-const handleSubmitWitness = async () => {
-	if (witnessMessage.trim().length > 3 && currentRefund) {
-		const numericEmployeeId = Number(employeeid);
-		const { witnesses } = currentRefund;
-		let currentWitnessMatch: Witness | undefined = undefined;
-		if (Array.isArray(witnesses)) {
-			if (witnesses.length > 0) {
-				currentWitnessMatch = witnesses.find((item: Witness) => item.employeeid === numericEmployeeId);
-				if (currentWitnessMatch) {
-					currentWitnessMatch.message = witnessMessage;
+	const handleSubmitWitness = async () => {
+		if (witnessMessage.trim().length > 3 && currentRefund) {
+			const numericEmployeeId = Number(employeeid);
+			const { witnesses } = currentRefund;
+			let currentWitnessMatch: Witness | undefined = undefined;
+			if (Array.isArray(witnesses)) {
+				if (witnesses.length > 0) {
+					currentWitnessMatch = witnesses.find((item: Witness) => item.employeeid === numericEmployeeId);
+					if (currentWitnessMatch) {
+						currentWitnessMatch.message = witnessMessage;
+					} else {
+						currentWitnessMatch = { employeeid: numericEmployeeId, message: witnessMessage, name: '', witness: 'to be determined' };
+					}
 				} else {
 					currentWitnessMatch = { employeeid: numericEmployeeId, message: witnessMessage, name: '', witness: 'to be determined' };
 				}
-			} else {
-				currentWitnessMatch = { employeeid: numericEmployeeId, message: witnessMessage, name: '', witness: 'to be determined' };
+			}
+
+			let requestData = {
+				...currentRefund,
+				employeeid: numericEmployeeId,
+				witnesses: currentWitnessMatch ? [currentWitnessMatch] : [],
+			};
+
+			const response = await customPost(`billing/previous/refund/update/previous`, 'POST', requestData);
+			const { status, message } = response;
+			status === true
+				? toast.success("action successsfull")
+				: toast.error(message || "action failed");
+			setShowModal(false);
+		}
+	};
+
+	const columns = [
+		{
+			Header: "billingid (Category)",
+			accessor: "serviceCategory",
+			Cell: ({ row, value }) => (
+				<div>
+					<span>{row.original.billingid}</span>
+					<br />
+					<span>({value})</span>
+				</div>
+			)
+		},
+		{
+			Header: `${status === "completed" ? "My Witness Note" : "Witness Message"}`,
+			accessor: "witnesses",
+			Cell: ({ row }: { row: any }) => {
+				const { witnesses } = row.original;
+				const numericEmployeeId = Number(employeeid);
+				const currentWitness = witnesses.find((w: any) => w.employeeid === numericEmployeeId);
+				if (currentWitness && currentWitness.message) {
+					return (
+						<div className="d-flex align-items-center gap-2">
+							<span>{currentWitness.message}</span>
+							<Button
+								variant="outline-info"
+								size="sm"
+								onClick={() => {
+									setModalTitleHeader("View Witness Note");
+									setWitnessMessage(currentWitness.message);
+									setShowModal(true);
+								}}
+							>
+								View
+							</Button>
+						</div>
+					);
+				}
+				return <span className="text-muted">No message</span>;
+			}
+		},
+		{ Header: 'Service/test Name', accessor: "serviceName" },
+		{
+			Header: "Cost",
+			accessor: "cost",
+			Cell: ({ value }: { value: number }) => currencyFormatter.format(value)
+		},
+		{
+			Header: "Amount Due to Tax",
+			accessor: "amountIncurredDueTax",
+			Cell: ({ value }: { value: number }) => currencyFormatter.format(value)
+		},
+		{
+			Header: "Billed By",
+			accessor: "billedby"
+		},
+		{
+			Header: "Add Witness",
+			accessor: "addWitness",
+			Cell: ({ row }: { row: any }) => {
+				if (status === "completed") {
+					return <div className="text-muted">No action available</div>;
+				}
+				const { witnesses, canEdit } = row.original;
+				const isAlreadyWitness = witnesses.some((w: Witness) => w.employeeid === employeeid);
+				const hasEmptySlot = witnesses.some((w: Witness) => w.employeeid === null);
+				return (
+					<div>
+						{!isAlreadyWitness && hasEmptySlot && (
+							<Button
+								variant="primary"
+								size="sm"
+								onClick={() => handleWitness(row.original)}
+							>
+								Add Witness
+							</Button>
+						)}
+						{canEdit && (
+							<Button
+								variant="primary"
+								size="sm"
+								onClick={() => handleEditWitnessNote(row.original)}
+							>
+								Edit Witness Note
+							</Button>
+						)}
+						{!canEdit && (!hasEmptySlot || isAlreadyWitness) && <div>No action available</div>}
+					</div>
+				);
 			}
 		}
-
-		let requestData = {
-			...currentRefund,
-			employeeid: numericEmployeeId,
-			witnesses: currentWitnessMatch ? [currentWitnessMatch] : [],
-		};
-
-		const response = await customPost(`billing/previous/refund/update/previous`, 'POST', requestData);
-		const { status, message } = response;
-		status === true
-			? toast.success("action successsfull")
-			: toast.error(message || "action failed");
-		setShowModal(false);
-	}
-};
-
-const columns = [
-  {
-	Header: "billingid (Category)",
-	accessor: "serviceCategory",
-	Cell: ({ row, value }) => (
-	  <div>
-		<span>{row.original.billingid}</span>
-		<br />
-		<span>({value})</span>
-	  </div>
-	)
-  },
-  {
-	Header: `${status === "completed" ? "My Witness Note" : "Witness Message"}`,
-	accessor: "witnesses",
-	Cell: ({ row }: { row: any }) => {
-	  const { witnesses } = row.original;
-	  const numericEmployeeId = Number(employeeid);
-	  const currentWitness = witnesses.find((w: any) => w.employeeid === numericEmployeeId);
-	  if (currentWitness && currentWitness.message) {
-		return (
-		  <div className="d-flex align-items-center gap-2">
-			<span>{currentWitness.message}</span>
-			<Button
-			  variant="outline-info"
-			  size="sm"
-			  onClick={() => {
-				setModalTitleHeader("View Witness Note");
-				setWitnessMessage(currentWitness.message);
-				setShowModal(true);
-			  }}
-			>
-			  View
-			</Button>
-		  </div>
-		);
-	  }
-	  return <span className="text-muted">No message</span>;
-	}
-  },
-  { Header: 'Service/test Name', accessor: "serviceName" },
-  {
-	Header: "Cost",
-	accessor: "cost",
-	Cell: ({ value }: { value: number }) => currencyFormatter.format(value)
-  },
-  {
-	Header: "Amount Due to Tax",
-	accessor: "amountIncurredDueTax",
-	Cell: ({ value }: { value: number }) => currencyFormatter.format(value)
-  },
-  {
-	Header: "Billed By",
-	accessor: "billedby"
-  },
-  {
-	Header: "Add Witness",
-	accessor: "addWitness",
-	Cell: ({ row }: { row: any }) => {
-	  if (status === "completed") {
-		return <div className="text-muted">No action available</div>;
-	  }
-	  const { witnesses, canEdit } = row.original;
-	  const isAlreadyWitness = witnesses.some((w: Witness) => w.employeeid === employeeid);
-	  const hasEmptySlot = witnesses.some((w: Witness) => w.employeeid === null);
-	  return (
-		<div>
-		  {!isAlreadyWitness && hasEmptySlot && (
-			<Button
-			  variant="primary"
-			  size="sm"
-			  onClick={() => handleWitness(row.original)}
-			>
-			  Add Witness
-			</Button>
-		  )}
-		  {canEdit && (
-			<Button
-			  variant="primary"
-			  size="sm"
-			  onClick={() => handleEditWitnessNote(row.original)}
-			>
-			  Edit Witness Note
-			</Button>
-		  )}
-		  {!canEdit && (!hasEmptySlot || isAlreadyWitness) && <div>No action available</div>}
-		</div>
-	  );
-	}
-  }
-];
+	];
 
 	const handleGetRefundServiceWithId = async (value: number | string) => {
 		const result = await filteringRefundsUsingServiceId(value, employeeid);

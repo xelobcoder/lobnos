@@ -144,7 +144,7 @@ const PackagesTable: React.FC = () => {
                         Actions
                     </Dropdown.Toggle>
 
-                    <Dropdown.Menu  style={{ fontSize: '14px',zIndex:1050 }}>
+                    <Dropdown.Menu style={{ fontSize: '14px', zIndex: 1050 }}>
                         <Dropdown.Item onClick={(ev) => { handlePackageEditing(row.original) }}>
                             Edit Package Name
                         </Dropdown.Item>
@@ -173,7 +173,7 @@ const PackagesTable: React.FC = () => {
             {loading && (
                 <div className="text-center my-5 d-flex justify-content-center">
                     <Loader />
-                    </div>
+                </div>
             )}
             {error && <div className="alert alert-danger text-center py-2">{error}</div>}
 

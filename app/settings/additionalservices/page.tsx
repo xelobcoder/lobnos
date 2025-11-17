@@ -7,18 +7,18 @@ import { toast } from "react-toastify";
 import { Spinner } from 'react-bootstrap';
 import PrimeTable from "../../../components/accessories/Datatables/PrimeTable";
 
-const defaultValues: {name:string, price:string, keyid?:number} = {
+const defaultValues: { name: string, price: string, keyid?: number } = {
 	name: "",
 	price: ""
 };
 
 interface ServiceItem {
-  serviceName: string;
-  servicePrice: number;
-  createdBy: number;
-  keyid: number;
-  username: string;
-  issystem: number;
+	serviceName: string;
+	servicePrice: number;
+	createdBy: number;
+	keyid: number;
+	username: string;
+	issystem: number;
 }
 
 export default function AdditionalServicesPage() {
@@ -90,9 +90,9 @@ export default function AdditionalServicesPage() {
 		if (confirmation) {
 			const prompt_answer = prompt('Enter your password to confirm');
 			if (prompt_answer) {
-				const response = await customPost(`billing/services?serviceid=${serviceId}`, 'DELETE',{serviceId});
+				const response = await customPost(`billing/services?serviceid=${serviceId}`, 'DELETE', { serviceId });
 				if (response.status) {
-					setServicesList((prevList) => prevList.filter((item) => item?.keyid  !== serviceId));
+					setServicesList((prevList) => prevList.filter((item) => item?.keyid !== serviceId));
 					toast.success('Service Deleted successfully');
 				}
 			}
@@ -141,7 +141,7 @@ export default function AdditionalServicesPage() {
 
 	return (
 		<div>
-				<div className="p-2">
+			<div className="p-2">
 				<form onSubmit={handleSubmit} className="d-flex ">
 					<div className="form-group col-4">
 						<input
@@ -180,10 +180,10 @@ export default function AdditionalServicesPage() {
 				</form>
 				<div style={{ overflowX: 'auto' }}>
 					{loading ? <Spinner animation="border" /> : (servicesList.length > 0 &&
-						 <PrimeTable column={columns}
-						  data={servicesList} 
-						  filtering={false}
-						 serverSideFiltering={false} handleSeverSideProcessing={false} />)}
+						<PrimeTable column={columns}
+							data={servicesList}
+							filtering={false}
+							serverSideFiltering={false} handleSeverSideProcessing={false} />)}
 				</div>
 			</div>
 		</div>

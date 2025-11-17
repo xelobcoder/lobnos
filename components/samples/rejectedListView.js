@@ -44,7 +44,7 @@ export default function RejectedSamplesComponent({ data }) {
 		<>
 			<h6>Rejected Sample List</h6>
 			<section>
-				<PrimeTable column={columns} data={data} filtering={false} serverSideFiltering={true} handleSeverSideProcessing={handleSeverSideProcessingRejectedSample}/>
+				<PrimeTable column={columns} data={data} filtering={false} serverSideFiltering={true} handleSeverSideProcessing={handleSeverSideProcessingRejectedSample} />
 			</section>
 		</>
 	)

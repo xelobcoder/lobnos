@@ -27,7 +27,7 @@ export function ControlMaterialManager() {
     const [associatedTests, setAssociatedTests] = useState<number>(0);
     const [loadingDevices, setLoadingDevices] = useState(false);
 
-   
+
 
     const { register, handleSubmit, reset, watch, control, formState: { errors }, setValue } = useForm<ControlMaterialType>({
         resolver: zodResolver(controlMaterialSchema),
@@ -42,7 +42,7 @@ export function ControlMaterialManager() {
             setLoadingDevices(true);
             const response = await customFetch(`devices/search/devices?search=${encodeURIComponent(searchQuery)}`);
             if (response && Array.isArray(response) && response.length > 0) {
-                const deviceOptions  = response.map(device => ({
+                const deviceOptions = response.map(device => ({
                     value: device.id,
                     label: `${device.deviceName} (${device.model})`,
                     device
@@ -91,7 +91,7 @@ export function ControlMaterialManager() {
 
             const payload = {
                 ...data,
-                deviceId: typeof data.deviceId === 'object' ? data.deviceId.value : data.deviceId, 
+                deviceId: typeof data.deviceId === 'object' ? data.deviceId.value : data.deviceId,
                 createdby: parseInt(employeeid),
                 updatedby: parseInt(employeeid)
             };
@@ -158,17 +158,18 @@ export function ControlMaterialManager() {
 
 
 
-    const handleParameterOpening = async (itemdata:{testId:number, id:string}) =>  {
-        const {testId,id} = itemdata; 
+    const handleParameterOpening = async (itemdata: { testId: number, id: string }) => {
+        const { testId, id } = itemdata;
         if (!testId) return toast.info("Control not associated with a Test");
-        if(!id) return;
+        if (!id) return;
         setSelectedMaterialForParams(id)
         setAssociatedTests(testId);
         setShowParametersModal(true);
     }
 
     const columns = [
-        {Header: "Associated Test",
+        {
+            Header: "Associated Test",
             accessor: 'testPanelName',
         },
         {
@@ -247,7 +248,7 @@ export function ControlMaterialManager() {
                         variant="outline-secondary"
                         size="sm"
                         onClick={() => {
-                           handleParameterOpening(row.original)
+                            handleParameterOpening(row.original)
                         }}
                     >
                         <RiListCheck size={14} />
@@ -257,7 +258,7 @@ export function ControlMaterialManager() {
                         size="sm"
                         onClick={() => handleEdit(row.original)}
                     >
-                       <RiEditLine size={14} />
+                        <RiEditLine size={14} />
                     </Button>
                     <Button
                         variant="outline-danger"
@@ -297,7 +298,7 @@ export function ControlMaterialManager() {
                 register={register}
                 watch={watch}
                 errors={errors}
-  
+
                 selectedMaterial={selectedMaterial}
                 control={control}
                 devices={devices}

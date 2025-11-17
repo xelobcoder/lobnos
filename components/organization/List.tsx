@@ -52,7 +52,7 @@ export default function OrganizationList() {
 	];
 
 
-	const handleEditing = async (id:number) => {
+	const handleEditing = async (id: number) => {
 		router.push(`/organization/${id}/basicinfo`)
 	}
 
@@ -257,28 +257,28 @@ export default function OrganizationList() {
 						</div>
 						<div className="d-flex align-items-center gap-3">
 							<div className="d-flex align-items-center gap-3">
-							<span className="badge bg-light text-dark fw-normal px-3 py-2 rounded-pill">
-								{organization.length} {organization.length === 1 ? 'Organization' : 'Organizations'}
-							</span>
-							<ExcelExportButton
-								data={organization}
-								filename="organizations"
-								columns={exportColumns}
-								disabled={!organization || organization.length === 0}
-							/>
-						</div>
-						<div className="">
-							<div className="d-grid">
-								<button
-									type="button"
-									onClick={() => router.push("/organization/new")}
-									className="btn btn-success p-1"
-								>
-									<RiAddLine className="me-2" size={20} />
-									New Organization
-								</button>
+								<span className="badge bg-light text-dark fw-normal px-3 py-2 rounded-pill">
+									{organization.length} {organization.length === 1 ? 'Organization' : 'Organizations'}
+								</span>
+								<ExcelExportButton
+									data={organization}
+									filename="organizations"
+									columns={exportColumns}
+									disabled={!organization || organization.length === 0}
+								/>
 							</div>
-						</div>
+							<div className="">
+								<div className="d-grid">
+									<button
+										type="button"
+										onClick={() => router.push("/organization/new")}
+										className="btn btn-success p-1"
+									>
+										<RiAddLine className="me-2" size={20} />
+										New Organization
+									</button>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -372,7 +372,7 @@ export default function OrganizationList() {
 								</div>
 
 								{/* Search Input Group */}
-								
+
 
 								{filter.value && (
 									<div className="mt-3">
@@ -418,7 +418,7 @@ export default function OrganizationList() {
 							)}
 						</div>
 
-						
+
 					</div>
 
 					{/* Professional No Results Section */}
@@ -463,12 +463,12 @@ export default function OrganizationList() {
 
 			<div className="table-container">
 				<PrimeTable
-					column={columns} 
+					column={columns}
 					data={organization}
 					filtering={false}
 					serverSideFiltering={true}
 					handleSeverSideProcessing={orgainzationServerSideProcessing}
-					
+
 				/>
 			</div>
 		</section>

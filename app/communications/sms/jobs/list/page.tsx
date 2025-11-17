@@ -23,35 +23,35 @@ function formatDate(dateStr: string) {
 
 
 const SmsJobsListPage: React.FC = () => {
-    const [jobs, setJobs] = useState<any[]>([]);
-    const [total, setTotal] = useState<number>(0);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const router = useRouter();
+     const [jobs, setJobs] = useState<any[]>([]);
+     const [total, setTotal] = useState<number>(0);
+     const [loading, setLoading] = useState(true);
+     const [error, setError] = useState('');
+     const router = useRouter();
 
-    const fetchJobs = () => {
-        setLoading(true);
-        customFetch('prime/sms-jobs-paginated')
-            .then((data) => {
-                if (data && Array.isArray(data.jobs)) {
-                    setJobs(data.jobs);
-                    setTotal(data.total || data.jobs.length);
-                } else {
-                    setError('No jobs found.');
-                }
-            })
-            .catch(() => setError('Failed to fetch jobs.'))
-            .finally(() => setLoading(false));
-    };
+     const fetchJobs = () => {
+          setLoading(true);
+          customFetch('prime/sms-jobs-paginated')
+               .then((data) => {
+                    if (data && Array.isArray(data.jobs)) {
+                         setJobs(data.jobs);
+                         setTotal(data.total || data.jobs.length);
+                    } else {
+                         setError('No jobs found.');
+                    }
+               })
+               .catch(() => setError('Failed to fetch jobs.'))
+               .finally(() => setLoading(false));
+     };
 
-    useEffect(() => {
-        fetchJobs();
-    }, []);
+     useEffect(() => {
+          fetchJobs();
+     }, []);
 
 
-    const handleCreateJobRedirect = () => {
-        router.push('/communications/sms/jobs');
-    };
+     const handleCreateJobRedirect = () => {
+          router.push('/communications/sms/jobs');
+     };
 
 
      const columns = [
@@ -77,23 +77,23 @@ const SmsJobsListPage: React.FC = () => {
           {
                Header: 'Scheduled At', accessor: 'scheduledat', Cell: ({ cell: { value } }) => value ? formatDate(value) : '-'
           },
-{
-     Header: 'Recipients',
-     id: 'recipients',
-     Cell: ({ row }) => {
-          const job = row.original;
-          const jobid = job.jobid;
-          return (
-               <a
-                    className="btn btn-sm btn-outline-primary"
-                    href={`/communications/sms/jobs/recipients/${jobid}`}
-                    style={{ minWidth: 110 }}
-               >
-                    View Recipients
-               </a>
-          );
-     }
-},
+          {
+               Header: 'Recipients',
+               id: 'recipients',
+               Cell: ({ row }) => {
+                    const job = row.original;
+                    const jobid = job.jobid;
+                    return (
+                         <a
+                              className="btn btn-sm btn-outline-primary"
+                              href={`/communications/sms/jobs/recipients/${jobid}`}
+                              style={{ minWidth: 110 }}
+                         >
+                              View Recipients
+                         </a>
+                    );
+               }
+          },
      ]
 
 
@@ -114,23 +114,23 @@ const SmsJobsListPage: React.FC = () => {
           );
      }
 
-    return (
-        <div className="mt-4">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-                <h3 className="fw-semibold mb-2" style={{ fontSize: '1.25rem' }}>SMS Jobs</h3>
-                <Button variant="primary" size="sm" onClick={handleCreateJobRedirect}>
-                    <RiAddLine size={18} className="me-1" /> Create SMS Jobs
-                </Button>
-            </div>
-            <div className="mb-2 text-muted small" style={{ fontSize: '0.95rem' }}>Total: {total}</div>
-            <PrimeTable
-                data={jobs}
-                column={columns}
-                serverSideFiltering={true}
-                handleSeverSideProcessing={handleServerProcessingSmsJobs}
-            />
-        </div>
-    );
+     return (
+          <div className="mt-4">
+               <div className="d-flex justify-content-between align-items-center mb-2">
+                    <h3 className="fw-semibold mb-2" style={{ fontSize: '1.25rem' }}>SMS Jobs</h3>
+                    <Button variant="primary" size="sm" onClick={handleCreateJobRedirect}>
+                         <RiAddLine size={18} className="me-1" /> Create SMS Jobs
+                    </Button>
+               </div>
+               <div className="mb-2 text-muted small" style={{ fontSize: '0.95rem' }}>Total: {total}</div>
+               <PrimeTable
+                    data={jobs}
+                    column={columns}
+                    serverSideFiltering={true}
+                    handleSeverSideProcessing={handleServerProcessingSmsJobs}
+               />
+          </div>
+     );
 };
 
 export default SmsJobsListPage;

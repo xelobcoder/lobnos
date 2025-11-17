@@ -10,12 +10,12 @@ import PrimeTable from "../../../../../../components/accessories/Datatables/Prim
 
 
 interface TemplateItem {
-    name: string;
-    ultrasoundname: string;
-    associatedbodypart: string;
-    createdOn: string;
-    visibletoAll: boolean;
-    keyid: number;
+	name: string;
+	ultrasoundname: string;
+	associatedbodypart: string;
+	createdOn: string;
+	visibletoAll: boolean;
+	keyid: number;
 }
 
 export default function UltrasoundTemplatesList() {
@@ -97,8 +97,8 @@ export default function UltrasoundTemplatesList() {
 	if (isLoading) {
 		return (
 			<div className="text-center heightedBorder p-2 bg-secondary-subtle">
-			Loading Data.......................
-		</div>
+				Loading Data.......................
+			</div>
 		);
 	}
 
@@ -108,22 +108,22 @@ export default function UltrasoundTemplatesList() {
 
 	return (
 		<div>
-				<h5 className="heightedBorder p-2 my-2 bg-body-secondary">Ultrasound Templates</h5>
-				<ShowTableCount queryParams={query} setQueryParams={setQuery} />
-				<div className="table-container">
-					<PrimeTable
-						column={columns}
-						data={templateList}
-						filtering={false}
-						handleSeverSideProcessing={null}
-					/>
-				</div>
-				<div className="d-flex justify-content-center">
-					<Pagination
-						load={setLoading} page={query.page}
-						updateFunction={updateFunction}
-					/>
-				</div>
+			<h5 className="heightedBorder p-2 my-2 bg-body-secondary">Ultrasound Templates</h5>
+			<ShowTableCount queryParams={query} setQueryParams={setQuery} />
+			<div className="table-container">
+				<PrimeTable
+					column={columns}
+					data={templateList}
+					filtering={false}
+					handleSeverSideProcessing={null}
+				/>
 			</div>
+			<div className="d-flex justify-content-center">
+				<Pagination
+					load={setLoading} page={query.page}
+					updateFunction={updateFunction}
+				/>
+			</div>
+		</div>
 	);
 }

@@ -130,8 +130,8 @@ export default function StrategiesListPage() {
                         Details
                     </button>
                     <button
-                    onClick={() => router.push(`/billing/billing-strategy/strategies/create?id=${row.original.strategyid}`)}
-                    className="btn btn-sm btn-secondary me-2"
+                        onClick={() => router.push(`/billing/billing-strategy/strategies/create?id=${row.original.strategyid}`)}
+                        className="btn btn-sm btn-secondary me-2"
                     >
                         Edit
                     </button>

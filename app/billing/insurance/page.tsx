@@ -6,12 +6,12 @@ import NewInsuranceCompanyForm from '../../../components/insurance/NewInsuranceC
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch } from '../../../components/Auth/customFetch';
 import Loader from '../../../components/accessories/Loader';
-import { 
-    RiAddFill, 
-    RiMore2Fill, 
-    RiPriceTag3Line, 
-    RiEditLine, 
-    RiCloseCircleLine 
+import {
+    RiAddFill,
+    RiMore2Fill,
+    RiPriceTag3Line,
+    RiEditLine,
+    RiCloseCircleLine
 } from '@remixicon/react';
 import { useRouter } from 'next/navigation';
 
@@ -125,21 +125,21 @@ const InsurancePage: React.FC = () => {
                     </Dropdown.Toggle>
 
                     <Dropdown.Menu>
-                        <Dropdown.Item 
+                        <Dropdown.Item
                             onClick={() => handlePricingRouter(row.original)}
                             className="d-flex align-items-center gap-2"
                         >
                             <RiPriceTag3Line size={18} />
                             <span>Create Pricing</span>
                         </Dropdown.Item>
-                        <Dropdown.Item 
+                        <Dropdown.Item
                             onClick={() => handleEditInsurance(row.original)}
                             className="d-flex align-items-center gap-2"
                         >
                             <RiEditLine size={18} />
                             <span>Edit</span>
                         </Dropdown.Item>
-                        <Dropdown.Item 
+                        <Dropdown.Item
                             onClick={() => handleDisableInsurance(row.index)}
                             className="d-flex align-items-center gap-2 text-danger"
                         >

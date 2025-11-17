@@ -279,7 +279,7 @@ export default function SuppliersPage() {
                     </div>
                </div>
 
-             
+
                <PrimeTable
                     column={supplierColumns}
                     data={suppliers}

@@ -18,21 +18,21 @@ export default function AuditLogsPage() {
     const [error, setError] = useState<string | null>(null);
 
     const fetchLogs = async (refreshing = false, search = "") => {
-     
+
         try {
             if (refreshing) setIsRefreshing(true);
             else if (search) setIsSearching(true);
             else setIsLoading(true);
-            
+
             let url;
             if (search) {
                 url = `result/auditlogs/paginated?ascensionid=${encodeURIComponent(search)}&&page=1&&pageSize=100`;
             } else {
                 url = `result/auditlogs/paginated?page=1&&pageSize=100`;
             }
-            
+
             const resp = await customFetch(url);
-            
+
             if (resp && Array.isArray(resp.data)) {
                 setLogs(resp.data);
             } else {
@@ -70,10 +70,10 @@ export default function AuditLogsPage() {
 
     const groupedData = useMemo(() => {
         const groupedMap = new Map();
-        
+
         logs.forEach(log => {
             if (!log.edit_session_id) return;
-            
+
             if (!groupedMap.has(log.edit_session_id)) {
                 groupedMap.set(log.edit_session_id, {
                     id: log.id,
@@ -91,13 +91,13 @@ export default function AuditLogsPage() {
                     fields: {}
                 });
             }
-            
+
             const entry = groupedMap.get(log.edit_session_id);
             if (log.field) {
                 entry.fields[log.field] = log.previous_value;
             }
         });
-        
+
         return Array.from(groupedMap.values())
             .sort((a, b) => new Date(b.created_on).getTime() - new Date(a.created_on).getTime());
     }, [logs]);
@@ -154,13 +154,13 @@ export default function AuditLogsPage() {
                 Cell: ({ value }) => <span className="badge bg-secondary text-uppercase">{value}</span>,
             },
         ];
-        
+
         const fieldCols = allFields.map(field => ({
             Header: String(field),
             accessor: `field_${String(field).replace(/\s+/g, '_').toLowerCase()}`,
             Cell: ({ row }) => {
                 const fieldStr = String(field);
-                const value = row.original.fields && typeof row.original.fields === 'object' ? 
+                const value = row.original.fields && typeof row.original.fields === 'object' ?
                     (row.original.fields as Record<string, string>)[fieldStr] : undefined;
                 return value ? (
                     <span className="text-danger fw-bold">{value}</span>
@@ -173,7 +173,7 @@ export default function AuditLogsPage() {
     if (isLoading) {
         return <div className="d-flex align-items-center gap-2"><Spinner animation="border" size="sm" /> Loading audit logs...</div>;
     }
-    
+
     if (error) {
         return <Alert variant="danger">{error}</Alert>
     }
@@ -181,9 +181,9 @@ export default function AuditLogsPage() {
     return (
         <div>
             <div className="d-flex justify-content-between align-items-center mb-3">
-            
-                <Button 
-                    variant="outline-primary" 
+
+                <Button
+                    variant="outline-primary"
                     size="sm"
                     onClick={handleRefresh}
                     disabled={isRefreshing}
@@ -197,35 +197,35 @@ export default function AuditLogsPage() {
                     ) : (
                         <>
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-clockwise" viewBox="0 0 16 16">
-                                <path fillRule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                                <path fillRule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
                             </svg>
                             <span>Refresh Data</span>
                         </>
                     )}
                 </Button>
             </div>
-            
+
             <p className="text-muted mb-3">Showing changes grouped by editing sessions. Each row represents a set of changes made in a single editing session.</p>
-            
+
             <div className="mb-4">
                 <div className="input-group">
                     <span className="input-group-text">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">
-                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z" />
                         </svg>
                     </span>
-                    <input 
-                        type="text" 
-                        className="form-control" 
-                        placeholder="Search audit logs by ascension id" 
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Search audit logs by ascension id"
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                         onKeyPress={handleKeyPress}
                         disabled={isSearching}
                     />
-                    <button 
-                        className="btn btn-primary" 
+                    <button
+                        className="btn btn-primary"
                         type="button"
                         onClick={handleSearch}
                         disabled={!searchText.trim() || isSearching}
@@ -240,8 +240,8 @@ export default function AuditLogsPage() {
                         )}
                     </button>
                     {searchText && (
-                        <button 
-                            className="btn btn-outline-secondary" 
+                        <button
+                            className="btn btn-outline-secondary"
                             type="button"
                             onClick={() => {
                                 setSearchText("");
@@ -253,15 +253,15 @@ export default function AuditLogsPage() {
                         </button>
                     )}
                 </div>
-           
-                
+
+
                 {logs.length === 0 && searchText && !isSearching && !isLoading && (
                     <div className="mt-2 text-danger">
                         <small>No results found for {searchText}</small>
                     </div>
                 )}
             </div>
-            
+
             <PrimeTable
                 column={columns}
                 data={groupedData}

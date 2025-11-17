@@ -35,7 +35,7 @@ export default function ShowTableDisplayCount({
      return (
           <div className="my-1 col-12 col-sm-6 col-md-6 col-lg-6 d-flex flex-column">
                <div className="d-flex w-100">
-                    <select value={isCustomMode ? 'custom' : queryParams.count} onChange={handleCountChange} className="custom-select">
+                    <select value={isCustomMode ? 'custom' : queryParams.count} onChange={handleCountChange} className="form-select form-select-sm">
                          <option value={5}>5</option>
                          <option value={10}>10</option>
                          <option value={15}>15</option>
@@ -57,8 +57,8 @@ export default function ShowTableDisplayCount({
                               <input
                                    type="number"
                                    min={1}
-                                   className="form-control"
-                                   style={{ width: 100 }}
+                                   className="form-control form-control-sm"
+                                   style={{ width: 80 }}
                                    placeholder="Enter count"
                                    value={customValue}
                                    onChange={e => {
@@ -80,6 +80,7 @@ export default function ShowTableDisplayCount({
                               <button
                                    type="button"
                                    className="btn btn-primary btn-sm ms-1"
+                                   style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
                                    onClick={() => {
                                         const value = Number(customValue);
                                         if (value > 0) {
@@ -96,7 +97,7 @@ export default function ShowTableDisplayCount({
                               </button>
                          </div>
                     )}
-                    <select className="custom-select mx-3" onChange={(e) => {
+                    <select className="form-select form-select-sm mx-3" onChange={(e) => {
                          const sortby = e.target.value as '' | 'DESC' | 'ASC';
                          setQueryParams({ ...queryParams, sortby });
                          if (handleLoader && (sortby === 'DESC' || sortby === 'ASC') && typeof queryParams.count === 'number') {
@@ -108,7 +109,6 @@ export default function ShowTableDisplayCount({
                          <option value='ASC'>Ascending (Show oldest data last)</option>
                     </select>
                </div>
-               <small className="text-muted mt-1 ms-1 text-light">Server-side filtering.</small>
           </div>
      );
 }

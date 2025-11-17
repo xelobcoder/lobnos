@@ -27,10 +27,10 @@ export function DeviceManager() {
     });
 
     useEffect(() => {
-        fetchDevices({ setDevices,setLoading,toast}) 
+        fetchDevices({ setDevices, setLoading, toast })
     }, []);
 
-   
+
 
     const handleClose = () => {
         setShowModal(false);
@@ -53,7 +53,7 @@ export function DeviceManager() {
             const response = await customPost(`devices/${id}`, 'DELETE', {});
             console.log(response)
             toast.success('Device deleted successfully');
-            fetchDevices({ setDevices,setLoading,toast}) 
+            fetchDevices({ setDevices, setLoading, toast })
         } catch (error) {
             toast.error('Failed to delete device');
             console.error(error);
@@ -88,7 +88,7 @@ export function DeviceManager() {
             if (status === true) {
                 toast.success(`Device ${selectedDevice ? 'updated' : 'added'} successfully`);
                 handleClose();
-                fetchDevices({ setDevices, setLoading,toast})
+                fetchDevices({ setDevices, setLoading, toast })
             } else {
                 toast.error(`Failed to ${selectedDevice ? 'update' : 'add'} device`);
             }
@@ -134,7 +134,7 @@ export function DeviceManager() {
             Cell: ({ row }) => (
                 <Badge bg={
                     row.original.status === 'active' ? 'success' :
-                    row.original.status === 'maintenance' ? 'warning' : 'danger'
+                        row.original.status === 'maintenance' ? 'warning' : 'danger'
                 }>
                     {row.original.status}
                 </Badge>
@@ -212,14 +212,14 @@ export function DeviceManager() {
                 selectedDevice={selectedDevice}
             />
 
-              <PrimeTable 
-                column={columns} 
-                data={devices || []}  
-                serverSideFiltering={true} 
-                filtering={false} 
+            <PrimeTable
+                column={columns}
+                data={devices || []}
+                serverSideFiltering={true}
+                filtering={false}
                 handleSeverSideProcessing={handleServerFiltering}
             />
-            <PrimeToast/>
+            <PrimeToast />
         </div>
     );
 }

@@ -29,9 +29,9 @@ export default function Page({ params }: { params: { ascensionid: string } }) {
      }, [ascensionid]);
 
 
-     const handleSeverSideProcessing = async (filters: { count: number, page: number, sortby: 'ASC' | 'DESC'  }) => {
+     const handleSeverSideProcessing = async (filters: { count: number, page: number, sortby: 'ASC' | 'DESC' }) => {
           try {
-               const {page,count, sortby='DESC'} = filters;
+               const { page, count, sortby = 'DESC' } = filters;
                const response = await customFetch(`result/printingtracking/ascension/${ascensionid}?page=${page}&count=${count}&sortby=${sortby}`)
                const result = Array.isArray(response) ? response : [];
                return { result, error: false }

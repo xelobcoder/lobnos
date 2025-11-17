@@ -28,47 +28,47 @@ interface Column {
 
 interface MonthResultValuesComponentProps {
     data: TestResult[];
-    onFieldClick: ( result: TestResult) => void;
+    onFieldClick: (result: TestResult) => void;
 }
 
 const MonthResultValuesComponent: React.FC<MonthResultValuesComponentProps> = ({ data, onFieldClick }) => {
     const columns: Column[] = [
-        { 
-            Header: 'date', 
-            accessor: 'created_on', 
-            Cell: ({ value }) => new Date(value).toLocaleDateString() 
+        {
+            Header: 'date',
+            accessor: 'created_on',
+            Cell: ({ value }) => new Date(value).toLocaleDateString()
         },
-        { 
-            Header: 'field', 
-            accessor: 'field', 
+        {
+            Header: 'field',
+            accessor: 'field',
             isMenu: true,
             Cell: ({ value, row }: { value: any; row: { original: TestResult } }) => (
-                <button 
-                    className="btn btn-link p-0" 
+                <button
+                    className="btn btn-link p-0"
                     onClick={() => onFieldClick(row.original)}
                 >
                     {value}
                 </button>
             )
         },
-        { 
-            Header: 'value', 
-            accessor: 'value' 
+        {
+            Header: 'value',
+            accessor: 'value'
         },
-        { 
-            Header: 'resultby', 
-            accessor: 'resultby' 
+        {
+            Header: 'resultby',
+            accessor: 'resultby'
         },
     ];
 
     return (
         <div>
             <PrimeTable
-            column={columns}
-            data={data}
-            filtering={true}
-            serverSideFiltering={false}
-            handleSeverSideProcessing={null}
+                column={columns}
+                data={data}
+                filtering={true}
+                serverSideFiltering={false}
+                handleSeverSideProcessing={null}
             />
         </div>
     );

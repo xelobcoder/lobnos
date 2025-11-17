@@ -41,7 +41,7 @@ export default function ListTable({ data, handleCollectSample, selectedItems = [
 			accessor: "action",
 			Cell: ({ row }) => (
 				<div className="d-flex gap-1">
-					
+
 					<button
 						className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
 						onClick={() => {
@@ -60,7 +60,7 @@ export default function ListTable({ data, handleCollectSample, selectedItems = [
 		},
 	]
 
-	
+
 
 	return (
 		<div>
@@ -70,7 +70,7 @@ export default function ListTable({ data, handleCollectSample, selectedItems = [
 				data={data}
 				filtering={false}
 				serverSideFiltering={true}
-				
+
 			/>
 		</div>
 	);

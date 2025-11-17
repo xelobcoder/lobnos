@@ -52,7 +52,7 @@ type Appointment = {
 
 export default function AppointmentList() {
     const router = useRouter();
-    
+
     const resetReminderModal = () => {
         setShowReminderModal(false);
         setReminderTarget(null);
@@ -199,7 +199,7 @@ export default function AppointmentList() {
             appointmentTime: appointment.appointment_time,
             appointmentPurpose: appointment.purpose || ''
         });
-        
+
         router.push(`/appointments/phone-call-log?${queryParams.toString()}`);
     };
 

@@ -42,7 +42,7 @@ export default function LaboratorySMSLifecycle() {
         events.forEach(event => {
             const placeholderPattern = /\{\{([^}]+)\}\}/g;
             const matches = event.content.match(placeholderPattern) || [];
-            
+
             matches.forEach(match => {
                 if (!placeholdersByCategory[event.category].includes(match)) {
                     placeholdersByCategory[event.category].push(match);
@@ -131,7 +131,7 @@ export default function LaboratorySMSLifecycle() {
         setEditingEvent(event);
         setSelectedPlaceholder('');
         setShowEditModal(true);
-        
+
         // Extract placeholders already in the content
         const placeholderPattern = /\{\{[^}]+\}\}/g;
         const currentPlaceholders = event.content.match(placeholderPattern) || [];
@@ -171,12 +171,12 @@ export default function LaboratorySMSLifecycle() {
     const handleRemovePlaceholder = (placeholderToRemove: string) => {
         if (placeholderToRemove && editingEvent) {
             const updatedContent = editingEvent.content.replace(placeholderToRemove, '').replace(/\s+/g, ' ').trim();
-            
-            setEditingEvent((prev) => prev ? ({ 
-                ...prev, 
+
+            setEditingEvent((prev) => prev ? ({
+                ...prev,
                 content: updatedContent
             }) : null);
-            
+
             // Re-scan content for remaining placeholders
             const placeholderPattern = /\{\{[^}]+\}\}/g;
             const remainingPlaceholders = updatedContent.match(placeholderPattern) || [];
@@ -191,7 +191,7 @@ export default function LaboratorySMSLifecycle() {
             ...editingEvent!,
             content: newContent
         });
-        
+
         // Re-scan content for placeholders when user types
         const placeholderPattern = /\{\{[^}]+\}\}/g;
         const foundPlaceholders = newContent.match(placeholderPattern) || [];
@@ -236,17 +236,17 @@ export default function LaboratorySMSLifecycle() {
     };
 
     const columns = [
-        { 
-            Header: 'Event Code', 
+        {
+            Header: 'Event Code',
             accessor: 'code',
             Cell: ({ cell: { value } }) => <code className="text-primary">{value}</code>
         },
-        { 
-            Header: 'Description', 
-            accessor: 'description' 
+        {
+            Header: 'Description',
+            accessor: 'description'
         },
-        { 
-            Header: 'Category', 
+        {
+            Header: 'Category',
             accessor: 'category',
             Cell: ({ cell: { value } }) => (
                 <span className={getCategoryBadgeClass(value)}>
@@ -254,8 +254,8 @@ export default function LaboratorySMSLifecycle() {
                 </span>
             )
         },
-        { 
-            Header: 'Content Preview', 
+        {
+            Header: 'Content Preview',
             accessor: 'content',
             Cell: ({ cell: { value } }) => (
                 <div
@@ -267,8 +267,8 @@ export default function LaboratorySMSLifecycle() {
                 </div>
             )
         },
-        { 
-            Header: 'Created', 
+        {
+            Header: 'Created',
             accessor: 'createdat',
             Cell: ({ cell: { value } }) => (
                 <span className="text-muted small">
@@ -276,8 +276,8 @@ export default function LaboratorySMSLifecycle() {
                 </span>
             )
         },
-        { 
-            Header: 'Status', 
+        {
+            Header: 'Status',
             accessor: 'active',
             Cell: ({ cell: { value } }) => (
                 <span className={`badge ${value === 1 ? 'bg-success' : 'bg-secondary'}`}>
@@ -285,8 +285,8 @@ export default function LaboratorySMSLifecycle() {
                 </span>
             )
         },
-        { 
-            Header: 'Actions', 
+        {
+            Header: 'Actions',
             accessor: 'actions',
             Cell: ({ row }) => {
                 const event = row.original;

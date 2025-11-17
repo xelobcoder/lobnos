@@ -17,7 +17,7 @@ const columns = [
                const appointment_refid = row.original.appointment_refid;
                return (
                     <div style={{ minWidth: 120 }}>
-                       {patientid}({appointment_refid})
+                         {patientid}({appointment_refid})
                     </div>
                );
           }
@@ -88,7 +88,7 @@ const columns = [
           Cell: ({ row }) => {
                const appointment_refid = row.original.appointment_refid;
                const patientid = row.original.patientid;
-               const patientName = row.original.creator_name||  '';
+               const patientName = row.original.creator_name || '';
                const appointmentDate = row.original.appointment_date || '';
                const appointmentTime = row.original.appointment_time || '';
                const appointmentPurpose = row.original.appointment_purpose || '';
@@ -179,7 +179,7 @@ export default function AllPhoneCallsPage() {
      };
 
 
-     const handleServerSide = async ({ page, count,sortby='DESC' }: {page:number,count:number,sortby:'ASC'|'DESC'}) => {
+     const handleServerSide = async ({ page, count, sortby = 'DESC' }: { page: number, count: number, sortby: 'ASC' | 'DESC' }) => {
           await fetchData(page, count, appointmentId);
           return { result: data };
      };
@@ -200,9 +200,9 @@ export default function AllPhoneCallsPage() {
                               </Form.Group>
                               <Button type="submit" variant="primary" className="d-flex align-items-center gap-1">
                                    <RiSearchLine size={18} /> Search
-                              </Button>            
+                              </Button>
                          </Form>
-        
+
                     </Card.Body>
                </Card>
                <div style={{ overflowX: 'auto' }}>

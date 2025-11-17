@@ -3,7 +3,7 @@ import { Dropdown } from 'react-bootstrap';
 import { RiMoreLine, RiCheckLine, RiCloseLine } from '@remixicon/react';
 import { useUltrasoundContext } from "./UltrasoundContext";
 import { generateRandomTextAndNumbers, PrepareResultEntryHeader } from "../../Auth/customFetch";
-import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
+import PrimeTable from '../../accessories/Datatables/PrimeTable';
 import { useApplication } from "../../Auth/useApplicationContext";
 import { handleServerSideProcessingAscensionData } from "../../serverActions/ActionFiltering";
 
@@ -73,12 +73,12 @@ export default function AscentionUltrasoundUnCompletedTable({ stage }) {
 						<Dropdown.Item onClick={() => PrepareResultEntryHeader(row.original, true, branchid)}>
 							<RiCheckLine size={16} className="me-1" /> Enter result
 						</Dropdown.Item>
-					{stage == "ULTRASOUND_COMPLETED" && (
-						<Dropdown.Item onClick={() => handlePrintResult(row.original)}>
-							<RiCloseLine size={16} className="me-1" />
-							Print Result
-						</Dropdown.Item>
-					)}
+						{stage == "ULTRASOUND_COMPLETED" && (
+							<Dropdown.Item onClick={() => handlePrintResult(row.original)}>
+								<RiCloseLine size={16} className="me-1" />
+								Print Result
+							</Dropdown.Item>
+						)}
 					</Dropdown.Menu>
 				</Dropdown>
 			),
