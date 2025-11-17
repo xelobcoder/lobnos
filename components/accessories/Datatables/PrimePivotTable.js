@@ -735,9 +735,10 @@ export default function PrimeTable({
 
 			style.position = 'sticky';
 			style.left = `${leftOffset}px`;
-			style.zIndex = 10;
-			style.backgroundColor = isDarkMode ? '#2d3748' : 'white';
-			style.boxShadow = '2px 0 4px rgba(0,0,0,0.1)';
+			style.zIndex = 100;
+			style.backgroundColor = isDarkMode ? '#2d3748' : '#fff';
+			style.boxShadow = '2px 0 5px rgba(0,0,0,0.15)';
+			style.borderRight = '2px solid ' + (isDarkMode ? '#4a5568' : '#dee2e6');
 		}
 
 		if (frozenColumns.right.includes(columnId)) {
@@ -748,9 +749,10 @@ export default function PrimeTable({
 
 			style.position = 'sticky';
 			style.right = `${rightOffset}px`;
-			style.zIndex = 10;
-			style.backgroundColor = isDarkMode ? '#2d3748' : 'white';
-			style.boxShadow = '-2px 0 4px rgba(0,0,0,0.1)';
+			style.zIndex = 100;
+			style.backgroundColor = isDarkMode ? '#2d3748' : '#fff';
+			style.boxShadow = '-2px 0 5px rgba(0,0,0,0.15)';
+			style.borderLeft = '2px solid ' + (isDarkMode ? '#4a5568' : '#dee2e6');
 		}
 
 		return style;
@@ -2349,7 +2351,7 @@ export default function PrimeTable({
 					</div>
 				</div>
 				<div className="row m-0 p-0 flex-nowrap" style={{ overflow: 'hidden' }}>
-					<div className={isPivotMode && !isPivotSectionCollapsed ? "col-9" : "col-12"} style={{ overflowY: 'auto', overflowX: 'auto', maxHeight: '70vh', minWidth: 0 }}>
+					<div className={isPivotMode && !isPivotSectionCollapsed ? "col-9" : "col-12"} style={{ overflowY: 'auto', overflowX: 'auto', maxHeight: '70vh', minWidth: 0, position: 'relative' }}>
 						{isPivotMode && showChart && pivotData && pivotData.length > 0 && (
 							<>
 								<div className="p-3 border-bottom" style={{ backgroundColor: '#f8f9fa' }}>
@@ -2560,7 +2562,7 @@ export default function PrimeTable({
 						)}
 						<table
 							className={style.table}
-							style={{ fontSize: "1rem", minWidth: "100%" }}
+							style={{ fontSize: "1rem", minWidth: "100%", width: "max-content" }}
 							{...(isPivotMode ? {} : getTableProps())}
 						>
 							<thead>{customHeaderGroup()}</thead>
