@@ -2,71 +2,48 @@ import React from 'react';
 import Loader from '../../components/accessories/Loader';
 import Image from 'next/image';
 import { currencyFormatter } from '../../components/Auth/customFetch';
-import { RiListOrdered, RiFileList2Line, RiMoneyDollarCircleLine, RiCalendarEventLine, RiCheckDoubleFill, RiCloseCircleFill } from '@remixicon/react';
-
-const statusMap = {
-	0: { label: 'Awaiting Approval', color: 'warning', icon: <RiFileList2Line className="me-1" /> },
-	1: { label: 'Expense Approved', color: 'success', icon: <RiCheckDoubleFill className="me-1" /> },
-	2: { label: 'Expense Rejected', color: 'danger', icon: <RiCloseCircleFill className="me-1" /> },
-};
+import { RiListOrdered } from '@remixicon/react';
 
 const ExpenseDetail = ({ detail, imagefull, setImageFull, selectedLoading }) => {
 	if (selectedLoading) return <Loader />;
-	const status = statusMap[detail?.approved] || { label: 'Unknown', color: 'secondary', icon: null };
 
 	return (
 		<div className="container-fluid">
-			<div className="d-flex justify-content-between align-items-center mb-3">
-				<div className="mb-0 text-muted">Expense Details</div>
-				<span className={`badge bg-${status.color} fs-6 px-3 py-2 d-flex align-items-center`}>
-					{status.icon}
-					{status.label}
-				</span>
-			</div>
 
-			<div className="row g-3 mb-3">
-				<div >
-					<div className="card">
-						<div className="card-body p-0">
-							<h6 className="card-title mb-2 p-0 bg-secondary-subtle p-4">General Info</h6>
-							<div className='p-3'>
-								<div >
-									<div>
-										<div style={{ display: 'grid', gridTemplateColumns: '20% auto' }}>
-											<div className="text-muted small">Title</div>
-											<div className="text-capitalize mx-3">{detail?.name}</div>
-										</div>
-										<div style={{ display: 'grid', gridTemplateColumns: '20% auto' }}>
-											<div className="text-muted small">ID</div>
-											<div className='mx-3'>EXP{detail?.id}</div>
-										</div>
-										<div style={{ display: 'grid', gridTemplateColumns: '20% auto' }}>
-											<div className="text-muted small">Date</div>
-											<div className='mx-3'>{new Date(detail?.date).toLocaleDateString()} <span className="text-muted">{new Date(detail?.date).toLocaleTimeString()}</span></div>
-										</div>
-										<div style={{ display: 'grid', gridTemplateColumns: '20% auto' }}>
-											<div className="text-muted small">Logged on</div>
-											<div className='mx-3'>{new Date(detail?.createdon).toLocaleDateString()} <span className="text-muted">{new Date(detail?.createdon).toLocaleTimeString()}</span></div>
-										</div>
-										<div style={{ display: 'grid', gridTemplateColumns: '20% auto' }}>
-											<div className="text-muted small">Amount</div>
-											<div className="fw-bold text-success">{currencyFormatter.format(detail?.amount)}</div>
-										</div>
-										<div style={{ display: 'grid', gridTemplateColumns: '20% auto' }}>
-											<div className="text-muted small">Approved On</div>
-											<div className='mx-3'>{detail?.approved === 1 ? <span className="text-success fw-semibold">{detail.approvedon}</span> : <span className="text-muted">N/A</span>}</div>
-										</div>
-									</div>
-								</div>
-							</div>
+			<div className="mb-3">
+				<div className="border rounded p-2">
+					<div className="row g-2">
+						<div className="col-md-4 col-6">
+							<small className="text-muted d-block mb-1" style={{ fontSize: '0.75rem' }}>Title</small>
+							<small className="text-capitalize d-block fw-semibold" style={{ fontSize: '0.85rem' }}>{detail?.name}</small>
 						</div>
-					</div>
-				</div>
-				<div className="col-md-6">
-					<div >
-						<div className="card-body">
-							<h6 className="card-title b-2  mb-2">Description</h6>
-							<p className="bg-light rounded p-3 mb-0">{detail?.description || <span className="text-muted">No description provided.</span>}</p>
+						<div className="col-md-4 col-6">
+							<small className="text-muted d-block mb-1" style={{ fontSize: '0.75rem' }}>ID</small>
+							<small className="d-block fw-semibold" style={{ fontSize: '0.85rem' }}>EXP{detail?.id}</small>
+						</div>
+						<div className="col-md-4 col-6">
+							<small className="text-muted d-block mb-1" style={{ fontSize: '0.75rem' }}>Amount</small>
+							<small className="fw-bold text-success d-block" style={{ fontSize: '0.95rem' }}>{currencyFormatter.format(detail?.amount)}</small>
+						</div>
+						<div className="col-md-4 col-6">
+							<small className="text-muted d-block mb-1" style={{ fontSize: '0.75rem' }}>Date</small>
+							<small className="d-block fw-semibold" style={{ fontSize: '0.85rem' }}>{new Date(detail?.date).toLocaleDateString()}</small>
+							<small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>{new Date(detail?.date).toLocaleTimeString()}</small>
+						</div>
+						<div className="col-md-4 col-6">
+							<small className="text-muted d-block mb-1" style={{ fontSize: '0.75rem' }}>Logged on</small>
+							<small className="d-block fw-semibold" style={{ fontSize: '0.85rem' }}>{new Date(detail?.createdon).toLocaleDateString()}</small>
+							<small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>{new Date(detail?.createdon).toLocaleTimeString()}</small>
+						</div>
+						<div className="col-md-4 col-6">
+							<small className="text-muted d-block mb-1" style={{ fontSize: '0.75rem' }}>Approved On</small>
+							<small className="d-block fw-semibold" style={{ fontSize: '0.85rem' }}>
+								{detail?.approved === 1 ? <span className="text-success">{detail.approvedon}</span> : <span className="text-muted">N/A</span>}
+							</small>
+						</div>
+						<div className="col-12">
+							<small className="text-muted d-block mb-1" style={{ fontSize: '0.75rem' }}>Description</small>
+							<small className="d-block" style={{ fontSize: '0.85rem' }}>{detail?.description || <span className="text-muted">No description provided.</span>}</small>
 						</div>
 					</div>
 				</div>
@@ -89,8 +66,12 @@ const ExpenseDetail = ({ detail, imagefull, setImageFull, selectedLoading }) => 
 				<div className="col-12">
 					<div className="d-flex justify-content-between align-items-center mb-2">
 						<h6 className="mb-0">Receipts</h6>
-						<button className="btn btn-outline-secondary btn-sm d-flex align-items-center" onClick={() => setImageFull(!imagefull)}>
-							<RiListOrdered className="me-1" /> {imagefull ? 'Grid View' : 'Full View'}
+						<button
+							className="btn btn-outline-secondary d-flex align-items-center"
+							onClick={() => setImageFull(!imagefull)}
+							style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+						>
+							<RiListOrdered size={14} className="me-1" /> {imagefull ? 'Grid View' : 'Full View'}
 						</button>
 					</div>
 					{detail?.images && detail?.images.length === 0 && <div className="text-muted">No receipts uploaded</div>}

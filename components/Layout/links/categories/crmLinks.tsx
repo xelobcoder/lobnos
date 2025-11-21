@@ -116,6 +116,11 @@ export const CrmLinks: Link[] = [
                 icon: <RiCalendarEventFill />
             },
             {
+                title: "Invoices",
+                link: "/billing/expenses/invoices",
+                icon: <RiBillFill />
+            },
+            {
                 title: "New Merchants",
                 link: "/billing/expenses/merchants/create",
                 icon: <RiAddBoxLine />

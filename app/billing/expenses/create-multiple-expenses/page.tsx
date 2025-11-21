@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "react-toastify";
-import { customFetch, customPost, reactSelectCustomStyles } from "../../../../components/Auth/customFetch";
+import { customFetch, customPost, smallSelectStyles } from "../../../../components/Auth/customFetch";
 import Loader from "../../../../components/accessories/Loader";
 import { useSearchParams } from "next/navigation";
 import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
@@ -15,17 +15,11 @@ interface ExpenseForm {
 	merchant: string | number;
 	amount: number;
 	category: number;
-	mode: string;
 	description: string;
 	receipt: FileList | null;
 	invoiceNumber: string;
 	taxAmount: string;
 	id?: number | null | undefined;
-}
-
-interface PaymentMode {
-	KeyID: string;
-	PaymentMode: string;
 }
 
 interface Category {
@@ -45,7 +39,6 @@ const defaultExpense: ExpenseForm = {
 	merchant: "",
 	amount: 0,
 	category: 0,
-	mode: "",
 	description: "",
 	receipt: null,
 	invoiceNumber: "",
@@ -59,11 +52,13 @@ const formatDateForInput = (dateString: string): string => {
 	return isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 16);
 };
 
+// Custom styles for small Select components
+
+
 export default function CreateMultipleExpenses() {
 	const [expenseForms, setExpenseForms] = useState<ExpenseForm[]>([{ ...defaultExpense }]);
 	const [errors, setErrors] = useState<Partial<Record<number, Partial<Record<keyof ExpenseForm, string>>>>>({});
 	const [isLoading, setLoading] = useState<boolean>(false);
-	const [paymentModes, setPaymentModes] = useState<PaymentMode[]>([]);
 	const [categories, setCategories] = useState<Category[]>([]);
 	interface Merchant {
 		id: number;
@@ -74,26 +69,26 @@ export default function CreateMultipleExpenses() {
 	// Shared invoice fields
 	const [sharedInvoiceNumber, setSharedInvoiceNumber] = useState<string>("");
 	const [sharedDescription, setSharedDescription] = useState<string>("");
-	const [sharedErrors, setSharedErrors] = useState<{ invoiceNumber?: string; description?: string }>({});
+	const [sharedDate, setSharedDate] = useState<string>("");
+	const [sharedErrors, setSharedErrors] = useState<{ invoiceNumber?: string; description?: string; date?: string }>({});
 
 	// Validation schema
 	const validateForm = (formData: ExpenseForm): Partial<Record<keyof ExpenseForm, string>> => {
 		const errors: Partial<Record<keyof ExpenseForm, string>> = {};
 
 		if (!formData.name.trim()) errors.name = "Expense name is required";
-		if (!formData.date) errors.date = "Date is required";
 		if (!formData.merchant || isNaN(Number(formData.merchant))) errors.merchant = "Merchant is required";
 		if (!formData.amount || formData.amount <= 0) errors.amount = "Valid amount is required";
 		if (!formData.category) errors.category = "Category is required";
-		if (!formData.mode) errors.mode = "Payment mode is required";
 
 		return errors;
 	};
 
 	// Validate shared fields
 	const validateSharedFields = () => {
-		const errors: { invoiceNumber?: string; description?: string } = {};
+		const errors: { invoiceNumber?: string; description?: string; date?: string } = {};
 		if (!sharedDescription.trim()) errors.description = "Description is required";
+		if (!sharedDate) errors.date = "Date is required";
 		return errors;
 	};
 
@@ -159,29 +154,31 @@ export default function CreateMultipleExpenses() {
 		}
 		setLoading(true);
 		try {
-			// Submit all expenses in parallel with shared invoice data
-			const responses = await Promise.all(expenseForms.map(async (form) => {
-				const submitData = {
-					...form,
-					branchid,
-					employeeid,
-					categoryid: form.category,
-					invoiceNumber: sharedInvoiceNumber,
-					description: sharedDescription,
-				};
-				const httpMethod = method && editid ? "PUT" : "POST";
-				return customPost(
-					`expenses?branchid=${branchid}&employeeid=${employeeid}&&expenseid=${parseInt((submitData?.id ?? '').toString())}`,
-					httpMethod,
-					submitData
-				);
+			// Prepare bulk expense data
+			const expenses = expenseForms.map((form) => ({
+				name: form.name,
+				amount: form.amount,
+				employeeid,
+				branchid,
+				description: sharedDescription,
+				merchant: Number(form.merchant),
+				category: form.category,
+				date: sharedDate
 			}));
-			const allSuccess = responses.every((response) => response && response.status && typeof response.status == 'boolean' && response.status);
-			if (allSuccess) {
-				toast.success("All expenses submitted successfully awaiting approval", { autoClose: 2000 });
+
+			// Submit all expenses in a single bulk request
+			const response = await customPost(
+				`expenses?employeeid=${employeeid}&branchid=${branchid}`,
+				"POST",
+				expenses
+			);
+
+			if (response && response.success && response.success.length > 0) {
+				toast.success(`${response.success.length} expenses submitted successfully awaiting approval. Group ID: ${response.groupId}`, { autoClose: 2000 });
 				setExpenseForms([{ ...defaultExpense }]);
 				setSharedInvoiceNumber("");
 				setSharedDescription("");
+				setSharedDate("");
 			} else {
 				throw new Error("Submission failed");
 			}
@@ -213,34 +210,53 @@ export default function CreateMultipleExpenses() {
 			.finally(() => setLoading(false));
 	}, [branchid, employeeid]);
 
-	// Fetch payment modes
-	useEffect(() => {
-		setLoading(true);
-		customFetch("paymentmodes")
-			.then((response) => {
-				if (response?.data) {
-					setPaymentModes(response.data);
-				}
-			})
-			.catch(() => toast.error("Failed to load payment modes", { autoClose: 3000 }))
-			.finally(() => setLoading(false));
-	}, []);
-
 	// Calculate total amount
 	const totalAmount = expenseForms.reduce((sum, form) => sum + (form.amount || 0), 0);
 	const totalTax = expenseForms.reduce((sum, form) => sum + (parseFloat(form.taxAmount) || 0), 0);
 
 	return (
-		<div className="card p-0">
-			<div className="card-header d-flex justify-content-between align-items-center mb-4">
+		<div>
+			<div className="d-flex justify-content-between align-items-center mb-4">
 				<div className="mb-0">Create Multiple Expenses</div>
 				<small className="text-muted">All fields marked with * are required</small>
 			</div>
-			<div className="card-body">
+			<div>
 				{isLoading && <Loader />}
 				<form onSubmit={handleSubmit} noValidate>
 					<div className="d-flex justify-content-between align-items-center mb-3">
-						<h6 className="mb-0 text-secondary">Expense Line Items</h6>
+						<div className="d-flex align-items-center gap-3">
+							<div>
+								<label className="form-label pls-label small me-2">Invoice Number</label>
+								<input
+									name="sharedInvoiceNumber"
+									value={sharedInvoiceNumber}
+									onChange={(e) => {
+										setSharedInvoiceNumber(e.target.value);
+										setSharedErrors(prev => ({ ...prev, invoiceNumber: undefined }));
+									}}
+									className={`form-control form-control-sm ${sharedErrors.invoiceNumber ? "is-invalid" : ""}`}
+									type="text"
+									placeholder="Enter invoice number"
+									disabled={isLoading}
+								/>
+								{sharedErrors.invoiceNumber && <div className="invalid-feedback">{sharedErrors.invoiceNumber}</div>}
+							</div>
+							<div>
+								<label className="form-label pls-label small me-2">Date <span className="text-danger">*</span></label>
+								<input
+									name="sharedDate"
+									value={formatDateForInput(sharedDate)}
+									onChange={(e) => {
+										setSharedDate(e.target.value);
+										setSharedErrors(prev => ({ ...prev, date: undefined }));
+									}}
+									type="datetime-local"
+									className={`form-control form-control-sm ${sharedErrors.date ? "is-invalid" : ""}`}
+									disabled={isLoading}
+								/>
+								{sharedErrors.date && <div className="invalid-feedback">{sharedErrors.date}</div>}
+							</div>
+						</div>
 						<button type="button" className="btn btn-success btn-sm" onClick={handleAddExpense} disabled={isLoading}>
 							+ Add Row
 						</button>
@@ -250,13 +266,11 @@ export default function CreateMultipleExpenses() {
 							<thead >
 								<tr>
 									<th style={{ width: "5%" }}>#</th>
-									<th style={{ width: "18%" }}>Expense Name *</th>
-									<th style={{ width: "15%" }}>Date *</th>
-									<th style={{ width: "15%" }}>Merchant *</th>
-									<th style={{ width: "12%" }}>Amount (GHC) *</th>
-									<th style={{ width: "15%" }}>Category *</th>
-									<th style={{ width: "15%" }}>Payment Method *</th>
-									<th style={{ width: "10%" }}>Tax (GHC)</th>
+									<th style={{ width: "20%" }}>Expense Name *</th>
+									<th style={{ width: "18%" }}>Merchant *</th>
+									<th style={{ width: "15%" }}>Amount (GHC) *</th>
+									<th style={{ width: "18%" }}>Category *</th>
+									<th style={{ width: "12%" }}>Tax (GHC)</th>
 									<th style={{ width: "5%" }}>Action</th>
 								</tr>
 							</thead>
@@ -277,24 +291,15 @@ export default function CreateMultipleExpenses() {
 											{errors[idx]?.name && <div className="invalid-feedback">{errors[idx]?.name}</div>}
 										</td>
 										<td>
-											<input
-												name="date"
-												value={formatDateForInput(formData.date)}
-												onChange={(e) => handleInputChange(idx, e)}
-												type="datetime-local"
-												className={`form-control form-control-sm ${errors[idx]?.date ? "is-invalid" : ""}`}
-												disabled={isLoading}
-											/>
-											{errors[idx]?.date && <div className="invalid-feedback">{errors[idx]?.date}</div>}
-										</td>
-										<td>
 											<Select
 												options={merchants.map((merchant) => ({
 													value: merchant.id,
 													label: merchant.name,
 												}))}
-												styles={reactSelectCustomStyles}
-												placeholder="Select merchant"
+												styles={smallSelectStyles}
+												menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+												menuPosition="fixed"
+												placeholder="Merchant"
 												classNamePrefix="react-select"
 												isClearable
 												onChange={handleSelectChange(idx, "merchant")}
@@ -332,14 +337,9 @@ export default function CreateMultipleExpenses() {
 													value: item.id,
 													label: item.category,
 												}))}
-												styles={{
-													...reactSelectCustomStyles,
-													control: (base) => ({
-														...base,
-														minHeight: '31px',
-														fontSize: '0.875rem'
-													})
-												}}
+												styles={smallSelectStyles}
+												menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+												menuPosition="fixed"
 												placeholder="Category"
 												classNamePrefix="react-select"
 												isClearable
@@ -357,36 +357,6 @@ export default function CreateMultipleExpenses() {
 												isDisabled={isLoading}
 											/>
 											{errors[idx]?.category && <div className="invalid-feedback d-block">{errors[idx]?.category}</div>}
-										</td>
-										<td>
-											<Select
-												options={paymentModes.map((item) => ({
-													value: item.KeyID,
-													label: item.PaymentMode,
-												}))}
-												styles={{
-													...reactSelectCustomStyles,
-													control: (base) => ({
-														...base,
-														minHeight: '31px',
-														fontSize: '0.875rem'
-													})
-												}}
-												placeholder="Payment"
-												classNamePrefix="react-select"
-												isClearable
-												onChange={handleSelectChange(idx, "mode")}
-												value={
-													paymentModes
-														.map((item) => ({
-															value: item.KeyID,
-															label: item.PaymentMode,
-														}))
-														.find((option) => option.value === formData.mode) || null
-												}
-												isDisabled={isLoading}
-											/>
-											{errors[idx]?.mode && <div className="invalid-feedback d-block">{errors[idx]?.mode}</div>}
 										</td>
 										<td>
 											<input
@@ -416,47 +386,16 @@ export default function CreateMultipleExpenses() {
 									</tr>
 								))}
 							</tbody>
-							<tfoot className="table-light">
-								<tr>
-									<td colSpan={4} className="text-end fw-bold">Subtotal:</td>
-									<td className="fw-bold text-primary">GHC {totalAmount.toFixed(2)}</td>
-									<td colSpan={2}></td>
-									<td className="fw-bold text-secondary">GHC {totalTax.toFixed(2)}</td>
-									<td></td>
-								</tr>
-								<tr>
-									<td colSpan={4} className="text-end fw-bold fs-5">Total Amount:</td>
-									<td className="fw-bold text-success fs-5">GHC {(totalAmount + totalTax).toFixed(2)}</td>
-									<td colSpan={4}></td>
-								</tr>
-							</tfoot>
 						</table>
 					</div>
 
 					{/* Shared Invoice Fields */}
-					<div className="row g-3 mt-3 p-3 border rounded bg-light">
+					<div className="row g-3 mt-4 p-3 border rounded bg-white">
 						<div className="col-12">
 							<h6 className="mb-3 text-primary">Invoice Information</h6>
 						</div>
-						<div className="col-md-6">
-							<label className="form-label pls-label">Invoice Number</label>
-							<input
-								name="sharedInvoiceNumber"
-								value={sharedInvoiceNumber}
-								onChange={(e) => {
-									setSharedInvoiceNumber(e.target.value);
-									setSharedErrors(prev => ({ ...prev, invoiceNumber: undefined }));
-								}}
-								className={`form-control ${sharedErrors.invoiceNumber ? "is-invalid" : ""}`}
-								type="text"
-								placeholder="Enter invoice number"
-								disabled={isLoading}
-							/>
-							{sharedErrors.invoiceNumber && <div className="invalid-feedback">{sharedErrors.invoiceNumber}</div>}
-						</div>
-						<div className="col-md-6"></div>
 						<div className="col-12">
-							<label className="form-label pls-label">
+							<label className="form-label pls-label small">
 								Description <span className="text-danger">*</span>
 							</label>
 							<textarea
@@ -466,24 +405,47 @@ export default function CreateMultipleExpenses() {
 									setSharedDescription(e.target.value);
 									setSharedErrors(prev => ({ ...prev, description: undefined }));
 								}}
-								className={`form-control ${sharedErrors.description ? "is-invalid" : ""}`}
-								rows={4}
+								className={`form-control form-control-sm ${sharedErrors.description ? "is-invalid" : ""}`}
+								rows={3}
 								placeholder="Enter description for all expense items"
 								disabled={isLoading}
 							/>
 							{sharedErrors.description && <div className="invalid-feedback">{sharedErrors.description}</div>}
 						</div>
+						<div className="col-12">
+							<hr className="my-3" />
+							<div className="row">
+								<div className="col-6">
+									<div className="d-flex justify-content-between mb-2">
+										<span className="fw-bold">Subtotal:</span>
+										<span className="fw-bold">GHC {totalAmount.toFixed(2)}</span>
+									</div>
+								</div>
+								<div className="col-6">
+									<div className="d-flex justify-content-between mb-2">
+										<span className="fw-bold">Tax:</span>
+										<span className="fw-bold">GHC {totalTax.toFixed(2)}</span>
+									</div>
+								</div>
+								<div className="col-12">
+									<div className="d-flex justify-content-between pt-2 border-top">
+										<span className="fw-bold fs-5">Total Amount:</span>
+										<span className="fw-bold fs-5">GHC {(totalAmount + totalTax).toFixed(2)}</span>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 
 					<div className="d-flex justify-content-between align-items-center mt-3">
-						<button type="button" className="btn btn-outline-primary" onClick={handleAddExpense} disabled={isLoading}>
+						<button type="button" className="btn btn-outline-primary btn-sm" onClick={handleAddExpense} disabled={isLoading}>
 							Add New Line Item
 						</button>
 
 						<div>
 							<button
 								type="submit"
-								className="btn btn-primary me-2"
+								className="btn btn-primary btn-sm me-2"
 								disabled={isLoading}
 							>
 								{isLoading ? (
@@ -497,11 +459,12 @@ export default function CreateMultipleExpenses() {
 							</button>
 							<button
 								type="button"
-								className="btn btn-secondary"
+								className="btn btn-secondary btn-sm"
 								onClick={() => {
 									setExpenseForms([{ ...defaultExpense }]);
 									setSharedInvoiceNumber("");
 									setSharedDescription("");
+									setSharedDate("");
 									setSharedErrors({});
 								}}
 								disabled={isLoading}

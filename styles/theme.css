@@ -1,0 +1,17 @@
+/* PLS Status Colors */
+.pls-warning-bg {
+    background-color: #fff3cd;
+}
+
+.pls-success-bg {
+    background-color: #d1edff;
+}
+
+.pls-danger-bg {
+    background-color: #f8d7da;
+}
+
+.pls-secondary-bg {
+    background-color: #f8f9fa;
+}
+

@@ -1110,3 +1110,42 @@ export const getResultEntrySettings = async (employeeid) => {
 }
 
 
+export const smallSelectStyles = {
+	...reactSelectCustomStyles,
+	control: (base) => ({
+		...base,
+		height: '31px',
+		minHeight: '31px',
+		fontSize: '0.875rem'
+	}),
+	input: (provided) => ({
+		...provided,
+		height: '29px',
+		fontSize: '0.875rem'
+	}),
+	valueContainer: (base) => ({
+		...base,
+		height: '31px',
+		padding: '0 8px'
+	}),
+	indicatorsContainer: (base) => ({
+		...base,
+		height: '31px'
+	}),
+	menu: (base) => ({
+		...base,
+		maxHeight: 'none',
+		fontSize: '0.875rem',
+		zIndex: 9999,
+		position: 'absolute'
+	}),
+	menuList: (base) => ({
+		...base,
+		maxHeight: 'none',
+		overflowY: 'visible'
+	}),
+	menuPortal: (base) => ({
+		...base,
+		zIndex: 9999
+	})
+};
