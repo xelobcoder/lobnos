@@ -35,7 +35,7 @@ export default function ApprovalStatusByBranch() {
         setLoading(true);
         setError(null);
         try {
-            const endpoint = `expenses-analytics/approval-status-by-branch?branchid=${branchid}&&employeeid=${employeeid}&&tenantId=3&&startDate=${startDate}&&endDate=${endDate}`;
+            const endpoint = `expenses-analytics/approval-status-by-branch?branchid=${branchid}&&employeeid=${employeeid}&&startDate=${startDate}&&endDate=${endDate}`;
             const response = await customFetch(endpoint);
             if (response && Array.isArray(response)) {
                 setData(response);
@@ -122,8 +122,8 @@ export default function ApprovalStatusByBranch() {
                         />
                     </div>
                     <button
-                        className="btn btn-primary ms-2 d-flex align-items-center gap-2 px-3 py-1 btn-sm"
-                        style={{backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 90, fontWeight: 500, fontSize: '0.95rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)'}}
+                        className="btn btn-primary ms-2 d-flex align-items-center gap-1 px-2 py-1 btn-sm"
+                        style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 70, fontWeight: 500, fontSize: '0.85rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)' }}
                         onClick={fetchData}
                         disabled={loading}
                     >
@@ -170,18 +170,18 @@ export default function ApprovalStatusByBranch() {
                                 <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                                 <Legend />
-                                <Bar dataKey="approved_count" name="Approved" fill={COLOR_APPROVED} radius={[8,8,0,0]} maxBarSize={40} />
-                                <Bar dataKey="rejected_count" name="Rejected" fill={COLOR_REJECTED} radius={[8,8,0,0]} maxBarSize={40} />
-                                <Bar dataKey="pending_count" name="Pending" fill={COLOR_PENDING} radius={[8,8,0,0]} maxBarSize={40} />
+                                <Bar dataKey="approved_count" name="Approved" fill={COLOR_APPROVED} radius={[8, 8, 0, 0]} maxBarSize={40} />
+                                <Bar dataKey="rejected_count" name="Rejected" fill={COLOR_REJECTED} radius={[8, 8, 0, 0]} maxBarSize={40} />
+                                <Bar dataKey="pending_count" name="Pending" fill={COLOR_PENDING} radius={[8, 8, 0, 0]} maxBarSize={40} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 )}
             </div>
             {chartData.length > 0 && (
-                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{borderTop: `1px solid ${COLOR_BORDER}`}}>
+                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                     <h4 className="fs-6 fw-medium mb-3">Approval Status Table</h4>
-                    <div className="table-responsive" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         <table className="table table-sm table-hover table-striped small">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
@@ -195,9 +195,9 @@ export default function ApprovalStatusByBranch() {
                                 {chartData.map((entry, idx) => (
                                     <tr key={idx}>
                                         <td className="py-2">{entry.branch_name}</td>
-                                        <td className="py-2 text-end fw-medium" style={{color: COLOR_APPROVED}}>{entry.approved_count}</td>
-                                        <td className="py-2 text-end fw-medium" style={{color: COLOR_REJECTED}}>{entry.rejected_count}</td>
-                                        <td className="py-2 text-end fw-medium" style={{color: COLOR_PENDING}}>{entry.pending_count}</td>
+                                        <td className="py-2 text-end fw-medium" style={{ color: COLOR_APPROVED }}>{entry.approved_count}</td>
+                                        <td className="py-2 text-end fw-medium" style={{ color: COLOR_REJECTED }}>{entry.rejected_count}</td>
+                                        <td className="py-2 text-end fw-medium" style={{ color: COLOR_PENDING }}>{entry.pending_count}</td>
                                     </tr>
                                 ))}
                             </tbody>

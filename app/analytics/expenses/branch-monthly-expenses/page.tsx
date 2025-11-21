@@ -53,7 +53,7 @@ export default function BranchMonthlyExpenses() {
         setLoading(true);
         setError(null);
         try {
-            const endpoint = `expenses-analytics/branch-monthly-expenses?branchid=${branchid}&&tenantId=3&&startDate=${startDate}&&endDate=${endDate}`;
+            const endpoint = `expenses-analytics/branch-monthly-expenses?branchid=${branchid}&&startDate=${startDate}&&endDate=${endDate}`;
             const response = await customFetch(endpoint);
             if (response && Array.isArray(response)) {
                 setData(response);
@@ -100,7 +100,7 @@ export default function BranchMonthlyExpenses() {
                 >
                     <div className="mb-1">
                         <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Month</span>
-                        <span className="fw-bold d-block" style={{color: COLOR_TOOLTIP_FG}}>{entry.monthLabel}</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{entry.monthLabel}</span>
                     </div>
                     <div className="mb-1">
                         <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Spent</span>
@@ -110,7 +110,7 @@ export default function BranchMonthlyExpenses() {
                     </div>
                     <div>
                         <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Branch</span>
-                        <span className="fw-bold d-block" style={{color: COLOR_TOOLTIP_FG}}>{entry.branch_name}</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{entry.branch_name}</span>
                     </div>
                 </div>
             );
@@ -211,7 +211,7 @@ export default function BranchMonthlyExpenses() {
                                 type="button"
                                 className={`btn ${chartType === btn.type ? 'btn-primary active' : 'btn-outline-secondary'}`}
                                 onClick={() => setChartType(btn.type)}
-                                style={chartType === btn.type ? {backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT} : {}}
+                                style={chartType === btn.type ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
                             >
                                 <btn.icon size={16} className="me-1 align-text-bottom" /> {btn.label}
                             </button>
@@ -241,8 +241,8 @@ export default function BranchMonthlyExpenses() {
                         />
                     </div>
                     <button
-                        className="btn btn-primary ms-2"
-                        style={{backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 120}}
+                        className="btn btn-primary ms-2 d-flex align-items-center gap-1 px-2 py-1 btn-sm"
+                        style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 70, fontWeight: 500, fontSize: '0.85rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)' }}
                         onClick={fetchData}
                         disabled={loading}
                     >
@@ -284,9 +284,9 @@ export default function BranchMonthlyExpenses() {
                 )}
             </div>
             {chartData.length > 0 && (
-                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{borderTop: `1px solid ${COLOR_BORDER}`}}>
+                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                     <h4 className="fs-6 fw-medium mb-3">Monthly Expense Table</h4>
-                    <div className="table-responsive" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         <table className="table table-sm table-hover table-striped small">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>

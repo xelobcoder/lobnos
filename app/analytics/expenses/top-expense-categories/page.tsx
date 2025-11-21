@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { customFetch } from "../../../../components/Auth/customFetch";
+import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { RiBarChartBoxLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line } from "@remixicon/react";
@@ -12,27 +12,36 @@ const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 
 interface TopExpenseCategory {
     category_name: string;
-    total_spent: string;
+    expense_count: number;
+    total_amount: number;
+    average_amount: number;
+    min_amount: number;
+    max_amount: number;
+    branch_name: string;
 }
-
-const currencyFormatter = new Intl.NumberFormat(undefined, { style: "currency", currency: "GHS", maximumFractionDigits: 2 });
 
 export default function TopExpenseCategories() {
     const [data, setData] = useState<TopExpenseCategory[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [branchid, setBranchid] = useState<number | null>(null);
-    const [limitCount, setLimitCount] = useState<number>(10);
+    const [startDate, setStartDate] = useState<string>(() => {
+        const now = new Date();
+        return new Date(now.getFullYear(), 0, 1).toISOString().slice(0, 10);
+    });
+    const [endDate, setEndDate] = useState<string>(() => {
+        const now = new Date();
+        return new Date(now.getFullYear(), 11, 31).toISOString().slice(0, 10);
+    });
     const [branches, setBranches] = useState<any[]>([]);
     const { user } = useApplication();
-    const employeeid = user?.employeeid;
 
     const fetchData = async () => {
         if (!branchid) return;
         setLoading(true);
         setError(null);
         try {
-            const endpoint = `expenses-analytics/top-expense-categories?branchid=${branchid}&&limit_count=${limitCount}`;
+            const endpoint = `expenses-analytics/top-categories?branchid=${branchid}${startDate ? `&startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate}` : ''}`;
             const response = await customFetch(endpoint);
             if (response && Array.isArray(response)) {
                 setData(response);
@@ -54,7 +63,7 @@ export default function TopExpenseCategories() {
                     setBranches(response.result);
                     if (response.result.length > 0) setBranchid(response.result[0].branchid);
                 }
-            } catch {}
+            } catch { }
         }
         fetchBranches();
     }, []);
@@ -68,10 +77,10 @@ export default function TopExpenseCategories() {
 
     const chartData = data.map(item => ({
         ...item,
-        total_spent: parseFloat(item.total_spent)
+        category_name: item.category_name
     }));
 
-    const totalSpentSum = chartData.reduce((sum, entry) => sum + entry.total_spent, 0);
+    const totalAmountSum = chartData.reduce((sum, entry) => sum + entry.total_amount, 0);
 
     const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
@@ -92,8 +101,16 @@ export default function TopExpenseCategories() {
                         <span className="fw-bold d-block">{entry.category_name}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Spent</span>
-                        <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_spent)}</span>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Amount</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_amount)}</span>
+                    </div>
+                    <div className="mb-1">
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Expense Count</span>
+                        <span className="fw-bold d-block">{entry.expense_count}</span>
+                    </div>
+                    <div>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Average</span>
+                        <span className="fw-bold d-block">{currencyFormatter.format(entry.average_amount)}</span>
                     </div>
                 </div>
             );
@@ -123,35 +140,45 @@ export default function TopExpenseCategories() {
                         </select>
                     </div>
                     <div>
-                        <label className="me-2">Limit:</label>
+                        <label className="me-2">Start Date:</label>
                         <input
-                            type="number"
+                            type="date"
                             className="form-control"
-                            value={limitCount}
-                            min={1}
-                            max={100}
-                            onChange={e => setLimitCount(Number(e.target.value))}
-                            style={{ minWidth: 80 }}
+                            value={startDate}
+                            onChange={e => setStartDate(e.target.value)}
+                            style={{ minWidth: 140 }}
                         />
                     </div>
-                    <button
-                        className="btn btn-primary ms-2 d-flex align-items-center gap-2 px-3 py-1 btn-sm"
-                        style={{backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 90, fontWeight: 500, fontSize: '0.95rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)'}}
-                        onClick={fetchData}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <>
-                                <RiLoader4Line size={16} className="animate-spin" />
-                                Loading...
-                            </>
-                        ) : (
-                            <>
-                                <RiBarChartBoxLine size={15} />
-                                Load Data
-                            </>
-                        )}
-                    </button>
+                    <div>
+                        <label className="me-2">End Date:</label>
+                        <input
+                            type="date"
+                            className="form-control"
+                            value={endDate}
+                            onChange={e => setEndDate(e.target.value)}
+                            style={{ minWidth: 140 }}
+                        />
+                    </div>
+                    <div>
+                        <button
+                            className="btn btn-primary d-flex align-items-center gap-1 px-2 py-2 btn-sm mt-4"
+                            style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 70, fontWeight: 500, fontSize: '0.85rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)' }}
+                            onClick={fetchData}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <RiLoader4Line size={16} className="animate-spin" />
+                                    Loading...
+                                </>
+                            ) : (
+                                <>
+                                    {/* <RiBarChartBoxLine size={15} /> */}
+                                    Load Data
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
             <div className="card-body p-3 p-md-4">
@@ -180,38 +207,47 @@ export default function TopExpenseCategories() {
                             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 45 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
                                 <XAxis dataKey="category_name" tick={{ fontSize: 12 }} />
-                                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                                <YAxis tickFormatter={(value) => currencyFormatter.format(value)} allowDecimals={false} tick={{ fontSize: 12 }} />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                                 <Legend />
-                                <Bar dataKey="total_spent" name="Total Spent" fill={COLOR_ACCENT} radius={[8,8,0,0]} maxBarSize={40} />
+                                <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[8, 8, 0, 0]} maxBarSize={40} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 )}
             </div>
             {chartData.length > 0 && (
-                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{borderTop: `1px solid ${COLOR_BORDER}`}}>
+                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                     <h4 className="fs-6 fw-medium mb-3">Top Expense Categories Table</h4>
-                    <div className="table-responsive" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         <table className="table table-sm table-hover table-striped small">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Category</th>
-                                    <th scope="col" className="py-2 text-end">Total Spent</th>
+                                    <th scope="col" className="py-2">Branch</th>
+                                    <th scope="col" className="py-2 text-end">Total Amount</th>
+                                    <th scope="col" className="py-2 text-end">Expense Count</th>
+                                    <th scope="col" className="py-2 text-end">Average</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {chartData.map((entry, idx) => (
                                     <tr key={idx}>
                                         <td className="py-2">{entry.category_name}</td>
-                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.total_spent)}</td>
+                                        <td className="py-2">{entry.branch_name}</td>
+                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.total_amount)}</td>
+                                        <td className="py-2 text-end">{entry.expense_count}</td>
+                                        <td className="py-2 text-end">{currencyFormatter.format(entry.average_amount)}</td>
                                     </tr>
                                 ))}
                             </tbody>
                             <tfoot>
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(totalSpentSum)}</td>
+                                    <td className="py-2"></td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(totalAmountSum)}</td>
+                                    <td className="py-2 text-end">{chartData.reduce((sum, entry) => sum + entry.expense_count, 0)}</td>
+                                    <td className="py-2 text-end">-</td>
                                 </tr>
                             </tfoot>
                         </table>

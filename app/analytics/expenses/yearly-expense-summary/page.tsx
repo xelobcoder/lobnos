@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { customFetch } from "../../../../components/Auth/customFetch";
+import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { RiBarChartBoxLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line } from "@remixicon/react";
@@ -10,17 +10,24 @@ const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 
-interface YearlyExpenseSummary {
-    branch_name: string;
+interface YearlyExpenseData {
     year: number;
-    total_spent: string;
-    record_count: number;
+    total_expenses: number;
+    total_amount: string;
+    average_amount: string;
+    min_amount: number;
+    max_amount: number;
+    unique_categories: number;
+    unique_employees: number;
+    unique_merchants: number;
+    active_months: number;
+    employee_usernames: string;
+    employee_roles: string;
+    branch_name: string;
 }
 
-const currencyFormatter = new Intl.NumberFormat(undefined, { style: "currency", currency: "GHS", maximumFractionDigits: 2 });
-
 export default function YearlyExpenseSummary() {
-    const [data, setData] = useState<YearlyExpenseSummary[]>([]);
+    const [data, setData] = useState<YearlyExpenseData[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [startDate, setStartDate] = useState("2021-10-01");
@@ -33,7 +40,10 @@ export default function YearlyExpenseSummary() {
         setLoading(true);
         setError(null);
         try {
-            const endpoint = `expenses-analytics/yearly-expense-summary?branchid=${branchid}&&employeeid=${employeeid}&&tenantId=3&&startDate=${startDate}&&endDate=${endDate}`;
+            const currentYear = new Date().getFullYear();
+            const startYear = currentYear - 2; // Default to last 3 years
+            const endYear = currentYear;
+            const endpoint = `expenses-analytics/yearly?branchid=${branchid}&startYear=${startYear}&endYear=${endYear}`;
             const response = await customFetch(endpoint);
             if (response && Array.isArray(response)) {
                 setData(response);
@@ -48,19 +58,21 @@ export default function YearlyExpenseSummary() {
     };
 
     useEffect(() => {
-        if (branchid && employeeid) {
+        if (branchid) {
             fetchData();
         }
         // eslint-disable-next-line
-    }, [branchid, employeeid]);
+    }, [branchid]);
 
     const chartData = data.map(item => ({
         ...item,
-        total_spent: parseFloat(item.total_spent),
+        total_amount: parseFloat(item.total_amount),
+        average_amount: parseFloat(item.average_amount),
         yearLabel: item.year.toString()
     }));
 
-    const totalSpentSum = chartData.reduce((sum, entry) => sum + entry.total_spent, 0);
+    const totalAmountSum = chartData.reduce((sum, entry) => sum + entry.total_amount, 0);
+    const totalExpensesSum = chartData.reduce((sum, entry) => sum + entry.total_expenses, 0);
 
     const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
@@ -81,12 +93,20 @@ export default function YearlyExpenseSummary() {
                         <span className="fw-bold d-block">{entry.yearLabel}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Spent</span>
-                        <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_spent)}</span>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Amount</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_amount)}</span>
+                    </div>
+                    <div className="mb-1">
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Expenses</span>
+                        <span className="fw-bold d-block">{entry.total_expenses}</span>
+                    </div>
+                    <div className="mb-1">
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Active Months</span>
+                        <span className="fw-bold d-block">{entry.active_months}</span>
                     </div>
                     <div>
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Records</span>
-                        <span className="fw-bold d-block">{entry.record_count}</span>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Employee</span>
+                        <span className="fw-bold d-block">{entry.employee_usernames} ({entry.employee_roles})</span>
                     </div>
                 </div>
             );
@@ -123,8 +143,8 @@ export default function YearlyExpenseSummary() {
                         />
                     </div>
                     <button
-                        className="btn btn-primary ms-2 d-flex align-items-center gap-2 px-3 py-1 btn-sm"
-                        style={{backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 90, fontWeight: 500, fontSize: '0.95rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)'}}
+                        className="btn btn-primary ms-2 d-flex align-items-center gap-1 px-2 py-1 btn-sm"
+                        style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 70, fontWeight: 500, fontSize: '0.85rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)' }}
                         onClick={fetchData}
                         disabled={loading}
                     >
@@ -171,23 +191,26 @@ export default function YearlyExpenseSummary() {
                                 <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                                 <Legend />
-                                <Bar dataKey="total_spent" name="Total Spent" fill={COLOR_ACCENT} radius={[8,8,0,0]} maxBarSize={40} />
+                                <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[8, 8, 0, 0]} maxBarSize={40} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 )}
             </div>
             {chartData.length > 0 && (
-                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{borderTop: `1px solid ${COLOR_BORDER}`}}>
+                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                     <h4 className="fs-6 fw-medium mb-3">Yearly Expense Table</h4>
-                    <div className="table-responsive" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         <table className="table table-sm table-hover table-striped small">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Year</th>
                                     <th scope="col" className="py-2">Branch</th>
-                                    <th scope="col" className="py-2 text-end">Total Spent</th>
-                                    <th scope="col" className="py-2 text-end">Records</th>
+                                    <th scope="col" className="py-2 text-end">Total Amount</th>
+                                    <th scope="col" className="py-2 text-end">Total Expenses</th>
+                                    <th scope="col" className="py-2 text-end">Active Months</th>
+                                    <th scope="col" className="py-2 text-end">Categories</th>
+                                    <th scope="col" className="py-2">Employee Details</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -195,8 +218,11 @@ export default function YearlyExpenseSummary() {
                                     <tr key={idx}>
                                         <td className="py-2">{entry.yearLabel}</td>
                                         <td className="py-2">{entry.branch_name}</td>
-                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.total_spent)}</td>
-                                        <td className="py-2 text-end">{entry.record_count}</td>
+                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.total_amount)}</td>
+                                        <td className="py-2 text-end">{entry.total_expenses}</td>
+                                        <td className="py-2 text-end">{entry.active_months}</td>
+                                        <td className="py-2 text-end">{entry.unique_categories}</td>
+                                        <td className="py-2">{entry.employee_usernames} ({entry.employee_roles})</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -204,8 +230,11 @@ export default function YearlyExpenseSummary() {
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
                                     <td className="py-2"></td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(totalSpentSum)}</td>
-                                    <td className="py-2 text-end">{chartData.reduce((sum, entry) => sum + entry.record_count, 0)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(totalAmountSum)}</td>
+                                    <td className="py-2 text-end">{totalExpensesSum}</td>
+                                    <td className="py-2 text-end">-</td>
+                                    <td className="py-2 text-end">-</td>
+                                    <td className="py-2">-</td>
                                 </tr>
                             </tfoot>
                         </table>

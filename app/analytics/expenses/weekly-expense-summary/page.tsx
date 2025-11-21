@@ -1,35 +1,46 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { customFetch } from "../../../../components/Auth/customFetch";
+import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { RiBarChartBoxLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line } from "@remixicon/react";
-
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 
-interface WeeklyExpenseSummary {
-    branch_name: string;
+interface WeeklyExpenseData {
     year: number;
     week_number: number;
-    total_spent: string;
-    total_records: number;
+    week_start: string;
+    week_end: string;
+    total_expenses: number;
+    total_amount: string;
+    average_amount: string;
+    unique_categories: number;
+    unique_employees: number;
+    employee_usernames: string;
+    employee_roles: string;
+    branch_name: string;
 }
 
-const currencyFormatter = new Intl.NumberFormat(undefined, { style: "currency", currency: "GHS", maximumFractionDigits: 2 });
 
 function getWeekLabel(year: number, week: number) {
     return `W${week} - ${year}`;
 }
 
 export default function WeeklyExpenseSummary() {
-    const [data, setData] = useState<WeeklyExpenseSummary[]>([]);
+    const [data, setData] = useState<WeeklyExpenseData[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [startDate, setStartDate] = useState("2021-10-01");
-    const [endDate, setEndDate] = useState("2025-10-09");
+    const [startDate, setStartDate] = useState(() => {
+        const currentYear = new Date().getFullYear();
+        return `${currentYear}-01-01`;
+    });
+    const [endDate, setEndDate] = useState(() => {
+        const currentYear = new Date().getFullYear();
+        return `${currentYear}-12-31`;
+    });
 
     const { branchid, user } = useApplication();
     const employeeid = user?.employeeid;
@@ -38,7 +49,7 @@ export default function WeeklyExpenseSummary() {
         setLoading(true);
         setError(null);
         try {
-            const endpoint = `expenses-analytics/weekly-expense-summary?branchid=${branchid}&&employeeid=${employeeid}&&tenantId=3&&startDate=${startDate}&&endDate=${endDate}`;
+            const endpoint = `expenses-analytics/weekly?branchid=${branchid}${startDate ? `&startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate}` : ''}`;
             const response = await customFetch(endpoint);
             if (response && Array.isArray(response)) {
                 setData(response);
@@ -53,19 +64,21 @@ export default function WeeklyExpenseSummary() {
     };
 
     useEffect(() => {
-        if (branchid && employeeid) {
+        if (branchid) {
             fetchData();
         }
         // eslint-disable-next-line
-    }, [branchid, employeeid]);
+    }, [branchid]);
 
     const chartData = data.map(item => ({
         ...item,
-        total_spent: parseFloat(item.total_spent),
+        total_amount: parseFloat(item.total_amount),
+        average_amount: parseFloat(item.average_amount),
         weekLabel: getWeekLabel(item.year, item.week_number)
     }));
 
-    const totalSpentSum = chartData.reduce((sum, entry) => sum + entry.total_spent, 0);
+    const totalAmountSum = chartData.reduce((sum, entry) => sum + entry.total_amount, 0);
+    const totalExpensesSum = chartData.reduce((sum, entry) => sum + entry.total_expenses, 0);
 
     const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
@@ -86,12 +99,20 @@ export default function WeeklyExpenseSummary() {
                         <span className="fw-bold d-block">{entry.weekLabel}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Spent</span>
-                        <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_spent)}</span>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Amount</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_amount)}</span>
+                    </div>
+                    <div className="mb-1">
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Expenses</span>
+                        <span className="fw-bold d-block">{entry.total_expenses}</span>
+                    </div>
+                    <div className="mb-1">
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Categories</span>
+                        <span className="fw-bold d-block">{entry.unique_categories}</span>
                     </div>
                     <div>
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Records</span>
-                        <span className="fw-bold d-block">{entry.total_records}</span>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Employee</span>
+                        <span className="fw-bold d-block">{entry.employee_usernames} ({entry.employee_roles})</span>
                     </div>
                 </div>
             );
@@ -127,24 +148,26 @@ export default function WeeklyExpenseSummary() {
                             style={{ minWidth: 140 }}
                         />
                     </div>
-                    <button
-                        className="btn btn-primary ms-2 d-flex align-items-center gap-2 px-3 py-1 btn-sm"
-                        style={{backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 90, fontWeight: 500, fontSize: '0.95rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)'}}
-                        onClick={fetchData}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <>
-                                <RiLoader4Line size={16} className="animate-spin" />
-                                Loading...
-                            </>
-                        ) : (
-                            <>
-                                <RiBarChartBoxLine size={15} />
-                                Load Data
-                            </>
-                        )}
-                    </button>
+                    <div>
+                        <button
+                            className="btn btn-primary ms-2 d-flex align-items-center gap-1 px-2 py-2 btn-sm mt-4"
+                            style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 70, fontWeight: 500, fontSize: '0.85rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)' }}
+                            onClick={fetchData}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <RiLoader4Line size={16} className="animate-spin" />
+                                    Loading...
+                                </>
+                            ) : (
+                                <>
+                                    <RiBarChartBoxLine size={15} />
+                                    Load Data
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
             <div className="card-body p-3 p-md-4">
@@ -176,23 +199,25 @@ export default function WeeklyExpenseSummary() {
                                 <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                                 <Legend />
-                                <Bar dataKey="total_spent" name="Total Spent" fill={COLOR_ACCENT} radius={[8,8,0,0]} maxBarSize={40} />
+                                <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[8, 8, 0, 0]} maxBarSize={40} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 )}
             </div>
             {chartData.length > 0 && (
-                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{borderTop: `1px solid ${COLOR_BORDER}`}}>
+                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                     <h4 className="fs-6 fw-medium mb-3">Weekly Expense Table</h4>
-                    <div className="table-responsive" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         <table className="table table-sm table-hover table-striped small">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Week</th>
                                     <th scope="col" className="py-2">Branch</th>
-                                    <th scope="col" className="py-2 text-end">Total Spent</th>
-                                    <th scope="col" className="py-2 text-end">Records</th>
+                                    <th scope="col" className="py-2 text-end">Total Amount</th>
+                                    <th scope="col" className="py-2 text-end">Total Expenses</th>
+                                    <th scope="col" className="py-2 text-end">Categories</th>
+                                    <th scope="col" className="py-2 text-end">Employees</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -200,8 +225,10 @@ export default function WeeklyExpenseSummary() {
                                     <tr key={idx}>
                                         <td className="py-2">{entry.weekLabel}</td>
                                         <td className="py-2">{entry.branch_name}</td>
-                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.total_spent)}</td>
-                                        <td className="py-2 text-end">{entry.total_records}</td>
+                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.total_amount)}</td>
+                                        <td className="py-2 text-end">{entry.total_expenses}</td>
+                                        <td className="py-2 text-end">{entry.unique_categories}</td>
+                                        <td className="py-2 text-end">{entry.unique_employees}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -209,8 +236,10 @@ export default function WeeklyExpenseSummary() {
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
                                     <td className="py-2"></td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(totalSpentSum)}</td>
-                                    <td className="py-2 text-end">{chartData.reduce((sum, entry) => sum + entry.total_records, 0)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(totalAmountSum)}</td>
+                                    <td className="py-2 text-end">{totalExpensesSum}</td>
+                                    <td className="py-2 text-end">-</td>
+                                    <td className="py-2 text-end">-</td>
                                 </tr>
                             </tfoot>
                         </table>

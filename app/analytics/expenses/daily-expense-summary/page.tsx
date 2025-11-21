@@ -1,39 +1,49 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { customFetch } from "../../../../components/Auth/customFetch";
+import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { RiBarChartBoxLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line } from "@remixicon/react";
+import { useState, useEffect } from "react";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 
-interface DailyExpenseSummary {
+interface DailyExpenseData {
+    expense_date: string;
+    total_expenses: number;
+    total_amount: string;
+    average_amount: string;
+    min_amount: number;
+    max_amount: number;
+    unique_categories: number;
+    unique_employees: number;
+    employee_usernames: string;
+    employee_roles: string;
     branch_name: string;
-    day: string;
-    total_spent: string;
-    total_records: number;
 }
 
-const currencyFormatter = new Intl.NumberFormat(undefined, { style: "currency", currency: "GHS", maximumFractionDigits: 2 });
-
 export default function DailyExpenseSummary() {
-    const [data, setData] = useState<DailyExpenseSummary[]>([]);
+    const [data, setData] = useState<DailyExpenseData[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [startDate, setStartDate] = useState("2021-10-01");
-    const [endDate, setEndDate] = useState("2025-10-09");
+    const [startDate, setStartDate] = useState(() => {
+        const currentYear = new Date().getFullYear();
+        return `${currentYear}-01-01`;
+    });
+    const [endDate, setEndDate] = useState(() => {
+        const currentYear = new Date().getFullYear();
+        return `${currentYear}-12-31`;
+    });
 
     const { branchid, user } = useApplication();
-    const employeeid = user?.employeeid;
 
     const fetchData = async () => {
         setLoading(true);
         setError(null);
         try {
-            const endpoint = `expenses-analytics/daily-expense-summary?branchid=${branchid}&&employeeid=${employeeid}&&tenantId=3&&startDate=${startDate}&&endDate=${endDate}`;
+            const endpoint = `expenses-analytics/daily?branchid=${branchid}${startDate ? `&startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate}` : ''}`;
             const response = await customFetch(endpoint);
             if (response && Array.isArray(response)) {
                 setData(response);
@@ -48,19 +58,21 @@ export default function DailyExpenseSummary() {
     };
 
     useEffect(() => {
-        if (branchid && employeeid) {
+        if (branchid) {
             fetchData();
         }
         // eslint-disable-next-line
-    }, [branchid, employeeid]);
+    }, [branchid]);
 
     const chartData = data.map(item => ({
         ...item,
-        total_spent: parseFloat(item.total_spent),
-        dayLabel: new Date(item.day).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
+        total_amount: parseFloat(item.total_amount),
+        average_amount: parseFloat(item.average_amount),
+        dateLabel: new Date(item.expense_date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
     }));
 
-    const totalSpentSum = chartData.reduce((sum, entry) => sum + entry.total_spent, 0);
+    const totalAmountSum = chartData.reduce((sum, entry) => sum + entry.total_amount, 0);
+    const totalExpensesSum = chartData.reduce((sum, entry) => sum + entry.total_expenses, 0);
 
     const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
@@ -78,15 +90,23 @@ export default function DailyExpenseSummary() {
                 >
                     <div className="mb-1">
                         <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Date</span>
-                        <span className="fw-bold d-block">{entry.dayLabel}</span>
+                        <span className="fw-bold d-block">{entry.dateLabel}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Spent</span>
-                        <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_spent)}</span>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Amount</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_amount)}</span>
+                    </div>
+                    <div className="mb-1">
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Expenses</span>
+                        <span className="fw-bold d-block">{entry.total_expenses}</span>
+                    </div>
+                    <div className="mb-1">
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Categories</span>
+                        <span className="fw-bold d-block">{entry.unique_categories}</span>
                     </div>
                     <div>
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Records</span>
-                        <span className="fw-bold d-block">{entry.total_records}</span>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Employee</span>
+                        <span className="fw-bold d-block">{entry.employee_usernames} ({entry.employee_roles})</span>
                     </div>
                 </div>
             );
@@ -103,7 +123,7 @@ export default function DailyExpenseSummary() {
                 </h2>
                 <div className="mt-3 d-flex flex-wrap gap-3">
                     <div>
-                        <label className="me-2">Start Date:</label>
+                        <label className="me-2">Startd date:</label>
                         <input
                             type="date"
                             className="form-control"
@@ -113,7 +133,7 @@ export default function DailyExpenseSummary() {
                         />
                     </div>
                     <div>
-                        <label className="me-2">End Date:</label>
+                        <label className="me-2">end date:</label>
                         <input
                             type="date"
                             className="form-control"
@@ -122,24 +142,26 @@ export default function DailyExpenseSummary() {
                             style={{ minWidth: 140 }}
                         />
                     </div>
-                    <button
-                        className="btn btn-primary ms-2 d-flex align-items-center gap-2 px-3 py-1 btn-sm"
-                        style={{backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 90, fontWeight: 500, fontSize: '0.95rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)'}}
-                        onClick={fetchData}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <>
-                                <RiLoader4Line size={16} className="animate-spin" />
-                                Loading...
-                            </>
-                        ) : (
-                            <>
-                                <RiBarChartBoxLine size={15} />
-                                Load Data
-                            </>
-                        )}
-                    </button>
+                    <div>
+                        <button
+                            className="btn btn-primary d-flex align-items-center gap-1 px-2 py-2 btn-sm mt-4"
+                            style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 70, fontWeight: 500, fontSize: '0.85rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)' }}
+                            onClick={fetchData}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <RiLoader4Line size={16} className="animate-spin" />
+                                    Loading...
+                                </>
+                            ) : (
+                                <>
+                                    <RiBarChartBoxLine size={15} />
+                                    Load Data
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
             <div className="card-body p-3 p-md-4">
@@ -167,36 +189,42 @@ export default function DailyExpenseSummary() {
                         <ResponsiveContainer>
                             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 45 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
-                                <XAxis dataKey="dayLabel" tick={{ fontSize: 12 }} />
+                                <XAxis dataKey="dateLabel" tick={{ fontSize: 12 }} />
                                 <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                                 <Legend />
-                                <Bar dataKey="total_spent" name="Total Spent" fill={COLOR_ACCENT} radius={[8,8,0,0]} maxBarSize={40} />
+                                <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[8, 8, 0, 0]} maxBarSize={40} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 )}
             </div>
             {chartData.length > 0 && (
-                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{borderTop: `1px solid ${COLOR_BORDER}`}}>
+                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                     <h4 className="fs-6 fw-medium mb-3">Daily Expense Table</h4>
-                    <div className="table-responsive" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         <table className="table table-sm table-hover table-striped small">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Date</th>
                                     <th scope="col" className="py-2">Branch</th>
-                                    <th scope="col" className="py-2 text-end">Total Spent</th>
-                                    <th scope="col" className="py-2 text-end">Records</th>
+                                    <th scope="col" className="py-2 text-end">Total Amount</th>
+                                    <th scope="col" className="py-2 text-end">Total Expenses</th>
+                                    <th scope="col" className="py-2 text-end">Categories</th>
+                                    <th scope="col" className="py-2 text-end">Employees</th>
+                                    <th scope="col" className="py-2">Employee Details</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {chartData.map((entry, idx) => (
                                     <tr key={idx}>
-                                        <td className="py-2">{entry.dayLabel}</td>
+                                        <td className="py-2">{entry.dateLabel}</td>
                                         <td className="py-2">{entry.branch_name}</td>
-                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.total_spent)}</td>
-                                        <td className="py-2 text-end">{entry.total_records}</td>
+                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.total_amount)}</td>
+                                        <td className="py-2 text-end">{entry.total_expenses}</td>
+                                        <td className="py-2 text-end">{entry.unique_categories}</td>
+                                        <td className="py-2 text-end">{entry.unique_employees}</td>
+                                        <td className="py-2">{entry.employee_usernames} ({entry.employee_roles})</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -204,8 +232,11 @@ export default function DailyExpenseSummary() {
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
                                     <td className="py-2"></td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(totalSpentSum)}</td>
-                                    <td className="py-2 text-end">{chartData.reduce((sum, entry) => sum + entry.total_records, 0)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(totalAmountSum)}</td>
+                                    <td className="py-2 text-end">{totalExpensesSum}</td>
+                                    <td className="py-2 text-end">-</td>
+                                    <td className="py-2 text-end">-</td>
+                                    <td className="py-2">-</td>
                                 </tr>
                             </tfoot>
                         </table>
