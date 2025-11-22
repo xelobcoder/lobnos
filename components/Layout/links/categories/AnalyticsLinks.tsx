@@ -13,7 +13,14 @@ import {
     RiUserLine,
     RiBuildingLine,
     RiCalendarLine,
-    RiListCheck2
+    RiListCheck2,
+    RiShoppingBagLine,
+    RiExternalLinkLine,
+    RiTimeLine,
+    RiCalendarTodoLine,
+    RiCalendarCheckLine,
+    RiCalendarScheduleLine,
+    RiTrophyLine
 } from '@remixicon/react';
 
 export const AnalyticsLinks: Link[] = [
@@ -29,7 +36,6 @@ export const AnalyticsLinks: Link[] = [
             { title: 'Monthly Sales Trend', link: '/analytics/sales/monthlySalesTrend', icon: <RiCalendarLine /> },
             { title: 'Sales By Week And Branch', link: '/analytics/sales/salesByWeekAndBranch', icon: <RiBuildingLine /> },
             { title: 'Total Sales By Branch', link: '/analytics/sales/totalSalesByBranch', icon: <RiBuildingLine /> },
-            { title: 'Total Sales By Clinician', link: '/analytics/sales/totalSalesByClinician', icon: <RiUserLine /> },
             { title: 'Total Sales By Employee', link: '/analytics/sales/totalSalesByEmployee', icon: <RiUserLine /> },
             { title: 'Total Sales By Organization', link: '/analytics/sales/totalSalesByOrganization', icon: <RiBuildingLine /> },
             { title: 'Total Sales By Outsourced Status', link: '/analytics/sales/totalSalesByOutsourcedStatus', icon: <RiPriceTag3Line /> },
@@ -84,19 +90,19 @@ export const AnalyticsLinks: Link[] = [
                 icon: <RiMoneyDollarCircleLine />
             },
             {
-                title: 'Pending Expenses',
-                link: '/analytics/expenses/pending-expenses-list',
-                icon: <RiListCheck2 />
+                title: 'Comparative Expense Analysis',
+                link: '/analytics/expenses/comparison-by-period',
+                icon: <RiBarChartBoxLine />
             },
             {
-                title: 'Approval Status By Branch',
-                link: '/analytics/expenses/approval-status-by-branch',
-                icon: <RiScales2Fill />
+                title: "Top Expense Employees",
+                link: "/analytics/expenses/top-expense-employees",
+                icon: <RiUserLine />
             },
             {
-                title: 'Expense Count By Status',
-                link: '/analytics/expenses/expense-count-by-status',
-                icon: <RiScales2Fill />
+                title: "Top Expense Merchants",
+                link: "/analytics/expenses/top-expense-merchants",
+                icon: <RiShoppingBagLine />
             }
         ]
     },
@@ -106,6 +112,21 @@ export const AnalyticsLinks: Link[] = [
         icon: <RiTestTubeLine />,
         children: [
             { title: 'All Test', link: '/analytics/resultanalysis/alltest', icon: <RiTestTubeLine /> }
+        ]
+    },
+    {
+        title: 'Outsourcing Analytics',
+        link: "/analytics/outsourcing",
+        icon: <RiExternalLinkLine />,
+        children: [
+            { title: 'Overview', link: '/analytics/outsourcing', icon: <RiListCheck2 /> },
+            { title: 'Daily Analytics', link: '/analytics/outsourcing/daily', icon: <RiCalendarLine /> },
+            { title: 'Monthly Analytics', link: '/analytics/outsourcing/monthly', icon: <RiCalendarEventFill /> },
+            { title: 'Weekly Analytics', link: '/analytics/outsourcing/weekly', icon: <RiCalendarScheduleLine /> },
+            { title: 'Quarterly Analytics', link: '/analytics/outsourcing/quarterly', icon: <RiCalendarTodoLine /> },
+            { title: 'Yearly Analytics', link: '/analytics/outsourcing/yearly', icon: <RiCalendarCheckLine /> },
+            { title: 'Top Facilities', link: '/analytics/outsourcing/top-facilities', icon: <RiTrophyLine /> },
+            { title: 'Hourly Analytics', link: '/analytics/outsourcing/hourly', icon: <RiTimeLine /> }
         ]
     }
 ];

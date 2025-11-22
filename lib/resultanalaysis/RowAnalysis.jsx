@@ -1,9 +1,12 @@
 "use client"
-import { RiArrowUpSLine, RiArrowDownSLine, RiInformationLine } from "@remixicon/react";
+import { RiArrowUpSLine, RiArrowDownSLine, RiInformationLine, RiFlaskLine } from "@remixicon/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from 'react';
 import { ButtonGroup, Modal } from 'react-bootstrap';
+
+const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 
 const ChangeIcon = (data) => {
     const { state, casesCount } = data;
@@ -36,60 +39,82 @@ export default function ResultAnalysisRow({ item, months, index }) {
     const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
     return (
-        <tr
-            key={index}
-            style={{
-                background: index % 2 === 0 ? "#fff" : "#f6f8fa",
-                borderBottom: "1px solid #e0e7ef"
-            }}
-        >
-            <td style={{ fontWeight: 500, color: "#374151" }}>{item.testid}</td>
-            <td style={{ fontWeight: 600, color: "#1976d2", display: "flex", alignItems: "center", gap: 6 }}>
-                {item.testname}
+        <tr className="align-middle">
+            <td className="fw-semibold" style={{ color: COLOR_ACCENT }}>
+                <div className="d-flex align-items-center">
+                    <RiFlaskLine size={16} style={{ color: COLOR_ACCENT, marginRight: '6px' }} />
+                    <div>
+                        <div style={{ fontSize: '0.875rem' }}>{item.testname}</div>
+                        <div className="small text-muted">({item.testid})</div>
+                    </div>
+                </div>
             </td>
             {Array.isArray(months) && months.length > 0 && months.map((month, monthIndex) => {
                 const data = item.data[monthIndex];
                 return (
-                    <td key={month} style={{ textAlign: "center", padding: "0.5rem 0.25rem" }}>
-                        <Link href={`/analytics/resultanalysis/monthcasecount?testid=${item.testid}&&show=allcaseCount&&month=${monthIndex + 1}&&duration=month&&expandTarget=${item.testid}`}>
+                    <td key={month} className="text-center p-2">
+                        <Link
+                            href={`/analytics/resultanalysis/monthcasecount?testid=${item.testid}&&show=allcaseCount&&month=${monthIndex + 1}&&duration=month&&expandTarget=${item.testid}`}
+                            className="text-decoration-none"
+                        >
                             <div
-                                className="data-item d-flex justify-content-between text-sm"
+                                className="d-flex flex-column align-items-center justify-content-center p-2 rounded"
                                 style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    gap: 4,
-                                    fontWeight: 500,
-                                    color: data?.state === "positive" ? "#43a047" : data?.state === "negative" ? "#e53935" : "#888"
+                                    minHeight: '40px',
+                                    backgroundColor: data?.state === "positive" ? 'rgba(67, 160, 71, 0.1)' :
+                                        data?.state === "negative" ? 'rgba(229, 57, 53, 0.1)' : 'transparent',
+                                    border: data?.casesCount > 0 ? '1px solid rgba(0,0,0,0.1)' : 'none'
                                 }}
                             >
-                                <span>{data ? data.casesCount : 0}</span>
-                                <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                                    {ChangeIcon(data)}
-                                    {data && data.casesCount !== 0 ? (
-                                        <>
-                                            <span style={{ marginLeft: 2 }}>{data.change}</span>
-                                            <RiInformationLine size={15} color="#90caf9" title="Change from previous" style={{ marginLeft: 2, verticalAlign: "middle" }} />
-                                        </>
-                                    ) : null}
+                                <span className="fw-semibold" style={{
+                                    color: data?.state === "positive" ? "#43a047" :
+                                        data?.state === "negative" ? "#e53935" : COLOR_TEXT_MUTED,
+                                    fontSize: '0.9rem'
+                                }}>
+                                    {data ? data.casesCount : 0}
                                 </span>
+                                {data && data.casesCount !== 0 && (
+                                    <div className="d-flex align-items-center mt-1" style={{ fontSize: '0.75rem' }}>
+                                        {ChangeIcon(data)}
+                                        <span className="ms-1" style={{
+                                            color: data?.state === "positive" ? "#43a047" :
+                                                data?.state === "negative" ? "#e53935" : COLOR_TEXT_MUTED
+                                        }}>
+                                            {data.change}
+                                        </span>
+                                        <RiInformationLine
+                                            size={12}
+                                            style={{
+                                                color: COLOR_TEXT_MUTED,
+                                                marginLeft: '2px',
+                                                cursor: 'help'
+                                            }}
+                                            title="Change from previous month"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </Link>
                     </td>
                 );
             })}
-            <td>
-               <ButtonGroup >
-               <button 
-                    className="btn btn-sm btn-outline-primary fw-bold"
-                    onClick={() => setShowModal(true)}
-                >
-                    M
-                </button>
-                <button  onClick={(ev) => {router.push(`/analytics/resultanalysis/yearmonthcasescount/${item.testid}`)}} className="btn btn-sm btn-outline-secondary">
-                    Y
-                </button>
-               </ButtonGroup>
+            <td className="text-center">
+                <div className="btn-group btn-group-sm">
+                    <button
+                        className="btn btn-outline-primary"
+                        onClick={() => setShowModal(true)}
+                        title="Monthly Results"
+                    >
+                        M
+                    </button>
+                    <button
+                        className="btn btn-outline-secondary"
+                        onClick={(ev) => { router.push(`/analytics/resultanalysis/yearmonthcasescount/${item.testid}`) }}
+                        title="Yearly Cases Count"
+                    >
+                        Y
+                    </button>
+                </div>
 
                 <Modal show={showModal} onHide={() => setShowModal(false)}>
                     <Modal.Header closeButton>
@@ -98,8 +123,8 @@ export default function ResultAnalysisRow({ item, months, index }) {
                     <Modal.Body>
                         <div className="mb-3">
                             <label className="form-label">Month</label>
-                            <select 
-                                className="form-select" 
+                            <select
+                                className="form-select"
                                 value={selectedMonth}
                                 onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
                             >
@@ -112,7 +137,7 @@ export default function ResultAnalysisRow({ item, months, index }) {
                         </div>
                         <div className="mb-3">
                             <label className="form-label">Year</label>
-                            <select 
+                            <select
                                 className="form-select"
                                 value={selectedYear}
                                 onChange={(e) => setSelectedYear(parseInt(e.target.value))}
@@ -126,13 +151,13 @@ export default function ResultAnalysisRow({ item, months, index }) {
                         </div>
                     </Modal.Body>
                     <Modal.Footer>
-                        <button 
-                            className="btn btn-secondary" 
+                        <button
+                            className="btn btn-secondary"
                             onClick={() => setShowModal(false)}
                         >
                             Cancel
                         </button>
-                        <button 
+                        <button
                             className="btn btn-primary"
                             onClick={() => {
                                 const url = `/analytics/resultanalysis/monthresultsvalues?testid=${item.testid}&show=resultvalues&duration=month&month=${selectedMonth}&year=${selectedYear}`;

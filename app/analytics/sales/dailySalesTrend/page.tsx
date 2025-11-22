@@ -21,8 +21,12 @@ import { RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiErrorWarningLi
 
 interface SalesDataEntry {
     date: string;
-    totalSales: number;
-    changeFromPreviousDay: number | null; // This comes directly from your data
+    totalCost: number;
+    totalPaid: number;
+    totalPayable: number;
+    totalDiscount: number;
+    totalRefunded: number;
+    changeFromPreviousDay: number | null; // Calculated field
 }
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
@@ -32,6 +36,8 @@ const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
 const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 const COLOR_GREEN_TEXT = 'var(--bs-success)';
 const COLOR_RED_TEXT = 'var(--bs-danger)';
+const COLOR_SECONDARY = '#2563eb'; // Blue for totalPaid
+const COLOR_TERTIARY = '#ea580c'; // Orange for totalDiscount
 
 
 export default function DailySalesTrend() {
@@ -45,7 +51,7 @@ export default function DailySalesTrend() {
     const getInitialDates = () => {
         const endDateObj = new Date();
         const startDateObj = new Date();
-        startDateObj.setDate(endDateObj.getDate() - 29); 
+        startDateObj.setDate(endDateObj.getDate() - 29);
         return {
             startDate: startDateObj.toISOString().split("T")[0],
             endDate: endDateObj.toISOString().split("T")[0],
@@ -85,12 +91,24 @@ export default function DailySalesTrend() {
             if (response && Array.isArray(response)) {
                 const formattedData = response.map((item: any) => ({
                     date: item.date,
-                    totalSales: parseFloat(item.totalSales) || 0,
-                    changeFromPreviousDay: item.changeFromPreviousDay !== null ? parseFloat(item.changeFromPreviousDay) : null,
+                    totalCost: parseFloat(item.totalCost) || 0,
+                    totalPaid: parseFloat(item.totalPaid) || 0,
+                    totalPayable: parseFloat(item.totalPayable) || 0,
+                    totalDiscount: parseFloat(item.totalDiscount) || 0,
+                    totalRefunded: parseFloat(item.totalRefunded) || 0,
+                    changeFromPreviousDay: null, // Will be calculated below
                 })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+                // Calculate change from previous day
+                for (let i = 1; i < formattedData.length; i++) {
+                    const current = formattedData[i].totalPayable;
+                    const previous = formattedData[i - 1].totalPayable;
+                    (formattedData[i] as any).changeFromPreviousDay = current - previous;
+                }
+
                 setData(formattedData);
                 if (formattedData.length === 0) {
-                     setError(null); 
+                    setError(null);
                 }
             } else {
                 setData([]);
@@ -126,12 +144,12 @@ export default function DailySalesTrend() {
         setEndDate(defaultEndDate);
     };
 
-    const totalSalesSum = useMemo(() => data.reduce((sum, entry) => sum + entry.totalSales, 0), [data]);
+    const totalSalesSum = useMemo(() => data.reduce((sum, entry) => sum + entry.totalPayable, 0), [data]);
 
     const formatDateForDisplay = (dateString: string) => {
         return new Date(dateString).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     };
-    
+
     const formatDateForTable = (dateString: string) => {
         return new Date(dateString).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
     };
@@ -140,9 +158,6 @@ export default function DailySalesTrend() {
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             const entry = payload[0].payload as SalesDataEntry;
-            const salesValue = entry.totalSales;
-            const change = entry.changeFromPreviousDay;
-            const percentageOfTotal = totalSalesSum > 0 ? ((salesValue / totalSalesSum) * 100).toFixed(1) : '0.0';
 
             return (
                 <div
@@ -150,26 +165,33 @@ export default function DailySalesTrend() {
                     style={{
                         backgroundColor: COLOR_TOOLTIP_BG,
                         borderColor: COLOR_BORDER,
-                        minWidth: '200px',
+                        minWidth: '220px',
                         fontSize: '0.8rem'
                     }}
                 >
-                    <div className="mb-1">
+                    <div className="mb-2">
                         <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Date</span>
-                        <span className="fw-bold d-block" style={{color: COLOR_TOOLTIP_FG}}>{formatDateForTable(label)}</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{formatDateForTable(label)}</span>
                     </div>
-                    <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Sales</span>
-                        <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                            {currencyFormatter.format(salesValue)} ({percentageOfTotal}%)
-                        </span>
-                    </div>
-                    {change !== null && (
-                        <div>
+                    {payload.map((item: any, index: number) => {
+                        const value = item.value;
+                        const name = item.name;
+                        const color = item.color;
+                        return (
+                            <div key={index} className="mb-1">
+                                <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>{name}</span>
+                                <span className="fw-bold d-block" style={{ color }}>
+                                    {currencyFormatter.format(value)}
+                                </span>
+                            </div>
+                        );
+                    })}
+                    {entry.changeFromPreviousDay !== null && (
+                        <div className="mt-2 pt-1 border-top">
                             <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Change from Previous</span>
-                            <span className={`fw-bold d-block`} style={{color: change >= 0 ? COLOR_GREEN_TEXT : COLOR_RED_TEXT}}>
-                                {change >= 0 ? <RiArrowUpSFill className="align-text-bottom" /> : <RiArrowDownSFill className="align-text-bottom" />}
-                                {currencyFormatter.format(change)}
+                            <span className={`fw-bold d-block`} style={{ color: entry.changeFromPreviousDay >= 0 ? COLOR_GREEN_TEXT : COLOR_RED_TEXT }}>
+                                {entry.changeFromPreviousDay >= 0 ? <RiArrowUpSFill className="align-text-bottom" /> : <RiArrowDownSFill className="align-text-bottom" />}
+                                {currencyFormatter.format(entry.changeFromPreviousDay)}
                             </span>
                         </div>
                     )}
@@ -218,7 +240,9 @@ export default function DailySalesTrend() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Bar dataKey="totalSales" name="Daily Sales" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    <Bar dataKey="totalPaid" name="Total Paid" fill={COLOR_SECONDARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                    <Bar dataKey="totalPayable" name="Total Payable" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                    <Bar dataKey="totalDiscount" name="Total Discount" fill={COLOR_TERTIARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
                 </BarChart>
             );
         }
@@ -230,17 +254,27 @@ export default function DailySalesTrend() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Line type="monotone" dataKey="totalSales" name="Daily Sales" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                    <Line type="monotone" dataKey="totalPaid" name="Total Paid" stroke={COLOR_SECONDARY} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_SECONDARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} />
+                    <Line type="monotone" dataKey="totalPayable" name="Total Payable" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                    <Line type="monotone" dataKey="totalDiscount" name="Total Discount" stroke={COLOR_TERTIARY} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_TERTIARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_TERTIARY, stroke: COLOR_TOOLTIP_BG }} />
                 </LineChart>
             );
         }
-        
+
         return (
             <AreaChart {...commonProps}>
                 <defs>
-                    <linearGradient id="colorTotalSalesFill" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorTotalPaidFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.5} />
+                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0.05} />
+                    </linearGradient>
+                    <linearGradient id="colorTotalPayableFill" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor={COLOR_ACCENT} stopOpacity={0.5} />
                         <stop offset="95%" stopColor={COLOR_ACCENT} stopOpacity={0.05} />
+                    </linearGradient>
+                    <linearGradient id="colorTotalDiscountFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ea580c" stopOpacity={0.5} />
+                        <stop offset="95%" stopColor="#ea580c" stopOpacity={0.05} />
                     </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
@@ -248,7 +282,9 @@ export default function DailySalesTrend() {
                 <YAxis {...yAxisProps} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                 <Legend {...legendProps} />
-                <Area type="monotone" dataKey="totalSales" name="Daily Sales" stroke={COLOR_ACCENT} fill="url(#colorTotalSalesFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                <Area type="monotone" dataKey="totalPaid" name="Total Paid" stroke={COLOR_SECONDARY} fill="url(#colorTotalPaidFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_SECONDARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} />
+                <Area type="monotone" dataKey="totalPayable" name="Total Payable" stroke={COLOR_ACCENT} fill="url(#colorTotalPayableFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                <Area type="monotone" dataKey="totalDiscount" name="Total Discount" stroke={COLOR_TERTIARY} fill="url(#colorTotalDiscountFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_TERTIARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_TERTIARY, stroke: COLOR_TOOLTIP_BG }} />
             </AreaChart>
         );
     };
@@ -294,7 +330,7 @@ export default function DailySalesTrend() {
             </div>
         );
     };
-    
+
     const viewButtons = [
         { type: "line" as const, icon: RiLineChartLine, label: "Line" },
         { type: "bar" as const, icon: RiBarChartBoxLine, label: "Bar" },
@@ -317,7 +353,7 @@ export default function DailySalesTrend() {
                                     type="button"
                                     className={`btn ${view === btn.type ? 'btn-primary active' : 'btn-outline-secondary'}`}
                                     onClick={() => handleViewToggle(btn.type)}
-                                    style={view === btn.type ? {backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT} : {}}
+                                    style={view === btn.type ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
                                 >
                                     <btn.icon size={16} className="me-1 align-text-bottom" /> {btn.label}
                                 </button>
@@ -355,14 +391,18 @@ export default function DailySalesTrend() {
             </div>
 
             {data.length > 0 && (
-                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{borderTop: `1px solid ${COLOR_BORDER}`}}>
+                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                     <h4 className="fs-6 fw-medium mb-3">Sales Data Table</h4>
-                    <div className="table-responsive" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         <table className="table table-sm table-hover table-striped small">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Date</th>
-                                    <th scope="col" className="py-2 text-end">Total Sales</th>
+                                    <th scope="col" className="py-2 text-end">Total Cost</th>
+                                    <th scope="col" className="py-2 text-end">Total Paid</th>
+                                    <th scope="col" className="py-2 text-end">Total Payable</th>
+                                    <th scope="col" className="py-2 text-end">Total Discount</th>
+                                    <th scope="col" className="py-2 text-end">Total Refunded</th>
                                     <th scope="col" className="py-2 text-end">Change</th>
                                     <th scope="col" className="py-2 text-end">% of Total</th>
                                 </tr>
@@ -370,12 +410,16 @@ export default function DailySalesTrend() {
                             <tbody>
                                 {data.map((entry) => {
                                     const change = entry.changeFromPreviousDay; // Use the provided value
-                                    console.log(`Processing entry for date: ${entry.date}, totalSales: ${entry.totalSales}, changeFromPreviousDay: ${change}`);
-                                    const percentageOfTotal = totalSalesSum > 0 ? ((entry.totalSales / totalSalesSum) * 100).toFixed(1) : '0.0';
+                                    console.log(`Processing entry for date: ${entry.date}, totalPayable: ${entry.totalPayable}, changeFromPreviousDay: ${change}`);
+                                    const percentageOfTotal = totalSalesSum > 0 ? ((entry.totalPayable / totalSalesSum) * 100).toFixed(1) : '0.0';
                                     return (
                                         <tr key={entry.date}>
                                             <td className="py-2">{formatDateForTable(entry.date)}</td>
-                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalSales)}</td>
+                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalCost)}</td>
+                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalPaid)}</td>
+                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalPayable)}</td>
+                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalDiscount)}</td>
+                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalRefunded)}</td>
                                             <td className={`py-2 text-end ${change !== null ? (change >= 0 ? 'text-success' : 'text-danger') : 'text-muted'}`}>
                                                 {change !== null ? (
                                                     <>
@@ -391,10 +435,14 @@ export default function DailySalesTrend() {
                                     );
                                 })}
                             </tbody>
-                             <tfoot>
+                            <tfoot>
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(totalSalesSum)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalPaid, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalPayable, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalDiscount, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalRefunded, 0))}</td>
                                     <td className="py-2"></td>
                                     <td className="py-2 text-end">100.0%</td>
                                 </tr>

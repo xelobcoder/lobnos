@@ -275,7 +275,6 @@ export default function PreviousTransactionSummaryPage() {
 	};
 
 	const columns = [
-		{ Header: 'Track ID', accessor: 'trackId' },
 		{ Header: 'Service Name', accessor: 'name' },
 		{ Header: 'Cost', accessor: 'cost', Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0) },
 		{
@@ -304,7 +303,6 @@ export default function PreviousTransactionSummaryPage() {
 			accessor: 'amountRefunded',
 			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
 		},
-		{ Header: 'Organization Name', accessor: 'organizationName' },
 		{
 			Header: 'Tax/Details',
 			id: 'taxDetails',
@@ -551,20 +549,18 @@ export default function PreviousTransactionSummaryPage() {
 		return (
 			<div>
 				<div className="d-flex justify-content-end mb-3">
-					<button className='d-flex align-items-center btn btn-secondary btn-sm'>
-						<RiRefreshFill onClick={(ev) => { fetchRecords(Number(params?.billingid)) }} />	Refresh
+					<button className='d-flex align-items-center btn btn-secondary btn-sm' onClick={() => fetchRecords(Number(params?.billingid))}>
+						<RiRefreshFill /> Refresh
 					</button>
 				</div>
 				<div className="bg-white br-5 p-3">
 					{renderRefundModal()}
-
 					<WriteOffModal
 						show={showWriteOffModal}
 						onClose={() => setShowWriteOffModal(false)}
 						billingid={billingdata.billingid !== undefined ? String(billingdata.billingid) : ''}
-						employeeid={emploeyeeid !== undefined ? String(emploeyeeid) : ''}
+						employeeid={employeeid !== undefined ? String(employeeid) : ''}
 					/>
-
 					<RefundServiceShowDetailModal
 						show={showCashOutModal}
 						onClose={() => setShowCashOutModal(false)}
@@ -580,56 +576,32 @@ export default function PreviousTransactionSummaryPage() {
 					/>
 					{renderTaxModal()}
 					{renderWitnessModal()}
-					<div className="row g-3 mb-4">
-						{[
-							{
-								label: 'Total Transaction Cost',
-								value: currencyFormatter.format(Number(billingdata.totalTransactionCost) || 0),
-								icon: <DollarSignIcon />, color: 'dark',
-							},
-							{
-								label: 'Total Cost',
-								value: currencyFormatter.format(Number(billingdata.totalcost) || 0),
-								icon: <DollarSignIcon />, color: 'secondary',
-							},
-							{
-								label: 'Total Payable',
-								value: currencyFormatter.format(Number(billingdata.payable) || 0),
-								icon: <CreditCardIcon />, color: 'primary',
-							},
-							{
-								label: 'Total Refunded',
-								value: currencyFormatter.format(Number(billingdata.totalrefunded) || 0),
-								icon: <RotateCcwIcon />, color: 'warning',
-							},
-							{
-								label: 'Total Paid',
-								value: currencyFormatter.format(Number(billingdata.paid) || 0),
-								icon: <CheckCircleIcon />, color: 'info',
-							},
-							{
-								label: 'Outstanding',
-								value: currencyFormatter.format(Number(billingdata.outstanding) || 0),
-								icon: <AlertCircleIcon />, color: 'danger',
-							},
-							{
-								label: 'Balance',
-								value: currencyFormatter.format((Number(billingdata.payable) || 0) - (Number(billingdata.paid) || 0)),
-								icon: <DollarSignIcon />, color: 'success',
-							},
-						].map((card, idx) => (
-							<div className="col-md-2 col-6" key={card.label}>
-								<div className="card shadow border-0 h-100">
-									<div className="card-body d-flex flex-column align-items-center justify-content-center p-3">
-										<div className={`rounded-circle bg-${card.color} bg-opacity-10 d-flex align-items-center justify-content-center mb-2`} style={{ width: 48, height: 48 }}>
-											<span className={`text-${card.color} fs-4`}>{card.icon}</span>
+					<div className="card border-0 shadow-sm mb-4">
+						<div className="card-body p-3 p-md-4">
+							<div className="row g-3 g-md-4">
+								{[
+									{ label: 'Trans. Cost', value: billingdata.totalTransactionCost, color: 'dark', icon: <DollarSignIcon /> },
+									{ label: 'Total Cost', value: billingdata.totalcost, color: 'secondary', icon: <DollarSignIcon /> },
+									{ label: 'Payable', value: billingdata.payable, color: 'primary', icon: <CreditCardIcon /> },
+									{ label: 'Refunded', value: billingdata.totalrefunded, color: 'warning', icon: <RotateCcwIcon /> },
+									{ label: 'Paid', value: billingdata.paid, color: 'info', icon: <CheckCircleIcon /> },
+									{ label: 'Outstanding', value: billingdata.outstanding, color: 'danger', icon: <AlertCircleIcon /> },
+									{ label: 'Balance', value: (Number(billingdata.payable) || 0) - (Number(billingdata.paid) || 0), color: 'success', icon: <DollarSignIcon /> },
+								].map((item, index) => (
+									<div key={index} className="col-12 col-sm-6 col-md-4 col-lg-3 col-xl">
+										<div className="d-flex align-items-center h-100 p-2 rounded border border-light-subtle bg-light bg-opacity-10">
+											<div className={`rounded-circle bg-${item.color} bg-opacity-10 text-${item.color} me-3 d-flex align-items-center justify-content-center flex-shrink-0`} style={{ width: '40px', height: '40px' }}>
+												<span style={{ fontSize: '1.1rem' }}>{item.icon}</span>
+											</div>
+											<div>
+												<div className="text-muted small fw-bold text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>{item.label}</div>
+												<div className="h6 mb-0 fw-bold text-dark">{currencyFormatter.format(Number(item.value) || 0)}</div>
+											</div>
 										</div>
-										<div className="fw-semibold text-secondary small mb-1 text-uppercase" style={{ letterSpacing: 1 }}>{card.label}</div>
-										<div className="fw-bold fs-5 text-dark">{card.value}</div>
 									</div>
-								</div>
+								))}
 							</div>
-						))}
+						</div>
 					</div>
 					<div className="mx-2 mt-5">
 						<div style={{ overflowX: 'auto' }}>

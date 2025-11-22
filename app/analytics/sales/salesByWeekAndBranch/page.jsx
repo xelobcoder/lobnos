@@ -10,7 +10,7 @@ import {
      Tooltip,
      Legend,
 } from "recharts";
-import { currencyFormatter, customFetch} from "../../../../components/Auth/customFetch";
+import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
 import { RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiErrorWarningLine, RiInbox2Line, RiLoader4Line } from "@remixicon/react";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
@@ -52,7 +52,7 @@ export default function SalesByWeekAndBranch() {
           const groupedData = {};
           data.forEach((entry) => {
                if (!groupedData[entry.week]) groupedData[entry.week] = {};
-               groupedData[entry.week][entry.name.trim()] = entry.totalSales;
+               groupedData[entry.week][entry.name.trim()] = parseFloat(entry.totalPayable) || 0;
           });
 
           return Object.keys(groupedData).map((week) => ({
@@ -83,7 +83,7 @@ export default function SalesByWeekAndBranch() {
                     >
                          <div className="mb-1">
                               <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Week</span>
-                              <span className="fw-bold d-block" style={{color: COLOR_TOOLTIP_FG}}>{label}</span>
+                              <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{label}</span>
                          </div>
                          {payload.map((entry) => (
                               <div key={entry.name} className="mb-1">
@@ -137,27 +137,27 @@ export default function SalesByWeekAndBranch() {
                     <div className="bg-gray-50 p-4 rounded-lg border" style={{ borderColor: COLOR_BORDER }}>
                          <h3 className="text-lg font-semibold mb-4 text-gray-700 d-flex align-items-center">
                               <RiBarChartBoxLine size={20} className="me-2" style={{ color: COLOR_ACCENT }} />
-                              Weekly Sales Comparison
+                              Weekly Payable Comparison by Branch
                          </h3>
                          <div style={{ width: "100%", height: 400 }}>
                               <ResponsiveContainer>
                                    <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
-                                        <XAxis 
-                                             dataKey="week" 
+                                        <XAxis
+                                             dataKey="week"
                                              tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
                                              axisLine={{ stroke: COLOR_BORDER }}
                                              tickLine={{ stroke: COLOR_BORDER }}
                                         />
-                                        <YAxis 
-                                             tickFormatter={(value) => currencyFormatter.format(value)} 
+                                        <YAxis
+                                             tickFormatter={(value) => currencyFormatter.format(value)}
                                              tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
                                              axisLine={false}
                                              tickLine={false}
                                              width={95}
                                         />
                                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
-                                        <Legend 
+                                        <Legend
                                              verticalAlign="top"
                                              align="right"
                                              iconType="circle"
@@ -184,33 +184,37 @@ export default function SalesByWeekAndBranch() {
                          <div key={branchData.branchName} className="bg-gray-50 p-4 rounded-lg border" style={{ borderColor: COLOR_BORDER }}>
                               <h3 className="text-lg font-semibold mb-4 text-gray-700 d-flex align-items-center">
                                    <RiLineChartLine size={20} className="me-2" style={{ color: COLOR_ACCENT }} />
-                                   {branchData.branchName} - Weekly Sales Trend
+                                   {branchData.branchName} - Financial Trends
                               </h3>
                               <div style={{ width: "100%", height: 300 }}>
                                    <ResponsiveContainer>
                                         <BarChart
                                              data={branchData.data.map(item => ({
                                                   week: `Week ${item.week}`,
-                                                  totalSales: parseFloat(item.totalSales)
+                                                  totalPayable: parseFloat(item.totalPayable) || 0,
+                                                  totalCost: parseFloat(item.totalCost) || 0,
+                                                  totalPaid: parseFloat(item.totalPaid) || 0,
+                                                  totalDiscount: parseFloat(item.totalDiscount) || 0,
+                                                  totalRefunded: parseFloat(item.totalRefunded) || 0
                                              }))}
                                              margin={{ top: 5, right: 5, left: 20, bottom: 45 }}
                                         >
                                              <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
-                                             <XAxis 
-                                                  dataKey="week" 
+                                             <XAxis
+                                                  dataKey="week"
                                                   tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
                                                   axisLine={{ stroke: COLOR_BORDER }}
                                                   tickLine={{ stroke: COLOR_BORDER }}
                                              />
-                                             <YAxis 
-                                                  tickFormatter={(value) => currencyFormatter.format(value)} 
+                                             <YAxis
+                                                  tickFormatter={(value) => currencyFormatter.format(value)}
                                                   tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
                                                   axisLine={false}
                                                   tickLine={false}
                                                   width={95}
                                              />
                                              <Tooltip
-                                                  formatter={(value) => [currencyFormatter.format(value), "Sales"]}
+                                                  formatter={(value, name) => [currencyFormatter.format(value), name]}
                                                   contentStyle={{
                                                        backgroundColor: COLOR_TOOLTIP_BG,
                                                        borderColor: COLOR_BORDER,
@@ -218,13 +222,10 @@ export default function SalesByWeekAndBranch() {
                                                   labelStyle={{ color: COLOR_TOOLTIP_FG }}
                                                   cursor={{ fill: 'var(--bs-tertiary-bg)' }}
                                              />
-                                             <Bar
-                                                  dataKey="totalSales"
-                                                  fill={`hsl(${(index * 137.5) % 360}, 70%, 50%)`}
-                                                  name="Sales"
-                                                  radius={[4, 4, 0, 0]}
-                                                  maxBarSize={40}
-                                             />
+                                             <Legend verticalAlign="top" height={36} />
+                                             <Bar dataKey="totalPaid" name="Paid" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={30} />
+                                             <Bar dataKey="totalPayable" name="Payable" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                                             <Bar dataKey="totalCost" name="Cost" fill="#dc2626" radius={[4, 4, 0, 0]} maxBarSize={30} />
                                         </BarChart>
                                    </ResponsiveContainer>
                               </div>
@@ -235,22 +236,65 @@ export default function SalesByWeekAndBranch() {
                     <div className="bg-blue-50 p-4 rounded-lg border" style={{ borderColor: COLOR_BORDER }}>
                          <h3 className="text-lg font-semibold mb-4 text-gray-700 d-flex align-items-center">
                               <RiBubbleChartLine size={20} className="me-2" style={{ color: COLOR_ACCENT }} />
-                              Summary
+                              Branch Financial Summary
                          </h3>
                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                               {branchSpecificData.map((branchData) => {
-                                   const totalSales = branchData.data.reduce((sum, item) => sum + parseFloat(item.totalSales), 0);
-                                   const avgSales = totalSales / branchData.data.length;
-                                   const maxSales = Math.max(...branchData.data.map(item => parseFloat(item.totalSales)));
+                                   const totalPayable = branchData.data.reduce((sum, item) => sum + (parseFloat(item.totalPayable) || 0), 0);
+                                   const totalCost = branchData.data.reduce((sum, item) => sum + (parseFloat(item.totalCost) || 0), 0);
+                                   const totalPaid = branchData.data.reduce((sum, item) => sum + (parseFloat(item.totalPaid) || 0), 0);
+                                   const totalDiscount = branchData.data.reduce((sum, item) => sum + (parseFloat(item.totalDiscount) || 0), 0);
+                                   const totalRefunded = branchData.data.reduce((sum, item) => sum + (parseFloat(item.totalRefunded) || 0), 0);
+                                   const profit = totalPayable - totalCost;
+                                   const collectionRate = totalPayable > 0 ? (totalPaid / totalPayable) * 100 : 0;
 
                                    return (
-                                        <div key={branchData.branchName} className="bg-white p-4 rounded border shadow-sm" style={{ borderColor: COLOR_BORDER }}>
-                                             <h4 className="font-semibold text-gray-800 mb-2">{branchData.branchName}</h4>
-                                             <div className="space-y-1 text-sm">
-                                                  <p><span className="font-medium">Total Sales:</span> {currencyFormatter.format(totalSales)}</p>
-                                                  <p><span className="font-medium">Average Sales:</span> {currencyFormatter.format(avgSales)}</p>
-                                                  <p><span className="font-medium">Peak Sales:</span> {currencyFormatter.format(maxSales)}</p>
-                                                  <p><span className="font-medium">Weeks Active:</span> {branchData.data.length}</p>
+                                        <div key={branchData.branchName} className="bg-white rounded-lg border shadow-sm overflow-hidden" style={{ borderColor: COLOR_BORDER }}>
+                                             <div className="p-3 border-bottom" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
+                                                  <h4 className="font-semibold text-gray-800 m-0 text-base">{branchData.branchName}</h4>
+                                             </div>
+                                             <div className="p-4">
+                                                  <div className="grid grid-cols-2 gap-4 mb-4">
+                                                       <div>
+                                                            <p className="text-xs text-muted uppercase mb-1">Total Payable</p>
+                                                            <p className="font-bold text-lg" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(totalPayable)}</p>
+                                                       </div>
+                                                       <div>
+                                                            <p className="text-xs text-muted uppercase mb-1">Total Paid</p>
+                                                            <p className="font-bold text-lg text-blue-600">{currencyFormatter.format(totalPaid)}</p>
+                                                       </div>
+                                                  </div>
+
+                                                  <div className="border-t pt-3 mb-3" style={{ borderColor: COLOR_BORDER }}>
+                                                       <div className="flex justify-between items-center mb-2 text-sm">
+                                                            <span className="text-muted">Total Cost</span>
+                                                            <span className="font-medium">{currencyFormatter.format(totalCost)}</span>
+                                                       </div>
+                                                       <div className="flex justify-between items-center mb-2 text-sm">
+                                                            <span className="text-muted">Gross Profit</span>
+                                                            <span className={`font-medium ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>{currencyFormatter.format(profit)}</span>
+                                                       </div>
+                                                  </div>
+
+                                                  <div className="border-t pt-3 mb-3" style={{ borderColor: COLOR_BORDER }}>
+                                                       <div className="flex justify-between items-center mb-2 text-sm">
+                                                            <span className="text-muted">Discounts</span>
+                                                            <span className="text-orange-600">{currencyFormatter.format(totalDiscount)}</span>
+                                                       </div>
+                                                       <div className="flex justify-between items-center mb-2 text-sm">
+                                                            <span className="text-muted">Refunds</span>
+                                                            <span className="text-red-600">{currencyFormatter.format(totalRefunded)}</span>
+                                                       </div>
+                                                  </div>
+
+                                                  <div className="border-t pt-3" style={{ borderColor: COLOR_BORDER }}>
+                                                       <div className="flex justify-between items-center">
+                                                            <span className="text-sm font-medium text-gray-700">Collection Rate</span>
+                                                            <span className={`px-2 py-1 rounded text-xs font-bold ${collectionRate >= 90 ? 'bg-green-100 text-green-800' : collectionRate >= 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                                                                 {collectionRate.toFixed(1)}%
+                                                            </span>
+                                                       </div>
+                                                  </div>
                                              </div>
                                         </div>
                                    );
@@ -266,7 +310,7 @@ export default function SalesByWeekAndBranch() {
                <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
                     <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
                          <RiLineChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
-                         Sales by Week and Branch
+                         Sales by Week and Branch (Financial Overview)
                     </h2>
                </div>
                <div className="card-body p-3 p-md-4">

@@ -25,39 +25,44 @@ const IconError = () => <span style={{ fontSize: '2.5rem', color: '#DC3545' }}>�
 const IconEmpty = () => <span style={{ fontSize: '2.5rem', color: "#64748B" }}>📦</span>;
 const IconRefresh = () => <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>🔄</span>;
 
-const SHADCN_PRIMARY = "#3B82F6";
-const SHADCN_SECONDARY = "#60A5FA";
-const SHADCN_ACCENT_GREEN = "#10B981";
-const SHADCN_ACCENT_YELLOW = "#F59E0B";
-const SHADCN_ACCENT_RED = "#EF4444";
-const SHADCN_FOREGROUND = "#0F172A";
-const SHADCN_MUTED_FOREGROUND = "#64748B";
-const SHADCN_BORDER = "#E2E8F0";
-const SHADCN_CARD_BG = "#FFFFFF";
-const SHADCN_MUTED_BG = "#F8FAFC";
-const SHADCN_TOOLTIP_BG = "#FFFFFF";
-const SHADCN_TOOLTIP_FG = "#0F172A";
+// --- Color Palette ---
+const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
+const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
+const COLOR_BORDER = 'var(--bs-border-color)';
+const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
+const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
+const COLOR_HOVER = 'oklch(0.646 0.222 41.116 / 0.1)'; // Semi-transparent accent for hover states
 
 const PIE_CHART_COLORS = [
-    SHADCN_PRIMARY, SHADCN_ACCENT_GREEN, SHADCN_ACCENT_YELLOW, SHADCN_SECONDARY,
-    SHADCN_ACCENT_RED, '#A855F7', '#EC4899', '#78716C', '#F97316', '#D946EF'
+    COLOR_ACCENT, 'oklch(0.6 0.15 142)', 'oklch(0.7 0.2 85)', 'oklch(0.5 0.25 25)',
+    'oklch(0.55 0.2 15)', '#A855F7', '#EC4899', '#78716C', '#F97316', '#D946EF'
 ];
 
 interface ServiceCategoryAPIEntry {
+    branchid: number;
     serviceCategory: string;
-    totalSales: string;
+    totalCost: string;
+    totalPaid: string;
+    totalPayable: string;
+    totalDiscount: string;
+    totalRefunded: string;
 }
 
 interface ChartDataEntry {
     name: string;
-    totalSales: number;
+    totalCost: number;
+    totalPaid: number;
+    totalPayable: number;
+    totalDiscount: number;
+    totalRefunded: number;
+    branchid: number;
 }
 
 const getInitialDates = () => {
     const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const firstDayOfYear = new Date(today.getFullYear(), 0, 1); // January 1st of current year
     return {
-        startDate: firstDayOfMonth.toISOString().split("T")[0],
+        startDate: firstDayOfYear.toISOString().split("T")[0],
         endDate: today.toISOString().split("T")[0],
     };
 };
@@ -88,15 +93,38 @@ export default function TotalSalesByServiceCategory() {
             const response: ServiceCategoryAPIEntry[] = await customFetch(url);
 
             if (response && Array.isArray(response)) {
-                const groupedData: { [key: string]: number } = {};
+                const groupedData: { [key: string]: { totalCost: number; totalPaid: number; totalPayable: number; totalDiscount: number; totalRefunded: number; branchid: number } } = {};
+
                 response.forEach(item => {
                     const categoryName = item.serviceCategory || "Uncategorized";
-                    groupedData[categoryName] = (groupedData[categoryName] || 0) + (parseFloat(item.totalSales) || 0);
+                    if (!groupedData[categoryName]) {
+                        groupedData[categoryName] = {
+                            totalCost: 0,
+                            totalPaid: 0,
+                            totalPayable: 0,
+                            totalDiscount: 0,
+                            totalRefunded: 0,
+                            branchid: item.branchid
+                        };
+                    }
+                    groupedData[categoryName].totalCost += parseFloat(item.totalCost) || 0;
+                    groupedData[categoryName].totalPaid += parseFloat(item.totalPaid) || 0;
+                    groupedData[categoryName].totalPayable += parseFloat(item.totalPayable) || 0;
+                    groupedData[categoryName].totalDiscount += parseFloat(item.totalDiscount) || 0;
+                    groupedData[categoryName].totalRefunded += parseFloat(item.totalRefunded) || 0;
                 });
-                
+
                 const formattedData = Object.entries(groupedData)
-                    .map(([name, totalSales]) => ({ name, totalSales }))
-                    .sort((a, b) => b.totalSales - a.totalSales);
+                    .map(([name, values]) => ({
+                        name,
+                        totalCost: values.totalCost,
+                        totalPaid: values.totalPaid,
+                        totalPayable: values.totalPayable,
+                        totalDiscount: values.totalDiscount,
+                        totalRefunded: values.totalRefunded,
+                        branchid: values.branchid
+                    }))
+                    .sort((a, b) => b.totalPayable - a.totalPayable);
                 setData(formattedData);
             } else {
                 setData([]);
@@ -111,18 +139,25 @@ export default function TotalSalesByServiceCategory() {
     }, []);
 
     useEffect(() => {
+        // Initial load with default dates
         fetchData(startDate, endDate);
-    }, [startDate, endDate, fetchData]);
+    }, []); // Only run on mount, not on date changes
 
     const handleToggleView = () => setView((prevView) => (prevView === "pie" ? "bar" : "pie"));
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value);
     const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value);
     const handleResetFilters = () => {
         const { startDate: defaultStartDate, endDate: defaultEndDate } = getInitialDates();
-        setStartDate(defaultStartDate); setEndDate(defaultEndDate);
+        setStartDate(defaultStartDate);
+        setEndDate(defaultEndDate);
+        // Automatically load data with default dates
+        setTimeout(() => fetchData(defaultStartDate, defaultEndDate), 0);
+    };
+    const handleLoadData = () => {
+        fetchData(startDate, endDate);
     };
 
-    const totalSalesOverall = data.reduce((sum, entry) => sum + entry.totalSales, 0);
+    const totalPayableOverall = data.reduce((sum, entry) => sum + entry.totalPayable, 0);
 
     const CustomTooltipContent = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
@@ -131,16 +166,40 @@ export default function TotalSalesByServiceCategory() {
             const value = payload[0].value;
 
             return (
-                <div className="rounded-lg border p-2 shadow-sm" style={{ backgroundColor: SHADCN_TOOLTIP_BG, borderColor: SHADCN_BORDER, color: SHADCN_TOOLTIP_FG, minWidth: '180px', fontSize: '0.8rem' }}>
-                    <div className="mb-1 fw-medium" style={{color: SHADCN_FOREGROUND}}>{name}</div>
-                    <div style={{ color: payload[0].fill || SHADCN_PRIMARY }}>Sales: {currencyFormatter.format(value)}</div>
-                    {totalSalesOverall > 0 && (<div className="text-xs" style={{color: SHADCN_MUTED_FOREGROUND}}>{((value / totalSalesOverall) * 100).toFixed(1)}% of total</div>)}
+                <div className="rounded-lg border p-2 shadow-sm" style={{ backgroundColor: COLOR_TOOLTIP_BG, borderColor: COLOR_BORDER, color: COLOR_TOOLTIP_FG, minWidth: '220px', fontSize: '0.8rem' }}>
+                    <div className="mb-2 fw-medium" style={{ color: COLOR_TOOLTIP_FG }}>{name}</div>
+                    <div className="mb-1">
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Net Payable</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
+                            {currencyFormatter.format(currentData.totalPayable)}
+                        </span>
+                    </div>
+                    <div className="mb-1">
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Amount Paid</span>
+                        <span className="fw-bold d-block" style={{ color: 'oklch(0.6 0.15 142)' }}>
+                            {currencyFormatter.format(currentData.totalPaid)}
+                        </span>
+                    </div>
+                    <div className="mb-1">
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Cost</span>
+                        <span className="fw-bold d-block">
+                            {currencyFormatter.format(currentData.totalCost)}
+                        </span>
+                    </div>
+                    {totalPayableOverall > 0 && (
+                        <div className="mt-2 pt-1 border-top" style={{ borderColor: COLOR_BORDER }}>
+                            <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Share of Total</span>
+                            <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
+                                {((currentData.totalPayable / totalPayableOverall) * 100).toFixed(1)}%
+                            </span>
+                        </div>
+                    )}
                 </div>
             );
         }
         return null;
     };
-    
+
     const renderCustomizedPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
         const RADIAN = Math.PI / 180;
         const radius = innerRadius + (outerRadius - innerRadius) * 0.55;
@@ -152,13 +211,13 @@ export default function TotalSalesByServiceCategory() {
 
     const renderChartArea = () => {
         if (loading) {
-            return (<div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '350px' }}><IconLoader /><p className="mt-3" style={{ color: SHADCN_MUTED_FOREGROUND }}>Loading service category sales...</p></div>);
+            return (<div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '350px' }}><IconLoader /><p className="mt-3" style={{ color: COLOR_TEXT_MUTED }}>Loading service category sales...</p></div>);
         }
         if (error && data.length === 0) {
-            return (<div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '350px' }}><IconError /><h5 className="fw-medium mt-3 mb-1" style={{ color: SHADCN_FOREGROUND }}>Error Loading Data</h5><p className="px-3" style={{ color: SHADCN_MUTED_FOREGROUND, fontSize: '0.9rem' }}>{error}</p></div>);
+            return (<div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '350px' }}><IconError /><h5 className="fw-medium mt-3 mb-1" style={{ color: COLOR_TOOLTIP_FG }}>Error Loading Data</h5><p className="px-3" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.9rem' }}>{error}</p></div>);
         }
         if (data.length === 0) {
-            return (<div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '350px' }}><IconEmpty /><h5 className="fw-medium mt-3 mb-1" style={{ color: SHADCN_FOREGROUND }}>No Data Available</h5><p className="px-3" style={{ color: SHADCN_MUTED_FOREGROUND, fontSize: '0.9rem' }}>No sales data found for service categories in the selected period.</p></div>);
+            return (<div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '350px' }}><IconEmpty /><h5 className="fw-medium mt-3 mb-1" style={{ color: COLOR_TOOLTIP_FG }}>No Data Available</h5><p className="px-3" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.9rem' }}>No sales data found for service categories in the selected period.</p></div>);
         }
 
         const chartHeight = 400;
@@ -168,11 +227,11 @@ export default function TotalSalesByServiceCategory() {
                 <div style={{ width: '100%', height: chartHeight }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                            <Pie data={data} dataKey="totalSales" nameKey="name" cx="50%" cy="50%" outerRadius={Math.min(window.innerWidth / 4.5, 140)} labelLine={false} label={renderCustomizedPieLabel} >
+                            <Pie data={data} dataKey="totalPayable" nameKey="name" cx="50%" cy="50%" outerRadius={Math.min(window.innerWidth / 4.5, 140)} labelLine={false} label={renderCustomizedPieLabel} >
                                 {data.map((entry, index) => (<Cell key={`cell-${index}`} fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]} />))}
                             </Pie>
                             <Tooltip content={<CustomTooltipContent />} />
-                            <Legend layout="vertical" verticalAlign="middle" align="right" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', color: SHADCN_FOREGROUND, paddingLeft: '15px', maxHeight: chartHeight - 40, overflowY: 'auto' }} formatter={(value) => <span style={{color: SHADCN_MUTED_FOREGROUND}}>{value.length > 20 ? value.substring(0,18)+'...' : value}</span>}/>
+                            <Legend layout="vertical" verticalAlign="middle" align="right" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', color: COLOR_TOOLTIP_FG, paddingLeft: '15px', maxHeight: chartHeight - 40, overflowY: 'auto' }} formatter={(value) => <span style={{ color: COLOR_TEXT_MUTED }}>{value.length > 20 ? value.substring(0, 18) + '...' : value}</span>} />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
@@ -186,11 +245,11 @@ export default function TotalSalesByServiceCategory() {
                 <div style={{ width: '100%', height: chartHeight }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={data} margin={{ top: 5, right: 10, left: 5, bottom: bottomMargin }} barGap={4} barCategoryGap="20%">
-                            <CartesianGrid strokeDasharray="3 3" stroke={SHADCN_BORDER} vertical={false} />
-                            <XAxis dataKey="name" angle={angleXAxis ? -45 : 0} textAnchor={angleXAxis ? "end" : "middle"} height={angleXAxis ? 100 : 60} interval={0} tick={{ fontSize: 10, fill: SHADCN_MUTED_FOREGROUND }} axisLine={{ stroke: SHADCN_BORDER }} tickLine={{ stroke: SHADCN_BORDER }} />
-                            <YAxis tickFormatter={(value) => currencyFormatter.format(value)} tick={{ fontSize: 11, fill: SHADCN_MUTED_FOREGROUND }} axisLine={false} tickLine={false} width={90} />
-                            <Tooltip content={<CustomTooltipContent />} cursor={{ fill: `${SHADCN_PRIMARY}1A` }} />
-                            <Bar dataKey="totalSales" fill={SHADCN_PRIMARY} radius={[4, 4, 0, 0]} maxBarSize={40} />
+                            <CartesianGrid strokeDasharray="3 3" stroke={COLOR_BORDER} vertical={false} />
+                            <XAxis dataKey="name" angle={angleXAxis ? -45 : 0} textAnchor={angleXAxis ? "end" : "middle"} height={angleXAxis ? 100 : 60} interval={0} tick={{ fontSize: 10, fill: COLOR_TEXT_MUTED }} axisLine={{ stroke: COLOR_BORDER }} tickLine={{ stroke: COLOR_BORDER }} />
+                            <YAxis tickFormatter={(value) => currencyFormatter.format(value)} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={90} />
+                            <Tooltip content={<CustomTooltipContent />} cursor={{ fill: COLOR_HOVER }} />
+                            <Bar dataKey="totalPayable" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={40} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -199,49 +258,80 @@ export default function TotalSalesByServiceCategory() {
     };
 
     return (
-        <div className="card shadow-sm" style={{ borderRadius: '0.75rem', borderColor: SHADCN_BORDER, backgroundColor: SHADCN_CARD_BG }}>
-            <div className="card-header py-3 px-4" style={{ backgroundColor: SHADCN_MUTED_BG, borderBottom: `1px solid ${SHADCN_BORDER}` }}>
+        <div className="card shadow-sm" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER, backgroundColor: COLOR_TOOLTIP_BG }}>
+            <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderBottom: `1px solid ${COLOR_BORDER}` }}>
                 <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
                     <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center"><IconChart /> Total Sales by Service Category</h2>
                     <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
                         <div className="btn-group btn-group-sm" role="group">
-                            <button type="button" className={`btn ${view === 'bar' ? 'btn-primary active' : 'btn-outline-secondary'}`} onClick={() => setView('bar')} style={view === 'bar' ? {backgroundColor: SHADCN_PRIMARY, borderColor: SHADCN_PRIMARY} : {}}><IconBar /> Bar</button>
-                            <button type="button" className={`btn ${view === 'pie' ? 'btn-primary active' : 'btn-outline-secondary'}`} onClick={() => setView('pie')} style={view === 'pie' ? {backgroundColor: SHADCN_PRIMARY, borderColor: SHADCN_PRIMARY} : {}}><IconPie /> Pie</button>
+                            <button type="button" className={`btn ${view === 'bar' ? 'btn-primary active' : 'btn-outline-secondary'}`} onClick={() => setView('bar')} style={view === 'bar' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}><IconBar /> Bar</button>
+                            <button type="button" className={`btn ${view === 'pie' ? 'btn-primary active' : 'btn-outline-secondary'}`} onClick={() => setView('pie')} style={view === 'pie' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}><IconPie /> Pie</button>
                         </div>
                         <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: SHADCN_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}><IconCalendar/></span>
-                            <input id="startDateTSSC" type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={handleStartDateChange} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: SHADCN_BORDER, paddingLeft: '0.3rem' }}/>
+                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}><IconCalendar /></span>
+                            <input id="startDateTSSC" type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={handleStartDateChange} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
                         </div>
                         <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
-                             <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: SHADCN_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}><IconCalendar/></span>
-                            <input id="endDateTSSC" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: SHADCN_BORDER, paddingLeft: '0.3rem' }}/>
+                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}><IconCalendar /></span>
+                            <input id="endDateTSSC" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
                         </div>
-                        <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}><IconRefresh /> Reset</button>
+                        <button onClick={handleLoadData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem', backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}>
+                            <IconRefresh /> Load
+                        </button>
+                        <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                            <IconRefresh /> Reset
+                        </button>
                     </div>
                 </div>
             </div>
 
             <div className="card-body p-3 p-md-4">
-                {error && data.length > 0 && (<div className="alert alert-warning border-warning border-opacity-50 d-flex align-items-center small p-2 mb-3" role="alert"><IconError/> <span className="ms-2">{error}</span><button type="button" className="btn-close ms-auto p-2" onClick={() => setError(null)} aria-label="Close" style={{ fontSize: '0.7rem' }}></button></div>)}
+                {error && data.length > 0 && (<div className="alert alert-warning border-warning border-opacity-50 d-flex align-items-center small p-2 mb-3" role="alert"><IconError /> <span className="ms-2">{error}</span><button type="button" className="btn-close ms-auto p-2" onClick={() => setError(null)} aria-label="Close" style={{ fontSize: '0.7rem' }}></button></div>)}
                 {renderChartArea()}
             </div>
 
             {data.length > 0 && !loading && !error && (
-                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{borderTop: `1px solid ${SHADCN_BORDER}`}}>
+                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                     <h4 className="fs-6 fw-medium mb-3">Service Category Sales Breakdown</h4>
-                    <div className="table-responsive" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         <table className="table table-sm table-hover table-striped small">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Service Category</th>
-                                    <th scope="col" className="py-2 text-end">Total Sales</th>
+                                    <th scope="col" className="py-2 text-end">Total Cost</th>
+                                    <th scope="col" className="py-2 text-end">Amount Paid</th>
+                                    <th scope="col" className="py-2 text-end">Net Payable</th>
+                                    <th scope="col" className="py-2 text-end">Discount</th>
+                                    <th scope="col" className="py-2 text-end">Refunded</th>
                                     <th scope="col" className="py-2 text-end">% of Total</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.map((entry, index) => (<tr key={entry.name + index}><td className="py-2">{entry.name}</td><td className="py-2 text-end">{currencyFormatter.format(entry.totalSales)}</td><td className="py-2 text-end text-muted">{totalSalesOverall > 0 ? ((entry.totalSales / totalSalesOverall) * 100).toFixed(1) : '0.0'}%</td></tr>))}
+                                {data.map((entry, index) => (
+                                    <tr key={entry.name + index}>
+                                        <td className="py-2">{entry.name}</td>
+                                        <td className="py-2 text-end">{currencyFormatter.format(entry.totalCost)}</td>
+                                        <td className="py-2 text-end">{entry.totalPaid ? currencyFormatter.format(entry.totalPaid) : '-'}</td>
+                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalPayable)}</td>
+                                        <td className="py-2 text-end">{currencyFormatter.format(entry.totalDiscount)}</td>
+                                        <td className="py-2 text-end">{currencyFormatter.format(entry.totalRefunded)}</td>
+                                        <td className="py-2 text-end text-muted">
+                                            {totalPayableOverall > 0 ? ((entry.totalPayable / totalPayableOverall) * 100).toFixed(1) : '0.0'}%
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
-                            <tfoot className="fw-bold border-top"><tr><td className="py-2">Total</td><td className="py-2 text-end">{currencyFormatter.format(totalSalesOverall)}</td><td className="py-2 text-end">100.0%</td></tr></tfoot>
+                            <tfoot className="fw-bold border-top">
+                                <tr>
+                                    <td className="py-2">Total</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalPaid, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(totalPayableOverall)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalDiscount, 0))}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalRefunded, 0))}</td>
+                                    <td className="py-2 text-end">100.0%</td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>

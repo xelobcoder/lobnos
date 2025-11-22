@@ -24,16 +24,20 @@ import { RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiPieChartLine, 
 
 interface MonthlySalesAPIEntry {
     month: string;
-    totalSales: string;
-    totaldiscount: string;
-    totalpayableAmount: string;
+    totalCost: string;
+    totalPaid: string | null;
+    totalPayable: string;
+    totalDiscount: string;
+    totalRefunded: string;
 }
 
 interface ChartDataEntry {
     month: string; // This will be the month name like "March"
-    totalSales: number;
+    totalCost: number;
+    totalPaid: number;
+    totalPayable: number;
     totalDiscount: number;
-    totalPayableAmount: number;
+    totalRefunded: number;
 }
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -109,9 +113,11 @@ export default function MonthlySalesTrend() {
             if (response && Array.isArray(response)) {
                 const formattedData = response.map((item: MonthlySalesAPIEntry) => ({
                     month: item.month,
-                    totalSales: parseFloat(item.totalSales) || 0,
-                    totalDiscount: parseFloat(item.totaldiscount) || 0,
-                    totalPayableAmount: parseFloat(item.totalpayableAmount) || 0,
+                    totalCost: parseFloat(item.totalCost) || 0,
+                    totalPaid: item.totalPaid ? parseFloat(item.totalPaid) : 0,
+                    totalPayable: parseFloat(item.totalPayable) || 0,
+                    totalDiscount: parseFloat(item.totalDiscount) || 0,
+                    totalRefunded: parseFloat(item.totalRefunded) || 0,
                 })).sort((a, b) => (monthOrder[a.month] || 0) - (monthOrder[b.month] || 0));
                 setData(formattedData);
                 if (formattedData.length === 0) {
@@ -153,11 +159,13 @@ export default function MonthlySalesTrend() {
 
     const overallSummary = useMemo(() => {
         return data.reduce((acc, curr) => {
-            acc.totalSales += curr.totalSales;
+            acc.totalCost += curr.totalCost;
+            acc.totalPaid += curr.totalPaid;
+            acc.totalPayable += curr.totalPayable;
             acc.totalDiscount += curr.totalDiscount;
-            acc.totalPayableAmount += curr.totalPayableAmount;
+            acc.totalRefunded += curr.totalRefunded;
             return acc;
-        }, { totalSales: 0, totalDiscount: 0, totalPayableAmount: 0 });
+        }, { totalCost: 0, totalPaid: 0, totalPayable: 0, totalDiscount: 0, totalRefunded: 0 });
     }, [data]);
 
     const CustomTooltip = ({ active, payload, label }: any) => {
@@ -184,7 +192,7 @@ export default function MonthlySalesTrend() {
                             <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>{pld.name}</span>
                             <span className="fw-bold d-block" style={{ color: pld.color || pld.payload?.fill || COLOR_ACCENT }}>
                                 {currencyFormatter.format(pld.value)}
-                                {overallSummary.totalSales > 0 && pld.dataKey === "totalSales" && ` (${((pld.value / overallSummary.totalSales) * 100).toFixed(1)}%)`}
+                                {overallSummary.totalCost > 0 && pld.dataKey === "totalCost" && ` (${((pld.value / overallSummary.totalCost) * 100).toFixed(1)}%)`}
                             </span>
                         </div>
                     ))}
@@ -240,7 +248,7 @@ export default function MonthlySalesTrend() {
         };
 
         if (view === "pie") {
-            const pieDataKey = "totalPayableAmount"; // Or totalSales, depending on what you want to show in pie
+            const pieDataKey = "totalPayable"; // Or totalCost, depending on what you want to show in pie
             return (
                 <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                     <Pie
@@ -266,23 +274,31 @@ export default function MonthlySalesTrend() {
         const ChartComponent = view === "bar" ? BarChart : view === "line" ? LineChart : AreaChart;
 
         const elements = [
-            { dataKey: "totalSales", name: "Total Sales", color: COLOR_ACCENT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalSales)" : undefined },
+            { dataKey: "totalCost", name: "Total Cost", color: COLOR_ACCENT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalCost)" : undefined },
+            { dataKey: "totalPaid", name: "Amount Paid", color: 'oklch(0.6 0.15 142)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPaid)" : undefined },
+            { dataKey: "totalPayable", name: "Net Payable", color: COLOR_PAYABLE, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPayable)" : undefined },
             { dataKey: "totalDiscount", name: "Discount", color: COLOR_DISCOUNT, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalDiscount)" : undefined },
-            { dataKey: "totalPayableAmount", name: "Net Sales", color: COLOR_PAYABLE, fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalPayable)" : undefined },
+            { dataKey: "totalRefunded", name: "Refunded", color: 'oklch(0.7 0.2 20)', fillOpacity: view === "area" ? 1 : undefined, fillUrl: view === "area" ? "url(#colorTotalRefunded)" : undefined },
         ];
 
         return (
             <ChartComponent {...commonProps} barGap={view === "bar" ? 4 : undefined} barCategoryGap={view === "bar" ? "20%" : undefined}>
                 {view === "area" && (
                     <defs>
-                        <linearGradient id="colorTotalSales" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id="colorTotalCost" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor={COLOR_ACCENT} stopOpacity={0.5} /><stop offset="95%" stopColor={COLOR_ACCENT} stopOpacity={0.05} />
+                        </linearGradient>
+                        <linearGradient id="colorTotalPaid" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor='oklch(0.6 0.15 142)' stopOpacity={0.5} /><stop offset="95%" stopColor='oklch(0.6 0.15 142)' stopOpacity={0.05} />
+                        </linearGradient>
+                        <linearGradient id="colorTotalPayable" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={COLOR_PAYABLE} stopOpacity={0.5} /><stop offset="95%" stopColor={COLOR_PAYABLE} stopOpacity={0.05} />
                         </linearGradient>
                         <linearGradient id="colorTotalDiscount" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor={COLOR_DISCOUNT} stopOpacity={0.5} /><stop offset="95%" stopColor={COLOR_DISCOUNT} stopOpacity={0.05} />
                         </linearGradient>
-                        <linearGradient id="colorTotalPayable" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={COLOR_PAYABLE} stopOpacity={0.5} /><stop offset="95%" stopColor={COLOR_PAYABLE} stopOpacity={0.05} />
+                        <linearGradient id="colorTotalRefunded" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor='oklch(0.7 0.2 20)' stopOpacity={0.5} /><stop offset="95%" stopColor='oklch(0.7 0.2 20)' stopOpacity={0.05} />
                         </linearGradient>
                     </defs>
                 )}
@@ -389,19 +405,21 @@ export default function MonthlySalesTrend() {
     const generateReport = () => {
         if (data.length === 0) return null;
 
-        const peakSalesMonth = data.reduce((prev, current) => (prev.totalSales > current.totalSales) ? prev : current, data[0]);
-        const lowestSalesMonth = data.reduce((prev, current) => (prev.totalSales < current.totalSales) ? prev : current, data[0]);
+        const peakSalesMonth = data.reduce((prev, current) => (prev.totalPayable > current.totalPayable) ? prev : current, data[0]);
+        const lowestSalesMonth = data.reduce((prev, current) => (prev.totalPayable < current.totalPayable) ? prev : current, data[0]);
 
-        const averageSales = overallSummary.totalSales / data.length;
-        const discountImpact = (overallSummary.totalDiscount / overallSummary.totalSales) * 100;
+        const averagePayable = overallSummary.totalPayable / data.length;
+        const discountImpact = overallSummary.totalCost > 0 ? (overallSummary.totalDiscount / overallSummary.totalCost) * 100 : 0;
+        const refundRate = overallSummary.totalCost > 0 ? (overallSummary.totalRefunded / overallSummary.totalCost) * 100 : 0;
+        const paymentRate = overallSummary.totalPayable > 0 ? (overallSummary.totalPaid / overallSummary.totalPayable) * 100 : 0;
 
         // Calculate year-over-year growth if possible
-        const currentYearData = data.filter(d => new Date(d.month).getFullYear() === new Date().getFullYear());
-        const previousYearData = data.filter(d => new Date(d.month).getFullYear() === new Date().getFullYear() - 1);
+        const currentYearData = data.filter(d => new Date(d.month + ' 1, ' + new Date().getFullYear()).getFullYear() === new Date().getFullYear());
+        const previousYearData = data.filter(d => new Date(d.month + ' 1, ' + (new Date().getFullYear() - 1)).getFullYear() === new Date().getFullYear() - 1);
 
         const yoyGrowth = currentYearData.length > 0 && previousYearData.length > 0
-            ? ((currentYearData.reduce((sum, curr) => sum + curr.totalPayableAmount, 0) /
-                previousYearData.reduce((sum, curr) => sum + curr.totalPayableAmount, 0)) - 1) * 100
+            ? ((currentYearData.reduce((sum, curr) => sum + curr.totalPayable, 0) /
+                previousYearData.reduce((sum, curr) => sum + curr.totalPayable, 0)) - 1) * 100
             : null;
 
         return (
@@ -419,15 +437,15 @@ export default function MonthlySalesTrend() {
                                 <div className="p-3 bg-white rounded-3 shadow-sm h-100">
                                     <div className="text-muted small mb-1">Total Revenue</div>
                                     <div className="h5 mb-0" style={{ color: COLOR_ACCENT }}>
-                                        {currencyFormatter.format(overallSummary.totalPayableAmount)}
+                                        {currencyFormatter.format(overallSummary.totalPayable)}
                                     </div>
                                 </div>
                             </div>
                             <div className="col-md-3">
                                 <div className="p-3 bg-white rounded-3 shadow-sm h-100">
-                                    <div className="text-muted small mb-1">Average Monthly Sales</div>
+                                    <div className="text-muted small mb-1">Average Monthly Revenue</div>
                                     <div className="h5 mb-0" style={{ color: COLOR_ACCENT }}>
-                                        {currencyFormatter.format(averageSales)}
+                                        {currencyFormatter.format(averagePayable)}
                                     </div>
                                 </div>
                             </div>
@@ -438,15 +456,18 @@ export default function MonthlySalesTrend() {
                                         {currencyFormatter.format(overallSummary.totalDiscount)}
                                     </div>
                                     <div className="small text-muted">
-                                        {discountImpact.toFixed(1)}% of sales
+                                        {discountImpact.toFixed(1)}% of costs
                                     </div>
                                 </div>
                             </div>
                             <div className="col-md-3">
                                 <div className="p-3 bg-white rounded-3 shadow-sm h-100">
-                                    <div className="text-muted small mb-1">YoY Growth</div>
-                                    <div className={`h5 mb-0 ${yoyGrowth != null ? (yoyGrowth > 0 ? 'text-success' : 'text-danger') : ''}`}>
-                                        {yoyGrowth != null ? `${yoyGrowth.toFixed(1)}%` : 'N/A'}
+                                    <div className="text-muted small mb-1">Payment Rate</div>
+                                    <div className={`h5 mb-0 ${paymentRate >= 80 ? 'text-success' : paymentRate >= 50 ? 'text-warning' : 'text-danger'}`}>
+                                        {paymentRate.toFixed(1)}%
+                                    </div>
+                                    <div className="small text-muted">
+                                        of payable amount
                                     </div>
                                 </div>
                             </div>
@@ -464,7 +485,7 @@ export default function MonthlySalesTrend() {
                                     <div className="d-flex justify-content-between align-items-center">
                                         <span className="text-muted small">Amount</span>
                                         <span className="fw-medium text-success">
-                                            {currencyFormatter.format(peakSalesMonth.totalPayableAmount)}
+                                            {currencyFormatter.format(peakSalesMonth.totalPayable)}
                                         </span>
                                     </div>
                                 </div>
@@ -473,13 +494,13 @@ export default function MonthlySalesTrend() {
                                 <div className="bg-white rounded-3 shadow-sm p-3">
                                     <h6 className="mb-3">Lowest Performance</h6>
                                     <div className="d-flex justify-content-between align-items-center mb-2">
-                                        <span className="text-muted small">Lowest Sales Month</span>
+                                        <span className="text-muted small">Lowest Revenue Month</span>
                                         <span className="fw-medium">{lowestSalesMonth.month}</span>
                                     </div>
                                     <div className="d-flex justify-content-between align-items-center">
                                         <span className="text-muted small">Amount</span>
                                         <span className="fw-medium text-danger">
-                                            {currencyFormatter.format(lowestSalesMonth.totalPayableAmount)}
+                                            {currencyFormatter.format(lowestSalesMonth.totalPayable)}
                                         </span>
                                     </div>
                                 </div>
@@ -496,13 +517,25 @@ export default function MonthlySalesTrend() {
                                         <small>High discount rate may be affecting profitability</small>
                                     </li>
                                 )}
-                                {peakSalesMonth.totalPayableAmount > averageSales * 1.5 && (
+                                {refundRate > 15 && (
+                                    <li className="d-flex align-items-center gap-2 mb-2 text-danger">
+                                        <RiErrorWarningLine size={18} />
+                                        <small>High refund rate ({refundRate.toFixed(1)}%) requires attention</small>
+                                    </li>
+                                )}
+                                {paymentRate < 70 && (
+                                    <li className="d-flex align-items-center gap-2 mb-2 text-warning">
+                                        <RiErrorWarningLine size={18} />
+                                        <small>Low payment rate ({paymentRate.toFixed(1)}%) may indicate collection issues</small>
+                                    </li>
+                                )}
+                                {peakSalesMonth.totalPayable > averagePayable * 1.5 && (
                                     <li className="d-flex align-items-center gap-2 mb-2 text-success">
                                         <RiLineChartLine size={18} />
                                         <small>Significant peak in {peakSalesMonth.month} - analyze success factors</small>
                                     </li>
                                 )}
-                                {lowestSalesMonth.totalPayableAmount < averageSales * 0.5 && (
+                                {lowestSalesMonth.totalPayable < averagePayable * 0.5 && (
                                     <li className="d-flex align-items-center gap-2 mb-2 text-danger">
                                         <RiErrorWarningLine size={18} />
                                         <small>Notable dip in {lowestSalesMonth.month} - investigate causes</small>
@@ -577,21 +610,25 @@ export default function MonthlySalesTrend() {
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Month</th>
-                                    <th scope="col" className="py-2 text-end">Total Sales</th>
+                                    <th scope="col" className="py-2 text-end">Total Cost</th>
+                                    <th scope="col" className="py-2 text-end">Amount Paid</th>
+                                    <th scope="col" className="py-2 text-end">Net Payable</th>
                                     <th scope="col" className="py-2 text-end">Discount</th>
-                                    <th scope="col" className="py-2 text-end">Net Sales</th>
-                                    <th scope="col" className="py-2 text-end">% of Total Net Sales</th>
+                                    <th scope="col" className="py-2 text-end">Refunded</th>
+                                    <th scope="col" className="py-2 text-end">% of Total</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.map((entry) => {
-                                    const percentageOfTotal = overallSummary.totalPayableAmount > 0 ? ((entry.totalPayableAmount / overallSummary.totalPayableAmount) * 100).toFixed(1) : '0.0';
+                                    const percentageOfTotal = overallSummary.totalPayable > 0 ? ((entry.totalPayable / overallSummary.totalPayable) * 100).toFixed(1) : '0.0';
                                     return (
                                         <tr key={entry.month}>
                                             <td className="py-2">{entry.month}</td>
-                                            <td className="py-2 text-end">{currencyFormatter.format(entry.totalSales)}</td>
+                                            <td className="py-2 text-end">{currencyFormatter.format(entry.totalCost)}</td>
+                                            <td className="py-2 text-end">{entry.totalPaid ? currencyFormatter.format(entry.totalPaid) : '-'}</td>
+                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalPayable)}</td>
                                             <td className="py-2 text-end">{currencyFormatter.format(entry.totalDiscount)}</td>
-                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalPayableAmount)}</td>
+                                            <td className="py-2 text-end">{currencyFormatter.format(entry.totalRefunded)}</td>
                                             <td className="py-2 text-end text-muted">{percentageOfTotal}%</td>
                                         </tr>
                                     );
@@ -600,9 +637,11 @@ export default function MonthlySalesTrend() {
                             <tfoot>
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalSales)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalCost)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalPaid)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalPayable)}</td>
                                     <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalDiscount)}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalPayableAmount)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalRefunded)}</td>
                                     <td className="py-2 text-end">100.0%</td>
                                 </tr>
                             </tfoot>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import {
     ResponsiveContainer,
@@ -11,6 +11,7 @@ import {
     CartesianGrid,
     Tooltip,
 } from "recharts";
+import { RiCalendarEventLine, RiRefreshLine, RiPlayLine } from "@remixicon/react";
 
 const IconChart = () => <span style={{ fontSize: '1.2rem', color: SHADCN_PRIMARY, marginRight: '0.5rem' }}>📊</span>;
 const IconLoader = () => <div className="spinner-border" style={{ width: '2.5rem', height: '2.5rem', color: SHADCN_PRIMARY }} role="status"><span className="visually-hidden">Loading...</span></div>;
@@ -29,12 +30,20 @@ const SHADCN_TOOLTIP_FG = "#0F172A";
 interface ClinicianSalesAPIEntry {
     clinicianId: number;
     name: string;
-    totalSales: string;
+    totalCost: string;
+    totalPaid: string;
+    totalPayable: string;
+    totalDiscount: string;
+    totalRefunded: string;
 }
 
 interface ChartDataEntry {
     name: string;
-    totalSales: number;
+    totalPayable: number;
+    totalCost: number;
+    totalPaid: number;
+    profit: number;
+    collectionRate: number;
 }
 
 export default function TotalSalesByClinician() {
@@ -42,36 +51,85 @@ export default function TotalSalesByClinician() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            setError(null);
-            const url = `financials/billing/summary?key=totalSalesByClinician`;
-            try {
-                const fetchedData: ClinicianSalesAPIEntry[] = await customFetch(url);
+    const getInitialDates = () => {
+        const today = new Date();
+        const endDate = today.toISOString().split("T")[0];
+        const startDateObj = new Date(today);
+        startDateObj.setDate(today.getDate() - 29);
+        const startDate = startDateObj.toISOString().split("T")[0];
+        return { startDate, endDate };
+    };
 
-                if (!fetchedData || !Array.isArray(fetchedData)) {
-                    throw new Error("Invalid data format received from the API.");
-                }
+    const initialDates = getInitialDates();
+    const [startDate, setStartDate] = useState<string>(initialDates.startDate);
+    const [endDate, setEndDate] = useState<string>(initialDates.endDate);
 
-                const formattedData = fetchedData.map((item) => ({
-                    name: item.name === "Unknown" ? "Lab Direct Cases" : item.name,
-                    totalSales: parseFloat(item.totalSales) || 0,
-                }));
+    const fetchData = useCallback(async (fetchStartDate: string, fetchEndDate: string) => {
+        if (!fetchStartDate || !fetchEndDate) {
+            setError("Please select valid start and end dates.");
+            setData([]);
+            setLoading(false);
+            return;
+        }
+        if (new Date(fetchStartDate) > new Date(fetchEndDate)) {
+            setError("Start date cannot be after end date.");
+            setData([]);
+            setLoading(false);
+            return;
+        }
 
-                setData(formattedData);
+        setLoading(true);
+        setError(null);
+        const url = `financials/billing/summary?key=totalSalesByClinician&startDate=${fetchStartDate}&endDate=${fetchEndDate}`;
+        try {
+            const fetchedData: ClinicianSalesAPIEntry[] = await customFetch(url);
 
-            } catch (err) {
-                setData([]);
-                setError(err instanceof Error ? err.message : "An unknown error occurred while fetching data.");
-                console.error("Error fetching TotalSalesByClinician:", err);
-            } finally {
-                setLoading(false);
+            if (!fetchedData || !Array.isArray(fetchedData)) {
+                throw new Error("Invalid data format received from the API.");
             }
-        };
 
-        fetchData();
+            const formattedData = fetchedData.map((item) => {
+                const totalPayable = parseFloat(item.totalPayable) || 0;
+                const totalCost = parseFloat(item.totalCost) || 0;
+                const totalPaid = parseFloat(item.totalPaid) || 0;
+                const profit = totalPayable - totalCost;
+                const collectionRate = totalPayable > 0 ? (totalPaid / totalPayable) * 100 : 0;
+
+                return {
+                    name: item.name === "Unknown" ? "Lab Direct Cases" : item.name,
+                    totalPayable,
+                    totalCost,
+                    totalPaid,
+                    profit,
+                    collectionRate,
+                };
+            });
+
+            setData(formattedData);
+
+        } catch (err) {
+            setData([]);
+            setError(err instanceof Error ? err.message : "An unknown error occurred while fetching data.");
+            console.error("Error fetching TotalSalesByClinician:", err);
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        // Initial load with default dates
+        fetchData(startDate, endDate);
+    }, []); // Only run once on mount
+
+    const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value);
+    const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value);
+    const handleResetFilters = () => {
+        const { startDate: defaultStartDate, endDate: defaultEndDate } = getInitialDates();
+        setStartDate(defaultStartDate);
+        setEndDate(defaultEndDate);
+        // Load data with default dates
+        fetchData(defaultStartDate, defaultEndDate);
+    };
 
     const renderChartContent = () => {
         if (loading) {
@@ -99,7 +157,7 @@ export default function TotalSalesByClinician() {
                     <IconEmpty />
                     <h5 className="fw-medium mt-3 mb-1" style={{ color: SHADCN_FOREGROUND }}>No Data Available</h5>
                     <p className="px-3" style={{ color: SHADCN_MUTED_FOREGROUND, fontSize: '0.9rem' }}>
-                        No sales data found for the current period.
+                        No sales data found for clinicians in the selected period.
                     </p>
                 </div>
             );
@@ -132,7 +190,10 @@ export default function TotalSalesByClinician() {
                             width={90}
                         />
                         <Tooltip
-                            formatter={(value: number) => [currencyFormatter.format(value), 'Total Sales']}
+                            formatter={(value: number, name: string) => {
+                                if (name === 'totalPayable') return [currencyFormatter.format(value), 'Total Payable'];
+                                return [value, name];
+                            }}
                             cursor={{ fill: `${SHADCN_PRIMARY}20` }}
                             contentStyle={{
                                 backgroundColor: SHADCN_TOOLTIP_BG,
@@ -146,7 +207,7 @@ export default function TotalSalesByClinician() {
                             labelStyle={{ marginBottom: '0.25rem', fontWeight: '500' }}
                         />
                         <Bar
-                            dataKey="totalSales"
+                            dataKey="totalPayable"
                             fill={SHADCN_PRIMARY}
                             radius={[4, 4, 0, 0]}
                             maxBarSize={60}
@@ -158,26 +219,48 @@ export default function TotalSalesByClinician() {
     };
 
     return (
-        <div className="card shadow-sm" style={{ 
+        <div className="card shadow-sm" style={{
             borderRadius: '0.75rem',
-            borderColor: SHADCN_BORDER, 
-            backgroundColor: SHADCN_CARD_BG 
+            borderColor: SHADCN_BORDER,
+            backgroundColor: SHADCN_CARD_BG
         }}>
-            <div 
+            <div
                 className="card-header py-3 px-4"
-                style={{ 
-                    backgroundColor: SHADCN_MUTED_BG, 
+                style={{
+                    backgroundColor: SHADCN_MUTED_BG,
                     borderBottom: `1px solid ${SHADCN_BORDER}`
                 }}
             >
-                <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
-                    <IconChart />
-                    Total Sales by Clinician
-                </h2>
+                <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                    <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-md-0 d-flex align-items-center">
+                        <IconChart />
+                        Total Sales by Clinician
+                    </h2>
+                    <div className="d-flex align-items-center gap-2">
+                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: SHADCN_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+                                <RiCalendarEventLine size={16} className="text-muted" style={{ color: SHADCN_MUTED_FOREGROUND }} />
+                            </span>
+                            <input id="startDateTSC" type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={handleStartDateChange} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: SHADCN_BORDER, paddingLeft: '0.3rem' }} />
+                        </div>
+                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: SHADCN_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+                                <RiCalendarEventLine size={16} className="text-muted" style={{ color: SHADCN_MUTED_FOREGROUND }} />
+                            </span>
+                            <input id="endDateTSC" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: SHADCN_BORDER, paddingLeft: '0.3rem' }} />
+                        </div>
+                        <button onClick={() => fetchData(startDate, endDate)} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                            <RiPlayLine size={16} className="me-1" /> Load
+                        </button>
+                        <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                            <RiRefreshLine size={16} className="me-1" /> Reset
+                        </button>
+                    </div>
+                </div>
             </div>
             <div className="card-body p-3 p-md-4">
                 {error && data.length > 0 && (
-                     <div className="alert alert-light-warning border-warning border-opacity-50 border-start-0 border-end-0 border-bottom-0 rounded-0 d-flex align-items-center small p-2 mb-3" role="alert" style={{ borderTopWidth: '3px' }}>
+                    <div className="alert alert-light-warning border-warning border-opacity-50 border-start-0 border-end-0 border-bottom-0 rounded-0 d-flex align-items-center small p-2 mb-3" role="alert" style={{ borderTopWidth: '3px' }}>
                         <span>⚠️</span> {error}
                         <button type="button" className="btn-close ms-auto p-2" onClick={() => setError(null)} aria-label="Close" style={{ fontSize: '0.7rem' }}></button>
                     </div>

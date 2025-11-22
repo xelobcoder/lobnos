@@ -13,6 +13,7 @@ import styles from './../../styles/SmsTemplateList.module.css'
 import { billingSource } from "../../lib/billingLib";
 import AdjustBillingSourceModal from './AdjustBillingSourceModal';
 import PrimeTablePivot from '../accessories/Datatables/PrimePivotTable'
+import PrimeTable from "../accessories/Datatables/PrimeTable";
 
 export interface BillingSourceOption {
 	value: number;
@@ -161,6 +162,12 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 		{ Header: "Fullname", accessor: "fullname" },
 		{ Header: "Patient ID", accessor: "fullpatientid" },
 		{ Header: "Bill Id", accessor: "billingid" },
+		{
+			Header: "Billing Source", accessor: "billingSource", Cell: ({ value }) => {
+				const source = billingSource.find(src => src.value === value);
+				return source ? <span>{source.label}</span> : <span className="text-muted">Not specified</span>;
+			}
+		},
 		{ Header: "Amt Payable", accessor: "payable", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
 		{ Header: "Total Cost", accessor: "totalcost", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
 		{ Header: "Amount Paid", accessor: "paid", Cell: ({ value }) => <div>{currencyFormatter.format(Number(value) || 0)}</div> },
@@ -176,8 +183,8 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 				const outstandingBill = Number(row.original?.outstanding);
 				return (
 					<>
-						<Dropdown>
-							<Dropdown.Toggle variant="light" id="archives-dropdown">
+						<Dropdown className="btn btn-sm btn-primary">
+							<Dropdown.Toggle variant="light" id="archives-dropdown" >
 								show
 							</Dropdown.Toggle>
 							<Dropdown.Menu className="m-0 p-0 bg-white">
@@ -383,7 +390,13 @@ export default function BilledClientsView({ data, branchid }: BilledClientsViewP
 					</button>
 				</div>
 			</div>
-
+			<PrimeTable
+				column={coreColumns}
+				urlparams={{ ...datequery, branchid }}
+				data={data || []}
+				serverSideFiltering={true}
+				handleSeverSideProcessing={handleSeverSideProcessing}
+			/>
 
 			<PrimeTablePivot
 				column={coreColumns}

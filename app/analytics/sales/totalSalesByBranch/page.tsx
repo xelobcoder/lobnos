@@ -16,18 +16,24 @@ import { currencyFormatter, customFetch } from "../../../../components/Auth/cust
 import { RiStore2Line, RiErrorWarningLine, RiCalendarEventLine, RiInbox2Line, RiLoader4Line, RiRefreshLine, RiFileList3Line, RiMoneyDollarCircleLine, RiCheckboxCircleLine, RiLineChartLine, RiPercentLine, RiAlertLine } from "@remixicon/react";
 
 interface BranchSalesAPIEntry {
-    name: string; 
-    totalSales: string;
-    totaldiscount: string; 
-    totalpayableAmount: string; 
-    branchid?: number; // Optional, as it's not directly used by the chart but might be in data
+    branchid: number;
+    totalCost: string;
+    totalPaid: string;
+    totalPayable: string;
+    totalDiscount: string;
+    totalRefunded: string;
+    name: string;
 }
 
 interface BranchSalesChartEntry {
     name: string;
-    totalSales: number;
+    totalCost: number;
+    totalPaid: number;
+    totalPayable: number;
     totalDiscount: number;
-    totalPayableAmount: number;
+    totalRefunded: number;
+    profit: number;
+    collectionRate: number;
 }
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -36,7 +42,7 @@ const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
 const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 
-const BAR_CHART_COLORS = [ 
+const BAR_CHART_COLORS = [
     'oklch(0.646 0.222 41.116)',
     'oklch(0.6 0.118 184.704)',
     'oklch(0.828 0.189 84.429)',
@@ -57,7 +63,7 @@ export default function TotalSalesByBranch() {
         const today = new Date();
         const endDate = today.toISOString().split("T")[0];
         const startDateObj = new Date(today);
-        startDateObj.setDate(today.getDate() - 29); 
+        startDateObj.setDate(today.getDate() - 29);
         const startDate = startDateObj.toISOString().split("T")[0];
         return { startDate, endDate };
     };
@@ -87,14 +93,26 @@ export default function TotalSalesByBranch() {
             const response: BranchSalesAPIEntry[] = await customFetch(url);
 
             if (response && Array.isArray(response)) {
-                const formattedData = response.map((item: BranchSalesAPIEntry) => ({
-                    name: item.name,
-                    totalSales: parseFloat(item.totalSales) || 0,
-                    totalDiscount: parseFloat(item.totaldiscount) || 0,
-                    totalPayableAmount: parseFloat(item.totalpayableAmount) || 0,
-                })).sort((a,b) => b.totalPayableAmount - a.totalPayableAmount); 
+                const formattedData = response.map((item: BranchSalesAPIEntry) => {
+                    const totalPayable = parseFloat(item.totalPayable) || 0;
+                    const totalCost = parseFloat(item.totalCost) || 0;
+                    const totalPaid = parseFloat(item.totalPaid) || 0;
+                    const profit = totalPayable - totalCost;
+                    const collectionRate = totalPayable > 0 ? (totalPaid / totalPayable) * 100 : 0;
+
+                    return {
+                        name: item.name,
+                        totalCost,
+                        totalPaid,
+                        totalPayable,
+                        totalDiscount: parseFloat(item.totalDiscount) || 0,
+                        totalRefunded: parseFloat(item.totalRefunded) || 0,
+                        profit,
+                        collectionRate,
+                    };
+                }).sort((a, b) => b.totalPayable - a.totalPayable);
                 setData(formattedData);
-                 if (formattedData.length === 0) {
+                if (formattedData.length === 0) {
                     setError(null);
                 }
             } else {
@@ -123,17 +141,24 @@ export default function TotalSalesByBranch() {
 
     const overallSummary = useMemo(() => {
         return data.reduce((acc, curr) => {
-            acc.totalSales += curr.totalSales;
+            acc.totalCost += curr.totalCost;
+            acc.totalPaid += curr.totalPaid;
+            acc.totalPayable += curr.totalPayable;
             acc.totalDiscount += curr.totalDiscount;
-            acc.totalPayableAmount += curr.totalPayableAmount;
+            acc.totalRefunded += curr.totalRefunded;
+            acc.profit += curr.profit;
             return acc;
-        }, { totalSales: 0, totalDiscount: 0, totalPayableAmount: 0 });
+        }, { totalCost: 0, totalPaid: 0, totalPayable: 0, totalDiscount: 0, totalRefunded: 0, profit: 0 });
     }, [data]);
+
+    const overallCollectionRate = useMemo(() => {
+        return overallSummary.totalPayable > 0 ? (overallSummary.totalPaid / overallSummary.totalPayable) * 100 : 0;
+    }, [overallSummary]);
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             const entry = payload[0].payload as BranchSalesChartEntry;
-            const percentageOfTotal = overallSummary.totalPayableAmount > 0 ? ((entry.totalPayableAmount / overallSummary.totalPayableAmount) * 100).toFixed(1) : '0.0';
+            const percentageOfTotal = overallSummary.totalPayable > 0 ? ((entry.totalPayable / overallSummary.totalPayable) * 100).toFixed(1) : '0.0';
 
             return (
                 <div
@@ -147,24 +172,42 @@ export default function TotalSalesByBranch() {
                 >
                     <div className="mb-1">
                         <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Branch</span>
-                        <span className="fw-bold d-block" style={{color: COLOR_TOOLTIP_FG}}>{label}</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{label}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Net Sales (Payable)</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Payable</span>
                         <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                            {currencyFormatter.format(entry.totalPayableAmount)} ({percentageOfTotal}%)
+                            {currencyFormatter.format(entry.totalPayable)} ({percentageOfTotal}%)
                         </span>
                     </div>
-                    <div>
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Gross Sales</span>
+                    <div className="mb-1">
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Profit</span>
+                        <span className="fw-normal d-block" style={{ color: entry.profit >= 0 ? 'var(--bs-success)' : 'var(--bs-danger)' }}>
+                            {currencyFormatter.format(entry.profit)}
+                        </span>
+                    </div>
+                    <div className="mb-1">
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Collection Rate</span>
                         <span className="fw-normal d-block" style={{ color: COLOR_TOOLTIP_FG }}>
-                            {currencyFormatter.format(entry.totalSales)}
+                            {entry.collectionRate.toFixed(1)}%
                         </span>
                     </div>
-                     <div>
+                    <div className="mb-1">
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Cost</span>
+                        <span className="fw-normal d-block" style={{ color: COLOR_TOOLTIP_FG }}>
+                            {currencyFormatter.format(entry.totalCost)}
+                        </span>
+                    </div>
+                    <div className="mb-1">
                         <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Discount</span>
                         <span className="fw-normal d-block" style={{ color: COLOR_TOOLTIP_FG }}>
                             {currencyFormatter.format(entry.totalDiscount)}
+                        </span>
+                    </div>
+                    <div>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Refunded</span>
+                        <span className="fw-normal d-block" style={{ color: COLOR_TOOLTIP_FG }}>
+                            {currencyFormatter.format(entry.totalRefunded)}
                         </span>
                     </div>
                 </div>
@@ -211,10 +254,10 @@ export default function TotalSalesByBranch() {
                     <BarChart data={data} margin={{ top: 5, right: 20, left: 20, bottom: 5 }} layout="vertical">
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" horizontal={false} />
                         <XAxis type="number" tickFormatter={(value) => currencyFormatter.format(value)} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={{ stroke: COLOR_BORDER }} tickLine={{ stroke: COLOR_BORDER }} />
-                        <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED, width: 120 }} axisLine={false} tickLine={false} width={130} interval={0}/>
+                        <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED, width: 120 }} axisLine={false} tickLine={false} width={130} interval={0} />
                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                         <Legend verticalAlign="top" align="right" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }} />
-                        <Bar dataKey="totalPayableAmount" name="Net Sales" radius={[0, 4, 4, 0]} barSize={data.length > 10 ? 20 : 30}>
+                        <Bar dataKey="totalPayable" name="Total Payable" radius={[0, 4, 4, 0]} barSize={data.length > 10 ? 20 : 30}>
                             {data.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={BAR_CHART_COLORS[index % BAR_CHART_COLORS.length]} />
                             ))}
@@ -225,18 +268,18 @@ export default function TotalSalesByBranch() {
         );
     };
 
-     const generateReport = () => {
+    const generateReport = () => {
         if (data.length === 0) return null;
 
         const topBranch = data[0];
         const lowestBranch = data.length > 1 ? data[data.length - 1] : topBranch;
-        const averagePayablePerBranch = data.length > 0 ? overallSummary.totalPayableAmount / data.length : 0;
-        const branchesAboveAverage = data.filter(b => b.totalPayableAmount > averagePayablePerBranch).length;
-        
-        // Calculate performance metrics
-        const topBranchPerformance = (topBranch.totalPayableAmount / averagePayablePerBranch - 1) * 100;
-        const lowestBranchPerformance = (lowestBranch.totalPayableAmount / averagePayablePerBranch - 1) * 100;
-        const discountRate = (overallSummary.totalDiscount / overallSummary.totalSales) * 100;
+        const averagePayablePerBranch = data.length > 0 ? overallSummary.totalPayable / data.length : 0;
+        const averageProfitPerBranch = data.length > 0 ? overallSummary.profit / data.length : 0;
+        const branchesAboveAverage = data.filter(b => b.totalPayable > averagePayablePerBranch).length;
+        const topBranchPerformance = averagePayablePerBranch > 0 ? (topBranch.totalPayable / averagePayablePerBranch - 1) * 100 : 0;
+        const lowestBranchPerformance = averagePayablePerBranch > 0 ? (lowestBranch.totalPayable / averagePayablePerBranch - 1) * 100 : 0;
+        const discountRate = overallSummary.totalPayable > 0 ? (overallSummary.totalDiscount / overallSummary.totalPayable) * 100 : 0;
+        const refundRate = overallSummary.totalPayable > 0 ? (overallSummary.totalRefunded / overallSummary.totalPayable) * 100 : 0;
 
         return (
             <div className="mt-4">
@@ -245,18 +288,18 @@ export default function TotalSalesByBranch() {
                     <div className="col-md-3">
                         <div className="p-3 bg-body rounded-3 border shadow-sm h-100">
                             <div className="d-flex align-items-center mb-2">
-                                <RiMoneyDollarCircleLine size={20} className="text-success me-2"/>
-                                <h6 className="mb-0 text-body-secondary">Total Revenue</h6>
+                                <RiMoneyDollarCircleLine size={20} className="text-success me-2" />
+                                <h6 className="mb-0 text-body-secondary">Total Payable</h6>
                             </div>
-                            <div className="h5 mb-0">{currencyFormatter.format(overallSummary.totalPayableAmount)}</div>
+                            <div className="h5 mb-0">{currencyFormatter.format(overallSummary.totalPayable)}</div>
                             <small className="text-muted">Across {data.length} branches</small>
                         </div>
                     </div>
                     <div className="col-md-3">
                         <div className="p-3 bg-body rounded-3 border shadow-sm h-100">
                             <div className="d-flex align-items-center mb-2">
-                                <RiStore2Line size={20} className="text-primary me-2"/>
-                                <h6 className="mb-0 text-body-secondary">Average per Branch</h6>
+                                <RiStore2Line size={20} className="text-primary me-2" />
+                                <h6 className="mb-0 text-body-secondary">Average Payable</h6>
                             </div>
                             <div className="h5 mb-0">{currencyFormatter.format(averagePayablePerBranch)}</div>
                             <small className="text-muted">{branchesAboveAverage} branches above average</small>
@@ -265,21 +308,41 @@ export default function TotalSalesByBranch() {
                     <div className="col-md-3">
                         <div className="p-3 bg-body rounded-3 border shadow-sm h-100">
                             <div className="d-flex align-items-center mb-2">
-                                <RiLineChartLine size={20} className="text-warning me-2"/>
-                                <h6 className="mb-0 text-body-secondary">Performance Range</h6>
+                                <RiLineChartLine size={20} className="text-warning me-2" />
+                                <h6 className="mb-0 text-body-secondary">Collection Rate</h6>
                             </div>
-                            <div className="h5 mb-0">{Math.abs(topBranchPerformance - lowestBranchPerformance).toFixed(1)}%</div>
-                            <small className="text-muted">Gap between top and bottom</small>
+                            <div className="h5 mb-0">{overallCollectionRate.toFixed(1)}%</div>
+                            <small className="text-muted">Overall payment collection</small>
                         </div>
                     </div>
                     <div className="col-md-3">
                         <div className="p-3 bg-body rounded-3 border shadow-sm h-100">
                             <div className="d-flex align-items-center mb-2">
-                                <RiPercentLine size={20} className="text-info me-2"/>
-                                <h6 className="mb-0 text-body-secondary">Discount Rate</h6>
+                                <RiPercentLine size={20} className="text-info me-2" />
+                                <h6 className="mb-0 text-body-secondary">Net Profit</h6>
                             </div>
-                            <div className="h5 mb-0">{discountRate.toFixed(1)}%</div>
-                            <small className="text-muted">Of total sales</small>
+                            <div className="h5 mb-0">{currencyFormatter.format(overallSummary.profit)}</div>
+                            <small className="text-muted">Revenue minus cost</small>
+                        </div>
+                    </div>
+                    <div className="col-md-3">
+                        <div className="p-3 bg-body rounded-3 border shadow-sm h-100">
+                            <div className="d-flex align-items-center mb-2">
+                                <RiAlertLine size={20} className="text-danger me-2" />
+                                <h6 className="mb-0 text-body-secondary">Total Discounts</h6>
+                            </div>
+                            <div className="h5 mb-0">{currencyFormatter.format(overallSummary.totalDiscount)}</div>
+                            <small className="text-muted">{discountRate.toFixed(1)}% of revenue</small>
+                        </div>
+                    </div>
+                    <div className="col-md-3">
+                        <div className="p-3 bg-body rounded-3 border shadow-sm h-100">
+                            <div className="d-flex align-items-center mb-2">
+                                <RiErrorWarningLine size={20} className="text-warning me-2" />
+                                <h6 className="mb-0 text-body-secondary">Total Refunds</h6>
+                            </div>
+                            <div className="h5 mb-0">{currencyFormatter.format(overallSummary.totalRefunded)}</div>
+                            <small className="text-muted">{refundRate.toFixed(1)}% of revenue</small>
                         </div>
                     </div>
                 </div>
@@ -287,7 +350,7 @@ export default function TotalSalesByBranch() {
                 {/* Performance Insights */}
                 <div className="bg-body-tertiary p-4 rounded-3 border">
                     <h6 className="d-flex align-items-center mb-3">
-                        <RiFileList3Line className="me-2" style={{color: COLOR_ACCENT}}/>
+                        <RiFileList3Line className="me-2" style={{ color: COLOR_ACCENT }} />
                         Performance Analysis
                     </h6>
 
@@ -296,26 +359,28 @@ export default function TotalSalesByBranch() {
                             <div className="bg-body p-3 rounded-3 border">
                                 <h6 className="text-success mb-2">Top Performer</h6>
                                 <p className="mb-1 fw-medium">{topBranch.name}</p>
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <span>{currencyFormatter.format(topBranch.totalPayableAmount)}</span>
+                                <div className="d-flex justify-content-between align-items-center mb-1">
+                                    <span>{currencyFormatter.format(topBranch.totalPayable)}</span>
                                     <span className="badge bg-success-subtle text-success">
                                         +{topBranchPerformance.toFixed(1)}% vs avg
                                     </span>
                                 </div>
+                                <small className="text-muted">Profit: {currencyFormatter.format(topBranch.profit)} | Collection: {topBranch.collectionRate.toFixed(1)}%</small>
                             </div>
                         </div>
-                        
+
                         {data.length > 1 && (
                             <div className="col-md-6">
                                 <div className="bg-body p-3 rounded-3 border">
                                     <h6 className="text-danger mb-2">Needs Improvement</h6>
                                     <p className="mb-1 fw-medium">{lowestBranch.name}</p>
-                                    <div className="d-flex justify-content-between align-items-center">
-                                        <span>{currencyFormatter.format(lowestBranch.totalPayableAmount)}</span>
+                                    <div className="d-flex justify-content-between align-items-center mb-1">
+                                        <span>{currencyFormatter.format(lowestBranch.totalPayable)}</span>
                                         <span className="badge bg-danger-subtle text-danger">
                                             {lowestBranchPerformance.toFixed(1)}% vs avg
                                         </span>
                                     </div>
+                                    <small className="text-muted">Profit: {currencyFormatter.format(lowestBranch.profit)} | Collection: {lowestBranch.collectionRate.toFixed(1)}%</small>
                                 </div>
                             </div>
                         )}
@@ -328,20 +393,32 @@ export default function TotalSalesByBranch() {
                             <ul className="list-unstyled mb-0">
                                 {Math.abs(topBranchPerformance) > 50 && (
                                     <li className="d-flex align-items-center text-success mb-2">
-                                        <RiCheckboxCircleLine size={18} className="me-2"/>
+                                        <RiCheckboxCircleLine size={18} className="me-2" />
                                         <small>Study success factors from {topBranch.name} for potential replication</small>
                                     </li>
                                 )}
                                 {Math.abs(lowestBranchPerformance) > 30 && (
                                     <li className="d-flex align-items-center text-danger mb-2">
-                                        <RiErrorWarningLine size={18} className="me-2"/>
+                                        <RiErrorWarningLine size={18} className="me-2" />
                                         <small>Review operations and support needs for {lowestBranch.name}</small>
+                                    </li>
+                                )}
+                                {overallCollectionRate < 85 && (
+                                    <li className="d-flex align-items-center text-warning mb-2">
+                                        <RiAlertLine size={18} className="me-2" />
+                                        <small>Consider improving collection processes (current rate: {overallCollectionRate.toFixed(1)}%)</small>
                                     </li>
                                 )}
                                 {discountRate > 15 && (
                                     <li className="d-flex align-items-center text-warning mb-2">
-                                        <RiAlertLine size={18} className="me-2"/>
-                                        <small>Consider reviewing discount policies (current rate: {discountRate.toFixed(1)}%)</small>
+                                        <RiAlertLine size={18} className="me-2" />
+                                        <small>Review discount policies (current rate: {discountRate.toFixed(1)}% of revenue)</small>
+                                    </li>
+                                )}
+                                {refundRate > 5 && (
+                                    <li className="d-flex align-items-center text-danger mb-2">
+                                        <RiErrorWarningLine size={18} className="me-2" />
+                                        <small>Investigate high refund rate (current: {refundRate.toFixed(1)}% of revenue)</small>
                                     </li>
                                 )}
                             </ul>
@@ -392,39 +469,48 @@ export default function TotalSalesByBranch() {
             </div>
 
             {data.length > 0 && (
-                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{borderTop: `1px solid ${COLOR_BORDER}`}}>
+                <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                     <h4 className="fs-6 fw-medium mb-3">Branch Sales Data</h4>
-                     <div className="table-responsive" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                         <table className="table table-sm table-hover table-striped small">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Branch Name</th>
-                                    <th scope="col" className="py-2 text-end">Net Sales</th>
-                                    <th scope="col" className="py-2 text-end">Gross Sales</th>
+                                    <th scope="col" className="py-2 text-end">Total Payable</th>
+                                    <th scope="col" className="py-2 text-end">Cost</th>
+                                    <th scope="col" className="py-2 text-end">Paid</th>
                                     <th scope="col" className="py-2 text-end">Discount</th>
-                                    <th scope="col" className="py-2 text-end">% of Total Net Sales</th>
+                                    <th scope="col" className="py-2 text-end">Refunded</th>
+                                    <th scope="col" className="py-2 text-end">Collection Rate</th>
+                                    <th scope="col" className="py-2 text-end">% of Total Payable</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.map((entry) => {
-                                    const percentageOfTotal = overallSummary.totalPayableAmount > 0 ? ((entry.totalPayableAmount / overallSummary.totalPayableAmount) * 100).toFixed(1) : '0.0';
+                                    const percentageOfTotal = overallSummary.totalPayable > 0 ? ((entry.totalPayable / overallSummary.totalPayable) * 100).toFixed(1) : '0.0';
                                     return (
                                         <tr key={entry.name}>
                                             <td className="py-2">{entry.name}</td>
-                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalPayableAmount)}</td>
-                                            <td className="py-2 text-end">{currencyFormatter.format(entry.totalSales)}</td>
+                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalPayable)}</td>
+                                            <td className="py-2 text-end">{currencyFormatter.format(entry.totalCost)}</td>
+                                            <td className="py-2 text-end">{currencyFormatter.format(entry.totalPaid)}</td>
                                             <td className="py-2 text-end">{currencyFormatter.format(entry.totalDiscount)}</td>
+                                            <td className="py-2 text-end">{currencyFormatter.format(entry.totalRefunded)}</td>
+                                            <td className="py-2 text-end">{entry.collectionRate.toFixed(1)}%</td>
                                             <td className="py-2 text-end text-muted">{percentageOfTotal}%</td>
                                         </tr>
                                     );
                                 })}
                             </tbody>
-                             <tfoot>
+                            <tfoot>
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalPayableAmount)}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalSales)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalPayable)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalCost)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalPaid)}</td>
                                     <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalDiscount)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalRefunded)}</td>
+                                    <td className="py-2 text-end">{overallCollectionRate.toFixed(1)}%</td>
                                     <td className="py-2 text-end">100.0%</td>
                                 </tr>
                             </tfoot>
