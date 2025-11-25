@@ -599,7 +599,7 @@ const ExpenseList = ({ expenses, setSelected, selected, employeeid, filter, setF
 															}}
 														/>
 														{individualSelectedReasons[expenseId] === "Other" && !individualRejectReasons[expenseId]?.trim() && (
-															<small className="text-danger">Required for "Other"</small>
+															<small className="text-danger">Required for &quot;Other&quot;</small>
 														)}
 													</div>
 												)}

@@ -8,7 +8,7 @@ import { customPost } from '../../../components/Auth/customFetch';
 
 export default function PrimeLabLoginPage() {
 	const [isSubmitting, setSubmitting] = useState(false);
-	const [isError, setIsError] = useState(false);
+	const [loginStatus, setLoginStatus] = useState<'idle' | 'error' | 'success'>('idle');
 	const [message, setMessage] = useState<string>('');
 	const [showPassword, setShowPassword] = useState(false);
 	const router = useRouter();
@@ -16,6 +16,9 @@ export default function PrimeLabLoginPage() {
 	const handleLoginBind = async (formData) => {
 		try {
 			setSubmitting(true);
+			setLoginStatus('idle');
+			setMessage('');
+
 			const email = formData.get("email");
 			const password = formData.get("password");
 
@@ -47,8 +50,9 @@ export default function PrimeLabLoginPage() {
 			const { status, accessToken, user } = backendResponse;
 
 			if (!status) {
-				setIsError(true);
+				setLoginStatus('error');
 				setMessage(backendResponse.error || 'Login failed');
+				setSubmitting(false);
 				return;
 			}
 
@@ -69,13 +73,15 @@ export default function PrimeLabLoginPage() {
 			const cookieResult = await cookieResponse.json();
 
 			if (!cookieResponse.ok || !cookieResult.status) {
-				setIsError(true);
+				setLoginStatus('error');
 				setMessage(cookieResult.error || 'Failed to set session');
+				setSubmitting(false);
 				return;
 			}
 
-			setIsError(false);
+			setLoginStatus('success');
 			setMessage('Login successful. Redirecting...');
+			// Keep submitting true to show loading state during redirect
 
 			if (typeof window !== 'undefined') {
 				localStorage.removeItem('applicationsettings');
@@ -96,50 +102,77 @@ export default function PrimeLabLoginPage() {
 
 		} catch (err) {
 			console.error('Login error:', err);
-			setIsError(true);
+			setLoginStatus('error');
 			setMessage('An error occurred during login');
-		} finally {
 			setSubmitting(false);
 		}
 	}
 	return (
-		<div className={styles.pageWrapper}>
-			<main className={styles.mainContent}>
-				<div className={styles.loginCard}>
+		<div className={styles.splitLayout}>
+			{/* Left side - Branding */}
+			<div className={styles.brandingSide}>
+				<div className={styles.brandOverlay}>
+					<div className={styles.brandContent}>
+						<div className={styles.brandLogo}>
+							<RiShieldCrossFill size={48} className={styles.logoIcon} />
+							<span className={styles.brandTitle}>Prime Lab System (PLS)</span>
+						</div>
+						<div className={styles.brandText}>
+							<h1 className={styles.heroTitle}>Advanced Laboratory Management System</h1>
+							<p className={styles.heroSubtitle}>
+								Streamline your laboratory operations, enhance patient care, and drive efficiency with our comprehensive LIMS solution.
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* Right side - Login Form */}
+			<div className={styles.formSide}>
+				<div className={styles.formContainer}>
 					<div className={styles.loginHeader}>
-						<RiShieldCrossFill size={56} className={styles.logoIcon} />
-						<h1 className={styles.title}>Prime Lab System</h1>
-						<p className={styles.subtitle}>Welcome back! Please sign in to your account.</p>
+						<h2 className={styles.welcomeTitle}>Welcome Back</h2>
+						<p className={styles.welcomeSubtitle}>Sign in to your account to continue</p>
 					</div>
 
-					{isError && <Alert closeLabel='' variant={isError ? "danger" : "success"}>
-						<div className='text-sm'>
-							{isError ? message : "Login successful.You would be redirected!!!"}
-						</div>
-					</Alert>}
+					{loginStatus !== 'idle' && (
+						<Alert variant={loginStatus === 'error' ? "danger" : "success"} className="mb-4 border-0 shadow-sm">
+							<div className='text-sm font-medium'>
+								{message}
+							</div>
+						</Alert>
+					)}
+
 					<form action={handleLoginBind} className={styles.loginForm}>
 						<div className={styles.formGroup}>
 							<label htmlFor="email" className={styles.formLabel}>
-								<RiMailLine size={16} className={styles.inputIcon} />
-								Email address
+								Email Address
 							</label>
-							<input
-								id="email"
-								name="email"
-								type="email"
-								className={styles.formInput}
-								placeholder="you@example.com"
-								required
-								autoComplete="email"
-							/>
+							<div className={styles.inputWrapper}>
+								<RiMailLine size={20} className={styles.inputIcon} />
+								<input
+									id="email"
+									name="email"
+									type="email"
+									className={styles.formInput}
+									placeholder="name@company.com"
+									required
+									autoComplete="email"
+								/>
+							</div>
 						</div>
 
 						<div className={styles.formGroup}>
-							<label htmlFor="password" className={styles.formLabel}>
-								<RiLockLine size={16} className={styles.inputIcon} />
-								Password
-							</label>
-							<div className={styles.passwordInputContainer}>
+							<div className="d-flex justify-content-between align-items-center mb-2">
+								<label htmlFor="password" className={styles.formLabel}>
+									Password
+								</label>
+								<a href="#" className={styles.forgotPasswordLink}>
+									Forgot password?
+								</a>
+							</div>
+							<div className={styles.inputWrapper}>
+								<RiLockLine size={20} className={styles.inputIcon} />
 								<input
 									id="password"
 									name="password"
@@ -158,24 +191,23 @@ export default function PrimeLabLoginPage() {
 									{showPassword ? <RiEyeOffLine size={20} /> : <RiEyeLine size={20} />}
 								</button>
 							</div>
-							<div className={styles.forgotPasswordContainer}>
-								<a href="#" className={styles.forgotPasswordLink}>
-									Forgot password?
-								</a>
-							</div>
 						</div>
 
 						<button type="submit" className={styles.signInButton} disabled={isSubmitting}>
-							{isSubmitting && <Spinner size='sm' />}
-							{isSubmitting ? 'Signing in...' : 'Sign In'}
+							{isSubmitting && <Spinner size='sm' animation="border" role="status" aria-hidden="true" className="me-2" />}
+							<span>
+								{isSubmitting
+									? (loginStatus === 'success' ? 'Redirecting...' : 'Signing in...')
+									: 'Sign In'}
+							</span>
 						</button>
 					</form>
-				</div>
-			</main>
 
-			<footer className={styles.pageFooter}>
-				<p>© {new Date().getFullYear()} Prime Lab Systems. All rights reserved.</p>
-			</footer>
+					<div className={styles.footer}>
+						<p>© {new Date().getFullYear()} Prime Laboratory System. All rights reserved.</p>
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }

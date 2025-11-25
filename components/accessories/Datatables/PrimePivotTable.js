@@ -316,8 +316,8 @@ export default function PrimeTable({
 
 		return (
 			<tr {...row.getRowProps({ style })} className={style.tableRow}>
-				{row.cells.map((cell) => (
-					<td {...cell.getCellProps()} style={{ padding: '8px', borderBottom: '1px solid #dee2e6' }}>
+				{row.cells.map((cell, index) => (
+					<td key={index + 1} {...cell.getCellProps()} style={{ padding: '8px', borderBottom: '1px solid #dee2e6' }}>
 						{cell.render("Cell")}
 					</td>
 				))}
@@ -1588,25 +1588,7 @@ export default function PrimeTable({
 		if (isLoading) return <TableLoading span={column.length} />;
 		else if (groupedData.length == 0) return <NoDataAvailable />;
 		else {
-			// Virtual scrolling for normal mode - DISABLED (breaks table layout)
-			// React-window uses div-based layout which doesn't work inside <table>
-			// if (virtualScrolling.enabled && rows.length > 100) {
-			// 	return (
-			// 		<tbody>
-			// 			<tr>
-			// 				<td colSpan={column.length} style={{ padding: 0, height: '600px' }}>
-			// 					<List
-			// 						rowComponent={VirtualRow}
-			// 						rowCount={rows.length}
-			// 						rowHeight={virtualScrolling.rowHeight}
-			// 						rowProps={{ rows, prepareRow }}
-			// 						style={{ height: '600px', width: '100%' }}
-			// 					/>
-			// 				</td>
-			// 			</tr>
-			// 		</tbody>
-			// 	);
-			// }
+
 
 			return (
 				<tbody {...getTableBodyProps()}>

@@ -607,7 +607,7 @@ export default function SampleAssessmentModal({
 										<div className="text-center">
 											<RiInformationLine size={48} className="mb-3 opacity-50" />
 											<h6>No Rejections to Process</h6>
-											<p className="small">Click "Reject" on samples in the table to add rejection details here.</p>
+											<p className="small">Click &quot;Reject&quot; on samples in the table to add rejection details here.</p>
 										</div>
 									</div>
 								)}

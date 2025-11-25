@@ -404,7 +404,7 @@ export default function ExpiredProductsPage() {
 
                                                   <div className="alert alert-warning mt-3 border border-dark p-2" style={{ fontSize: '0.95rem' }}>
                                                        <strong>WARNING:</strong> This item has {itemDetails.length} expired batch(es) totaling {itemDetails.reduce((sum, batch) => sum + batch.available_quantity, 0)} units and should not be used for patient care or testing.
-                                                       Please quarantine this inventory and follow your organization's expired product disposal procedures.
+                                                       Please quarantine this inventory and follow your organization&apos;s expired product disposal procedures.
                                                   </div>
                                              </div>
                                         ) : (

@@ -24,7 +24,7 @@ function exportCommissionDataToPDF(commissionData, startDate, endDate) {
                'Phone',
                'Occupation',
                'Services',
-               'Total Value',
+               'Total Payable',
                'Commission %',
                'Commission Earned',
           ]],
@@ -34,7 +34,7 @@ function exportCommissionDataToPDF(commissionData, startDate, endDate) {
                record.clinician_phone,
                record.occupation,
                record.total_services,
-               record.total_value,
+               record.total_payable,
                record.commission_percent + '%',
                record.commission_earned,
           ]),
@@ -69,9 +69,11 @@ interface CommissionData {
      occupation: string;
      organization: number;
      total_services: number;
-     total_value: string;
+     total_payable: string;
+     total_paid: string;
      commission_percent: number;
-     commission_earned: string;
+     commission_earned_by_amount_payable: string;
+     commission_earned_by_paid_amount: string;
 }
 
 interface ApiResponse {
@@ -92,18 +94,6 @@ const formatDate = (dateString: string) => {
           return 'Invalid Date';
      }
 };
-
-const Card = ({ title, children, icon }: { title: string, children: React.ReactNode, icon: React.ReactNode }) => (
-     <section className={styles.card}>
-          <h2 className={styles.cardTitle}>
-               {icon}
-               {title}
-          </h2>
-          <div className={styles.cardContent}>
-               {children}
-          </div>
-     </section>
-);
 
 const Stat = ({ label, value, icon }: { label: string, value: string | number, icon: React.ReactNode }) => (
      <div className={styles.statItem}>
@@ -181,8 +171,10 @@ export default function CliniciansCommission() {
 
 
      // Calculate summary statistics
-     const totalCommissionEarned = commissionData.reduce((sum, item) => sum + Number(item.commission_earned), 0);
-     const totalServiceValue = commissionData.reduce((sum, item) => sum + Number(item.total_value), 0);
+     const totalCommissionEarnedByPaid = commissionData.reduce((sum, item) => sum + Number(item.commission_earned_by_paid_amount), 0);
+     const totalCommissionEarnedByPayable = commissionData.reduce((sum, item) => sum + Number(item.commission_earned_by_amount_payable), 0);
+     const totalServiceValue = commissionData.reduce((sum, item) => sum + Number(item.total_payable), 0);
+     const totalPaidAmount = commissionData.reduce((sum, item) => sum + Number(item.total_paid), 0);
      const totalServices = commissionData.reduce((sum, item) => sum + item.total_services, 0);
      const uniqueClinicians = new Set(commissionData.map(item => item.clinician_id)).size;
 
@@ -194,14 +186,14 @@ export default function CliniciansCommission() {
                     clinician_name: item.clinician_name,
                     clinician_phone: item.clinician_phone,
                     occupation: item.occupation,
-                    total_commission: 0,
+                    total_commission_earned_by_paid_amount: 0,
                     total_value: 0,
                     total_services: 0,
                     records: 0
                };
           }
-          acc[key].total_commission += Number(item.commission_earned);
-          acc[key].total_value += Number(item.total_value);
+          acc[key].total_commission_earned_by_paid_amount += Number(item.commission_earned_by_paid_amount);
+          acc[key].total_value += Number(item.total_payable);
           acc[key].total_services += item.total_services;
           acc[key].records += 1;
           return acc;
@@ -210,156 +202,139 @@ export default function CliniciansCommission() {
 
      return (
           <main className={styles.container}>
-               <header className={styles.header}>
-                    <h1 className={styles.title}>
+               {/* Header with Title and Filter on same level */}
+               <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4 gap-3">
+                    <h1 className={styles.title} style={{ margin: 0 }}>
                          <RiFileList3Line />
                          Clinicians Commission Analytics Report
                     </h1>
-                    <p className={styles.subtitle}>
-                         <RiCalendarLine />
-                         Report Period: <span className={styles.dateRange}>{dayjs(startDate).format('MMM D, YYYY')} - {dayjs(endDate).format('MMM D, YYYY')}</span>
-                    </p>
-               </header>
 
-               <DateFilter
-                    startDate={startDate}
-                    endDate={endDate}
-                    onFilter={handleFilter}
-                    loading={loading}
-               />
-
-
-               <Card title="Commission Summary Overview" icon={<RiMoneyDollarCircleLine />}>
-                    <div className={styles.statsGrid}>
-                         <Stat label="Total Commission Earned" value={currencyFormatter.format(totalCommissionEarned)} icon={<RiMoneyDollarCircleLine />} />
-                         <Stat label="Total Service Value" value={currencyFormatter.format(totalServiceValue)} icon={<RiServiceLine />} />
-                         <Stat label="Total Services Rendered" value={totalServices.toLocaleString()} icon={<RiServiceLine />} />
-                         <Stat label="Active Clinicians" value={uniqueClinicians} icon={<RiUserLine />} />
-                         <Stat label="Total Records" value={commissionData.length.toLocaleString()} icon={<RiFileList3Line />} />
+                    <div style={{ flexShrink: 0, minWidth: '400px' }}>
+                         <DateFilter
+                              startDate={startDate}
+                              endDate={endDate}
+                              onFilter={handleFilter}
+                              loading={loading}
+                         />
                     </div>
-               </Card>
+               </div>
+
+               <hr />
+
+               {/* Summary Stats */}
+               <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-4 gap-3">
+                    <div className="row g-3">
+                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                              <Stat label="Total Commission Earned (Paid)" value={currencyFormatter.format(totalCommissionEarnedByPaid)} icon={<RiMoneyDollarCircleLine />} />
+                         </div>
+                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                              <Stat label="Total Commission Earned (Payable)" value={currencyFormatter.format(totalCommissionEarnedByPayable)} icon={<RiMoneyDollarCircleLine />} />
+                         </div>
+                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                              <Stat label="Total Payable Amount" value={currencyFormatter.format(totalServiceValue)} icon={<RiServiceLine />} />
+                         </div>
+                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                              <Stat label="Total Paid Amount" value={currencyFormatter.format(totalPaidAmount)} icon={<RiMoneyDollarCircleLine />} />
+                         </div>
+                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                              <Stat label="Total Services Rendered" value={totalServices.toLocaleString()} icon={<RiServiceLine />} />
+                         </div>
+                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                              <Stat label="Active Clinicians" value={uniqueClinicians} icon={<RiUserLine />} />
+                         </div>
+                         <div className="col-12 col-sm-6 col-md-4 col-lg-3">
+                              <Stat label="Total Records" value={commissionData.length.toLocaleString()} icon={<RiFileList3Line />} />
+                         </div>
+                    </div>
+               </div>
 
                <div className={styles.sectionDivider}></div>
 
-               <Card title="Clinician Performance Summary" icon={<RiUserLine />}>
-                    {Object.keys(clinicianSummary).length > 0 ? (
-                         <div className={styles.tableContainer}>
-                              <table className={styles.table}>
-                                   <thead>
-                                        <tr>
-                                             <th className={styles.th}>Clinician Name</th>
-                                             <th className={styles.th}>Phone</th>
-                                             <th className={styles.th}>Occupation</th>
-                                             <th className={styles.th}>Total Services</th>
-                                             <th className={styles.th}>Total Value</th>
-                                             <th className={styles.th}>Commission Earned</th>
-                                             <th className={styles.th}></th>
-                                             <th className={styles.th}>Records</th>
-                                        </tr>
-                                   </thead>
-                                   <tbody>
-                                        {Array.isArray(clinicianSummary) && clinicianSummary.length > 0 && Object.values(clinicianSummary)
-                                             .sort((a: any, b: any) => b.total_commission - a.total_commission)
-                                             .map((clinician: any, index: number) => (
-                                                  <tr key={index}>
-                                                       <td className={styles.td}>{clinician.clinician_name}</td>
-                                                       <td className={styles.td}>{clinician.clinician_phone}</td>
-                                                       <td className={styles.td}>{clinician.occupation}</td>
-                                                       <td className={`${styles.td} ${styles.numberCell}`}>{clinician.total_services}</td>
-                                                       <td className={`${styles.td} ${styles.currencyCell}`}>
-                                                            {currencyFormatter.format(clinician.total_value)}
-                                                       </td>
-                                                       <td className={`${styles.td} ${styles.currencyCell}`}>
-                                                            {currencyFormatter.format(clinician.total_commission)}
-                                                       </td>
-                                                       <td className={`${styles.td} ${styles.numberCell}`}>{clinician.records}</td>
-                                                  </tr>
-                                             ))}
-                                   </tbody>
-                              </table>
-                         </div>
-                    ) : (
-                         <div className={styles.emptyState}>
-                              <RiUserLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
-                              <p>No clinician data available for the selected period.</p>
-                         </div>
-                    )}
-               </Card>
 
-               <div className={styles.sectionDivider}></div>
 
-               <Card title="Detailed Commission Records" icon={<RiFileList3Line />}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+               <div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)', margin: '2rem 0 1.5rem 0', background: 'none' }}>
+                    <div className="card-header py-3 px-4 d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)', background: 'none' }}>
+                         <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center" style={{ color: 'inherit' }}>
+                              <RiFileList3Line className="me-2" />
+                              Detailed Commission Records
+                         </h2>
                          <button
                               type="button"
-                              className={styles.exportButton || 'btn btn-primary'}
+                              className={styles.exportButton || 'btn btn-primary btn-sm'}
                               onClick={() => exportCommissionDataToPDF(commissionData, startDate, endDate)}
                               disabled={!commissionData || commissionData.length === 0}
                          >
                               Export PDF
                          </button>
                     </div>
-                    {Array.isArray(commissionData) && commissionData.length > 0 ? (
-                         <div className={styles.tableContainer}>
-                              <table className={styles.table}>
-                                   <thead>
-                                        <tr>
-                                             <th className={styles.th}>Service Date</th>
-                                             <th className={styles.th}>Clinician Name</th>
-                                             <th className={styles.th}>Phone</th>
-                                             <th className={styles.th}>Occupation</th>
-                                             <th className={styles.th}>Services</th>
-                                             <th className={styles.th}>Total Value</th>
-                                             <th className={styles.th}>Commission %</th>
-                                             <th className={styles.th}>Commission Earned</th>
-                                             <th className={styles.th}>Actions</th>
-                                        </tr>
-                                   </thead>
-                                   <tbody>
-                                        {commissionData
-                                             .sort((a, b) => new Date(b.service_date).getTime() - new Date(a.service_date).getTime())
-                                             .map((record, index) => (
-                                                  <tr key={`${record.clinician_id}-${record.service_date}-${index}`}>
-                                                       <td className={`${styles.td} ${styles.dateCell}`}>
-                                                            {formatDate(record.service_date)}
-                                                       </td>
-                                                       <td className={styles.td}>{record.clinician_name}</td>
-                                                       <td className={styles.td}>{record.clinician_phone}</td>
-                                                       <td className={styles.td}>{record.occupation}</td>
-                                                       <td className={`${styles.td} ${styles.numberCell}`}>
-                                                            <span className={styles.metricHighlight}>{record.total_services}</span>
-                                                       </td>
-                                                       <td className={`${styles.td} ${styles.currencyCell}`}>
-                                                            {currencyFormatter.format(Number(record.total_value))}
-                                                       </td>
-                                                       <td className={`${styles.td} ${styles.numberCell}`}>
-                                                            {record.commission_percent}%
-                                                       </td>
-                                                       <td className={`${styles.td} ${styles.currencyCell}`}>
-                                                            {currencyFormatter.format(Number(record.commission_earned))}
-                                                       </td>
-                                                       <td className={styles.td}>
-                                                            <a
-                                                                 href={`/clinicians/commision-information/${record.clinician_id}`}
-                                                                 className={styles.viewButton}
-                                                                 target="_blank"
-                                                                 rel="noopener noreferrer"
-                                                            >
-                                                                 View
-                                                            </a>
-                                                       </td>
-                                                  </tr>
-                                             ))}
-                                   </tbody>
-                              </table>
-                         </div>
-                    ) : (
-                         <div className={styles.emptyState}>
-                              <RiFileList3Line size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
-                              <p>No commission records available for the selected period.</p>
-                         </div>
-                    )}
-               </Card>
+                    <div className="card-body p-3 p-md-4" style={{ background: 'none' }}>
+                         {Array.isArray(commissionData) && commissionData.length > 0 ? (
+                              <div className="table-responsive table-small ">
+                                   <table className="table table-sm table-hover table-striped mb-0">
+                                        <thead className="sticky-top bg-body-tertiary table-sm">
+                                             <tr>
+                                                  <th className="py-2">Service Date</th>
+                                                  <th className="py-2">Clinician Name</th>
+                                                  <th className="py-2">Occupation</th>
+                                                  <th className="py-2 text-end">Services</th>
+                                                  <th className="py-2 text-end">Total Payable</th>
+                                                  <th className="py-2 text-end">Commission %</th>
+                                                  <th className="py-2 text-end">Commission(Payable)</th>
+                                                  <th className="py-2 text-end">Commission(Paid)</th>
+                                                  <th className="py-2 text-center">Actions</th>
+                                             </tr>
+                                        </thead>
+                                        <tbody>
+                                             {commissionData
+                                                  .sort((a, b) => new Date(b.service_date).getTime() - new Date(a.service_date).getTime())
+                                                  .map((record, index) => (
+                                                       <tr key={`${record.clinician_id}-${record.service_date}-${index}`}>
+                                                            <td className="py-2">
+                                                                 {formatDate(record.service_date)}
+                                                            </td>
+                                                            <td className="py-2">{record.clinician_name}
+                                                                 <br />
+                                                                 ({record.clinician_phone})
+                                                            </td>
+                                                            <td className="py-2">{record.occupation}</td>
+                                                            <td className="py-2 text-end">
+                                                                 <span>{record.total_services}</span>
+                                                            </td>
+                                                            <td className="py-2 text-end">
+                                                                 {currencyFormatter.format(Number(record.total_payable))}
+                                                            </td>
+                                                            <td className="py-2 text-end">
+                                                                 {record.commission_percent}%
+                                                            </td>
+                                                            <td className="py-2 text-end">
+                                                                 {currencyFormatter.format(Number(record.commission_earned_by_paid_amount))}
+                                                            </td>
+                                                            <td className="py-2 text-end">
+                                                                 {currencyFormatter.format(Number(record.commission_earned_by_amount_payable))}
+                                                            </td>
+                                                            <td className="py-2 text-center">
+                                                                 <a
+                                                                      href={`/clinicians/commision-information/${record.clinician_id}`}
+                                                                      className='btn btn-primary btn-sm'
+                                                                      target="_blank"
+                                                                      rel="noopener noreferrer"
+                                                                 >
+                                                                      View
+                                                                 </a>
+                                                            </td>
+                                                       </tr>
+                                                  ))}
+                                        </tbody>
+                                   </table>
+                              </div>
+                         ) : (
+                              <div className={styles.emptyState}>
+                                   <RiFileList3Line size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
+                                   <p>No commission records available for the selected period.</p>
+                              </div>
+                         )}
+                    </div>
+               </div>
           </main>
      );
 }

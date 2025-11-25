@@ -12,18 +12,21 @@ const COLOR_BORDER = 'var(--bs-border-color)';
 
 export interface CommissionChartData {
 	service_date: string;
-	commission_earned: string;
+	commission_earned_by_paid_amount: string;
 }
 
 interface CommissionLineChartProps {
-	data: CommissionChartData[];
+	data: {
+		service_date: string;
+		commission_earned_by_paid_amount: string;
+	}[];
 	view?: 'bar' | 'line';
 }
 
 export default function CommissionLineChart({ data, view }: CommissionLineChartProps) {
 	const chartData = data.map(item => ({
 		...item,
-		commission_earned: parseFloat(item.commission_earned),
+		commission_earned: parseFloat(item.commission_earned_by_paid_amount),
 		dateLabel: dayjs(item.service_date).format("MMM D, YYYY"),
 	}));
 

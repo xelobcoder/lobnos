@@ -1,3 +1,54 @@
+/* PLS Primary Brand Colors */
+:root {
+    --pls-primary: #2e7d32;
+    --pls-primary-dark: #1b5e20;
+    --pls-primary-light: #4caf50;
+    --pls-primary-lighter: #66bb6a;
+    --pls-accent: #3ba341;
+}
+
+/* PLS Brand Background Colors */
+.pls-primary-bg {
+    background-color: #2e7d32;
+}
+
+.pls-primary-dark-bg {
+    background-color: #1b5e20;
+}
+
+.pls-primary-light-bg {
+    background-color: #4caf50;
+}
+
+.pls-accent-bg {
+    background-color: #3ba341;
+}
+
+.pls-gradient-bg {
+    background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
+}
+
+.pls-gradient-light-bg {
+    background: linear-gradient(135deg, #3ba341 0%, #2e7d32 100%);
+}
+
+/* PLS Brand Text Colors */
+.pls-primary-text {
+    color: #2e7d32;
+}
+
+.pls-primary-dark-text {
+    color: #1b5e20;
+}
+
+.pls-primary-light-text {
+    color: #4caf50;
+}
+
+.pls-accent-text {
+    color: #3ba341;
+}
+
 /* PLS Status Colors */
 .pls-warning-bg {
     background-color: #fff3cd;

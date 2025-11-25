@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect } from "react";
-import Link from 'next/link';
 import styles from './PrimeLayout.module.css';
 import { RiMenuLine, RiArrowLeftLine, RiArrowRightLine, RiAddLine, RiSubtractLine } from '@remixicon/react';
 import { Dropdown } from 'react-bootstrap';
@@ -26,9 +25,11 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         phelobotomist: PhelobotomyRoleLinks
     };
 
-    const [isRoleExpanded, setIsRoleExpanded] = useState<boolean>(false);
     const [isQuickLinksCollapsed, setIsQuickLinksCollapsed] = useState<boolean>(false);
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
+    const [isAppsExpanded, setIsAppsExpanded] = useState<boolean>(false);
+    const [isMobile, setIsMobile] = useState<boolean>(false);
     const roleLinks = roleViews[user.role] || [];
     const employeeid = user?.employeeid || 0;
     const [currentPath, setCurrentPath] = useState<string>("");
@@ -37,10 +38,23 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         setCurrentPath(window.location.pathname);
     }, []);
 
+    useEffect(() => {
+        const checkIsMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+
+        checkIsMobile();
+        window.addEventListener('resize', checkIsMobile);
+
+        return () => window.removeEventListener('resize', checkIsMobile);
+    }, []);
+
     const handleNavigation = (path: string) => {
         if (window.location.pathname !== path) {
             window.location.href = path;
         }
+        // Close mobile sidebar after navigation
+        setIsMobileSidebarOpen(false);
     };
 
 
@@ -63,127 +77,111 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
         const isExpanded = expandedGroups.has(item.title);
 
         if (hasChildren) {
-            // Render as group header
             return (
-                <div key={uniqueKey}>
-                    <div
-                        className={`list-group-item d-flex mx-2 ${styles.groupHeader} ${isChild ? styles.childItem : ''}`}
+                <div key={uniqueKey} className={styles.navSection}>
+                    <button
+                        className={styles.navGroupButton}
                         onClick={() => toggleGroup(item.title)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleGroup(item.title); }}
+                        aria-expanded={isExpanded}
                     >
-                        {item.icon && <span className={styles.icon}>{item.icon}</span>}
-                        <span className={`${styles.title} ${styles.groupTitle}`}>{item.title}</span>
-                        <span className={styles.groupToggle}>
-                            {isExpanded ? <RiSubtractLine size={14} /> : <RiAddLine size={14} />}
+                        {item.icon && <span className={styles.navIcon}>{item.icon}</span>}
+                        <span className={styles.navLabel}>{item.title}</span>
+                        <span className={styles.navExpandIcon}>
+                            {isExpanded ? <RiSubtractLine size={12} /> : <RiAddLine size={12} />}
                         </span>
-                    </div>
+                    </button>
                     {isExpanded && item.children && (
-                        <div className={styles.groupChildren}>
+                        <div className={styles.navSubmenu}>
                             {item.children.map(child => renderNavItem(child, true))}
                         </div>
                     )}
                 </div>
             );
         } else {
-            // Render as regular link
             const handleClick = () => {
                 handleNavigation(item.link);
             };
 
             return (
-                <div
+                <button
                     key={uniqueKey}
-                    className={`list-group-item d-flex mx-2 ${isActive ? 'active' : ''} ${isChild ? styles.childItem : ''}`}
+                    className={`${styles.navItem} ${isActive ? styles.navItemActive : ''} ${isChild ? styles.navItemChild : ''}`}
                     onClick={handleClick}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleClick(); }}
+                    aria-current={isActive ? 'page' : undefined}
                 >
-                    {item.icon && <span className={styles.icon}>{item.icon}</span>}
-                    <span className={`${styles.title} ${isChild ? styles.childTitle : ''}`}>{item.title}</span>
-                </div>
+                    {item.icon && <span className={styles.navIcon}>{item.icon}</span>}
+                    <span className={styles.navLabel}>{item.title}</span>
+                </button>
             );
         }
     };
 
 
     return (
-        <div className={`${styles.gmailContainer} ${isRoleExpanded ? styles.roleExpanded : styles.roleCollapsed} ${isQuickLinksCollapsed ? styles.quickLinksCollapsed : styles.quickLinksExpanded}`}>
-            {/* First Column: Role Component (Gmail-style narrow sidebar) */}
-            <aside className={styles.roleSidebar}>
-                <div className={styles.roleHeader}>
-                    <button
-                        className={styles.roleToggleButton}
-                        onClick={() => setIsRoleExpanded(!isRoleExpanded)}
-                        title="Toggle Role Panel"
-                    >
-                        <RiMenuLine size={20} />
-                    </button>
-                </div>
-
-                <nav className={styles.roleNav}>
-                    {roleLinks.map((link, index) => (
-                        <Link
-                            key={index}
-                            href={link.href}
-                            className={styles.roleNavItem}
-                            title={link.label}
-                        >
-                            <div className={styles.roleNavIcon}>
-                                {link.icon}
-                            </div>
-                            {isRoleExpanded && (
-                                <div className={styles.roleNavLabel}>
-                                    {link.label}
-                                </div>
-                            )}
-                        </Link>
-                    ))}
-                </nav>
-
-                {/* User Avatar in First Column */}
-                <div className={styles.roleUserSection}>
-                    <Dropdown align="end">
-                        <Dropdown.Toggle as="div" className={styles.roleUserAvatar} id="role-user-avatar-dropdown" style={{ cursor: 'pointer' }}>
-                            {(user?.username?.charAt(0) || 'U').toUpperCase()}
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                            <Dropdown.Item href={`/human-resource/profile?employeeid=${employeeid}`}>Profile</Dropdown.Item>
-                            <Dropdown.Item href="/settings">Settings</Dropdown.Item>
-                            <Dropdown.Divider />
-                            <Dropdown.Item href="/authentication/logout">
-                                Logout
-                            </Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Dropdown>
-                    {isRoleExpanded && (
-                        <div className={styles.roleUserInfo}>
-                            <span className={styles.roleUserName}>{user?.username || "User"}</span>
-                            <span className={styles.roleUserRole}>{user?.role || "Role"}</span>
-                        </div>
-                    )}
-                </div>
-            </aside>
-
-            {/* Second Column: Quick Links Sidebar */}
-            <aside className={styles.quickLinksSidebar}>
-                <div className={styles.sidebarHeader}>
-                    <div className={styles.companySection}>
-                        <div className={styles.companyIcon}>
-                            {(company?.name?.charAt(0) || 'C').toUpperCase()}
-                        </div>
+        <div className={`${styles.container} ${isQuickLinksCollapsed ? styles.quickLinksCollapsed : styles.quickLinksExpanded} ${isMobileSidebarOpen ? styles.mobileSidebarOpen : ''}`}>
+            {/* Header with PLS Green Background */}
+            <header className={`${styles.darkHeader} pls-primary-light-bg text-white`}>
+                <div className={styles.headerContent}>
+                    {/* Company Info */}
+                    <div className={styles.headerCompany}>
                         <h2 className={styles.companyName}>
-                            {(() => {
-                                const companyName = company || 'Company';
-                                return companyName.length > 10
-                                    ? companyName.substring(0, 15) + '...'
-                                    : companyName;
-                            })()}
+                            {company}
                         </h2>
                     </div>
-                    <div className={styles.sidebarToggleButtons}>
+
+                    {/* Role Links Dropdown */}
+                    <div className={styles.headerActions}>
+                        <button
+                            className={styles.mobileMenuButton}
+                            onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+                            aria-label="Toggle navigation menu"
+                        >
+                            <RiMenuLine />
+                        </button>
+                        <Dropdown>
+                            <Dropdown.Toggle id="role-links-dropdown" variant="outline-light" className={styles.roleDropdownToggle}>
+                                <RiMenuLine />
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu className={styles.roleDropdownMenu}>
+                                {roleLinks.map((link, index) => (
+                                    <Dropdown.Item
+                                        key={index}
+                                        href={link.href}
+                                        className={styles.roleDropdownItem}
+                                    >
+                                        <span className={styles.dropdownIcon}>{link.icon}</span>
+                                        {link.label}
+                                    </Dropdown.Item>
+                                ))}
+                                <Dropdown.Divider />
+                                <Dropdown.Item href={`/human-resource/profile?employeeid=${employeeid}`} className={styles.roleDropdownItem}>
+                                    <span className={styles.dropdownIcon}>👤</span>
+                                    Profile
+                                </Dropdown.Item>
+                                <Dropdown.Item href="/settings" className={styles.roleDropdownItem}>
+                                    <span className={styles.dropdownIcon}>⚙️</span>
+                                    Settings
+                                </Dropdown.Item>
+                                <Dropdown.Divider />
+                                <Dropdown.Item href="/authentication/logout" className={styles.roleDropdownItem}>
+                                    <span className={styles.dropdownIcon}>🚪</span>
+                                    Logout
+                                </Dropdown.Item>
+                            </Dropdown.Menu>
+                        </Dropdown>
+                    </div>
+                </div>
+            </header>
+
+            {/* Two Column Layout: Sidebar + Main Content */}
+            <div className={styles.twoColumnLayout}>
+                {/* Mobile Overlay */}
+                {isMobileSidebarOpen && <div className={styles.mobileOverlay} onClick={() => setIsMobileSidebarOpen(false)}></div>}
+
+                {/* First Column: Quick Links Sidebar */}
+                <aside className={`${styles.quickLinksSidebar} ${isMobileSidebarOpen ? styles.mobileSidebarVisible : ''}`}>
+                    <div className={styles.sidebarHeader}>
+                        <h3 className={styles.sidebarTitle}>Quick Links</h3>
                         <button
                             className={styles.sidebarActionButton}
                             onClick={() => setIsQuickLinksCollapsed(!isQuickLinksCollapsed)}
@@ -192,21 +190,83 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                             {isQuickLinksCollapsed ? <RiArrowRightLine size={16} /> : <RiArrowLeftLine size={16} />}
                         </button>
                     </div>
-                </div>
 
-                <nav className={styles.sidebarNav}>
-                    <div className="list-group">
+                    <nav className={styles.sidebarNav} aria-label="Quick Links Navigation">
                         {Array.isArray(links) && links.map(item => renderNavItem(item))}
-                    </div>
-                </nav>
-            </aside>
 
-            {/* Third Column: Main Content */}
-            <main className={styles.mainContent}>
-                <div className={styles.contentWrapper}>
-                    {children}
-                </div>
-            </main>
+                        {/* Apps Section - Only show on mobile */}
+                        {isMobile && (
+                            <div className={styles.navSection}>
+                                <button
+                                    className={styles.navGroupButton}
+                                    onClick={() => setIsAppsExpanded(!isAppsExpanded)}
+                                    aria-expanded={isAppsExpanded}
+                                >
+                                    <span className={styles.navIcon}>📱</span>
+                                    <span className={styles.navLabel}>Apps</span>
+                                    <span className={styles.navExpandIcon}>
+                                        {isAppsExpanded ? <RiSubtractLine size={12} /> : <RiAddLine size={12} />}
+                                    </span>
+                                </button>
+                                {isAppsExpanded && (
+                                    <div className={styles.navSubmenu}>
+                                        {roleLinks.map((link, index) => (
+                                            <button
+                                                key={`app-${index}`}
+                                                className={`${styles.navItem} ${styles.navItemChild}`}
+                                                onClick={() => {
+                                                    window.location.href = link.href;
+                                                    setIsMobileSidebarOpen(false);
+                                                }}
+                                            >
+                                                <span className={styles.navIcon}>{link.icon}</span>
+                                                <span className={styles.navLabel}>{link.label}</span>
+                                            </button>
+                                        ))}
+                                        <button
+                                            className={`${styles.navItem} ${styles.navItemChild}`}
+                                            onClick={() => {
+                                                window.location.href = `/human-resource/profile?employeeid=${employeeid}`;
+                                                setIsMobileSidebarOpen(false);
+                                            }}
+                                        >
+                                            <span className={styles.navIcon}>👤</span>
+                                            <span className={styles.navLabel}>Profile</span>
+                                        </button>
+                                        <button
+                                            className={`${styles.navItem} ${styles.navItemChild}`}
+                                            onClick={() => {
+                                                window.location.href = "/settings";
+                                                setIsMobileSidebarOpen(false);
+                                            }}
+                                        >
+                                            <span className={styles.navIcon}>⚙️</span>
+                                            <span className={styles.navLabel}>Settings</span>
+                                        </button>
+                                        <button
+                                            className={`${styles.navItem} ${styles.navItemChild}`}
+                                            onClick={() => {
+                                                window.location.href = "/authentication/logout";
+                                                setIsMobileSidebarOpen(false);
+                                            }}
+                                        >
+                                            <span className={styles.navIcon}>🚪</span>
+                                            <span className={styles.navLabel}>Logout</span>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </nav>
+                </aside>
+
+                {/* Second Column: Main Content */}
+                <main className={styles.mainContent}>
+                    <div className={styles.contentWrapper}>
+                        {children}
+                    </div>
+                </main>
+            </div>
         </div>
     );
 };

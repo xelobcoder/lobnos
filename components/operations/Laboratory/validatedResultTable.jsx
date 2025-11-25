@@ -13,10 +13,10 @@ import { ListGroup, Dropdown } from 'react-bootstrap';
 import { useMediaQuery } from 'react-responsive';
 import Loader from '../../accessories/Loader';
 import { customFetch, generateRandomTextAndNumbers } from '../../Auth/customFetch';
-import PrimeTable from '../../accessories/Datatables/PivotPrimeTable';
 import { handleServerSideProcessingAscensionData } from '../../serverActions/ActionFiltering';
 import { RiMoreLine } from '@remixicon/react';
 import { useApplication } from '../../Auth/useApplicationContext';
+import PrimeTable from '../../accessories/Datatables/PrimeTable';
 
 
 const Print = (

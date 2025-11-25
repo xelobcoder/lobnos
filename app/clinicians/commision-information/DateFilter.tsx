@@ -22,30 +22,22 @@ export default function DateFilter({ startDate, endDate, onFilter, loading }: Da
      };
 
      return (
-          <form className={styles.dateFilterForm} onSubmit={handleFilter}>
-               <label className={styles.dateFilterLabel}>
-                    Start Date:
-                    <input
-                         type="date"
-                         value={start}
-                         onChange={e => setStart(e.target.value)}
-                         className={styles.dateInput}
-                         max={end}
-                    />
-               </label>
-               <label className={styles.dateFilterLabel}>
-                    End Date:
-                    <input
-                         type="date"
-                         value={end}
-                         onChange={e => setEnd(e.target.value)}
-                         className={styles.dateInput}
-                         min={start}
-                    />
-               </label>
-               <button type="submit" className={styles.filterButton} disabled={loading}>
-                    {loading ? "Filtering..." : "Filter"}
+          <div className="d-flex flex-row align-items-center gap-2">
+               <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+                    <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)', paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+                         Start
+                    </span>
+                    <input type="date" className="form-control shadow-none border-start-0" value={start} onChange={e => setStart(e.target.value)} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: 'var(--bs-border-color)', paddingLeft: '0.3rem' }} />
+               </div>
+               <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+                    <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)', paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+                         End
+                    </span>
+                    <input type="date" className="form-control shadow-none border-start-0" value={end} onChange={e => setEnd(e.target.value)} min={start} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: 'var(--bs-border-color)', paddingLeft: '0.3rem' }} />
+               </div>
+               <button type="submit" className="btn btn-primary btn-sm" onClick={handleFilter} disabled={loading}>
+                    {loading ? 'Filtering...' : 'Filter'}
                </button>
-          </form>
+          </div>
      );
 }
