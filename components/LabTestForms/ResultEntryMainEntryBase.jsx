@@ -7,7 +7,7 @@ export default function ResultEntryMainEntryBase({ handlestate, handleCreateFiel
 	return (
 		<section>
 			<div className="table-responsive my-2">
-				<table theme='dark' className="table billing-cart-table table-bordered table-sm" style={{ fontSize: '12px', maxWidth: 650, margin: '0 auto', fontFamily: 'Cambria, serif' }}>
+				<table theme='dark' className="table billing-cart-table table-bordered table-sm" style={{ fontSize: '12px',  fontFamily: 'Cambria, serif' }}>
 					<thead className="text-sm">
 						<tr>
 							<th className="fw-bold text-capitalize text-sm">Parameter</th>

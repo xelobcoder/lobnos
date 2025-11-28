@@ -92,6 +92,22 @@ export const AdminRoleLinks = [
           category: 'Core Operations',
           description: 'Patient appointment scheduling and management'
      },
+     {
+          href: '/inventory',
+          icon: <RiFileTextLine size={24} />,
+          text: "Access inventory management",
+          label: 'Inventory',
+          category: 'Support',
+          description: 'Inventory management'
+     },
+     {
+          href: '/doctor',
+          icon: <RiStethoscopeLine size={24} />,
+          text: "Access doctor portal",
+          label: 'Doctor',
+          category: 'Healthcare',
+          description: 'Doctor portal'
+     }
 
 ];
 

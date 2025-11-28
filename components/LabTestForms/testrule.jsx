@@ -186,7 +186,7 @@ export default function CreateTestRule({ clientdata }) {
 
 	return (
 		<div>
-			<section className="card rounded-4 border-0 mx-auto my-4" style={{ maxWidth: 800, background: '#f9fafb' }}>
+			<section className="card border-0 mx-auto my-4" >
 				<div style={{ backgroundColor: '#e9ecef', borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem', borderBottom: '1px solid #ececec', fontSize: '1rem' }} className="card-header d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 fw-bold">
 					<div className="btn-group mb-2 mb-md-0 align-items-center" role="group" aria-label="result form entry label ">
 						<h5 className="mb-0 me-2" title={`test edited ${editCount} times`} style={{ color: '#6c757d', fontWeight: 500, fontSize: '1rem' }}>{editCount}</h5>

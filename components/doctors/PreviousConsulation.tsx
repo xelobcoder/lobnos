@@ -31,7 +31,7 @@ export default function PreviousConsulation({ patientid }: { patientid: number }
                     {consulationRecords.map((item, index) => (
                          <li
                               key={index}
-                              className="d-flex justify-content-between border-bottom border-secondary text-capitalize pls-color"
+                              className="d-flex p-0 justify-content-between text-sm border-bottom border-secondary text-capitalize"
                          >
                               <span>{new Date(item.created_at).toLocaleDateString()}</span>
                               <span>{item.consultationby}</span>
@@ -42,7 +42,7 @@ export default function PreviousConsulation({ patientid }: { patientid: number }
                               </span>
                               <span>
                                    <Link href={`${process.env.PLS_PDF_GENERATOR}consultation/report/pdf?consultationid=1`}>
-                                        View Report
+                                        View 
                                    </Link>
                               </span>
                          </li>

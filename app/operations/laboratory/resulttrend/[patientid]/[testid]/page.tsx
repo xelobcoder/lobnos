@@ -156,15 +156,6 @@ export default function ResultTrendPage() {
      );
 }
 
-function formatDate(d: string | number | Date) {
-     try {
-          const dt = new Date(d);
-          if (Number.isNaN(dt.getTime())) return String(d ?? '');
-          return dt.toLocaleString();
-     } catch {
-          return String(d ?? '');
-     }
-}
 
 function parseNumber(v: any): number | null {
      if (v == null) return null;

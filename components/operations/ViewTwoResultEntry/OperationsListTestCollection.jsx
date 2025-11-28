@@ -85,7 +85,7 @@ export default function OperationsListTestCollection({ operations }) {
 				})}
 			</div>
 			{multiMode && loaded && selectedTests.length > 0 && (
-				<div className="mt-4 responsive-grid">
+				<div className={`mt-2 ${selectedTests.length > 1 ? "responsive-grid" : ""}`}>
 					{Array.isArray(selectedTests) && selectedTests.length > 0 && selectedTests.map((test, idx) => (
 						<div key={test.testid} style={{ minWidth: 0 }}>
 							<ResultEntryComponent operations={{ ...operations, testid: test.testid, uiLayout: 3, ascensionid: test.ascensionid }} />
