@@ -74,6 +74,11 @@ export const CrmLinks: Link[] = [
                 icon: <RiScales2Fill />
             },
             {
+                title: "Cash Collection",
+                link: "/billing/cash-collection",
+                icon: <RiMoneyDollarCircleLine />
+            },
+            {
                 title: "Test Price List",
                 link: "/crm/pricelist",
                 icon: <RiMoneyDollarCircleLine />
@@ -124,7 +129,8 @@ export const CrmLinks: Link[] = [
                 title: "New Merchants",
                 link: "/billing/expenses/merchants/create",
                 icon: <RiAddBoxLine />
-            }
+            },
+
         ]
     },
     {

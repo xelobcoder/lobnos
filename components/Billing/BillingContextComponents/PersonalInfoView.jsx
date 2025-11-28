@@ -7,6 +7,7 @@ import {
 } from './Lib/Icons'
 
 export default function BillingPagePatientInformation({ data, loadingststate = false }) {
+	console.log('PersonalInfoView data:', data);
 	if (loadingststate) {
 		return (
 			<div className="heightedBorder p-2 bg-secondary-subtle d-flex justify-content-center">

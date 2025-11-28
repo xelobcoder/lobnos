@@ -331,7 +331,7 @@ export default function BillingSessions() {
             </Row>
 
             <Row className="justify-content-center">
-                <Col className='bg-white p-4 rounded shadow-sm' xs={12} md={8} lg={10}>
+                <Col className='bg-white p-4 rounded mx-3 '  xs={12} md={8} lg={11}>
                     <div>
                         {error && (
                             <Alert

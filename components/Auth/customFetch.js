@@ -1149,3 +1149,14 @@ export const smallSelectStyles = {
 		zIndex: 9999
 	})
 };
+
+
+export const fetchPatientPersonalInfo = async (patientid) => {
+		  try {
+			 const response = await customFetch(`register/personalinformation?patientid=${patientid}`);
+			return response;
+		  } catch (err) {
+			throw new Error("Error fetching patient information");
+		  } 
+	   };
+

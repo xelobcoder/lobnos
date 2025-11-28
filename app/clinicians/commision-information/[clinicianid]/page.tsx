@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import styles from '../CommissionReport.module.css';
-import { customFetch, currencyFormatter, customPost } from '../../../../components/Auth/customFetch';
+import { customFetch, currencyFormatter } from '../../../../components/Auth/customFetch';
 import dayjs from 'dayjs';
 
 import { RiUserLine, RiPhoneLine, RiBriefcaseLine, RiMoneyDollarCircleLine, RiServiceLine, RiFileList3Line } from '@remixicon/react';

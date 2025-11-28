@@ -107,7 +107,7 @@ export default function BillingTypeSelection() {
 
 	return (
 		<Container className="py-5 d-flex flex-column align-items-center justify-content-center" style={{ maxWidth: 480 }}>
-			<Card className="shadow border-0 w-100" style={{ maxWidth: 420 }}>
+			<Card className="border border-light border-2 w-100" style={{ maxWidth: 420 }}>
 				<Card.Body className="p-4">
 					<div className="text-center mb-4">
 						<RiHealthBookLine size={32} className="text-primary mb-2" />

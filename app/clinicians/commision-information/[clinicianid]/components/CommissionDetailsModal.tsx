@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Badge, ListGroup } from 'react-bootstrap';
+import { toast } from 'react-toastify';
 import { currencyFormatter, customPost } from '../../../../../components/Auth/customFetch';
 import dayjs from 'dayjs';
 import { useApplication } from '../../../../../components/Auth/useApplicationContext';
-import { RiMoneyDollarCircleLine, RiWalletLine, RiCheckLine, RiCloseLine, RiFileList3Line, RiCalendarLine } from '@remixicon/react';
+import { RiMoneyDollarCircleLine, RiWalletLine, RiCheckLine, RiCloseLine, RiFileList3Line, RiCalendarLine, RiArrowUpDownLine } from '@remixicon/react';
 
 interface CommissionPaymentTransaction {
      id: number;
@@ -61,9 +62,7 @@ export default function CommissionDetailsModal({
      const [amountDue, setAmountDue] = useState('');
      const [submittingPayment, setSubmittingPayment] = useState(false);
      const employeeid = useApplication()?.user?.employeeid;
-     const role = useApplication()?.user?.role;
-
-     // Set default payment mode when payment modes change
+     const role = useApplication()?.user?.role;     // Set default payment mode when payment modes change
      useEffect(() => {
           if (paymentModes.length > 0) {
                setPaymentMode(paymentModes[0].KeyID);
@@ -86,17 +85,17 @@ export default function CommissionDetailsModal({
 
      const handlePaymentSubmit = async () => {
           if (!selectedRecord || !amountToPay || !paymentMode) {
-               alert('Please fill in all payment details');
+               toast.error('Please fill in all payment details');
                return;
           }
 
           if ((role === 'admin' || role === 'super-admin') && !amountDue) {
-               alert('Please enter the amount due');
+               toast.error('Please enter the amount due');
                return;
           }
 
           if (paymentModes.length === 0) {
-               alert('Payment modes not available. Please try again later.');
+               toast.error('Payment modes not available. Please try again later.');
                return;
           }
 
@@ -118,15 +117,15 @@ export default function CommissionDetailsModal({
                const response = await customPost(url, 'POST', payload);
 
                if (response.status) {
-                    alert(`Payment processed successfully!\nAmount Paid: ${currencyFormatter.format(Number(amountToPay))}\nPayment ID: ${response.data?.paymentId}`);
+                    toast.success(`Payment processed successfully! Amount Paid: ${currencyFormatter.format(Number(amountToPay))}`);
                     onPaymentSuccess?.();
                     onHide();
                } else {
-                    alert(`Payment failed: ${response.message || 'Unknown error'}`);
+                    toast.error(`Payment failed: ${response.message || 'Unknown error'}`);
                }
           } catch (error) {
                console.error('Payment error:', error);
-               alert(`Payment processing failed: ${error.message}`);
+               toast.error(`Payment processing failed: ${error.message}`);
           } finally {
                setSubmittingPayment(false);
           }
@@ -187,6 +186,8 @@ export default function CommissionDetailsModal({
                                         </div>
                                    </div>
                               )}
+
+                              <hr className="my-3" />
 
                               {/* Commission Payments */}
                               <div>
@@ -282,36 +283,42 @@ export default function CommissionDetailsModal({
                                    )}
                               </div>
 
+                              <hr className="my-3" />
+
                               {/* Payment Summary */}
                               {commissionPayments.length > 0 && (
-                                   <div className="mt-4 p-3 bg-light rounded">
+                                   <div className="mt-3 p-2 bg-light rounded">
                                         <h6 className="fw-bold mb-2">Payment Summary</h6>
-                                        <div className="row g-3">
-                                             <div className="col-md-4">
-                                                  <small className="text-muted">Total Due</small>
-                                                  <div className="fw-bold">
+                                        <div className="d-flex flex-wrap align-items-center gap-2">
+                                             <div>
+                                                  <small className="text-muted">Total Due:</small>{' '}
+                                                  <span className="fw-bold">
                                                        {currencyFormatter.format(
                                                             commissionPayments.reduce((sum, p) => sum + Number(p.commission_due), 0)
                                                        )}
-                                                  </div>
+                                                  </span>
                                              </div>
-                                             <div className="col-md-4">
-                                                  <small className="text-muted">Total Paid</small>
-                                                  <div className="fw-bold text-success">
+                                             <span className="text-muted">||</span>
+                                             <div>
+                                                  <small className="text-muted">Total Paid:</small>{' '}
+                                                  <span className="fw-bold text-success">
                                                        {currencyFormatter.format(
                                                             commissionPayments.reduce((sum, p) => sum + Number(p.total_amount_paid), 0)
                                                        )}
-                                                  </div>
+                                                  </span>
                                              </div>
-                                             <div className="col-md-4">
-                                                  <small className="text-muted">Outstanding</small>
-                                                  <div className="fw-bold text-warning">
+                                             <span className="text-muted">||</span>
+                                             <div>
+                                                  <small className="text-muted">Outstanding:</small>{' '}
+                                                  <span className="fw-bold text-warning">
                                                        {currencyFormatter.format(outstandingAmount)}
-                                                  </div>
+                                                  </span>
                                              </div>
                                         </div>
                                    </div>
                               )}
+
+                              <hr className="my-3" />
 
                               {/* Payment Form - Show when no payments exist or there are outstanding payments */}
                               {shouldShowPaymentForm && (

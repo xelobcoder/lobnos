@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import { customFetch } from '../../Auth/customFetch';
+import { customFetch, fetchPatientPersonalInfo } from '../../Auth/customFetch';
 import { RiUser3Line, RiCalendarLine, RiMailLine, RiPhoneLine, RiWhatsappLine, RiUserHeartLine, RiBriefcaseLine, RiIdCardLine, RiEditLine } from '@remixicon/react';
 import styles from './PatientPersonalInformationViewOnly.module.css';
 
@@ -23,24 +23,13 @@ interface PersonalInformation {
 }
 
 const PatientPersonalInformationViewOnly = ({ patientid }) => {
+    console.log('Patient ID:', patientid);
     const [personalInfo, setPersonalInfo] = useState<PersonalInformation | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchPersonalInfo = async () => {
-            try {
-                const response = await customFetch(`register/personalinformation?patientid=${patientid}`);
-                setPersonalInfo(response.result);
-            } catch (err) {
-                setError('Failed to load personal information');
-                console.error('Error fetching personal info:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchPersonalInfo();
+        fetchPatientPersonalInfo(patientid);
     }, [patientid]);
 
     if (loading) return <div className={styles.loading}><div className="spinner-border spinner-border-sm text-primary" role="status"></div></div>;

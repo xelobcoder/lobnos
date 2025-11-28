@@ -5,6 +5,7 @@ import PrimeTable from "../../../../../components/accessories/Datatables/PrimeTa
 import Loader from "../../../../../components/accessories/Loader";
 import { customFetch, customPost } from "../../../../../components/Auth/customFetch";
 import TestActions from "../../../../../components/settingsComponents/TestActions";
+import MasterListView from "./components/MasterListView";
 import * as React from 'react';
 
 interface TestPanel {
@@ -25,6 +26,7 @@ interface Column {
 export default function TestListDisplay() {
     const [data, setData] = useState<TestPanel[]>([]);
     const [isLoading, setLoading] = useState<boolean>(true);
+    const [activeTab, setActiveTab] = useState<'active' | 'master'>('active');
     const router = useRouter();
 
     useEffect(() => {
@@ -85,24 +87,57 @@ export default function TestListDisplay() {
     if (isLoading) return <Loader />;
     return (
         <section>
-            <div className="d-flex justify-content-end mx-2">
-                <button
-                    onClick={() => router.push("/settings/applicationsettings/testpanels/testlist/createcustomtest")}
-                    className="btn btn-dark btn-sm text-capitalize"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                        <path d="M13.0001 10.9999L22.0002 10.9997L22.0002 12.9997L13.0001 12.9999L13.0001 21.9998L11.0001 21.9998L11.0001 12.9999L2.00004 13.0001L2 11.0001L11.0001 10.9999L11 2.00025L13 2.00024L13.0001 10.9999Z"></path>
-                    </svg> new test
-                </button>
+            <div className="mb-3">
+                <ul className="nav nav-tabs" role="tablist">
+                    <li className="nav-item" role="presentation">
+                        <button
+                            className={`nav-link ${activeTab === 'active' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('active')}
+                            type="button"
+                            role="tab"
+                            aria-selected={activeTab === 'active'}
+                        >
+                            User-Defined List
+                        </button>
+                    </li>
+                    <li className="nav-item" role="presentation">
+                        <button
+                            className={`nav-link ${activeTab === 'master' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('master')}
+                            type="button"
+                            role="tab"
+                            aria-selected={activeTab === 'master'}
+                        >
+                            Master List
+                        </button>
+                    </li>
+                </ul>
             </div>
-            <div>
-                <PrimeTable
-                    serverSideFiltering={true}
-                    filtering={true}
-                    handleSeverSideProcessing={null}
-                    column={columns}
-                    data={data}
-                />
+            <div className="tab-content">
+                <div className={`tab-pane ${activeTab === 'active' ? 'active' : ''}`} role="tabpanel">
+                    <div className="d-flex justify-content-end mx-2 mb-3">
+                        <button
+                            onClick={() => router.push("/settings/applicationsettings/testpanels/testlist/createcustomtest")}
+                            className="btn btn-dark btn-sm text-capitalize"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                <path d="M13.0001 10.9999L22.0002 10.9997L22.0002 12.9997L13.0001 12.9999L13.0001 21.9998L11.0001 21.9998L11.0001 12.9999L2.00004 13.0001L2 11.0001L11.0001 10.9999L11 2.00025L13 2.00024L13.0001 10.9999Z"></path>
+                            </svg> new test
+                        </button>
+                    </div>
+                    <div>
+                        <PrimeTable
+                            serverSideFiltering={true}
+                            filtering={true}
+                            handleSeverSideProcessing={null}
+                            column={columns}
+                            data={data}
+                        />
+                    </div>
+                </div>
+                <div className={`tab-pane ${activeTab === 'master' ? 'active' : ''}`} role="tabpanel">
+                    <MasterListView isVisible={activeTab === 'master'} />
+                </div>
             </div>
         </section>
     );
