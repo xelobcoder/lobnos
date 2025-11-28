@@ -85,6 +85,7 @@ export default function AscensionStatus() {
      const [trendData, setTrendData] = useState<TrendResponse | null>(null);
      const [currentViewItem, setCurrentViewItem] = useState<AscensionData | null>(null);
      const [selectedTrendField, setSelectedTrendField] = useState<string | null>(null);
+     const [selectedTrendPlan, setSelectedTrendPlan] = useState<string | null>(null);
      const [showTrendChart, setShowTrendChart] = useState<boolean>(false);
      const [notes, setNotes] = useState<{ [key: string]: string }>({});
      const [showNotesModal, setShowNotesModal] = useState<boolean>(false);
@@ -523,6 +524,7 @@ export default function AscensionStatus() {
                                                                                      disabled={!trendData}
                                                                                      onClick={() => {
                                                                                           setSelectedTrendField(item.name);
+                                                                                          setSelectedTrendPlan(item.plan);
                                                                                           setShowTrendChart(true);
                                                                                      }}
                                                                                      title="View trend analysis"
@@ -638,9 +640,11 @@ export default function AscensionStatus() {
                                                                            disabled={!trendData}
                                                                            onClick={() => {
                                                                                 setSelectedTrendField(item.name);
+                                                                                setSelectedTrendPlan(item.plan);
                                                                                 setShowTrendChart(true);
                                                                            }}
                                                                            className="flex-grow-1"
+                                                                           title="View trend analysis"
                                                                       >
                                                                            📊 Trend
                                                                       </Button>
@@ -683,7 +687,7 @@ export default function AscensionStatus() {
                <Modal show={showTrendChart} onHide={() => {
                     setShowTrendChart(false);
                     setSelectedTrendField(null);
-               }} centered size="lg">
+               }} size="lg">
                     <Modal.Header closeButton className="border-bottom">
                          <Modal.Title className="fw-bold">
                               📊 Trend Analysis
@@ -702,139 +706,42 @@ export default function AscensionStatus() {
                                    );
                               }
 
-                              const chartData = relatedTrends.reverse().map((trend, index) => ({
-                                   name: index + 1,
-                                   value: parseFloat(trend.value) || 0,
-                                   date: new Date(trend.created_on).toLocaleDateString()
-                              }));
-
-                              return (
-                                   <div>
-                                        <div className="mb-3">
-                                             <small className="text-muted">Test Parameter</small>
-                                             <div className="fw-bold text-dark">{selectedTrendField}</div>
-                                             <div className="small text-muted mt-1">
-                                                  {relatedTrends.length} data points available
-                                             </div>
-                                        </div>
-
-                                        <div style={{ width: '100%', height: '300px' }}>
-                                             <ResponsiveContainer width="100%" height="100%">
-                                                  <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
-                                                       <defs>
-                                                            <linearGradient id="colorTrendModal" x1="0" y1="0" x2="0" y2="1">
-                                                                 <stop offset="5%" stopColor="oklch(0.646 0.222 41.116)" stopOpacity={0.3} />
-                                                                 <stop offset="95%" stopColor="oklch(0.646 0.222 41.116)" stopOpacity={0.05} />
-                                                            </linearGradient>
-                                                       </defs>
-                                                       <CartesianGrid strokeDasharray="3 3" opacity={0.1} stroke="var(--bs-border-color)" vertical={false} />
-                                                       <XAxis
-                                                            dataKey="name"
-                                                            fontSize={11}
-                                                            tick={{ fill: '#6c757d' }}
-                                                            axisLine={{ stroke: 'var(--bs-border-color)' }}
-                                                            tickLine={{ stroke: 'var(--bs-border-color)' }}
-                                                            label={{ value: 'Data Point', position: 'insideBottom', offset: -10, style: { fill: '#6c757d', fontSize: 11 } }}
-                                                       />
-                                                       <YAxis
-                                                            fontSize={11}
-                                                            tick={{ fill: '#6c757d' }}
-                                                            domain={['dataMin - 0.5', 'dataMax + 0.5']}
-                                                            axisLine={false}
-                                                            tickLine={false}
-                                                            width={50}
-                                                       />
-                                                       <Tooltip
-                                                            contentStyle={{
-                                                                 backgroundColor: '#fff',
-                                                                 border: '1px solid var(--bs-border-color)',
-                                                                 borderRadius: '6px',
-                                                                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                                                 fontSize: '0.85rem',
-                                                                 padding: '10px 14px'
-                                                            }}
-                                                            formatter={(value: any, name: any, props: any) => [
-                                                                 <span key="value">
-                                                                      <strong>{value.toFixed(2)}</strong>
-                                                                      <br />
-                                                                      <small className="text-muted">{props.payload.date}</small>
-                                                                 </span>,
-                                                                 'Value'
-                                                            ]}
-                                                       />
-                                                       <Area
-                                                            type="monotone"
-                                                            dataKey="value"
-                                                            stroke="oklch(0.646 0.222 41.116)"
-                                                            fill="url(#colorTrendModal)"
-                                                            strokeWidth={3}
-                                                            fillOpacity={0.6}
-                                                            dot={{ fill: 'oklch(0.646 0.222 41.116)', strokeWidth: 2, r: 4 }}
-                                                            activeDot={{ r: 6, stroke: 'oklch(0.646 0.222 41.116)', strokeWidth: 2 }}
-                                                       />
-                                                  </AreaChart>
-                                             </ResponsiveContainer>
-                                        </div>
-
-                                        <div className="mt-4 pt-3 border-top">
-                                             <div className="row g-3">
-                                                  <div className="col-6">
-                                                       <div className="p-3 rounded" style={{ backgroundColor: '#f8f9fa' }}>
-                                                            <small className="text-muted d-block mb-1">Total Records</small>
-                                                            <div className="fw-bold" style={{ fontSize: '1.25rem' }}>{relatedTrends.length}</div>
-                                                       </div>
-                                                  </div>
-                                                  <div className="col-6">
-                                                       <div className="p-3 rounded" style={{ backgroundColor: '#f8f9fa' }}>
-                                                            <small className="text-muted d-block mb-1">Latest Value</small>
-                                                            <div className="fw-bold" style={{ fontSize: '1.25rem', color: 'oklch(0.646 0.222 41.116)' }}>
-                                                                 {relatedTrends[relatedTrends.length - 1].value}
-                                                            </div>
-                                                       </div>
-                                                  </div>
-                                             </div>
-                                        </div>
-                                   </div>
-                              );
-                         })()}
-                    </Modal.Body>
-                    <Modal.Footer className="border-top">
-                         <Button
-                              size="sm"
-                              variant="outline-secondary"
-                              onClick={() => {
-                                   setShowTrendChart(false);
-                                   setSelectedTrendField(null);
-                              }}
-                         >
-                              Close
-                         </Button>
-                    </Modal.Footer>
-               </Modal>
-
-               {/* Trend Chart Modal */}
-               <Modal show={showTrendChart} onHide={() => {
-                    setShowTrendChart(false);
-                    setSelectedTrendField(null);
-               }} centered size="lg">
-                    <Modal.Header closeButton className="border-bottom">
-                         <Modal.Title className="fw-bold">
-                              📊 Trend Analysis - {selectedTrendField}
-                         </Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                         {selectedTrendField && trendData && trendData.data && (() => {
-                              const relatedTrends = trendData.data.filter(t => t.field === selectedTrendField);
-
-                              if (relatedTrends.length === 0) {
+                              // For options or input plans, show table instead of chart
+                              if (selectedTrendPlan === 'options' || selectedTrendPlan === 'input') {
                                    return (
-                                        <div className="text-center p-5 text-muted">
-                                             <div className="mb-2">No trend data available</div>
-                                             <small>No historical data found for {selectedTrendField}</small>
+                                        <div>
+                                             <div className="mb-3">
+                                                  <small className="text-muted">Test Parameter</small>
+                                                  <div className="fw-bold text-dark">{selectedTrendField}</div>
+                                                  <div className="small text-muted mt-1">
+                                                       {relatedTrends.length} data points available
+                                                  </div>
+                                             </div>
+                                             <div className="table-responsive">
+                                                  <table className="table table-bordered table-striped mb-0">
+                                                       <thead className="table-light">
+                                                            <tr>
+                                                                 <th style={{ width: '10%' }}>#</th>
+                                                                 <th style={{ width: '40%' }}>Value</th>
+                                                                 <th style={{ width: '50%' }}>Date</th>
+                                                            </tr>
+                                                       </thead>
+                                                       <tbody>
+                                                            {relatedTrends.reverse().map((trend, index) => (
+                                                                 <tr key={index}>
+                                                                      <td>{index + 1}</td>
+                                                                      <td className="fw-semibold">{trend.value}</td>
+                                                                      <td>{new Date(trend.created_on).toLocaleString()}</td>
+                                                                 </tr>
+                                                            ))}
+                                                       </tbody>
+                                                  </table>
+                                             </div>
                                         </div>
                                    );
                               }
 
+                              // For numeric plans, show chart
                               const chartData = relatedTrends.reverse().map((trend, index) => ({
                                    name: index + 1,
                                    value: parseFloat(trend.value) || 0,
@@ -938,6 +845,7 @@ export default function AscensionStatus() {
                               onClick={() => {
                                    setShowTrendChart(false);
                                    setSelectedTrendField(null);
+                                   setSelectedTrendPlan(null);
                               }}
                          >
                               Close
@@ -949,7 +857,73 @@ export default function AscensionStatus() {
                <Modal show={showNotesModal} onHide={() => {
                     setShowNotesModal(false);
                     setSelectedNoteItem(null);
-               }} centered>
+               }}>
+                    <Modal.Header closeButton className="border-bottom">
+                         <Modal.Title className="fw-bold">
+                              📝 Interpretation/Notes
+                         </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                         {selectedNoteItem && (
+                              <div>
+                                   <div className="mb-3">
+                                        <small className="text-muted">Test Parameter</small>
+                                        <div className="fw-bold text-dark">{selectedNoteItem.name}</div>
+                                        <div className="small text-muted mt-1">
+                                             Value: <span className="text-danger fw-bold">{selectedNoteItem.value} {selectedNoteItem.units}</span>
+                                        </div>
+                                   </div>
+                                   <div>
+                                        <label className="form-label fw-semibold">Clinical Interpretation:</label>
+                                        <Form.Control
+                                             as="textarea"
+                                             rows={4}
+                                             placeholder="Enter clinical interpretation, notes, or abnormal findings for this result..."
+                                             value={notes[selectedNoteItem.id] || ''}
+                                             onChange={(e) => {
+                                                  setNotes({
+                                                       ...notes,
+                                                       [selectedNoteItem.id]: e.target.value
+                                                  });
+                                             }}
+                                             className="border-1"
+                                        />
+                                        <small className="text-muted d-block mt-2">
+                                             {notes[selectedNoteItem.id] ? `${notes[selectedNoteItem.id].length} characters` : 'No notes yet'}
+                                        </small>
+                                   </div>
+                              </div>
+                         )}
+                    </Modal.Body>
+                    <Modal.Footer className="border-top">
+                         <Button
+                              size="sm"
+                              variant="outline-secondary"
+                              onClick={() => {
+                                   setShowNotesModal(false);
+                                   setSelectedNoteItem(null);
+                              }}
+                         >
+                              Close
+                         </Button>
+                         <Button
+                              size="sm"
+                              variant="primary"
+                              onClick={() => {
+                                   console.log('Notes saved:', notes);
+                                   setShowNotesModal(false);
+                              }}
+                         >
+                              Save Notes
+                         </Button>
+                    </Modal.Footer>
+               </Modal>
+
+               {/* Interpretation/Notes Modal */}
+               <Modal show={showNotesModal} onHide={() => {
+                    setShowNotesModal(false);
+                    setSelectedNoteItem(null);
+               }}>
                     <Modal.Header closeButton className="border-bottom">
                          <Modal.Title className="fw-bold">
                               📝 Interpretation/Notes
