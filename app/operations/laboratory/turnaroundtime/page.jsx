@@ -11,7 +11,6 @@ export default async function TurnAroundTime() {
             data = response.data;
         }
     } catch (err) {
-        console.error("Error loading data:", err);
         return (
             <Alert dismissible variant="danger" className="pls-color p-3 br-5">
                 Error Loading data

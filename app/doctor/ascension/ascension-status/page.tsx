@@ -717,21 +717,21 @@ export default function AscensionStatus() {
                                                        {relatedTrends.length} data points available
                                                   </div>
                                              </div>
-                                             <div className="table-responsive">
-                                                  <table className="table table-bordered table-striped mb-0">
-                                                       <thead className="table-light">
+                                             <div className="table" style={{ backgroundColor: '#fff' }}>
+                                                  <table className="table table-hover align-middle mb-0" style={{ fontSize: '0.95rem', backgroundColor: '#fff' }}>
+                                                       <thead className="bg-light">
                                                             <tr>
-                                                                 <th style={{ width: '10%' }}>#</th>
-                                                                 <th style={{ width: '40%' }}>Value</th>
-                                                                 <th style={{ width: '50%' }}>Date</th>
+                                                                 <th className="py-2 text-dark text-uppercase small border-0" style={{ fontWeight: 600, letterSpacing: '0.5px', width: '10%' }}>#</th>
+                                                                 <th className="py-2 text-dark text-uppercase small border-0" style={{ fontWeight: 600, letterSpacing: '0.5px', width: '40%' }}>Value</th>
+                                                                 <th className="py-2 text-dark text-uppercase small border-0" style={{ fontWeight: 600, letterSpacing: '0.5px', width: '50%' }}>Date</th>
                                                             </tr>
                                                        </thead>
                                                        <tbody>
                                                             {relatedTrends.reverse().map((trend, index) => (
                                                                  <tr key={index}>
-                                                                      <td>{index + 1}</td>
-                                                                      <td className="fw-semibold">{trend.value}</td>
-                                                                      <td>{new Date(trend.created_on).toLocaleString()}</td>
+                                                                      <td className="py-2 border-0">{index + 1}</td>
+                                                                      <td className="py-2 fw-semibold border-0">{trend.value}</td>
+                                                                      <td className="py-2 border-0">{new Date(trend.created_on).toLocaleString()}</td>
                                                                  </tr>
                                                             ))}
                                                        </tbody>

@@ -80,7 +80,7 @@ export default function TurnAroundDataTable({ data: initialData }) {
 	const columns = [
 		{ Header: "Client Info", accessor: "patientName", width: 150 },
 		{
-			Header: "Billed On/test", accessor: "billedon", width: 100, Cell: ({ value,row }) => {
+			Header: "Billed On/test", accessor: "billedon", width: 100, Cell: ({ value, row }) => {
 				return (
 					<div>
 						{value ? moment(value).format("MMM DD, YYYY HH:mm") : "N/A"}
@@ -203,7 +203,7 @@ export default function TurnAroundDataTable({ data: initialData }) {
 							<span className="text-muted">Limit:</span>
 							<small>{hasSetTat ? `${data.setTat} min` : 'Not Set'}</small>
 						</div>
-						
+
 					</div>
 				);
 			}
@@ -228,8 +228,10 @@ export default function TurnAroundDataTable({ data: initialData }) {
 
 	return (
 		<div>
-			<div className="d-flex align-items-center mb-3">
-				<h1 className="bg-secondary-subtle pls-color br-5 p-3 flex-grow-1 mb-0">Turn Around Time</h1>
+			<div className="mb-4">
+				<h1 className="border-bottom pb-3 mb-0" style={{ fontSize: '1.5rem', fontWeight: 600, color: '#212529' }}>
+					Turn Around Time
+				</h1>
 			</div>
 			<form className="mb-3 d-flex align-items-center gap-2 flex-wrap" onSubmit={handleAscensionIdFilter}>
 				<label htmlFor="ascensionIdInput" className="fw-bold mb-0">Filter by Ascension ID:</label>

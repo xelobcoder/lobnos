@@ -10,7 +10,7 @@ interface AccessRequestFormProps {
      employeeid: string;
 }
 
-export default function AccessRequestForm({ ascensionid, testid, patientid, employeeid }: AccessRequestFormProps) {
+export default function AccessRequestForm({ ascensionid, patientid, employeeid }: AccessRequestFormProps) {
      const handleAccessRequest = async () => {
           const requestType = (document.getElementById('requestType') as HTMLSelectElement)?.value;
           const requestReason = (document.getElementById('requestReason') as HTMLTextAreaElement)?.value;
@@ -34,6 +34,7 @@ export default function AccessRequestForm({ ascensionid, testid, patientid, empl
                     requestType,
                     ascensionid: parseInt(ascensionid),
                     reason: requestReason,
+                    employeeid: parseInt(employeeid),
                     urgency: urgencyLevel,
                };
 

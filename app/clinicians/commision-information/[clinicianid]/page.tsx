@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import Link from 'next/link';
 import styles from '../CommissionReport.module.css';
 import { customFetch, currencyFormatter } from '../../../../components/Auth/customFetch';
 import dayjs from 'dayjs';
@@ -208,7 +209,17 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 	const { clinician_name, clinician_phone, occupation } = commissionData[0];
 	return (
 		<main className={styles.container}>
-			<h1 className={styles.title}><RiUserLine /> {clinician_name.toUpperCase()} - Commission Details</h1>
+			<div className="d-flex justify-content-between align-items-center mb-3">
+				<h1 className={styles.title}><RiUserLine /> {clinician_name.toUpperCase()} - Commission Details</h1>
+				<Link
+					href={`${params.clinicianid}/commission-update`}
+					className="btn btn-outline-primary btn-sm"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					Update Commission Records
+				</Link>
+			</div>
 			<hr />
 			{/* Date Picker and Summary Cards */}
 			<div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center mb-3 gap-3">
@@ -389,12 +400,9 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 				clinicianId={params.clinicianid}
 				paymentModes={paymentModes}
 				onPaymentSuccess={() => {
-					// Refresh commission data after successful payment
 					loadCommissionData();
-					setCommissionPayments([]);
 				}}
 			/>
-
 		</main>
 	);
 }

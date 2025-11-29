@@ -1,12 +1,19 @@
 import { useState } from "react";
+import { Modal } from "react-bootstrap";
 import ResultEntryComponent from "./ResultEntryComponent";
+import AccessRequestForm from "../../../app/operations/imaging/ultrasound/result/[branchid]/AccessRequestForm";
 import { RiArrowRightLine } from '@remixicon/react';
+import { useApplication } from "../../Auth/useApplicationContext";
 
 export default function OperationsListTestCollection({ operations }) {
-	const { testList } = operations;
+	const { testList, ascensionid, patientid ,patientInfo} = operations;
+	const appCtx = useApplication();
+	const employeeid = appCtx?.user?.employeeid;
 	const [selectedTests, setSelectedTests] = useState([]);
 	const [multiMode, setMultiMode] = useState(false);
 	const [loaded, setLoaded] = useState(false);
+	const [showAccessRequest, setShowAccessRequest] = useState(false);
+	const [selectedTestForAccess, setSelectedTestForAccess] = useState(null);
 
 	const handleCheckboxChange = (item) => {
 		setSelectedTests((prev) => {
@@ -34,6 +41,13 @@ export default function OperationsListTestCollection({ operations }) {
 		setLoaded(false);
 	};
 
+	const handleRequestAccess = (test) => {
+		setSelectedTestForAccess(test);
+		setShowAccessRequest(true);
+	};
+
+
+	console.log(operations)
 	return (
 		<div className="mb-3">
 			<button className={`btn btn-sm btn-${multiMode ? "secondary" : "primary"}`} onClick={handleMultiMode}>
@@ -62,23 +76,35 @@ export default function OperationsListTestCollection({ operations }) {
 							/>
 							<span className="fw-bold text-uppercase" style={{ flex: 1 }} onClick={() => multiMode && handleCheckboxChange(item)}>{item.name}</span>
 							{!multiMode && (
-								<button
-									type="button"
-									className={`btn btn-sm btn-outline-primary`}
-									onClick={(e) => {
-										e.stopPropagation();
-										if (multiMode) {
-											if (!selectedTests.some((t) => t.testid === item.testid)) {
-												setSelectedTests(prev => [...prev, item]);
+								<>
+									<button
+										type="button"
+										className="btn btn-sm btn-info me-2"
+										onClick={(e) => {
+											e.stopPropagation();
+											handleRequestAccess(item);
+										}}
+									>
+										Request Access
+									</button>
+									<button
+										type="button"
+										className={`btn btn-sm btn-outline-primary`}
+										onClick={(e) => {
+											e.stopPropagation();
+											if (multiMode) {
+												if (!selectedTests.some((t) => t.testid === item.testid)) {
+													setSelectedTests(prev => [...prev, item]);
+												}
+												setLoaded(true);
+											} else {
+												handleTestCollectionSingle(item);
 											}
-											setLoaded(true);
-										} else {
-											handleTestCollectionSingle(item);
-										}
-									}}
-								>
-									<RiArrowRightLine size={24} />
-								</button>
+										}}
+									>
+										<RiArrowRightLine size={24} />
+									</button>
+								</>
 							)}
 						</div>
 					);
@@ -93,6 +119,22 @@ export default function OperationsListTestCollection({ operations }) {
 					))}
 				</div>
 			)}
+
+			<Modal show={showAccessRequest} onHide={() => { setShowAccessRequest(false); setSelectedTestForAccess(null); }} size="lg">
+				<Modal.Header closeButton>
+					<Modal.Title>Request Access - {selectedTestForAccess?.name}</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					{selectedTestForAccess && (
+						<AccessRequestForm
+							ascensionid={selectedTestForAccess.ascensionid?.toString() || ascensionid?.toString() || null}
+							patientid={patientInfo.patientid}
+							employeeid={employeeid?.toString() || ""}
+						/>
+					)}
+				</Modal.Body>
+			</Modal>
+
 			<style jsx>{`
 				.responsive-grid {
 					display: grid;
