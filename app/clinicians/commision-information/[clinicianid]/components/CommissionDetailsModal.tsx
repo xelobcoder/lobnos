@@ -116,12 +116,12 @@ export default function CommissionDetailsModal({
                const url = `commission-payments`;
                const response = await customPost(url, 'POST', payload);
 
-               if (response.status) {
+               if (response && (response.success || response.status === true || response.status === 'success')) {
                     toast.success(`Payment processed successfully! Amount Paid: ${currencyFormatter.format(Number(amountToPay))}`);
                     onPaymentSuccess?.();
                     onHide();
                } else {
-                    toast.error(`Payment failed: ${response.message || 'Unknown error'}`);
+                    toast.error(`Payment failed: ${response?.message || 'Unknown error'}`);
                }
           } catch (error) {
                console.error('Payment error:', error);

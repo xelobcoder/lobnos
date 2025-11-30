@@ -227,7 +227,7 @@ export default function PrimeTable({
 
 	return (
 		<div
-			className={`${style.tablewrapper} shadow-sm`}
+			className={`${style.tablewrapper}`}
 			style={{ overflowY: "auto", borderRadius: "10px" }}
 		>
 			<div className="mx-3 my-2 d-flex justify-content-between">

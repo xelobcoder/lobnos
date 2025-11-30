@@ -2,12 +2,15 @@
 import React, { useState, useEffect } from "react";
 import Link from 'next/link';
 import styles from '../CommissionReport.module.css';
-import { customFetch, currencyFormatter } from '../../../../components/Auth/customFetch';
+import { customFetch, currencyFormatter, customPost } from '../../../../components/Auth/customFetch';
 import dayjs from 'dayjs';
+import { Modal, Button, Form } from 'react-bootstrap';
+import { toast } from 'react-toastify';
 
 import { RiUserLine, RiPhoneLine, RiBriefcaseLine, RiMoneyDollarCircleLine, RiServiceLine, RiFileList3Line } from '@remixicon/react';
 import CommissionDetailsModal from './components/CommissionDetailsModal';
 import CommissionLineChart from '../CommissionLineChart';
+import { useApplication } from "../../../../components/Auth/useApplicationContext";
 
 interface CommissionData {
 	service_date: string;
@@ -45,6 +48,7 @@ async function getClinicianCommission({ clinicianid, startDate, endDate }: { cli
 export default function ClinicianCommissionPage({ params }: { params: { clinicianid: string } }) {
 	const today = dayjs().format('YYYY-MM-DD');
 	const currentYear = dayjs().year();
+	const employeeid = useApplication()?.user?.employeeid;
 	const defaultStart = dayjs(`${currentYear}-01-01`).format('YYYY-MM-DD');
 	const [startDate, setStartDate] = useState(defaultStart);
 	const [endDate, setEndDate] = useState(today);
@@ -67,6 +71,12 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 	const [commissionPayments, setCommissionPayments] = useState<any[]>([]);
 	const [showDetailsModal, setShowDetailsModal] = useState(false);
 	const [paymentModes, setPaymentModes] = useState<{ KeyID: number, PaymentMode: string }[]>([]);
+	const [showBulkPayModal, setShowBulkPayModal] = useState(false);
+	const [bulkPayAmount, setBulkPayAmount] = useState('');
+	const [bulkPayLoading, setBulkPayLoading] = useState(false);
+	const [bulkPayError, setBulkPayError] = useState<string | null>(null);
+	const [bulkPayType, setBulkPayType] = useState<'paid' | 'payable'>('paid');
+	const [bulkPayMethod, setBulkPayMethod] = useState<number | null>(null);
 
 	useEffect(() => {
 		setLoading(true);
@@ -174,6 +184,65 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 		setShowDetailsModal(true);
 	};
 
+	// Calculate total commission due for selected records
+	const totalBulkCommissionPaid = Array.from(selectedRecords).reduce((acc, idx) => {
+		const rec = commissionData[idx];
+		return acc + (rec ? Number(rec.commission_earned_by_paid_amount) : 0);
+	}, 0);
+	const totalBulkCommissionPayable = Array.from(selectedRecords).reduce((acc, idx) => {
+		const rec = commissionData[idx];
+		return acc + (rec ? Number(rec.commission_earned_by_amount_payable) : 0);
+	}, 0);
+	const selectedCommissionDue = bulkPayType === 'paid' ? totalBulkCommissionPaid : totalBulkCommissionPayable;
+
+	// Bulk pay handler
+	const handleBulkPay = async () => {
+		setBulkPayLoading(true);
+		setBulkPayError(null);
+		try {
+			if (Number(bulkPayAmount) > selectedCommissionDue) {
+				setBulkPayError('Amount cannot exceed total commission due.');
+				setBulkPayLoading(false);
+				return;
+			}
+			if (!bulkPayMethod) {
+				setBulkPayError('Please select a payment method.');
+				setBulkPayLoading(false);
+				return;
+			}
+			const payload = {
+				startDate,
+				endDate,
+				commissionDue: selectedCommissionDue,
+				amountPaid: Number(bulkPayAmount),
+				commissionType: bulkPayType,
+				paymentMethod: bulkPayMethod,
+				employeeid,
+				recipient_type: 'clinician',
+				recipientid: params.clinicianid,
+			};
+			const response = await customPost('commission-payments/commission/batch/process-services', 'POST', payload);
+			if (response && response.status == true) {
+				setShowBulkPayModal(false);
+				setBulkPayAmount('');
+				setBulkPayMethod(null);
+				setSelectedRecords(new Set());
+				loadCommissionData();
+				toast.success('Commission payment processed successfully!');
+			} else if (response && response.status === 'error') {
+				toast.error(response.message || 'Failed to process payment.');
+				setBulkPayError(response.message || 'Failed to process payment.');
+			} else {
+				toast.error('Failed to process payment.');
+				setBulkPayError('Failed to process payment.');
+			}
+		} catch (err: any) {
+			setBulkPayError(err.message || 'Unknown error');
+		} finally {
+			setBulkPayLoading(false);
+		}
+	};
+
 	if (error) {
 		return (
 			<main className={styles.container}>
@@ -211,14 +280,24 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 		<main className={styles.container}>
 			<div className="d-flex justify-content-between align-items-center mb-3">
 				<h1 className={styles.title}><RiUserLine /> {clinician_name.toUpperCase()} - Commission Details</h1>
-				<Link
-					href={`${params.clinicianid}/commission-update`}
-					className="btn btn-outline-primary btn-sm"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Update Commission Records
-				</Link>
+				<div className="d-flex gap-2">
+					<Link
+						href={`${params.clinicianid}/commission-update`}
+						className="btn btn-outline-primary btn-sm"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Update Commission Records
+					</Link>
+					<Link
+						href={`/clinicians/commision-information/${params.clinicianid}/paid-commissions`}
+						className="btn btn-outline-success btn-sm"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						View Paid Commissions
+					</Link>
+				</div>
 			</div>
 			<hr />
 			{/* Date Picker and Summary Cards */}
@@ -327,13 +406,55 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 
 			{/* Detailed Commission Records */}
 			<div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)', margin: '2rem 0 1.5rem 0', backgroundColor: 'white' }}>
-				<div className="card-header py-3 px-4 d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)', backgroundColor: 'white' }}>
+				<div className="card-header py-3 bg-white d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)' }}>
 					<h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center" style={{ color: 'inherit' }}>
 						<RiFileList3Line className="me-2" />
 						Detailed Commission Records
 					</h2>
+
+					<div className="d-flex flex-row align-items-center gap-2">
+						<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+							<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)', paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+								Start
+							</span>
+							<input type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={handleStartDateChange} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: 'var(--bs-border-color)', paddingLeft: '0.3rem' }} />
+						</div>
+						<div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+							<span className="input-group-text bg-transparent border-end-0" style={{ borderColor: 'var(--bs-border-color)', paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+								End
+							</span>
+							<input type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={handleEndDateChange} min={startDate} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: 'var(--bs-border-color)', paddingLeft: '0.3rem' }} />
+						</div>
+						<button onClick={loadCommissionData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load commission data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+							Load Data
+						</button>
+						<button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+							Reset
+						</button>
+					</div>
+				</div>
+				<div className="card-header py-3 px-4 d-flex justify-content-between align-items-center" style={{ borderColor: 'var(--bs-border-color)', backgroundColor: 'white' }}>
+					<div>
+						<small className="text-muted d-block mt-1" style={{ fontSize: '0.85rem' }}>
+							<div className="row gx-2">
+								<div className="col-6 mb-1"><strong>Total payable:</strong> <span className="ms-1">amount payable by the services referred by the clinician for that date.</span></div>
+								<div className="col-6 mb-1"><strong>Total services:</strong> <span className="ms-1">total number of services referred by the clinician for that date.</span></div>
+								<div className="col-6"><strong>Commission (Earned by Paid):</strong> <span className="ms-1">commission due based on the amount actually paid for the services referred.</span></div>
+								<div className="col-6"><strong>Commission (Earned by Payable):</strong> <span className="ms-1">commission calculated based on the total payable amount for the services referred.</span></div>
+							</div>
+						</small>
+					</div>
 				</div>
 				<div className="card-body p-3 p-md-4" style={{ backgroundColor: 'white' }}>
+
+					{/* Bulk Pay Button */}
+					{selectedRecords.size > 0 && (
+						<div className="mb-3">
+							<Button variant="success" size="sm" onClick={() => setShowBulkPayModal(true)}>
+								Pay Commission for Selected ({selectedRecords.size})
+							</Button>
+						</div>
+					)}
 					<div className="table-responsive">
 						<table className="table table-sm table-hover table-striped small">
 							<thead className="sticky-top bg-body-tertiary">
@@ -403,6 +524,60 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 					loadCommissionData();
 				}}
 			/>
+
+			{/* Bulk Pay Modal */}
+			<Modal show={showBulkPayModal} backdrop="static" onHide={() => setShowBulkPayModal(false)}>
+				<Modal.Header closeButton className="py-2">
+					<Modal.Title className="fs-6 fw-semibold text-body-emphasis">
+						Pay Commission for Selected Records
+					</Modal.Title>
+				</Modal.Header>
+				<Modal.Body className="py-2">
+					<div className="mb-2 small">
+						<strong>Start Date:</strong> {startDate}<br />
+						<strong>End Date:</strong> {endDate}<br />
+						<Form.Group className="mb-3">
+							<Form.Label className="small">Commission Type</Form.Label>
+							<Form.Select value={bulkPayType} onChange={e => setBulkPayType(e.target.value as 'paid' | 'payable')} className="form-select form-select-sm">
+								<option value="paid">Commission (Earned by Amount Paid)</option>
+								<option value="payable">Commission (Earned by Amount Payable)</option>
+							</Form.Select>
+						</Form.Group>
+						<Form.Group className="mb-3">
+							<Form.Label className="small">Payment Method</Form.Label>
+							<Form.Select value={bulkPayMethod ?? ''} onChange={e => setBulkPayMethod(Number(e.target.value))} className="form-select form-select-sm">
+								<option value="">Select payment method</option>
+								{paymentModes.map(mode => (
+									<option key={mode.KeyID} value={mode.KeyID}>{mode.PaymentMode}</option>
+								))}
+							</Form.Select>
+						</Form.Group>
+						<strong>Total Commission Due:</strong> {currencyFormatter.format(selectedCommissionDue)}
+					</div>
+					<Form.Group className="mb-3">
+						<Form.Label className="small">Amount to Pay</Form.Label>
+						<Form.Control
+							type="number"
+							min="0"
+							max={selectedCommissionDue}
+							value={bulkPayAmount}
+							onChange={e => setBulkPayAmount(e.target.value)}
+							placeholder="Enter amount to pay"
+							className="form-control form-control-sm"
+						/>
+						<Form.Text className="text-muted small">Amount must be less than or equal to total commission due.</Form.Text>
+					</Form.Group>
+					{bulkPayError && <div className="text-danger small mb-2">{bulkPayError}</div>}
+				</Modal.Body>
+				<Modal.Footer className="py-2">
+					<Button variant="outline-secondary" size="sm" onClick={() => setShowBulkPayModal(false)} disabled={bulkPayLoading} className="small">
+						Cancel
+					</Button>
+					<Button variant="outline-primary" size="sm" onClick={handleBulkPay} disabled={bulkPayLoading || !bulkPayAmount} className="small">
+						{bulkPayLoading ? 'Processing...' : 'Pay Commission'}
+					</Button>
+				</Modal.Footer>
+			</Modal>
 		</main>
 	);
 }

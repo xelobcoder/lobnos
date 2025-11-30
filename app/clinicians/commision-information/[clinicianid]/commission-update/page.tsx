@@ -1,10 +1,11 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { customFetch, currencyFormatter, customPost } from '../../../../../components/Auth/customFetch';
-import { Button, Modal, Form } from 'react-bootstrap';
+import { Button, Modal, Form, Card } from 'react-bootstrap';
 import { RiEditLine, RiFileList3Line } from '@remixicon/react';
 import PrimeTable from '../../../../../components/accessories/Datatables/PrimeTable';
 import { useParams } from 'next/navigation';
+import dayjs from 'dayjs';
 interface CommissionRecord {
      id: number;
      serviceid: number;
@@ -24,17 +25,23 @@ interface CommissionRecord {
 }
 
 export default function CommissionUpdatePage() {
+     const today = dayjs().format('YYYY-MM-DD');
+     const currentYear = dayjs().year();
+     const defaultStart = dayjs(`${currentYear}-01-01`).format('YYYY-MM-DD');
      const [data, setData] = useState<CommissionRecord[]>([]);
      const [showModal, setShowModal] = useState(false);
      const [selectedRecord, setSelectedRecord] = useState<CommissionRecord | null>(null);
      const [newRate, setNewRate] = useState('0');
+     const [filtering, setFiltering] = useState(false);
      const [updating, setUpdating] = useState(false);
+     const [startDate, setStartDate] = useState(defaultStart);
+     const [endDate, setEndDate] = useState(today);
      const clinicianid = useParams().clinicianid;
 
      const handleServerSideProcessing = async (pagination) => {
           try {
-               const { page, count } = pagination
-               const response = await customFetch(`commission-payments/detailed/list?page=${page}&&count=${count}&&recipientType=clinician&&recipient_id=${encodeURIComponent(clinicianid.toString())}`);
+               const { page, count ,startDate, endDate } = pagination
+               const response = await customFetch(`commission-payments/detailed/list?page=${page}&&count=${count}&&recipientType=clinician&&recipient_id=${encodeURIComponent(clinicianid.toString())}&&startDate=${encodeURIComponent(startDate)}&&endDate=${encodeURIComponent(endDate)}`);
                if (response && response.status) {
                     return { result: response.data || [] };
                } else {
@@ -61,14 +68,13 @@ export default function CommissionUpdatePage() {
           if (!selectedRecord) return;
           setUpdating(true);
           try {
-               const response = await customPost('commission-payments/commission/recipient/update-rates', 'POST', {
+               const response = await customPost(`commission-payments/commission/recipient/update-rates/${selectedRecord.id}`, 'PUT', {
                     recipientType: selectedRecord.type,
                     recipientId: selectedRecord.recipient_id,
                     commissionRate: parseFloat(newRate),
+                    serviceid: selectedRecord.serviceid,
                });
                if (response && response.status) {
-                    // Refresh data - since server-side, perhaps trigger reload
-                    // For now, close modal
                     setShowModal(false);
                     setSelectedRecord(null);
                } else {
@@ -88,11 +94,39 @@ export default function CommissionUpdatePage() {
           setShowModal(true);
      };
 
+     const applyFilter = async () => {
+          setFiltering(true);
+          try {
+               const response = await handleServerSideProcessing({ page: 1, count: 10 });
+               if (response.result) {
+                    setData(response.result);
+               } else if (response.error) {
+                    console.error(response.error);
+               }
+          } catch (error) {
+               console.error('Error applying filter:', error);
+          } finally {
+               setFiltering(false);
+          }
+     };
+
+     const summary = data.reduce((acc, item) => {
+          acc.totalPayable += Number(item.totalpayable);
+          acc.totalPaid += Number(item.paidamount);
+          acc.totalDue += Number(item.commission_due);
+          return acc;
+     }, { totalPayable: 0, totalPaid: 0, totalDue: 0 });
+
      const columns = [
-          { accessor: 'id', Header: 'ID' },
           { accessor: 'serviceid', Header: 'Service ID' },
-          { accessor: 'test_name', Header: 'Test Name' },
-          { accessor: 'serviceCategory', Header: 'Service Category' },
+          {
+               accessor: 'test_name', Header: 'Test Name', Cell: ({ row }: any) => (
+                    <div>
+                         <div>{row.original.test_name}</div>
+                         <small className="text-muted">{row.original.serviceCategory}</small>
+                    </div>
+               )
+          },
           { accessor: 'totalpayable', Header: 'Total Payable', Cell: ({ row }: any) => currencyFormatter.format(Number(row.original.totalpayable)) },
           { accessor: 'paidamount', Header: 'Paid Amount', Cell: ({ row }: any) => currencyFormatter.format(Number(row.original.paidamount)) },
           { accessor: 'commission_percentage', Header: 'Commission %', Cell: ({ row }: any) => `${row.original.commission_percentage}%` },
@@ -115,31 +149,89 @@ export default function CommissionUpdatePage() {
 
      return (
           <div>
-               <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h4 className="h3 mb-0">
-                         <RiFileList3Line className="me-2" />
-                         Update Commission Records
-                    </h4>
+               <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+                    <div className="fw-bold text-dark">
+                         Total Commission Due: {currencyFormatter.format(summary.totalDue)}
+                    </div>
+                    <div className="d-flex gap-2 align-items-end flex-wrap">
+                         <div>
+                              <input
+                                   type="date"
+                                   className="form-control form-control-sm"
+                                   value={startDate}
+                                   onChange={(e) => setStartDate(e.target.value)}
+                                   style={{ width: '120px' }}
+                              />
+                         </div>
+                         <div>
+                              <input
+                                   type="date"
+                                   className="form-control form-control-sm"
+                                   value={endDate}
+                                   onChange={(e) => setEndDate(e.target.value)}
+                                   min={startDate}
+                                   style={{ width: '120px' }}
+                              />
+                         </div>
+                         <Button variant="outline-primary" size="sm" onClick={applyFilter} disabled={filtering}>
+                              {filtering ? 'Filtering...' : 'Filter'}
+                         </Button>
+                    </div>
                </div>
 
-               <PrimeTable
-                    data={data}
-                    column={columns}
-                    serverSideFiltering={true}
-                    filtering={true}
-                    handleSeverSideProcessing={handleServerSideProcessing}
-               />
+               {/* Mobile Card View */}
+               <div className="d-block d-md-none">
+                    {data.map((record) => (
+                         <Card key={record.id} className="mb-2" style={{ fontSize: '0.9rem' }}>
+                              <Card.Body className="py-2 px-3">
+                                   <div className="d-flex justify-content-between align-items-start">
+                                        <div className="flex-grow-1">
+                                             <div className="fw-bold text-primary small">{record.test_name}</div>
+                                             <div className="text-muted small text-capitalize">{record.recipient_name}</div>
+                                             <div className="mt-1">
+                                                  <div className="d-flex justify-content-between">
+                                                       <span className="small">Paid: {currencyFormatter.format(Number(record.paidamount))}</span>
+                                                       <span className="small">Comm: {record.commission_percentage}%</span>
+                                                  </div>
+                                                  <div className="small fw-bold">Commission Due: {currencyFormatter.format(Number(record.commission_due))}</div>
+                                             </div>
+                                        </div>
+                                        <Button
+                                             variant="outline-primary"
+                                             size="sm"
+                                             onClick={() => openUpdateModal(record)}
+                                             title="Update Commission"
+                                        >
+                                             <RiEditLine size={16} />
+                                             Edit
+                                        </Button>
+                                   </div>
+                              </Card.Body>
+                         </Card>
+                    ))}
+               </div>
 
-               {/* Update Modal */}
+               {/* Table View */}
+               <div className="d-none d-md-block">
+                    <PrimeTable
+                         data={data}
+                         column={columns}
+                         serverSideFiltering={true}
+                         urlparams={filtering}
+                         filtering={true}
+                         handleSeverSideProcessing={handleServerSideProcessing}
+                    />
+               </div>
+
                <Modal show={showModal} onHide={() => setShowModal(false)}>
                     <Modal.Header closeButton>
                          <Modal.Title>Update Commission Rate</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                          {selectedRecord && (
-                              <div>
-                                   <p><strong>Recipient:</strong> {selectedRecord.recipient_name} ({selectedRecord.type})</p>
-                                   <p><strong>Service:</strong> {selectedRecord.test_name}</p>
+                              <div className="small">
+                                   <p className='text-capitalize'><strong>Recipient:</strong> {selectedRecord.recipient_name} ({selectedRecord.type})</p>
+                                   <p className='text-capitalize'><strong>Service:</strong> {selectedRecord.test_name}</p>
                                    <Form.Group className="mb-3">
                                         <Form.Label>New Commission Rate (%)</Form.Label>
                                         <Form.Control
@@ -149,6 +241,7 @@ export default function CommissionUpdatePage() {
                                              min="0"
                                              max="100"
                                              step="0.1"
+                                             size="sm"
                                         />
                                    </Form.Group>
                               </div>
