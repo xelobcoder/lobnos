@@ -5,11 +5,11 @@ import ClinicianAuthenticationView from '../../../components/Clinicians/Clinicia
 
 export default function Clinicians() {
 	return (
-		<div className="d-flex col-12" >
-			<div className="col-3">
+		<div className="d-flex flex-column flex-md-row col-12" >
+			<div className="col-12 col-md-3">
 				<ImageUploadClinician />
 			</div>
-			<div  className="col-9 mx-2">
+			<div className="col-12 col-md-9 mx-md-2  mt-md-0 mt-sm-4">
 				<BasicInformationClinician />
 			</div>
 		</div>

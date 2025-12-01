@@ -152,7 +152,7 @@ export default function CheckEntityStrategyPage() {
                 const checkResponse = await customFetch(`billing/strategies/${entitytype}/${entityid}/has-strategy`);
                 if (checkResponse && !checkResponse.hasStrategy) setHasStrategy(false);
 
-                if (checkResponse && checkResponse.hasStrategy) router.push(`/billing/billing-strategy/details/${checkResponse.strategyId}`);
+                if (checkResponse && checkResponse.hasStrategy && checkResponse.strategyId) router.push(`/billing/billing-strategy/details/${checkResponse.strategyId}`);
                 const allStrategiesResponse = await customFetch(`billing/strategies/all?entitytype=${entitytype}&entityid=${entityid}`);
 
                 if (allStrategiesResponse && Array.isArray(allStrategiesResponse.strategies)) setStrategies(allStrategiesResponse.strategies);
@@ -198,6 +198,7 @@ export default function CheckEntityStrategyPage() {
             setError(null);
             const response: { result: boolean, message: string } = await customPost(fullEndpoint, 'POST', queryParams);
             const { result, message } = response;
+            console.log('Apply Strategy Response:', response);
             if (result) {
                 toast.success(message || "Strategy applied successfully!. You will be redirected to the strategy details page.");
                 router.push(`/billing/billing-strategy/details/${selectedStrategy.strategyid}`);

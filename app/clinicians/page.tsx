@@ -11,12 +11,13 @@ import { Button, Dropdown, Modal } from "react-bootstrap";
 import PrimeTable from "../../components/accessories/Datatables/PrimeTable";
 import Link from "next/link";
 import { useApplication } from "../../components/Auth/useApplicationContext";
+import BasicInformationClinician from "../../components/Clinicians/BasicInformationClinician";
 
 
 const ActionButtons = ({ original, onEdit, onView, onDelete }) => {
     return (
         <Dropdown>
-            <Dropdown.Toggle variant="light" id={`dropdown-${original.id}`} style={{ zIndex: 9999, height: 'auto' }}>
+            <Dropdown.Toggle variant="outline-secondary" id={`dropdown-${original.id}`} style={{ zIndex: 9999, height: 'auto' }} size="sm">
                 <RiMoreFill size={24} />
             </Dropdown.Toggle>
             <Dropdown.Menu className="m-0 p-0 bg-white">
@@ -100,7 +101,7 @@ const FinancialInfoModal = ({ show, onHide, data }) => (
             ) : <div>No data</div>}
         </Modal.Body>
         <Modal.Footer>
-            <Button variant="secondary" onClick={onHide}>Close</Button>
+            <Button variant="outline-secondary" onClick={onHide} size="sm">Close</Button>
         </Modal.Footer>
     </Modal>
 );
@@ -121,6 +122,7 @@ export default function ClinicianList() {
     };
     const [excelPreview, setExcelPreview] = useState<ExcelPreview | null>(null);
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
+    const [showAddModal, setShowAddModal] = useState(false);
 
     const role = useApplication().user.role;
     const isAdmin = role === 'admin' || role === 'superadmin';
@@ -368,7 +370,7 @@ export default function ClinicianList() {
             Cell: ({ row }) => (
                 <Button
                     size="sm"
-                    variant="info"
+                    variant="outline-info"
                     onClick={() => handleShowFinancialModal(row.original)}
                     className="d-flex align-items-center gap-1 px-2"
                 >
@@ -428,25 +430,19 @@ export default function ClinicianList() {
         <>
             <div className="container-fluid">
                 {loading ? (
-                    <div className="card shadow-sm border-0 rounded-3">
-                        <div className="card-body p-5 text-center">
-                            <div className="spinner-border text-primary mb-3" role="status">
-                                <span className="visually-hidden">Loading...</span>
-                            </div>
-                            <h6 className="text-muted">Loading clinician data...</h6>
+                    <div className="p-5 text-center">
+                        <div className="spinner-border text-primary mb-3" role="status">
+                            <span className="visually-hidden">Loading...</span>
                         </div>
+                        <h6 className="text-muted">Loading clinician data...</h6>
                     </div>
                 ) : (
-                    <div className="card shadow-sm border-0 rounded-3 overflow-hidden">
-                        <div className="card-header bg-gradient-primary text-white border-0 py-3">
+                    <div>
+                        <div className="bg-gradient-primary text-white py-3">
                             <div className="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5 className="mb-1 fw-semibold">Registered Clinicians</h5>
-                                    <small className="opacity-75">Manage and view all registered healthcare professionals</small>
-                                </div>
                                 <div className="d-flex gap-2">
                                     <Button
-                                        variant="primary"
+                                        variant="outline-primary"
                                         size="sm"
                                         onClick={handleExcelImport}
                                         className="d-flex align-items-center gap-2 fw-semibold"
@@ -455,9 +451,9 @@ export default function ClinicianList() {
                                         Import Excel
                                     </Button>
                                     <Button
-                                        variant="success"
+                                        variant="outline-success"
                                         size="sm"
-                                        onClick={() => router.push("/clinicians/add-new")}
+                                        onClick={() => setShowAddModal(true)}
                                         className="d-flex align-items-center gap-2 fw-semibold"
                                     >
                                         <RiAddLine size={18} />
@@ -466,7 +462,7 @@ export default function ClinicianList() {
                                 </div>
                             </div>
                         </div>
-                        <div className="card-body p-0">
+                        <div className="p-0">
                             <div className="table-responsive">
                                 <PrimeTable
                                     column={columns}
@@ -481,6 +477,17 @@ export default function ClinicianList() {
                                 onHide={() => setShowFinancialModal(false)}
                                 data={financialModalData}
                             />
+                            <Modal show={showAddModal} onHide={() => setShowAddModal(false)} backdrop="static" keyboard={false} size="lg">
+                                <Modal.Header closeButton>
+                                    <Modal.Title className="d-flex align-items-center gap-2">
+                                        <RiAddLine size={20} />
+                                        Add New Clinician
+                                    </Modal.Title>
+                                </Modal.Header>
+                                <Modal.Body>
+                                    <BasicInformationClinician />
+                                </Modal.Body>
+                            </Modal>
 
                             <Modal show={showExcelModal} onHide={() => setShowExcelModal(false)} backdrop="static" keyboard={false} fullscreen>
                                 <Modal.Header closeButton>
@@ -600,7 +607,7 @@ export default function ClinicianList() {
                                 </Modal.Body>
                                 <Modal.Footer>
                                     <Button
-                                        variant="secondary"
+                                        variant="outline-secondary"
                                         onClick={() => {
                                             if (excelPreview) {
                                                 setExcelPreview(null);
@@ -610,14 +617,16 @@ export default function ClinicianList() {
                                             }
                                         }}
                                         disabled={uploading}
+                                        size="sm"
                                     >
                                         {excelPreview ? "Back" : "Cancel"}
                                     </Button>
                                     {!excelPreview ? (
                                         <Button
-                                            variant="primary"
+                                            variant="outline-primary"
                                             onClick={handleExcelUpload}
                                             disabled={!excelFile || uploading}
+                                            size="sm"
                                         >
                                             {uploading ? (
                                                 <>
@@ -633,9 +642,10 @@ export default function ClinicianList() {
                                         </Button>
                                     ) : (
                                         <Button
-                                            variant="primary"
+                                            variant="outline-primary"
                                             onClick={handleConfirmImport}
                                             disabled={uploading}
+                                            size="sm"
                                         >
                                             {uploading ? (
                                                 <>

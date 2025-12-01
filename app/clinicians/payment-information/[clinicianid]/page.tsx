@@ -1,5 +1,5 @@
 "use client"
-import {useEffect, useState, useCallback} from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,7 +14,7 @@ import {
     RiStackLine,
     RiSettingsLine
 } from '@remixicon/react';
-import {useParams }from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { customFetch, customPost } from '../../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
 
@@ -33,8 +33,8 @@ const paymentSchema = z.object({
             required_error: "Commission is required",
             invalid_type_error: "Commission must be a number"
         })
-        .min(1, "Commission cannot be less than 1%")
-        .max(100, "Commission cannot exceed 100%")
+            .min(1, "Commission cannot be less than 1%")
+            .max(100, "Commission cannot exceed 100%")
     ),
     momo: z.string().optional(),
     account: z.string().optional(),
@@ -42,73 +42,73 @@ const paymentSchema = z.object({
     branch: z.string().optional(),
     accountName: z.string().optional(),
 })
-.superRefine((data, ctx) => {
-  
-    if (data.module === 'mobile-money') {
-        if (!data.momo) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Mobile money number is required",
-                path: ["momo"]
-            });
-        } else if (!/^\d{10}$/.test(data.momo)) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Mobile money number must be 10 digits",
-                path: ["momo"]
-            });
-        }
-    }
+    .superRefine((data, ctx) => {
 
-    // Bank details validation
-    if (data.module === 'credit-card') {
-        const requiredFields = {
-            account: "Bank account number is required",
-            bankName: "Bank name is required",
-            branch: "Bank branch is required",
-            accountName: "Account holder name is required"
-        };
-
-        Object.entries(requiredFields).forEach(([field, message]) => {
-            if (!data[field as keyof typeof data]) {
+        if (data.module === 'mobile-money') {
+            if (!data.momo) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
-                    message,
-                    path: [field]
+                    message: "Mobile money number is required",
+                    path: ["momo"]
+                });
+            } else if (!/^\d{10}$/.test(data.momo)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Mobile money number must be 10 digits",
+                    path: ["momo"]
                 });
             }
-        });
-
-        // Additional validation for account number if needed
-        if (data.account && !/^[0-9]{8,20}$/.test(data.account)) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Account number must be 8-20 digits",
-                path: ["account"]
-            });
         }
 
-        // Validate account name format
-        if (data.accountName && !/^[a-zA-Z\s]{3,}$/.test(data.accountName)) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Account name must be at least 3 letters",
-                path: ["accountName"]
+        // Bank details validation
+        if (data.module === 'credit-card') {
+            const requiredFields = {
+                account: "Bank account number is required",
+                bankName: "Bank name is required",
+                branch: "Bank branch is required",
+                accountName: "Account holder name is required"
+            };
+
+            Object.entries(requiredFields).forEach(([field, message]) => {
+                if (!data[field as keyof typeof data]) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message,
+                        path: [field]
+                    });
+                }
             });
+
+            // Additional validation for account number if needed
+            if (data.account && !/^[0-9]{8,20}$/.test(data.account)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Account number must be 8-20 digits",
+                    path: ["account"]
+                });
+            }
+
+            // Validate account name format
+            if (data.accountName && !/^[a-zA-Z\s]{3,}$/.test(data.accountName)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Account name must be at least 3 letters",
+                    path: ["accountName"]
+                });
+            }
         }
-    }
-});
+    });
 
 // Infer the TypeScript type from the schema
 type PaymentData = z.infer<typeof paymentSchema>;
 
 export default function PaymentModuleClinician() {
-    const { 
-        register, 
-        handleSubmit, 
-        watch, 
+    const {
+        register,
+        handleSubmit,
+        watch,
         reset,
-        formState: { errors, isSubmitting } 
+        formState: { errors, isSubmitting }
     } = useForm<PaymentData>({
         resolver: zodResolver(paymentSchema),
         defaultValues: {
@@ -122,7 +122,7 @@ export default function PaymentModuleClinician() {
         },
     });
     const [isLoading, setIsLoading] = useState(false);
-    const paymentModule = watch('module'); 
+    const paymentModule = watch('module');
     const clinicianid = useParams()?.clinicianid
 
     const onSubmit = async (data: PaymentData) => {
@@ -140,10 +140,10 @@ export default function PaymentModuleClinician() {
                 momoname: data.momo ? data.momo : undefined,
             };
 
-            const response = await customPost(`clinicians/payments/${clinicianid}`,'PUT', payload);
-            const {status } = response;
+            const response = await customPost(`clinicians/payments/${clinicianid}`, 'PUT', payload);
+            const { status } = response;
 
-            if (response && status ==  true ){
+            if (response && status == true) {
                 toast.success('Clincian Payment Information Updated Successuly')
             }
         } catch (error) {
@@ -160,14 +160,14 @@ export default function PaymentModuleClinician() {
             setIsLoading(true);
             const configuration = await customFetch(`clinicians/payments/${clinicianid}`);
             if (configuration) {
-                const { module, commission, momo, account, bankname, bankbranch, accountname ,clinicianid,accountnumber} = configuration;
+                const { module, commission, momo, account, bankname, bankbranch, accountname, clinicianid, accountnumber } = configuration;
                 // Set default values based on the fetched configuration
                 reset({
                     module: module || 'credit-card',
                     commission: commission || 0,
                     momo: momo || '',
                     bankName: bankname || '',
-                    branch: bankbranch|| '',
+                    branch: bankbranch || '',
                     accountName: accountname || '',
                     account: accountnumber || '',
                 });
@@ -184,10 +184,10 @@ export default function PaymentModuleClinician() {
 
     useEffect(() => {
         loadPreviousConfiguration();
-    },[loadPreviousConfiguration]);
+    }, [loadPreviousConfiguration]);
 
 
-    if(isLoading){
+    if (isLoading) {
         return (
             <div className="p-4 mx-3">
                 <h3 className="mb-5 fw-bold text-primary text-muted  fw-bold  bg-secondary-subtle p-3 br-5">
@@ -207,7 +207,7 @@ export default function PaymentModuleClinician() {
             <h3 className="mb-5 fw-bold text-primary text-muted  fw-bold  bg-secondary-subtle p-3 br-5">
                 <RiSettingsLine size={28} className="me-2" /> Payment Configuration
             </h3>
-            <hr/>
+            <hr />
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="mb-4">
                     <label htmlFor="payment-module-select" className="form-label fs-6 fw-medium">Payment Module</label>
@@ -216,7 +216,7 @@ export default function PaymentModuleClinician() {
                             <RiSecurePaymentLine size={24} />
                         </span>
                         <select
-                            className={`form-select ${errors.module ? 'is-invalid' : ''}`}
+                            className={`form-select form-control-sm ${errors.module ? 'is-invalid' : ''}`}
                             id="payment-module-select"
                             {...register('module')}
                             disabled={isSubmitting}
@@ -241,7 +241,7 @@ export default function PaymentModuleClinician() {
                         </span>
                         <input
                             type="number"
-                            className={`form-control ${errors.commission ? 'is-invalid' : ''}`}
+                            className={`form-control form-control-sm ${errors.commission ? 'is-invalid' : ''}`}
                             id="commission"
                             {...register('commission')}
                             min="0"
@@ -267,7 +267,7 @@ export default function PaymentModuleClinician() {
                             </span>
                             <input
                                 type="tel"
-                                className={`form-control ${errors.momo ? 'is-invalid' : ''}`}
+                                className={`form-control form-control-sm ${errors.momo ? 'is-invalid' : ''}`}
                                 id="momo"
                                 minLength={10}
                                 maxLength={10}
@@ -300,7 +300,7 @@ export default function PaymentModuleClinician() {
                                 </span>
                                 <input
                                     type="text"
-                                    className={`form-control ${errors.account ? 'is-invalid' : ''}`}
+                                    className={`form-control form-control-sm ${errors.account ? 'is-invalid' : ''}`}
                                     id="account"
                                     {...register('account')}
                                     pattern="\d{8,20}"
@@ -324,7 +324,7 @@ export default function PaymentModuleClinician() {
                                 </span>
                                 <input
                                     type="text"
-                                    className={`form-control ${errors.bankName ? 'is-invalid' : ''}`}
+                                    className={`form-control form-control-sm ${errors.bankName ? 'is-invalid' : ''}`}
                                     id="bankName"
                                     {...register('bankName')}
                                     placeholder="e.g., Equity Bank"
@@ -341,11 +341,11 @@ export default function PaymentModuleClinician() {
                             <label htmlFor="branch" className="form-label fs-6 fw-medium">Bank Branch</label>
                             <div className="input-group">
                                 <span className="input-group-text bg-white border-end-0 text-secondary">
-                                    <RiStackLine size={24}/>
+                                    <RiStackLine size={24} />
                                 </span>
                                 <input
                                     type="text"
-                                    className={`form-control ${errors.branch ? 'is-invalid' : ''}`}
+                                    className={`form-control form-control-sm ${errors.branch ? 'is-invalid' : ''}`}
                                     id="branch"
                                     {...register('branch')}
                                     placeholder="e.g., Main Street Branch"
@@ -366,7 +366,7 @@ export default function PaymentModuleClinician() {
                                 </span>
                                 <input
                                     type="text"
-                                    className={`form-control ${errors.accountName ? 'is-invalid' : ''}`}
+                                    className={`form-control form-control-sm ${errors.accountName ? 'is-invalid' : ''}`}
                                     id="accountName"
                                     {...register('accountName')}
                                     placeholder="As it appears on the account"

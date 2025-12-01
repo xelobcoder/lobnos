@@ -522,10 +522,6 @@ export default function StockConsumptionPage() {
                               <RiFilterLine className="me-1" />
                               Filters
                          </button>
-                         <button className="btn btn-outline-primary btn-sm">
-                              <RiDownloadLine className="me-1" />
-                              Export Records
-                         </button>
                          <button
                               className="btn btn-primary btn-sm"
                               onClick={() => setShowConsumptionModal(true)}

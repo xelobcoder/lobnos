@@ -297,7 +297,7 @@ export default function PrimeTable({
 							</td>
 							<td colSpan={column.length - 1}>
 								<div className={style.paginationContainer}>
-									{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, "Next", "Previous"].map(
+									{[1, 2, 3, 4, "Next", "Previous"].map(
 										(item, index) => {
 											const isActive = queryParams.page === item;
 											const isNav = typeof item === "string";

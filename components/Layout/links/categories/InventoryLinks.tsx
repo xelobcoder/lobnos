@@ -87,11 +87,6 @@ export const InventoryLinks: Link[] = [
           icon: <RiTestTubeLine />
      },
      {
-          title: "Transactions",
-          link: "/inventory/transactions",
-          icon: <RiHistoryLine />
-     },
-     {
           title: "Stock Consumption",
           link: "/inventory/consumption",
           icon: <RiSubtractLine />

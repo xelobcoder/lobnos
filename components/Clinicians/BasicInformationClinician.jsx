@@ -4,7 +4,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { customFetch, customPost } from "../../components/Auth/customFetch";
 import Loader from "../accessories/Loader";
-import { Button, Form, Col, Row, Card, Spinner, Container, Alert } from "react-bootstrap";
+import { Button, Form, Col, Row, Spinner, Container, Alert } from "react-bootstrap";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
@@ -62,17 +62,17 @@ export default function BasicInformationClinician() {
 					...clinicianData,
 					organization: clinicianData.organization || 0,
 					email: clinicianData.email || "",
-                    location: clinicianData.location || "",
-                    address: clinicianData.address || "",
-                    occupation: clinicianData.occupation || "",
+					location: clinicianData.location || "",
+					address: clinicianData.address || "",
+					occupation: clinicianData.occupation || "",
 				});
 			} else {
 				toast.error("Clinician data not found. You might be redirected.", { position: toast.POSITION.TOP_CENTER });
-                setFormError("Failed to load clinician data. The record may not exist.");
+				setFormError("Failed to load clinician data. The record may not exist.");
 			}
 		} catch (err) {
 			toast.error(err?.message || "Failed to fetch clinician data.", { position: toast.POSITION.TOP_CENTER });
-            setFormError(err?.message || "An error occurred while fetching clinician data.");
+			setFormError(err?.message || "An error occurred while fetching clinician data.");
 		} finally {
 			setIsLoadingData(false);
 		}
@@ -85,12 +85,12 @@ export default function BasicInformationClinician() {
 			if (!isNaN(parsedId)) {
 				fetchClinicianData(parsedId);
 			} else {
-                toast.error("Invalid Clinician ID in URL.", { position: toast.POSITION.TOP_CENTER });
-                router.push("/clinicians"); 
-            }
+				toast.error("Invalid Clinician ID in URL.", { position: toast.POSITION.TOP_CENTER });
+				router.push("/clinicians");
+			}
 		} else {
-            resetForm(defaultData());
-        }
+			resetForm(defaultData());
+		}
 	}, [searchParams, fetchClinicianData, resetForm, defaultData, router]);
 
 	useEffect(() => {
@@ -123,10 +123,10 @@ export default function BasicInformationClinician() {
 				...formData,
 				id: clinicianId ? parseInt(clinicianId) : undefined,
 				organization: formData.organization && formData.organization !== 0 ? formData.organization : null,
-                email: formData.email || null,
-                location: formData.location || null,
-                address: formData.address || null,
-                occupation: formData.occupation || null,
+				email: formData.email || null,
+				location: formData.location || null,
+				address: formData.address || null,
+				occupation: formData.occupation || null,
 			};
 
 			const method = clinicianId ? 'PUT' : 'POST';
@@ -136,30 +136,30 @@ export default function BasicInformationClinician() {
 			if (statusCode === 200 && status === "success") {
 				toast.success(message || (clinicianId ? "Clinician updated successfully!" : "Clinician added successfully!"), { position: toast.POSITION.TOP_CENTER });
 				if (!clinicianId && result?.id) {
-                    router.push(`/clinicians/edit?clinicianid=${result.id}`);
+					router.push(`/clinicians/edit?clinicianid=${result.id}`);
 				} else if (clinicianId) {
-                    fetchClinicianData(parseInt(clinicianId));
-                } else {
-                    resetForm(defaultData());
-                }
+					fetchClinicianData(parseInt(clinicianId));
+				} else {
+					resetForm(defaultData());
+				}
 			} else {
 				toast.error(message || "An unexpected error occurred.", { position: toast.POSITION.TOP_CENTER });
-                setFormError(message || "Submission failed due to a server error.");
+				setFormError(message || "Submission failed due to a server error.");
 			}
 		} catch (error) {
 			toast.error(error?.message || "Submission failed, please try again.", { position: toast.POSITION.TOP_CENTER });
-            setFormError(error?.message || "An unexpected client-side error occurred.");
+			setFormError(error?.message || "An unexpected client-side error occurred.");
 		}
 	};
 
-    const handleReset = () => {
-        if (clinicianId) {
-            fetchClinicianData(parseInt(clinicianId));
-        } else {
-            resetForm(defaultData());
-        }
-        setFormError("");
-    };
+	const handleReset = () => {
+		if (clinicianId) {
+			fetchClinicianData(parseInt(clinicianId));
+		} else {
+			resetForm(defaultData());
+		}
+		setFormError("");
+	};
 
 	if (isLoadingData && !isSubmitting) {
 		return (
@@ -171,20 +171,19 @@ export default function BasicInformationClinician() {
 
 	return (
 		<React.Fragment>
-				<div className="border br-5 py-2 mb-2 px-2 ">
-					<div className="d-flex align-items-center">
-						<RiUser2Fill className="me-2" size={20} />
-						<h5 className="mb-0">{clinicianId ? "Edit Clinician Details" : "Register New Clinician"}</h5>
-					</div>
-				</div>
-			<div className="border br-5 ">
-					<div className="p-4">
-						{formError && <Alert variant="danger">{formError}</Alert>}
-						<Form onSubmit={handleSubmit(onSubmit)} noValidate>
-							<fieldset disabled={isSubmitting}>
-								<Row className="mb-4">
-									<Form.Group as={Col} md={6} controlId="formName">
-										<Form.Label className="fw-semibold">Clinician Name <span className="text-danger">*</span></Form.Label>
+			<div style={{ border: '1px solid #dee2e6', borderRadius: '0.5rem', padding: '1.5rem', background: '#fff' }}>
+				<h4 className="mb-2" style={{ fontSize: '1.25rem', fontWeight: 500 }}>{clinicianId ? "Edit Clinician Details" : "Register New Clinician"}</h4>
+				<hr className="mb-4" />
+				{formError && <Alert variant="danger">{formError}</Alert>}
+				<Form onSubmit={handleSubmit(onSubmit)} noValidate>
+					<fieldset disabled={isSubmitting}>
+						<Row>
+							<Col xs={12} md={12}>
+								<Form.Group className="d-flex flex-column flex-md-row align-items-start align-items-md-center mb-3">
+									<Form.Label className="mb-1 clinician-label" style={{ fontSize: '0.92rem', fontWeight: 400, color: '#444', letterSpacing: '0.01em', minWidth: 120 }}>
+										Clinician Name <span className="text-danger">*</span>:
+									</Form.Label>
+									<div className="flex-grow-1 w-100">
 										<Controller
 											name="name"
 											control={control}
@@ -194,16 +193,25 @@ export default function BasicInformationClinician() {
 													placeholder="e.g., Dr. Jane Doe"
 													{...field}
 													isInvalid={!!errors.name}
+													className="form-control-sm w-100"
 												/>
 											)}
 										/>
 										<Form.Control.Feedback type="invalid">
 											{errors.name?.message}
 										</Form.Control.Feedback>
-									</Form.Group>
+									</div>
+								</Form.Group>
+							</Col>
+						</Row>
 
-									<Form.Group as={Col} md={6} controlId="formPhone">
-										<Form.Label className="fw-semibold">Phone Number <span className="text-danger">*</span></Form.Label>
+						<Row>
+							<Col xs={12} md={12}>
+								<Form.Group className="d-flex flex-column flex-md-row align-items-start align-items-md-center mb-3">
+									<Form.Label className="mb-1 clinician-label" style={{ fontSize: '0.92rem', fontWeight: 400, color: '#444', letterSpacing: '0.01em', minWidth: 120 }}>
+										Phone Number <span className="text-danger">*</span>:
+									</Form.Label>
+									<div className="flex-grow-1 w-100">
 										<Controller
 											name="phone"
 											control={control}
@@ -213,18 +221,27 @@ export default function BasicInformationClinician() {
 													placeholder="e.g., 1234567890"
 													{...field}
 													isInvalid={!!errors.phone}
+													className="form-control-sm w-100"
+													minLength={10}
+													maxLength={10}
 												/>
 											)}
 										/>
 										<Form.Control.Feedback type="invalid">
 											{errors.phone?.message}
 										</Form.Control.Feedback>
-									</Form.Group>
-								</Row>
+									</div>
+								</Form.Group>
+							</Col>
+						</Row>
 
-								<Row className="mb-4">
-									<Form.Group as={Col} md={6} controlId="formEmail">
-										<Form.Label className="fw-semibold">Email Address (Optional)</Form.Label>
+						<Row>
+							<Col xs={12} md={12}>
+								<Form.Group className="d-flex flex-column flex-md-row align-items-start align-items-md-center mb-3">
+									<Form.Label className="mb-1 clinician-label" style={{ fontSize: '0.92rem', fontWeight: 400, color: '#444', letterSpacing: '0.01em', minWidth: 120 }}>
+										Email Address:
+									</Form.Label>
+									<div className="flex-grow-1 w-100">
 										<Controller
 											name="email"
 											control={control}
@@ -235,16 +252,25 @@ export default function BasicInformationClinician() {
 													{...field}
 													value={field.value || ''}
 													isInvalid={!!errors.email}
+													className="form-control-sm w-100"
 												/>
 											)}
 										/>
 										<Form.Control.Feedback type="invalid">
 											{errors.email?.message}
 										</Form.Control.Feedback>
-									</Form.Group>
+									</div>
+								</Form.Group>
+							</Col>
+						</Row>
 
-									<Form.Group as={Col} md={6} controlId="formOccupation">
-										<Form.Label className="fw-semibold">Occupation (Optional)</Form.Label>
+						<Row>
+							<Col xs={12} md={12}>
+								<Form.Group className="d-flex flex-column flex-md-row align-items-start align-items-md-center mb-3">
+									<Form.Label className="mb-1 clinician-label" style={{ fontSize: '0.92rem', fontWeight: 400, color: '#444', letterSpacing: '0.01em', minWidth: 120 }}>
+										Occupation:
+									</Form.Label>
+									<div className="flex-grow-1 w-100">
 										<Controller
 											name="occupation"
 											control={control}
@@ -255,18 +281,25 @@ export default function BasicInformationClinician() {
 													{...field}
 													value={field.value || ''}
 													isInvalid={!!errors.occupation}
+													className="form-control-sm w-100"
 												/>
 											)}
 										/>
 										<Form.Control.Feedback type="invalid">
 											{errors.occupation?.message}
 										</Form.Control.Feedback>
-									</Form.Group>
-								</Row>
-								
-								<Row className="mb-4">
-									<Form.Group as={Col} md={6} controlId="formLocation">
-										<Form.Label className="fw-semibold">Primary Location (Optional)</Form.Label>
+									</div>
+								</Form.Group>
+							</Col>
+						</Row>
+
+						<Row>
+							<Col xs={12} md={12}>
+								<Form.Group className="d-flex flex-column flex-md-row align-items-start align-items-md-center mb-3">
+									<Form.Label className="mb-1 clinician-label" style={{ fontSize: '0.92rem', fontWeight: 400, color: '#444', letterSpacing: '0.01em', minWidth: 120 }}>
+										Primary Location:
+									</Form.Label>
+									<div className="flex-grow-1 w-100">
 										<Controller
 											name="location"
 											control={control}
@@ -277,15 +310,25 @@ export default function BasicInformationClinician() {
 													{...field}
 													value={field.value || ''}
 													isInvalid={!!errors.location}
+													className="form-control-sm w-100"
 												/>
 											)}
 										/>
 										<Form.Control.Feedback type="invalid">
 											{errors.location?.message}
 										</Form.Control.Feedback>
-									</Form.Group>
-                                    <Form.Group as={Col} md={6} controlId="formOrganization">
-										<Form.Label className="fw-semibold">Affiliated Organization (Optional)</Form.Label>
+									</div>
+								</Form.Group>
+							</Col>
+						</Row>
+
+						<Row>
+							<Col xs={12} md={12}>
+								<Form.Group className="d-flex flex-column flex-md-row align-items-start align-items-md-center mb-3">
+									<Form.Label className="mb-1 clinician-label" style={{ fontSize: '0.92rem', fontWeight: 400, color: '#444', letterSpacing: '0.01em', minWidth: 120 }}>
+										Affiliated Organization:
+									</Form.Label>
+									<div className="flex-grow-1 w-100">
 										<Controller
 											name="organization"
 											control={control}
@@ -294,7 +337,9 @@ export default function BasicInformationClinician() {
 													{...field}
 													value={field.value || 0}
 													isInvalid={!!errors.organization}
-                                                    disabled={organizationList.length === 0 && !isLoadingData}
+													disabled={organizationList.length === 0 && !isLoadingData}
+													className="form-control-sm w-100"
+													style={{ height: '28px' }}
 												>
 													<option value={0}>Select Organization...</option>
 													{organizationList.map((org) => (
@@ -305,15 +350,21 @@ export default function BasicInformationClinician() {
 												</Form.Select>
 											)}
 										/>
-                                        {organizationList.length === 0 && !isLoadingData && <Form.Text muted>No organizations available. Add one or contact support.</Form.Text>}
+										{organizationList.length === 0 && !isLoadingData && <Form.Text muted>No organizations available. Add one or contact support.</Form.Text>}
 										<Form.Control.Feedback type="invalid">
 											{errors.organization?.message}
 										</Form.Control.Feedback>
-									</Form.Group>
-								</Row>
+									</div>
+								</Form.Group>
+							</Col>
+						</Row>
 
-                                <Form.Group className="mb-4" controlId="formAddress">
-									<Form.Label className="fw-semibold">Full Address (Optional)</Form.Label>
+						<Form.Group className="mb-4">
+							<Form.Group className="d-flex flex-column flex-md-row align-items-start align-items-md-center mb-3">
+								<Form.Label className="mb-1 clinician-label" style={{ fontSize: '0.92rem', fontWeight: 400, color: '#444', letterSpacing: '0.01em', minWidth: 120 }}>
+									Full Address:
+								</Form.Label>
+								<div className="flex-grow-1 w-100">
 									<Controller
 										name="address"
 										control={control}
@@ -325,40 +376,37 @@ export default function BasicInformationClinician() {
 												{...field}
 												value={field.value || ''}
 												isInvalid={!!errors.address}
+												className="form-control-sm w-100"
 											/>
 										)}
 									/>
 									<Form.Control.Feedback type="invalid">
 										{errors.address?.message}
 									</Form.Control.Feedback>
-								</Form.Group>
+								</div>
+							</Form.Group>
+						</Form.Group>
 
-								<Row>
-									<Col xs={12} className="d-flex justify-content-end align-items-center gap-2 mt-3 pt-3 border-top">
-                                        <Button variant="outline-secondary" onClick={handleReset} disabled={isSubmitting || (!dirtyFields && !!clinicianId)} size="sm">
-                                            Reset
-                                        </Button>
-										<Button type="submit" variant="primary" className="px-4" disabled={isSubmitting || isLoadingData} size="sm">
-											{isSubmitting ? (
-												<>
-													<Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
-													{clinicianId ? "Updating..." : "Saving..."}
-												</>
-											) : (
-												clinicianId ? "Save Changes" : "Add Clinician"
-											)}
-										</Button>
-									</Col>
-								</Row>
-							</fieldset>
-						</Form>
-					</div>
-                    {clinicianId && (
-                        <div className="card-footer text-muted small py-2">
-                            Clinician ID: {clinicianId}
-                        </div>
-                    )}
-				</div>
+						<Row>
+							<Col xs={12} className="d-flex justify-content-end align-items-center gap-2 mt-3 pt-3 border-top">
+								<Button variant="outline-secondary" onClick={handleReset} disabled={isSubmitting || (!dirtyFields && !!clinicianId)} size="sm">
+									Reset
+								</Button>
+								<Button type="submit" variant="primary" className="px-4" disabled={isSubmitting || isLoadingData} size="sm">
+									{isSubmitting ? (
+										<>
+											<Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
+											{clinicianId ? "Updating..." : "Saving..."}
+										</>
+									) : (
+										clinicianId ? "Save Changes" : "Add Clinician"
+									)}
+								</Button>
+							</Col>
+						</Row>
+					</fieldset>
+				</Form>
+			</div>
 		</React.Fragment>
 	);
 }

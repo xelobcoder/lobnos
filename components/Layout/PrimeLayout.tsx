@@ -259,8 +259,6 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                         )}
                     </nav>
                 </aside>
-
-                {/* Second Column: Main Content */}
                 <main className={styles.mainContent}>
                     <div className={styles.contentWrapper}>
                         {children}

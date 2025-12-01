@@ -22,3 +22,13 @@
 .custom-input:required {
     border-color: #f00;
 }
+
+.clinician-label {
+    min-width: 200px;
+}
+
+@media (max-width: 576px) {
+    .clinician-label {
+        min-width: 150px;
+    }
+}
