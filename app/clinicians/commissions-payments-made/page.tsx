@@ -48,12 +48,12 @@ async function getPaidCommissions({ startDate, endDate, clinicianId, organizatio
 }
 
 
-export interface Clinician {
+export interface CommissionClinician {
      id: number;
      name: string;
 }
 
-export async function getClinicians(): Promise<Clinician[]> {
+async function getClinicians(): Promise<CommissionClinician[]> {
      const url = 'clinicians';
      const response = await customFetch(url);
      if (!response || !response.result) return [];
@@ -65,7 +65,7 @@ export interface Organization {
      name: string;
 }
 
-export async function getOrganizations(): Promise<Organization[]> {
+async function getOrganizations(): Promise<Organization[]> {
      const url = 'organizations/details';
      const response = await customFetch(url);
      if (!response || !response.result) return [];
@@ -81,11 +81,11 @@ export default function PaidCommissionsPaymentMadePage() {
      const [endDate, setEndDate] = useState(today);
      const [paidCommissions, setPaidCommissions] = useState<PaidCommissionData[]>([]);
      const [loading, setLoading] = useState(false);
-     const [error, setError] = useState<string | null>(null);
+     const [error, setError] = useState(null);
      const [chartView, setChartView] = useState<'bar' | 'line'>('bar');
      const [showChart, setShowChart] = useState(false);
      const [showChartModal, setShowChartModal] = useState(false);
-     const [clinicians, setClinicians] = useState<Clinician[]>([]);
+     const [clinicians, setClinicians] = useState<CommissionClinician[]>([]);
      const [selectedClinician, setSelectedClinician] = useState<number | null>(null);
      const [cliniciansLoading, setCliniciansLoading] = useState(false);
      const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -120,8 +120,10 @@ export default function PaidCommissionsPaymentMadePage() {
                     clinicianId: overrideClinician !== undefined ? overrideClinician || undefined : selectedClinician || undefined,
                     organizationId: overrideOrg !== undefined ? overrideOrg || undefined : selectedOrganization || undefined
                });
-               if ((res as any).error) {
-                    setError((res as any).error);
+
+               const { error } = res as any;
+               if (error) {
+                    setError(error);
                     setPaidCommissions([]);
                } else {
                     setPaidCommissions(res as PaidCommissionData[]);

@@ -11,13 +11,16 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
      const [isLoading, setIsLoading] = useState(true);
      const [isTemplateNull, setIsTemplateNull] = useState(false);
      const performed_by = useApplication()?.user.employeeid;
+     const [allConsumed, setAllConsumed] = useState(false);
 
      const getTemplates = async () => {
           try {
                setIsLoading(true);
-               const result = await fetchTestTemplate(selectedDoc.id);
+               const result = await fetchTestTemplate(selectedDoc.id, selectedDoc.ascensionid);
                setTemplateData(result);
                setTemplates(result.items || []);
+               const consumedStatus = result.items.every(item => item.is_consumed === true);
+               setAllConsumed(consumedStatus);
           } catch (error) {
                setIsTemplateNull(true);
           } finally {
@@ -69,13 +72,13 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                     return consumptionData;
                });
 
-               console.log('Consumption data to send:', consumptions);
+
 
                const consumptionData = { consumptions };
                const response = await customPost('inventory/transactions/consume/test', 'POST', consumptionData);
 
-               if (response.success) {
-                    toast.success(`Stock deduction applied successfully! ${templates.length} item(s) consumed.`);
+               if (response.success == true) {
+                    toast.success(response?.data?.message || `Stock deduction applied successfully`);
                     handleCloseModal();
                } else {
                     toast.error(`Failed to apply deduction: ${response.error?.message || 'Unknown error'}`);
@@ -92,8 +95,6 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
           getTemplates();
      }, []);
 
-
-     console.log('Fetched Templates:', templates);
 
 
      return (
@@ -113,9 +114,8 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                               <p className="mt-3 text-muted">Loading template data...</p>
                          </div>
                     ) : isTemplateNull ? (
-                         <div className="alert alert-warning m-4">
-                              <i className="bi bi-exclamation-triangle me-2"></i>
-                              <strong>No Template Found!</strong> No inventory template is configured for this test.
+                         <div className="alert alert-warning m-4 text-sm">
+                              No Template Found! No inventory template is configured for this test.
                          </div>
                     ) : templateData ? (
                          <>
@@ -190,6 +190,9 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                                                             <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid #dee2e6' }}>SKU</th>
                                                             <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid #dee2e6', textAlign: 'right' }}>Quantity</th>
                                                             <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid #dee2e6' }}>Unit</th>
+                                                            <th style={{ padding: '10px 12px', fontWeight: '600', borderBottom: '2px solid #dee2e6' }}>
+                                                                 consumed
+                                                            </th>
                                                        </tr>
                                                   </thead>
                                                   <tbody>
@@ -205,6 +208,7 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                                                                       {item.quantity}
                                                                  </td>
                                                                  <td style={{ padding: '10px 12px', color: '#6c757d' }}>{item.unit}</td>
+                                                                 <td style={{ padding: '10px 12px', color: '#6c757d' }}>{item.is_consumed == true ? 'Yes' : 'No'}</td>
                                                             </tr>
                                                        ))}
                                                   </tbody>
@@ -217,7 +221,9 @@ const DocumentModal = ({ selectedDoc, showModal, handleCloseModal }) => {
                </Modal.Body>
 
                <Modal.Footer>
-                    <button className="btn btn-outline-primary btn-sm me-2" onClick={handleApplyDeduction} disabled={isLoading}>
+                    <button
+                         disabled={allConsumed || isLoading || templates.length === 0}
+                         className="btn btn-outline-primary btn-sm me-2" onClick={handleApplyDeduction}>
                          {isLoading ? 'Applying...' : 'Apply Deduction'}
                     </button>
                     <button className="btn btn-outline-secondary btn-sm" onClick={handleCloseModal}>
