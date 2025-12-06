@@ -1,154 +1,135 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import {
-     RiAddLine,
-     RiEyeLine,
-     RiEditLine,
      RiPhoneLine,
      RiMailLine,
      RiCalendarLine,
      RiCheckLine,
      RiTimeLine,
-     RiUserLine,
-     RiMapPinLine,
-     RiCloseLine
+     RiUserLine
 } from '@remixicon/react';
-import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
+import { customFetch, customPost } from '../../../../components/Auth/customFetch';
+import { toast } from 'react-toastify';
 
-interface FollowUpLead {
-     id: string;
-     name: string;
-     contact_person: string;
-     contact_email: string;
-     contact_phone: string;
-     company_name: string;
-     location: string;
-     last_contact_date: string;
-     next_followup_date: string;
+interface FollowUpItem {
+     id: number;
+     lead_id: number;
      followup_type: string;
-     status: string;
-     priority: string;
+     followup_date: string;
      notes: string;
+     next_followup_date: string;
+     priority: string;
+     status: string;
+     created_by?: number;
+     created_at: string;
+     updated_at: string;
+     firstname?: string;
+     lastname?: string;
+     middlename?: string;
+     contact_person?: string;
+     contact_email?: string;
+     contact_phone?: string;
+     company_name?: string;
+     industry_type?: string;
+     lead_source?: string;
+     service_interest?: string;
+     location?: string;
+     assigned_to?: number;
+     created_by_username?: string;
+     lead_status?: string;
+     lead_priority?: string;
 }
 
 interface ScheduleFormData {
      followup_date: string;
      followup_type: string;
      priority: string;
+     status: string;
      notes: string;
 }
 
 export default function LeadsFollowUp() {
-     const [followUpLeads, setFollowUpLeads] = useState<FollowUpLead[]>([]);
+     const [followUps, setFollowUps] = useState<FollowUpItem[]>([]);
      const [loading, setLoading] = useState(true);
      const [searchTerm, setSearchTerm] = useState('');
-     const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
      const [showScheduleModal, setShowScheduleModal] = useState(false);
-     const [isBulkSchedule, setIsBulkSchedule] = useState(false);
-     const [currentLead, setCurrentLead] = useState<FollowUpLead | null>(null);
+     const [currentLead, setCurrentLead] = useState<FollowUpItem | null>(null);
+     const [currentPage, setCurrentPage] = useState(1);
+     const [itemsPerPage, setItemsPerPage] = useState(10);
+     const [totalRecords, setTotalRecords] = useState(0);
+     const [serverTotalPages, setServerTotalPages] = useState(1);
      const [scheduleForm, setScheduleForm] = useState<ScheduleFormData>({
           followup_date: '',
           followup_type: 'call',
           priority: 'medium',
+          status: 'scheduled',
           notes: ''
      });
 
-     // Sample data - in real app this would come from API
      useEffect(() => {
-          const sampleFollowUpLeads: FollowUpLead[] = [
-               {
-                    id: '1',
-                    name: 'John Smith',
-                    contact_person: 'John Smith',
-                    contact_email: 'john.smith@company.com',
-                    contact_phone: '+1-555-0123',
-                    company_name: 'Tech Solutions Inc',
-                    location: 'New York, NY',
-                    last_contact_date: '2025-10-15',
-                    next_followup_date: '2025-11-05',
-                    followup_type: 'call',
-                    status: 'pending',
-                    priority: 'high',
-                    notes: 'Interested in premium package, needs quote'
-               },
-               {
-                    id: '2',
-                    name: 'Sarah Johnson',
-                    contact_person: 'Sarah Johnson',
-                    contact_email: 'sarah.j@biotech.com',
-                    contact_phone: '+1-555-0456',
-                    company_name: 'BioTech Research',
-                    location: 'Boston, MA',
-                    last_contact_date: '2025-10-20',
-                    next_followup_date: '2025-11-03',
-                    followup_type: 'email',
-                    status: 'overdue',
-                    priority: 'medium',
-                    notes: 'Follow up on research collaboration proposal'
-               },
-               {
-                    id: '3',
-                    name: 'Mike Davis',
-                    contact_person: 'Mike Davis',
-                    contact_email: 'mike.davis@pharma.com',
-                    contact_phone: '+1-555-0789',
-                    company_name: 'Pharma Corp',
-                    location: 'San Francisco, CA',
-                    last_contact_date: '2025-10-25',
-                    next_followup_date: '2025-11-10',
-                    followup_type: 'meeting',
-                    status: 'scheduled',
-                    priority: 'high',
-                    notes: 'Demo scheduled for next week'
-               },
-               {
-                    id: '4',
-                    name: 'Lisa Chen',
-                    contact_person: 'Lisa Chen',
-                    contact_email: 'lisa.chen@medtech.com',
-                    contact_phone: '+1-555-0321',
-                    company_name: 'MedTech Solutions',
-                    location: 'Austin, TX',
-                    last_contact_date: '2025-10-18',
-                    next_followup_date: '2025-11-01',
-                    followup_type: 'call',
-                    status: 'pending',
-                    priority: 'medium',
-                    notes: 'Check on contract status'
+          const fetchFollowUps = async () => {
+               try {
+                    setLoading(true);
+                    const response = await customFetch(`followups?page=${currentPage}&count=${itemsPerPage}`);
+                    const { success, data, totalPages, total } = response;
+                    if (success && data && Array.isArray(data)) {
+                         setFollowUps(data);
+                         setTotalRecords(total || 0);
+                         setServerTotalPages(totalPages || 1);
+                    } else {
+                         setFollowUps([]);
+                         setTotalRecords(0);
+                         setServerTotalPages(1);
+                    }
+               } catch (error) {
+                    console.error('Error fetching follow-ups:', error);
+                    toast.error('Error fetching follow-ups');
+               } finally {
+                    setLoading(false);
                }
-          ];
+          };
 
-          setTimeout(() => {
-               setFollowUpLeads(sampleFollowUpLeads);
-               setLoading(false);
-          }, 1000);
-     }, []);
+          fetchFollowUps();
+     }, [currentPage]);
 
-     const filteredLeads = followUpLeads.filter(lead =>
-          lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lead.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lead.contact_email.toLowerCase().includes(searchTerm.toLowerCase())
+     const filteredLeads = followUps.filter(item =>
+          item.followup_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.priority.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.notes.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.lead_id.toString().includes(searchTerm) ||
+          item.id.toString().includes(searchTerm) ||
+          (item.firstname && item.firstname.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (item.lastname && item.lastname.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (item.contact_person && item.contact_person.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (item.contact_email && item.contact_email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (item.company_name && item.company_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (item.location && item.location.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (item.created_by_username && item.created_by_username.toLowerCase().includes(searchTerm.toLowerCase()))
      );
 
-     const getStatusBadge = (status: string) => {
-          const statusClasses = {
-               pending: 'badge bg-warning',
-               scheduled: 'badge bg-info',
-               completed: 'badge bg-success',
-               overdue: 'badge bg-danger',
-               cancelled: 'badge bg-secondary'
-          };
-          return statusClasses[status as keyof typeof statusClasses] || 'badge bg-secondary';
+     // Reset to page 1 when search changes
+     useEffect(() => {
+          setCurrentPage(1);
+     }, [searchTerm]);
+
+     // Use server-side pagination
+     const totalPages = serverTotalPages;
+     const paginatedLeads = followUps;
+
+     const handlePageChange = (page: number) => {
+          if (page < 1) {
+               setCurrentPage(serverTotalPages);
+          } else if (page > serverTotalPages) {
+               setCurrentPage(1);
+          } else {
+               setCurrentPage(page);
+          }
      };
 
-     const getPriorityBadge = (priority: string) => {
-          const priorityClasses = {
-               low: 'badge bg-light text-dark',
-               medium: 'badge bg-warning',
-               high: 'badge bg-danger',
-               urgent: 'badge bg-dark'
-          };
-          return priorityClasses[priority as keyof typeof priorityClasses] || 'badge bg-light text-dark';
+     const handleItemsPerPageChange = (value: number) => {
+          setItemsPerPage(value);
+          setCurrentPage(1);
      };
 
      const getFollowUpTypeIcon = (type: string) => {
@@ -170,246 +151,67 @@ export default function LeadsFollowUp() {
           return followupDate < today;
      };
 
-     const handleScheduleFollowUp = (lead: FollowUpLead) => {
+     const getRowClass = (status: string, priority: string) => {
+          // Status-based colors
+          if (status === 'completed' || status === 'qualified') return 'table-success';
+          if (status === 'pending' || status === 'scheduled') return 'table-info';
+          if (status === 'overdue' || status === 'cancelled') return 'table-secondary';
+
+          // Priority-based colors (if no status match)
+          if (priority === 'urgent') return 'table-danger';
+          if (priority === 'high') return 'table-warning';
+
+          return '';
+     };
+
+     const handleScheduleFollowUp = (lead: FollowUpItem) => {
           setCurrentLead(lead);
-          setIsBulkSchedule(false);
           setScheduleForm({
-               followup_date: '',
-               followup_type: 'call',
+               followup_date: new Date(lead.next_followup_date).toISOString().slice(0, 10) || '',
+               followup_type: lead.followup_type || 'call',
                priority: lead.priority,
+               status: lead.status || 'scheduled',
                notes: lead.notes || ''
           });
           setShowScheduleModal(true);
      };
 
-     const handleBulkSchedule = () => {
-          if (selectedLeads.length === 0) {
-               alert('Please select leads to schedule follow-ups for.');
-               return;
-          }
-          setCurrentLead(null);
-          setIsBulkSchedule(true);
-          setScheduleForm({
-               followup_date: '',
-               followup_type: 'call',
-               priority: 'medium',
-               notes: ''
-          });
-          setShowScheduleModal(true);
-     };
-
-     const handleScheduleSubmit = () => {
+     const handleScheduleSubmit = async () => {
           if (!scheduleForm.followup_date) {
-               alert('Please select a follow-up date.');
+               toast.error('Please select a follow-up date.');
                return;
           }
 
-          const today = new Date().toISOString().split('T')[0];
-          const updatedLeads = followUpLeads.map(lead => {
-               if (isBulkSchedule) {
-                    // Bulk schedule - update selected leads
-                    if (selectedLeads.includes(lead.id)) {
-                         return {
-                              ...lead,
-                              next_followup_date: scheduleForm.followup_date,
-                              followup_type: scheduleForm.followup_type,
-                              priority: scheduleForm.priority,
-                              status: 'scheduled',
-                              notes: scheduleForm.notes || lead.notes,
-                              last_contact_date: today
-                         };
+          if (!currentLead) return;
+
+          try {
+               const updateData = {
+                    ...currentLead,
+                    next_followup_date: scheduleForm.followup_date,
+                    followup_type: scheduleForm.followup_type,
+                    priority: scheduleForm.priority,
+                    status: scheduleForm.status,
+                    notes: scheduleForm.notes || currentLead.notes
+               };
+
+               const result = await customPost(`followups/${currentLead.id}`, 'PUT', updateData);
+
+               if (result.success) {
+                    toast.success('Follow-up updated successfully!');
+                    const fetchResponse = await customFetch('followups');
+                    if (fetchResponse.success && fetchResponse.data) {
+                         setFollowUps(fetchResponse.data);
                     }
+                    setShowScheduleModal(false);
+                    setCurrentLead(null);
                } else {
-                    // Single lead schedule
-                    if (lead.id === currentLead?.id) {
-                         return {
-                              ...lead,
-                              next_followup_date: scheduleForm.followup_date,
-                              followup_type: scheduleForm.followup_type,
-                              priority: scheduleForm.priority,
-                              status: 'scheduled',
-                              notes: scheduleForm.notes || lead.notes,
-                              last_contact_date: today
-                         };
-                    }
+                    toast.error(result.message || 'Failed to update follow-up');
                }
-               return lead;
-          });
-
-          setFollowUpLeads(updatedLeads);
-          setShowScheduleModal(false);
-          setSelectedLeads([]);
-          setCurrentLead(null);
-          alert(isBulkSchedule ? 'Follow-ups scheduled successfully!' : 'Follow-up scheduled successfully!');
-     };
-
-     const handleMarkCompleted = () => {
-          if (selectedLeads.length === 0) {
-               alert('Please select leads to mark as completed.');
-               return;
-          }
-
-          const today = new Date().toISOString().split('T')[0];
-          const updatedLeads = followUpLeads.map(lead => {
-               if (selectedLeads.includes(lead.id)) {
-                    return {
-                         ...lead,
-                         status: 'completed',
-                         last_contact_date: today
-                    };
-               }
-               return lead;
-          });
-
-          setFollowUpLeads(updatedLeads);
-          setSelectedLeads([]);
-          alert('Selected follow-ups marked as completed!');
-     };
-
-     const handleLeadSelection = (leadId: string, checked: boolean) => {
-          if (checked) {
-               setSelectedLeads(prev => [...prev, leadId]);
-          } else {
-               setSelectedLeads(prev => prev.filter(id => id !== leadId));
+          } catch (error) {
+               console.error('Error updating follow-up:', error);
+               toast.error('Error updating follow-up');
           }
      };
-
-     const columns = [
-          {
-               Header: 'Select',
-               accessor: 'select',
-               Cell: ({ row }: any) => (
-                    <input
-                         type="checkbox"
-                         className="form-check-input"
-                         checked={selectedLeads.includes(row.original.id)}
-                         onChange={(e) => handleLeadSelection(row.original.id, e.target.checked)}
-                    />
-               ),
-               disableSortBy: true,
-               width: 50
-          },
-          {
-               Header: 'Lead Info',
-               accessor: 'lead_info',
-               Cell: ({ row }: any) => (
-                    <div className="d-flex flex-column">
-                         <strong className="text-dark">{row.original.name}</strong>
-                         <small className="text-muted d-flex align-items-center">
-                              <RiMailLine size={12} className="me-1" />
-                              {row.original.contact_email}
-                         </small>
-                         <small className="text-muted d-flex align-items-center">
-                              <RiPhoneLine size={12} className="me-1" />
-                              {row.original.contact_phone}
-                         </small>
-                    </div>
-               )
-          },
-          {
-               Header: 'Company',
-               accessor: 'company',
-               Cell: ({ row }: any) => (
-                    <div className="d-flex flex-column">
-                         <strong>{row.original.company_name}</strong>
-                         <small className="text-muted d-flex align-items-center">
-                              <RiMapPinLine size={12} className="me-1" />
-                              {row.original.location}
-                         </small>
-                    </div>
-               )
-          },
-          {
-               Header: 'Last Contact',
-               accessor: 'last_contact_date',
-               Cell: ({ value }: any) => (
-                    <small className="text-muted">
-                         {new Date(value).toLocaleDateString()}
-                    </small>
-               )
-          },
-          {
-               Header: 'Next Follow-up',
-               accessor: 'next_followup_date',
-               Cell: ({ value, row }: any) => {
-                    const overdue = isOverdue(value);
-                    return (
-                         <div className="d-flex flex-column">
-                              <span className={overdue ? 'text-danger fw-medium' : ''}>
-                                   {new Date(value).toLocaleDateString()}
-                              </span>
-                              {overdue && (
-                                   <small className="text-danger">Overdue</small>
-                              )}
-                         </div>
-                    );
-               }
-          },
-          {
-               Header: 'Type',
-               accessor: 'followup_type',
-               Cell: ({ value }: any) => (
-                    <div className="d-flex align-items-center">
-                         {getFollowUpTypeIcon(value)}
-                         <span className="ms-1 text-capitalize">{value}</span>
-                    </div>
-               )
-          },
-          {
-               Header: 'Status',
-               accessor: 'status',
-               Cell: ({ value }: any) => (
-                    <span className={`badge ${getStatusBadge(value)}`}>
-                         {value}
-                    </span>
-               )
-          },
-          {
-               Header: 'Priority',
-               accessor: 'priority',
-               Cell: ({ value }: any) => (
-                    <span className={`badge ${getPriorityBadge(value)}`}>
-                         {value}
-                    </span>
-               )
-          },
-          {
-               Header: 'Actions',
-               accessor: 'actions',
-               Cell: ({ row }: any) => (
-                    <div className="btn-group btn-group-sm">
-                         <button
-                              className="btn btn-outline-success btn-sm"
-                              title="Mark Complete"
-                              onClick={() => {
-                                   const today = new Date().toISOString().split('T')[0];
-                                   const updatedLeads = followUpLeads.map(lead =>
-                                        lead.id === row.original.id
-                                             ? { ...lead, status: 'completed', last_contact_date: today }
-                                             : lead
-                                   );
-                                   setFollowUpLeads(updatedLeads);
-                              }}
-                         >
-                              <RiCheckLine size={14} />
-                         </button>
-                         <button
-                              className="btn btn-outline-primary btn-sm"
-                              title="Schedule Follow-up"
-                              onClick={() => handleScheduleFollowUp(row.original)}
-                         >
-                              <RiCalendarLine size={14} />
-                         </button>
-                         <button className="btn btn-outline-secondary btn-sm" title="View Details">
-                              <RiEyeLine size={14} />
-                         </button>
-                         <button className="btn btn-outline-info btn-sm" title="Contact">
-                              <RiPhoneLine size={14} />
-                         </button>
-                    </div>
-               )
-          }
-     ];
 
      if (loading) {
           return (
@@ -424,20 +226,21 @@ export default function LeadsFollowUp() {
           );
      }
 
-     const overdueCount = followUpLeads.filter(lead => isOverdue(lead.next_followup_date)).length;
-     const todayCount = followUpLeads.filter(lead => {
+     const overdueCount = followUps.filter(item => isOverdue(item.next_followup_date)).length;
+     const todayCount = followUps.filter(item => {
           const today = new Date().toDateString();
-          const followupDate = new Date(lead.next_followup_date).toDateString();
+          const followupDate = new Date(item.next_followup_date).toDateString();
           return followupDate === today;
      }).length;
 
      return (
           <>
-               <div className="container-fluid px-4 py-3">
-                    <div className="d-flex justify-content-between align-items-center mb-3">
+               <div className="px-4 py-3">
+                    {/* Header */}
+                    <div className="d-flex justify-content-between align-items-center mb-4 pb-3" style={{ borderBottom: '1px solid #dee2e6' }}>
                          <div>
-                              <h3 className="text-dark fw-medium mb-0">Leads Follow-up</h3>
-                              <small className="text-muted">
+                              <h4 className="mb-1 fw-semibold">Leads Follow-up</h4>
+                              <p className="text-muted mb-0 small">
                                    {overdueCount > 0 && (
                                         <span className="text-danger me-3">
                                              <RiTimeLine size={14} className="me-1" />
@@ -445,61 +248,139 @@ export default function LeadsFollowUp() {
                                         </span>
                                    )}
                                    {todayCount > 0 && (
-                                        <span className="text-warning">
+                                        <span className="text-warning me-3">
                                              <RiCalendarLine size={14} className="me-1" />
                                              {todayCount} due today
                                         </span>
                                    )}
-                              </small>
+                                   Manage all follow-up activities
+                              </p>
                          </div>
-                         <a href="/crm/leads/create-customers-lead" className="btn btn-primary btn-sm">
-                              <RiAddLine size={16} className="me-1" />
-                              New Lead
-                         </a>
+                         <div className="d-flex gap-2 align-items-center">
+                              <div className="d-flex align-items-center gap-1">
+                                   <label className="form-label mb-0 small text-muted">Show:</label>
+                                   <input
+                                        type="number"
+                                        className="form-control form-control-sm"
+                                        style={{ width: '60px' }}
+                                        value={itemsPerPage}
+                                        onChange={(e) => handleItemsPerPageChange(parseInt(e.target.value) || 10)}
+                                        min="1"
+                                        max="100"
+                                        title="Items per page"
+                                   />
+                              </div>
+                              <button
+                                   className="btn btn-sm btn-outline-secondary"
+                                   onClick={() => handlePageChange(currentPage - 1)}
+                                   title="Previous Page"
+                              >
+                                   Previous
+                              </button>
+                              <button
+                                   className="btn btn-sm btn-outline-primary"
+                                   onClick={() => handlePageChange(currentPage + 1)}
+                                   title="Next Page"
+                              >
+                                   Next
+                              </button>
+                         </div>
                     </div>
 
-                    <div className="card border-0 shadow-sm">
-                         <div className="card-body p-0">
-                              <div className="p-3 border-bottom">
-                                   <div className="row align-items-center">
-                                        <div className="col-md-6">
-                                             <h6 className="mb-0">Follow-up Required ({followUpLeads.length})</h6>
-                                             {selectedLeads.length > 0 && (
-                                                  <small className="text-muted ms-2">
-                                                       {selectedLeads.length} selected
-                                                  </small>
-                                             )}
-                                        </div>
-                                        <div className="col-md-6">
-                                             <div className="d-flex gap-2 justify-content-end">
-                                                  <button
-                                                       className="btn btn-outline-primary btn-sm"
-                                                       onClick={handleBulkSchedule}
-                                                       disabled={selectedLeads.length === 0}
-                                                  >
-                                                       <RiCalendarLine size={14} className="me-1" />
-                                                       Schedule Follow-ups
-                                                  </button>
-                                                  <button
-                                                       className="btn btn-outline-success btn-sm"
-                                                       onClick={handleMarkCompleted}
-                                                       disabled={selectedLeads.length === 0}
-                                                  >
-                                                       <RiCheckLine size={14} className="me-1" />
-                                                       Mark Completed
-                                                  </button>
-                                             </div>
-                                        </div>
-                                   </div>
+                    {/* Follow-ups Table */}
+                    <div className="border rounded">
+                         <div className="d-flex justify-content-between align-items-center p-3" style={{ backgroundColor: '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
+                              <div className="d-flex align-items-center">
+                                   <RiCalendarLine size={18} className="me-2 text-secondary" />
+                                   <h6 className="mb-0 fw-semibold">Follow-up History</h6>
+                                   <span className="text-secondary ms-2 small">({followUps.length})</span>
                               </div>
-
-                              <PrimeTable
-                                   column={columns}
-                                   data={filteredLeads}
-                                   filtering={true}
-                                   handleSeverSideProcessing={() => { }}
-                              />
                          </div>
+                         {followUps.length === 0 ? (
+                              <div className="text-center py-5">
+                                   <RiCalendarLine size={40} className="text-muted mb-2" />
+                                   <p className="text-muted small mb-3">No follow-ups recorded</p>
+                              </div>
+                         ) : (
+                              <div className="table-responsive">
+                                   <table className="table table-sm mb-0" style={{ fontSize: '0.875rem' }}>
+                                        <thead style={{ backgroundColor: '#fafafa' }}>
+                                             <tr>
+                                                  <th className="border-0 py-2 px-3" style={{ fontWeight: '600' }}>Type</th>
+                                                  <th className="border-0 py-2 px-3" style={{ fontWeight: '600' }}>Lead Info</th>
+                                                  <th className="border-0 py-2 px-3" style={{ fontWeight: '600' }}>Date</th>
+                                                  <th className="border-0 py-2 px-3" style={{ fontWeight: '600' }}>Next Follow-up</th>
+                                                  <th className="border-0 py-2 px-3" style={{ fontWeight: '600' }}>Priority</th>
+                                                  <th className="border-0 py-2 px-3" style={{ fontWeight: '600' }}>Status</th>
+                                                  <th className="border-0 py-2 px-3" style={{ fontWeight: '600' }}>Notes</th>
+                                                  <th className="border-0 py-2 px-3" style={{ fontWeight: '600' }}>Created By</th>
+                                                  <th className="border-0 py-2 px-3" style={{ fontWeight: '600' }}>Actions</th>
+                                             </tr>
+                                        </thead>
+                                        <tbody>
+                                             {paginatedLeads.map((followup) => (
+                                                  <tr key={followup.id} className={getRowClass(followup.status, followup.priority)}>
+                                                       <td className="border-0 py-2 px-3">
+                                                            <div className="d-flex align-items-center">
+                                                                 {getFollowUpTypeIcon(followup.followup_type)}
+                                                                 <span className="ms-2 text-capitalize">{followup.followup_type}</span>
+                                                            </div>
+                                                       </td>
+                                                       <td className="border-0 py-2 px-3">
+                                                            <div>
+                                                                 <div className="fw-semibold text-dark">{followup.company_name || 'N/A'}</div>
+                                                                 <div className="text-muted small">{followup.contact_person || followup.firstname} {followup.lastname}</div>
+                                                                 {followup.contact_email && (
+                                                                      <div className="text-muted small">{followup.contact_email}</div>
+                                                                 )}
+                                                            </div>
+                                                       </td>
+                                                       <td className="border-0 py-2 px-3">
+                                                            <RiTimeLine size={14} className="me-1 text-secondary" />
+                                                            {new Date(followup.followup_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                       </td>
+                                                       <td className="border-0 py-2 px-3">
+                                                            {followup.next_followup_date ? (
+                                                                 <span className={isOverdue(followup.next_followup_date) ? 'text-danger' : ''}>
+                                                                      {new Date(followup.next_followup_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                                 </span>
+                                                            ) : (
+                                                                 <span className="text-muted">—</span>
+                                                            )}
+                                                       </td>
+                                                       <td className="border-0 py-2 px-3">
+                                                            <span className="fw-semibold">
+                                                                 {followup.priority}
+                                                            </span>
+                                                       </td>
+                                                       <td className="border-0 py-2 px-3">
+                                                            <span className="fw-semibold">
+                                                                 {followup.status}
+                                                            </span>
+                                                       </td>
+                                                       <td className="border-0 py-2 px-3" style={{ maxWidth: '300px', cursor: 'pointer' }}>
+                                                            <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={followup.notes}>
+                                                                 {followup.notes}
+                                                            </div>
+                                                       </td>
+                                                       <td className="border-0 py-2 px-3 text-muted small">
+                                                            {followup.created_by_username || `User #${followup.created_by}`}
+                                                       </td>
+                                                       <td className="border-0 py-2 px-3">
+                                                            <button
+                                                                 className="btn btn-sm btn-outline-primary"
+                                                                 title="Schedule Follow-up"
+                                                                 onClick={() => handleScheduleFollowUp(followup)}
+                                                            >
+                                                                 <RiCalendarLine size={14} />
+                                                            </button>
+                                                       </td>
+                                                  </tr>
+                                             ))}
+                                        </tbody>
+                                   </table>
+                              </div>
+                         )}
                     </div>
                </div>
 
@@ -510,9 +391,9 @@ export default function LeadsFollowUp() {
                               <div className="modal-content">
                                    <div className="modal-header">
                                         <h5 className="modal-title">
-                                             {isBulkSchedule ? 'Schedule Follow-ups' : 'Schedule Follow-up'}
+                                             Schedule Follow-up
                                              {currentLead && (
-                                                  <small className="text-muted ms-2">for {currentLead.name}</small>
+                                                  <small className="text-muted ms-2">for Follow-up #{currentLead.id}</small>
                                              )}
                                         </h5>
                                         <button
@@ -551,7 +432,7 @@ export default function LeadsFollowUp() {
                                                        <option value="meeting">Meeting</option>
                                                   </select>
                                              </div>
-                                             <div className="col-md-6">
+                                             <div className="col-md-4">
                                                   <label className="form-label">Priority</label>
                                                   <select
                                                        className="form-select"
@@ -565,6 +446,22 @@ export default function LeadsFollowUp() {
                                                        <option value="medium">Medium</option>
                                                        <option value="high">High</option>
                                                        <option value="urgent">Urgent</option>
+                                                  </select>
+                                             </div>
+                                             <div className="col-md-4">
+                                                  <label className="form-label">Status</label>
+                                                  <select
+                                                       className="form-select"
+                                                       value={scheduleForm.status}
+                                                       onChange={(e) => setScheduleForm(prev => ({
+                                                            ...prev,
+                                                            status: e.target.value
+                                                       }))}
+                                                  >
+                                                       <option value="pending">Pending</option>
+                                                       <option value="completed">Completed</option>
+                                                       <option value="cancelled">Cancelled</option>
+
                                                   </select>
                                              </div>
                                              <div className="col-12">
@@ -585,17 +482,17 @@ export default function LeadsFollowUp() {
                                    <div className="modal-footer">
                                         <button
                                              type="button"
-                                             className="btn btn-secondary"
+                                             className="btn  btn-outline-danger btn-sm"
                                              onClick={() => setShowScheduleModal(false)}
                                         >
                                              Cancel
                                         </button>
                                         <button
                                              type="button"
-                                             className="btn btn-primary"
+                                             className="btn  btn-outline-primary btn-sm"
                                              onClick={handleScheduleSubmit}
                                         >
-                                             Schedule {isBulkSchedule ? 'Follow-ups' : 'Follow-up'}
+                                             Schedule Follow-up
                                         </button>
                                    </div>
                               </div>

@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import {
      RiAddLine,
      RiEyeLine,
@@ -10,83 +11,60 @@ import {
      RiMapPinLine
 } from '@remixicon/react';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
+import { customFetch, customPost } from '../../../../components/Auth/customFetch';
+import { useApplication } from '../../../../components/Auth/useApplicationContext';
 
 interface Lead {
-     id: string;
-     name: string;
+     id: number;
+     firstname: string;
+     lastname: string;
+     middlename?: string;
      contact_person: string;
      contact_email: string;
      contact_phone: string;
-     company_name: string;
+     company_name?: string;
      location: string;
      industry_type: string;
      lead_source: string;
      status: string;
      priority: string;
      created_at: string;
+     updated_at: string;
 }
 
 export default function LeadsList() {
      const [leads, setLeads] = useState<Lead[]>([]);
      const [loading, setLoading] = useState(true);
      const [searchTerm, setSearchTerm] = useState('');
+     const emploeyeeid = useApplication()?.user?.employeeid;
 
-     // Sample data - in real app this would come from API
-     useEffect(() => {
-          const sampleLeads: Lead[] = [
-               {
-                    id: '1',
-                    name: 'John Smith',
-                    contact_person: 'John Smith',
-                    contact_email: 'john.smith@company.com',
-                    contact_phone: '+1-555-0123',
-                    company_name: 'Tech Solutions Inc',
-                    location: 'New York, NY',
-                    industry_type: 'healthcare',
-                    lead_source: 'website',
-                    status: 'qualified',
-                    priority: 'high',
-                    created_at: '2025-01-15'
-               },
-               {
-                    id: '2',
-                    name: 'Sarah Johnson',
-                    contact_person: 'Sarah Johnson',
-                    contact_email: 'sarah.j@biotech.com',
-                    contact_phone: '+1-555-0456',
-                    company_name: 'BioTech Research',
-                    location: 'Boston, MA',
-                    industry_type: 'biotech',
-                    lead_source: 'referral',
-                    status: 'contacted',
-                    priority: 'medium',
-                    created_at: '2025-01-20'
-               },
-               {
-                    id: '3',
-                    name: 'Mike Davis',
-                    contact_person: 'Mike Davis',
-                    contact_email: 'mike.davis@pharma.com',
-                    contact_phone: '+1-555-0789',
-                    company_name: 'Pharma Corp',
-                    location: 'San Francisco, CA',
-                    industry_type: 'pharmaceutical',
-                    lead_source: 'trade_show',
-                    status: 'new',
-                    priority: 'low',
-                    created_at: '2025-01-25'
+     const fetchLeads = async (pagination: { page: number, count: number, sortby: 'DESC' | 'ASC' }) => {
+          try {
+               const { page, count, sortby } = pagination;
+               const response = await customFetch('leads?employeeid=' + emploeyeeid + '&page=' + page + '&count=' + count + '&sortby=' + sortby);
+               if (response.success && response.data && response.data.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
+                    setLeads(response.data.data);
+                    return { result: response.data.data, error: false };
+               } else {
+                    setLeads([]);
+                    return { result: [], error: false };
                }
-          ];
-
-          setTimeout(() => {
-               setLeads(sampleLeads);
+          } catch (error) {
+               console.error('Error fetching leads:', error);
+               setLeads([]);
+               return { result: [], error: true };
+          } finally {
                setLoading(false);
-          }, 1000);
+          }
+     };
+
+     useEffect(() => {
+          fetchLeads({ page: 1, count: 10, sortby: 'DESC' });
      }, []);
 
      const filteredLeads = leads.filter(lead =>
-          lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lead.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          `${lead.firstname} ${lead.lastname}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (lead.company_name && lead.company_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
           lead.contact_email.toLowerCase().includes(searchTerm.toLowerCase())
      );
 
@@ -113,13 +91,38 @@ export default function LeadsList() {
           return priorityClasses[priority as keyof typeof priorityClasses] || 'badge bg-light text-dark';
      };
 
+     const handleView = (lead: Lead) => {
+          window.location.href = `/crm/leads/followups/${lead.id}`;
+     };
+
+     const handleEdit = (lead: Lead) => {
+          window.location.href = `/crm/leads/create-customers-lead?id=${lead.id}`;
+     };
+
+     const handleDelete = async (lead: Lead) => {
+          if (window.confirm(`Are you sure you want to delete the lead for ${lead.firstname} ${lead.lastname}?`)) {
+               try {
+                    const response = await customPost(`leads/${lead.id}`, 'DELETE', { id: lead.id });
+                    if (response.success) {
+                         toast.success(response.message || 'Lead deleted successfully');
+                         fetchLeads({ page: 1, count: 10, sortby: 'DESC' });
+                    } else {
+                         toast.error(response.message || 'Failed to delete lead');
+                    }
+               } catch (error) {
+                    console.error('Error deleting lead:', error);
+                    toast.error('Error deleting lead');
+               }
+          }
+     };
+
      const columns = [
           {
                Header: 'Contact Info',
                accessor: 'contact_info',
                Cell: ({ row }: any) => (
                     <div className="d-flex flex-column">
-                         <strong className="text-dark">{row.original.name}</strong>
+                         <strong className="text-dark">{`${row.original.firstname} ${row.original.lastname}`}</strong>
                          <small className="text-muted d-flex align-items-center">
                               <RiMailLine size={12} className="me-1" />
                               {row.original.contact_email}
@@ -186,13 +189,13 @@ export default function LeadsList() {
                accessor: 'actions',
                Cell: ({ row }: any) => (
                     <div className="btn-group btn-group-sm">
-                         <button className="btn btn-outline-primary btn-sm" title="View">
+                         <button className="btn btn-outline-primary btn-sm" title="View Follow-ups" onClick={() => handleView(row.original)}>
                               <RiEyeLine size={14} />
                          </button>
-                         <button className="btn btn-outline-secondary btn-sm" title="Edit">
+                         <button className="btn btn-outline-secondary btn-sm" title="Edit" onClick={() => handleEdit(row.original)}>
                               <RiEditLine size={14} />
                          </button>
-                         <button className="btn btn-outline-danger btn-sm" title="Delete">
+                         <button className="btn btn-outline-danger btn-sm" title="Delete" onClick={() => handleDelete(row.original)}>
                               <RiDeleteBinLine size={14} />
                          </button>
                     </div>
@@ -214,33 +217,20 @@ export default function LeadsList() {
      }
 
      return (
-          <div className="container-fluid px-4 py-3">
-               <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h3 className="text-dark fw-medium mb-0">Leads Management</h3>
-                    <a href="/crm/leads/create-customers-lead" className="btn btn-primary btn-sm">
-                         <RiAddLine size={16} className="me-1" />
-                         New Lead
-                    </a>
+          <div className="px-4 py-3">
+               <div className='d-flex justify-content-end'>
+                    <button className="btn-outline-primary btn btn-sm mb-3 d-flex align-items-center gap-2" onClick={() => window.location.href = '/crm/leads/create-customers-lead'}>
+                         <RiAddLine size={16} />
+                         Add New Lead
+                    </button>
                </div>
-
-               <div className="card border-0 shadow-sm">
-                    <div className="card-body p-0">
-                         <div className="p-3 border-bottom">
-                              <div className="row align-items-center">
-                                   <div className="col-12">
-                                        <h6 className="mb-0">All Leads ({leads.length})</h6>
-                                   </div>
-                              </div>
-                         </div>
-
-                         <PrimeTable
-                              column={columns}
-                              data={filteredLeads}
-                              filtering={true}
-                              handleSeverSideProcessing={() => { }}
-                         />
-                    </div>
-               </div>
+               <PrimeTable
+                    column={columns}
+                    data={filteredLeads}
+                    filtering={true}
+                    serverSideFiltering={true}
+                    handleSeverSideProcessing={fetchLeads}
+               />
           </div>
      );
 }

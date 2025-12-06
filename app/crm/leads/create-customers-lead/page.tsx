@@ -1,13 +1,25 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+
 import {
 
 	RiSaveLine
 } from '@remixicon/react';
+import { toast } from 'react-toastify';
+import { customFetch, customPost } from '../../../../components/Auth/customFetch';
+import { useApplication } from '../../../../components/Auth/useApplicationContext';
+
 
 export default function CustomersLeadList() {
+	const searchParams = useSearchParams();
+	const employeeid = useApplication()?.user?.employeeid;
+	const id = searchParams.get('id');
+	const isEdit = !!id;
 	const [formData, setFormData] = useState({
-		name: '',
+		firstname: '',
+		lastname: '',
+		middlename: '',
 		contact_person: '',
 		contact_email: '',
 		contact_phone: '',
@@ -18,59 +30,126 @@ export default function CustomersLeadList() {
 		status: 'new',
 		priority: 'medium',
 		location: '',
-		assigned_to: '',
-		notes: ''
+		assigned_to: null as number | null,
+		notes: '',
+		created_by: employeeid 
 	});
 
-	const [users] = useState<{ id: string; name: string }[]>([]);
+	const [users, setUsers] = useState<{ employeeid: number; name: string }[]>([]);
+
+	useEffect(() => {
+		const loadEmployees = async () => {
+			try {
+				const response = await customFetch('logins');
+				if (response.status === 'success' && response.result && Array.isArray(response.result)) {
+					setUsers(response.result.map((user: any) => ({ employeeid: user.employeeid, name: user.username })));
+				} else {
+					setUsers([]);
+					console.error('Failed to load employees');
+				}
+			} catch (error) {
+				console.error('Error loading employees:', error);
+			}
+		};
+		loadEmployees();
+	}, []);
+
+	useEffect(() => {
+		if (isEdit && id) {
+			const loadLead = async () => {
+				try {
+					const { success, data } = await customFetch(`leads/${id}`);
+					if (success == true && data) {
+						setFormData(data);
+					}
+				} catch (error) {
+					console.error('Error loading lead:', error);
+					toast.error('Failed to load lead data');
+				}
+			};
+			loadLead();
+		}
+	}, [isEdit, id]);
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
 		const { name, value } = e.target;
-		setFormData(prev => ({ ...prev, [name]: value }));
+		setFormData(prev => ({ ...prev, [name]: name === 'assigned_to' ? (value ? parseInt(value) : null) : value }));
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		try {
-			const response = await fetch('/api/leads', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(formData)
-			});
-			if (!response.ok) throw new Error('Failed to save lead');
+			const endpoint = isEdit && id ? `leads/${id}` : 'leads';
+			const method = isEdit ? 'PUT' : 'POST';
+			const response = await customPost(endpoint, method, formData);
+			if (response.status === 'error') {
+				if (response.statusCode === 409) {
+					toast.error(response.message || 'A lead with this email address already exists');
+				} else {
+					toast.error(response.message || 'Error saving lead');
+				}
+			} else {
+				toast.success(`Lead ${isEdit ? 'updated' : 'created'} successfully`);
+			}
 		} catch (error) {
 			console.error('Error saving lead:', error);
+			toast.error('Error saving lead');
 		}
 	};
 
 	return (
-		<div className="container-fluid px-4 py-3">
-			<h3 className="mb-3 text-dark fw-medium">Create New Lead</h3>
+		<div className="p-4">
+			<h3 className="mb-3 text-dark fw-medium">{isEdit ? 'Edit Lead' : 'Create New Lead'}</h3>
 			<form onSubmit={handleSubmit}>
 				<h6 className="text-muted mb-2">Contact Information</h6>
 				<hr className="mt-1 mb-3" />
 
-				<div className="form-row grid-reg mt-1">
-					<label className="pls-label">Full Name*</label>
+				<div className="form-row grid-reg mt-2">
+					<label className="pls-label">First Name*</label>
 					<input
 						type="text"
-						name="name"
-						value={formData.name}
+						name="firstname"
+						value={formData.firstname}
 						onChange={handleChange}
-						className="custom-input"
-						placeholder="Full Name"
+						className="form-control form-control-sm "
+						placeholder="First Name"
 						required
 					/>
 				</div>
 
-				<div className="form-row grid-reg mt-1">
+				<div className="form-row grid-reg mt-2">
+					<label className="pls-label">Last Name*</label>
+					<input
+						type="text"
+						name="lastname"
+						value={formData.lastname}
+						onChange={handleChange}
+						className="form-control form-control-sm "
+						placeholder="Last Name"
+						required
+					/>
+				</div>
+
+				<div className="form-row grid-reg mt-2">
+					<label className="pls-label">Middle Name</label>
+					<input
+						type="text"
+						name="middlename"
+						value={formData.middlename}
+						onChange={handleChange}
+						className="form-control form-control-sm "
+						placeholder="Middle Name"
+					/>
+				</div>
+
+				<div className="form-row grid-reg mt-2">
 					<label className="pls-label">Contact Person*</label>
 					<input
 						type="text"
 						name="contact_person"
 						value={formData.contact_person}
 						onChange={handleChange}
-						className="custom-input"
+						className="form-control form-control-sm "
 						placeholder="Contact Person"
 						required
 					/>
@@ -83,7 +162,7 @@ export default function CustomersLeadList() {
 						name="contact_email"
 						value={formData.contact_email}
 						onChange={handleChange}
-						className="custom-input"
+						className="form-control form-control-sm "
 						placeholder="Email Address"
 						required
 					/>
@@ -96,7 +175,7 @@ export default function CustomersLeadList() {
 						name="contact_phone"
 						value={formData.contact_phone}
 						onChange={handleChange}
-						className="custom-input"
+						className="form-control form-control-sm "
 						placeholder="Phone Number"
 						required
 					/>
@@ -112,7 +191,7 @@ export default function CustomersLeadList() {
 						name="company_name"
 						value={formData.company_name}
 						onChange={handleChange}
-						className="custom-input"
+						className="form-control form-control-sm "
 						placeholder="Company Name"
 					/>
 				</div>
@@ -124,7 +203,7 @@ export default function CustomersLeadList() {
 						name="location"
 						value={formData.location}
 						onChange={handleChange}
-						className="custom-input"
+						className="form-control form-control-sm "
 						placeholder="Location"
 						required
 					/>
@@ -136,7 +215,7 @@ export default function CustomersLeadList() {
 						name="industry_type"
 						value={formData.industry_type}
 						onChange={handleChange}
-						className="custom-select"
+						className="form-select form-select-sm"
 						required
 					>
 						<option value="healthcare">Healthcare</option>
@@ -152,7 +231,7 @@ export default function CustomersLeadList() {
 						name="lead_source"
 						value={formData.lead_source}
 						onChange={handleChange}
-						className="custom-select"
+						className="form-select"
 					>
 						<option value="website">Website</option>
 						<option value="referral">Referral</option>
@@ -169,7 +248,7 @@ export default function CustomersLeadList() {
 						name="service_interest"
 						value={formData.service_interest}
 						onChange={handleChange}
-						className="custom-input"
+						className="form-control form-control-sm "
 						placeholder="Services interested in"
 					/>
 				</div>
@@ -180,7 +259,7 @@ export default function CustomersLeadList() {
 						name="status"
 						value={formData.status}
 						onChange={handleChange}
-						className="custom-select"
+						className="form-select form-select-sm	"
 					>
 						<option value="new">New</option>
 						<option value="contacted">Contacted</option>
@@ -198,7 +277,7 @@ export default function CustomersLeadList() {
 						name="priority"
 						value={formData.priority}
 						onChange={handleChange}
-						className="custom-select"
+						className="form-select"
 					>
 						<option value="low">Low</option>
 						<option value="medium">Medium</option>
@@ -211,13 +290,13 @@ export default function CustomersLeadList() {
 					<label className="pls-label">Assigned To</label>
 					<select
 						name="assigned_to"
-						value={formData.assigned_to}
+						value={formData.assigned_to || ''}
 						onChange={handleChange}
-						className="custom-select"
+						className="form-select"
 					>
 						<option value="">Select assignee</option>
-						{users.map((user, index) => (
-							<option key={index} value={user.id}>
+						{Array.isArray(users) && users.length > 0 && users.map((user, index) => (
+							<option key={index} value={user.employeeid}>
 								{user.name}
 							</option>
 						))}
@@ -231,7 +310,7 @@ export default function CustomersLeadList() {
 						name="notes"
 						value={formData.notes}
 						onChange={handleChange}
-						className="custom-input"
+						className="form-control	 form-control-sm "
 						rows={4}
 						placeholder="Additional notes..."
 					/>
@@ -242,7 +321,7 @@ export default function CustomersLeadList() {
 					className="btn btn-success mt-3 d-flex align-items-center gap-2"
 				>
 					<RiSaveLine size={16} />
-					Save Lead
+					{isEdit ? 'Update Lead' : 'Save Lead'}
 				</button>
 			</form>
 		</div >
