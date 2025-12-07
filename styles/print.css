@@ -1,24 +1,221 @@
 /* Print-specific styles */
 @media print {
-    /* Remove all borders and set white background */
+    /* Force page breaks and content flow */
     * {
-        border: none !important;
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        print-color-adjust: exact !important;
         box-shadow: none !important;
-        background-color: white !important;
-        color: black !important;
     }
     
     /* Ensure the page uses full width and height */
     @page {
-        margin: 0;
-        size: A4;
+        margin: 0.5cm;
+        size: A4 landscape;
         background-color: white;
     }
     
-    /* Hide elements that shouldn't be printed */
-    .no-print,
-    .printing-button {
+    /* Force content to flow across pages */
+    html, body {
+        height: auto !important;
+        overflow: visible !important;
+        page-break-inside: auto !important;
+        page-break-before: auto !important;
+        page-break-after: auto !important;
+    }
+    
+    /* Make all containers allow page breaks */
+    div, section, article, main, .container, .container-fluid, .card, .panel, .box, .widget {
+        page-break-inside: auto !important;
+        page-break-before: auto !important;
+        page-break-after: auto !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    
+    /* Hide header, sidebar, navigation, and footer globally */
+    header, nav, .navbar, .sidebar, .navbar-collapse, .offcanvas, footer, .footer,
+    .main-sidebar, .secondary-sidebar, .side-nav, .top-nav, .bottom-nav,
+    .navigation, .nav-menu, .menu-bar, .side-menu {
         display: none !important;
+    }
+    
+    /* Make main content full width and remove padding/margins */
+    .container, .container-fluid, .main-content, .page-content, .content-wrapper,
+    .app-content, .page-wrapper, .main-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    
+    /* Ensure cards have white background on print */
+    .card, .panel, .box, .widget, .card-body, .card-header, .card-footer,
+    .panel-body, .panel-header, .panel-footer {
+        background-color: white !important;
+        background: white !important;
+    }
+    
+    /* Adjust card sections for printing */
+    .card-body, .card-header, .card-footer, .panel-body, .panel-header, .panel-footer {
+        padding: 5px !important;
+        margin: 0 !important;
+    }
+    
+    /* Force remove ALL borders from Bootstrap table classes */
+    .table, .table-striped, .table-hover, .table-sm, .table-responsive table {
+        border: none !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+    }
+
+    .table thead, .table tbody, .table tfoot, .table th, .table td {
+        border: none !important;
+        border-top: none !important;
+        border-bottom: none !important;
+        border-left: none !important;
+        border-right: none !important;
+    }
+
+    /* Allow border-bottom on table rows for separation */
+    .table tr {
+        border-bottom: 2px solid #000 !important;
+    }
+
+    /* Alternative approach: Use border-top for row separation */
+    tbody tr {
+        border-top: 3px solid red !important;
+    }
+
+    /* Remove top border from first row */
+    tbody tr:first-child {
+        border-top: none !important;
+    }
+
+    /* Override Bootstrap striped table borders specifically */
+    .table-striped tbody tr:nth-child(odd),
+    .table-striped tbody tr:nth-child(even),
+    .table-striped tbody tr {
+        border: none !important;
+        border-top: none !important;
+        border-left: none !important;
+        border-right: none !important;
+        /* Allow border-bottom for row separation */
+    }
+
+    thead {
+        display: table-row-group !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    tbody {
+        display: table-row-group !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+    }
+
+    /* Alternative approach: Use border-top for row separation */
+    tbody tr {
+        border-top: 3px solid red !important;
+    }
+
+    /* Remove top border from first row */
+    tbody tr:first-child {
+        border-top: none !important;
+    }
+
+    th, td {
+        border: none !important;
+        padding: 0.75rem !important;
+        text-align: left !important;
+        vertical-align: top !important;
+        background-color: transparent !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        max-width: none !important;
+    }
+
+    th {
+        font-weight: 500 !important;
+        color: #495057 !important;
+        background-color: transparent !important;
+        border: none !important;
+        vertical-align: bottom !important;
+    }
+
+    /* Remove all striping for clean print appearance */
+    tbody tr:nth-child(odd),
+    tbody tr:nth-child(even),
+    .table-striped tbody tr:nth-child(odd),
+    .table-striped tbody tr:nth-child(even) {
+        background-color: transparent !important;
+        border: none !important;
+        border-top: none !important;
+        border-left: none !important;
+        border-right: none !important;
+        /* Keep border-bottom for row separation */
+    }
+
+    /* Ensure table containers don't restrict width */
+    .table-responsive, .table-container, .table-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Handle nested tables */
+    table table {
+        margin: 0 0 1rem 0 !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* Hide buttons and form fields */
+    button, .btn, .button, input, select, textarea, .input-group {
+        display: none !important;
+    }
+
+    /* Hide only non-essential interactive elements */
+    .btn-group, .dropdown, .modal, .popup, .tooltip, .popover {
+        display: none !important;
+    }
+    
+    /* Force page breaks with all prefixes */
+    .force-page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+        -webkit-break-before: page !important;
+    }
+    
+    .avoid-page-break {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        -webkit-break-inside: avoid !important;
+    }
+    
+    /* Apply to common elements */
+    h1, h2, h3, h4, h5, h6, .card-header {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        -webkit-break-after: avoid !important;
+    }
+    
+    /* Title styling for print */
+    h1, h2, h3, h4, h5, h6 {
+        color: black !important;
+        font-size: 16px !important;
+        margin-bottom: 10px !important;
+        page-break-after: avoid !important;
     }
     
     /* Set body and html to white background */
@@ -26,13 +223,25 @@
         background-color: white !important;
         margin: 0 !important;
         padding: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
     
     /* Ensure the main content area has white background */
-    .result {
+    .result, .content, .main, .page, .app-main {
         background-color: white !important;
         border: none !important;
         box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
     
     /* Remove any container backgrounds */
@@ -46,16 +255,41 @@
     p, span, div, h1, h2, h3, h4, h5, h6 {
         color: black !important;
     }
-    
-    /* Make sure tables print correctly */
-    table {
-        border-collapse: collapse !important;
-        background-color: white !important;
+
+    /* Hide the Change column on print */
+    table th:nth-child(10), table td:nth-child(10) {
+        display: none !important;
     }
-    
-    td, th {
-        border: 1px solid #ccc !important;
-        background-color: white !important;
+
+    /* Show time period on print */
+    .print-date-range {
+        display: block !important;
+        font-size: 14px !important;
+        font-weight: bold !important;
         color: black !important;
+        margin-bottom: 10px !important;
+        text-align: center !important;
+        background-color: white !important;
+        padding: 5px !important;
+        border-bottom: 2px solid #dee2e6 !important;
+    }
+
+    /* FINAL OVERRIDE - Force visible borders with maximum specificity */
+    table.table tbody tr,
+    .table-responsive table tbody tr,
+    table.table-striped tbody tr {
+        border-top: 3px solid red !important;
+        border-bottom: 3px solid red !important;
+        border-left: none !important;
+        border-right: none !important;
+    }
+
+    /* Allow borders for printable tables */
+    .printable-table-with-borders tbody tr {
+        border-bottom: 3px solid red !important;
+    }
+    .printable-table-with-borders th,
+    .printable-table-with-borders td {
+        border: none !important;
     }
 }

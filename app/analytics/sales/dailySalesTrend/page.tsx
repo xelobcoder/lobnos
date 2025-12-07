@@ -22,10 +22,13 @@ import { RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiErrorWarningLi
 interface SalesDataEntry {
     date: string;
     totalCost: number;
-    totalPaid: number;
-    totalPayable: number;
-    totalDiscount: number;
+    actual_revenue: number;
+    accrued_revenue: number;
+    total_discount: number;
     totalRefunded: number;
+    total_expenses: number;
+    net_revenue: number;
+    outstanding_debt: number;
     changeFromPreviousDay: number | null; // Calculated field
 }
 
@@ -36,8 +39,9 @@ const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
 const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 const COLOR_GREEN_TEXT = 'var(--bs-success)';
 const COLOR_RED_TEXT = 'var(--bs-danger)';
-const COLOR_SECONDARY = '#2563eb'; // Blue for totalPaid
-const COLOR_TERTIARY = '#ea580c'; // Orange for totalDiscount
+const COLOR_SECONDARY = '#2563eb'; // Blue for actual_revenue
+const COLOR_TERTIARY = '#ea580c'; // Orange for total_discount
+const COLOR_EXPENSES = '#dc2626'; // Red for total_expenses
 
 
 export default function DailySalesTrend() {
@@ -89,20 +93,24 @@ export default function DailySalesTrend() {
             const response = await customFetch(url);
 
             if (response && Array.isArray(response)) {
-                const formattedData = response.map((item: any) => ({
-                    date: item.date,
-                    totalCost: parseFloat(item.totalCost) || 0,
-                    totalPaid: parseFloat(item.totalPaid) || 0,
-                    totalPayable: parseFloat(item.totalPayable) || 0,
-                    totalDiscount: parseFloat(item.totalDiscount) || 0,
-                    totalRefunded: parseFloat(item.totalRefunded) || 0,
-                    changeFromPreviousDay: null, // Will be calculated below
-                })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-                // Calculate change from previous day
+                const formattedData = response.map((item: any) => {
+                    const formatted = {
+                        date: item.date,
+                        totalCost: parseFloat(item.totalCost) || 0,
+                        actual_revenue: parseFloat(item.actual_revenue) || 0,
+                        accrued_revenue: parseFloat(item.accrued_revenue) || 0,
+                        total_discount: parseFloat(item.total_discount) || 0,
+                        totalRefunded: parseFloat(item.totalRefunded) || 0,
+                        total_expenses: parseFloat(item.total_expenses) || 0,
+                        net_revenue: parseFloat(item.net_revenue) || 0,
+                        outstanding_debt: parseFloat(item.outstanding_debt) || 0,
+                        changeFromPreviousDay: null, // Will be calculated below
+                    };
+                    return formatted;
+                }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                 for (let i = 1; i < formattedData.length; i++) {
-                    const current = formattedData[i].totalPayable;
-                    const previous = formattedData[i - 1].totalPayable;
+                    const current = formattedData[i].net_revenue;
+                    const previous = formattedData[i - 1].net_revenue;
                     (formattedData[i] as any).changeFromPreviousDay = current - previous;
                 }
 
@@ -144,14 +152,14 @@ export default function DailySalesTrend() {
         setEndDate(defaultEndDate);
     };
 
-    const totalSalesSum = useMemo(() => data.reduce((sum, entry) => sum + entry.totalPayable, 0), [data]);
+    const totalPositiveRevenue = useMemo(() => data.reduce((sum, entry) => entry.net_revenue > 0 ? sum + entry.net_revenue : sum, 0), [data]);
 
     const formatDateForDisplay = (dateString: string) => {
         return new Date(dateString).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     };
 
     const formatDateForTable = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        return new Date(dateString).toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', year: 'numeric' });
     };
 
 
@@ -240,9 +248,10 @@ export default function DailySalesTrend() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Bar dataKey="totalPaid" name="Total Paid" fill={COLOR_SECONDARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
-                    <Bar dataKey="totalPayable" name="Total Payable" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
-                    <Bar dataKey="totalDiscount" name="Total Discount" fill={COLOR_TERTIARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                    <Bar dataKey="actual_revenue" name="Actual Revenue" fill={COLOR_SECONDARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                    <Bar dataKey="accrued_revenue" name="Accrued Revenue" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                    <Bar dataKey="total_discount" name="Total Discount" fill={COLOR_TERTIARY} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                    <Bar dataKey="total_expenses" name="Total Expenses" fill={COLOR_EXPENSES} radius={[4, 4, 0, 0]} maxBarSize={30} />
                 </BarChart>
             );
         }
@@ -254,9 +263,10 @@ export default function DailySalesTrend() {
                     <YAxis {...yAxisProps} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                     <Legend {...legendProps} />
-                    <Line type="monotone" dataKey="totalPaid" name="Total Paid" stroke={COLOR_SECONDARY} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_SECONDARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} />
-                    <Line type="monotone" dataKey="totalPayable" name="Total Payable" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
-                    <Line type="monotone" dataKey="totalDiscount" name="Total Discount" stroke={COLOR_TERTIARY} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_TERTIARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_TERTIARY, stroke: COLOR_TOOLTIP_BG }} />
+                    <Line type="monotone" dataKey="actual_revenue" name="Actual Revenue" stroke={COLOR_SECONDARY} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_SECONDARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} />
+                    <Line type="monotone" dataKey="accrued_revenue" name="Accrued Revenue" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                    <Line type="monotone" dataKey="total_discount" name="Total Discount" stroke={COLOR_TERTIARY} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_TERTIARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_TERTIARY, stroke: COLOR_TOOLTIP_BG }} />
+                    <Line type="monotone" dataKey="total_expenses" name="Total Expenses" stroke={COLOR_EXPENSES} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_EXPENSES }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_EXPENSES, stroke: COLOR_TOOLTIP_BG }} />
                 </LineChart>
             );
         }
@@ -276,15 +286,20 @@ export default function DailySalesTrend() {
                         <stop offset="5%" stopColor="#ea580c" stopOpacity={0.5} />
                         <stop offset="95%" stopColor="#ea580c" stopOpacity={0.05} />
                     </linearGradient>
+                    <linearGradient id="colorTotalExpensesFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#dc2626" stopOpacity={0.5} />
+                        <stop offset="95%" stopColor="#dc2626" stopOpacity={0.05} />
+                    </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
                 <XAxis {...xAxisProps} />
                 <YAxis {...yAxisProps} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                 <Legend {...legendProps} />
-                <Area type="monotone" dataKey="totalPaid" name="Total Paid" stroke={COLOR_SECONDARY} fill="url(#colorTotalPaidFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_SECONDARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} />
-                <Area type="monotone" dataKey="totalPayable" name="Total Payable" stroke={COLOR_ACCENT} fill="url(#colorTotalPayableFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
-                <Area type="monotone" dataKey="totalDiscount" name="Total Discount" stroke={COLOR_TERTIARY} fill="url(#colorTotalDiscountFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_TERTIARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_TERTIARY, stroke: COLOR_TOOLTIP_BG }} />
+                <Area type="monotone" dataKey="actual_revenue" name="Actual Revenue" stroke={COLOR_SECONDARY} fill="url(#colorTotalPaidFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_SECONDARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_SECONDARY, stroke: COLOR_TOOLTIP_BG }} />
+                <Area type="monotone" dataKey="accrued_revenue" name="Accrued Revenue" stroke={COLOR_ACCENT} fill="url(#colorTotalPayableFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                <Area type="monotone" dataKey="total_discount" name="Total Discount" stroke={COLOR_TERTIARY} fill="url(#colorTotalDiscountFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_TERTIARY }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_TERTIARY, stroke: COLOR_TOOLTIP_BG }} />
+                <Area type="monotone" dataKey="total_expenses" name="Total Expenses" stroke={COLOR_EXPENSES} fill="url(#colorTotalExpensesFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_EXPENSES }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_EXPENSES, stroke: COLOR_TOOLTIP_BG }} />
             </AreaChart>
         );
     };
@@ -392,35 +407,50 @@ export default function DailySalesTrend() {
 
             {data.length > 0 && (
                 <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
-                    <h4 className="fs-6 fw-medium mb-3">Sales Data Table</h4>
-                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        <table className="table table-sm table-hover table-striped small">
+                    <div className="print-date-range" style={{ display: 'none' }}>
+                        Sales Report Period: {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
+                    </div>
+                    <div className="d-flex justify-content-between mb-2">
+                        <h4 className="fs-6 fw-medium mb-3">
+                            Sales Data Table
+                        </h4>
+                        <button className="btn btn-sm btn-outline-primary" onClick={() => window.print()}>
+                            Print
+                        </button>
+                    </div>
+                    <div className="table-responsive">
+                        <table className="table table-sm table-hover table-striped small printable-table-with-borders">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Date</th>
-                                    <th scope="col" className="py-2 text-end">Total Cost</th>
-                                    <th scope="col" className="py-2 text-end">Total Paid</th>
-                                    <th scope="col" className="py-2 text-end">Total Payable</th>
-                                    <th scope="col" className="py-2 text-end">Total Discount</th>
-                                    <th scope="col" className="py-2 text-end">Total Refunded</th>
-                                    <th scope="col" className="py-2 text-end">Change</th>
-                                    <th scope="col" className="py-2 text-end">% of Total</th>
+                                    <th scope="col" className="py-2">Total Cost</th>
+                                    <th scope="col" className="py-2">Accrued <span className="d-print-none">Revenue</span></th>
+                                    <th scope="col" className="py-2">Actual <span className="d-print-none">Revenue</span></th>
+                                    <th scope="col" className="py-2">Expenses</th>
+                                    <th scope="col" className="py-2">Discount</th>
+                                    <th scope="col" className="py-2">Net Revenue</th>
+                                    <th scope="col" className="py-2">Outstanding</th>
+                                    <th scope="col" className="py-2">Refunded</th>
+                                    <th scope="col" className="py-2">Change</th>
+                                    <th scope="col" className="py-2" title="it represent % of net revenue for that period sales">% </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.map((entry) => {
                                     const change = entry.changeFromPreviousDay; // Use the provided value
-                                    console.log(`Processing entry for date: ${entry.date}, totalPayable: ${entry.totalPayable}, changeFromPreviousDay: ${change}`);
-                                    const percentageOfTotal = totalSalesSum > 0 ? ((entry.totalPayable / totalSalesSum) * 100).toFixed(1) : '0.0';
+                                    const percentageOfTotal = entry.net_revenue > 0 && totalPositiveRevenue > 0 ? ((entry.net_revenue / totalPositiveRevenue) * 100).toFixed(1) : '0.0';
                                     return (
                                         <tr key={entry.date}>
                                             <td className="py-2">{formatDateForTable(entry.date)}</td>
-                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalCost)}</td>
-                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalPaid)}</td>
-                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalPayable)}</td>
-                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalDiscount)}</td>
-                                            <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalRefunded)}</td>
-                                            <td className={`py-2 text-end ${change !== null ? (change >= 0 ? 'text-success' : 'text-danger') : 'text-muted'}`}>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalCost)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.actual_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_expenses)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.total_discount)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.net_revenue)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.outstanding_debt)}</td>
+                                            <td className="py-2 fw-medium">{currencyFormatter.format(entry.totalRefunded)}</td>
+                                            <td className={`py-2 ${change !== null ? (change >= 0 ? 'text-success' : 'text-danger') : 'text-muted'}`}>
                                                 {change !== null ? (
                                                     <>
                                                         {change >= 0 ? <RiArrowUpSFill className="align-text-bottom" /> : <RiArrowDownSFill className="align-text-bottom" />}
@@ -430,23 +460,24 @@ export default function DailySalesTrend() {
                                                     <span className="text-muted">-</span>
                                                 )}
                                             </td>
-                                            <td className="py-2 text-end text-muted">{percentageOfTotal}%</td>
+                                            <td className="py-2 text-muted">{percentageOfTotal}%</td>
                                         </tr>
                                     );
                                 })}
-                            </tbody>
-                            <tfoot>
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalPaid, 0))}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalPayable, 0))}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalDiscount, 0))}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalRefunded, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.accrued_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.actual_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_expenses, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_discount, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.net_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.outstanding_debt, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalRefunded, 0))}</td>
                                     <td className="py-2"></td>
-                                    <td className="py-2 text-end">100.0%</td>
+                                    <td className="py-2">100.0%</td>
                                 </tr>
-                            </tfoot>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -462,6 +493,27 @@ export default function DailySalesTrend() {
                 }
                 .table-responsive thead.sticky-top th {
                     border-bottom: 2px solid var(--bs-border-color); 
+                }
+                .table-responsive thead th {
+                    font-weight: bold !important;
+                    color: #000 !important;
+                }
+                @media print {
+                    .printable-table-with-borders tbody tr {
+                        border: none !important;
+                        border-bottom: 2px solid #000 !important;
+                    }
+                    .printable-table-with-borders tbody tr:nth-child(odd) {
+                        background-color: #f8f9fa !important;
+                    }
+                    .printable-table-with-borders th:nth-child(11),
+                    .printable-table-with-borders td:nth-child(11) {
+                        display: none !important;
+                    }
+                    .printable-table-with-borders th,
+                    .printable-table-with-borders td {
+                        padding: 0.25rem 0.5rem !important;
+                    }
                 }
             `}</style>
         </div>

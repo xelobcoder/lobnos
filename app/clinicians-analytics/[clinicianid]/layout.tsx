@@ -52,16 +52,7 @@ export default function ClinicianAnalyticsLayout({
                link: `/clinicians-analytics/${clinicianid}/yearly-totals`,
                icon: <RiTeamLine size={18} />
           },
-          {
-               title: "Cases vs Total",
-               link: `/clinicians-analytics/${clinicianid}/cases-vs-total`,
-               icon: <RiPulseLine size={18} />
-          },
-          {
-               title: "Total Cases",
-               link: `/clinicians-analytics/${clinicianid}/totalcases`,
-               icon: <RiUserStarLine size={18} />
-          },
+
      ];
 
      return (

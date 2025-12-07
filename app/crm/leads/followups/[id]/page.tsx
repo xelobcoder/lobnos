@@ -50,6 +50,7 @@ export default function LeadFollowups() {
      const [showDeleteModal, setShowDeleteModal] = useState(false);
      const [selectedFollowup, setSelectedFollowup] = useState<FollowUp | null>(null);
      const [followupToDelete, setFollowupToDelete] = useState<FollowUp | null>(null);
+     const [highlightRows, setHighlightRows] = useState(false);
      const [followupForm, setFollowupForm] = useState({
           followup_type: 'call',
           followup_date: '',
@@ -208,6 +209,8 @@ export default function LeadFollowups() {
      };
 
      const getRowClass = (status: string, priority: string) => {
+          if (!highlightRows) return '';
+
           // Status takes precedence
           if (status === 'completed') return 'table-success';
           if (status === 'cancelled') return 'table-danger';
@@ -301,13 +304,27 @@ export default function LeadFollowups() {
                               <h6 className="mb-0 fw-semibold">Follow-up History</h6>
                               <span className="badge bg-secondary ms-2 small">{followups.length}</span>
                          </div>
-                         <button
-                              className="btn btn-outline-dark btn-sm"
-                              onClick={() => setShowAddModal(true)}
-                         >
-                              <RiAddLine size={16} className="me-1" />
-                              Add Follow-up
-                         </button>
+                         <div className="d-flex align-items-center gap-2">
+                              <div className="form-check form-switch">
+                                   <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        id="highlightRowsToggle"
+                                        checked={highlightRows}
+                                        onChange={(e) => setHighlightRows(e.target.checked)}
+                                   />
+                                   <label className="form-check-label small text-muted" htmlFor="highlightRowsToggle">
+                                        Highlight Rows
+                                   </label>
+                              </div>
+                              <button
+                                   className="btn btn-outline-dark btn-sm"
+                                   onClick={() => setShowAddModal(true)}
+                              >
+                                   <RiAddLine size={16} className="me-1" />
+                                   Add Follow-up
+                              </button>
+                         </div>
                     </div>
                     {followups.length === 0 ? (
                          <div className="text-center py-5">
@@ -585,5 +602,6 @@ export default function LeadFollowups() {
                     </div>
                )}
           </div>
+
      );
 }

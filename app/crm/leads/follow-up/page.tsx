@@ -58,6 +58,7 @@ export default function LeadsFollowUp() {
      const [itemsPerPage, setItemsPerPage] = useState(10);
      const [totalRecords, setTotalRecords] = useState(0);
      const [serverTotalPages, setServerTotalPages] = useState(1);
+     const [highlightRows, setHighlightRows] = useState(false);
      const [scheduleForm, setScheduleForm] = useState<ScheduleFormData>({
           followup_date: '',
           followup_type: 'call',
@@ -152,6 +153,8 @@ export default function LeadsFollowUp() {
      };
 
      const getRowClass = (status: string, priority: string) => {
+          if (!highlightRows) return '';
+
           // Status-based colors
           if (status === 'completed' || status === 'qualified') return 'table-success';
           if (status === 'pending' || status === 'scheduled') return 'table-info';
@@ -269,6 +272,18 @@ export default function LeadsFollowUp() {
                                         max="100"
                                         title="Items per page"
                                    />
+                              </div>
+                              <div className="form-check form-switch">
+                                   <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        id="highlightRowsToggle"
+                                        checked={highlightRows}
+                                        onChange={(e) => setHighlightRows(e.target.checked)}
+                                   />
+                                   <label className="form-check-label small text-muted" htmlFor="highlightRowsToggle">
+                                        Highlight Rows
+                                   </label>
                               </div>
                               <button
                                    className="btn btn-sm btn-outline-secondary"

@@ -12,7 +12,8 @@ import {
     RiRefundLine,
     RiMoonLine,
     RiScales2Fill,
-    RiCalendarEventFill
+    RiCalendarEventFill,
+    RiStoreLine
 } from '@remixicon/react';
 
 export const CrmLinks: Link[] = [
@@ -77,6 +78,11 @@ export const CrmLinks: Link[] = [
                 title: "Cash Collection",
                 link: "/billing/cash-collection",
                 icon: <RiMoneyDollarCircleLine />
+            },
+            {
+                title: "Outsourced cases",
+                link: "/billing/outsourced-cases",
+                icon: <RiStoreLine />
             },
             {
                 title: "Test Price List",
