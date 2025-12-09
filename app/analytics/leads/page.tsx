@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { customFetch } from "../../../components/Auth/customFetch";
 import {
      ResponsiveContainer,
      BarChart,
@@ -48,35 +49,46 @@ interface LeadAnalyticsData {
      qualifiedLeads: number;
      convertedLeads: number;
      lostLeads: number;
-     conversionRate: number;
+     conversionRate: string | number;
      averageLeadValue: number;
      leadsByStatus: Array<{
           status: string;
           count: number;
-          percentage: number;
+          percentage: string | number;
      }>;
      leadsBySource: Array<{
           source: string;
           count: number;
-          conversionRate: number;
+          conversionRate: string | number;
      }>;
      leadsByIndustry: Array<{
           industry: string;
           count: number;
-          value: number;
+          value?: number;
      }>;
      monthlyTrend: Array<{
           month: string;
           leads: number;
-          conversions: number;
-          value: number;
+          conversions: string | number;
+          value?: number;
      }>;
      topPerformingSources: Array<{
           source: string;
           leads: number;
-          conversions: number;
-          rate: number;
+          conversions: string | number;
+          rate: string | number;
      }>;
+     totalFollowups: number;
+     followupsByStatus: Array<{
+          status: string;
+          count: number;
+          percentage: string | number;
+     }>;
+     followupsByType: Array<{
+          type: string;
+          count: number;
+     }>;
+     upcomingFollowups: number;
 }
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -115,7 +127,9 @@ export default function LeadsAnalytics() {
           const today = new Date();
           const endDate = today.toISOString().split("T")[0];
           const startDateObj = new Date(today);
-          startDateObj.setDate(today.getDate() - 29);
+          startDateObj.setFullYear(today.getFullYear());
+          startDateObj.setMonth(0);
+          startDateObj.setDate(1);
           const startDate = startDateObj.toISOString().split("T")[0];
           return { startDate, endDate };
      };
@@ -123,6 +137,7 @@ export default function LeadsAnalytics() {
      const initialDates = getInitialDates();
      const [startDate, setStartDate] = useState<string>(initialDates.startDate);
      const [endDate, setEndDate] = useState<string>(initialDates.endDate);
+     const [followupsView, setFollowupsView] = useState<"bar" | "line" | "area">("bar");
 
      const fetchData = useCallback(async (fetchStartDate: string, fetchEndDate: string) => {
           if (!fetchStartDate || !fetchEndDate) {
@@ -141,60 +156,9 @@ export default function LeadsAnalytics() {
           setLoading(true);
           setError(null);
           try {
-               // Simulate API call - replace with actual endpoint
-               const mockData: LeadAnalyticsData = {
-                    totalLeads: 245,
-                    newLeads: 45,
-                    qualifiedLeads: 89,
-                    convertedLeads: 67,
-                    lostLeads: 23,
-                    conversionRate: 27.3,
-                    averageLeadValue: 12500,
-                    leadsByStatus: [
-                         { status: 'new', count: 45, percentage: 18.4 },
-                         { status: 'contacted', count: 52, percentage: 21.2 },
-                         { status: 'qualified', count: 89, percentage: 36.3 },
-                         { status: 'proposal', count: 34, percentage: 13.9 },
-                         { status: 'negotiation', count: 15, percentage: 6.1 },
-                         { status: 'closed_won', count: 67, percentage: 27.3 },
-                         { status: 'closed_lost', count: 23, percentage: 9.4 },
-                    ],
-                    leadsBySource: [
-                         { source: 'website', count: 85, conversionRate: 32.9 },
-                         { source: 'referral', count: 62, conversionRate: 41.9 },
-                         { source: 'trade_show', count: 38, conversionRate: 18.4 },
-                         { source: 'social_media', count: 29, conversionRate: 13.8 },
-                         { source: 'cold_call', count: 31, conversionRate: 9.7 },
-                    ],
-                    leadsByIndustry: [
-                         { industry: 'healthcare', count: 78, value: 975000 },
-                         { industry: 'biotech', count: 45, value: 562500 },
-                         { industry: 'pharmaceutical', count: 52, value: 650000 },
-                         { industry: 'medical_devices', count: 34, value: 425000 },
-                         { industry: 'research', count: 36, value: 450000 },
-                    ],
-                    monthlyTrend: [
-                         { month: 'Jan', leads: 18, conversions: 5, value: 62500 },
-                         { month: 'Feb', leads: 22, conversions: 6, value: 75000 },
-                         { month: 'Mar', leads: 25, conversions: 8, value: 100000 },
-                         { month: 'Apr', leads: 28, conversions: 9, value: 112500 },
-                         { month: 'May', leads: 32, conversions: 11, value: 137500 },
-                         { month: 'Jun', leads: 35, conversions: 12, value: 150000 },
-                         { month: 'Jul', leads: 38, conversions: 13, value: 162500 },
-                         { month: 'Aug', leads: 47, conversions: 16, value: 200000 },
-                    ],
-                    topPerformingSources: [
-                         { source: 'referral', leads: 62, conversions: 26, rate: 41.9 },
-                         { source: 'website', leads: 85, conversions: 28, rate: 32.9 },
-                         { source: 'trade_show', leads: 38, conversions: 7, rate: 18.4 },
-                         { source: 'social_media', leads: 29, conversions: 4, rate: 13.8 },
-                         { source: 'cold_call', leads: 31, conversions: 3, rate: 9.7 },
-                    ],
-               };
-
-               // Simulate API delay
-               await new Promise(resolve => setTimeout(resolve, 1000));
-               setData(mockData);
+               const url = `leads/analytics?startDate=${fetchStartDate}&endDate=${fetchEndDate}`;
+               const response: LeadAnalyticsData = await customFetch(url);
+               setData(response);
           } catch (err) {
                setData(null);
                setError(err instanceof Error ? err.message : "An unknown error occurred");
@@ -213,6 +177,10 @@ export default function LeadsAnalytics() {
           const { startDate: defaultStartDate, endDate: defaultEndDate } = getInitialDates();
           setStartDate(defaultStartDate);
           setEndDate(defaultEndDate);
+     };
+
+     const handleFollowupsViewToggle = (view: "bar" | "line" | "area") => {
+          setFollowupsView(view);
      };
 
      const formatCurrency = (value: number) => {
@@ -243,7 +211,7 @@ export default function LeadsAnalytics() {
                               <div key={index}>
                                    <span className="text-xs uppercase fw-medium" style={{ color: entry.color }}>
                                         {entry.name}: {entry.value}
-                                        {entry.name.includes('Rate') || entry.name.includes('%') ? '%' : ''}
+                                        {typeof entry.name === 'string' && (entry.name.includes('Rate') || entry.name.includes('%')) ? '%' : ''}
                                    </span>
                               </div>
                          ))}
@@ -251,6 +219,107 @@ export default function LeadsAnalytics() {
                );
           }
           return null;
+     };
+
+     const renderFollowupsChart = () => {
+          const commonProps = {
+               data: data!.followupsByType,
+               margin: { top: 5, right: 5, left: 20, bottom: 45 },
+          };
+
+          if (followupsView === "bar") {
+               return (
+                    <BarChart {...commonProps}>
+                         <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                         <XAxis
+                              dataKey="type"
+                              angle={-45}
+                              textAnchor="end"
+                              height={60}
+                              tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                              axisLine={{ stroke: COLOR_BORDER }}
+                              tickLine={{ stroke: COLOR_BORDER }}
+                         />
+                         <YAxis
+                              tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                              axisLine={false}
+                              tickLine={false}
+                         />
+                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                         <Bar dataKey="count" fill={CHART_COLORS[2]} name="Count" radius={[4, 4, 0, 0]} maxBarSize={30} />
+                    </BarChart>
+               );
+          }
+
+          if (followupsView === "line") {
+               return (
+                    <LineChart {...commonProps}>
+                         <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                         <XAxis
+                              dataKey="type"
+                              angle={-45}
+                              textAnchor="end"
+                              height={60}
+                              tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                              axisLine={{ stroke: COLOR_BORDER }}
+                              tickLine={{ stroke: COLOR_BORDER }}
+                         />
+                         <YAxis
+                              tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                              axisLine={false}
+                              tickLine={false}
+                         />
+                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                         <Line
+                              type="monotone"
+                              dataKey="count"
+                              name="Count"
+                              stroke={CHART_COLORS[2]}
+                              strokeWidth={2}
+                              dot={{ r: 3, strokeWidth: 1, fill: CHART_COLORS[2] }}
+                              activeDot={{ r: 6, strokeWidth: 1.5, fill: CHART_COLORS[2], stroke: COLOR_TOOLTIP_BG }}
+                         />
+                    </LineChart>
+               );
+          }
+
+          // Area chart
+          return (
+               <AreaChart {...commonProps}>
+                    <defs>
+                         <linearGradient id="followupsGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={CHART_COLORS[2]} stopOpacity={0.5} />
+                              <stop offset="95%" stopColor={CHART_COLORS[2]} stopOpacity={0.05} />
+                         </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                    <XAxis
+                         dataKey="type"
+                         angle={-45}
+                         textAnchor="end"
+                         height={60}
+                         tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                         axisLine={{ stroke: COLOR_BORDER }}
+                         tickLine={{ stroke: COLOR_BORDER }}
+                    />
+                    <YAxis
+                         tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                         axisLine={false}
+                         tickLine={false}
+                    />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                    <Area
+                         type="monotone"
+                         dataKey="count"
+                         name="Count"
+                         stroke={CHART_COLORS[2]}
+                         fill="url(#followupsGradient)"
+                         strokeWidth={2}
+                         dot={{ r: 3, strokeWidth: 1, fill: CHART_COLORS[2] }}
+                         activeDot={{ r: 6, strokeWidth: 1.5, fill: CHART_COLORS[2], stroke: COLOR_TOOLTIP_BG }}
+                    />
+               </AreaChart>
+          );
      };
 
      const renderLoadingState = () => (
@@ -320,8 +389,8 @@ export default function LeadsAnalytics() {
                {/* Key Metrics Cards */}
                <div className="row g-3 mb-4">
                     <div className="col-md-3">
-                         <div className="card border-0 shadow-sm h-100">
-                              <div className="card-body">
+                         <div className="border rounded h-100">
+                              <div className="p-3">
                                    <div className="d-flex align-items-center justify-content-between">
                                         <div>
                                              <p className="text-muted mb-1 small">Total Leads</p>
@@ -335,12 +404,12 @@ export default function LeadsAnalytics() {
                          </div>
                     </div>
                     <div className="col-md-3">
-                         <div className="card border-0 shadow-sm h-100">
-                              <div className="card-body">
+                         <div className="border rounded h-100">
+                              <div className="p-3">
                                    <div className="d-flex align-items-center justify-content-between">
                                         <div>
                                              <p className="text-muted mb-1 small">Conversion Rate</p>
-                                             <h3 className="mb-0">{data.conversionRate}%</h3>
+                                             <h3 className="mb-0">{typeof data.conversionRate === 'string' ? parseFloat(data.conversionRate).toFixed(1) : data.conversionRate.toFixed(1)}%</h3>
                                         </div>
                                         <div className="bg-success bg-opacity-10 p-3 rounded">
                                              {/* <RiTrendingUp size={24} className="text-success" /> */}
@@ -350,8 +419,8 @@ export default function LeadsAnalytics() {
                          </div>
                     </div>
                     <div className="col-md-3">
-                         <div className="card border-0 shadow-sm h-100">
-                              <div className="card-body">
+                         <div className="border rounded h-100">
+                              <div className="p-3">
                                    <div className="d-flex align-items-center justify-content-between">
                                         <div>
                                              <p className="text-muted mb-1 small">Qualified Leads</p>
@@ -365,8 +434,8 @@ export default function LeadsAnalytics() {
                          </div>
                     </div>
                     <div className="col-md-3">
-                         <div className="card border-0 shadow-sm h-100">
-                              <div className="card-body">
+                         <div className="border rounded h-100">
+                              <div className="p-3">
                                    <div className="d-flex align-items-center justify-content-between">
                                         <div>
                                              <p className="text-muted mb-1 small">Avg Lead Value</p>
@@ -381,18 +450,69 @@ export default function LeadsAnalytics() {
                     </div>
                </div>
 
+               {/* Followups Metrics */}
+               <div className="row g-3 mb-4">
+                    <div className="col-md-12">
+                         <div className="border rounded h-100">
+                              <div className="p-3">
+                                   <div className="d-flex align-items-center justify-content-between">
+                                        <div>
+                                             <p className="text-muted mb-1 small">Total Follow-ups</p>
+                                             <h3 className="mb-0">{data.totalFollowups}</h3>
+                                        </div>
+                                        <div className="bg-primary bg-opacity-10 p-3 rounded">
+                                             <RiCalendarEventLine size={24} className="text-primary" />
+                                        </div>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               </div>
+               <div className="row g-3 mb-4">
+                    <div className="col-md-6">
+                         <div className="border rounded h-100">
+                              <div className="p-3">
+                                   <div className="d-flex align-items-center justify-content-between">
+                                        <div>
+                                             <p className="text-muted mb-1 small">Upcoming Follow-ups</p>
+                                             <h3 className="mb-0">{data.upcomingFollowups}</h3>
+                                        </div>
+                                        <div className="bg-warning bg-opacity-10 p-3 rounded">
+                                             <RiTimeLine size={24} className="text-warning" />
+                                        </div>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+                    <div className="col-md-6">
+                         <div className="border rounded h-100">
+                              <div className="p-3">
+                                   <div className="d-flex align-items-center justify-content-between">
+                                        <div>
+                                             <p className="text-muted mb-1 small">Completed Follow-ups</p>
+                                             <h3 className="mb-0">{data.followupsByStatus.find(f => f.status === 'completed')?.count || 0}</h3>
+                                        </div>
+                                        <div className="bg-success bg-opacity-10 p-3 rounded">
+                                             <RiCheckboxCircleLine size={24} className="text-success" />
+                                        </div>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               </div>
+
                {/* Charts Row */}
                <div className="row g-4 mb-4">
                     {/* Lead Status Distribution */}
                     <div className="col-lg-6">
-                         <div className="card border-0 shadow-sm h-100">
-                              <div className="card-header bg-light">
+                         <div className="border rounded h-100">
+                              <div className="bg-light p-3 rounded-top">
                                    <h6 className="mb-0 d-flex align-items-center">
                                         <RiPieChartLine size={18} className="me-2 text-primary" />
                                         Lead Status Distribution
                                    </h6>
                               </div>
-                              <div className="card-body">
+                              <div className="p-3">
                                    <ResponsiveContainer width="100%" height={300}>
                                         <PieChart>
                                              <Pie
@@ -401,7 +521,10 @@ export default function LeadsAnalytics() {
                                                   cy="50%"
                                                   outerRadius={80}
                                                   dataKey="count"
-                                                  label={({ status, percentage }) => `${status.replace('_', ' ')} (${percentage}%)`}
+                                                  label={({ status, percentage }) => {
+                                                       const pct = typeof percentage === 'string' ? parseFloat(percentage).toFixed(1) : percentage.toFixed(1);
+                                                       return `${status.replace('_', ' ')} (${pct}%)`;
+                                                  }}
                                              >
                                                   {data.leadsByStatus.map((entry, index) => (
                                                        <Cell
@@ -419,20 +542,39 @@ export default function LeadsAnalytics() {
 
                     {/* Monthly Trend */}
                     <div className="col-lg-6">
-                         <div className="card border-0 shadow-sm h-100">
-                              <div className="card-header bg-light">
+                         <div className="border rounded h-100">
+                              <div className="bg-light p-3 rounded-top">
                                    <h6 className="mb-0 d-flex align-items-center">
                                         <RiLineChartLine size={18} className="me-2 text-success" />
                                         Monthly Lead Trend
                                    </h6>
                               </div>
-                              <div className="card-body">
+                              <div className="p-3">
                                    <ResponsiveContainer width="100%" height={300}>
-                                        <AreaChart data={data.monthlyTrend}>
-                                             <CartesianGrid strokeDasharray="3 3" />
-                                             <XAxis dataKey="month" />
-                                             <YAxis />
-                                             <Tooltip content={<CustomTooltip />} />
+                                        <AreaChart
+                                             data={data.monthlyTrend}
+                                             margin={{ top: 5, right: 5, left: 20, bottom: 45 }}
+                                        >
+                                             <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                                             <XAxis
+                                                  dataKey="month"
+                                                  tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                                                  axisLine={{ stroke: COLOR_BORDER }}
+                                                  tickLine={{ stroke: COLOR_BORDER }}
+                                             />
+                                             <YAxis
+                                                  tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                                                  axisLine={false}
+                                                  tickLine={false}
+                                             />
+                                             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                                             <Legend
+                                                  verticalAlign="top"
+                                                  align="right"
+                                                  iconType="circle"
+                                                  iconSize={8}
+                                                  wrapperStyle={{ fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }}
+                                             />
                                              <Area
                                                   type="monotone"
                                                   dataKey="leads"
@@ -441,6 +583,7 @@ export default function LeadsAnalytics() {
                                                   fill={CHART_COLORS[0]}
                                                   fillOpacity={0.6}
                                                   name="New Leads"
+                                                  strokeWidth={2}
                                              />
                                              <Area
                                                   type="monotone"
@@ -450,6 +593,7 @@ export default function LeadsAnalytics() {
                                                   fill={CHART_COLORS[2]}
                                                   fillOpacity={0.6}
                                                   name="Conversions"
+                                                  strokeWidth={2}
                                              />
                                         </AreaChart>
                                    </ResponsiveContainer>
@@ -461,21 +605,37 @@ export default function LeadsAnalytics() {
                {/* Source Performance */}
                <div className="row g-4 mb-4">
                     <div className="col-lg-6">
-                         <div className="card border-0 shadow-sm h-100">
-                              <div className="card-header bg-light">
+                         <div className="border rounded h-100">
+                              <div className="bg-light p-3 rounded-top">
                                    <h6 className="mb-0 d-flex align-items-center">
                                         <RiBarChartLine size={18} className="me-2 text-info" />
                                         Leads by Source
                                    </h6>
                               </div>
-                              <div className="card-body">
+                              <div className="p-3">
                                    <ResponsiveContainer width="100%" height={300}>
-                                        <BarChart data={data.leadsBySource} layout="horizontal">
-                                             <CartesianGrid strokeDasharray="3 3" />
-                                             <XAxis type="number" />
-                                             <YAxis dataKey="source" type="category" width={100} />
-                                             <Tooltip content={<CustomTooltip />} />
-                                             <Bar dataKey="count" fill={CHART_COLORS[1]} name="Leads" />
+                                        <BarChart
+                                             data={data.leadsBySource}
+                                             layout="horizontal"
+                                             margin={{ top: 5, right: 5, left: 20, bottom: 45 }}
+                                        >
+                                             <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                                             <XAxis
+                                                  type="number"
+                                                  tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                                                  axisLine={false}
+                                                  tickLine={false}
+                                             />
+                                             <YAxis
+                                                  dataKey="source"
+                                                  type="category"
+                                                  width={100}
+                                                  tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                                                  axisLine={{ stroke: COLOR_BORDER }}
+                                                  tickLine={{ stroke: COLOR_BORDER }}
+                                             />
+                                             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                                             <Bar dataKey="count" fill={CHART_COLORS[1]} name="Leads" radius={[0, 4, 4, 0]} maxBarSize={30} />
                                         </BarChart>
                                    </ResponsiveContainer>
                               </div>
@@ -483,21 +643,37 @@ export default function LeadsAnalytics() {
                     </div>
 
                     <div className="col-lg-6">
-                         <div className="card border-0 shadow-sm h-100">
-                              <div className="card-header bg-light">
+                         <div className="border rounded h-100">
+                              <div className="bg-light p-3 rounded-top">
                                    <h6 className="mb-0 d-flex align-items-center">
                                         {/* <RiTrendingUp size={18} className="me-2 text-warning" /> */}
                                         Source Conversion Rates
                                    </h6>
                               </div>
-                              <div className="card-body">
+                              <div className="p-3">
                                    <ResponsiveContainer width="100%" height={300}>
-                                        <BarChart data={data.topPerformingSources}>
-                                             <CartesianGrid strokeDasharray="3 3" />
-                                             <XAxis dataKey="source" />
-                                             <YAxis />
-                                             <Tooltip content={<CustomTooltip />} />
-                                             <Bar dataKey="rate" fill={CHART_COLORS[3]} name="Conversion Rate %" />
+                                        <BarChart
+                                             data={data.topPerformingSources}
+                                             margin={{ top: 5, right: 5, left: 20, bottom: 45 }}
+                                        >
+                                             <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                                             <XAxis
+                                                  dataKey="source"
+                                                  angle={-45}
+                                                  textAnchor="end"
+                                                  height={60}
+                                                  interval="preserveStartEnd"
+                                                  tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                                                  axisLine={{ stroke: COLOR_BORDER }}
+                                                  tickLine={{ stroke: COLOR_BORDER }}
+                                             />
+                                             <YAxis
+                                                  tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                                                  axisLine={false}
+                                                  tickLine={false}
+                                             />
+                                             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                                             <Bar dataKey="rate" fill={CHART_COLORS[3]} name="Conversion Rate %" radius={[4, 4, 0, 0]} maxBarSize={30} />
                                         </BarChart>
                                    </ResponsiveContainer>
                               </div>
@@ -506,14 +682,14 @@ export default function LeadsAnalytics() {
                </div>
 
                {/* Industry Analysis */}
-               <div className="card border-0 shadow-sm">
-                    <div className="card-header bg-light">
+               <div className="border rounded mb-4">
+                    <div className="bg-light p-3 rounded-top">
                          <h6 className="mb-0 d-flex align-items-center">
                               <RiBuildingLine size={18} className="me-2 text-secondary" />
                               Leads by Industry & Value
                          </h6>
                     </div>
-                    <div className="card-body">
+                    <div className="p-3">
                          <div className="table-responsive">
                               <table className="table table-hover">
                                    <thead>
@@ -529,12 +705,92 @@ export default function LeadsAnalytics() {
                                              <tr key={index}>
                                                   <td className="fw-medium">{industry.industry.replace('_', ' ')}</td>
                                                   <td className="text-center">{industry.count}</td>
-                                                  <td className="text-center">{formatCurrency(industry.value)}</td>
-                                                  <td className="text-center">{formatCurrency(industry.value / industry.count)}</td>
+                                                  <td className="text-center">{industry.value ? formatCurrency(industry.value) : 'N/A'}</td>
+                                                  <td className="text-center">{industry.value ? formatCurrency(industry.value / industry.count) : 'N/A'}</td>
                                              </tr>
                                         ))}
                                    </tbody>
                               </table>
+                         </div>
+                    </div>
+               </div>
+
+               {/* Followups Charts */}
+               <div className="row g-4">
+                    <div className="col-lg-6">
+                         <div className="border-0 h-100">
+                              <div className="bg-light p-3">
+                                   <h6 className="mb-0 d-flex align-items-center">
+                                        <RiPieChartLine size={18} className="me-2 text-primary" />
+                                        Follow-ups by Status
+                                   </h6>
+                              </div>
+                              <div className="p-3">
+                                   <ResponsiveContainer width="100%" height={300}>
+                                        <PieChart>
+                                             <Pie
+                                                  data={data.followupsByStatus}
+                                                  cx="50%"
+                                                  cy="50%"
+                                                  outerRadius={90}
+                                                  innerRadius={40}
+                                                  dataKey="count"
+                                                  label={({ status, percentage }) => {
+                                                       const pct = typeof percentage === 'string' ? parseFloat(percentage).toFixed(1) : percentage.toFixed(1);
+                                                       return `${status.replace('_', ' ')} (${pct}%)`;
+                                                  }}
+                                                  labelLine={false}
+                                             >
+                                                  {data.followupsByStatus.map((entry, index) => (
+                                                       <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                                  ))}
+                                             </Pie>
+                                             <Tooltip content={<CustomTooltip />} />
+                                        </PieChart>
+                                   </ResponsiveContainer>
+                              </div>
+                         </div>
+                    </div>
+
+                    <div className="col-lg-6">
+                         <div className="border rounded h-100">
+                              <div className="bg-light border-bottom p-3 rounded-top d-flex justify-content-between align-items-center">
+                                   <h6 className="mb-0 d-flex align-items-center">
+                                        <RiBarChartLine size={18} className="me-2 text-info" />
+                                        Follow-ups by Type
+                                   </h6>
+                                   <div className="btn-group btn-group-sm" role="group">
+                                        <button
+                                             type="button"
+                                             className={`btn ${followupsView === 'bar' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                             onClick={() => handleFollowupsViewToggle('bar')}
+                                             style={followupsView === 'bar' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
+                                        >
+                                             <RiBarChartLine size={14} />
+                                        </button>
+                                        <button
+                                             type="button"
+                                             className={`btn ${followupsView === 'line' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                             onClick={() => handleFollowupsViewToggle('line')}
+                                             style={followupsView === 'line' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
+                                        >
+                                             <RiLineChartLine size={14} />
+                                        </button>
+                                        <button
+                                             type="button"
+                                             className={`btn ${followupsView === 'area' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                                             onClick={() => handleFollowupsViewToggle('area')}
+                                             style={followupsView === 'area' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
+                                        >
+                                             <RiPieChartLine size={14} />
+                                        </button>
+                                   </div>
+                              </div>
+                              <div className="p-3">
+                                   <ResponsiveContainer width="100%" height={300}>
+                                        {renderFollowupsChart()}
+                                   </ResponsiveContainer>
+                              </div>
                          </div>
                     </div>
                </div>
