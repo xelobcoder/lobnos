@@ -115,19 +115,23 @@ export default function TopFacilitiesOutsourcingAnalytics() {
      }, [selectedBranch, selectedYear, fetchData]);
 
      const calculateTotals = () => {
-          if (!data.length) return { totalAmount: 0, totalServices: 0 };
+          if (!data.length) return { totalBilled: 0, totalOutsourced: 0, totalProfit: 0, totalServices: 0 };
 
           return data.reduce((acc, item) => {
-               const amount = parseFloat(item.total_amount_outsourced || item.total_amount || item.grand_total_outsourced || item.total_outsourced_amount || '0') || 0;
-               const services = parseInt(item.services_count || item.total_services || item.total_outsourced_services || '0') || 0;
+               const billed = parseFloat(item.total_billed_amount || '0') || 0;
+               const outsourced = parseFloat(item.total_outsourced_amount || '0') || 0;
+               const profit = parseFloat(item.total_profit_amount || '0') || 0;
+               const services = parseInt(item.total_services || '0') || 0;
                return {
-                    totalAmount: acc.totalAmount + amount,
+                    totalBilled: acc.totalBilled + billed,
+                    totalOutsourced: acc.totalOutsourced + outsourced,
+                    totalProfit: acc.totalProfit + profit,
                     totalServices: acc.totalServices + services
                };
-          }, { totalAmount: 0, totalServices: 0 });
+          }, { totalBilled: 0, totalOutsourced: 0, totalProfit: 0, totalServices: 0 });
      };
 
-     const { totalAmount, totalServices } = calculateTotals();
+     const { totalBilled, totalOutsourced, totalProfit, totalServices } = calculateTotals();
 
      const CustomTooltipContent = ({ active, payload, label }: any) => {
           if (active && payload && payload.length) {
@@ -135,23 +139,41 @@ export default function TopFacilitiesOutsourcingAnalytics() {
                const name = label || currentData.facility_name || currentData.outsourced_facility;
 
                return (
-                    <div className="rounded-lg border p-2 shadow-sm" style={{ backgroundColor: COLOR_TOOLTIP_BG, borderColor: COLOR_BORDER, color: COLOR_TOOLTIP_FG, minWidth: '200px', fontSize: '0.8rem' }}>
+                    <div className="rounded-lg border p-2 " style={{ backgroundColor: COLOR_TOOLTIP_BG, borderColor: COLOR_BORDER, color: COLOR_TOOLTIP_FG, minWidth: '200px', fontSize: '0.8rem' }}>
                          <div className="mb-2 fw-medium" style={{ color: COLOR_TOOLTIP_FG }}>{name}</div>
 
-                         {currentData.total_amount_outsourced && (
+                         {currentData.total_billed_amount && (
                               <div className="mb-1">
-                                   <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Outsourced</span>
+                                   <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Billed Amount</span>
                                    <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                                        {currencyFormatter.format(currentData.total_amount_outsourced)}
+                                        {currencyFormatter.format(parseFloat(currentData.total_billed_amount))}
                                    </span>
                               </div>
                          )}
 
-                         {(currentData.services_count || currentData.total_services || currentData.total_outsourced_services) && (
+                         {currentData.total_outsourced_amount && (
+                              <div className="mb-1">
+                                   <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Outsourced Amount</span>
+                                   <span className="fw-bold d-block" style={{ color: '#DC3545' }}>
+                                        {currencyFormatter.format(parseFloat(currentData.total_outsourced_amount))}
+                                   </span>
+                              </div>
+                         )}
+
+                         {currentData.total_profit_amount && (
+                              <div className="mb-1">
+                                   <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Profit Amount</span>
+                                   <span className="fw-bold d-block" style={{ color: '#28A745' }}>
+                                        {currencyFormatter.format(parseFloat(currentData.total_profit_amount))}
+                                   </span>
+                              </div>
+                         )}
+
+                         {currentData.total_services && (
                               <div className="mb-1">
                                    <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Services</span>
                                    <span className="fw-bold d-block">
-                                        {currentData.services_count || currentData.total_services || currentData.total_outsourced_services}
+                                        {currentData.total_services}
                                    </span>
                               </div>
                          )}
@@ -192,11 +214,11 @@ export default function TopFacilitiesOutsourcingAnalytics() {
                               </div>
                          )}
 
-                         {totalAmount > 0 && currentData.total_amount_outsourced && (
+                         {totalProfit > 0 && currentData.total_profit_amount && (
                               <div className="mt-2 pt-1 border-top" style={{ borderColor: COLOR_BORDER }}>
-                                   <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Share of Total</span>
+                                   <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Share of Total Profit</span>
                                    <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                                        {((currentData.total_amount_outsourced / totalAmount) * 100).toFixed(1)}%
+                                        {((parseFloat(currentData.total_profit_amount) / totalProfit) * 100).toFixed(1)}%
                                    </span>
                               </div>
                          )}
@@ -236,7 +258,7 @@ export default function TopFacilitiesOutsourcingAnalytics() {
                return {
                     ...item,
                     name,
-                    value: parseFloat(item.total_amount_outsourced || item.total_amount || item.grand_total_outsourced || item.total_outsourced_amount || '0') || 0
+                    value: parseFloat(item.total_profit_amount || '0') || 0
                };
           });
 
@@ -331,7 +353,7 @@ export default function TopFacilitiesOutsourcingAnalytics() {
      };
 
      return (
-          <div className="card shadow-sm" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER, backgroundColor: COLOR_TOOLTIP_BG }}>
+          <div className="card " style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER, backgroundColor: COLOR_TOOLTIP_BG }}>
                <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderBottom: `1px solid ${COLOR_BORDER}` }}>
                     <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
                          <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
@@ -384,6 +406,10 @@ export default function TopFacilitiesOutsourcingAnalytics() {
                               <button onClick={fetchData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Refresh data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem', backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}>
                                    <IconRefresh /> Refresh
                               </button>
+
+                              <button onClick={() => window.print()} className="btn btn-sm btn-outline-primary d-flex align-items-center" type="button" aria-label="Print report" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                                   🖨️ Print
+                              </button>
                          </div>
                     </div>
                </div>
@@ -400,22 +426,45 @@ export default function TopFacilitiesOutsourcingAnalytics() {
 
                {data.length > 0 && !loading && !error && (
                     <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
+                         <div className="print-date-range" style={{ display: 'none' }}>
+                              Top Facilities Outsourcing Analytics Report - {selectedYear}
+                         </div>
                          <div className="row g-3 mb-3">
-                              <div className="col-md-6">
+                              <div className="col-md-3">
                                    <div className="card h-100 border-0 bg-primary bg-opacity-10">
                                         <div className="card-body text-center">
-                                             <h6 className="card-title text-primary mb-2">Total Amount</h6>
+                                             <h6 className="card-title text-primary mb-2">Total Billed</h6>
                                              <h4 className="card-text mb-0 text-primary fw-bold">
-                                                  {currencyFormatter.format(totalAmount)}
+                                                  {currencyFormatter.format(totalBilled)}
                                              </h4>
                                         </div>
                                    </div>
                               </div>
-                              <div className="col-md-6">
+                              <div className="col-md-3">
+                                   <div className="card h-100 border-0 bg-danger bg-opacity-10">
+                                        <div className="card-body text-center">
+                                             <h6 className="card-title text-danger mb-2">Total Outsourced</h6>
+                                             <h4 className="card-text mb-0 text-danger fw-bold">
+                                                  {currencyFormatter.format(totalOutsourced)}
+                                             </h4>
+                                        </div>
+                                   </div>
+                              </div>
+                              <div className="col-md-3">
                                    <div className="card h-100 border-0 bg-success bg-opacity-10">
                                         <div className="card-body text-center">
-                                             <h6 className="card-title text-success mb-2">Total Services</h6>
+                                             <h6 className="card-title text-success mb-2">Total Profit</h6>
                                              <h4 className="card-text mb-0 text-success fw-bold">
+                                                  {currencyFormatter.format(totalProfit)}
+                                             </h4>
+                                        </div>
+                                   </div>
+                              </div>
+                              <div className="col-md-3">
+                                   <div className="card h-100 border-0 bg-info bg-opacity-10">
+                                        <div className="card-body text-center">
+                                             <h6 className="card-title text-info mb-2">Total Services</h6>
+                                             <h4 className="card-text mb-0 text-info fw-bold">
                                                   {totalServices.toLocaleString()}
                                              </h4>
                                         </div>
@@ -424,13 +473,16 @@ export default function TopFacilitiesOutsourcingAnalytics() {
                          </div>
 
                          <h4 className="fs-6 fw-medium mb-3">Top Facilities Data ({selectedYear})</h4>
-                         <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                              <table className="table table-sm table-hover table-striped small">
+                         <div className="table-responsive">
+                              <table className="table table-sm table-hover table-striped small printable-table-with-borders">
                                    <thead className="sticky-top bg-body-tertiary">
                                         <tr>
                                              <th scope="col" className="py-2">Facility</th>
-                                             <th scope="col" className="py-2">Amount</th>
+                                             <th scope="col" className="py-2">Billed <span className="d-print-none">Amount</span></th>
+                                             <th scope="col" className="py-2">Outsourced <span className="d-print-none">Amount</span></th>
+                                             <th scope="col" className="py-2">Profit <span className="d-print-none">Amount</span></th>
                                              <th scope="col" className="py-2">Services</th>
+                                             <th scope="col" className="py-2">Avg per Service</th>
                                              <th scope="col" className="py-2">Contact</th>
                                              <th scope="col" className="py-2">Type</th>
                                              <th scope="col" className="py-2">% of Total</th>
@@ -438,8 +490,11 @@ export default function TopFacilitiesOutsourcingAnalytics() {
                                    </thead>
                                    <tbody>
                                         {data.map((entry, index) => {
-                                             const amount = parseFloat(entry.total_amount_outsourced || entry.total_amount || entry.grand_total_outsourced || entry.total_outsourced_amount || '0') || 0;
-                                             const services = parseInt(entry.services_count || entry.total_services || entry.total_outsourced_services || '0') || 0;
+                                             const billed = parseFloat(entry.total_billed_amount || '0') || 0;
+                                             const outsourced = parseFloat(entry.total_outsourced_amount || '0') || 0;
+                                             const profit = parseFloat(entry.total_profit_amount || '0') || 0;
+                                             const services = parseInt(entry.total_services || '0') || 0;
+                                             const avgPerService = parseFloat(entry.avg_billed_per_service || '0') || 0;
 
                                              return (
                                                   <tr key={`${entry.facility_name || entry.outsourced_facility}-${index}`}>
@@ -447,19 +502,28 @@ export default function TopFacilitiesOutsourcingAnalytics() {
                                                             {entry.facility_name || entry.outsourced_facility || 'Unknown'}
                                                        </td>
                                                        <td className="py-2">
-                                                            {currencyFormatter.format(amount)}
+                                                            {currencyFormatter.format(billed)}
+                                                       </td>
+                                                       <td className="py-2">
+                                                            {currencyFormatter.format(outsourced)}
+                                                       </td>
+                                                       <td className="py-2">
+                                                            {currencyFormatter.format(profit)}
                                                        </td>
                                                        <td className="py-2">
                                                             {services > 0 ? services.toLocaleString() : '-'}
                                                        </td>
                                                        <td className="py-2">
-                                                            {entry.contactPerson ? `${entry.contactPerson}${entry.contactNumber ? ` (${entry.contactNumber})` : ''}` : '-'}
+                                                            {currencyFormatter.format(avgPerService)}
+                                                       </td>
+                                                       <td className="py-2">
+                                                            {entry.contactPerson || '-'}
                                                        </td>
                                                        <td className="py-2">
                                                             {entry.organizationType || '-'}
                                                        </td>
                                                        <td className="py-2">
-                                                            {totalAmount > 0 ? ((amount / totalAmount) * 100).toFixed(1) : '0.0'}%
+                                                            {totalProfit > 0 ? ((profit / totalProfit) * 100).toFixed(1) : '0.0'}%
                                                        </td>
                                                   </tr>
                                              );
@@ -468,8 +532,11 @@ export default function TopFacilitiesOutsourcingAnalytics() {
                                    <tfoot className="fw-bold border-top">
                                         <tr>
                                              <td className="py-2">Total</td>
-                                             <td className="py-2">{currencyFormatter.format(totalAmount)}</td>
+                                             <td className="py-2">{currencyFormatter.format(totalBilled)}</td>
+                                             <td className="py-2">{currencyFormatter.format(totalOutsourced)}</td>
+                                             <td className="py-2">{currencyFormatter.format(totalProfit)}</td>
                                              <td className="py-2">{totalServices.toLocaleString()}</td>
+                                             <td className="py-2">-</td>
                                              <td className="py-2">-</td>
                                              <td className="py-2">-</td>
                                              <td className="py-2">100.0%</td>
@@ -482,6 +549,30 @@ export default function TopFacilitiesOutsourcingAnalytics() {
                <style jsx global>{`
                 .recharts-default-legend { margin-left: 15px !important; }
                 .table-responsive thead.sticky-top th { background-color: var(--bs-tertiary-bg) !important; border-bottom: 2px solid var(--bs-border-color); }
+                .table-responsive thead th {
+                    font-weight: bold !important;
+                    color: #000 !important;
+                }
+
+                @media print {
+                    .print-date-range { display: block !important; }
+                    .printable-table-with-borders tbody tr {
+                        border: none !important;
+                        border-bottom: 2px solid #000 !important;
+                    }
+                    .printable-table-with-borders tbody tr:nth-child(odd) {
+                        background-color: #f8f9fa !important;
+                    }
+                    .printable-table-with-borders th:nth-child(9),
+                    .printable-table-with-borders td:nth-child(9) {
+                        display: none !important;
+                    }
+                    .printable-table-with-borders th,
+                    .printable-table-with-borders td {
+                        padding: 0.25rem 0.5rem !important;
+                    }
+                    .row.g-3.mb-3 { display: none !important; }
+                }
             `}</style>
           </div>
      );

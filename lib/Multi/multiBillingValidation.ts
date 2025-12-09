@@ -75,8 +75,11 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             previousPaymentHistory = [],
             promoCode,
             refundList = [],
+            finalCart = [],
+            finalServicesList = [],
         } = billingdata as any;
 
+        console.log(billingdata.servicesList, billingdata.cart)
 
         // Payment validation is now optional for order flow. Only validate if payments are present.
         let paymentSum = 0;
@@ -103,7 +106,7 @@ export const MultiValidateAndSubmitBillingInformation = async function (
             }
         }
 
-        if (cart.length === 0 && servicesProvided.length === 0) {
+        if ((paid > 0 && finalCart.length === 0 && finalServicesList.length === 0) || (cart.length === 0 && servicesProvided.length === 0)) {
             return { error: BillingFailures.cartEmpty };
         }
         if (!employeeid || !patientid || !branchid) {
@@ -123,8 +126,8 @@ export const MultiValidateAndSubmitBillingInformation = async function (
 
         const backendData: any = {
             amountPayable,
-            cart,
-            servicesProvided,
+            cart: paid > 0 ? finalCart : cart,
+            servicesProvided: paid > 0 ? finalServicesList : servicesProvided,
             billingSource,
             outstanding,
             paid,
@@ -164,7 +167,7 @@ export const MultiValidateAndSubmitBillingInformation = async function (
         if (response.status && response.status === 'pending verification') {
             return response;
         }
-console.log("Response from backend:", response);
+
         // If backend returns updated billing data, return it for context update
         if (response.status === true || response.status === 'success' || response.success === true) {
             toast.success(response.message || 'Billing submitted successfully');

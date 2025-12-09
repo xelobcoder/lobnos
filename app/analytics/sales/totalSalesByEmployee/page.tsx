@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
     ResponsiveContainer,
     PieChart,
@@ -16,8 +17,6 @@ import {
 } from "recharts";
 import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
 
-// --- Icons (Placeholders - use your icon library e.g., Remixicon, Lucide) ---
-// import { RiPieChartLine, RiBarChartBoxLine, RiCalendarEventLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiRefreshLine } from "@remixicon/react";
 const IconChart = () => <span style={{ fontSize: '1.2rem', color: COLOR_ACCENT, marginRight: '0.5rem' }}>📈</span>;
 const IconPie = () => <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>🥧</span>;
 const IconBar = () => <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>📊</span>;
@@ -26,16 +25,23 @@ const IconLoader = () => <div className="spinner-border" style={{ width: '2.5rem
 const IconError = () => <span style={{ fontSize: '2.5rem', color: '#DC3545' }}>⚠️</span>;
 const IconEmpty = () => <span style={{ fontSize: '2.5rem', color: COLOR_TEXT_MUTED }}>📦</span>;
 const IconRefresh = () => <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>🔄</span>;
+const IconEye = ({ onClick }: { onClick?: () => void }) => (
+    <span
+        style={{ fontSize: '1rem', verticalAlign: 'middle', marginRight: '0.5rem', cursor: onClick ? 'pointer' : 'default' }}
+        onClick={onClick}
+    >
+        👁️
+    </span>
+);
 
 
-// --- Color Palette ---
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
+const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
 const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
-const COLOR_SECONDARY = '#2563eb'; // Blue for totalPaid
-const COLOR_TERTIARY = '#ea580c'; // Orange for totalDiscount
+const COLOR_SECONDARY = '#2563eb';
+const COLOR_TERTIARY = '#ea580c';
 
 const PIE_CHART_COLORS = [
     COLOR_ACCENT,
@@ -49,29 +55,33 @@ const PIE_CHART_COLORS = [
 
 interface EmployeeSalesAPIEntry {
     employeeid: number;
+    status: string;
+    totalServicesRendered: number;
     totalCost: string;
-    totalPaid: string;
-    totalPayable: string;
-    totalDiscount: string;
-    totalRefunded: string;
+    actual_revenue: string;
+    accrued_revenue: string;
+    total_discount: string;
+    total_amount_refunded: string;
     username: string;
 }
 
 interface ChartDataEntry {
+    employeeid: number;
     username: string;
-    totalPayable: number;
+    status: string;
+    totalServicesRendered: number;
     totalCost: number;
-    totalPaid: number;
-    totalDiscount: number;
-    profit: number;
-    collectionRate: number;
+    actual_revenue: number;
+    accrued_revenue: number;
+    total_discount: number;
+    total_amount_refunded: number;
 }
 
 const getInitialDates = () => {
     const today = new Date();
     const currentYear = today.getFullYear();
-    const startDate = new Date(currentYear, 0, 1).toISOString().split("T")[0]; // January 1st
-    const endDate = new Date(currentYear, 11, 31).toISOString().split("T")[0]; // December 31st
+    const startDate = new Date(currentYear, 0, 1).toISOString().split("T")[0];
+    const endDate = new Date(currentYear, 11, 31).toISOString().split("T")[0];
     return {
         startDate,
         endDate,
@@ -83,6 +93,7 @@ export default function TotalSalesByEmployee() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [view, setView] = useState<"bar" | "pie">("bar");
+    const router = useRouter();
 
     const initialDates = getInitialDates();
     const [startDate, setStartDate] = useState<string>(initialDates.startDate);
@@ -109,24 +120,17 @@ export default function TotalSalesByEmployee() {
             const response: EmployeeSalesAPIEntry[] = await customFetch(url);
 
             if (response && Array.isArray(response)) {
-                const formattedData = response.map((item) => {
-                    const totalPayable = parseFloat(item.totalPayable) || 0;
-                    const totalCost = parseFloat(item.totalCost) || 0;
-                    const totalPaid = parseFloat(item.totalPaid) || 0;
-                    const totalDiscount = parseFloat(item.totalDiscount) || 0;
-                    const profit = totalPayable - totalCost;
-                    const collectionRate = totalPayable > 0 ? (totalPaid / totalPayable) * 100 : 0;
-
-                    return {
-                        username: item.username || "Unknown Employee",
-                        totalPayable,
-                        totalCost,
-                        totalPaid,
-                        totalDiscount,
-                        profit,
-                        collectionRate,
-                    };
-                }).sort((a, b) => b.totalPayable - a.totalPayable);
+                const formattedData = response.map((item) => ({
+                    employeeid: item.employeeid,
+                    username: item.username || "Unknown Employee",
+                    status: item.status,
+                    totalServicesRendered: item.totalServicesRendered || 0,
+                    totalCost: parseFloat(item.totalCost) || 0,
+                    actual_revenue: parseFloat(item.actual_revenue) || 0,
+                    accrued_revenue: parseFloat(item.accrued_revenue) || 0,
+                    total_discount: parseFloat(item.total_discount) || 0,
+                    total_amount_refunded: parseFloat(item.total_amount_refunded) || 0,
+                })).sort((a, b) => b.accrued_revenue - a.accrued_revenue);
                 setData(formattedData);
             } else {
                 setData([]);
@@ -155,28 +159,34 @@ export default function TotalSalesByEmployee() {
     const handleLoadData = () => {
         fetchData(startDate, endDate);
     };
+    const handleEmployeeClick = (employeeId: string) => {
+        window.open(`/analytics/sales/employee/${employeeId}`);
+    };
 
-    const totalPayableOverall = data.reduce((sum, entry) => sum + entry.totalPayable, 0);
+    const totalAccruedRevenueOverall = data.reduce((sum, entry) => sum + entry.accrued_revenue, 0);
 
     const processedData = data.map((entry) => ({
+        employeeId: entry.employeeid,
         employeeName: entry.username,
-        totalPayable: entry.totalPayable,
-        totalPaid: entry.totalPaid,
+        actual_revenue: entry.actual_revenue,
+        accrued_revenue: entry.accrued_revenue,
         totalCost: entry.totalCost,
-        totalDiscount: entry.totalDiscount,
-        collectionRate: entry.totalPayable > 0 ? (entry.totalPaid / entry.totalPayable) * 100 : 0,
-        percentageOfTotal: totalPayableOverall > 0 ? (entry.totalPayable / totalPayableOverall) * 100 : 0,
+        total_discount: entry.total_discount,
+        total_amount_refunded: entry.total_amount_refunded,
+        collectionRate: entry.accrued_revenue > 0 ? (entry.actual_revenue / entry.accrued_revenue) * 100 : 0,
+        percentageOfTotal: totalAccruedRevenueOverall > 0 ? (entry.accrued_revenue / totalAccruedRevenueOverall) * 100 : 0,
     }));
 
     const overallSummary = processedData.reduce(
         (acc, employee) => ({
-            totalPayable: acc.totalPayable + employee.totalPayable,
-            totalPaid: acc.totalPaid + employee.totalPaid,
+            actual_revenue: acc.actual_revenue + employee.actual_revenue,
+            accrued_revenue: acc.accrued_revenue + employee.accrued_revenue,
             totalCost: acc.totalCost + employee.totalCost,
-            totalDiscount: acc.totalDiscount + employee.totalDiscount,
-            collectionRate: processedData.length > 0 ? (acc.totalPaid + employee.totalPaid) / (acc.totalPayable + employee.totalPayable) * 100 : 0,
+            total_discount: acc.total_discount + employee.total_discount,
+            total_amount_refunded: acc.total_amount_refunded + employee.total_amount_refunded,
+            collectionRate: processedData.length > 0 ? (acc.actual_revenue + employee.actual_revenue) / (acc.accrued_revenue + employee.accrued_revenue) * 100 : 0,
         }),
-        { totalPayable: 0, totalPaid: 0, totalCost: 0, totalDiscount: 0, collectionRate: 0 }
+        { actual_revenue: 0, accrued_revenue: 0, totalCost: 0, total_discount: 0, total_amount_refunded: 0, collectionRate: 0 }
     );
 
     const CustomTooltipContent = ({ active, payload, label }: any) => {
@@ -200,9 +210,9 @@ export default function TotalSalesByEmployee() {
                     <div style={{ color: payload[0].fill || COLOR_ACCENT }}>
                         {currencyFormatter.format(value)}
                     </div>
-                    {totalPayableOverall > 0 && (
+                    {totalAccruedRevenueOverall > 0 && (
                         <div className="text-xs" style={{ color: COLOR_TEXT_MUTED }}>
-                            {((value / totalPayableOverall) * 100).toFixed(1)}% of total
+                            {((value / totalAccruedRevenueOverall) * 100).toFixed(1)}% of total
                         </div>
                     )}
                 </div>
@@ -217,7 +227,7 @@ export default function TotalSalesByEmployee() {
         const x = cx + radius * Math.cos(-midAngle * RADIAN);
         const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-        if (percent * 100 < 3) return null; // Don't render label for very small slices
+        if (percent * 100 < 3) return null;
 
         return (
             <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize="10px" fontWeight="500">
@@ -236,7 +246,7 @@ export default function TotalSalesByEmployee() {
                 </div>
             );
         }
-        if (error && data.length === 0) { // Only show full page error if no data could be shown at all
+        if (error && data.length === 0) {
             return (
                 <div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '350px' }}>
                     <IconError />
@@ -266,11 +276,11 @@ export default function TotalSalesByEmployee() {
                         <PieChart>
                             <Pie
                                 data={data}
-                                dataKey="totalPayable"
+                                dataKey="accrued_revenue"
                                 nameKey="username"
                                 cx="50%"
                                 cy="50%"
-                                outerRadius={Math.min(window.innerWidth / 4, 150)} // Responsive radius
+                                outerRadius={Math.min(window.innerWidth / 4, 150)}
                                 labelLine={false}
                                 label={renderCustomizedPieLabel}
                             >
@@ -292,7 +302,7 @@ export default function TotalSalesByEmployee() {
                     </ResponsiveContainer>
                 </div>
             );
-        } else { // Bar Chart
+        } else {
             const numDataPoints = data.length;
             const angleXAxis = numDataPoints > 6;
             const bottomMargin = angleXAxis ? 80 : 40;
@@ -321,7 +331,7 @@ export default function TotalSalesByEmployee() {
                             />
                             <Tooltip content={<CustomTooltipContent />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
                             <Bar
-                                dataKey="totalPayable"
+                                dataKey="accrued_revenue"
                                 fill={COLOR_ACCENT}
                                 radius={[4, 4, 0, 0]}
                                 maxBarSize={50}
@@ -382,7 +392,7 @@ export default function TotalSalesByEmployee() {
             </div>
 
             <div className="card-body p-3 p-md-4">
-                {error && data.length > 0 && ( // Show dismissible error if data is also present
+                {error && data.length > 0 && (
                     <div className="alert alert-warning border-warning border-opacity-50 d-flex align-items-center small p-2 mb-3" role="alert">
                         <IconError /> <span className="ms-2">{error}</span>
                         <button type="button" className="btn-close ms-auto p-2" onClick={() => setError(null)} aria-label="Close" style={{ fontSize: '0.7rem' }}></button>
@@ -393,42 +403,53 @@ export default function TotalSalesByEmployee() {
 
             {data.length > 0 && !loading && !error && (
                 <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
-                    <h4 className="fs-6 fw-medium mb-3">Employee Sales Breakdown</h4>
-                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        <table className="table table-sm table-hover table-striped small">
+                    <div className="print-date-range" style={{ display: 'none' }}>
+                        Employee Sales Report Period: {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
+                    </div>
+                    <div className="d-flex justify-content-between mb-2">
+                        <h4 className="fs-6 fw-medium mb-3">Employee Sales Breakdown</h4>
+                        <button className="btn btn-sm btn-outline-primary" onClick={() => window.print()}>
+                            Print
+                        </button>
+                    </div>
+                    <div className="table-responsive">
+                        <table className="table table-sm table-hover table-striped small printable-table-with-borders">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Employee Name</th>
-                                    <th scope="col" className="py-2 text-end">Total Payable</th>
-                                    <th scope="col" className="py-2 text-end">Total Paid</th>
-                                    <th scope="col" className="py-2 text-end">Total Cost</th>
-                                    <th scope="col" className="py-2 text-end">Total Discount</th>
-                                    <th scope="col" className="py-2 text-end">Collection Rate</th>
-                                    <th scope="col" className="py-2 text-end">% of Total</th>
+                                    <th scope="col" className="py-2">Actual <span className="d-print-none">Revenue</span></th>
+                                    <th scope="col" className="py-2">Accrued <span className="d-print-none">Revenue</span></th>
+                                    <th scope="col" className="py-2">Total <span className="d-print-none">Cost</span></th>
+                                    <th scope="col" className="py-2">Total <span className="d-print-none">Discount</span></th>
+                                    <th scope="col" className="py-2">Total <span className="d-print-none">Refunded</span></th>
+                                    <th scope="col" className="py-2">Collection <span className="d-print-none">Rate</span></th>
+                                    <th scope="col" className="py-2">% of <span className="d-print-none">Total</span></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {processedData.map((employee, index) => (
                                     <tr key={employee.employeeName + index}>
-                                        <td className="py-2">{employee.employeeName}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(employee.totalPayable)}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(employee.totalPaid)}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(employee.totalCost)}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(employee.totalDiscount)}</td>
-                                        <td className="py-2 text-end">{employee.collectionRate.toFixed(1)}%</td>
-                                        <td className="py-2 text-end">{employee.percentageOfTotal.toFixed(1)}%</td>
+                                        <td className="py-2"><IconEye onClick={() => handleEmployeeClick(employee.employeeId.toString())} />{employee.employeeName}</td>
+                                        <td className="py-2">{currencyFormatter.format(employee.actual_revenue)}</td>
+                                        <td className="py-2">{currencyFormatter.format(employee.accrued_revenue)}</td>
+                                        <td className="py-2">{currencyFormatter.format(employee.totalCost)}</td>
+                                        <td className="py-2">{currencyFormatter.format(employee.total_discount)}</td>
+                                        <td className="py-2">{currencyFormatter.format(employee.total_amount_refunded)}</td>
+                                        <td className="py-2">{employee.collectionRate.toFixed(1)}%</td>
+                                        <td className="py-2">{employee.percentageOfTotal.toFixed(1)}%</td>
                                     </tr>
                                 ))}
                             </tbody>
                             <tfoot className="fw-bold border-top">
                                 <tr>
                                     <td className="py-2">Total</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalPayable)}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalPaid)}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalCost)}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(overallSummary.totalDiscount)}</td>
-                                    <td className="py-2 text-end">{overallSummary.collectionRate.toFixed(1)}%</td>
-                                    <td className="py-2 text-end">100.0%</td>
+                                    <td className="py-2">{currencyFormatter.format(overallSummary.actual_revenue)}</td>
+                                    <td className="py-2">{currencyFormatter.format(overallSummary.accrued_revenue)}</td>
+                                    <td className="py-2">{currencyFormatter.format(overallSummary.totalCost)}</td>
+                                    <td className="py-2">{currencyFormatter.format(overallSummary.total_discount)}</td>
+                                    <td className="py-2">{currencyFormatter.format(overallSummary.total_amount_refunded)}</td>
+                                    <td className="py-2">{overallSummary.collectionRate.toFixed(1)}%</td>
+                                    <td className="py-2">100.0%</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -440,6 +461,49 @@ export default function TotalSalesByEmployee() {
                 .table-responsive thead.sticky-top th {
                     background-color: var(--bs-tertiary-bg) !important; /* Ensure sticky header bg */
                     border-bottom: 2px solid var(--bs-border-color); 
+                }
+                .table-responsive thead th {
+                    font-weight: bold !important;
+                    color: #000 !important;
+                }
+                @media print {
+                    .printable-table-with-borders tbody tr {
+                        border: none !important;
+                        border-bottom: 2px solid #000 !important;
+                    }
+                    .printable-table-with-borders tbody tr:nth-child(odd) {
+                        background-color: #f8f9fa !important;
+                    }
+                    .printable-table-with-borders th:nth-child(8),
+                    .printable-table-with-borders td:nth-child(8) {
+                        display: none !important;
+                    }
+                    .printable-table-with-borders th,
+                    .printable-table-with-borders td {
+                        padding: 0.25rem 0.5rem !important;
+                    }
+                    .print-date-range {
+                        display: block !important;
+                        margin-bottom: 1rem;
+                        font-weight: bold;
+                    }
+                    .card-body {
+                        display: block !important;
+                    }
+                    .recharts-wrapper {
+                        margin: 0 !important;
+                        border: none !important;
+                    }
+                    .printable-table-with-borders td span[style*="👁️"] {
+                        display: none !important;
+                    }
+                    .printable-table-with-borders td:first-child span {
+                        display: none !important;
+                    }
+                    .card {
+                        box-shadow: none !important;
+                 
+                    }
                 }
             `}</style>
         </div>

@@ -27,6 +27,7 @@ type ModalComponentProps = {
 		amountIncurredDueTax: number;
 		discount: number;
 		serviceid: number;
+		totalcost: number;
 		billingid: number;
 	};
 	cashIssuedOut: boolean;
@@ -92,20 +93,17 @@ export default function RefundServiceShowDetailModal({
 					:
 					<Modal.Body>
 						<ListGroup className="pls-color">
-							<ListGroup.Item className="bg-body-tertiary">
-								Service Cost: {currencyFormatter.format(item.cost)}
-							</ListGroup.Item>
-							<ListGroup.Item className="bg-body-tertiary">
+							{/* <ListGroup.Item className="bg-body-tertiary">
 								Amount Incurred Due To Taxes: {currencyFormatter.format(item.amountIncurredDueTax)}
 							</ListGroup.Item>
 							<ListGroup.Item className="bg-body-tertiary">
 								Discount: {currencyFormatter.format(item.discount)}
-							</ListGroup.Item>
+							</ListGroup.Item> */}
 						</ListGroup>
 						{refundInformation.message && <Alert dismissible variant="danger" className=" my-2 pls-color ">{refundInformation.message}</Alert>}
-						<p>Amount to Refund: {currencyFormatter.format(refundInformation.refundableAmount)}</p>
+						<div className="my-2 br-5 border border-1 py-2 px-3">Amount to Refund: {currencyFormatter.format(refundInformation.refundableAmount)}</div>
 						<select
-							className="custom-select"
+							className="form-select form-select-sm my-2"
 							disabled={isDisabled || loading}
 							value={selectedPaymentMode || ''}
 							onChange={handlePaymentModeChange}
@@ -118,20 +116,20 @@ export default function RefundServiceShowDetailModal({
 							))}
 						</select>
 						<input
-							className="custom-input my-2"
+							className="form-control form-control-sm my-2"
 							type="number"
 							disabled={isDisabled || loading}
 							placeholder="Amount Refunded"
-							value={refundAmount}
+							value={refundInformation.refundableAmount || refundAmount || 0}
 							onChange={handleRefundAmountChange}
 						/>
 					</Modal.Body>
 			}
 			<Modal.Footer>
-				<Button variant="secondary" onClick={onClose}>
+				<Button variant="outline-danger" size="sm" className="btn" onClick={onClose}>
 					Close
 				</Button>
-				<Button variant="primary" onClick={onConfirm} disabled={cashIssuedOut || isDisabled || loading}>
+				<Button variant="outline-primary" size="sm" className="btn" onClick={onConfirm} disabled={cashIssuedOut || isDisabled || loading}>
 					{cashIssuedOut && <Spinner size="sm" />} Confirm Refund
 				</Button>
 			</Modal.Footer>

@@ -26,6 +26,7 @@ const IconRefresh = () => <span style={{ fontSize: '1rem', verticalAlign: 'middl
 const IconBar = () => <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>📊</span>;
 const IconLine = () => <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>📈</span>;
 const IconArea = () => <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>📉</span>;
+const IconView = () => <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>👁️</span>;
 
 // --- Color Palette ---
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
@@ -44,22 +45,24 @@ const getInitialDates = () => {
 
 interface OrganizationSalesAPIEntry {
     organizationId: number;
+    status: string;
     totalCost: string;
     name: string;
-    totalPaid: string;
-    totalPayable: string;
-    totalDiscount: string;
-    totalRefunded: string;
+    actual_revenue: string;
+    accrued_revenue: string;
+    total_discount: string;
+    total_amount_refunded: string;
 }
 
 interface ChartDataEntry {
     organizationId: number;
+    status: string;
     name: string;
     totalCost: number;
-    totalPaid: number;
-    totalPayable: number;
-    totalDiscount: number;
-    totalRefunded: number;
+    actual_revenue: number;
+    accrued_revenue: number;
+    total_discount: number;
+    total_amount_refunded: number;
 }
 
 export default function TotalSalesByOrganization() {
@@ -95,13 +98,14 @@ export default function TotalSalesByOrganization() {
             if (response && Array.isArray(response)) {
                 const formattedData = response.map((item) => ({
                     organizationId: item.organizationId,
+                    status: item.status,
                     name: item.name || "Unknown Organization",
                     totalCost: parseFloat(item.totalCost) || 0,
-                    totalPaid: parseFloat(item.totalPaid) || 0,
-                    totalPayable: parseFloat(item.totalPayable) || 0,
-                    totalDiscount: parseFloat(item.totalDiscount) || 0,
-                    totalRefunded: parseFloat(item.totalRefunded) || 0,
-                })).sort((a, b) => b.totalPayable - a.totalPayable);
+                    actual_revenue: parseFloat(item.actual_revenue) || 0,
+                    accrued_revenue: parseFloat(item.accrued_revenue) || 0,
+                    total_discount: parseFloat(item.total_discount) || 0,
+                    total_amount_refunded: parseFloat(item.total_amount_refunded) || 0,
+                })).sort((a, b) => b.accrued_revenue - a.accrued_revenue);
                 setData(formattedData);
             } else {
                 setData([]);
@@ -134,7 +138,12 @@ export default function TotalSalesByOrganization() {
         setView(newView);
     };
 
-    const totalPayableOverall = data.reduce((sum, entry) => sum + entry.totalPayable, 0);
+    const handleViewBreakdown = (organization: ChartDataEntry) => {
+        // Open organization details in a new tab
+        window.open(`/analytics/sales/organizations/${organization.organizationId}`, '_blank');
+    };
+
+    const totalPayableOverall = data.reduce((sum, entry) => sum + entry.accrued_revenue, 0);
 
     const CustomTooltipContent = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
@@ -152,15 +161,15 @@ export default function TotalSalesByOrganization() {
                 >
                     <div className="mb-2 fw-medium" style={{ color: COLOR_TOOLTIP_FG }}>{label}</div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Net Payable</span>
-                        <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                            {currencyFormatter.format(currentData.totalPayable)}
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Actual Revenue</span>
+                        <span className="fw-bold d-block" style={{ color: 'oklch(0.6 0.15 142)' }}>
+                            {currencyFormatter.format(currentData.actual_revenue)}
                         </span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Amount Paid</span>
-                        <span className="fw-bold d-block" style={{ color: 'oklch(0.6 0.15 142)' }}>
-                            {currencyFormatter.format(currentData.totalPaid)}
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Accrued Revenue</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
+                            {currencyFormatter.format(currentData.accrued_revenue)}
                         </span>
                     </div>
                     <div className="mb-1">
@@ -171,9 +180,9 @@ export default function TotalSalesByOrganization() {
                     </div>
                     {totalPayableOverall > 0 && (
                         <div className="mt-2 pt-1 border-top" style={{ borderColor: COLOR_BORDER }}>
-                            <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Share of Total</span>
+                            <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Revenue Share</span>
                             <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                                {((currentData.totalPayable / totalPayableOverall) * 100).toFixed(1)}%
+                                {((currentData.accrued_revenue / totalPayableOverall) * 100).toFixed(1)}%
                             </span>
                         </div>
                     )}
@@ -250,17 +259,31 @@ export default function TotalSalesByOrganization() {
             return (
                 <div style={{ width: '100%', height: 350 }}>
                     <ResponsiveContainer>
-                        <BarChart {...commonProps}>
+                        <BarChart {...commonProps} barGap={10}>
                             <CartesianGrid strokeDasharray="3 3" stroke={COLOR_BORDER} vertical={false} />
                             <XAxis {...xAxisProps} />
                             <YAxis {...yAxisProps} />
                             <Tooltip {...tooltipProps} />
+                            <Legend
+                                verticalAlign="top"
+                                align="right"
+                                iconType="rect"
+                                iconSize={12}
+                                wrapperStyle={{ fontSize: '12px', color: COLOR_TEXT_MUTED, paddingBottom: '10px' }}
+                            />
                             <Bar
-                                dataKey="totalPayable"
+                                dataKey="actual_revenue"
+                                fill="oklch(0.6 0.15 142)"
+                                radius={[4, 4, 0, 0]}
+                                maxBarSize={50}
+                                name="Actual Revenue"
+                            />
+                            <Bar
+                                dataKey="accrued_revenue"
                                 fill={COLOR_ACCENT}
                                 radius={[4, 4, 0, 0]}
                                 maxBarSize={50}
-                                name="Total Payable"
+                                name="Accrued Revenue"
                             />
                         </BarChart>
                     </ResponsiveContainer>
@@ -293,8 +316,8 @@ export default function TotalSalesByOrganization() {
                             />
                             <Line
                                 type="monotone"
-                                dataKey="totalPaid"
-                                name="Amount Paid"
+                                dataKey="actual_revenue"
+                                name="Actual Revenue"
                                 stroke="oklch(0.7 0.2 20)"
                                 strokeWidth={2}
                                 dot={{ r: 3, strokeWidth: 1, fill: "oklch(0.7 0.2 20)" }}
@@ -302,7 +325,7 @@ export default function TotalSalesByOrganization() {
                             />
                             <Line
                                 type="monotone"
-                                dataKey="totalPayable"
+                                dataKey="accrued_revenue"
                                 name="Net Payable"
                                 stroke={COLOR_ACCENT}
                                 strokeWidth={3}
@@ -311,7 +334,7 @@ export default function TotalSalesByOrganization() {
                             />
                             <Line
                                 type="monotone"
-                                dataKey="totalDiscount"
+                                dataKey="total_discount"
                                 name="Discount"
                                 stroke="oklch(0.5 0.1 25)"
                                 strokeWidth={2}
@@ -367,8 +390,8 @@ export default function TotalSalesByOrganization() {
                             />
                             <Area
                                 type="monotone"
-                                dataKey="totalPaid"
-                                name="Amount Paid"
+                                dataKey="actual_revenue"
+                                name="Actual Revenue"
                                 stroke="oklch(0.7 0.2 20)"
                                 fill="url(#colorTotalPaid)"
                                 strokeWidth={2}
@@ -376,7 +399,7 @@ export default function TotalSalesByOrganization() {
                             />
                             <Area
                                 type="monotone"
-                                dataKey="totalPayable"
+                                dataKey="accrued_revenue"
                                 name="Net Payable"
                                 stroke={COLOR_ACCENT}
                                 fill="url(#colorTotalPayable)"
@@ -385,7 +408,7 @@ export default function TotalSalesByOrganization() {
                             />
                             <Area
                                 type="monotone"
-                                dataKey="totalDiscount"
+                                dataKey="total_discount"
                                 name="Discount"
                                 stroke="oklch(0.5 0.1 25)"
                                 fill="url(#colorTotalDiscount)"
@@ -470,28 +493,40 @@ export default function TotalSalesByOrganization() {
             {data.length > 0 && !loading && !error && (
                 <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
                     <h4 className="fs-6 fw-medium mb-3">Organization Sales Breakdown</h4>
-                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                    <div className="table-responsive">
                         <table className="table table-sm table-hover table-striped small">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Organization Name</th>
-                                    <th scope="col" className="py-2 text-end">Total Cost</th>
-                                    <th scope="col" className="py-2 text-end">Amount Paid</th>
-                                    <th scope="col" className="py-2 text-end">Net Payable</th>
-                                    <th scope="col" className="py-2 text-end">Discount</th>
-                                    <th scope="col" className="py-2 text-end">% of Total</th>
+                                    <th scope="col" className="py-2">Total Cost</th>
+                                    <th scope="col" className="py-2">Actual Revenue</th>
+                                    <th scope="col" className="py-2">Accrued Revenue</th>
+                                    <th scope="col" className="py-2">Discount</th>
+                                    <th scope="col" className="py-2">Refunded</th>
+                                    <th scope="col" className="py-2">% of Total</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.map((entry, index) => (
                                     <tr key={entry.organizationId + index}>
-                                        <td className="py-2">{entry.name}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(entry.totalCost)}</td>
-                                        <td className="py-2 text-end">{entry.totalPaid ? currencyFormatter.format(entry.totalPaid) : '-'}</td>
-                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.totalPayable)}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(entry.totalDiscount)}</td>
-                                        <td className="py-2 text-end text-muted">
-                                            {totalPayableOverall > 0 ? ((entry.totalPayable / totalPayableOverall) * 100).toFixed(1) : '0.0'}%
+                                        <td className="py-2">
+                                            {entry.name}
+                                            <button
+                                                className="btn btn-sm btn-link p-0 ms-2 d-print-none"
+                                                onClick={() => handleViewBreakdown(entry)}
+                                                title={`View breakdown for ${entry.name}`}
+                                                style={{ fontSize: '0.8rem', verticalAlign: 'baseline' }}
+                                            >
+                                                <IconView />
+                                            </button>
+                                        </td>
+                                        <td className="py-2">{currencyFormatter.format(entry.totalCost)}</td>
+                                        <td className="py-2">{entry.actual_revenue ? currencyFormatter.format(entry.actual_revenue) : '-'}</td>
+                                        <td className="py-2 fw-medium">{currencyFormatter.format(entry.accrued_revenue)}</td>
+                                        <td className="py-2">{currencyFormatter.format(entry.total_discount)}</td>
+                                        <td className="py-2">{currencyFormatter.format(entry.total_amount_refunded)}</td>
+                                        <td className="py-2 text-muted">
+                                            {totalPayableOverall > 0 ? ((entry.accrued_revenue / totalPayableOverall) * 100).toFixed(1) : '0.0'}%
                                         </td>
                                     </tr>
                                 ))}
@@ -499,11 +534,12 @@ export default function TotalSalesByOrganization() {
                             <tfoot className="fw-bold border-top">
                                 <tr>
                                     <td className="py-2">Total</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalPaid, 0))}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(totalPayableOverall)}</td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalDiscount, 0))}</td>
-                                    <td className="py-2 text-end">100.0%</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalCost, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.actual_revenue, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(totalPayableOverall)}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_discount, 0))}</td>
+                                    <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.total_amount_refunded, 0))}</td>
+                                    <td className="py-2">100.0%</td>
                                 </tr>
                             </tfoot>
                         </table>

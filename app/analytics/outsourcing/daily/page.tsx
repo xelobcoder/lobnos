@@ -145,19 +145,23 @@ export default function DailyOutsourcingAnalytics() {
      }, [selectedBranch, startDate, endDate]);
 
      const calculateTotals = () => {
-          if (!data.length) return { totalAmount: 0, totalServices: 0 };
+          if (!data.length) return { totalAmount: 0, totalBilled: 0, totalProfit: 0, totalServices: 0 };
 
           return data.reduce((acc, item) => {
-               const amount = parseFloat(item.daily_amount || item.total_amount_outsourced || item.total_amount || item.grand_total_outsourced || item.total_outsourced_amount || '0') || 0;
+               const amount = parseFloat(item.outsourced_daily_amount || item.daily_amount || item.total_amount_outsourced || item.total_amount || item.grand_total_outsourced || item.total_outsourced_amount || '0') || 0;
+               const billed = parseFloat(item.daily_billed_amount || '0') || 0;
+               const profit = parseFloat(item.daily_profit_amount || '0') || 0;
                const services = parseInt(item.services_count || item.total_services || item.total_outsourced_services || '0') || 0;
                return {
                     totalAmount: acc.totalAmount + amount,
+                    totalBilled: acc.totalBilled + billed,
+                    totalProfit: acc.totalProfit + profit,
                     totalServices: acc.totalServices + services
                };
-          }, { totalAmount: 0, totalServices: 0 });
+          }, { totalAmount: 0, totalBilled: 0, totalProfit: 0, totalServices: 0 });
      };
 
-     const { totalAmount, totalServices } = calculateTotals();
+     const { totalAmount, totalBilled, totalProfit, totalServices } = calculateTotals();
 
      const CustomTooltipContent = ({ active, payload, label }: any) => {
           if (active && payload && payload.length) {
@@ -168,29 +172,47 @@ export default function DailyOutsourcingAnalytics() {
                     <div className="rounded-lg border p-2 shadow-sm" style={{ backgroundColor: COLOR_TOOLTIP_BG, borderColor: COLOR_BORDER, color: COLOR_TOOLTIP_FG, minWidth: '200px', fontSize: '0.8rem' }}>
                          <div className="mb-2 fw-medium" style={{ color: COLOR_TOOLTIP_FG }}>{name}</div>
 
-                         {currentData.daily_amount && (
+                         {currentData.outsourced_daily_amount && (
                               <div className="mb-1">
-                                   <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Daily Amount</span>
+                                   <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Outsourced Amount</span>
                                    <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                                        {currencyFormatter.format(currentData.daily_amount)}
+                                        {currencyFormatter.format(parseFloat(currentData.outsourced_daily_amount))}
                                    </span>
                               </div>
                          )}
 
-                         {(currentData.services_count || currentData.total_services || currentData.total_outsourced_services) && (
+                         {currentData.daily_billed_amount && (
+                              <div className="mb-1">
+                                   <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Billed Amount</span>
+                                   <span className="fw-bold d-block">
+                                        {currencyFormatter.format(parseFloat(currentData.daily_billed_amount))}
+                                   </span>
+                              </div>
+                         )}
+
+                         {currentData.daily_profit_amount && (
+                              <div className="mb-1">
+                                   <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Profit Amount</span>
+                                   <span className="fw-bold d-block">
+                                        {currencyFormatter.format(parseFloat(currentData.daily_profit_amount))}
+                                   </span>
+                              </div>
+                         )}
+
+                         {currentData.services_count && (
                               <div className="mb-1">
                                    <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Services</span>
                                    <span className="fw-bold d-block">
-                                        {currentData.services_count || currentData.total_services || currentData.total_outsourced_services}
+                                        {currentData.services_count}
                                    </span>
                               </div>
                          )}
 
-                         {totalAmount > 0 && currentData.daily_amount && (
+                         {totalAmount > 0 && currentData.outsourced_daily_amount && (
                               <div className="mt-2 pt-1 border-top" style={{ borderColor: COLOR_BORDER }}>
                                    <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Share of Total</span>
                                    <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>
-                                        {((currentData.daily_amount / totalAmount) * 100).toFixed(1)}%
+                                        {((parseFloat(currentData.outsourced_daily_amount) / totalAmount) * 100).toFixed(1)}%
                                    </span>
                               </div>
                          )}
@@ -220,14 +242,14 @@ export default function DailyOutsourcingAnalytics() {
                return (<div className="d-flex flex-column justify-content-center align-items-center text-center" style={{ minHeight: '400px' }}><IconEmpty /><h5 className="fw-medium mt-3 mb-1" style={{ color: COLOR_TOOLTIP_FG }}>No Data Available</h5><p className="px-3" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.9rem' }}>No daily outsourcing data found for the selected {useCustomDateRange ? `date range (${formatDate(startDate)} to ${formatDate(endDate)})` : 'period (last 30 days)'}.</p></div>);
           }
 
-          const chartHeight = 450;
+          const chartHeight = 400;
 
           const chartData = data.map(item => {
                let name = item.service_date ? formatDate(item.service_date) : 'Unknown';
                return {
                     ...item,
                     name,
-                    value: parseFloat(item.daily_amount || item.total_amount_outsourced || item.total_amount || item.grand_total_outsourced || item.total_outsourced_amount || '0') || 0
+                    value: parseFloat(item.outsourced_daily_amount || item.daily_amount || item.total_amount_outsourced || item.total_amount || item.grand_total_outsourced || item.total_outsourced_amount || '0') || 0
                };
           });
 
@@ -309,9 +331,9 @@ export default function DailyOutsourcingAnalytics() {
           return (
                <div style={{ width: '100%', height: chartHeight }}>
                     <ResponsiveContainer width="100%" height="100%">
-                         <BarChart data={chartData} margin={{ top: 5, right: 10, left: 5, bottom: bottomMargin }} barGap={4} barCategoryGap="20%">
+                         <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }} barGap={4} barCategoryGap="20%">
                               <CartesianGrid strokeDasharray="3 3" stroke={COLOR_BORDER} vertical={false} />
-                              <XAxis dataKey="name" angle={angleXAxis ? -45 : 0} textAnchor={angleXAxis ? "end" : "middle"} height={angleXAxis ? 110 : 70} interval={0} tick={{ fontSize: 10, fill: COLOR_TEXT_MUTED }} axisLine={{ stroke: COLOR_BORDER }} tickLine={{ stroke: COLOR_BORDER }} />
+                              <XAxis dataKey="name" angle={angleXAxis ? -45 : 0} textAnchor={angleXAxis ? "end" : "middle"} height={angleXAxis ? 80 : 70} interval={0} tick={{ fontSize: 10, fill: COLOR_TEXT_MUTED }} axisLine={{ stroke: COLOR_BORDER }} tickLine={{ stroke: COLOR_BORDER }} />
                               <YAxis tickFormatter={(value) => currencyFormatter.format(value)} tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }} axisLine={false} tickLine={false} width={100} />
                               <Tooltip content={<CustomTooltipContent />} cursor={{ fill: COLOR_HOVER }} />
                               <Bar dataKey="value" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={50} />
@@ -401,6 +423,9 @@ export default function DailyOutsourcingAnalytics() {
                                    <button type="button" className={`btn ${view === 'bar' ? 'btn-primary active' : 'btn-outline-secondary'}`} onClick={() => setView('bar')} style={view === 'bar' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}>
                                         <IconBar /> Bar
                                    </button>
+                                   <button type="button" className={`btn ${view === 'line' ? 'btn-primary active' : 'btn-outline-secondary'}`} onClick={() => setView('line')} style={view === 'line' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}>
+                                        <IconLine /> Line
+                                   </button>
                                    <button type="button" className={`btn ${view === 'area' ? 'btn-primary active' : 'btn-outline-secondary'}`} onClick={() => setView('area')} style={view === 'area' ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}>
                                         <IconArea /> Area
                                    </button>
@@ -408,6 +433,10 @@ export default function DailyOutsourcingAnalytics() {
 
                               <button onClick={useCustomDateRange ? handleLoadCustomRange : fetchData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem', backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT }}>
                                    <IconRefresh /> Load
+                              </button>
+
+                              <button className="btn btn-sm btn-outline-primary d-flex align-items-center" onClick={() => window.print()} style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                                   🖨️ Print
                               </button>
                          </div>
                     </div>
@@ -425,22 +454,35 @@ export default function DailyOutsourcingAnalytics() {
 
                {data.length > 0 && !loading && !error && (
                     <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
+                         <div className="print-date-range" style={{ display: 'none' }}>
+                              Daily Outsourcing Report Period: {useCustomDateRange ? `${formatDate(startDate)} to ${formatDate(endDate)}` : 'Last 30 Days'}
+                         </div>
                          <div className="row g-3 mb-3">
-                              <div className="col-md-6">
+                              <div className="col-md-4">
                                    <div className="card h-100 border-0 bg-primary bg-opacity-10">
                                         <div className="card-body text-center">
-                                             <h6 className="card-title text-primary mb-2">Total Amount</h6>
+                                             <h6 className="card-title text-primary mb-2">Total Outsourced</h6>
                                              <h4 className="card-text mb-0 text-primary fw-bold">
                                                   {currencyFormatter.format(totalAmount)}
                                              </h4>
                                         </div>
                                    </div>
                               </div>
-                              <div className="col-md-6">
+                              <div className="col-md-4">
                                    <div className="card h-100 border-0 bg-success bg-opacity-10">
                                         <div className="card-body text-center">
-                                             <h6 className="card-title text-success mb-2">Total Services</h6>
+                                             <h6 className="card-title text-success mb-2">Total Profit</h6>
                                              <h4 className="card-text mb-0 text-success fw-bold">
+                                                  {currencyFormatter.format(totalProfit)}
+                                             </h4>
+                                        </div>
+                                   </div>
+                              </div>
+                              <div className="col-md-4">
+                                   <div className="card h-100 border-0 bg-info bg-opacity-10">
+                                        <div className="card-body text-center">
+                                             <h6 className="card-title text-info mb-2">Total Services</h6>
+                                             <h4 className="card-text mb-0 text-info fw-bold">
                                                   {totalServices.toLocaleString()}
                                              </h4>
                                         </div>
@@ -449,20 +491,24 @@ export default function DailyOutsourcingAnalytics() {
                          </div>
 
                          <h4 className="fs-6 fw-medium mb-3">Daily Outsourcing Data {useCustomDateRange ? `(${formatDate(startDate)} to ${formatDate(endDate)})` : '(Last 30 Days)'}</h4>
-                         <div className="table-responsive text-start" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                              <table className="table table-sm table-hover table-striped small">
+                         <div className="table-responsive text-start">
+                              <table className="table table-sm table-hover table-striped small printable-table-with-borders">
                                    <thead className="sticky-top bg-body-tertiary">
                                         <tr>
                                              <th scope="col" className="py-2">Date</th>
-                                             <th scope="col" className="py-2">Amount</th>
+                                             <th scope="col" className="py-2">Outsourced Amount</th>
+                                             <th scope="col" className="py-2">Billed Amount</th>
+                                             <th scope="col" className="py-2">Profit Amount</th>
                                              <th scope="col" className="py-2">Services</th>
                                              <th scope="col" className="py-2">% of Total</th>
                                         </tr>
                                    </thead>
                                    <tbody>
                                         {data.map((entry, index) => {
-                                             const amount = parseFloat(entry.daily_amount || entry.total_amount_outsourced || entry.total_amount || entry.grand_total_outsourced || entry.total_outsourced_amount || '0') || 0;
-                                             const services = parseInt(entry.services_count || entry.total_services || entry.total_outsourced_services || '0') || 0;
+                                             const outsourcedAmount = parseFloat(entry.outsourced_daily_amount || '0') || 0;
+                                             const billedAmount = parseFloat(entry.daily_billed_amount || '0') || 0;
+                                             const profitAmount = parseFloat(entry.daily_profit_amount || '0') || 0;
+                                             const services = parseInt(entry.services_count || '0') || 0;
 
                                              return (
                                                   <tr key={`${entry.service_date || entry.facility_name || entry.outsourced_facility}-${index}`}>
@@ -470,13 +516,19 @@ export default function DailyOutsourcingAnalytics() {
                                                             {entry.service_date ? formatDate(entry.service_date) : 'Unknown'}
                                                        </td>
                                                        <td className="py-2">
-                                                            {currencyFormatter.format(amount)}
+                                                            {currencyFormatter.format(outsourcedAmount)}
+                                                       </td>
+                                                       <td className="py-2">
+                                                            {currencyFormatter.format(billedAmount)}
+                                                       </td>
+                                                       <td className="py-2">
+                                                            {currencyFormatter.format(profitAmount)}
                                                        </td>
                                                        <td className="py-2">
                                                             {services > 0 ? services.toLocaleString() : '-'}
                                                        </td>
                                                        <td className="py-2">
-                                                            {totalAmount > 0 ? ((amount / totalAmount) * 100).toFixed(1) : '0.0'}%
+                                                            {totalAmount > 0 ? ((outsourcedAmount / totalAmount) * 100).toFixed(1) : '0.0'}%
                                                        </td>
                                                   </tr>
                                              );
@@ -486,6 +538,8 @@ export default function DailyOutsourcingAnalytics() {
                                         <tr>
                                              <td className="py-2">Total</td>
                                              <td className="py-2">{currencyFormatter.format(totalAmount)}</td>
+                                             <td className="py-2">{currencyFormatter.format(totalBilled)}</td>
+                                             <td className="py-2">{currencyFormatter.format(totalProfit)}</td>
                                              <td className="py-2">{totalServices.toLocaleString()}</td>
                                              <td className="py-2">100.0%</td>
                                         </tr>
@@ -497,6 +551,34 @@ export default function DailyOutsourcingAnalytics() {
                <style jsx global>{`
                 .recharts-default-legend { margin-left: 15px !important; }
                 .table-responsive thead.sticky-top th { background-color: var(--bs-tertiary-bg) !important; border-bottom: 2px solid var(--bs-border-color); }
+                @media print {
+                    .printable-table-with-borders tbody tr {
+                        border: none !important;
+                        border-bottom: 2px solid #000 !important;
+                    }
+                    .printable-table-with-borders tbody tr:nth-child(odd) {
+                        background-color: #f8f9fa !important;
+                    }
+                    .printable-table-with-borders th,
+                    .printable-table-with-borders td {
+                        padding: 0.25rem 0.5rem !important;
+                    }
+                    .print-date-range {
+                        display: block !important;
+                        margin-bottom: 1rem;
+                        font-weight: bold;
+                    }
+                    .card-body {
+                        display: block !important;
+                    }
+                    .recharts-wrapper {
+                        margin: 0 !important;
+                        border: none !important;
+                    }
+                    .card {
+                        box-shadow: none !important;
+                    }
+                }
             `}</style>
           </div>
      );

@@ -396,6 +396,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
             setIsSaving(true);
             const dataToBeUploaded = {
                 ...billingdata,
+                servicesProvided: billingdata.servicesList,
                 employeeid: employeeid,
                 branchid: branchid,
                 amountPayable,
@@ -419,7 +420,7 @@ function MultiBillingLayoutContent({ billingContextProps }: {
                 dataToBeUploaded,
                 billingid ? Number(billingid) : undefined
             );
-
+console.log("Submission response:", response);
 
             const { status, message } = response;
 

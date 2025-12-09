@@ -201,8 +201,8 @@ export default function PreviousTransactionSummaryPage() {
 				return;
 			}
 
-			if (refundAmount !== Number(refundableAmount)) {
-				toast.error('Please Enter value equal to the refundable Amount');
+			if (refundAmount > Number(refundableAmount) || refundAmount <= 0) {
+				toast.error('Please enter a valid refund amount.');
 				return;
 			}
 
@@ -276,15 +276,14 @@ export default function PreviousTransactionSummaryPage() {
 
 	const columns = [
 		{ Header: 'Service Name', accessor: 'name' },
-		{ Header: 'Cost', accessor: 'cost', Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0) },
 		{
 			Header: 'Service Added On',
 			accessor: 'serviceAddedOn',
 			Cell: ({ cell: { value } }) => (value ? new Date(value).toLocaleString() : '')
 		},
 		{
-			Header: 'Discount',
-			accessor: 'discount',
+			Header: 'Cost',
+			accessor: 'cost',
 			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
 		},
 		{
@@ -297,10 +296,27 @@ export default function PreviousTransactionSummaryPage() {
 			accessor: 'totalpayable',
 			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
 		},
+
+		{
+			Header: 'Tax',
+			accessor: 'amountIncurredDueTax',
+			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
+		},
+		{
+			Header: 'Discount',
+			accessor: 'discount',
+			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
+		},
+
 		{ Header: 'Status', accessor: 'status' },
 		{
 			Header: 'Amount Refunded',
 			accessor: 'amountRefunded',
+			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
+		},
+		{
+			Header: 'Outstanding',
+			accessor: 'outstanding',
 			Cell: ({ cell: { value } }) => currencyFormatter.format(Number(value) || 0)
 		},
 		{
@@ -536,12 +552,14 @@ export default function PreviousTransactionSummaryPage() {
 			amountIncurredDueTax: Number(item.amountIncurredDueTax) || 0,
 			discount: Number(item.discount) || 0,
 			serviceid: item.serviceid,
-			billingid: item.billingid
+			billingid: item.billingid,
+			totalcost: Number(item.totalcost) || 0
 		} : {
 			cost: 0,
 			amountIncurredDueTax: 0,
 			discount: 0,
 			serviceid: 0,
+			totalcost: 0,
 			billingid: 0
 		};
 

@@ -301,6 +301,51 @@ export default function SalesByWeekAndBranch() {
                               })}
                          </div>
                     </div>
+
+                    {/* Data Table */}
+                    <div className="bg-white p-4 rounded-lg border" style={{ borderColor: COLOR_BORDER }}>
+                         <div className="d-flex justify-content-between mb-2">
+                              <div>
+                                   <h3 className="text-lg font-semibold mb-3 text-gray-700 d-flex align-items-center">
+                                        <RiBubbleChartLine size={20} className="me-2" style={{ color: COLOR_ACCENT }} />
+                                        Weekly Sales Data by Branch
+                                   </h3>
+                              </div>
+                             <div>
+                               <button className="btn btn-sm btn-outline-primary" onClick={() => window.print()}>
+                                   Print Table
+                              </button>
+                              </div>
+                         </div>
+                         <div className="table-responsive">
+                              <table className="table table-sm table-hover table-striped small printable-table-with-borders">
+                                   <thead className="sticky-top bg-body-tertiary">
+                                        <tr>
+                                             <th scope="col" className="py-2">Week</th>
+                                             <th scope="col" className="py-2">Branch</th>
+                                             <th scope="col" className="py-2 text-end">Total Payable</th>
+                                             <th scope="col" className="py-2 text-end">Total Paid</th>
+                                             <th scope="col" className="py-2 text-end">Total Cost</th>
+                                             <th scope="col" className="py-2 text-end">Discount</th>
+                                             <th scope="col" className="py-2 text-end">Refunded</th>
+                                        </tr>
+                                   </thead>
+                                   <tbody>
+                                        {data.map((entry, index) => (
+                                             <tr key={`${entry.week}-${entry.name}-${index}`}>
+                                                  <td className="py-2">{`Week ${entry.week}`}</td>
+                                                  <td className="py-2">{entry.name.trim()}</td>
+                                                  <td className="py-2 text-end fw-medium">{currencyFormatter.format(parseFloat(entry.totalPayable) || 0)}</td>
+                                                  <td className="py-2 text-end">{currencyFormatter.format(parseFloat(entry.totalPaid) || 0)}</td>
+                                                  <td className="py-2 text-end">{currencyFormatter.format(parseFloat(entry.totalCost) || 0)}</td>
+                                                  <td className="py-2 text-end">{currencyFormatter.format(parseFloat(entry.totalDiscount) || 0)}</td>
+                                                  <td className="py-2 text-end">{currencyFormatter.format(parseFloat(entry.totalRefunded) || 0)}</td>
+                                             </tr>
+                                        ))}
+                                   </tbody>
+                              </table>
+                         </div>
+                    </div>
                </div>
           );
      };
@@ -308,10 +353,15 @@ export default function SalesByWeekAndBranch() {
      return (
           <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
                <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-                    <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
-                         <RiLineChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
-                         Sales by Week and Branch (Financial Overview)
-                    </h2>
+                    <div className="d-flex justify-content-between align-items-center">
+                         <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
+                              <RiLineChartLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
+                              Sales by Week and Branch (Financial Overview)
+                         </h2>
+                         <button className="btn btn-sm btn-outline-primary" onClick={() => window.print()}>
+                              Print
+                         </button>
+                    </div>
                </div>
                <div className="card-body p-3 p-md-4">
                     {renderContent()}
@@ -324,6 +374,48 @@ export default function SalesByWeekAndBranch() {
                     @keyframes spin {
                          from { transform: rotate(0deg); }
                          to { transform: rotate(360deg); }
+                    }
+                    @media print {
+                         .card {
+                              border: none !important;
+                              box-shadow: none !important;
+                         }
+                         .card-header {
+                              background: white !important;
+                              border-bottom: 1px solid #000 !important;
+                              -webkit-print-color-adjust: exact;
+                         }
+                         .card-body {
+                              padding: 1rem !important;
+                         }
+                         .bg-gray-50, .bg-blue-50, .bg-white {
+                              background: white !important;
+                              -webkit-print-color-adjust: exact;
+                         }
+                         .grid {
+                              display: block !important;
+                         }
+                         .grid-cols-1, .md\\:grid-cols-2, .lg\\:grid-cols-3 {
+                              display: block !important;
+                         }
+                         .gap-4 > * {
+                              margin-bottom: 1rem !important;
+                         }
+                         .printable-table-with-borders tbody tr {
+                              border: none !important;
+                              border-bottom: 2px solid #000 !important;
+                         }
+                         .printable-table-with-borders tbody tr:nth-child(odd) {
+                              background-color: #f8f9fa !important;
+                         }
+                         .printable-table-with-borders th,
+                         .printable-table-with-borders td {
+                              padding: 0.25rem 0.5rem !important;
+                         }
+                         .printable-table-with-borders thead th {
+                              font-weight: bold !important;
+                              color: #000 !important;
+                         }
                     }
                `}</style>
           </div>

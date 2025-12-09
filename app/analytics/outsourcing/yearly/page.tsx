@@ -380,7 +380,7 @@ export default function YearlyOutsourcingAnalytics() {
                          </div>
 
                          <h4 className="fs-6 fw-medium mb-3">Yearly Outsourcing Data</h4>
-                         <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                         <div className="table-responsive">
                               <table className="table table-sm table-hover table-striped small">
                                    <thead className="sticky-top bg-body-tertiary">
                                         <tr>
