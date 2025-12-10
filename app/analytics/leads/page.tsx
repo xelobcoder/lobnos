@@ -718,8 +718,8 @@ export default function LeadsAnalytics() {
                {/* Followups Charts */}
                <div className="row g-4">
                     <div className="col-lg-6">
-                         <div className="border-0 h-100">
-                              <div className="bg-light p-3">
+                         <div className="border rounded h-100">
+                              <div className="bg-light border-bottom p-3 rounded-top">
                                    <h6 className="mb-0 d-flex align-items-center">
                                         <RiPieChartLine size={18} className="me-2 text-primary" />
                                         Follow-ups by Status

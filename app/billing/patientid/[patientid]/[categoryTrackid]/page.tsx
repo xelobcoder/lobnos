@@ -72,7 +72,7 @@ export default async function PatientBillingPageIndex({
 	}
 
 	if (typeof outstandingDebt === 'number' && outstandingDebt > 0) {
-		redirect(`/billing/patientid/${patientid}/outstanding-debt`);
+		redirect(`/billing/cash-collection?patientid=${patientIdDecrypted}`);
 	}
 
 	if (typeof outstandingDebt === 'number' && outstandingDebt == 0) {

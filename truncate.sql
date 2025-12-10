@@ -1,15 +1,1 @@
-TRUNCATE TABLE test_ascensions
-TRUNCATE TABLE new_patients
-TRUNCATE TABLE billing
-TRUNCATE TABLE billinghx
-TRUNCATE TABLE billingtemporarytable
-TRUNCATE TABLE activation
-TRUNCATE TABLE clinicianbasicinfo
-TRUNCATE TABLE clinicianpaymentinfo
-TRUNCATE TABLE clinicianscredentials
-TRUNCATE TABLE patientcredentials
-TRUNCATE TABLE paymentModes
-TRUNCATE TABLE organization
-TRUNCATE TABLE organizationaccountinformation
-TRUNCATE TABLE organizatiomcontactperson
-TRUNCATE TABLE patient_settings
+ALTER TABLE applicationsettings ADD COLUMN withnessRefund TINYINT(1) DEFAULT 0

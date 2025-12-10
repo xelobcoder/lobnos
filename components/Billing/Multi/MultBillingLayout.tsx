@@ -509,7 +509,7 @@ console.log("Submission response:", response);
             } else {
                 toast.error(response?.message || "Checkout failed. Please try again.");
                 if (response.message == 'Outstanding debt found') {
-                    router.replace(`/billing/patientid/${plsEncryption((billingdata.patientid ?? '').toString())}/outstanding-debt`);
+                    router.replace(`/billing/cash-collection?patientid=${plsEncryption((billingdata.patientid ?? '').toString())}`);
                     return;
                 }
             }

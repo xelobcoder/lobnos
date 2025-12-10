@@ -120,7 +120,7 @@ export default function RefundServiceShowDetailModal({
 							type="number"
 							disabled={isDisabled || loading}
 							placeholder="Amount Refunded"
-							value={refundInformation.refundableAmount || refundAmount || 0}
+							value={ refundAmount }
 							onChange={handleRefundAmountChange}
 						/>
 					</Modal.Body>

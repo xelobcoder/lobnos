@@ -12,6 +12,7 @@ export interface Service {
   cost: string;
   employeeid: number;
   serviceCategory: string;
+  paymentstatus: "pending" |"partial" | "paid"
   categoryTrackId: number;
   clinicianId: number;
   organizationId: number;

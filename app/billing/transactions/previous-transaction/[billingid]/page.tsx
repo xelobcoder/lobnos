@@ -54,6 +54,29 @@ export default function PreviousTransactionSummaryPage() {
 	const [isWritingOff, setIsWritingOff] = useState(false);
 	const [showRefundAllModal, setShowRefundAllModal] = useState(false);
 
+	const refundReasons = [
+		'Patient Request',
+		'Duplicate Charge',
+		'Insurance Denial',
+		'Service Not Rendered',
+		'Incorrect Amount Charged',
+		'Service Quality Issue',
+		'Patient Dissatisfaction',
+		'Billing Error',
+		'Insurance Adjustment',
+		'Patient Financial Hardship',
+		'Service Cancellation',
+		'Wrong Service Billed',
+		'Test Not Performed',
+		'Patient Transferred',
+		'Adjustment Period',
+		'Credit Memo',
+		'Courtesy Adjustment',
+		'Overpayment',
+		'System Error',
+		'Other'
+	];
+
 
 
 
@@ -181,14 +204,22 @@ export default function PreviousTransactionSummaryPage() {
 	const [showRefundModal, setShowRefundModal] = useState(false);
 	const [refundTarget, setRefundTarget] = useState<Service | null>(null);
 	const [refundReason, setRefundReason] = useState('');
+	const [refundReasonType, setRefundReasonType] = useState('');
+	const [refundRequestAmount, setRefundRequestAmount] = useState('');
 
 	const handleRefundService = (service: Service) => {
 		if (billingdata.islocked === 1 || billingdata.writeOff === 1) {
 			toast.error('Refund is not allowed for locked or written-off transactions.');
 			return;
 		}
+		if (service.paymentstatus === 'pending') {
+			toast.error('Refund is not allowed for services with pending payment status.');
+			return;
+		}
 		setRefundTarget(service);
 		setRefundReason('');
+		setRefundReasonType('');
+		setRefundRequestAmount(service.totalcost ? Number(service.totalcost).toString() : '0');
 		setShowRefundModal(true);
 	};
 
@@ -250,14 +281,44 @@ export default function PreviousTransactionSummaryPage() {
 
 	const handleRefundRequest = async () => {
 		if (!refundTarget) return;
+		if (!refundReasonType) {
+			toast.error('Please select a refund reason');
+			return;
+		}
+		if (refundReasonType === 'Other' && !refundReason.trim()) {
+			toast.error('Please provide a custom reason for the refund');
+			return;
+		}
+		const amount = parseFloat(refundRequestAmount);
+		if (!amount || amount <= 0) {
+			toast.error('Please enter a valid refund amount');
+			return;
+		}
+		if (amount > Number(refundTarget.totalcost)) {
+			toast.error('Refund amount cannot exceed the service cost');
+			return;
+		}
 		setIsRequesting(true);
 		const { billingid, categoryTrackId, taxIncluded, serviceid, trackId } = refundTarget;
-		const data = { billingid, categoryTrackId, employeeid, taxIncluded, serviceid, refundMessage: refundReason, trackId };
+		const finalReason = refundReasonType === 'Other' ? refundReason : refundReasonType;
+		const data = {
+			billingid,
+			categoryTrackId,
+			employeeid,
+			taxIncluded,
+			serviceid,
+			refundMessage: finalReason,
+			refundAmount: amount,
+			trackId
+		};
 		const pushResponse = await customPost(`billing/previous/request/refund/update`, 'POST', data);
 		const { status } = pushResponse;
 		if (status === true) {
 			toast.success("Request for refund submitted successfully");
 			setShowRefundModal(false);
+			setRefundReason('');
+			setRefundReasonType('');
+			setRefundRequestAmount('');
 		} else {
 			toast.error("request for refund failed ");
 		}
@@ -347,7 +408,7 @@ export default function PreviousTransactionSummaryPage() {
 				const hasAnyWitnesses = Array.isArray(witnesses) && witnesses.length > 0;
 				return (
 					<div className="d-flex gap-2 align-items-center">
-						{!isRefundInitiated && (
+						{!isRefundInitiated && svc.paymentstatus !== 'pending' && (
 							<Button
 								size="sm"
 								variant="danger"
@@ -383,22 +444,64 @@ export default function PreviousTransactionSummaryPage() {
 			</Modal.Header>
 			<Modal.Body>
 				<div className="mb-3">
-					<label htmlFor="refundReason" className="form-label">Reason for Refund</label>
-					<textarea
-						id="refundReason"
-						className="form-control"
-						value={refundReason}
-						onChange={e => setRefundReason(e.target.value)}
-						rows={3}
-						placeholder="Enter reason for refund..."
-					/>
+					<label htmlFor="refundAmount" className="form-label">Refund Amount <span className="text-danger">*</span></label>
+					<div className="input-group">
+						<span className="input-group-text">₵</span>
+						<input
+							id="refundAmount"
+							type="number"
+							className="form-control"
+							value={refundRequestAmount}
+							onChange={e => setRefundRequestAmount(e.target.value)}
+							min="0"
+							step="0.01"
+							placeholder="Enter refund amount"
+						/>
+					</div>
+					{refundTarget && (
+						<small className="text-muted">
+							Service cost: ₵{currencyFormatter.format(Number(refundTarget.totalcost) || 0)}
+						</small>
+					)}
 				</div>
+				<div className="mb-3">
+					<label htmlFor="refundReasonType" className="form-label">Reason for Refund <span className="text-danger">*</span></label>
+					<select
+						id="refundReasonType"
+						className="form-select form-select-sm"
+						value={refundReasonType}
+						onChange={(e) => {
+							setRefundReasonType(e.target.value);
+							setRefundReason(e.target.value === 'Other' ? '' : e.target.value);
+						}}
+					>
+						<option value="">-- Select a Reason --</option>
+						{refundReasons.map((reason) => (
+							<option key={reason} value={reason}>
+								{reason}
+							</option>
+						))}
+					</select>
+				</div>
+				{refundReasonType === 'Other' && (
+					<div className="mb-3">
+						<label htmlFor="refundReason" className="form-label">Please Specify <span className="text-danger">*</span></label>
+						<textarea
+							id="refundReason"
+							className="form-control"
+							value={refundReason}
+							onChange={e => setRefundReason(e.target.value)}
+							rows={3}
+							placeholder="Enter custom reason for refund..."
+						/>
+					</div>
+				)}
 			</Modal.Body>
 			<Modal.Footer>
 				<Button variant="secondary" onClick={() => setShowRefundModal(false)} disabled={isRequesting}>
 					Cancel
 				</Button>
-				<Button variant="primary" onClick={handleRefundRequest} disabled={isRequesting || !refundReason.trim()}>
+				<Button variant="primary" onClick={handleRefundRequest} disabled={isRequesting}>
 					{isRequesting ? <Spinner size="sm" /> : null} Submit Request
 				</Button>
 			</Modal.Footer>
