@@ -540,7 +540,7 @@ export default function CashCollection() {
                                                                  <div className="table-responsive">
                                                                       <table className="table table-sm table-hover align-middle mb-0">
                                                                            <thead className="sticky-top" style={{ backgroundColor: '#f8f9fa', top: 0, zIndex: 10 }}>
-                                                                                <tr style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                                                                                <tr style={{ fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                                                                                      <th className="py-2">Service</th>
 
                                                                                      <th className="py-2 text-start" style={{ width: '90px' }}>Amount</th>
@@ -559,7 +559,7 @@ export default function CashCollection() {
 
 
                                                                                      return (
-                                                                                          <tr key={service.serviceid} style={{ fontSize: '0.85rem' }}>
+                                                                                          <tr key={service.serviceid} style={{ fontSize: '1rem' }}>
                                                                                                <td className="py-2">
                                                                                                     <div className="fw-semibold">{service.service_name}</div>
                                                                                                </td>
@@ -586,23 +586,24 @@ export default function CashCollection() {
                                                                                                                    min="0"
                                                                                                                    max={balance}
                                                                                                                    step="0.01"
-                                                                                                                   style={{ fontSize: '0.75rem', maxWidth: '90px' }}
+                                                                                                                   style={{ fontSize: '0.9rem', maxWidth: '90px' }}
                                                                                                               />
                                                                                                               <button
                                                                                                                    className="btn btn-sm btn-outline-primary"
+                                                                                                                   style={{ fontSize: '0.9rem' }}
                                                                                                                    onClick={() => {
                                                                                                                         setPaymentInputs({
                                                                                                                              ...paymentInputs,
                                                                                                                              [service.serviceid]: balance.toString()
                                                                                                                         });
                                                                                                                    }}
-
                                                                                                                    title="Pay full balance"
                                                                                                               >
                                                                                                                    make full payment
                                                                                                               </button>
                                                                                                               <button
                                                                                                                    className="btn btn-sm btn-outline-danger p-1"
+                                                                                                                   style={{ fontSize: '0.9rem' }}
                                                                                                                    onClick={() => handleRemoveService(service.serviceid)}
                                                                                                                    title="Remove from payment"
                                                                                                               >
@@ -610,11 +611,11 @@ export default function CashCollection() {
                                                                                                               </button>
                                                                                                          </div>
                                                                                                     ) : isPaid && (service.isRefunded || (refunded && refunded > 0)) ? (
-                                                                                                         <span className="text-muted" style={{ fontSize: '0.75rem' }}>
+                                                                                                         <span className="text-muted" style={{ fontSize: '0.9rem' }}>
                                                                                                               Refunded: ₵{Number(refunded || 0).toFixed(2)}
                                                                                                          </span>
                                                                                                     ) : (
-                                                                                                         <span className="text-muted" style={{ fontSize: '0.75rem' }}>—</span>
+                                                                                                         <span className="text-muted" style={{ fontSize: '0.9rem' }}>—</span>
                                                                                                     )}
                                                                                                </td>
                                                                                           </tr>

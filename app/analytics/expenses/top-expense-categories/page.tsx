@@ -3,21 +3,20 @@
 import React, { useEffect, useState } from "react";
 import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { RiBarChartBoxLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line } from "@remixicon/react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area } from "recharts";
+import { RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiCalendarEventLine, RiRefreshLine } from "@remixicon/react";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
+const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
+const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 
 interface TopExpenseCategory {
     category_name: string;
+    total_amount: string;
     expense_count: number;
-    total_amount: number;
-    average_amount: number;
-    min_amount: number;
-    max_amount: number;
-    branch_name: string;
+    avg_amount: string;
 }
 
 export default function TopExpenseCategories() {
@@ -34,6 +33,7 @@ export default function TopExpenseCategories() {
         return new Date(now.getFullYear(), 11, 31).toISOString().slice(0, 10);
     });
     const [branches, setBranches] = useState<any[]>([]);
+    const [chartType, setChartType] = useState<"line" | "bar" | "area">("line");
     const { user } = useApplication();
 
     const fetchData = async () => {
@@ -41,10 +41,11 @@ export default function TopExpenseCategories() {
         setLoading(true);
         setError(null);
         try {
-            const endpoint = `expenses-analytics/top-categories?branchid=${branchid}${startDate ? `&startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate}` : ''}`;
+            const endpoint = `expenses/analytics/top-categories?branchid=${branchid}${startDate ? `&startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate}` : ''}`;
             const response = await customFetch(endpoint);
-            if (response && Array.isArray(response)) {
-                setData(response);
+            const responseData = response?.data;
+            if (response && Array.isArray(responseData)) {
+                setData(responseData);
             } else {
                 setError("Invalid data format received");
             }
@@ -53,6 +54,12 @@ export default function TopExpenseCategories() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleResetFilters = () => {
+        const currentYear = new Date().getFullYear();
+        setStartDate(`${currentYear}-01-01`);
+        setEndDate(`${currentYear}-12-31`);
     };
 
     useEffect(() => {
@@ -73,14 +80,123 @@ export default function TopExpenseCategories() {
             fetchData();
         }
         // eslint-disable-next-line
-    }, [branchid]);
+    }, [branchid, startDate, endDate]);
 
     const chartData = data.map(item => ({
         ...item,
+        total_amount: parseFloat(item.total_amount),
+        average_amount: parseFloat(item.avg_amount),
         category_name: item.category_name
     }));
 
     const totalAmountSum = chartData.reduce((sum, entry) => sum + entry.total_amount, 0);
+
+    const renderChart = (): React.ReactElement => {
+        const commonProps = {
+            data: chartData,
+            margin: { top: 5, right: 5, left: 20, bottom: 45 },
+        };
+
+        const xAxisProps = {
+            dataKey: "category_name",
+            tickFormatter: (value: string) => value.length > 15 ? `${value.substring(0, 15)}...` : value,
+            angle: -45,
+            textAnchor: "end" as const,
+            height: 60,
+            interval: "preserveStartEnd" as const,
+            tick: { fontSize: 11, fill: COLOR_TEXT_MUTED },
+            axisLine: { stroke: COLOR_BORDER },
+            tickLine: { stroke: COLOR_BORDER },
+        };
+
+        const yAxisProps = {
+            tickFormatter: (value: number) => currencyFormatter.format(value),
+            tick: { fontSize: 11, fill: COLOR_TEXT_MUTED },
+            axisLine: false,
+            tickLine: false,
+            width: 95,
+        };
+
+        const legendProps = {
+            verticalAlign: "top" as const,
+            align: "right" as const,
+            iconType: "circle" as const,
+            iconSize: 8,
+            wrapperStyle: { fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }
+        };
+
+        if (chartType === "bar") {
+            return (
+                <BarChart {...commonProps}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                    <Legend {...legendProps} />
+                    <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
+                </BarChart>
+            );
+        }
+
+        if (chartType === "line") {
+            return (
+                <LineChart {...commonProps}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                    <Legend {...legendProps} />
+                    <Line type="monotone" dataKey="total_amount" name="Total Amount" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }} />
+                </LineChart>
+            );
+        }
+
+        if (chartType === "area") {
+            return (
+                <AreaChart {...commonProps}>
+                    <defs>
+                        <linearGradient id="colorTotalSpentFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={COLOR_ACCENT} stopOpacity={0.5} />
+                            <stop offset="95%" stopColor={COLOR_ACCENT} stopOpacity={0.05} />
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                    <Legend {...legendProps} />
+                    <Area
+                        type="monotone"
+                        dataKey="total_amount"
+                        name="Total Amount"
+                        stroke={COLOR_ACCENT}
+                        fill="url(#colorTotalSpentFill)"
+                        strokeWidth={2}
+                        dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }}
+                        activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }}
+                    />
+                </AreaChart>
+            );
+        }
+
+        // Default fallback to bar chart
+        return (
+            <BarChart {...commonProps}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                <XAxis {...xAxisProps} />
+                <YAxis {...yAxisProps} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                <Legend {...legendProps} />
+                <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[4, 4, 0, 0]} maxBarSize={30} />
+            </BarChart>
+        );
+    };
+
+    const viewButtons = [
+        { type: "line" as const, icon: RiLineChartLine, label: "Line" },
+        { type: "bar" as const, icon: RiBarChartBoxLine, label: "Bar" },
+        { type: "area" as const, icon: RiBubbleChartLine, label: "Area" },
+    ];
 
     const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
@@ -121,62 +237,54 @@ export default function TopExpenseCategories() {
     return (
         <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
             <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-                <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
-                    <RiBarChartBoxLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
-                    Top Expense Categories
-                </h2>
-                <div className="mt-3 d-flex flex-wrap gap-3">
-                    <div>
-                        <label className="me-2">Branch:</label>
-                        <select
-                            className="form-select"
-                            value={branchid ?? ''}
-                            onChange={e => setBranchid(Number(e.target.value))}
-                            style={{ minWidth: 180 }}
-                        >
-                            {branches.map(branch => (
-                                <option key={branch.branchid} value={branch.branchid}>{branch.name}</option>
+                <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
+                    <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
+                        <RiBarChartBoxLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
+                        Top Expense Categories
+                    </h2>
+                    <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+                        <div className="btn-group btn-group-sm" role="group" aria-label="Chart type">
+                            {viewButtons.map(btn => (
+                                <button
+                                    key={btn.type}
+                                    type="button"
+                                    className={`btn ${chartType === btn.type ? 'btn-primary active' : 'btn-outline-secondary'}`}
+                                    onClick={() => setChartType(btn.type)}
+                                    style={chartType === btn.type ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
+                                >
+                                    <btn.icon size={16} className="me-1 align-text-bottom" /> {btn.label}
+                                </button>
                             ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="me-2">Start Date:</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={startDate}
-                            onChange={e => setStartDate(e.target.value)}
-                            style={{ minWidth: 140 }}
-                        />
-                    </div>
-                    <div>
-                        <label className="me-2">End Date:</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={endDate}
-                            onChange={e => setEndDate(e.target.value)}
-                            style={{ minWidth: 140 }}
-                        />
-                    </div>
-                    <div>
-                        <button
-                            className="btn btn-primary d-flex align-items-center gap-1 px-2 py-2 btn-sm mt-4"
-                            style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 70, fontWeight: 500, fontSize: '0.85rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)' }}
-                            onClick={fetchData}
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <>
-                                    <RiLoader4Line size={16} className="animate-spin" />
-                                    Loading...
-                                </>
-                            ) : (
-                                <>
-                                    {/* <RiBarChartBoxLine size={15} /> */}
-                                    Load Data
-                                </>
-                            )}
+                        </div>
+                        <div className="input-group input-group-sm" style={{ flexBasis: '180px', minWidth: '170px' }}>
+                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+                                Branch
+                            </span>
+                            <select
+                                className="form-select shadow-none border-start-0"
+                                value={branchid ?? ''}
+                                onChange={e => setBranchid(Number(e.target.value))}
+                                style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }}
+                            >
+                                {branches.map(branch => (
+                                    <option key={branch.branchid} value={branch.branchid}>{branch.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+                                <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
+                            </span>
+                            <input id="startDateTEC" type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={e => setStartDate(e.target.value)} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
+                        </div>
+                        <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+                            <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+                                <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
+                            </span>
+                            <input id="endDateTEC" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={e => setEndDate(e.target.value)} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
+                        </div>
+                        <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                            <RiRefreshLine size={16} className="me-1" /> Reset
                         </button>
                     </div>
                 </div>
@@ -204,50 +312,50 @@ export default function TopExpenseCategories() {
                 ) : (
                     <div style={{ width: "100%", height: 350 }}>
                         <ResponsiveContainer>
-                            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 45 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
-                                <XAxis dataKey="category_name" tick={{ fontSize: 12 }} />
-                                <YAxis tickFormatter={(value) => currencyFormatter.format(value)} allowDecimals={false} tick={{ fontSize: 12 }} />
-                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
-                                <Legend />
-                                <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[8, 8, 0, 0]} maxBarSize={40} />
-                            </BarChart>
+                            {renderChart()}
                         </ResponsiveContainer>
                     </div>
                 )}
             </div>
             {chartData.length > 0 && (
                 <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
-                    <h4 className="fs-6 fw-medium mb-3">Top Expense Categories Table</h4>
-                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        <table className="table table-sm table-hover table-striped small">
+                    <div className="print-date-range" style={{ display: 'none' }}>
+                        Top Expense Categories Report Period: {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
+                    </div>
+                    <div className="d-flex justify-content-between mb-2">
+                        <h4 className="fs-6 fw-medium mb-3">
+                            Top Expense Categories Table
+                        </h4>
+                        <button className="btn btn-sm btn-outline-primary" onClick={() => window.print()}>
+                            Print
+                        </button>
+                    </div>
+                    <div className="table-responsive">
+                        <table className="table table-sm table-hover table-striped small printable-table-with-borders">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
-                                    <th scope="col" className="py-2">Category</th>
-                                    <th scope="col" className="py-2">Branch</th>
-                                    <th scope="col" className="py-2 text-end">Total Amount</th>
-                                    <th scope="col" className="py-2 text-end">Expense Count</th>
-                                    <th scope="col" className="py-2 text-end">Average</th>
+                                    <th scope="col" className="py-2 text-start">Category</th>
+                                    <th scope="col" className="py-2 text-start">Total Amount</th>
+                                    <th scope="col" className="py-2 text-start">Expense Count</th>
+                                    <th scope="col" className="py-2 text-start">Average</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {chartData.map((entry, idx) => (
                                     <tr key={idx}>
-                                        <td className="py-2">{entry.category_name}</td>
-                                        <td className="py-2">{entry.branch_name}</td>
-                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.total_amount)}</td>
-                                        <td className="py-2 text-end">{entry.expense_count}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(entry.average_amount)}</td>
+                                        <td className="py-2 text-start">{entry.category_name}</td>
+                                        <td className="py-2 text-start fw-medium">{currencyFormatter.format(entry.total_amount)}</td>
+                                        <td className="py-2 text-start">{entry.expense_count}</td>
+                                        <td className="py-2 text-start">{currencyFormatter.format(entry.average_amount)}</td>
                                     </tr>
                                 ))}
                             </tbody>
                             <tfoot>
                                 <tr className="fw-bold border-top">
-                                    <td className="py-2">Total</td>
-                                    <td className="py-2"></td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(totalAmountSum)}</td>
-                                    <td className="py-2 text-end">{chartData.reduce((sum, entry) => sum + entry.expense_count, 0)}</td>
-                                    <td className="py-2 text-end">-</td>
+                                    <td className="py-2 text-start">Total</td>
+                                    <td className="py-2 text-start">{currencyFormatter.format(totalAmountSum)}</td>
+                                    <td className="py-2 text-start">{chartData.reduce((sum, entry) => sum + entry.expense_count, 0)}</td>
+                                    <td className="py-2 text-start">-</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -264,6 +372,23 @@ export default function TopExpenseCategories() {
                 }
                 .table-responsive thead.sticky-top th {
                     border-bottom: 2px solid var(--bs-border-color); 
+                }
+                .table-responsive thead th {
+                    font-weight: bold !important;
+                    color: #000 !important;
+                }
+                @media print {
+                    .printable-table-with-borders tbody tr {
+                        border: none !important;
+                        border-bottom: 2px solid #000 !important;
+                    }
+                    .printable-table-with-borders tbody tr:nth-child(odd) {
+                        background-color: #f8f9fa !important;
+                    }
+                    .printable-table-with-borders th,
+                    .printable-table-with-borders td {
+                        padding: 0.25rem 0.5rem !important;
+                    }
                 }
             `}</style>
         </div>

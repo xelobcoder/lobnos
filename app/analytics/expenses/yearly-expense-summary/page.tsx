@@ -3,27 +3,20 @@
 import React, { useEffect, useState } from "react";
 import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { RiBarChartBoxLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line } from "@remixicon/react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area } from "recharts";
+import { RiBarChartBoxLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiCalendarEventLine, RiRefreshLine, RiPrinterLine, RiLineChartLine, RiBubbleChartLine } from "@remixicon/react";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 
 interface YearlyExpenseData {
-    year: number;
-    total_expenses: number;
-    total_amount: string;
-    average_amount: string;
-    min_amount: number;
-    max_amount: number;
-    unique_categories: number;
+    expense_year: number;
+    total_expenses: string;
+    expense_count: number;
+    avg_expense_amount: string;
     unique_employees: number;
     unique_merchants: number;
-    active_months: number;
-    employee_usernames: string;
-    employee_roles: string;
-    branch_name: string;
 }
 
 export default function YearlyExpenseSummary() {
@@ -32,6 +25,7 @@ export default function YearlyExpenseSummary() {
     const [error, setError] = useState<string | null>(null);
     const [startDate, setStartDate] = useState("2021-10-01");
     const [endDate, setEndDate] = useState("2025-10-09");
+    const [chartType, setChartType] = useState<"bar" | "line" | "area">("bar");
 
     const { branchid, user } = useApplication();
     const employeeid = user?.employeeid;
@@ -43,10 +37,10 @@ export default function YearlyExpenseSummary() {
             const currentYear = new Date().getFullYear();
             const startYear = currentYear - 2; // Default to last 3 years
             const endYear = currentYear;
-            const endpoint = `expenses-analytics/yearly?branchid=${branchid}&startYear=${startYear}&endYear=${endYear}`;
+            const endpoint = `expenses/analytics/yearly?branchid=${branchid}&startYear=${startYear}&endYear=${endYear}`;
             const response = await customFetch(endpoint);
-            if (response && Array.isArray(response)) {
-                setData(response);
+            if (response && response.status === 'success' && response.data && Array.isArray(response.data)) {
+                setData(response.data);
             } else {
                 setError("Invalid data format received");
             }
@@ -55,6 +49,13 @@ export default function YearlyExpenseSummary() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleResetFilters = () => {
+        const currentYear = new Date().getFullYear();
+        const startYear = currentYear - 2;
+        setStartDate(`${startYear}-01-01`);
+        setEndDate(`${currentYear}-12-31`);
     };
 
     useEffect(() => {
@@ -66,13 +67,13 @@ export default function YearlyExpenseSummary() {
 
     const chartData = data.map(item => ({
         ...item,
-        total_amount: parseFloat(item.total_amount),
-        average_amount: parseFloat(item.average_amount),
-        yearLabel: item.year.toString()
+        total_amount: parseFloat(item.total_expenses),
+        average_amount: parseFloat(item.avg_expense_amount),
+        yearLabel: item.expense_year.toString()
     }));
 
     const totalAmountSum = chartData.reduce((sum, entry) => sum + entry.total_amount, 0);
-    const totalExpensesSum = chartData.reduce((sum, entry) => sum + entry.total_expenses, 0);
+    const totalExpensesSum = chartData.reduce((sum, entry) => sum + entry.expense_count, 0);
 
     const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
@@ -97,16 +98,16 @@ export default function YearlyExpenseSummary() {
                         <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{currencyFormatter.format(entry.total_amount)}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Expenses</span>
-                        <span className="fw-bold d-block">{entry.total_expenses}</span>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Expense Count</span>
+                        <span className="fw-bold d-block">{entry.expense_count}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Active Months</span>
-                        <span className="fw-bold d-block">{entry.active_months}</span>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Average Amount</span>
+                        <span className="fw-bold d-block">{currencyFormatter.format(entry.average_amount)}</span>
                     </div>
                     <div>
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Employee</span>
-                        <span className="fw-bold d-block">{entry.employee_usernames} ({entry.employee_roles})</span>
+                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Unique Employees</span>
+                        <span className="fw-bold d-block">{entry.unique_employees}</span>
                     </div>
                 </div>
             );
@@ -114,52 +115,124 @@ export default function YearlyExpenseSummary() {
         return null;
     };
 
+    const viewButtons = [
+        { type: "bar" as const, icon: RiBarChartBoxLine, label: "Bar" },
+        { type: "line" as const, icon: RiLineChartLine, label: "Line" },
+        { type: "area" as const, icon: RiBubbleChartLine, label: "Area" },
+    ];
+
+    const renderChart = () => {
+        const commonProps = {
+            data: chartData,
+            margin: { top: 20, right: 30, left: 20, bottom: 45 },
+        };
+        const xAxisProps = {
+            dataKey: "yearLabel",
+            tick: { fontSize: 12 },
+            axisLine: { stroke: COLOR_BORDER },
+            tickLine: { stroke: COLOR_BORDER },
+        };
+        const yAxisProps = {
+            allowDecimals: false,
+            tick: { fontSize: 12 },
+            axisLine: false,
+            tickLine: false,
+            width: 95,
+            tickFormatter: (value: number) => currencyFormatter.format(value),
+        };
+        const legendProps = {
+            verticalAlign: "top" as const,
+            align: "right" as const,
+            iconType: "circle" as const,
+            iconSize: 8,
+            wrapperStyle: { fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }
+        };
+
+        if (chartType === "bar") {
+            return (
+                <BarChart {...commonProps}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                    <Legend {...legendProps} />
+                    <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[8, 8, 0, 0]} maxBarSize={40} />
+                </BarChart>
+            );
+        }
+        if (chartType === "line") {
+            return (
+                <LineChart {...commonProps}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                    <Legend {...legendProps} />
+                    <Line type="monotone" dataKey="total_amount" name="Total Amount" stroke={COLOR_ACCENT} strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: 'var(--bs-body-bg)' }} />
+                </LineChart>
+            );
+        }
+        return (
+            <AreaChart {...commonProps}>
+                <defs>
+                    <linearGradient id="colorTotalAmountFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={COLOR_ACCENT} stopOpacity={0.5} />
+                        <stop offset="95%" stopColor={COLOR_ACCENT} stopOpacity={0.05} />
+                    </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                <XAxis {...xAxisProps} />
+                <YAxis {...yAxisProps} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                <Legend {...legendProps} />
+                <Area type="monotone" dataKey="total_amount" name="Total Amount" stroke={COLOR_ACCENT} fill="url(#colorTotalAmountFill)" strokeWidth={2} dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }} activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: 'var(--bs-body-bg)' }} />
+            </AreaChart>
+        );
+    };
+
     return (
         <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
             <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-                <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
-                    <RiBarChartBoxLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
-                    Yearly Expense Summary
-                </h2>
-                <div className="mt-3 d-flex flex-wrap gap-3">
-                    <div>
-                        <label className="me-2">Start Date:</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={startDate}
-                            onChange={e => setStartDate(e.target.value)}
-                            style={{ minWidth: 140 }}
-                        />
+                <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
+                    <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
+                        <RiBarChartBoxLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
+                        Yearly Expense Summary
+                    </h2>
+                    <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+                        <div className="btn-group btn-group-sm" role="group" aria-label="Chart type">
+                            {viewButtons.map(btn => (
+                                <button
+                                    key={btn.type}
+                                    type="button"
+                                    className={`btn ${chartType === btn.type ? 'btn-primary active' : 'btn-outline-secondary'}`}
+                                    onClick={() => setChartType(btn.type)}
+                                    style={chartType === btn.type ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
+                                >
+                                    <btn.icon size={16} className="me-1 align-text-bottom" /> {btn.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="d-flex align-items-center gap-2 mt-2 mt-sm-0">
+                            <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+                                <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+                                    <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
+                                </span>
+                                <input id="startDateYES" type="date" className="form-control shadow-none border-start-0" value={startDate} onChange={e => setStartDate(e.target.value)} aria-label="Start Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} />
+                            </div>
+                            <div className="input-group input-group-sm" style={{ flexBasis: '160px', minWidth: '150px' }}>
+                                <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+                                    <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
+                                </span>
+                                <input id="endDateYES" type="date" className="form-control shadow-none border-start-0" value={endDate} onChange={e => setEndDate(e.target.value)} aria-label="End Date" style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }} min={startDate} />
+                            </div>
+                            <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                                <RiRefreshLine size={16} className="me-1" /> Reset
+                            </button>
+                            <button onClick={fetchData} className="btn btn-sm btn-primary d-flex align-items-center" type="button" aria-label="Load data" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                                <RiLoader4Line size={16} className="me-1" /> Load Data
+                            </button>
+                        </div>
                     </div>
-                    <div>
-                        <label className="me-2">End Date:</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={endDate}
-                            onChange={e => setEndDate(e.target.value)}
-                            style={{ minWidth: 140 }}
-                        />
-                    </div>
-                    <button
-                        className="btn btn-primary ms-2 d-flex align-items-center gap-1 px-2 py-1 btn-sm"
-                        style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 70, fontWeight: 500, fontSize: '0.85rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)' }}
-                        onClick={fetchData}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <>
-                                <RiLoader4Line size={16} className="animate-spin" />
-                                Loading...
-                            </>
-                        ) : (
-                            <>
-                                <RiBarChartBoxLine size={15} />
-                                Load Data
-                            </>
-                        )}
-                    </button>
                 </div>
             </div>
             <div className="card-body p-3 p-md-4">
@@ -185,56 +258,56 @@ export default function YearlyExpenseSummary() {
                 ) : (
                     <div style={{ width: "100%", height: 350 }}>
                         <ResponsiveContainer>
-                            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 45 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
-                                <XAxis dataKey="yearLabel" tick={{ fontSize: 12 }} />
-                                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-                                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
-                                <Legend />
-                                <Bar dataKey="total_amount" name="Total Amount" fill={COLOR_ACCENT} radius={[8, 8, 0, 0]} maxBarSize={40} />
-                            </BarChart>
+                            {renderChart()}
                         </ResponsiveContainer>
                     </div>
                 )}
             </div>
             {chartData.length > 0 && (
                 <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
-                    <h4 className="fs-6 fw-medium mb-3">Yearly Expense Table</h4>
-                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        <table className="table table-sm table-hover table-striped small">
+                    <div className="d-flex justify-content-between mb-2">
+                        <h4 className="fs-6 fw-medium mb-3">Yearly Expense Table</h4>
+                        <button className="btn btn-sm btn-outline-primary" onClick={() => window.print()}>
+                            Print
+                        </button>
+                    </div>
+                    <div className="print-date-range" style={{ display: 'none' }}>
+                        Report Period: {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
+                    </div>
+                    <div className="table-responsive" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                        <table className="table table-sm table-hover table-striped small printable-table-with-borders">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
-                                    <th scope="col" className="py-2">Year</th>
-                                    <th scope="col" className="py-2">Branch</th>
-                                    <th scope="col" className="py-2 text-end">Total Amount</th>
-                                    <th scope="col" className="py-2 text-end">Total Expenses</th>
-                                    <th scope="col" className="py-2 text-end">Active Months</th>
-                                    <th scope="col" className="py-2 text-end">Categories</th>
-                                    <th scope="col" className="py-2">Employee Details</th>
+                                    <th scope="col" className="py-2 text-start">#</th>
+                                    <th scope="col" className="py-2 text-start">Year</th>
+                                    <th scope="col" className="py-2 text-start">Total Amount</th>
+                                    <th scope="col" className="py-2 text-start">Expense Count</th>
+                                    <th scope="col" className="py-2 text-start">Average Amount</th>
+                                    <th scope="col" className="py-2 text-start">Unique Employees</th>
+                                    <th scope="col" className="py-2 text-start">Unique Merchants</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {chartData.map((entry, idx) => (
                                     <tr key={idx}>
-                                        <td className="py-2">{entry.yearLabel}</td>
-                                        <td className="py-2">{entry.branch_name}</td>
-                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.total_amount)}</td>
-                                        <td className="py-2 text-end">{entry.total_expenses}</td>
-                                        <td className="py-2 text-end">{entry.active_months}</td>
-                                        <td className="py-2 text-end">{entry.unique_categories}</td>
-                                        <td className="py-2">{entry.employee_usernames} ({entry.employee_roles})</td>
+                                        <td className="py-2 text-start fw-medium">{idx + 1}</td>
+                                        <td className="py-2 text-start fw-medium">{entry.yearLabel}</td>
+                                        <td className="py-2 text-start fw-medium">{currencyFormatter.format(entry.total_amount)}</td>
+                                        <td className="py-2 text-start">{entry.expense_count}</td>
+                                        <td className="py-2 text-start">{currencyFormatter.format(entry.average_amount)}</td>
+                                        <td className="py-2 text-start">{entry.unique_employees}</td>
+                                        <td className="py-2 text-start">{entry.unique_merchants}</td>
                                     </tr>
                                 ))}
                             </tbody>
                             <tfoot>
                                 <tr className="fw-bold border-top">
-                                    <td className="py-2">Total</td>
-                                    <td className="py-2"></td>
-                                    <td className="py-2 text-end">{currencyFormatter.format(totalAmountSum)}</td>
-                                    <td className="py-2 text-end">{totalExpensesSum}</td>
-                                    <td className="py-2 text-end">-</td>
-                                    <td className="py-2 text-end">-</td>
-                                    <td className="py-2">-</td>
+                                    <td className="py-2 text-start" colSpan={2}>Total</td>
+                                    <td className="py-2 text-start">{currencyFormatter.format(totalAmountSum)}</td>
+                                    <td className="py-2 text-start">{totalExpensesSum}</td>
+                                    <td className="py-2 text-start">-</td>
+                                    <td className="py-2 text-start">-</td>
+                                    <td className="py-2 text-start">-</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -250,7 +323,40 @@ export default function YearlyExpenseSummary() {
                     to { transform: rotate(360deg); }
                 }
                 .table-responsive thead.sticky-top th {
-                    border-bottom: 2px solid var(--bs-border-color); 
+                    border-bottom: 2px solid var(--bs-border-color);
+                }
+                
+                @media print {
+                    .card-header {
+                        background-color: white !important;
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                    }
+                    .print-date-range {
+                        display: block !important;
+                    }
+                    .btn {
+                        display: none !important;
+                    }
+                    .table-responsive {
+                        max-height: none !important;
+                        overflow: visible !important;
+                    }
+                    .printable-table-with-borders {
+                        border-collapse: collapse !important;
+                        width: 100% !important;
+                    }
+                    .printable-table-with-borders tbody tr {
+                        border: none !important;
+                        border-bottom: 2px solid #000 !important;
+                    }
+                    .printable-table-with-borders tbody tr:nth-child(odd) {
+                        background-color: #f8f9fa !important;
+                    }
+                    .printable-table-with-borders th,
+                    .printable-table-with-borders td {
+                        padding: 0.25rem 0.5rem !important;
+                    }
                 }
             `}</style>
         </div>

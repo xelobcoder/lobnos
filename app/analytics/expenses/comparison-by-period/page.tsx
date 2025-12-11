@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { RiBarChartBoxLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiArrowUpLine, RiArrowDownLine } from "@remixicon/react";
+import { RiBarChartBoxLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiArrowUpLine, RiArrowDownLine, RiCalendarEventLine, RiRefreshLine } from "@remixicon/react";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_BORDER = 'var(--bs-border-color)';
@@ -47,7 +47,7 @@ export default function ExpenseComparisonByPeriod() {
 
     const [branches, setBranches] = useState<any[]>([]);
     const [branchid, setBranchid] = useState<number | null>(null);
-    const { user } = useApplication();
+    useApplication();
 
     const fetchData = async () => {
         if (!branchid) return;
@@ -66,6 +66,17 @@ export default function ExpenseComparisonByPeriod() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleResetFilters = () => {
+        const now = new Date();
+        setCurrentStartDate(new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10));
+        setCurrentEndDate(new Date().toISOString().slice(0, 10));
+
+        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        setPreviousStartDate(prevMonth.toISOString().slice(0, 10));
+        const lastDayPrevMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0);
+        setPreviousEndDate(lastDayPrevMonth.toISOString().slice(0, 10));
     };
 
     useEffect(() => {
@@ -163,82 +174,110 @@ export default function ExpenseComparisonByPeriod() {
     return (
         <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
             <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-                <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
-                    <RiBarChartBoxLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
-                    Expense Comparison by Period
-                </h2>
-                <div className="mt-3 d-flex flex-wrap gap-3">
-                    <div>
-                        <label className="me-2">Branch:</label>
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
+                        <RiBarChartBoxLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
+                        Expense Comparison by Period
+                    </h2>
+                    <button
+                        className="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 py-2 btn-sm"
+                        style={{ borderColor: COLOR_BORDER, color: COLOR_TEXT_MUTED, fontWeight: 500, fontSize: '0.85rem' }}
+                        onClick={handleResetFilters}
+                        title="Reset filters to default"
+                    >
+                        <RiRefreshLine size={16} />
+                        Reset
+                    </button>
+                </div>
+                <div className="row g-3">
+                    <div className="col-lg-2 col-md-3">
+                        <label className="form-label fw-medium mb-2" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.85rem' }}>Branch</label>
                         <select
                             className="form-select"
                             value={branchid ?? ''}
                             onChange={e => setBranchid(Number(e.target.value))}
-                            style={{ minWidth: 180 }}
                         >
                             {branches.map(branch => (
                                 <option key={branch.branchid} value={branch.branchid}>{branch.name}</option>
                             ))}
                         </select>
                     </div>
-                    <div>
-                        <label className="me-2">Current Start:</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={currentStartDate}
-                            onChange={e => setCurrentStartDate(e.target.value)}
-                            style={{ minWidth: 140 }}
-                        />
+                    <div className="col-lg-2 col-md-3">
+                        <label className="form-label fw-medium mb-2" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.85rem' }}>Current Start</label>
+                        <div className="input-group">
+                            <input
+                                type="date"
+                                className="form-control"
+                                value={currentStartDate}
+                                onChange={e => setCurrentStartDate(e.target.value)}
+                            />
+                            <span className="input-group-text" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
+                                <RiCalendarEventLine size={16} style={{ color: COLOR_TEXT_MUTED }} />
+                            </span>
+                        </div>
                     </div>
-                    <div>
-                        <label className="me-2">Current End:</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={currentEndDate}
-                            onChange={e => setCurrentEndDate(e.target.value)}
-                            style={{ minWidth: 140 }}
-                        />
+                    <div className="col-lg-2 col-md-3">
+                        <label className="form-label fw-medium mb-2" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.85rem' }}>Current End</label>
+                        <div className="input-group">
+                            <input
+                                type="date"
+                                className="form-control"
+                                value={currentEndDate}
+                                onChange={e => setCurrentEndDate(e.target.value)}
+                            />
+                            <span className="input-group-text" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
+                                <RiCalendarEventLine size={16} style={{ color: COLOR_TEXT_MUTED }} />
+                            </span>
+                        </div>
                     </div>
-                    <div>
-                        <label className="me-2">Previous Start:</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={previousStartDate}
-                            onChange={e => setPreviousStartDate(e.target.value)}
-                            style={{ minWidth: 140 }}
-                        />
+                    <div className="col-lg-2 col-md-3">
+                        <label className="form-label fw-medium mb-2" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.85rem' }}>Previous Start</label>
+                        <div className="input-group">
+                            <input
+                                type="date"
+                                className="form-control"
+                                value={previousStartDate}
+                                onChange={e => setPreviousStartDate(e.target.value)}
+                            />
+                            <span className="input-group-text" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
+                                <RiCalendarEventLine size={16} style={{ color: COLOR_TEXT_MUTED }} />
+                            </span>
+                        </div>
                     </div>
-                    <div>
-                        <label className="me-2">Previous End:</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={previousEndDate}
-                            onChange={e => setPreviousEndDate(e.target.value)}
-                            style={{ minWidth: 140 }}
-                        />
+                    <div className="col-lg-2 col-md-3">
+                        <label className="form-label fw-medium mb-2" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.85rem' }}>Previous End</label>
+                        <div className="input-group">
+                            <input
+                                type="date"
+                                className="form-control"
+                                value={previousEndDate}
+                                onChange={e => setPreviousEndDate(e.target.value)}
+                            />
+                            <span className="input-group-text" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
+                                <RiCalendarEventLine size={16} style={{ color: COLOR_TEXT_MUTED }} />
+                            </span>
+                        </div>
                     </div>
-                    <button
-                        className="btn btn-primary d-flex align-items-center gap-1 px-2 py-2 btn-sm mt-4"
-                        style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 70, fontWeight: 500, fontSize: '0.85rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)' }}
-                        onClick={fetchData}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <>
-                                <RiLoader4Line size={16} className="animate-spin" />
-                                Loading...
-                            </>
-                        ) : (
-                            <>
-                                <RiBarChartBoxLine size={15} />
-                                Compare
-                            </>
-                        )}
-                    </button>
+                    <div className="col-lg-2 col-md-3 d-flex align-items-end">
+                        <button
+                            className="btn btn-primary d-flex align-items-center gap-1 px-4 py-2 w-100"
+                            style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, fontWeight: 500, fontSize: '0.85rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)' }}
+                            onClick={fetchData}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <RiLoader4Line size={16} className="animate-spin" />
+                                    Loading...
+                                </>
+                            ) : (
+                                <>
+                                    <RiBarChartBoxLine size={16} />
+                                    Compare
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
             <div className="card-body p-3 p-md-4">
@@ -279,9 +318,27 @@ export default function ExpenseComparisonByPeriod() {
             </div>
             {data.length > 0 && (
                 <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
-                    <h4 className="fs-6 fw-medium mb-3">Period Comparison Details</h4>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h4 className="fs-6 fw-medium mb-0">Period Comparison Details</h4>
+                        <button
+                            className="btn btn-outline-primary d-flex align-items-center gap-1 px-3 py-2 btn-sm"
+                            style={{ borderColor: COLOR_ACCENT, color: COLOR_ACCENT, fontWeight: 500, fontSize: '0.85rem' }}
+                            onClick={() => window.print()}
+                            title="Print this report"
+                        >
+
+                            Print
+                        </button>
+                    </div>
+                    <div className="print-date-range mb-3" style={{ display: 'none' }}>
+                        <p className="mb-1 fw-medium">Report Period:</p>
+                        <p className="mb-0 text-muted">
+                            Current Period: {currentStartDate} to {currentEndDate} |
+                            Previous Period: {previousStartDate} to {previousEndDate}
+                        </p>
+                    </div>
                     <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        <table className="table table-sm table-hover table-striped small">
+                        <table className="table table-sm table-hover table-striped small printable-table-with-borders">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Period</th>
@@ -322,6 +379,50 @@ export default function ExpenseComparisonByPeriod() {
                 }
                 .table-responsive thead.sticky-top th {
                     border-bottom: 2px solid var(--bs-border-color);
+                }
+                
+                @media print {
+                    .card-header {
+                        background-color: white !important;
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                    }
+                    .print-date-range {
+                        display: block !important;
+                    }
+                    .btn {
+                        display: none !important;
+                    }
+                    .table-responsive {
+                        max-height: none !important;
+                        overflow: visible !important;
+                    }
+                    .printable-table-with-borders {
+                        border-collapse: collapse !important;
+                        width: 100% !important;
+                    }
+                    .printable-table-with-borders th,
+                    .printable-table-with-borders td {
+                        border: 1px solid #dee2e6 !important;
+                        padding: 0.5rem !important;
+                        font-size: 12px !important;
+                    }
+                    .printable-table-with-borders thead th {
+                        background-color: #f8f9fa !important;
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                        font-weight: 600 !important;
+                    }
+                    .printable-table-with-borders tbody tr:nth-child(even) {
+                        background-color: #f8f9fa !important;
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                    }
+                    .printable-table-with-borders tbody tr:nth-child(odd) {
+                        background-color: white !important;
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                    }
                 }
             `}</style>
         </div>

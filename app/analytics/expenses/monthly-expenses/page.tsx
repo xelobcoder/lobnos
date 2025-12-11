@@ -17,46 +17,33 @@ import {
 } from "recharts";
 import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
-import { RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiErrorWarningLine, RiLoader4Line, RiInbox2Line } from "@remixicon/react";
+import { RiBarChartBoxLine, RiLineChartLine, RiBubbleChartLine, RiErrorWarningLine, RiLoader4Line, RiInbox2Line, RiCalendarEventLine, RiRefreshLine } from "@remixicon/react";
 
 // Color variables to match sales chart
-const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
+const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
 const COLOR_TOOLTIP_FG = 'var(--bs-body-color)';
 const COLOR_GREEN_TEXT = 'var(--bs-success)';
 const COLOR_RED_TEXT = 'var(--bs-danger)';
+const COLOR_SECONDARY = '#2563eb'; // Blue
+const COLOR_TERTIARY = '#ea580c'; // Orange
+const COLOR_EXPENSES = '#dc2626'; // Red
 
 interface ExpenseData {
-    year: number;
-    month: number;
-    month_year: string;
-    total_expenses: number;
-    total_amount: string;
-    average_amount: string;
-    min_amount: number;
-    max_amount: number;
-    unique_categories: number;
+    expense_month: number;
+    total_expenses: string;
+    expense_count: number;
+    avg_expense_amount: string;
     unique_employees: number;
-    unique_merchants: number;
-    employee_usernames: string;
-    employee_roles: string;
-    branch_name: string;
 }
 
 export default function MonthlyExpensesByBranch() {
     const [data, setData] = useState<ExpenseData[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [startDate, setStartDate] = useState(() => {
-        const currentYear = new Date().getFullYear();
-        return `${currentYear}-01-01`;
-    });
-    const [endDate, setEndDate] = useState(() => {
-        const currentYear = new Date().getFullYear();
-        return `${currentYear}-12-31`;
-    });
+    const [year, setYear] = useState(() => new Date().getFullYear());
     const [chartType, setChartType] = useState<"bar" | "line" | "area">("bar");
 
     const { branchid, user } = useApplication();
@@ -66,10 +53,11 @@ export default function MonthlyExpensesByBranch() {
         setLoading(true);
         setError(null);
         try {
-            const endpoint = `expenses-analytics/monthly?branchid=${branchid}${startDate ? `&startDate=${startDate}` : ''}${endDate ? `&endDate=${endDate}` : ''}`;
+            const endpoint = `expenses/analytics/monthly?branchid=${branchid}&year=${year}`;
             const response = await customFetch(endpoint);
-            if (response && Array.isArray(response)) {
-                setData(response);
+            const { data } = response;
+            if (response && Array.isArray(data)) {
+                setData(data);
             } else {
                 setError("Invalid data format received");
             }
@@ -85,16 +73,16 @@ export default function MonthlyExpensesByBranch() {
             fetchData();
         }
         // eslint-disable-next-line
-    }, [branchid]);
+    }, [branchid, year]);
 
     // Prepare data for the chart
     const chartData = useMemo(() =>
         data.map(item => ({
             ...item,
-            total_amount: parseFloat(item.total_amount),
-            average_amount: parseFloat(item.average_amount),
-            monthLabel: item.month_year
-        })), [data]);
+            total_amount: parseFloat(item.total_expenses),
+            average_amount: parseFloat(item.avg_expense_amount),
+            monthLabel: new Date(year, item.expense_month - 1).toLocaleString('default', { month: 'short', year: 'numeric' })
+        })), [data, year]);
 
     const totalAmountSum = useMemo(() => chartData.reduce((sum, entry) => sum + entry.total_amount, 0), [chartData]);
 
@@ -124,11 +112,11 @@ export default function MonthlyExpensesByBranch() {
                     </div>
                     <div className="mb-1">
                         <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Total Expenses</span>
-                        <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{entry.total_expenses}</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{entry.expense_count}</span>
                     </div>
                     <div>
-                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Categories</span>
-                        <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{entry.unique_categories}</span>
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Unique Employees</span>
+                        <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{entry.unique_employees}</span>
                     </div>
                 </div>
             );
@@ -214,64 +202,55 @@ export default function MonthlyExpensesByBranch() {
         { type: "area" as const, icon: RiBubbleChartLine, label: "Area" },
     ];
 
+    const handleResetFilters = () => {
+        setYear(new Date().getFullYear());
+    };
+
     return (
         <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
             <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
                 <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
                     <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
                         <RiBarChartBoxLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
-                        Monthly Expenses by Category
+                        Monthly Expenses Overview
                     </h2>
-                    <div className="btn-group btn-group-sm" role="group" aria-label="Chart type">
-                        {viewButtons.map(btn => (
-                            <button
-                                key={btn.type}
-                                type="button"
-                                className={`btn ${chartType === btn.type ? 'btn-primary active' : 'btn-outline-secondary'}`}
-                                onClick={() => setChartType(btn.type)}
-                                style={chartType === btn.type ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
-                            >
-                                <btn.icon size={16} className="me-1 align-text-bottom" /> {btn.label}
+                    <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+                        <div className="btn-group btn-group-sm" role="group" aria-label="Chart type">
+                            {viewButtons.map(btn => (
+                                <button
+                                    key={btn.type}
+                                    type="button"
+                                    className={`btn ${chartType === btn.type ? 'btn-primary active' : 'btn-outline-secondary'}`}
+                                    onClick={() => setChartType(btn.type)}
+                                    style={chartType === btn.type ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
+                                >
+                                    <btn.icon size={16} className="me-1 align-text-bottom" /> {btn.label}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="d-flex align-items-center gap-2 mt-2 mt-sm-0">
+                            <div className="input-group input-group-sm" style={{ flexBasis: '120px', minWidth: '110px' }}>
+                                <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER, paddingLeft: '0.5rem', paddingRight: '0.3rem' }}>
+                                    <RiCalendarEventLine size={16} className="text-muted" style={{ color: COLOR_TEXT_MUTED }} />
+                                </span>
+                                <select
+                                    id="yearME"
+                                    className="form-select shadow-none border-start-0"
+                                    value={year}
+                                    onChange={e => setYear(parseInt(e.target.value))}
+                                    aria-label="Year"
+                                    style={{ fontSize: '0.875rem', borderColor: COLOR_BORDER, paddingLeft: '0.3rem' }}
+                                >
+                                    {Array.from({ length: 10 }, (_, i) => {
+                                        const y = new Date().getFullYear() - i;
+                                        return <option key={y} value={y}>{y}</option>;
+                                    })}
+                                </select>
+                            </div>
+                            <button onClick={handleResetFilters} className="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" aria-label="Reset date filters" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>
+                                <RiRefreshLine size={16} className="me-1" /> Reset
                             </button>
-                        ))}
-                    </div>
-                </div>
-                {/* Date filters and Load Data button */}
-                <div className="mt-3 d-flex flex-wrap gap-3 align-items-end">
-                    <div>
-                        <label className="me-2">Start Date:</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={startDate}
-                            onChange={e => setStartDate(e.target.value)}
-                            style={{ minWidth: 140 }}
-                        />
-                    </div>
-                    <div>
-                        <label className="me-2">End Date:</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={endDate}
-                            onChange={e => setEndDate(e.target.value)}
-                            style={{ minWidth: 140 }}
-                        />
-                    </div>
-                    <div>
-                        <button
-                            className="btn btn-primary d-flex align-items-center gap-1 px-2 py-1 btn-sm"
-                            style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, minWidth: 70, fontWeight: 500, fontSize: '0.85rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)' }}
-                            onClick={fetchData}
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <>
-                                    <RiLoader4Line size={16} className="animate-spin me-2" />
-                                    Loading...
-                                </>
-                            ) : "Load Data"}
-                        </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -305,16 +284,25 @@ export default function MonthlyExpensesByBranch() {
             </div>
             {chartData.length > 0 && (
                 <div className="card-footer bg-body-tertiary p-3 p-md-4" style={{ borderTop: `1px solid ${COLOR_BORDER}` }}>
-                    <h4 className="fs-6 fw-medium mb-3">Expense Data Table</h4>
-                    <div className="table-responsive" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        <table className="table table-sm table-hover table-striped small">
+                    <div className="print-date-range" style={{ display: 'none' }}>
+                        Expenses Report Year: {year}
+                    </div>
+                    <div className="d-flex justify-content-between mb-2">
+                        <h4 className="fs-6 fw-medium mb-3">
+                            Monthly Expense Data Table
+                        </h4>
+                        <button className="btn btn-sm btn-outline-primary" onClick={() => window.print()}>
+                            Print
+                        </button>
+                    </div>
+                    <div className="table-responsive">
+                        <table className="table table-sm table-hover table-striped small printable-table-with-borders">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
                                     <th scope="col" className="py-2">Month</th>
-                                    <th scope="col" className="py-2">Branch</th>
                                     <th scope="col" className="py-2 text-end">Total Amount</th>
-                                    <th scope="col" className="py-2 text-end">Total Expenses</th>
-                                    <th scope="col" className="py-2 text-end">Categories</th>
+                                    <th scope="col" className="py-2 text-end">Expense Count</th>
+                                    <th scope="col" className="py-2 text-end">Avg Amount</th>
                                     <th scope="col" className="py-2 text-end">Employees</th>
                                     <th scope="col" className="py-2 text-end">% of Total</th>
                                 </tr>
@@ -325,10 +313,9 @@ export default function MonthlyExpensesByBranch() {
                                     return (
                                         <tr key={idx}>
                                             <td className="py-2">{entry.monthLabel}</td>
-                                            <td className="py-2">{entry.branch_name}</td>
                                             <td className="py-2 text-end fw-medium">{currencyFormatter.format(entry.total_amount)}</td>
-                                            <td className="py-2 text-end">{entry.total_expenses}</td>
-                                            <td className="py-2 text-end">{entry.unique_categories}</td>
+                                            <td className="py-2 text-end">{entry.expense_count}</td>
+                                            <td className="py-2 text-end">{currencyFormatter.format(entry.average_amount)}</td>
                                             <td className="py-2 text-end">{entry.unique_employees}</td>
                                             <td className="py-2 text-end text-muted">{percentageOfTotal}%</td>
                                         </tr>
@@ -338,10 +325,9 @@ export default function MonthlyExpensesByBranch() {
                             <tfoot>
                                 <tr className="fw-bold border-top">
                                     <td className="py-2">Total</td>
-                                    <td className="py-2"></td>
                                     <td className="py-2 text-end">{currencyFormatter.format(totalAmountSum)}</td>
-                                    <td className="py-2 text-end">{chartData.reduce((sum, entry) => sum + entry.total_expenses, 0)}</td>
-                                    <td className="py-2 text-end">{chartData.reduce((sum, entry) => sum + entry.unique_categories, 0)}</td>
+                                    <td className="py-2 text-end">{chartData.reduce((sum, entry) => sum + entry.expense_count, 0)}</td>
+                                    <td className="py-2 text-end">{currencyFormatter.format(chartData.reduce((sum, entry) => sum + entry.average_amount, 0) / chartData.length || 0)}</td>
                                     <td className="py-2 text-end">{chartData.reduce((sum, entry) => sum + entry.unique_employees, 0)}</td>
                                     <td className="py-2 text-end">100.0%</td>
                                 </tr>
@@ -360,6 +346,23 @@ export default function MonthlyExpensesByBranch() {
                 }
                 .table-responsive thead.sticky-top th {
                     border-bottom: 2px solid var(--bs-border-color); 
+                }
+                .table-responsive thead th {
+                    font-weight: bold !important;
+                    color: #000 !important;
+                }
+                @media print {
+                    .printable-table-with-borders tbody tr {
+                        border: none !important;
+                        border-bottom: 2px solid #000 !important;
+                    }
+                    .printable-table-with-borders tbody tr:nth-child(odd) {
+                        background-color: #f8f9fa !important;
+                    }
+                    .printable-table-with-borders th,
+                    .printable-table-with-borders td {
+                        padding: 0.25rem 0.5rem !important;
+                    }
                 }
             `}</style>
         </div>

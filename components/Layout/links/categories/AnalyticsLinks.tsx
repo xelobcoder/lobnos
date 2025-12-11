@@ -103,6 +103,31 @@ export const AnalyticsLinks: Link[] = [
                 title: "Top Expense Merchants",
                 link: "/analytics/expenses/top-expense-merchants",
                 icon: <RiShoppingBagLine />
+            },
+            {
+                title: 'Expense Payment Status',
+                link: '/analytics/expenses/expense-payment-status',
+                icon: <RiListCheck2 />
+            },
+            {
+                title: 'Expense Buckets',
+                link: '/analytics/expenses/expense-buckets',
+                icon: <RiBarChartBoxLine />
+            },
+            {
+                title: 'Expense Approval Timeline',
+                link: '/analytics/expenses/expense-approval-timeline',
+                icon: <RiTimeLine />
+            },
+            {
+                title: 'Quarterly Expense Summary',
+                link: '/analytics/expenses/quarterly-expense-summary',
+                icon: <RiScales2Fill />
+            },
+            {
+                title: 'Expense Growth Rate',
+                link: '/analytics/expenses/expense-growth-rate',
+                icon: <RiLineChartLine />
             }
         ]
     },
