@@ -11,9 +11,15 @@ import {
      Tooltip,
      Legend,
      ResponsiveContainer,
-     Cell
+     Cell,
+     LineChart,
+     Line,
+     AreaChart,
+     Area,
+     PieChart,
+     Pie
 } from 'recharts';
-import { RiPrinterLine, RiErrorWarningLine, RiInbox2Line, RiLoader4Line, RiBarChart2Line, RiCalendarEventLine } from "@remixicon/react";
+import { RiPrinterLine, RiErrorWarningLine, RiInbox2Line, RiLoader4Line, RiBarChart2Line, RiCalendarEventLine, RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiPieChartLine, RiRefreshLine } from "@remixicon/react";
 
 interface RegistrationByDayData {
      day: string;
@@ -21,9 +27,9 @@ interface RegistrationByDayData {
 }
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
-const COLOR_WEEKEND = '#e74c3c'; // Red for weekends
-const COLOR_WEEKDAY = '#3498db'; // Blue for weekdays
-const COLOR_PEAK = '#27ae60'; // Green for peak days
+const COLOR_SECONDARY = '#2563eb'; // Blue for weekdays
+const COLOR_WEEKEND = '#dc2626'; // Red for weekends
+const COLOR_PEAK = '#16a34a'; // Green for peak days
 const COLOR_BORDER = 'var(--bs-border-color)';
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
 const COLOR_TOOLTIP_BG = 'var(--bs-body-bg)';
@@ -33,6 +39,7 @@ const RegistrationByDayOfWeek: React.FC = () => {
      const [data, setData] = useState<RegistrationByDayData[]>([]);
      const [loading, setLoading] = useState<boolean>(true);
      const [error, setError] = useState<string | null>(null);
+     const [view, setView] = useState<"line" | "bar" | "area" | "pie">("bar");
 
      const fetchRegistrationByDay = async () => {
           setLoading(true);
@@ -55,6 +62,10 @@ const RegistrationByDayOfWeek: React.FC = () => {
           fetchRegistrationByDay();
      }, []);
 
+     const handleViewToggle = (newView: "line" | "bar" | "area" | "pie") => {
+          setView(newView);
+     };
+
      const getDayColor = (day: string, registrations: number) => {
           // Weekend days
           if (day === 'Saturday' || day === 'Sunday') {
@@ -65,7 +76,7 @@ const RegistrationByDayOfWeek: React.FC = () => {
                return COLOR_PEAK;
           }
           // Regular weekdays
-          return COLOR_WEEKDAY;
+          return COLOR_SECONDARY;
      };
 
      const calculateTotals = (data: RegistrationByDayData[]) => {
@@ -119,6 +130,198 @@ const RegistrationByDayOfWeek: React.FC = () => {
 
      const totals = calculateTotals(data);
 
+     const renderChart = () => {
+          const commonProps = {
+               data: data,
+               margin: { top: 20, right: 30, left: 20, bottom: 60 },
+          };
+          const xAxisProps = {
+               dataKey: "day",
+               tickFormatter: (value: string) => value.substring(0, 3), // Show first 3 letters
+               angle: 0,
+               textAnchor: "middle" as const,
+               height: 60,
+               interval: 0,
+               tick: { fontSize: 12, fill: COLOR_TEXT_MUTED },
+               axisLine: { stroke: COLOR_BORDER },
+               tickLine: { stroke: COLOR_BORDER },
+          };
+          const yAxisProps = {
+               tickFormatter: (value: number) => value.toLocaleString(),
+               tick: { fontSize: 11, fill: COLOR_TEXT_MUTED },
+               axisLine: false,
+               tickLine: false,
+               width: 80,
+          };
+          const legendProps = {
+               verticalAlign: "top" as const,
+               align: "right" as const,
+               iconType: "circle" as const,
+               iconSize: 8,
+               wrapperStyle: { fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }
+          };
+
+          if (view === "bar") {
+               return (
+                    <BarChart {...commonProps}>
+                         <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                         <XAxis {...xAxisProps} />
+                         <YAxis {...yAxisProps} />
+                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                         <Legend {...legendProps} />
+                         <Bar
+                              dataKey="registrations"
+                              name="Registrations"
+                              radius={[4, 4, 0, 0]}
+                              maxBarSize={50}
+                         >
+                              {data.map((entry, index) => (
+                                   <Cell key={`cell-${index}`} fill={getDayColor(entry.day, entry.registrations)} />
+                              ))}
+                         </Bar>
+                    </BarChart>
+               );
+          }
+
+          if (view === "line") {
+               return (
+                    <LineChart {...commonProps}>
+                         <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                         <XAxis {...xAxisProps} />
+                         <YAxis {...yAxisProps} />
+                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                         <Legend {...legendProps} />
+                         <Line
+                              type="monotone"
+                              dataKey="registrations"
+                              name="Registrations"
+                              stroke={COLOR_ACCENT}
+                              strokeWidth={3}
+                              dot={{ r: 4, strokeWidth: 2, fill: COLOR_ACCENT }}
+                              activeDot={{ r: 6, strokeWidth: 2, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }}
+                         />
+                    </LineChart>
+               );
+          }
+
+          if (view === "area") {
+               return (
+                    <AreaChart {...commonProps}>
+                         <defs>
+                              <linearGradient id="colorRegistrationsFill" x1="0" y1="0" x2="0" y2="1">
+                                   <stop offset="5%" stopColor={COLOR_ACCENT} stopOpacity={0.5} />
+                                   <stop offset="95%" stopColor={COLOR_ACCENT} stopOpacity={0.05} />
+                              </linearGradient>
+                         </defs>
+                         <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                         <XAxis {...xAxisProps} />
+                         <YAxis {...yAxisProps} />
+                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                         <Legend {...legendProps} />
+                         <Area
+                              type="monotone"
+                              dataKey="registrations"
+                              name="Registrations"
+                              stroke={COLOR_ACCENT}
+                              fill="url(#colorRegistrationsFill)"
+                              strokeWidth={2}
+                              dot={{ r: 3, strokeWidth: 1, fill: COLOR_ACCENT }}
+                              activeDot={{ r: 6, strokeWidth: 1.5, fill: COLOR_ACCENT, stroke: COLOR_TOOLTIP_BG }}
+                         />
+                    </AreaChart>
+               );
+          }
+
+          if (view === "pie") {
+               // For pie chart, we'll show the distribution of registrations by day
+               const pieData = data.map(entry => ({
+                    name: entry.day,
+                    value: entry.registrations,
+                    color: getDayColor(entry.day, entry.registrations)
+               }));
+
+               const CustomPieTooltip = ({ active, payload }: any) => {
+                    if (active && payload && payload.length) {
+                         const data = payload[0];
+                         const percentage = totals.totalRegistrations > 0 ? ((data.value / totals.totalRegistrations) * 100).toFixed(1) : '0.0';
+
+                         return (
+                              <div
+                                   className="rounded-lg border p-2 shadow-sm"
+                                   style={{
+                                        backgroundColor: COLOR_TOOLTIP_BG,
+                                        borderColor: COLOR_BORDER,
+                                        minWidth: '180px',
+                                        fontSize: '0.8rem'
+                                   }}
+                              >
+                                   <div className="mb-1">
+                                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Day</span>
+                                        <span className="fw-bold d-block" style={{ color: COLOR_TOOLTIP_FG }}>{data.name}</span>
+                                   </div>
+                                   <div className="mb-1">
+                                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Registrations</span>
+                                        <span className="fw-bold d-block" style={{ color: data.color }}>{data.value.toLocaleString()}</span>
+                                   </div>
+                                   <div>
+                                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Percentage</span>
+                                        <span className="fw-bold d-block" style={{ color: COLOR_ACCENT }}>{percentage}%</span>
+                                   </div>
+                              </div>
+                         );
+                    }
+                    return null;
+               };
+
+               return (
+                    <PieChart>
+                         <Pie
+                              data={pieData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={120}
+                              paddingAngle={2}
+                              dataKey="value"
+                         >
+                              {pieData.map((entry, index) => (
+                                   <Cell key={`cell-${index}`} fill={entry.color} />
+                              ))}
+                         </Pie>
+                         <Tooltip content={<CustomPieTooltip />} />
+                         <Legend
+                              verticalAlign="bottom"
+                              align="center"
+                              iconType="circle"
+                              iconSize={8}
+                              wrapperStyle={{ fontSize: '13px', color: 'var(--bs-body-color)', paddingTop: '15px' }}
+                         />
+                    </PieChart>
+               );
+          }
+
+          // Default fallback - should never reach here due to type constraints
+          return (
+               <BarChart {...commonProps}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
+                    <XAxis {...xAxisProps} />
+                    <YAxis {...yAxisProps} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
+                    <Legend {...legendProps} />
+                    <Bar
+                         dataKey="registrations"
+                         name="Registrations"
+                         radius={[4, 4, 0, 0]}
+                         maxBarSize={50}
+                    >
+                         {data.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={getDayColor(entry.day, entry.registrations)} />
+                         ))}
+                    </Bar>
+               </BarChart>
+          );
+     };
+
      return (
           <div className="card" style={{
                borderRadius: '0.75rem',
@@ -130,14 +333,32 @@ const RegistrationByDayOfWeek: React.FC = () => {
                     backgroundColor: 'var(--bs-tertiary-bg)',
                     borderColor: COLOR_BORDER
                }}>
-                    <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center">
+                    <div className="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
                          <h2 className="fs-6 fw-semibold text-body-emphasis mb-3 mb-lg-0 d-flex align-items-center">
                               <RiCalendarEventLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
                               Patient Registration by Day of Week
                          </h2>
-                         <div className="d-flex gap-2">
+                         <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+                              <div className="btn-group btn-group-sm" role="group" aria-label="Chart type">
+                                   {[
+                                        { type: "line" as const, icon: RiLineChartLine, label: "Line" },
+                                        { type: "bar" as const, icon: RiBarChartBoxLine, label: "Bar" },
+                                        { type: "area" as const, icon: RiBubbleChartLine, label: "Area" },
+                                        { type: "pie" as const, icon: RiPieChartLine, label: "Pie" },
+                                   ].map(btn => (
+                                        <button
+                                             key={btn.type}
+                                             type="button"
+                                             className={`btn ${view === btn.type ? 'btn-primary active' : 'btn-outline-secondary'}`}
+                                             onClick={() => handleViewToggle(btn.type)}
+                                             style={view === btn.type ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
+                                        >
+                                             <btn.icon size={16} className="me-1 align-text-bottom" /> {btn.label}
+                                        </button>
+                                   ))}
+                              </div>
                               <button
-                                   className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                                   className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 mt-2 mt-sm-0"
                                    onClick={() => window.print()}
                                    title="Print this report"
                               >
@@ -214,71 +435,10 @@ const RegistrationByDayOfWeek: React.FC = () => {
 
                               {/* Chart */}
                               <div className="col-12">
-                                   <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
-                                        <div className="d-flex justify-content-between align-items-center mb-4">
-                                             <h5 className="mb-0 fw-medium">Weekly Registration Pattern</h5>
-                                             <div className="d-flex gap-3 small">
-                                                  <div className="d-flex align-items-center">
-                                                       <div className="rounded me-2" style={{ width: '12px', height: '12px', backgroundColor: COLOR_WEEKDAY }}></div>
-                                                       <span>Weekdays</span>
-                                                  </div>
-                                                  <div className="d-flex align-items-center">
-                                                       <div className="rounded me-2" style={{ width: '12px', height: '12px', backgroundColor: COLOR_WEEKEND }}></div>
-                                                       <span>Weekends</span>
-                                                  </div>
-                                                  <div className="d-flex align-items-center">
-                                                       <div className="rounded me-2" style={{ width: '12px', height: '12px', backgroundColor: COLOR_PEAK }}></div>
-                                                       <span>Peak Day</span>
-                                                  </div>
-                                             </div>
-                                        </div>
-
-                                        <div style={{ width: "100%", height: 400 }}>
-                                             <ResponsiveContainer>
-                                                  <BarChart
-                                                       data={data}
-                                                       margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                                                  >
-                                                       <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
-                                                       <XAxis
-                                                            dataKey="day"
-                                                            tickFormatter={(value: string) => value.substring(0, 3)} // Show first 3 letters
-                                                            angle={0}
-                                                            textAnchor="middle"
-                                                            height={60}
-                                                            interval={0}
-                                                            tick={{ fontSize: 12, fill: COLOR_TEXT_MUTED }}
-                                                            axisLine={{ stroke: COLOR_BORDER }}
-                                                            tickLine={{ stroke: COLOR_BORDER }}
-                                                       />
-                                                       <YAxis
-                                                            tickFormatter={(value: number) => value.toLocaleString()}
-                                                            tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
-                                                            axisLine={false}
-                                                            tickLine={false}
-                                                            width={80}
-                                                       />
-                                                       <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
-                                                       <Legend
-                                                            verticalAlign="top"
-                                                            align="right"
-                                                            iconType="circle"
-                                                            iconSize={8}
-                                                            wrapperStyle={{ fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }}
-                                                       />
-                                                       <Bar
-                                                            dataKey="registrations"
-                                                            name="Registrations"
-                                                            radius={[4, 4, 0, 0]}
-                                                            maxBarSize={50}
-                                                       >
-                                                            {data.map((entry, index) => (
-                                                                 <Cell key={`cell-${index}`} fill={getDayColor(entry.day, entry.registrations)} />
-                                                            ))}
-                                                       </Bar>
-                                                  </BarChart>
-                                             </ResponsiveContainer>
-                                        </div>
+                                   <div style={{ width: "100%", height: 400 }}>
+                                        <ResponsiveContainer>
+                                             {renderChart()}
+                                        </ResponsiveContainer>
                                    </div>
                               </div>
 
