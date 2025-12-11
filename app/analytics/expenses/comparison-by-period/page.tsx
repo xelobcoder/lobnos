@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { customFetch, currencyFormatter } from "../../../../components/Auth/customFetch";
 import { useApplication } from "../../../../components/Auth/useApplicationContext";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { RiBarChartBoxLine, RiLoader4Line, RiErrorWarningLine, RiInbox2Line, RiArrowUpLine, RiArrowDownLine, RiCalendarEventLine, RiRefreshLine } from "@remixicon/react";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -13,13 +13,10 @@ const COLOR_CURRENT = 'oklch(0.646 0.222 41.116)';
 const COLOR_PREVIOUS = 'oklch(0.553 0.196 25.59)';
 
 interface PeriodComparison {
-    period_type: string;
+    period: string;
+    total_expenses: string;
     expense_count: number;
-    total_amount: number;
-    average_amount: number;
-    min_amount: number;
-    max_amount: number;
-    branch_name: string;
+    avg_expense_amount: string;
 }
 
 export default function ExpenseComparisonByPeriod() {
@@ -29,20 +26,20 @@ export default function ExpenseComparisonByPeriod() {
 
     const [currentStartDate, setCurrentStartDate] = useState<string>(() => {
         const now = new Date();
-        return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+        return `${now.getFullYear()}-01-01`;
     });
-    const [currentEndDate, setCurrentEndDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+    const [currentEndDate, setCurrentEndDate] = useState<string>(() => {
+        const now = new Date();
+        return `${now.getFullYear()}-06-30`;
+    });
 
     const [previousStartDate, setPreviousStartDate] = useState<string>(() => {
         const now = new Date();
-        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        return prevMonth.toISOString().slice(0, 10);
+        return `${now.getFullYear()}-07-01`;
     });
     const [previousEndDate, setPreviousEndDate] = useState<string>(() => {
         const now = new Date();
-        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1);
-        const lastDayPrevMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0);
-        return lastDayPrevMonth.toISOString().slice(0, 10);
+        return `${now.getFullYear()}-12-31`;
     });
 
     const [branches, setBranches] = useState<any[]>([]);
@@ -50,14 +47,14 @@ export default function ExpenseComparisonByPeriod() {
     useApplication();
 
     const fetchData = async () => {
-        if (!branchid) return;
         setLoading(true);
         setError(null);
         try {
-            const endpoint = `expenses-analytics/comparison-by-period?currentStartDate=${currentStartDate}&currentEndDate=${currentEndDate}&previousStartDate=${previousStartDate}&previousEndDate=${previousEndDate}&branchid=${branchid}`;
+            const endpoint = `expenses/analytics/comparison?currentStart=${currentStartDate}&currentEnd=${currentEndDate}&previousStart=${previousStartDate}&previousEnd=${previousEndDate}&branchid=${branchid}`;
             const response = await customFetch(endpoint);
-            if (response && Array.isArray(response)) {
-                setData(response);
+            const { data } = response;
+            if (response && data && Array.isArray(data)) {
+                setData(data);
             } else {
                 setError("Invalid data format received");
             }
@@ -70,13 +67,10 @@ export default function ExpenseComparisonByPeriod() {
 
     const handleResetFilters = () => {
         const now = new Date();
-        setCurrentStartDate(new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10));
-        setCurrentEndDate(new Date().toISOString().slice(0, 10));
-
-        const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        setPreviousStartDate(prevMonth.toISOString().slice(0, 10));
-        const lastDayPrevMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0);
-        setPreviousEndDate(lastDayPrevMonth.toISOString().slice(0, 10));
+        setCurrentStartDate(`${now.getFullYear()}-01-01`);
+        setCurrentEndDate(`${now.getFullYear()}-06-30`);
+        setPreviousStartDate(`${now.getFullYear()}-07-01`);
+        setPreviousEndDate(`${now.getFullYear()}-12-31`);
     };
 
     useEffect(() => {
@@ -93,76 +87,54 @@ export default function ExpenseComparisonByPeriod() {
     }, []);
 
     useEffect(() => {
-        if (branchid) {
-            fetchData();
-        }
-    }, [branchid]);
+       fetchData();
+    }, []);
 
-    const currentPeriod = data.find(item => item.period_type === 'current_period');
-    const previousPeriod = data.find(item => item.period_type === 'previous_period');
+    const currentPeriod = data.find(item => item.period === 'current');
+    const previousPeriod = data.find(item => item.period === 'previous');
 
     const chartData = [
         {
-            metric: 'Total Amount',
-            current: currentPeriod?.total_amount || 0,
-            previous: previousPeriod?.total_amount || 0,
-            change: currentPeriod && previousPeriod ?
-                ((currentPeriod.total_amount - previousPeriod.total_amount) / previousPeriod.total_amount * 100) : 0
+            label: 'Current\nTotal',
+            value: parseFloat(currentPeriod?.total_expenses || '0'),
+            type: 'total',
+            color: COLOR_CURRENT
         },
         {
-            metric: 'Expense Count',
-            current: currentPeriod?.expense_count || 0,
-            previous: previousPeriod?.expense_count || 0,
-            change: currentPeriod && previousPeriod ?
-                ((currentPeriod.expense_count - previousPeriod.expense_count) / previousPeriod.expense_count * 100) : 0
+            label: 'Current\nCount',
+            value: currentPeriod?.expense_count || 0,
+            type: 'count',
+            color: COLOR_PREVIOUS
         },
         {
-            metric: 'Average Amount',
-            current: currentPeriod?.average_amount || 0,
-            previous: previousPeriod?.average_amount || 0,
-            change: currentPeriod && previousPeriod ?
-                ((currentPeriod.average_amount - previousPeriod.average_amount) / previousPeriod.average_amount * 100) : 0
+            label: 'Previous\nTotal',
+            value: parseFloat(previousPeriod?.total_expenses || '0'),
+            type: 'total',
+            color: COLOR_CURRENT
+        },
+        {
+            label: 'Previous\nCount',
+            value: previousPeriod?.expense_count || 0,
+            type: 'count',
+            color: COLOR_PREVIOUS
         }
     ];
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             const data = payload[0].payload;
-            const changePercent = data.change.toFixed(1);
-            const isPositive = data.change >= 0;
 
             return (
-                <div
-                    className="rounded-lg border p-2 shadow-sm"
-                    style={{
-                        backgroundColor: 'var(--bs-body-bg)',
-                        borderColor: COLOR_BORDER,
-                        minWidth: '200px',
-                        fontSize: '0.85rem',
-                        color: 'var(--bs-body-color)'
-                    }}
-                >
-                    <div className="mb-1">
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Metric</span>
-                        <span className="fw-bold d-block">{label}</span>
+                <div className="rounded-lg border p-2 shadow-sm"
+                    style={{ backgroundColor: 'var(--bs-body-bg)', borderColor: COLOR_BORDER, minWidth: '220px', fontSize: '0.8rem' }}>
+                    <div className="mb-2">
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Period & Metric</span>
+                        <span className="fw-bold d-block" style={{ color: 'var(--bs-body-color)' }}>{label}</span>
                     </div>
                     <div className="mb-1">
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Current Period</span>
-                        <span className="fw-bold d-block" style={{ color: COLOR_CURRENT }}>
-                            {label === 'Expense Count' ? data.current : currencyFormatter.format(data.current)}
-                        </span>
-                    </div>
-                    <div className="mb-1">
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Previous Period</span>
-                        <span className="fw-bold d-block" style={{ color: COLOR_PREVIOUS }}>
-                            {label === 'Expense Count' ? data.previous : currencyFormatter.format(data.previous)}
-                        </span>
-                    </div>
-                    <div>
-                        <span className="text-xs fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Change</span>
-                        <span className={`fw-bold d-block ${isPositive ? 'text-success' : 'text-danger'}`}>
-                            {isPositive ? <RiArrowUpLine size={12} className="me-1" /> : <RiArrowDownLine size={12} className="me-1" />}
-                            {changePercent}%
+                        <span className="text-xs uppercase fw-medium" style={{ color: COLOR_TEXT_MUTED }}>Value</span>
+                        <span className="fw-bold d-block" style={{ color: data.color }}>
+                            {data.type === 'count' ? data.value : currencyFormatter.format(data.value)}
                         </span>
                     </div>
                 </div>
@@ -173,94 +145,94 @@ export default function ExpenseComparisonByPeriod() {
 
     return (
         <div className="card" style={{ borderRadius: '0.75rem', borderColor: COLOR_BORDER }}>
-            <div className="card-header py-3 px-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h2 className="fs-6 fw-semibold text-body-emphasis mb-0 d-flex align-items-center">
-                        <RiBarChartBoxLine size={22} style={{ color: COLOR_ACCENT }} className="me-2 flex-shrink-0" />
-                        Expense Comparison by Period
-                    </h2>
-                    <button
-                        className="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 py-2 btn-sm"
-                        style={{ borderColor: COLOR_BORDER, color: COLOR_TEXT_MUTED, fontWeight: 500, fontSize: '0.85rem' }}
-                        onClick={handleResetFilters}
-                        title="Reset filters to default"
-                    >
-                        <RiRefreshLine size={16} />
-                        Reset
-                    </button>
-                </div>
-                <div className="row g-3">
-                    <div className="col-lg-2 col-md-3">
-                        <label className="form-label fw-medium mb-2" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.85rem' }}>Branch</label>
+            <div className="card-header p-4 bg-white">
+                <h4 className="fs-5 fw-medium mb-0">Comparative Expense Analysis By Period</h4>
+            </div>
+            <div className="card-header py-3 px-4 bg-white d-flex align-items-center" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
+                <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 mb-4">
+
+                    <div className="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+                        {/* Branch Selector */}
                         <select
-                            className="form-select"
+                            className="form-select form-select-sm"
                             value={branchid ?? ''}
                             onChange={e => setBranchid(Number(e.target.value))}
+                            style={{ flexBasis: '200px', minWidth: '180px' }}
                         >
+                            <option value="" >Select Branch</option>
                             {branches.map(branch => (
                                 <option key={branch.branchid} value={branch.branchid}>{branch.name}</option>
                             ))}
                         </select>
-                    </div>
-                    <div className="col-lg-2 col-md-3">
-                        <label className="form-label fw-medium mb-2" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.85rem' }}>Current Start</label>
-                        <div className="input-group">
-                            <input
-                                type="date"
-                                className="form-control"
-                                value={currentStartDate}
-                                onChange={e => setCurrentStartDate(e.target.value)}
-                            />
-                            <span className="input-group-text" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-                                <RiCalendarEventLine size={16} style={{ color: COLOR_TEXT_MUTED }} />
-                            </span>
+
+                        {/* Current Period */}
+                        <div className="d-flex gap-2 align-items-center">
+                            <span className="text-muted fw-medium" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Current:</span>
+                            <div className="input-group input-group-sm" style={{ flexBasis: '140px', minWidth: '130px' }}>
+                                <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER }}>
+                                    <RiCalendarEventLine size={14} className="text-muted" />
+                                </span>
+                                <input
+                                    type="date"
+                                    className="form-control shadow-none border-start-0"
+                                    value={currentStartDate}
+                                    onChange={e => setCurrentStartDate(e.target.value)}
+                                />
+                            </div>
+                            <span className="text-muted" style={{ fontSize: '0.8rem' }}>to</span>
+                            <div className="input-group input-group-sm" style={{ flexBasis: '140px', minWidth: '130px' }}>
+                                <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER }}>
+                                    <RiCalendarEventLine size={14} className="text-muted" />
+                                </span>
+                                <input
+                                    type="date"
+                                    className="form-control shadow-none border-start-0"
+                                    value={currentEndDate}
+                                    onChange={e => setCurrentEndDate(e.target.value)}
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <div className="col-lg-2 col-md-3">
-                        <label className="form-label fw-medium mb-2" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.85rem' }}>Current End</label>
-                        <div className="input-group">
-                            <input
-                                type="date"
-                                className="form-control"
-                                value={currentEndDate}
-                                onChange={e => setCurrentEndDate(e.target.value)}
-                            />
-                            <span className="input-group-text" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-                                <RiCalendarEventLine size={16} style={{ color: COLOR_TEXT_MUTED }} />
-                            </span>
+
+                        {/* Previous Period */}
+                        <div className="d-flex gap-2 align-items-center">
+                            <span className="text-muted fw-medium" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Previous:</span>
+                            <div className="input-group input-group-sm" style={{ flexBasis: '140px', minWidth: '130px' }}>
+                                <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER }}>
+                                    <RiCalendarEventLine size={14} className="text-muted" />
+                                </span>
+                                <input
+                                    type="date"
+                                    className="form-control shadow-none border-start-0"
+                                    value={previousStartDate}
+                                    onChange={e => setPreviousStartDate(e.target.value)}
+                                />
+                            </div>
+                            <span className="text-muted" style={{ fontSize: '0.8rem' }}>to</span>
+                            <div className="input-group input-group-sm" style={{ flexBasis: '140px', minWidth: '130px' }}>
+                                <span className="input-group-text bg-transparent border-end-0" style={{ borderColor: COLOR_BORDER }}>
+                                    <RiCalendarEventLine size={14} className="text-muted" />
+                                </span>
+                                <input
+                                    type="date"
+                                    className="form-control shadow-none border-start-0"
+                                    value={previousEndDate}
+                                    onChange={e => setPreviousEndDate(e.target.value)}
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <div className="col-lg-2 col-md-3">
-                        <label className="form-label fw-medium mb-2" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.85rem' }}>Previous Start</label>
-                        <div className="input-group">
-                            <input
-                                type="date"
-                                className="form-control"
-                                value={previousStartDate}
-                                onChange={e => setPreviousStartDate(e.target.value)}
-                            />
-                            <span className="input-group-text" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-                                <RiCalendarEventLine size={16} style={{ color: COLOR_TEXT_MUTED }} />
-                            </span>
-                        </div>
-                    </div>
-                    <div className="col-lg-2 col-md-3">
-                        <label className="form-label fw-medium mb-2" style={{ color: COLOR_TEXT_MUTED, fontSize: '0.85rem' }}>Previous End</label>
-                        <div className="input-group">
-                            <input
-                                type="date"
-                                className="form-control"
-                                value={previousEndDate}
-                                onChange={e => setPreviousEndDate(e.target.value)}
-                            />
-                            <span className="input-group-text" style={{ backgroundColor: 'var(--bs-tertiary-bg)', borderColor: COLOR_BORDER }}>
-                                <RiCalendarEventLine size={16} style={{ color: COLOR_TEXT_MUTED }} />
-                            </span>
-                        </div>
-                    </div>
-                    <div className="col-lg-2 col-md-3 d-flex align-items-end">
+
+                        {/* Action Buttons */}
                         <button
-                            className="btn btn-primary d-flex align-items-center gap-1 px-4 py-2 w-100"
+                            className="btn btn-outline-secondary d-flex align-items-center gap-1 px-3 py-2 btn-sm"
+                            style={{ borderColor: COLOR_BORDER, color: COLOR_TEXT_MUTED, fontWeight: 500, fontSize: '0.85rem' }}
+                            onClick={handleResetFilters}
+                            title="Reset filters to default"
+                        >
+                            <RiRefreshLine size={16} />
+                            Reset
+                        </button>
+                        <button
+                            className="btn btn-primary d-flex align-items-center gap-1 px-4 py-2 btn-sm"
                             style={{ backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT, fontWeight: 500, fontSize: '0.85rem', boxShadow: '0 2px 8px 0 rgba(0,0,0,0.03)' }}
                             onClick={fetchData}
                             disabled={loading}
@@ -301,16 +273,51 @@ export default function ExpenseComparisonByPeriod() {
                         </p>
                     </div>
                 ) : (
-                    <div style={{ width: "100%", height: 400 }}>
+                    <div style={{ width: "100%", height: 350 }}>
                         <ResponsiveContainer>
-                            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 45 }}>
+                            <BarChart
+                                data={chartData}
+                                margin={{ top: 5, right: 5, left: 20, bottom: 45 }}
+                            >
                                 <CartesianGrid strokeDasharray="3 3" stroke="var(--bs-border-color-translucent)" vertical={false} />
-                                <XAxis dataKey="metric" tick={{ fontSize: 12 }} />
-                                <YAxis tickFormatter={(value) => value >= 1000 ? currencyFormatter.format(value) : value} tick={{ fontSize: 12 }} />
+                                <XAxis
+                                    dataKey="label"
+                                    tickFormatter={(value: string) => value}
+                                    angle={0}
+                                    textAnchor="middle"
+                                    height={40}
+                                    interval={0}
+                                    tick={{ fontSize: 10, fill: COLOR_TEXT_MUTED }}
+                                    axisLine={{ stroke: COLOR_BORDER }}
+                                    tickLine={{ stroke: COLOR_BORDER }}
+                                />
+                                <YAxis
+                                    tickFormatter={(value: number, index: number) => {
+                                        const item = chartData[index];
+                                        return item?.type === 'count' ? value.toString() : currencyFormatter.format(value);
+                                    }}
+                                    tick={{ fontSize: 11, fill: COLOR_TEXT_MUTED }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    width={95}
+                                />
                                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--bs-tertiary-bg)' }} />
-                                <Legend />
-                                <Bar dataKey="current" name="Current Period" fill={COLOR_CURRENT} radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="previous" name="Previous Period" fill={COLOR_PREVIOUS} radius={[4, 4, 0, 0]} />
+                                <Legend
+                                    verticalAlign="top"
+                                    align="right"
+                                    iconType="circle"
+                                    iconSize={8}
+                                    wrapperStyle={{ fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }}
+                                />
+                                <Bar
+                                    dataKey="value"
+                                    radius={[4, 4, 0, 0]}
+                                    maxBarSize={40}
+                                >
+                                    {chartData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
+                                    ))}
+                                </Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -341,27 +348,19 @@ export default function ExpenseComparisonByPeriod() {
                         <table className="table table-sm table-hover table-striped small printable-table-with-borders">
                             <thead className="sticky-top bg-body-tertiary">
                                 <tr>
-                                    <th scope="col" className="py-2">Period</th>
-                                    <th scope="col" className="py-2">Branch</th>
-                                    <th scope="col" className="py-2 text-end">Total Amount</th>
-                                    <th scope="col" className="py-2 text-end">Expense Count</th>
-                                    <th scope="col" className="py-2 text-end">Average Amount</th>
-                                    <th scope="col" className="py-2 text-end">Min Amount</th>
-                                    <th scope="col" className="py-2 text-end">Max Amount</th>
+                                    <th scope="col" className="py-2 text-start">Metric</th>
+                                    <th scope="col" className="py-2 text-start">Value</th>
+                                    <th scope="col" className="py-2 text-start">Type</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {data.map((period, idx) => (
+                                {chartData.map((item, idx) => (
                                     <tr key={idx}>
-                                        <td className="py-2 fw-medium">
-                                            {period.period_type === 'current_period' ? 'Current Period' : 'Previous Period'}
+                                        <td className="py-2 fw-medium text-start">{item.label.replace('\n', ' ')}</td>
+                                        <td className="py-2 fw-medium text-start">
+                                            {item.type === 'count' ? item.value : currencyFormatter.format(item.value)}
                                         </td>
-                                        <td className="py-2">{period.branch_name}</td>
-                                        <td className="py-2 text-end fw-medium">{currencyFormatter.format(period.total_amount)}</td>
-                                        <td className="py-2 text-end">{period.expense_count}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(period.average_amount)}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(period.min_amount)}</td>
-                                        <td className="py-2 text-end">{currencyFormatter.format(period.max_amount)}</td>
+                                        <td className="py-2 text-start">{item.type}</td>
                                     </tr>
                                 ))}
                             </tbody>

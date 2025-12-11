@@ -41,7 +41,7 @@ export default function ExpensePaymentStatus() {
 
      const viewButtons = [
           { type: "bar" as const, label: "Bar", icon: RiBarChartBoxLine },
-          { type: "pie" as const, label: "Pie", icon: RiPieChartLine },
+          { type: "pie" as const, label: "Doughnut", icon: RiPieChartLine },
           { type: "area" as const, label: "Area", icon: RiBubbleChartLine }
      ];
 
@@ -213,6 +213,7 @@ export default function ExpensePaymentStatus() {
                               labelLine={false}
                               label={({ status, percent }) => `${status} ${(percent * 100).toFixed(0)}%`}
                               outerRadius={120}
+                              innerRadius={70}
                               fill="#8884d8"
                               dataKey="total_amount"
                               nameKey="status"

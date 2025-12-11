@@ -20,11 +20,87 @@ import {
     RiCalendarTodoLine,
     RiCalendarCheckLine,
     RiCalendarScheduleLine,
-    RiTrophyLine
+    RiTrophyLine,
+    RiCalculatorLine,
+    RiCalendarEventLine,
+    RiErrorWarningLine,
+    RiPhoneLine
 } from '@remixicon/react';
 
+
+
+
+const analyticsPages = [
+    {
+        title: "Patient Dashboards",
+        description: "Overview of key patient metrics and statistics",
+        icon: <RiBarChartBoxLine size={24} />,
+        link: "/analytics/patients/dashboards",
+        color: "primary"
+    },
+    {
+        title: "Age Distribution",
+        description: "Patient distribution across different age groups",
+        icon: <RiUserLine size={24} />,
+        link: "/analytics/patients/age-distribution",
+        color: "success"
+    },
+    {
+        title: "Gender Distribution",
+        description: "Patient gender breakdown and analysis",
+        icon: <RiCalculatorLine size={24} />,
+        link: "/analytics/patients/gender-distribution",
+        color: "info"
+    },
+    {
+        title: "Marital Status",
+        description: "Marital status distribution of patients",
+        icon: <RiUserLine size={24} />,
+        link: "/analytics/patients/marital-status",
+        color: "warning"
+    },
+    {
+        title: "Registration Over Time",
+        description: "Patient registration trends and patterns",
+        icon: <RiCalendarEventLine size={24} />,
+        link: "/analytics/patients/patient-registration-over-time",
+        color: "secondary"
+    },
+    {
+        title: "Occupation Distribution",
+        description: "Patient occupations and employment analysis",
+        icon: <RiBarChartBoxLine size={24} />,
+        link: "/analytics/patients/occupation-distribution",
+        color: "dark"
+    },
+    {
+        title: "Missing Data Analysis",
+        description: "Analysis of incomplete patient information",
+        icon: <RiErrorWarningLine size={24} />,
+        link: "/analytics/patients/missing-data-analysis",
+        color: "danger"
+    },
+    {
+        title: "Contact Completeness",
+        description: "Patient contact information completion status",
+        icon: <RiPhoneLine size={24} />,
+        link: "/analytics/patients/contact-completeness",
+        color: "success"
+    },
+    {
+        title: "Registration by Day",
+        description: "Weekly patient registration patterns",
+        icon: <RiCalendarEventLine size={24} />,
+        link: "/analytics/patients/registration-by-day",
+        color: "info"
+    }
+];
+
 export const AnalyticsLinks: Link[] = [
-    { title: 'Patient Analytics', link: '/analytics/patients', icon: <RiUserHeartLine /> },
+    {
+        title: 'Patient Analytics', link: '/analytics/patients', icon: <RiUserHeartLine />,
+        children: analyticsPages
+    },
     { title: 'Leads Analytics', link: "/analytics/leads", icon: <RiUserAddLine /> },
     { title: 'Compliance Analytics', link: "/analytics/compliance", icon: <RiBarChart2Line /> },
     {
