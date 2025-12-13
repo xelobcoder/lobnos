@@ -6,6 +6,7 @@ import { Dropdown } from 'react-bootstrap';
 import { useApplicationSettings } from "../Auth/useApplicationContext";
 import { Link as LinkType } from "./links/types";
 import { AdminRoleLinks, FrontdeskRoleLinks, LaboratoryScientistRoleLinks, PhelobotomyRoleLinks, SonographerRoleLinks } from "../FrontPageView/RoleLinks";
+import { ThemeToggle } from '../ThemeToggle';
 
 
 interface PrimeLayoutProps {
@@ -131,6 +132,10 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
 
                     {/* Role Links Dropdown */}
                     <div className={styles.headerActions}>
+                        <ThemeToggle className={styles.themeToggle} />
+                        <a href={`/human-resource/profile?employeeid=${employeeid}`} className={styles.profileLink} title="Profile">
+                            <span>👤</span>
+                        </a>
                         <button
                             className={styles.mobileMenuButton}
                             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
@@ -143,27 +148,48 @@ const PrimeLayout: React.FC<PrimeLayoutProps> = ({ children, links }) => {
                                 <RiMenuLine />
                             </Dropdown.Toggle>
                             <Dropdown.Menu className={styles.roleDropdownMenu}>
-                                {roleLinks.map((link, index) => (
-                                    <Dropdown.Item
-                                        key={index}
-                                        href={link.href}
-                                        className={styles.roleDropdownItem}
-                                    >
-                                        <span className={styles.dropdownIcon}>{link.icon}</span>
-                                        {link.label}
+                                {/* Quick Apps Section */}
+                                <div className={styles.dropdownSection}>
+                                    <div className={styles.dropdownSectionTitle}>Quick Apps</div>
+                                    <div className={styles.dropdownGrid}>
+                                        {roleLinks.map((link, index) => (
+                                            <a
+                                                key={index}
+                                                href={link.href}
+                                                className={styles.dropdownGridItem}
+                                            >
+                                                <span className={styles.dropdownGridIcon}>{link.icon}</span>
+                                                <span className={styles.dropdownGridLabel}>{link.label}</span>
+                                            </a>
+                                        ))}
+                                        <a
+                                            href="/human-resource/payroll"
+                                            className={styles.dropdownGridItem}
+                                        >
+                                            <span className={styles.dropdownGridIcon}>💰</span>
+                                            <span className={styles.dropdownGridLabel}>Payroll</span>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <Dropdown.Divider />
+
+                                {/* Account Section */}
+                                <div className={styles.dropdownSection}>
+                                    <div className={styles.dropdownSectionTitle}>Account</div>
+                                    <Dropdown.Item href="/settings" className={styles.roleDropdownItem}>
+                                        <span className={styles.dropdownIcon}>⚙️</span>
+                                        <span>
+                                            <div className={styles.dropdownItemTitle}>Settings</div>
+                                            <div className={styles.dropdownItemSubtitle}>Preferences & configuration</div>
+                                        </span>
                                     </Dropdown.Item>
-                                ))}
+                                </div>
+
                                 <Dropdown.Divider />
-                                <Dropdown.Item href={`/human-resource/profile?employeeid=${employeeid}`} className={styles.roleDropdownItem}>
-                                    <span className={styles.dropdownIcon}>👤</span>
-                                    Profile
-                                </Dropdown.Item>
-                                <Dropdown.Item href="/settings" className={styles.roleDropdownItem}>
-                                    <span className={styles.dropdownIcon}>⚙️</span>
-                                    Settings
-                                </Dropdown.Item>
-                                <Dropdown.Divider />
-                                <Dropdown.Item href="/authentication/logout" className={styles.roleDropdownItem}>
+
+                                {/* Logout */}
+                                <Dropdown.Item href="/authentication/logout" className={`${styles.roleDropdownItem} ${styles.logoutItem}`}>
                                     <span className={styles.dropdownIcon}>🚪</span>
                                     Logout
                                 </Dropdown.Item>

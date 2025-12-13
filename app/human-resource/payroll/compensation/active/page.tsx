@@ -25,7 +25,7 @@ interface Compensation {
      id: number;
      employeeid: number;
      employee_name?: string;
-     compensation_type: string;
+     compensation_type: 'salary' | 'hourly' | 'commission' | 'hybrid';
      salary?: number;
      hourly_rate?: number;
      commission_rate?: number;

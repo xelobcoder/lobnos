@@ -21,14 +21,16 @@ interface CommissionPaymentTransaction {
 
 interface CommissionPayment {
      id: number;
+     batch_payment_id: number;
      serviceid: number;
      commission_due: string;
-     total_amount_paid: string;
-     type: string;
+     amount_allocated: string;
+     waived_amount: string;
      status: string;
      created_at: string;
-     updated_at: string;
-     transactions: CommissionPaymentTransaction[];
+     commission_percentage: string;
+     type: string;
+     recipient_id: number;
 }
 
 interface PaymentMode {
@@ -72,7 +74,7 @@ export default function CommissionDetailsModal({
      // Set default amount to pay when commission payments change
      useEffect(() => {
           if (commissionPayments.length > 0) {
-               const outstanding = commissionPayments.reduce((sum, p) => sum + (Number(p.commission_due) - Number(p.total_amount_paid)), 0);
+               const outstanding = commissionPayments.reduce((sum, p) => sum + (Number(p.commission_due) - Number(p.amount_allocated)), 0);
                setAmountToPay(outstanding.toString());
                setAmountDue(outstanding.toString());
           } else if (selectedRecord) {
@@ -132,7 +134,7 @@ export default function CommissionDetailsModal({
      };
 
      // Calculate outstanding amount
-     const outstandingAmount = commissionPayments.reduce((sum, p) => sum + (Number(p.commission_due) - Number(p.total_amount_paid)), 0);
+     const outstandingAmount = commissionPayments.reduce((sum, p) => sum + (Number(p.commission_due) - Number(p.amount_allocated)), 0);
      const shouldShowPaymentForm = commissionPayments.length === 0 || outstandingAmount > 0;
      return (
           <Modal show={show} onHide={onHide} size="lg" backdrop="static">
@@ -211,12 +213,24 @@ export default function CommissionDetailsModal({
                                                                            <span className="fw-bold">#{payment.id}</span>
                                                                       </div>
                                                                       <div>
+                                                                           <small className="text-muted d-block">Batch Payment ID</small>
+                                                                           <span className="fw-bold">#{payment.batch_payment_id}</span>
+                                                                      </div>
+                                                                      <div>
                                                                            <small className="text-muted d-block">Commission Due</small>
                                                                            <span className="fw-bold">{currencyFormatter.format(Number(payment.commission_due))}</span>
                                                                       </div>
                                                                       <div>
-                                                                           <small className="text-muted d-block">Amount Paid As Commission</small>
-                                                                           <span className="fw-bold text-success">{currencyFormatter.format(Number(payment.total_amount_paid))}</span>
+                                                                           <small className="text-muted d-block">Amount Allocated</small>
+                                                                           <span className="fw-bold text-success">{currencyFormatter.format(Number(payment.amount_allocated))}</span>
+                                                                      </div>
+                                                                      <div>
+                                                                           <small className="text-muted d-block">Waived Amount</small>
+                                                                           <span className="fw-bold text-warning">{currencyFormatter.format(Number(payment.waived_amount))}</span>
+                                                                      </div>
+                                                                      <div>
+                                                                           <small className="text-muted d-block">Commission %</small>
+                                                                           <span className="fw-bold">{payment.commission_percentage}%</span>
                                                                       </div>
                                                                       <div>
                                                                            <small className="text-muted d-block">Type</small>
@@ -239,43 +253,6 @@ export default function CommissionDetailsModal({
                                                                       </Badge>
                                                                  </div>
                                                             </div>
-
-                                                            {/* Transactions */}
-                                                            {Array.isArray(payment.transactions) && payment.transactions.length > 0 && (
-                                                                 <div className="mt-2 pt-2 border-top">
-                                                                      <small className="fw-bold text-muted">Transactions</small>
-                                                                      <ListGroup variant="flush" className="mt-1">
-                                                                           {payment.transactions.map((transaction) => (
-                                                                                <ListGroup.Item key={transaction.id} className="px-0 py-1">
-                                                                                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                                                                          <div className="d-flex flex-wrap gap-3 small">
-                                                                                               <div>
-                                                                                                    <small className="text-muted">ID:</small> <span className="fw-bold">#{transaction.id}</span>
-                                                                                               </div>
-                                                                                               <div>
-                                                                                                    <small className="text-muted">Date:</small> {dayjs(transaction.created_at).format('DD MMM YYYY, HH:mm')}
-                                                                                               </div>
-                                                                                               <div>
-                                                                                                    <small className="text-muted">Amount:</small> <span className="fw-bold text-success">{currencyFormatter.format(Number(transaction.amount_paid))}</span>
-                                                                                               </div>
-                                                                                               <div>
-                                                                                                    <small className="text-muted">Mode:</small> {transaction.payment_mode_description}
-                                                                                               </div>
-                                                                                               <div>
-                                                                                                    <small className="text-muted">By:</small> {transaction.paid_by_name}
-                                                                                               </div>
-                                                                                               {transaction.notes && (
-                                                                                                    <div>
-                                                                                                         <small className="text-muted">Notes:</small> <span className="fst-italic">{transaction.notes}</span>
-                                                                                                    </div>
-                                                                                               )}
-                                                                                          </div>
-                                                                                     </div>
-                                                                                </ListGroup.Item>
-                                                                           ))}
-                                                                      </ListGroup>
-                                                                 </div>
-                                                            )}
                                                        </ListGroup.Item>
                                                   </React.Fragment>
                                              ))}
@@ -303,7 +280,7 @@ export default function CommissionDetailsModal({
                                                   <small className="text-muted">Total Paid:</small>{' '}
                                                   <span className="fw-bold text-success">
                                                        {currencyFormatter.format(
-                                                            commissionPayments.reduce((sum, p) => sum + Number(p.total_amount_paid), 0)
+                                                            commissionPayments.reduce((sum, p) => sum + Number(p.amount_allocated), 0)
                                                        )}
                                                   </span>
                                              </div>
@@ -314,91 +291,6 @@ export default function CommissionDetailsModal({
                                                        {currencyFormatter.format(outstandingAmount)}
                                                   </span>
                                              </div>
-                                        </div>
-                                   </div>
-                              )}
-
-                              <hr className="my-3" />
-
-                              {/* Payment Form - Show when no payments exist or there are outstanding payments */}
-                              {shouldShowPaymentForm && (
-                                   <div className="mt-3 border rounded p-2">
-                                        <h6 className="fw-bold mb-2 text-primary" style={{ fontSize: '0.9rem' }}>
-                                             <RiWalletLine size={18} className="me-2" />
-                                             Make Payment
-                                        </h6>
-                                        <div className="d-flex justify-content-between align-items-center mt-2" style={{ gap: '0.5rem' }}>
-                                             <label className="pls-label mb-0" style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-                                                  <RiWalletLine size={16} className="me-1" />
-                                                  Payment Mode
-                                             </label>
-                                             <select
-                                                  value={paymentMode}
-                                                  onChange={(e) => setPaymentMode(Number(e.target.value))}
-                                                  disabled={paymentModes.length === 0}
-                                                  className="form-select form-select-sm"
-                                                  style={{ maxWidth: '300px', fontSize: '0.85rem' }}
-                                             >
-                                                  {paymentModes.length === 0 ? (
-                                                       <option>Loading payment modes...</option>
-                                                  ) : (
-                                                       <>
-                                                            <option value="">Select Payment Mode</option>
-                                                            {paymentModes.map(mode => (
-                                                                 <option key={mode.KeyID} value={mode.KeyID}>
-                                                                      {mode.PaymentMode}
-                                                                 </option>
-                                                            ))}
-                                                       </>
-                                                  )}
-                                             </select>
-                                        </div>
-                                        {(role === 'admin' || role === 'super-admin') && (
-                                             <div className="d-flex justify-content-between align-items-center mt-2" style={{ gap: '0.5rem' }}>
-                                                  <label className="pls-label mb-0" style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-                                                       <RiMoneyDollarCircleLine size={16} className="me-1" />
-                                                       Amount Due
-                                                  </label>
-                                                  <input
-                                                       type="number"
-                                                       value={amountDue}
-                                                       onChange={(e) => setAmountDue(e.target.value)}
-                                                       min="0"
-                                                       step="0.01"
-                                                       placeholder="Enter amount due"
-                                                       className="form-control form-control-sm"
-                                                       style={{ maxWidth: '300px', fontSize: '0.85rem' }}
-                                                  />
-                                             </div>
-                                        )}
-                                        <div className="d-flex justify-content-between align-items-center mt-2" style={{ gap: '0.5rem' }}>
-                                             <label className="pls-label mb-0" style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-                                                  <RiMoneyDollarCircleLine size={16} className="me-1" />
-                                                  Amount to Pay {(role !== 'admin' && role !== 'super-admin') && <small className="text-muted">(Auto)</small>}
-                                             </label>
-                                             <input
-                                                  type="number"
-                                                  value={amountToPay}
-                                                  onChange={(e) => setAmountToPay(e.target.value)}
-                                                  min="0"
-                                                  step="0.01"
-                                                  placeholder="Enter amount"
-                                                  readOnly={role !== 'admin' && role !== 'super-admin'}
-                                                  className="form-control form-control-sm"
-                                                  style={{ maxWidth: '300px', fontSize: '0.85rem' }}
-                                             />
-                                        </div>
-                                        <div className="mt-2 d-flex justify-content-end">
-                                             <Button
-                                                  variant="outline-primary"
-                                                  size="sm"
-                                                  onClick={handlePaymentSubmit}
-                                                  disabled={submittingPayment || !amountToPay || !paymentMode}
-                                                  style={{ fontSize: '0.85rem' }}
-                                             >
-                                                  <RiCheckLine size={16} className="me-1" />
-                                                  {submittingPayment ? 'Processing...' : 'Submit Payment'}
-                                             </Button>
                                         </div>
                                    </div>
                               )}

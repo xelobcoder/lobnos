@@ -3,19 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { customFetch, customPost } from '../../../../../components/Auth/customFetch';
-import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
-import {
-     RiCalendarEventLine,
-     RiArrowLeftLine,
-     RiSaveLine,
-     RiLoader4Line,
-     RiErrorWarningLine,
-     RiUserLine,
-     RiTimeLine,
-     RiMapPinLine,
-     RiFileTextLine
-} from '@remixicon/react';
+import { RiLoader4Line, RiArrowLeftLine, RiCalendarEventLine, RiErrorWarningLine, RiUserLine, RiTimeLine, RiFileTextLine, RiSaveLine } from '@remixicon/react';
+import { customPost,customFetch } from '../../../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../../../components/Auth/useApplicationContext';
+
 
 interface AttendanceRecord {
      id: number;

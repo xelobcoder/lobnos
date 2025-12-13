@@ -142,6 +142,7 @@ interface Compensation {
      compensation_type: 'salary' | 'hourly' | 'commission' | 'hybrid';
      basic_salary?: number;
      salary_grade?: string;
+     salary_grade_id?: number;
      currency: string;
      hourly_rate?: number;
      overtime_rate_multiplier?: number;

@@ -166,8 +166,7 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 		setLoading(true);
 
 		try {
-			console.log(record);
-			const url = `commission-payments/service/${record.serviceid}`
+			const url = `commission-payments/service/${record.serviceid}/commission/payment/history`;
 			const response = await customFetch(url);
 			if (response && response.status) {
 				setCommissionPayments(response.data || []);
@@ -210,6 +209,8 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 				setBulkPayLoading(false);
 				return;
 			}
+
+			const selectedServiceIds = Array.from(selectedRecords).map(idx => commissionData[idx].serviceid);
 			const payload = {
 				startDate,
 				endDate,
@@ -220,7 +221,9 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 				employeeid,
 				recipient_type: 'clinician',
 				recipientid: params.clinicianid,
+				services: selectedServiceIds
 			};
+
 			const response = await customPost('commission-payments/commission/batch/process-services', 'POST', payload);
 			if (response && response.status == true) {
 				setShowBulkPayModal(false);
@@ -257,17 +260,7 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 			</main>
 		);
 	}
-	if (!commissionData.length) {
-		return (
-			<main className={styles.container}>
-				<h1 className={styles.title}>No Commission Data Found</h1>
-				<div className={styles.emptyState}>
-					<RiUserLine size={32} style={{ opacity: 0.5, marginBottom: '0.5rem' }} />
-					<p>No commission records found for this clinician.</p>
-				</div>
-			</main>
-		);
-	}
+
 	const summary = commissionData.reduce((acc, item) => {
 		acc.total_commission_by_payable += Number(item.commission_earned_by_amount_payable);
 		acc.total_commission_by_paid += Number(item.commission_earned_by_paid_amount);
@@ -275,7 +268,14 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 		acc.total_services += item.total_services;
 		return acc;
 	}, { total_commission_by_payable: 0, total_commission_by_paid: 0, total_value: 0, total_services: 0 });
-	const { clinician_name, clinician_phone, occupation } = commissionData[0];
+
+	// Default clinician info when no data is available
+	const clinicianInfo = commissionData.length > 0 ? commissionData[0] : {
+		clinician_name: 'Unknown Clinician',
+		clinician_phone: 'N/A',
+		occupation: 'N/A'
+	};
+	const { clinician_name, clinician_phone, occupation } = clinicianInfo;
 	return (
 		<main className={styles.container}>
 			<div className="d-flex justify-content-between align-items-center mb-3">
@@ -359,6 +359,15 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 					</div>
 				</div>
 			</div>
+
+			{/* Show message when no data is found, but still display filters */}
+			{!commissionData.length && (
+				<div className="alert alert-info" style={{ borderRadius: '0.5rem', margin: '1rem 0' }}>
+					<RiUserLine size={20} className="me-2" />
+					No commission records found for this clinician in the selected date range. Try adjusting the date filters above.
+				</div>
+			)}
+
 			{/* Chart Section - Modern Analytics Style (Card) */}
 			<div className="card" style={{ borderRadius: '0.75rem', borderColor: 'var(--bs-border-color)', margin: '2rem 0 1.5rem 0', background: 'none' }}>
 				<div className="card-header py-3 px-4" style={{ borderColor: 'var(--bs-border-color)', background: 'none' }}>
@@ -468,11 +477,11 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 										/>
 									</th>
 									<th className="py-2">Service Date</th>
-									<th className="py-2 text-end">Services</th>
-									<th className="py-2 text-end">Total Payable</th>
-									<th className="py-2 text-end">Commission %</th>
-									<th className="py-2 text-end">Commission(Payable)</th>
-									<th className="py-2 text-end">Commission(Paid)</th>
+									<th className="py-2 text-start">Services</th>
+									<th className="py-2 text-start">Total Payable</th>
+									<th className="py-2 text-start">Commission %</th>
+									<th className="py-2 text-start">Commission(Payable)</th>
+									<th className="py-2 text-start">Commission(Paid)</th>
 									<th className="py-2 text-center">Payment</th>
 								</tr>
 							</thead>
@@ -488,11 +497,11 @@ export default function ClinicianCommissionPage({ params }: { params: { clinicia
 											/>
 										</td>
 										<td className="py-2">{dayjs(record.service_date).format('DD/MM/YYYY')}</td>
-										<td className="py-2 text-end">{record.total_services}</td>
-										<td className="py-2 text-end">{currencyFormatter.format(Number(record.total_payable))}</td>
-										<td className="py-2 text-end">{record.commission_percent}%</td>
-										<td className="py-2 text-end">{currencyFormatter.format(Number(record.commission_earned_by_amount_payable))}</td>
-										<td className="py-2 text-end">{currencyFormatter.format(Number(record.commission_earned_by_paid_amount))}</td>
+										<td className="py-2 text-start">{record.total_services}</td>
+										<td className="py-2 text-start">{currencyFormatter.format(Number(record.total_payable))}</td>
+										<td className="py-2 text-start">{record.commission_percent}%</td>
+										<td className="py-2 text-start">{currencyFormatter.format(Number(record.commission_earned_by_amount_payable))}</td>
+										<td className="py-2 text-start">{currencyFormatter.format(Number(record.commission_earned_by_paid_amount))}</td>
 										<td className="py-2 text-center">
 											<button
 												type="button"

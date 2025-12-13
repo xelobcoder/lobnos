@@ -3,24 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { customFetch } from '../../../../components/Auth/customFetch';
-import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
-import { formatDate } from '../../../../components/HR/Payroll/utils';
-import {
-     RiCalendarEventLine,
-     RiArrowLeftLine,
-     RiEditLine,
-     RiLoader4Line,
-     RiErrorWarningLine,
-     RiUserLine,
-     RiTimeLine,
-     RiMapPinLine,
-     RiFileTextLine,
-     RiCheckCircleLine,
-     RiCloseCircleLine,
-     RiClockwiseLine,
-     RiInformationLine
-} from '@remixicon/react';
+import { RiCloseCircleLine, RiClockwiseLine, RiTimeLine, RiCalendarEventLine, RiLoader4Line, RiArrowLeftLine, RiErrorWarningLine, RiEditLine, RiMapPinLine, RiFileTextLine, RiInformationLine, RiUserLine, RiCheckLine } from '@remixicon/react';
+import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
+import { formatDate } from '../../../../../components/operations/Laboratory/Lib';
+import { customFetch } from '../../../../../components/Auth/customFetch';
+
 
 interface AttendanceRecord {
      id: number;
@@ -59,7 +46,7 @@ export default function AttendanceDetailPage() {
 
      const getStatusBadge = (status: string) => {
           const statusConfig = {
-               present: { color: 'success', icon: RiCheckCircleLine, label: 'Present' },
+               present: { color: 'success', icon: RiCheckLine, label: 'Present' },
                absent: { color: 'danger', icon: RiCloseCircleLine, label: 'Absent' },
                late: { color: 'warning', icon: RiClockwiseLine, label: 'Late' },
                half_day: { color: 'info', icon: RiTimeLine, label: 'Half Day' },

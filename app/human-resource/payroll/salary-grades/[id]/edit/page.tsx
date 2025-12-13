@@ -11,7 +11,7 @@ import {
      RiFileTextLine,
      RiErrorWarningLine
 } from '@remixicon/react';
-import { customPost ,customFetch} from '../../../../../../components/Auth/customFetch';
+import { customPost, customFetch } from '../../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../../components/Auth/useApplicationContext';
 
 interface SalaryGrade {

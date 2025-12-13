@@ -2,23 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { customFetch } from '../../../../components/Auth/customFetch';
-import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
-import { formatDate } from '../../../../components/HR/Payroll/utils';
-import {
-     RiCalendarEventLine,
-     RiBarChartBoxLine,
-     RiLineChartLine,
-     RiPieChartLine,
-     RiLoader4Line,
-     RiErrorWarningLine,
-     RiUserLine,
-     RiCheckCircleLine,
-     RiCloseCircleLine,
-     RiClockwiseLine,
-     RiTimeLine,
-     RiDownloadLine
-} from '@remixicon/react';
 import {
      BarChart,
      Bar,
@@ -34,6 +17,9 @@ import {
      Legend,
      ResponsiveContainer
 } from 'recharts';
+import { RiBarChartBoxLine, RiLineChartLine, RiLoader4Line, RiCalendarEventLine, RiDownloadLine, RiUserLine, RiCloseCircleLine, RiTimeLine, RiPieChartLine } from '@remixicon/react';
+import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
+import { customFetch } from '../../../../../components/Auth/customFetch';
 
 interface AttendanceSummary {
      month: number;
@@ -180,7 +166,6 @@ export default function AttendanceSummaryPage() {
           const legendProps = {
                verticalAlign: "top",
                align: "right",
-               iconType: "circle",
                iconSize: 8,
                wrapperStyle: { fontSize: '13px', color: 'var(--bs-body-color)', paddingBottom: '15px' }
           };

@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import '../node_modules/react-toastify/dist/ReactToastify.min.css';
 import '../node_modules/react-datepicker/dist/react-datepicker.min.css'
 import PrimeToast from "../components/accessories/PrimeToast";
+import { ThemeProvider } from '../components/ThemeProvider';
 
 
 
@@ -17,8 +18,10 @@ export default function SRootLayout({
      return (
           <html lang="en">
                <body>
-                    <PrimeToast />
-                    {children}
+                    <ThemeProvider>
+                         <PrimeToast />
+                         {children}
+                    </ThemeProvider>
                </body>
           </html>
      );
