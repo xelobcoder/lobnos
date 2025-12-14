@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiAlertLine, RiCheckLine, RiCloseLine, RiStoreLine, RiBox3Line, RiPriceTagLine, RiCameraLine, RiBarChartLine } from '@remixicon/react';
+import { RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiAlertLine, RiCheckLine, RiCloseLine, RiStoreLine, RiBox3Line, RiPriceTagLine, RiBarChartLine } from '@remixicon/react';
 import PrimeTable from '../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../components/Auth/useApplicationContext';
@@ -57,11 +57,8 @@ export default function InventoryPage() {
      const [showAddModal, setShowAddModal] = useState(false);
      const [showCategoryModal, setShowCategoryModal] = useState(false);
      const [showSupplierModal, setShowSupplierModal] = useState(false);
-     const [showCameraModal, setShowCameraModal] = useState(false);
      const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
      const [loading, setLoading] = useState(false);
-     const videoRef = useRef<HTMLVideoElement>(null);
-     const canvasRef = useRef<HTMLCanvasElement>(null);
 
      const { applicationsettings } = useApplicationSettings();
      const { branchid, user } = applicationsettings || {};
@@ -468,36 +465,6 @@ export default function InventoryPage() {
                location: '',
                expiryDate: ''
           });
-     };
-
-     const handleCameraCapture = async () => {
-          try {
-               const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-               if (videoRef.current) {
-                    videoRef.current.srcObject = stream;
-                    setShowCameraModal(true);
-               }
-          } catch (error) {
-               alert('Camera access denied or not available');
-          }
-     };
-
-     const captureImage = () => {
-          if (videoRef.current && canvasRef.current) {
-               const context = canvasRef.current.getContext('2d');
-               if (context) {
-                    canvasRef.current.width = videoRef.current.videoWidth;
-                    canvasRef.current.height = videoRef.current.videoHeight;
-                    context.drawImage(videoRef.current, 0, 0);
-                    const imageData = canvasRef.current.toDataURL('image/png');
-                    // Note: Camera functionality removed - transaction recording moved to dedicated page
-                    setShowCameraModal(false);
-
-                    // Stop camera stream
-                    const stream = videoRef.current.srcObject as MediaStream;
-                    stream?.getTracks().forEach(track => track.stop());
-               }
-          }
      };
 
      const stats = getInventoryStats();
@@ -1064,58 +1031,6 @@ export default function InventoryPage() {
                          </div>
                     </div>
                )}
-
-               {/* Camera Modal */}
-               {showCameraModal && (
-                    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.8)' }}>
-                         <div className="modal-dialog modal-lg">
-                              <div className="modal-content">
-                                   <div className="modal-header">
-                                        <h5 className="modal-title">Capture Image</h5>
-                                        <button
-                                             type="button"
-                                             className="btn-close"
-                                             onClick={() => {
-                                                  setShowCameraModal(false);
-                                                  const stream = videoRef.current?.srcObject as MediaStream;
-                                                  stream?.getTracks().forEach(track => track.stop());
-                                             }}
-                                        ></button>
-                                   </div>
-                                   <div className="modal-body text-center">
-                                        <video
-                                             ref={videoRef}
-                                             autoPlay
-                                             className="w-100 rounded"
-                                             style={{ maxHeight: '400px' }}
-                                        />
-                                        <canvas ref={canvasRef} style={{ display: 'none' }} />
-                                   </div>
-                                   <div className="modal-footer">
-                                        <button
-                                             type="button"
-                                             className="btn btn-secondary"
-                                             onClick={() => {
-                                                  setShowCameraModal(false);
-                                                  const stream = videoRef.current?.srcObject as MediaStream;
-                                                  stream?.getTracks().forEach(track => track.stop());
-                                             }}
-                                        >
-                                             Cancel
-                                        </button>
-                                        <button
-                                             type="button"
-                                             className="btn btn-primary"
-                                             onClick={captureImage}
-                                        >
-                                             <RiCameraLine className="me-1" />
-                                             Capture
-                                        </button>
-                                   </div>
-                              </div>
-                         </div>
-                    </div>
-               )}
           </div>
      );
-}                                                                                                                                                                                                                                                                                                                                             
+}
