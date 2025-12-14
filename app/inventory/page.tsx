@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiDownloadLine, RiUploadLine, RiAlertLine, RiCheckLine, RiCloseLine, RiStoreLine, RiBox3Line, RiPriceTagLine, RiCameraLine, RiBarChartLine } from '@remixicon/react';
+import { RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiAlertLine, RiCheckLine, RiCloseLine, RiStoreLine, RiBox3Line, RiPriceTagLine, RiCameraLine, RiBarChartLine } from '@remixicon/react';
 import PrimeTable from '../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 
@@ -62,6 +63,10 @@ export default function InventoryPage() {
      const videoRef = useRef<HTMLVideoElement>(null);
      const canvasRef = useRef<HTMLCanvasElement>(null);
 
+     const { applicationsettings } = useApplicationSettings();
+     const { branchid, user } = applicationsettings || {};
+     const employeeid = user?.employeeid;
+
      // Form states
      const [itemForm, setItemForm] = useState({
           name: '',
@@ -92,15 +97,17 @@ export default function InventoryPage() {
 
      // Load data from API
      useEffect(() => {
-          loadInventoryItems();
-          loadCategories();
-          loadSuppliers();
-     }, []);
+          if (branchid && employeeid) {
+               loadInventoryItems();
+               loadCategories();
+               loadSuppliers();
+          }
+     }, [branchid, employeeid]);
 
      const loadInventoryItems = async () => {
           try {
                setLoading(true);
-               const response = await customFetch('inventory/items');
+               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}`);
                const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
                const mappedItems = (data || []).map((item: any) => ({
                     id: item.id?.toString() || String(item.id),
@@ -130,7 +137,7 @@ export default function InventoryPage() {
 
      const loadCategories = async () => {
           try {
-               const response = await customFetch('inventory/categories');
+               const response = await customFetch(`inventory/categories?branchid=${branchid}&employeeid=${employeeid}`);
                const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
                const mappedCategories = (data || []).map((cat: any) => ({
                     id: cat.id?.toString() || String(cat.id),
@@ -146,7 +153,7 @@ export default function InventoryPage() {
 
      const loadSuppliers = async () => {
           try {
-               const response = await customFetch('inventory/suppliers');
+               const response = await customFetch(`inventory/suppliers?branchid=${branchid}&employeeid=${employeeid}`);
                const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
                const mappedSuppliers = (data || []).map((sup: any) => ({
                     id: sup.id?.toString() || String(sup.id),
@@ -271,7 +278,9 @@ export default function InventoryPage() {
                     max_stock: itemForm.maxStock,
                     unit_price: itemForm.unitPrice,
                     location: itemForm.location,
-                    expiry_date: itemForm.expiryDate || null
+                    expiry_date: itemForm.expiryDate || null,
+                    branchid,
+                    employeeid
                };
 
                const resp = await customPost('inventory/items', 'POST', itemData);
@@ -331,7 +340,9 @@ export default function InventoryPage() {
                     max_stock: itemForm.maxStock,
                     unit_price: itemForm.unitPrice,
                     location: itemForm.location,
-                    expiry_date: itemForm.expiryDate || null
+                    expiry_date: itemForm.expiryDate || null,
+                    branchid,
+                    employeeid
                };
 
                const resp = await customPost(`inventory/items/${selectedItem.id}`, 'PUT', itemData);
@@ -358,7 +369,7 @@ export default function InventoryPage() {
 
           try {
                setLoading(true);
-               const resp = await customPost(`inventory/items/${itemId}`, 'DELETE', {});
+               const resp = await customPost(`inventory/items/${itemId}`, 'DELETE', { branchid, employeeid });
                if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
                     toast.success(resp.message || 'Item deleted');
                     await loadInventoryItems(); // Reload items
@@ -384,7 +395,9 @@ export default function InventoryPage() {
                setLoading(true);
                const categoryData = {
                     name: categoryForm.name,
-                    description: categoryForm.description
+                    description: categoryForm.description,
+                    branchid,
+                    employeeid
                };
 
                const resp = await customPost('inventory/categories', 'POST', categoryData);
@@ -417,7 +430,9 @@ export default function InventoryPage() {
                     name: supplierForm.name,
                     contact: supplierForm.contact,
                     email: supplierForm.email,
-                    phone: supplierForm.phone
+                    phone: supplierForm.phone,
+                    branchid,
+                    employeeid
                };
 
                const resp = await customPost('inventory/suppliers', 'POST', supplierData);
@@ -503,24 +518,9 @@ export default function InventoryPage() {
                               <RiBarChartLine className="me-1" />
                               View Analytics
                          </Link>
-                         <button className="btn btn-outline-primary btn-sm">
-                              <RiDownloadLine className="me-1" />
-                              Export Data
-                         </button>
-                         <button className="btn btn-outline-secondary btn-sm">
-                              <RiUploadLine className="me-1" />
-                              Import Data
-                         </button>
                          <button className="btn btn-outline-info btn-sm">
                               <RiPriceTagLine className="me-1" />
                               Add Category
-                         </button>
-                         <button
-                              className="btn btn-outline-dark btn-sm"
-                              onClick={handleCameraCapture}
-                         >
-                              <RiCameraLine className="me-1" />
-                              Camera
                          </button>
                          <button
                               className="btn btn-primary btn-sm"
@@ -1118,4 +1118,4 @@ export default function InventoryPage() {
                )}
           </div>
      );
-}
+}                                                                                                                                                                                                                                                                                                                                             

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { RiMapPinLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
 
 interface StorageLocation {
@@ -21,6 +22,8 @@ interface StorageLocation {
 }
 
 export default function StorageLocationsPage() {
+     const { branchid, user } = useApplicationSettings().applicationsettings || {};
+     const employeeid = user?.employeeid;
      const [locations, setLocations] = useState<StorageLocation[]>([]);
      const [showAddModal, setShowAddModal] = useState(false);
      const [selectedLocation, setSelectedLocation] = useState<StorageLocation | null>(null);
@@ -39,13 +42,15 @@ export default function StorageLocationsPage() {
 
      // Load locations from API
      useEffect(() => {
-          loadLocations();
-     }, []);
+          if (branchid && employeeid) {
+               loadLocations();
+          }
+     }, [branchid, employeeid]);
 
      const loadLocations = async () => {
           try {
                setLoading(true);
-               const response = await customFetch('inventory/storage-locations');
+               const response = await customFetch(`inventory/storage-locations?branchid=${branchid}&employeeid=${employeeid}`);
                const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
                const mappedLocations = (data || []).map((loc: any) => ({
                     id: loc.id?.toString() || String(loc.id),
@@ -74,6 +79,8 @@ export default function StorageLocationsPage() {
                const params = new URLSearchParams({
                     page: page.toString(),
                     count: count.toString(),
+                    branchid: branchid?.toString() || '',
+                    employeeid: employeeid?.toString() || '',
                });
 
                if (sortby) {
@@ -185,7 +192,9 @@ export default function StorageLocationsPage() {
                     temperature_controlled: locationForm.temperature_controlled,
                     hazardous_materials: locationForm.hazardous_materials,
                     is_active: locationForm.is_active,
-                    temperature_range: locationForm.temperature_range
+                    temperature_range: locationForm.temperature_range,
+                    branchid: branchid,
+                    employeeid: employeeid
                };
 
                const resp = await customPost('inventory/storage-locations', 'POST', locationData);
@@ -235,7 +244,9 @@ export default function StorageLocationsPage() {
                     temperature_controlled: locationForm.temperature_controlled,
                     hazardous_materials: locationForm.hazardous_materials,
                     is_active: locationForm.is_active,
-                    temperature_range: locationForm.temperature_range
+                    temperature_range: locationForm.temperature_range,
+                    branchid: branchid,
+                    employeeid: employeeid
                };
 
                const resp = await customPost(`inventory/storage-locations/${selectedLocation.id}`, 'PUT', locationData);
@@ -262,7 +273,7 @@ export default function StorageLocationsPage() {
 
           try {
                setLoading(true);
-               const resp = await customPost(`inventory/storage-locations/${locationId}`, 'DELETE', {});
+               const resp = await customPost(`inventory/storage-locations/${locationId}`, 'DELETE', { branchid, employeeid });
                if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
                     toast.success(resp.message || 'Location deleted');
                     await loadLocations(); // Reload locations

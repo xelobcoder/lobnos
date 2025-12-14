@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { Offcanvas } from 'react-bootstrap';
 import { currencyFormatter, customFetch, customPost } from '../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
-import { useApplication } from '../../../components/Auth/useApplicationContext';
 
 interface Payment {
      id: string;
@@ -41,7 +41,9 @@ const STATUS_BADGES = {
 
 export default function PaymentsPage() {
      const [payments, setPayments] = useState<Payment[]>([]);
-     const employeeid = useApplication()?.user?.employeeid;
+     const { applicationsettings } = useApplicationSettings();
+     const { branchid, user } = applicationsettings || {};
+     const employeeid = user?.employeeid;
      const [loading, setLoading] = useState(true);
      const [showFilters, setShowFilters] = useState(false);
      const [filters, setFilters] = useState({
@@ -63,8 +65,10 @@ export default function PaymentsPage() {
      const [loadingDetails, setLoadingDetails] = useState(false);
 
      useEffect(() => {
-          loadPayments();
-     }, []);
+          if (branchid && employeeid) {
+               loadPayments();
+          }
+     }, [branchid, employeeid]);
 
      const loadPayments = async () => {
           try {
@@ -77,6 +81,10 @@ export default function PaymentsPage() {
                          queryParams.append(key, value);
                     }
                });
+
+               // Add required parameters
+               queryParams.append('branchid', branchid);
+               queryParams.append('employeeid', employeeid);
 
                const response = await customFetch(`inventory/supplier-payments/payments?${queryParams.toString()}`);
                if (response.success) {
@@ -194,7 +202,7 @@ export default function PaymentsPage() {
      const handleViewPaymentDetails = async (paymentId: string) => {
           try {
                setLoadingDetails(true);
-               const response = await customFetch(`inventory/supplier-payments/payments/${paymentId}`);
+               const response = await customFetch(`inventory/supplier-payments/payments/${paymentId}?branchid=${branchid}&employeeid=${employeeid}`);
 
                if (response.success) {
                     setSelectedPaymentDetails(response.data);

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 interface SupplierInfo {
@@ -224,15 +225,19 @@ export default function SupplierAnalyticsPage() {
      const [modalVisible, setModalVisible] = useState(false);
      const [modalContent, setModalContent] = useState<{ title: string, content: string } | null>(null);
 
+     const { applicationsettings } = useApplicationSettings();
+     const { branchid, user } = applicationsettings || {};
+     const employeeid = user?.employeeid;
+
      useEffect(() => {
-          if (supplierId) {
+          if (supplierId && branchid && employeeid) {
                loadSupplierAnalytics();
           }
-     }, [supplierId]);
+     }, [supplierId, branchid, employeeid]);
 
      const loadSupplierAnalytics = async () => {
           try {
-               const url = `inventory/analytics/suppliers?tenantId=3&supplierId=${supplierId}`;
+               const url = `inventory/analytics/suppliers?tenantId=3&supplierId=${supplierId}&branchid=${branchid}&employeeid=${employeeid}`;
                const response = await customFetch(url);
                if (response.success) {
                     setAnalytics(response.data);

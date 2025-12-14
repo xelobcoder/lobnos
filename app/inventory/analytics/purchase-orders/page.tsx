@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 
 interface PurchaseOrderAnalytics {
      volume_analysis: Array<{
@@ -70,13 +71,19 @@ export default function PurchaseOrderAnalyticsPage() {
      const [analytics, setAnalytics] = useState<PurchaseOrderAnalytics | null>(null);
      const [loading, setLoading] = useState(true);
 
+     const { applicationsettings } = useApplicationSettings();
+     const { branchid, user } = applicationsettings || {};
+     const employeeid = user?.employeeid;
+
      useEffect(() => {
-          loadPurchaseOrderAnalytics();
-     }, []);
+          if (branchid && employeeid) {
+               loadPurchaseOrderAnalytics();
+          }
+     }, [branchid, employeeid]);
 
      const loadPurchaseOrderAnalytics = async () => {
           try {
-               const response = await customFetch('inventory/analytics/purchase-orders');
+               const response = await customFetch(`inventory/analytics/purchase-orders?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setAnalytics(response.data);
                } else {

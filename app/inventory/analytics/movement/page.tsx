@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 
 interface InventoryMovementAnalytics {
      movement_by_type: {
@@ -57,6 +58,9 @@ export default function InventoryMovementAnalyticsPage() {
      const [analytics, setAnalytics] = useState<InventoryMovementAnalytics | null>(null);
      const [loading, setLoading] = useState(true);
      const [showFilters, setShowFilters] = useState(false);
+     const { branchid, user } = useApplicationSettings().applicationsettings || {};
+     const employeeid = user?.employeeid;
+
      const [filters, setFilters] = useState({
           dateRange: {
                start: '',
@@ -109,13 +113,15 @@ export default function InventoryMovementAnalyticsPage() {
 
           const queryString = params.toString();
           const newUrl = queryString ? `?${queryString}` : '';
-          router.replace(`/inventory/analytics/movement${newUrl}`, { scroll: false });
+          router.replace(`/inventory/analytics/movement${newUrl}&&employeeid=${employeeid}&&branchid=${branchid}`, { scroll: false });
      };
 
      useEffect(() => {
-          const urlFilters = initializeFiltersFromURL();
-          loadInventoryMovementAnalytics(urlFilters);
-     }, []);
+          if (branchid && employeeid) {
+               const urlFilters = initializeFiltersFromURL();
+               loadInventoryMovementAnalytics(urlFilters);
+          }
+     }, [branchid, employeeid]);
 
      const loadInventoryMovementAnalytics = async (filterParams?: typeof filters) => {
           try {
@@ -123,6 +129,8 @@ export default function InventoryMovementAnalyticsPage() {
                const params = new URLSearchParams();
 
                if (filterParams) {
+                    params.set('branchid', branchid?.toString() || '');
+                    params.set('employeeid', employeeid?.toString() || '');
                     if (filterParams.dateRange.start) params.set('start_date', filterParams.dateRange.start);
                     if (filterParams.dateRange.end) params.set('end_date', filterParams.dateRange.end);
                     if (filterParams.page !== 1) params.set('page', filterParams.page.toString());

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RiShoppingCartLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSendPlaneLine, RiCheckLine, RiMailLine, RiDownloadLine, RiFilterLine, RiCloseLine, RiInboxArchiveLine, RiMoneyDollarCircleLine } from '@remixicon/react';
+import { RiShoppingCartLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSendPlaneLine, RiCheckLine, RiMailLine, RiFilterLine, RiCloseLine, RiInboxArchiveLine, RiMoneyDollarCircleLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { currencyFormatter, customFetch, customPost } from '../../../components/Auth/customFetch';
 import { useApplication, useApplicationSettings } from '../../../components/Auth/useApplicationContext';
@@ -157,6 +157,7 @@ export default function PurchaseOrdersPage() {
      const router = useRouter();
      const { applicationsettings } = useApplicationSettings();
      const employeeid = applicationsettings?.user?.employeeid;
+     const branchid = applicationsettings?.branchid;
      const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
      const [suppliers, setSuppliers] = useState<Supplier[]>([]);
      const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
@@ -203,7 +204,7 @@ export default function PurchaseOrdersPage() {
 
      const loadSuppliers = async () => {
           try {
-               const response = await customFetch('inventory/suppliers');
+               const response = await customFetch(`inventory/suppliers?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setSuppliers(response.data || []);
                }
@@ -214,7 +215,7 @@ export default function PurchaseOrdersPage() {
 
      const loadInventoryItems = async () => {
           try {
-               const response = await customFetch('inventory/items');
+               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setInventoryItems(response.data || []);
                }
@@ -226,7 +227,7 @@ export default function PurchaseOrdersPage() {
      const loadPurchaseOrders = async () => {
           try {
                setLoading(true);
-               const response = await customFetch('inventory/orders');
+               const response = await customFetch(`inventory/orders?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     await loadSuppliers();
 
@@ -307,6 +308,10 @@ export default function PurchaseOrdersPage() {
                if (startDateFilter) queryParams.append('start_date', startDateFilter);
                if (endDateFilter) queryParams.append('end_date', endDateFilter);
 
+               // Add required parameters
+               queryParams.append('branchid', branchid);
+               queryParams.append('employeeid', employeeid);
+
                const endpoint = `inventory/orders?${queryParams.toString()}`;
                const response = await customFetch(endpoint);
 
@@ -383,10 +388,12 @@ export default function PurchaseOrdersPage() {
      };
 
      useEffect(() => {
-          loadSuppliers();
-          loadInventoryItems();
-          loadPurchaseOrders();
-     }, []);
+          if (branchid && employeeid) {
+               loadSuppliers();
+               loadInventoryItems();
+               loadPurchaseOrders();
+          }
+     }, [branchid, employeeid]);
 
      // Trigger table refresh when filters change
      useEffect(() => {
@@ -602,7 +609,7 @@ export default function PurchaseOrdersPage() {
           try {
                setLoading(true);
 
-               const response = await customFetch(`inventory/orders/${order.id}`);
+               const response = await customFetch(`inventory/orders/${order.id}?branchid=${branchid}&employeeid=${employeeid}`);
 
                if (response.success) {
                     const apiOrderData = response.data;

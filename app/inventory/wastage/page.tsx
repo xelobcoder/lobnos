@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { RiEyeLine, RiSearchLine, RiFilterLine, RiDownloadLine, RiCalendarLine, RiDeleteBinLine } from '@remixicon/react';
+import { RiEyeLine, RiSearchLine, RiFilterLine, RiCalendarLine, RiDeleteBinLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch, currencyFormatter } from '../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 
 interface TransactionItem {
      id?: string;
@@ -58,6 +59,8 @@ const WASTAGE_REASONS = {
 };
 
 export default function StockWastagePage() {
+     const { branchid, user } = useApplicationSettings().applicationsettings || {};
+     const employeeid = user?.employeeid;
      const [wastageRecords, setWastageRecords] = useState<WastageRecord[]>([]);
      const [loading, setLoading] = useState(false);
      const [selectedRecord, setSelectedRecord] = useState<WastageRecord | null>(null);
@@ -69,13 +72,15 @@ export default function StockWastagePage() {
 
      // Load data on component mount
      useEffect(() => {
-          loadWastageRecords();
-     }, []);
+          if (branchid && employeeid) {
+               loadWastageRecords();
+          }
+     }, [branchid, employeeid]);
 
      const loadWastageRecords = async () => {
           try {
                setLoading(true);
-               const response = await customFetch('inventory/transactions/non-expired-wastage-history');
+               const response = await customFetch(`inventory/transactions/non-expired-wastage-history?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     const records = response.data?.non_expired_wastages || [];
                     setWastageRecords(records);
@@ -94,7 +99,9 @@ export default function StockWastagePage() {
                const queryParams = new URLSearchParams({
                     page: page.toString(),
                     count: count.toString(),
-                    sortby: sortby
+                    sortby: sortby,
+                    branchid: branchid?.toString() || '',
+                    employeeid: employeeid?.toString() || ''
                });
 
                Object.keys(filters).forEach(key => {
@@ -135,7 +142,9 @@ export default function StockWastagePage() {
                     endDate: endDate,
                     page: '1',
                     count: '1000', // Get more records for canvas visualization
-                    sortby: 'ASC'
+                    sortby: 'ASC',
+                    branchid: branchid?.toString() || '',
+                    employeeid: employeeid?.toString() || ''
                });
 
                const endpoint = `inventory/transactions/non-expired-wastage-history?${queryParams.toString()}`;
@@ -240,10 +249,6 @@ export default function StockWastagePage() {
                          >
                               <RiFilterLine className="me-1" />
                               Filter by Date
-                         </button>
-                         <button className="btn btn-outline-primary btn-sm">
-                              <RiDownloadLine className="me-1" />
-                              Export Records
                          </button>
                     </div>
                </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 
 interface BatchExpiryAnalytics {
      items_by_batch: Array<{
@@ -45,14 +46,18 @@ interface BatchExpiryAnalytics {
 export default function BatchExpiryAnalyticsPage() {
      const [analytics, setAnalytics] = useState<BatchExpiryAnalytics | null>(null);
      const [loading, setLoading] = useState(true);
+     const { branchid, user } = useApplicationSettings().applicationsettings || {};
+     const employeeid = user?.employeeid;
 
      useEffect(() => {
-          loadBatchExpiryAnalytics();
-     }, []);
+          if (branchid && employeeid) {
+               loadBatchExpiryAnalytics();
+          }
+     }, [branchid, employeeid]);
 
      const loadBatchExpiryAnalytics = async () => {
           try {
-               const response = await customFetch('inventory/analytics/batch-expiry');
+               const response = await customFetch(`inventory/analytics/batch-expiry?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setAnalytics(response.data);
                } else {

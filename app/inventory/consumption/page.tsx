@@ -132,6 +132,7 @@ const WASTAGE_REASONS = [
 export default function StockConsumptionPage() {
      const { applicationsettings } = useApplicationSettings();
      const employeeid = applicationsettings?.user?.employeeid;
+     const branchid = applicationsettings?.branchid;
      const [consumptionRecords, setConsumptionRecords] = useState<ConsumptionRecord[]>([]);
      const [consumptionSummary, setConsumptionSummary] = useState<ConsumptionSummary | null>(null);
      const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
@@ -156,13 +157,15 @@ export default function StockConsumptionPage() {
 
      // Load data on component mount
      useEffect(() => {
-          loadInventoryItems();
-          loadConsumptionRecords();
-     }, []);
+          if (branchid && employeeid) {
+               loadInventoryItems();
+               loadConsumptionRecords();
+          }
+     }, [branchid, employeeid]);
 
      const loadInventoryItems = async () => {
           try {
-               const response = await customFetch('inventory/items');
+               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setInventoryItems(response.data || []);
                }
@@ -175,6 +178,8 @@ export default function StockConsumptionPage() {
           try {
                setLoading(true);
                const params = new URLSearchParams();
+               params.append('branchid', branchid?.toString() || '');
+               params.append('employeeid', employeeid?.toString() || '');
                if (appliedFilters.performed_by) params.append('performed_by', appliedFilters.performed_by.toString());
                if (appliedFilters.startDate) params.append('startDate', appliedFilters.startDate);
                if (appliedFilters.endDate) params.append('endDate', appliedFilters.endDate);
@@ -196,7 +201,7 @@ export default function StockConsumptionPage() {
 
      const loadAvailableStockDetails = async (itemId: string) => {
           try {
-               const response = await customFetch(`inventory/transactions/available-stock/${itemId}`);
+               const response = await customFetch(`inventory/transactions/available-stock/${itemId}?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setAvailableStockDetails(response.data);
                } else {
@@ -216,6 +221,8 @@ export default function StockConsumptionPage() {
                     page: page.toString(),
                     count: count.toString(),
                     sortby: sortby,
+                    branchid: branchid?.toString() || '',
+                    employeeid: employeeid?.toString() || '',
                     performed_by: performedby ? performedby.toString() : '',
                     endDate: endDate ? endDate.toString() : '',
                     startDate: startDate ? startDate.toString() : ''
@@ -292,6 +299,7 @@ export default function StockConsumptionPage() {
                          item_id: item.inventoryItemId,
                          quantity: item.quantity,
                          performed_by: employeeid,
+                         branchid: branchid,
                          consumption_type: wastageForm.type,
                          transaction_type: 'consumption',
                          reason: wastageForm.type === 'wastage' ? wastageForm.wastageReason : 'Manual consumption'

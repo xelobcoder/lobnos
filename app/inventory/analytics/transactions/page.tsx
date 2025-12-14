@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { Offcanvas } from 'react-bootstrap';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 
 interface TransactionAnalytics {
      executive_summary: {
@@ -130,9 +131,15 @@ export default function TransactionAnalyticsPage() {
           end_date: ''
      });
 
+     const { applicationsettings } = useApplicationSettings();
+     const { branchid, user } = applicationsettings || {};
+     const employeeid = user?.employeeid;
+
      useEffect(() => {
-          loadTransactionAnalytics();
-     }, []);
+          if (branchid && employeeid) {
+               loadTransactionAnalytics();
+          }
+     }, [branchid, employeeid, filters]);
 
      const loadTransactionAnalytics = async () => {
           try {
@@ -144,6 +151,10 @@ export default function TransactionAnalyticsPage() {
                          queryParams.append(key, value);
                     }
                });
+
+               // Add required parameters
+               queryParams.append('branchid', branchid);
+               queryParams.append('employeeid', employeeid);
 
                const response = await customFetch(`inventory/analytics/transactions?${queryParams.toString()}`);
                if (response.success) {

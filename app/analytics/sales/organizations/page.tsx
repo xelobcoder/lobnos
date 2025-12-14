@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { currencyFormatter ,customFetch} from "../../../../components/Auth/customFetch";
+import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 
 const IconOrganization = () => <span style={{ fontSize: '1.2rem', color: '#3B82F6', marginRight: '0.5rem' }}>🏢</span>;
 const IconLoader = () => <div className="spinner-border" style={{ width: '2.5rem', height: '2.5rem', color: '#3B82F6' }} role="status"><span className="visually-hidden">Loading...</span></div>;
@@ -42,6 +43,10 @@ interface OrganizationStats {
 }
 
 export default function OrganizationsAnalytics() {
+     const { applicationsettings } = useApplicationSettings();
+     const { user } = applicationsettings || {};
+     const employeeid = user?.employeeid;
+
      const [organizations, setOrganizations] = useState<OrganizationEntry[]>([]);
      const [stats, setStats] = useState<OrganizationStats | null>(null);
      const [loading, setLoading] = useState<boolean>(true);
@@ -50,11 +55,17 @@ export default function OrganizationsAnalytics() {
      const [statusFilter, setStatusFilter] = useState<string>('all');
 
      const fetchOrganizations = useCallback(async () => {
+          if (!employeeid) {
+               setError("Employee ID is not available. Please log in again.");
+               setLoading(false);
+               return;
+          }
+
           setLoading(true);
           setError(null);
           try {
                // Using the same API endpoint as the sales page for now
-               const url = `financials/billing/summary?key=totalSalesByOrganization&startDate=2024-01-01&endDate=2024-12-31`;
+               const url = `financials/billing/summary?key=totalSalesByOrganization&startDate=2024-01-01&endDate=2024-12-31&employeeid=${employeeid}`;
                const response: OrganizationEntry[] = await customFetch(url);
 
                if (response && Array.isArray(response)) {
@@ -87,8 +98,10 @@ export default function OrganizationsAnalytics() {
      }, []);
 
      useEffect(() => {
-          fetchOrganizations();
-     }, [fetchOrganizations]);
+          if (employeeid) {
+               fetchOrganizations();
+          }
+     }, [fetchOrganizations, employeeid]);
 
      const handleViewDetails = (organization: OrganizationEntry) => {
           alert(`Organization Details for ${organization.name}:\n\nStatus: ${organization.status}\nTotal Cost: ${currencyFormatter.format(parseFloat(organization.totalCost))}\nActual Revenue: ${currencyFormatter.format(parseFloat(organization.actual_revenue))}\nAccrued Revenue: ${currencyFormatter.format(parseFloat(organization.accrued_revenue))}\nDiscount: ${currencyFormatter.format(parseFloat(organization.total_discount))}\nRefunded: ${currencyFormatter.format(parseFloat(organization.total_amount_refunded))}`);

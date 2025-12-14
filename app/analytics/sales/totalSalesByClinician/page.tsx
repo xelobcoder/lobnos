@@ -12,6 +12,7 @@ import {
     Tooltip,
 } from "recharts";
 import { RiCalendarEventLine, RiRefreshLine, RiPlayLine } from "@remixicon/react";
+import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 
 const IconChart = () => <span style={{ fontSize: '1.2rem', color: SHADCN_PRIMARY, marginRight: '0.5rem' }}>📊</span>;
 const IconLoader = () => <div className="spinner-border" style={{ width: '2.5rem', height: '2.5rem', color: SHADCN_PRIMARY }} role="status"><span className="visually-hidden">Loading...</span></div>;
@@ -51,6 +52,9 @@ export default function TotalSalesByClinician() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+    const { user } = useApplicationSettings().applicationsettings || {};
+    const employeeid = user?.employeeid;
+
     const getInitialDates = () => {
         const today = new Date();
         const endDate = today.toISOString().split("T")[0];
@@ -64,7 +68,13 @@ export default function TotalSalesByClinician() {
     const [startDate, setStartDate] = useState<string>(initialDates.startDate);
     const [endDate, setEndDate] = useState<string>(initialDates.endDate);
 
-    const fetchData = useCallback(async (fetchStartDate: string, fetchEndDate: string) => {
+    const fetchData = useCallback(async (fetchStartDate: string, fetchEndDate: string, currentEmployeeId?: number) => {
+        if (!currentEmployeeId) {
+            setError("Employee ID is not available. Please log in again.");
+            setData([]);
+            setLoading(false);
+            return;
+        }
         if (!fetchStartDate || !fetchEndDate) {
             setError("Please select valid start and end dates.");
             setData([]);
@@ -80,7 +90,7 @@ export default function TotalSalesByClinician() {
 
         setLoading(true);
         setError(null);
-        const url = `financials/billing/summary?key=totalSalesByClinician&startDate=${fetchStartDate}&endDate=${fetchEndDate}`;
+        const url = `financials/billing/summary?key=totalSalesByClinician&startDate=${fetchStartDate}&endDate=${fetchEndDate}&employeeid=${currentEmployeeId}`;
         try {
             const fetchedData: ClinicianSalesAPIEntry[] = await customFetch(url);
 
@@ -117,9 +127,14 @@ export default function TotalSalesByClinician() {
     }, []);
 
     useEffect(() => {
-        // Initial load with default dates
-        fetchData(startDate, endDate);
-    }, []); // Only run once on mount
+        if (employeeid) {
+            // Initial load with default dates
+            fetchData(startDate, endDate, employeeid);
+        } else {
+            setLoading(false);
+            setError("Employee information is not loaded yet.");
+        }
+    }, [employeeid]); // Only run when employeeid is available
 
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value);
     const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value);
@@ -128,7 +143,9 @@ export default function TotalSalesByClinician() {
         setStartDate(defaultStartDate);
         setEndDate(defaultEndDate);
         // Load data with default dates
-        fetchData(defaultStartDate, defaultEndDate);
+        if (employeeid) {
+            fetchData(defaultStartDate, defaultEndDate, employeeid);
+        }
     };
 
     const renderChartContent = () => {

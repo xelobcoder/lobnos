@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 
 interface PaymentAnalytics {
      total_payments: number;
@@ -26,13 +27,19 @@ export default function PaymentAnalyticsPage() {
      const [analytics, setAnalytics] = useState<PaymentAnalytics | null>(null);
      const [loading, setLoading] = useState(true);
 
+     const { applicationsettings } = useApplicationSettings();
+     const { branchid, user } = applicationsettings || {};
+     const employeeid = user?.employeeid;
+
      useEffect(() => {
-          loadPaymentAnalytics();
-     }, []);
+          if (branchid && employeeid) {
+               loadPaymentAnalytics();
+          }
+     }, [branchid, employeeid]);
 
      const loadPaymentAnalytics = async () => {
           try {
-               const response = await customFetch('inventory/analytics/payments');
+               const response = await customFetch(`inventory/analytics/payments?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setAnalytics(response.data);
                } else {

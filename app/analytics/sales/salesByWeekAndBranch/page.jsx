@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
 import { RiLineChartLine, RiBarChartBoxLine, RiBubbleChartLine, RiErrorWarningLine, RiInbox2Line, RiLoader4Line } from "@remixicon/react";
+import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
@@ -24,29 +25,37 @@ export default function SalesByWeekAndBranch() {
      const [loading, setLoading] = useState(true);
      const [error, setError] = useState(null);
 
-     useEffect(() => {
-          const fetchData = async () => {
-               const url = `financials/billing/summary?key=salesByWeekAndBranch`;
-               setLoading(true);
-               setError(null);
-               try {
-                    const fetchedData = await customFetch(url);
-                    if (fetchedData && Array.isArray(fetchedData)) {
-                         setData(fetchedData);
-                    } else {
-                         setError("Received data is not in expected format");
-                         setData([]);
-                    }
-               } catch (err) {
-                    setError(err.message || "Failed to fetch data");
-                    setData([]);
-               } finally {
-                    setLoading(false);
-               }
-          };
+     const { user } = useApplicationSettings().applicationsettings || {};
+     const employeeid = user?.employeeid;
 
-          fetchData();
-     }, []);
+     useEffect(() => {
+          if (employeeid) {
+               const fetchData = async () => {
+                    const url = `financials/billing/summary?key=salesByWeekAndBranch&employeeid=${employeeid}`;
+                    setLoading(true);
+                    setError(null);
+                    try {
+                         const fetchedData = await customFetch(url);
+                         if (fetchedData && Array.isArray(fetchedData)) {
+                              setData(fetchedData);
+                         } else {
+                              setError("Received data is not in expected format");
+                              setData([]);
+                         }
+                    } catch (err) {
+                         setError(err.message || "Failed to fetch data");
+                         setData([]);
+                    } finally {
+                         setLoading(false);
+                    }
+               };
+
+               fetchData();
+          } else {
+               setLoading(false);
+               setError("Employee information is not loaded yet.");
+          }
+     }, [employeeid]);
 
      const processChartData = () => {
           const groupedData = {};
@@ -311,10 +320,10 @@ export default function SalesByWeekAndBranch() {
                                         Weekly Sales Data by Branch
                                    </h3>
                               </div>
-                             <div>
-                               <button className="btn btn-sm btn-outline-primary" onClick={() => window.print()}>
-                                   Print Table
-                              </button>
+                              <div>
+                                   <button className="btn btn-sm btn-outline-primary" onClick={() => window.print()}>
+                                        Print Table
+                                   </button>
                               </div>
                          </div>
                          <div className="table-responsive">

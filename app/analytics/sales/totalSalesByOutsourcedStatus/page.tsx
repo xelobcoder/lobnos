@@ -14,6 +14,7 @@ import {
     Pie,
     Cell,
 } from "recharts";
+import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 
 const IconChart = () => <span style={{ fontSize: '1.2rem', color: COLOR_ACCENT, marginRight: '0.5rem' }}>🔄</span>;
 const IconLoader = () => <div className="spinner-border" style={{ width: '2.5rem', height: '2.5rem', color: COLOR_ACCENT }} role="status"><span className="visually-hidden">Loading...</span></div>;
@@ -61,17 +62,31 @@ export default function TotalSalesByOutsourcedStatus() {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
+    const { user } = useApplicationSettings().applicationsettings || {};
+    const employeeid = user?.employeeid;
+
     const initialDates = getInitialDates();
     const [startDate, setStartDate] = useState<string>(initialDates.startDate);
     const [endDate, setEndDate] = useState<string>(initialDates.endDate);
     const [chartType, setChartType] = useState<'bar' | 'pie'>('bar');
 
     useEffect(() => {
-        // Initial load with default dates
-        fetchData(startDate, endDate);
-    }, []);
+        if (employeeid) {
+            // Initial load with default dates
+            fetchData(startDate, endDate, employeeid);
+        } else {
+            setLoading(false);
+            setError("Employee information is not loaded yet.");
+        }
+    }, [employeeid]);
 
-    const fetchData = async (fetchStartDate: string, fetchEndDate: string) => {
+    const fetchData = async (fetchStartDate: string, fetchEndDate: string, currentEmployeeId?: number) => {
+        if (!currentEmployeeId) {
+            setError("Employee ID is not available. Please log in again.");
+            setData([]);
+            setLoading(false);
+            return;
+        }
         if (!fetchStartDate || !fetchEndDate) {
             setError("Please select valid start and end dates.");
             setData([]);
@@ -88,7 +103,7 @@ export default function TotalSalesByOutsourcedStatus() {
         setLoading(true);
         setError(null);
         try {
-            const url = `financials/billing/summary?key=totalSalesByOutsourcedStatus&startDate=${fetchStartDate}&endDate=${fetchEndDate}`;
+            const url = `financials/billing/summary?key=totalSalesByOutsourcedStatus&startDate=${fetchStartDate}&endDate=${fetchEndDate}&employeeid=${currentEmployeeId}`;
             const response: OutsourcedStatusAPIEntry[] = await customFetch(url);
 
             if (response && Array.isArray(response)) {
@@ -137,7 +152,9 @@ export default function TotalSalesByOutsourcedStatus() {
         setEndDate(defaultEndDate);
     };
     const handleLoadData = () => {
-        fetchData(startDate, endDate);
+        if (employeeid) {
+            fetchData(startDate, endDate, employeeid);
+        }
     };
 
     const totalPayableOverall = data.reduce((sum, entry) => sum + entry.totalPayable, 0);

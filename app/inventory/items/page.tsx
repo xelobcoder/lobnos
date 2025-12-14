@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RiBox3Line, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiDownloadLine, RiUploadLine, RiInboxLine } from '@remixicon/react';
+import { RiBox3Line, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiInboxLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
 
 
@@ -86,6 +87,8 @@ const STATUS_BADGES = {
 
 export default function InventoryItemsPage() {
      const router = useRouter();
+     const { branchid, user } = useApplicationSettings().applicationsettings || {};
+     const employeeid = user?.employeeid;
      const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
      const [categories, setCategories] = useState<InventoryCategory[]>([]);
      const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -127,7 +130,7 @@ export default function InventoryItemsPage() {
           try {
                setLoading(true);
                setError(null);
-               const response = await customFetch('inventory/items');
+               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     // Transform API data to match interface
                     const transformedData = (response.data || []).map((item: any) => ({
@@ -155,7 +158,7 @@ export default function InventoryItemsPage() {
 
      const loadCategories = async () => {
           try {
-               const response = await customFetch('inventory/categories');
+               const response = await customFetch(`inventory/categories?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setCategories(response.data || []);
                }
@@ -166,7 +169,7 @@ export default function InventoryItemsPage() {
 
      const loadSuppliers = async () => {
           try {
-               const response = await customFetch('inventory/suppliers');
+               const response = await customFetch(`inventory/suppliers?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setSuppliers(response.data || []);
                }
@@ -177,7 +180,7 @@ export default function InventoryItemsPage() {
 
      const loadBrands = async () => {
           try {
-               const response = await customFetch('inventory/brands');
+               const response = await customFetch(`inventory/brands?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setBrands(response.data || []);
                }
@@ -188,7 +191,7 @@ export default function InventoryItemsPage() {
 
      const loadStorageLocations = async () => {
           try {
-               const response = await customFetch('inventory/storage-locations');
+               const response = await customFetch(`inventory/storage-locations?branchid=${branchid}&employeeid=${employeeid}`);
                const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
                const mappedLocations = (data || []).map((loc: any) => ({
                     id: loc.id?.toString() || String(loc.id),
@@ -211,12 +214,14 @@ export default function InventoryItemsPage() {
 
      // Load all data on component mount
      useEffect(() => {
-          loadInventoryItems();
-          loadCategories();
-          loadSuppliers();
-          loadBrands();
-          loadStorageLocations();
-     }, []);
+          if (branchid && employeeid) {
+               loadInventoryItems();
+               loadCategories();
+               loadSuppliers();
+               loadBrands();
+               loadStorageLocations();
+          }
+     }, [branchid, employeeid]);
 
      const handleServerSideProcessing = async ({ page, count, sortby = 'ASC' }: { page: number; count: number; sortby?: string }) => {
           try {
@@ -224,6 +229,8 @@ export default function InventoryItemsPage() {
                const params = new URLSearchParams({
                     page: page.toString(),
                     count: count.toString(),
+                    branchid: branchid?.toString() || '',
+                    employeeid: employeeid?.toString() || '',
                });
 
                if (sortby) {
@@ -360,7 +367,9 @@ export default function InventoryItemsPage() {
                     max_stock: itemForm.maxStock,
                     location_id: itemForm.location_id || undefined,
                     expiry_date: itemForm.expiryDate || undefined,
-                    batch_number: itemForm.batchNumber || undefined
+                    batch_number: itemForm.batchNumber || undefined,
+                    branchid: branchid,
+                    employeeid: employeeid
                };
 
                const response = await customPost('inventory/items', 'POST', itemData);
@@ -411,7 +420,9 @@ export default function InventoryItemsPage() {
                     max_stock: itemForm.maxStock,
                     location_id: itemForm.location_id || undefined,
                     expiry_date: itemForm.expiryDate || undefined,
-                    batch_number: itemForm.batchNumber || undefined
+                    batch_number: itemForm.batchNumber || undefined,
+                    branchid: branchid,
+                    employeeid: employeeid
                };
 
                const response = await customPost(`inventory/items/${editingItem.id}`, 'PUT', itemData);
@@ -447,7 +458,7 @@ export default function InventoryItemsPage() {
                setLoading(true);
                setError(null);
 
-               const response = await customPost(`inventory/items/${itemId}`, 'DELETE', {});
+               const response = await customPost(`inventory/items/${itemId}`, 'DELETE', { branchid, employeeid });
 
                if (response.success) {
                     setInventoryItems(prev => prev.filter(item => item.id !== itemId));
@@ -488,7 +499,7 @@ export default function InventoryItemsPage() {
 
           try {
                // Load existing brands for this item
-               const response = await customFetch(`inventory/brands?inventory_item_id=${item.id}`);
+               const response = await customFetch(`inventory/brands?inventory_item_id=${item.id}&branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setExistingBrandsForItem(response.data || []);
                } else {
@@ -509,7 +520,7 @@ export default function InventoryItemsPage() {
           // Load available stock data
           try {
                setLoadingStock(true);
-               const response = await customFetch(`inventory/transactions/available-stock/${item.id}?tenantId=3`);
+               const response = await customFetch(`inventory/transactions/available-stock/${item.id}?branchid=${branchid}&employeeid=${employeeid}`);
 
                if (response.success) {
                     setAvailableStock(response.data);
@@ -565,7 +576,7 @@ export default function InventoryItemsPage() {
 
           try {
                setLoading(true);
-               const response = await customPost(`inventory/brands/${brandId}`, 'DELETE', {});
+               const response = await customPost(`inventory/brands/${brandId}`, 'DELETE', { branchid, employeeid });
 
                if (response.success) {
                     // Remove from existing brands list
@@ -600,7 +611,9 @@ export default function InventoryItemsPage() {
                const brandPromises = brandForm.addedBrands.map(brandName =>
                     customPost('inventory/brands', 'POST', {
                          name: brandName,
-                         inventory_item_id: selectedItemForBrand.id
+                         inventory_item_id: selectedItemForBrand.id,
+                         branchid: branchid,
+                         employeeid: employeeid
                     })
                );
 
@@ -660,14 +673,6 @@ export default function InventoryItemsPage() {
                          <p className="text-muted mb-0">Manage and track all laboratory inventory items</p>
                     </div>
                     <div className="d-flex gap-2">
-                         <button className="btn btn-outline-primary btn-sm">
-                              <RiDownloadLine className="me-1" />
-                              Export Items
-                         </button>
-                         <button className="btn btn-outline-secondary btn-sm">
-                              <RiUploadLine className="me-1" />
-                              Import Items
-                         </button>
                          <button
                               className="btn btn-primary btn-sm"
                               onClick={() => {

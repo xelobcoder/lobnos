@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RiTruckLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSearchLine, RiFilterLine, RiDownloadLine, RiUploadLine } from '@remixicon/react';
+import { RiTruckLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSearchLine, RiFilterLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
 
 interface Supplier {
@@ -12,9 +13,12 @@ interface Supplier {
      contact: string;
      email: string;
      phone: string;
+     address?: string;
 }
 
 export default function SuppliersPage() {
+     const { branchid, user } = useApplicationSettings().applicationsettings || {};
+     const employeeid = user?.employeeid;
      const [suppliers, setSuppliers] = useState<Supplier[]>([]);
      const [showAddModal, setShowAddModal] = useState(false);
      const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
@@ -25,18 +29,21 @@ export default function SuppliersPage() {
           name: '',
           contact: '',
           email: '',
-          phone: ''
+          phone: '',
+          address: ''
      });
 
      // Load suppliers from API
      useEffect(() => {
-          loadSuppliers();
-     }, []);
+          if (branchid && employeeid) {
+               loadSuppliers();
+          }
+     }, [branchid, employeeid]);
 
      const loadSuppliers = async () => {
           try {
                setLoading(true);
-               const response = await customFetch('inventory/suppliers');
+               const response = await customFetch(`inventory/suppliers?branchid=${branchid}&employeeid=${employeeid}`);
                // customFetch returns parsed JSON. Normalize possible shapes.
                const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
                const mappedSuppliers = (data || []).map((sup: any) => ({
@@ -44,7 +51,8 @@ export default function SuppliersPage() {
                     name: sup.name,
                     contact: sup.contact_person || sup.contact,
                     email: sup.email,
-                    phone: sup.phone
+                    phone: sup.phone,
+                    address: sup.address || ''
                }));
                setSuppliers(mappedSuppliers);
           } catch (error) {
@@ -60,6 +68,8 @@ export default function SuppliersPage() {
                const params = new URLSearchParams({
                     page: page.toString(),
                     count: count.toString(),
+                    branchid: branchid?.toString() || '',
+                    employeeid: employeeid?.toString() || '',
                });
 
                if (sortby) {
@@ -76,7 +86,8 @@ export default function SuppliersPage() {
                     name: sup.name,
                     contact: sup.contact_person || sup.contact,
                     email: sup.email,
-                    phone: sup.phone
+                    phone: sup.phone,
+                    address: sup.address || ''
                }));
 
                return { result: mappedSuppliers, error: false };
@@ -111,6 +122,15 @@ export default function SuppliersPage() {
                     <a href={`tel:${value}`} className="text-decoration-none">
                          {value}
                     </a>
+               )
+          },
+          {
+               Header: 'Address',
+               accessor: 'address',
+               Cell: ({ value }) => (
+                    <div style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={value}>
+                         {value || '-'}
+                    </div>
                )
           },
           {
@@ -156,7 +176,10 @@ export default function SuppliersPage() {
                     name: supplierForm.name,
                     contact: supplierForm.contact,
                     email: supplierForm.email,
-                    phone: supplierForm.phone
+                    phone: supplierForm.phone,
+                    address: supplierForm.address,
+                    branchid: branchid,
+                    employeeid: employeeid
                };
 
                const resp = await customPost('inventory/suppliers', 'POST', supplierData);
@@ -165,7 +188,7 @@ export default function SuppliersPage() {
                     toast.success(resp.message || 'Supplier added');
                     await loadSuppliers(); // Reload suppliers
                     setShowAddModal(false);
-                    setSupplierForm({ name: '', contact: '', email: '', phone: '' });
+                    setSupplierForm({ name: '', contact: '', email: '', phone: '', address: '' });
                } else {
                     const errMsg = resp?.error?.message || resp?.message || 'Failed to add supplier';
                     toast.error(errMsg);
@@ -183,7 +206,8 @@ export default function SuppliersPage() {
                name: supplier.name,
                contact: supplier.contact,
                email: supplier.email,
-               phone: supplier.phone
+               phone: supplier.phone,
+               address: supplier.address || ''
           });
           setSelectedSupplier(supplier);
           setShowAddModal(true);
@@ -201,7 +225,10 @@ export default function SuppliersPage() {
                     name: supplierForm.name,
                     contact: supplierForm.contact,
                     email: supplierForm.email,
-                    phone: supplierForm.phone
+                    phone: supplierForm.phone,
+                    address: supplierForm.address,
+                    branchid: branchid,
+                    employeeid: employeeid
                };
 
                const resp = await customPost(`inventory/suppliers/${selectedSupplier.id}`, 'PUT', supplierData);
@@ -210,7 +237,7 @@ export default function SuppliersPage() {
                     await loadSuppliers(); // Reload suppliers
                     setShowAddModal(false);
                     setSelectedSupplier(null);
-                    setSupplierForm({ name: '', contact: '', email: '', phone: '' });
+                    setSupplierForm({ name: '', contact: '', email: '', phone: '', address: '' });
                } else {
                     const errMsg = resp?.error?.message || resp?.message || 'Failed to update supplier';
                     toast.error(errMsg);
@@ -228,7 +255,7 @@ export default function SuppliersPage() {
 
           try {
                setLoading(true);
-               const resp = await customPost(`inventory/suppliers/${supplierId}`, 'DELETE', {});
+               const resp = await customPost(`inventory/suppliers/${supplierId}`, 'DELETE', { branchid, employeeid });
                if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
                     toast.success(resp.message || 'Supplier deleted');
                     await loadSuppliers(); // Reload suppliers
@@ -245,7 +272,7 @@ export default function SuppliersPage() {
      };
 
      const resetForm = () => {
-          setSupplierForm({ name: '', contact: '', email: '', phone: '' });
+          setSupplierForm({ name: '', contact: '', email: '', phone: '', address: '' });
           setSelectedSupplier(null);
      };
 
@@ -261,14 +288,6 @@ export default function SuppliersPage() {
                          <p className="text-muted mb-0">Manage laboratory suppliers and vendor information</p>
                     </div>
                     <div className="d-flex gap-2">
-                         <button className="btn btn-outline-primary btn-sm">
-                              <RiDownloadLine className="me-1" />
-                              Export Data
-                         </button>
-                         <button className="btn btn-outline-secondary btn-sm">
-                              <RiUploadLine className="me-1" />
-                              Import Data
-                         </button>
                          <button
                               className="btn btn-primary btn-sm"
                               onClick={() => setShowAddModal(true)}
@@ -341,6 +360,16 @@ export default function SuppliersPage() {
                                                   value={supplierForm.contact}
                                                   onChange={(e) => setSupplierForm(prev => ({ ...prev, contact: e.target.value }))}
                                                   placeholder="Primary contact name"
+                                             />
+                                        </div>
+                                        <div className="mb-3">
+                                             <label className="form-label">Address</label>
+                                             <textarea
+                                                  className="form-control"
+                                                  value={supplierForm.address}
+                                                  onChange={(e) => setSupplierForm(prev => ({ ...prev, address: e.target.value }))}
+                                                  placeholder="Supplier address"
+                                                  rows={3}
                                              />
                                         </div>
                                         <div className="row">

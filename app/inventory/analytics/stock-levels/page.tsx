@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import { RiInformationLine } from '@remixicon/react';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
 
@@ -101,18 +102,22 @@ interface StockLevelAnalytics {
 }
 
 export default function StockLevelAnalyticsPage() {
+     const { branchid, user } = useApplicationSettings().applicationsettings || {};
+     const employeeid = user?.employeeid;
      const [analytics, setAnalytics] = useState<StockLevelAnalytics | null>(null);
      const [loading, setLoading] = useState(true);
      const [modalVisible, setModalVisible] = useState(false);
      const [modalContent, setModalContent] = useState<{ title: string, interpretation: string } | null>(null);
 
      useEffect(() => {
-          loadStockLevelAnalytics();
-     }, []);
+          if (branchid && employeeid) {
+               loadStockLevelAnalytics();
+          }
+     }, [branchid, employeeid]);
 
      const loadStockLevelAnalytics = async () => {
           try {
-               const response = await customFetch('inventory/analytics/stock-levels');
+               const response = await customFetch(`inventory/analytics/stock-levels?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setAnalytics(response.data);
                } else {

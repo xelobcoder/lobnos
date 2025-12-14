@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { RiBarChartBoxLine, RiStockLine, RiShoppingCartLine, RiMoneyDollarCircleLine, RiSettingsLine, RiRefreshLine } from '@remixicon/react';
 
 interface InventoryAnalyticsSummary {
@@ -18,16 +19,20 @@ interface InventoryAnalyticsSummary {
 }
 
 export default function AnalyticsDashboard() {
+     const { branchid, user } = useApplicationSettings().applicationsettings || {};
+     const employeeid = user?.employeeid;
      const [summary, setSummary] = useState<InventoryAnalyticsSummary | null>(null);
      const [loading, setLoading] = useState(true);
 
      useEffect(() => {
-          loadDashboardSummary();
-     }, []);
+          if (branchid && employeeid) {
+               loadDashboardSummary();
+          }
+     }, [branchid, employeeid]);
 
      const loadDashboardSummary = async () => {
           try {
-               const response = await customFetch('inventory/analytics/dashboard');
+               const response = await customFetch(`inventory/analytics/dashboard?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setSummary(response.data);
                } else {

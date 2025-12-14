@@ -5,14 +5,16 @@ import { useParams, useRouter } from 'next/navigation';
 import { RiArrowLeftLine, RiFileTextLine } from '@remixicon/react';
 import { toast } from 'react-toastify';
 import { customPost, customFetch, customFile, currencyFormatter } from '../../../../../components/Auth/customFetch';
-import { useApplication } from '../../../../../components/Auth/useApplicationContext';
+import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
 import { InventoryItem, ReceivedItem, PurchaseOrder } from './types';
 
 export default function ReceiveOrderedItemsPage() {
      const params = useParams();
      const router = useRouter();
      const orderId = params.orderid as string;
-     const employeeid = useApplication()?.user?.employeeid;
+     const { applicationsettings } = useApplicationSettings();
+     const { branchid, user } = applicationsettings || {};
+     const employeeid = user?.employeeid;
 
      const [order, setOrder] = useState<PurchaseOrder | null>(null);
      const [loading, setLoading] = useState(true);
@@ -31,13 +33,15 @@ export default function ReceiveOrderedItemsPage() {
      });
 
      useEffect(() => {
-          loadOrderDetails();
-     }, [orderId]);
+          if (orderId && branchid && employeeid) {
+               loadOrderDetails();
+          }
+     }, [orderId, branchid, employeeid]);
 
      const loadOrderDetails = async () => {
           try {
                // Use the specific order ID endpoint as requested
-               const response = await customFetch(`inventory/orders/${orderId}`);
+               const response = await customFetch(`inventory/orders/${orderId}?branchid=${branchid}&employeeid=${employeeid}`);
 
                if (response.success) {
                     const apiOrderData = response.data;
@@ -117,7 +121,7 @@ export default function ReceiveOrderedItemsPage() {
                // Load brands for each item in parallel
                const brandPromises = items.map(async (item) => {
                     try {
-                         const response = await customFetch(`inventory/brands?inventory_item_id=${item.itemId}`);
+                         const response = await customFetch(`inventory/brands?inventory_item_id=${item.itemId}&branchid=${branchid}&employeeid=${employeeid}`);
                          if (response.success) {
                               return {
                                    itemId: item.itemId,

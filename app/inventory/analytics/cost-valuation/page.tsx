@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 
 interface CostValuationAnalytics {
      current_valuation: {
@@ -45,14 +46,19 @@ interface CostValuationAnalytics {
 export default function CostValuationAnalyticsPage() {
      const [analytics, setAnalytics] = useState<CostValuationAnalytics | null>(null);
      const [loading, setLoading] = useState(true);
+     const { applicationsettings } = useApplicationSettings();
+     const { branchid, user } = applicationsettings || {};
+     const employeeid = user?.employeeid;
 
      useEffect(() => {
-          loadCostValuationAnalytics();
-     }, []);
+          if (branchid && employeeid) {
+               loadCostValuationAnalytics();
+          }
+     }, [branchid, employeeid]);
 
      const loadCostValuationAnalytics = async () => {
           try {
-               const response = await customFetch('inventory/analytics/cost-valuation');
+               const response = await customFetch(`inventory/analytics/cost-valuation?branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setAnalytics(response.data);
                } else {

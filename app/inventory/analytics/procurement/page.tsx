@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 
 interface ProcurementAnalytics {
      data: ProcurementData;
@@ -150,6 +151,8 @@ export default function ProcurementAnalyticsPage() {
      const [analytics, setAnalytics] = useState<ProcurementAnalytics | null>(null);
      const [loading, setLoading] = useState(true);
      const [showFilter, setShowFilter] = useState(false);
+     const { branchid, user } = useApplicationSettings().applicationsettings || {};
+     const employeeid = user?.employeeid;
      const [filters, setFilters] = useState({
           count: '',
           page: '',
@@ -158,12 +161,16 @@ export default function ProcurementAnalyticsPage() {
      });
 
      useEffect(() => {
-          loadProcurementAnalytics();
-     }, []);
+          if (branchid && employeeid) {
+               loadProcurementAnalytics();
+          }
+     }, [branchid, employeeid]);
 
      const loadProcurementAnalytics = async (filterParams?: any) => {
           try {
                const params = new URLSearchParams();
+               params.append('branchid', branchid?.toString() || '');
+               params.append('employeeid', employeeid?.toString() || '');
                if (filterParams?.count) params.append('count', filterParams.count);
                if (filterParams?.page) params.append('page', filterParams.page);
                if (filterParams?.start_date) params.append('start_date', filterParams.start_date);

@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import { RiDownloadLine, RiArrowLeftLine, RiEyeLine, RiInboxLine, RiFilterLine } from '@remixicon/react';
+import { RiArrowLeftLine, RiEyeLine, RiInboxLine, RiFilterLine } from '@remixicon/react';
 import { customFetch, currencyFormatter } from '../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
 
 interface OrderData {
@@ -65,10 +66,14 @@ export default function ReceivedItemsHistoryPage() {
      const [loadingReceipts, setLoadingReceipts] = useState(false);
      const [showFiltersOffcanvas, setShowFiltersOffcanvas] = useState(false);
 
+     const { applicationsettings } = useApplicationSettings();
+     const { branchid, user } = applicationsettings || {};
+     const employeeid = user?.employeeid;
+
      const loadOrders = async (filterParams?: Partial<ReceivedItemHistoryFilters>) => {
           try {
                setLoading(true);
-               let endpoint = 'inventory/orders/received/report?page=1&count=10&sortby=DESC';
+               let endpoint = `inventory/orders/received/report?page=1&count=10&sortby=DESC&branchid=${branchid}&employeeid=${employeeid}`;
                if (filterParams) {
                     const params = new URLSearchParams();
                     if (filterParams.startDate) params.append('startDate', filterParams.startDate);
@@ -127,8 +132,10 @@ export default function ReceivedItemsHistoryPage() {
 
      // Load orders data from API
      useEffect(() => {
-          loadOrders();
-     }, []);
+          if (branchid && employeeid) {
+               loadOrders();
+          }
+     }, [branchid, employeeid]);
 
      const handleViewReceipts = (order: OrderData) => {
           setLoadingReceipts(true);
@@ -266,39 +273,6 @@ export default function ReceivedItemsHistoryPage() {
           loadOrders();
      };
 
-     const exportToCSV = () => {
-          const headers = [
-               'Order Number', 'Supplier Name', 'Order Date', 'Expected Delivery',
-               'Status', 'Total Amount', 'Items Count', 'Received Items Count', 'Notes'
-          ];
-
-          const csvData = filteredOrders.map(order => [
-               order.order_number,
-               order.supplier_name,
-               new Date(order.order_date).toLocaleDateString(),
-               order.expected_delivery_date ? new Date(order.expected_delivery_date).toLocaleDateString() : 'Not set',
-               order.status,
-               order.total_transaction_cost || 0,
-               order.items_count,
-               order.received_items_count,
-               order.notes || ''
-          ]);
-
-          const csvContent = [headers, ...csvData]
-               .map(row => row.map(field => `"${field}"`).join(','))
-               .join('\n');
-
-          const blob = new Blob([csvContent], { type: 'text/csv' });
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `orders-history-${new Date().toISOString().split('T')[0]}.csv`;
-          a.click();
-          window.URL.revokeObjectURL(url);
-     };
-
-
-
      const handleServerSideProcessing = async (pagination) => {
           try {
 
@@ -312,7 +286,9 @@ export default function ReceivedItemsHistoryPage() {
                     end_date: end_date || '',
                     supplier_name: supplier_name || '',
                     order_number: order_number || '',
-                    item_name: item_name || ''
+                    item_name: item_name || '',
+                    branchid: branchid,
+                    employeeid: employeeid
                });
 
 
@@ -380,14 +356,6 @@ export default function ReceivedItemsHistoryPage() {
                                    >
                                         <RiFilterLine className="me-1" />
                                         Filters
-                                   </button>
-                                   <button
-                                        className="btn btn-outline-primary btn-sm"
-                                        onClick={exportToCSV}
-                                        disabled={filteredOrders.length === 0}
-                                   >
-                                        <RiDownloadLine className="me-1" />
-                                        Export CSV
                                    </button>
                                    <button
                                         className="btn btn-outline-secondary btn-sm"

@@ -11,7 +11,7 @@ export function LaboratoryStagesProvider({ children }) {
        const [loadCounter, setLoadCounter] = useState(0);
        const [isLoading, setLoading] = useState(true);
        const [canloadPage, setLoadPage] = useState(false);
-       const branchid = useApplication().branchid;
+       const branchid = useApplication()?.branchid;
 
        // Set default date to today in yyyy-mm-dd format
        const today = new Date();

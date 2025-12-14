@@ -7,6 +7,7 @@ import { RiFilterLine } from '@remixicon/react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)'; // Primary chart color
 const COLOR_TEXT_MUTED = 'var(--bs-secondary-color)';
@@ -144,15 +145,23 @@ export default function UsageAnalyticsPage() {
      const [showConsumptionChartModal, setShowConsumptionChartModal] = useState(false);
      const [chartView, setChartView] = useState<"line" | "bar" | "area" | "pie">("line");
 
+     const { applicationsettings } = useApplicationSettings();
+     const { branchid, user } = applicationsettings || {};
+     const employeeid = user?.employeeid;
+
      useEffect(() => {
-          loadUsageAnalytics();
-     }, []);
+          if (branchid && employeeid) {
+               loadUsageAnalytics();
+          }
+     }, [branchid, employeeid, appliedFilters]);
 
      const loadUsageAnalytics = async () => {
           try {
                const params = new URLSearchParams();
                if (appliedFilters.startDate) params.append('start_date', appliedFilters.startDate);
                if (appliedFilters.endDate) params.append('end_date', appliedFilters.endDate);
+               params.append('branchid', branchid);
+               params.append('employeeid', employeeid);
 
                const endpoint = `inventory/analytics/usage${params.toString() ? `?${params.toString()}` : ''}`;
                const response = await customFetch(endpoint);
@@ -848,7 +857,7 @@ export default function UsageAnalyticsPage() {
                                                        onClick={() => setChartView("line")}
                                                        style={chartView === "line" ? { backgroundColor: COLOR_ACCENT, borderColor: COLOR_ACCENT } : {}}
                                                   >
-                                                        Line
+                                                       Line
                                                   </button>
                                                   <button
                                                        type="button"

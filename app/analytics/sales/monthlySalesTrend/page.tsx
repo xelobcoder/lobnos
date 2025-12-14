@@ -76,7 +76,8 @@ export default function MonthlySalesTrend() {
 	const [error, setError] = useState<string | null>(null);
 	const [view, setView] = useState<"pie" | "bar" | "line" | "area">("bar");
 
-	const { branchid } = useApplicationSettings().applicationsettings || {};
+	const { branchid, user } = useApplicationSettings().applicationsettings || {};
+	const employeeid = user?.employeeid;
 
 	const getInitialDatesForMonthly = () => {
 		const today = new Date();
@@ -96,9 +97,15 @@ export default function MonthlySalesTrend() {
 
 	const { startDate, endDate } = getDatesForYear(year);
 
-	const fetchData = useCallback(async (fetchYear: number, currentBranchId?: string) => {
+	const fetchData = useCallback(async (fetchYear: number, currentBranchId?: string, currentEmployeeId?: number) => {
 		if (!currentBranchId) {
 			setError("Branch ID is not available.");
+			setData([]);
+			setLoading(false);
+			return;
+		}
+		if (!currentEmployeeId) {
+			setError("Employee ID is not available. Please log in again.");
 			setData([]);
 			setLoading(false);
 			return;
@@ -106,7 +113,7 @@ export default function MonthlySalesTrend() {
 		setLoading(true);
 		setError(null);
 		try {
-			const url = `financials/billing/summary?key=monthlySalesTrend&year=${fetchYear}&branchid=${currentBranchId}`;
+			const url = `financials/billing/summary?key=monthlySalesTrend&year=${fetchYear}&branchid=${currentBranchId}&employeeid=${currentEmployeeId}`;
 			const response: MonthlySalesAPIEntry[] = await customFetch(url);
 
 			if (response && Array.isArray(response)) {
@@ -138,13 +145,13 @@ export default function MonthlySalesTrend() {
 	}, []);
 
 	useEffect(() => {
-		if (branchid) {
-			fetchData(year, branchid);
+		if (branchid && employeeid) {
+			fetchData(year, branchid, employeeid);
 		} else {
 			setLoading(false);
-			setError("Branch information is not loaded yet.");
+			setError("Branch and employee information is not loaded yet.");
 		}
-	}, [fetchData, year, branchid]);
+	}, [fetchData, year, branchid, employeeid]);
 
 	const handleViewToggle = (newView: "pie" | "bar" | "line" | "area") => {
 		setView(newView);

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 import { currencyFormatter, customFetch } from '../../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../../components/Auth/useApplicationContext';
 import PrimeTable from '../../../../components/accessories/Datatables/PrimeTable';
 
 interface Supplier {
@@ -34,13 +35,19 @@ export default function SupplierAnalyticsPage() {
      const [pagination, setPagination] = useState<SupplierResponse['pagination'] | null>(null);
      const [loading, setLoading] = useState(true);
 
+     const { applicationsettings } = useApplicationSettings();
+     const { branchid, user } = applicationsettings || {};
+     const employeeid = user?.employeeid;
+
      useEffect(() => {
-          loadSupplierAnalytics();
-     }, []);
+          if (branchid && employeeid) {
+               loadSupplierAnalytics();
+          }
+     }, [branchid, employeeid]);
 
      const loadSupplierAnalytics = async () => {
           try {
-               const response = await customFetch('inventory/suppliers?page=1&count=10');
+               const response = await customFetch(`inventory/suppliers?page=1&count=10&branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success) {
                     setSuppliers(response.data);
                     setPagination(response.pagination);
@@ -58,7 +65,7 @@ export default function SupplierAnalyticsPage() {
      const handleServerSideProcessing = async (pagination: { page: number, count: number }) => {
           try {
                const { page, count } = pagination;
-               const response = await customFetch(`inventory/suppliers?page=${page}&count=${count}`);
+               const response = await customFetch(`inventory/suppliers?page=${page}&count=${count}&branchid=${branchid}&employeeid=${employeeid}`);
                if (response.success && response.data) {
                     return { result: response.data, error: false };
                } else {

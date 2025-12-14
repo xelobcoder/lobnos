@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
 import { RiStore2Line, RiErrorWarningLine, RiCalendarEventLine, RiInbox2Line, RiLoader4Line, RiRefreshLine, RiFileList3Line, RiMoneyDollarCircleLine, RiCheckboxCircleLine, RiLineChartLine, RiPercentLine, RiAlertLine } from "@remixicon/react";
+import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 
 interface BranchSalesAPIEntry {
     branchid: number;
@@ -59,6 +60,9 @@ export default function TotalSalesByBranch() {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+    const { user } = useApplicationSettings().applicationsettings || {};
+    const employeeid = user?.employeeid;
+
     const getInitialDates = () => {
         const today = new Date();
         const endDate = today.toISOString().split("T")[0];
@@ -72,7 +76,13 @@ export default function TotalSalesByBranch() {
     const [startDate, setStartDate] = useState<string>(initialDates.startDate);
     const [endDate, setEndDate] = useState<string>(initialDates.endDate);
 
-    const fetchData = useCallback(async (fetchStartDate: string, fetchEndDate: string) => {
+    const fetchData = useCallback(async (fetchStartDate: string, fetchEndDate: string, currentEmployeeId?: number) => {
+        if (!currentEmployeeId) {
+            setError("Employee ID is not available. Please log in again.");
+            setData([]);
+            setLoading(false);
+            return;
+        }
         if (!fetchStartDate || !fetchEndDate) {
             setError("Please select valid start and end dates.");
             setData([]);
@@ -89,7 +99,7 @@ export default function TotalSalesByBranch() {
         setLoading(true);
         setError(null);
         try {
-            const url = `financials/billing/summary?key=totalSalesByBranch&startDate=${fetchStartDate}&endDate=${fetchEndDate}`;
+            const url = `financials/billing/summary?key=totalSalesByBranch&startDate=${fetchStartDate}&endDate=${fetchEndDate}&employeeid=${currentEmployeeId}`;
             const response: BranchSalesAPIEntry[] = await customFetch(url);
 
             if (response && Array.isArray(response)) {
@@ -128,8 +138,13 @@ export default function TotalSalesByBranch() {
     }, []);
 
     useEffect(() => {
-        fetchData(startDate, endDate);
-    }, [fetchData, startDate, endDate]);
+        if (employeeid) {
+            fetchData(startDate, endDate, employeeid);
+        } else {
+            setLoading(false);
+            setError("Employee information is not loaded yet.");
+        }
+    }, [fetchData, startDate, endDate, employeeid]);
 
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value);
     const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value);

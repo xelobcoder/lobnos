@@ -16,6 +16,7 @@ import {
     CartesianGrid,
 } from "recharts";
 import { currencyFormatter, customFetch } from "../../../../components/Auth/customFetch";
+import { useApplicationSettings } from "../../../../components/Auth/useApplicationContext";
 
 const IconChart = () => <span style={{ fontSize: '1.2rem', color: COLOR_ACCENT, marginRight: '0.5rem' }}>📈</span>;
 const IconPie = () => <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>🥧</span>;
@@ -95,11 +96,20 @@ export default function TotalSalesByEmployee() {
     const [view, setView] = useState<"bar" | "pie">("bar");
     const router = useRouter();
 
+    const { user } = useApplicationSettings().applicationsettings || {};
+    const employeeid = user?.employeeid;
+
     const initialDates = getInitialDates();
     const [startDate, setStartDate] = useState<string>(initialDates.startDate);
     const [endDate, setEndDate] = useState<string>(initialDates.endDate);
 
-    const fetchData = useCallback(async (fetchStartDate: string, fetchEndDate: string) => {
+    const fetchData = useCallback(async (fetchStartDate: string, fetchEndDate: string, currentEmployeeId?: number) => {
+        if (!currentEmployeeId) {
+            setError("Employee ID is not available. Please log in again.");
+            setData([]);
+            setLoading(false);
+            return;
+        }
         if (!fetchStartDate || !fetchEndDate) {
             setError("Please select valid start and end dates.");
             setData([]);
@@ -116,7 +126,7 @@ export default function TotalSalesByEmployee() {
         setLoading(true);
         setError(null);
         try {
-            const url = `financials/billing/summary?key=totalSalesByEmployee&startDate=${fetchStartDate}&endDate=${fetchEndDate}`;
+            const url = `financials/billing/summary?key=totalSalesByEmployee&startDate=${fetchStartDate}&endDate=${fetchEndDate}&employeeid=${currentEmployeeId}`;
             const response: EmployeeSalesAPIEntry[] = await customFetch(url);
 
             if (response && Array.isArray(response)) {
@@ -145,8 +155,13 @@ export default function TotalSalesByEmployee() {
     }, []);
 
     useEffect(() => {
-        fetchData(startDate, endDate);
-    }, [fetchData]);
+        if (employeeid) {
+            fetchData(startDate, endDate, employeeid);
+        } else {
+            setLoading(false);
+            setError("Employee information is not loaded yet.");
+        }
+    }, [employeeid]);
 
     const handleToggleView = () => setView((prevView) => (prevView === "pie" ? "bar" : "pie"));
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value);

@@ -5,7 +5,7 @@ import { RiTestTubeLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine, RiSe
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
 import { toast } from 'react-toastify';
-import { useApplication } from '../../../components/Auth/useApplicationContext';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { string } from 'zod';
 
 interface TestTemplate {
@@ -43,7 +43,8 @@ export default function TemplatesPage() {
      const [selectedTemplate, setSelectedTemplate] = useState<TestTemplate | null>(null);
      const [searchTerm, setSearchTerm] = useState('');
      const [filterCategory, setFilterCategory] = useState('');
-     const employeeid = useApplication()?.user?.employeeid;
+     const { branchid, user } = useApplicationSettings().applicationsettings || {};
+     const employeeid = user?.employeeid;
      const [modalLoadingData, setModalLoadingData] = useState(false);
      const [isMobile, setIsMobile] = useState(false);
 
@@ -58,7 +59,7 @@ export default function TemplatesPage() {
      // Load tests from bulk endpoint
      const loadTests = async () => {
           try {
-               const response = await customFetch('testpanel/list/bulk');
+               const response = await customFetch(`testpanel/list/bulk?branchid=${branchid}&employeeid=${employeeid}`);
                const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
                setTests(data);
           } catch (error) {
@@ -68,10 +69,12 @@ export default function TemplatesPage() {
 
      // Load data from API
      useEffect(() => {
-          loadInventoryItems();
-          loadTemplates();
-          loadTests();
-     }, []);
+          if (branchid && employeeid) {
+               loadInventoryItems();
+               loadTemplates();
+               loadTests();
+          }
+     }, [branchid, employeeid]);
 
      // Mobile detection
      useEffect(() => {
@@ -86,7 +89,7 @@ export default function TemplatesPage() {
 
      const handleSeverSideProcessing = async (params: any) => {
           const { page, count } = params;
-          const url = `inventory/templates?page=${page}&count=${count}`;
+          const url = `inventory/templates?page=${page}&count=${count}&branchid=${branchid}&employeeid=${employeeid}`;
           try {
                const response = await customFetch(url);
                if (Array.isArray(response.data) && response.data.length > 0) {
@@ -102,7 +105,7 @@ export default function TemplatesPage() {
 
      const loadInventoryItems = async () => {
           try {
-               const response = await customFetch('inventory/items');
+               const response = await customFetch(`inventory/items?branchid=${branchid}&employeeid=${employeeid}`);
                const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
                const mappedItems = (data || []).map((item: any) => ({
                     id: item.id?.toString() || String(item.id),
@@ -119,7 +122,7 @@ export default function TemplatesPage() {
 
      const loadTemplates = async () => {
           try {
-               const response = await customFetch('inventory/templates');
+               const response = await customFetch(`inventory/templates?branchid=${branchid}&employeeid=${employeeid}`);
                const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
                const mappedTemplates = (data || []).map((template: any) => ({
                     id: template.id?.toString() || String(template.id),
@@ -211,6 +214,7 @@ export default function TemplatesPage() {
                          quantity: item.quantity
                     })),
                     employeeid,
+                    branchid,
                     testId: templateForm.testId
                };
 
@@ -237,7 +241,7 @@ export default function TemplatesPage() {
                setShowAddModal(true);
                const templateTestId = String(template.testId);
                const matchingTest = tests.find(test => String(test.id) == templateTestId);
-               const itemsResponse = await customFetch(`inventory/templates/${template.id}/items`);
+               const itemsResponse = await customFetch(`inventory/templates/${template.id}/items?branchid=${branchid}&employeeid=${employeeid}`);
                const itemsData = Array.isArray(itemsResponse) ? itemsResponse : (itemsResponse?.data || []);
 
                const mappedItems = (itemsData || []).map((item: any) => ({
@@ -276,7 +280,8 @@ export default function TemplatesPage() {
                          quantity: item.quantity
                     })),
                     testId: templateForm.testId,
-                    employeeid
+                    employeeid,
+                    branchid
                };
 
                const resp = await customPost(`inventory/templates/${selectedTemplate.id}`, 'PUT', templateData);
@@ -300,7 +305,7 @@ export default function TemplatesPage() {
           if (!confirm('Are you sure you want to delete this template?')) return;
 
           try {
-               const resp = await customPost(`inventory/templates/${templateId}`, 'DELETE', {});
+               const resp = await customPost(`inventory/templates/${templateId}`, 'DELETE', { branchid, employeeid });
                if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
                     toast.success(resp.message || 'Template deleted');
                     await loadTemplates();

@@ -50,7 +50,8 @@ export default function DailySalesTrend() {
     const [error, setError] = useState<string | null>(null);
     const [view, setView] = useState<"line" | "bar" | "area">("line");
 
-    const { branchid } = useApplicationSettings().applicationsettings || {};
+    const { branchid, user } = useApplicationSettings().applicationsettings || {};
+    const employeeid = user?.employeeid;
 
     const getInitialDates = () => {
         const endDateObj = new Date();
@@ -66,9 +67,15 @@ export default function DailySalesTrend() {
     const [startDate, setStartDate] = useState<string>(initialDates.startDate);
     const [endDate, setEndDate] = useState<string>(initialDates.endDate);
 
-    const fetchData = useCallback(async (fetchStartDate: string, fetchEndDate: string, currentBranchId?: string) => {
+    const fetchData = useCallback(async (fetchStartDate: string, fetchEndDate: string, currentBranchId?: string, currentEmployeeId?: number) => {
         if (!currentBranchId) {
             setError("Branch ID is not available. Please select a branch.");
+            setData([]);
+            setLoading(false);
+            return;
+        }
+        if (!currentEmployeeId) {
+            setError("Employee ID is not available. Please log in again.");
             setData([]);
             setLoading(false);
             return;
@@ -89,7 +96,7 @@ export default function DailySalesTrend() {
         setLoading(true);
         setError(null);
         try {
-            const url = `financials/billing/summary?key=dailySalesTrend&startDate=${fetchStartDate}&endDate=${fetchEndDate}&branchid=${currentBranchId}`;
+            const url = `financials/billing/summary?key=dailySalesTrend&startDate=${fetchStartDate}&endDate=${fetchEndDate}&branchid=${currentBranchId}&employeeid=${currentEmployeeId}`;
             const response = await customFetch(url);
 
             if (response && Array.isArray(response)) {
@@ -131,13 +138,13 @@ export default function DailySalesTrend() {
     }, []);
 
     useEffect(() => {
-        if (branchid) {
-            fetchData(startDate, endDate, branchid);
+        if (branchid && employeeid) {
+            fetchData(startDate, endDate, branchid, employeeid);
         } else {
             setLoading(false);
-            setError("Branch information is not loaded yet.");
+            setError("Branch and employee information is not loaded yet.");
         }
-    }, [fetchData, startDate, endDate, branchid]);
+    }, [fetchData, startDate, endDate, branchid, employeeid]);
 
     const handleViewToggle = (newView: "line" | "bar" | "area") => {
         setView(newView);
@@ -150,6 +157,11 @@ export default function DailySalesTrend() {
         const { startDate: defaultStartDate, endDate: defaultEndDate } = getInitialDates();
         setStartDate(defaultStartDate);
         setEndDate(defaultEndDate);
+    };
+
+    const handleBreakdownClick = (entry: SalesDataEntry) => {
+        // TODO: Implement detailed breakdown modal or navigation
+        alert(`Breakdown for ${formatDateForTable(entry.date)}:\n\nTotal Cost: ${currencyFormatter.format(entry.totalCost)}\nAccrued Revenue: ${currencyFormatter.format(entry.accrued_revenue)}\nActual Revenue: ${currencyFormatter.format(entry.actual_revenue)}\nExpenses: ${currencyFormatter.format(entry.total_expenses)}\nDiscount: ${currencyFormatter.format(entry.total_discount)}\nNet Revenue: ${currencyFormatter.format(entry.net_revenue)}\nOutstanding: ${currencyFormatter.format(entry.outstanding_debt)}\nRefunded: ${currencyFormatter.format(entry.totalRefunded)}`);
     };
 
     const totalPositiveRevenue = useMemo(() => data.reduce((sum, entry) => entry.net_revenue > 0 ? sum + entry.net_revenue : sum, 0), [data]);
@@ -433,6 +445,7 @@ export default function DailySalesTrend() {
                                     <th scope="col" className="py-2">Refunded</th>
                                     <th scope="col" className="py-2">Change</th>
                                     <th scope="col" className="py-2" title="it represent % of net revenue for that period sales">% </th>
+                                    <th scope="col" className="py-2 d-print-none">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -461,6 +474,16 @@ export default function DailySalesTrend() {
                                                 )}
                                             </td>
                                             <td className="py-2 text-muted">{percentageOfTotal}%</td>
+                                            <td className="py-2 d-print-none">
+                                                <button
+                                                    className="btn btn-sm btn-outline-primary"
+                                                    onClick={() => handleBreakdownClick(entry)}
+                                                    title="View detailed breakdown"
+                                                >
+                                                    <RiBarChartBoxLine size={16} className="me-1" />
+                                                    Breakdown
+                                                </button>
+                                            </td>
                                         </tr>
                                     );
                                 })}
@@ -476,6 +499,7 @@ export default function DailySalesTrend() {
                                     <td className="py-2">{currencyFormatter.format(data.reduce((sum, entry) => sum + entry.totalRefunded, 0))}</td>
                                     <td className="py-2"></td>
                                     <td className="py-2">100.0%</td>
+                                    <td className="py-2 d-print-none"></td>
                                 </tr>
                             </tbody>
                         </table>

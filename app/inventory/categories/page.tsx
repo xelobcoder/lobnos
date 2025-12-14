@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { RiPriceTagLine, RiAddLine, RiEditLine, RiDeleteBinLine, RiEyeLine } from '@remixicon/react';
 import PrimeTable from '../../../components/accessories/Datatables/PrimeTable';
 import { customFetch, customPost } from '../../../components/Auth/customFetch';
+import { useApplicationSettings } from '../../../components/Auth/useApplicationContext';
 import { toast } from 'react-toastify';
 
 
@@ -15,6 +16,8 @@ interface InventoryCategory {
 }
 
 export default function InventoryCategoriesPage() {
+     const { branchid, user } = useApplicationSettings().applicationsettings || {};
+     const employeeid = user?.employeeid;
      const [categories, setCategories] = useState<InventoryCategory[]>([]);
      const [showAddModal, setShowAddModal] = useState(false);
      const [selectedCategory, setSelectedCategory] = useState<InventoryCategory | null>(null);
@@ -28,13 +31,15 @@ export default function InventoryCategoriesPage() {
 
      // Load categories from API
      useEffect(() => {
-          loadCategories();
-     }, []);
+          if (branchid && employeeid) {
+               loadCategories();
+          }
+     }, [branchid, employeeid]);
 
      const loadCategories = async () => {
           try {
                setLoading(true);
-               const response = await customFetch('inventory/categories');
+               const response = await customFetch(`inventory/categories?branchid=${branchid}&employeeid=${employeeid}`);
                const data = Array.isArray(response) ? response : (response?.data || response?.result || []);
                const mappedCategories = (data || []).map((cat: any) => ({
                     id: cat.id?.toString() || String(cat.id),
@@ -56,6 +61,8 @@ export default function InventoryCategoriesPage() {
                const params = new URLSearchParams({
                     page: page.toString(),
                     count: count.toString(),
+                    branchid: branchid?.toString() || '',
+                    employeeid: employeeid?.toString() || '',
                });
 
                if (sortby) {
@@ -142,7 +149,9 @@ export default function InventoryCategoriesPage() {
                setLoading(true);
                const categoryData = {
                     name: categoryForm.name,
-                    description: categoryForm.description
+                    description: categoryForm.description,
+                    branchid: branchid,
+                    employeeid: employeeid
                };
 
                const resp = await customPost('inventory/categories', 'POST', categoryData);
@@ -182,7 +191,9 @@ export default function InventoryCategoriesPage() {
                setLoading(true);
                const categoryData = {
                     name: categoryForm.name,
-                    description: categoryForm.description
+                    description: categoryForm.description,
+                    branchid: branchid,
+                    employeeid: employeeid
                };
 
                const resp = await customPost(`inventory/categories/${selectedCategory.id}`, 'PUT', categoryData);
@@ -209,7 +220,7 @@ export default function InventoryCategoriesPage() {
 
           try {
                setLoading(true);
-               const resp = await customPost(`inventory/categories/${categoryId}`, 'DELETE', {});
+               const resp = await customPost(`inventory/categories/${categoryId}`, 'DELETE', { branchid, employeeid });
                if (resp && (resp.success === true || resp.status === 'success' || resp.statusCode === 200)) {
                     toast.success(resp.message || 'Category deleted');
                     await loadCategories(); // Reload categories

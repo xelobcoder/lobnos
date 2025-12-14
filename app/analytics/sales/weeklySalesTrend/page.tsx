@@ -58,7 +58,8 @@ export default function WeeklySalesTrend() {
     const [error, setError] = useState<string | null>(null);
     const [view, setView] = useState<"bar" | "line" | "area">("bar");
 
-    const { branchid } = useApplicationSettings().applicationsettings || {};
+    const { branchid, user } = useApplicationSettings().applicationsettings || {};
+    const employeeid = user?.employeeid;
 
     const [year, setYear] = useState<number>(new Date().getFullYear());
 
@@ -69,10 +70,16 @@ export default function WeeklySalesTrend() {
             setLoading(false);
             return;
         }
+        if (!employeeid) {
+            setError("Employee ID is not available. Please log in again.");
+            setData([]);
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         setError(null);
         try {
-            const url = `financials/billing/summary?key=weeklySalesTrend&year=${fetchYear}&branchid=${branchid}`;
+            const url = `financials/billing/summary?key=weeklySalesTrend&year=${fetchYear}&branchid=${branchid}&employeeid=${employeeid}`;
             const response: WeeklySalesAPIEntry[] = await customFetch(url);
 
             if (response && Array.isArray(response)) {
@@ -109,10 +116,15 @@ export default function WeeklySalesTrend() {
         } finally {
             setLoading(false);
         }
-    }, [branchid]);
+    }, [branchid, employeeid]);
 
     useEffect(() => {
-        fetchData(year);
+        if (branchid && employeeid) {
+            fetchData(year);
+        } else {
+            setLoading(false);
+            setError("Branch and employee information is not loaded yet.");
+        }
     }, [fetchData, year]);
 
     const handleViewToggle = (newView: "bar" | "line" | "area") => {
