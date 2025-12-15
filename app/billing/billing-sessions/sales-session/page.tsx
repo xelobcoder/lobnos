@@ -187,17 +187,15 @@ export default function SessionsTable() {
 			Header: 'Actions',
 			accessor: 'sessionid',
 			Cell: ({ row }: { row: { original: SessionData } }) => (
-				!row.original.sessionendedon && (
-					<Button
-						variant="outline-danger"
-						size="sm"
-						onClick={() => handleEndSessionClick(row.original.sessionid)}
-						disabled={isLoading}
-						title="End Session"
-					>
-						End Session
-					</Button>
-				)
+				<Button
+					variant={row.original.sessionendedon ? "outline-primary" : "outline-danger"}
+					size="sm"
+					onClick={() => handleEndSessionClick(row.original.sessionid)}
+					disabled={isLoading}
+					title={row.original.sessionendedon ? "View Details" : "End Session"}
+				>
+					{row.original.sessionendedon ? ' Details' : 'End Session'}
+				</Button>
 			),
 			id: 'actions',
 		},
@@ -216,17 +214,17 @@ export default function SessionsTable() {
 	return (
 		<div>
 			<Row>
-				<div className='d-flex justify-content-end'>
-					<button onClick={() => { router.push(`/billing/billing-sessions/create-new-sales-session`) }} className='btn btn-primary btn-sm'>
-						<RiAddBoxFill />
-						Create Sales Session
-					</button>
-				</div>
 				<Col>
 					<div className={styles.tableContainer}>
 						<div className="d-flex justify-content-between align-items-center mb-3">
 							<h2 className={styles.tableTitle}>Billing Sessions</h2>
-							{isLoading && <Spinner animation="border" size="sm" variant="primary" />}
+							<div className="d-flex align-items-center gap-3">
+								{isLoading && <Spinner animation="border" size="sm" variant="primary" />}
+								<button onClick={() => { router.push(`/billing/billing-sessions/create-new-sales-session`) }} className='btn btn-primary btn-sm'>
+									<RiAddBoxFill />
+									Create Sales Session
+								</button>
+							</div>
 						</div>
 
 						{error && (
@@ -261,6 +259,7 @@ export default function SessionsTable() {
 				isLoading={isLoading}
 				onConfirm={fetchSessions}
 				employeesList={employeesList}
+				isSessionEnded={!!sessions.find(s => s.sessionid === selectedSessionId)?.sessionendedon}
 			/>
 		</div>
 	);

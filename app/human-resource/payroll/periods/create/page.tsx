@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { customPost } from '../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
@@ -21,12 +21,34 @@ export default function CreatePayrollPeriodPage() {
 
      const [loading, setLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
+     const [referrer, setReferrer] = useState<string>('');
      const [formData, setFormData] = useState({
           period_name: '',
           start_date: '',
           end_date: '',
           status: 'draft'
      });
+
+     useEffect(() => {
+          if (typeof window !== 'undefined') {
+               const ref = document.referrer;
+               if (ref && ref.includes(window.location.origin)) {
+                    setReferrer(ref);
+               }
+          }
+     }, []);
+
+     const handleGoBack = () => {
+          if (typeof window !== 'undefined' && window.history.length > 1) {
+               if (referrer && referrer !== window.location.href) {
+                    router.back();
+               } else {
+                    router.push('/human-resource/payroll/periods');
+               }
+          } else {
+               router.push('/human-resource/payroll/periods');
+          }
+     };
 
      const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
           const { name, value } = e.target;
@@ -55,11 +77,14 @@ export default function CreatePayrollPeriodPage() {
 
      return (
           <div className="container-fluid px-4 py-3">
-               {/* Page Header */}
                <div className="d-flex align-items-center mb-4">
-                    <Link href="/human-resource/payroll/periods" className="btn btn-outline-secondary btn-sm me-3">
+                    <button
+                         onClick={handleGoBack}
+                         className="btn btn-outline-secondary btn-sm me-3 d-flex align-items-center"
+                         type="button"
+                    >
                          <RiArrowLeftLine size={18} />
-                    </Link>
+                    </button>
                     <div className="d-flex align-items-center">
                          <RiCalendarLine size={28} style={{ color: COLOR_ACCENT }} className="me-2" />
                          <div>
@@ -69,7 +94,6 @@ export default function CreatePayrollPeriodPage() {
                     </div>
                </div>
 
-               {/* Form */}
                <div className="row">
                     <div className="col-lg-8 col-xl-6">
                          <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-body-bg)' }}>
@@ -173,7 +197,6 @@ export default function CreatePayrollPeriodPage() {
                          </div>
                     </div>
 
-                    {/* Help Sidebar */}
                     <div className="col-lg-4 col-xl-6 mt-4 mt-lg-0">
                          <div className="border rounded p-4" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                               <h6 className="fw-bold mb-3">Payroll Period Guidelines</h6>

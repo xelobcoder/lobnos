@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { RiLoader4Line, RiErrorWarningLine, RiArrowLeftLine, RiMoneyDollarCircleLine, RiEditLine, RiFileTextLine, RiCheckboxCircleLine, RiCloseCircleLine, RiCalendarLine } from '@remixicon/react';
-import { currencyFormatter, customFetch } from '../../../../../components/Auth/customFetch';
+import { RiLoader4Line, RiErrorWarningLine, RiArrowLeftLine, RiMoneyDollarCircleLine, RiEditLine, RiFileTextLine, RiCheckboxCircleLine, RiCloseCircleLine, RiCalendarLine, RiPlayCircleLine, RiPauseCircleLine, RiDeleteBinLine } from '@remixicon/react';
+import { currencyFormatter, customFetch, customPost } from '../../../../../components/Auth/customFetch';
 import { useApplicationSettings } from '../../../../../components/Auth/useApplicationContext';
 
 interface TaxBand {
@@ -25,12 +25,13 @@ interface TaxConfiguration {
      employer_ssnit_rate: number;
      tier3_employee_rate: number;
      tier3_employer_rate: number;
-     ssnit_ceiling: number | null;
-     pension_ceiling: number | null;
+     ssnit_ceiling?: number | null;
+     pension_ceiling?: number | null;
      is_active: boolean;
      created_at: string;
      updated_at: string;
      created_by: number;
+     created_by_name?: string;
 }
 
 const COLOR_ACCENT = 'oklch(0.646 0.222 41.116)';
@@ -44,9 +45,11 @@ export default function TaxConfigurationDetailPage() {
      const { applicationsettings } = useApplicationSettings();
      const { user } = applicationsettings || {};
 
-     const [config, setConfig] = useState<TaxConfiguration | null>(null);
      const [loading, setLoading] = useState(true);
+     const [config, setConfig] = useState<TaxConfiguration | null>(null);
      const [error, setError] = useState<string | null>(null);
+     const [togglingStatus, setTogglingStatus] = useState(false);
+     const [deleting, setDeleting] = useState(false);
 
      useEffect(() => {
           if (configId) {
@@ -67,6 +70,52 @@ export default function TaxConfigurationDetailPage() {
                setError(err?.message || 'Error fetching tax configuration');
           } finally {
                setLoading(false);
+          }
+     };
+
+     const toggleStatus = async () => {
+          if (!config) return;
+
+          try {
+               setTogglingStatus(true);
+               const response = await customPost(`payroll/tax-configurations/${config.id}/status`, 'PATCH', {
+                    is_active: !config.is_active
+               });
+
+               if (response?.status === 'success' && response?.statusCode === 200) {
+                    setConfig(prev => prev ? { ...prev, is_active: !prev.is_active } : null);
+                    // Refresh the page to update any cached data
+                    await fetchTaxConfiguration();
+               } else {
+                    setError('Failed to update configuration status');
+               }
+          } catch (err: any) {
+               setError(err?.message || 'Error updating configuration status');
+          } finally {
+               setTogglingStatus(false);
+          }
+     };
+
+     const deleteConfiguration = async () => {
+          if (!config) return;
+
+          if (!confirm(`Are you sure you want to delete the tax configuration for ${config.tax_year}? This action cannot be undone.`)) {
+               return;
+          }
+
+          try {
+               setDeleting(true);
+               const response = await customPost(`payroll/tax-configurations/${config.id}`, 'DELETE', {});
+
+               if (response?.status === 'success' && response?.statusCode === 200) {
+                    router.push('/human-resource/payroll/tax-configurations');
+               } else {
+                    setError('Failed to delete configuration');
+               }
+          } catch (err: any) {
+               setError(err?.message || 'Error deleting configuration');
+          } finally {
+               setDeleting(false);
           }
      };
 
@@ -124,6 +173,21 @@ export default function TaxConfigurationDetailPage() {
                          <span className={`badge fs-6 ${config.is_active ? 'bg-success' : 'bg-secondary'}`}>
                               {config.is_active ? 'Active' : 'Inactive'}
                          </span>
+                         <button
+                              onClick={toggleStatus}
+                              disabled={togglingStatus}
+                              className={`btn btn-sm d-flex align-items-center ${config.is_active ? 'btn-outline-warning' : 'btn-outline-success'}`}
+                              title={config.is_active ? 'Deactivate Configuration' : 'Activate Configuration'}
+                         >
+                              {togglingStatus ? (
+                                   <RiLoader4Line size={16} className="animate-spin me-1" />
+                              ) : config.is_active ? (
+                                   <RiPauseCircleLine size={16} className="me-1" />
+                              ) : (
+                                   <RiPlayCircleLine size={16} className="me-1" />
+                              )}
+                              {config.is_active ? 'Deactivate' : 'Activate'}
+                         </button>
                          <Link
                               href={`/human-resource/payroll/tax-configurations/${config.id}/edit`}
                               className="btn btn-primary btn-sm d-flex align-items-center"
@@ -131,6 +195,19 @@ export default function TaxConfigurationDetailPage() {
                               <RiEditLine size={16} className="me-1" />
                               Edit
                          </Link>
+                         <button
+                              onClick={deleteConfiguration}
+                              disabled={deleting || config.is_active}
+                              className="btn btn-outline-danger btn-sm d-flex align-items-center"
+                              title={config.is_active ? 'Cannot delete active configuration' : 'Delete Configuration'}
+                         >
+                              {deleting ? (
+                                   <RiLoader4Line size={16} className="animate-spin me-1" />
+                              ) : (
+                                   <RiDeleteBinLine size={16} className="me-1" />
+                              )}
+                              Delete
+                         </button>
                     </div>
                </div>
 
@@ -272,7 +349,7 @@ export default function TaxConfigurationDetailPage() {
                                         <div className="border rounded p-3" style={{ backgroundColor: 'var(--bs-tertiary-bg)' }}>
                                              <div className="text-muted small mb-1">Created</div>
                                              <div className="fw-bold">{formatDate(config.created_at)}</div>
-                                             <div className="text-muted small">by User ID: {config.created_by}</div>
+                                             <div className="text-muted small">by {config.created_by_name || `User ID: ${config.created_by}`}</div>
                                         </div>
                                    </div>
                                    <div className="col-12">

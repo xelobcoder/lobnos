@@ -1,6 +1,8 @@
-const { createServer } = require('http')
+const { createServer } = require('https')
 const { parse } = require('url')
 const next = require('next')
+const fs = require('fs')
+const path = require('path')
 
 const dev = process.env.NODE_ENV !== 'production'
 const hostname = process.env.HOST || 'localhost'
@@ -9,8 +11,13 @@ const app = next({ dev, hostname, port })
 
 const handle = app.getRequestHandler()
 
+const httpsOptions = {
+	key: fs.readFileSync(path.join(__dirname, 'certificates', 'localhost-key.pem')),
+	cert: fs.readFileSync(path.join(__dirname, 'certificates', 'localhost.pem')),
+}
+
 app.prepare().then(() => {
-	createServer(async (req, res) => {
+	createServer(httpsOptions, async (req, res) => {
 		try {
 			const parsedUrl = parse(req.url, true)
 			const { pathname, query } = parsedUrl
@@ -32,6 +39,6 @@ app.prepare().then(() => {
 			process.exit(1)
 		})
 		.listen(port, () => {
-			console.log(`> Ready on http://${hostname}:${port}`)
+			console.log(`> Ready on https://${hostname}:${port}`)
 		})
 })

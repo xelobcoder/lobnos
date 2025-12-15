@@ -19,6 +19,7 @@
     "@ckeditor/ckeditor5-react": "^6.2.0",
     "@hookform/resolvers": "^3.10.0",
     "@remixicon/react": "^4.6.0",
+    "@zxing/library": "^0.21.3",
     "bootstrap": "^5.3.3",
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.13",
